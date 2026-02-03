@@ -69,17 +69,25 @@ except ImportError:
 
 # Import DSPy for enhanced prompting
 try:
+    from dspy_integration import DSPY_AVAILABLE, get_global_dspy_instance, initialize_dspy
     import dspy
     from dspy.teleprompt import BootstrapFewShot
     from dspy.predict import Predict
-    DSPY_AVAILABLE = True
-    logger.info("DSPy available for enhanced Z3-LeanAIDE bridging")
+    logger.info("DSPy available through global integration for enhanced Z3-LeanAIDE bridging")
 except ImportError:
-    dspy = None
-    BootstrapFewShot = None
-    Predict = None
-    DSPY_AVAILABLE = False
-    logger.warning("DSPy not available - using standard Z3-LeanAIDE bridging")
+    # Fallback to local import if global module not available
+    try:
+        import dspy
+        from dspy.teleprompt import BootstrapFewShot
+        from dspy.predict import Predict
+        DSPY_AVAILABLE = True
+        logger.info("DSPy available for enhanced Z3-LeanAIDE bridging")
+    except ImportError:
+        dspy = None
+        BootstrapFewShot = None
+        Predict = None
+        DSPY_AVAILABLE = False
+        logger.warning("DSPy not available - using standard Z3-LeanAIDE bridging")
 
 
 class VerificationStrategy(Enum):

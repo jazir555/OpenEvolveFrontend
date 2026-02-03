@@ -41,6 +41,25 @@ import uuid
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Comprehensive Decomposition Engine
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 # ============================================================================
 # ENUMS AND TYPE DEFINITIONS
 # ============================================================================
@@ -1027,61 +1046,82 @@ class ComprehensiveDecompositionEngine:
     ) -> DecompositionPlan:
         """
         Decompose a problem into sub-problems using optimal strategy.
-        
+
         Args:
             problem: Problem to decompose
             context: Optional decomposition context
             strategy: Optional specific strategy to use
-        
+
         Returns:
             DecompositionPlan with sub-problems and metadata
         """
-        context = context or DecompositionContext(
-            domain="general",
-            available_strategies=list(self.strategies.keys()),
-            constraints=[]
-        )
-        
-        # Check cache
-        cache_key = f"{problem.id}_{strategy.value if strategy else 'auto'}"
-        if self.enable_caching and cache_key in self._cache:
-            logger.info(f"Returning cached decomposition for {problem.id}")
-            return self._cache[cache_key]
-        
-        # Select or use specified strategy
-        if strategy is None:
-            recommendation = self.select_strategy(problem, context)
-            strategy = recommendation.strategy
-            logger.info(f"Selected strategy: {strategy.value} (confidence: {recommendation.confidence:.2f})")
-        else:
-            logger.info(f"Using specified strategy: {strategy.value}")
-        
-        # Execute decomposition
-        strategy_impl = self.strategies.get(strategy)
-        if not strategy_impl:
-            raise ValueError(f"Strategy {strategy.value} not registered")
-        
-        start_time = time.time()
-        plan = strategy_impl.decompose(problem, context)
-        decomposition_time = time.time() - start_time
-        
-        # Post-process plan
-        plan = self._post_process_plan(plan, context)
-        
-        # Calculate metrics
-        metrics = plan.calculate_metrics()
-        logger.info(f"Decomposition completed in {decomposition_time:.2f}s: {metrics}")
-        
-        # Update history and performance
-        self.decomposition_history.append(plan)
-        if plan.quality_score > 0:
-            self.strategy_performance[strategy].append(plan.quality_score)
-        
-        # Cache result
-        if self.enable_caching:
-            self._cache[cache_key] = plan
-        
-        return plan
+        start_time_total = time.time()
+        success = False
+
+        try:
+            context = context or DecompositionContext(
+                domain="general",
+                available_strategies=list(self.strategies.keys()),
+                constraints=[]
+            )
+
+            # Check cache
+            cache_key = f"{problem.id}_{strategy.value if strategy else 'auto'}"
+            if self.enable_caching and cache_key in self._cache:
+                logger.info(f"Returning cached decomposition for {problem.id}")
+                return self._cache[cache_key]
+
+            # Select or use specified strategy
+            if strategy is None:
+                recommendation = self.select_strategy(problem, context)
+                strategy = recommendation.strategy
+                logger.info(f"Selected strategy: {strategy.value} (confidence: {recommendation.confidence:.2f})")
+            else:
+                logger.info(f"Using specified strategy: {strategy.value}")
+
+            # Execute decomposition
+            strategy_impl = self.strategies.get(strategy)
+            if not strategy_impl:
+                raise ValueError(f"Strategy {strategy.value} not registered")
+
+            start_time = time.time()
+            plan = strategy_impl.decompose(problem, context)
+            decomposition_time = time.time() - start_time
+
+            # Post-process plan
+            plan = self._post_process_plan(plan, context)
+
+            # Calculate metrics
+            metrics = plan.calculate_metrics()
+            logger.info(f"Decomposition completed in {decomposition_time:.2f}s: {metrics}")
+
+            # Update history and performance
+            self.decomposition_history.append(plan)
+            if plan.quality_score > 0:
+                self.strategy_performance[strategy].append(plan.quality_score)
+
+            # Cache result
+            if self.enable_caching:
+                self._cache[cache_key] = plan
+
+            success = True
+            total_time = time.time() - start_time_total
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful decomposition
+            self._extract_decomposition_knowledge("decompose", problem.id, strategy, plan)
+            self._track_decomposition_performance("decompose", True, total_time, strategy.value, len(plan.sub_problems))
+
+            return plan
+
+        except Exception as e:
+            total_time = time.time() - start_time_total
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_decomposition_alerts("decompose", False, problem.id, str(e))
+            self._track_decomposition_performance("decompose", False, total_time, "unknown", 0)
+
+            logger.error(f"Decomposition failed for problem {problem.id}: {e}")
+            raise
     
     def _post_process_plan(
         self, 
@@ -1266,7 +1306,7 @@ class ComprehensiveDecompositionEngine:
                     logger.error(f"Failed to decompose problem {problem.id}: {e}")
         
         return plans
-    
+
     def get_statistics(self) -> Dict[str, Any]:
         """Get decomposition engine statistics."""
         return {
@@ -1281,10 +1321,124 @@ class ComprehensiveDecompositionEngine:
             },
             'cache_size': len(self._cache),
             'avg_subproblems': (
-                sum(len(p.sub_problems) for p in self.decomposition_history) / 
+                sum(len(p.sub_problems) for p in self.decomposition_history) /
                 len(self.decomposition_history) if self.decomposition_history else 0
             )
         }
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Comprehensive Decomposition
+    # =========================================================================
+
+    def _trigger_decomposition_alerts(
+        self,
+        operation: str,
+        success: bool,
+        problem_id: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for decomposition failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                alert_manager.create_alert(
+                    title=f"Decomposition Alert: {operation}",
+                    description=f"Decomposition operation '{operation}' failed" +
+                                 (f" for problem '{problem_id}'" if problem_id else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=AlertSeverity.HIGH.value,
+                    source="comprehensive_decomposition_engine",
+                    component="decomposition",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger Decomposition alert: {e}")
+
+    def _extract_decomposition_knowledge(
+        self,
+        operation: str,
+        problem_id: str,
+        strategy: 'DecompositionStrategy',
+        plan: 'DecompositionPlan'
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract decomposition knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"decomp_{operation}_{problem_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="decomposition_execution",
+                source_component="comprehensive_decomposition_engine",
+                title=f"Decomposition: {operation} - {problem_id}",
+                content={
+                    "operation": operation,
+                    "problem_id": problem_id,
+                    "strategy": strategy.value if strategy else "unknown",
+                    "num_subproblems": len(plan.sub_problems),
+                    "quality_score": plan.quality_score,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "complexity": plan.total_complexity,
+                    "total_effort_hours": plan.total_effort_hours
+                },
+                tags=["decomposition", operation, strategy.value if strategy else "unknown"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted Decomposition knowledge for {problem_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract Decomposition knowledge: {e}")
+            return False
+
+    def _track_decomposition_performance(
+        self,
+        operation: str,
+        success: bool,
+        duration_seconds: float,
+        strategy: str,
+        num_subproblems: int = 0
+    ):
+        """**ACTUAL INTEGRATION**: Track decomposition performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            quality = 1.0 if success else 0.0
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"decomp_{strategy}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "duration_seconds": duration_seconds,
+                    "num_subproblems": num_subproblems
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked Decomposition performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track Decomposition performance: {e}")
 
 
 # ============================================================================

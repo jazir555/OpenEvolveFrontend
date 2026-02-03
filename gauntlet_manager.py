@@ -25,6 +25,14 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for gauntlet resource allocation
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+
 # **BUBBLELABS INTEGRATION**: BubbleLab workflow visualization for gauntlets
 try:
     from bubblelabs_gauntlet_bubbles import (
@@ -736,3 +744,141 @@ Suggest improvements to make the gauntlet more effective. Return JSON with sugge
             "status_counts": status_counts,
             "bubblelabs_available": BUBBLELABS_AVAILABLE
         }
+    
+    # =========================================================================
+    # ADAPTIVE MDAP INTEGRATION - Complexity-based gauntlet configuration
+    # =========================================================================
+    
+    def create_adaptive_gauntlet(
+        self,
+        name: str,
+        content: str,
+        content_type: str = "general",
+        base_config: Optional[Dict[str, Any]] = None
+    ) -> Optional[GauntletDefinition]:
+        """
+        Create a gauntlet with adaptive configuration based on content complexity.
+        
+        Uses Adaptive MDAP to analyze content complexity and configure:
+        - Number of rounds
+        - Evaluator models
+        - Round rules
+        
+        Args:
+            name: Gauntlet name
+            content: Content to be evaluated
+            content_type: Type of content
+            base_config: Base configuration to extend
+            
+        Returns:
+            GauntletDefinition or None if creation fails
+        """
+        if not ADAPTIVE_MDAP_AVAILABLE:
+            logging.warning("Adaptive MDAP not available - using default gauntlet config")
+            return None
+        
+        try:
+            # Create sub-problem for complexity analysis
+            sp = SubProblem(
+                id=f"gauntlet-{name}",
+                description=content[:500],  # First 500 chars
+                domain=content_type,
+                depth=1,
+                dependencies=[],
+                metadata={"content_length": len(content), "gauntlet_name": name}
+            )
+            
+            # Classify complexity
+            from adaptive_mdap import TaskComplexityClassifier
+            classifier = TaskComplexityClassifier()
+            score = classifier.compute_complexity(sp)
+            complexity = score.overall_score
+            
+            # Configure gauntlet based on complexity
+            if complexity <= 0.3:
+                # Simple content - minimal gauntlet
+                num_rounds = 2
+                models = ["gpt-4o-mini"]
+            elif complexity <= 0.6:
+                # Medium complexity - standard gauntlet
+                num_rounds = 3
+                models = ["gpt-4o-mini", "gpt-4o"]
+            else:
+                # High complexity - comprehensive gauntlet
+                num_rounds = 4
+                models = ["gpt-4o", "claude-3-5-sonnet"]
+            
+            # Create rounds
+            from openevolve_structures import GauntletRoundRule
+            rounds = []
+            for i in range(num_rounds):
+                rounds.append(GauntletRoundRule(
+                    round_number=i + 1,
+                    models=models,
+                    aggregation_method="majority_vote" if complexity > 0.5 else "average"
+                ))
+            
+            # Create gauntlet
+            gauntlet = GauntletDefinition(
+                name=name,
+                rounds=rounds,
+                description=f"Adaptive gauntlet for {content_type} content (complexity: {complexity:.3f})",
+                generation_mode="multi_candidate_peer_review" if complexity > 0.5 else "single_candidate"
+            )
+            
+            # Store complexity metadata
+            gauntlet.metadata = {
+                "complexity_score": complexity,
+                "adaptive_config": True,
+                "num_rounds": num_rounds,
+                "models": models
+            }
+            
+            logging.info(
+                f"Created adaptive gauntlet '{name}' with complexity {complexity:.3f}, "
+                f"{num_rounds} rounds"
+            )
+            
+            return gauntlet
+            
+        except Exception as e:
+            logging.error(f"Failed to create adaptive gauntlet: {e}")
+            return None
+    
+    def get_complexity_for_gauntlet(
+        self,
+        content: str,
+        content_type: str = "general"
+    ) -> Optional[float]:
+        """
+        Get complexity score for gauntlet content.
+        
+        Args:
+            content: Content to analyze
+            content_type: Type of content
+            
+        Returns:
+            Complexity score (0.0-1.0) or None
+        """
+        if not ADAPTIVE_MDAP_AVAILABLE:
+            return None
+        
+        try:
+            sp = SubProblem(
+                id="gauntlet-complexity-check",
+                description=content[:500],
+                domain=content_type,
+                depth=1,
+                dependencies=[],
+                metadata={}
+            )
+            
+            from adaptive_mdap import TaskComplexityClassifier
+            classifier = TaskComplexityClassifier()
+            score = classifier.compute_complexity(sp)
+            
+            return score.overall_score
+            
+        except Exception as e:
+            logging.warning(f"Failed to compute gauntlet complexity: {e}")
+            return None

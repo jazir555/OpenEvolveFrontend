@@ -49,6 +49,25 @@ from crewai_state_management import (
 
 logger = logging.getLogger(__name__)
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for CrewAI MDAP MAKER Engine
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 
 # =============================================================================
 # DATA CLASSES
@@ -677,70 +696,209 @@ class CrewAIMAKEREngine:
         Returns:
             Tuple of (action_list, final_state, metrics)
         """
-        action_list: List[Any] = []
-        current_state = initial_state
-        total_votes = 0
-        total_red_flags = 0
-        start_time = time.time()
+        start_time_total = time.time()
+        success = False
+        workflow_id = self.workflow_id
 
-        for step in range(self.config.max_steps):
-            # Check stop condition
-            if stop_condition and stop_condition(current_state):
-                logger.info(f"Stop condition met at step {step}")
-                break
+        try:
+            action_list: List[Any] = []
+            current_state = initial_state
+            total_votes = 0
+            total_red_flags = 0
+            start_time = time.time()
 
-            # Generate prompt for current state
-            prompt = prompt_template(current_state)
-
-            # Perform voting
-            try:
-                voting_result = self.voting_engine.do_voting(
-                    prompt=prompt,
-                    agents=self.agents,
-                    context=context,
-                )
-
-                total_votes += voting_result.rounds
-                total_red_flags += voting_result.red_flags
-
-                if voting_result.winner is None:
-                    logger.error(f"Voting failed at step {step}")
+            for step in range(self.config.max_steps):
+                # Check stop condition
+                if stop_condition and stop_condition(current_state):
+                    logger.info(f"Stop condition met at step {step}")
                     break
 
-                # Apply action to get next state
-                action = voting_result.winner
+                # Generate prompt for current state
+                prompt = prompt_template(current_state)
 
-                # Extract next state if available
-                if isinstance(action, dict) and "next_state" in action:
-                    next_state = action["next_state"]
-                    action = action.get("action")
-                else:
-                    next_state = current_state  # State unchanged
+                # Perform voting
+                try:
+                    voting_result = self.voting_engine.do_voting(
+                        prompt=prompt,
+                        agents=self.agents,
+                        context=context,
+                    )
 
-                # Append action
-                action_list.append(action)
-                current_state = next_state
+                    total_votes += voting_result.rounds
+                    total_red_flags += voting_result.red_flags
 
-                # Progress callback
-                if progress_callback:
-                    progress_callback(step + 1, current_state)
+                    if voting_result.winner is None:
+                        logger.error(f"Voting failed at step {step}")
+                        break
 
-            except (RuntimeError, ValueError, TypeError, KeyError) as e:
-                logger.error(f"Error at step {step}: {e}", exc_info=True)
-                break
+                    # Apply action to get next state
+                    action = voting_result.winner
 
-        total_time = time.time() - start_time
+                    # Extract next state if available
+                    if isinstance(action, dict) and "next_state" in action:
+                        next_state = action["next_state"]
+                        action = action.get("action")
+                    else:
+                        next_state = current_state  # State unchanged
 
-        metrics = MAKERRunMetrics(
-            workflow_id=self.workflow_id,
-            total_steps=len(action_list),
-            total_votes=total_votes,
-            red_flags=total_red_flags,
-            total_time=total_time,
-            avg_confidence=0.95 if action_list else 0.0,
-        )
+                    # Append action
+                    action_list.append(action)
+                    current_state = next_state
 
-        return action_list, current_state, metrics
+                    # Progress callback
+                    if progress_callback:
+                        progress_callback(step + 1, current_state)
+
+                except (RuntimeError, ValueError, TypeError, KeyError) as e:
+                    logger.error(f"Error at step {step}: {e}", exc_info=True)
+                    break
+
+            total_time = time.time() - start_time_total
+
+            metrics = MAKERRunMetrics(
+                workflow_id=workflow_id,
+                total_steps=len(action_list),
+                total_votes=total_votes,
+                red_flags=total_red_flags,
+                total_time=total_time,
+                avg_confidence=0.95 if action_list else 0.0,
+            )
+
+            success = True
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful generation
+            self._extract_crewai_maker_knowledge("generate_solution", workflow_id, metrics)
+            self._track_crewai_maker_performance("generate_solution", True, total_time, len(action_list))
+
+            return action_list, current_state, metrics
+
+        except Exception as e:
+            total_time = time.time() - start_time_total
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_crewai_maker_alerts("generate_solution", False, workflow_id, str(e))
+            self._track_crewai_maker_performance("generate_solution", False, total_time, 0)
+
+            logger.error(f"CrewAI MAKER solution generation failed for {workflow_id}: {e}")
+            raise
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for CrewAI MAKER Engine
+    # =========================================================================
+
+    def _trigger_crewai_maker_alerts(
+        self,
+        operation: str,
+        success: bool,
+        workflow_id: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for CrewAI MAKER failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                alert_manager.create_alert(
+                    title=f"CrewAI MAKER Alert: {operation}",
+                    description=f"CrewAI MAKER operation '{operation}' failed" +
+                                 (f" for workflow '{workflow_id}'" if workflow_id else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=AlertSeverity.HIGH.value,
+                    source="crewai_mdap_maker_engine",
+                    component="crewai_maker",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger CrewAI MAKER alert: {e}")
+
+    def _extract_crewai_maker_knowledge(
+        self,
+        operation: str,
+        workflow_id: str,
+        metrics: 'MAKERRunMetrics'
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract CrewAI MAKER knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            from datetime import datetime
+
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"crewai_maker_{operation}_{workflow_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="crewai_maker_execution",
+                source_component="crewai_mdap_maker_engine",
+                title=f"CrewAI MAKER: {operation} - {workflow_id}",
+                content={
+                    "operation": operation,
+                    "workflow_id": workflow_id,
+                    "total_steps": metrics.total_steps,
+                    "total_votes": metrics.total_votes,
+                    "red_flags": metrics.red_flags,
+                    "total_time": metrics.total_time,
+                    "avg_confidence": metrics.avg_confidence,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "voting_threshold": self.voting_threshold,
+                    "max_decomposition_depth": self.max_decomposition_depth
+                },
+                tags=["crewai_maker", operation, "multi_agent", "voting"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted CrewAI MAKER knowledge for {workflow_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract CrewAI MAKER knowledge: {e}")
+            return False
+
+    def _track_crewai_maker_performance(
+        self,
+        operation: str,
+        success: bool,
+        duration_seconds: float,
+        steps_completed: int = 0
+    ):
+        """**ACTUAL INTEGRATION**: Track CrewAI MAKER performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            from datetime import datetime
+
+            tracker = StrategyPerformanceTracker()
+
+            quality = 1.0 if success else 0.0
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"crewai_maker_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "duration_seconds": duration_seconds,
+                    "steps_completed": steps_completed
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked CrewAI MAKER performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track CrewAI MAKER performance: {e}")
 
 
 # =============================================================================

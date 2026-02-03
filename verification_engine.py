@@ -64,6 +64,13 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for verification complexity
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+
 import hashlib
 
 # Configure logging

@@ -621,6 +621,122 @@ def reset_alert_manager():
     _global_alert_manager = None
 
 
+# =============================================================================
+# ADAPTIVE MDAP ALERT HELPERS
+# =============================================================================
+
+def create_adaptive_classification_alert(
+    subproblem_id: str,
+    complexity_score: float,
+    latency_ms: float,
+    threshold_ms: float = 100.0
+) -> Optional[Alert]:
+    """
+    Create alert for slow adaptive classification.
+    
+    Args:
+        subproblem_id: Sub-problem ID
+        complexity_score: Computed complexity score
+        latency_ms: Classification latency
+        threshold_ms: Alert threshold in milliseconds
+        
+    Returns:
+        Alert if threshold exceeded, None otherwise
+    """
+    if latency_ms < threshold_ms:
+        return None
+    
+    manager = get_alert_manager()
+    
+    severity = AlertSeverity.WARNING if latency_ms < threshold_ms * 2 else AlertSeverity.ERROR
+    
+    return manager.create_alert(
+        title="Adaptive Classification Slow",
+        description=f"Classification for {subproblem_id} took {latency_ms:.1f}ms (threshold: {threshold_ms}ms)",
+        severity=severity.value,
+        source="adaptive_mdap",
+        component="classifier",
+        tags=["adaptive_mdap", "classification", "performance"],
+        metadata={
+            "subproblem_id": subproblem_id,
+            "complexity_score": complexity_score,
+            "latency_ms": latency_ms,
+            "threshold_ms": threshold_ms
+        }
+    )
+
+
+def create_adaptive_allocation_alert(
+    subproblem_id: str,
+    strategy: str,
+    n_agents: int,
+    complexity_score: float
+) -> Alert:
+    """
+    Create alert for adaptive resource allocation.
+    
+    Args:
+        subproblem_id: Sub-problem ID
+        strategy: Allocated strategy
+        n_agents: Number of agents
+        complexity_score: Complexity score
+        
+    Returns:
+        Created alert
+    """
+    manager = get_alert_manager()
+    
+    return manager.create_alert(
+        title=f"Adaptive Allocation: {strategy}",
+        description=f"Allocated {n_agents} agents for {subproblem_id} (complexity: {complexity_score:.3f})",
+        severity=AlertSeverity.INFO.value,
+        source="adaptive_mdap",
+        component="allocator",
+        tags=["adaptive_mdap", "allocation", "resource"],
+        metadata={
+            "subproblem_id": subproblem_id,
+            "strategy": strategy,
+            "n_agents": n_agents,
+            "complexity_score": complexity_score
+        }
+    )
+
+
+def create_adaptive_high_complexity_alert(
+    subproblem_id: str,
+    complexity_score: float,
+    description: str
+) -> Alert:
+    """
+    Create alert for high complexity sub-problem.
+    
+    Args:
+        subproblem_id: Sub-problem ID
+        complexity_score: Complexity score (>0.8 is very high)
+        description: Sub-problem description
+        
+    Returns:
+        Created alert
+    """
+    manager = get_alert_manager()
+    
+    severity = AlertSeverity.WARNING if complexity_score > 0.8 else AlertSeverity.INFO
+    
+    return manager.create_alert(
+        title="High Complexity Sub-Problem Detected",
+        description=f"{subproblem_id} has complexity {complexity_score:.3f}: {description[:100]}...",
+        severity=severity.value,
+        source="adaptive_mdap",
+        component="classifier",
+        tags=["adaptive_mdap", "complexity", "high_complexity"],
+        metadata={
+            "subproblem_id": subproblem_id,
+            "complexity_score": complexity_score,
+            "description": description
+        }
+    )
+
+
 __all__ = [
     'Alert',
     'AlertSeverity',

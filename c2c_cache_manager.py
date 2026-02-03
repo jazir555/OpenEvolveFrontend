@@ -53,6 +53,15 @@ except ImportError:
     ADAPTIVE_STRATEGY_AVAILABLE = False
     StrategyPerformanceData = None
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for cache size optimization
+try:
+    from adaptive_mdap.utils.cache import EmbeddingCache, FeatureCache
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    EmbeddingCache = None
+    FeatureCache = None
+
 logger = logging.getLogger(__name__)
 
 

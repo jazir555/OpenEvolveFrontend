@@ -493,3 +493,255 @@ class TestConstants(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+# =============================================================================
+# Tests for Flexible Workflow Builder
+# =============================================================================
+
+class TestFlexibleWorkflowBuilder(unittest.TestCase):
+    """Test flexible workflow builder for arbitrary patterns."""
+    
+    def test_builder_basic(self):
+        """Test basic workflow builder functionality."""
+        from bubblelabs_gauntlet_bubbles import (
+            FlexibleWorkflowBuilder,
+            BubbleDefinition,
+            EdgeDefinition
+        )
+        
+        builder = FlexibleWorkflowBuilder()
+        
+        # Add bubbles
+        builder.add_bubble(BubbleDefinition("input", "Start"))
+        builder.add_bubble(BubbleDefinition("gauntlet_execution", "Process"))
+        builder.add_bubble(BubbleDefinition("gauntlet_result", "End"))
+        
+        # Add edges
+        builder.add_edge(EdgeDefinition("Start", "Process"))
+        builder.add_edge(EdgeDefinition("Process", "End"))
+        
+        workflow = builder.build("Test Workflow")
+        
+        self.assertEqual(len(workflow["nodes"]), 3)
+        self.assertEqual(len(workflow["edges"]), 2)
+        self.assertEqual(workflow["name"], "Test Workflow")
+    
+    def test_create_custom_workflow(self):
+        """Test creating custom workflow from pattern."""
+        from bubblelabs_gauntlet_bubbles import (
+            create_custom_workflow,
+            WorkflowPattern,
+            BubbleDefinition,
+            EdgeDefinition
+        )
+        
+        pattern = WorkflowPattern(
+            name="Custom Pipeline",
+            bubbles=[
+                BubbleDefinition("input", "Input"),
+                BubbleDefinition("gauntlet_execution", "Step 1", team_name="Team A"),
+                BubbleDefinition("gauntlet_execution", "Step 2", team_name="Team B"),
+                BubbleDefinition("gauntlet_result", "Output")
+            ],
+            edges=[
+                EdgeDefinition("Input", "Step 1"),
+                EdgeDefinition("Step 1", "Step 2"),
+                EdgeDefinition("Step 2", "Output")
+            ]
+        )
+        
+        workflow = create_custom_workflow(pattern)
+        
+        self.assertEqual(len(workflow["nodes"]), 4)
+        self.assertEqual(len(workflow["edges"]), 3)
+    
+    def test_create_sequential_workflow(self):
+        """Test creating sequential workflow from labels."""
+        from bubblelabs_gauntlet_bubbles import create_sequential_workflow
+        
+        workflow = create_sequential_workflow(
+            "Sequential Pipeline",
+            ["Start", "Step 1", "Step 2", "End"],
+            {"Step 1": "Blue Team", "Step 2": "Gold Team"}
+        )
+        
+        self.assertEqual(len(workflow["nodes"]), 4)
+        self.assertEqual(len(workflow["edges"]), 3)
+        
+        # Verify team assignments
+        for node in workflow["nodes"]:
+            if node["data"]["label"] == "Step 1":
+                self.assertEqual(node["data"]["team_name"], "Blue Team")
+            elif node["data"]["label"] == "Step 2":
+                self.assertEqual(node["data"]["team_name"], "Gold Team")
+    
+    def test_create_branching_workflow(self):
+        """Test creating workflow with branching."""
+        from bubblelabs_gauntlet_bubbles import create_branching_workflow
+        
+        workflow = create_branching_workflow(
+            "Decision Workflow",
+            "Start",
+            [
+                {"label": "Fast Path", "condition": "priority == 'high'", "team": "Express Team"},
+                {"label": "Slow Path", "condition": "priority == 'low'", "team": "Standard Team"}
+            ],
+            "End"
+        )
+        
+        # Should have: Start + 2 branches + End = 5 nodes
+        # But since branches share edges to End, verify structure
+        self.assertGreaterEqual(len(workflow["nodes"]), 4)  # At least Start + 2 branches + End
+        # Should have: Start->Fast, Start->Slow, Fast->End, Slow->End = 4 edges
+        self.assertEqual(len(workflow["edges"]), 4)
+        
+        # Verify conditional edges exist
+        conditional_edges = [e for e in workflow["edges"] if e["type"] == "conditional"]
+        self.assertEqual(len(conditional_edges), 2)
+    
+    def test_create_loop_workflow(self):
+        """Test creating workflow with loops."""
+        from bubblelabs_gauntlet_bubbles import create_loop_workflow
+        
+        workflow = create_loop_workflow(
+            "Iterative Workflow",
+            ["Step 1", "Step 2", "Step 3"],
+            iterations=5,
+            feedback_condition="needs more work"
+        )
+        
+        # Should have: 3 body bubbles
+        self.assertEqual(len(workflow["nodes"]), 3)
+        # Should have: 2 sequential + 1 feedback = 3 edges
+        self.assertEqual(len(workflow["edges"]), 3)
+        
+        # Verify feedback edge
+        feedback_edges = [e for e in workflow["edges"] if e["type"] == "feedback"]
+        self.assertEqual(len(feedback_edges), 1)
+    
+    def test_bubble_not_found_error(self):
+        """Test error handling for missing bubbles."""
+        from bubblelabs_gauntlet_bubbles import (
+            FlexibleWorkflowBuilder, 
+            BubbleDefinition,
+            EdgeDefinition
+        )
+        
+        builder = FlexibleWorkflowBuilder()
+        builder.add_bubble(BubbleDefinition("input", "Start"))
+        
+        with self.assertRaises(ValueError):
+            builder.add_edge(EdgeDefinition("Start", "NonExistent"))
+
+
+class TestBubbleDefinition(unittest.TestCase):
+    """Test BubbleDefinition dataclass."""
+    
+    def test_default_values(self):
+        """Test default values for BubbleDefinition."""
+        from bubblelabs_gauntlet_bubbles import BubbleDefinition
+        
+        bubble = BubbleDefinition(
+            bubble_type="gauntlet_execution",
+            label="Test Bubble"
+        )
+        
+        self.assertEqual(bubble.bubble_type, "gauntlet_execution")
+        self.assertEqual(bubble.label, "Test Bubble")
+        self.assertIsNone(bubble.position)
+        self.assertEqual(bubble.team_name, "")
+        self.assertEqual(bubble.parameters, {})
+        self.assertEqual(bubble.node_color, "#888888")
+    
+    def test_custom_values(self):
+        """Test custom values for BubbleDefinition."""
+        from bubblelabs_gauntlet_bubbles import BubbleDefinition
+        
+        bubble = BubbleDefinition(
+            bubble_type="custom",
+            label="Custom Bubble",
+            position={"x": 100, "y": 200},
+            team_name="Test Team",
+            parameters={"key": "value"},
+            node_color="#FF0000"
+        )
+        
+        self.assertEqual(bubble.position, {"x": 100, "y": 200})
+        self.assertEqual(bubble.team_name, "Test Team")
+        self.assertEqual(bubble.parameters, {"key": "value"})
+        self.assertEqual(bubble.node_color, "#FF0000")
+
+
+class TestEdgeDefinition(unittest.TestCase):
+    """Test EdgeDefinition dataclass."""
+    
+    def test_default_values(self):
+        """Test default values for EdgeDefinition."""
+        from bubblelabs_gauntlet_bubbles import EdgeDefinition
+        
+        edge = EdgeDefinition(
+            source_label="Source",
+            target_label="Target"
+        )
+        
+        self.assertEqual(edge.source_label, "Source")
+        self.assertEqual(edge.target_label, "Target")
+        self.assertEqual(edge.edge_type, "default")
+        self.assertEqual(edge.condition, "")
+        self.assertEqual(edge.source_handle, "output")
+        self.assertEqual(edge.target_handle, "input")
+    
+    def test_conditional_edge(self):
+        """Test conditional edge definition."""
+        from bubblelabs_gauntlet_bubbles import EdgeDefinition
+        
+        edge = EdgeDefinition(
+            source_label="Step 1",
+            target_label="Step 2",
+            edge_type="conditional",
+            condition="score > 0.7"
+        )
+        
+        self.assertEqual(edge.edge_type, "conditional")
+        self.assertEqual(edge.condition, "score > 0.7")
+
+
+class TestWorkflowPattern(unittest.TestCase):
+    """Test WorkflowPattern dataclass."""
+    
+    def test_empty_pattern(self):
+        """Test empty workflow pattern."""
+        from bubblelabs_gauntlet_bubbles import WorkflowPattern
+        
+        pattern = WorkflowPattern(name="Empty Pattern")
+        
+        self.assertEqual(pattern.name, "Empty Pattern")
+        self.assertEqual(pattern.description, "")
+        self.assertEqual(pattern.bubbles, [])
+        self.assertEqual(pattern.edges, [])
+    
+    def test_complete_pattern(self):
+        """Test complete workflow pattern."""
+        from bubblelabs_gauntlet_bubbles import (
+            WorkflowPattern,
+            BubbleDefinition,
+            EdgeDefinition
+        )
+        
+        pattern = WorkflowPattern(
+            name="Complete Pattern",
+            description="A complete workflow",
+            bubbles=[
+                BubbleDefinition("input", "Start"),
+                BubbleDefinition("gauntlet_execution", "Process")
+            ],
+            edges=[
+                EdgeDefinition("Start", "Process")
+            ],
+            metadata={"version": "1.0"}
+        )
+        
+        self.assertEqual(len(pattern.bubbles), 2)
+        self.assertEqual(len(pattern.edges), 1)
+        self.assertEqual(pattern.metadata, {"version": "1.0"})

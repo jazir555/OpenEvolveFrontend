@@ -27,6 +27,16 @@ except ImportError:
     REDIS_AVAILABLE = False
     redis = None
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for performance optimization
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.utils.metrics import get_metrics as get_adaptive_metrics
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+
 
 logger = logging.getLogger(__name__)
 

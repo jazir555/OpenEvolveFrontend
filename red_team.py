@@ -66,6 +66,25 @@ except ImportError:
     ADAPTIVE_MDAP_AVAILABLE = False
     logger.info("Adaptive MDAP not available - using standard resource allocation")
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Red Team
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_SELECTOR_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_SELECTOR_AVAILABLE = False
+
 from prompt_engineering import PromptEngineeringSystem
 from model_orchestration import ModelOrchestrator, OrchestrationRequest, ModelTeam
 from quality_assessment import QualityAssessmentEngine, SeverityLevel
@@ -855,7 +874,7 @@ class RedTeam:
                 return True
         return False
     
-    def assess_content(self, content: str, content_type: str = "general", 
+    def assess_content(self, content: str, content_type: str = "general",
                       custom_requirements: Optional[Dict[str, Any]] = None,
                       strategy: RedTeamStrategy = RedTeamStrategy.SYSTEMATIC,
                       num_members: Optional[int] = None,
@@ -865,7 +884,7 @@ class RedTeam:
                       use_adaptive_allocation: bool = True) -> RedTeamAssessment:
         """
         Assess content with the red team, using OpenEvolve when available
-        
+
         Args:
             content: Content to assess
             content_type: Type of content
@@ -876,34 +895,60 @@ class RedTeam:
             model_name: Model to use when using OpenEvolve
             attack_modes: Specific attack modes to apply (e.g., from gauntlet definition)
             use_adaptive_allocation: Whether to use Adaptive MDAP for resource allocation
-        
+
         Returns:
             RedTeamAssessment with findings
         """
-        start_time = time.time()
-        
-        # **ADAPTIVE MDAP INTEGRATION**: Determine optimal team size
-        if use_adaptive_allocation and num_members is None and ADAPTIVE_MDAP_AVAILABLE:
-            try:
-                adaptive_members = self._get_adaptive_team_size(content, content_type)
-                if adaptive_members:
-                    num_members = adaptive_members
-                    logger.info(f"[Adaptive MDAP] Allocated {num_members} red team members based on complexity")
-            except Exception as e:
-                logger.warning(f"[Adaptive MDAP] Failed to allocate team size: {e}")
-        
-        # Prioritize OpenEvolve backend when available
-        if OPENEVOLVE_AVAILABLE and api_key:
-            assessment = self._assess_with_openevolve_backend(
-                content, content_type, custom_requirements, api_key, model_name
+        start_time_total = time.time()
+        success = False
+        content_id = f"{content_type}_{hash(content) % 10000:04d}"
+
+        try:
+            # **ADAPTIVE MDAP INTEGRATION**: Determine optimal team size
+            if use_adaptive_allocation and num_members is None and ADAPTIVE_MDAP_AVAILABLE:
+                try:
+                    adaptive_members = self._get_adaptive_team_size(content, content_type)
+                    if adaptive_members:
+                        num_members = adaptive_members
+                        logger.info(f"[Adaptive MDAP] Allocated {num_members} red team members based on complexity")
+                except Exception as e:
+                    logger.warning(f"[Adaptive MDAP] Failed to allocate team size: {e}")
+
+            # Prioritize OpenEvolve backend when available
+            if OPENEVOLVE_AVAILABLE and api_key:
+                assessment = self._assess_with_openevolve_backend(
+                    content, content_type, custom_requirements, api_key, model_name
+                )
+                assessment.time_taken = time.time() - start_time_total
+
+                # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful assessment
+                self._extract_red_team_knowledge("assess_content", content_id, content_type, assessment)
+                self._track_red_team_performance("assess_content", True, assessment.time_taken, len(assessment.findings))
+
+                return assessment
+
+            # Fallback to custom implementation
+            assessment = self._assess_with_custom_implementation(
+                content, content_type, custom_requirements, strategy, num_members, start_time_total, attack_modes
             )
-            assessment.time_taken = time.time() - start_time
+
+            success = True
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful assessment
+            self._extract_red_team_knowledge("assess_content", content_id, content_type, assessment)
+            self._track_red_team_performance("assess_content", True, assessment.time_taken, len(assessment.findings))
+
             return assessment
-        
-        # Fallback to custom implementation
-        return self._assess_with_custom_implementation(
-            content, content_type, custom_requirements, strategy, num_members, start_time, attack_modes
-        )
+
+        except Exception as e:
+            duration = time.time() - start_time_total
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_red_team_alerts("assess_content", False, content_id, str(e))
+            self._track_red_team_performance("assess_content", False, duration, 0)
+
+            logger.error(f"Red Team assessment failed for {content_id}: {e}")
+            raise
     
     def _get_adaptive_team_size(self, content: str, content_type: str) -> Optional[int]:
         """
@@ -2396,6 +2441,123 @@ class RedTeam:
             CritiqueReport with results of the final Red Team assessment
         """
         return self.run_red_team_gauntlet(final_solution, gauntlet_def, team, api_key, model_name)
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Red Team
+    # =========================================================================
+
+    def _trigger_red_team_alerts(
+        self,
+        operation: str,
+        success: bool,
+        content_id: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for red team failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                alert_manager.create_alert(
+                    title=f"Red Team Alert: {operation}",
+                    description=f"Red Team operation '{operation}' failed" +
+                                 (f" for content '{content_id}'" if content_id else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=AlertSeverity.HIGH.value,
+                    source="red_team",
+                    component="adversarial_assessment",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger Red Team alert: {e}")
+
+    def _extract_red_team_knowledge(
+        self,
+        operation: str,
+        content_id: str,
+        content_type: str,
+        assessment: 'RedTeamAssessment'
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract red team knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"redteam_{operation}_{content_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="red_team_assessment",
+                source_component="red_team",
+                title=f"Red Team: {operation} - {content_id}",
+                content={
+                    "operation": operation,
+                    "content_id": content_id,
+                    "content_type": content_type,
+                    "num_findings": len(assessment.findings),
+                    "confidence_score": assessment.confidence_score,
+                    "strategy": assessment.strategy.value if hasattr(assessment, 'strategy') else "unknown",
+                    "time_taken": assessment.time_taken,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "findings_summary": [
+                        {"category": f.category.value, "severity": f.severity.value, "description": f.description[:100]}
+                        for f in assessment.findings[:5]
+                    ]
+                },
+                tags=["red_team", operation, "adversarial", content_type]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted Red Team knowledge for {content_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract Red Team knowledge: {e}")
+            return False
+
+    def _track_red_team_performance(
+        self,
+        operation: str,
+        success: bool,
+        duration_seconds: float,
+        num_findings: int = 0
+    ):
+        """**ACTUAL INTEGRATION**: Track red team performance in adaptive selector."""
+        if not ADAPTIVE_SELECTOR_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            quality = 1.0 if success else 0.0
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"redteam_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "duration_seconds": duration_seconds,
+                    "num_findings": num_findings
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked Red Team performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track Red Team performance: {e}")
 
 # Example usage and testing
 def test_red_team():

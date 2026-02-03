@@ -42,6 +42,14 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for complexity-based team sizing
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -824,6 +832,134 @@ class TeamAssignmentEngine:
                     self.performance_tracker.record_assignment(
                         team_name, sub_problem.id, role, assignment
                     )
+
+    # **ADAPTIVE MDAP INTEGRATION**: Complexity-based team sizing
+    def compute_subproblem_complexity(
+        self,
+        sub_problem: SubProblem
+    ) -> Optional[float]:
+        """
+        Compute complexity score for a sub-problem using Adaptive MDAP.
+        
+        Args:
+            sub_problem: Sub-problem to analyze
+            
+        Returns:
+            Complexity score (0.0-1.0) or None if Adaptive MDAP unavailable
+        """
+        if not ADAPTIVE_MDAP_AVAILABLE:
+            return None
+        
+        try:
+            # Convert to Adaptive MDAP SubProblem type
+            adaptive_sp = SubProblem(
+                id=sub_problem.id,
+                description=sub_problem.description,
+                domain=getattr(sub_problem, 'domain', 'general'),
+                depth=getattr(sub_problem, 'depth', 1),
+                dependencies=getattr(sub_problem, 'dependencies', []),
+                metadata=getattr(sub_problem, 'metadata', {})
+            )
+            
+            classifier = TaskComplexityClassifier()
+            score = classifier.compute_complexity(adaptive_sp)
+            
+            self.logger.debug(
+                f"Computed complexity for {sub_problem.id}: {score.overall_score:.3f}"
+            )
+            
+            return score.overall_score
+            
+        except Exception as e:
+            self.logger.warning(f"Failed to compute complexity: {e}")
+            return None
+    
+    def get_optimal_team_size(
+        self,
+        sub_problem: SubProblem,
+        base_size: int = 3
+    ) -> int:
+        """
+        Get optimal team size based on sub-problem complexity.
+        
+        Uses Adaptive MDAP to determine team size:
+        - Simple problems (≤0.2): Smaller teams (1-2 members)
+        - Medium problems (0.2-0.6): Standard teams (3-5 members)
+        - Complex problems (>0.6): Larger teams (5-7 members)
+        
+        Args:
+            sub_problem: Sub-problem to analyze
+            base_size: Base team size to adjust from
+            
+        Returns:
+            Optimal team size
+        """
+        complexity = self.compute_subproblem_complexity(sub_problem)
+        
+        if complexity is None:
+            return base_size
+        
+        # Adjust team size based on complexity
+        if complexity <= 0.2:
+            # Simple problem - minimal team
+            return max(1, base_size - 2)
+        elif complexity <= 0.4:
+            # Light complexity - small team
+            return max(2, base_size - 1)
+        elif complexity <= 0.6:
+            # Medium complexity - standard team
+            return base_size
+        elif complexity <= 0.8:
+            # High complexity - larger team
+            return base_size + 1
+        else:
+            # Very high complexity - full team
+            return base_size + 2
+    
+    def assign_teams_with_complexity(
+        self,
+        sub_problem: SubProblem,
+        available_teams: List[Team]
+    ) -> SubProblemTeamAssignment:
+        """
+        Assign teams with complexity-based optimization.
+        
+        This method extends assign_teams_to_subproblem by:
+        1. Computing sub-problem complexity
+        2. Adjusting team size recommendations
+        3. Logging complexity-based decisions
+        
+        Args:
+            sub_problem: Sub-problem to assign teams to
+            available_teams: List of available teams
+            
+        Returns:
+            SubProblemTeamAssignment with complexity metadata
+        """
+        # Get complexity
+        complexity = self.compute_subproblem_complexity(sub_problem)
+        
+        # Get base assignment
+        assignment = self.assign_teams_to_subproblem(sub_problem, available_teams)
+        
+        # Add complexity metadata
+        if complexity is not None:
+            if assignment.metadata is None:
+                assignment.metadata = {}
+            
+            assignment.metadata['complexity_score'] = complexity
+            assignment.metadata['recommended_team_size'] = self.get_optimal_team_size(
+                sub_problem
+            )
+            
+            # Log complexity-based assignment
+            self.logger.info(
+                f"Complexity-based assignment for {sub_problem.id}: "
+                f"complexity={complexity:.3f}, "
+                f"recommended_size={assignment.metadata['recommended_team_size']}"
+            )
+        
+        return assignment
 
 
 class TeamPerformanceTracker:

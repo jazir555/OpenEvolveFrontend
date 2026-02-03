@@ -996,3 +996,184 @@ def clear_old_reports():
         
         # Filter out old reports
         generator.reports = [r for r in generator.reports if r.timestamp >= cutoff]
+
+
+# =============================================================================
+# ADAPTIVE MDAP REPORTING
+# =============================================================================
+
+def generate_adaptive_mdap_report(
+    classifications: List[Dict[str, Any]],
+    allocations: List[Dict[str, Any]],
+    start_time: Optional[datetime] = None,
+    end_time: Optional[datetime] = None
+) -> Dict[str, Any]:
+    """
+    Generate report for Adaptive MDAP usage.
+    
+    Args:
+        classifications: List of classification records
+        allocations: List of allocation records
+        start_time: Optional start time filter
+        end_time: Optional end time filter
+        
+    Returns:
+        Report dictionary with statistics and insights
+    """
+    try:
+        # Filter by time range
+        if start_time or end_time:
+            classifications = [
+                c for c in classifications
+                if (not start_time or c.get('timestamp', datetime.now()) >= start_time)
+                and (not end_time or c.get('timestamp', datetime.now()) <= end_time)
+            ]
+            allocations = [
+                a for a in allocations
+                if (not start_time or a.get('timestamp', datetime.now()) >= start_time)
+                and (not end_time or a.get('timestamp', datetime.now()) <= end_time)
+            ]
+        
+        # Calculate statistics
+        total_classifications = len(classifications)
+        total_allocations = len(allocations)
+        
+        # Complexity distribution
+        complexity_scores = [c.get('complexity_score', 0) for c in classifications]
+        avg_complexity = np.mean(complexity_scores) if complexity_scores else 0
+        
+        complexity_distribution = {
+            'direct': len([c for c in classifications if c.get('complexity_score', 0) <= 0.2]),
+            'light': len([c for c in classifications if 0.2 < c.get('complexity_score', 0) <= 0.4]),
+            'medium': len([c for c in classifications if 0.4 < c.get('complexity_score', 0) <= 0.6]),
+            'full': len([c for c in classifications if 0.6 < c.get('complexity_score', 0) <= 0.8]),
+            'ultra': len([c for c in classifications if c.get('complexity_score', 0) > 0.8])
+        }
+        
+        # Strategy distribution
+        strategies = {}
+        for a in allocations:
+            strategy = a.get('strategy', 'unknown')
+            strategies[strategy] = strategies.get(strategy, 0) + 1
+        
+        # Agent usage
+        total_agents = sum(a.get('n_agents', 0) for a in allocations)
+        avg_agents = total_agents / len(allocations) if allocations else 0
+        
+        # Cost savings estimate (vs static 5-agent allocation)
+        static_cost = len(allocations) * 5
+        adaptive_cost = total_agents
+        cost_savings_pct = ((static_cost - adaptive_cost) / static_cost * 100) if static_cost > 0 else 0
+        
+        # Performance metrics
+        classification_latencies = [c.get('latency_ms', 0) for c in classifications]
+        avg_classification_latency = np.mean(classification_latencies) if classification_latencies else 0
+        
+        allocation_latencies = [a.get('latency_ms', 0) for a in allocations]
+        avg_allocation_latency = np.mean(allocation_latencies) if allocation_latencies else 0
+        
+        return {
+            'period': {
+                'start': start_time.isoformat() if start_time else None,
+                'end': end_time.isoformat() if end_time else None
+            },
+            'summary': {
+                'total_classifications': total_classifications,
+                'total_allocations': total_allocations,
+                'average_complexity': round(avg_complexity, 3),
+                'average_agents': round(avg_agents, 1),
+                'estimated_cost_savings_pct': round(cost_savings_pct, 1)
+            },
+            'complexity_distribution': complexity_distribution,
+            'strategy_distribution': strategies,
+            'performance': {
+                'avg_classification_latency_ms': round(avg_classification_latency, 2),
+                'avg_allocation_latency_ms': round(avg_allocation_latency, 2)
+            },
+            'recommendations': _generate_adaptive_recommendations(
+                complexity_distribution, strategies, cost_savings_pct
+            )
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to generate Adaptive MDAP report: {e}")
+        return {'error': str(e)}
+
+
+def _generate_adaptive_recommendations(
+    complexity_distribution: Dict[str, int],
+    strategies: Dict[str, int],
+    cost_savings_pct: float
+) -> List[str]:
+    """Generate recommendations based on Adaptive MDAP usage."""
+    recommendations = []
+    
+    total = sum(complexity_distribution.values())
+    if total == 0:
+        return recommendations
+    
+    # Check complexity distribution
+    ultra_pct = complexity_distribution.get('ultra', 0) / total * 100
+    if ultra_pct > 20:
+        recommendations.append(
+            f"High percentage ({ultra_pct:.1f}%) of ultra-complex tasks detected. "
+            "Consider problem simplification or additional resources."
+        )
+    
+    # Check cost savings
+    if cost_savings_pct < 20:
+        recommendations.append(
+            f"Cost savings ({cost_savings_pct:.1f}%) below target (30-50%). "
+            "Consider using more conservative profile."
+        )
+    elif cost_savings_pct > 50:
+        recommendations.append(
+            f"Excellent cost savings ({cost_savings_pct:.1f}%). "
+            "Current configuration is highly optimized."
+        )
+    
+    # Check strategy balance
+    if 'DIRECT' in strategies and strategies['DIRECT'] / total > 0.5:
+        recommendations.append(
+            "High proportion of simple tasks (DIRECT strategy). "
+            "Consider batching or automation."
+        )
+    
+    return recommendations
+
+
+def export_adaptive_metrics_to_prometheus() -> str:
+    """
+    Export Adaptive MDAP metrics in Prometheus format.
+    
+    Returns:
+        Prometheus-formatted metrics string
+    """
+    try:
+        from monitoring_system import get_adaptive_metrics
+        
+        metrics = get_adaptive_metrics()
+        if not metrics.get('adaptive_mdap_available'):
+            return "# Adaptive MDAP not available\n"
+        
+        output = []
+        output.append("# Adaptive MDAP Metrics")
+        output.append("")
+        
+        # Classification metrics
+        classifications = metrics.get('classifications', {})
+        output.append(f"adaptive_classification_total {classifications.get('total', 0)}")
+        
+        # Allocation metrics
+        allocations = metrics.get('allocations', {})
+        output.append(f"adaptive_allocation_total {allocations.get('total', 0)}")
+        
+        # Performance metrics
+        perf = metrics.get('performance', {})
+        output.append(f"adaptive_avg_classification_latency_ms {perf.get('avg_classification_latency_ms', 0)}")
+        output.append(f"adaptive_avg_allocation_latency_ms {perf.get('avg_allocation_latency_ms', 0)}")
+        
+        return "\n".join(output)
+        
+    except Exception as e:
+        return f"# Error exporting metrics: {e}\n"

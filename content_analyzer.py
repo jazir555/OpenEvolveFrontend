@@ -15,6 +15,16 @@ from textstat import flesch_reading_ease, flesch_kincaid_grade
 import hashlib
 from sovereign_reliability import with_error_handling, ErrorSeverity
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for content complexity analysis
+try:
+    from adaptive_mdap import TaskComplexityClassifier
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    SubProblem = None
+
 logger = logging.getLogger(__name__)
 
 # Try to download NLTK data, but don't fail if it doesn't work

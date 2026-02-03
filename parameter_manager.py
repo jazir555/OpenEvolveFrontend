@@ -548,6 +548,25 @@ class ParameterSchema:
         self._add_param("experimental_logging", ParameterType.BOOLEAN, False,
                        "Experimental logging", "experimental")
         
+        # Category 20: Adaptive MDAP (8 parameters)
+        self._add_param("enable_adaptive_mdap", ParameterType.BOOLEAN, True,
+                       "Enable Adaptive MDAP resource allocation", "adaptive_mdap")
+        self._add_param("adaptive_mdap_profile", ParameterType.SELECT, "balanced",
+                       "Resource allocation profile", "adaptive_mdap",
+                       options=["conservative", "balanced", "aggressive"])
+        self._add_param("adaptive_mdap_learning", ParameterType.BOOLEAN, False,
+                       "Enable learning from execution history", "adaptive_mdap")
+        self._add_param("adaptive_mdap_context_aware", ParameterType.BOOLEAN, False,
+                       "Use workflow context for complexity estimation", "adaptive_mdap")
+        self._add_param("adaptive_mdap_threshold_1", ParameterType.FLOAT, 0.2,
+                       "DIRECT to MDAP_LIGHT threshold", "adaptive_mdap", min_value=0.0, max_value=1.0)
+        self._add_param("adaptive_mdap_threshold_2", ParameterType.FLOAT, 0.4,
+                       "MDAP_LIGHT to MDAP_MEDIUM threshold", "adaptive_mdap", min_value=0.0, max_value=1.0)
+        self._add_param("adaptive_mdap_threshold_3", ParameterType.FLOAT, 0.6,
+                       "MDAP_MEDIUM to MAKER_FULL threshold", "adaptive_mdap", min_value=0.0, max_value=1.0)
+        self._add_param("adaptive_mdap_threshold_4", ParameterType.FLOAT, 0.8,
+                       "MAKER_FULL to MAKER_ULTRA threshold", "adaptive_mdap", min_value=0.0, max_value=1.0)
+        
         # Additional core parameters from API reference
         self._add_param("convergence_threshold", ParameterType.FLOAT, 0.001,
                        "Threshold for convergence detection", "core_evolution", min_value=0.0, max_value=1.0)

@@ -38,6 +38,14 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP monitoring
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.utils.metrics import get_metrics as get_adaptive_metrics
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+
 
 logger = logging.getLogger(__name__)
 
@@ -815,6 +823,120 @@ def get_performance_stats() -> Dict[str, Dict[str, float]]:
 def get_trend_data(metric_name: str, minutes_back: int = 60) -> List[Dict[str, Any]]:
     """Get trend data"""
     return get_observability_manager().get_trend_data(metric_name, minutes_back)
+
+
+# =============================================================================
+# ADAPTIVE MDAP MONITORING
+# =============================================================================
+
+def record_adaptive_classification(
+    subproblem_id: str,
+    complexity_score: float,
+    latency_ms: float,
+    success: bool = True
+):
+    """
+    Record Adaptive MDAP classification metrics.
+    
+    Args:
+        subproblem_id: Sub-problem ID
+        complexity_score: Computed complexity score
+        latency_ms: Classification latency in milliseconds
+        success: Whether classification succeeded
+    """
+    add_metric(
+        "adaptive_classification_total",
+        1,
+        MetricType.COUNTER,
+        {"subproblem_id": subproblem_id, "success": str(success)}
+    )
+    
+    add_metric(
+        "adaptive_complexity_score",
+        complexity_score,
+        MetricType.GAUGE,
+        {"subproblem_id": subproblem_id}
+    )
+    
+    add_metric(
+        "adaptive_classification_latency_ms",
+        latency_ms,
+        MetricType.HISTOGRAM,
+        {"subproblem_id": subproblem_id}
+    )
+
+
+def record_adaptive_allocation(
+    subproblem_id: str,
+    strategy: str,
+    n_agents: int,
+    k_ahead: int,
+    latency_ms: float,
+    success: bool = True
+):
+    """
+    Record Adaptive MDAP allocation metrics.
+    
+    Args:
+        subproblem_id: Sub-problem ID
+        strategy: Allocated strategy name
+        n_agents: Number of agents allocated
+        k_ahead: K-ahead value
+        latency_ms: Allocation latency in milliseconds
+        success: Whether allocation succeeded
+    """
+    add_metric(
+        "adaptive_allocation_total",
+        1,
+        MetricType.COUNTER,
+        {"subproblem_id": subproblem_id, "strategy": strategy, "success": str(success)}
+    )
+    
+    add_metric(
+        "adaptive_allocated_agents",
+        n_agents,
+        MetricType.GAUGE,
+        {"subproblem_id": subproblem_id, "strategy": strategy}
+    )
+    
+    add_metric(
+        "adaptive_allocation_latency_ms",
+        latency_ms,
+        MetricType.HISTOGRAM,
+        {"subproblem_id": subproblem_id}
+    )
+
+
+def get_adaptive_metrics() -> Dict[str, Any]:
+    """
+    Get Adaptive MDAP specific metrics.
+    
+    Returns:
+        Dictionary with Adaptive MDAP metrics
+    """
+    if not ADAPTIVE_MDAP_AVAILABLE:
+        return {"adaptive_mdap_available": False}
+    
+    try:
+        from adaptive_mdap.utils.metrics import get_metrics
+        from adaptive_mdap.utils.cache import get_cache_stats
+        
+        metrics = get_metrics()
+        cache_stats = get_cache_stats()
+        
+        return {
+            "adaptive_mdap_available": True,
+            "classifications": metrics.get("classifications", {}),
+            "allocations": metrics.get("allocations", {}),
+            "cache_stats": cache_stats,
+            "performance": {
+                "avg_classification_latency_ms": metrics.get("avg_classification_latency_ms", 0),
+                "avg_allocation_latency_ms": metrics.get("avg_allocation_latency_ms", 0)
+            }
+        }
+    except Exception as e:
+        logger.error(f"Failed to get Adaptive MDAP metrics: {e}")
+        return {"adaptive_mdap_available": True, "error": str(e)}
 
 
 # Example usage

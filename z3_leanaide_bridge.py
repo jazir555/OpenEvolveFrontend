@@ -75,6 +75,14 @@ except ImportError:
     LEANAIDE_WORKFLOW_AVAILABLE = False
     logger.warning("LeanAIDE workflow integration not available")
 
+# Import Adaptive MDAP for verification complexity
+try:
+    from adaptive_mdap import TaskComplexityClassifier
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+
 
 # =============================================================================
 # Data Classes and Enums
@@ -918,19 +926,27 @@ class Z3LeanAideBridge:
         
         return VerificationStrategy.PARALLEL
 
-    # Import DSPy for enhanced prompting
+    # Import DSPy through the global integration module for consistency
     try:
+        from dspy_integration import DSPY_AVAILABLE, get_global_dspy_instance, initialize_dspy
         import dspy
         from dspy.teleprompt import BootstrapFewShot
         from dspy.predict import Predict
-        DSPY_AVAILABLE = True
-        logger.info("DSPy available for enhanced Z3-LeanAIDE bridging")
+        logger.info("DSPy available through global integration for enhanced Z3-LeanAIDE bridging")
     except ImportError:
-        dspy = None
-        BootstrapFewShot = None
-        Predict = None
-        DSPY_AVAILABLE = False
-        logger.warning("DSPy not available - using standard Z3-LeanAIDE bridging")
+        # Fallback to local import if global module not available
+        try:
+            import dspy
+            from dspy.teleprompt import BootstrapFewShot
+            from dspy.predict import Predict
+            DSPY_AVAILABLE = True
+            logger.info("DSPy available for enhanced Z3-LeanAIDE bridging")
+        except ImportError:
+            dspy = None
+            BootstrapFewShot = None
+            Predict = None
+            DSPY_AVAILABLE = False
+            logger.warning("DSPy not available - using standard Z3-LeanAIDE bridging")
 
     def verify_with_dspy_guidance(
         self,

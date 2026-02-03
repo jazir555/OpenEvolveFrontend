@@ -821,3 +821,426 @@ if __name__ == "__main__":
     print(f"Created workflow: {workflow['name']}")
     print(f"Nodes: {len(workflow['nodes'])}")
     print(f"Edges: {len(workflow['edges'])}")
+
+
+# =============================================================================
+# FLEXIBLE WORKFLOW BUILDER - User-Defined Arbitrary Patterns
+# =============================================================================
+
+@dataclass
+class BubbleDefinition:
+    """Definition of a bubble for user-defined workflows."""
+    bubble_type: str  # input, gauntlet_execution, gauntlet_round, gauntlet_validation, gauntlet_result, custom
+    label: str
+    position: Dict[str, float] = None
+    team_name: str = ""
+    parameters: Dict[str, Any] = field(default_factory=dict)
+    node_color: str = "#888888"
+    custom_data: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class EdgeDefinition:
+    """Definition of an edge for user-defined workflows."""
+    source_label: str  # Label of source bubble
+    target_label: str  # Label of target bubble
+    edge_type: str = "default"
+    condition: str = ""
+    source_handle: str = "output"
+    target_handle: str = "input"
+
+
+@dataclass
+class WorkflowPattern:
+    """User-defined workflow pattern with arbitrary bubbles and edges."""
+    name: str
+    description: str = ""
+    bubbles: List[BubbleDefinition] = field(default_factory=list)
+    edges: List[EdgeDefinition] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+class FlexibleWorkflowBuilder:
+    """
+    Builder for creating arbitrary user-defined workflow patterns.
+    
+    Allows users to:
+    - Define custom bubble sequences
+    - Create arbitrary edge connections
+    - Configure conditional branching
+    - Add feedback loops
+    - Mix and match any bubble types
+    """
+    
+    def __init__(self):
+        self.bubbles: List[Dict[str, Any]] = []
+        self.edges: List[Dict[str, Any]] = []
+        self.bubble_map: Dict[str, Dict[str, Any]] = {}  # label -> bubble
+        self._position_counter = 0
+    
+    def add_bubble(self, bubble_def: BubbleDefinition) -> str:
+        """Add a bubble to the workflow."""
+        bubble_id = f"{bubble_def.bubble_type}_{uuid.uuid4().hex[:8]}"
+        
+        position = bubble_def.position or self._calculate_position(len(self.bubbles))
+        
+        bubble = {
+            "id": bubble_id,
+            "type": bubble_def.bubble_type,
+            "position": position,
+            "data": {
+                "label": bubble_def.label,
+                "team_name": bubble_def.team_name,
+                "parameters": bubble_def.parameters,
+                "node_color": bubble_def.node_color,
+                "status": "pending",
+                **bubble_def.custom_data
+            }
+        }
+        
+        self.bubbles.append(bubble)
+        self.bubble_map[bubble_def.label] = bubble
+        
+        return bubble_id
+    
+    def add_edge(self, edge_def: EdgeDefinition) -> str:
+        """Add an edge connecting two bubbles."""
+        source_bubble = self.bubble_map.get(edge_def.source_label)
+        target_bubble = self.bubble_map.get(edge_def.target_label)
+        
+        if not source_bubble:
+            raise ValueError(f"Source bubble not found: {edge_def.source_label}")
+        if not target_bubble:
+            raise ValueError(f"Target bubble not found: {edge_def.target_label}")
+        
+        edge_id = f"edge_{source_bubble['id']}_{target_bubble['id']}_{uuid.uuid4().hex[:8]}"
+        
+        edge = {
+            "id": edge_id,
+            "source": source_bubble["id"],
+            "target": target_bubble["id"],
+            "sourceHandle": edge_def.source_handle,
+            "targetHandle": edge_def.target_handle,
+            "type": edge_def.edge_type,
+            "animated": edge_def.edge_type == "default",
+            "style": {
+                "stroke": get_edge_color(edge_def.edge_type),
+                "strokeWidth": 2
+            }
+        }
+        
+        if edge_def.condition:
+            edge["label"] = edge_def.condition
+            edge["labelStyle"] = {"fill": "#FF6B6B", "fontSize": 12}
+        
+        self.edges.append(edge)
+        return edge_id
+    
+    def _calculate_position(self, index: int) -> Dict[str, float]:
+        """Calculate position based on index."""
+        x = (index % 6) * 200
+        y = (index // 6) * 150
+        return {"x": x, "y": y}
+    
+    def build(self, workflow_name: str, problem_statement: str = "") -> Dict[str, Any]:
+        """Build the complete workflow."""
+        return {
+            "id": str(uuid.uuid4()),
+            "name": workflow_name,
+            "description": problem_statement or f"Custom workflow: {workflow_name}",
+            "nodes": self.bubbles,
+            "edges": self.edges,
+            "metadata": {
+                "workflow_type": "custom",
+                "created_at": datetime.now().isoformat(),
+                "version": "1.0.0"
+            }
+        }
+    
+    def reset(self):
+        """Reset the builder for a new workflow."""
+        self.bubbles = []
+        self.edges = []
+        self.bubble_map = {}
+        self._position_counter = 0
+
+
+def create_custom_workflow(pattern: WorkflowPattern) -> Dict[str, Any]:
+    """
+    Create a custom workflow from a user-defined pattern.
+    
+    Args:
+        pattern: WorkflowPattern with custom bubbles and edges
+    
+    Returns:
+        Dict with complete workflow definition
+    
+    Example:
+        pattern = WorkflowPattern(
+            name="Custom Pipeline",
+            bubbles=[
+                BubbleDefinition("input", "Start", position={"x": 0, "y": 0}),
+                BubbleDefinition("gauntlet_execution", "Analysis", team_name="Blue"),
+                BubbleDefinition("gauntlet_execution", "Security Check", team_name="Red"),
+                BubbleDefinition("gauntlet_result", "End")
+            ],
+            edges=[
+                EdgeDefinition("Start", "Analysis"),
+                EdgeDefinition("Analysis", "Security Check"),
+                EdgeDefinition("Security Check", "End")
+            ]
+        )
+        workflow = create_custom_workflow(pattern)
+    """
+    builder = FlexibleWorkflowBuilder()
+    
+    # Add all bubbles
+    for bubble_def in pattern.bubbles:
+        builder.add_bubble(bubble_def)
+    
+    # Add all edges
+    for edge_def in pattern.edges:
+        builder.add_edge(edge_def)
+    
+    return builder.build(pattern.name, pattern.description)
+
+
+def create_sequential_workflow(
+    workflow_name: str,
+    bubble_labels: List[str],
+    team_config: Dict[str, str] = None,
+    bubble_types: List[str] = None
+) -> Dict[str, Any]:
+    """
+    Create a simple sequential workflow from a list of labels.
+    
+    Args:
+        workflow_name: Name of the workflow
+        bubble_labels: Ordered list of bubble labels
+        team_config: Optional team mapping for each label
+        bubble_types: Optional bubble types for each label
+    
+    Returns:
+        Dict with sequential workflow
+    
+    Example:
+        workflow = create_sequential_workflow(
+            "My Pipeline",
+            ["Input", "Process", "Validate", "Output"],
+            {"Process": "Blue Team", "Validate": "Gold Team"}
+        )
+    """
+    team_config = team_config or {}
+    bubble_types = bubble_types or ["input"] + ["gauntlet_execution"] * (len(bubble_labels) - 2) + ["gauntlet_result"]
+    
+    builder = FlexibleWorkflowBuilder()
+    
+    for i, label in enumerate(bubble_labels):
+        bubble_type = bubble_types[i] if i < len(bubble_types) else "gauntlet_execution"
+        team = team_config.get(label, "")
+        
+        # Determine node color based on type
+        if bubble_type == "input":
+            color = GAUNTLET_NODE_COLORS.get("input", "#DDA0DD")
+        elif bubble_type == "gauntlet_result":
+            color = GAUNTLET_NODE_COLORS.get("result", "#A8E6CF")
+        elif "red" in label.lower():
+            color = GAUNTLET_NODE_COLORS.get("red_team", "#FF6B6B")
+        elif "blue" in label.lower():
+            color = GAUNTLET_NODE_COLORS.get("blue_team", "#4ECDC4")
+        elif "gold" in label.lower() or "verif" in label.lower():
+            color = GAUNTLET_NODE_COLORS.get("gold_team", "#FFE66D")
+        else:
+            color = GAUNTLET_NODE_COLORS.get("evaluation", "#95E1D3")
+        
+        bubble_def = BubbleDefinition(
+            bubble_type=bubble_type,
+            label=label,
+            team_name=team,
+            node_color=color
+        )
+        builder.add_bubble(bubble_def)
+    
+    # Create sequential edges
+    for i in range(len(bubble_labels) - 1):
+        edge_def = EdgeDefinition(
+            source_label=bubble_labels[i],
+            target_label=bubble_labels[i + 1]
+        )
+        builder.add_edge(edge_def)
+    
+    return builder.build(workflow_name)
+
+
+def create_branching_workflow(
+    workflow_name: str,
+    start_label: str,
+    branches: List[Dict[str, Any]],
+    end_label: str = "End"
+) -> Dict[str, Any]:
+    """
+    Create a workflow with branching logic.
+    
+    Args:
+        workflow_name: Name of the workflow
+        start_label: Label of the starting bubble
+        branches: List of branch definitions with 'label', 'condition', and optional 'team'
+        end_label: Label of the ending bubble
+    
+    Returns:
+        Dict with branching workflow
+    
+    Example:
+        workflow = create_branching_workflow(
+            "Decision Pipeline",
+            "Start",
+            [
+                {"label": "Fast Path", "condition": "priority == 'high'", "team": "Express Team"},
+                {"label": "Slow Path", "condition": "priority == 'low'", "team": "Standard Team"}
+            ],
+            "End"
+        )
+    """
+    builder = FlexibleWorkflowBuilder()
+    
+    # Add start bubble
+    builder.add_bubble(BubbleDefinition("input", start_label, node_color="#DDA0DD"))
+    
+    # Add branch bubbles
+    for branch in branches:
+        bubble_def = BubbleDefinition(
+            bubble_type="gauntlet_execution",
+            label=branch["label"],
+            team_name=branch.get("team", ""),
+            parameters={"condition": branch.get("condition", "")},
+            node_color="#4ECDC4"
+        )
+        builder.add_bubble(bubble_def)
+        
+        # Add conditional edge from start
+        edge_def = EdgeDefinition(
+            source_label=start_label,
+            target_label=branch["label"],
+            edge_type="conditional",
+            condition=branch.get("condition", "")
+        )
+        builder.add_edge(edge_def)
+    
+    # Add end bubble
+    builder.add_bubble(BubbleDefinition("gauntlet_result", end_label, node_color="#A8E6CF"))
+    
+    # Connect all branches to end
+    for branch in branches:
+        edge_def = EdgeDefinition(
+            source_label=branch["label"],
+            target_label=end_label
+        )
+        builder.add_edge(edge_def)
+    
+    return builder.build(workflow_name)
+
+
+def create_loop_workflow(
+    workflow_name: str,
+    body_labels: List[str],
+    iterations: int = 3,
+    feedback_condition: str = "score < 0.7"
+) -> Dict[str, Any]:
+    """
+    Create a workflow with iterative loops.
+    
+    Args:
+        workflow_name: Name of the workflow
+        body_labels: Labels of bubbles in the loop body
+        iterations: Maximum number of iterations
+        feedback_condition: Condition for looping back
+    
+    Returns:
+        Dict with looping workflow
+    
+    Example:
+        workflow = create_loop_workflow(
+            "Iterative Improvement",
+            ["Analyze", "Fix Issues", "Verify"],
+            iterations=5,
+            feedback_condition="issues remain"
+        )
+    """
+    builder = FlexibleWorkflowBuilder()
+    
+    # Add loop body bubbles
+    for label in body_labels:
+        bubble_def = BubbleDefinition(
+            bubble_type="gauntlet_execution",
+            label=label,
+            node_color="#4ECDC4"
+        )
+        builder.add_bubble(bubble_def)
+    
+    # Connect body sequentially
+    for i in range(len(body_labels) - 1):
+        edge_def = EdgeDefinition(
+            source_label=body_labels[i],
+            target_label=body_labels[i + 1]
+        )
+        builder.add_edge(edge_def)
+    
+    # Add feedback edge from last to first
+    if body_labels:
+        edge_def = EdgeDefinition(
+            source_label=body_labels[-1],
+            target_label=body_labels[0],
+            edge_type="feedback",
+            source_handle="feedback",
+            target_handle="retry",
+            condition=feedback_condition
+        )
+        builder.add_edge(edge_def)
+    
+    return builder.build(workflow_name)
+
+
+# Export classes for easier imports
+__all__ = [
+    # Config classes
+    'GauntletBubbleConfig',
+    'GauntletRoundBubbleConfig', 
+    'GauntletValidationBubbleConfig',
+    'BubbleDefinition',
+    'EdgeDefinition',
+    'WorkflowPattern',
+    
+    # Bubble creation functions
+    'create_gauntlet_execution_bubble',
+    'create_gauntlet_round_bubble',
+    'create_gauntlet_validation_bubble',
+    'create_gauntlet_result_bubble',
+    'create_red_team_bubble',
+    'create_blue_team_bubble',
+    'create_gold_team_bubble',
+    'create_loongeval_bubble',
+    'create_simple_gauntlet_bubble',
+    
+    # Edge creation functions
+    'create_bubble_edge',
+    'create_conditional_edge',
+    'create_feedback_edge',
+    
+    # Workflow creation functions
+    'create_gauntlet_workflow_definition',
+    'create_3_round_gauntlet_workflow',
+    
+    # Flexible workflow builder
+    'FlexibleWorkflowBuilder',
+    'create_custom_workflow',
+    'create_sequential_workflow',
+    'create_branching_workflow',
+    'create_loop_workflow',
+    
+    # Utility functions
+    'update_bubble_status',
+    'add_bubble_result',
+    'serialize_bubble',
+    'serialize_workflow',
+    'export_workflow_to_json',
+]

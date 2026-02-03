@@ -16,6 +16,25 @@ from pathlib import Path
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for SGD Orchestrator Agent
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 @dataclass
 class WorkflowSynchronization:
     """Represents synchronization state between OpenEvolve SGDW and CrewAI"""
@@ -83,18 +102,37 @@ class SGDOrchestratorAgent:
         """
         Synchronize the state between OpenEvolve's SGDW and CrewAI ticket system
         """
+        import time
+        start_time = time.time()
+        success = False
+
         try:
             # Process new sub-problems in SGDW to convert to CrewAI tickets
             await self.process_new_sub_problems()
-            
+
             # Update SGDW with progress from crewai # MIGRATED: was CrewAI agents
             await self.update_sub_problem_status()
-            
+
             # Process any issues discovered by CrewAI agents that affect SGDW
             await self.process_agent_discoveries()
-            
+
+            success = True
+            duration = time.time() - start_time
+            workflows_synced = len(self.synchronization_states)
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful synchronization
+            self._extract_sgd_orchestrator_knowledge("synchronize_workflows", workflows_synced)
+            self._track_sgd_orchestrator_performance("synchronize_workflows", True, duration, workflows_synced)
+
         except Exception as e:
+            duration = time.time() - start_time
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_sgd_orchestrator_alerts("synchronize_workflows", False, str(e))
+            self._track_sgd_orchestrator_performance("synchronize_workflows", False, duration, 0)
+
             logger.error(f"Error during workflow synchronization: {e}")
+            raise
     
     async def process_new_sub_problems(self):
         """
@@ -403,6 +441,119 @@ class SGDOrchestratorAgent:
             # and update its status to 'requires_rework' in the SGDW
         except Exception as e:
             logger.error(f"Error marking sub-problem for rework: {e}")
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for SGD Orchestrator
+    # =========================================================================
+
+    def _trigger_sgd_orchestrator_alerts(
+        self,
+        operation: str,
+        success: bool,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for SGD orchestrator failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            from datetime import datetime
+
+            alert_manager = get_alert_manager()
+
+            if not success:
+                alert_manager.create_alert(
+                    title=f"SGD Orchestrator Alert: {operation}",
+                    description=f"SGD Orchestrator operation '{operation}' failed" +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=AlertSeverity.HIGH.value,
+                    source="sgd_orchestrator_agent",
+                    component="sgd_orchestration",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger SGD Orchestrator alert: {e}")
+
+    def _extract_sgd_orchestrator_knowledge(
+        self,
+        operation: str,
+        workflows_synced: int
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract SGD orchestrator knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            from datetime import datetime
+
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"sgd_orch_{operation}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="sgd_orchestration",
+                source_component="sgd_orchestrator_agent",
+                title=f"SGD Orchestration: {operation}",
+                content={
+                    "operation": operation,
+                    "workflows_synced": workflows_synced,
+                    "active_sync_states": len(self.synchronization_states),
+                    "polling_interval": self.polling_interval,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "running": self.running
+                },
+                tags=["sgd_orchestrator", operation, "workflow_synchronization"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted SGD Orchestrator knowledge for {operation}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract SGD Orchestrator knowledge: {e}")
+            return False
+
+    def _track_sgd_orchestrator_performance(
+        self,
+        operation: str,
+        success: bool,
+        duration_seconds: float,
+        workflows_synced: int = 0
+    ):
+        """**ACTUAL INTEGRATION**: Track SGD orchestrator performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            from datetime import datetime
+
+            tracker = StrategyPerformanceTracker()
+
+            quality = 1.0 if success else 0.0
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"sgd_orch_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "duration_seconds": duration_seconds,
+                    "workflows_synced": workflows_synced
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked SGD Orchestrator performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track SGD Orchestrator performance: {e}")
 
 
 # Example usage

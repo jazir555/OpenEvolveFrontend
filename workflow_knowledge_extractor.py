@@ -58,16 +58,24 @@ except ImportError:
     ACEClient = Any
     logging.warning("ACE client not available. Install ace_client for enhanced extraction.")
 
-# Optional DSPy import
+# Import DSPy through the global integration module for consistency
 try:
+    from dspy_integration import DSPY_AVAILABLE, get_global_dspy_instance, initialize_dspy
     import dspy
     from dspy.teleprompt import BootstrapFewShot
-    DSPY_AVAILABLE = True
+    logging.getLogger(__name__).info("DSPy available through global integration for enhanced programmatic prompting")
 except ImportError:
-    dspy = None
-    BootstrapFewShot = None
-    DSPY_AVAILABLE = False
-    logging.warning("DSPy not available. Install dspy for enhanced programmatic prompting.")
+    # Fallback to local import if global module not available
+    try:
+        import dspy
+        from dspy.teleprompt import BootstrapFewShot
+        DSPY_AVAILABLE = True
+        logging.getLogger(__name__).info("DSPy available for enhanced programmatic prompting")
+    except ImportError:
+        dspy = None
+        BootstrapFewShot = None
+        DSPY_AVAILABLE = False
+        logging.getLogger(__name__).warning("DSPy not available. Install dspy for enhanced programmatic prompting.")
 
 # Optional knowledge engine import
 try:

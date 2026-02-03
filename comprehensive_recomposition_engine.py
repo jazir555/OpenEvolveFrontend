@@ -40,6 +40,25 @@ import uuid
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Comprehensive Recomposition Engine
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 # ============================================================================
 # ENUMS AND TYPE DEFINITIONS
 # ============================================================================
@@ -1385,92 +1404,114 @@ class ComprehensiveRecompositionEngine:
     ) -> IntegratedSolution:
         """
         Assemble sub-solutions into integrated solution.
-        
+
         Args:
             sub_solutions: Dictionary of sub-problem solutions
             decomposition_plan_id: ID of decomposition plan
             problem_id: ID of original problem
             dependencies: Optional dependency graph
             context: Optional recomposition context
-        
+
         Returns:
             IntegratedSolution
         """
-        context = context or RecompositionContext(domain="general")
-        dependencies = dependencies or {}
-        
-        logger.info(f"Assembling {len(sub_solutions)} sub-solutions for problem {problem_id}")
-        
-        # Create initial solution
-        solution = IntegratedSolution(
-            solution_id=generate_id("solution"),
-            problem_id=problem_id,
-            decomposition_plan_id=decomposition_plan_id,
-            assembled_content="",
-            assembly_strategy=context.assembly_strategy or AssemblyStrategy.ADAPTIVE,
-            sub_solutions=sub_solutions,
-            status=RecompositionStatus.IN_PROGRESS
-        )
-        
-        # Create rollback point
-        if self.enable_rollback:
-            self._create_rollback_point(solution, "initial")
-        
-        # Step 1: Detect conflicts
-        solution.status = RecompositionStatus.CONFLICTS_DETECTED
-        conflicts = self.conflict_detector.detect_all_conflicts(sub_solutions, dependencies)
-        solution.conflicts_detected = conflicts
-        
-        logger.info(f"Detected {len(conflicts)} conflicts")
-        
-        # Create rollback point before resolution
-        if self.enable_rollback and conflicts:
-            self._create_rollback_point(solution, "pre_resolution")
-        
-        # Step 2: Resolve conflicts
-        if conflicts and self.config['auto_resolve']:
-            solution.status = RecompositionStatus.RESOLVING
-            resolved, unresolved = self.conflict_resolver.resolve_conflicts(
-                conflicts, sub_solutions, context.max_resolution_attempts
+        import time
+        start_time_total = time.time()
+        success = False
+
+        try:
+            context = context or RecompositionContext(domain="general")
+            dependencies = dependencies or {}
+
+            logger.info(f"Assembling {len(sub_solutions)} sub-solutions for problem {problem_id}")
+
+            # Create initial solution
+            solution = IntegratedSolution(
+                solution_id=generate_id("solution"),
+                problem_id=problem_id,
+                decomposition_plan_id=decomposition_plan_id,
+                assembled_content="",
+                assembly_strategy=context.assembly_strategy or AssemblyStrategy.ADAPTIVE,
+                sub_solutions=sub_solutions,
+                status=RecompositionStatus.IN_PROGRESS
             )
-            solution.conflicts_resolved = resolved
-            
-            logger.info(f"Resolved {len(resolved)} conflicts, {len(unresolved)} unresolved")
-            
-            # Update stats
-            for c in conflicts:
-                self.conflict_stats[c.conflict_type.value] += 1
-        
-        # Step 3: Create assembly plan
-        assembly_plan = self._create_assembly_plan(
-            sub_solutions, dependencies, context
-        )
-        solution.assembly_plan = assembly_plan
-        
-        # Step 4: Execute assembly
-        assembled_content = self._execute_assembly(assembly_plan, sub_solutions)
-        solution.assembled_content = assembled_content
-        
-        # Step 5: Validate and calculate quality
-        solution.status = RecompositionStatus.VALIDATING
-        quality_metrics = self._calculate_quality_metrics(solution, context)
-        solution.quality_metrics = quality_metrics
-        
-        # Step 6: Semantic coherence check
-        coherence_score = self.coherence_validator.validate(assembled_content)
-        solution.quality_metrics.semantic_coherence = coherence_score
-        
-        # Finalize
-        solution.status = RecompositionStatus.COMPLETED
-        solution.modified_at = datetime.now()
-        
-        # Update history
-        self.recomposition_history.append(solution)
-        
-        logger.info(f"Assembly completed: quality={quality_metrics.overall_score:.2f}, "
-                   f"coherence={coherence_score.overall_score():.2f}")
-        
-        return solution
+
+            # Create rollback point
+            if self.enable_rollback:
+                self._create_rollback_point(solution, "initial")
+
+            # Step 1: Detect conflicts
+            solution.status = RecompositionStatus.CONFLICTS_DETECTED
+            conflicts = self.conflict_detector.detect_all_conflicts(sub_solutions, dependencies)
+            solution.conflicts_detected = conflicts
+
+            logger.info(f"Detected {len(conflicts)} conflicts")
+
+            # Create rollback point before resolution
+            if self.enable_rollback and conflicts:
+                self._create_rollback_point(solution, "pre_resolution")
+
+            # Step 2: Resolve conflicts
+            if conflicts and self.config['auto_resolve']:
+                solution.status = RecompositionStatus.RESOLVING
+                resolved, unresolved = self.conflict_resolver.resolve_conflicts(
+                    conflicts, sub_solutions, context.max_resolution_attempts
+                )
+                solution.conflicts_resolved = resolved
+
+                logger.info(f"Resolved {len(resolved)} conflicts, {len(unresolved)} unresolved")
+
+                # Update stats
+                for c in conflicts:
+                    self.conflict_stats[c.conflict_type.value] += 1
+
+            # Step 3: Create assembly plan
+            assembly_plan = self._create_assembly_plan(
+                sub_solutions, dependencies, context
+            )
+            solution.assembly_plan = assembly_plan
+
+            # Step 4: Execute assembly
+            assembled_content = self._execute_assembly(assembly_plan, sub_solutions)
+            solution.assembled_content = assembled_content
+
+            # Step 5: Validate and calculate quality
+            solution.status = RecompositionStatus.VALIDATING
+            quality_metrics = self._calculate_quality_metrics(solution, context)
+            solution.quality_metrics = quality_metrics
+
+            # Step 6: Semantic coherence check
+            coherence_score = self.coherence_validator.validate(assembled_content)
+            solution.quality_metrics.semantic_coherence = coherence_score
+
+            # Finalize
+            solution.status = RecompositionStatus.COMPLETED
+            solution.modified_at = datetime.now()
+
+            # Update history
+            self.recomposition_history.append(solution)
+
+            logger.info(f"Assembly completed: quality={quality_metrics.overall_score:.2f}, "
+                       f"coherence={coherence_score.overall_score():.2f}")
+
+            success = True
+            total_time = time.time() - start_time_total
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful assembly
+            self._extract_recomposition_knowledge("assemble", problem_id, solution)
+            self._track_recomposition_performance("assemble", True, total_time, len(sub_solutions))
+
+            return solution
+
+        except Exception as e:
+            total_time = time.time() - start_time_total
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_recomposition_alerts("assemble", False, problem_id, str(e))
+            self._track_recomposition_performance("assemble", False, total_time, 0)
+
+            logger.error(f"Assembly failed for problem {problem_id}: {e}")
+            raise
     
     def _create_rollback_point(self, solution: IntegratedSolution, stage: str) -> None:
         """Create a rollback point."""
@@ -1842,11 +1883,125 @@ class ComprehensiveRecompositionEngine:
             ),
             'rollback_points': len(self.rollback_points),
             'success_rate': (
-                sum(1 for s in self.recomposition_history 
+                sum(1 for s in self.recomposition_history
                     if s.status == RecompositionStatus.COMPLETED) /
                 len(self.recomposition_history) if self.recomposition_history else 0
             )
         }
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Comprehensive Recomposition
+    # =========================================================================
+
+    def _trigger_recomposition_alerts(
+        self,
+        operation: str,
+        success: bool,
+        problem_id: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for recomposition failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                alert_manager.create_alert(
+                    title=f"Recomposition Alert: {operation}",
+                    description=f"Recomposition operation '{operation}' failed" +
+                                 (f" for problem '{problem_id}'" if problem_id else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=AlertSeverity.HIGH.value,
+                    source="comprehensive_recomposition_engine",
+                    component="recomposition",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger Recomposition alert: {e}")
+
+    def _extract_recomposition_knowledge(
+        self,
+        operation: str,
+        problem_id: str,
+        solution: 'IntegratedSolution'
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract recomposition knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"recomp_{operation}_{problem_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="recomposition_execution",
+                source_component="comprehensive_recomposition_engine",
+                title=f"Recomposition: {operation} - {problem_id}",
+                content={
+                    "operation": operation,
+                    "problem_id": problem_id,
+                    "assembly_strategy": solution.assembly_strategy.value,
+                    "num_sub_solutions": len(solution.sub_solutions),
+                    "conflicts_detected": len(solution.conflicts_detected),
+                    "conflicts_resolved": len(solution.conflicts_resolved),
+                    "quality_score": solution.quality_metrics.overall_score,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "status": solution.status.value,
+                    "coherence_score": solution.quality_metrics.semantic_coherence.overall_score()
+                },
+                tags=["recomposition", operation, solution.assembly_strategy.value]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted Recomposition knowledge for {problem_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract Recomposition knowledge: {e}")
+            return False
+
+    def _track_recomposition_performance(
+        self,
+        operation: str,
+        success: bool,
+        duration_seconds: float,
+        num_sub_solutions: int = 0
+    ):
+        """**ACTUAL INTEGRATION**: Track recomposition performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            quality = 1.0 if success else 0.0
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"recomp_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "duration_seconds": duration_seconds,
+                    "num_sub_solutions": num_sub_solutions
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked Recomposition performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track Recomposition performance: {e}")
 
 
 # ============================================================================

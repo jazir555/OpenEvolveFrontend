@@ -16,11 +16,31 @@ import logging
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 from enum import Enum
+from datetime import datetime
 import time
 
 from openevolve_structures import GauntletDefinition, GauntletRoundRule
 
 logger = logging.getLogger(__name__)
+
+# **ACTUAL INTEGRATION**: Alerting and adaptive for Enhanced Gauntlet Manager
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
 
 
 class GauntletRoundStatus(Enum):
@@ -270,79 +290,98 @@ class EnhancedGauntletSystem:
         Returns:
             GauntletExecution with results from all rounds
         """
-        start_time = time.time()
+        start_time_total = time.time()
+        success = False
+        solution_id = getattr(solution, 'id', 'unknown')
 
-        execution = GauntletExecution(
-            gauntlet_id=gauntlet.name,
-            solution_id=getattr(solution, 'id', 'unknown'),
-            rounds_results=[],
-            rounds_passed=[],
-            rounds_failed=[]
-        )
+        try:
+            execution = GauntletExecution(
+                gauntlet_id=gauntlet.name,
+                solution_id=solution_id,
+                rounds_results=[],
+                rounds_passed=[],
+                rounds_failed=[]
+            )
 
-        # Execute rounds sequentially
-        for round_rule in gauntlet.rounds:
-            rule_id = round_rule.per_judge_requirements.get("rule_id", "unknown")
-            logger.info(f"Executing round {round_rule.round_number}: {rule_id}")
+            # Execute rounds sequentially
+            for round_rule in gauntlet.rounds:
+                rule_id = round_rule.per_judge_requirements.get("rule_id", "unknown")
+                logger.info(f"Executing round {round_rule.round_number}: {rule_id}")
 
-            try:
-                # Route to appropriate evaluator
-                result = await self._execute_round(
-                    round_rule=round_rule,
-                    solution=solution,
-                    context=context
-                )
+                try:
+                    # Route to appropriate evaluator
+                    result = await self._execute_round(
+                        round_rule=round_rule,
+                        solution=solution,
+                        context=context
+                    )
 
-                # Track result
-                execution.rounds_results.append(result)
+                    # Track result
+                    execution.rounds_results.append(result)
 
-                if result.status == GauntletRoundStatus.PASSED:
-                    execution.rounds_passed.append(result.rule_id)
-                elif result.status == GauntletRoundStatus.FAILED:
-                    execution.rounds_failed.append(result.rule_id)
+                    if result.status == GauntletRoundStatus.PASSED:
+                        execution.rounds_passed.append(result.rule_id)
+                    elif result.status == GauntletRoundStatus.FAILED:
+                        execution.rounds_failed.append(result.rule_id)
 
-                # Aggregate score
-                execution.final_score += result.score
+                    # Aggregate score
+                    execution.final_score += result.score
 
-                # Check if should stop on failure
-                if result.status == GauntletRoundStatus.FAILED:
-                    # Could implement logic to stop early here
-                    pass
+                    # Check if should stop on failure
+                    if result.status == GauntletRoundStatus.FAILED:
+                        # Could implement logic to stop early here
+                        pass
 
-            except Exception as e:
-                logger.error(f"Round {rule_id} failed: {e}", exc_info=True)
+                except Exception as e:
+                    logger.error(f"Round {rule_id} failed: {e}", exc_info=True)
 
-                # Create error result
-                error_result = GauntletRoundResult(
-                    rule_id=rule_id,
-                    round_number=round_rule.round_number,
-                    status=GauntletRoundStatus.ERROR,
-                    score=0.0,
-                    feedback=f"Round execution error: {str(e)}",
-                    details={"error": str(e)},
-                    execution_time=0.0
-                )
-                execution.rounds_results.append(error_result)
-                execution.rounds_failed.append(rule_id)
+                    # Create error result
+                    error_result = GauntletRoundResult(
+                        rule_id=rule_id,
+                        round_number=round_rule.round_number,
+                        status=GauntletRoundStatus.ERROR,
+                        score=0.0,
+                        feedback=f"Round execution error: {str(e)}",
+                        details={"error": str(e)},
+                        execution_time=0.0
+                    )
+                    execution.rounds_results.append(error_result)
+                    execution.rounds_failed.append(rule_id)
 
-        # Calculate final average score
-        if execution.rounds_results:
-            execution.final_score = execution.final_score / len(execution.rounds_results)
+            # Calculate final average score
+            if execution.rounds_results:
+                execution.final_score = execution.final_score / len(execution.rounds_results)
 
-        # Final determination
-        execution.overall_passed = (
-            len(execution.rounds_failed) == 0
-        )
+            # Final determination
+            execution.overall_passed = (
+                len(execution.rounds_failed) == 0
+            )
 
-        # Total execution time
-        execution.execution_time = time.time() - start_time
+            # Total execution time
+            execution.execution_time = time.time() - start_time_total
 
-        logger.info(
-            f"Gauntlet execution complete: passed={execution.overall_passed}, "
-            f"score={execution.final_score:.2f}, time={execution.execution_time:.2f}s"
-        )
+            logger.info(
+                f"Gauntlet execution complete: passed={execution.overall_passed}, "
+                f"score={execution.final_score:.2f}, time={execution.execution_time:.2f}s"
+            )
 
-        return execution
+            success = True
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful execution
+            self._extract_gauntlet_knowledge("execute_gauntlet", gauntlet.name, execution)
+            self._track_gauntlet_performance("execute_gauntlet", True, execution.execution_time, execution.final_score)
+
+            return execution
+
+        except Exception as e:
+            execution_time = time.time() - start_time_total
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_gauntlet_alerts("execute_gauntlet", False, solution_id, str(e))
+            self._track_gauntlet_performance("execute_gauntlet", False, execution_time, 0.0)
+
+            logger.error(f"Gauntlet execution failed for {solution_id}: {e}")
+            raise
 
     async def _execute_round(
         self,
@@ -506,6 +545,120 @@ class EnhancedGauntletSystem:
             "general": ["generic_attack", "stress_test", "edge_case"]
         }
         return attack_modes.get(problem_type.lower(), attack_modes["general"])
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Enhanced Gauntlet
+    # =========================================================================
+
+    def _trigger_gauntlet_alerts(
+        self,
+        operation: str,
+        success: bool,
+        solution_id: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for gauntlet failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                alert_manager.create_alert(
+                    title=f"Gauntlet Alert: {operation}",
+                    description=f"Gauntlet operation '{operation}' failed" +
+                                 (f" for solution '{solution_id}'" if solution_id else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=AlertSeverity.HIGH.value,
+                    source="enhanced_gauntlet_manager",
+                    component="gauntlet",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger Gauntlet alert: {e}")
+
+    def _extract_gauntlet_knowledge(
+        self,
+        operation: str,
+        gauntlet_id: str,
+        execution: 'GauntletExecution'
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract gauntlet knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"gauntlet_{operation}_{gauntlet_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="gauntlet_execution",
+                source_component="enhanced_gauntlet_manager",
+                title=f"Gauntlet: {operation} - {gauntlet_id}",
+                content={
+                    "operation": operation,
+                    "gauntlet_id": gauntlet_id,
+                    "solution_id": execution.solution_id,
+                    "final_score": execution.final_score,
+                    "overall_passed": execution.overall_passed,
+                    "rounds_passed": len(execution.rounds_passed),
+                    "rounds_failed": len(execution.rounds_failed),
+                    "execution_time": execution.execution_time,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "rounds_results": [r.to_dict() for r in execution.rounds_results]
+                },
+                tags=["gauntlet", operation, "validation"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted Gauntlet knowledge for {gauntlet_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract Gauntlet knowledge: {e}")
+            return False
+
+    def _track_gauntlet_performance(
+        self,
+        operation: str,
+        success: bool,
+        duration_seconds: float,
+        final_score: float = 0.0
+    ):
+        """**ACTUAL INTEGRATION**: Track gauntlet performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            quality = 1.0 if success else 0.0
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"gauntlet_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "duration_seconds": duration_seconds,
+                    "final_score": final_score
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked Gauntlet performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track Gauntlet performance: {e}")
 
 
 def create_enhanced_gauntlet_system(
