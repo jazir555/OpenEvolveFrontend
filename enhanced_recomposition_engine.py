@@ -812,6 +812,42 @@ class ConflictDetector:
                     )
 
         return conflicts
+
+    @staticmethod
+    def _topological_sort(graph: Dict[str, List[str]]) -> List[str]:
+        """Topological sort that keeps all nodes, even in cycles."""
+        if not graph:
+            return []
+
+        nodes = set(graph.keys())
+        for deps in graph.values():
+            nodes.update(deps or [])
+
+        in_degree = {node: 0 for node in nodes}
+        dependents: Dict[str, List[str]] = {node: [] for node in nodes}
+
+        for node, deps in graph.items():
+            deps = deps or []
+            in_degree[node] = len(deps)
+            for dep in deps:
+                dependents.setdefault(dep, []).append(node)
+
+        queue = deque([node for node, degree in in_degree.items() if degree == 0])
+        result = []
+
+        while queue:
+            node = queue.popleft()
+            result.append(node)
+            for neighbor in dependents.get(node, []):
+                in_degree[neighbor] -= 1
+                if in_degree[neighbor] == 0:
+                    queue.append(neighbor)
+
+        if len(result) < len(nodes):
+            cycle_nodes = [node for node in nodes if node not in result]
+            result.extend(sorted(cycle_nodes))
+
+        return result
     
     def _detect_interface_mismatches(
         self,
@@ -1444,9 +1480,18 @@ class EnhancedRecompositionEngine:
         
         # Determine order based on strategy
         if strategy in [AssemblyStrategy.SEQUENTIAL, AssemblyStrategy.HIERARCHICAL]:
-            order = self._topological_sort(dependency_graph)
+            priority_scores = {
+                sp_id: sub_solutions[sp_id].quality_score
+                for sp_id in sub_solutions
+                if sp_id in sub_solutions
+            }
+            order, cycle_nodes = self._topological_sort(
+                dependency_graph,
+                priority_scores=priority_scores,
+            )
         else:
             order = list(sub_solutions.keys())
+            cycle_nodes = []
 
         # Ensure all solutions appear in the order
         if not order:
@@ -1470,10 +1515,20 @@ class EnhancedRecompositionEngine:
                 )
                 instructions.append(instruction)
         
+        reasoning = ""
+        if cycle_nodes:
+            cycle_text = ", ".join(cycle_nodes)
+            reasoning = (
+                "Cycle detected in dependency graph. "
+                f"Applied quality-priority break for: {cycle_text}."
+            )
+            self.logger.warning("Cycle detected in assembly order: %s", cycle_text)
+
         return AssemblyPlan(
             instructions=instructions,
             strategy=strategy,
-            confidence=0.8
+            confidence=0.8,
+            reasoning=reasoning
         )
 
     @staticmethod
@@ -1678,12 +1733,15 @@ class EnhancedRecompositionEngine:
             topic_coherence=topic_coherence
         )
     
-    def _topological_sort(self, graph: Dict[str, List[str]]) -> List[str]:
-        """Topological sort."""
+    def _topological_sort(
+        self,
+        graph: Dict[str, List[str]],
+        priority_scores: Optional[Dict[str, float]] = None,
+    ) -> Tuple[List[str], List[str]]:
+        """Topological sort with cycle detection and heuristic break."""
         if not graph:
-            return []
+            return [], []
 
-        # Graph maps node -> dependencies; include dependencies as nodes.
         nodes = set(graph.keys())
         for deps in graph.values():
             nodes.update(deps or [])
@@ -1697,22 +1755,31 @@ class EnhancedRecompositionEngine:
             for dep in deps:
                 dependents.setdefault(dep, []).append(node)
 
-        queue = [node for node, degree in in_degree.items() if degree == 0]
-        result = []
-        
+        queue = deque([node for node, degree in in_degree.items() if degree == 0])
+        result: List[str] = []
+
         while queue:
-            node = queue.pop(0)
+            node = queue.popleft()
             result.append(node)
             for neighbor in dependents.get(node, []):
                 in_degree[neighbor] -= 1
                 if in_degree[neighbor] == 0:
                     queue.append(neighbor)
-        
-        for node in nodes:
-            if node not in result:
-                result.append(node)
-        
-        return result
+
+        cycle_nodes: List[str] = []
+        if len(result) < len(nodes):
+            cycle_nodes = [node for node in nodes if node not in result]
+            if priority_scores:
+                ordered_cycle = sorted(
+                    cycle_nodes,
+                    key=lambda n: priority_scores.get(n, 0.0),
+                    reverse=True,
+                )
+            else:
+                ordered_cycle = sorted(cycle_nodes)
+            result.extend(ordered_cycle)
+
+        return result, cycle_nodes
 
     @staticmethod
     def _build_entanglement_matrix_from_solutions(
