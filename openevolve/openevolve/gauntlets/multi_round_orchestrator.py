@@ -27,6 +27,25 @@ import json
 import time
 from collections import defaultdict
 
+# **ACTUAL INTEGRATION**: Alerting and knowledge for Multi-Round Gauntlet Orchestrator
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -824,6 +843,33 @@ class MultiRoundGauntletOrchestrator:
             f"total_time={state.total_evaluation_time:.2f}s"
         )
 
+        # **ACTUAL INTEGRATION**: Extract knowledge, track performance, and trigger alerts
+        # Calculate final score (average of completed rounds)
+        scores = [s for s in [state.round1_normalized_score, state.round2_normalized_score, state.round3_normalized_score] if s is not None]
+        final_score = sum(scores) / len(scores) if scores else 0.0
+        success = state.status == "completed"
+
+        self._extract_gauntlet_knowledge("execute_full_gauntlet", state)
+        self._track_gauntlet_performance(
+            "execute_full_gauntlet",
+            success,
+            final_score,
+            len(state.rounds_completed),
+            state.total_evaluation_time
+        )
+
+        # Trigger alert for failures or low scores
+        if not success or final_score < 0.5:
+            self._trigger_gauntlet_alerts(
+                "execute_full_gauntlet",
+                success,
+                state.domain,
+                final_score,
+                len(state.rounds_completed),
+                None,
+                {"total_time": state.total_evaluation_time, "status": state.status}
+            )
+
         return state
 
     def normalize_scores(self, state: GauntletState) -> GauntletState:
@@ -1394,6 +1440,143 @@ Last Round: {state.current_round}
             ]
 
         return state
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Multi-Round Gauntlet
+    # =========================================================================
+
+    def _trigger_gauntlet_alerts(
+        self,
+        operation: str,
+        success: bool,
+        domain: Optional[str] = None,
+        final_score: Optional[float] = None,
+        rounds_completed: int = 0,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for gauntlet failures or low scores."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Alert on failures or low final scores
+            if not success or (final_score is not None and final_score < 0.5):
+                severity = AlertSeverity.HIGH if not success else AlertSeverity.MEDIUM
+
+                alert_manager.create_alert(
+                    title=f"Multi-Round Gauntlet Alert: {operation}",
+                    description=f"Gauntlet operation '{operation}' " +
+                                 ("failed" if not success else f"has low score: {final_score:.2f}") +
+                                 (f" in domain '{domain}'" if domain else "") +
+                                 (f" after {rounds_completed} rounds" if rounds_completed > 0 else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="multi_round_gauntlet_orchestrator",
+                    component="gauntlet_execution",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger Gauntlet alert: {e}")
+
+    def _extract_gauntlet_knowledge(
+        self,
+        operation: str,
+        state: GauntletState
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract gauntlet knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"gauntlet_{operation}_{state.domain}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="multi_round_gauntlet",
+                source_component="multi_round_gauntlet_orchestrator",
+                title=f"Gauntlet Execution: {state.domain} ({operation})",
+                content={
+                    "operation": operation,
+                    "domain": state.domain,
+                    "problem": state.problem[:100] + "..." if len(state.problem) > 100 else state.problem,
+                    "current_round": state.current_round,
+                    "rounds_completed": state.rounds_completed,
+                    "round1_score": state.round1_normalized_score,
+                    "round2_score": state.round2_normalized_score,
+                    "round3_score": state.round3_normalized_score,
+                    "status": state.status,
+                    "total_evaluation_time": state.total_evaluation_time,
+                    "timestamp": datetime.utcnow().isoformat()
+                },
+                metadata={
+                    "round1_decision": state.round1_decision,
+                    "round2_decision": state.round2_decision,
+                    "round3_decision": state.round3_decision,
+                    "state_dict": state.to_dict()
+                },
+                tags=["gauntlet", "multi_round", operation, state.domain]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted Gauntlet knowledge for {operation}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract Gauntlet knowledge: {e}")
+            return False
+
+    def _track_gauntlet_performance(
+        self,
+        operation: str,
+        success: bool,
+        final_score: float = 0.0,
+        rounds_completed: int = 0,
+        execution_time: float = 0.0
+    ):
+        """**ACTUAL INTEGRATION**: Track gauntlet performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            # Quality based on success, score, and rounds completed
+            quality = 0.5 if success else 0.0
+            if success and final_score > 0:
+                quality = final_score
+            # Bonus for completing all rounds
+            if rounds_completed == 3:
+                quality = min(quality + 0.1, 1.0)
+            # Penalty for very slow execution
+            if execution_time > 600:  # 10 minutes
+                quality *= 0.9
+            quality = max(min(quality, 1.0), 0.0)
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"multi_round_gauntlet_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.utcnow(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "final_score": final_score,
+                    "rounds_completed": rounds_completed,
+                    "execution_time": execution_time
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked Gauntlet performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track Gauntlet performance: {e}")
 
 
 def create_multi_round_orchestrator(

@@ -41,6 +41,25 @@ from functools import lru_cache
 from enum import Enum
 import json
 
+# **ACTUAL INTEGRATION**: Alerting and knowledge for Solution Assembler
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 # Import from sovereign_data_models with fallbacks
 try:
     from sovereign_data_models import (
@@ -384,10 +403,29 @@ class SolutionAssembler:
             )
 
             logger.info(f"Successfully assembled solution {solution_id}")
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful assembly
+            assembly_time = metadata['assembly_time']
+            self._extract_assembler_knowledge("assemble_solution", integrated_solution, assembly_time)
+            self._track_assembler_performance("assemble_solution", True, assembly_time, quality_metrics.overall_score)
+
             return integrated_solution
 
         except (ValueError, TypeError, RuntimeError, AttributeError) as e:
             logger.error(f"Failed to assemble solution: {e}")
+
+            # **ACTUAL INTEGRATION**: Extract knowledge, track performance, and trigger alerts for failures
+            assembly_time = (datetime.now() - start_time).total_seconds() if start_time else 0.0
+            self._track_assembler_performance("assemble_solution", False, assembly_time, 0.0)
+            self._trigger_assembler_alerts(
+                "assemble_solution",
+                False,
+                solution_id,
+                0.0,
+                str(e),
+                {"assembly_time": assembly_time, "num_sub_solutions": len(sub_solutions)}
+            )
+
             if self.strict_mode:
                 raise AssemblyStrategyError(f"Solution assembly failed: {e}") from e
             # Return partial solution in non-strict mode
@@ -1428,6 +1466,130 @@ class SolutionAssembler:
         if self._strategy_cache:
             self._strategy_cache.clear()
         logger.info("Assembler cache cleared")
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Solution Assembler
+    # =========================================================================
+
+    def _trigger_assembler_alerts(
+        self,
+        operation: str,
+        success: bool,
+        solution_id: Optional[str] = None,
+        quality_score: Optional[float] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for solution assembly failures or low quality."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Alert on failures or low quality scores
+            if not success or (quality_score is not None and quality_score < 0.7):
+                severity = AlertSeverity.HIGH if not success else AlertSeverity.MEDIUM
+
+                alert_manager.create_alert(
+                    title=f"Solution Assembler Alert: {operation}",
+                    description=f"Solution assembler operation '{operation}' " +
+                                 ("failed" if not success else f"has low quality score: {quality_score:.2f}") +
+                                 (f" for solution '{solution_id}'" if solution_id else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="solution_assembler",
+                    component="solution_assembly",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger Solution Assembler alert: {e}")
+
+    def _extract_assembler_knowledge(
+        self,
+        operation: str,
+        solution: IntegratedSolution,
+        assembly_time: float
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract solution assembler knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"solution_assembler_{operation}_{solution.solution_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="solution_assembly",
+                source_component="solution_assembler",
+                title=f"Solution Assembly: {solution.solution_id} ({operation})",
+                content={
+                    "operation": operation,
+                    "solution_id": solution.solution_id,
+                    "assembly_strategy": solution.assembly_strategy,
+                    "num_sub_solutions": len(solution.sub_solutions),
+                    "num_conflicts": len(solution.conflicts_detected),
+                    "num_resolved": len(solution.conflicts_resolved),
+                    "quality_score": solution.quality_metrics.overall_score if hasattr(solution.quality_metrics, 'overall_score') else 0.0,
+                    "is_valid": solution.validation_results.is_valid if hasattr(solution.validation_results, 'is_valid') else False,
+                    "assembly_time": assembly_time,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "integration_order": solution.integration_order,
+                    "assembly_time": assembly_time,
+                    "quality_metrics": solution.quality_metrics.to_dict() if hasattr(solution.quality_metrics, 'to_dict') else {}
+                },
+                tags=["solution_assembler", "assembly", operation, "integration"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted Solution Assembler knowledge for {operation}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract Solution Assembler knowledge: {e}")
+            return False
+
+    def _track_assembler_performance(
+        self,
+        operation: str,
+        success: bool,
+        assembly_time: float,
+        quality_score: Optional[float] = None
+    ):
+        """**ACTUAL INTEGRATION**: Track solution assembler performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            # Quality based on success, time, and quality score
+            quality = 0.5 if success else 0.0
+            if success and quality_score is not None:
+                quality = quality_score
+            # Penalize very slow assemblies
+            if assembly_time > 30.0:
+                quality *= 0.8
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"solution_assembler_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={"operation": operation, "assembly_time": assembly_time, "quality_score": quality_score}
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked Solution Assembler performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track Solution Assembler performance: {e}")
 
 
 # ============================================================================

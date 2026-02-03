@@ -17,6 +17,14 @@ from .bedrock_kb import BedrockKnowledgeBaseClient
 from .eks_kb import EKSKnowledgeBaseHandler
 from .elasticsearch_search import ElasticsearchSearchEngine
 
+# Import DTS integration
+try:
+    from dts_integration import DTSIntegration, DTSIntegrationConfig, DTS_AVAILABLE
+    print("✅ DTS integration available for enhanced knowledge processing")
+except ImportError:
+    DTS_AVAILABLE = False
+    print("⚠️ DTS not available - using fallback knowledge processing methods")
+
 # LLM client initialization - use fallback if not available
 try:
     from llm_utils import initialize_llm_client
@@ -583,6 +591,156 @@ class KnowledgeEngine:
         except Exception as e:
             self.logger.error(f"❌ Error running Chat-Based Planning Pipeline: {e}")
             return {"status": "error", "message": str(e)}
+
+    async def extract_knowledge_with_dspy(
+        self,
+        content: str,
+        context: str = "",
+        extraction_type: str = "comprehensive"
+    ) -> Dict[str, Any]:
+        """
+        Extract knowledge using DSPy for enhanced programmatic prompting and structured analysis.
+
+        Args:
+            content: Content to extract knowledge from
+            context: Additional context for extraction
+            extraction_type: Type of extraction ('comprehensive', 'entities', 'relations', 'patterns')
+
+        Returns:
+            Dictionary with extracted knowledge and analysis
+        """
+        try:
+            # Try to import DSPy
+            import dspy
+            from dspy.teleprompt import BootstrapFewShot
+            from dspy.predict import Predict
+            DSPY_AVAILABLE = True
+        except ImportError:
+            DSPY_AVAILABLE = False
+            self.logger.info("DSPy not available, falling back to standard knowledge extraction")
+            # Fallback to standard extraction
+            result = await self.generate_knowledge(context, content)
+            return {
+                "success": True,
+                "dspy_enhanced": False,
+                "extracted_knowledge": result,
+                "extraction_type": extraction_type,
+                "entities": [],
+                "relations": [],
+                "patterns": [],
+                "confidence": 0.5,
+                "message": "DSPy not available, using standard extraction"
+            }
+
+        if not DSPY_AVAILABLE:
+            # Fallback to standard extraction
+            result = await self.generate_knowledge(context, content)
+            return {
+                "success": True,
+                "dspy_enhanced": False,
+                "extracted_knowledge": result,
+                "extraction_type": extraction_type,
+                "entities": [],
+                "relations": [],
+                "patterns": [],
+                "confidence": 0.5,
+                "message": "DSPy not available, using standard extraction"
+            }
+
+        try:
+            # Define a DSPy signature for knowledge extraction
+            class KnowledgeExtractionSignature(dspy.Signature):
+                """Extract structured knowledge from content."""
+                content_to_analyze = dspy.InputField(desc="Content to extract knowledge from")
+                extraction_context = dspy.InputField(desc="Additional context for extraction")
+                extraction_type = dspy.InputField(desc="Type of extraction (comprehensive, entities, relations, patterns)")
+
+                extracted_entities = dspy.OutputField(desc="JSON array of entities with name, type, and description")
+                extracted_relations = dspy.OutputField(desc="JSON array of relations between entities with source, target, and relationship type")
+                identified_patterns = dspy.OutputField(desc="JSON array of patterns or concepts identified in the content")
+                knowledge_summary = dspy.OutputField(desc="Structured summary of extracted knowledge")
+                confidence_score = dspy.OutputField(desc="Confidence in the extraction (0-100)")
+
+            # Create a predictor using the signature
+            extract_knowledge = dspy.Predict(KnowledgeExtractionSignature)
+
+            # Run the extraction
+            result = extract_knowledge(
+                content_to_analyze=content,
+                extraction_context=context,
+                extraction_type=extraction_type
+            )
+
+            # Parse the results
+            import json
+            try:
+                entities = json.loads(result.extracted_entities) if isinstance(result.extracted_entities, str) else result.extracted_entities
+            except json.JSONDecodeError:
+                entities = []
+                self.logger.warning("Could not parse extracted entities from DSPy result")
+
+            try:
+                relations = json.loads(result.extracted_relations) if isinstance(result.extracted_relations, str) else result.extracted_relations
+            except json.JSONDecodeError:
+                relations = []
+                self.logger.warning("Could not parse extracted relations from DSPy result")
+
+            try:
+                patterns = json.loads(result.identified_patterns) if isinstance(result.identified_patterns, str) else result.identified_patterns
+            except json.JSONDecodeError:
+                patterns = []
+                self.logger.warning("Could not parse identified patterns from DSPy result")
+
+            try:
+                confidence = float(result.confidence_score) if result.confidence_score.replace('.', '').isdigit() else 75.0
+            except:
+                confidence = 75.0
+
+            return {
+                "success": True,
+                "dspy_enhanced": True,
+                "extracted_knowledge": result.knowledge_summary,
+                "extraction_type": extraction_type,
+                "entities": entities,
+                "relations": relations,
+                "patterns": patterns,
+                "confidence": confidence / 100.0,  # Normalize to 0-1 range
+                "dspy_analysis": {
+                    "knowledge_summary": result.knowledge_summary,
+                    "confidence_score": result.confidence_score
+                }
+            }
+
+        except Exception as e:
+            self.logger.error(f"DSPy knowledge extraction failed: {e}")
+            # Fallback to standard extraction
+            try:
+                result = await self.generate_knowledge(context, content)
+                return {
+                    "success": True,
+                    "dspy_enhanced": False,
+                    "extracted_knowledge": result,
+                    "extraction_type": extraction_type,
+                    "entities": [],
+                    "relations": [],
+                    "patterns": [],
+                    "confidence": 0.5,
+                    "message": f"DSPy extraction failed: {str(e)}, using standard extraction"
+                }
+            except Exception as fallback_error:
+                self.logger.error(f"Fallback knowledge extraction also failed: {fallback_error}")
+                return {
+                    "success": False,
+                    "dspy_enhanced": False,
+                    "extracted_knowledge": "",
+                    "extraction_type": extraction_type,
+                    "entities": [],
+                    "relations": [],
+                    "patterns": [],
+                    "confidence": 0.0,
+                    "error": str(fallback_error),
+                    "message": f"DSPy extraction failed: {str(e)}, and fallback also failed: {str(fallback_error)}"
+                }
 
 
 # Example usage

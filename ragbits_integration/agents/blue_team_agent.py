@@ -6,9 +6,29 @@ Specialized agent for generating high-quality solutions to sub-problems.
 
 from typing import List, Dict, Any, Optional
 import logging
+from datetime import datetime
 
 from ragbits_integration.agents.base_agent import BaseWorkflowAgent, AgentTool
 from ragbits_integration.agents.tools.knowledge_search_tool import KnowledgeSearchTool
+
+# **ACTUAL INTEGRATION**: Alerting and knowledge for Blue Team Agent
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -176,6 +196,11 @@ class BlueTeamAgent(BaseWorkflowAgent):
         }
 
         logger.info(f"Solution generated: {len(response)} chars, artifact_id: {artifact_id}")
+
+        # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful solution generation
+        self._extract_blue_team_knowledge("generate_solution", sub_problem.get("id"), sub_problem.get("title"), result)
+        self._track_blue_team_performance("generate_solution", True, len(response))
+
         return result
 
     async def refine_solution(
@@ -218,13 +243,25 @@ class BlueTeamAgent(BaseWorkflowAgent):
                 links_to=critique.get("artifact_id") if critique.get("artifact_id") else None
             )
 
-        return {
+        result = {
             "solution": refined_solution,
             "original_solution": current_solution,
             "critique_addressed": critique.get("issues", []),
             "artifact_id": artifact_id,
             "agent_metadata": self.get_metadata()
         }
+
+        # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful refinement
+        self._extract_blue_team_knowledge("refine_solution", None, "solution_refinement", {
+            "solution": refined_solution,
+            "original_solution": current_solution,
+            "critique_addressed": critique.get("issues", []),
+            "artifact_id": artifact_id,
+            "agent_metadata": self.get_metadata()
+        })
+        self._track_blue_team_performance("refine_solution", True, len(refined_solution))
+
+        return result
 
     async def _prepare_solution_context(
         self,
@@ -361,3 +398,118 @@ Provide your solution in the following structure:
             "task": task,
             "agent_metadata": self.get_metadata()
         }
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Blue Team Agent
+    # =========================================================================
+
+    def _trigger_blue_team_alerts(
+        self,
+        operation: str,
+        success: bool,
+        sub_problem_title: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for blue team solution generation failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Alert on failures
+            if not success:
+                alert_manager.create_alert(
+                    title=f"Blue Team Agent Alert: {operation}",
+                    description=f"Blue team operation '{operation}' failed" +
+                                 (f" for '{sub_problem_title}'" if sub_problem_title else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=AlertSeverity.HIGH.value,
+                    source="blue_team_agent",
+                    component="solution_generation",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger Blue Team alert: {e}")
+
+    def _extract_blue_team_knowledge(
+        self,
+        operation: str,
+        sub_problem_id: Optional[str],
+        sub_problem_title: Optional[str],
+        solution_data: Dict[str, Any]
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract blue team knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"blue_team_{operation}_{sub_problem_id or 'unknown'}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="blue_team_solution",
+                source_component="blue_team_agent",
+                title=f"Blue Team Solution: {sub_problem_title or 'Unknown'} ({operation})",
+                content={
+                    "operation": operation,
+                    "sub_problem_id": sub_problem_id,
+                    "sub_problem_title": sub_problem_title,
+                    "solution_length": len(solution_data.get("solution", "")),
+                    "rag_enabled": solution_data.get("rag_enabled", False),
+                    "similar_solutions_used": solution_data.get("similar_solutions_used", 0),
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "artifact_id": solution_data.get("artifact_id"),
+                    "agent_metadata": solution_data.get("agent_metadata", {})
+                },
+                tags=["blue_team", "solution_generation", operation]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted Blue Team knowledge for {operation}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract Blue Team knowledge: {e}")
+            return False
+
+    def _track_blue_team_performance(
+        self,
+        operation: str,
+        success: bool,
+        solution_length: int = 0
+    ):
+        """**ACTUAL INTEGRATION**: Track blue team performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            # Quality based on success and solution length (longer may be better)
+            quality = 1.0 if success else 0.0
+            if success and solution_length > 0:
+                # Normalize length factor (assume ~1000 chars is good)
+                length_factor = min(solution_length / 1000.0, 1.5)
+                quality = min(quality * length_factor, 1.0)
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"blue_team_agent_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={"operation": operation, "solution_length": solution_length}
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked Blue Team performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track Blue Team performance: {e}")

@@ -6,10 +6,30 @@ Specialized agent for critiquing solutions and identifying issues.
 
 from typing import List, Dict, Any, Optional
 import logging
+from datetime import datetime
 
 from ragbits_integration.agents.base_agent import BaseWorkflowAgent, AgentTool
 from ragbits_integration.agents.tools.knowledge_search_tool import KnowledgeSearchTool
 from ragbits_integration.agents.tools.pattern_analysis_tool import PatternAnalysisTool
+
+# **ACTUAL INTEGRATION**: Alerting and knowledge for Red Team Agent
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -172,6 +192,22 @@ class RedTeamAgent(BaseWorkflowAgent):
         }
 
         logger.info(f"Critique complete: {result['total_issues']} issues identified")
+
+        # **ACTUAL INTEGRATION**: Extract knowledge, track performance, and trigger alerts for high issue counts
+        self._extract_red_team_knowledge("critique_solution", sub_problem.get("id"), sub_problem.get("title"), result)
+        self._track_red_team_performance("critique_solution", True, result['total_issues'], parsed_critique.get("overall_score", 0))
+
+        # Trigger alert if too many issues found
+        if result['total_issues'] > 10:
+            self._trigger_red_team_alerts(
+                "critique_solution",
+                True,
+                sub_problem.get("title"),
+                result['total_issues'],
+                None,
+                {"artifact_id": artifact_id}
+            )
+
         return result
 
     async def _prepare_critique_context(
@@ -363,3 +399,128 @@ FAIL - Fundamentally flawed, needs complete rework
             "task": task,
             "agent_metadata": self.get_metadata()
         }
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Red Team Agent
+    # =========================================================================
+
+    def _trigger_red_team_alerts(
+        self,
+        operation: str,
+        success: bool,
+        sub_problem_title: Optional[str] = None,
+        num_issues: int = 0,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for red team critique failures or high issue counts."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Alert on failures or high issue counts
+            if not success or num_issues > 10:
+                severity = AlertSeverity.HIGH if not success else AlertSeverity.MEDIUM
+
+                alert_manager.create_alert(
+                    title=f"Red Team Agent Alert: {operation}",
+                    description=f"Red team operation '{operation}' " +
+                                 ("failed" if not success else f"found {num_issues} issues") +
+                                 (f" for '{sub_problem_title}'" if sub_problem_title else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="red_team_agent",
+                    component="solution_critique",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger Red Team alert: {e}")
+
+    def _extract_red_team_knowledge(
+        self,
+        operation: str,
+        sub_problem_id: Optional[str],
+        sub_problem_title: Optional[str],
+        critique_data: Dict[str, Any]
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract red team knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            parsed = critique_data.get("parsed", {})
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"red_team_{operation}_{sub_problem_id or 'unknown'}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="red_team_critique",
+                source_component="red_team_agent",
+                title=f"Red Team Critique: {sub_problem_title or 'Unknown'} ({operation})",
+                content={
+                    "operation": operation,
+                    "sub_problem_id": sub_problem_id,
+                    "sub_problem_title": sub_problem_title,
+                    "total_issues": critique_data.get("total_issues", 0),
+                    "overall_score": parsed.get("overall_score", 0),
+                    "verdict": parsed.get("verdict", "UNKNOWN"),
+                    "patterns_used": critique_data.get("patterns_used", 0),
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "artifact_id": critique_data.get("artifact_id"),
+                    "issues": parsed.get("issues", [])[:10],  # Store top 10 issues
+                    "agent_metadata": critique_data.get("agent_metadata", {})
+                },
+                tags=["red_team", "critique", operation]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted Red Team knowledge for {operation}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract Red Team knowledge: {e}")
+            return False
+
+    def _track_red_team_performance(
+        self,
+        operation: str,
+        success: bool,
+        num_issues: int = 0,
+        overall_score: float = 0.0
+    ):
+        """**ACTUAL INTEGRATION**: Track red team performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            # Quality based on success and thoroughness (more issues found = more thorough)
+            quality = 0.5 if success else 0.0
+            if success:
+                # Higher quality if many issues found (thorough critique)
+                issue_factor = min(num_issues / 10.0, 1.5)
+                score_factor = overall_score / 10.0
+                quality = min((issue_factor + score_factor) / 2.0, 1.0)
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"red_team_agent_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={"operation": operation, "num_issues": num_issues, "overall_score": overall_score}
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked Red Team performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track Red Team performance: {e}")

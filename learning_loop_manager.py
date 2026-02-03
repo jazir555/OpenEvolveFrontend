@@ -28,6 +28,25 @@ from sovereign_data_models import (
     generate_id
 )
 
+# **ACTUAL INTEGRATION**: Alerting and knowledge for Learning Loop Manager
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact as EngineKnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -257,6 +276,28 @@ class LearningLoopManager:
 
         logger.info(f"Learning loop closed: {len(lessons)} lessons extracted, "
                    f"estimated quality improvement: {quality_improvement:.2%}")
+
+        # **ACTUAL INTEGRATION**: Extract knowledge, track performance, and trigger alerts
+        self._extract_learning_knowledge("close_learning_loop", summary)
+        self._track_learning_performance(
+            "close_learning_loop",
+            True,
+            quality_improvement,
+            efficiency_improvement,
+            len(lessons)
+        )
+
+        # Trigger alert if low improvements
+        if quality_improvement < 0.05:
+            self._trigger_learning_alerts(
+                "close_learning_loop",
+                True,
+                problem.id,
+                len(lessons),
+                quality_improvement,
+                None,
+                {"efficiency_improvement": efficiency_improvement}
+            )
 
         return summary
 
@@ -806,3 +847,136 @@ class LearningLoopManager:
             "dataset_path": output_path,
             "samples": len(dataset)
         }
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Learning Loop Manager
+    # =========================================================================
+
+    def _trigger_learning_alerts(
+        self,
+        operation: str,
+        success: bool,
+        problem_id: Optional[str] = None,
+        num_lessons: int = 0,
+        quality_improvement: float = 0.0,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for learning loop failures or low improvements."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Alert on failures or very low improvements
+            if not success or quality_improvement < 0.05:
+                severity = AlertSeverity.MEDIUM
+
+                alert_manager.create_alert(
+                    title=f"Learning Loop Manager Alert: {operation}",
+                    description=f"Learning loop operation '{operation}' " +
+                                 ("failed" if not success else f"has low improvement: {quality_improvement:.2%}") +
+                                 (f" for problem '{problem_id}'" if problem_id else "") +
+                                 (f" with {num_lessons} lessons" if num_lessons > 0 else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="learning_loop_manager",
+                    component="continuous_learning",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger Learning Loop alert: {e}")
+
+    def _extract_learning_knowledge(
+        self,
+        operation: str,
+        learning_summary: LearningSummary
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract learning loop knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = EngineKnowledgeArtifact(
+                artifact_id=f"learning_loop_{operation}_{learning_summary.problem_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="learning_loop",
+                source_component="learning_loop_manager",
+                title=f"Learning Loop: {learning_summary.problem_id} ({operation})",
+                content={
+                    "operation": operation,
+                    "problem_id": learning_summary.problem_id,
+                    "learning_session_id": learning_summary.learning_session_id,
+                    "estimated_quality_improvement": learning_summary.estimated_quality_improvement,
+                    "estimated_efficiency_improvement": learning_summary.estimated_efficiency_improvement,
+                    "confidence_level": learning_summary.confidence_level,
+                    "num_lessons": len(learning_summary.lessons_learned),
+                    "num_patterns": len(learning_summary.patterns_identified),
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "strategy_preference_updates": learning_summary.strategy_preference_updates,
+                    "quality_threshold_updates": learning_summary.quality_threshold_updates,
+                    "artifacts_created": learning_summary.artifacts_created,
+                    "learning_summary_dict": asdict(learning_summary)
+                },
+                tags=["learning_loop", "continuous_learning", operation]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted Learning Loop knowledge for {operation}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract Learning Loop knowledge: {e}")
+            return False
+
+    def _track_learning_performance(
+        self,
+        operation: str,
+        success: bool,
+        quality_improvement: float = 0.0,
+        efficiency_improvement: float = 0.0,
+        num_lessons: int = 0
+    ):
+        """**ACTUAL INTEGRATION**: Track learning loop performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            # Quality based on improvements and lessons learned
+            quality = 0.5 if success else 0.0
+            if success:
+                # Factor in both quality and efficiency improvements
+                quality = (quality_improvement + efficiency_improvement) / 2.0
+                # Bonus for extracting many lessons
+                if num_lessons > 0:
+                    quality = min(quality + 0.1, 1.0)
+            quality = max(min(quality, 1.0), 0.0)
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"learning_loop_manager_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "quality_improvement": quality_improvement,
+                    "efficiency_improvement": efficiency_improvement,
+                    "num_lessons": num_lessons
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked Learning Loop performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track Learning Loop performance: {e}")

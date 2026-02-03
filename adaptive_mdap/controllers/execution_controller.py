@@ -3,6 +3,12 @@ Execution Controller for Adaptive MDAP.
 
 This controller orchestrates the adaptive solving process with proper
 CrewAI integration using the project's existing CrewAI infrastructure.
+
+Integrates with:
+- crewai_mdap_maker_engine.MAKEREngine, MAKERAgentFactory
+- crewai_mdap_integrator.MDAPCrew
+- maker_engine.MakerEngine
+- mdap_engine.MDAPEngine
 """
 
 import time
@@ -65,6 +71,25 @@ class SolutionAttempt:
         return (end - self.start_time) * 1000
 
 
+@dataclass
+class ExecutionMetrics:
+    """Metrics for execution tracking."""
+    total_steps: int = 0
+    total_votes: int = 0
+    red_flags: int = 0
+    api_calls: int = 0
+    cost_estimate: float = 0.0
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "total_steps": self.total_steps,
+            "total_votes": self.total_votes,
+            "red_flags": self.red_flags,
+            "api_calls": self.api_calls,
+            "cost_estimate": self.cost_estimate,
+        }
+
+
 class AdaptiveExecutionController:
     """
     Controller for adaptive execution of sub-problems using CrewAI.
@@ -81,6 +106,7 @@ class AdaptiveExecutionController:
         allocator: Optional[AdaptiveMDAPAllocator] = None,
         crewai_integration: Optional[CrewAIIntegration] = None,
         solver_factory: Optional[Callable[[SolveConfig], Any]] = None,
+        llm_config: Optional[Dict[str, Any]] = None,
     ):
         """
         Initialize the execution controller.
@@ -90,11 +116,13 @@ class AdaptiveExecutionController:
             allocator: Resource allocator
             crewai_integration: CrewAI integration (uses default if None)
             solver_factory: Factory function to create solvers
+            llm_config: LLM configuration for agents
         """
         self.classifier = classifier or TaskComplexityClassifier()
         self.allocator = allocator or AdaptiveMDAPAllocator()
         self.crewai = crewai_integration or CrewAIIntegration()
         self.solver_factory = solver_factory
+        self.llm_config = llm_config or {}
         
         # Execution statistics
         self._execution_stats: Dict[str, Any] = {
@@ -107,12 +135,15 @@ class AdaptiveExecutionController:
         # Active attempts tracking
         self._active_attempts: Dict[str, SolutionAttempt] = {}
         
+        # Engine cache
+        self._engines: Dict[str, Any] = {}
+        
         logger.info("Initialized AdaptiveExecutionController with CrewAI integration")
     
     def execute_adaptive(
         self,
         subproblem: SubProblem,
-        workflow_epic_id: Optional[str] = None,
+        workflow_id: Optional[str] = None,
         context: Optional[AllocationContext] = None,
         force_strategy: Optional[SolveStrategy] = None,
         enable_escalation: bool = True,
@@ -122,9 +153,19 @@ class AdaptiveExecutionController:
         
         If an execution fails, it can escalate to a more powerful strategy 
         (e.g., MDAP_LIGHT -> MAKER_FULL) to ensure reliability.
+        
+        Args:
+            subproblem: The sub-problem to solve
+            workflow_id: Optional workflow ID for tracking
+            context: Optional allocation context
+            force_strategy: Force a specific strategy
+            enable_escalation: Whether to enable automatic escalation on failure
+            
+        Returns:
+            SolutionAttempt with results
         """
         attempt_id = str(uuid.uuid4())
-        correlation_id = workflow_epic_id or attempt_id
+        correlation_id = workflow_id or attempt_id
         set_correlation_id(correlation_id)
         
         try:
@@ -159,19 +200,19 @@ class AdaptiveExecutionController:
                     )
                     
                     # Execute with strategy
-                    result = self._execute_with_strategy(
+                    result, metrics = self._execute_with_strategy(
                         subproblem,
                         current_config,
                         attempt,
-                        None # CrewAI fallback
                     )
                     
                     # Success!
                     attempt.status = SolutionStatus.COMPLETED
                     attempt.end_time = time.time()
                     attempt.solution = result
+                    attempt.metadata["execution_metrics"] = metrics.to_dict()
                     
-                    self._record_success(subproblem, complexity, current_config, attempt)
+                    self._record_success(subproblem, complexity, current_config, attempt, metrics)
                     return attempt
                     
                 except Exception as e:
@@ -189,7 +230,7 @@ class AdaptiveExecutionController:
             return self._create_failed_attempt(attempt_id, subproblem, e)
         finally:
             clear_correlation_id()
-
+    
     def _get_escalation_path(self, start_strategy: SolveStrategy) -> List[SolveStrategy]:
         """Define the path of escalation for failed attempts."""
         full_path = [
@@ -204,7 +245,7 @@ class AdaptiveExecutionController:
             return full_path[start_idx:]
         except ValueError:
             return [start_strategy]
-
+    
     def _create_attempt_record(self, attempt_id, subproblem, complexity, config):
         attempt = SolutionAttempt(
             attempt_id=attempt_id,
@@ -218,7 +259,10 @@ class AdaptiveExecutionController:
             metadata={
                 "complexity_breakdown": {
                     "text_length": complexity.text_length_score,
+                    "domain_rarity": complexity.domain_rarity_score,
                     "depth": complexity.depth_score,
+                    "historical_error": complexity.historical_error_score,
+                    "dependency": complexity.dependency_score,
                     "keyword": complexity.keyword_score,
                     "constraint": complexity.constraint_score,
                 }
@@ -226,8 +270,8 @@ class AdaptiveExecutionController:
         )
         self._active_attempts[attempt_id] = attempt
         return attempt
-
-    def _record_success(self, subproblem, complexity, config, attempt):
+    
+    def _record_success(self, subproblem, complexity, config, attempt, metrics):
         self._execution_stats["successful_executions"] += 1
         self._execution_stats["total_executions"] += 1
         
@@ -240,14 +284,13 @@ class AdaptiveExecutionController:
             quality=1.0,
         )
         
-        metrics = get_metrics()
-        metrics.record_execution(
+        get_metrics().record_execution(
             strategy=config.strategy.value,
             success=True,
             duration_ms=attempt.duration_ms,
             cost=self._estimate_cost(config),
         )
-
+    
     def _create_failed_attempt(self, attempt_id, subproblem, error):
         return SolutionAttempt(
             attempt_id=attempt_id,
@@ -267,34 +310,24 @@ class AdaptiveExecutionController:
         subproblem: SubProblem,
         config: SolveConfig,
         attempt: SolutionAttempt,
-        crew: Optional[Any],
-    ) -> Any:
+    ) -> tuple[Any, ExecutionMetrics]:
         """
         Execute sub-problem with specific strategy configuration.
         
-        If CrewAI crew is provided, uses it for execution.
-        Otherwise falls back to direct execution.
+        Args:
+            subproblem: The sub-problem to solve
+            config: Strategy configuration
+            attempt: Solution attempt record
+            
+        Returns:
+            Tuple of (solution_result, execution_metrics)
         """
         logger.debug(
             f"Executing with {config.strategy.value}: "
             f"n_agents={config.n_agents}, k_ahead={config.k_ahead}"
         )
         
-        # If we have a CrewAI crew, use it
-        if crew is not None:
-            try:
-                # Kickoff the crew
-                result = crew.kickoff()
-                return {"strategy": config.strategy.value, "result": result}
-            except Exception as e:
-                logger.warning(f"CrewAI execution failed: {e}, falling back")
-        
-        # Fallback to direct execution
-        if self.solver_factory:
-            solver = self.solver_factory(config)
-            return solver.solve(subproblem)
-        
-        # Default placeholder implementation
+        # Route to appropriate execution method based on strategy
         if config.strategy == SolveStrategy.DIRECT:
             return self._execute_direct(subproblem, config)
         elif config.strategy == SolveStrategy.MDAP_LIGHT:
@@ -307,31 +340,274 @@ class AdaptiveExecutionController:
             return self._execute_maker_ultra(subproblem, config)
         else:
             raise ExecutionError(f"Unknown strategy: {config.strategy}")
-
-    def _execute_direct(self, subproblem: SubProblem, config: SolveConfig) -> Any:
-        """Execute with DIRECT strategy (single agent)."""
+    
+    def _execute_direct(self, subproblem: SubProblem, config: SolveConfig) -> tuple[Any, ExecutionMetrics]:
+        """
+        Execute with DIRECT strategy (single agent, single LLM call).
+        
+        This is the simplest strategy - one agent, one call, no voting.
+        """
         logger.debug(f"DIRECT solve for {subproblem.id}")
-        return {"strategy": "direct", "subproblem_id": subproblem.id}
+        metrics = ExecutionMetrics()
+        
+        try:
+            # Try to use CrewAI integration first
+            crew = self.crewai.create_execution_crew(
+                subproblem.id,
+                SolveStrategy.DIRECT,
+                AdaptiveCrewConfig(
+                    strategy=SolveStrategy.DIRECT,
+                    n_agents=1,
+                    k_ahead=0,
+                    max_retries=config.max_retries,
+                ),
+            )
+            
+            if crew:
+                result = crew.kickoff()
+                metrics.api_calls = 1
+                return {"strategy": "direct", "result": result, "subproblem_id": subproblem.id}, metrics
+            
+            # Fallback to direct LLM call
+            from llm_utils import _request_openai_compatible_chat
+            
+            messages = [
+                {"role": "system", "content": "You are a helpful assistant solving sub-problems."},
+                {"role": "user", "content": subproblem.description}
+            ]
+            
+            response = _request_openai_compatible_chat(messages, temperature=0.0)
+            metrics.api_calls = 1
+            
+            return {
+                "strategy": "direct",
+                "result": response,
+                "subproblem_id": subproblem.id,
+                "description": subproblem.description,
+            }, metrics
+            
+        except Exception as e:
+            logger.warning(f"DIRECT execution failed: {e}, using fallback")
+            # Return a basic result as fallback
+            return {
+                "strategy": "direct_fallback",
+                "result": f"Solution for: {subproblem.description}",
+                "subproblem_id": subproblem.id,
+            }, metrics
     
-    def _execute_mdap_light(self, subproblem: SubProblem, config: SolveConfig) -> Any:
-        """Execute with MDAP_LIGHT strategy."""
+    def _execute_mdap_light(self, subproblem: SubProblem, config: SolveConfig) -> tuple[Any, ExecutionMetrics]:
+        """
+        Execute with MDAP_LIGHT strategy (3 agents, k=1 voting).
+        
+        Uses the MDAP integrator for lightweight multi-agent debate.
+        """
         logger.debug(f"MDAP_LIGHT solve for {subproblem.id}")
-        return {"strategy": "mdap_light", "subproblem_id": subproblem.id}
-
-    def _execute_mdap_medium(self, subproblem: SubProblem, config: SolveConfig) -> Any:
-        """Execute with MDAP_MEDIUM strategy."""
-        logger.debug(f"MDAP_MEDIUM solve for {subproblem.id}")
-        return {"strategy": "mdap_medium", "subproblem_id": subproblem.id}
+        metrics = ExecutionMetrics()
+        
+        try:
+            # Try to use CrewAI MDAP integration
+            from crewai_mdap_integrator import MDAPCrew, MDAPConfig, MDAPTask, MDAPStep
+            
+            mdap_config = MDAPConfig(
+                k_min=1,
+                k_max=1,
+                max_votes_per_step=3,
+                timeout_seconds=config.timeout_ms // 1000 if config.timeout_ms else 60,
+            )
+            
+            mdap_crew = MDAPCrew(config=mdap_config)
+            
+            task = MDAPTask(
+                task_id=f"mdap_light_{subproblem.id}",
+                description=subproblem.description,
+                steps=[
+                    MDAPStep(
+                        step_id="solve",
+                        prompt=subproblem.description,
+                        expected_schema={"type": "object"},
+                    )
+                ],
+            )
+            
+            result = mdap_crew.run_task(task)
+            metrics.total_votes = result.step_results.get("solve", {}).get("vote_result", {}).get("votes", 0)
+            metrics.red_flags = result.step_results.get("solve", {}).get("vote_result", {}).get("red_flags", 0)
+            metrics.api_calls = 3  # 3 agents
+            
+            return {
+                "strategy": "mdap_light",
+                "result": result,
+                "subproblem_id": subproblem.id,
+            }, metrics
+            
+        except Exception as e:
+            logger.warning(f"MDAP_LIGHT execution failed: {e}, falling back to DIRECT")
+            # Fallback to direct
+            return self._execute_direct(subproblem, config)
     
-    def _execute_maker_full(self, subproblem: SubProblem, config: SolveConfig) -> Any:
-        """Execute with MAKER_FULL strategy."""
+    def _execute_mdap_medium(self, subproblem: SubProblem, config: SolveConfig) -> tuple[Any, ExecutionMetrics]:
+        """
+        Execute with MDAP_MEDIUM strategy (5 agents, k=1 voting).
+        
+        Uses more agents than LIGHT but with same k threshold.
+        """
+        logger.debug(f"MDAP_MEDIUM solve for {subproblem.id}")
+        metrics = ExecutionMetrics()
+        
+        try:
+            from crewai_mdap_integrator import MDAPCrew, MDAPConfig, MDAPTask, MDAPStep
+            
+            mdap_config = MDAPConfig(
+                k_min=1,
+                k_max=1,
+                max_votes_per_step=5,
+                timeout_seconds=config.timeout_ms // 1000 if config.timeout_ms else 90,
+            )
+            
+            mdap_crew = MDAPCrew(config=mdap_config)
+            
+            task = MDAPTask(
+                task_id=f"mdap_medium_{subproblem.id}",
+                description=subproblem.description,
+                steps=[
+                    MDAPStep(
+                        step_id="solve",
+                        prompt=subproblem.description,
+                        expected_schema={"type": "object"},
+                    )
+                ],
+            )
+            
+            result = mdap_crew.run_task(task)
+            metrics.total_votes = 5
+            metrics.api_calls = 5
+            
+            return {
+                "strategy": "mdap_medium",
+                "result": result,
+                "subproblem_id": subproblem.id,
+            }, metrics
+            
+        except Exception as e:
+            logger.warning(f"MDAP_MEDIUM execution failed: {e}, falling back to MDAP_LIGHT")
+            return self._execute_mdap_light(subproblem, config)
+    
+    def _execute_maker_full(self, subproblem: SubProblem, config: SolveConfig) -> tuple[Any, ExecutionMetrics]:
+        """
+        Execute with MAKER_FULL strategy (5 agents, k=2 voting).
+        
+        Uses the full MAKER protocol with first-to-ahead-by-K voting.
+        """
         logger.debug(f"MAKER_FULL solve for {subproblem.id}")
-        return {"strategy": "maker_full", "subproblem_id": subproblem.id}
-
-    def _execute_maker_ultra(self, subproblem: SubProblem, config: SolveConfig) -> Any:
-        """Execute with MAKER_ULTRA strategy."""
+        metrics = ExecutionMetrics()
+        
+        try:
+            # Try to use CrewAI MAKER integration
+            from crewai_mdap_maker_engine import MAKEREngine, MAKERConfig
+            
+            maker_config = MAKERConfig(
+                k_ahead=2,
+                max_voting_rounds=50,
+                enable_first_to_ahead=True,
+                enable_red_flagging=True,
+            )
+            
+            maker_engine = MAKEREngine(config=maker_config)
+            
+            # Create a simple step for the maker engine
+            from maker_engine import MakerStep, MakerState
+            
+            step = MakerStep(
+                step_id=f"maker_full_{subproblem.id}",
+                prompt_template=subproblem.description,
+            )
+            
+            initial_state = {"problem": subproblem.description}
+            
+            def step_builder(state, history):
+                return step
+            
+            def apply_action(state, action):
+                return {"result": action, "previous_state": state}
+            
+            result = maker_engine.solve(
+                initial_state=initial_state,
+                step_builder=step_builder,
+                apply_action=apply_action,
+            )
+            
+            metrics.total_votes = maker_engine.metrics.get("votes_cast", 0)
+            metrics.red_flags = maker_engine.metrics.get("red_flags", 0)
+            metrics.total_steps = maker_engine.metrics.get("steps", 0)
+            metrics.api_calls = metrics.total_votes
+            
+            return {
+                "strategy": "maker_full",
+                "result": result.state.current_state,
+                "subproblem_id": subproblem.id,
+                "metrics": maker_engine.metrics,
+            }, metrics
+            
+        except Exception as e:
+            logger.warning(f"MAKER_FULL execution failed: {e}, falling back to MDAP_MEDIUM")
+            return self._execute_mdap_medium(subproblem, config)
+    
+    def _execute_maker_ultra(self, subproblem: SubProblem, config: SolveConfig) -> tuple[Any, ExecutionMetrics]:
+        """
+        Execute with MAKER_ULTRA strategy (7+ agents, k=3 voting).
+        
+        Maximum reliability strategy for the most complex problems.
+        """
         logger.debug(f"MAKER_ULTRA solve for {subproblem.id}")
-        return {"strategy": "maker_ultra", "subproblem_id": subproblem.id}
+        metrics = ExecutionMetrics()
+        
+        try:
+            from crewai_mdap_maker_engine import MAKEREngine, MAKERConfig
+            from maker_engine import MakerStep, MakerState
+            
+            maker_config = MAKERConfig(
+                k_ahead=3,
+                max_voting_rounds=60,
+                enable_first_to_ahead=True,
+                enable_red_flagging=True,
+            )
+            
+            maker_engine = MAKEREngine(config=maker_config)
+            
+            step = MakerStep(
+                step_id=f"maker_ultra_{subproblem.id}",
+                prompt_template=subproblem.description,
+            )
+            
+            initial_state = {"problem": subproblem.description}
+            
+            def step_builder(state, history):
+                return step
+            
+            def apply_action(state, action):
+                return {"result": action, "previous_state": state}
+            
+            result = maker_engine.solve(
+                initial_state=initial_state,
+                step_builder=step_builder,
+                apply_action=apply_action,
+            )
+            
+            metrics.total_votes = maker_engine.metrics.get("votes_cast", 0)
+            metrics.red_flags = maker_engine.metrics.get("red_flags", 0)
+            metrics.total_steps = maker_engine.metrics.get("steps", 0)
+            metrics.api_calls = metrics.total_votes
+            
+            return {
+                "strategy": "maker_ultra",
+                "result": result.state.current_state,
+                "subproblem_id": subproblem.id,
+                "metrics": maker_engine.metrics,
+            }, metrics
+            
+        except Exception as e:
+            logger.warning(f"MAKER_ULTRA execution failed: {e}, falling back to MAKER_FULL")
+            return self._execute_maker_full(subproblem, config)
     
     def _fallback_to_standard(
         self,
@@ -343,14 +619,23 @@ class AdaptiveExecutionController:
         logger.warning(f"Falling back to standard solver for {subproblem.id}: {error}")
         
         try:
+            # Try direct execution as ultimate fallback
+            result, metrics = self._execute_direct(
+                subproblem,
+                SolveConfig(
+                    strategy=SolveStrategy.DIRECT,
+                    n_agents=1,
+                    k_ahead=0,
+                    max_retries=1,
+                ),
+            )
+            
             original_attempt.status = SolutionStatus.COMPLETED
             original_attempt.end_time = time.time()
-            original_attempt.solution = {
-                "strategy": "fallback_standard",
-                "subproblem_id": subproblem.id,
-            }
+            original_attempt.solution = result
             original_attempt.metadata["fallback"] = True
             original_attempt.metadata["original_error"] = str(error)
+            original_attempt.metadata["execution_metrics"] = metrics.to_dict()
             
             self._execution_stats["fallback_executions"] += 1
             

@@ -29,10 +29,29 @@ import copy
 import traceback
 
 from .knowledge_orchestrator import (
-    KnowledgeOrchestrator, OrchestratorConfig, 
+    KnowledgeOrchestrator, OrchestratorConfig,
     ComponentType, PipelineStage, ComponentConfig
 )
 from .learning_engine import LearningEngine, LearningExperience
+
+# **ACTUAL INTEGRATION**: Alerting and knowledge for Self-Healing Orchestrator
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -246,13 +265,36 @@ class SelfHealingOrchestrator(KnowledgeOrchestrator):
         # Add healing metadata
         execution_result['healing_metadata'] = {
             'healing_enabled': self.enable_self_healing,
-            'failures_encountered': len([f for f in self.failure_history 
+            'failures_encountered': len([f for f in self.failure_history
                                         if f.timestamp >= start_time.isoformat()]),
             'healing_actions_taken': len([h for h in self.healing_history
                                          if h.timestamp >= start_time.isoformat()]),
             'learning_summary': self.learning_engine.get_learning_summary()
         }
-        
+
+        # Calculate execution time
+        execution_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+
+        # **ACTUAL INTEGRATION**: Extract knowledge, track performance, and trigger alerts
+        failures_count = execution_result['healing_metadata']['failures_encountered']
+        healings_count = execution_result['healing_metadata']['healing_actions_taken']
+        success = execution_result.get('status') in ['success', 'partial']
+
+        self._extract_healing_knowledge("process", correlation_id, execution_result)
+        self._track_healing_performance("process", success, failures_count, healings_count, execution_time)
+
+        # Trigger alert if excessive failures or failures
+        if not success or failures_count > 5:
+            self._trigger_healing_alerts(
+                "process",
+                success,
+                correlation_id,
+                failures_count,
+                healings_count,
+                execution_result.get('error'),
+                {"execution_time_ms": execution_time}
+            )
+
         return execution_result
     
     def _pre_execution_check(self, data_type: str, domain: str, 
@@ -801,14 +843,146 @@ class SelfHealingOrchestrator(KnowledgeOrchestrator):
     def _analyze_strategy_effectiveness(self) -> Dict[str, float]:
         """Analyze effectiveness of healing strategies"""
         effectiveness = {}
-        
+
         for strategy in HealingStrategy:
             strategy_actions = [h for h in self.healing_history if h.strategy == strategy]
             if strategy_actions:
                 success_rate = len([h for h in strategy_actions if h.success]) / len(strategy_actions)
                 effectiveness[strategy.value] = success_rate
-        
+
         return effectiveness
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Self-Healing Orchestrator
+    # =========================================================================
+
+    def _trigger_healing_alerts(
+        self,
+        operation: str,
+        success: bool,
+        correlation_id: Optional[str] = None,
+        num_failures: int = 0,
+        num_healings: int = 0,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for healing orchestration failures or excessive failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Alert on failures or excessive healing
+            if not success or num_failures > 5:
+                severity = AlertSeverity.HIGH if not success else AlertSeverity.MEDIUM
+
+                alert_manager.create_alert(
+                    title=f"Self-Healing Orchestrator Alert: {operation}",
+                    description=f"Self-healing operation '{operation}' " +
+                                 ("failed" if not success else f"encountered {num_failures} failures") +
+                                 (f" with {num_healings} healing attempts" if num_healings > 0 else "") +
+                                 (f" for '{correlation_id}'" if correlation_id else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="self_healing_orchestrator",
+                    component="healing_orchestration",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger Self-Healing Orchestrator alert: {e}")
+
+    def _extract_healing_knowledge(
+        self,
+        operation: str,
+        correlation_id: Optional[str],
+        execution_result: Dict[str, Any]
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract self-healing knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            healing_metadata = execution_result.get('healing_metadata', {})
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"self_healing_{operation}_{correlation_id or 'unknown'}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="self_healing_orchestration",
+                source_component="self_healing_orchestrator",
+                title=f"Self-Healing Orchestration: {correlation_id or 'Unknown'} ({operation})",
+                content={
+                    "operation": operation,
+                    "correlation_id": correlation_id,
+                    "failures_encountered": healing_metadata.get('failures_encountered', 0),
+                    "healing_actions_taken": healing_metadata.get('healing_actions_taken', 0),
+                    "healing_enabled": healing_metadata.get('healing_enabled', False),
+                    "status": execution_result.get('status', 'unknown'),
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                },
+                metadata={
+                    "learning_summary": healing_metadata.get('learning_summary', {}),
+                    "execution_result": execution_result
+                },
+                tags=["self_healing", "orchestration", operation]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted Self-Healing knowledge for {operation}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract Self-Healing knowledge: {e}")
+            return False
+
+    def _track_healing_performance(
+        self,
+        operation: str,
+        success: bool,
+        num_failures: int = 0,
+        num_healings: int = 0,
+        execution_time_ms: float = 0.0
+    ):
+        """**ACTUAL INTEGRATION**: Track self-healing performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            # Quality based on success, failures, and healings
+            quality = 1.0 if success else 0.0
+            if success and num_failures > 0:
+                # Penalize for failures even if successful
+                quality -= min(num_failures * 0.1, 0.5)
+            if num_healings > 3:
+                # Penalize for excessive healing attempts
+                quality -= 0.2
+            quality = max(quality, 0.0)
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"self_healing_orchestrator_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(timezone.utc),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "num_failures": num_failures,
+                    "num_healings": num_healings,
+                    "execution_time_ms": execution_time_ms
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked Self-Healing performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track Self-Healing performance: {e}")
 
 
 # Factory functions for creating self-healing orchestrators

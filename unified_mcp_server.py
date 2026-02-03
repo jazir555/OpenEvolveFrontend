@@ -25,6 +25,7 @@ Additional DSPy-Enhanced Tools:
 - mine_solution_patterns_with_dspy (ACE category)
 - assess_content_quality_with_dspy (ACE category)
 - analyze_dialogue_tree_with_dspy (ACE category)
+- extract_knowledge_with_dspy_tool (ACE category)
 - generate_fixes_with_dspy (ACE category)
 - compare_content_quality_with_dspy (ACE category)
 - assess_content_with_red_team_dspy (ACE category)
@@ -33,7 +34,7 @@ Additional DSPy-Enhanced Tools:
 - translate_with_z3_leanaide_dspy (Z3_PROVER category)
 - verify_with_robust_z3_leanaide (Z3_PROVER category)
 
-TOTAL: 118 tools across 14 categories
+TOTAL: 119 tools across 14 categories
 
 Author: OpenEvolve Team
 Version: 2.0.0
@@ -348,13 +349,13 @@ class UnifiedMCPServer:
             self.server.register_tool(registration)
     
     def register_all_tools(self) -> None:
-        """Register all 118 tools."""
-        # 14 categories, ~118 total tools (includes 11 DSPy-enhanced tools)
+        """Register all 119 tools."""
+        # 14 categories, ~119 total tools (includes 12 DSPy-enhanced tools)
         self._register_leanaide_tools()      # 9 tools
         self._register_bubblelabs_tools()    # 8 tools
         self._register_decomposition_tools() # 9 tools
         self._register_z3_tools()            # 12 tools (9 original + 3 DSPy-enhanced)
-        self._register_ace_tools()           # 15 tools (7 original + 8 DSPy-enhanced)
+        self._register_ace_tools()           # 16 tools (7 original + 9 DSPy-enhanced)
         self._register_claudiomiro_tools()   # 7 tools
         self._register_c2c_tools()           # 7 tools
         self._register_datapizza_tools()     # 7 tools
@@ -1816,6 +1817,77 @@ class UnifiedMCPServer:
                               "analysis_focus": {"type": "string", "enum": ["comparative_effectiveness", "strategy_optimization", "convergence_analysis"]},
                               "depth": {"type": "integer", "minimum": 1, "maximum": 5}
                           }, "required": ["dialogue_tree"]})
+
+        async def extract_knowledge_with_dspy_tool(args: Dict[str, Any]) -> Dict[str, Any]:
+            """Extract knowledge using DSPy for enhanced programmatic prompting and structured analysis."""
+            try:
+                from knowledge_engine.engine import KnowledgeEngine
+                from dspy_integration import DSPY_AVAILABLE
+
+                content = args.get("content", "")
+                context = args.get("context", "")
+                extraction_type = args.get("extraction_type", "comprehensive")
+
+                engine = KnowledgeEngine()
+
+                # Use DSPy-enhanced extraction if available
+                result = await engine.extract_knowledge_with_dspy(
+                    content=content,
+                    context=context,
+                    extraction_type=extraction_type
+                )
+
+                return {
+                    "success": True,
+                    "dspy_enhanced": DSPY_AVAILABLE,
+                    "content_length": len(content),
+                    "extraction_type": extraction_type,
+                    "extracted_knowledge": result.get("extracted_knowledge", ""),
+                    "entities": result.get("entities", []),
+                    "relations": result.get("relations", []),
+                    "patterns": result.get("patterns", []),
+                    "confidence": result.get("confidence", 0.0),
+                    "dspy_analysis": result.get("dspy_analysis", {}),
+                    "dspy_enhanced": result.get("dspy_enhanced", False)
+                }
+            except ImportError:
+                # Fallback to standard extraction if knowledge engine not available
+                try:
+                    from knowledge_engine.engine import KnowledgeEngine
+
+                    content = args.get("content", "")
+                    context = args.get("context", "")
+
+                    engine = KnowledgeEngine()
+                    # Use standard method as fallback
+                    extracted_knowledge = await engine.generate_knowledge(context, content)
+
+                    return {
+                        "success": True,
+                        "dspy_enhanced": False,
+                        "content_length": len(content),
+                        "extraction_type": "standard_fallback",
+                        "extracted_knowledge": extracted_knowledge,
+                        "entities": [],
+                        "relations": [],
+                        "patterns": [],
+                        "confidence": 0.5,
+                        "dspy_analysis": {},
+                        "dspy_enhanced": False
+                    }
+                except Exception as e:
+                    return {"success": False, "error": str(e), "dspy_enhanced": False}
+            except Exception as e:
+                return {"success": False, "error": str(e), "dspy_enhanced": False}
+
+        self.register_tool("extract_knowledge_with_dspy_tool", ToolCategory.ACE,
+                          "Extract knowledge with DSPy-enhanced analysis",
+                          extract_knowledge_with_dspy_tool,
+                          {"type": "object", "properties": {
+                              "content": {"type": "string"},
+                              "context": {"type": "string"},
+                              "extraction_type": {"type": "string", "enum": ["comprehensive", "entities", "relations", "patterns"]}
+                          }, "required": ["content"]})
 
         async def generate_fixes_with_dspy(args: Dict[str, Any]) -> Dict[str, Any]:
             """Generate fixes using DSPy for enhanced programmatic prompting and structured analysis."""

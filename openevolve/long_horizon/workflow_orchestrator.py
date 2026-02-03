@@ -29,6 +29,24 @@ from .schemas.workflow_schemas import (
 )
 from .schemas.state_schemas import StateCheckpoint
 
+# **ACTUAL INTEGRATION**: Alerting and knowledge for Workflow Orchestrator
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
 
 logger = structlog.get_logger()
 
@@ -325,6 +343,11 @@ class WorkflowOrchestrator:
                 duration_seconds=(execution.completed_at - execution.started_at).total_seconds()
             )
 
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful workflow
+            duration = (execution.completed_at - execution.started_at).total_seconds() if execution.started_at and execution.completed_at else 0.0
+            self._extract_workflow_knowledge("_execute_workflow", workflow_def, execution)
+            self._track_workflow_performance("_execute_workflow", True, duration, execution.progress_percentage)
+
         except Exception as e:
             execution.status = WorkflowStatus.FAILED
             execution.error_message = str(e)
@@ -335,6 +358,19 @@ class WorkflowOrchestrator:
                 execution_id=execution.execution_id,
                 workflow_id=workflow_def.workflow_id,
                 error=str(e)
+            )
+
+            # **ACTUAL INTEGRATION**: Track performance, extract knowledge, and trigger alerts for failures
+            duration = (execution.completed_at - execution.started_at).total_seconds() if execution.started_at and execution.completed_at else 0.0
+            self._track_workflow_performance("_execute_workflow", False, duration, execution.progress_percentage)
+            self._trigger_workflow_alerts(
+                "_execute_workflow",
+                False,
+                workflow_def.workflow_id,
+                execution.execution_id,
+                "failed",
+                str(e),
+                {"duration": duration, "retry_count": execution.retry_count}
             )
 
             # Retry if configured
@@ -603,3 +639,133 @@ class WorkflowOrchestrator:
                     pass
 
         logger.info("workflow_orchestrator_shutdown")
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Workflow Orchestrator
+    # =========================================================================
+
+    def _trigger_workflow_alerts(
+        self,
+        operation: str,
+        success: bool,
+        workflow_id: Optional[str] = None,
+        execution_id: Optional[str] = None,
+        status: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for workflow failures or issues."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Alert on failures or paused workflows
+            if not success or status == "failed":
+                severity = AlertSeverity.HIGH if not success else AlertSeverity.MEDIUM
+
+                alert_manager.create_alert(
+                    title=f"Workflow Orchestrator Alert: {operation}",
+                    description=f"Workflow operation '{operation}' " +
+                                 ("failed" if not success else f"has status: {status}") +
+                                 (f" for workflow '{workflow_id}'" if workflow_id else "") +
+                                 (f" (execution: {execution_id})" if execution_id else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="workflow_orchestrator",
+                    component="long_horizon_workflow",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error("Failed to trigger Workflow alert", error=str(e))
+
+    def _extract_workflow_knowledge(
+        self,
+        operation: str,
+        workflow_def: WorkflowDefinition,
+        execution: WorkflowExecution
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract workflow knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"workflow_{operation}_{workflow_def.workflow_id}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="long_horizon_workflow",
+                source_component="workflow_orchestrator",
+                title=f"Workflow Execution: {workflow_def.workflow_id} ({operation})",
+                content={
+                    "operation": operation,
+                    "workflow_id": workflow_def.workflow_id,
+                    "execution_id": execution.execution_id,
+                    "status": execution.status.value if hasattr(execution.status, 'value') else str(execution.status),
+                    "current_step": execution.current_step,
+                    "progress_percentage": execution.progress_percentage,
+                    "retry_count": execution.retry_count,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                },
+                metadata={
+                    "num_steps": len(workflow_def.steps),
+                    "timeout_seconds": workflow_def.timeout_seconds,
+                    "started_at": execution.started_at.isoformat() if execution.started_at else None,
+                    "completed_at": execution.completed_at.isoformat() if execution.completed_at else None
+                },
+                tags=["workflow", "long_horizon", operation]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug("Extracted Workflow knowledge", operation=operation)
+            return True
+
+        except Exception as e:
+            logger.error("Failed to extract Workflow knowledge", error=str(e))
+            return False
+
+    def _track_workflow_performance(
+        self,
+        operation: str,
+        success: bool,
+        execution_time_seconds: float = 0.0,
+        progress_percentage: float = 0.0
+    ):
+        """**ACTUAL INTEGRATION**: Track workflow performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            # Quality based on success and progress
+            quality = 1.0 if success else 0.0
+            if success and progress_percentage < 100:
+                quality = progress_percentage / 100.0
+            # Penalize very slow executions
+            if execution_time_seconds > 3600:  # 1 hour
+                quality *= 0.8
+            quality = max(quality, 0.0)
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"workflow_orchestrator_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(timezone.utc),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "execution_time_seconds": execution_time_seconds,
+                    "progress_percentage": progress_percentage
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug("Tracked Workflow performance", operation=operation)
+
+        except Exception as e:
+            logger.error("Failed to track Workflow performance", error=str(e))
