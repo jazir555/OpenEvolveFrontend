@@ -3,101 +3,231 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, Iterable, Optional
+
+from typing import Any, Dict, Iterable, Optional, List
+
+import logging
 
 from .utils import deterministic_seed, optional_import
 
+from knowledge_engine.global_context_manager import get_global_context_manager
+
+
+
+logger = logging.getLogger(__name__)
+
+
 
 @dataclass
+
 class LLMConfig:
+
     provider: str
+
     model: str
+
     api_key: Optional[str] = None
+
     base_url: Optional[str] = None
+
     temperature: float = 0.0
+
     max_tokens: int = 512
+
     top_p: float = 1.0
+
     seed: Optional[int] = None
+
     device: str = "cpu"
+
     dtype: str = "auto"
+
+    session_id: Optional[str] = None
+
+
+
 
 
 class BaseLLM:
+
     provider: str
+
     model: str
+
     tokenizer: Any = None
+
     model_obj: Any = None
 
+    session_id: Optional[str] = None
+
+
+
     def generate(self, prompt: str, **kwargs: Any) -> str:
+
         raise NotImplementedError
 
+
+
     def stream(self, prompt: str, **kwargs: Any) -> Iterable[str]:
+
         yield self.generate(prompt, **kwargs)
 
+
+
     def get_outlines_model(self):
+
         outlines = optional_import("outlines")
+
         if outlines is None:
+
             return None
+
         return None
 
 
+
+
+
 class OpenAIChatLLM(BaseLLM):
+
     def __init__(self, config: LLMConfig):
+
         self.provider = "openai"
+
         self.model = config.model
+
         self.api_key = config.api_key
+
         self.base_url = config.base_url
+
         self.temperature = config.temperature
+
         self.max_tokens = config.max_tokens
+
         self.top_p = config.top_p
+
         self.seed = config.seed
+
+        self.session_id = config.session_id
+
         self._client = None
 
+
+
     def _get_client(self):
+
         if self._client is not None:
+
             return self._client
+
         openai = optional_import("openai")
+
         if openai is None:
+
             raise RuntimeError("openai package not available")
+
         if hasattr(openai, "OpenAI"):
+
             self._client = openai.OpenAI(api_key=self.api_key, base_url=self.base_url)
+
         else:
+
             openai.api_key = self.api_key
+
             if self.base_url:
+
                 openai.base_url = self.base_url
+
             self._client = openai
+
         return self._client
 
+
+
     def generate(self, prompt: str, **kwargs: Any) -> str:
+
         client = self._get_client()
+
         temperature = kwargs.get("temperature", self.temperature)
+
         max_tokens = kwargs.get("max_tokens", self.max_tokens)
+
         top_p = kwargs.get("top_p", self.top_p)
+
+        session_id = kwargs.get("session_id", self.session_id)
+
+        history = kwargs.get("history", [])
+
+
+
+        messages = history or [{"role": "user", "content": prompt}]
+
+        
+
+        # Apply Global Context Management (Matryoshka)
+
+        if session_id:
+
+            gcm = get_global_context_manager()
+
+            messages = gcm.manage(session_id, messages)
+
+
+
         if hasattr(client, "responses"):
+
             response = client.responses.create(
+
                 model=self.model,
-                input=prompt,
+
+                input=messages[-1]["content"] if messages else prompt,
+
                 temperature=temperature,
+
                 max_output_tokens=max_tokens,
+
                 top_p=top_p,
+
             )
+
             return response.output_text
+
         if hasattr(client, "chat"):
+
             response = client.chat.completions.create(
+
                 model=self.model,
-                messages=[{"role": "user", "content": prompt}],
+
+                messages=messages,
+
                 temperature=temperature,
+
                 max_tokens=max_tokens,
+
                 top_p=top_p,
+
             )
+
             return response.choices[0].message.content if response.choices else ""
+
+        
+
+        # Fallback for old API
+
         response = client.Completion.create(
+
             model=self.model,
+
             prompt=prompt,
+
             temperature=temperature,
+
             max_tokens=max_tokens,
+
             top_p=top_p,
+
         )
+
         return response.choices[0].text if response.choices else ""
 
     def get_outlines_model(self):

@@ -31,6 +31,10 @@ except ImportError:
         pass
     def HTTPException(*args, **kwargs):
         pass
+    def Field(*args, **kwargs):
+        return None
+    class JSONResponse:
+        pass
 
 # Z3 integration imports
 try:

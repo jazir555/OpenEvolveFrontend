@@ -25,7 +25,7 @@ from knowledge_engine.aiohttp_compat import *
 import asyncio
 import logging
 from datetime import datetime, timezone
-from typing import Dict, Any, List, Optional, Union
+from typing import Dict, Any, List, Optional, Union, Tuple, Callable
 from dataclasses import dataclass
 import uuid
 
@@ -907,6 +907,286 @@ class DSPyIntegration:
 
 
 # =============================================================================
+# DSPY-HELM BENCHMARK AND OPTIMIZATION FRAMEWORK (MERGED FROM DSPY-HELM)
+# =============================================================================
+
+class DSPyScenario:
+    """
+    Base class for DSPy benchmark scenarios (inspired by DSPy-HELM).
+    
+    A scenario defines:
+    - How to format prompts for a specific task
+    - How to evaluate predictions
+    - How to load training and validation data
+    
+    Example:
+        class MyScenario(DSPyScenario):
+            def make_prompt(self, row):
+                return f"Question: {row['question']}\nAnswer:"
+            
+            def metric(self, example, pred, trace=None):
+                return example['answer'].lower() == pred['output'].lower()
+            
+            def load_data(self):
+                # Return trainset, valset as lists of dspy.Example
+                pass
+    """
+    
+    def __init__(self, test_size=0.1, seed=42):
+        self.test_size = test_size
+        self.seed = seed
+    
+    def make_prompt(self, row: Dict[str, Any]) -> str:
+        """Format a data row into a prompt."""
+        raise NotImplementedError
+    
+    def metric(self, example, pred, trace=None) -> float:
+        """Evaluate prediction against example. Returns score 0.0-1.0."""
+        raise NotImplementedError
+    
+    def metric_with_feedback(self, example, pred, trace=None) -> Any:
+        """
+        Evaluate with feedback for optimizers that need it (e.g., GEPA).
+        Returns dspy.Prediction with score and feedback attributes.
+        """
+        score = self.metric(example, pred, trace)
+        return dspy.Prediction(score=score, feedback="")
+    
+    def load_data(self) -> Tuple[List, List]:
+        """Load and return (trainset, valset) as lists of dspy.Example."""
+        raise NotImplementedError
+    
+    def to_dspy_example(self, x: Dict[str, Any]) -> Any:
+        """Convert dictionary to dspy.Example with inputs."""
+        return dspy.Example(**x).with_inputs("inputs")
+
+
+class DSPyOptimizerConfig:
+    """Configuration for DSPy optimizers (inspired by DSPy-HELM)."""
+    
+    OPTIMIZERS = {
+        "BootstrapFewShot": {
+            "class": "BootstrapFewShot",
+            "description": "Bootstraps demonstrations from the training set",
+            "supports_feedback": False
+        },
+        "BootstrapFewShotWithRandomSearch": {
+            "class": "BootstrapFewShotWithRandomSearch",
+            "description": "BootstrapFewShot with random search over demonstrations",
+            "supports_feedback": False
+        },
+        "MIPROv2": {
+            "class": "MIPROv2",
+            "description": "Multi-stage Instruction Proposal and Optimization",
+            "supports_feedback": False,
+            "requires_prompt_model": True
+        },
+        "COPRO": {
+            "class": "COPRO",
+            "description": "Compiling Optimized Prompts via Reasoning and Optimization",
+            "supports_feedback": False
+        },
+        "GEPA": {
+            "class": "GEPA",
+            "description": "Gradient-free Evaluation-based Prompt Automation",
+            "supports_feedback": True
+        }
+    }
+    
+    def __init__(
+        self,
+        optimizer_name: str = "BootstrapFewShot",
+        max_bootstrapped_demos: int = 3,
+        max_labeled_demos: int = 3,
+        num_threads: int = 16,
+        prompt_model: Optional[Any] = None
+    ):
+        if optimizer_name not in self.OPTIMIZERS:
+            raise ValueError(f"Unknown optimizer: {optimizer_name}. Available: {list(self.OPTIMIZERS.keys())}")
+        
+        self.optimizer_name = optimizer_name
+        self.max_bootstrapped_demos = max_bootstrapped_demos
+        self.max_labeled_demos = max_labeled_demos
+        self.num_threads = num_threads
+        self.prompt_model = prompt_model
+        self.config = self.OPTIMIZERS[optimizer_name]
+    
+    def create_optimizer(self, metric: Callable):
+        """Create the DSPy optimizer instance."""
+        import dspy
+        
+        optimizer_class = getattr(dspy.teleprompt, self.config["class"])
+        
+        if self.optimizer_name == "MIPROv2":
+            if not self.prompt_model:
+                raise ValueError("MIPROv2 requires a prompt_model")
+            return optimizer_class(
+                metric=metric,
+                max_bootstrapped_demos=self.max_bootstrapped_demos,
+                max_labeled_demos=self.max_labeled_demos,
+                num_threads=self.num_threads,
+                prompt_model=self.prompt_model
+            )
+        elif self.optimizer_name == "GEPA":
+            if not self.prompt_model:
+                raise ValueError("GEPA requires a reflection_lm (prompt_model)")
+            return optimizer_class(
+                metric=metric,
+                reflection_lm=self.prompt_model,
+                auto="light"
+            )
+        else:
+            return optimizer_class(
+                metric=metric,
+                max_bootstrapped_demos=self.max_bootstrapped_demos,
+                max_labeled_demos=self.max_labeled_demos,
+                num_threads=self.num_threads
+            )
+
+
+class DSPyAgentOptimizer:
+    """
+    High-level agent optimizer combining DSPy teleprompters with scenarios.
+    
+    Merged from DSPy-HELM framework. Enables automated prompt optimization
+    for specific tasks using various optimizers.
+    """
+    
+    def __init__(
+        self,
+        scenario: DSPyScenario,
+        model: str = "openai/gpt-4o",
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        prompt_model: Optional[str] = None,
+        prompt_api_key: Optional[str] = None,
+        prompt_api_base: Optional[str] = None
+    ):
+        self.scenario = scenario
+        self.model = model
+        self.api_key = api_key
+        self.api_base = api_base
+        self.prompt_model = prompt_model or model
+        self.prompt_api_key = prompt_api_key or api_key
+        self.prompt_api_base = prompt_api_base or api_base
+        
+        self.lm = None
+        self.prompt_lm = None
+        self._initialize_models()
+    
+    def _initialize_models(self):
+        """Initialize language models for agent and prompt optimization."""
+        import dspy
+        
+        # Configure main LM
+        if "o3-mini" in self.model or "deepseek" in self.model:
+            self.lm = dspy.LM(
+                model=self.model,
+                api_base=self.api_base,
+                api_key=self.api_key,
+                temperature=1.0,
+                max_tokens=100000
+            )
+        elif "claude" in self.model:
+            self.lm = dspy.LM(
+                model=self.model,
+                api_base=self.api_base,
+                api_key=self.api_key,
+                max_tokens=64000
+            )
+        else:
+            self.lm = dspy.LM(
+                model=self.model,
+                api_base=self.api_base,
+                api_key=self.api_key
+            )
+        
+        # Configure prompt model
+        self.prompt_lm = dspy.LM(
+            model=self.prompt_model,
+            api_base=self.prompt_api_base,
+            api_key=self.prompt_api_key
+        )
+        
+        dspy.configure(lm=self.lm)
+    
+    def optimize(
+        self,
+        optimizer_config: DSPyOptimizerConfig,
+        agent_signature: Optional[Any] = None,
+        val_size: Optional[int] = None
+    ) -> Any:
+        """
+        Optimize an agent using the specified configuration.
+        
+        Args:
+            optimizer_config: Configuration for the optimizer
+            agent_signature: Optional custom signature (defaults to ChainOfThought)
+            val_size: Optional limit on validation set size
+            
+        Returns:
+            Optimized DSPy agent
+        """
+        import dspy
+        
+        # Load data
+        trainset, valset = self.scenario.load_data()
+        
+        if val_size and len(valset) > val_size:
+            import random
+            valset = random.sample(valset, val_size)
+        
+        # Set prompt model if needed
+        if optimizer_config.config.get("requires_prompt_model"):
+            optimizer_config.prompt_model = self.prompt_lm
+        
+        # Create base agent
+        if agent_signature:
+            agent = dspy.ChainOfThought(agent_signature)
+        else:
+            agent = dspy.ChainOfThought("inputs -> output")
+        
+        # Create optimizer
+        metric = (self.scenario.metric_with_feedback 
+                  if optimizer_config.config.get("supports_feedback") 
+                  else self.scenario.metric)
+        
+        teleprompter = optimizer_config.create_optimizer(metric)
+        
+        # Compile
+        if optimizer_config.optimizer_name == "MIPROv2":
+            optimized_agent = teleprompter.compile(
+                agent,
+                trainset=trainset,
+                valset=valset,
+                requires_permission_to_run=False
+            )
+        else:
+            optimized_agent = teleprompter.compile(
+                agent,
+                trainset=trainset,
+                valset=valset
+            )
+        
+        return optimized_agent
+    
+    def save_agent(self, agent: Any, path: str):
+        """Save optimized agent to disk."""
+        import os
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        agent.save(path)
+        logger.info(f"Agent saved to {path}")
+    
+    def load_agent(self, path: str) -> Any:
+        """Load optimized agent from disk."""
+        import dspy
+        agent = dspy.ChainOfThought("inputs -> output")
+        agent.load(path)
+        logger.info(f"Agent loaded from {path}")
+        return agent
+
+
+# =============================================================================
 # DSPY SIGNATURES AND GLOBAL HELPERS (MERGED FROM ROOT DSPY_INTEGRATION.PY)
 # =============================================================================
 
@@ -1056,15 +1336,23 @@ def get_dspy_status() -> Dict[str, Any]:
 
 # Export all signatures and helpers
 __all__ = [
+    # Main integration
     "DSPyIntegration",
     "DSPyResult",
+    # DSPy-HELM framework
+    "DSPyScenario",
+    "DSPyOptimizerConfig",
+    "DSPyAgentOptimizer",
+    # Signatures
     "KnowledgeExtractionSignature",
     "ContentEvaluationSignature",
     "StrategyGenerationSignature",
     "SolutionPatternSignature",
+    # Global helpers
     "get_global_dspy_instance",
     "initialize_dspy",
     "get_dspy_status",
+    # Constants
     "DSPY_INTEGRATION_AVAILABLE",
     "DSPY_SIGNATURES_AVAILABLE",
 ]

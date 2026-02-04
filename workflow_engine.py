@@ -62,6 +62,22 @@ class _SafeStreamlitProxy:
         return attr
 
 
+def _disable_streamlit_module(module: Any) -> None:
+    """Force Streamlit module into a safe no-op mode."""
+    def _noop(*args, **kwargs):
+        return None
+    for name in ("info", "warning", "error", "success", "markdown", "subheader", "caption", "write", "rerun"):
+        try:
+            setattr(module, name, _noop)
+        except Exception:
+            pass
+    try:
+        if not hasattr(module, "session_state"):
+            module.session_state = {}
+    except Exception:
+        pass
+
+
 streamlit_override = sys.modules.get("streamlit")
 if streamlit_override is not None and (
     isinstance(streamlit_override, Mock)
@@ -76,6 +92,10 @@ elif os.getenv("OPENEVOLVE_STREAMLIT_UI") == "1":
         st = _NoOpStreamlit()
 else:
     st = _NoOpStreamlit()
+
+if os.getenv("OPENEVOLVE_STREAMLIT_UI") != "1":
+    if "streamlit" in sys.modules and isinstance(sys.modules["streamlit"], types.ModuleType):
+        _disable_streamlit_module(sys.modules["streamlit"])
 
 
 def _ensure_streamlit_safe() -> None:
@@ -1427,7 +1447,9 @@ async def run_sovereign_workflow(
         max_refinement_loops: The maximum number of self-healing loops allowed for the final solution.
     """
     global st
-    if os.getenv("OPENEVOLVE_STREAMLIT_UI") != "1":
+    if os.getenv("PYTEST_CURRENT_TEST") or os.getenv("PYTEST_RUNNING"):
+        st = _NoOpStreamlit()
+    elif os.getenv("OPENEVOLVE_STREAMLIT_UI") != "1":
         st = _NoOpStreamlit()
     _ensure_streamlit_safe()
     try:

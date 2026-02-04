@@ -29,6 +29,7 @@ class ContextManager:
         """Initialize the ContextManager."""
         self.matryoshka = MatryoshkaClient()
         self.threshold_mb = 10.0 # Threshold in MB to switch to Matryoshka
+        self.enabled = os.getenv("MATRYOSHKA_ENABLED", "true").lower() == "true"
 
     def process_input(self, query: str, input_data: str, input_type: str = 'file') -> str:
         """
@@ -48,7 +49,7 @@ class ContextManager:
         elif input_type == 'text':
             # Check length to decide strategy (e.g. > 100KB -> Matryoshka)
             size_mb = len(input_data.encode('utf-8')) / (1024 * 1024)
-            if size_mb > self.threshold_mb:
+            if size_mb > self.threshold_mb and self.enabled:
                 logger.info(f"Text input size ({size_mb:.2f} MB) exceeds threshold. Using Matryoshka.")
                 if self.matryoshka.is_available():
                      return self.matryoshka.analyze_text(query, input_data)
@@ -59,10 +60,13 @@ class ContextManager:
                  
         elif input_type == 'url':
              # For URL, we always use Matryoshka as we don't know size easily without fetching
-             logger.info(f"Processing URL {input_data} with Matryoshka.")
-             if self.matryoshka.is_available():
-                 return self.matryoshka.analyze_url(query, input_data)
-             return "Matryoshka unavailable for URL analysis."
+             if self.enabled:
+                logger.info(f"Processing URL {input_data} with Matryoshka.")
+                if self.matryoshka.is_available():
+                    return self.matryoshka.analyze_url(query, input_data)
+                return "Matryoshka unavailable for URL analysis."
+             else:
+                return "Matryoshka is disabled; URL analysis requires Matryoshka."
              
         else:
             raise ValueError(f"Unknown input_type: {input_type}")
@@ -88,7 +92,7 @@ class ContextManager:
 
         logger.info(f"Processing document {document_path} ({size_mb:.2f} MB) with query: {query}")
 
-        if size_mb > self.threshold_mb:
+        if size_mb > self.threshold_mb and self.enabled:
             logger.info("Document size exceeds threshold. Using Matryoshka.")
             if not self.matryoshka.is_available():
                 logger.warning("Matryoshka is not available. Falling back to standard RAG, but performance may degrade.")
@@ -100,7 +104,10 @@ class ContextManager:
                 logger.error(f"Matryoshka analysis failed: {e}. Falling back to standard RAG.")
                 return self._standard_rag(query, document_path)
         else:
-            logger.info("Document size within standard limits. Using Standard RAG.")
+            if not self.enabled and size_mb > self.threshold_mb:
+                logger.info("Large document detected but Matryoshka is disabled. Using Standard RAG.")
+            else:
+                logger.info("Document size within standard limits. Using Standard RAG.")
             return self._standard_rag(query, document_path)
 
     def _standard_rag(self, query: str, document_path: str) -> str:

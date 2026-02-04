@@ -142,7 +142,39 @@ communities = analyzer.detect_communities(graph_data, algorithm='louvain')
 
 ---
 
-### 4. KG-Gen Integration
+### 4. DSPy Integration (Enhanced with DSPy-HELM)
+**SSOT:** `knowledge_engine/integrations/dspy_integration.py` (51 KB)
+
+**Purpose:** DSPy program-of-thought prompting + HELM benchmark optimization
+
+**Merged Features:**
+- Original: DSPy class with signatures, global helpers
+- Merged from `dspy_integration.py` (root): Signatures, initialize_dspy()
+- **Merged from DSPy-HELM:**
+  - `DSPyScenario` - Base class for benchmark scenarios
+  - `DSPyOptimizerConfig` - Multi-optimizer config (MIPROv2, GEPA, BootstrapFewShot)
+  - `DSPyAgentOptimizer` - High-level agent optimization framework
+  - Agent save/load functionality
+  - Metric with feedback for GEPA
+
+**Example:**
+```python
+from knowledge_engine.integrations.dspy_integration import (
+    DSPyScenario, DSPyOptimizerConfig, DSPyAgentOptimizer
+)
+
+class MyScenario(DSPyScenario):
+    def make_prompt(self, row): return f"Q: {row['q']}"
+    def metric(self, ex, pred, trace): return ex['a'] == pred['output']
+
+optimizer = DSPyAgentOptimizer(scenario=MyScenario())
+agent = optimizer.optimize(DSPyOptimizerConfig("MIPROv2"))
+optimizer.save_agent(agent, "optimized.json")
+```
+
+---
+
+### 5. KG-Gen Integration
 **File:** `knowledge_engine/integrations/kggen_integration.py`
 
 **Purpose:** LLM-based knowledge graph generation from unstructured text.

@@ -6,14 +6,15 @@ Successfully analyzed and merged duplicate implementations across the OpenEvolve
 
 ## Merged Implementations
 
-### 1. ✅ DSPy Integration (FULLY MERGED)
+### 1. ✅ DSPy Integration (FULLY MERGED + DSPy-HELM ENHANCED)
 
 **Files Analyzed:**
 - `dspy_integration.py` (8 KB) - Signatures, global instance helper
 - `knowledge_engine/integrations/dspy_integration.py` (35 KB) - Full class implementation
+- `core-projects/dspy-helm/` (31 KB) - Scenario framework, multi-optimizer support
 
 **Merge Strategy:**
-- SSOT: `knowledge_engine/integrations/dspy_integration.py`
+- SSOT: `knowledge_engine/integrations/dspy_integration.py` (now 51 KB)
 - Added DSPy Signatures from root version:
   - `KnowledgeExtractionSignature`
   - `ContentEvaluationSignature`
@@ -23,11 +24,46 @@ Successfully analyzed and merged duplicate implementations across the OpenEvolve
   - `get_global_dspy_instance()`
   - `initialize_dspy()`
   - `get_dspy_status()`
+- **ADDED from DSPy-HELM:**
+  - `DSPyScenario` - Base class for benchmark scenarios
+  - `DSPyOptimizerConfig` - Multi-optimizer configuration (MIPROv2, GEPA, BootstrapFewShot, etc.)
+  - `DSPyAgentOptimizer` - High-level agent optimization framework
+  - Agent save/load functionality
+  - Metric with feedback support for GEPA optimizer
 - Root version now re-exports from SSOT with deprecation warning
 
-**Status:** ✅ MERGED - All functionality preserved
+**Status:** ✅ MERGED + ENHANCED - All functionality preserved + DSPy-HELM features added
 
 **Backward Compatibility:** ✅ Maintained via re-export
+
+**Example Usage:**
+```python
+from knowledge_engine.integrations.dspy_integration import (
+    DSPyScenario,
+    DSPyOptimizerConfig,
+    DSPyAgentOptimizer
+)
+
+# Define a scenario
+class MyScenario(DSPyScenario):
+    def make_prompt(self, row):
+        return f"Question: {row['question']}\nAnswer:"
+    
+    def metric(self, example, pred, trace=None):
+        return example['answer'] == pred['output']
+    
+    def load_data(self):
+        # Return trainset, valset
+        pass
+
+# Optimize an agent
+optimizer = DSPyAgentOptimizer(scenario=MyScenario())
+config = DSPyOptimizerConfig(optimizer_name="MIPROv2")
+optimized_agent = optimizer.optimize(config)
+
+# Save the optimized agent
+optimizer.save_agent(optimized_agent, "agents/my_agent.json")
+```
 
 ---
 
@@ -226,11 +262,12 @@ python -m py_compile knowledge_engine/ragbits_integration.py  # ✅
 | Metric | Value |
 |--------|-------|
 | Duplicates Analyzed | 10+ pairs |
-| Fully Merged | 2 (DSPy, Causal-Learn) |
+| Fully Merged + Enhanced | 2 (DSPy + HELM, Causal-Learn) |
 | Fixed (Stubs) | 1 (Ragbits) |
 | Documented | 1 (Unified Evolution) |
 | Preserved (Different) | 2 (OneKE, Graphiti) |
 | Files Modified | 5 |
+| Total Code Size (SSOTs) | ~140 KB |
 | Backward Compatibility | 100% |
 
 ---

@@ -13,8 +13,9 @@ import asyncio
 import json
 import logging
 import os
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import httpx
+from knowledge_engine.global_context_manager import get_global_context_manager
 
 logger = logging.getLogger(__name__)
 
@@ -34,10 +35,12 @@ async def call_llm(
     max_tokens: int = 2000,
     timeout: float = LLM_TIMEOUT,
     correlation_id: Optional[str] = None,
-    api_key: Optional[str] = None
+    api_key: Optional[str] = None,
+    session_id: Optional[str] = None,
+    history: Optional[List[Dict[str, str]]] = None
 ) -> str:
     """
-    Call LLM API with retry logic.
+    Call LLM API with retry logic and optional global context management.
 
     Args:
         prompt: Input prompt
@@ -47,17 +50,23 @@ async def call_llm(
         timeout: Request timeout in seconds
         correlation_id: Optional correlation ID for tracking
         api_key: Optional API key (defaults to LLM_API_KEY env var)
+        session_id: Optional session ID for global context management (Matryoshka)
+        history: Optional history for context management
 
     Returns:
         LLM response text
-
-    Raises:
-        TimeoutError: If request times out
-        ValueError: If API key is missing
-        httpx.HTTPError: If HTTP request fails
     """
     correlation_id = correlation_id or "unknown"
     api_key = api_key or LLM_API_KEY
+    
+    # Context Management
+    messages = history or []
+    if not any(m['role'] == 'user' and m['content'] == prompt for m in messages):
+        messages.append({"role": "user", "content": prompt})
+    
+    if session_id:
+        gcm = get_global_context_manager()
+        messages = gcm.manage(session_id, messages)
 
     if not api_key and not LLM_API_KEY:
         # If no API key, return fallback response
@@ -77,7 +86,8 @@ async def call_llm(
             "correlation_id": correlation_id,
             "model": model,
             "prompt_length": len(prompt),
-            "timeout": timeout
+            "timeout": timeout,
+            "session_id": session_id
         }
     )
 
@@ -89,9 +99,7 @@ async def call_llm(
 
     payload = {
         "model": model,
-        "messages": [
-            {"role": "user", "content": prompt}
-        ],
+        "messages": messages,
         "temperature": temperature,
         "max_tokens": max_tokens
     }

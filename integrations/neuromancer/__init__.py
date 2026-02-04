@@ -1,5 +1,4 @@
-"""
-NeuroMANCER Integration for OpenEvolve
+"""NeuroMANCER Integration for OpenEvolve
 
 This package provides physics-informed optimization, system identification,
 and differential equation solving using NeuroMANCER as a backend.
@@ -8,35 +7,166 @@ Key components:
 - NeuroMANCERAdapter: Interface to NeuroMANCER optimization engine
 - HybridSolver: Combines LeanAide (symbolic) + NeuroMANCER (numerical)
 - LeanAideNeuroMANCERBridge: High-level interface for common operations
+- Neural Operators: DeepONet, FNO, PINNs for physics-informed ML
+- Physics Constraints: Conservation laws, thermodynamic constraints
+- Scientific Domains: Pre-configured models for climate, fluids, structures, etc.
+- KGPhysicsBridge: Bridge between Knowledge Graph and physics simulations
 
 Usage:
     from integrations.neuromancer import NeuroMANCERAdapter, HybridSolver
+    from integrations.neuromancer import NeuromancerAdapter, NeuralOperatorConfig
+    from integrations.neuromancer import DomainLibrary, KGPhysicsBridge
 
-    # Initialize adapter
-    adapter = NeuroMANCERAdapter()
+    # Initialize neural operator adapter
+    adapter = NeuromancerAdapter(device="cuda")
     await adapter.initialize(config)
 
-    # Solve optimization problem
-    result = await adapter.solve(problem)
-
-    # Or use hybrid solver with LeanAide
-    hybrid = HybridSolver()
-    await hybrid.initialize(config)
-    result = await hybrid.solve_optimization_problem(problem)
+    # Solve ODE/PDE
+    result = await adapter.solve_ode(system, initial_conditions, t_span)
+    
+    # Use scientific domain
+    fluid_domain = DomainLibrary.fluid_dynamics()
+    result = fluid_domain.solve(problem)
+    
+    # Bridge KG and physics
+    bridge = KGPhysicsBridge()
+    physics_problem = bridge.kg_to_physics_problem(kg_subgraph)
+    kg_updates = bridge.physics_solution_to_kg(solution)
 """
 
+# Core adapter components
 from .adapter import NeuroMANCERAdapter
 from .bridge import HybridSolver, LeanAideNeuroMANCERBridge
 
-__version__ = "0.1.0"
+# Neural operators
+from .neural_operators import (
+    NeuralOperatorType,
+    NeuralOperatorConfig,
+    SolutionResult,
+    DynamicsModel,
+    TrajectoryResult,
+    CalibratedModel,
+    NeuralOperatorBase,
+    FNOOperator,
+    DeepONetOperator,
+    PINNOperator,
+    NeuromancerAdapter,
+    create_operator,
+    MODEL_REGISTRY
+)
+
+# Physics constraints
+from .physics_constraints import (
+    ConstraintType,
+    ConservationQuantity,
+    ConstraintViolation,
+    ConstraintConfig,
+    PhysicsConstraint,
+    ConservationLawConstraint,
+    ThermodynamicConstraint,
+    MechanicalConstraint,
+    ElectromagneticConstraint,
+    ChemicalConstraint,
+    ConstraintLibrary,
+    create_physics_loss
+)
+
+# Scientific domains
+from .scientific_domains import (
+    DomainType,
+    DomainConfig,
+    SimulationResult,
+    ScientificDomain,
+    ClimateModeling,
+    FluidDynamics,
+    StructuralMechanics,
+    ChemicalKinetics,
+    BiologicalSystems,
+    DomainLibrary
+)
+
+# KG Physics bridge
+from .kg_physics_bridge import (
+    EntityPhysicsType,
+    RelationshipPhysicsType,
+    PhysicsProblem,
+    KGUpdates,
+    ConsistencyReport,
+    InferredProperties,
+    SimulationResultKG,
+    KGPhysicsBridge
+)
+
+__version__ = "1.0.0"
 __author__ = "OpenEvolve Team"
 
 __all__ = [
+    # Core adapters
     "NeuroMANCERAdapter",
     "HybridSolver",
     "LeanAideNeuroMANCERBridge",
     "create_neuromancer_adapter",
-    "create_hybrid_solver"
+    "create_hybrid_solver",
+    
+    # Neural operators
+    "NeuralOperatorType",
+    "NeuralOperatorConfig",
+    "SolutionResult",
+    "DynamicsModel",
+    "TrajectoryResult",
+    "CalibratedModel",
+    "NeuralOperatorBase",
+    "FNOOperator",
+    "DeepONetOperator",
+    "PINNOperator",
+    "NeuromancerAdapter",
+    "create_operator",
+    "MODEL_REGISTRY",
+    
+    # Physics constraints
+    "ConstraintType",
+    "ConservationQuantity",
+    "ConstraintViolation",
+    "ConstraintConfig",
+    "PhysicsConstraint",
+    "ConservationLawConstraint",
+    "ThermodynamicConstraint",
+    "MechanicalConstraint",
+    "ElectromagneticConstraint",
+    "ChemicalConstraint",
+    "ConstraintLibrary",
+    "create_physics_loss",
+    
+    # Scientific domains
+    "DomainType",
+    "DomainConfig",
+    "SimulationResult",
+    "ScientificDomain",
+    "ClimateModeling",
+    "FluidDynamics",
+    "StructuralMechanics",
+    "ChemicalKinetics",
+    "BiologicalSystems",
+    "DomainLibrary",
+    
+    # KG Physics bridge
+    "EntityPhysicsType",
+    "RelationshipPhysicsType",
+    "PhysicsProblem",
+    "KGUpdates",
+    "ConsistencyReport",
+    "InferredProperties",
+    "SimulationResultKG",
+    "KGPhysicsBridge",
+    
+    # Configuration
+    "DEFAULT_CONFIG",
+    "get_default_config",
+    
+    # Convenience functions
+    "quick_optimize",
+    "quick_ode_solve",
+    "quick_system_identification"
 ]
 
 
@@ -102,7 +232,20 @@ DEFAULT_CONFIG = {
     "cache_ttl": 3600,
     "hybrid_mode": "sequential",
     "max_iterations": 3,
-    "convergence_tolerance": 1e-6
+    "convergence_tolerance": 1e-6,
+    # Neural operator defaults
+    "neural_operator": {
+        "operator_type": "fno",
+        "hidden_dim": 64,
+        "num_layers": 4,
+        "modes": 12,
+        "activation": "gelu",
+        "learning_rate": 1e-3,
+        "batch_size": 32,
+        "epochs": 1000,
+        "use_physics_loss": True,
+        "physics_weight": 1.0
+    }
 }
 
 
@@ -113,7 +256,8 @@ def get_default_config() -> dict:
     Returns:
         Dictionary with default configuration values
     """
-    return DEFAULT_CONFIG.copy()
+    import copy
+    return copy.deepcopy(DEFAULT_CONFIG)
 
 
 # Convenience functions for common operations
@@ -210,3 +354,46 @@ async def quick_system_identification(
     bridge = LeanAideNeuroMANCERBridge()
     await bridge.initialize(config)
     return await bridge.identify_system(input_data, output_data)
+
+
+async def quick_neural_operator_solve(
+    problem_type: str,
+    equation: str,
+    domain: dict,
+    config: dict = None
+) -> SolutionResult:
+    """
+    Quick neural operator solver interface.
+
+    Args:
+        problem_type: 'ode' or 'pde'
+        equation: Equation description
+        domain: Domain definition
+        config: Optional configuration
+
+    Returns:
+        SolutionResult with solution data
+
+    Example:
+        >>> result = await quick_neural_operator_solve(
+        ...     problem_type="pde",
+        ...     equation="laplace",
+        ...     domain={"x_min": 0, "x_max": 1, "y_min": 0, "y_max": 1}
+        ... )
+    """
+    config = config or get_default_config()
+    adapter = NeuromancerAdapter(device=config.get("device", "cpu"))
+    adapter.initialize(config)
+    
+    if problem_type == "ode":
+        return adapter.solve_ode(
+            system=equation,
+            initial_conditions=domain.get("initial_conditions", {}),
+            t_span=domain.get("time_span", (0, 1))
+        )
+    else:
+        return adapter.solve_pde(
+            equation=equation,
+            domain=domain,
+            boundary_conditions=domain.get("boundary_conditions", {})
+        )

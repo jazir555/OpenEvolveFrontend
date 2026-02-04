@@ -2,8 +2,25 @@
 Unified Knowledge Graph Integration Hub for OpenEvolve
 
 This module provides a centralized hub for all knowledge graph integrations,
-enabling seamless access to DeepKE, NeuralKG, KarateClub, KG-Gen, OneKE,
-AI-Knowledge-Graph, Graphiti, GlobalChem, Causal-Learn, and PyGraphistry.
+enabling seamless access to:
+
+**Extraction & Processing:**
+- DeepKE, OneKE, KG-Gen, AI-Knowledge-Graph - Entity and relation extraction
+- GlobalChem - Chemical knowledge graph operations
+
+**Embedding & Reasoning:**
+- NeuralKG - Neural knowledge graph embeddings
+- Causal-Learn - Causal discovery and analysis
+- KarateClub - Graph analysis and community detection
+
+**Query & Generation:**
+- Graphiti - Temporal knowledge graph queries
+- Outlines - Structured LLM output generation with constraints
+- LMQL - Declarative SQL-like queries for LLMs
+
+**Visualization & Simulation:**
+- PyGraphistry - GPU-accelerated graph visualization
+- Neuromancer - Physics-informed neural operators for simulation
 
 Business Logic:
     - Unified interface for all KG operations
@@ -28,8 +45,16 @@ Architecture:
       ▼     ▼          ▼      ▼          ▼       ▼
    DeepKE  OneKE   NeuralKG KG-Gen  KarateClub  PyGraphistry
    KG-Gen  AIKG                     Causal-Learn
-   GlobalChem
+   GlobalChem                               Neuromancer
    Graphiti
+
+    ┌─────────────────────────────────────────────────────────────┐
+    │                  Advanced Capabilities                       │
+    ├──────────────────┬──────────────────┬───────────────────────┤
+    │   Outlines       │     LMQL         │   Neuromancer         │
+    │ (Structured      │ (Declarative     │ (Physics-Informed     │
+    │  Generation)     │  Queries)        │  Simulation)          │
+    └──────────────────┴──────────────────┴───────────────────────┘
 
 Copyright 2026 OpenEvolve
 
@@ -74,6 +99,9 @@ class KGOperationType(Enum):
     CHEMICAL_ANALYSIS = auto()
     ENTITY_STANDARDIZATION = auto()
     KNOWLEDGE_INFERENCE = auto()
+    STRUCTURED_GENERATION = auto()  # Outlines: constrained LLM outputs
+    DECLARATIVE_QUERY = auto()      # LMQL: SQL-like LLM queries
+    PHYSICS_SIMULATION = auto()     # Neuromancer: physics-informed reasoning
 
 
 class IntegrationStatus(Enum):
@@ -187,7 +215,10 @@ class UnifiedKGIntegrationHub:
             KGOperationType.TEMPORAL_QUERY: ['graphiti'],
             KGOperationType.CHEMICAL_ANALYSIS: ['global_chem'],
             KGOperationType.ENTITY_STANDARDIZATION: ['aikg'],
-            KGOperationType.KNOWLEDGE_INFERENCE: ['aikg', 'kggen']
+            KGOperationType.KNOWLEDGE_INFERENCE: ['aikg', 'kggen'],
+            KGOperationType.STRUCTURED_GENERATION: ['outlines'],
+            KGOperationType.DECLARATIVE_QUERY: ['lmql'],
+            KGOperationType.PHYSICS_SIMULATION: ['neuromancer']
         }
         
         logger.info({
@@ -221,6 +252,9 @@ class UnifiedKGIntegrationHub:
         await self._initialize_global_chem()
         await self._initialize_causal_learn()
         await self._initialize_pygraphistry()
+        await self._initialize_outlines()
+        await self._initialize_lmql()
+        await self._initialize_neuromancer()
         
         self._initialized = True
         
@@ -505,6 +539,88 @@ class UnifiedKGIntegrationHub:
         except Exception as e:
             self._health_status['pygraphistry'] = IntegrationHealth(
                 name='pygraphistry',
+                status=IntegrationStatus.ERROR,
+                error_count=1,
+                details={'error': str(e)}
+            )
+    
+    async def _initialize_outlines(self):
+        """Initialize Outlines integration for structured generation."""
+        start_time = datetime.now(timezone.utc)
+        try:
+            from .integrations.outlines.outlines_integration import OutlinesKGIntegration
+            integration = OutlinesKGIntegration(self.config.get('outlines', {}))
+            available = integration.is_available()
+            
+            self._integrations['outlines'] = integration
+            self._health_status['outlines'] = IntegrationHealth(
+                name='outlines',
+                status=IntegrationStatus.AVAILABLE if available else IntegrationStatus.UNAVAILABLE,
+                latency_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000,
+                details={
+                    'description': 'Structured LLM Output Generation with Regex/JSON Constraints',
+                    'features': ['json_schema', 'regex_pattern', 'choices', 'batch_generation'],
+                    'ssot_location': 'integrations/outlines/'
+                }
+            )
+        except Exception as e:
+            self._health_status['outlines'] = IntegrationHealth(
+                name='outlines',
+                status=IntegrationStatus.ERROR,
+                error_count=1,
+                details={'error': str(e)}
+            )
+    
+    async def _initialize_lmql(self):
+        """Initialize LMQL integration for declarative queries."""
+        start_time = datetime.now(timezone.utc)
+        try:
+            from .integrations.lmql.lmql_integration import LMQLKGIntegration
+            integration = LMQLKGIntegration(self.config.get('lmql', {}))
+            available = integration.is_available()
+            
+            self._integrations['lmql'] = integration
+            self._health_status['lmql'] = IntegrationHealth(
+                name='lmql',
+                status=IntegrationStatus.AVAILABLE if available else IntegrationStatus.UNAVAILABLE,
+                latency_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000,
+                details={
+                    'description': 'SQL-like Query Language for LLMs with Constraint Programming',
+                    'features': ['declarative_queries', 'constraint_checking', 'multi_turn', 'cypher_generation'],
+                    'ssot_location': 'integrations/lmql/'
+                }
+            )
+        except Exception as e:
+            self._health_status['lmql'] = IntegrationHealth(
+                name='lmql',
+                status=IntegrationStatus.ERROR,
+                error_count=1,
+                details={'error': str(e)}
+            )
+    
+    async def _initialize_neuromancer(self):
+        """Initialize Neuromancer integration for physics-informed reasoning."""
+        start_time = datetime.now(timezone.utc)
+        try:
+            from .integrations.neuromancer.neuromancer_integration import NeuromancerKGIntegration
+            integration = NeuromancerKGIntegration(self.config.get('neuromancer', {}))
+            available = integration.is_available()
+            
+            self._integrations['neuromancer'] = integration
+            self._health_status['neuromancer'] = IntegrationHealth(
+                name='neuromancer',
+                status=IntegrationStatus.AVAILABLE if available else IntegrationStatus.UNAVAILABLE,
+                latency_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000,
+                details={
+                    'description': 'Neural Operators for Physics-Informed Knowledge Graphs',
+                    'features': ['ode_solving', 'pde_solving', 'dynamics_learning', 'physics_constraints', 'simulation'],
+                    'ssot_location': 'integrations/neuromancer/',
+                    'domains': ['climate', 'fluids', 'mechanics', 'chemical', 'biological']
+                }
+            )
+        except Exception as e:
+            self._health_status['neuromancer'] = IntegrationHealth(
+                name='neuromancer',
                 status=IntegrationStatus.ERROR,
                 error_count=1,
                 details={'error': str(e)}
@@ -906,6 +1022,189 @@ class UnifiedKGIntegrationHub:
             operation_type=KGOperationType.CHEMICAL_ANALYSIS,
             integration_used='none',
             errors=['GlobalChem not available'],
+            processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+        )
+    
+    async def structured_generate(
+        self,
+        prompt: str,
+        output_schema: Dict[str, Any],
+        method: str = 'json'
+    ) -> KGOperationResult:
+        """
+        Generate structured output using Outlines constraints.
+        
+        Args:
+            prompt: Input prompt
+            output_schema: JSON schema or regex pattern for output
+            method: 'json', 'regex', or 'choices'
+            
+        Returns:
+            KGOperationResult with structured output
+        """
+        start_time = datetime.now(timezone.utc)
+        
+        if 'outlines' in self._integrations:
+            try:
+                integration = self._integrations['outlines']
+                
+                if method == 'json':
+                    result = await integration.extract_entities_constrained(
+                        text=prompt,
+                        entity_types=output_schema.get('entity_types', ['entity'])
+                    )
+                elif method == 'regex':
+                    result = await integration.generate_cypher_constrained(
+                        schema_desc=str(output_schema),
+                        query_intent=prompt
+                    )
+                else:
+                    result = await integration.validate_kg_structure(
+                        kg_data={'prompt': prompt, 'schema': output_schema}
+                    )
+                
+                return KGOperationResult(
+                    success=True,
+                    operation_type=KGOperationType.STRUCTURED_GENERATION,
+                    integration_used='outlines',
+                    data=result,
+                    processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+                )
+            except Exception as e:
+                logger.error(f"Outlines structured generation failed: {e}")
+        
+        return KGOperationResult(
+            success=False,
+            operation_type=KGOperationType.STRUCTURED_GENERATION,
+            integration_used='none',
+            errors=['Outlines not available'],
+            processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+        )
+    
+    async def declarative_query(
+        self,
+        query: str,
+        context: Optional[Dict[str, Any]] = None,
+        query_type: str = 'entities'
+    ) -> KGOperationResult:
+        """
+        Execute declarative LMQL query.
+        
+        Args:
+            query: LMQL query string
+            context: Query context variables
+            query_type: Type of query ('entities', 'relations', 'cypher', 'multi_hop')
+            
+        Returns:
+            KGOperationResult with query results
+        """
+        start_time = datetime.now(timezone.utc)
+        
+        if 'lmql' in self._integrations:
+            try:
+                integration = self._integrations['lmql']
+                
+                if query_type == 'entities':
+                    result = await integration.query_entities(
+                        query_str=query,
+                        filters=context or {}
+                    )
+                elif query_type == 'relations':
+                    result = await integration.query_relations(
+                        entity_ids=context.get('entity_ids', []),
+                        relation_types=context.get('relation_types', [])
+                    )
+                elif query_type == 'cypher':
+                    result = await integration.generate_cypher(
+                        natural_language_query=query,
+                        schema_description=context.get('schema', '')
+                    )
+                elif query_type == 'multi_hop':
+                    result = await integration.multi_hop_query(
+                        start_entity=context.get('start_entity', ''),
+                        query_path=context.get('path', [])
+                    )
+                else:
+                    result = await integration.explain_query(query_str=query)
+                
+                return KGOperationResult(
+                    success=result is not None,
+                    operation_type=KGOperationType.DECLARATIVE_QUERY,
+                    integration_used='lmql',
+                    data=result.to_dict() if hasattr(result, 'to_dict') else result,
+                    processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+                )
+            except Exception as e:
+                logger.error(f"LMQL query failed: {e}")
+        
+        return KGOperationResult(
+            success=False,
+            operation_type=KGOperationType.DECLARATIVE_QUERY,
+            integration_used='none',
+            errors=['LMQL not available'],
+            processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+        )
+    
+    async def physics_simulate(
+        self,
+        system_description: Dict[str, Any],
+        simulation_type: str = 'ode',
+        time_horizon: float = 10.0
+    ) -> KGOperationResult:
+        """
+        Run physics-informed simulation using Neuromancer.
+        
+        Args:
+            system_description: System entities and relationships
+            simulation_type: 'ode', 'pde', 'dynamics', or 'what_if'
+            time_horizon: Simulation time horizon
+            
+        Returns:
+            KGOperationResult with simulation results
+        """
+        start_time = datetime.now(timezone.utc)
+        
+        if 'neuromancer' in self._integrations:
+            try:
+                integration = self._integrations['neuromancer']
+                
+                if simulation_type == 'ode':
+                    result = await integration.infer_temporal_dynamics(
+                        entity_id=system_description.get('entity_id', ''),
+                        property_name=system_description.get('property', 'state'),
+                        horizon=int(time_horizon)
+                    )
+                elif simulation_type == 'what_if':
+                    result = await integration.simulate_what_if(
+                        scenario=system_description,
+                        constraints=system_description.get('constraints', [])
+                    )
+                elif simulation_type == 'dynamics':
+                    result = await integration.calibrate_from_observations(
+                        entity_id=system_description.get('entity_id', ''),
+                        observations=system_description.get('observations', [])
+                    )
+                else:
+                    result = await integration.validate_physical_laws(
+                        kg_subgraph=system_description,
+                        domain=system_description.get('domain', 'mechanics')
+                    )
+                
+                return KGOperationResult(
+                    success=result is not None,
+                    operation_type=KGOperationType.PHYSICS_SIMULATION,
+                    integration_used='neuromancer',
+                    data=result.to_dict() if hasattr(result, 'to_dict') else result,
+                    processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+                )
+            except Exception as e:
+                logger.error(f"Neuromancer simulation failed: {e}")
+        
+        return KGOperationResult(
+            success=False,
+            operation_type=KGOperationType.PHYSICS_SIMULATION,
+            integration_used='none',
+            errors=['Neuromancer not available'],
             processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
         )
     

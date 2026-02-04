@@ -31,9 +31,13 @@ if str(_ke_path) not in sys.path:
 
 # Re-export all components from SSOT
 from knowledge_engine.integrations.dspy_integration import (
-    # Main class
+    # Main integration
     DSPyIntegration,
     DSPyResult,
+    # DSPy-HELM framework
+    DSPyScenario,
+    DSPyOptimizerConfig,
+    DSPyAgentOptimizer,
     # Signatures
     KnowledgeExtractionSignature,
     ContentEvaluationSignature,
@@ -50,15 +54,23 @@ from knowledge_engine.integrations.dspy_integration import (
 
 __version__ = "2.0.0"
 __all__ = [
+    # Main integration
     "DSPyIntegration",
     "DSPyResult",
+    # DSPy-HELM framework
+    "DSPyScenario",
+    "DSPyOptimizerConfig",
+    "DSPyAgentOptimizer",
+    # Signatures
     "KnowledgeExtractionSignature",
     "ContentEvaluationSignature",
     "StrategyGenerationSignature",
     "SolutionPatternSignature",
+    # Helpers
     "get_global_dspy_instance",
     "initialize_dspy",
     "get_dspy_status",
+    # Constants
     "DSPY_INTEGRATION_AVAILABLE",
     "DSPY_SIGNATURES_AVAILABLE",
 ]

@@ -12,7 +12,7 @@ import json
 import logging
 import tempfile
 import urllib.request
-from typing import Dict, Any, Optional, Union
+from typing import Dict, Any, Optional, Union, List
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -179,6 +179,51 @@ class MatryoshkaClient:
     def is_available(self) -> bool:
         """Check if Matryoshka is installed and runnable."""
         return os.path.exists(self.executable_path)
+
+class StatefulMatryoshkaClient(MatryoshkaClient):
+    """
+    Extends MatryoshkaClient to manage stateful context sessions.
+    Useful for solving 'context rot' in long-running LLM interactions.
+    """
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.sessions: Dict[str, Dict[str, Any]] = {}
+
+    def get_or_create_session(self, session_id: str) -> Dict[str, Any]:
+        if session_id not in self.sessions:
+            self.sessions[session_id] = {
+                "history": [],
+                "summary": "",
+                "tokens": 0,
+                "last_updated": None
+            }
+        return self.sessions[session_id]
+
+    def compress_context(self, session_id: str, new_content: str, query: str = "Summarize the key information and state transitions.") -> str:
+        """
+        Use Matryoshka to compress current context session.
+        """
+        session = self.get_or_create_session(session_id)
+        
+        # Combine existing summary with new content
+        full_text = f"EXISTING_SUMMARY: {session['summary']}\n\nNEW_CONTENT: {new_content}"
+        
+        # Run Matryoshka analysis to distill the context
+        compressed = self.analyze_text(query, full_text)
+        
+        # Update session
+        session["summary"] = compressed
+        session["last_updated"] = os.getpid() # Simplified marker
+        
+        return compressed
+
+    def distill_history(self, session_id: str, messages: List[Dict[str, str]]) -> str:
+        """
+        Distill a conversation history into a concise representation.
+        """
+        history_text = "\n".join([f"{m['role']}: {m['content']}" for m in messages])
+        return self.analyze_text("Identify critical entities, decisions, and unanswered questions from this history.", history_text)
 
 if __name__ == "__main__":
     # Simple test

@@ -13,13 +13,14 @@ This project handles the integration of Matryoshka into the OpenEvolve/Frontend 
 - **Build Status**: **Success** (Fixed TypeScript errors and built locally).
 
 ## 3. Integration Goals
-The primary goal is to enable the **ContextManager** in the Deterministic Pipeline to handle large documents (e.g., >10MB) by offloading the analysis to Matryoshka.
+The primary goal is to enable the **ContextManager** in the Deterministic Pipeline to handle large contexts (Documents, raw text, URLs) by offloading the analysis to Matryoshka.
 
 **Specific Objectives:**
 1.  **Build**: (Completed) Build Matryoshka locally.
-2.  **Adapter**: Create a Python adapter (`MatryoshkaClient`) to interface with the Node.js application.
-3.  **Pipeline Integration**: Implement the `ContextManager` class to route large document queries to Matryoshka.
-4.  **Verification**: Verify the integration with a test suite.
+2.  **Adapter**: (Completed) Create a Python adapter (`MatryoshkaClient`) to interface with the Node.js application.
+3.  **Pipeline Integration**: (Completed) Implement the `ContextManager` class to route large document queries to Matryoshka.
+4.  **Verification**: (Completed) Verify the integration with a test suite.
+5.  **Generalization**: (Completed) Adapt the system for general use beyond local documents (Text, URLs).
 
 ## 4. Implementation Steps
 
@@ -30,20 +31,22 @@ The primary goal is to enable the **ContextManager** in the Deterministic Pipeli
 
 ### Step 2: Develop Python Adapter (Completed)
 *   **Location**: `glue/adapters/matryoshka_adapter.py`
-*   **Design**: Implemented `MatryoshkaClient` using `subprocess` to call `dist/index.js`.
-*   **Verification**: Unit tests in `tests/test_matryoshka_adapter.py` pass.
+*   **Design**: Implemented `MatryoshkaClient` with `analyze()`, `analyze_text()`, and `analyze_url()`.
+*   **Verification**: `tests/test_matryoshka_adapter.py` passes.
 
 ### Step 3: Implement Context Manager (Completed)
 *   **Location**: `knowledge_engine/context_manager.py`
 *   **Logic**:
-    *   Checks document size (Threshold: 10MB).
-    *   Routes >10MB to Matryoshka.
-    *   Routes <10MB to standard RAG (with graceful fallback).
-*   **Verification**: Unit tests in `tests/test_context_manager.py` pass.
+    *   `process_input(query, data, type)` handles 'file', 'text', 'url'.
+    *   Large inputs are automatically routed to Matryoshka.
+*   **Verification**: `tests/test_context_manager.py` passes.
 
 ### Step 4: Testing (Completed)
-*   **Unit Tests**: Created and verified `tests/test_matryoshka_adapter.py` and `tests/test_context_manager.py`.
-*   **Status**: All tests passed.
+*   **Unit Tests**: Verified construction, cleanup, and routing logic across all input types.
+
+### Step 5: Generalization (Completed)
+*   **Feature**: Matryoshka integration now supports direct string input and URL downloading via temporary file orchestration in the adapter.
+*   **Benefit**: Can analyze large web pages or large raw data strings without manual file management.
 
 ## 6. Next Actions
 *   **Configuration**: Set up `OPENAI_API_KEY` or Ollama for actual usage.
