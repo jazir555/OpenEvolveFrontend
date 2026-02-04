@@ -7,10 +7,99 @@ evolve, and improve over time through coordinated operation of all components.
 """
 
 import logging
+import os
 logger = logging.getLogger(__name__)
 
 # Initialize __all__ list
 __all__ = []
+
+# ============================================================================
+# CONFIGURATION VALIDATION - Must happen before any imports
+# ============================================================================
+
+# Set validation mode from environment
+# Default to non-strict validation (warnings only)
+# Set KE_VALIDATE_CONFIG=strict to fail on warnings as well
+# Set KE_VALIDATE_CONFIG=off to disable validation (not recommended)
+VALIDATION_MODE = os.getenv("KE_VALIDATE_CONFIG", "warn").lower()
+
+def _validate_on_import():
+    """
+    Validate configuration on module import.
+
+    This follows the FAIL FAST principle - catch configuration errors
+    before the system attempts to use invalid configuration.
+    """
+    if VALIDATION_MODE == "off":
+        logger.warning({
+            "msg": "Configuration validation is DISABLED. This is not recommended for production.",
+            "timestamp": None
+        })
+        return
+
+    try:
+        from .config_validation import validate_config, ConfigError
+
+        strict = VALIDATION_MODE == "strict"
+        silent = True  # Don't print report during import
+
+        try:
+            result = validate_config(strict=strict, silent=silent)
+
+            if not result.is_valid:
+                logger.error({
+                    "msg": "Configuration validation failed at import time",
+                    "errors": result.errors,
+                    "warnings": result.warnings,
+                    "missing_required": result.missing_required
+                })
+                raise ConfigError(
+                    f"Invalid configuration: {len(result.errors)} error(s), "
+                    f"{len(result.warnings)} warning(s)"
+                )
+            else:
+                if result.warnings:
+                    logger.warning({
+                        "msg": "Configuration validation passed with warnings",
+                        "warnings": result.warnings,
+                        "configured_vars": len(result.present_optional)
+                    })
+                else:
+                    logger.info({
+                        "msg": "Configuration validation passed",
+                        "configured_vars": len(result.present_optional),
+                        "validation_mode": VALIDATION_MODE
+                    })
+
+        except ConfigError as e:
+            # Re-raise with more context
+            raise ConfigError(
+                f"Failed to initialize Knowledge Engine: {str(e)}\n"
+                f"Please check your environment variables and try again.\n"
+                f"Run: python -c 'from knowledge_engine.config_validation import get_config_template; print(get_config_template())' "
+                f"to see all required variables."
+            ) from e
+
+    except ImportError:
+        # If config_validation module doesn't exist yet, just log a warning
+        logger.warning({
+            "msg": "Configuration validation module not found, skipping validation",
+            "timestamp": None
+        })
+
+# Perform validation on import
+# Note: This can be disabled by setting KE_VALIDATE_CONFIG=off
+if VALIDATION_MODE != "off":
+    try:
+        _validate_on_import()
+    except Exception as e:
+        # Log the error but allow import to continue
+        # (components will fail when they try to use the missing config)
+        logger.error({
+            "msg": "Configuration validation failed during import",
+            "error": str(e),
+            "note": "System may not function correctly"
+        })
 
 # Export orchestration module (full suite)
 from .orchestration import (

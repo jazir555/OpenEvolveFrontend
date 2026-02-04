@@ -42,10 +42,23 @@ class S3Credentials(StorageCredentials):
     
     @classmethod
     def from_env(cls) -> S3Credentials:
-        """Create credentials from environment variables."""
+        """Create credentials from environment variables.
+
+        Raises:
+            ValueError: If required credentials are not set
+        """
+        access_key = os.getenv("AWS_ACCESS_KEY_ID")
+        secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+
+        if not access_key or not secret_key:
+            raise ValueError(
+                "AWS credentials not found in environment. "
+                "Required: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY"
+            )
+
         return cls(
-            access_key_id=os.getenv("AWS_ACCESS_KEY_ID", ""),
-            secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY", ""),
+            access_key_id=access_key,
+            secret_access_key=secret_key,
             region=os.getenv("AWS_REGION", "us-east-1"),
             endpoint_url=os.getenv("AWS_ENDPOINT_URL")
         )
@@ -60,9 +73,21 @@ class GCSCredentials(StorageCredentials):
     
     @classmethod
     def from_env(cls) -> GCSCredentials:
-        """Create credentials from environment variables."""
+        """Create credentials from environment variables.
+
+        Raises:
+            ValueError: If required credentials are not set
+        """
+        project_id = os.getenv("GCS_PROJECT_ID")
+
+        if not project_id:
+            raise ValueError(
+                "GCS project ID not found in environment. "
+                "Required: GCS_PROJECT_ID"
+            )
+
         return cls(
-            project_id=os.getenv("GCS_PROJECT_ID", ""),
+            project_id=project_id,
             credentials_path=os.getenv("GOOGLE_APPLICATION_CREDENTIALS"),
             credentials_json=os.getenv("GCS_CREDENTIALS_JSON")
         )
@@ -78,9 +103,21 @@ class AzureCredentials(StorageCredentials):
     
     @classmethod
     def from_env(cls) -> AzureCredentials:
-        """Create credentials from environment variables."""
+        """Create credentials from environment variables.
+
+        Raises:
+            ValueError: If required credentials are not set
+        """
+        account_name = os.getenv("AZURE_STORAGE_ACCOUNT")
+
+        if not account_name:
+            raise ValueError(
+                "Azure storage account not found in environment. "
+                "Required: AZURE_STORAGE_ACCOUNT"
+            )
+
         return cls(
-            account_name=os.getenv("AZURE_STORAGE_ACCOUNT", ""),
+            account_name=account_name,
             account_key=os.getenv("AZURE_STORAGE_KEY"),
             connection_string=os.getenv("AZURE_STORAGE_CONNECTION_STRING"),
             sas_token=os.getenv("AZURE_STORAGE_SAS_TOKEN")
@@ -99,9 +136,21 @@ class SFTPCredentials(StorageCredentials):
     
     @classmethod
     def from_env(cls) -> SFTPCredentials:
-        """Create credentials from environment variables."""
+        """Create credentials from environment variables.
+
+        Raises:
+            ValueError: If required credentials are not set
+        """
+        host = os.getenv("SFTP_HOST")
+
+        if not host:
+            raise ValueError(
+                "SFTP host not found in environment. "
+                "Required: SFTP_HOST"
+            )
+
         return cls(
-            host=os.getenv("SFTP_HOST", ""),
+            host=host,
             port=int(os.getenv("SFTP_PORT", "22")),
             username=os.getenv("SFTP_USERNAME", ""),
             password=os.getenv("SFTP_PASSWORD"),

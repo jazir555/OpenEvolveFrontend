@@ -1,0 +1,2 @@
+2026-02-03 16:10:36,834 - KnowledgeEngine - WARNING - No LLM client available - check API configuration
+2026-02-03 16:10:36,834 - KnowledgeEngine - INFO - LLM client initialized: None

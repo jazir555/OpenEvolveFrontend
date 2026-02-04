@@ -1003,3 +1003,8 @@ class CausalAnalysisNode(BubbleLabsNode):
             'valid_operations': self.valid_operations,
             'version': self.VERSION
         }
+
+
+# Register the node
+from bubblelabs_nodes import NodeRegistry
+NodeRegistry.register('causal_analysis', CausalAnalysisNode)

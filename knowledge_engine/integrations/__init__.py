@@ -103,6 +103,28 @@ try:
 except ImportError:
     UNIFIED_BRIDGE_AVAILABLE = False
 
+# LoongFlow Integration
+try:
+    from .loongflow_integration import (
+        LoongFlowKnowledgeExtractor,
+        PESRunResults,
+        KnowledgeArtifact as LoongFlowKnowledgeArtifact,
+    )
+    LOONGFLOW_INTEGRATION_AVAILABLE = True
+except ImportError:
+    LOONGFLOW_INTEGRATION_AVAILABLE = False
+    LoongFlowKnowledgeExtractor = None
+
+# Unified Evolution Integration
+try:
+    from .unified_evolution_integration import (
+        UnifiedEvolutionKnowledgeExtractor,
+    )
+    UNIFIED_EVOLUTION_AVAILABLE = True
+except ImportError:
+    UNIFIED_EVOLUTION_AVAILABLE = False
+    UnifiedEvolutionKnowledgeExtractor = None
+
 # ROMA Integration
 try:
     from .roma_integration import (
@@ -199,6 +221,16 @@ __all__ = [
     "ProblemClassifier",
     "CrossSystemKnowledgeTransfer",
 
+    # LoongFlow Integration
+    "LoongFlowKnowledgeExtractor",
+    "PESRunResults",
+    "LoongFlowKnowledgeArtifact",
+    "LOONGFLOW_INTEGRATION_AVAILABLE",
+
+    # Unified Evolution Integration
+    "UnifiedEvolutionKnowledgeExtractor",
+    "UNIFIED_EVOLUTION_AVAILABLE",
+
     # ROMA Integration
     "ROMAIntegration",
     "ROMAMetaAgent",
@@ -224,6 +256,8 @@ __all__ = [
     "LEANAIDE_KE_AVAILABLE",
     "LEANAIDE_PROOF_AVAILABLE",
     "UNIFIED_BRIDGE_AVAILABLE",
+    "LOONGFLOW_INTEGRATION_AVAILABLE",
+    "UNIFIED_EVOLUTION_AVAILABLE",
     "ROMA_INTEGRATION_AVAILABLE",
     "ROMA_EKG_INTEGRATION_AVAILABLE",
     

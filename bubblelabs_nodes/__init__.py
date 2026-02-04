@@ -137,6 +137,10 @@ from .recommendation_engine_node import (
     RecommendationEngineNode,
 )
 
+from .causal_analysis_node import (
+    CausalAnalysisNode,
+)
+
 __all__ += [
     # Parallel Execution (WORKING)
     'ParallelProblemExecutor',
@@ -177,4 +181,7 @@ __all__ += [
 
     # Recommendation Engine
     'RecommendationEngineNode',
+    
+    # Causal Analysis
+    'CausalAnalysisNode',
 ]

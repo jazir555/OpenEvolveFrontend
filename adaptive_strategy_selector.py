@@ -36,6 +36,7 @@ class StrategyPerformanceData:
     average_quality: float = 0.0
     last_used: Optional[datetime] = None
     total_attempts: int = 0
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
     @property
     def success_rate(self) -> float:

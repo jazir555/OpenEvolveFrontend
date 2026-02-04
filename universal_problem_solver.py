@@ -36,7 +36,8 @@ Usage:
 
 import logging
 import json
-from typing import Dict, List, Any, Optional, Callable, Union, Tuple
+import dataclasses
+from typing import Dict, List, Any, Optional, Callable, Union, Tuple, Set
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -66,11 +67,15 @@ from universal_recomposition_engine import (
     QualityMetrics
 )
 
+from team_manager import TeamManager
+from gauntlet_manager import GauntletManager
+from utils.entanglement_utils import normalize_entanglement_matrix
+
 # Optional Blue Team + Enhanced Recomposition wiring
 try:
     from blue_team_solver_engine import SubProblemSolver as BlueTeamSubProblemSolver
     BLUE_TEAM_AVAILABLE = True
-except ImportError:
+except Exception:
     BLUE_TEAM_AVAILABLE = False
     BlueTeamSubProblemSolver = None  # type: ignore
 
@@ -111,6 +116,67 @@ class SolutionStep:
 
 
 @dataclass
+class GauntletOutcome:
+    """Normalized gauntlet execution outcome."""
+    stage: str
+    gauntlet_name: Optional[str]
+    team_name: Optional[str]
+    team_role: Optional[str]
+    is_approved: bool
+    report_summary: str
+    report_object: Optional[Any] = None
+    targeted_feedback: List[str] = field(default_factory=list)
+    logs: List[str] = field(default_factory=list)
+    skipped: bool = False
+    error: Optional[str] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "stage": self.stage,
+            "gauntlet_name": self.gauntlet_name,
+            "team_name": self.team_name,
+            "team_role": self.team_role,
+            "is_approved": self.is_approved,
+            "report_summary": self.report_summary,
+            "targeted_feedback": list(self.targeted_feedback),
+            "logs": list(self.logs),
+            "skipped": self.skipped,
+            "error": self.error,
+        }
+
+
+@dataclass
+class GauntletBundle:
+    """Resolved gauntlet + team bundle for pipeline execution."""
+    solver_generation_gauntlet: Optional[Any] = None
+    sub_problem_red_gauntlet: Optional[Any] = None
+    sub_problem_gold_gauntlet: Optional[Any] = None
+    final_red_gauntlet: Optional[Any] = None
+    final_gold_gauntlet: Optional[Any] = None
+    solver_generation_team: Optional[Any] = None
+    sub_problem_red_team: Optional[Any] = None
+    sub_problem_gold_team: Optional[Any] = None
+    final_red_team: Optional[Any] = None
+    final_gold_team: Optional[Any] = None
+
+    def has_any(self) -> bool:
+        return any([
+            self.solver_generation_gauntlet,
+            self.sub_problem_red_gauntlet,
+            self.sub_problem_gold_gauntlet,
+            self.final_red_gauntlet,
+            self.final_gold_gauntlet,
+        ])
+
+    def has_subproblem_any(self) -> bool:
+        return any([
+            self.solver_generation_gauntlet,
+            self.sub_problem_red_gauntlet,
+            self.sub_problem_gold_gauntlet,
+        ])
+
+
+@dataclass
 class SolverResult:
     """Complete result from problem solving"""
     problem_id: str
@@ -136,6 +202,8 @@ class SolverResult:
     
     # Metadata
     execution_log: List[str] = field(default_factory=list)
+    gauntlet_results: Dict[str, Any] = field(default_factory=dict)
+    gauntlet_summary: Dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.now)
     
     def to_dict(self) -> Dict[str, Any]:
@@ -155,6 +223,7 @@ class SolverResult:
             'num_sub_problems': len(self.decomposition_plan.sub_problems),
             'num_solutions': len(self.sub_problem_solutions),
             'assembly_strategy': assembly_strategy,
+            'gauntlet_summary': self.gauntlet_summary,
             'created_at': self.created_at.isoformat()
         }
     
@@ -178,6 +247,14 @@ class SolverResult:
             f"",
             f"Final Solution Length: {len(self.final_solution.assembled_content)} characters"
         ]
+        if self.gauntlet_summary:
+            gauntlet_runs = self.gauntlet_summary.get("total_runs", 0)
+            gauntlet_failed = self.gauntlet_summary.get("failed", 0)
+            gauntlet_skipped = self.gauntlet_summary.get("skipped", 0)
+            lines.extend([
+                "",
+                f"Gauntlets: {gauntlet_runs} run, {gauntlet_failed} failed, {gauntlet_skipped} skipped",
+            ])
         return "\n".join(lines)
 
 
@@ -515,12 +592,22 @@ class UniversalProblemSolver:
         llm_client: Optional[Any] = None,
         decomposition_strategy: DecompositionStrategy = DecompositionStrategy.HYBRID,
         assembly_strategy: AssemblyStrategy = AssemblyStrategy.ADAPTIVE,
-        blue_team_config: Optional[Dict[str, Any]] = None
+        blue_team_config: Optional[Dict[str, Any]] = None,
+        gauntlet_config: Optional[Dict[str, Any]] = None,
+        enable_gauntlets: bool = True,
+        max_gauntlet_refinement_loops: int = 1,
+        team_manager: Optional[TeamManager] = None,
+        gauntlet_manager: Optional[GauntletManager] = None,
     ):
         self.llm_client = llm_client
         self.decomposition_strategy = decomposition_strategy
         self.assembly_strategy = assembly_strategy
         self.blue_team_config = blue_team_config or {}
+        self.gauntlet_config = gauntlet_config or {}
+        self.enable_gauntlets = enable_gauntlets
+        self.max_gauntlet_refinement_loops = max_gauntlet_refinement_loops
+        self.team_manager = team_manager or TeamManager()
+        self.gauntlet_manager = gauntlet_manager or GauntletManager()
         
         # Initialize components
         self.decomposition_engine = UniversalDecompositionEngine(llm_client)
@@ -547,7 +634,10 @@ class UniversalProblemSolver:
         solve_subproblems: bool = True,
         detect_conflicts: bool = True,
         resolve_conflicts: bool = True,
-        use_blue_team_solver: bool = False
+        use_blue_team_solver: bool = False,
+        run_gauntlets: Optional[bool] = None,
+        gauntlet_config: Optional[Dict[str, Any]] = None,
+        max_gauntlet_refinement_loops: Optional[int] = None,
     ) -> SolverResult:
         """
         Solve a problem end-to-end.
@@ -563,6 +653,9 @@ class UniversalProblemSolver:
             detect_conflicts: Whether to detect conflicts during assembly
             resolve_conflicts: Whether to attempt conflict resolution
             use_blue_team_solver: Use Blue Team solver (Z3/Lean) with enhanced recomposition
+            run_gauntlets: Whether to run Blue/Red/Gold gauntlet pipeline
+            gauntlet_config: Optional gauntlet configuration overrides
+            max_gauntlet_refinement_loops: Override max gauntlet refinement loops
             
         Returns:
             SolverResult with complete solution and metadata
@@ -576,6 +669,19 @@ class UniversalProblemSolver:
         if use_blue_team_solver and not self.blue_team_solver:
             self.logger.warning("Blue Team solver unavailable; falling back to standard solver")
             use_blue_team_solver = False
+
+        if run_gauntlets is None:
+            run_gauntlets = self.enable_gauntlets
+
+        max_refinement_loops = (
+            self.max_gauntlet_refinement_loops
+            if max_gauntlet_refinement_loops is None
+            else max_gauntlet_refinement_loops
+        )
+
+        gauntlet_bundle: Optional[GauntletBundle] = None
+        gauntlet_results: Dict[str, Any] = {"sub_problems": {}, "final": {}}
+        gauntlet_summary: Dict[str, Any] = {}
         
         # ============================================================================
         # STEP 1: Domain Detection (if not specified)
@@ -624,18 +730,23 @@ class UniversalProblemSolver:
         }
         steps.append(step_decomp)
         execution_log.append(f"Decomposed into {len(plan.sub_problems)} sub-problems")
+
+        if run_gauntlets:
+            gauntlet_bundle = self._resolve_gauntlet_bundle(gauntlet_config)
+            if not gauntlet_bundle.has_any():
+                run_gauntlets = False
+                execution_log.append("Gauntlets: no configured gauntlets found; skipping gauntlet pipeline")
         
         # ============================================================================
         # STEP 3: Sub-Problem Solving
         # ============================================================================
         sub_solutions: Dict[str, SubProblemSolution] = {}
+        entanglement_matrix: Dict[str, List[str]] = {}
+        if hasattr(plan, "metadata") and isinstance(plan.metadata, dict):
+            entanglement_matrix = plan.metadata.get("entanglement_matrix", {}) or {}
         
         if solve_subproblems:
             step_solving = SolutionStep("subproblem_solving", datetime.now())
-
-            entanglement_matrix = {}
-            if hasattr(plan, "metadata") and isinstance(plan.metadata, dict):
-                entanglement_matrix = plan.metadata.get("entanglement_matrix", {}) or {}
 
             if use_blue_team_solver and self.blue_team_solver:
                 sub_solutions = self._solve_with_blue_team(
@@ -670,6 +781,66 @@ class UniversalProblemSolver:
             }
             steps.append(step_solving)
             execution_log.append(f"Solved {len(sub_solutions)} sub-problems")
+
+            if run_gauntlets and gauntlet_bundle and gauntlet_bundle.has_subproblem_any():
+                step_gauntlet = SolutionStep("subproblem_gauntlets", datetime.now())
+                sub_gauntlet_results, failed_ids = self._run_subproblem_gauntlets(
+                    plan=plan,
+                    sub_solutions=sub_solutions,
+                    entanglement_matrix=entanglement_matrix,
+                    gauntlet_bundle=gauntlet_bundle,
+                )
+                gauntlet_results["sub_problems"] = sub_gauntlet_results
+
+                # Optional self-healing loop for sub-problem failures
+                remaining_failures = set(failed_ids)
+                previous_failures = set()
+                refinement_round = 0
+                while (
+                    remaining_failures
+                    and max_refinement_loops > 0
+                    and refinement_round < max_refinement_loops
+                    and remaining_failures != previous_failures
+                ):
+                    refinement_round += 1
+                    previous_failures = set(remaining_failures)
+                    expanded_targets = self._expand_entangled_ids(
+                        remaining_failures, entanglement_matrix
+                    )
+                    execution_log.append(
+                        f"Gauntlet refinement {refinement_round}: re-solving {len(expanded_targets)} sub-problems"
+                    )
+                    updated_solutions = self._solve_subproblem_subset(
+                        plan=plan,
+                        sub_solutions=sub_solutions,
+                        target_ids=expanded_targets,
+                        entanglement_matrix=entanglement_matrix,
+                        use_blue_team_solver=use_blue_team_solver,
+                    )
+                    sub_solutions.update(updated_solutions)
+                    refreshed_results, remaining_failures = self._run_subproblem_gauntlets(
+                        plan=plan,
+                        sub_solutions=sub_solutions,
+                        entanglement_matrix=entanglement_matrix,
+                        gauntlet_bundle=gauntlet_bundle,
+                        target_ids=expanded_targets,
+                    )
+                    self._merge_gauntlet_results(
+                        gauntlet_results["sub_problems"],
+                        refreshed_results,
+                    )
+
+                step_gauntlet.end_time = datetime.now()
+                step_gauntlet.status = "completed"
+                step_gauntlet.details = {
+                    "gauntlets_run": self._count_gauntlet_outcomes(gauntlet_results["sub_problems"]),
+                    "failed_sub_problems": len(remaining_failures),
+                }
+                steps.append(step_gauntlet)
+                execution_log.append(
+                    f"Gauntlets (sub-problems): {step_gauntlet.details['gauntlets_run']} runs, "
+                    f"{step_gauntlet.details['failed_sub_problems']} unresolved failures"
+                )
         
         # ============================================================================
         # STEP 4: Reassembly
@@ -705,6 +876,75 @@ class UniversalProblemSolver:
                 conflicts_detected=[],
                 conflicts_resolved=[]
             )
+
+        if (
+            run_gauntlets
+            and gauntlet_bundle
+            and (gauntlet_bundle.final_red_gauntlet or gauntlet_bundle.final_gold_gauntlet)
+            and sub_solutions
+        ):
+            step_final_gauntlet = SolutionStep("final_gauntlets", datetime.now())
+            final_failures: Set[str] = set()
+            previous_failures: Set[str] = set()
+            refinement_round = 0
+
+            while True:
+                final_results, final_failures = self._run_final_gauntlets(
+                    plan=plan,
+                    final_solution=final_solution,
+                    sub_solutions=sub_solutions,
+                    entanglement_matrix=entanglement_matrix,
+                    gauntlet_bundle=gauntlet_bundle,
+                )
+                gauntlet_results["final"] = final_results
+
+                if not final_failures or max_refinement_loops <= 0:
+                    break
+                if refinement_round >= max_refinement_loops or final_failures == previous_failures:
+                    break
+
+                refinement_round += 1
+                previous_failures = set(final_failures)
+                expanded_targets = self._expand_entangled_ids(
+                    final_failures, entanglement_matrix
+                )
+                execution_log.append(
+                    f"Final gauntlet refinement {refinement_round}: re-solving {len(expanded_targets)} sub-problems"
+                )
+                updated_solutions = self._solve_subproblem_subset(
+                    plan=plan,
+                    sub_solutions=sub_solutions,
+                    target_ids=expanded_targets,
+                    entanglement_matrix=entanglement_matrix,
+                    use_blue_team_solver=use_blue_team_solver,
+                )
+                sub_solutions.update(updated_solutions)
+                if use_blue_team_solver and ENHANCED_RECOMPOSITION_AVAILABLE:
+                    final_solution = self._recompose_with_enhanced_engine(
+                        plan=plan,
+                        sub_solutions=sub_solutions,
+                        entanglement_matrix=entanglement_matrix,
+                    )
+                else:
+                    final_solution = self.recomposition_engine.assemble(
+                        plan=plan,
+                        sub_solutions=sub_solutions,
+                        strategy=self.assembly_strategy,
+                        detect_conflicts=detect_conflicts,
+                        resolve_conflicts=resolve_conflicts,
+                    )
+
+            step_final_gauntlet.end_time = datetime.now()
+            step_final_gauntlet.status = "completed"
+            step_final_gauntlet.details = {
+                "gauntlets_run": self._count_gauntlet_outcomes(gauntlet_results["final"]),
+                "failed_final_checks": len(final_failures),
+            }
+            steps.append(step_final_gauntlet)
+            execution_log.append(
+                f"Gauntlets (final): {step_final_gauntlet.details['gauntlets_run']} runs, "
+                f"{step_final_gauntlet.details['failed_final_checks']} unresolved failures"
+            )
         
         step_assembly.end_time = datetime.now()
         step_assembly.status = "completed"
@@ -724,6 +964,25 @@ class UniversalProblemSolver:
         # STEP 5: Finalize Result
         # ============================================================================
         total_duration = (datetime.now() - overall_start).total_seconds()
+
+        if run_gauntlets:
+            gauntlet_summary = self._summarize_gauntlet_results(gauntlet_results)
+        else:
+            gauntlet_summary = {}
+        if gauntlet_summary:
+            execution_log.append(
+                "Gauntlets summary: "
+                f"{gauntlet_summary.get('total_runs', 0)} runs, "
+                f"{gauntlet_summary.get('failed', 0)} failed, "
+                f"{gauntlet_summary.get('skipped', 0)} skipped"
+            )
+
+        adjusted_quality = self._apply_gauntlet_quality_adjustment(
+            self._extract_quality_score(final_solution),
+            gauntlet_summary,
+        )
+        if hasattr(final_solution, "metadata") and isinstance(final_solution.metadata, dict):
+            final_solution.metadata["gauntlet_summary"] = gauntlet_summary
         
         result = SolverResult(
             problem_id=plan.original_problem.id,
@@ -734,11 +993,13 @@ class UniversalProblemSolver:
             sub_problem_solutions=sub_solutions,
             solving_steps=steps,
             final_solution=final_solution,
-            quality_score=self._extract_quality_score(final_solution),
+            quality_score=adjusted_quality,
             total_duration_seconds=total_duration,
             conflicts_detected=self._extract_conflict_counts(final_solution)[0],
             conflicts_resolved=self._extract_conflict_counts(final_solution)[1],
-            execution_log=execution_log
+            execution_log=execution_log,
+            gauntlet_results=gauntlet_results,
+            gauntlet_summary=gauntlet_summary,
         )
         
         self.solution_history.append(result)
@@ -751,12 +1012,15 @@ class UniversalProblemSolver:
         self,
         plan: DecompositionPlan,
         entanglement_matrix: Dict[str, List[str]],
+        target_ids: Optional[Set[str]] = None,
     ) -> Dict[str, Any]:
         """Solve sub-problems using Blue Team solver and map to enhanced solution objects."""
         if not self.blue_team_solver:
             return {}
         solutions: Dict[str, Any] = {}
         for sp in plan.sub_problems:
+            if target_ids and sp.id not in target_ids:
+                continue
             entangled_with = []
             entanglement_symbols = []
             if hasattr(sp, "metadata") and isinstance(sp.metadata, dict):
@@ -828,6 +1092,635 @@ class UniversalProblemSolver:
             dependency_graph=dependency_graph,
             entanglement_matrix=entanglement_matrix or None,
         )
+
+    def _resolve_gauntlet_bundle(self, config_override: Optional[Dict[str, Any]] = None) -> GauntletBundle:
+        """Resolve gauntlet definitions and teams from config or managers."""
+        config: Dict[str, Any] = {}
+        if self.gauntlet_config:
+            config.update(self.gauntlet_config)
+        if config_override:
+            config.update(config_override)
+
+        team_overrides = config.get("team_overrides", {}) if isinstance(config, dict) else {}
+
+        bundle = GauntletBundle()
+        bundle.solver_generation_gauntlet = self._resolve_gauntlet_definition(
+            config.get("solver_generation_gauntlet") or config.get("solver_generation")
+        )
+        bundle.sub_problem_red_gauntlet = self._resolve_gauntlet_definition(
+            config.get("sub_problem_red_gauntlet") or config.get("sub_red_gauntlet")
+        )
+        bundle.sub_problem_gold_gauntlet = self._resolve_gauntlet_definition(
+            config.get("sub_problem_gold_gauntlet") or config.get("sub_gold_gauntlet")
+        )
+        bundle.final_red_gauntlet = self._resolve_gauntlet_definition(
+            config.get("final_red_gauntlet") or config.get("final_red")
+        )
+        bundle.final_gold_gauntlet = self._resolve_gauntlet_definition(
+            config.get("final_gold_gauntlet") or config.get("final_gold")
+        )
+
+        if not bundle.solver_generation_gauntlet:
+            bundle.solver_generation_gauntlet = self._select_gauntlet_by_role("Blue", "solver")
+        if not bundle.sub_problem_red_gauntlet:
+            bundle.sub_problem_red_gauntlet = self._select_gauntlet_by_role("Red", "sub")
+        if not bundle.sub_problem_gold_gauntlet:
+            bundle.sub_problem_gold_gauntlet = self._select_gauntlet_by_role("Gold", "sub")
+        if not bundle.final_red_gauntlet:
+            bundle.final_red_gauntlet = self._select_gauntlet_by_role("Red", "final")
+        if not bundle.final_gold_gauntlet:
+            bundle.final_gold_gauntlet = self._select_gauntlet_by_role("Gold", "final")
+
+        bundle.solver_generation_team = self._resolve_team_for_gauntlet(
+            bundle.solver_generation_gauntlet,
+            team_overrides.get("solver_generation_team") or team_overrides.get("solver_generation"),
+            role_hint="Blue",
+        )
+        bundle.sub_problem_red_team = self._resolve_team_for_gauntlet(
+            bundle.sub_problem_red_gauntlet,
+            team_overrides.get("sub_problem_red_team") or team_overrides.get("sub_red_team"),
+            role_hint="Red",
+        )
+        bundle.sub_problem_gold_team = self._resolve_team_for_gauntlet(
+            bundle.sub_problem_gold_gauntlet,
+            team_overrides.get("sub_problem_gold_team") or team_overrides.get("sub_gold_team"),
+            role_hint="Gold",
+        )
+        bundle.final_red_team = self._resolve_team_for_gauntlet(
+            bundle.final_red_gauntlet,
+            team_overrides.get("final_red_team"),
+            role_hint="Red",
+        )
+        bundle.final_gold_team = self._resolve_team_for_gauntlet(
+            bundle.final_gold_gauntlet,
+            team_overrides.get("final_gold_team"),
+            role_hint="Gold",
+        )
+
+        return bundle
+
+    def _resolve_gauntlet_definition(self, value: Any) -> Optional[Any]:
+        """Resolve gauntlet definition from name, object, or dict."""
+        if value is None:
+            return None
+        if hasattr(value, "rounds") and hasattr(value, "name"):
+            return value
+        if isinstance(value, str):
+            return self.gauntlet_manager.get_gauntlet(value)
+        if isinstance(value, dict) and value.get("name"):
+            try:
+                from openevolve_structures import GauntletDefinition, GauntletRoundRule
+                rounds_data = value.get("rounds", [])
+                rounds = [
+                    r if isinstance(r, GauntletRoundRule) else GauntletRoundRule(**r)
+                    for r in rounds_data
+                ]
+                return GauntletDefinition(
+                    name=value["name"],
+                    team_name=value.get("team_name", ""),
+                    rounds=rounds,
+                    description=value.get("description"),
+                    attack_modes=value.get("attack_modes", []),
+                    generation_mode=value.get("generation_mode", "single_candidate"),
+                    gauntlet_type=value.get("gauntlet_type", "standard"),
+                    gauntlet_config=value.get("gauntlet_config"),
+                )
+            except Exception:
+                return None
+        return None
+
+    def _resolve_team_for_gauntlet(
+        self,
+        gauntlet_def: Optional[Any],
+        override: Optional[Any],
+        role_hint: Optional[str] = None,
+    ) -> Optional[Any]:
+        """Resolve team for a gauntlet using overrides or manager lookups."""
+        if override is not None:
+            if hasattr(override, "members") and hasattr(override, "role"):
+                return override
+            if isinstance(override, str):
+                team = self.team_manager.get_team(override)
+                if team:
+                    return team
+
+        if gauntlet_def and getattr(gauntlet_def, "team_name", None):
+            team = self.team_manager.get_team(gauntlet_def.team_name)
+            if team:
+                return team
+
+        if role_hint:
+            teams = self.team_manager.get_teams_by_role(role_hint)
+            if teams:
+                return teams[0]
+
+        return None
+
+    def _select_gauntlet_by_role(self, role: str, stage_hint: str) -> Optional[Any]:
+        """Pick a gauntlet by team role with name-based ranking."""
+        candidates = []
+        for gauntlet in self.gauntlet_manager.get_all_gauntlets():
+            team = self.team_manager.get_team(gauntlet.team_name)
+            if not team or team.role.lower() != role.lower():
+                continue
+            name_lower = gauntlet.name.lower()
+            score = 0
+            if stage_hint in name_lower:
+                score += 2
+            if role.lower() in name_lower:
+                score += 1
+            candidates.append((score, gauntlet))
+
+        if not candidates:
+            return None
+
+        candidates.sort(key=lambda item: (item[0], item[1].name), reverse=True)
+        return candidates[0][1]
+
+    def _run_subproblem_gauntlets(
+        self,
+        plan: DecompositionPlan,
+        sub_solutions: Dict[str, Any],
+        entanglement_matrix: Dict[str, List[str]],
+        gauntlet_bundle: GauntletBundle,
+        target_ids: Optional[Set[str]] = None,
+    ) -> Tuple[Dict[str, Dict[str, GauntletOutcome]], Set[str]]:
+        """Run Blue/Red/Gold gauntlets for sub-problem solutions."""
+        results: Dict[str, Dict[str, GauntletOutcome]] = {}
+        failed_ids: Set[str] = set()
+
+        for sp in plan.sub_problems:
+            if target_ids and sp.id not in target_ids:
+                continue
+            solution = sub_solutions.get(sp.id)
+            if not solution:
+                continue
+
+            entangled_with = []
+            entanglement_symbols = []
+            if hasattr(sp, "metadata") and isinstance(sp.metadata, dict):
+                entangled_with = sp.metadata.get("entangled_with", []) or []
+                entanglement_symbols = sp.metadata.get("entanglement_symbols", []) or []
+
+            context = {
+                "solution_id": sp.id,
+                "sub_problem": sp,
+                "problem_statement": plan.original_problem.description,
+                "constraints": [c.description for c in plan.original_problem.constraints],
+                "success_criteria": [sc.description for sc in sp.success_criteria],
+                "dependency_graph": plan.dependency_graph,
+                "entanglement_matrix": entanglement_matrix,
+                "entangled_with": entangled_with,
+                "entanglement_symbols": entanglement_symbols,
+            }
+
+            stage_results: Dict[str, GauntletOutcome] = {}
+
+            if gauntlet_bundle.solver_generation_gauntlet and gauntlet_bundle.solver_generation_team:
+                outcome = self._execute_gauntlet_stage(
+                    "blue",
+                    solution.solution_content,
+                    gauntlet_bundle.solver_generation_gauntlet,
+                    gauntlet_bundle.solver_generation_team,
+                    context,
+                )
+                stage_results["blue"] = outcome
+                if not outcome.is_approved and not outcome.skipped:
+                    failed_ids.update(outcome.targeted_feedback or [sp.id])
+
+            if gauntlet_bundle.sub_problem_red_gauntlet and gauntlet_bundle.sub_problem_red_team:
+                outcome = self._execute_gauntlet_stage(
+                    "red",
+                    solution.solution_content,
+                    gauntlet_bundle.sub_problem_red_gauntlet,
+                    gauntlet_bundle.sub_problem_red_team,
+                    context,
+                )
+                stage_results["red"] = outcome
+                if not outcome.is_approved and not outcome.skipped:
+                    failed_ids.update(outcome.targeted_feedback or [sp.id])
+
+            if gauntlet_bundle.sub_problem_gold_gauntlet and gauntlet_bundle.sub_problem_gold_team:
+                outcome = self._execute_gauntlet_stage(
+                    "gold",
+                    solution.solution_content,
+                    gauntlet_bundle.sub_problem_gold_gauntlet,
+                    gauntlet_bundle.sub_problem_gold_team,
+                    context,
+                )
+                stage_results["gold"] = outcome
+                if not outcome.is_approved and not outcome.skipped:
+                    failed_ids.update(outcome.targeted_feedback or [sp.id])
+
+            if stage_results:
+                results[sp.id] = stage_results
+                self._attach_gauntlet_metadata(solution, stage_results)
+
+        return results, failed_ids
+
+    def _run_final_gauntlets(
+        self,
+        plan: DecompositionPlan,
+        final_solution: Any,
+        sub_solutions: Dict[str, Any],
+        entanglement_matrix: Dict[str, List[str]],
+        gauntlet_bundle: GauntletBundle,
+    ) -> Tuple[Dict[str, GauntletOutcome], Set[str]]:
+        """Run final Red/Gold gauntlets on assembled solution."""
+        results: Dict[str, GauntletOutcome] = {}
+        failed_ids: Set[str] = set()
+
+        context = {
+            "solution_id": plan.original_problem.id,
+            "final_solution": final_solution,
+            "problem_statement": plan.original_problem.description,
+            "constraints": [c.description for c in plan.original_problem.constraints],
+            "success_criteria": [sc.description for sc in plan.original_problem.success_criteria],
+            "dependency_graph": plan.dependency_graph,
+            "entanglement_matrix": entanglement_matrix,
+            "sub_problem_solutions": {
+                sp_id: getattr(sol, "solution_content", str(sol))
+                for sp_id, sol in sub_solutions.items()
+            },
+        }
+
+        if gauntlet_bundle.final_red_gauntlet and gauntlet_bundle.final_red_team:
+            outcome = self._execute_gauntlet_stage(
+                "final_red",
+                final_solution.assembled_content,
+                gauntlet_bundle.final_red_gauntlet,
+                gauntlet_bundle.final_red_team,
+                context,
+            )
+            results["red"] = outcome
+            if not outcome.is_approved and not outcome.skipped:
+                failed_ids.update(outcome.targeted_feedback)
+
+        if gauntlet_bundle.final_gold_gauntlet and gauntlet_bundle.final_gold_team:
+            outcome = self._execute_gauntlet_stage(
+                "final_gold",
+                final_solution.assembled_content,
+                gauntlet_bundle.final_gold_gauntlet,
+                gauntlet_bundle.final_gold_team,
+                context,
+            )
+            results["gold"] = outcome
+            if not outcome.is_approved and not outcome.skipped:
+                failed_ids.update(outcome.targeted_feedback)
+
+        return results, failed_ids
+
+    def _execute_gauntlet_stage(
+        self,
+        stage: str,
+        solution_content: str,
+        gauntlet_def: Any,
+        team: Any,
+        context: Dict[str, Any],
+    ) -> GauntletOutcome:
+        """Execute a gauntlet stage using the headless pipeline with offline fallback."""
+        if not gauntlet_def or not team:
+            return GauntletOutcome(
+                stage=stage,
+                gauntlet_name=getattr(gauntlet_def, "name", None),
+                team_name=getattr(team, "name", None),
+                team_role=getattr(team, "role", None),
+                is_approved=True,
+                report_summary="Gauntlet skipped (missing configuration)",
+                skipped=True,
+            )
+
+        if not getattr(team, "members", None):
+            return GauntletOutcome(
+                stage=stage,
+                gauntlet_name=getattr(gauntlet_def, "name", None),
+                team_name=getattr(team, "name", None),
+                team_role=getattr(team, "role", None),
+                is_approved=False,
+                report_summary="Gauntlet skipped (no team members configured)",
+                skipped=True,
+            )
+
+        try:
+            import os
+            import sys
+            module_dir = os.path.abspath(os.path.dirname(__file__))
+            if module_dir not in sys.path:
+                sys.path.insert(0, module_dir)
+            from workflow_engine import run_gauntlet_headless, parse_targeted_feedback
+            result = run_gauntlet_headless(
+                solution_content=solution_content,
+                gauntlet_def=gauntlet_def,
+                team=team,
+                context=context,
+            )
+            report_obj = result.get("report_object") or result.get("critique_report") or result.get("verification_report")
+            targeted_feedback = []
+            if report_obj:
+                targeted_feedback = parse_targeted_feedback(report_obj)
+            return GauntletOutcome(
+                stage=stage,
+                gauntlet_name=getattr(gauntlet_def, "name", None),
+                team_name=getattr(team, "name", None),
+                team_role=getattr(team, "role", None),
+                is_approved=bool(result.get("is_approved", False)),
+                report_summary=result.get("report_summary", ""),
+                report_object=report_obj,
+                targeted_feedback=targeted_feedback,
+                logs=result.get("logs", []) or [],
+            )
+        except Exception as exc:
+            return self._execute_gauntlet_offline(
+                stage=stage,
+                solution_content=solution_content,
+                gauntlet_def=gauntlet_def,
+                team=team,
+                context=context,
+                error=exc,
+            )
+
+    def _execute_gauntlet_offline(
+        self,
+        stage: str,
+        solution_content: str,
+        gauntlet_def: Any,
+        team: Any,
+        context: Dict[str, Any],
+        error: Exception,
+    ) -> GauntletOutcome:
+        """Fallback gauntlet execution without external LLM calls."""
+        min_score = self._gauntlet_min_score(gauntlet_def)
+        team_role = getattr(team, "role", None)
+
+        if team_role == "Red":
+            from red_team import RedTeam
+            from workflow_structures import CritiqueReport
+
+            red_team = RedTeam()
+            assessment = red_team.assess_content(
+                solution_content,
+                content_type="general",
+                attack_modes=getattr(gauntlet_def, "attack_modes", None),
+            )
+
+            findings = []
+            for finding in assessment.findings:
+                findings.append({
+                    "title": finding.title,
+                    "description": finding.description,
+                    "severity": finding.severity.value if hasattr(finding.severity, "value") else str(finding.severity),
+                    "category": finding.category.value if hasattr(finding.category, "value") else str(finding.category),
+                    "location": finding.location,
+                    "confidence": finding.confidence,
+                    "suggested_fix": finding.suggested_fix,
+                })
+
+            severity_scores: Dict[str, float] = {}
+            for finding in findings:
+                severity_scores[finding["severity"]] = severity_scores.get(finding["severity"], 0.0) + 1.0
+
+            has_critical = any(finding["severity"] == "critical" for finding in findings)
+            is_approved = assessment.confidence_score >= min_score and not has_critical
+            summary = assessment.assessment_summary
+
+            report = CritiqueReport(
+                solution_attempt_id=context.get("solution_id", "unknown"),
+                gauntlet_name=getattr(gauntlet_def, "name", "offline_red_gauntlet"),
+                is_approved=is_approved,
+                reports_by_judge=[{
+                    "member": "offline_red_team",
+                    "score": assessment.confidence_score,
+                    "justification": summary,
+                    "targeted_feedback": [context.get("solution_id")] if not is_approved else [],
+                }],
+                summary=summary,
+                overall_score=assessment.confidence_score,
+                flaw_severity_scores=severity_scores,
+                identified_flaws=findings,
+                suggested_improvements=[
+                    finding.get("suggested_fix")
+                    for finding in findings
+                    if finding.get("suggested_fix")
+                ],
+            )
+
+            return GauntletOutcome(
+                stage=stage,
+                gauntlet_name=getattr(gauntlet_def, "name", None),
+                team_name=getattr(team, "name", None),
+                team_role=team_role,
+                is_approved=is_approved,
+                report_summary=summary,
+                report_object=report,
+                targeted_feedback=[context.get("solution_id")] if not is_approved else [],
+                logs=[f"Gauntlet fallback used: {error}"],
+                error=str(error),
+            )
+
+        from quality_assessment import QualityAssessmentEngine
+        from workflow_structures import VerificationReport
+
+        assessor = QualityAssessmentEngine()
+        assessment = assessor.assess_quality(
+            solution_content,
+            content_type="general",
+            custom_requirements={
+                "constraints": context.get("constraints", []),
+                "success_criteria": context.get("success_criteria", []),
+            },
+        )
+        raw_score = assessment.composite_score
+        score = raw_score / 100.0 if raw_score > 1.0 else raw_score
+        is_approved = score >= min_score
+        dimension_scores = {
+            dim.value if hasattr(dim, "value") else str(dim): val / 100.0 if val > 1.0 else val
+            for dim, val in assessment.scores.items()
+        }
+
+        report = VerificationReport(
+            solution_attempt_id=context.get("solution_id", "unknown"),
+            gauntlet_name=getattr(gauntlet_def, "name", "offline_gold_gauntlet"),
+            is_approved=is_approved,
+            reports_by_judge=[{
+                "member": "offline_quality_assessor",
+                "score": score,
+                "justification": "Offline quality assessment",
+                "targeted_feedback": [context.get("solution_id")] if not is_approved else [],
+            }],
+            average_score=score,
+            score_variance=0.0,
+            summary="Offline quality assessment",
+            dimension_scores=dimension_scores,
+            criteria_met=[rec for rec in assessment.recommendations if "improve" not in rec.lower()],
+            criteria_not_met=[rec for rec in assessment.recommendations if "improve" in rec.lower()],
+        )
+
+        return GauntletOutcome(
+            stage=stage,
+            gauntlet_name=getattr(gauntlet_def, "name", None),
+            team_name=getattr(team, "name", None),
+            team_role=team_role,
+            is_approved=is_approved,
+            report_summary="Offline quality assessment",
+            report_object=report,
+            targeted_feedback=[context.get("solution_id")] if not is_approved else [],
+            logs=[f"Gauntlet fallback used: {error}"],
+            error=str(error),
+        )
+
+    def _gauntlet_min_score(self, gauntlet_def: Any) -> float:
+        """Determine minimum approval score from gauntlet definition."""
+        try:
+            rounds = getattr(gauntlet_def, "rounds", []) or []
+            if rounds:
+                return float(getattr(rounds[0], "min_overall_confidence", 0.7))
+        except Exception:
+            pass
+        return 0.7
+
+    def _attach_gauntlet_metadata(
+        self,
+        solution: Any,
+        stage_results: Dict[str, GauntletOutcome],
+    ) -> None:
+        """Attach gauntlet outcome summaries to a solution metadata dict."""
+        metadata = getattr(solution, "metadata", None)
+        if metadata is None or not isinstance(metadata, dict):
+            return
+        metadata.setdefault("gauntlet_results", {})
+        for stage, outcome in stage_results.items():
+            metadata["gauntlet_results"][stage] = outcome.to_dict()
+            if not outcome.is_approved and outcome.targeted_feedback:
+                metadata.setdefault("gauntlet_feedback", []).extend(outcome.targeted_feedback)
+
+    def _expand_entangled_ids(
+        self,
+        ids: Set[str],
+        entanglement_matrix: Dict[str, List[str]],
+    ) -> Set[str]:
+        """Expand IDs with their entangled partners."""
+        expanded = set(ids)
+        if not entanglement_matrix:
+            return expanded
+        normalized = normalize_entanglement_matrix(entanglement_matrix)
+        for sp_id in list(expanded):
+            expanded.update(normalized.get(sp_id, set()))
+        return expanded
+
+    def _solve_subproblem_subset(
+        self,
+        plan: DecompositionPlan,
+        sub_solutions: Dict[str, Any],
+        target_ids: Set[str],
+        entanglement_matrix: Dict[str, List[str]],
+        use_blue_team_solver: bool,
+    ) -> Dict[str, Any]:
+        """Solve a subset of sub-problems, optionally using Blue Team solver."""
+        if not target_ids:
+            return {}
+        if use_blue_team_solver and self.blue_team_solver:
+            return self._solve_with_blue_team(
+                plan=plan,
+                entanglement_matrix=entanglement_matrix,
+                target_ids=target_ids,
+            )
+
+        updated: Dict[str, Any] = {}
+        for sp in plan.sub_problems:
+            if sp.id not in target_ids:
+                continue
+            entangled_with = []
+            entanglement_symbols = []
+            if hasattr(sp, "metadata") and isinstance(sp.metadata, dict):
+                entangled_with = sp.metadata.get("entangled_with", []) or []
+                entanglement_symbols = sp.metadata.get("entanglement_symbols", []) or []
+            context = {
+                "entanglement_matrix": entanglement_matrix,
+                "entangled_with": entangled_with,
+                "entanglement_symbols": entanglement_symbols,
+            }
+            existing = sub_solutions.get(sp.id)
+            if existing and isinstance(getattr(existing, "metadata", None), dict):
+                feedback = existing.metadata.get("gauntlet_feedback")
+                if feedback:
+                    context["gauntlet_feedback"] = feedback
+            updated[sp.id] = self.sub_problem_solver.solve(
+                sub_problem=sp,
+                parent_problem=plan.original_problem,
+                context=context,
+            )
+        return updated
+
+    def _merge_gauntlet_results(
+        self,
+        base: Dict[str, Dict[str, GauntletOutcome]],
+        updates: Dict[str, Dict[str, GauntletOutcome]],
+    ) -> None:
+        for sp_id, stage_results in updates.items():
+            base[sp_id] = stage_results
+
+    def _count_gauntlet_outcomes(self, results: Any) -> int:
+        """Count gauntlet outcomes in nested result structures."""
+        if not results:
+            return 0
+        if isinstance(results, GauntletOutcome):
+            return 1
+        if isinstance(results, dict):
+            count = 0
+            for value in results.values():
+                if isinstance(value, GauntletOutcome):
+                    count += 1
+                elif isinstance(value, dict):
+                    count += len(value)
+            return count
+        return 0
+
+    def _summarize_gauntlet_results(self, gauntlet_results: Dict[str, Any]) -> Dict[str, Any]:
+        total_runs = 0
+        failed = 0
+        skipped = 0
+        failed_final = 0
+
+        sub_results = gauntlet_results.get("sub_problems", {})
+        for stage_results in sub_results.values():
+            for outcome in stage_results.values():
+                total_runs += 0 if outcome.skipped else 1
+                skipped += 1 if outcome.skipped else 0
+                if not outcome.skipped and not outcome.is_approved:
+                    failed += 1
+
+        final_results = gauntlet_results.get("final", {})
+        for outcome in final_results.values():
+            total_runs += 0 if outcome.skipped else 1
+            skipped += 1 if outcome.skipped else 0
+            if not outcome.skipped and not outcome.is_approved:
+                failed += 1
+                failed_final += 1
+
+        return {
+            "total_runs": total_runs,
+            "failed": failed,
+            "skipped": skipped,
+            "failed_final": failed_final,
+        }
+
+    def _apply_gauntlet_quality_adjustment(
+        self,
+        base_quality: float,
+        gauntlet_summary: Dict[str, Any],
+    ) -> float:
+        if not gauntlet_summary:
+            return base_quality
+        total_runs = gauntlet_summary.get("total_runs", 0)
+        failed = gauntlet_summary.get("failed", 0)
+        failed_final = gauntlet_summary.get("failed_final", 0)
+        if total_runs <= 0:
+            return base_quality
+        fail_ratio = failed / total_runs if total_runs else 0.0
+        adjusted = base_quality * max(0.7, 1.0 - (0.3 * fail_ratio))
+        if failed_final:
+            adjusted *= 0.8
+        return max(0.0, min(1.0, adjusted))
 
     @staticmethod
     def _extract_quality_score(final_solution: Any) -> float:
@@ -906,6 +1799,8 @@ class UniversalProblemSolver:
 __all__ = [
     # Data classes
     'SolutionStep',
+    'GauntletOutcome',
+    'GauntletBundle',
     'SolverResult',
     
     # Solvers
