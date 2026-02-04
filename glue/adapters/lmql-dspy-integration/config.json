@@ -1,0 +1,36 @@
+{
+  "log_level": "INFO",
+  "timeout_seconds": 30,
+  "dspy_config": {
+    "model": "gpt-4o",
+    "api_key": null,
+    "api_base": null,
+    "temperature": 0.7,
+    "max_tokens": 4096,
+    "top_p": 1.0,
+    "frequency_penalty": 0.0,
+    "presence_penalty": 0.0,
+    "max_retries": 3,
+    "backoff_factor": 1,
+    "teleprompter": {
+      "type": "BootstrapFewShot",
+      "k": 8,
+      "max_bootstrapped_demos": 8,
+      "max_labeled_demos": 8
+    },
+    "cot_config": {
+      "max_iters": 3,
+      "rationale_field": "reasoning"
+    },
+    "pot_config": {
+      "max_iters": 3
+    }
+  },
+  "lmql_config": {
+    "lmql_available": null,
+    "fallback_on_error": true,
+    "enable_metrics": true,
+    "default_timeout": 30.0
+  },
+  "integration_enabled": true
+}

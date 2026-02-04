@@ -132,6 +132,29 @@ const buildHeaders = (apiKey?: string) => {
   return headers;
 };
 
+async function requestFormData<T>(
+  path: string,
+  formData: FormData,
+  config: ApiConfig = {},
+): Promise<T> {
+  const baseUrl = resolveBaseUrl(config.baseUrl);
+  const apiKey = resolveApiKey(config.apiKey);
+  const headers: Record<string, string> = {};
+  if (apiKey) {
+    headers["X-API-Key"] = apiKey;
+  }
+  const response = await fetch(`${baseUrl}${path}`, {
+    method: "POST",
+    headers,
+    body: formData,
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || `Request failed: ${response.status}`);
+  }
+  return (await response.json()) as T;
+}
+
 async function request<T>(
   path: string,
   options: RequestInit = {},
@@ -784,6 +807,22 @@ export const openevolveApi = {
       { method: "POST", body: JSON.stringify(payload) },
       config,
     ),
+  bubblelabsKnowledgeExtractFile: (
+    file: File,
+    extractionConfig?: Record<string, unknown>,
+    config?: ApiConfig,
+  ) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    if (extractionConfig) {
+      formData.append("extraction_config", JSON.stringify(extractionConfig));
+    }
+    return requestFormData<KnowledgeExplorerExtractResponse>(
+      "/bubblelabs/knowledge/extract-file",
+      formData,
+      config,
+    );
+  },
 
   // LeanAide
   bubblelabsLeanAideStatus: (config?: ApiConfig) =>

@@ -1,0 +1,3 @@
+# Requirements for LMQL-DSPy Integration Adapter
+dspy-ai>=2.0.0
+lmql>=0.1.0

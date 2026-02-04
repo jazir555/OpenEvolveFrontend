@@ -1,15 +1,11 @@
 
-====================================================================
               HELPER DEPENDENCY ANALYSIS                            
-====================================================================
 
 Instance-based helpers with dependencies: 49
 Instance-based helpers without dependencies: 0
 Static helpers: 71
 
-====================================================================
          INSTANCE HELPERS WITH DEPENDENCIES                        
-====================================================================
 
 LHA\AjaxHelpers\AssetManagementAjaxHelper
   File: AjaxHelpers/AssetManagementAjaxHelper.php
@@ -213,53 +209,38 @@ LHA\AjaxHelpers\ValidationAjaxHelper
 
 LHA\DatabaseHelpers\DatabaseAssetHelper
   File: DatabaseHelpers/DatabaseAssetHelper.php
-<<<<<<< HEAD
   Constructor params: \wpdb $wpdb,
         ?\LHA\ServiceContainer $container = null,
         ?\LHA\Interfaces\LoggerInterface $logger = null,
-=======
   Constructor params: \wpdb $wpdb,
         ?\LHA\ServiceContainer $container = null,
         ?\LHA\Interfaces\LoggerInterface $logger = null,
->>>>>>> 1cb9c5e35 (update)
         ?\LHA\Interfaces\UrlProcessorInterface $urlProcessor = null
 
 LHA\DatabaseHelpers\DatabaseIndexHelper
   File: DatabaseHelpers/DatabaseIndexHelper.php
-<<<<<<< HEAD
   Constructor params: \wpdb $wpdb,
-=======
   Constructor params: \wpdb $wpdb,
->>>>>>> 1cb9c5e35 (update)
         ?\LHA\Interfaces\LoggerInterface $logger = null
 
 LHA\DatabaseHelpers\DatabaseMappingHelper
   File: DatabaseHelpers/DatabaseMappingHelper.php
-<<<<<<< HEAD
   Constructor params: \wpdb $wpdb,
         ?\LHA\ServiceContainer $container = null,
-=======
   Constructor params: \wpdb $wpdb,
         ?\LHA\ServiceContainer $container = null,
->>>>>>> 1cb9c5e35 (update)
         ?\LHA\Interfaces\LoggerInterface $logger = null
 
 LHA\DatabaseHelpers\DatabaseProgressHelper
   File: DatabaseHelpers/DatabaseProgressHelper.php
-<<<<<<< HEAD
   Constructor params: \wpdb $wpdb,
-=======
   Constructor params: \wpdb $wpdb,
->>>>>>> 1cb9c5e35 (update)
         ?\LHA\Interfaces\LoggerInterface $logger = null
 
 LHA\DatabaseHelpers\DatabaseQueryHelper
   File: DatabaseHelpers/DatabaseQueryHelper.php
-<<<<<<< HEAD
   Constructor params: \wpdb $wpdb,
-=======
   Constructor params: \wpdb $wpdb,
->>>>>>> 1cb9c5e35 (update)
         ?\LHA\Interfaces\LoggerInterface $logger = null
 
 LHA\DatabaseHelpers\DatabaseStaticHelper
@@ -268,38 +249,26 @@ LHA\DatabaseHelpers\DatabaseStaticHelper
 
 LHA\DatabaseHelpers\DatabaseStatsHelper
   File: DatabaseHelpers/DatabaseStatsHelper.php
-<<<<<<< HEAD
   Constructor params: \wpdb $wpdb,
-=======
   Constructor params: \wpdb $wpdb,
->>>>>>> 1cb9c5e35 (update)
         ?\LHA\Interfaces\LoggerInterface $logger = null
 
 LHA\DatabaseHelpers\DatabaseTableHelper
   File: DatabaseHelpers/DatabaseTableHelper.php
-<<<<<<< HEAD
   Constructor params: \wpdb $wpdb,
-=======
   Constructor params: \wpdb $wpdb,
->>>>>>> 1cb9c5e35 (update)
         ?\LHA\Interfaces\LoggerInterface $logger = null
 
 LHA\DatabaseHelpers\DatabaseTaskHelper
   File: DatabaseHelpers/DatabaseTaskHelper.php
-<<<<<<< HEAD
   Constructor params: \wpdb $wpdb,
-=======
   Constructor params: \wpdb $wpdb,
->>>>>>> 1cb9c5e35 (update)
         ?\LHA\Interfaces\LoggerInterface $logger = null
 
 LHA\DatabaseHelpers\DatabaseTransactionHelper
   File: DatabaseHelpers/DatabaseTransactionHelper.php
-<<<<<<< HEAD
   Constructor params: \wpdb $wpdb,
-=======
   Constructor params: \wpdb $wpdb,
->>>>>>> 1cb9c5e35 (update)
         ?\LHA\Interfaces\LoggerInterface $logger = null
 
 LHA\DatabaseHelpers\DatabaseValidationHelper
@@ -472,9 +441,7 @@ LHA\RetryHelpers\RetryUtilityHelper
         \wpdb $wpdb
 
 
-====================================================================
          SERVICE CONTAINER REGISTRATIONS                            
-====================================================================
 
 // LHA\AjaxHelpers\AssetManagementAjaxHelper
 LHA\AjaxHelpers\AssetManagementAjaxHelper::class => function ($container) {

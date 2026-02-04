@@ -1,17 +1,11 @@
-<<<<<<< HEAD
-======================================================================
 OPENEVOLVE TEST EXECUTION REPORT
 Generated: 2026-01-01 01:47:09
-======================================================================
 
 
-======================================================================
 Module: Hephaestus/tests/sdk
 Exit Code: 1
-======================================================================
 
 STDOUT:
-============================= test session starts =============================
 platform win32 -- Python 3.11.0, pytest-8.2.2, pluggy-1.6.0 -- C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\python.exe
 cachedir: .pytest_cache
 metadata: {'Python': '3.11.0', 'Platform': 'Windows-10-10.0.26200-SP0', 'Packages': {'pytest': '8.2.2', 'pluggy': '1.6.0'}, 'Plugins': {'anyio': '4.11.0', 'Faker': '38.2.0', 'asyncio': '1.3.0', 'cov': '7.0.0', 'html': '4.1.1', 'metadata': '3.1.1', 'timeout': '2.4.0'}}
@@ -39,7 +33,6 @@ Hephaestus\tests\sdk\test_phases.py::test_cannot_provide_both_phases_dir_and_pha
 Hephaestus\tests\sdk\test_phases.py::test_must_provide_either_phases_dir_or_phases FAILED [ 94%]
 Hephaestus\tests\sdk\test_phases.py::test_duplicate_phase_ids_rejected PASSED [100%]
 
-================================== FAILURES ===================================
 _________________________ test_config_auto_sets_model _________________________
 Hephaestus\tests\sdk\test_config.py:102: in test_config_auto_sets_model
     assert config.llm_model == "gpt-4-turbo-preview"
@@ -60,10 +53,8 @@ Hephaestus\tests\sdk\test_phases.py:133: in test_must_provide_either_phases_dir_
 E   AssertionError: Regex pattern did not match.
 E    Regex: 'Either phases_dir or phases must be provided'
 E    Input: 'Either workflow_definitions, phases_dir, or phases must be provided'
-=========================== short test summary info ===========================
 FAILED Hephaestus\tests\sdk\test_config.py::test_config_auto_sets_model - Ass...
 FAILED Hephaestus\tests\sdk\test_phases.py::test_must_provide_either_phases_dir_or_phases
-======================== 2 failed, 15 passed in 0.30s =========================
 
 
 STDERR:
@@ -74,13 +65,10 @@ The event loop scope for asynchronous fixtures will default to the fixture cachi
 
 
 
-======================================================================
 Module: rese/tests
 Exit Code: 2
-======================================================================
 
 STDOUT:
-============================= test session starts =============================
 platform win32 -- Python 3.11.0, pytest-8.2.2, pluggy-1.6.0 -- C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\python.exe
 cachedir: .pytest_cache
 metadata: {'Python': '3.11.0', 'Platform': 'Windows-10-10.0.26200-SP0', 'Packages': {'pytest': '8.2.2', 'pluggy': '1.6.0'}, 'Plugins': {'anyio': '4.11.0', 'Faker': '38.2.0', 'asyncio': '1.3.0', 'cov': '7.0.0', 'html': '4.1.1', 'metadata': '3.1.1', 'timeout': '2.4.0'}}
@@ -90,7 +78,6 @@ plugins: anyio-4.11.0, Faker-38.2.0, asyncio-1.3.0, cov-7.0.0, html-4.1.1, metad
 asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
 collecting ... collected 1051 items / 1 error
 
-=================================== ERRORS ====================================
 ___________ ERROR collecting tests/phase1/test_phi2_integration.py ____________
 ImportError while importing test module 'C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese\tests\phase1\test_phi2_integration.py'.
 Hint: make sure your test modules/packages have valid Python names.
@@ -117,10 +104,8 @@ rese\phase1\phi2_integration.py:20: in <module>
     from .cognitive_biases import (
 E   ImportError: attempted relative import with no known parent package
 - Generated html report: file:///C:/Users/mmeadow/Documents/OpenEvolve/Frontend/test_reports.html -
-=========================== short test summary info ===========================
 ERROR rese\tests\phase1\test_phi2_integration.py
 !!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
-============================== 1 error in 3.31s ===============================
 
 
 STDERR:
@@ -131,13 +116,10 @@ The event loop scope for asynchronous fixtures will default to the fixture cachi
 
 
 
-======================================================================
 Module: karateclub/test
 Exit Code: 2
-======================================================================
 
 STDOUT:
-============================= test session starts =============================
 platform win32 -- Python 3.11.0, pytest-8.2.2, pluggy-1.6.0 -- C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\python.exe
 cachedir: .pytest_cache
 metadata: {'Python': '3.11.0', 'Platform': 'Windows-10-10.0.26200-SP0', 'Packages': {'pytest': '8.2.2', 'pluggy': '1.6.0'}, 'Plugins': {'anyio': '4.11.0', 'Faker': '38.2.0', 'asyncio': '1.3.0', 'cov': '7.0.0', 'html': '4.1.1', 'metadata': '3.1.1', 'timeout': '2.4.0'}}
@@ -150,7 +132,6 @@ timeout method: thread
 timeout func_only: False
 collecting ... collected 0 items / 1 error
 
-=================================== ERRORS ====================================
 ________________ ERROR collecting karateclub/test/test_base.py ________________
 ImportError while importing test module 'C:\Users\mmeadow\Documents\OpenEvolve\Frontend\karateclub\test\test_base.py'.
 Hint: make sure your test modules/packages have valid Python names.
@@ -182,36 +163,26 @@ karateclub\karateclub\community_detection\overlapping\__init__.py:3: in <module>
 karateclub\karateclub\community_detection\overlapping\ego_splitter.py:1: in <module>
     import community
 E   ModuleNotFoundError: No module named 'community'
-=========================== short test summary info ===========================
 ERROR karateclub/test/test_base.py
 !!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
-============================== 1 error in 2.87s ===============================
 
 
 STDERR:
 
 
 
-======================================================================
 SUMMARY
-======================================================================
 Total modules: 3
 Passed: 0
 Failed: 3
-=======
-======================================================================
 OPENEVOLVE TEST EXECUTION REPORT
 Generated: 2026-01-01 01:47:09
-======================================================================
 
 
-======================================================================
 Module: Hephaestus/tests/sdk
 Exit Code: 1
-======================================================================
 
 STDOUT:
-============================= test session starts =============================
 platform win32 -- Python 3.11.0, pytest-8.2.2, pluggy-1.6.0 -- C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\python.exe
 cachedir: .pytest_cache
 metadata: {'Python': '3.11.0', 'Platform': 'Windows-10-10.0.26200-SP0', 'Packages': {'pytest': '8.2.2', 'pluggy': '1.6.0'}, 'Plugins': {'anyio': '4.11.0', 'Faker': '38.2.0', 'asyncio': '1.3.0', 'cov': '7.0.0', 'html': '4.1.1', 'metadata': '3.1.1', 'timeout': '2.4.0'}}
@@ -239,7 +210,6 @@ Hephaestus\tests\sdk\test_phases.py::test_cannot_provide_both_phases_dir_and_pha
 Hephaestus\tests\sdk\test_phases.py::test_must_provide_either_phases_dir_or_phases FAILED [ 94%]
 Hephaestus\tests\sdk\test_phases.py::test_duplicate_phase_ids_rejected PASSED [100%]
 
-================================== FAILURES ===================================
 _________________________ test_config_auto_sets_model _________________________
 Hephaestus\tests\sdk\test_config.py:102: in test_config_auto_sets_model
     assert config.llm_model == "gpt-4-turbo-preview"
@@ -260,10 +230,8 @@ Hephaestus\tests\sdk\test_phases.py:133: in test_must_provide_either_phases_dir_
 E   AssertionError: Regex pattern did not match.
 E    Regex: 'Either phases_dir or phases must be provided'
 E    Input: 'Either workflow_definitions, phases_dir, or phases must be provided'
-=========================== short test summary info ===========================
 FAILED Hephaestus\tests\sdk\test_config.py::test_config_auto_sets_model - Ass...
 FAILED Hephaestus\tests\sdk\test_phases.py::test_must_provide_either_phases_dir_or_phases
-======================== 2 failed, 15 passed in 0.30s =========================
 
 
 STDERR:
@@ -274,13 +242,10 @@ The event loop scope for asynchronous fixtures will default to the fixture cachi
 
 
 
-======================================================================
 Module: rese/tests
 Exit Code: 2
-======================================================================
 
 STDOUT:
-============================= test session starts =============================
 platform win32 -- Python 3.11.0, pytest-8.2.2, pluggy-1.6.0 -- C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\python.exe
 cachedir: .pytest_cache
 metadata: {'Python': '3.11.0', 'Platform': 'Windows-10-10.0.26200-SP0', 'Packages': {'pytest': '8.2.2', 'pluggy': '1.6.0'}, 'Plugins': {'anyio': '4.11.0', 'Faker': '38.2.0', 'asyncio': '1.3.0', 'cov': '7.0.0', 'html': '4.1.1', 'metadata': '3.1.1', 'timeout': '2.4.0'}}
@@ -290,7 +255,6 @@ plugins: anyio-4.11.0, Faker-38.2.0, asyncio-1.3.0, cov-7.0.0, html-4.1.1, metad
 asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
 collecting ... collected 1051 items / 1 error
 
-=================================== ERRORS ====================================
 ___________ ERROR collecting tests/phase1/test_phi2_integration.py ____________
 ImportError while importing test module 'C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese\tests\phase1\test_phi2_integration.py'.
 Hint: make sure your test modules/packages have valid Python names.
@@ -317,10 +281,8 @@ rese\phase1\phi2_integration.py:20: in <module>
     from .cognitive_biases import (
 E   ImportError: attempted relative import with no known parent package
 - Generated html report: file:///C:/Users/mmeadow/Documents/OpenEvolve/Frontend/test_reports.html -
-=========================== short test summary info ===========================
 ERROR rese\tests\phase1\test_phi2_integration.py
 !!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
-============================== 1 error in 3.31s ===============================
 
 
 STDERR:
@@ -331,13 +293,10 @@ The event loop scope for asynchronous fixtures will default to the fixture cachi
 
 
 
-======================================================================
 Module: karateclub/test
 Exit Code: 2
-======================================================================
 
 STDOUT:
-============================= test session starts =============================
 platform win32 -- Python 3.11.0, pytest-8.2.2, pluggy-1.6.0 -- C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\python.exe
 cachedir: .pytest_cache
 metadata: {'Python': '3.11.0', 'Platform': 'Windows-10-10.0.26200-SP0', 'Packages': {'pytest': '8.2.2', 'pluggy': '1.6.0'}, 'Plugins': {'anyio': '4.11.0', 'Faker': '38.2.0', 'asyncio': '1.3.0', 'cov': '7.0.0', 'html': '4.1.1', 'metadata': '3.1.1', 'timeout': '2.4.0'}}
@@ -350,7 +309,6 @@ timeout method: thread
 timeout func_only: False
 collecting ... collected 0 items / 1 error
 
-=================================== ERRORS ====================================
 ________________ ERROR collecting karateclub/test/test_base.py ________________
 ImportError while importing test module 'C:\Users\mmeadow\Documents\OpenEvolve\Frontend\karateclub\test\test_base.py'.
 Hint: make sure your test modules/packages have valid Python names.
@@ -382,20 +340,15 @@ karateclub\karateclub\community_detection\overlapping\__init__.py:3: in <module>
 karateclub\karateclub\community_detection\overlapping\ego_splitter.py:1: in <module>
     import community
 E   ModuleNotFoundError: No module named 'community'
-=========================== short test summary info ===========================
 ERROR karateclub/test/test_base.py
 !!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
-============================== 1 error in 2.87s ===============================
 
 
 STDERR:
 
 
 
-======================================================================
 SUMMARY
-======================================================================
 Total modules: 3
 Passed: 0
 Failed: 3
->>>>>>> 1cb9c5e35 (update)

@@ -92,6 +92,7 @@ export const KnowledgeExplorerTab: React.FC = () => {
 
   const [extractSourceType, setExtractSourceType] = useState("text");
   const [extractSourceValue, setExtractSourceValue] = useState("");
+  const [extractFile, setExtractFile] = useState<File | null>(null);
   const [extractResults, setExtractResults] = useState<Record<string, unknown> | null>(null);
   const [entities, setEntities] = useState<GraphEntity[]>([]);
   const [relationships, setRelationships] = useState<GraphRelationship[]>([]);
@@ -136,19 +137,26 @@ export const KnowledgeExplorerTab: React.FC = () => {
 
   const handleExtract = async () => {
     setErrorMessage(null);
-    if (!extractSourceValue.trim()) {
+    if (extractSourceType === "file" && !extractFile) {
+      setErrorMessage("Select a file to extract.");
+      return;
+    }
+    if (extractSourceType !== "file" && !extractSourceValue.trim()) {
       setErrorMessage("Provide a source value to extract.");
       return;
     }
     setLoading(true);
     try {
-      const response = await openevolveApi.bubblelabsKnowledgeExtract(
-        {
-          source_type: extractSourceType,
-          source_value: extractSourceValue,
-        },
-        apiConfig,
-      );
+      const response =
+        extractSourceType === "file" && extractFile
+          ? await openevolveApi.bubblelabsKnowledgeExtractFile(extractFile, undefined, apiConfig)
+          : await openevolveApi.bubblelabsKnowledgeExtract(
+              {
+                source_type: extractSourceType,
+                source_value: extractSourceValue,
+              },
+              apiConfig,
+            );
       setExtractResults(response.results ?? null);
       const nextEntities = (response.results?.entities as GraphEntity[]) || [];
       const nextRelationships = (response.results?.relationships as GraphRelationship[]) || [];
@@ -437,21 +445,29 @@ export const KnowledgeExplorerTab: React.FC = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="text">Text</SelectItem>
-                        <SelectItem value="url">URL</SelectItem>
-                        <SelectItem value="path">File Path</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Source</Label>
+                      <SelectItem value="text">Text</SelectItem>
+                      <SelectItem value="url">URL</SelectItem>
+                      <SelectItem value="path">File Path</SelectItem>
+                      <SelectItem value="file">Upload File</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Source</Label>
+                  {extractSourceType === "file" ? (
+                    <Input
+                      type="file"
+                      onChange={(event) => setExtractFile(event.target.files?.[0] ?? null)}
+                    />
+                  ) : (
                     <Textarea
                       value={extractSourceValue}
                       onChange={(event) => setExtractSourceValue(event.target.value)}
                       placeholder="Paste text, URL, or file path"
                       className="min-h-[140px]"
                     />
-                  </div>
+                  )}
+                </div>
                   <Button onClick={handleExtract} disabled={loading}>
                     Extract Knowledge
                   </Button>

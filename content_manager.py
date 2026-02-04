@@ -8,7 +8,7 @@ import streamlit as st # Import streamlit to use st.cache_data
 from datetime import datetime
 import re
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from session_utils import (
     calculate_protocol_complexity,
     extract_protocol_structure,

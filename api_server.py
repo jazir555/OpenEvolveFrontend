@@ -5,7 +5,7 @@ This module provides a REST API for external systems to interact with the
 Decomposition Workflow system.
 """
 
-from fastapi import FastAPI, HTTPException, Depends, Header, status, Request
+from fastapi import FastAPI, HTTPException, Depends, Header, status, Request, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -22,6 +22,7 @@ import re
 import base64
 import json
 import time
+import tempfile
 from datetime import datetime, timedelta
 import uuid
 import logging
@@ -5695,6 +5696,37 @@ async def bubblelabs_knowledge_extract(
         results = await extractor.extract_from_document(
             request.source_value,
             extraction_config=request.extraction_config,
+        )
+    return {"results": results}
+
+
+@app.post("/bubblelabs/knowledge/extract-file", dependencies=[Depends(require_role(UserRole.USER))])
+async def bubblelabs_knowledge_extract_file(
+    file: UploadFile = File(...),
+    extraction_config: Optional[str] = Form(None),
+    user: AuthUser = Depends(require_role(UserRole.USER)),
+):
+    if not KNOWLEDGE_EXPLORER_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Knowledge explorer not available")
+    components = _get_knowledge_components()
+    if components is None:
+        raise HTTPException(status_code=500, detail="Knowledge explorer initialization failed")
+    extractor: KnowledgeExtractionWorkflow = components["extract"]
+    config_payload = None
+    if extraction_config:
+        try:
+            config_payload = json.loads(extraction_config)
+        except json.JSONDecodeError as exc:
+            raise HTTPException(status_code=400, detail=f"Invalid extraction_config JSON: {exc}")
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        safe_name = Path(file.filename or "upload.bin").name
+        temp_path = Path(temp_dir) / safe_name
+        content = await file.read()
+        temp_path.write_bytes(content)
+        results = await extractor.extract_from_document(
+            str(temp_path),
+            extraction_config=config_payload,
         )
     return {"results": results}
 
