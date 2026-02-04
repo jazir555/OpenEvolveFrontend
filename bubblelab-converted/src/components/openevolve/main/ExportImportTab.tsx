@@ -111,6 +111,7 @@ export const ExportImportTab: React.FC<ExportImportTabProps> = ({ state, updateS
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const [importOptions, setImportOptions] = useState({
     applyState: true,
+    applyHistory: true,
     applyTemplates: true,
     applySettings: true,
     applyTasks: true,
@@ -228,6 +229,14 @@ export const ExportImportTab: React.FC<ExportImportTabProps> = ({ state, updateS
           adversarialStatusMessage:
             payloadState.adversarialStatusMessage ?? state.adversarialStatusMessage,
           evolutionBestScore: payloadState.evolutionBestScore ?? state.evolutionBestScore,
+        });
+      }
+
+      if (importOptions.applyHistory && importPayload.history) {
+        const history = importPayload.history as Record<string, unknown>;
+        updateState({
+          evolutionHistory: (history.evolutionHistory as any[]) ?? state.evolutionHistory,
+          adversarialResults: history.adversarialResults ?? state.adversarialResults,
         });
       }
 
@@ -424,6 +433,7 @@ export const ExportImportTab: React.FC<ExportImportTabProps> = ({ state, updateS
                       <div className="grid gap-2 md:grid-cols-2">
                         {[
                           ["applyState", "Apply core state"],
+                          ["applyHistory", "Apply history"],
                           ["applyTemplates", "Apply templates"],
                           ["applySettings", "Apply settings"],
                           ["applyTasks", "Apply tasks"],

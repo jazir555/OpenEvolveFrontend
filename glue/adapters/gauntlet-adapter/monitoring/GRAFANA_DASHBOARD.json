@@ -1,0 +1,202 @@
+{
+  "dashboard": {
+    "title": "Gauntlet Monitoring Dashboard",
+    "description": "Comprehensive monitoring for Gauntlet evaluation system",
+    "tags": ["gauntlet", "openevolve", "evaluation"],
+    "timezone": "UTC",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Gauntlet Executions",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(gauntlet_executions_total[5m])",
+            "legendFormat": "Executions/sec",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(gauntlet_passes_total[5m])",
+            "legendFormat": "Passes/sec",
+            "refId": "B"
+          },
+          {
+            "expr": "rate(gauntlet_failures_total[5m])",
+            "legendFormat": "Failures/sec",
+            "refId": "C"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Pass Rate by Domain",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "gauntlet_passes_total / gauntlet_executions_total",
+            "legendFormat": "{{domain}}",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Execution Duration",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, rate(gauntlet_duration_seconds_bucket[5m]))",
+            "legendFormat": "p50",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(gauntlet_duration_seconds_bucket[5m]))",
+            "legendFormat": "p95",
+            "refId": "B"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(gauntlet_duration_seconds_bucket[5m]))",
+            "legendFormat": "p99",
+            "refId": "C"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Average Score by Domain",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "gauntlet_last_score",
+            "legendFormat": "{{domain}}",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "System Resources",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 16, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "system_cpu_usage_percent",
+            "legendFormat": "CPU %",
+            "refId": "A"
+          },
+          {
+            "expr": "system_memory_usage_percent",
+            "legendFormat": "Memory %",
+            "refId": "B"
+          },
+          {
+            "expr": "system_disk_usage_percent",
+            "legendFormat": "Disk %",
+            "refId": "C"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "ML Prediction Accuracy",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 16, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "prediction_accuracy",
+            "legendFormat": "Accuracy",
+            "refId": "A"
+          },
+          {
+            "expr": "prediction_accuracy{domain=\"finance\"}",
+            "legendFormat": "Finance",
+            "refId": "B"
+          },
+          {
+            "expr": "prediction_accuracy{domain=\"science\"}",
+            "legendFormat": "Science",
+            "refId": "C"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Optimization Progress",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 24, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "optimization_best_score",
+            "legendFormat": "{{strategy}}",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Training Loss",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 24, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "training_loss",
+            "legendFormat": "Loss",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Active Connections",
+        "type": "stat",
+        "gridPos": {"x": 0, "y": 32, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "websocket_connections_active",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Active Gauntlets",
+        "type": "stat",
+        "gridPos": {"x": 6, "y": 32, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "gauntlets_active",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "Total Executions",
+        "type": "stat",
+        "gridPos": {"x": 12, "y": 32, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "gauntlet_executions_total",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "System Uptime",
+        "type": "stat",
+        "gridPos": {"x": 18, "y": 32, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "gauntlet_uptime_seconds",
+            "refId": "A"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,45 @@
+pandoc: 3.1.3
+pkgdown: 2.0.9
+pkgdown_sha: ~
+articles:
+  AKAP79: AKAP79.html
+  AKAR4: AKAR4.html
+  cite: cite.html
+  data: data.html
+  events: events.html
+  examples_overview: examples_overview.html
+  extraExamples: extraExamples.html
+  generateCodeInR: generateCodeInR.html
+  GSA_AKAR4: GSA_AKAR4.html
+  GSA: GSA.html
+  installation: installation.html
+  installExplanations: installExplanations.html
+  intermediateFiles: intermediateFiles.html
+  literature_references: literature_references.html
+  models: models.html
+  more_details: more_details.html
+  mpi: mpi.html
+  ODE-Model: ODE-Model.html
+  sa: sa.html
+  sampleAKAP79: sampleAKAP79.html
+  sampleAKAR4: sampleAKAR4.html
+  sampleAKAR4mpi: sampleAKAR4mpi.html
+  sampleAKAR4stochastic: sampleAKAR4stochastic.html
+  SBtab: SBtab.html
+  simAKAP79: simAKAP79.html
+  simAKAP79stochastic: simAKAP79stochastic.html
+  simAKAR4: simAKAR4.html
+  simAKAR4stochastic: simAKAR4stochastic.html
+  simulate: simulate.html
+  smmala: smmala.html
+  tsv: tsv.html
+  uq: uq.html
+  UQ: UQ.html
+  uqsa: uqsa.html
+  uqsaAKAR4: uqsaAKAR4.html
+  user_model: user_model.html
+last_built: 2025-04-02T11:56Z
+urls:
+  reference: https://icpm-kth.github.io/uqsa/reference
+  article: https://icpm-kth.github.io/uqsa/articles
+

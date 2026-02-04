@@ -83,6 +83,7 @@ class ProcessingStage(Enum):
     CONVERSATION = auto()
     REASONING = auto()
     SIMULATION = auto()
+    ANALYSIS = auto()
 
 
 @dataclass
@@ -103,6 +104,12 @@ class GlobalKGConfig:
     enable_icr: bool = True
     icr_max_iterations: int = 3
     icr_quality_threshold: float = 0.85
+    
+    # Topological analysis settings (Lagrange Mapper)
+    enable_lagrange_mapper: bool = True
+    lagrange_n_clusters: int = 8
+    lagrange_reduction_method: str = 'pca'
+    lagrange_drift_threshold: float = 0.3
     
     # Conversation settings
     enable_dts: bool = True
@@ -571,6 +578,226 @@ class GlobalKGOrchestrator:
             return ProcessingResult(
                 success=False,
                 stage=ProcessingStage.REASONING,
+                errors=[str(e)],
+                processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
+    
+    # ============================================================================
+    # TOPOLOGICAL ANALYSIS (Lagrange Mapper)
+    # ============================================================================
+    
+    async def analyze_knowledge_topology(
+        self,
+        embeddings: Any,
+        labels: Optional[List[str]] = None,
+        n_clusters: int = 8,
+        analysis_type: str = 'landscape',
+        track_transitions: bool = False,
+        previous_embeddings: Optional[Any] = None
+    ) -> ProcessingResult:
+        """
+        Analyze knowledge topology using Lagrange Mapper.
+        
+        Maps attractor landscapes in knowledge embedding spaces to understand
+        concept clustering, stability, and evolution over time.
+        
+        Args:
+            embeddings: Knowledge embeddings (n_samples x n_features)
+            labels: Optional labels for each knowledge item
+            n_clusters: Number of clusters to identify (default: 8)
+            analysis_type: Type of analysis:
+                - 'landscape': Full landscape analysis with attractors
+                - 'topology': Graph topology analysis
+                - 'basins': Basin of attraction computation
+                - 'transitions': Compare with previous_embeddings
+            track_transitions: Enable transition tracking if previous_embeddings provided
+            previous_embeddings: Optional previous state for transition detection
+            
+        Returns:
+            ProcessingResult with topological analysis:
+                - attractors: List of attractors with strength metrics
+                - clusters: Cluster assignments and statistics
+                - landscape: Full landscape topology
+                - transitions: Changes from previous state (if tracked)
+                
+        Example:
+            >>> # Analyze concept landscape from knowledge graph embeddings
+            >>> kg_embeddings = await orchestrator.hub.embed_graph(my_kg)
+            >>> result = await orchestrator.analyze_knowledge_topology(
+            ...     embeddings=kg_embeddings['embeddings'],
+            ...     labels=kg_embeddings['node_labels'],
+            ...     n_clusters=5,
+            ...     analysis_type='landscape'
+            ... )
+            >>> 
+            >>> # Track evolution over time
+            >>> result_t2 = await orchestrator.analyze_knowledge_topology(
+            ...     embeddings=new_embeddings,
+            ...     previous_embeddings=old_embeddings,
+            ...     track_transitions=True
+            ... )
+        """
+        start_time = datetime.now(timezone.utc)
+        integrations_used = []
+        
+        try:
+            # Step 1: Topological landscape analysis
+            landscape_result = await self.hub.analyze_topological_landscape(
+                embeddings=embeddings,
+                labels=labels,
+                n_clusters=n_clusters,
+                analysis_type=analysis_type
+            )
+            
+            if landscape_result.success:
+                integrations_used.append('lagrange_mapper')
+                result_data = landscape_result.data
+            else:
+                return ProcessingResult(
+                    success=False,
+                    stage=ProcessingStage.ANALYSIS,
+                    errors=['Topological analysis failed'] + landscape_result.errors,
+                    integrations_used=integrations_used,
+                    processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+                )
+            
+            # Step 2: Transition detection if requested
+            if track_transitions and previous_embeddings is not None:
+                try:
+                    transition_result = await self.hub.detect_landscape_transitions(
+                        embeddings_t1=previous_embeddings,
+                        embeddings_t2=embeddings,
+                        labels=labels
+                    )
+                    if transition_result.success:
+                        result_data['transitions'] = transition_result.data
+                        integrations_used.append('lagrange_mapper_transitions')
+                except Exception as e:
+                    logger.warning(f"Transition detection failed: {e}")
+            
+            return ProcessingResult(
+                success=True,
+                stage=ProcessingStage.ANALYSIS,
+                data=result_data,
+                integrations_used=integrations_used,
+                processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
+            
+        except Exception as e:
+            logger.error(f"Knowledge topology analysis failed: {e}")
+            return ProcessingResult(
+                success=False,
+                stage=ProcessingStage.ANALYSIS,
+                errors=[str(e)],
+                integrations_used=integrations_used,
+                processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
+    
+    async def detect_concept_drift(
+        self,
+        embeddings_t1: Any,
+        embeddings_t2: Any,
+        labels: Optional[List[str]] = None,
+        drift_threshold: float = 0.3
+    ) -> ProcessingResult:
+        """
+        Detect concept drift between two knowledge states.
+        
+        Uses Lagrange Mapper to identify significant changes in the knowledge
+        landscape, indicating concept emergence, disappearance, or evolution.
+        
+        Args:
+            embeddings_t1: Knowledge embeddings at time t1
+            embeddings_t2: Knowledge embeddings at time t2
+            labels: Optional labels for knowledge items
+            drift_threshold: Threshold for significant drift detection (0-1)
+            
+        Returns:
+            ProcessingResult with drift analysis:
+                - drift_detected: Boolean indicating significant drift
+                - drift_score: Overall drift metric (0-1)
+                - created_concepts: New attractors in t2
+                - disappeared_concepts: Attractors lost from t1
+                - evolved_concepts: Attractors with significant changes
+                - stability_score: Overall landscape stability (0-1)
+                
+        Example:
+            >>> # Compare knowledge states from different time periods
+            >>> result = await orchestrator.detect_concept_drift(
+            ...     embeddings_t1=kg_january['embeddings'],
+            ...     embeddings_t2=kg_june['embeddings'],
+            ...     drift_threshold=0.25
+            ... )
+            >>> if result.data['drift_detected']:
+            ...     print(f"Significant drift detected: {result.data['drift_score']:.2f}")
+            ...     print(f"New concepts: {len(result.data['created_concepts'])}")
+        """
+        start_time = datetime.now(timezone.utc)
+        
+        try:
+            # Detect landscape transitions
+            transition_result = await self.hub.detect_landscape_transitions(
+                embeddings_t1=embeddings_t1,
+                embeddings_t2=embeddings_t2,
+                labels=labels
+            )
+            
+            if not transition_result.success:
+                return ProcessingResult(
+                    success=False,
+                    stage=ProcessingStage.ANALYSIS,
+                    errors=['Transition detection failed'] + transition_result.errors,
+                    processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+                )
+            
+            transitions = transition_result.data.get('transitions', {})
+            
+            # Calculate drift metrics
+            attractors_t1 = transition_result.data.get('n_attractors_t1', 1)
+            attractors_t2 = transition_result.data.get('n_attractors_t2', 1)
+            stability = transition_result.data.get('stability', 0.0)
+            
+            created = len(transitions.get('attractors_created', []))
+            destroyed = len(transitions.get('attractors_destroyed', []))
+            persisted = len(transitions.get('attractors_persisted', []))
+            
+            # Calculate drift score
+            total_changes = created + destroyed
+            max_attractors = max(attractors_t1, attractors_t2, 1)
+            drift_score = total_changes / (2 * max_attractors)  # Normalize
+            
+            # Detect significant drift
+            drift_detected = drift_score > drift_threshold or stability < (1 - drift_threshold)
+            
+            result_data = {
+                'drift_detected': drift_detected,
+                'drift_score': float(drift_score),
+                'stability_score': float(stability),
+                'created_concepts': transitions.get('attractors_created', []),
+                'disappeared_concepts': transitions.get('attractors_destroyed', []),
+                'evolved_concepts': transitions.get('attractors_persisted', []),
+                'attractor_counts': {
+                    't1': attractors_t1,
+                    't2': attractors_t2,
+                    'created': created,
+                    'destroyed': destroyed,
+                    'persisted': persisted
+                }
+            }
+            
+            return ProcessingResult(
+                success=True,
+                stage=ProcessingStage.ANALYSIS,
+                data=result_data,
+                integrations_used=['lagrange_mapper'],
+                processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
+            
+        except Exception as e:
+            logger.error(f"Concept drift detection failed: {e}")
+            return ProcessingResult(
+                success=False,
+                stage=ProcessingStage.ANALYSIS,
                 errors=[str(e)],
                 processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
             )

@@ -1,0 +1,241 @@
+---
+title: "Importing Data into R"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(cache = TRUE, eval=FALSE,
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+The data is part of the SBtab document, but it can also be seen as
+separate from the model, so it is imported with a different function.
+This function also loads the inputs and initial values for the
+model. When determining the inputs, the function takes conservation
+laws into account and calculates input values for conserved
+quantities, based on the stated initial values. The imported object `ex` is
+a list of simulation instructions:
+
+```{r, eval=TRUE}
+library(uqsa)
+library(SBtabVFGEN)
+
+f <- uqsa_example('AKAR4cl')                         # file names
+sb <- SBtabVFGEN::sbtab_from_tsv(f)                  # a list of data.frames
+cl <- readRDS(uqsa_example('AKAR4cl',f="RDS"))       # previously saved laws
+ex <- SBtabVFGEN::sbtab.data(sb,cl)                  # includes the data
+ex[[1]]$input
+ex[[1]]$initialState
+```
+
+The data-sets themselves can be stored in a normal SBtab table, using
+any valid `TableName`. How many data sets are there and their type are
+listed in the *table of experiments*: `Experiments.tsv`.  Data not
+listed in the table of experiments is not loaded with the `sbtab.data`
+function:
+
+```{r, label='Experiments', eval=TRUE}
+sb$Experiments
+# The first one has this data-set
+head(ex$AKAR4_400nM$outputValues)
+```
+
+The values in `ex` are simulation instructions for all
+experiments. 
+
+|         item | type           | meaning                                                                    |
+|-------------:|:--------------:|:---------------------------------------------------------------------------|
+|        input | numeric vector | known input parameters                                                     |
+|  initialTime | numeric vector | a scalar time $t_0$                                                        |
+| initialState | numeric vector | initial state $x_0$ of the ode $\dot x = f(x(t),t,p=c(k,u))$, $x(t_0)=x_0$ |
+|  outputTimes | numeric vector | a time vector that indicates when measurements were taken                  |
+| outputValues | data.frame     | the values of the data at the above outputTimes                            |
+|  errorValues | data.frame     | an indication of the measurement error/noise (standard error)              |
+|       events | list           | a sudden transformation event                                              |
+
+
+Any data sets not present in Experiments, are still
+accessible through the model variable, here called `sb`.
+
+```{r,label='sb data sets', eval=TRUE}
+head(sb$AKAR4_400nM)
+```
+
+This works for any data set that has a TSV file or a sheet in any
+other valid format (e.g., ods, xlsx). This table is just not a simulation
+instruction:
+
+- `sb` has the values of all tsv files/sheets
+- `ex` has data and simulation instructions for the rgsl package
+
+Each experiment is a time series experiment, after the import (dose
+response sets are converted to one time series experiment per point).
+
+More about this topic can be found in the page on [SBtab](SBtab.html). 
+
+The rest of this page explains SBtab features that are related to
+data-sets and experiment descriptions.
+
+
+---
+
+## Time Series
+
+In a time series table, the first column is called `!TimePoint`, the
+second is typically `!Time`, followed by the measured quantities
+labelled as `>outputFunctionID` (values) and `~outputFunctionID` (error estimates).
+
+
+|             Label | Example            | Meaning                                                                 |
+|------------------:|:------------------:|:------------------------------------------------------------------------|
+|        !TimePoint | `Experiment0Time0` | same as !ID, but for times (a unique string)                            |
+|             !Time | `-0.5`             | a floating point constant                                               |
+| >outputFunctionID | `>Calcium_Out`     | values that are meant to be compared to the Output called `Calcium_Out` |
+| ~outputFunctionID | `~Calcium_Out`     | error estimated for the values in *>outputFunctionID*                   |
+
+Each time series typically requires one model simulation to reproduce
+(unless scheduled events are happening).
+
+### Example Time Series
+
+```
+!!SBtab Document='myModel' TableName='DataSetBeta'
+ !TimePoint  !Time    >A_out  ~A_out      >totalB  ~totalB 
+       E0T0   -1.0      1.20  0.012         201.1  12
+       E0T1   +0.0      11.8  0.12          203.2  11
+       E0T2   +1.0      31.7  0.19          198.7  13
+```
+
+## Dose Response
+
+An experiment that maps an increasing input to output values. In such
+cases the output has to happen at one pre-defined time-point for each
+dose. These dose-response curves will be transformed into *n*
+time-series experiments during parsing, where *n* is the number of
+content-rows (without headers).
+
+|             label | example            | meaning                                                                 |
+|------------------:|:------------------:|:------------------------------------------------------------------------|
+|               !ID | `Experiment0Dose0` | a unique string, identifying this dose                                  |
+|          >anInput | `300`              | a valid value for one of the input parameters                           |
+| >outputFunctionID | `>Calcium_Out`     | values that are meant to be compared to the Output called `Calcium_Out` |
+|                   |                    |                                                                         |
+| ~outputFunctionID | `~Calcium_Out`     | error estimated for the values in *>outputFunctionID*                   |
+
+A dose response curve requires *n* simulations of the model.
+
+### Example Dose Response Curve
+
+This curve has two inputs and one output (`A_final`), each line is a separate time
+series with one (final) _measurement time point_.
+
+```
+!!SBtab Document='myModel' TableName='DataSetGamma'
+  !ID  >treatment_dose  >treatment_duration  >A_final  ~A_final 
+ E0D0  200                50                     50.1  1.2
+ E0D1  1000               50                     83.2  0.9
+ E0D2  7000               25                     74.7  1.8
+```
+
+Anything more complex has to be expressed as a `Time series` with an
+event schedule. The measurement time is taken from the `Experiments`
+table (Experiments.tsv).
+
+# Scheduled Events
+
+An experiment can contain sudden events, in *systems biology* this is
+useful to describe experiments that include an intervention at a
+specified time (activation, silencing, stimulus, action potential,
+etc.). These events happen much faster than the system dynamics, and
+modelling them exactly would slow down the solver dramatically. In the
+case of an event at time $t$, the solver is stopped, a 
+transformation is applied to the current state $x(t)$ and parameters $p$ (in our C code, this is performed in the `rgsl` package, and not with `deSolve`).
+
+The SBtab table `Transformation` (`Tranformation.tsv` as a file)
+defines which transformations the system is subject to.
+
+An event table defines for each experiment, when the transformations apply.
+
+The transformation function (C code), is auto-generated alongside the model (see page on ["Importing Models into R"](models.html) and its more detailed version, ["Build and simulate your own Model"](user_model.html)).
+
+An example of a Transformation table from the _Spike_ model:
+
+```
+!!SBtab	Document='Spike' TableName='Transformation'					
+!ID   >Ca  >Buffer
+APCa  Ca   A*(k2-k1)*dose
+```
+
+These transformations apply at times given in an event schedule (Dose not used):
+
+```
+!!SBtab	Document='Spike' TableName='AP20Hz'		
+!ID          !Time  !Transformation  !Dose
+Freq20HzAP0  0      APCa             1.0
+Freq20HzAP1  50     APCa             1.0
+Freq20HzAP2  100    APCa             1.0
+Freq20HzAP3  150    APCa             1.0
+Freq20HzAP4  200    APCa             1.0
+Freq20HzAP5  250    APCa             1.0
+Freq20HzAP6  300    APCa             1.0
+Freq20HzAP7  350    APCa             1.0
+Freq20HzAP8  400    APCa             1.0
+```
+
+And this schedule is applied to an experiment by listing it in the Experiment table:
+
+```
+!!SBtab	Document='Spike' TableName='Experiment'				
+!ID    !Event  !T0
+E20Hz  AP20Hz  -5
+```
+
+The `!Event` column specifies the event schedule for this experiment
+(each experiment is one row).
+
+This setup will create this C function:
+
+```{c, eval=FALSE}
+int Spike_event(double t, double y_[], void *par, int EventLabel, double dose)
+{
+	double *p_=par;
+	if (!y_ || !par || EventLabel<0) return 1;
+	enum eventLabel { APCa, numEvents }; /* event name indexes */
+	enum stateVariable { var_Ca,var_Buffer, numStateVar }; /* state variable indexes  */
+	enum param { par_k1,par_k2,par_A,par_CaBase, numParam }; /* parameter indexes  */
+	double k1=p_[0];
+	double k2=p_[1];
+	double A=p_[2];
+	double CaBase=p_[3];
+	double Ca=y_[0];
+	double Buffer=y_[1];
+	double rf1=Buffer;
+	double rf2=-k1*k2*Ca-(k1+k2)*Buffer;
+	switch(EventLabel){
+	case APCa:
+		y_[var_Buffer] = A*(k2-k1)*dose; /* state variable transformation */
+	break;
+	}
+	return GSL_SUCCESS;
+}
+```
+
+Any number of transformations can be added to the table. The `switch`
+statement will select the correct one to perform, based on the
+label (integer/enum). In this case, there is only one transformation. See
+[Transformation Events](events.html) for more information.
+
+# Gaussian Measurement errors
+
+For Gaussian noise, `~xyz` values can be the standard deviation of the
+data (standard error). the data frame has the same shape and names as
+the output values. The usual way to write this somewhere is typically
+
+```
+outputValues ± errorValues
+```
+
+For other error models, or noise distributions, the user can decide
+what kind of values are useful and use them in their custom scoring
+functions (untested by us).

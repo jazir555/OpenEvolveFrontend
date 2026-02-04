@@ -1,0 +1,192 @@
+# Prometheus Alert Rules for Gauntlet System
+#
+# These rules should be loaded into Prometheus to trigger alerts
+# based on gauntlet metrics.
+#
+# Usage:
+#   prometheus --config.file=prometheus.yml \
+#     --alertmanager.url=http://alertmanager:9093
+
+groups:
+  - name: gauntlet_alerts
+    interval: 30s
+    rules:
+      # High error rate alert
+      - alert: GauntletHighErrorRate
+        expr: |
+          (rate(gauntlet_failures_total[5m]) /
+           rate(gauntlet_executions_total[5m])) > 0.15
+        for: 5m
+        labels:
+          severity: warning
+          component: gauntlet
+        annotations:
+          summary: "High gauntlet error rate detected"
+          description: "Gauntlet error rate is {{ $value | humanizePercentage }} for the last 5 minutes"
+
+      # Critical error rate alert
+      - alert: GauntletCriticalErrorRate
+        expr: |
+          (rate(gauntlet_failures_total[5m]) /
+           rate(gauntlet_executions_total[5m])) > 0.3
+        for: 2m
+        labels:
+          severity: critical
+          component: gauntlet
+        annotations:
+          summary: "Critical gauntlet error rate"
+          description: "Gauntlet error rate is {{ $value | humanizePercentage }} for the last 5 minutes"
+
+      # High latency alert
+      - alert: GauntletHighLatency
+        expr: |
+          histogram_quantile(0.95,
+            rate(gauntlet_duration_seconds_bucket[5m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: gauntlet
+        annotations:
+          summary: "High gauntlet latency detected"
+          description: "95th percentile latency is {{ $value }}s"
+
+      # Critical latency alert
+      - alert: GauntletCriticalLatency
+        expr: |
+          histogram_quantile(0.95,
+            rate(gauntlet_duration_seconds_bucket[5m])) > 30
+        for: 2m
+        labels:
+          severity: critical
+          component: gauntlet
+        annotations:
+          summary: "Critical gauntlet latency"
+          description: "95th percentile latency is {{ $value }}s"
+
+      # Low prediction accuracy alert
+      - alert: GauntletLowPredictionAccuracy
+        expr: prediction_accuracy < 0.6
+        for: 10m
+        labels:
+          severity: warning
+          component: ml
+        annotations:
+          summary: "Low ML prediction accuracy"
+          description: "Prediction accuracy is {{ $value | humanizePercentage }}"
+
+      # Critical prediction accuracy alert
+      - alert: GauntletCriticalPredictionAccuracy
+        expr: prediction_accuracy < 0.4
+        for: 5m
+        labels:
+          severity: critical
+          component: ml
+        annotations:
+          summary: "Critical ML prediction accuracy"
+          description: "Prediction accuracy is {{ $value | humanizePercentage }}"
+
+      # No executions alert
+      - alert: GauntletNoExecutions
+        expr: |
+          increase(gauntlet_executions_total[10m]) == 0
+        for: 15m
+        labels:
+          severity: warning
+          component: gauntlet
+        annotations:
+          summary: "No gauntlet executions detected"
+          description: "No gauntlet executions in the last 15 minutes"
+
+      # System resource alerts
+      - alert: GauntletHighMemoryUsage
+        expr: system_memory_usage_percent > 85
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value }}%"
+
+      - alert: GauntletCriticalMemoryUsage
+        expr: system_memory_usage_percent > 95
+        for: 2m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Critical memory usage"
+          description: "Memory usage is {{ $value }}%"
+
+      - alert: GauntletHighCPUUsage
+        expr: system_cpu_usage_percent > 80
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}%"
+
+      - alert: GauntletCriticalCPUUsage
+        expr: system_cpu_usage_percent > 95
+        for: 5m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Critical CPU usage"
+          description: "CPU usage is {{ $value }}%"
+
+      - alert: GauntletHighDiskUsage
+        expr: system_disk_usage_percent > 85
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High disk usage"
+          description: "Disk usage is {{ $value }}%"
+
+  - name: gauntlet_domain_alerts
+    interval: 1m
+    rules:
+      # Domain-specific pass rate alerts
+      - alert: GauntletLowFinancePassRate
+        expr: |
+          (rate(gauntlet_passes_total{domain="finance"}[5m]) /
+           rate(gauntlet_executions_total{domain="finance"}[5m])) < 0.6
+        for: 10m
+        labels:
+          severity: warning
+          component: gauntlet
+          domain: finance
+        annotations:
+          summary: "Low finance domain pass rate"
+          description: "Finance domain pass rate is {{ $value | humanizePercentage }}"
+
+      - alert: GauntletLowSciencePassRate
+        expr: |
+          (rate(gauntlet_passes_total{domain="science"}[5m]) /
+           rate(gauntlet_executions_total{domain="science"}[5m])) < 0.6
+        for: 10m
+        labels:
+          severity: warning
+          component: gauntlet
+          domain: science
+        annotations:
+          summary: "Low science domain pass rate"
+          description: "Science domain pass rate is {{ $value | humanizePercentage }}"
+
+      - alert: GauntletLowWebPassRate
+        expr: |
+          (rate(gauntlet_passes_total{domain="web"}[5m]) /
+           rate(gauntlet_executions_total{domain="web"}[5m])) < 0.6
+        for: 10m
+        labels:
+          severity: warning
+          component: gauntlet
+          domain: web
+        annotations:
+          summary: "Low web domain pass rate"
+          description: "Web domain pass rate is {{ $value | humanizePercentage }}"

@@ -1,0 +1,74 @@
+{
+  "baseline_metrics": {
+    "ml_optimizer": {
+      "iterations_per_second": 50.0,
+      "memory_mb": 50.0,
+      "convergence_rate": 0.95,
+      "improvement_percent": 15.0,
+      "description": "ML-based optimizer for gauntlet configuration using Q-learning and genetic algorithms"
+    },
+    "predictive_executor": {
+      "prediction_latency_ms": 100.0,
+      "prediction_accuracy": 0.75,
+      "cost_savings_percent": 20.0,
+      "description": "Predictive executor for success assessment and resource optimization"
+    },
+    "adaptive_learner": {
+      "training_episodes_per_second": 10.0,
+      "training_memory_mb": 100.0,
+      "loss_convergence_rate": 0.90,
+      "prediction_accuracy_learner": 0.70,
+      "description": "Deep reinforcement learning learner with DQN for continuous improvement"
+    },
+    "intelligent_orchestrator": {
+      "planning_time_ms": 200.0,
+      "execution_time_vs_baseline": 0.85,
+      "resource_utilization": 0.80,
+      "description": "AI-powered orchestration with multi-objective optimization"
+    }
+  },
+  "performance_targets": {
+    "ml_optimizer": {
+      "speed_tolerance": 0.2,
+      "memory_tolerance": 0.3,
+      "min_improvement": 10.0,
+      "notes": "Allow 20% slower speed, 30% more memory, require 10% minimum improvement"
+    },
+    "predictive_executor": {
+      "latency_tolerance": 0.3,
+      "min_accuracy": 0.70,
+      "min_cost_savings": 15.0,
+      "notes": "Allow 30% slower predictions, require 70% accuracy, 15% cost savings"
+    },
+    "adaptive_learner": {
+      "training_speed_tolerance": 0.25,
+      "memory_tolerance": 0.3,
+      "min_convergence": 0.77,
+      "notes": "Allow 25% slower training, 30% more memory, 77% convergence rate"
+    },
+    "intelligent_orchestrator": {
+      "planning_time_tolerance": 0.3,
+      "execution_time_tolerance": 1.2,
+      "min_utilization": 0.64,
+      "notes": "Allow 30% slower planning, 20% slower execution, 64% resource utilization"
+    }
+  },
+  "test_configuration": {
+    "default_num_runs": 10,
+    "confidence_level": 0.95,
+    "significance_threshold": 0.10,
+    "min_sample_size": 3,
+    "description": "Default test configuration for statistical significance testing"
+  },
+  "hardware_profile": {
+    "cpu_cores": 8,
+    "memory_gb": 16,
+    "description": "Reference hardware profile for baseline measurements. Update when running on different hardware."
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "last_updated": "2026-02-03",
+    "update_frequency": "monthly",
+    "notes": "Update baselines only after intentional performance optimizations. Track history of changes."
+  }
+}

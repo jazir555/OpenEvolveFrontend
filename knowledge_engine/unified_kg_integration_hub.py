@@ -122,6 +122,7 @@ class KGOperationType(Enum):
     CONVERSATION_OPTIMIZATION = auto() # DTS: dialogue tree search
     SAFETY_VALIDATION = auto()        # Guardrails: AI safety checks
     ITERATIVE_REFINEMENT = auto()     # ICR: contextual refinements
+    TOPOLOGICAL_ANALYSIS = auto()     # Lagrange Mapper: attractor landscapes
 
 
 class IntegrationStatus(Enum):
@@ -242,7 +243,8 @@ class UnifiedKGIntegrationHub:
             KGOperationType.HYBRID_REASONING: ['cognitive_hydraulics'],
             KGOperationType.CONVERSATION_OPTIMIZATION: ['dts'],
             KGOperationType.SAFETY_VALIDATION: ['guardrails'],
-            KGOperationType.ITERATIVE_REFINEMENT: ['icr']
+            KGOperationType.ITERATIVE_REFINEMENT: ['icr'],
+            KGOperationType.TOPOLOGICAL_ANALYSIS: ['lagrange_mapper']
         }
         
         logger.info({
@@ -283,6 +285,7 @@ class UnifiedKGIntegrationHub:
         await self._initialize_dts()
         await self._initialize_guardrails()
         await self._initialize_icr()
+        await self._initialize_lagrange_mapper()
         
         self._initialized = True
         
@@ -788,6 +791,47 @@ class UnifiedKGIntegrationHub:
         except Exception as e:
             self._health_status['icr'] = IntegrationHealth(
                 name='icr',
+                status=IntegrationStatus.ERROR,
+                error_count=1,
+                details={'error': str(e)}
+            )
+    
+    async def _initialize_lagrange_mapper(self):
+        """Initialize Lagrange Mapper integration for topological analysis."""
+        start_time = datetime.now(timezone.utc)
+        try:
+            from .integrations.lagrange_mapper_integration import LagrangeMapperIntegration
+            integration = LagrangeMapperIntegration(self.config.get('lagrange_mapper', {}))
+            available = integration.is_available()
+            
+            self._integrations['lagrange_mapper'] = integration
+            self._health_status['lagrange_mapper'] = IntegrationHealth(
+                name='lagrange_mapper',
+                status=IntegrationStatus.AVAILABLE if available else IntegrationStatus.UNAVAILABLE,
+                latency_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000,
+                details={
+                    'description': 'Topological Data Analysis and Attractor Landscape Mapping',
+                    'features': [
+                        'attractor_landscape_analysis',
+                        'clustering',
+                        'dimensionality_reduction',
+                        'knowledge_topology_analysis',
+                        'landscape_transition_detection',
+                        'basin_of_attraction_computation'
+                    ],
+                    'ssot_location': 'knowledge_engine/integrations/lagrange_mapper_integration.py',
+                    'dependencies': ['numpy', 'scikit-learn'],
+                    'applications': [
+                        'embedding_space_analysis',
+                        'knowledge_graph_topology',
+                        'concept_landscape_mapping',
+                        'temporal_evolution_tracking'
+                    ]
+                }
+            )
+        except Exception as e:
+            self._health_status['lagrange_mapper'] = IntegrationHealth(
+                name='lagrange_mapper',
                 status=IntegrationStatus.ERROR,
                 error_count=1,
                 details={'error': str(e)}
@@ -1592,6 +1636,194 @@ class UnifiedKGIntegrationHub:
             errors=['ICR not available'],
             processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
         )
+    
+    async def analyze_topological_landscape(
+        self,
+        embeddings: Any,
+        labels: Optional[List[str]] = None,
+        n_clusters: int = 8,
+        reduction_method: str = 'pca',
+        reduction_dims: int = 2,
+        analysis_type: str = 'landscape'
+    ) -> KGOperationResult:
+        """
+        Analyze topological landscape of embeddings using Lagrange Mapper.
+        
+        Identifies attractors, clusters, and basins of attraction in knowledge
+        embedding spaces. Useful for understanding concept landscapes and
+        knowledge topology.
+        
+        Args:
+            embeddings: Embedding matrix (n_samples x n_features) or list of vectors
+            labels: Optional labels for each embedding point
+            n_clusters: Number of clusters to identify (default: 8)
+            reduction_method: Dimensionality reduction ('pca', 'tsne', or 'none')
+            reduction_dims: Dimensions to reduce to for visualization (default: 2)
+            analysis_type: Type of analysis ('landscape', 'topology', 'transitions', 'basins')
+            
+        Returns:
+            KGOperationResult with landscape analysis containing:
+                - cluster_labels: Assigned cluster for each point
+                - cluster_centers: Centroid of each cluster
+                - attractors: Attractor strengths and properties
+                - reduced_embeddings: 2D/3D coordinates for visualization
+                - clusters: Detailed cluster statistics
+                
+        Example:
+            >>> # Analyze knowledge embedding landscape
+            >>> embeddings = np.random.randn(100, 128)  # 100 knowledge items
+            >>> result = await hub.analyze_topological_landscape(
+            ...     embeddings=embeddings,
+            ...     labels=[f'concept_{i}' for i in range(100)],
+            ...     n_clusters=5,
+            ...     analysis_type='landscape'
+            ... )
+            >>> print(f"Found {len(result.data['attractors'])} attractors")
+        """
+        start_time = datetime.now(timezone.utc)
+        
+        if 'lagrange_mapper' not in self._integrations:
+            return KGOperationResult(
+                success=False,
+                operation_type=KGOperationType.TOPOLOGICAL_ANALYSIS,
+                integration_used='none',
+                errors=['Lagrange Mapper not available'],
+                processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
+        
+        try:
+            import numpy as np
+            integration = self._integrations['lagrange_mapper']
+            
+            # Convert embeddings to numpy array if needed
+            if not isinstance(embeddings, np.ndarray):
+                embeddings = np.array(embeddings)
+            
+            # Perform analysis based on type
+            if analysis_type == 'landscape':
+                result = integration.analyze_landscape(
+                    embeddings=embeddings,
+                    labels=labels,
+                    n_clusters=n_clusters
+                )
+            elif analysis_type == 'topology':
+                # Convert embeddings to graph format for topology analysis
+                graph_data = {
+                    'nodes': [{'id': labels[i] if labels else f'node_{i}'} for i in range(len(embeddings))],
+                    'edges': []  # Would need adjacency info for full topology
+                }
+                if hasattr(integration._analyzer, 'analyze_knowledge_topology'):
+                    result = integration._analyzer.analyze_knowledge_topology(graph_data)
+                else:
+                    result = integration.analyze_landscape(embeddings, labels, n_clusters)
+            elif analysis_type == 'basins':
+                # First get landscape, then compute basins
+                landscape = integration.analyze_landscape(embeddings, labels, n_clusters)
+                if landscape.get('status') == 'success':
+                    centers = np.array(landscape['landscape']['cluster_centers'])
+                    result = integration._analyzer.find_attractor_basins(embeddings, centers)
+                else:
+                    result = landscape
+            else:
+                result = integration.analyze_landscape(embeddings, labels, n_clusters)
+            
+            return KGOperationResult(
+                success=result.get('status') == 'success',
+                operation_type=KGOperationType.TOPOLOGICAL_ANALYSIS,
+                integration_used='lagrange_mapper',
+                data=result,
+                processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
+            
+        except Exception as e:
+            logger.error(f"Lagrange Mapper analysis failed: {e}")
+            return KGOperationResult(
+                success=False,
+                operation_type=KGOperationType.TOPOLOGICAL_ANALYSIS,
+                integration_used='lagrange_mapper',
+                errors=[str(e)],
+                processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
+    
+    async def detect_landscape_transitions(
+        self,
+        embeddings_t1: Any,
+        embeddings_t2: Any,
+        labels: Optional[List[str]] = None
+    ) -> KGOperationResult:
+        """
+        Detect transitions in knowledge landscape between two time points.
+        
+        Compares embedding landscapes at two different times to identify:
+        - Created attractors (new knowledge clusters)
+        - Destroyed attractors (disappeared concepts)
+        - Persisted attractors (stable knowledge)
+        - Strength changes (evolving importance)
+        
+        Args:
+            embeddings_t1: Embeddings at time t1
+            embeddings_t2: Embeddings at time t2
+            labels: Optional labels for embedding points
+            
+        Returns:
+            KGOperationResult with transition analysis
+        """
+        start_time = datetime.now(timezone.utc)
+        
+        if 'lagrange_mapper' not in self._integrations:
+            return KGOperationResult(
+                success=False,
+                operation_type=KGOperationType.TOPOLOGICAL_ANALYSIS,
+                integration_used='none',
+                errors=['Lagrange Mapper not available'],
+                processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
+        
+        try:
+            import numpy as np
+            integration = self._integrations['lagrange_mapper']
+            
+            # Convert to numpy arrays
+            if not isinstance(embeddings_t1, np.ndarray):
+                embeddings_t1 = np.array(embeddings_t1)
+            if not isinstance(embeddings_t2, np.ndarray):
+                embeddings_t2 = np.array(embeddings_t2)
+            
+            # Detect transitions
+            if hasattr(integration._analyzer, 'detect_landscape_transitions'):
+                result = integration._analyzer.detect_landscape_transitions(
+                    embeddings_t1, embeddings_t2
+                )
+            else:
+                # Fallback: analyze both and compare
+                landscape1 = integration.analyze_landscape(embeddings_t1, labels)
+                landscape2 = integration.analyze_landscape(embeddings_t2, labels)
+                result = {
+                    'status': 'success',
+                    'transitions': {
+                        'attractors_t1': len(landscape1.get('landscape', {}).get('attractors', [])),
+                        'attractors_t2': len(landscape2.get('landscape', {}).get('attractors', [])),
+                        'comparison': 'manual_comparison_required'
+                    }
+                }
+            
+            return KGOperationResult(
+                success=result.get('status') == 'success',
+                operation_type=KGOperationType.TOPOLOGICAL_ANALYSIS,
+                integration_used='lagrange_mapper',
+                data=result,
+                processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
+            
+        except Exception as e:
+            logger.error(f"Landscape transition detection failed: {e}")
+            return KGOperationResult(
+                success=False,
+                operation_type=KGOperationType.TOPOLOGICAL_ANALYSIS,
+                integration_used='lagrange_mapper',
+                errors=[str(e)],
+                processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
     
     # ============ Health and Monitoring ============
     

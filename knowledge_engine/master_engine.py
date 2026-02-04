@@ -261,6 +261,9 @@ class ComponentRegistry:
             'dts': ['crewai', 'agentic_context'],  # Conversation alternatives
             'guardrails': ['agentjson', 'z3'],  # Validation alternatives
             'icr': ['dspy', 'outlines'],  # Quality improvement alternatives
+            
+            # Analysis & Topology substitution matrix
+            'lagrange_mapper': ['neuralkg', 'karateclub', 'causal_learn'],  # Analysis alternatives
         }
         
         # Core Knowledge Extraction (1-5)
