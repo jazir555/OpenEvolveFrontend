@@ -395,6 +395,71 @@ class CrewAIClient:
 
         return None
 
+    def get_workflow_tickets(self, workflow_id: str) -> List[Dict[str, Any]]:
+        """
+        Return ticket-like entries for a workflow.
+
+        CrewAI no longer uses a ticket system, so this derives ticket data
+        from the decomposition plan and solution attempts to preserve
+        compatibility with UI integrations.
+        """
+        state = self.get_workflow_state(workflow_id)
+        if not state:
+            return []
+
+        tickets: List[Dict[str, Any]] = []
+        sub_problems = []
+        if state.decomposition_plan and state.decomposition_plan.sub_problems:
+            sub_problems = list(state.decomposition_plan.sub_problems)
+
+        sub_solutions = state.sub_solutions or {}
+
+        def normalize_status(value: Optional[str]) -> str:
+            if not value:
+                return "pending"
+            status = value.lower()
+            if status in {"completed", "complete", "verified", "solved", "done"}:
+                return "completed"
+            if status in {"in_progress", "running", "solving", "active"}:
+                return "in_progress"
+            if status in {"failed", "error"}:
+                return "failed"
+            if status in {"paused", "blocked"}:
+                return "blocked"
+            return "pending"
+
+        for sub_problem in sub_problems:
+            attempt = sub_solutions.get(sub_problem.id)
+            status = None
+            assignee = None
+            created_at = None
+            if attempt is not None:
+                if isinstance(attempt, dict):
+                    status = attempt.get("status")
+                    assignee = attempt.get("agent_name") or attempt.get("generated_by_model")
+                    created_at = attempt.get("created_at") or attempt.get("timestamp")
+                else:
+                    status = getattr(attempt, "status", None)
+                    assignee = getattr(attempt, "agent_name", None) or getattr(attempt, "generated_by_model", None)
+                    created_at = getattr(attempt, "created_at", None) or getattr(attempt, "timestamp", None)
+
+            tickets.append(
+                {
+                    "id": sub_problem.id,
+                    "title": sub_problem.title,
+                    "description": sub_problem.description,
+                    "status": normalize_status(status),
+                    "assigned_agent_id": assignee,
+                    "created_at": created_at or state.created_at,
+                    "updated_at": state.updated_at,
+                    "sub_problem_id": sub_problem.id,
+                    "dependencies": list(sub_problem.dependencies or []),
+                    "priority": getattr(sub_problem, "priority", None),
+                }
+            )
+
+        return tickets
+
     def list_workflows(self, status: Optional[WorkflowStatus] = None) -> List[str]:
         """
         List all workflow IDs.

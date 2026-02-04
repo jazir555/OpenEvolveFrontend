@@ -34,10 +34,16 @@ import type {
 } from "./types";
 import type {
   PerformanceMetric,
+  AnalyticsWorkflowMetric,
   AnalyticsKnowledgeStats,
   MonitoringDashboardMetrics,
   MonitoringAlert,
   MonitoringMetric,
+  MonitoringService,
+  MonitoringLogEntry,
+  WorkflowTelemetry,
+  CrewAIWorkflowSummary,
+  CrewAIWorkflowTicket,
   WorkflowPlanResponse,
   SovereignPlan,
 } from "./types";
@@ -216,12 +222,41 @@ export const openevolveApi = {
       {},
       config,
     ),
+  getWorkflowTelemetry: (workflowId: string, config?: ApiConfig) =>
+    request<WorkflowTelemetry>(
+      `/workflows/${encodeURIComponent(workflowId)}/telemetry`,
+      {},
+      config,
+    ),
+  getWorkflowMetrics: (config?: ApiConfig) =>
+    request<{ metrics: AnalyticsWorkflowMetric[]; total: number }>(
+      "/analytics/workflow-metrics",
+      {},
+      config,
+    ),
   listSovereignPlans: (config?: ApiConfig) =>
     request<{ plans: SovereignPlan[] }>("/sovereign/plans", {}, config),
   getMonitoringDashboard: (config?: ApiConfig) =>
     request<MonitoringDashboardMetrics>("/monitoring/dashboard", {}, config),
   getMonitoringAlerts: (config?: ApiConfig) =>
     request<{ alerts: MonitoringAlert[] }>("/monitoring/alerts", {}, config),
+  getMonitoringServices: (config?: ApiConfig) =>
+    request<{ services: MonitoringService[]; timestamp?: string }>(
+      "/monitoring/services",
+      {},
+      config,
+    ),
+  getMonitoringLogs: (limit = 200, source?: string, config?: ApiConfig) => {
+    const params = new URLSearchParams();
+    if (limit) params.set("limit", String(limit));
+    if (source) params.set("source", source);
+    const suffix = params.toString() ? `?${params.toString()}` : "";
+    return request<{ entries: MonitoringLogEntry[]; total: number }>(
+      `/monitoring/logs${suffix}`,
+      {},
+      config,
+    );
+  },
   getMonitoringMetrics: (
     params: { name?: string; start_time?: string; end_time?: string },
     config?: ApiConfig,
@@ -235,6 +270,20 @@ export const openevolveApi = {
   },
   getMonitoringHealth: (config?: ApiConfig) =>
     request<Record<string, unknown>>("/monitoring/health", {}, config),
+  listCrewaiWorkflows: (config?: ApiConfig) =>
+    request<{ workflows: CrewAIWorkflowSummary[]; total: number }>("/crewai/workflows", {}, config),
+  getCrewaiWorkflow: (workflowId: string, config?: ApiConfig) =>
+    request<Record<string, unknown>>(
+      `/crewai/workflows/${encodeURIComponent(workflowId)}`,
+      {},
+      config,
+    ),
+  getCrewaiWorkflowTickets: (workflowId: string, config?: ApiConfig) =>
+    request<{ tickets: CrewAIWorkflowTicket[]; total: number; status_breakdown?: Record<string, number> }>(
+      `/crewai/workflows/${encodeURIComponent(workflowId)}/tickets`,
+      {},
+      config,
+    ),
   listPrompts: (config?: ApiConfig) =>
     request<{ prompts: PromptMap }>("/prompts", {}, config),
   savePrompt: (payload: { name: string; content: string }, config?: ApiConfig) =>

@@ -18,9 +18,11 @@ import os
 import re
 import base64
 import json
+import time
 from datetime import datetime, timedelta
 import uuid
 import logging
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +44,12 @@ try:
     ADAPTIVE_AVAILABLE = True
 except ImportError:
     ADAPTIVE_AVAILABLE = False
+
+try:
+    from crewai_state_management import create_state_manager, WorkflowState as CrewAIWorkflowState
+    CREWAI_AVAILABLE = True
+except ImportError:
+    CREWAI_AVAILABLE = False
 
 
 # **ACTUAL INTEGRATION HELPER METHODS**: API Server
@@ -483,6 +491,110 @@ def _serialize_monitoring_metric(metric: Any) -> Dict[str, Any]:
         "timestamp": timestamp,
         "description": getattr(metric, "description", None),
     }
+
+
+_crewai_state_manager: Optional["StateManager"] = None
+
+
+def _get_crewai_state_manager():
+    """Lazy-load CrewAI state manager for monitoring endpoints."""
+    global _crewai_state_manager
+    if not CREWAI_AVAILABLE:
+        return None
+    if _crewai_state_manager is None:
+        state_dir = os.getenv("CREWAI_STATE_DIR", "./crewai_states")
+        _crewai_state_manager = create_state_manager(storage_dir=state_dir, enable_compression=True)
+    return _crewai_state_manager
+
+
+def _normalize_crewai_status(value: Optional[str]) -> str:
+    if not value:
+        return "pending"
+    status = value.lower()
+    if status in {"completed", "complete", "verified", "solved", "done"}:
+        return "completed"
+    if status in {"in_progress", "running", "solving", "active"}:
+        return "in_progress"
+    if status in {"failed", "error"}:
+        return "failed"
+    if status in {"paused", "blocked"}:
+        return "blocked"
+    return "pending"
+
+
+def _build_crewai_ticket_list(state: "CrewAIWorkflowState") -> List[Dict[str, Any]]:
+    """Derive ticket-like entries from a CrewAI workflow state."""
+    tickets: List[Dict[str, Any]] = []
+    sub_problems = []
+    if state.decomposition_plan and state.decomposition_plan.sub_problems:
+        sub_problems = list(state.decomposition_plan.sub_problems)
+
+    sub_solutions = state.sub_solutions or {}
+
+    for sub_problem in sub_problems:
+        attempt = sub_solutions.get(sub_problem.id)
+        status = None
+        assignee = None
+        created_at = None
+        if attempt is not None:
+            if isinstance(attempt, dict):
+                status = attempt.get("status")
+                assignee = attempt.get("agent_name") or attempt.get("generated_by_model")
+                created_at = attempt.get("created_at") or attempt.get("timestamp")
+            else:
+                status = getattr(attempt, "status", None)
+                assignee = getattr(attempt, "agent_name", None) or getattr(attempt, "generated_by_model", None)
+                created_at = getattr(attempt, "created_at", None) or getattr(attempt, "timestamp", None)
+
+        tickets.append(
+            {
+                "id": sub_problem.id,
+                "title": sub_problem.title,
+                "description": sub_problem.description,
+                "status": _normalize_crewai_status(status),
+                "assigned_agent_id": assignee,
+                "created_at": created_at or state.created_at,
+                "updated_at": state.updated_at,
+                "sub_problem_id": sub_problem.id,
+                "dependencies": list(sub_problem.dependencies or []),
+                "priority": getattr(sub_problem, "priority", None),
+            }
+        )
+
+    return tickets
+
+
+def _tail_log_file(path: Path, limit: int) -> List[str]:
+    """Return the last N lines of a log file."""
+    if limit <= 0 or not path.exists():
+        return []
+    try:
+        with path.open("r", encoding="utf-8", errors="ignore") as file_handle:
+            return list(deque(file_handle, maxlen=limit))
+    except (OSError, IOError, UnicodeDecodeError):
+        return []
+
+
+def _collect_log_sources() -> Dict[str, Path]:
+    """Collect known log sources for monitoring."""
+    sources: Dict[str, Path] = {}
+    logs_dir = Path("logs")
+    if logs_dir.exists():
+        for entry in logs_dir.iterdir():
+            if entry.is_file():
+                sources[entry.name] = entry
+    for root_log in [Path("backend_stdout.log"), Path("backend_stderr.log")]:
+        if root_log.exists():
+            sources[root_log.name] = root_log
+    return sources
+
+
+def _extract_metric_value(metrics: Dict[str, Any], keys: List[str]) -> Optional[float]:
+    for key in keys:
+        value = metrics.get(key)
+        if isinstance(value, (int, float)):
+            return float(value)
+    return None
 
 
 def _serialize_workflow_subproblem(sub_problem: SubProblem) -> Dict[str, Any]:
@@ -1199,6 +1311,60 @@ def get_workflow_decomposition_plan(
         "dependency_graph": {
             "edges": dependency_edges,
             "execution_order": list(plan.metadata.get("execution_order", [])) if plan.metadata else [],
+        },
+    }
+
+
+@app.get("/workflows/{workflow_id}/telemetry", dependencies=[Depends(verify_api_key)])
+def get_workflow_telemetry(
+    workflow_id: str,
+    user: AuthUser = Depends(verify_api_key),
+    tenant_id: str = Depends(get_tenant_id)
+):
+    """Get telemetry and resource usage for a workflow."""
+    if workflow_id not in workflows:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+
+    wf = workflows[workflow_id]
+    if (wf.tenant_id or "default") != tenant_id:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+
+    execution_time = None
+    if wf.start_time:
+        execution_time = (wf.end_time or time.time()) - wf.start_time
+
+    critique_reports = getattr(wf, "all_critique_reports", []) or []
+    verification_reports = getattr(wf, "all_verification_reports", []) or []
+
+    def _avg(values: List[float]) -> float:
+        return sum(values) / len(values) if values else 0.0
+
+    critique_scores = [getattr(r, "overall_score", 0.0) for r in critique_reports]
+    verification_scores = [getattr(r, "average_score", 0.0) for r in verification_reports]
+
+    return {
+        "workflow_id": wf.workflow_id,
+        "workflow_type": wf.workflow_type,
+        "status": wf.status,
+        "current_stage": wf.current_stage,
+        "progress": wf.progress,
+        "start_time": wf.start_time,
+        "end_time": wf.end_time,
+        "execution_time_seconds": execution_time,
+        "refinement_loop_count": wf.refinement_loop_count,
+        "resource_usage": wf.resource_usage or {},
+        "performance_metrics": wf.performance_metrics or {},
+        "openevolve_metrics": wf.openevolve_metrics or {},
+        "crewai_workflow_id": getattr(wf, "crewai_workflow_id", None),
+        "gauntlet_summary": {
+            "critique_total": len(critique_reports),
+            "critique_approved": sum(1 for r in critique_reports if getattr(r, "is_approved", False)),
+            "critique_avg_score": _avg(critique_scores),
+            "verification_total": len(verification_reports),
+            "verification_approved": sum(
+                1 for r in verification_reports if getattr(r, "is_approved", False)
+            ),
+            "verification_avg_score": _avg(verification_scores),
         },
     }
 
@@ -2730,6 +2896,54 @@ def get_analytics_knowledge_stats():
     }
 
 
+@app.get("/analytics/workflow-metrics", dependencies=[Depends(verify_api_key)])
+def get_workflow_metrics():
+    """Get snapshot metrics for active workflows."""
+    metrics = []
+    timestamp = datetime.utcnow().isoformat()
+    for wf in workflows.values():
+        openevolve_metrics = wf.openevolve_metrics or {}
+        performance_metrics = wf.performance_metrics or {}
+        resource_usage = wf.resource_usage or {}
+        execution_time = None
+        if wf.start_time:
+            execution_time = (wf.end_time or time.time()) - wf.start_time
+
+        metrics.append(
+            {
+                "timestamp": timestamp,
+                "workflow_id": wf.workflow_id,
+                "status": wf.status,
+                "progress": wf.progress,
+                "best_fitness": _extract_metric_value(
+                    openevolve_metrics,
+                    ["best_fitness", "best_score", "fitness"],
+                ),
+                "avg_fitness": _extract_metric_value(
+                    openevolve_metrics,
+                    ["avg_fitness", "average_fitness", "mean_fitness"],
+                ),
+                "diversity": _extract_metric_value(
+                    openevolve_metrics,
+                    ["diversity", "diversity_score", "population_diversity"],
+                ),
+                "tokens_used": _extract_metric_value(resource_usage, ["tokens_used", "token_usage"]),
+                "execution_time": execution_time,
+                "memory_usage": _extract_metric_value(resource_usage, ["memory_usage_mb", "memory_peak_mb"]),
+                "cpu_usage": _extract_metric_value(resource_usage, ["cpu_usage", "cpu_time"]),
+                "population_size": _extract_metric_value(openevolve_metrics, ["population_size"]),
+                "generation": _extract_metric_value(openevolve_metrics, ["iterations_completed", "generation"]),
+                "metrics": {
+                    "performance": performance_metrics,
+                    "resource_usage": resource_usage,
+                    "openevolve": openevolve_metrics,
+                },
+            }
+        )
+
+    return {"metrics": metrics, "total": len(metrics)}
+
+
 # Monitoring endpoints
 
 @app.get("/monitoring/dashboard", dependencies=[Depends(verify_api_key)])
@@ -2761,6 +2975,111 @@ def get_monitoring_metrics(
 def get_monitoring_health():
     """Get current monitoring health status."""
     return system_health_monitor.get_health_status()
+
+
+@app.get("/monitoring/services", dependencies=[Depends(verify_api_key)])
+def get_monitoring_services():
+    """Get health check details for monitored services."""
+    result = system_health_monitor.run_health_checks()
+    services = []
+    for name, check in result.get("checks", {}).items():
+        services.append(
+            {
+                "name": name,
+                "status": check.get("status"),
+                "healthy": check.get("healthy"),
+                "execution_time": check.get("execution_time"),
+                "timestamp": check.get("timestamp"),
+                "error": check.get("error"),
+            }
+        )
+    return {"services": services, "timestamp": result.get("timestamp")}
+
+
+@app.get("/monitoring/logs", dependencies=[Depends(verify_api_key)])
+def get_monitoring_logs(limit: int = 200, source: Optional[str] = None):
+    """Return recent log lines from known sources."""
+    sources = _collect_log_sources()
+    if source:
+        if source not in sources:
+            raise HTTPException(status_code=404, detail="Log source not found")
+        paths = {source: sources[source]}
+    else:
+        paths = sources
+
+    entries = []
+    per_file_limit = max(1, limit)
+    for name, path in paths.items():
+        lines = _tail_log_file(path, per_file_limit)
+        for line in lines:
+            entries.append({"source": name, "line": line.rstrip("\n")})
+
+    if limit and len(entries) > limit:
+        entries = entries[-limit:]
+
+    return {"entries": entries, "total": len(entries)}
+
+
+# CrewAI monitoring endpoints
+
+@app.get("/crewai/workflows", dependencies=[Depends(verify_api_key)])
+def list_crewai_workflows():
+    """List CrewAI workflow states from local storage."""
+    if not CREWAI_AVAILABLE:
+        raise HTTPException(status_code=503, detail="CrewAI state management not available")
+
+    state_manager = _get_crewai_state_manager()
+    if state_manager is None:
+        raise HTTPException(status_code=500, detail="CrewAI state manager unavailable")
+
+    workflow_ids = state_manager.list_workflows()
+    summaries = []
+    for workflow_id in workflow_ids:
+        summary = state_manager.get_state_summary(workflow_id)
+        if summary:
+            summaries.append(summary)
+
+    return {"workflows": summaries, "total": len(summaries)}
+
+
+@app.get("/crewai/workflows/{workflow_id}", dependencies=[Depends(verify_api_key)])
+def get_crewai_workflow(workflow_id: str):
+    """Get a CrewAI workflow state."""
+    if not CREWAI_AVAILABLE:
+        raise HTTPException(status_code=503, detail="CrewAI state management not available")
+
+    state_manager = _get_crewai_state_manager()
+    if state_manager is None:
+        raise HTTPException(status_code=500, detail="CrewAI state manager unavailable")
+
+    state = state_manager.load_state(workflow_id)
+    if not state:
+        raise HTTPException(status_code=404, detail="CrewAI workflow not found")
+
+    return state.model_dump()
+
+
+@app.get("/crewai/workflows/{workflow_id}/tickets", dependencies=[Depends(verify_api_key)])
+def get_crewai_workflow_tickets(workflow_id: str):
+    """Get ticket-like entries derived from a CrewAI workflow."""
+    if not CREWAI_AVAILABLE:
+        raise HTTPException(status_code=503, detail="CrewAI state management not available")
+
+    state_manager = _get_crewai_state_manager()
+    if state_manager is None:
+        raise HTTPException(status_code=500, detail="CrewAI state manager unavailable")
+
+    state = state_manager.load_state(workflow_id)
+    if not state:
+        raise HTTPException(status_code=404, detail="CrewAI workflow not found")
+
+    tickets = _build_crewai_ticket_list(state)
+    status_counts: Dict[str, int] = {}
+    for ticket in tickets:
+        status = ticket.get("status", "unknown")
+        status_counts[status] = status_counts.get(status, 0) + 1
+
+    return {"tickets": tickets, "total": len(tickets), "status_breakdown": status_counts}
 
 
 # Knowledge Base endpoints

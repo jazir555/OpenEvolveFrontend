@@ -9,14 +9,19 @@ import { ModelDashboardTab } from './ModelDashboardTab';
 import { TasksTab } from './TasksTab';
 import { AdminTab } from './AdminTab';
 import { AnalyticsDashboardTab } from './AnalyticsDashboardTab';
+import { AnalyticsMonitoringTab } from './AnalyticsMonitoringTab';
 import { OpenEvolveDashboardTab } from './OpenEvolveDashboardTab';
+import { OpenEvolveVisualizationTab } from './OpenEvolveVisualizationTab';
 import { OrchestratorTab } from './OrchestratorTab';
 import { MonitoringTab } from './MonitoringTab';
+import { SystemMonitoringTab } from './SystemMonitoringTab';
+import { SgdMonitoringTab } from './SgdMonitoringTab';
 import { TeamManagerTab } from './TeamManagerTab';
 import { GauntletDesignerTab } from './GauntletDesignerTab';
 import { KnowledgeBaseTab } from './KnowledgeBaseTab';
 import { AutoApprovalTab } from './AutoApprovalTab';
 import { WorkflowTemplatesTab } from './WorkflowTemplatesTab';
+import { WorkflowVisualizationTab } from './WorkflowVisualizationTab';
 import { NotificationsTab } from './NotificationsTab';
 import { SuggestionsTab } from './SuggestionsTab';
 import { SettingsTab } from './SettingsTab';
@@ -25,6 +30,7 @@ import { CollaborationTab } from './CollaborationTab';
 import { DependencyGraphTab } from './DependencyGraphTab';
 import { PromptManagerTab } from './PromptManagerTab';
 import { ContentManagerTab } from './ContentManagerTab';
+import { ExportImportTab } from './ExportImportTab';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 
@@ -96,20 +102,26 @@ export const OpenEvolveApp: React.FC = () => {
                 <TabsTrigger value="teams">Teams</TabsTrigger>
                 <TabsTrigger value="gauntlets">Gauntlets</TabsTrigger>
                 <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                <TabsTrigger value="analytics-monitoring">Analytics Monitoring</TabsTrigger>
                 <TabsTrigger value="openevolve">OpenEvolve</TabsTrigger>
+                <TabsTrigger value="openevolve-visualization">OpenEvolve Visualization</TabsTrigger>
                 <TabsTrigger value="orchestrator">Orchestrator</TabsTrigger>
                 <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
+                <TabsTrigger value="system-monitoring">System Monitoring</TabsTrigger>
+                <TabsTrigger value="sgd-monitoring">SGD Monitoring</TabsTrigger>
                 <TabsTrigger value="collaboration">Collaboration</TabsTrigger>
                 <TabsTrigger value="dependencies">Dependencies</TabsTrigger>
                 <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
                 <TabsTrigger value="auto-approval">Auto Approval</TabsTrigger>
                 <TabsTrigger value="workflow-templates">Workflow Templates</TabsTrigger>
+                <TabsTrigger value="workflow-visualization">Workflow Visualization</TabsTrigger>
                 <TabsTrigger value="notifications">Notifications</TabsTrigger>
                 <TabsTrigger value="suggestions">Suggestions</TabsTrigger>
                 <TabsTrigger value="settings">Settings</TabsTrigger>
                 <TabsTrigger value="sovereign">Sovereign</TabsTrigger>
                 <TabsTrigger value="prompts">Prompts</TabsTrigger>
                 <TabsTrigger value="content">Content Tools</TabsTrigger>
+                <TabsTrigger value="export-import">Export / Import</TabsTrigger>
               </TabsList>
               
               <TabsContent value="evolution" className="mt-6">
@@ -161,9 +173,17 @@ export const OpenEvolveApp: React.FC = () => {
               <TabsContent value="analytics" className="mt-6">
                 <AnalyticsDashboardTab />
               </TabsContent>
+
+              <TabsContent value="analytics-monitoring" className="mt-6">
+                <AnalyticsMonitoringTab />
+              </TabsContent>
               
               <TabsContent value="openevolve" className="mt-6">
                 <OpenEvolveDashboardTab />
+              </TabsContent>
+
+              <TabsContent value="openevolve-visualization" className="mt-6">
+                <OpenEvolveVisualizationTab />
               </TabsContent>
               
               <TabsContent value="orchestrator" className="mt-6">
@@ -172,6 +192,14 @@ export const OpenEvolveApp: React.FC = () => {
               
               <TabsContent value="monitoring" className="mt-6">
                 <MonitoringTab />
+              </TabsContent>
+
+              <TabsContent value="system-monitoring" className="mt-6">
+                <SystemMonitoringTab />
+              </TabsContent>
+
+              <TabsContent value="sgd-monitoring" className="mt-6">
+                <SgdMonitoringTab />
               </TabsContent>
 
               <TabsContent value="collaboration" className="mt-6">
@@ -192,6 +220,10 @@ export const OpenEvolveApp: React.FC = () => {
 
               <TabsContent value="workflow-templates" className="mt-6">
                 <WorkflowTemplatesTab />
+              </TabsContent>
+
+              <TabsContent value="workflow-visualization" className="mt-6">
+                <WorkflowVisualizationTab />
               </TabsContent>
 
               <TabsContent value="notifications" className="mt-6">
@@ -216,6 +248,10 @@ export const OpenEvolveApp: React.FC = () => {
 
               <TabsContent value="content" className="mt-6">
                 <ContentManagerTab />
+              </TabsContent>
+
+              <TabsContent value="export-import" className="mt-6">
+                <ExportImportTab state={state} updateState={updateState} />
               </TabsContent>
             </Tabs>
           </div>

@@ -743,6 +743,11 @@ class DecompositionPlan:
     mdap_config: Dict[str, Any] = dataclasses.field(default_factory=dict)
     maker_enabled: bool = False
     maker_config: Dict[str, Any] = dataclasses.field(default_factory=dict)
+
+    # CREWAI integration attributes
+    crewai_workflow_id: Optional[str] = None
+    id_to_ticket_id_map: Dict[str, str] = dataclasses.field(default_factory=dict)
+    ticket_id_to_subproblem_id_map: Dict[str, str] = dataclasses.field(default_factory=dict)
     # Resource limits for the workflow
     resource_limits: Optional[Dict[str, Any]] = None
     # Parallel processing configuration

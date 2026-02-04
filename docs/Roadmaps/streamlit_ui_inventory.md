@@ -60,6 +60,12 @@ Goal: enumerate all Streamlit UI surfaces, the data they touch, and the BubbleLa
   - Backend: `/statistics`, `/icr/analytics/*`, `/icr/dashboard`
   - BubbleLab target: `AnalyticsDashboardTab` + charts
 
+- Analytics Settings
+  - File: `analytics.py::render_analytics_settings`
+  - Data: data collection toggles, report defaults, retention policy
+  - Backend: local UI state
+  - BubbleLab target: `SettingsTab` (implemented)
+
 - Monitoring Dashboard
   - Files: `ui_components.py::render_monitoring_tab`, `monitoring_dashboard.py`
   - Data: resource usage, alerts, logs
@@ -93,6 +99,12 @@ Goal: enumerate all Streamlit UI surfaces, the data they touch, and the BubbleLa
   - Data: workflow summaries, exported artifacts
   - Backend: reporting APIs / filesystem output
   - BubbleLab target: `ReportTemplatesTab`
+
+- Export / Import Manager
+  - File: `export_import_manager.py`
+  - Data: project snapshots, templates, settings, workflow history
+  - Backend: local UI state + filesystem download/upload
+  - BubbleLab target: `ExportImportTab` (implemented)
 
 - Tasks / Suggestions / Collaboration
   - Files: `tasks.py`, `suggestions.py`, `collaboration.py`
@@ -129,13 +141,19 @@ New/updated tabs started:
 - `TeamManagerTab.tsx`
 - `GauntletDesignerTab.tsx`
 - `AdminTab.tsx` (hosts Teams/Gauntlets)
+- `AnalyticsMonitoringTab.tsx`
+- `SystemMonitoringTab.tsx`
+- `SgdMonitoringTab.tsx`
+- `WorkflowVisualizationTab.tsx`
+- `OpenEvolveVisualizationTab.tsx`
+- `DependencyGraphTab.tsx` (analysis + matrix views)
+- `ExportImportTab.tsx`
 
 ## Immediate Next Port Targets
 
 1) Workflow Orchestrator (parity with `workflow_engine.py` + `render_workflow_orchestrator`)
-2) Monitoring & Analytics dashboards
-3) Knowledge Base Explorer and reports
-4) Integrations (GitHub, BubbleLabs adapters)
+2) Knowledge Base Explorer and reports
+3) Integrations (GitHub, BubbleLabs adapters)
 
 ## Notes
 

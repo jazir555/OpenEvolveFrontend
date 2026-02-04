@@ -76,6 +76,10 @@ def get_capabilities() -> Dict[str, Any]:
             LMQL_INTEGRATION_AVAILABLE,
             NEUROMANCER_INTEGRATION_AVAILABLE,
             COGNITIVE_HYDRAULICS_INTEGRATION_AVAILABLE,
+            # Conversation & Safety Integrations (2026-02-03)
+            DTS_INTEGRATION_AVAILABLE,
+            GUARDRAILS_INTEGRATION_AVAILABLE,
+            ICR_INTEGRATION_AVAILABLE,
         )
 
         integrations = {

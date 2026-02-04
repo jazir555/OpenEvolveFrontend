@@ -1,0 +1,8 @@
+{
+  "log_level": "INFO",
+  "max_results": 10,
+  "timeout_seconds": 30,
+  "enable_rdkit": true,
+  "globalchem_data_path": "./core-projects/global-chem",
+  "curie_integration_enabled": true
+}

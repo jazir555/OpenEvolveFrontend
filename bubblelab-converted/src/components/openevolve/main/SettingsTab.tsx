@@ -61,6 +61,34 @@ export const SettingsTab: React.FC = () => {
   const [validationResult, setValidationResult] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [analyticsSettings, setAnalyticsSettings] = useState(() => {
+    try {
+      return JSON.parse(
+        readStorage(
+          "openevolve_analytics_settings",
+          "{\"collect_usage_data\":true,\"collect_performance_data\":true,\"collect_error_data\":true}",
+        ),
+      ) as Record<string, boolean>;
+    } catch {
+      return {
+        collect_usage_data: true,
+        collect_performance_data: true,
+        collect_error_data: true,
+      };
+    }
+  });
+  const [analyticsSettingsRaw, setAnalyticsSettingsRaw] = useState(() =>
+    JSON.stringify(analyticsSettings, null, 2),
+  );
+  const [reportFormat, setReportFormat] = useState(
+    () => readStorage("openevolve_default_report_format", "Markdown"),
+  );
+  const [retentionDays, setRetentionDays] = useState(
+    () => Number(readStorage("openevolve_data_retention_days", "90")),
+  );
+  const [includePersonalInfo, setIncludePersonalInfo] = useState(
+    () => readStorage("openevolve_analytics_include_personal", "false") === "true",
+  );
 
   const loadSettings = async () => {
     setErrorMessage(null);
@@ -122,9 +150,21 @@ export const SettingsTab: React.FC = () => {
     setStatusMessage("Parameter overrides saved locally.");
   };
 
+  const saveAnalyticsSettings = () => {
+    writeStorage("openevolve_analytics_settings", JSON.stringify(analyticsSettings));
+    writeStorage("openevolve_default_report_format", reportFormat);
+    writeStorage("openevolve_data_retention_days", String(retentionDays));
+    writeStorage("openevolve_analytics_include_personal", String(includePersonalInfo));
+    setStatusMessage("Analytics settings saved locally.");
+  };
+
   const filteredParameters = parameters.filter((param) =>
     selectedCategory === "All" ? true : param.category === selectedCategory,
   );
+
+  useEffect(() => {
+    setAnalyticsSettingsRaw(JSON.stringify(analyticsSettings, null, 2));
+  }, [analyticsSettings]);
 
   return (
     <div className="space-y-6">
@@ -297,6 +337,114 @@ export const SettingsTab: React.FC = () => {
                   Showing 20 of {filteredParameters.length} parameters.
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Analytics Settings</CardTitle>
+              <CardDescription>Data collection, reporting, and retention preferences.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Data Collection</Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(analyticsSettings.collect_usage_data)}
+                    onChange={(event) => {
+                      const value = event.target.checked;
+                      setAnalyticsSettings((prev) => ({
+                        ...prev,
+                        collect_usage_data: value,
+                      }));
+                    }}
+                  />
+                  <span className="text-sm">Enable anonymous usage data</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(analyticsSettings.collect_performance_data)}
+                    onChange={(event) => {
+                      const value = event.target.checked;
+                      setAnalyticsSettings((prev) => ({
+                        ...prev,
+                        collect_performance_data: value,
+                      }));
+                    }}
+                  />
+                  <span className="text-sm">Enable performance metrics</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(analyticsSettings.collect_error_data)}
+                    onChange={(event) => {
+                      const value = event.target.checked;
+                      setAnalyticsSettings((prev) => ({
+                        ...prev,
+                        collect_error_data: value,
+                      }));
+                    }}
+                  />
+                  <span className="text-sm">Enable error reporting</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Default Report Format</Label>
+                <Select value={reportFormat} onValueChange={setReportFormat}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Markdown">Markdown</SelectItem>
+                    <SelectItem value="JSON">JSON</SelectItem>
+                    <SelectItem value="PDF">PDF</SelectItem>
+                    <SelectItem value="CSV">CSV</SelectItem>
+                    <SelectItem value="Excel">Excel</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Data Retention (days)</Label>
+                <Input
+                  type="number"
+                  value={retentionDays}
+                  onChange={(event) => setRetentionDays(Number(event.target.value) || 30)}
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={includePersonalInfo}
+                  onChange={(event) => setIncludePersonalInfo(event.target.checked)}
+                />
+                <span className="text-sm">Include personal information in analytics</span>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Raw Settings (JSON)</Label>
+                <Textarea
+                  value={analyticsSettingsRaw}
+                  onChange={(event) => {
+                    const next = event.target.value;
+                    setAnalyticsSettingsRaw(next);
+                    try {
+                      const parsed = JSON.parse(next);
+                      setAnalyticsSettings(parsed);
+                    } catch {
+                      // keep raw text until valid JSON
+                    }
+                  }}
+                  className="min-h-[120px]"
+                />
+              </div>
+
+              <Button onClick={saveAnalyticsSettings}>Save Analytics Settings</Button>
             </CardContent>
           </Card>
         </CardContent>

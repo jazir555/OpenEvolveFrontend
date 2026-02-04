@@ -1,0 +1,4 @@
+# Requirements for Curie-GlobalChem Integration Adapter
+rdkit==2023.9.5
+global-chem>=1.0.0
+curie-ai>=0.1.0

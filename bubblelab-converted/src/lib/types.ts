@@ -395,6 +395,90 @@ export interface MonitoringMetric {
   description?: string | null;
 }
 
+export interface MonitoringService {
+  name: string;
+  status?: string;
+  healthy?: boolean;
+  execution_time?: number;
+  timestamp?: string;
+  error?: string | null;
+}
+
+export interface MonitoringLogEntry {
+  source: string;
+  line: string;
+}
+
+export interface AnalyticsWorkflowMetric {
+  timestamp?: string;
+  workflow_id: string;
+  status?: string;
+  progress?: number;
+  best_fitness?: number | null;
+  avg_fitness?: number | null;
+  diversity?: number | null;
+  tokens_used?: number | null;
+  execution_time?: number | null;
+  memory_usage?: number | null;
+  cpu_usage?: number | null;
+  population_size?: number | null;
+  generation?: number | null;
+  metrics?: Record<string, unknown>;
+}
+
+export interface WorkflowTelemetry {
+  workflow_id: string;
+  workflow_type?: string;
+  status?: string;
+  current_stage?: string;
+  progress?: number;
+  start_time?: number;
+  end_time?: number | null;
+  execution_time_seconds?: number | null;
+  refinement_loop_count?: number;
+  resource_usage?: Record<string, unknown>;
+  performance_metrics?: Record<string, unknown>;
+  openevolve_metrics?: Record<string, unknown>;
+  crewai_workflow_id?: string | null;
+  gauntlet_summary?: {
+    critique_total: number;
+    critique_approved: number;
+    critique_avg_score: number;
+    verification_total: number;
+    verification_approved: number;
+    verification_avg_score: number;
+  };
+}
+
+export interface CrewAIWorkflowSummary {
+  workflow_id: string;
+  problem_statement?: string;
+  phase?: number;
+  status?: string;
+  execution_method?: string;
+  created_at?: string;
+  updated_at?: string;
+  has_decomposition_plan?: boolean;
+  num_sub_solutions?: number;
+  num_critiques?: number;
+  num_verification_results?: number;
+  has_reassembly_result?: boolean;
+  has_final_validation?: boolean;
+}
+
+export interface CrewAIWorkflowTicket {
+  id: string;
+  title?: string;
+  description?: string;
+  status?: string;
+  assigned_agent_id?: string | null;
+  created_at?: string | number;
+  updated_at?: string | number;
+  sub_problem_id?: string;
+  dependencies?: string[];
+  priority?: number | null;
+}
+
 export interface WorkflowSubProblem {
   id: string;
   description: string;

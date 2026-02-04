@@ -81,6 +81,28 @@ except ImportError:
     CognitiveHydraulicsKGIntegration = None
     COGNITIVE_HYDRAULICS_AVAILABLE = False
 
+# Conversation & Safety Integrations (2026-02-03)
+try:
+    from knowledge_engine.integrations.dts.dts_integration import DTSKGIntegration
+    DTS_AVAILABLE = True
+except ImportError:
+    DTSKGIntegration = None
+    DTS_AVAILABLE = False
+
+try:
+    from knowledge_engine.integrations.guardrails.guardrails_integration import GuardrailsKGIntegration
+    GUARDRAILS_AVAILABLE = True
+except ImportError:
+    GuardrailsKGIntegration = None
+    GUARDRAILS_AVAILABLE = False
+
+try:
+    from knowledge_engine.integrations.icr.icr_integration import ICRKGIntegration
+    ICR_AVAILABLE = True
+except ImportError:
+    ICRKGIntegration = None
+    ICR_AVAILABLE = False
+
 # Import orchestration components
 from knowledge_engine.orchestration.self_healing_orchestrator import (
     SelfHealingOrchestrator, HealingStrategy, FailureEvent, FailureType
@@ -209,7 +231,12 @@ class ComponentRegistry:
             'outlines': ['structured_generation', 'json_constraints', 'regex_constraints', 'guaranteed_valid_output'],
             'lmql': ['declarative_queries', 'constraint_programming', 'multi_turn_dialog', 'cypher_generation'],
             'neuromancer_ke': ['physics_simulation', 'ode_solving', 'pde_solving', 'dynamics_learning', 'scientific_domains'],
-            'cognitive_hydraulics': ['hybrid_reasoning', 'symbolic_reasoning', 'heuristic_reasoning', 'evolutionary_fallback', 'learning_chunking']
+            'cognitive_hydraulics': ['hybrid_reasoning', 'symbolic_reasoning', 'heuristic_reasoning', 'evolutionary_fallback', 'learning_chunking'],
+            
+            # Conversation & Safety Integrations (2026-02-03)
+            'dts': ['conversation_optimization', 'dialogue_tree_search', 'user_simulation', 'multi_judge_scoring', 'beam_search'],
+            'guardrails': ['ai_safety', 'output_validation', 'pii_detection', 'toxicity_check', 'policy_enforcement', 'compliance_gdpr_hipaa'],
+            'icr': ['iterative_refinement', 'quality_improvement', 'generate_critique_refine', 'convergence_detection', 'early_stopping']
         }
         
         # Define substitution matrix (which components can cover for others)
@@ -229,6 +256,11 @@ class ComponentRegistry:
             'lmql': ['crewai', 'dspy'],  # Query/delegation alternatives
             'neuromancer_ke': ['neuromancer', 'causal_learn'],  # Scientific analysis alternatives
             'cognitive_hydraulics': ['crewai', 'dspy', 'neuralkg'],  # Reasoning alternatives
+            
+            # Conversation & Safety substitution matrix
+            'dts': ['crewai', 'agentic_context'],  # Conversation alternatives
+            'guardrails': ['agentjson', 'z3'],  # Validation alternatives
+            'icr': ['dspy', 'outlines'],  # Quality improvement alternatives
         }
         
         # Core Knowledge Extraction (1-5)
@@ -292,6 +324,25 @@ class ComponentRegistry:
             self.components['cognitive_hydraulics'] = self._safe_init(CognitiveHydraulicsKGIntegration, 'cognitive_hydraulics')
         else:
             self.components['cognitive_hydraulics'] = self._create_mock_component('cognitive_hydraulics')
+        
+        # Conversation & Safety Integrations (2026-02-03)
+        # DTS - Dialogue Tree Search for multi-turn conversation optimization
+        if DTS_AVAILABLE:
+            self.components['dts'] = self._safe_init(DTSKGIntegration, 'dts')
+        else:
+            self.components['dts'] = self._create_mock_component('dts')
+        
+        # Guardrails - AI safety, output validation, and policy enforcement
+        if GUARDRAILS_AVAILABLE:
+            self.components['guardrails'] = self._safe_init(GuardrailsKGIntegration, 'guardrails')
+        else:
+            self.components['guardrails'] = self._create_mock_component('guardrails')
+        
+        # ICR - Iterative Contextual Refinements for quality improvement
+        if ICR_AVAILABLE:
+            self.components['icr'] = self._safe_init(ICRKGIntegration, 'icr')
+        else:
+            self.components['icr'] = self._create_mock_component('icr')
 
         # ROMA Meta-Agent (22) - Hierarchical problem decomposition and execution
         if ROMA_INTEGRATION_AVAILABLE:
