@@ -1,64 +1,42 @@
-# Streamlit → BubbleLab TypeScript Port Roadmap
+# Streamlit → BubbleLab UI Port Roadmap (Full Parity)
 
-Goal: complete 1:1 feature parity by replacing all Streamlit UI surfaces with BubbleLab TypeScript, then remove Streamlit dependencies entirely.
+## Goal
+Replace every Streamlit UI surface with BubbleLab TypeScript components while preserving full business logic and user workflows. The Streamlit implementation will be removed once parity is confirmed.
 
-## Scope Inventory (initial)
+## Phase 1 — Inventory + Mapping (Week 1)
+1. **Inventory all Streamlit UI surfaces**
+   - Scan `*.py` for `import streamlit` + UI renderers (tabs, dashboards, sidebar, expander flows).
+   - Map each UI surface to BubbleLab tab/section(s).
+2. **Define API contracts for missing UI data**
+   - Identify backend data required for each UI module (analytics, monitoring, dependencies, prompts, templates, collaboration, etc.).
+   - Add REST/WebSocket endpoints for any missing data paths.
+3. **Parity checklist**
+   - Document features per Streamlit module with a 1:1 parity checklist.
 
-Primary UI entry points (Streamlit):
-- `main.py` (main app shell / navigation)
-- `ui_components.py` + `ui_components_additional.py` (core UI panels)
-- `mainlayout.py` (layout + third‑party streamlit widgets)
-- `workflow_engine.py` (UI‑emitting workflow orchestration)
-- `analytics_dashboard.py`, `analytics_monitoring_dashboard.py`, `monitoring_dashboard.py`
-- `adversarial.py`, `adversarial_testing.py`, `evolution.py` (domain dashboards)
-- `knowledge_base_ui.py`, `knowledge_base` visualizations
-- `bubblelabs_*_ui.py` / `bubblelabs_*_integration*.py` (integration UIs)
-- `dependency_visualizer.py`, `workflow_visualization.py`
-- `collaboration.py`, `collaboration_manager.py`
-- `configuration_system.py`, `evaluator_uploader.py`, `export_import_manager.py`
-- `tasks.py`, `suggestions.py`, `state.py`, `log_streaming.py`
+## Phase 2 — Port + Wire (Week 1–2)
+1. **Port core tabs**
+   - Evolution, Adversarial, Team, Gauntlet, Orchestrator, Dashboard (already in BubbleLab) — verify parity.
+2. **Port remaining Streamlit dashboards**
+   - Analytics Dashboard (workflow/team/gauntlet/solution quality/knowledge stats).
+   - Monitoring Dashboard (system/resource/alerts/metrics) + real-time websocket feed.
+   - SGD Monitoring dashboard.
+   - Dependency Visualizer + Workflow Visualizer.
+   - Collaboration UI (real-time presence, content updates, cursor updates, sharing).
+   - Prompt Manager + Content Management tools (templates, validation, prompt storage).
+3. **Backend wiring**
+   - Add missing API endpoints and ensure JSON contracts align with TS types.
+   - Add any missing business logic (no simulated data).
 
-BubbleLab target:
-- Use `bubblelab-converted/src/components/openevolve` as the primary UI root unless another BubbleLab app is specified.
+## Phase 3 — Finalize + Remove Streamlit (After parity lock)
+1. **Final scan (gating step)**
+   - Re-scan for any remaining Streamlit UI usage and port anything missing.
+2. **Remove Streamlit UI codepaths**
+   - Delete Streamlit entrypoints (`main.py`, `mainlayout.py`, `sidebar.py`, `ui_components.py`, `ui_components_additional.py`, etc.).
+   - Remove Streamlit dependencies from Python modules (replace `st.session_state` with proper storage).
+3. **End-to-end verification**
+   - Run BubbleLab UI + API integration tests.
+   - Confirm zero Streamlit imports remain.
 
-## Phased Order (execution can overlap)
-
-### Phase 0 — Inventory & Parity Matrix
-- Catalog each Streamlit screen/panel, inputs, outputs, and data dependencies.
-- Map each to a BubbleLab component and backend API surface.
-- Define parity checklist per screen (inputs, actions, outputs, charts, logs, state persistence).
-
-### Phase 1 — Core Shell & Navigation
-- BubbleLab app shell: tabs/sections, routing, global state, and persistence.
-- Replace `main.py`, `mainlayout.py`, core `ui_components.py` layout with TS components.
-- Ensure stateful workflows (session state equivalents) exist in BubbleLab.
-
-### Phase 2 — Workflow Orchestration UI
-- Port Streamlit workflow controls and run status views from `workflow_engine.py` UI hooks.
-- Implement UI hooks as explicit events/state rather than Streamlit calls.
-- Ensure 1:1 behavior for gauntlet status, stages, and progress.
-
-### Phase 3 — Domain Dashboards
-- Port analytics, monitoring, adversarial, evolution, knowledge base dashboards.
-- Port charts, tables, and configuration panels.
-- Implement streaming/log views as BubbleLab components.
-
-### Phase 4 — Integrations & Tooling
-- Port BubbleLabs integration UIs, LeanAide UI, GitHub integrations, and evaluators.
-- Replace any Streamlit‑specific embedding (e.g., Streamlit components) with BubbleLab equivalents.
-
-### Phase 5 — Cleanup & Removal
-- Remove Streamlit dependencies from code and requirements.
-- Remove Streamlit‑only runtime paths, CLI entrypoints, and docs.
-- Update tests and integration harnesses to use BubbleLab UI.
-
-## Acceptance Criteria (global)
-
-- Every Streamlit UI element has a BubbleLab counterpart with identical behavior.
-- All workflows are operable from BubbleLab UI with parity in outputs and side effects.
-- No Streamlit imports or runtime calls remain in the codebase.
-- Tests (unit/integration) are updated for BubbleLab UI and pass.
-
-## Current Start Point
-
-Start with Phase 0 inventory by enumerating Streamlit screens and documenting required data/controls. Then implement Phase 1 shell/routing in BubbleLab, followed by phase 2+ components in priority order.
+## Notes
+- Before starting Phase 3, a **full scan** is required to ensure nothing is left unported.
+- Any feature parity gaps discovered during Phase 2 are treated as blockers.

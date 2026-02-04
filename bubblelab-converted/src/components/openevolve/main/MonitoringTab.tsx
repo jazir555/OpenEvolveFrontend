@@ -13,7 +13,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { openevolveApi } from "@/lib/openevolveApi";
-import type { AdaptiveMdapDashboard, AdaptiveMdapProfiles, AuditLogEntry } from "@/lib/types";
+import type {
+  AdaptiveMdapDashboard,
+  AdaptiveMdapProfiles,
+  AuditLogEntry,
+  MonitoringDashboardMetrics,
+  MonitoringAlert,
+  MonitoringMetric,
+} from "@/lib/types";
 
 const DEFAULT_MODELS = [
   "gpt-4o-mini",
@@ -48,6 +55,12 @@ export const MonitoringTab: React.FC = () => {
   const [profileConfig, setProfileConfig] = useState<Record<string, unknown> | null>(null);
   const [selectedProfile, setSelectedProfile] = useState<string>("");
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
+  const [systemDashboard, setSystemDashboard] = useState<MonitoringDashboardMetrics | null>(null);
+  const [monitoringAlerts, setMonitoringAlerts] = useState<MonitoringAlert[]>([]);
+  const [metricName, setMetricName] = useState("system_cpu_percent");
+  const [metricSamples, setMetricSamples] = useState<MonitoringMetric[]>([]);
+  const [monitoringWsStatus, setMonitoringWsStatus] = useState("disconnected");
+  const [monitoringUpdates, setMonitoringUpdates] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -78,21 +91,70 @@ export const MonitoringTab: React.FC = () => {
     setLoading(true);
     setErrorMessage(null);
     try {
-      const [healthRes, dashboardRes, profilesRes, logsRes] = await Promise.all([
+      const [healthRes, dashboardRes, profilesRes, logsRes, monitoringDashboardRes, alertsRes] =
+        await Promise.all([
         openevolveApi.getAdaptiveMdapHealth(apiConfig),
         openevolveApi.getAdaptiveMdapDashboard(apiConfig),
         openevolveApi.getAdaptiveMdapProfiles(apiConfig),
         openevolveApi.listAuditLogs(100, apiConfig),
+        openevolveApi.getMonitoringDashboard(apiConfig),
+        openevolveApi.getMonitoringAlerts(apiConfig),
       ]);
       setHealth(healthRes);
       setDashboard(dashboardRes);
       setProfiles(profilesRes);
       setSelectedProfile(profilesRes.default);
       setAuditLogs(logsRes.logs || []);
+      setSystemDashboard(monitoringDashboardRes);
+      setMonitoringAlerts(alertsRes.alerts || []);
     } catch (error: any) {
       setErrorMessage(error?.message ?? "Failed to load monitoring data.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadMetricSamples = async () => {
+    setErrorMessage(null);
+    try {
+      const result = await openevolveApi.getMonitoringMetrics({ name: metricName }, apiConfig);
+      setMetricSamples(result.metrics || []);
+    } catch (error: any) {
+      setErrorMessage(error?.message ?? "Failed to load monitoring metrics.");
+    }
+  };
+
+  const connectMonitoringWebsocket = () => {
+    try {
+      const baseUrl = (globalThis as any)?.OPENEVOLVE_API_BASE as string | undefined;
+      const apiBase =
+        baseUrl ||
+        (() => {
+          try {
+            return globalThis.localStorage?.getItem("openevolve_api_base") || "";
+          } catch {
+            return "";
+          }
+        })();
+      if (!apiBase) {
+        setErrorMessage("Set openevolve_api_base to use monitoring websocket.");
+        return;
+      }
+      const wsUrl = apiBase.replace(/^http/, "ws");
+      const socket = new WebSocket(`${wsUrl}/ws/monitoring`);
+      socket.onopen = () => setMonitoringWsStatus("connected");
+      socket.onclose = () => setMonitoringWsStatus("disconnected");
+      socket.onerror = () => setMonitoringWsStatus("error");
+      socket.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          setMonitoringUpdates((prev) => [payload, ...prev].slice(0, 20));
+        } catch {
+          // ignore malformed messages
+        }
+      };
+    } catch (error: any) {
+      setErrorMessage(error?.message ?? "Failed to connect websocket.");
     }
   };
 
@@ -244,6 +306,114 @@ export const MonitoringTab: React.FC = () => {
               </CardContent>
             </Card>
           </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">System Monitoring</CardTitle>
+              <CardDescription>System health, resource usage, and alerts.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="rounded border p-2">
+                  <div className="font-semibold">Health Status</div>
+                  <div>Status: {systemDashboard?.health?.status ?? "unknown"}</div>
+                  <div>Uptime: {systemDashboard?.health?.uptime_seconds?.toFixed(0) ?? "0"}s</div>
+                </div>
+                <div className="rounded border p-2">
+                  <div className="font-semibold">CPU</div>
+                  <div>
+                    {systemDashboard?.system?.system?.cpu_percent !== undefined
+                      ? `${systemDashboard.system.system.cpu_percent.toFixed(1)}%`
+                      : "n/a"}
+                  </div>
+                </div>
+                <div className="rounded border p-2">
+                  <div className="font-semibold">Memory</div>
+                  <div>
+                    {systemDashboard?.system?.system?.memory_percent !== undefined
+                      ? `${systemDashboard.system.system.memory_percent.toFixed(1)}%`
+                      : "n/a"}
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded border p-2">
+                <div className="font-semibold">Workflow Success Rates</div>
+                {systemDashboard?.workflow ? (
+                  Object.entries(systemDashboard.workflow).map(([key, value]) => (
+                    <div key={key} className="text-xs text-muted-foreground">
+                      {key}: {(value * 100).toFixed(1)}%
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-muted-foreground">No workflow metrics.</div>
+                )}
+              </div>
+
+              <div className="rounded border p-2">
+                <div className="font-semibold">Active Alerts</div>
+                {monitoringAlerts.length === 0 ? (
+                  <div className="text-muted-foreground">No active alerts.</div>
+                ) : (
+                  monitoringAlerts.map((alert, index) => (
+                    <div key={`alert-${index}`} className="text-xs text-muted-foreground">
+                      {alert.name ?? "alert"} · {alert.description ?? "threshold breached"}
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Monitoring Metrics Stream</CardTitle>
+              <CardDescription>Fetch metrics or connect to the websocket feed.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center">
+                <div className="flex-1">
+                  <Label>Metric Name</Label>
+                  <Input value={metricName} onChange={(event) => setMetricName(event.target.value)} />
+                </div>
+                <Button variant="outline" onClick={loadMetricSamples}>
+                  Load Metrics
+                </Button>
+                <Button variant="outline" onClick={connectMonitoringWebsocket}>
+                  Connect WebSocket
+                </Button>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                WebSocket Status: {monitoringWsStatus}
+              </div>
+              <div className="grid gap-2 md:grid-cols-2">
+                <div className="rounded border p-2">
+                  <div className="font-semibold">Recent Metric Samples</div>
+                  {metricSamples.length === 0 ? (
+                    <div className="text-muted-foreground">No samples loaded.</div>
+                  ) : (
+                    metricSamples.slice(0, 6).map((metric, index) => (
+                      <div key={`metric-${index}`} className="text-xs text-muted-foreground">
+                        {metric.timestamp ?? "time"} · {metric.value ?? "n/a"}
+                      </div>
+                    ))
+                  )}
+                </div>
+                <div className="rounded border p-2">
+                  <div className="font-semibold">Live Updates</div>
+                  {monitoringUpdates.length === 0 ? (
+                    <div className="text-muted-foreground">No live updates yet.</div>
+                  ) : (
+                    monitoringUpdates.slice(0, 6).map((update, index) => (
+                      <div key={`update-${index}`} className="text-xs text-muted-foreground">
+                        {JSON.stringify(update)}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           <div className="grid gap-4 md:grid-cols-2">
             <Card>

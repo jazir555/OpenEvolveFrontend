@@ -278,6 +278,36 @@ except ImportError:
     CognitiveHydraulicsKGIntegration = None
     COGNITIVE_HYDRAULICS_INTEGRATION_AVAILABLE = False
 
+# DTS - Dialogue Tree Search for conversation optimization
+try:
+    from .dts.dts_integration import (
+        DTSKGIntegration,
+        DTS_INTEGRATION_AVAILABLE
+    )
+except ImportError:
+    DTSKGIntegration = None
+    DTS_INTEGRATION_AVAILABLE = False
+
+# Guardrails - AI safety and output validation
+try:
+    from .guardrails.guardrails_integration import (
+        GuardrailsKGIntegration,
+        GUARDRAILS_INTEGRATION_AVAILABLE
+    )
+except ImportError:
+    GuardrailsKGIntegration = None
+    GUARDRAILS_INTEGRATION_AVAILABLE = False
+
+# ICR - Iterative Contextual Refinements
+try:
+    from .icr.icr_integration import (
+        ICRKGIntegration,
+        ICR_INTEGRATION_AVAILABLE
+    )
+except ImportError:
+    ICRKGIntegration = None
+    ICR_INTEGRATION_AVAILABLE = False
+
 
 __all__ = [
     # Z3 Knowledge Integration
@@ -426,4 +456,16 @@ __all__ = [
     # Cognitive-Hydraulics Integration (Hybrid Neuro-Symbolic Reasoning)
     "CognitiveHydraulicsKGIntegration",
     "COGNITIVE_HYDRAULICS_INTEGRATION_AVAILABLE",
+    
+    # DTS Integration (Dialogue Tree Search)
+    "DTSKGIntegration",
+    "DTS_INTEGRATION_AVAILABLE",
+    
+    # Guardrails Integration (AI Safety)
+    "GuardrailsKGIntegration",
+    "GUARDRAILS_INTEGRATION_AVAILABLE",
+    
+    # ICR Integration (Iterative Contextual Refinements)
+    "ICRKGIntegration",
+    "ICR_INTEGRATION_AVAILABLE",
 ]

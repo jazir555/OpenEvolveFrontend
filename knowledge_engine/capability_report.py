@@ -102,6 +102,11 @@ def get_capabilities() -> Dict[str, Any]:
             'lmql': (LMQL_INTEGRATION_AVAILABLE, 'LMQL - Declarative Query Language', 'pip install lmql'),
             'neuromancer_ke': (NEUROMANCER_INTEGRATION_AVAILABLE, 'Neuromancer - Physics-Informed Neural Operators', 'pip install neuromancer'),
             'cognitive_hydraulics': (COGNITIVE_HYDRAULICS_INTEGRATION_AVAILABLE, 'Cognitive-Hydraulics - Hybrid Neuro-Symbolic Reasoning', 'Core feature'),
+            
+            # Conversation & Safety Integrations (2026-02-03)
+            'dts': (DTS_INTEGRATION_AVAILABLE, 'DTS - Dialogue Tree Search', 'Core feature'),
+            'guardrails': (GUARDRAILS_INTEGRATION_AVAILABLE, 'Guardrails - AI Safety & Validation', 'pip install guardrails-ai'),
+            'icr': (ICR_INTEGRATION_AVAILABLE, 'ICR - Iterative Contextual Refinements', 'Core feature'),
         }
 
         for key, (available, display_name, install_hint) in integrations.items():

@@ -21,6 +21,9 @@ import type {
   KnowledgeGraph,
   KnowledgeStats,
   KnowledgeRecommendations,
+  PromptMap,
+  ContentTemplate,
+  ProtocolValidationResult,
   AutoApprovalConfig,
   AutoApprovalTestResult,
   AutoApprovalAuditEntry,
@@ -28,6 +31,15 @@ import type {
   ProviderSummary,
   ParameterDefinition,
   ParameterValidationResult,
+} from "./types";
+import type {
+  PerformanceMetric,
+  AnalyticsKnowledgeStats,
+  MonitoringDashboardMetrics,
+  MonitoringAlert,
+  MonitoringMetric,
+  WorkflowPlanResponse,
+  SovereignPlan,
 } from "./types";
 
 export interface ApiConfig {
@@ -181,6 +193,82 @@ export const openevolveApi = {
       config,
     ),
   getStatistics: (config?: ApiConfig) => request<StatisticsSummary>("/statistics", {}, config),
+  getPerformanceMetrics: (entityType?: string, limit = 200, config?: ApiConfig) => {
+    const params = new URLSearchParams();
+    if (entityType) {
+      params.set("entity_type", entityType);
+    }
+    if (limit) {
+      params.set("limit", String(limit));
+    }
+    const suffix = params.toString() ? `?${params.toString()}` : "";
+    return request<{ metrics: PerformanceMetric[]; total: number }>(
+      `/analytics/performance-metrics${suffix}`,
+      {},
+      config,
+    );
+  },
+  getAnalyticsKnowledgeStats: (config?: ApiConfig) =>
+    request<AnalyticsKnowledgeStats>("/analytics/knowledge-stats", {}, config),
+  getWorkflowPlan: (workflowId: string, config?: ApiConfig) =>
+    request<WorkflowPlanResponse>(
+      `/workflows/${encodeURIComponent(workflowId)}/decomposition-plan`,
+      {},
+      config,
+    ),
+  listSovereignPlans: (config?: ApiConfig) =>
+    request<{ plans: SovereignPlan[] }>("/sovereign/plans", {}, config),
+  getMonitoringDashboard: (config?: ApiConfig) =>
+    request<MonitoringDashboardMetrics>("/monitoring/dashboard", {}, config),
+  getMonitoringAlerts: (config?: ApiConfig) =>
+    request<{ alerts: MonitoringAlert[] }>("/monitoring/alerts", {}, config),
+  getMonitoringMetrics: (
+    params: { name?: string; start_time?: string; end_time?: string },
+    config?: ApiConfig,
+  ) => {
+    const search = new URLSearchParams();
+    if (params.name) search.set("name", params.name);
+    if (params.start_time) search.set("start_time", params.start_time);
+    if (params.end_time) search.set("end_time", params.end_time);
+    const suffix = search.toString() ? `?${search.toString()}` : "";
+    return request<{ metrics: MonitoringMetric[] }>(`/monitoring/metrics${suffix}`, {}, config);
+  },
+  getMonitoringHealth: (config?: ApiConfig) =>
+    request<Record<string, unknown>>("/monitoring/health", {}, config),
+  listPrompts: (config?: ApiConfig) =>
+    request<{ prompts: PromptMap }>("/prompts", {}, config),
+  savePrompt: (payload: { name: string; content: string }, config?: ApiConfig) =>
+    request<{ success: boolean; name: string }>(
+      "/prompts",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  deletePrompt: (promptName: string, config?: ApiConfig) =>
+    request<{ success: boolean }>(
+      `/prompts/${encodeURIComponent(promptName)}`,
+      { method: "DELETE" },
+      config,
+    ),
+  listContentTemplates: (config?: ApiConfig) =>
+    request<{ templates: string[] }>("/content/templates", {}, config),
+  getContentTemplate: (templateName: string, config?: ApiConfig) =>
+    request<ContentTemplate>(
+      `/content/templates/${encodeURIComponent(templateName)}`,
+      {},
+      config,
+    ),
+  createContentTemplate: (payload: { name: string; content: string }, config?: ApiConfig) =>
+    request<{ template: Record<string, unknown> }>(
+      "/content/templates",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  validateProtocol: (payload: { protocol_text: string; validation_type?: string }, config?: ApiConfig) =>
+    request<ProtocolValidationResult>(
+      "/content/validate",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
   listAuditLogs: (limit = 200, config?: ApiConfig) =>
     request<{ logs: AuditLogEntry[]; total: number }>(`/audit/logs?limit=${limit}`, {}, config),
   getIcrOverview: (config?: ApiConfig) => request<IcrOverview>("/icr/analytics/overview", {}, config),

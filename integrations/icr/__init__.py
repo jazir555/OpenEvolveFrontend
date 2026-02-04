@@ -11,11 +11,14 @@ Example:
     >>> print(f"Achieved score: {result.final_score}")
 """
 
-from integrations.icr.generator import Generator, GenerationResult
+from integrations.icr.generator import Generator, GenerationResult, GenerationStrategy
 from integrations.icr.critic import (
     Critic,
     CritiqueResult,
+    CritiqueCriteria,
     Issue,
+    IssueType,
+    Severity,
     Suggestion,
 )
 from integrations.icr.refiner import (
@@ -32,11 +35,13 @@ from integrations.icr.judge import (
     EvaluationResult,
     ComparisonResult,
     Criteria,
+    EvaluationStatus,
 )
 from integrations.icr.iterative_engine import (
     ICREngine,
     RefinementResult,
     IterationResult,
+    refine_content,
 )
 
 __version__ = "1.0.0"
@@ -45,10 +50,14 @@ __all__ = [
     # Generator
     "Generator",
     "GenerationResult",
+    "GenerationStrategy",
     # Critic
     "Critic",
     "CritiqueResult",
+    "CritiqueCriteria",
     "Issue",
+    "IssueType",
+    "Severity",
     "Suggestion",
     # Refiner
     "Refiner",
@@ -63,8 +72,10 @@ __all__ = [
     "EvaluationResult",
     "ComparisonResult",
     "Criteria",
+    "EvaluationStatus",
     # Engine
     "ICREngine",
     "RefinementResult",
     "IterationResult",
+    "refine_content",
 ]

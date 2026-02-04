@@ -340,11 +340,185 @@ export interface KnowledgeStats {
   by_type: Record<string, number>;
 }
 
+export interface PerformanceMetric {
+  entity_type: string;
+  entity_id: string;
+  metrics: Record<string, number>;
+  timestamp?: string | null;
+  domain?: string | null;
+  problem_type?: string | null;
+  context?: Record<string, unknown> | null;
+}
+
+export interface AnalyticsKnowledgeStats {
+  total_artifacts: number;
+  total_usage: number;
+  avg_effectiveness: number;
+  artifact_type_distribution: Record<string, number>;
+  domain_distribution: Record<string, number>;
+  top_used_artifacts: Array<Record<string, unknown>>;
+  top_effective_artifacts: Array<Record<string, unknown>>;
+}
+
+export interface MonitoringDashboardMetrics {
+  timestamp: string;
+  system: {
+    system?: Record<string, number>;
+  };
+  health: {
+    status: string;
+    healthy: boolean;
+    timestamp: string;
+    uptime_seconds: number;
+  };
+  workflow: Record<string, number>;
+  recent_metrics: Record<string, Record<string, unknown>>;
+}
+
+export interface MonitoringAlert {
+  name?: string;
+  metric_name?: string;
+  condition?: string;
+  threshold?: number;
+  description?: string;
+  active?: boolean;
+  triggered?: boolean;
+  latest_value?: number;
+}
+
+export interface MonitoringMetric {
+  name?: string;
+  value?: number;
+  type?: string;
+  labels?: Record<string, unknown>;
+  timestamp?: string | null;
+  description?: string | null;
+}
+
+export interface WorkflowSubProblem {
+  id: string;
+  description: string;
+  dependencies: string[];
+  ai_suggested_evolution_mode?: string;
+  ai_suggested_complexity_score?: number;
+  ai_suggested_evaluation_prompt?: string;
+  content_type?: string;
+  solver_team_name?: string;
+  red_team_gauntlet_name?: string | null;
+  gold_team_gauntlet_name?: string | null;
+  solver_generation_gauntlet_name?: string | null;
+  patcher_team_name?: string | null;
+  status?: string;
+  acceptance_criteria?: string[];
+  solution_requirements?: Record<string, unknown>;
+  specific_constraints?: string[];
+  dependency_outputs?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+}
+
+export interface WorkflowDecompositionPlan {
+  problem_statement: string;
+  analyzed_context: Record<string, unknown>;
+  sub_problems: WorkflowSubProblem[];
+  max_refinement_loops?: number;
+  auto_approval_enabled?: boolean;
+  auto_approval_criteria?: Record<string, unknown> | null;
+  mdap_enabled?: boolean;
+  mdap_config?: Record<string, unknown>;
+  maker_enabled?: boolean;
+  maker_config?: Record<string, unknown>;
+  resource_limits?: Record<string, unknown> | null;
+  parallel_processing_enabled?: boolean;
+  max_parallel_sub_problems?: number;
+  learning_enabled?: boolean;
+  learning_config?: Record<string, unknown> | null;
+  content_analyzer_team_name?: string;
+  planner_team_name?: string;
+  assembler_team_name?: string;
+  final_red_team_gauntlet_name?: string | null;
+  final_gold_team_gauntlet_name?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export interface WorkflowDependencyGraph {
+  edges: Record<string, string[]>;
+  execution_order?: string[];
+}
+
+export interface WorkflowPlanResponse {
+  workflow_id: string;
+  plan: WorkflowDecompositionPlan;
+  dependency_graph: WorkflowDependencyGraph;
+}
+
+export interface SovereignSubProblem {
+  id: string;
+  parent_id: string;
+  title: string;
+  description: string;
+  type: string;
+  complexity_score?: Record<string, unknown>;
+  dependencies?: string[];
+  success_criteria?: Array<Record<string, unknown>>;
+  validation_gauntlet?: string;
+  assigned_team?: string | null;
+  estimated_effort?: number;
+  priority?: number;
+  status?: string;
+  created_at?: string;
+  updated_at?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface DependencyGraph {
+  nodes: Record<string, SovereignSubProblem>;
+  edges: Record<string, string[]>;
+  critical_path?: string[];
+  parallel_groups?: string[][];
+  execution_order?: string[];
+  metadata?: Record<string, unknown>;
+}
+
+export interface SovereignPlan {
+  id: string;
+  problem_id: string;
+  strategy: string;
+  sub_problems: SovereignSubProblem[];
+  dependency_graph?: DependencyGraph | null;
+  validation_checkpoints?: Array<Record<string, unknown>>;
+  quality_scores?: Record<string, unknown> | null;
+  confidence_level?: number;
+  created_by?: string;
+  approved_by?: string | null;
+  status?: string;
+  created_at?: string;
+  updated_at?: string;
+  metadata?: Record<string, unknown>;
+  error_message?: string | null;
+}
+
 export interface KnowledgeRecommendations {
   recommended_approaches: Array<Record<string, unknown>>;
   similar_problems: Array<Record<string, unknown>>;
   team_recommendations: Array<Record<string, unknown>>;
   gauntlet_recommendations: Array<Record<string, unknown>>;
+}
+
+export type PromptMap = Record<string, string>;
+
+export interface ContentTemplate {
+  name: string;
+  content: string;
+  source?: "builtin" | "custom";
+}
+
+export interface ProtocolValidationResult {
+  valid: boolean;
+  score: number;
+  errors: string[];
+  warnings: string[];
+  suggestions: string[];
+  [key: string]: unknown;
 }
 
 export type AutoApprovalAction = "approve" | "reject" | "escalate";

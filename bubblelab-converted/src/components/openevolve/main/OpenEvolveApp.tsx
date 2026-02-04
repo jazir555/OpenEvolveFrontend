@@ -12,6 +12,8 @@ import { AnalyticsDashboardTab } from './AnalyticsDashboardTab';
 import { OpenEvolveDashboardTab } from './OpenEvolveDashboardTab';
 import { OrchestratorTab } from './OrchestratorTab';
 import { MonitoringTab } from './MonitoringTab';
+import { TeamManagerTab } from './TeamManagerTab';
+import { GauntletDesignerTab } from './GauntletDesignerTab';
 import { KnowledgeBaseTab } from './KnowledgeBaseTab';
 import { AutoApprovalTab } from './AutoApprovalTab';
 import { WorkflowTemplatesTab } from './WorkflowTemplatesTab';
@@ -19,6 +21,10 @@ import { NotificationsTab } from './NotificationsTab';
 import { SuggestionsTab } from './SuggestionsTab';
 import { SettingsTab } from './SettingsTab';
 import { SovereignDashboardTab } from './SovereignDashboardTab';
+import { CollaborationTab } from './CollaborationTab';
+import { DependencyGraphTab } from './DependencyGraphTab';
+import { PromptManagerTab } from './PromptManagerTab';
+import { ContentManagerTab } from './ContentManagerTab';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 
@@ -87,10 +93,14 @@ export const OpenEvolveApp: React.FC = () => {
                 <TabsTrigger value="models">Model Dashboard</TabsTrigger>
                 <TabsTrigger value="tasks">Tasks</TabsTrigger>
                 <TabsTrigger value="admin">Admin</TabsTrigger>
+                <TabsTrigger value="teams">Teams</TabsTrigger>
+                <TabsTrigger value="gauntlets">Gauntlets</TabsTrigger>
                 <TabsTrigger value="analytics">Analytics</TabsTrigger>
                 <TabsTrigger value="openevolve">OpenEvolve</TabsTrigger>
                 <TabsTrigger value="orchestrator">Orchestrator</TabsTrigger>
                 <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
+                <TabsTrigger value="collaboration">Collaboration</TabsTrigger>
+                <TabsTrigger value="dependencies">Dependencies</TabsTrigger>
                 <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
                 <TabsTrigger value="auto-approval">Auto Approval</TabsTrigger>
                 <TabsTrigger value="workflow-templates">Workflow Templates</TabsTrigger>
@@ -98,6 +108,8 @@ export const OpenEvolveApp: React.FC = () => {
                 <TabsTrigger value="suggestions">Suggestions</TabsTrigger>
                 <TabsTrigger value="settings">Settings</TabsTrigger>
                 <TabsTrigger value="sovereign">Sovereign</TabsTrigger>
+                <TabsTrigger value="prompts">Prompts</TabsTrigger>
+                <TabsTrigger value="content">Content Tools</TabsTrigger>
               </TabsList>
               
               <TabsContent value="evolution" className="mt-6">
@@ -137,6 +149,14 @@ export const OpenEvolveApp: React.FC = () => {
               <TabsContent value="admin" className="mt-6">
                 <AdminTab />
               </TabsContent>
+
+              <TabsContent value="teams" className="mt-6">
+                <TeamManagerTab />
+              </TabsContent>
+
+              <TabsContent value="gauntlets" className="mt-6">
+                <GauntletDesignerTab />
+              </TabsContent>
               
               <TabsContent value="analytics" className="mt-6">
                 <AnalyticsDashboardTab />
@@ -152,6 +172,14 @@ export const OpenEvolveApp: React.FC = () => {
               
               <TabsContent value="monitoring" className="mt-6">
                 <MonitoringTab />
+              </TabsContent>
+
+              <TabsContent value="collaboration" className="mt-6">
+                <CollaborationTab />
+              </TabsContent>
+
+              <TabsContent value="dependencies" className="mt-6">
+                <DependencyGraphTab />
               </TabsContent>
 
               <TabsContent value="knowledge" className="mt-6">
@@ -180,6 +208,14 @@ export const OpenEvolveApp: React.FC = () => {
 
               <TabsContent value="sovereign" className="mt-6">
                 <SovereignDashboardTab />
+              </TabsContent>
+
+              <TabsContent value="prompts" className="mt-6">
+                <PromptManagerTab />
+              </TabsContent>
+
+              <TabsContent value="content" className="mt-6">
+                <ContentManagerTab />
               </TabsContent>
             </Tabs>
           </div>

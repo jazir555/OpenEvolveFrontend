@@ -23,6 +23,11 @@ enabling seamless access to:
 - PyGraphistry - GPU-accelerated graph visualization
 - Neuromancer - Physics-informed neural operators for simulation
 
+**Conversation & Safety:**
+- DTS - Dialogue Tree Search for multi-turn conversation optimization
+- Guardrails - AI safety, output validation, and policy enforcement
+- ICR - Iterative Contextual Refinements for quality improvement
+
 Business Logic:
     - Unified interface for all KG operations
     - Intelligent routing to appropriate integration based on task type
@@ -61,6 +66,11 @@ Architecture:
     │     Soar (System 2) + ACT-R (System 1) + Evolutionary       │
     │        U = P×G - C - HistoryPenalty + Noise(s)              │
     └─────────────────────────────────────────────────────────────┘
+    ┌──────────────────────────┬──────────────────────────────────┐
+    │      DTS                 │  Guardrails    │  ICR            │
+    │ (Conversation            │  (Safety &     │  (Iterative     │
+    │  Optimization)           │   Validation)  │   Refinement)   │
+    └──────────────────────────┴──────────────────────────────────┘
 
 Copyright 2026 OpenEvolve
 
@@ -109,6 +119,9 @@ class KGOperationType(Enum):
     DECLARATIVE_QUERY = auto()        # LMQL: SQL-like LLM queries
     PHYSICS_SIMULATION = auto()       # Neuromancer: physics-informed reasoning
     HYBRID_REASONING = auto()         # Cognitive-Hydraulics: Soar+ACT-R reasoning
+    CONVERSATION_OPTIMIZATION = auto() # DTS: dialogue tree search
+    SAFETY_VALIDATION = auto()        # Guardrails: AI safety checks
+    ITERATIVE_REFINEMENT = auto()     # ICR: contextual refinements
 
 
 class IntegrationStatus(Enum):
@@ -226,7 +239,10 @@ class UnifiedKGIntegrationHub:
             KGOperationType.STRUCTURED_GENERATION: ['outlines'],
             KGOperationType.DECLARATIVE_QUERY: ['lmql'],
             KGOperationType.PHYSICS_SIMULATION: ['neuromancer'],
-            KGOperationType.HYBRID_REASONING: ['cognitive_hydraulics']
+            KGOperationType.HYBRID_REASONING: ['cognitive_hydraulics'],
+            KGOperationType.CONVERSATION_OPTIMIZATION: ['dts'],
+            KGOperationType.SAFETY_VALIDATION: ['guardrails'],
+            KGOperationType.ITERATIVE_REFINEMENT: ['icr']
         }
         
         logger.info({
@@ -264,6 +280,9 @@ class UnifiedKGIntegrationHub:
         await self._initialize_lmql()
         await self._initialize_neuromancer()
         await self._initialize_cognitive_hydraulics()
+        await self._initialize_dts()
+        await self._initialize_guardrails()
+        await self._initialize_icr()
         
         self._initialized = True
         
@@ -665,6 +684,110 @@ class UnifiedKGIntegrationHub:
         except Exception as e:
             self._health_status['cognitive_hydraulics'] = IntegrationHealth(
                 name='cognitive_hydraulics',
+                status=IntegrationStatus.ERROR,
+                error_count=1,
+                details={'error': str(e)}
+            )
+    
+    async def _initialize_dts(self):
+        """Initialize DTS integration for conversation optimization."""
+        start_time = datetime.now(timezone.utc)
+        try:
+            from .integrations.dts.dts_integration import DTSKGIntegration
+            integration = DTSKGIntegration(self.config.get('dts', {}))
+            available = integration.is_available()
+            
+            self._integrations['dts'] = integration
+            self._health_status['dts'] = IntegrationHealth(
+                name='dts',
+                status=IntegrationStatus.AVAILABLE if available else IntegrationStatus.UNAVAILABLE,
+                latency_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000,
+                details={
+                    'description': 'Dialogue Tree Search - Multi-turn conversation optimization',
+                    'features': [
+                        'beam_search',
+                        'user_simulation',
+                        'multi_judge_scoring',
+                        'strategy_optimization',
+                        'conversation_trees'
+                    ],
+                    'ssot_location': 'integrations/dts/',
+                    'algorithm': 'Parallel beam search with backpropagation'
+                }
+            )
+        except Exception as e:
+            self._health_status['dts'] = IntegrationHealth(
+                name='dts',
+                status=IntegrationStatus.ERROR,
+                error_count=1,
+                details={'error': str(e)}
+            )
+    
+    async def _initialize_guardrails(self):
+        """Initialize Guardrails integration for AI safety."""
+        start_time = datetime.now(timezone.utc)
+        try:
+            from .integrations.guardrails.guardrails_integration import GuardrailsKGIntegration
+            integration = GuardrailsKGIntegration(self.config.get('guardrails', {}))
+            available = integration.is_available()
+            
+            self._integrations['guardrails'] = integration
+            self._health_status['guardrails'] = IntegrationHealth(
+                name='guardrails',
+                status=IntegrationStatus.AVAILABLE if available else IntegrationStatus.UNAVAILABLE,
+                latency_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000,
+                details={
+                    'description': 'AI Safety and Output Validation',
+                    'features': [
+                        'output_validation',
+                        'pii_detection',
+                        'toxicity_check',
+                        'safety_policies',
+                        'compliance_gdpr_hipaa'
+                    ],
+                    'ssot_location': 'integrations/guardrails/',
+                    'validators': 10,
+                    'safety_levels': ['STRICT', 'MODERATE', 'PERMISSIVE']
+                }
+            )
+        except Exception as e:
+            self._health_status['guardrails'] = IntegrationHealth(
+                name='guardrails',
+                status=IntegrationStatus.ERROR,
+                error_count=1,
+                details={'error': str(e)}
+            )
+    
+    async def _initialize_icr(self):
+        """Initialize ICR integration for iterative refinement."""
+        start_time = datetime.now(timezone.utc)
+        try:
+            from .integrations.icr.icr_integration import ICRKGIntegration
+            integration = ICRKGIntegration(self.config.get('icr', {}))
+            available = integration.is_available()
+            
+            self._integrations['icr'] = integration
+            self._health_status['icr'] = IntegrationHealth(
+                name='icr',
+                status=IntegrationStatus.AVAILABLE if available else IntegrationStatus.UNAVAILABLE,
+                latency_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000,
+                details={
+                    'description': 'Iterative Contextual Refinements',
+                    'features': [
+                        'generate_critique_refine_loop',
+                        'quality_judgment',
+                        'convergence_detection',
+                        'early_stopping',
+                        'multi_criteria_evaluation'
+                    ],
+                    'ssot_location': 'integrations/icr/',
+                    'max_iterations': 5,
+                    'quality_threshold': 0.9
+                }
+            )
+        except Exception as e:
+            self._health_status['icr'] = IntegrationHealth(
+                name='icr',
                 status=IntegrationStatus.ERROR,
                 error_count=1,
                 details={'error': str(e)}
@@ -1317,6 +1440,156 @@ class UnifiedKGIntegrationHub:
             operation_type=KGOperationType.HYBRID_REASONING,
             integration_used='none',
             errors=['Cognitive-Hydraulics not available'],
+            processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+        )
+    
+    async def optimize_conversation(
+        self,
+        initial_context: str,
+        goal: str,
+        rounds: int = 3,
+        beam_width: int = 5
+    ) -> KGOperationResult:
+        """
+        Optimize multi-turn conversation using Dialogue Tree Search (DTS).
+        
+        Explores conversation strategies in parallel, simulates user reactions,
+        scores trajectories, and prunes underperformers.
+        
+        Args:
+            initial_context: Starting conversation context
+            goal: Conversation goal
+            rounds: Number of optimization rounds
+            beam_width: Number of conversation branches to maintain
+            
+        Returns:
+            KGOperationResult with optimized conversation tree
+        """
+        start_time = datetime.now(timezone.utc)
+        
+        if 'dts' in self._integrations:
+            try:
+                integration = self._integrations['dts']
+                result = await integration.optimize_kg_query_dialog(
+                    context=initial_context,
+                    user_goal=goal
+                )
+                
+                return KGOperationResult(
+                    success=result is not None,
+                    operation_type=KGOperationType.CONVERSATION_OPTIMIZATION,
+                    integration_used='dts',
+                    data=result.to_dict() if hasattr(result, 'to_dict') else result,
+                    processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+                )
+            except Exception as e:
+                logger.error(f"DTS conversation optimization failed: {e}")
+        
+        return KGOperationResult(
+            success=False,
+            operation_type=KGOperationType.CONVERSATION_OPTIMIZATION,
+            integration_used='none',
+            errors=['DTS not available'],
+            processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+        )
+    
+    async def validate_safety(
+        self,
+        content: str,
+        content_type: str = 'output',
+        safety_level: str = 'MODERATE'
+    ) -> KGOperationResult:
+        """
+        Validate content safety using Guardrails.
+        
+        Checks for PII, toxicity, policy violations, and schema compliance.
+        
+        Args:
+            content: Content to validate
+            content_type: 'input' or 'output'
+            safety_level: 'STRICT', 'MODERATE', or 'PERMISSIVE'
+            
+        Returns:
+            KGOperationResult with validation results
+        """
+        start_time = datetime.now(timezone.utc)
+        
+        if 'guardrails' in self._integrations:
+            try:
+                integration = self._integrations['guardrails']
+                
+                if content_type == 'input':
+                    result = await integration.sanitize_kg_input(content)
+                else:
+                    result = await integration.validate_kg_output(
+                        output=content,
+                        schema={}
+                    )
+                
+                return KGOperationResult(
+                    success=result is not None,
+                    operation_type=KGOperationType.SAFETY_VALIDATION,
+                    integration_used='guardrails',
+                    data=result.to_dict() if hasattr(result, 'to_dict') else result,
+                    processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+                )
+            except Exception as e:
+                logger.error(f"Guardrails validation failed: {e}")
+        
+        return KGOperationResult(
+            success=False,
+            operation_type=KGOperationType.SAFETY_VALIDATION,
+            integration_used='none',
+            errors=['Guardrails not available'],
+            processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+        )
+    
+    async def refine_iteratively(
+        self,
+        initial_output: str,
+        goal: str,
+        max_iterations: int = 5,
+        quality_threshold: float = 0.9
+    ) -> KGOperationResult:
+        """
+        Refine output iteratively using ICR (Iterative Contextual Refinements).
+        
+        Generates critique, applies improvements, and judges quality until
+        threshold is met or max iterations reached.
+        
+        Args:
+            initial_output: Initial output to refine
+            goal: Quality goal description
+            max_iterations: Maximum refinement iterations
+            quality_threshold: Quality score threshold (0-1)
+            
+        Returns:
+            KGOperationResult with refined output
+        """
+        start_time = datetime.now(timezone.utc)
+        
+        if 'icr' in self._integrations:
+            try:
+                integration = self._integrations['icr']
+                result = await integration.refine_kg_extraction(
+                    initial_extraction={'content': initial_output, 'goal': goal}
+                )
+                
+                return KGOperationResult(
+                    success=result is not None,
+                    operation_type=KGOperationType.ITERATIVE_REFINEMENT,
+                    integration_used='icr',
+                    data=result.to_dict() if hasattr(result, 'to_dict') else result,
+                    processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+                )
+            except Exception as e:
+                logger.error(f"ICR refinement failed: {e}")
+        
+        return KGOperationResult(
+            success=False,
+            operation_type=KGOperationType.ITERATIVE_REFINEMENT,
+            integration_used='none',
+            errors=['ICR not available'],
             processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
         )
     

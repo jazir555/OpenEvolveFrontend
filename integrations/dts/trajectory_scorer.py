@@ -5,7 +5,7 @@ Multi-judge consensus for robust evaluation of conversation paths.
 
 import statistics
 import logging
-from typing import List, Dict, Any, Optional, Callable
+from typing import List, Dict, Any, Optional, Callable, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
 

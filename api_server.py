@@ -17,6 +17,7 @@ import uvicorn
 import os
 import re
 import base64
+import json
 from datetime import datetime, timedelta
 import uuid
 import logging
@@ -178,7 +179,20 @@ from template_manager import TemplateManager
 from parameter_manager import ParameterManager
 from sovereign_persistence import SovereignDatabase
 from sovereign_reliability import HealthMonitor
+from monitoring import (
+    monitoring_dashboard as system_monitoring_dashboard,
+    metrics_collector as system_metrics_collector,
+    alert_manager as system_alert_manager,
+    health_monitor as system_health_monitor,
+)
 from providercatalogue import PROVIDERS as PROVIDERS_MAP
+try:
+    from content_manager import content_manager
+    CONTENT_MANAGER_AVAILABLE = True
+except Exception as exc:
+    content_manager = None
+    CONTENT_MANAGER_AVAILABLE = False
+    logger.warning("Content manager unavailable: %s", exc)
 from team_manager import TeamManager
 from gauntlet_manager import GauntletManager
 from workflow_engine import run_sovereign_workflow
@@ -269,6 +283,96 @@ sovereign_health_monitor = HealthMonitor()
 AUTO_APPROVAL_CONFIG: Dict[str, Any] = {"enabled": False, "rules": []}
 AUTO_APPROVAL_AUDIT_LOG: List[Dict[str, Any]] = []
 
+# Prompt and protocol template storage
+PROMPTS_FILE = os.path.join("data", "custom_prompts.json")
+CUSTOM_PROTOCOL_TEMPLATES_FILE = os.path.join("data", "protocol_templates_custom.json")
+
+
+def _load_json_store(path: str) -> Dict[str, Any]:
+    try:
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as handle:
+                return json.load(handle)
+    except (OSError, IOError, json.JSONDecodeError) as exc:
+        logger.warning("Failed to load JSON store %s: %s", path, exc)
+    return {}
+
+
+def _save_json_store(path: str, data: Dict[str, Any]) -> None:
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as handle:
+            json.dump(data, handle, indent=2)
+    except (OSError, IOError, TypeError) as exc:
+        logger.error("Failed to save JSON store %s: %s", path, exc)
+
+
+CUSTOM_PROMPTS: Dict[str, str] = _load_json_store(PROMPTS_FILE)
+CUSTOM_PROTOCOL_TEMPLATES: Dict[str, str] = _load_json_store(CUSTOM_PROTOCOL_TEMPLATES_FILE)
+
+DEFAULT_VALIDATION_RULES = {
+    "generic": {
+        "max_length": 12000,
+        "required_sections": ["Purpose", "Scope", "Procedure"],
+        "required_keywords": ["must", "should"],
+    },
+    "compliance": {
+        "max_length": 15000,
+        "required_sections": ["Compliance", "Audit", "Controls"],
+        "required_keywords": ["policy", "regulation", "compliance"],
+    },
+    "security": {
+        "max_length": 12000,
+        "required_sections": ["Security", "Threats", "Mitigations"],
+        "required_keywords": ["access", "encryption", "authentication"],
+    },
+    "technical": {
+        "max_length": 12000,
+        "required_sections": ["Architecture", "Interfaces", "Testing"],
+        "required_keywords": ["requirement", "interface", "validation"],
+    },
+}
+
+
+def _basic_validate_protocol(protocol_text: str, validation_type: str = "generic") -> Dict[str, Any]:
+    """Fallback validation if ContentManagement is unavailable."""
+    rules = DEFAULT_VALIDATION_RULES.get(validation_type, DEFAULT_VALIDATION_RULES["generic"])
+    errors: List[str] = []
+    warnings: List[str] = []
+    suggestions: List[str] = []
+
+    if not protocol_text.strip():
+        errors.append("Protocol text is empty")
+        return {
+            "valid": False,
+            "score": 0,
+            "errors": errors,
+            "warnings": warnings,
+            "suggestions": suggestions,
+        }
+
+    if len(protocol_text) > rules["max_length"]:
+        warnings.append(
+            f"Protocol exceeds recommended length of {rules['max_length']} characters"
+        )
+
+    for section in rules.get("required_sections", []):
+        if section.lower() not in protocol_text.lower():
+            errors.append(f"Missing required section: {section}")
+
+    for keyword in rules.get("required_keywords", []):
+        if keyword.lower() not in protocol_text.lower():
+            suggestions.append(f"Consider adding keyword: {keyword}")
+
+    score = max(0, 100 - len(errors) * 10 - len(warnings) * 5 + len(suggestions) * 2)
+    return {
+        "valid": len(errors) == 0,
+        "score": score,
+        "errors": errors,
+        "warnings": warnings,
+        "suggestions": suggestions,
+    }
+
 # In-memory storage for workflows (replace with database in production)
 workflows: Dict[str, WorkflowState] = {}
 
@@ -343,6 +447,66 @@ def _evaluate_auto_approval_rule(rule: Dict[str, Any], plan: Dict[str, Any]) -> 
             final_result = final_result or results[index + 1]
 
     return final_result
+
+
+def _serialize_performance_metric(metric: "PerformanceMetrics") -> Dict[str, Any]:
+    """Serialize PerformanceMetrics for JSON responses."""
+    timestamp = metric.timestamp
+    if isinstance(timestamp, (int, float)):
+        timestamp_value = datetime.fromtimestamp(timestamp).isoformat()
+    elif isinstance(timestamp, datetime):
+        timestamp_value = timestamp.isoformat()
+    else:
+        timestamp_value = None
+    return {
+        "entity_type": metric.entity_type,
+        "entity_id": metric.entity_id,
+        "metrics": metric.metrics,
+        "timestamp": timestamp_value,
+        "domain": metric.domain,
+        "problem_type": metric.problem_type,
+        "context": metric.context,
+    }
+
+
+def _serialize_monitoring_metric(metric: Any) -> Dict[str, Any]:
+    """Serialize monitoring Metric entries."""
+    try:
+        timestamp = metric.timestamp.isoformat() if metric.timestamp else None
+    except AttributeError:
+        timestamp = None
+    return {
+        "name": getattr(metric, "name", None),
+        "value": getattr(metric, "value", None),
+        "type": getattr(metric, "type", None).value if getattr(metric, "type", None) else None,
+        "labels": getattr(metric, "labels", None),
+        "timestamp": timestamp,
+        "description": getattr(metric, "description", None),
+    }
+
+
+def _serialize_workflow_subproblem(sub_problem: SubProblem) -> Dict[str, Any]:
+    """Serialize SubProblem from workflow_structures."""
+    return {
+        "id": sub_problem.id,
+        "description": sub_problem.description,
+        "dependencies": list(sub_problem.dependencies or []),
+        "ai_suggested_evolution_mode": sub_problem.ai_suggested_evolution_mode,
+        "ai_suggested_complexity_score": sub_problem.ai_suggested_complexity_score,
+        "ai_suggested_evaluation_prompt": sub_problem.ai_suggested_evaluation_prompt,
+        "content_type": sub_problem.content_type,
+        "solver_team_name": sub_problem.solver_team_name,
+        "red_team_gauntlet_name": sub_problem.red_team_gauntlet_name,
+        "gold_team_gauntlet_name": sub_problem.gold_team_gauntlet_name,
+        "solver_generation_gauntlet_name": sub_problem.solver_generation_gauntlet_name,
+        "patcher_team_name": sub_problem.patcher_team_name,
+        "status": sub_problem.status,
+        "acceptance_criteria": list(sub_problem.acceptance_criteria or []),
+        "solution_requirements": sub_problem.solution_requirements or {},
+        "specific_constraints": list(sub_problem.specific_constraints or []),
+        "dependency_outputs": sub_problem.dependency_outputs or {},
+        "metadata": sub_problem.metadata or {},
+    }
 
 
 def _normalize_tenant_id(tenant_id: str) -> str:
@@ -508,6 +672,21 @@ class ProviderModelsRequest(BaseModel):
 
 class ParameterValidateRequest(BaseModel):
     parameters: Dict[str, Any]
+
+
+class PromptCreateRequest(BaseModel):
+    name: str
+    content: str
+
+
+class ContentTemplateRequest(BaseModel):
+    name: str
+    content: str
+
+
+class ProtocolValidationRequest(BaseModel):
+    protocol_text: str
+    validation_type: Optional[str] = "generic"
 
 
 class SuggestionRequest(BaseModel):
@@ -969,6 +1148,59 @@ def get_workflow(
         solved_sub_problems=solved_sub_problems,
         total_sub_problems=total_sub_problems
     )
+
+
+@app.get("/workflows/{workflow_id}/decomposition-plan", dependencies=[Depends(verify_api_key)])
+def get_workflow_decomposition_plan(
+    workflow_id: str,
+    user: AuthUser = Depends(verify_api_key),
+    tenant_id: str = Depends(get_tenant_id)
+):
+    """Get decomposition plan for a workflow."""
+    if workflow_id not in workflows:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+
+    wf = workflows[workflow_id]
+    if (wf.tenant_id or "default") != tenant_id:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+
+    if not wf.decomposition_plan:
+        raise HTTPException(status_code=404, detail="Decomposition plan not available")
+
+    plan = wf.decomposition_plan
+    sub_problems = [_serialize_workflow_subproblem(sp) for sp in plan.sub_problems]
+    dependency_edges = {sp["id"]: sp.get("dependencies", []) for sp in sub_problems}
+
+    return {
+        "workflow_id": wf.workflow_id,
+        "plan": {
+            "problem_statement": plan.problem_statement,
+            "analyzed_context": plan.analyzed_context,
+            "sub_problems": sub_problems,
+            "max_refinement_loops": plan.max_refinement_loops,
+            "auto_approval_enabled": plan.auto_approval_enabled,
+            "auto_approval_criteria": plan.auto_approval_criteria,
+            "mdap_enabled": plan.mdap_enabled,
+            "mdap_config": plan.mdap_config,
+            "maker_enabled": plan.maker_enabled,
+            "maker_config": plan.maker_config,
+            "resource_limits": plan.resource_limits,
+            "parallel_processing_enabled": plan.parallel_processing_enabled,
+            "max_parallel_sub_problems": plan.max_parallel_sub_problems,
+            "learning_enabled": plan.learning_enabled,
+            "learning_config": plan.learning_config,
+            "content_analyzer_team_name": plan.content_analyzer_team_name,
+            "planner_team_name": plan.planner_team_name,
+            "assembler_team_name": plan.assembler_team_name,
+            "final_red_team_gauntlet_name": plan.final_red_team_gauntlet_name,
+            "final_gold_team_gauntlet_name": plan.final_gold_team_gauntlet_name,
+            "metadata": plan.metadata,
+        },
+        "dependency_graph": {
+            "edges": dependency_edges,
+            "execution_order": list(plan.metadata.get("execution_order", [])) if plan.metadata else [],
+        },
+    }
 
 
 @app.post("/workflows/{workflow_id}/pause", dependencies=[Depends(require_role(UserRole.USER))])
@@ -2432,6 +2664,105 @@ def get_statistics():
     }
 
 
+# Analytics endpoints
+
+@app.get("/analytics/performance-metrics", dependencies=[Depends(verify_api_key)])
+def get_performance_metrics(entity_type: Optional[str] = None, limit: int = 200):
+    """Get performance metrics from the knowledge manager."""
+    metrics = knowledge_manager.get_performance_metrics(entity_type=entity_type, limit=limit)
+    return {
+        "metrics": [_serialize_performance_metric(metric) for metric in metrics],
+        "total": len(metrics)
+    }
+
+
+@app.get("/analytics/knowledge-stats", dependencies=[Depends(verify_api_key)])
+def get_analytics_knowledge_stats():
+    """Get aggregated knowledge base statistics."""
+    artifacts = knowledge_manager.get_all_artifacts()
+    total_artifacts = len(artifacts)
+    total_usage = sum(a.usage_count for a in artifacts)
+    avg_effectiveness = (
+        sum(a.effectiveness_score for a in artifacts) / total_artifacts
+        if total_artifacts
+        else 0.0
+    )
+
+    artifact_type_distribution: Dict[str, int] = {}
+    domain_distribution: Dict[str, int] = {}
+
+    for artifact in artifacts:
+        artifact_type_distribution[artifact.artifact_type] = (
+            artifact_type_distribution.get(artifact.artifact_type, 0) + 1
+        )
+        if artifact.domain:
+            domain_distribution[artifact.domain] = domain_distribution.get(artifact.domain, 0) + 1
+
+    top_used = sorted(artifacts, key=lambda a: a.usage_count, reverse=True)[:10]
+    top_effective = sorted(artifacts, key=lambda a: a.effectiveness_score, reverse=True)[:10]
+
+    return {
+        "total_artifacts": total_artifacts,
+        "total_usage": total_usage,
+        "avg_effectiveness": avg_effectiveness,
+        "artifact_type_distribution": artifact_type_distribution,
+        "domain_distribution": domain_distribution,
+        "top_used_artifacts": [
+            {
+                "id": a.id,
+                "artifact_type": a.artifact_type,
+                "usage_count": a.usage_count,
+                "effectiveness_score": a.effectiveness_score,
+                "domain": a.domain,
+            }
+            for a in top_used
+        ],
+        "top_effective_artifacts": [
+            {
+                "id": a.id,
+                "artifact_type": a.artifact_type,
+                "usage_count": a.usage_count,
+                "effectiveness_score": a.effectiveness_score,
+                "domain": a.domain,
+            }
+            for a in top_effective
+        ],
+    }
+
+
+# Monitoring endpoints
+
+@app.get("/monitoring/dashboard", dependencies=[Depends(verify_api_key)])
+def get_monitoring_dashboard():
+    """Get monitoring dashboard metrics."""
+    return system_monitoring_dashboard.get_dashboard_metrics()
+
+
+@app.get("/monitoring/alerts", dependencies=[Depends(verify_api_key)])
+def get_monitoring_alerts():
+    """Get active monitoring alerts."""
+    return {"alerts": system_alert_manager.check_alerts()}
+
+
+@app.get("/monitoring/metrics", dependencies=[Depends(verify_api_key)])
+def get_monitoring_metrics(
+    name: Optional[str] = None,
+    start_time: Optional[str] = None,
+    end_time: Optional[str] = None
+):
+    """Fetch monitoring metrics from the metrics collector."""
+    start_dt = datetime.fromisoformat(start_time) if start_time else None
+    end_dt = datetime.fromisoformat(end_time) if end_time else None
+    metrics = system_metrics_collector.get_metrics(name=name, start_time=start_dt, end_time=end_dt)
+    return {"metrics": [_serialize_monitoring_metric(metric) for metric in metrics]}
+
+
+@app.get("/monitoring/health", dependencies=[Depends(verify_api_key)])
+def get_monitoring_health():
+    """Get current monitoring health status."""
+    return system_health_monitor.get_health_status()
+
+
 # Knowledge Base endpoints
 
 @app.get("/knowledge/artifacts", dependencies=[Depends(verify_api_key)])
@@ -2553,6 +2884,70 @@ def import_knowledge_base(request: KnowledgeImportRequest):
         json.dump(request.artifacts, f, indent=2)
     knowledge_manager.import_knowledge_base(temp_path)
     return {"success": True}
+
+
+# Prompt endpoints
+
+@app.get("/prompts", dependencies=[Depends(verify_api_key)])
+def list_custom_prompts():
+    return {"prompts": CUSTOM_PROMPTS}
+
+
+@app.post("/prompts", dependencies=[Depends(verify_api_key)])
+def create_custom_prompt(request: PromptCreateRequest):
+    if not request.name.strip():
+        raise HTTPException(status_code=400, detail="Prompt name cannot be empty")
+    CUSTOM_PROMPTS[request.name] = request.content
+    _save_json_store(PROMPTS_FILE, CUSTOM_PROMPTS)
+    return {"success": True, "name": request.name}
+
+
+@app.delete("/prompts/{prompt_name}", dependencies=[Depends(verify_api_key)])
+def delete_custom_prompt(prompt_name: str):
+    if prompt_name not in CUSTOM_PROMPTS:
+        raise HTTPException(status_code=404, detail="Prompt not found")
+    del CUSTOM_PROMPTS[prompt_name]
+    _save_json_store(PROMPTS_FILE, CUSTOM_PROMPTS)
+    return {"success": True}
+
+
+# Content management endpoints
+
+@app.get("/content/templates", dependencies=[Depends(verify_api_key)])
+def list_protocol_templates():
+    builtin_templates = content_manager.list_protocol_templates() if CONTENT_MANAGER_AVAILABLE else []
+    all_templates = sorted(set(builtin_templates) | set(CUSTOM_PROTOCOL_TEMPLATES.keys()))
+    return {"templates": all_templates}
+
+
+@app.get("/content/templates/{template_name}", dependencies=[Depends(verify_api_key)])
+def get_protocol_template(template_name: str):
+    if template_name in CUSTOM_PROTOCOL_TEMPLATES:
+        return {"name": template_name, "content": CUSTOM_PROTOCOL_TEMPLATES[template_name], "source": "custom"}
+    content = content_manager.load_protocol_template(template_name) if CONTENT_MANAGER_AVAILABLE else ""
+    if not content:
+        raise HTTPException(status_code=404, detail="Template not found")
+    return {"name": template_name, "content": content, "source": "builtin"}
+
+
+@app.post("/content/templates", dependencies=[Depends(verify_api_key)])
+def create_protocol_template(request: ContentTemplateRequest):
+    if not request.name.strip():
+        raise HTTPException(status_code=400, detail="Template name cannot be empty")
+    CUSTOM_PROTOCOL_TEMPLATES[request.name] = request.content
+    _save_json_store(CUSTOM_PROTOCOL_TEMPLATES_FILE, CUSTOM_PROTOCOL_TEMPLATES)
+    if CONTENT_MANAGER_AVAILABLE:
+        metadata = content_manager.export_protocol_as_template(request.content, request.name)
+        return {"template": metadata}
+    return {"template": {"name": request.name, "content": request.content}}
+
+
+@app.post("/content/validate", dependencies=[Depends(verify_api_key)])
+def validate_protocol_content(request: ProtocolValidationRequest):
+    if CONTENT_MANAGER_AVAILABLE:
+        result = content_manager.validate_protocol(request.protocol_text, request.validation_type or "generic")
+        return result
+    return _basic_validate_protocol(request.protocol_text, request.validation_type or "generic")
 
 
 # Auto-approval endpoints
