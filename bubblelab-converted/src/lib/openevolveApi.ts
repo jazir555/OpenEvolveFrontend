@@ -47,6 +47,41 @@ import type {
   WorkflowPlanResponse,
   SovereignPlan,
 } from "./types";
+import type {
+  EvaluatorListResponse,
+  EvaluatorUploadResponse,
+  WorkflowPlanUpdateRequest,
+  WorkflowResourceUsageResponse,
+  WorkflowResourceOptimizationResponse,
+  IntegratedWorkflowRequest,
+  ModelOrchestrationListResponse,
+  ModelOrchestrationRegisterRequest,
+  ModelOrchestrationRegisterResponse,
+  ModelOrchestrationEnsembleRequest,
+  ModelOrchestrationEnsembleResponse,
+  BubbleLabsStatusResponse,
+  BubbleLabsInitializeResponse,
+  BubbleLabsActionResponse,
+  MakerToolListResponse,
+  MakerToolResponse,
+  MakerExecutionResponse,
+  MakerDelegationListResponse,
+  KnowledgeExplorerQueryResponse,
+  KnowledgeExplorerExtractResponse,
+  KnowledgeExplorerHistoryResponse,
+  LeanAideStatusResponse,
+  LeanAideExecuteResponse,
+  LeanAideTreeListResponse,
+  LeanAideTreeResponse,
+  LeanAideProofListResponse,
+  LeanAideProofResponse,
+  EvolutionRunResponse,
+  EvolutionRunStatus,
+  EvolutionRunListResponse,
+  AdversarialRunResponse,
+  AdversarialRunStatus,
+  AdversarialRunListResponse,
+} from "./types";
 
 export interface ApiConfig {
   baseUrl?: string;
@@ -525,4 +560,288 @@ export const openevolveApi = {
       { method: "POST", body: JSON.stringify(payload) },
       config,
     ),
+
+  // Evaluators
+  listEvaluators: (config?: ApiConfig) => request<EvaluatorListResponse>("/evaluators", {}, config),
+  uploadEvaluator: (payload: { code: string }, config?: ApiConfig) =>
+    request<EvaluatorUploadResponse>(
+      "/evaluators",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  deleteEvaluator: (evaluatorId: string, config?: ApiConfig) =>
+    request<{ success: boolean; evaluator_id: string }>(
+      `/evaluators/${encodeURIComponent(evaluatorId)}`,
+      { method: "DELETE" },
+      config,
+    ),
+
+  // Decomposition plan updates
+  updateWorkflowPlan: (workflowId: string, payload: WorkflowPlanUpdateRequest, config?: ApiConfig) =>
+    request<{ message: string; execution_order: string[] }>(
+      `/workflows/${encodeURIComponent(workflowId)}/decomposition-plan`,
+      { method: "PUT", body: JSON.stringify(payload) },
+      config,
+    ),
+  getWorkflowResourceUsage: (workflowId: string, config?: ApiConfig) =>
+    request<WorkflowResourceUsageResponse>(
+      `/workflows/${encodeURIComponent(workflowId)}/resource-usage`,
+      {},
+      config,
+    ),
+  optimizeWorkflowResources: (workflowId: string, config?: ApiConfig) =>
+    request<WorkflowResourceOptimizationResponse>(
+      `/workflows/${encodeURIComponent(workflowId)}/resource-optimization`,
+      { method: "POST" },
+      config,
+    ),
+
+  // Integrated workflow
+  runIntegratedWorkflow: (payload: IntegratedWorkflowRequest, config?: ApiConfig) =>
+    request<Record<string, unknown>>(
+      "/integrated/run",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+
+  // Model orchestration
+  listOrchestrationModels: (config?: ApiConfig) =>
+    request<ModelOrchestrationListResponse>("/orchestration/models", {}, config),
+  registerOrchestrationModel: (payload: ModelOrchestrationRegisterRequest, config?: ApiConfig) =>
+    request<ModelOrchestrationRegisterResponse>(
+      "/orchestration/models",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  executeOrchestrationEnsemble: (payload: ModelOrchestrationEnsembleRequest, config?: ApiConfig) =>
+    request<ModelOrchestrationEnsembleResponse>(
+      "/orchestration/ensemble",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+
+  // BubbleLabs integration
+  getBubblelabsStatus: (config?: ApiConfig) =>
+    request<BubbleLabsStatusResponse>("/bubblelabs/status", {}, config),
+  initializeBubblelabs: (config?: ApiConfig) =>
+    request<BubbleLabsInitializeResponse>("/bubblelabs/initialize", { method: "POST" }, config),
+  bubblelabsAceSkillbook: (payload: { name: string; skills: Array<Record<string, unknown>> }, config?: ApiConfig) =>
+    request<BubbleLabsActionResponse>(
+      "/bubblelabs/ace/skillbook",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  bubblelabsAcePatterns: (payload: { workflow_results: Array<Record<string, unknown>> }, config?: ApiConfig) =>
+    request<BubbleLabsActionResponse>(
+      "/bubblelabs/ace/patterns",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  bubblelabsZ3Solve: (payload: { variables: Array<Record<string, unknown>>; constraints: string[] }, config?: ApiConfig) =>
+    request<BubbleLabsActionResponse>(
+      "/bubblelabs/z3/solve",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  bubblelabsZ3Prove: (payload: { theorem: string }, config?: ApiConfig) =>
+    request<BubbleLabsActionResponse>(
+      "/bubblelabs/z3/prove",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  bubblelabsRomaAnalyze: (payload: { problem: string; max_depth?: number }, config?: ApiConfig) =>
+    request<BubbleLabsActionResponse>(
+      "/bubblelabs/roma/analyze",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  bubblelabsRomaConfig: (payload: { config: Record<string, unknown> }, config?: ApiConfig) =>
+    request<BubbleLabsActionResponse>(
+      "/bubblelabs/roma/config",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  bubblelabsKnowledgeStore: (payload: { artifact: Record<string, unknown> }, config?: ApiConfig) =>
+    request<BubbleLabsActionResponse>(
+      "/bubblelabs/knowledge/store",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  bubblelabsKnowledgeQuery: (payload: { query: string }, config?: ApiConfig) =>
+    request<BubbleLabsActionResponse>(
+      "/bubblelabs/knowledge/query",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  bubblelabsAnalyticsTrack: (payload: { workflow_id: string; metrics: Record<string, unknown> }, config?: ApiConfig) =>
+    request<BubbleLabsActionResponse>(
+      "/bubblelabs/analytics/track",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  bubblelabsAnalyticsDashboard: (config?: ApiConfig) =>
+    request<BubbleLabsActionResponse>("/bubblelabs/analytics/dashboard", {}, config),
+  bubblelabsLeanAideProve: (payload: { theorem: string }, config?: ApiConfig) =>
+    request<BubbleLabsActionResponse>(
+      "/bubblelabs/leanaide/prove",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+
+  // Maker integration
+  getMakerStatus: (config?: ApiConfig) => request<{ available: boolean }>("/maker/status", {}, config),
+  listMakerTools: (params?: { status?: string; maker_mode?: string; search?: string }, config?: ApiConfig) => {
+    const search = new URLSearchParams();
+    if (params?.status) search.set("status", params.status);
+    if (params?.maker_mode) search.set("maker_mode", params.maker_mode);
+    if (params?.search) search.set("search", params.search);
+    const suffix = search.toString() ? `?${search.toString()}` : "";
+    return request<MakerToolListResponse>(`/maker/tools${suffix}`, {}, config);
+  },
+  getMakerTool: (toolId: string, config?: ApiConfig) =>
+    request<MakerToolResponse>(`/maker/tools/${encodeURIComponent(toolId)}`, {}, config),
+  createMakerTool: (
+    payload: {
+      name: string;
+      description: string;
+      task: string;
+      maker_mode?: string;
+      k_ahead?: number;
+      max_depth?: number;
+      context?: Record<string, unknown>;
+      prompt_template?: string;
+      system_prompt?: string;
+      expected_schema?: Record<string, unknown>;
+      metadata?: Record<string, unknown>;
+    },
+    config?: ApiConfig,
+  ) =>
+    request<MakerToolResponse>(
+      "/maker/tools",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  testMakerTool: (
+    toolId: string,
+    payload: { input_data: Record<string, unknown>; delegate_to_crewai?: boolean },
+    config?: ApiConfig,
+  ) =>
+    request<MakerExecutionResponse>(
+      `/maker/tools/${encodeURIComponent(toolId)}/test`,
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  validateMakerTool: (toolId: string, config?: ApiConfig) =>
+    request<{ status: string }>(
+      `/maker/tools/${encodeURIComponent(toolId)}/validate`,
+      { method: "POST" },
+      config,
+    ),
+  executeMakerTool: (
+    toolId: string,
+    payload: { input_data: Record<string, unknown>; delegate_to_crewai?: boolean },
+    config?: ApiConfig,
+  ) =>
+    request<MakerExecutionResponse>(
+      `/maker/tools/${encodeURIComponent(toolId)}/execute`,
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  listMakerDelegations: (params?: { status?: string; delegation_type?: string }, config?: ApiConfig) => {
+    const search = new URLSearchParams();
+    if (params?.status) search.set("status", params.status);
+    if (params?.delegation_type) search.set("delegation_type", params.delegation_type);
+    const suffix = search.toString() ? `?${search.toString()}` : "";
+    return request<MakerDelegationListResponse>(`/maker/delegations${suffix}`, {}, config);
+  },
+  syncMakerDelegations: (config?: ApiConfig) =>
+    request<{ synced: number }>("/maker/delegations/sync", { method: "POST" }, config),
+
+  // Knowledge Explorer
+  bubblelabsKnowledgeStatus: (config?: ApiConfig) =>
+    request<{ initialized: boolean; query_history_count: number }>(
+      "/bubblelabs/knowledge/status",
+      {},
+      config,
+    ),
+  bubblelabsKnowledgeQueryAdvanced: (
+    payload: { query: string; sources?: string[]; bedrock_kb_id?: string; index_path?: string },
+    config?: ApiConfig,
+  ) =>
+    request<KnowledgeExplorerQueryResponse>(
+      "/bubblelabs/knowledge/query-advanced",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  bubblelabsKnowledgeQueryHistory: (config?: ApiConfig) =>
+    request<KnowledgeExplorerHistoryResponse>("/bubblelabs/knowledge/query-history", {}, config),
+  bubblelabsKnowledgeExtract: (
+    payload: { source_type: string; source_value: string; extraction_config?: Record<string, unknown> },
+    config?: ApiConfig,
+  ) =>
+    request<KnowledgeExplorerExtractResponse>(
+      "/bubblelabs/knowledge/extract",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+
+  // LeanAide
+  bubblelabsLeanAideStatus: (config?: ApiConfig) =>
+    request<LeanAideStatusResponse>("/bubblelabs/leanaide/status", {}, config),
+  bubblelabsLeanAideExecute: (
+    payload: { task_type: string; payload: Record<string, unknown> },
+    config?: ApiConfig,
+  ) =>
+    request<LeanAideExecuteResponse>(
+      "/bubblelabs/leanaide/execute",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  bubblelabsLeanAideTrees: (config?: ApiConfig) =>
+    request<LeanAideTreeListResponse>("/bubblelabs/leanaide/trees", {}, config),
+  bubblelabsLeanAideTree: (treeId: string, config?: ApiConfig) =>
+    request<LeanAideTreeResponse>(`/bubblelabs/leanaide/trees/${encodeURIComponent(treeId)}`, {}, config),
+  bubblelabsLeanAideProofs: (config?: ApiConfig) =>
+    request<LeanAideProofListResponse>("/bubblelabs/leanaide/proofs", {}, config),
+  bubblelabsLeanAideProof: (proofId: string, config?: ApiConfig) =>
+    request<LeanAideProofResponse>(`/bubblelabs/leanaide/proofs/${encodeURIComponent(proofId)}`, {}, config),
+
+  // Evolution and adversarial runs
+  startEvolutionRun: (payload: {
+    content: string;
+    content_type?: string;
+    evolution_mode?: string;
+    parameters?: Record<string, unknown>;
+    gauntlet_name?: string;
+    use_decomposition?: boolean;
+  }, config?: ApiConfig) =>
+    request<EvolutionRunResponse>(
+      "/evolution/runs",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  listEvolutionRuns: (config?: ApiConfig) =>
+    request<EvolutionRunListResponse>("/evolution/runs", {}, config),
+  getEvolutionRun: (runId: string, config?: ApiConfig) =>
+    request<EvolutionRunStatus>(`/evolution/runs/${encodeURIComponent(runId)}`, {}, config),
+  stopEvolutionRun: (runId: string, config?: ApiConfig) =>
+    request<{ status: string }>(`/evolution/runs/${encodeURIComponent(runId)}/stop`, { method: "POST" }, config),
+
+  startAdversarialRun: (payload: {
+    content: string;
+    content_type?: string;
+    parameters?: Record<string, unknown>;
+    use_decomposition?: boolean;
+  }, config?: ApiConfig) =>
+    request<AdversarialRunResponse>(
+      "/adversarial/runs",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  listAdversarialRuns: (config?: ApiConfig) =>
+    request<AdversarialRunListResponse>("/adversarial/runs", {}, config),
+  getAdversarialRun: (runId: string, config?: ApiConfig) =>
+    request<AdversarialRunStatus>(`/adversarial/runs/${encodeURIComponent(runId)}`, {}, config),
+  stopAdversarialRun: (runId: string, config?: ApiConfig) =>
+    request<{ status: string }>(`/adversarial/runs/${encodeURIComponent(runId)}/stop`, { method: "POST" }, config),
 };

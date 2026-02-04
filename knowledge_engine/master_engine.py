@@ -264,6 +264,20 @@ class ComponentRegistry:
             
             # Analysis & Topology substitution matrix
             'lagrange_mapper': ['neuralkg', 'karateclub', 'causal_learn'],  # Analysis alternatives
+            
+            # Ensure all components have at least one fallback
+            'graphiti': ['kggen', 'aikg'],  # Temporal knowledge alternatives
+            'aikg': ['kggen', 'neuralkg'],  # Knowledge inference alternatives
+            'global_chem': ['neuromancer_ke', 'neuromancer'],  # Scientific alternatives
+            'neuromancer': ['neuromancer_ke', 'causal_learn'],  # Neural dynamics alternatives
+            'leanaide': ['dspy', 'agentjson'],  # Formal reasoning alternatives
+            'research_quest': ['crewai', 'ragbits'],  # Research automation alternatives
+            'agentic_context': ['crewai', 'dts'],  # Context management alternatives
+            'agentjson': ['outlines', 'dspy'],  # Structured output alternatives
+            'dspy': ['agentjson', 'outlines'],  # Prompt optimization alternatives
+            'openevolve_lib': ['crewai', 'mcp_gateway'],  # System integration alternatives
+            'mcp_gateway': ['openevolve_lib', 'crewai'],  # Gateway alternatives
+            'roma': ['crewai', 'dspy', 'openevolve_lib'],  # Meta-agent alternatives
         }
         
         # Core Knowledge Extraction (1-5)
@@ -928,6 +942,14 @@ class MasterKnowledgeEngine:
                 'openevolve_lib': self._execute_openevolve_lib,
                 'mcp_gateway': self._execute_mcp_gateway,
                 'roma': self._execute_roma,
+                # Advanced integrations (2026-02-03)
+                'outlines': self._execute_outlines,
+                'lmql': self._execute_lmql,
+                'neuromancer_ke': self._execute_neuromancer_ke,
+                'cognitive_hydraulics': self._execute_cognitive_hydraulics,
+                'dts': self._execute_dts,
+                'guardrails': self._execute_guardrails,
+                'icr': self._execute_icr,
             }
             
             handler = handlers.get(name)
@@ -1085,6 +1107,117 @@ class MasterKnowledgeEngine:
             result = comp.call_tool(query, params=ctx.get('params'))
             return {'tool_result': result, 'component': 'mcp_gateway'}
         return {'query': query, 'component': 'mcp_gateway'}
+
+    # Advanced integration execute handlers (2026-02-03)
+    async def _execute_outlines(self, comp, query: str, ctx: Dict) -> Dict:
+        """Execute Outlines structured generation."""
+        try:
+            if hasattr(comp, 'generate'):
+                schema = ctx.get('schema')
+                result = comp.generate(query, schema=schema)
+                return {'output': result, 'component': 'outlines', 'schema_used': schema is not None}
+            elif hasattr(comp, 'generate_json'):
+                result = comp.generate_json(query, schema=ctx.get('json_schema'))
+                return {'json_output': result, 'component': 'outlines'}
+            return {'query': query, 'component': 'outlines', 'status': 'fallback'}
+        except Exception as e:
+            logger.warning(f"Outlines execution failed: {e}")
+            return {'query': query, 'component': 'outlines', 'status': 'error', 'error': str(e)}
+
+    async def _execute_lmql(self, comp, query: str, ctx: Dict) -> Dict:
+        """Execute LMQL declarative query."""
+        try:
+            if hasattr(comp, 'query'):
+                result = comp.query(query, constraints=ctx.get('constraints'))
+                return {'result': result, 'component': 'lmql'}
+            elif hasattr(comp, 'run'):
+                result = comp.run(query)
+                return {'result': result, 'component': 'lmql'}
+            return {'query': query, 'component': 'lmql', 'status': 'fallback'}
+        except Exception as e:
+            logger.warning(f"LMQL execution failed: {e}")
+            return {'query': query, 'component': 'lmql', 'status': 'error', 'error': str(e)}
+
+    async def _execute_neuromancer_ke(self, comp, query: str, ctx: Dict) -> Dict:
+        """Execute Neuromancer KG physics-informed neural operators."""
+        try:
+            if hasattr(comp, 'solve_dynamics'):
+                import numpy as np
+                initial_conditions = ctx.get('initial_conditions', np.random.randn(10))
+                time_points = ctx.get('time_points', np.linspace(0, 1, 10))
+                result = comp.solve_dynamics(initial_conditions, time_points)
+                return {'solution': result, 'component': 'neuromancer_ke', 'domain': ctx.get('domain', 'general')}
+            elif hasattr(comp, 'simulate'):
+                result = comp.simulate(query, params=ctx.get('simulation_params', {}))
+                return {'simulation': result, 'component': 'neuromancer_ke'}
+            return {'query': query, 'component': 'neuromancer_ke', 'status': 'fallback'}
+        except Exception as e:
+            logger.warning(f"Neuromancer KE execution failed: {e}")
+            return {'query': query, 'component': 'neuromancer_ke', 'status': 'error', 'error': str(e)}
+
+    async def _execute_cognitive_hydraulics(self, comp, query: str, ctx: Dict) -> Dict:
+        """Execute Cognitive Hydraulics hybrid reasoning."""
+        try:
+            if hasattr(comp, 'reason'):
+                result = comp.reason(query, mode=ctx.get('reasoning_mode', 'hybrid'))
+                return {'reasoning': result, 'component': 'cognitive_hydraulics'}
+            elif hasattr(comp, 'solve'):
+                result = comp.solve(query, context=ctx)
+                return {'solution': result, 'component': 'cognitive_hydraulics'}
+            return {'query': query, 'component': 'cognitive_hydraulics', 'status': 'fallback'}
+        except Exception as e:
+            logger.warning(f"Cognitive Hydraulics execution failed: {e}")
+            return {'query': query, 'component': 'cognitive_hydraulics', 'status': 'error', 'error': str(e)}
+
+    async def _execute_dts(self, comp, query: str, ctx: Dict) -> Dict:
+        """Execute Dialogue Tree Search conversation optimization."""
+        try:
+            if hasattr(comp, 'search_dialogue'):
+                result = comp.search_dialogue(
+                    query,
+                    beam_width=ctx.get('beam_width', 5),
+                    max_depth=ctx.get('max_depth', 5)
+                )
+                return {'dialogue_tree': result, 'component': 'dts'}
+            elif hasattr(comp, 'optimize'):
+                result = comp.optimize(query, context=ctx.get('conversation_context', {}))
+                return {'optimization': result, 'component': 'dts'}
+            return {'query': query, 'component': 'dts', 'status': 'fallback'}
+        except Exception as e:
+            logger.warning(f"DTS execution failed: {e}")
+            return {'query': query, 'component': 'dts', 'status': 'error', 'error': str(e)}
+
+    async def _execute_guardrails(self, comp, query: str, ctx: Dict) -> Dict:
+        """Execute Guardrails AI safety validation."""
+        try:
+            if hasattr(comp, 'validate'):
+                result = comp.validate(query, rules=ctx.get('validation_rules'))
+                return {'validation': result, 'component': 'guardrails'}
+            elif hasattr(comp, 'check_safety'):
+                result = comp.check_safety(query, level=ctx.get('safety_level', 'moderate'))
+                return {'safety_check': result, 'component': 'guardrails'}
+            return {'query': query, 'component': 'guardrails', 'status': 'fallback'}
+        except Exception as e:
+            logger.warning(f"Guardrails execution failed: {e}")
+            return {'query': query, 'component': 'guardrails', 'status': 'error', 'error': str(e)}
+
+    async def _execute_icr(self, comp, query: str, ctx: Dict) -> Dict:
+        """Execute Iterative Contextual Refinements."""
+        try:
+            if hasattr(comp, 'refine'):
+                result = comp.refine(
+                    query,
+                    max_iterations=ctx.get('max_iterations', 5),
+                    threshold=ctx.get('threshold', 0.85)
+                )
+                return {'refinement': result, 'component': 'icr'}
+            elif hasattr(comp, 'generate_critique_refine'):
+                result = comp.generate_critique_refine(query, context=ctx)
+                return {'refined_output': result, 'component': 'icr'}
+            return {'query': query, 'component': 'icr', 'status': 'fallback'}
+        except Exception as e:
+            logger.warning(f"ICR execution failed: {e}")
+            return {'query': query, 'component': 'icr', 'status': 'error', 'error': str(e)}
 
     async def _execute_roma(self, comp, query: str, ctx: Dict) -> Dict:
         """

@@ -5,6 +5,7 @@ import { AdversarialTestingTab } from './AdversarialTestingTab';
 import { GithubIntegrationTab } from './GithubIntegrationTab';
 import { ActivityFeedTab } from './ActivityFeedTab';
 import { ReportTemplatesTab } from './ReportTemplatesTab';
+import { ReportingDashboardTab } from './ReportingDashboardTab';
 import { ModelDashboardTab } from './ModelDashboardTab';
 import { TasksTab } from './TasksTab';
 import { AdminTab } from './AdminTab';
@@ -31,6 +32,17 @@ import { DependencyGraphTab } from './DependencyGraphTab';
 import { PromptManagerTab } from './PromptManagerTab';
 import { ContentManagerTab } from './ContentManagerTab';
 import { ExportImportTab } from './ExportImportTab';
+import { EvaluatorHubTab } from './EvaluatorHubTab';
+import { DecompositionReviewTab } from './DecompositionReviewTab';
+import { IntegratedWorkflowTab } from './IntegratedWorkflowTab';
+import { ConfigurationTab } from './ConfigurationTab';
+import { RbacTab } from './RbacTab';
+import { ModelOrchestrationTab } from './ModelOrchestrationTab';
+import { ResourceManagerTab } from './ResourceManagerTab';
+import { BubbleLabsIntegrationTab } from './BubbleLabsIntegrationTab';
+import { MakerStudioTab } from './MakerStudioTab';
+import { KnowledgeExplorerTab } from './KnowledgeExplorerTab';
+import { LeanAideTab } from './LeanAideTab';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 
@@ -96,6 +108,7 @@ export const OpenEvolveApp: React.FC = () => {
                 <TabsTrigger value="github">GitHub</TabsTrigger>
                 <TabsTrigger value="activity">Activity Feed</TabsTrigger>
                 <TabsTrigger value="reports">Report Templates</TabsTrigger>
+                <TabsTrigger value="reporting-dashboard">Reporting Dashboard</TabsTrigger>
                 <TabsTrigger value="models">Model Dashboard</TabsTrigger>
                 <TabsTrigger value="tasks">Tasks</TabsTrigger>
                 <TabsTrigger value="admin">Admin</TabsTrigger>
@@ -122,6 +135,17 @@ export const OpenEvolveApp: React.FC = () => {
                 <TabsTrigger value="prompts">Prompts</TabsTrigger>
                 <TabsTrigger value="content">Content Tools</TabsTrigger>
                 <TabsTrigger value="export-import">Export / Import</TabsTrigger>
+                <TabsTrigger value="evaluators">Evaluator Hub</TabsTrigger>
+                <TabsTrigger value="decomposition-review">Decomposition Review</TabsTrigger>
+                <TabsTrigger value="integrated-workflow">Integrated Workflow</TabsTrigger>
+                <TabsTrigger value="configuration">Configuration</TabsTrigger>
+                <TabsTrigger value="rbac">RBAC</TabsTrigger>
+                <TabsTrigger value="model-orchestration">Model Orchestration</TabsTrigger>
+                <TabsTrigger value="resource-manager">Resource Manager</TabsTrigger>
+                <TabsTrigger value="bubblelabs">BubbleLabs</TabsTrigger>
+                <TabsTrigger value="maker-studio">Maker Studio</TabsTrigger>
+                <TabsTrigger value="knowledge-explorer">Knowledge Explorer</TabsTrigger>
+                <TabsTrigger value="leanaide">LeanAide</TabsTrigger>
               </TabsList>
               
               <TabsContent value="evolution" className="mt-6">
@@ -148,6 +172,10 @@ export const OpenEvolveApp: React.FC = () => {
               
               <TabsContent value="reports" className="mt-6">
                 <ReportTemplatesTab />
+              </TabsContent>
+
+              <TabsContent value="reporting-dashboard" className="mt-6">
+                <ReportingDashboardTab />
               </TabsContent>
               
               <TabsContent value="models" className="mt-6">
@@ -252,6 +280,50 @@ export const OpenEvolveApp: React.FC = () => {
 
               <TabsContent value="export-import" className="mt-6">
                 <ExportImportTab state={state} updateState={updateState} />
+              </TabsContent>
+
+              <TabsContent value="evaluators" className="mt-6">
+                <EvaluatorHubTab />
+              </TabsContent>
+
+              <TabsContent value="decomposition-review" className="mt-6">
+                <DecompositionReviewTab />
+              </TabsContent>
+
+              <TabsContent value="integrated-workflow" className="mt-6">
+                <IntegratedWorkflowTab />
+              </TabsContent>
+
+              <TabsContent value="configuration" className="mt-6">
+                <ConfigurationTab />
+              </TabsContent>
+
+              <TabsContent value="rbac" className="mt-6">
+                <RbacTab />
+              </TabsContent>
+
+              <TabsContent value="model-orchestration" className="mt-6">
+                <ModelOrchestrationTab />
+              </TabsContent>
+
+              <TabsContent value="resource-manager" className="mt-6">
+                <ResourceManagerTab />
+              </TabsContent>
+
+              <TabsContent value="bubblelabs" className="mt-6">
+                <BubbleLabsIntegrationTab />
+              </TabsContent>
+
+              <TabsContent value="maker-studio" className="mt-6">
+                <MakerStudioTab />
+              </TabsContent>
+
+              <TabsContent value="knowledge-explorer" className="mt-6">
+                <KnowledgeExplorerTab />
+              </TabsContent>
+
+              <TabsContent value="leanaide" className="mt-6">
+                <LeanAideTab />
               </TabsContent>
             </Tabs>
           </div>

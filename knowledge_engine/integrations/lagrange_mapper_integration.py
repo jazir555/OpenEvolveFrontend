@@ -18,6 +18,16 @@ lagrange_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.
 if lagrange_path not in sys.path:
     sys.path.insert(0, lagrange_path)
 
+# Integration availability flag
+LAGRANGE_MAPPER_INTEGRATION_AVAILABLE = True
+
+# Public API exports
+__all__ = [
+    'LagrangeMapperIntegration',
+    'LagrangeAttractorAnalyzer',
+    'LAGRANGE_MAPPER_INTEGRATION_AVAILABLE'
+]
+
 
 class LagrangeMapperIntegration:
     """

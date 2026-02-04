@@ -1,0 +1,53 @@
+{
+  "log_level": "INFO",
+  "min_support": 0.1,
+  "min_confidence": 0.5,
+  "timeout_seconds": 30,
+  "research_quest_curie_globalchem_config": {
+    "log_level": "WARNING",
+    "curie_globalchem_config": {
+      "log_level": "WARNING",
+      "max_results": 5
+    },
+    "research_quest_config": {
+      "model": "openai/gpt-4o",
+      "api_key": null,
+      "api_base": null,
+      "max_tokens": 8192,
+      "temperature": 0.1,
+      "chunk_size": 5000,
+      "overlap": 200,
+      "stages": {
+        "enable_initialization": true,
+        "enable_decomposition": true,
+        "enable_hypothesis_generation": true,
+        "enable_evidence_integration": true,
+        "enable_pruning_merging": true,
+        "enable_subgraph_extraction": true,
+        "enable_composition": true,
+        "enable_reflection": true
+      },
+      "quality_thresholds": {
+        "accuracy": 0.7,
+        "completeness": 0.6,
+        "consistency": 0.8,
+        "relevance": 0.7
+      },
+      "domain_specific": {
+        "enable_disciplinary_tags": true,
+        "default_tags": ["general", "chemistry"],
+        "specialized_domains": ["physics", "chemistry", "biology", "mathematics", "computer_science"]
+      },
+      "validation": {
+        "enable_falsification_check": true,
+        "enable_bias_detection": true,
+        "enable_consistency_check": true
+      }
+    }
+  },
+  "pami_config": {
+    "algorithm": "fpgrowth",
+    "max_pattern_length": 5
+  },
+  "integration_enabled": true
+}

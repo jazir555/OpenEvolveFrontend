@@ -13,6 +13,9 @@ from pydantic import BaseModel, Field, validator
 from typing import List, Dict, Any, Optional
 from collections import deque
 from enum import Enum
+from dataclasses import dataclass, field
+import threading
+import asyncio
 import uvicorn
 import os
 import re
@@ -25,6 +28,48 @@ import logging
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
+
+class _SessionState(dict):
+    """Lightweight SessionState replacement with attribute access."""
+
+    def __getattr__(self, key):
+        return self.get(key)
+
+    def __setattr__(self, key, value):
+        self[key] = value
+
+
+class _NoOpStreamlit:
+    """Fallback Streamlit shim for API contexts."""
+
+    def __init__(self):
+        self.session_state = _SessionState()
+        if "thread_lock" not in self.session_state:
+            self.session_state.thread_lock = threading.Lock()
+        self.sidebar = self
+
+    def __getattr__(self, _name):
+        def _noop(*_args, **_kwargs):
+            return None
+
+        return _noop
+
+
+def _patch_streamlit(module):
+    """Ensure Streamlit calls do not break in non-UI contexts."""
+    try:
+        module.st = _NoOpStreamlit()
+    except Exception:
+        pass
+
+
+def _attach_streamlit(module, streamlit_instance):
+    """Attach a provided Streamlit shim to a module."""
+    try:
+        module.st = streamlit_instance
+    except Exception:
+        pass
 
 # **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for API Server
 try:
@@ -50,6 +95,72 @@ try:
     CREWAI_AVAILABLE = True
 except ImportError:
     CREWAI_AVAILABLE = False
+
+try:
+    from bubblelabs_extended_integration import get_extended_integration, initialize_extended_integration
+    BUBBLELABS_AVAILABLE = True
+except ImportError:
+    BUBBLELABS_AVAILABLE = False
+
+try:
+    import model_orchestration as _model_orchestration
+    from model_orchestration import ModelOrchestrator, ModelRole
+    MODEL_ORCHESTRATION_AVAILABLE = True
+except ImportError:
+    MODEL_ORCHESTRATION_AVAILABLE = False
+    _model_orchestration = None
+
+try:
+    import integrated_workflow as _integrated_workflow
+    from integrated_workflow import run_fully_integrated_adversarial_evolution
+    INTEGRATED_WORKFLOW_AVAILABLE = True
+except ImportError:
+    INTEGRATED_WORKFLOW_AVAILABLE = False
+    _integrated_workflow = None
+
+try:
+    from bubblelabs_maker_integration import (
+        MakerWorkflowManager,
+        ToolRepository,
+        CrewAIDelegationManager,
+        ToolStatus,
+        DelegationStatus,
+    )
+    MAKER_INTEGRATION_AVAILABLE = True
+except ImportError:
+    MAKER_INTEGRATION_AVAILABLE = False
+    ToolStatus = None
+    DelegationStatus = None
+
+try:
+    from knowledge_engine.engine import KnowledgeEngine
+    from bubblelabs_knowledge_integration import (
+        KnowledgeQueryInterface,
+        KnowledgeExtractionWorkflow,
+        KnowledgeGraphVisualizer,
+    )
+    KNOWLEDGE_EXPLORER_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_EXPLORER_AVAILABLE = False
+
+try:
+    from bubblelabs_leanaide_integration import (
+        get_leanaide_bridge,
+        LeanAideTaskType,
+        LeanAideIntegrationBridge,
+    )
+    LEANAIDE_BRIDGE_AVAILABLE = True
+except ImportError:
+    LEANAIDE_BRIDGE_AVAILABLE = False
+    LeanAideTaskType = None
+    LeanAideIntegrationBridge = None
+
+try:
+    from evolution import run_comprehensive_evolution, create_evolution_configuration
+    from adversarial import run_comprehensive_adversarial_testing, create_adversarial_configuration
+    EVOLUTION_AVAILABLE = True
+except ImportError:
+    EVOLUTION_AVAILABLE = False
 
 
 # **ACTUAL INTEGRATION HELPER METHODS**: API Server
@@ -260,6 +371,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+_model_orchestrator = ModelOrchestrator() if MODEL_ORCHESTRATION_AVAILABLE else None
+if _model_orchestrator and _model_orchestration is not None:
+    _patch_streamlit(_model_orchestration)
+
 
 # Initialize templates for dashboard
 templates = Jinja2Templates(directory="templates")
@@ -287,6 +402,81 @@ parameter_manager = ParameterManager()
 sovereign_db = SovereignDatabase()
 sovereign_health_monitor = HealthMonitor()
 
+# Optional integration managers
+_maker_manager: Optional[MakerWorkflowManager] = None
+if MAKER_INTEGRATION_AVAILABLE:
+    try:
+        _maker_manager = MakerWorkflowManager(
+            tool_repository=ToolRepository(),
+            delegation_manager=CrewAIDelegationManager(),
+        )
+    except Exception as exc:
+        logger.warning("Maker integration unavailable: %s", exc)
+        _maker_manager = None
+
+_knowledge_engine_instance: Optional[KnowledgeEngine] = None
+_knowledge_query_interface: Optional[KnowledgeQueryInterface] = None
+_knowledge_extraction_workflow: Optional[KnowledgeExtractionWorkflow] = None
+_knowledge_graph_visualizer: Optional[KnowledgeGraphVisualizer] = None
+
+_leanaide_bridge: Optional[LeanAideIntegrationBridge] = None
+if LEANAIDE_BRIDGE_AVAILABLE:
+    try:
+        _leanaide_bridge = get_leanaide_bridge()
+    except Exception as exc:
+        logger.warning("LeanAide bridge unavailable: %s", exc)
+        _leanaide_bridge = None
+
+
+def _get_knowledge_components() -> Optional[Dict[str, Any]]:
+    """Lazy initialize knowledge explorer components."""
+    global _knowledge_engine_instance
+    global _knowledge_query_interface
+    global _knowledge_extraction_workflow
+    global _knowledge_graph_visualizer
+    if not KNOWLEDGE_EXPLORER_AVAILABLE:
+        return None
+    if _knowledge_engine_instance is None:
+        try:
+            _knowledge_engine_instance = KnowledgeEngine()
+            _knowledge_query_interface = KnowledgeQueryInterface(_knowledge_engine_instance)
+            _knowledge_extraction_workflow = KnowledgeExtractionWorkflow(_knowledge_engine_instance)
+            _knowledge_graph_visualizer = KnowledgeGraphVisualizer()
+        except Exception as exc:
+            logger.warning("Failed to initialize knowledge explorer: %s", exc)
+            _knowledge_engine_instance = None
+            _knowledge_query_interface = None
+            _knowledge_extraction_workflow = None
+            _knowledge_graph_visualizer = None
+            return None
+    return {
+        "engine": _knowledge_engine_instance,
+        "query": _knowledge_query_interface,
+        "extract": _knowledge_extraction_workflow,
+        "graph": _knowledge_graph_visualizer,
+    }
+
+
+@dataclass
+class _RunState:
+    run_id: str
+    run_type: str
+    status: str
+    created_at: str
+    started_at: Optional[str] = None
+    completed_at: Optional[str] = None
+    parameters: Dict[str, Any] = field(default_factory=dict)
+    logs: List[str] = field(default_factory=list)
+    result: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None
+    cancel_requested: bool = False
+    session_state: Optional[_SessionState] = None
+
+
+_run_lock = threading.Lock()
+_evolution_runs: Dict[str, _RunState] = {}
+_adversarial_runs: Dict[str, _RunState] = {}
+
 # Auto-approval configuration (in-memory)
 AUTO_APPROVAL_CONFIG: Dict[str, Any] = {"enabled": False, "rules": []}
 AUTO_APPROVAL_AUDIT_LOG: List[Dict[str, Any]] = []
@@ -313,6 +503,44 @@ def _save_json_store(path: str, data: Dict[str, Any]) -> None:
             json.dump(data, handle, indent=2)
     except (OSError, IOError, TypeError) as exc:
         logger.error("Failed to save JSON store %s: %s", path, exc)
+
+
+def _create_run_context(run_state: _RunState, log_key: str) -> _NoOpStreamlit:
+    """Create an isolated Streamlit shim for a background run."""
+    streamlit_instance = _NoOpStreamlit()
+    streamlit_instance.session_state[log_key] = run_state.logs
+    streamlit_instance.session_state["thread_lock"] = threading.Lock()
+    streamlit_instance.session_state[f"{log_key}_status_message"] = ""
+    run_state.session_state = streamlit_instance.session_state
+    return streamlit_instance
+
+
+def _finalize_run_state(run_state: _RunState, result: Optional[Dict[str, Any]], error: Optional[str]) -> None:
+    run_state.result = result
+    run_state.error = error
+    run_state.completed_at = datetime.utcnow().isoformat()
+    if run_state.cancel_requested:
+        run_state.status = "cancelled"
+    elif error:
+        run_state.status = "failed"
+    else:
+        run_state.status = "completed"
+
+
+def _start_background_run(run_state: _RunState, target, *args) -> None:
+    """Start a background thread for a run and track it."""
+    def _runner():
+        run_state.status = "running"
+        run_state.started_at = datetime.utcnow().isoformat()
+        try:
+            result = target(*args)
+            _finalize_run_state(run_state, result, None)
+        except Exception as exc:
+            logger.error("Run %s failed: %s", run_state.run_id, exc, exc_info=True)
+            _finalize_run_state(run_state, None, str(exc))
+
+    thread = threading.Thread(target=_runner, daemon=True)
+    thread.start()
 
 
 CUSTOM_PROMPTS: Dict[str, str] = _load_json_store(PROMPTS_FILE)
@@ -612,13 +840,43 @@ def _serialize_workflow_subproblem(sub_problem: SubProblem) -> Dict[str, Any]:
         "gold_team_gauntlet_name": sub_problem.gold_team_gauntlet_name,
         "solver_generation_gauntlet_name": sub_problem.solver_generation_gauntlet_name,
         "patcher_team_name": sub_problem.patcher_team_name,
+        "evolution_params": sub_problem.evolution_params or {},
         "status": sub_problem.status,
+        "atomic_mode": getattr(sub_problem, "atomic_mode", False),
+        "decomposition_depth": getattr(sub_problem, "decomposition_depth", 0),
         "acceptance_criteria": list(sub_problem.acceptance_criteria or []),
         "solution_requirements": sub_problem.solution_requirements or {},
         "specific_constraints": list(sub_problem.specific_constraints or []),
         "dependency_outputs": sub_problem.dependency_outputs or {},
         "metadata": sub_problem.metadata or {},
     }
+
+
+def _topological_sort_subproblems(sub_problems: List[SubProblem]) -> List[str]:
+    """Return execution order for sub-problems or raise on cycles."""
+    graph = {sp.id: list(sp.dependencies or []) for sp in sub_problems}
+    in_degree = {node: 0 for node in graph}
+    for node, deps in graph.items():
+        for dep in deps:
+            if dep not in in_degree:
+                raise ValueError(f"Unknown dependency '{dep}' for sub-problem '{node}'")
+            in_degree[node] += 1
+
+    queue = [node for node, degree in in_degree.items() if degree == 0]
+    order: List[str] = []
+    while queue:
+        node = queue.pop(0)
+        order.append(node)
+        for candidate, deps in graph.items():
+            if node in deps:
+                in_degree[candidate] -= 1
+                if in_degree[candidate] == 0:
+                    queue.append(candidate)
+
+    if len(order) != len(graph):
+        remaining = [node for node, degree in in_degree.items() if degree > 0]
+        raise ValueError(f"Cyclic dependencies detected among: {', '.join(remaining)}")
+    return order
 
 
 def _normalize_tenant_id(tenant_id: str) -> str:
@@ -651,6 +909,55 @@ def get_tenant_gauntlet_manager(tenant_id: str) -> GauntletManager:
     """Get a tenant-scoped GauntletManager."""
     base_dir = _get_tenant_storage_dir(tenant_id)
     return GauntletManager(gauntlets_file=os.path.join(base_dir, "gauntlets.json"))
+
+
+def _normalize_evaluator_id(evaluator_id: str) -> str:
+    """Normalize evaluator IDs for safe filesystem usage."""
+    normalized = re.sub(r"[^a-zA-Z0-9_-]", "_", evaluator_id.strip())
+    return normalized or "evaluator"
+
+
+def _get_evaluator_dir(tenant_id: str) -> Path:
+    """Get evaluator storage directory for a tenant."""
+    base_dir = _get_tenant_storage_dir(tenant_id)
+    evaluators_dir = Path(base_dir) / "evaluators"
+    evaluators_dir.mkdir(parents=True, exist_ok=True)
+    return evaluators_dir
+
+
+def _list_evaluators(tenant_id: str) -> Dict[str, str]:
+    """Return evaluator code by ID for a tenant."""
+    evaluators_dir = _get_evaluator_dir(tenant_id)
+    evaluators: Dict[str, str] = {}
+    for path in evaluators_dir.glob("*.py"):
+        try:
+            evaluators[path.stem] = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+    return evaluators
+
+
+def _save_evaluator(tenant_id: str, evaluator_id: str, code: str) -> None:
+    evaluators_dir = _get_evaluator_dir(tenant_id)
+    path = evaluators_dir / f"{_normalize_evaluator_id(evaluator_id)}.py"
+    path.write_text(code, encoding="utf-8")
+
+
+def _delete_evaluator(tenant_id: str, evaluator_id: str) -> bool:
+    evaluators_dir = _get_evaluator_dir(tenant_id)
+    path = evaluators_dir / f"{_normalize_evaluator_id(evaluator_id)}.py"
+    if not path.exists():
+        return False
+    path.unlink()
+    return True
+
+
+def _validate_evaluator_code(code: str) -> Optional[str]:
+    if not code or not code.strip():
+        return "Evaluator code cannot be empty."
+    if "def evaluate" not in code:
+        return "Evaluator code must define an `evaluate(program_path)` function."
+    return None
 
 
 # Pydantic models for API requests/responses
@@ -813,6 +1120,230 @@ class SuggestionRequest(BaseModel):
     presence_penalty: float = 0.0
     max_tokens: int = 1024
     seed: Optional[int] = None
+
+
+class EvaluatorUploadRequest(BaseModel):
+    code: str
+
+
+class SubProblemUpdate(BaseModel):
+    id: str
+    description: Optional[str] = None
+    dependencies: Optional[List[str]] = None
+    ai_suggested_evolution_mode: Optional[str] = None
+    ai_suggested_complexity_score: Optional[int] = None
+    ai_suggested_evaluation_prompt: Optional[str] = None
+    content_type: Optional[str] = None
+    solver_team_name: Optional[str] = None
+    red_team_gauntlet_name: Optional[str] = None
+    gold_team_gauntlet_name: Optional[str] = None
+    solver_generation_gauntlet_name: Optional[str] = None
+    patcher_team_name: Optional[str] = None
+    evolution_params: Optional[Dict[str, Any]] = None
+    atomic_mode: Optional[bool] = None
+    decomposition_depth: Optional[int] = None
+    acceptance_criteria: Optional[List[str]] = None
+    solution_requirements: Optional[Dict[str, Any]] = None
+    specific_constraints: Optional[List[str]] = None
+    status: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class DecompositionPlanUpdateRequest(BaseModel):
+    sub_problems: List[SubProblemUpdate]
+    max_refinement_loops: Optional[int] = None
+    auto_approval_enabled: Optional[bool] = None
+    auto_approval_criteria: Optional[Dict[str, Any]] = None
+    mdap_enabled: Optional[bool] = None
+    mdap_config: Optional[Dict[str, Any]] = None
+    maker_enabled: Optional[bool] = None
+    maker_config: Optional[Dict[str, Any]] = None
+    resource_limits: Optional[Dict[str, Any]] = None
+    parallel_processing_enabled: Optional[bool] = None
+    max_parallel_sub_problems: Optional[int] = None
+    learning_enabled: Optional[bool] = None
+    learning_config: Optional[Dict[str, Any]] = None
+    content_analyzer_team_name: Optional[str] = None
+    planner_team_name: Optional[str] = None
+    assembler_team_name: Optional[str] = None
+    final_red_team_gauntlet_name: Optional[str] = None
+    final_gold_team_gauntlet_name: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class IntegratedWorkflowRequest(BaseModel):
+    current_content: str
+    content_type: str = "text_general"
+    api_key: str
+    base_url: str = "https://openrouter.ai/api/v1"
+    red_team_models: List[str]
+    blue_team_models: List[str]
+    evaluator_models: List[str]
+    max_iterations: int = 5
+    adversarial_iterations: int = 3
+    evolution_iterations: int = 2
+    evaluation_iterations: int = 2
+    system_prompt: str
+    evaluator_system_prompt: str
+    temperature: float = 0.7
+    top_p: float = 0.95
+    frequency_penalty: float = 0.0
+    presence_penalty: float = 0.0
+    max_tokens: int = 4096
+    seed: Optional[int] = None
+    rotation_strategy: str = "round_robin"
+    red_team_sample_size: int = 3
+    blue_team_sample_size: int = 3
+    evaluator_sample_size: int = 2
+    confidence_threshold: float = 0.7
+    evaluator_threshold: float = 90.0
+    evaluator_consecutive_rounds: int = 1
+    compliance_requirements: str = ""
+    enable_data_augmentation: bool = False
+    augmentation_model_id: Optional[str] = None
+    augmentation_temperature: float = 0.7
+    enable_human_feedback: bool = False
+    multi_objective_optimization: bool = False
+    feature_dimensions: Optional[List[str]] = None
+    feature_bins: Optional[int] = None
+    elite_ratio: float = 0.1
+    exploration_ratio: float = 0.2
+    exploitation_ratio: float = 0.7
+    archive_size: int = 100
+    checkpoint_interval: int = 10
+    keyword_analysis_enabled: bool = True
+    keywords_to_target: Optional[List[str]] = None
+    keyword_penalty_weight: float = 0.5
+
+
+class ModelOrchestrationRegisterRequest(BaseModel):
+    model_name: str
+    role: str
+    weight: float = 1.0
+    api_key: Optional[str] = ""
+    api_base: Optional[str] = ""
+    temperature: Optional[float] = None
+    top_p: Optional[float] = None
+    max_tokens: Optional[int] = None
+    frequency_penalty: Optional[float] = None
+    presence_penalty: Optional[float] = None
+
+
+class ModelOrchestrationEnsembleRequest(BaseModel):
+    role: str
+    messages: List[Dict[str, str]]
+    selection_strategy: str = "performance_based"
+    temperature: float = 0.7
+    max_tokens: int = 4096
+    num_responses: int = 1
+
+
+class BubbleLabsAceSkillbookRequest(BaseModel):
+    name: str
+    skills: List[Dict[str, Any]] = Field(default_factory=list)
+
+
+class BubbleLabsAcePatternRequest(BaseModel):
+    workflow_results: List[Dict[str, Any]] = Field(default_factory=list)
+
+
+class BubbleLabsZ3SolveRequest(BaseModel):
+    variables: List[Dict[str, Any]] = Field(default_factory=list)
+    constraints: List[str] = Field(default_factory=list)
+
+
+class BubbleLabsZ3ProveRequest(BaseModel):
+    theorem: str
+
+
+class BubbleLabsRomaAnalyzeRequest(BaseModel):
+    problem: str
+    max_depth: int = 3
+
+
+class BubbleLabsRomaConfigRequest(BaseModel):
+    config: Dict[str, Any] = Field(default_factory=dict)
+
+
+class BubbleLabsKnowledgeStoreRequest(BaseModel):
+    artifact: Dict[str, Any] = Field(default_factory=dict)
+
+
+class BubbleLabsKnowledgeQueryRequest(BaseModel):
+    query: str
+
+
+class BubbleLabsAnalyticsTrackRequest(BaseModel):
+    workflow_id: str
+    metrics: Dict[str, Any] = Field(default_factory=dict)
+
+
+class BubbleLabsLeanAideProveRequest(BaseModel):
+    theorem: str
+
+
+class MakerToolCreateRequest(BaseModel):
+    name: str
+    description: str
+    task: str
+    maker_mode: str = "recursive"
+    k_ahead: int = 3
+    max_depth: int = 5
+    context: Optional[Dict[str, Any]] = None
+    prompt_template: Optional[str] = None
+    system_prompt: Optional[str] = None
+    expected_schema: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class MakerToolExecuteRequest(BaseModel):
+    input_data: Dict[str, Any] = Field(default_factory=dict)
+    delegate_to_crewai: bool = False
+
+
+class MakerToolUpdateRequest(BaseModel):
+    status: Optional[str] = None
+    test_results: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class MakerDelegationListRequest(BaseModel):
+    status: Optional[str] = None
+    delegation_type: Optional[str] = None
+
+
+class KnowledgeExplorerQueryRequest(BaseModel):
+    query: str
+    sources: List[str] = Field(default_factory=lambda: ["bedrock", "graphiti"])
+    bedrock_kb_id: Optional[str] = None
+    index_path: Optional[str] = None
+
+
+class KnowledgeExplorerExtractRequest(BaseModel):
+    source_type: str
+    source_value: str
+    extraction_config: Optional[Dict[str, Any]] = None
+
+
+class LeanAideExecuteRequest(BaseModel):
+    task_type: str
+    payload: Dict[str, Any] = Field(default_factory=dict)
+
+
+class EvolutionRunRequest(BaseModel):
+    content: str
+    content_type: str = "document_general"
+    evolution_mode: str = "standard"
+    parameters: Dict[str, Any] = Field(default_factory=dict)
+    gauntlet_name: Optional[str] = None
+    use_decomposition: bool = False
+
+
+class AdversarialRunRequest(BaseModel):
+    content: str
+    content_type: str = "document_general"
+    parameters: Dict[str, Any] = Field(default_factory=dict)
+    use_decomposition: bool = False
 
 
 # Authentication and Authorization
@@ -1315,6 +1846,135 @@ def get_workflow_decomposition_plan(
     }
 
 
+@app.put("/workflows/{workflow_id}/decomposition-plan", dependencies=[Depends(require_role(UserRole.USER))])
+def update_workflow_decomposition_plan(
+    workflow_id: str,
+    request: DecompositionPlanUpdateRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER)),
+    tenant_id: str = Depends(get_tenant_id)
+):
+    """Update decomposition plan and sub-problems for a workflow."""
+    if workflow_id not in workflows:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+
+    wf = workflows[workflow_id]
+    if (wf.tenant_id or "default") != tenant_id:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+
+    if not wf.decomposition_plan:
+        raise HTTPException(status_code=404, detail="Decomposition plan not available")
+
+    plan = wf.decomposition_plan
+    sub_problem_map = {sp.id: sp for sp in plan.sub_problems}
+
+    for update in request.sub_problems:
+        sp = sub_problem_map.get(update.id)
+        if not sp:
+            raise HTTPException(status_code=400, detail=f"Unknown sub-problem id: {update.id}")
+
+        if update.description is not None:
+            sp.description = update.description
+        if update.dependencies is not None:
+            sp.dependencies = list(update.dependencies)
+        if update.ai_suggested_evolution_mode is not None:
+            sp.ai_suggested_evolution_mode = update.ai_suggested_evolution_mode
+        if update.ai_suggested_complexity_score is not None:
+            sp.ai_suggested_complexity_score = update.ai_suggested_complexity_score
+        if update.ai_suggested_evaluation_prompt is not None:
+            sp.ai_suggested_evaluation_prompt = update.ai_suggested_evaluation_prompt
+        if update.content_type is not None:
+            sp.content_type = update.content_type
+        if update.solver_team_name is not None:
+            sp.solver_team_name = update.solver_team_name
+        if update.red_team_gauntlet_name is not None:
+            sp.red_team_gauntlet_name = update.red_team_gauntlet_name
+        if update.gold_team_gauntlet_name is not None:
+            sp.gold_team_gauntlet_name = update.gold_team_gauntlet_name
+        if update.solver_generation_gauntlet_name is not None:
+            sp.solver_generation_gauntlet_name = update.solver_generation_gauntlet_name
+        if update.patcher_team_name is not None:
+            sp.patcher_team_name = update.patcher_team_name
+        if update.evolution_params is not None:
+            sp.evolution_params = update.evolution_params
+        if update.atomic_mode is not None:
+            sp.atomic_mode = update.atomic_mode
+        if update.decomposition_depth is not None:
+            sp.decomposition_depth = update.decomposition_depth
+        if update.acceptance_criteria is not None:
+            sp.acceptance_criteria = list(update.acceptance_criteria)
+        if update.solution_requirements is not None:
+            sp.solution_requirements = update.solution_requirements
+        if update.specific_constraints is not None:
+            sp.specific_constraints = list(update.specific_constraints)
+        if update.status is not None:
+            sp.status = update.status
+        if update.metadata is not None:
+            sp.metadata = update.metadata
+
+    if request.max_refinement_loops is not None:
+        plan.max_refinement_loops = request.max_refinement_loops
+    if request.auto_approval_enabled is not None:
+        plan.auto_approval_enabled = request.auto_approval_enabled
+    if request.auto_approval_criteria is not None:
+        plan.auto_approval_criteria = request.auto_approval_criteria
+    if request.mdap_enabled is not None:
+        plan.mdap_enabled = request.mdap_enabled
+    if request.mdap_config is not None:
+        plan.mdap_config = request.mdap_config
+    if request.maker_enabled is not None:
+        plan.maker_enabled = request.maker_enabled
+    if request.maker_config is not None:
+        plan.maker_config = request.maker_config
+    if request.resource_limits is not None:
+        plan.resource_limits = request.resource_limits
+    if request.parallel_processing_enabled is not None:
+        plan.parallel_processing_enabled = request.parallel_processing_enabled
+    if request.max_parallel_sub_problems is not None:
+        plan.max_parallel_sub_problems = request.max_parallel_sub_problems
+    if request.learning_enabled is not None:
+        plan.learning_enabled = request.learning_enabled
+    if request.learning_config is not None:
+        plan.learning_config = request.learning_config
+    if request.content_analyzer_team_name is not None:
+        plan.content_analyzer_team_name = request.content_analyzer_team_name
+    if request.planner_team_name is not None:
+        plan.planner_team_name = request.planner_team_name
+    if request.assembler_team_name is not None:
+        plan.assembler_team_name = request.assembler_team_name
+    if request.final_red_team_gauntlet_name is not None:
+        plan.final_red_team_gauntlet_name = request.final_red_team_gauntlet_name
+    if request.final_gold_team_gauntlet_name is not None:
+        plan.final_gold_team_gauntlet_name = request.final_gold_team_gauntlet_name
+    if request.metadata is not None:
+        plan.metadata = request.metadata
+
+    try:
+        execution_order = _topological_sort_subproblems(plan.sub_problems)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    if plan.metadata is None:
+        plan.metadata = {}
+    plan.metadata["execution_order"] = execution_order
+
+    try:
+        from workflow_engine import _update_entanglement_matrix
+        _update_entanglement_matrix(wf)
+    except Exception as exc:
+        logger.warning("Failed to update entanglement matrix: %s", exc)
+
+    record_audit_event(
+        user=user,
+        operation="UPDATE_DECOMPOSITION_PLAN",
+        resource="workflow",
+        resource_id=workflow_id,
+        success=True,
+        details={"tenant_id": tenant_id}
+    )
+
+    return {"message": "Decomposition plan updated", "execution_order": execution_order}
+
+
 @app.get("/workflows/{workflow_id}/telemetry", dependencies=[Depends(verify_api_key)])
 def get_workflow_telemetry(
     workflow_id: str,
@@ -1367,6 +2027,50 @@ def get_workflow_telemetry(
             "verification_avg_score": _avg(verification_scores),
         },
     }
+
+
+@app.get("/workflows/{workflow_id}/resource-usage", dependencies=[Depends(verify_api_key)])
+def get_workflow_resource_usage(
+    workflow_id: str,
+    user: AuthUser = Depends(verify_api_key),
+    tenant_id: str = Depends(get_tenant_id)
+):
+    """Get resource usage summary for a workflow."""
+    if workflow_id not in workflows:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+
+    wf = workflows[workflow_id]
+    if (wf.tenant_id or "default") != tenant_id:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+
+    if not getattr(wf, "resource_usage", None):
+        return {"workflow_id": wf.workflow_id, "resource_usage": {}}
+
+    return {"workflow_id": wf.workflow_id, "resource_usage": wf.resource_usage}
+
+
+@app.post("/workflows/{workflow_id}/resource-optimization", dependencies=[Depends(require_role(UserRole.USER))])
+def optimize_workflow_resources(
+    workflow_id: str,
+    user: AuthUser = Depends(require_role(UserRole.USER)),
+    tenant_id: str = Depends(get_tenant_id)
+):
+    """Suggest resource allocation based on decomposition plan."""
+    if workflow_id not in workflows:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+
+    wf = workflows[workflow_id]
+    if (wf.tenant_id or "default") != tenant_id:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+
+    if not wf.decomposition_plan:
+        raise HTTPException(status_code=404, detail="Decomposition plan not available")
+
+    from resource_manager import ResourceManager
+    manager = ResourceManager()
+    suggestions = manager.optimize_resource_allocation(wf.decomposition_plan.sub_problems)
+
+    return {"workflow_id": wf.workflow_id, "suggestions": suggestions}
 
 
 @app.post("/workflows/{workflow_id}/pause", dependencies=[Depends(require_role(UserRole.USER))])
@@ -1876,6 +2580,70 @@ def delete_gauntlet(
     )
     
     return {"message": "Gauntlet deleted", "gauntlet_name": gauntlet_name}
+
+
+# Evaluator endpoints
+
+@app.get("/evaluators", dependencies=[Depends(verify_api_key)])
+def list_evaluators(
+    user: AuthUser = Depends(verify_api_key),
+    tenant_id: str = Depends(get_tenant_id)
+):
+    """List custom evaluators for a tenant."""
+    evaluators = _list_evaluators(tenant_id)
+    record_audit_event(
+        user=user,
+        operation="LIST_EVALUATORS",
+        resource="evaluator",
+        resource_id="*",
+        success=True,
+        details={"tenant_id": tenant_id, "count": len(evaluators)}
+    )
+    return {"evaluators": evaluators}
+
+
+@app.post("/evaluators", dependencies=[Depends(require_role(UserRole.USER))])
+def upload_evaluator(
+    request: EvaluatorUploadRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER)),
+    tenant_id: str = Depends(get_tenant_id)
+):
+    """Upload a custom evaluator (requires USER role)."""
+    error = _validate_evaluator_code(request.code)
+    if error:
+        raise HTTPException(status_code=400, detail=error)
+    evaluator_id = f"eval_{uuid.uuid4().hex[:8]}"
+    _save_evaluator(tenant_id, evaluator_id, request.code)
+    record_audit_event(
+        user=user,
+        operation="UPLOAD_EVALUATOR",
+        resource="evaluator",
+        resource_id=evaluator_id,
+        success=True,
+        details={"tenant_id": tenant_id}
+    )
+    return {"evaluator_id": evaluator_id}
+
+
+@app.delete("/evaluators/{evaluator_id}", dependencies=[Depends(require_role(UserRole.ADMIN))])
+def delete_evaluator(
+    evaluator_id: str,
+    user: AuthUser = Depends(require_role(UserRole.ADMIN)),
+    tenant_id: str = Depends(get_tenant_id)
+):
+    """Delete a custom evaluator (requires ADMIN role)."""
+    deleted = _delete_evaluator(tenant_id, evaluator_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Evaluator not found")
+    record_audit_event(
+        user=user,
+        operation="DELETE_EVALUATOR",
+        resource="evaluator",
+        resource_id=evaluator_id,
+        success=True,
+        details={"tenant_id": tenant_id}
+    )
+    return {"success": True, "evaluator_id": evaluator_id}
 
 
 # Webhook system
@@ -4384,6 +5152,782 @@ def get_adaptive_profile_config(profile_name: str):
     except Exception as e:
         logger.error(f"Error getting profile config: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/integrated/run", dependencies=[Depends(require_role(UserRole.USER))])
+def run_integrated_workflow(
+    request: IntegratedWorkflowRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    """Run the integrated adversarial-evolution-evaluation workflow."""
+    if not INTEGRATED_WORKFLOW_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Integrated workflow not available")
+    if _integrated_workflow is not None:
+        _patch_streamlit(_integrated_workflow)
+
+    try:
+        results = run_fully_integrated_adversarial_evolution(
+            current_content=request.current_content,
+            content_type=request.content_type,
+            api_key=request.api_key,
+            base_url=request.base_url,
+            red_team_models=request.red_team_models,
+            blue_team_models=request.blue_team_models,
+            evaluator_models=request.evaluator_models,
+            max_iterations=request.max_iterations,
+            adversarial_iterations=request.adversarial_iterations,
+            evolution_iterations=request.evolution_iterations,
+            evaluation_iterations=request.evaluation_iterations,
+            system_prompt=request.system_prompt,
+            evaluator_system_prompt=request.evaluator_system_prompt,
+            temperature=request.temperature,
+            top_p=request.top_p,
+            frequency_penalty=request.frequency_penalty,
+            presence_penalty=request.presence_penalty,
+            max_tokens=request.max_tokens,
+            seed=request.seed,
+            rotation_strategy=request.rotation_strategy,
+            red_team_sample_size=request.red_team_sample_size,
+            blue_team_sample_size=request.blue_team_sample_size,
+            evaluator_sample_size=request.evaluator_sample_size,
+            confidence_threshold=request.confidence_threshold,
+            evaluator_threshold=request.evaluator_threshold,
+            evaluator_consecutive_rounds=request.evaluator_consecutive_rounds,
+            compliance_requirements=request.compliance_requirements,
+            enable_data_augmentation=request.enable_data_augmentation,
+            augmentation_model_id=request.augmentation_model_id,
+            augmentation_temperature=request.augmentation_temperature,
+            enable_human_feedback=request.enable_human_feedback,
+            multi_objective_optimization=request.multi_objective_optimization,
+            feature_dimensions=request.feature_dimensions,
+            feature_bins=request.feature_bins,
+            elite_ratio=request.elite_ratio,
+            exploration_ratio=request.exploration_ratio,
+            exploitation_ratio=request.exploitation_ratio,
+            archive_size=request.archive_size,
+            checkpoint_interval=request.checkpoint_interval,
+            keyword_analysis_enabled=request.keyword_analysis_enabled,
+            keywords_to_target=request.keywords_to_target,
+            keyword_penalty_weight=request.keyword_penalty_weight,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+    return results
+
+
+@app.get("/orchestration/models", dependencies=[Depends(verify_api_key)])
+def list_orchestration_models(
+    user: AuthUser = Depends(verify_api_key)
+):
+    """List models registered in the orchestrator."""
+    if not MODEL_ORCHESTRATION_AVAILABLE or _model_orchestrator is None:
+        raise HTTPException(status_code=503, detail="Model orchestration not available")
+
+    models = []
+    for model_name, info in _model_orchestrator.models.items():
+        role = info.get("role")
+        role_value = role.value if hasattr(role, "value") else str(role)
+        models.append(
+            {
+                "name": model_name,
+                "role": role_value,
+                "weight": info.get("weight", 1.0),
+                "api_base": info.get("api_base", ""),
+            }
+        )
+
+    metrics = _model_orchestrator.get_model_performance_metrics()
+    return {
+        "models": models,
+        "metrics": metrics or {},
+        "selection_strategies": list(_model_orchestrator.selection_strategies.keys()),
+    }
+
+
+@app.post("/orchestration/models", dependencies=[Depends(require_role(UserRole.USER))])
+def register_orchestration_model(
+    request: ModelOrchestrationRegisterRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    """Register a model with the orchestrator."""
+    if not MODEL_ORCHESTRATION_AVAILABLE or _model_orchestrator is None:
+        raise HTTPException(status_code=503, detail="Model orchestration not available")
+
+    role_value = request.role.lower()
+    matched_role = None
+    for role in ModelRole:
+        if role_value in {role.value.lower(), role.name.lower()}:
+            matched_role = role
+            break
+    if not matched_role:
+        raise HTTPException(status_code=400, detail="Invalid role")
+
+    kwargs = {}
+    if request.temperature is not None:
+        kwargs["temperature"] = request.temperature
+    if request.top_p is not None:
+        kwargs["top_p"] = request.top_p
+    if request.max_tokens is not None:
+        kwargs["max_tokens"] = request.max_tokens
+    if request.frequency_penalty is not None:
+        kwargs["frequency_penalty"] = request.frequency_penalty
+    if request.presence_penalty is not None:
+        kwargs["presence_penalty"] = request.presence_penalty
+
+    _model_orchestrator.register_model(
+        model_name=request.model_name,
+        role=matched_role,
+        weight=request.weight,
+        api_key=request.api_key or "",
+        api_base=request.api_base or "",
+        **kwargs,
+    )
+
+    return {"message": "Model registered", "model_name": request.model_name}
+
+
+@app.post("/orchestration/ensemble", dependencies=[Depends(require_role(UserRole.USER))])
+def execute_orchestration_ensemble(
+    request: ModelOrchestrationEnsembleRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    """Execute a request with an ensemble of models."""
+    if not MODEL_ORCHESTRATION_AVAILABLE or _model_orchestrator is None:
+        raise HTTPException(status_code=503, detail="Model orchestration not available")
+
+    role_value = request.role.lower()
+    matched_role = None
+    for role in ModelRole:
+        if role_value in {role.value.lower(), role.name.lower()}:
+            matched_role = role
+            break
+    if not matched_role:
+        raise HTTPException(status_code=400, detail="Invalid role")
+
+    responses = _model_orchestrator.execute_with_ensemble(
+        messages=request.messages,
+        role=matched_role,
+        selection_strategy=request.selection_strategy,
+        temperature=request.temperature,
+        max_tokens=request.max_tokens,
+        num_responses=request.num_responses,
+    )
+
+    return {"responses": responses}
+
+
+@app.get("/bubblelabs/status", dependencies=[Depends(verify_api_key)])
+def bubblelabs_status():
+    """Get BubbleLabs integration status."""
+    if not BUBBLELABS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="BubbleLabs integration not available")
+    integration = get_extended_integration()
+    return integration.get_all_status()
+
+
+@app.post("/bubblelabs/initialize", dependencies=[Depends(require_role(UserRole.USER))])
+def bubblelabs_initialize(
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    """Initialize BubbleLabs component bridges."""
+    if not BUBBLELABS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="BubbleLabs integration not available")
+    return initialize_extended_integration()
+
+
+@app.post("/bubblelabs/ace/skillbook", dependencies=[Depends(require_role(UserRole.USER))])
+def bubblelabs_ace_skillbook(
+    request: BubbleLabsAceSkillbookRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    if not BUBBLELABS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="BubbleLabs integration not available")
+    integration = get_extended_integration()
+    return integration.ace_create_skillbook(request.name, request.skills)
+
+
+@app.post("/bubblelabs/ace/patterns", dependencies=[Depends(require_role(UserRole.USER))])
+def bubblelabs_ace_patterns(
+    request: BubbleLabsAcePatternRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    if not BUBBLELABS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="BubbleLabs integration not available")
+    integration = get_extended_integration()
+    return integration.ace_extract_patterns(request.workflow_results)
+
+
+@app.post("/bubblelabs/z3/solve", dependencies=[Depends(require_role(UserRole.USER))])
+def bubblelabs_z3_solve(
+    request: BubbleLabsZ3SolveRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    if not BUBBLELABS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="BubbleLabs integration not available")
+    integration = get_extended_integration()
+    return integration.z3_solve_constraints(request.variables, request.constraints)
+
+
+@app.post("/bubblelabs/z3/prove", dependencies=[Depends(require_role(UserRole.USER))])
+def bubblelabs_z3_prove(
+    request: BubbleLabsZ3ProveRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    if not BUBBLELABS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="BubbleLabs integration not available")
+    integration = get_extended_integration()
+    return integration.z3_prove_theorem(request.theorem)
+
+
+@app.post("/bubblelabs/roma/analyze", dependencies=[Depends(require_role(UserRole.USER))])
+def bubblelabs_roma_analyze(
+    request: BubbleLabsRomaAnalyzeRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    if not BUBBLELABS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="BubbleLabs integration not available")
+    integration = get_extended_integration()
+    return integration.roma_analyze_problem(request.problem, request.max_depth)
+
+
+@app.post("/bubblelabs/roma/config", dependencies=[Depends(require_role(UserRole.USER))])
+def bubblelabs_roma_config(
+    request: BubbleLabsRomaConfigRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    if not BUBBLELABS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="BubbleLabs integration not available")
+    integration = get_extended_integration()
+    return integration.roma_create_config(**(request.config or {}))
+
+
+@app.post("/bubblelabs/knowledge/store", dependencies=[Depends(require_role(UserRole.USER))])
+def bubblelabs_knowledge_store(
+    request: BubbleLabsKnowledgeStoreRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    if not BUBBLELABS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="BubbleLabs integration not available")
+    integration = get_extended_integration()
+    return integration.knowledge_store_artifact(request.artifact)
+
+
+@app.post("/bubblelabs/knowledge/query", dependencies=[Depends(require_role(UserRole.USER))])
+def bubblelabs_knowledge_query(
+    request: BubbleLabsKnowledgeQueryRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    if not BUBBLELABS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="BubbleLabs integration not available")
+    integration = get_extended_integration()
+    return integration.knowledge_query_patterns(request.query)
+
+
+@app.post("/bubblelabs/analytics/track", dependencies=[Depends(require_role(UserRole.USER))])
+def bubblelabs_analytics_track(
+    request: BubbleLabsAnalyticsTrackRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    if not BUBBLELABS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="BubbleLabs integration not available")
+    integration = get_extended_integration()
+    return integration.analytics_track_workflow(request.workflow_id, request.metrics)
+
+
+@app.get("/bubblelabs/analytics/dashboard", dependencies=[Depends(verify_api_key)])
+def bubblelabs_analytics_dashboard():
+    if not BUBBLELABS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="BubbleLabs integration not available")
+    integration = get_extended_integration()
+    return integration.analytics_get_dashboard()
+
+
+@app.post("/bubblelabs/leanaide/prove", dependencies=[Depends(require_role(UserRole.USER))])
+def bubblelabs_leanaide_prove(
+    request: BubbleLabsLeanAideProveRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    if not BUBBLELABS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="BubbleLabs integration not available")
+    integration = get_extended_integration()
+    return integration.leanaide_prove_theorem(request.theorem)
+
+
+@app.get("/maker/status", dependencies=[Depends(verify_api_key)])
+def maker_status():
+    """Get Maker integration availability."""
+    return {
+        "available": MAKER_INTEGRATION_AVAILABLE and _maker_manager is not None,
+        "maker_engine_available": MAKER_INTEGRATION_AVAILABLE,
+    }
+
+
+@app.get("/maker/tools", dependencies=[Depends(verify_api_key)])
+def maker_list_tools(
+    status: Optional[str] = None,
+    maker_mode: Optional[str] = None,
+    search: Optional[str] = None,
+):
+    if not MAKER_INTEGRATION_AVAILABLE or _maker_manager is None:
+        raise HTTPException(status_code=503, detail="Maker integration not available")
+    status_filter = None
+    if status and ToolStatus:
+        try:
+            status_filter = ToolStatus(status)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid status filter")
+    tools = _maker_manager.tool_repository.list_tools(
+        status_filter=status_filter,
+        maker_mode_filter=maker_mode,
+    )
+    if search:
+        tools = _maker_manager.tool_repository.search_tools(search)
+    return {"tools": [tool.to_dict() for tool in tools]}
+
+
+@app.get("/maker/tools/{tool_id}", dependencies=[Depends(verify_api_key)])
+def maker_get_tool(tool_id: str):
+    if not MAKER_INTEGRATION_AVAILABLE or _maker_manager is None:
+        raise HTTPException(status_code=503, detail="Maker integration not available")
+    tool = _maker_manager.tool_repository.get_tool(tool_id)
+    if not tool:
+        raise HTTPException(status_code=404, detail="Tool not found")
+    return {"tool": tool.to_dict()}
+
+
+@app.post("/maker/tools", dependencies=[Depends(require_role(UserRole.USER))])
+def maker_create_tool(
+    request: MakerToolCreateRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    if not MAKER_INTEGRATION_AVAILABLE or _maker_manager is None:
+        raise HTTPException(status_code=503, detail="Maker integration not available")
+    tool, error = _maker_manager.create_tool_workflow(
+        name=request.name,
+        description=request.description,
+        task=request.task,
+        maker_mode=request.maker_mode,
+        k_ahead=request.k_ahead,
+        max_depth=request.max_depth,
+        context=request.context,
+    )
+    if error:
+        raise HTTPException(status_code=400, detail=error)
+    if request.prompt_template or request.system_prompt or request.expected_schema or request.metadata:
+        stored_tool = _maker_manager.tool_repository.get_tool(tool.tool_id)
+        if stored_tool:
+            if request.prompt_template:
+                stored_tool.prompt_template = request.prompt_template
+            if request.system_prompt:
+                stored_tool.system_prompt = request.system_prompt
+            if request.expected_schema:
+                stored_tool.expected_schema = request.expected_schema
+            if request.metadata:
+                stored_tool.metadata.update(request.metadata)
+            _maker_manager.tool_repository._save_repository()
+    return {"tool": tool.to_dict()}
+
+
+@app.post("/maker/tools/{tool_id}/test", dependencies=[Depends(require_role(UserRole.USER))])
+def maker_test_tool(
+    tool_id: str,
+    request: MakerToolExecuteRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    if not MAKER_INTEGRATION_AVAILABLE or _maker_manager is None:
+        raise HTTPException(status_code=503, detail="Maker integration not available")
+    result, error = _maker_manager.execute_tool_workflow(
+        tool_id=tool_id,
+        input_data=request.input_data,
+        delegate_to_crewai=request.delegate_to_crewai,
+    )
+    if error or result is None:
+        raise HTTPException(status_code=400, detail=error or "Tool execution failed")
+    _maker_manager.tool_repository.update_tool(
+        tool_id,
+        status=ToolStatus.TESTING if ToolStatus else None,
+        test_results={
+            "success": result.success,
+            "output": result.output_data,
+            "metrics": result.metrics,
+            "execution_time": result.execution_time,
+            "timestamp": result.timestamp,
+        },
+    )
+    return {"result": result.to_dict()}
+
+
+@app.post("/maker/tools/{tool_id}/validate", dependencies=[Depends(require_role(UserRole.USER))])
+def maker_validate_tool(
+    tool_id: str,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    if not MAKER_INTEGRATION_AVAILABLE or _maker_manager is None:
+        raise HTTPException(status_code=503, detail="Maker integration not available")
+    updated = _maker_manager.tool_repository.update_tool(
+        tool_id,
+        status=ToolStatus.VALIDATED if ToolStatus else None,
+    )
+    if not updated:
+        raise HTTPException(status_code=404, detail="Tool not found")
+    return {"status": "validated"}
+
+
+@app.post("/maker/tools/{tool_id}/execute", dependencies=[Depends(require_role(UserRole.USER))])
+def maker_execute_tool(
+    tool_id: str,
+    request: MakerToolExecuteRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    if not MAKER_INTEGRATION_AVAILABLE or _maker_manager is None:
+        raise HTTPException(status_code=503, detail="Maker integration not available")
+    result, error = _maker_manager.execute_tool_workflow(
+        tool_id=tool_id,
+        input_data=request.input_data,
+        delegate_to_crewai=request.delegate_to_crewai,
+    )
+    if error or result is None:
+        raise HTTPException(status_code=400, detail=error or "Tool execution failed")
+    return {"result": result.to_dict()}
+
+
+@app.get("/maker/delegations", dependencies=[Depends(verify_api_key)])
+def maker_list_delegations(status: Optional[str] = None, delegation_type: Optional[str] = None):
+    if not MAKER_INTEGRATION_AVAILABLE or _maker_manager is None:
+        raise HTTPException(status_code=503, detail="Maker integration not available")
+    status_filter = None
+    if status and DelegationStatus:
+        try:
+            status_filter = DelegationStatus(status)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid delegation status")
+    delegations = _maker_manager.delegation_manager.list_delegations(
+        status_filter=status_filter,
+        delegation_type_filter=delegation_type,
+    )
+    return {"delegations": [d.to_dict() for d in delegations]}
+
+
+@app.post("/maker/delegations/sync", dependencies=[Depends(require_role(UserRole.USER))])
+def maker_sync_delegations(
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    if not MAKER_INTEGRATION_AVAILABLE or _maker_manager is None:
+        raise HTTPException(status_code=503, detail="Maker integration not available")
+    synced = _maker_manager.delegation_manager.sync_from_crewai()
+    return {"synced": synced}
+
+
+@app.get("/bubblelabs/knowledge/status", dependencies=[Depends(verify_api_key)])
+def bubblelabs_knowledge_status():
+    if not KNOWLEDGE_EXPLORER_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Knowledge explorer not available")
+    components = _get_knowledge_components()
+    if components is None:
+        raise HTTPException(status_code=500, detail="Knowledge explorer initialization failed")
+    query = components["query"]
+    return {
+        "initialized": True,
+        "query_history_count": len(query.get_query_history() if query else []),
+    }
+
+
+@app.post("/bubblelabs/knowledge/query-advanced", dependencies=[Depends(require_role(UserRole.USER))])
+async def bubblelabs_knowledge_query_advanced(
+    request: KnowledgeExplorerQueryRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    if not KNOWLEDGE_EXPLORER_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Knowledge explorer not available")
+    components = _get_knowledge_components()
+    if components is None:
+        raise HTTPException(status_code=500, detail="Knowledge explorer initialization failed")
+    query_interface: KnowledgeQueryInterface = components["query"]
+    results = await query_interface.unified_query(
+        query=request.query,
+        sources=request.sources,
+        bedrock_kb_id=request.bedrock_kb_id,
+        index_path=request.index_path,
+    )
+    return {
+        "results": results,
+        "history": query_interface.get_query_history(limit=10),
+    }
+
+
+@app.get("/bubblelabs/knowledge/query-history", dependencies=[Depends(verify_api_key)])
+def bubblelabs_knowledge_query_history():
+    if not KNOWLEDGE_EXPLORER_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Knowledge explorer not available")
+    components = _get_knowledge_components()
+    if components is None:
+        raise HTTPException(status_code=500, detail="Knowledge explorer initialization failed")
+    query_interface: KnowledgeQueryInterface = components["query"]
+    return {"history": query_interface.get_query_history(limit=50)}
+
+
+@app.post("/bubblelabs/knowledge/extract", dependencies=[Depends(require_role(UserRole.USER))])
+async def bubblelabs_knowledge_extract(
+    request: KnowledgeExplorerExtractRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    if not KNOWLEDGE_EXPLORER_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Knowledge explorer not available")
+    components = _get_knowledge_components()
+    if components is None:
+        raise HTTPException(status_code=500, detail="Knowledge explorer initialization failed")
+    extractor: KnowledgeExtractionWorkflow = components["extract"]
+    if request.source_type not in {"url", "path", "text"}:
+        raise HTTPException(status_code=400, detail="Invalid source_type")
+    if request.source_type == "text":
+        entities, relationships = await extractor._extract_knowledge(request.source_value)
+        results = {
+            "text_content": request.source_value[:1000],
+            "entities": entities,
+            "relationships": relationships,
+            "statistics": {
+                "total_entities": len(entities),
+                "total_relationships": len(relationships),
+            },
+        }
+    else:
+        results = await extractor.extract_from_document(
+            request.source_value,
+            extraction_config=request.extraction_config,
+        )
+    return {"results": results}
+
+
+@app.get("/bubblelabs/leanaide/status", dependencies=[Depends(verify_api_key)])
+def bubblelabs_leanaide_status():
+    if not LEANAIDE_BRIDGE_AVAILABLE or _leanaide_bridge is None:
+        raise HTTPException(status_code=503, detail="LeanAide integration not available")
+    return _leanaide_bridge.get_status()
+
+
+@app.post("/bubblelabs/leanaide/execute", dependencies=[Depends(require_role(UserRole.USER))])
+def bubblelabs_leanaide_execute(
+    request: LeanAideExecuteRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    if not LEANAIDE_BRIDGE_AVAILABLE or _leanaide_bridge is None:
+        raise HTTPException(status_code=503, detail="LeanAide integration not available")
+    if LeanAideTaskType is None:
+        raise HTTPException(status_code=503, detail="LeanAide task type unavailable")
+    try:
+        task_type = LeanAideTaskType(request.task_type)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid LeanAide task type")
+    result = _leanaide_bridge.execute_task(task_type, **(request.payload or {}))
+    return {"result": result.to_dict()}
+
+
+@app.get("/bubblelabs/leanaide/trees", dependencies=[Depends(verify_api_key)])
+def bubblelabs_leanaide_trees():
+    if not LEANAIDE_BRIDGE_AVAILABLE or _leanaide_bridge is None:
+        raise HTTPException(status_code=503, detail="LeanAide integration not available")
+    return {"tree_ids": _leanaide_bridge.get_all_trees()}
+
+
+@app.get("/bubblelabs/leanaide/trees/{tree_id}", dependencies=[Depends(verify_api_key)])
+def bubblelabs_leanaide_tree(tree_id: str):
+    if not LEANAIDE_BRIDGE_AVAILABLE or _leanaide_bridge is None:
+        raise HTTPException(status_code=503, detail="LeanAide integration not available")
+    tree = _leanaide_bridge.get_tree(tree_id)
+    if not tree:
+        raise HTTPException(status_code=404, detail="Tree not found")
+    return {"tree": tree.to_dict()}
+
+
+@app.get("/bubblelabs/leanaide/proofs", dependencies=[Depends(verify_api_key)])
+def bubblelabs_leanaide_proofs():
+    if not LEANAIDE_BRIDGE_AVAILABLE or _leanaide_bridge is None:
+        raise HTTPException(status_code=503, detail="LeanAide integration not available")
+    return {"proof_ids": _leanaide_bridge.get_all_proofs()}
+
+
+@app.get("/bubblelabs/leanaide/proofs/{proof_id}", dependencies=[Depends(verify_api_key)])
+def bubblelabs_leanaide_proof(proof_id: str):
+    if not LEANAIDE_BRIDGE_AVAILABLE or _leanaide_bridge is None:
+        raise HTTPException(status_code=503, detail="LeanAide integration not available")
+    proof = _leanaide_bridge.get_proof(proof_id)
+    if not proof:
+        raise HTTPException(status_code=404, detail="Proof not found")
+    return {"proof": proof.to_dict()}
+
+
+@app.post("/evolution/runs", dependencies=[Depends(require_role(UserRole.USER))])
+def start_evolution_run(
+    request: EvolutionRunRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    if not EVOLUTION_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Evolution engine not available")
+    run_id = f"evo_{uuid.uuid4().hex[:10]}"
+    run_state = _RunState(
+        run_id=run_id,
+        run_type="evolution",
+        status="queued",
+        created_at=datetime.utcnow().isoformat(),
+        parameters=request.parameters,
+    )
+    with _run_lock:
+        _evolution_runs[run_id] = run_state
+
+    def _execute():
+        streamlit_context = _create_run_context(run_state, "evolution_log")
+        import session_utils as _session_utils
+        import evolution as _evolution_module
+        _attach_streamlit(_session_utils, streamlit_context)
+        _attach_streamlit(_evolution_module, streamlit_context)
+        result = run_comprehensive_evolution(
+            content=request.content,
+            content_type=request.content_type,
+            evolution_mode=request.evolution_mode,
+            custom_config=request.parameters or None,
+            gauntlet_name=request.gauntlet_name,
+            use_decomposition=request.use_decomposition,
+            team_manager=team_manager,
+            gauntlet_manager=gauntlet_manager,
+        )
+        return result
+
+    _start_background_run(run_state, _execute)
+    return {"run_id": run_id, "status": run_state.status}
+
+
+@app.get("/evolution/runs", dependencies=[Depends(verify_api_key)])
+def list_evolution_runs():
+    return {
+        "runs": [
+            {
+                "run_id": run.run_id,
+                "status": run.status,
+                "created_at": run.created_at,
+                "started_at": run.started_at,
+                "completed_at": run.completed_at,
+            }
+            for run in _evolution_runs.values()
+        ]
+    }
+
+
+@app.get("/evolution/runs/{run_id}", dependencies=[Depends(verify_api_key)])
+def get_evolution_run(run_id: str):
+    run_state = _evolution_runs.get(run_id)
+    if not run_state:
+        raise HTTPException(status_code=404, detail="Run not found")
+    return {
+        "run_id": run_state.run_id,
+        "status": run_state.status,
+        "created_at": run_state.created_at,
+        "started_at": run_state.started_at,
+        "completed_at": run_state.completed_at,
+        "logs": run_state.logs,
+        "result": run_state.result,
+        "error": run_state.error,
+    }
+
+
+@app.post("/evolution/runs/{run_id}/stop", dependencies=[Depends(require_role(UserRole.USER))])
+def stop_evolution_run(
+    run_id: str,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    run_state = _evolution_runs.get(run_id)
+    if not run_state:
+        raise HTTPException(status_code=404, detail="Run not found")
+    run_state.cancel_requested = True
+    if run_state.session_state is not None:
+        run_state.session_state["evolution_stop_flag"] = True
+    return {"status": "cancel_requested"}
+
+
+@app.post("/adversarial/runs", dependencies=[Depends(require_role(UserRole.USER))])
+def start_adversarial_run(
+    request: AdversarialRunRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    if not EVOLUTION_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Adversarial engine not available")
+    run_id = f"adv_{uuid.uuid4().hex[:10]}"
+    run_state = _RunState(
+        run_id=run_id,
+        run_type="adversarial",
+        status="queued",
+        created_at=datetime.utcnow().isoformat(),
+        parameters=request.parameters,
+    )
+    with _run_lock:
+        _adversarial_runs[run_id] = run_state
+
+    def _execute():
+        streamlit_context = _create_run_context(run_state, "adversarial_log")
+        import session_utils as _session_utils
+        import adversarial as _adversarial_module
+        _attach_streamlit(_session_utils, streamlit_context)
+        _attach_streamlit(_adversarial_module, streamlit_context)
+        config = create_adversarial_configuration(parameters=request.parameters or None)
+        result = run_comprehensive_adversarial_testing(
+            current_content=request.content,
+            content_type=request.content_type,
+            config=config,
+            team_manager=team_manager,
+            gauntlet_manager=gauntlet_manager,
+            use_decomposition=request.use_decomposition,
+        )
+        return result
+
+    _start_background_run(run_state, _execute)
+    return {"run_id": run_id, "status": run_state.status}
+
+
+@app.get("/adversarial/runs", dependencies=[Depends(verify_api_key)])
+def list_adversarial_runs():
+    return {
+        "runs": [
+            {
+                "run_id": run.run_id,
+                "status": run.status,
+                "created_at": run.created_at,
+                "started_at": run.started_at,
+                "completed_at": run.completed_at,
+            }
+            for run in _adversarial_runs.values()
+        ]
+    }
+
+
+@app.get("/adversarial/runs/{run_id}", dependencies=[Depends(verify_api_key)])
+def get_adversarial_run(run_id: str):
+    run_state = _adversarial_runs.get(run_id)
+    if not run_state:
+        raise HTTPException(status_code=404, detail="Run not found")
+    return {
+        "run_id": run_state.run_id,
+        "status": run_state.status,
+        "created_at": run_state.created_at,
+        "started_at": run_state.started_at,
+        "completed_at": run_state.completed_at,
+        "logs": run_state.logs,
+        "result": run_state.result,
+        "error": run_state.error,
+    }
+
+
+@app.post("/adversarial/runs/{run_id}/stop", dependencies=[Depends(require_role(UserRole.USER))])
+def stop_adversarial_run(
+    run_id: str,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    run_state = _adversarial_runs.get(run_id)
+    if not run_state:
+        raise HTTPException(status_code=404, detail="Run not found")
+    run_state.cancel_requested = True
+    if run_state.session_state is not None:
+        run_state.session_state["adversarial_stop_flag"] = True
+    return {"status": "cancel_requested"}
 
 
 if __name__ == "__main__":

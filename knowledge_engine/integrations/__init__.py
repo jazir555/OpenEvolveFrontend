@@ -308,6 +308,16 @@ except ImportError:
     ICRKGIntegration = None
     ICR_INTEGRATION_AVAILABLE = False
 
+# Lagrange Mapper - Topological Data Analysis & Attractor Landscapes
+try:
+    from .lagrange_mapper_integration import (
+        LagrangeMapperIntegration,
+        LAGRANGE_MAPPER_INTEGRATION_AVAILABLE
+    )
+except ImportError:
+    LagrangeMapperIntegration = None
+    LAGRANGE_MAPPER_INTEGRATION_AVAILABLE = False
+
 
 __all__ = [
     # Z3 Knowledge Integration
@@ -468,4 +478,8 @@ __all__ = [
     # ICR Integration (Iterative Contextual Refinements)
     "ICRKGIntegration",
     "ICR_INTEGRATION_AVAILABLE",
+    
+    # Lagrange Mapper Integration (Topological Data Analysis)
+    "LagrangeMapperIntegration",
+    "LAGRANGE_MAPPER_INTEGRATION_AVAILABLE",
 ]

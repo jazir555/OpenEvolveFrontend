@@ -492,7 +492,10 @@ export interface WorkflowSubProblem {
   gold_team_gauntlet_name?: string | null;
   solver_generation_gauntlet_name?: string | null;
   patcher_team_name?: string | null;
+  evolution_params?: Record<string, unknown>;
   status?: string;
+  atomic_mode?: boolean;
+  decomposition_depth?: number;
   acceptance_criteria?: string[];
   solution_requirements?: Record<string, unknown>;
   specific_constraints?: string[];
@@ -738,6 +741,161 @@ export const createDefaultModelConfig = (): ModelConfig => ({
   cost_per_token: null,
 });
 
+export interface EvaluatorListResponse {
+  evaluators: Record<string, string>;
+}
+
+export interface EvaluatorUploadResponse {
+  evaluator_id: string;
+}
+
+export interface WorkflowPlanUpdateRequest {
+  sub_problems: WorkflowSubProblem[];
+  max_refinement_loops?: number;
+  auto_approval_enabled?: boolean;
+  auto_approval_criteria?: Record<string, unknown> | null;
+  mdap_enabled?: boolean;
+  mdap_config?: Record<string, unknown>;
+  maker_enabled?: boolean;
+  maker_config?: Record<string, unknown>;
+  resource_limits?: Record<string, unknown> | null;
+  parallel_processing_enabled?: boolean;
+  max_parallel_sub_problems?: number;
+  learning_enabled?: boolean;
+  learning_config?: Record<string, unknown> | null;
+  content_analyzer_team_name?: string;
+  planner_team_name?: string;
+  assembler_team_name?: string;
+  final_red_team_gauntlet_name?: string | null;
+  final_gold_team_gauntlet_name?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export interface ResourceUsageSummary {
+  api_calls?: number;
+  tokens_used?: number;
+  estimated_cost?: number;
+  execution_time_seconds?: number;
+  memory_usage_mb?: number;
+  limits?: Record<string, unknown>;
+  component_breakdown?: Record<string, Record<string, unknown>>;
+}
+
+export interface WorkflowResourceUsageResponse {
+  workflow_id: string;
+  resource_usage: ResourceUsageSummary;
+}
+
+export interface WorkflowResourceOptimizationResponse {
+  workflow_id: string;
+  suggestions: Record<string, unknown>;
+}
+
+export interface IntegratedWorkflowRequest {
+  current_content: string;
+  content_type?: string;
+  api_key: string;
+  base_url?: string;
+  red_team_models: string[];
+  blue_team_models: string[];
+  evaluator_models: string[];
+  max_iterations?: number;
+  adversarial_iterations?: number;
+  evolution_iterations?: number;
+  evaluation_iterations?: number;
+  system_prompt: string;
+  evaluator_system_prompt: string;
+  temperature?: number;
+  top_p?: number;
+  frequency_penalty?: number;
+  presence_penalty?: number;
+  max_tokens?: number;
+  seed?: number | null;
+  rotation_strategy?: string;
+  red_team_sample_size?: number;
+  blue_team_sample_size?: number;
+  evaluator_sample_size?: number;
+  confidence_threshold?: number;
+  evaluator_threshold?: number;
+  evaluator_consecutive_rounds?: number;
+  compliance_requirements?: string;
+  enable_data_augmentation?: boolean;
+  augmentation_model_id?: string | null;
+  augmentation_temperature?: number;
+  enable_human_feedback?: boolean;
+  multi_objective_optimization?: boolean;
+  feature_dimensions?: string[] | null;
+  feature_bins?: number | null;
+  elite_ratio?: number;
+  exploration_ratio?: number;
+  exploitation_ratio?: number;
+  archive_size?: number;
+  checkpoint_interval?: number;
+  keyword_analysis_enabled?: boolean;
+  keywords_to_target?: string[] | null;
+  keyword_penalty_weight?: number;
+}
+
+export interface ModelOrchestrationModel {
+  name: string;
+  role: string;
+  weight: number;
+  api_base?: string;
+}
+
+export interface ModelOrchestrationListResponse {
+  models: ModelOrchestrationModel[];
+  metrics: Record<string, unknown>;
+  selection_strategies: string[];
+}
+
+export interface ModelOrchestrationRegisterRequest {
+  model_name: string;
+  role: string;
+  weight?: number;
+  api_key?: string;
+  api_base?: string;
+  temperature?: number;
+  top_p?: number;
+  max_tokens?: number;
+  frequency_penalty?: number;
+  presence_penalty?: number;
+}
+
+export interface ModelOrchestrationRegisterResponse {
+  message: string;
+  model_name: string;
+}
+
+export interface ModelOrchestrationEnsembleRequest {
+  role: string;
+  messages: Array<Record<string, string>>;
+  selection_strategy?: string;
+  temperature?: number;
+  max_tokens?: number;
+  num_responses?: number;
+}
+
+export interface ModelOrchestrationEnsembleResponse {
+  responses: Array<Record<string, unknown>>;
+}
+
+export interface BubbleLabsStatusResponse {
+  total_components: number;
+  available_components: number;
+  components: Record<string, Record<string, unknown>>;
+}
+
+export interface BubbleLabsInitializeResponse {
+  [key: string]: Record<string, unknown>;
+}
+
+export interface BubbleLabsActionResponse {
+  success?: boolean;
+  error?: string;
+  [key: string]: unknown;
+}
+
 export const createDefaultTeam = (): Team => ({
   name: "",
   role: "Blue",
@@ -808,3 +966,155 @@ export const createDefaultGauntlet = (): GauntletDefinition => ({
   formal_verification_threshold: 0.9,
   lean_verification_config: {},
 });
+
+export interface MakerToolDefinition {
+  tool_id: string;
+  name: string;
+  description: string;
+  version: string;
+  status: string;
+  maker_mode: string;
+  config: Record<string, unknown>;
+  prompt_template?: string | null;
+  system_prompt?: string | null;
+  expected_schema?: Record<string, unknown> | null;
+  created_at?: string;
+  created_by?: string;
+  test_results?: Record<string, unknown> | null;
+  usage_count?: number;
+  metadata?: Record<string, unknown>;
+}
+
+export interface MakerToolListResponse {
+  tools: MakerToolDefinition[];
+}
+
+export interface MakerToolResponse {
+  tool: MakerToolDefinition;
+}
+
+export interface MakerExecutionResult {
+  tool_id: string;
+  execution_id: string;
+  input_data: Record<string, unknown>;
+  output_data: unknown;
+  execution_time: number;
+  success: boolean;
+  error_message?: string | null;
+  metrics?: Record<string, unknown> | null;
+  CREWAI_ticket_id?: string | null;
+  timestamp?: string;
+}
+
+export interface MakerExecutionResponse {
+  result: MakerExecutionResult;
+}
+
+export interface MakerDelegation {
+  delegation_id: string;
+  task_id: string;
+  title: string;
+  description: string;
+  status: string;
+  delegation_type: string;
+  tool_id?: string | null;
+  workflow_epic_id?: string | null;
+  assigned_to?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  completed_at?: string | null;
+  result?: Record<string, unknown> | null;
+  metadata?: Record<string, unknown> | null;
+}
+
+export interface MakerDelegationListResponse {
+  delegations: MakerDelegation[];
+}
+
+export interface KnowledgeExplorerQueryResponse {
+  results: Record<string, unknown>;
+  history: Array<Record<string, unknown>>;
+}
+
+export interface KnowledgeExplorerExtractResponse {
+  results: Record<string, unknown>;
+}
+
+export interface KnowledgeExplorerHistoryResponse {
+  history: Array<Record<string, unknown>>;
+}
+
+export interface LeanAideStatusResponse {
+  leanaide_available: boolean;
+  mcts_available: boolean;
+  mdap_available: boolean;
+  lean4_available: boolean;
+  mcts_enabled: boolean;
+  mdap_enabled: boolean;
+  lean4_enabled: boolean;
+  server: string;
+  active_trees: number;
+  active_proofs: number;
+  execution_history_count: number;
+  server_status?: Record<string, unknown> | null;
+}
+
+export interface LeanAideExecuteResponse {
+  result: Record<string, unknown>;
+}
+
+export interface LeanAideTreeListResponse {
+  tree_ids: string[];
+}
+
+export interface LeanAideTreeResponse {
+  tree: Record<string, unknown>;
+}
+
+export interface LeanAideProofListResponse {
+  proof_ids: string[];
+}
+
+export interface LeanAideProofResponse {
+  proof: Record<string, unknown>;
+}
+
+export interface EvolutionRunResponse {
+  run_id: string;
+  status: string;
+}
+
+export interface EvolutionRunStatus {
+  run_id: string;
+  status: string;
+  created_at?: string;
+  started_at?: string | null;
+  completed_at?: string | null;
+  logs?: string[];
+  result?: Record<string, unknown> | null;
+  error?: string | null;
+}
+
+export interface EvolutionRunListResponse {
+  runs: Array<Pick<EvolutionRunStatus, "run_id" | "status" | "created_at" | "started_at" | "completed_at">>;
+}
+
+export interface AdversarialRunResponse {
+  run_id: string;
+  status: string;
+}
+
+export interface AdversarialRunStatus {
+  run_id: string;
+  status: string;
+  created_at?: string;
+  started_at?: string | null;
+  completed_at?: string | null;
+  logs?: string[];
+  result?: Record<string, unknown> | null;
+  error?: string | null;
+}
+
+export interface AdversarialRunListResponse {
+  runs: Array<Pick<AdversarialRunStatus, "run_id" | "status" | "created_at" | "started_at" | "completed_at">>;
+}

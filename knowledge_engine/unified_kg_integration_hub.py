@@ -1825,6 +1825,431 @@ class UnifiedKGIntegrationHub:
                 processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
             )
     
+    async def extract_relations(
+        self,
+        text: str,
+        entities: Optional[List[Dict[str, Any]]] = None,
+        relation_types: Optional[List[str]] = None,
+        extractor: str = 'deepke'
+    ) -> KGOperationResult:
+        """
+        Extract relations from text using specified extractor.
+        
+        Args:
+            text: Input text to extract relations from
+            entities: Optional pre-extracted entities to use as relation endpoints
+            relation_types: Optional list of relation types to extract
+            extractor: Extractor to use ('deepke', 'oneke', 'kggen')
+            
+        Returns:
+            KGOperationResult with extracted relations
+        """
+        start_time = datetime.now(timezone.utc)
+        
+        if extractor not in self._integrations:
+            return KGOperationResult(
+                success=False,
+                operation_type=KGOperationType.RELATION_EXTRACTION,
+                integration_used='none',
+                errors=[f'Extractor {extractor} not available'],
+                processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
+        
+        try:
+            integration = self._integrations[extractor]
+            
+            # Call appropriate method based on extractor
+            if extractor == 'deepke' and hasattr(integration, 'extract_relations'):
+                result = await integration.extract_relations(text, entities, relation_types)
+            elif extractor == 'oneke' and hasattr(integration, 'extract_relations'):
+                result = await integration.extract_relations(text, entities, relation_types)
+            elif extractor == 'kggen' and hasattr(integration, 'generate_from_text'):
+                # KG-Gen generates both entities and relations
+                kg_result = await integration.generate_from_text(text)
+                result = {'relations': kg_result.get('relations', [])}
+            else:
+                # Generic fallback
+                result = {'relations': [], 'text': text}
+            
+            return KGOperationResult(
+                success=True,
+                operation_type=KGOperationType.RELATION_EXTRACTION,
+                integration_used=extractor,
+                data=result,
+                processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
+            
+        except Exception as e:
+            logger.error(f"Relation extraction failed: {e}")
+            return KGOperationResult(
+                success=False,
+                operation_type=KGOperationType.RELATION_EXTRACTION,
+                integration_used=extractor,
+                errors=[str(e)],
+                processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
+    
+    async def generate_knowledge_graph(
+        self,
+        documents: List[str],
+        schema_hints: Optional[Dict[str, Any]] = None,
+        extraction_method: str = 'auto'
+    ) -> KGOperationResult:
+        """
+        Generate a complete knowledge graph from documents.
+        
+        Args:
+            documents: List of text documents to process
+            schema_hints: Optional schema hints for entity/relation types
+            extraction_method: Method to use ('auto', 'kggen', 'oneke', 'ensemble')
+            
+        Returns:
+            KGOperationResult with generated knowledge graph
+        """
+        start_time = datetime.now(timezone.utc)
+        
+        try:
+            # Use KG-Gen if available and method is appropriate
+            if 'kggen' in self._integrations and extraction_method in ('auto', 'kggen'):
+                integration = self._integrations['kggen']
+                if hasattr(integration, 'generate_from_documents'):
+                    result = await integration.generate_from_documents(documents, schema_hints)
+                    
+                    return KGOperationResult(
+                        success=True,
+                        operation_type=KGOperationType.KNOWLEDGE_EMBEDDING,
+                        integration_used='kggen',
+                        data=result,
+                        processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+                    )
+            
+            # Fallback: extract from each document and merge
+            all_entities = []
+            all_relations = []
+            
+            for doc in documents:
+                # Extract entities
+                entity_result = await self.extract_entities(doc)
+                if entity_result.success:
+                    all_entities.extend(entity_result.data.get('entities', []))
+                
+                # Extract relations
+                relation_result = await self.extract_relations(doc)
+                if relation_result.success:
+                    all_relations.extend(relation_result.data.get('relations', []))
+            
+            # Deduplicate
+            seen_entities = set()
+            unique_entities = []
+            for e in all_entities:
+                key = e.get('name', str(e))
+                if key not in seen_entities:
+                    seen_entities.add(key)
+                    unique_entities.append(e)
+            
+            seen_relations = set()
+            unique_relations = []
+            for r in all_relations:
+                key = (r.get('head', ''), r.get('relation', ''), r.get('tail', ''))
+                if key not in seen_relations:
+                    seen_relations.add(key)
+                    unique_relations.append(r)
+            
+            result = {
+                'entities': unique_entities,
+                'relations': unique_relations,
+                'source_documents': len(documents)
+            }
+            
+            return KGOperationResult(
+                success=True,
+                operation_type=KGOperationType.KNOWLEDGE_EMBEDDING,
+                integration_used='ensemble',
+                data=result,
+                processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
+            
+        except Exception as e:
+            logger.error(f"Knowledge graph generation failed: {e}")
+            return KGOperationResult(
+                success=False,
+                operation_type=KGOperationType.KNOWLEDGE_EMBEDDING,
+                integration_used='none',
+                errors=[str(e)],
+                processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
+    
+    async def mine_patterns(
+        self,
+        graph_data: Dict[str, Any],
+        algorithm: str = 'gspan',
+        min_support: float = 0.1,
+        pattern_type: str = 'subgraph'
+    ) -> KGOperationResult:
+        """
+        Mine patterns from knowledge graph using PAMI.
+        
+        Args:
+            graph_data: Knowledge graph with nodes and edges
+            algorithm: Pattern mining algorithm ('gspan', 'fsg', 'ffsm')
+            min_support: Minimum support threshold (0-1)
+            pattern_type: Type of pattern ('subgraph', 'sequential', 'periodic')
+            
+        Returns:
+            KGOperationResult with mined patterns
+        """
+        start_time = datetime.now(timezone.utc)
+        
+        if 'pami' not in self._integrations:
+            return KGOperationResult(
+                success=False,
+                operation_type=KGOperationType.GRAPH_ANALYSIS,
+                integration_used='none',
+                errors=['PAMI integration not available'],
+                processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
+        
+        try:
+            integration = self._integrations['pami']
+            
+            # Convert graph to format expected by PAMI
+            if hasattr(integration, 'mine_patterns'):
+                result = await integration.mine_patterns(
+                    graph_data,
+                    algorithm=algorithm,
+                    min_support=min_support,
+                    pattern_type=pattern_type
+                )
+            else:
+                # Fallback: return empty result
+                result = {
+                    'patterns': [],
+                    'algorithm': algorithm,
+                    'min_support': min_support
+                }
+            
+            return KGOperationResult(
+                success=True,
+                operation_type=KGOperationType.GRAPH_ANALYSIS,
+                integration_used='pami',
+                data=result,
+                processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
+            
+        except Exception as e:
+            logger.error(f"Pattern mining failed: {e}")
+            return KGOperationResult(
+                success=False,
+                operation_type=KGOperationType.GRAPH_ANALYSIS,
+                integration_used='pami',
+                errors=[str(e)],
+                processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
+    
+    async def standardize_entities(
+        self,
+        entities: List[Dict[str, Any]],
+        target_schema: Optional[Dict[str, Any]] = None,
+        similarity_threshold: float = 0.85
+    ) -> KGOperationResult:
+        """
+        Standardize entities to a common schema using AI-KG.
+        
+        Args:
+            entities: List of entities to standardize
+            target_schema: Optional target schema to standardize to
+            similarity_threshold: Threshold for entity deduplication
+            
+        Returns:
+            KGOperationResult with standardized entities
+        """
+        start_time = datetime.now(timezone.utc)
+        
+        # Try AI-KG integration first
+        if 'aikg' in self._integrations:
+            try:
+                integration = self._integrations['aikg']
+                
+                if hasattr(integration, 'standardize_entities'):
+                    result = await integration.standardize_entities(
+                        entities,
+                        target_schema=target_schema,
+                        similarity_threshold=similarity_threshold
+                    )
+                    
+                    return KGOperationResult(
+                        success=True,
+                        operation_type=KGOperationType.ENTITY_STANDARDIZATION,
+                        integration_used='aikg',
+                        data=result,
+                        processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+                    )
+            except Exception as e:
+                logger.warning(f"AI-KG standardization failed: {e}")
+        
+        # Fallback: basic deduplication
+        try:
+            seen = {}
+            standardized = []
+            
+            for entity in entities:
+                name = entity.get('name', '').lower().strip()
+                entity_type = entity.get('type', 'Unknown')
+                
+                # Create signature
+                sig = (name, entity_type)
+                
+                if sig not in seen:
+                    seen[sig] = entity
+                    standardized.append(entity)
+                else:
+                    # Merge with existing
+                    existing = seen[sig]
+                    # Keep the one with more properties
+                    if len(entity) > len(existing):
+                        seen[sig] = entity
+                        standardized = [e for e in standardized if (e.get('name', '').lower().strip(), e.get('type', 'Unknown')) != sig]
+                        standardized.append(entity)
+            
+            result = {
+                'entities': standardized,
+                'original_count': len(entities),
+                'standardized_count': len(standardized),
+                'duplicates_removed': len(entities) - len(standardized)
+            }
+            
+            return KGOperationResult(
+                success=True,
+                operation_type=KGOperationType.ENTITY_STANDARDIZATION,
+                integration_used='fallback',
+                data=result,
+                processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
+            
+        except Exception as e:
+            logger.error(f"Entity standardization failed: {e}")
+            return KGOperationResult(
+                success=False,
+                operation_type=KGOperationType.ENTITY_STANDARDIZATION,
+                integration_used='none',
+                errors=[str(e)],
+                processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
+    
+    async def infer_knowledge(
+        self,
+        graph_data: Dict[str, Any],
+        inference_type: str = 'transitive',
+        max_hops: int = 2
+    ) -> KGOperationResult:
+        """
+        Infer new knowledge from existing graph using AI-KG.
+        
+        Args:
+            graph_data: Knowledge graph with nodes and edges
+            inference_type: Type of inference ('transitive', 'symmetric', 'inverse')
+            max_hops: Maximum hops for transitive inference
+            
+        Returns:
+            KGOperationResult with inferred knowledge
+        """
+        start_time = datetime.now(timezone.utc)
+        
+        # Try AI-KG integration
+        if 'aikg' in self._integrations:
+            try:
+                integration = self._integrations['aikg']
+                
+                if hasattr(integration, 'infer_relations'):
+                    result = await integration.infer_relations(
+                        graph_data,
+                        inference_type=inference_type,
+                        max_hops=max_hops
+                    )
+                    
+                    return KGOperationResult(
+                        success=True,
+                        operation_type=KGOperationType.KNOWLEDGE_INFERENCE,
+                        integration_used='aikg',
+                        data=result,
+                        processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+                    )
+            except Exception as e:
+                logger.warning(f"AI-KG inference failed: {e}")
+        
+        # Fallback: basic transitive inference
+        try:
+            nodes = graph_data.get('nodes', [])
+            edges = graph_data.get('edges', [])
+            
+            inferred_edges = []
+            
+            if inference_type == 'transitive':
+                # Build adjacency list
+                adj = {}
+                for edge in edges:
+                    src = edge.get('source')
+                    tgt = edge.get('target')
+                    rel = edge.get('relation')
+                    if src and tgt:
+                        if src not in adj:
+                            adj[src] = []
+                        adj[src].append((tgt, rel))
+                
+                # Find transitive paths
+                for start_node in adj:
+                    visited = {start_node: 0}
+                    queue = [(start_node, 0, [])]
+                    
+                    while queue:
+                        current, hops, path = queue.pop(0)
+                        
+                        if hops >= max_hops:
+                            continue
+                        
+                        if current in adj:
+                            for neighbor, rel in adj[current]:
+                                if neighbor not in visited or visited[neighbor] > hops + 1:
+                                    visited[neighbor] = hops + 1
+                                    new_path = path + [(current, rel, neighbor)]
+                                    queue.append((neighbor, hops + 1, new_path))
+                                    
+                                    # Add inferred edge if path length > 1
+                                    if len(new_path) > 1:
+                                        inferred_edges.append({
+                                            'source': start_node,
+                                            'target': neighbor,
+                                            'relation': f'inferred_{hops+1}_hop',
+                                            'confidence': 0.7 ** (hops + 1),
+                                            'inferred': True,
+                                            'path': new_path
+                                        })
+            
+            result = {
+                'original_edges': len(edges),
+                'inferred_edges': len(inferred_edges),
+                'edges': inferred_edges,
+                'inference_type': inference_type
+            }
+            
+            return KGOperationResult(
+                success=True,
+                operation_type=KGOperationType.KNOWLEDGE_INFERENCE,
+                integration_used='fallback',
+                data=result,
+                processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
+            
+        except Exception as e:
+            logger.error(f"Knowledge inference failed: {e}")
+            return KGOperationResult(
+                success=False,
+                operation_type=KGOperationType.KNOWLEDGE_INFERENCE,
+                integration_used='none',
+                errors=[str(e)],
+                processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
+    
     # ============ Health and Monitoring ============
     
     def get_health_status(self) -> Dict[str, Any]:

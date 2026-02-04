@@ -80,6 +80,8 @@ def get_capabilities() -> Dict[str, Any]:
             DTS_INTEGRATION_AVAILABLE,
             GUARDRAILS_INTEGRATION_AVAILABLE,
             ICR_INTEGRATION_AVAILABLE,
+            # Analysis & Topology Integrations (2026-02-03)
+            LAGRANGE_MAPPER_INTEGRATION_AVAILABLE,
         )
 
         integrations = {
@@ -111,6 +113,9 @@ def get_capabilities() -> Dict[str, Any]:
             'dts': (DTS_INTEGRATION_AVAILABLE, 'DTS - Dialogue Tree Search', 'Core feature'),
             'guardrails': (GUARDRAILS_INTEGRATION_AVAILABLE, 'Guardrails - AI Safety & Validation', 'pip install guardrails-ai'),
             'icr': (ICR_INTEGRATION_AVAILABLE, 'ICR - Iterative Contextual Refinements', 'Core feature'),
+            
+            # Analysis & Topology Integrations (2026-02-03)
+            'lagrange_mapper': (LAGRANGE_MAPPER_INTEGRATION_AVAILABLE, 'Lagrange Mapper - Topological Data Analysis', 'pip install scikit-learn numpy'),
         }
 
         for key, (available, display_name, install_hint) in integrations.items():
