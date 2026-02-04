@@ -893,3 +893,10 @@ class MockResearchQuestGraph:
             yaml_str += f"export_format: {mock_data['export_format']}\n"
             yaml_str += f"timestamp: \"{mock_data['timestamp']}\"\n"
             return yaml_str
+
+# Availability flag
+try:
+    import research_quest
+    RESEARCH_QUEST_INTEGRATION_AVAILABLE = True
+except ImportError:
+    RESEARCH_QUEST_INTEGRATION_AVAILABLE = False

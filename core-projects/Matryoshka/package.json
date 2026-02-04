@@ -1,18 +1,23 @@
 {
   "name": "matryoshka-rlm",
-  "version": "0.1.1",
+  "version": "0.2.6",
   "type": "module",
   "description": "Recursive Language Model - Process documents larger than LLM context windows",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/lib.js",
+  "types": "dist/lib.d.ts",
   "bin": {
     "rlm": "dist/index.js",
-    "rlm-mcp": "dist/mcp-server.js"
+    "rlm-mcp": "dist/mcp-server.js",
+    "lattice-mcp": "dist/lattice-mcp-server.js",
+    "lattice-repl": "dist/repl/lattice-repl.js",
+    "lattice-pipe": "dist/tool/adapters/pipe.js",
+    "lattice-http": "dist/tool/adapters/http.js",
+    "lattice-setup": "dist/scripts/setup-claude-code.js"
   },
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "types": "./dist/lib.d.ts",
+      "default": "./dist/lib.js"
     },
     "./rlm": {
       "types": "./dist/rlm.d.ts",
@@ -21,6 +26,18 @@
     "./server": {
       "types": "./dist/mcp-server.d.ts",
       "default": "./dist/mcp-server.js"
+    },
+    "./engine": {
+      "types": "./dist/engine/index.d.ts",
+      "default": "./dist/engine/index.js"
+    },
+    "./repl": {
+      "types": "./dist/repl/index.d.ts",
+      "default": "./dist/repl/index.js"
+    },
+    "./tool": {
+      "types": "./dist/tool/index.d.ts",
+      "default": "./dist/tool/index.js"
     }
   },
   "files": [
@@ -38,6 +55,7 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "mcp": "tsx src/mcp-server.ts",
+    "repl": "tsx src/repl/lattice-repl.ts",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [
@@ -62,14 +80,27 @@
   "author": "yogthos",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "ramo": "^0.1.2"
+    "@types/better-sqlite3": "^7.6.13",
+    "@vscode/tree-sitter-wasm": "^0.3.0",
+    "better-sqlite3": "^12.6.2",
+    "matryoshka-rlm": "^0.2.5",
+    "ramo": "^0.1.2",
+    "tree-sitter": "^0.21.1",
+    "tree-sitter-css": "^0.21.1",
+    "tree-sitter-go": "^0.23.4",
+    "tree-sitter-html": "^0.23.2",
+    "tree-sitter-javascript": "^0.23.1",
+    "tree-sitter-json": "^0.24.8",
+    "tree-sitter-python": "^0.21.0",
+    "tree-sitter-typescript": "^0.23.2",
+    "web-tree-sitter": "^0.26.3"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "@vitest/coverage-v8": "^2.1.0",
+    "@vitest/coverage-v8": "^4.0.17",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0",
-    "vitest": "^2.1.0"
+    "vitest": "^4.0.17"
   },
   "engines": {
     "node": ">=20.0.0"

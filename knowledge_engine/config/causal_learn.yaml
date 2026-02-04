@@ -1,0 +1,145 @@
+# Causal-Learn Configuration
+# Causal discovery and structure learning settings
+
+# General Settings
+general:
+  enabled: true
+  default_algorithm: "pc"
+  alpha: 0.05  # Significance level for independence tests
+  verbose: false
+
+# Algorithm-Specific Settings
+algorithms:
+  # PC Algorithm (Constraint-based)
+  pc:
+    independence_test: "fisherz"  # Options: fisherz, kci, chisq, gsq
+    alpha: 0.05
+    depth: -1  # Maximum depth for conditional independence tests (-1 for unlimited)
+    show_progress: false
+    
+  # FCI Algorithm (Constraint-based, handles latent variables)
+  fci:
+    independence_test: "fisherz"
+    alpha: 0.05
+    depth: -1
+    show_progress: false
+    
+  # GES Algorithm (Score-based)
+  ges:
+    score_type: "bic"  # Options: bic, bdeu
+    max_degree: 5
+    sample_size: null  # Use all data if null
+    
+  # LiNGAM Algorithms (Functional causal models)
+  ica_lingam:
+    max_iter: 1000
+    thresh: 0.3
+    
+  direct_lingam:
+    measure: "pwling"  # Options: pwling, kernel
+    max_iter: 1000
+    
+  # Granger Causality (Time series)
+  granger:
+    max_lag: 5
+    test_type: "ssr_ftest"  # Options: ssr_ftest, ssr_chi2test, lrtest, params_ftest
+    verbose: false
+
+# Data Preprocessing
+preprocessing:
+  handle_missing: "mean"  # Options: mean, median, drop, error
+  standardize: true
+  discretize: false
+  discretization_bins: 5
+
+# Output Settings
+output:
+  save_graph: true
+  save_metrics: true
+  formats:
+    - json
+    - dot
+    - png
+  output_dir: "./causal_learn_output"
+  
+  # Visualization settings
+  visualization:
+    enabled: true
+    layout: "spring"  # Options: spring, circular, shell, spectral
+    node_size: 1000
+    font_size: 10
+    edge_width: 2
+    arrow_size: 20
+
+# Validation Settings
+validation:
+  check_cyclic: true
+  check_identifiability: false
+  compute_confidence: true
+  bootstrap_samples: 100
+  bootstrap_confidence_level: 0.95
+
+# Performance Settings
+performance:
+  max_samples: 10000  # Maximum samples to process (0 for unlimited)
+  max_variables: 100  # Maximum variables to process (0 for unlimited)
+  parallel_processing: true
+  num_workers: 4
+  timeout_seconds: 300
+  
+  # Memory management
+  chunk_size: 1000
+  cache_results: true
+  cache_size_mb: 256
+
+# Logging Settings
+logging:
+  level: "INFO"  # Options: DEBUG, INFO, WARNING, ERROR
+  log_file: "causal_learn.log"
+  log_format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  
+# Algorithm Availability
+# Toggle algorithms on/off based on availability
+available_algorithms:
+  pc: true
+  fci: true
+  ges: true
+  ica_lingam: true
+  direct_lingam: true
+  granger: true
+
+# Fallback Settings
+fallback:
+  enabled: true
+  use_correlation: true
+  min_correlation_threshold: 0.3
+  warning_message: "Causal-Learn not available. Using correlation-based fallback analysis."
+
+# Integration Settings
+integration:
+  # Knowledge Engine integration
+  auto_register: true
+  domain_routing: true
+  
+  # BubbleLabs node settings
+  bubblelabs:
+    enabled: true
+    default_operation: "discover"
+    valid_operations:
+      - discover
+      - build_graph
+      - identify_confounders
+      - estimate_effect
+      - validate
+  
+  # Knowledge Orchestrator settings
+  orchestrator:
+    enabled: true
+    pipeline_stage: "discover_causal_structure"
+    depends_on:
+      - "build_graph"
+    
+  # Analytics Engine settings
+  analytics:
+    enabled: true
+    config_key: "causal_learn"

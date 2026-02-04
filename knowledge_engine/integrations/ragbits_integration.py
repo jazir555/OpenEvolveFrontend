@@ -611,3 +611,10 @@ class RagbitsIntegration:
             "msg": "Ragbits integration closed",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
+
+# Availability flag
+try:
+    import ragbits
+    RAGBITS_INTEGRATION_AVAILABLE = True
+except ImportError:
+    RAGBITS_INTEGRATION_AVAILABLE = False

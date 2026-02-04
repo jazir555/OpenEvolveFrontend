@@ -143,6 +143,10 @@ class KnowledgeArtifact:
             return self.invalid_at.isoformat() if self.invalid_at else None
         elif key == "created_at":
             return self.created_at.isoformat() if self.created_at else None
+
+        content_value = self.content
+        if isinstance(content_value, dict):
+            content_value = json.dumps(content_value, sort_keys=True)
         
         # Map of attribute names to their values
         field_map = {
@@ -151,7 +155,7 @@ class KnowledgeArtifact:
             "source_system": self.source_system,
             "source": self.source_system,  # Alias for compatibility
             "domain": self.domain,
-            "content": self.content,
+            "content": content_value,
             "metadata": self.metadata,
             "confidence": self.confidence,
             "lineage": self.lineage,

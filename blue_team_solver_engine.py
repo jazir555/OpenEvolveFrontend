@@ -1814,6 +1814,16 @@ class SubProblemSolver:
         Returns:
             SolutionResult with solution and quality metrics
         """
+        # Normalize context and entanglement hints
+        normalized_context = dict(context or {})
+        entangled_with = normalized_context.get("entangled_with")
+        if entangled_with and "entangled_components" not in normalized_context:
+            normalized_context["entangled_components"] = list(entangled_with)
+        if "entangled_components" not in normalized_context and "entanglement_matrix" in normalized_context:
+            matrix = normalized_context.get("entanglement_matrix") or {}
+            if isinstance(matrix, dict):
+                normalized_context["entangled_components"] = list(matrix.get(sub_problem_id, []))
+
         # Create sub-problem input
         sub_problem = SubProblemInput(
             id=sub_problem_id,
@@ -1821,7 +1831,7 @@ class SubProblemSolver:
             dependencies=dependencies or [],
             complexity_score=complexity_score,
             priority=priority,
-            context=context or {},
+            context=normalized_context,
             requirements=requirements or [],
             constraints=constraints or [],
             success_criteria=success_criteria or [],
@@ -1837,12 +1847,6 @@ class SubProblemSolver:
                 logger.warning(f"Unknown strategy: {strategy}, using auto-selection")
 
         # Solve
-        result = self.workflow.solve(
-            sub_problem=sub_problem,
-            strategy=solving_strategy,
-            **kwargs
-        )
-
         result = self.workflow.solve(
             sub_problem=sub_problem,
             strategy=solving_strategy,

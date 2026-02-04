@@ -625,8 +625,40 @@ class DecompositionRecompositionPipeline:
         
         solutions = {}
         entanglement_matrix = entanglement_matrix or {}
+
+        if self.roma_adapter and self.config.enable_roma and self.roma_adapter.is_available():
+            payload = []
+            for sub_problem in sub_problems:
+                payload.append(
+                    {
+                        "id": sub_problem.id,
+                        "title": sub_problem.title,
+                        "description": sub_problem.description,
+                        "dependencies": list(sub_problem.dependencies or []),
+                        "metadata": sub_problem.metadata or {},
+                    }
+                )
+            roma_result = self.roma_adapter.solve_sub_problems(payload)
+            roma_solutions = roma_result.get("solutions", []) if isinstance(roma_result, dict) else []
+            for sol in roma_solutions:
+                if not isinstance(sol, dict):
+                    continue
+                sol_id = sol.get("id") or sol.get("sub_problem_id") or sol.get("title")
+                if not sol_id:
+                    continue
+                content = sol.get("solution") or sol.get("solution_content") or ""
+                quality = sol.get("quality_score") or sol.get("confidence") or 0.7
+                metadata = sol.get("metadata", {}) if isinstance(sol.get("metadata"), dict) else {}
+                solutions[sol_id] = SubProblemSolution(
+                    sub_problem_id=sol_id,
+                    solution_content=str(content),
+                    quality_score=float(quality),
+                    metadata=metadata,
+                )
         
         for sub_problem in sub_problems:
+            if sub_problem.id in solutions:
+                continue
             if entanglement_matrix and isinstance(sub_problem.metadata, dict):
                 entangled_with = entanglement_matrix.get(sub_problem.id, [])
                 if entangled_with:
@@ -660,6 +692,30 @@ class DecompositionRecompositionPipeline:
             strategy=self.config.assembly_strategy,
             entanglement_matrix=entanglement_matrix
         )
+
+        if self.roma_adapter and self.config.enable_roma and self.roma_adapter.is_available():
+            payload = []
+            for sp_id, sol in sub_solutions.items():
+                payload.append(
+                    {
+                        "id": sp_id,
+                        "solution": sol.solution_content,
+                        "metadata": sol.metadata if isinstance(sol.metadata, dict) else {},
+                        "dependencies": decomposition_plan.dependency_graph.get(sp_id, []),
+                    }
+                )
+            roma_result = self.roma_adapter.reassemble_solutions(
+                solutions=payload,
+                problem_statement=decomposition_plan.original_problem.description,
+            )
+            if isinstance(roma_result, dict) and roma_result.get("final_solution"):
+                solution.assembled_content = roma_result["final_solution"]
+                if isinstance(solution.metadata, dict):
+                    solution.metadata["roma_reassembly"] = {
+                        "roma_used": roma_result.get("roma_used", False),
+                        "roma_type": roma_result.get("roma_type"),
+                        "message": roma_result.get("message"),
+                    }
         
         return solution
     

@@ -604,8 +604,12 @@ export async function runRLM(
 
   log(`[RLM] Sandbox created with synthesis tools (maxSubCalls: ${maxSubCalls}, timeout: ${turnTimeoutMs}ms)`);
 
+  // Create solver tools for document operations
+  const solverTools = createSolverTools(documentContent);
+
   // Build user message with optional constraints
   let userMessage = `Query: ${query}`;
+
   if (constraint) {
     userMessage += `\n\n## OUTPUT CONSTRAINTS\n`;
     userMessage += `Your final answer MUST satisfy these constraints:\n`;
@@ -671,6 +675,14 @@ export async function runRLM(
       // Extract and execute code FIRST (before checking final answer)
       // This ensures if response has both code and final marker, code runs first
       const code = adapter.extractCode(response);
+
+      // Log the LLM's raw response and extracted Nucleus grammar
+      log(`[Turn ${turn}] LLM response:`);
+      log(response.slice(0, 500));
+      if (code) {
+        log(`[Turn ${turn}] Extracted Nucleus: ${code}`);
+      }
+
       if (code) {
         // Check if the code block contains <<<FINAL>>> markers (model put answer inside code block)
         const finalInCode = code.match(/<<<FINAL>>>([\s\S]*?)<<<END>>>/);
@@ -786,13 +798,22 @@ Try again with proper formatting.`;
         };
 
         // Bind result for next turn - model can reference as RESULTS or _N
+        // IMPORTANT: Only overwrite RESULTS with arrays. Scalar values (count, sum)
+        // are stored in _N bindings but don't replace the array in RESULTS.
+        // This prevents (count RESULTS) from destroying the data for subsequent (sum RESULTS).
         if (solverResult.success && solverResult.value !== null && solverResult.value !== undefined) {
-          solverBindings.set("RESULTS", solverResult.value);
           solverBindings.set(`_${turn}`, solverResult.value);
-          // Track result count for better feedback
-          previousResultCount = lastResultCount;
-          lastResultCount = Array.isArray(solverResult.value) ? solverResult.value.length : 1;
-          log(`[Turn ${turn}] Bound result to RESULTS and _${turn}`);
+
+          if (Array.isArray(solverResult.value)) {
+            // Array result - update RESULTS and track count
+            solverBindings.set("RESULTS", solverResult.value);
+            previousResultCount = lastResultCount;
+            lastResultCount = solverResult.value.length;
+            log(`[Turn ${turn}] Bound result to RESULTS and _${turn}`);
+          } else {
+            // Scalar result - only bind to _N, preserve RESULTS
+            log(`[Turn ${turn}] Bound scalar result to _${turn} (RESULTS preserved)`);
+          }
         } else {
           previousResultCount = lastResultCount;
           lastResultCount = 0;
@@ -924,8 +945,13 @@ Try again with proper formatting.`;
           feedback += `\n${classifierGuidance}`;
         }
 
+        // After aggregate operations, show the result clearly
+        if (typeof result.result === "number") {
+          feedback += `\n\nResult: ${result.result}. If this answers the query, output: <<<FINAL>>>${result.result}<<<END>>>`;
+        }
+
         // Add adapter-specific success feedback (language reminders, etc.)
-        feedback += `\n\n${adapter.getSuccessFeedback(lastResultCount, previousResultCount)}`;
+        feedback += `\n\n${adapter.getSuccessFeedback(lastResultCount, previousResultCount, query)}`;
 
         history.push({ role: "user", content: feedback });
 
@@ -964,9 +990,7 @@ Try again with proper formatting.`;
           }
         }
       } else {
-        log(`[Turn ${turn}] No code block found in response`);
-        log(`[Turn ${turn}] Raw response (first 500 chars):`);
-        log(response.slice(0, 500));
+        log(`[Turn ${turn}] No Nucleus command extracted`);
 
         noCodeCount++;
         // If model is stuck (3+ consecutive no-code responses) and we have meaningful output, return it

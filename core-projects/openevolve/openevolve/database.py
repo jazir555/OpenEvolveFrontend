@@ -47,8 +47,8 @@ class Program:
     """Represents a program in the database"""
 
     # Program identification
-    id: str
     code: str
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
     language: str = "python"
 
     # Evolution information
@@ -59,6 +59,7 @@ class Program:
 
     # Performance metrics
     metrics: Dict[str, float] = field(default_factory=dict)
+    score: Optional[float] = None
 
     # Derived features
     complexity: float = 0.0
@@ -73,6 +74,14 @@ class Program:
     # Artifact storage
     artifacts_json: Optional[str] = None  # JSON-serialized small artifacts
     artifact_dir: Optional[str] = None  # Path to large artifact files
+
+    def __post_init__(self) -> None:
+        """Synchronize score into metrics for backward compatibility."""
+        if self.score is None:
+            return
+        if self.metrics is None or not isinstance(self.metrics, dict):
+            self.metrics = {}
+        self.metrics.setdefault("score", float(self.score))
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary representation"""

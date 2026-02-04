@@ -21,3 +21,21 @@ __all__ = [
     "evolve_code",
     "EvolutionResult",
 ]
+
+# Ensure top-level knowledge_engine is available under openevolve.knowledge_engine
+try:  # pragma: no cover - runtime alias for integration compatibility
+    import importlib
+    import sys
+
+    import knowledge_engine as _knowledge_engine
+
+    sys.modules.setdefault("openevolve.knowledge_engine", _knowledge_engine)
+    try:
+        sys.modules.setdefault(
+            "openevolve.knowledge_engine.integrations",
+            importlib.import_module("knowledge_engine.integrations"),
+        )
+    except Exception:
+        pass
+except Exception:
+    pass

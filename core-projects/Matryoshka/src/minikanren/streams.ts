@@ -39,7 +39,7 @@ export function chain<A>(f: (v: A) => Stream<A>, s: Stream<A>): Stream<A> {
 // iteratively instead in order to eliminate tail calls in recursive
 // relations. That is, `take` acts like a trampoline.
 export function take<A>(n: number | false, s: Stream<A>): A[] {
-  const result = [];
+  const result: A[] = [];
   while (n !== 0 && s !== empty) {
     if (typeof s === 'function') s = s();
     else {

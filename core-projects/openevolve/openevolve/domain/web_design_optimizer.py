@@ -29,7 +29,15 @@ Date: 2026-01-30
 """
 
 from typing import Dict, Any, Optional, List
-from ..unified.config import UnifiedEvolutionConfig, EvolutionMode, DomainType, LLMConfig, EvaluatorConfig, DatabaseConfig
+from ..unified.config import (
+    UnifiedEvolutionConfig,
+    EvolutionMode,
+    DomainType,
+    LLMConfig,
+    EvaluatorConfig,
+    DatabaseConfig,
+    MOConfig,
+)
 from .base import DomainOptimizer
 
 
@@ -174,7 +182,7 @@ class WebDesignOptimizer(DomainOptimizer):
         config = self._general_config()
 
         # Multi-objective: engagement, satisfaction, accessibility
-        config.mo = MoConfig(
+        config.mo = MOConfig(
             enabled=True,
             objectives=["engagement", "satisfaction", "accessibility"],
             algorithm="nsga2",

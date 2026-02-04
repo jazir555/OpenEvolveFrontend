@@ -28,7 +28,17 @@ Date: 2026-01-30
 """
 
 from typing import Dict, Any, Optional, List
-from ..unified.config import UnifiedEvolutionConfig, EvolutionMode, DomainType, QDConfig, LLMConfig, EvaluatorConfig, DatabaseConfig
+from ..unified.config import (
+    UnifiedEvolutionConfig,
+    EvolutionMode,
+    DomainType,
+    QDConfig,
+    MOConfig,
+    PESConfig,
+    LLMConfig,
+    EvaluatorConfig,
+    DatabaseConfig,
+)
 from .base import DomainOptimizer
 
 # **ACTUAL INTEGRATION**: Adaptive MDAP for complexity-based experiment allocation
@@ -338,7 +348,7 @@ class ScienceOptimizer(DomainOptimizer):
         config.qd.grid_resolution = 20
 
         # Multi-objective: maximize yield, minimize cost, maximize novelty
-        config.mo = MoConfig(
+        config.mo = MOConfig(
             enabled=True,
             objectives=["yield", "cost", "reproducibility"],
             algorithm="nsga2",
@@ -380,7 +390,7 @@ class ScienceOptimizer(DomainOptimizer):
 
         # Use PES for reasoning about which hypotheses to test
         config.evolution_mode = EvolutionMode.PES
-        config.pes = PesConfig(
+        config.pes = PESConfig(
             enabled=True,
             enable_planning=True,
             use_memory=True,

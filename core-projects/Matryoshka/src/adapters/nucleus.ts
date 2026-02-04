@@ -24,19 +24,27 @@ function buildSystemPrompt(
   // Determine document size category
   const sizeCategory = contextLength < 2000 ? "SMALL" : "LARGE";
 
-  return `You analyze documents. Output ONE thing per turn.
-
-For ${sizeCategory} documents (${contextLength} chars):
-${sizeCategory === "SMALL" ? "- Can answer directly: <<<FINAL>>>answer<<<END>>>" : "- Must search first: (grep \"keyword\")"}
+  return `You analyze documents to answer queries. Output ONE command per turn.
 
 COMMANDS:
-(grep "word")     - search document
-(filter RESULTS (lambda x (match x "pattern" 0))) - keep matches
-(map RESULTS (lambda x (match x "[0-9]+" 0)))     - extract numbers
-(sum RESULTS)     - add numbers
-(count RESULTS)   - count items
+(grep "pattern")                                    - search document, returns matching lines with line numbers
+(lines START END)                                   - get lines START to END (for multi-line content like JSON/code blocks)
+(filter RESULTS (lambda x (match x "pattern" 0)))   - filter results
+(map RESULTS (lambda x (match x "pattern" 1)))      - extract field from each result
+(sum RESULTS)                                       - sum numbers (for "total", "sum")
+(count RESULTS)                                     - count items (for "how many")
 
-Final: <<<FINAL>>>answer<<<END>>>
+WORKFLOW for multi-line content (JSON, code blocks, configs):
+1. (grep "keyword") to find the line number where the content starts
+2. (lines START END) to get the full block - use line numbers from grep results
+
+QUERY TYPES - match your response to the query:
+- "find/print/show config/example/JSON" -> use grep to find line, then (lines N M) for full block
+- "list/show/what are" -> return the actual items: <<<FINAL>>>item1, item2...<<<END>>>
+- "how many/count" -> use (count RESULTS)
+- "total/sum" -> use (sum RESULTS)
+
+Output final answer as: <<<FINAL>>>answer<<<END>>>
 
 ${hints?.hintsText || ""}${hints?.selfCorrectionText || ""}`;
 }
@@ -213,8 +221,9 @@ function extractFinalAnswer(
 ): string | FinalVarMarker | null {
   if (!response) return null;
 
-  // Look for <<<FINAL>>> ... <<<END>>> markers (standard format)
-  const finalMatch = response.match(/<<<FINAL>>>([\s\S]*?)<<<END>>>/);
+  // Look for FINAL markers with various bracket styles (<<<, >>>, or mixed)
+  // Models often get the brackets wrong
+  const finalMatch = response.match(/(?:<<<|>>>)FINAL(?:<<<|>>>)([\s\S]*?)(?:<<<|>>>)END(?:<<<|>>>)/);
   if (finalMatch) {
     return finalMatch[1].trim();
   }
@@ -249,10 +258,14 @@ function extractFinalAnswer(
  * Feedback when no LC term found
  */
 function getNoCodeFeedback(): string {
-  return `Parse error. Output one of:
-(grep "keyword")
-(sum RESULTS)
-<<<FINAL>>>answer<<<END>>>
+  return `Parse error: no valid command. Extract a keyword from the query and search:
+
+(grep "KEYWORD")   <- extract keyword from query, e.g., "SALES", "ERROR", "stage"
+
+Then based on query type:
+- "list/show/what": output items directly <<<FINAL>>>item1, item2<<<END>>>
+- "how many/count": (count RESULTS)
+- "total/sum": (sum RESULTS)
 
 Next:`;
 }
@@ -276,27 +289,34 @@ function getErrorFeedback(error: string, code?: string): string {
  * Feedback after successful execution
  * @param resultCount - Number of results from execution
  * @param previousCount - Number of results before this operation
+ * @param query - The original query for context
  */
-function getSuccessFeedback(resultCount?: number, previousCount?: number): string {
+function getSuccessFeedback(resultCount?: number, previousCount?: number, query?: string): string {
   if (resultCount === 0 && previousCount && previousCount > 0) {
-    return `Filter matched nothing. Use _1 (original results) with simpler pattern.
+    return `Filter matched nothing. Try different pattern.
 
 Next:`;
   }
 
   if (resultCount === 0) {
-    return `No matches. Try different keyword.
+    return `No matches. Try different search terms.
 
 Next:`;
   }
 
   if (resultCount && resultCount > 0) {
-    return `${resultCount} results in RESULTS.
+    return `Found ${resultCount} matches.
+
+Check: Do these results answer "${query || 'the query'}"?
+- For "list/show/what": output the items directly <<<FINAL>>>item1, item2...<<<END>>>
+- For "how many/count": (count RESULTS)
+- For "total/sum": (sum RESULTS)
+- If too broad: (filter RESULTS (lambda x (match x "specific_term" 0)))
 
 Next:`;
   }
 
-  return `Done.
+  return `Done. Output your answer.
 
 Next:`;
 }

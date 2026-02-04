@@ -1,3 +1,0 @@
-"""
-OneKE Integration Test Suite
-"""

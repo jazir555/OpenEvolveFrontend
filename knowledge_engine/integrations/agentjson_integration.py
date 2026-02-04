@@ -613,3 +613,10 @@ class AgentJSONIntegration:
             "msg": "AgentJSON integration resources closed",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
+
+# Availability flag
+try:
+    import agentjson
+    AGENTJSON_INTEGRATION_AVAILABLE = True
+except ImportError:
+    AGENTJSON_INTEGRATION_AVAILABLE = False

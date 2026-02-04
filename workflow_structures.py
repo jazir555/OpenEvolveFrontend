@@ -1453,6 +1453,7 @@ class WorkflowState:
     assembler_team: Optional[Team] = None
     sub_problem_red_gauntlet: Optional[GauntletDefinition] = None
     sub_problem_gold_gauntlet: Optional[GauntletDefinition] = None
+    solver_generation_gauntlet: Optional[GauntletDefinition] = None
     final_red_gauntlet: Optional[GauntletDefinition] = None
     final_gold_gauntlet: Optional[GauntletDefinition] = None
     max_refinement_loops: int = 3 # Max iterations for the self-healing loop

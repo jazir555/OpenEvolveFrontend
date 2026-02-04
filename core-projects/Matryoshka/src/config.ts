@@ -34,12 +34,6 @@ export interface ProviderConfig {
   options?: LLMOptions;
 }
 
-export interface SandboxConfig {
-  maxSubCalls: number;
-  turnTimeoutMs: number;
-  memoryLimitMb: number;
-}
-
 export interface RLMConfig {
   maxTurns: number;
 }
@@ -47,8 +41,30 @@ export interface RLMConfig {
 export interface Config {
   llm: LLMConfig;
   providers: Record<string, ProviderConfig>;
-  sandbox: SandboxConfig;
   rlm: RLMConfig;
+}
+
+/**
+ * Recursively resolve environment variables in config values.
+ * Supports ${VAR_NAME} syntax in string values.
+ */
+function resolveEnvVars(obj: unknown): unknown {
+  if (typeof obj === "string") {
+    return obj.replace(/\$\{([^}]+)\}/g, (_, varName) => {
+      return process.env[varName] || "";
+    });
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(resolveEnvVars);
+  }
+  if (obj && typeof obj === "object") {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      result[key] = resolveEnvVars(value);
+    }
+    return result;
+  }
+  return obj;
 }
 
 const DEFAULT_CONFIG: Config = {
@@ -65,11 +81,6 @@ const DEFAULT_CONFIG: Config = {
       },
     },
   },
-  sandbox: {
-    maxSubCalls: 10,
-    turnTimeoutMs: 30000,
-    memoryLimitMb: 128,
-  },
   rlm: {
     maxTurns: 10,
   },
@@ -80,13 +91,13 @@ export async function loadConfig(configPath?: string): Promise<Config> {
 
   try {
     const content = await readFile(path, "utf-8");
-    const userConfig = JSON.parse(content) as Partial<Config>;
+    const rawConfig = JSON.parse(content) as Partial<Config>;
+    const userConfig = resolveEnvVars(rawConfig) as Partial<Config>;
 
     // Deep merge with defaults
     return {
       llm: { ...DEFAULT_CONFIG.llm, ...userConfig.llm },
       providers: { ...DEFAULT_CONFIG.providers, ...userConfig.providers },
-      sandbox: { ...DEFAULT_CONFIG.sandbox, ...userConfig.sandbox },
       rlm: { ...DEFAULT_CONFIG.rlm, ...userConfig.rlm },
     };
   } catch (error) {

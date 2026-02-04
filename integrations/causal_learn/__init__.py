@@ -174,8 +174,14 @@ __all__.extend([
 # Module-level initialization
 if CAUSAL_LEARN_AVAILABLE:
     logger.info("Causal-learn integration loaded successfully")
-    logger.info(f"Available algorithms: {', '.join([
-        'PC', 'GES', 'FCI', 'DirectLiNGAM', 'ICA-LiNGAM', 'VAR-LiNGAM'
-    ])}")
+    _available_algorithms = [
+        "PC",
+        "GES",
+        "FCI",
+        "DirectLiNGAM",
+        "ICA-LiNGAM",
+        "VAR-LiNGAM",
+    ]
+    logger.info("Available algorithms: %s", ", ".join(_available_algorithms))
 else:
     logger.warning("Causal-learn not available. Integration will use graceful degradation.")

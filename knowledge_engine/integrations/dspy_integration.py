@@ -3,6 +3,19 @@ DSPy Integration for OpenEvolve Knowledge Engine
 
 This module provides integration with the DSPy program-of-thought prompting system,
 enabling advanced reasoning and problem-solving capabilities.
+
+MERGED IMPLEMENTATION:
+- Base: knowledge_engine/integrations/dspy_integration.py (comprehensive class-based API)
+- Merged: dspy_integration.py (signatures, global instance helper)
+- Result: Complete SSOT with all features from both implementations
+
+Features:
+- Chain of thought reasoning
+- Program of thought execution  
+- Multi-step problem solving
+- DSPy Signatures for common tasks (KnowledgeExtraction, ContentEvaluation, etc.)
+- Global instance management
+- Teleprompter support (BootstrapFewShot, COPRO, etc.)
 """
 
 # Import aiohttp compatibility shim BEFORE any dspy imports
@@ -891,3 +904,175 @@ class DSPyIntegration:
             "msg": "DSPy integration resources closed",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
+
+
+# =============================================================================
+# DSPY SIGNATURES AND GLOBAL HELPERS (MERGED FROM ROOT DSPY_INTEGRATION.PY)
+# =============================================================================
+
+try:
+    import dspy
+    from dspy.teleprompt import BootstrapFewShot
+    from dspy.predict import Predict
+    from dspy import Signature
+    
+    # Define common DSPy signatures for reuse across the system
+    class KnowledgeExtractionSignature(Signature):
+        """Signature for extracting knowledge from content."""
+        content_to_analyze = dspy.InputField(desc="Content to extract knowledge from")
+        extraction_context = dspy.InputField(desc="Additional context for extraction")
+        extraction_type = dspy.InputField(desc="Type of extraction (comprehensive, entities, relations, patterns)")
+        
+        extracted_entities = dspy.OutputField(desc="JSON array of entities with name, type, and description")
+        extracted_relations = dspy.OutputField(desc="JSON array of relations between entities with source, target, and relationship type")
+        identified_patterns = dspy.OutputField(desc="JSON array of patterns or concepts identified in the content")
+        knowledge_summary = dspy.OutputField(desc="Structured summary of extracted knowledge")
+        confidence_score = dspy.OutputField(desc="Confidence in the extraction (0-100)")
+
+    class ContentEvaluationSignature(Signature):
+        """Signature for evaluating content quality."""
+        content_to_evaluate = dspy.InputField(desc="Content to evaluate for quality")
+        content_type = dspy.InputField(desc="Type of content (code, document, etc.)")
+        evaluation_criteria = dspy.InputField(desc="List of criteria to evaluate against")
+        
+        overall_quality_score = dspy.OutputField(desc="Overall quality score (0-100)")
+        correctness_score = dspy.OutputField(desc="Correctness score (0-100)")
+        clarity_score = dspy.OutputField(desc="Clarity score (0-100)")
+        completeness_score = dspy.OutputField(desc="Completeness score (0-100)")
+        effectiveness_score = dspy.OutputField(desc="Effectiveness score (0-100)")
+        efficiency_score = dspy.OutputField(desc="Efficiency score (0-100)")
+        maintainability_score = dspy.OutputField(desc="Maintainability score (0-100)")
+        robustness_score = dspy.OutputField(desc="Robustness score (0-100)")
+        security_score = dspy.OutputField(desc="Security score (0-100)")
+        compliance_score = dspy.OutputField(desc="Compliance score (0-100)")
+        aesthetics_score = dspy.OutputField(desc="Aesthetics score (0-100)")
+        detailed_feedback = dspy.OutputField(desc="Detailed feedback and suggestions")
+        confidence_level = dspy.OutputField(desc="Confidence level in evaluation (low, medium, high)")
+
+    class StrategyGenerationSignature(Signature):
+        """Signature for generating evolution strategies."""
+        problem_description = dspy.InputField(desc="Description of the problem to solve")
+        content_type = dspy.InputField(desc="Type of content being evolved")
+        evolution_mode = dspy.InputField(desc="Mode of evolution (standard, adversarial, etc.)")
+        
+        suggested_strategies = dspy.OutputField(desc="JSON array of suggested strategies with title and description")
+        recommended_strategy = dspy.OutputField(desc="Recommended strategy to use")
+        confidence_score = dspy.OutputField(desc="Confidence in the recommendation (0-100)")
+        potential_risks = dspy.OutputField(desc="Potential risks with the recommended strategy")
+        success_factors = dspy.OutputField(desc="Key factors for success with this strategy")
+
+    class SolutionPatternSignature(Signature):
+        """Signature for identifying solution patterns."""
+        solution_attempts = dspy.InputField(desc="List of solution attempts with results")
+        problem_context = dspy.InputField(desc="Context of the problem being solved")
+        
+        identified_patterns = dspy.OutputField(desc="JSON array of identified solution patterns")
+        pattern_applicability = dspy.OutputField(desc="When each pattern is applicable")
+        pattern_strengths = dspy.OutputField(desc="Strengths of each pattern")
+        pattern_weaknesses = dspy.OutputField(desc="Weaknesses of each pattern")
+        implementation_guidance = dspy.OutputField(desc="Guidance for implementing each pattern")
+    
+    DSPY_SIGNATURES_AVAILABLE = True
+    
+except ImportError:
+    # DSPy not available, create stub signatures
+    KnowledgeExtractionSignature = None
+    ContentEvaluationSignature = None
+    StrategyGenerationSignature = None
+    SolutionPatternSignature = None
+    DSPY_SIGNATURES_AVAILABLE = False
+
+
+# Global DSPy instance management (from root dspy_integration.py)
+_global_dspy_instance = None
+
+def get_global_dspy_instance(config: Optional[Dict[str, Any]] = None):
+    """
+    Get or create a global DSPy instance for the system.
+    
+    Args:
+        config: Optional configuration for the DSPy integration
+        
+    Returns:
+        DSPyIntegration instance or None if DSPy is not available
+    """
+    global _global_dspy_instance
+    
+    if _global_dspy_instance is None:
+        _global_dspy_instance = DSPyIntegration(config)
+    
+    return _global_dspy_instance
+
+
+def initialize_dspy(
+    model: str = "gpt-4o",
+    api_key: Optional[str] = None,
+    config: Optional[Dict[str, Any]] = None
+) -> Optional[DSPyIntegration]:
+    """
+    Initialize DSPy with the specified configuration.
+    
+    Convenience function for quick DSPy initialization.
+    
+    Args:
+        model: Model name to use
+        api_key: API key for the model
+        config: Additional configuration options
+        
+    Returns:
+        Initialized DSPyIntegration or None
+    """
+    merged_config = config or {}
+    merged_config["model"] = model
+    if api_key:
+        merged_config["api_key"] = api_key
+    
+    integration = DSPyIntegration(merged_config)
+    
+    # Initialize async components
+    import asyncio
+    try:
+        asyncio.run(integration.initialize())
+    except Exception as e:
+        logger.error(f"Failed to initialize DSPy: {e}")
+        return None
+    
+    return integration
+
+
+def get_dspy_status() -> Dict[str, Any]:
+    """
+    Get the status of DSPy integration.
+    
+    Returns:
+        Dictionary with DSPy availability status
+    """
+    return {
+        "dspy_available": DSPY_INTEGRATION_AVAILABLE,
+        "signatures_available": DSPY_SIGNATURES_AVAILABLE,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+
+# Export all signatures and helpers
+__all__ = [
+    "DSPyIntegration",
+    "DSPyResult",
+    "KnowledgeExtractionSignature",
+    "ContentEvaluationSignature",
+    "StrategyGenerationSignature",
+    "SolutionPatternSignature",
+    "get_global_dspy_instance",
+    "initialize_dspy",
+    "get_dspy_status",
+    "DSPY_INTEGRATION_AVAILABLE",
+    "DSPY_SIGNATURES_AVAILABLE",
+]
+
+
+# Availability flag
+try:
+    import dspy
+    DSPY_INTEGRATION_AVAILABLE = True
+except ImportError:
+    DSPY_INTEGRATION_AVAILABLE = False

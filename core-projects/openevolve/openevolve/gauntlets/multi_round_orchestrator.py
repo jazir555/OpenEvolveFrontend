@@ -783,6 +783,26 @@ class MultiRoundGauntletOrchestrator:
             reasons.append("formal verification failed")
         return ", ".join(reasons)
 
+    async def run_gauntlet(
+        self,
+        solution: str,
+        problem: str,
+        domain: str,
+        context: Optional[Dict[str, Any]] = None
+    ) -> GauntletState:
+        """Compatibility wrapper that runs the full gauntlet."""
+        return await self.execute_full_gauntlet(solution, problem, domain, context)
+
+    async def evaluate(
+        self,
+        solution: str,
+        problem: str,
+        domain: str,
+        context: Optional[Dict[str, Any]] = None
+    ) -> GauntletState:
+        """Alias for run_gauntlet to satisfy evaluator interface."""
+        return await self.run_gauntlet(solution, problem, domain, context)
+
     async def execute_full_gauntlet(
         self,
         solution: str,

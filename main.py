@@ -6,10 +6,13 @@ A Streamlit application for content improvement using LLMs.
 This is the main entry point that ties together all the components of the OpenEvolve application.
 """
 
+import os
+
+os.environ.setdefault("OPENEVOLVE_STREAMLIT_UI", "1")
+
 import streamlit as st
 st.set_page_config(page_title="OpenEvolve", layout="wide")
 
-import os
 import sys
 import logging
 import asyncio

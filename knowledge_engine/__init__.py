@@ -537,6 +537,21 @@ try:
 except ImportError as e:
     logging.getLogger(__name__).debug(f"Health monitoring not available: {e}")
 
+# Import capability reporting
+try:
+    from .capability_report import (
+        get_capabilities,
+        print_capability_report,
+        get_integration_summary,
+    )
+    __all__.extend([
+        'get_capabilities',
+        'print_capability_report',
+        'get_integration_summary',
+    ])
+except ImportError as e:
+    logging.getLogger(__name__).debug(f"Capability reporting not available: {e}")
+
 import asyncio
 import logging
 from datetime import datetime, timezone

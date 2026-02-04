@@ -21,7 +21,7 @@ import json
 from typing import Dict, Any, List, Optional, Tuple, Set
 from datetime import datetime, timezone
 from dataclasses import dataclass, field, asdict
-from threading import Lock
+from threading import Lock, RLock
 import uuid
 import re
 
@@ -74,7 +74,7 @@ class EntityKnowledgeGraph:
         self._entities: Dict[str, Entity] = {}
         self._relationships: List[Relationship] = []
         self._entity_types: Dict[str, Set[str]] = {}  # entity_type -> set of entity names
-        self._lock = Lock()
+        self._lock = RLock()  # Use RLock (reentrant) to allow nested lock acquisition
         self._async_lock: Optional[asyncio.Lock] = None  # Lazy initialization
 
         # Correlation ID for structured logging

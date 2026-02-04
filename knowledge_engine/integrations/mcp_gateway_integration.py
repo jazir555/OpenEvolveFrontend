@@ -892,3 +892,10 @@ class MCPGatewayIntegration:
             "msg": "MCP Gateway integration resources closed",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
+
+# Availability flag
+try:
+    import mcp_gateway
+    MCP_GATEWAY_INTEGRATION_AVAILABLE = True
+except ImportError:
+    MCP_GATEWAY_INTEGRATION_AVAILABLE = False

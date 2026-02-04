@@ -40,6 +40,14 @@ import uuid
 # Configure logging
 logger = logging.getLogger(__name__)
 
+
+class CyclicDependencyError(Exception):
+    """Raised when dependency graph contains a cycle."""
+
+    def __init__(self, cycle_nodes: List[str]):
+        super().__init__(f"Cyclic dependency detected among: {', '.join(cycle_nodes)}")
+        self.cycle_nodes = cycle_nodes
+
 # **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Comprehensive Recomposition Engine
 try:
     from alerting_system import get_alert_manager, AlertSeverity
@@ -1563,7 +1571,16 @@ class ComprehensiveRecompositionEngine:
         strategy = context.assembly_strategy or AssemblyStrategy.ADAPTIVE
         
         # Sort by dependencies
-        ordered_ids = self._topological_sort(list(sub_solutions.keys()), dependencies)
+        priority_scores = {
+            sub_id: getattr(solution, "quality_score", 0.0)
+            for sub_id, solution in sub_solutions.items()
+        }
+        ordered_ids = self._topological_sort(
+            list(sub_solutions.keys()),
+            dependencies,
+            priority_scores=priority_scores,
+            break_cycles=True,
+        )
         
         instructions = []
         for position, sub_id in enumerate(ordered_ids):
@@ -1587,33 +1604,46 @@ class ComprehensiveRecompositionEngine:
         )
     
     def _topological_sort(
-        self, 
-        nodes: List[str], 
-        edges: Dict[str, List[str]]
+        self,
+        nodes: List[str],
+        edges: Dict[str, List[str]],
+        priority_scores: Optional[Dict[str, float]] = None,
+        break_cycles: bool = True,
     ) -> List[str]:
-        """Topological sort of nodes."""
+        """Topological sort of nodes with cycle detection."""
         in_degree = {node: 0 for node in nodes}
         for neighbors in edges.values():
             for neighbor in neighbors:
                 in_degree[neighbor] = in_degree.get(neighbor, 0) + 1
-        
+
         queue = [node for node in nodes if in_degree[node] == 0]
         result = []
-        
+
         while queue:
             node = queue.pop(0)
             result.append(node)
-            
+
             for neighbor in edges.get(node, []):
                 in_degree[neighbor] -= 1
                 if in_degree[neighbor] == 0:
                     queue.append(neighbor)
-        
-        # Add any remaining nodes (shouldn't happen with valid DAG)
-        for node in nodes:
-            if node not in result:
-                result.append(node)
-        
+
+        if len(result) < len(nodes):
+            cycle_nodes = [node for node in nodes if node not in result]
+            if not break_cycles:
+                raise CyclicDependencyError(cycle_nodes)
+            ordered_cycle = (
+                sorted(
+                    cycle_nodes,
+                    key=lambda n: priority_scores.get(n, 0.0) if priority_scores else 0.0,
+                    reverse=True,
+                )
+                if priority_scores
+                else sorted(cycle_nodes)
+            )
+            logger.warning("Cycle detected in dependencies; breaking cycle: %s", ordered_cycle)
+            result.extend(ordered_cycle)
+
         return result
     
     def _execute_assembly(

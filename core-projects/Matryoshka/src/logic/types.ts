@@ -21,6 +21,7 @@ export type LCTerm =
   | LCGrep
   | LCFuzzySearch
   | LCTextStats
+  | LCLines
   | LCFilter
   | LCMap
   | LCReduce
@@ -31,13 +32,25 @@ export type LCTerm =
   | LCSplit
   | LCParseInt
   | LCParseFloat
+  | LCParseDate
+  | LCParseCurrency
+  | LCParseNumber
+  | LCCoerce
+  | LCExtract
+  | LCSynthesize
   | LCAdd
   | LCIf
   | LCClassify
   | LCConstrained
   | LCVar
   | LCApp
-  | LCLambda;
+  | LCLambda
+  | LCDefineFn
+  | LCApplyFn
+  | LCPredicate
+  | LCListSymbols
+  | LCGetSymbolBody
+  | LCFindReferences;
 
 /**
  * (input) - reference to the current input string
@@ -76,6 +89,16 @@ export interface LCFuzzySearch {
  */
 export interface LCTextStats {
   tag: "text_stats";
+}
+
+/**
+ * (lines <start> <end>) - get lines from document
+ * Returns the text content from line start to line end (1-indexed, inclusive)
+ */
+export interface LCLines {
+  tag: "lines";
+  start: number;
+  end: number;
 }
 
 /**
@@ -179,6 +202,90 @@ export interface LCParseFloat {
 }
 
 /**
+ * (parseDate <term> [format]) - parse string as date
+ * Format hints: "ISO", "US", "EU", "auto" (default)
+ * Returns ISO date string (YYYY-MM-DD) or null
+ * With :examples, synthesis fallback will be used if parsing fails
+ */
+export interface LCParseDate {
+  tag: "parseDate";
+  str: LCTerm;
+  format?: string;
+  examples?: SynthesisExample[];
+}
+
+/**
+ * Example pair for synthesis
+ */
+export interface SynthesisExample {
+  input: string;
+  output: unknown;
+}
+
+/**
+ * (parseCurrency <term>) - parse currency string
+ * Handles: $1,234.56, €1.234,56, 1,234, etc.
+ * Returns number or null
+ * With :examples, synthesis fallback will be used if parsing fails
+ */
+export interface LCParseCurrency {
+  tag: "parseCurrency";
+  str: LCTerm;
+  examples?: SynthesisExample[];
+}
+
+/**
+ * (parseNumber <term>) - parse number with various formats
+ * Handles: 1,234.56, 1.234,56 (EU), percentages, etc.
+ * Returns number or null
+ * With :examples, synthesis fallback will be used if parsing fails
+ */
+export interface LCParseNumber {
+  tag: "parseNumber";
+  str: LCTerm;
+  examples?: SynthesisExample[];
+}
+
+/**
+ * Supported coercion types
+ */
+export type CoercionType = "date" | "currency" | "number" | "percent" | "boolean" | "string";
+
+/**
+ * (coerce <term> <type>) - coerce value to specified type
+ * General type coercion hint
+ */
+export interface LCCoerce {
+  tag: "coerce";
+  term: LCTerm;
+  targetType: CoercionType;
+}
+
+/**
+ * (extract <term> <pattern> [type]) - extract and optionally coerce
+ * Combines match + coerce in one operation
+ * With :examples, synthesis fallback will be used if extraction fails
+ */
+export interface LCExtract {
+  tag: "extract";
+  str: LCTerm;
+  pattern: string;
+  group: number;
+  targetType?: CoercionType;
+  examples?: SynthesisExample[];
+  constraints?: Record<string, unknown>;
+}
+
+/**
+ * (synthesize <examples>) - synthesize function from input/output examples
+ * Barliman-style program synthesis using miniKanren
+ */
+export interface LCSynthesize {
+  tag: "synthesize";
+  examples: Array<{ input: string; output: string | number | boolean | null }>;
+}
+
+/**
  * (if <cond> <then> <else>) - conditional
  */
 export interface LCIf {
@@ -233,6 +340,60 @@ export interface LCLambda {
 }
 
 /**
+ * (define-fn <name> :examples [...]) - define a named synthesized function
+ */
+export interface LCDefineFn {
+  tag: "define-fn";
+  name: string;
+  examples: SynthesisExample[];
+}
+
+/**
+ * (apply-fn <name> <arg>) - apply a named synthesized function
+ */
+export interface LCApplyFn {
+  tag: "apply-fn";
+  name: string;
+  arg: LCTerm;
+}
+
+/**
+ * (predicate <term> :examples [...]) - synthesize a predicate function
+ */
+export interface LCPredicate {
+  tag: "predicate";
+  str: LCTerm;
+  examples?: SynthesisExample[];
+}
+
+/**
+ * (list_symbols [kind]) - list symbols from tree-sitter AST
+ * Optionally filter by kind: "function", "class", "method", "interface", etc.
+ */
+export interface LCListSymbols {
+  tag: "list_symbols";
+  kind?: string;
+}
+
+/**
+ * (get_symbol_body <symbol>) - get the source code body for a symbol
+ * Symbol can be a name string or a symbol object from list_symbols
+ */
+export interface LCGetSymbolBody {
+  tag: "get_symbol_body";
+  symbol: LCTerm;
+}
+
+/**
+ * (find_references <name>) - find all references to an identifier
+ * Returns array of lines containing references
+ */
+export interface LCFindReferences {
+  tag: "find_references";
+  name: string;
+}
+
+/**
  * Parse result
  */
 export interface ParseResult {
@@ -249,6 +410,7 @@ export type LCType =
   | { tag: "string" }
   | { tag: "number" }
   | { tag: "boolean" }
+  | { tag: "date" }
   | { tag: "array"; element: LCType }
   | { tag: "function"; param: LCType; result: LCType }
   | { tag: "any" }

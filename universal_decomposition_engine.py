@@ -259,6 +259,7 @@ class DecompositionPlan:
     execution_order: List[str] = field(default_factory=list)
     parallel_groups: List[List[str]] = field(default_factory=list)
     quality_score: float = 0.0
+    analyzed_context: Dict[str, Any] = field(default_factory=dict)
     metadata: Dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.now)
     
@@ -272,6 +273,7 @@ class DecompositionPlan:
             'execution_order': self.execution_order,
             'parallel_groups': self.parallel_groups,
             'quality_score': self.quality_score,
+            'analyzed_context': self.analyzed_context,
             'metadata': self.metadata,
             'created_at': self.created_at.isoformat()
         }
@@ -535,12 +537,18 @@ class DependencyDecomposition(DecompositionStrategyBase):
             source_id: str = Field(..., description="Sub-problem that depends on target_id")
             target_id: str = Field(..., description="Prerequisite sub-problem")
             reason: str = Field(default="", description="Short rationale for dependency")
+        class DependencyEdgeList(BaseModel):
+            """Structured list of dependency edges."""
+            edges: List["DependencyDecomposition.DependencyEdge"] = Field(default_factory=list)
     else:  # pragma: no cover - fallback
         class DependencyEdge:  # type: ignore
             def __init__(self, source_id: str, target_id: str, reason: str = ""):
                 self.source_id = source_id
                 self.target_id = target_id
                 self.reason = reason
+        class DependencyEdgeList:  # type: ignore
+            def __init__(self, edges: Optional[List["DependencyDecomposition.DependencyEdge"]] = None):
+                self.edges = edges or []
     
     def get_strategy_name(self) -> str:
         return "dependency"
@@ -580,6 +588,57 @@ class DependencyDecomposition(DecompositionStrategyBase):
                 descriptions.append(
                     f"{i}. [{sp.id}] {sp.title}: {sp.description[:150]}..."
                 )
+
+            prompt = (
+                "Identify prerequisite dependencies between sub-problems.\n"
+                "Return ONLY structured dependency edges with fields:\n"
+                "- source_id: sub-problem that depends on target_id\n"
+                "- target_id: prerequisite sub-problem\n"
+                "- reason: short rationale\n\n"
+                f"Problem: {problem.title}\n\n"
+                "Sub-Problems:\n"
+                f"{chr(10).join(descriptions)}\n"
+            )
+
+            # Attempt structured response first (Instructor/DSPy/response_model)
+            structured_edges: List[DependencyDecomposition.DependencyEdge] = []
+            response_model = self.DependencyEdgeList
+
+            if self.llm_client:
+                if hasattr(self.llm_client, "complete_structured"):
+                    try:
+                        result = self.llm_client.complete_structured(
+                            prompt=prompt, response_model=response_model
+                        )
+                        if isinstance(result, self.DependencyEdgeList):
+                            structured_edges = list(result.edges or [])
+                        elif isinstance(result, list):
+                            structured_edges = self._parse_dependency_edges(result)
+                    except Exception as exc:
+                        self.logger.debug("Structured dependency call failed: %s", exc)
+
+                if not structured_edges:
+                    for method_name in ("chat", "complete", "generate"):
+                        method = getattr(self.llm_client, method_name, None)
+                        if not callable(method):
+                            continue
+                        try:
+                            result = method(prompt, response_model=response_model)
+                            if isinstance(result, self.DependencyEdgeList):
+                                structured_edges = list(result.edges or [])
+                            elif isinstance(result, list):
+                                structured_edges = self._parse_dependency_edges(result)
+                            elif isinstance(result, dict) and "edges" in result:
+                                structured_edges = self._parse_dependency_edges(result["edges"])
+                            if structured_edges:
+                                break
+                        except TypeError:
+                            continue
+                        except Exception as exc:
+                            self.logger.debug("Response-model dependency call failed: %s", exc)
+
+            if structured_edges:
+                return self._apply_dependency_edges(sub_problems, structured_edges)
 
             # Prefer DSPy structured prompting when available
             dspy_text = None
@@ -638,38 +697,51 @@ JSON:"""
             edges = self._parse_dependency_edges(edges_payload)
             if not edges:
                 return self._apply_heuristic_dependencies(sub_problems, problem)
-
-            id_map = {str(i + 1): sp.id for i, sp in enumerate(sub_problems)}
-            id_map.update({sp.id: sp.id for sp in sub_problems})
-            subproblem_map = {sp.id: sp for sp in sub_problems}
-            valid_ids = set(subproblem_map.keys())
-
-            for sp in sub_problems:
-                sp.dependencies = []
-                if not isinstance(sp.metadata, dict):
-                    sp.metadata = {}
-                sp.metadata.setdefault("dependency_reasons", {})
-
-            for edge in edges:
-                depender = id_map.get(str(edge.source_id), str(edge.source_id))
-                dependency = id_map.get(str(edge.target_id), str(edge.target_id))
-                if depender in valid_ids and dependency in valid_ids and dependency != depender:
-                    if dependency not in subproblem_map[depender].dependencies:
-                        subproblem_map[depender].dependencies.append(dependency)
-                    reason = (edge.reason or "").strip()
-                    if reason:
-                        subproblem_map[depender].metadata["dependency_reasons"][dependency] = reason
-
-            return sub_problems
+            return self._apply_dependency_edges(sub_problems, edges)
             
         except (RuntimeError, ValueError, ConnectionError) as e:
             self.logger.warning(f"LLM dependency analysis failed: {e}")
             return None
 
+    @staticmethod
+    def _apply_dependency_edges(
+        sub_problems: List[SubProblem],
+        edges: List["DependencyDecomposition.DependencyEdge"],
+    ) -> List[SubProblem]:
+        """Apply dependency edges to sub-problem objects."""
+        id_map = {str(i + 1): sp.id for i, sp in enumerate(sub_problems)}
+        id_map.update({sp.id: sp.id for sp in sub_problems})
+        subproblem_map = {sp.id: sp for sp in sub_problems}
+        valid_ids = set(subproblem_map.keys())
+
+        for sp in sub_problems:
+            sp.dependencies = []
+            if not isinstance(sp.metadata, dict):
+                sp.metadata = {}
+            sp.metadata.setdefault("dependency_reasons", {})
+
+        for edge in edges:
+            depender = id_map.get(str(edge.source_id), str(edge.source_id))
+            dependency = id_map.get(str(edge.target_id), str(edge.target_id))
+            if depender in valid_ids and dependency in valid_ids and dependency != depender:
+                if dependency not in subproblem_map[depender].dependencies:
+                    subproblem_map[depender].dependencies.append(dependency)
+                reason = (edge.reason or "").strip()
+                if reason:
+                    subproblem_map[depender].metadata["dependency_reasons"][dependency] = reason
+
+        return sub_problems
+
     def _parse_dependency_edges(self, payload: Any) -> List["DependencyDecomposition.DependencyEdge"]:
         """Validate and normalize dependency edges from JSON payload."""
         if not payload:
             return []
+
+        if isinstance(payload, self.DependencyEdgeList):
+            return list(payload.edges or [])
+
+        if isinstance(payload, list) and payload and isinstance(payload[0], self.DependencyEdge):
+            return list(payload)
 
         if isinstance(payload, dict) and "edges" in payload:
             payload = payload.get("edges")
@@ -1129,6 +1201,17 @@ class UniversalDecompositionEngine:
                 )
                 serialized = serialize_entanglement_matrix(matrix)
                 plan.metadata["entanglement_matrix"] = serialized
+                if plan.analyzed_context is None:
+                    plan.analyzed_context = {}
+                if isinstance(plan.analyzed_context, dict):
+                    plan.analyzed_context.setdefault("domain", problem.domain.value)
+                    plan.analyzed_context.setdefault(
+                        "constraints", [c.description for c in problem.constraints]
+                    )
+                    plan.analyzed_context.setdefault(
+                        "success_criteria", [c.description for c in problem.success_criteria]
+                    )
+                    plan.analyzed_context["entanglement_matrix"] = serialized
                 for sp in sub_problems:
                     entangled_with = serialized.get(sp.id, [])
                     sp.metadata["entangled_with"] = entangled_with

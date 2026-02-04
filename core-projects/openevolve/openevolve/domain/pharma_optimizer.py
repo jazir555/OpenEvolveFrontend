@@ -346,7 +346,7 @@ class PharmaOptimizer(DomainOptimizer):
         config = self._general_config()
 
         # Multi-objective: affinity, solubility, low toxicity
-        config.mo = MoConfig(
+        config.mo = MOConfig(
             enabled=True,
             objectives=["binding_affinity", "solubility", "safety"],
             algorithm="nsga2",

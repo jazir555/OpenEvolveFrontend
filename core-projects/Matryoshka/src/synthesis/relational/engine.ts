@@ -146,11 +146,11 @@ export class SynthesisEngine {
       candidatesExplored++;
 
       // Try to instantiate the template with the examples
-      const result = this.instantiateTemplate(template, constraint.examples);
+      const result = this.instantiateTemplate(template, constraint.examples as any);
 
       if (result) {
         // Test on all examples
-        const { passed, failed } = this.testOnExamples(result, constraint.examples);
+        const { passed, failed } = this.testOnExamples(result, constraint.examples as any);
 
         if (failed.length === 0) {
           return {
@@ -182,14 +182,14 @@ export class SynthesisEngine {
    */
   private synthesizeWithMiniKanren(constraint: Constraint): Omit<SynthesisEngineResult, "synthesisTimeMs"> {
     // Use miniKanren to find candidate programs
-    const candidates = synthesizeProgram(constraint.examples, this.config.maxCandidates);
+    const candidates = synthesizeProgram(constraint.examples as any, this.config.maxCandidates);
 
     let candidatesExplored = 0;
     for (const candidate of candidates) {
       candidatesExplored++;
 
       // Test the candidate on all examples
-      if (testProgram(candidate, constraint.examples)) {
+      if (testProgram(candidate, constraint.examples as any)) {
         return {
           success: true,
           program: candidate,

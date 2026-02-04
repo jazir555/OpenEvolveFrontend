@@ -521,6 +521,24 @@ class ThreeRoundGauntletOrchestrator:
                 comprehensive_report=f"ERROR: {termination_reason}"
             )
 
+    async def run_gauntlet(
+        self,
+        solution: str,
+        problem: str,
+        domain: str
+    ) -> FullGauntletResult:
+        """Compatibility wrapper for full gauntlet execution."""
+        return await self.run_full_gauntlet(solution=solution, problem=problem, domain=domain)
+
+    async def evaluate(
+        self,
+        solution: str,
+        problem: str,
+        domain: str
+    ) -> FullGauntletResult:
+        """Alias for run_full_gauntlet to satisfy evaluator interface."""
+        return await self.run_full_gauntlet(solution=solution, problem=problem, domain=domain)
+
     async def run_round1(
         self,
         solution: str,

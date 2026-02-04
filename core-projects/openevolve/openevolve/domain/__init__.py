@@ -15,25 +15,7 @@ Date: 2026-01-30
 """
 
 from typing import Dict, Any, Optional, List
-from ..unified.config import UnifiedEvolutionConfig
-
-# Define enums locally since they're not in unified.config
-from enum import Enum
-
-class EvolutionMode(str, Enum):
-    PES = "pes"
-    QD = "qd"
-    MO = "mo"
-    ADVERSARIAL = "adversarial"
-
-class DomainType(str, Enum):
-    FINANCE = "finance"
-    TRADING = "trading"
-    SCIENCE = "science"
-    ENGINEERING = "engineering"
-    PHARMA = "pharma"
-    WEB_DESIGN = "web_design"
-    GENERAL = "general"
+from ..unified.config import UnifiedEvolutionConfig, EvolutionMode, DomainType
 
 # Import base class first
 from .base import DomainOptimizer
@@ -53,6 +35,8 @@ __all__ = [
     'EngineeringOptimizer',
     'PharmaOptimizer',
     'WebDesignOptimizer',
+    'EvolutionMode',
+    'DomainType',
     'detect_domain',
     'get_optimizer',
     'optimize_by_domain',
@@ -272,5 +256,3 @@ async def optimize_multi_domain(
             }
 
     return results
-
-

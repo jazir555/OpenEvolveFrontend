@@ -37,6 +37,7 @@ Usage:
 import logging
 import json
 import dataclasses
+import uuid
 from typing import Dict, List, Any, Optional, Callable, Union, Tuple, Set
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -69,7 +70,11 @@ from universal_recomposition_engine import (
 
 from team_manager import TeamManager
 from gauntlet_manager import GauntletManager
-from utils.entanglement_utils import normalize_entanglement_matrix
+from utils.entanglement_utils import (
+    normalize_entanglement_matrix,
+    build_symbolic_entanglement_matrix,
+    serialize_entanglement_matrix,
+)
 
 # Optional Blue Team + Enhanced Recomposition wiring
 try:
@@ -91,6 +96,15 @@ except ImportError:
     EnhancedRecompositionEngine = None  # type: ignore
     EnhancedSubProblemSolution = None  # type: ignore
     EnhancedIntegratedSolution = None  # type: ignore
+
+# Optional ROMA integration
+try:
+    from roma_openevolve_integration import create_roma_adapter, ROMAOpenEvolveConfig
+    ROMA_AVAILABLE = True
+except ImportError:
+    ROMA_AVAILABLE = False
+    create_roma_adapter = None  # type: ignore
+    ROMAOpenEvolveConfig = None  # type: ignore
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -596,6 +610,9 @@ class UniversalProblemSolver:
         gauntlet_config: Optional[Dict[str, Any]] = None,
         enable_gauntlets: bool = True,
         max_gauntlet_refinement_loops: int = 1,
+        enable_roma: bool = False,
+        use_roma_mdap_maker: bool = False,
+        roma_config: Optional[Dict[str, Any]] = None,
         team_manager: Optional[TeamManager] = None,
         gauntlet_manager: Optional[GauntletManager] = None,
     ):
@@ -606,6 +623,9 @@ class UniversalProblemSolver:
         self.gauntlet_config = gauntlet_config or {}
         self.enable_gauntlets = enable_gauntlets
         self.max_gauntlet_refinement_loops = max_gauntlet_refinement_loops
+        self.enable_roma = enable_roma
+        self.use_roma_mdap_maker = use_roma_mdap_maker
+        self.roma_config = roma_config or {}
         self.team_manager = team_manager or TeamManager()
         self.gauntlet_manager = gauntlet_manager or GauntletManager()
         
@@ -619,6 +639,17 @@ class UniversalProblemSolver:
                 self.blue_team_solver = BlueTeamSubProblemSolver(self.blue_team_config)
             except Exception:
                 self.blue_team_solver = None
+
+        self.roma_adapter = None
+        if self.enable_roma and ROMA_AVAILABLE and create_roma_adapter is not None:
+            try:
+                self.roma_adapter = create_roma_adapter(
+                    enable_roma=True,
+                    use_mdap_maker=self.use_roma_mdap_maker,
+                    **self.roma_config,
+                )
+            except Exception:
+                self.roma_adapter = None
         
         self.logger = logging.getLogger(self.__class__.__name__)
         self.solution_history: List[SolverResult] = []
@@ -635,6 +666,7 @@ class UniversalProblemSolver:
         detect_conflicts: bool = True,
         resolve_conflicts: bool = True,
         use_blue_team_solver: bool = False,
+        use_roma_solver: Optional[bool] = None,
         run_gauntlets: Optional[bool] = None,
         gauntlet_config: Optional[Dict[str, Any]] = None,
         max_gauntlet_refinement_loops: Optional[int] = None,
@@ -653,6 +685,7 @@ class UniversalProblemSolver:
             detect_conflicts: Whether to detect conflicts during assembly
             resolve_conflicts: Whether to attempt conflict resolution
             use_blue_team_solver: Use Blue Team solver (Z3/Lean) with enhanced recomposition
+            use_roma_solver: Use ROMA phase-2 solving when available
             run_gauntlets: Whether to run Blue/Red/Gold gauntlet pipeline
             gauntlet_config: Optional gauntlet configuration overrides
             max_gauntlet_refinement_loops: Override max gauntlet refinement loops
@@ -669,6 +702,14 @@ class UniversalProblemSolver:
         if use_blue_team_solver and not self.blue_team_solver:
             self.logger.warning("Blue Team solver unavailable; falling back to standard solver")
             use_blue_team_solver = False
+
+        if use_roma_solver is None:
+            use_roma_solver = self.enable_roma
+        if use_roma_solver and not self.roma_adapter:
+            self.logger.warning("ROMA solver unavailable; falling back to standard solver")
+            use_roma_solver = False
+        if use_blue_team_solver and use_roma_solver:
+            use_roma_solver = False
 
         if run_gauntlets is None:
             run_gauntlets = self.enable_gauntlets
@@ -706,20 +747,73 @@ class UniversalProblemSolver:
         # STEP 2: Decomposition
         # ============================================================================
         step_decomp = SolutionStep("decomposition", datetime.now())
+
+        plan = None
+        if self.enable_roma and self.roma_adapter and self.roma_adapter.is_decomposition_available():
+            problem_def = self.decomposition_engine._create_problem_definition(
+                problem_statement=problem_statement,
+                title=title,
+                domain=domain,
+                constraints=constraints or [],
+                success_criteria=success_criteria or [],
+            )
+            try:
+                roma_result = self.roma_adapter.setup_and_decompose_problem(
+                    problem_statement=problem_statement,
+                    problem_type=problem_def.metadata.get("problem_type")
+                    if isinstance(problem_def.metadata, dict)
+                    else None,
+                    domain=domain.value if hasattr(domain, "value") else str(domain),
+                )
+                plan = self._plan_from_roma_result(problem_def, roma_result)
+            except Exception as exc:
+                self.logger.warning("ROMA decomposition failed; falling back: %s", exc)
+                plan = None
+
+        if plan is None:
+            plan = self.decomposition_engine.decompose(
+                problem_statement=problem_statement,
+                title=title,
+                domain=domain,
+                constraints=constraints or [],
+                success_criteria=success_criteria or [],
+                strategy=self.decomposition_strategy,
+                max_subproblems=max_subproblems
+            )
         
-        plan = self.decomposition_engine.decompose(
-            problem_statement=problem_statement,
-            title=title,
-            domain=domain,
-            constraints=constraints or [],
-            success_criteria=success_criteria or [],
-            strategy=self.decomposition_strategy,
-            max_subproblems=max_subproblems
-        )
-        
-        # Apply domain-specific enhancements
-        if domain == ProblemDomain.FINANCE:
-            plan = FinanceDomainExtension.enhance_decomposition(plan)
+        # Apply domain-specific enhancements if not already applied
+        if not plan.metadata.get("domain_extensions_applied"):
+            plan = self.decomposition_engine._apply_domain_extensions(plan)
+            if plan.metadata.get("domain_extensions_applied"):
+                plan.dependency_graph = self.decomposition_engine._build_dependency_graph(plan.sub_problems)
+                plan.execution_order = self.decomposition_engine._calculate_execution_order(
+                    plan.sub_problems, plan.dependency_graph
+                )
+                plan.parallel_groups = self.decomposition_engine._identify_parallel_groups(
+                    plan.sub_problems, plan.dependency_graph
+                )
+                plan.quality_score = self.decomposition_engine._calculate_quality_score(
+                    plan.original_problem, plan.sub_problems, plan.dependency_graph
+                )
+                try:
+                    matrix, symbols_by_id = build_symbolic_entanglement_matrix(
+                        plan.sub_problems,
+                        allowed_ids=[sp.id for sp in plan.sub_problems],
+                        enforce_symmetry=True,
+                        strict=False,
+                    )
+                    serialized = serialize_entanglement_matrix(matrix)
+                    plan.metadata["entanglement_matrix"] = serialized
+                    plan.analyzed_context.setdefault("entanglement_matrix", serialized)
+                    for sp in plan.sub_problems:
+                        entangled_with = serialized.get(sp.id, [])
+                        sp.metadata["entangled_with"] = entangled_with
+                        if entangled_with and "entanglement_source" not in sp.metadata:
+                            sp.metadata["entanglement_source"] = "symbolic_overlap"
+                        if sp.id in symbols_by_id:
+                            sp.metadata["entanglement_symbols"] = sorted(symbols_by_id.get(sp.id, set()))
+                except Exception as exc:
+                    self.logger.warning("Failed to rebuild entanglement matrix: %s", exc)
         
         step_decomp.end_time = datetime.now()
         step_decomp.status = "completed"
@@ -733,7 +827,7 @@ class UniversalProblemSolver:
 
         if run_gauntlets:
             gauntlet_bundle = self._resolve_gauntlet_bundle(gauntlet_config)
-            if not gauntlet_bundle.has_any():
+            if not gauntlet_bundle.has_any() and not (self.roma_adapter and self.enable_roma):
                 run_gauntlets = False
                 execution_log.append("Gauntlets: no configured gauntlets found; skipping gauntlet pipeline")
         
@@ -753,6 +847,11 @@ class UniversalProblemSolver:
                     plan=plan,
                     entanglement_matrix=entanglement_matrix,
                 )
+            elif use_roma_solver:
+                sub_solutions = self._solve_with_roma(
+                    plan=plan,
+                    entanglement_matrix=entanglement_matrix,
+                )
             else:
                 for sp in plan.sub_problems:
                     self.logger.info(f"Solving: {sp.title}")
@@ -764,6 +863,7 @@ class UniversalProblemSolver:
                     context = {
                         "entanglement_matrix": entanglement_matrix,
                         "entangled_with": entangled_with,
+                        "entangled_components": entangled_with,
                         "entanglement_symbols": entanglement_symbols,
                     }
                     solution = self.sub_problem_solver.solve(
@@ -782,15 +882,32 @@ class UniversalProblemSolver:
             steps.append(step_solving)
             execution_log.append(f"Solved {len(sub_solutions)} sub-problems")
 
-            if run_gauntlets and gauntlet_bundle and gauntlet_bundle.has_subproblem_any():
-                step_gauntlet = SolutionStep("subproblem_gauntlets", datetime.now())
-                sub_gauntlet_results, failed_ids = self._run_subproblem_gauntlets(
+            roma_stage_results: Dict[str, Dict[str, GauntletOutcome]] = {}
+            roma_failed_ids: Set[str] = set()
+            if run_gauntlets and self.roma_adapter and self.enable_roma:
+                roma_stage_results, roma_failed_ids = self._run_roma_subproblem_checks(
                     plan=plan,
                     sub_solutions=sub_solutions,
                     entanglement_matrix=entanglement_matrix,
-                    gauntlet_bundle=gauntlet_bundle,
                 )
+
+            if run_gauntlets and (
+                (gauntlet_bundle and gauntlet_bundle.has_subproblem_any()) or roma_stage_results
+            ):
+                step_gauntlet = SolutionStep("subproblem_gauntlets", datetime.now())
+                sub_gauntlet_results: Dict[str, Dict[str, GauntletOutcome]] = {}
+                failed_ids: Set[str] = set()
+                if gauntlet_bundle and gauntlet_bundle.has_subproblem_any():
+                    sub_gauntlet_results, failed_ids = self._run_subproblem_gauntlets(
+                        plan=plan,
+                        sub_solutions=sub_solutions,
+                        entanglement_matrix=entanglement_matrix,
+                        gauntlet_bundle=gauntlet_bundle,
+                    )
+                if roma_stage_results:
+                    self._merge_gauntlet_results(sub_gauntlet_results, roma_stage_results)
                 gauntlet_results["sub_problems"] = sub_gauntlet_results
+                failed_ids = set(failed_ids) | set(roma_failed_ids)
 
                 # Optional self-healing loop for sub-problem failures
                 remaining_failures = set(failed_ids)
@@ -816,6 +933,7 @@ class UniversalProblemSolver:
                         target_ids=expanded_targets,
                         entanglement_matrix=entanglement_matrix,
                         use_blue_team_solver=use_blue_team_solver,
+                        use_roma_solver=use_roma_solver,
                     )
                     sub_solutions.update(updated_solutions)
                     refreshed_results, remaining_failures = self._run_subproblem_gauntlets(
@@ -862,6 +980,12 @@ class UniversalProblemSolver:
                     detect_conflicts=detect_conflicts,
                     resolve_conflicts=resolve_conflicts
                 )
+            final_solution = self._maybe_apply_roma_reassembly(
+                plan=plan,
+                sub_solutions=sub_solutions,
+                final_solution=final_solution,
+                entanglement_matrix=entanglement_matrix,
+            )
         else:
             # Create empty solution
             from universal_recomposition_engine import IntegratedSolution, QualityMetrics
@@ -880,7 +1004,11 @@ class UniversalProblemSolver:
         if (
             run_gauntlets
             and gauntlet_bundle
-            and (gauntlet_bundle.final_red_gauntlet or gauntlet_bundle.final_gold_gauntlet)
+            and (
+                gauntlet_bundle.final_red_gauntlet
+                or gauntlet_bundle.final_gold_gauntlet
+                or (self.roma_adapter and self.enable_roma)
+            )
             and sub_solutions
         ):
             step_final_gauntlet = SolutionStep("final_gauntlets", datetime.now())
@@ -896,6 +1024,15 @@ class UniversalProblemSolver:
                     entanglement_matrix=entanglement_matrix,
                     gauntlet_bundle=gauntlet_bundle,
                 )
+                if self.roma_adapter and self.enable_roma:
+                    roma_outcome, roma_failed = self._run_roma_final_checks(
+                        plan=plan,
+                        final_solution=final_solution,
+                    )
+                    if roma_outcome:
+                        final_results["roma_final"] = roma_outcome
+                        if roma_failed:
+                            final_failures.update([sp.id for sp in plan.sub_problems])
                 gauntlet_results["final"] = final_results
 
                 if not final_failures or max_refinement_loops <= 0:
@@ -917,6 +1054,7 @@ class UniversalProblemSolver:
                     target_ids=expanded_targets,
                     entanglement_matrix=entanglement_matrix,
                     use_blue_team_solver=use_blue_team_solver,
+                    use_roma_solver=use_roma_solver,
                 )
                 sub_solutions.update(updated_solutions)
                 if use_blue_team_solver and ENHANCED_RECOMPOSITION_AVAILABLE:
@@ -933,6 +1071,12 @@ class UniversalProblemSolver:
                         detect_conflicts=detect_conflicts,
                         resolve_conflicts=resolve_conflicts,
                     )
+                final_solution = self._maybe_apply_roma_reassembly(
+                    plan=plan,
+                    sub_solutions=sub_solutions,
+                    final_solution=final_solution,
+                    entanglement_matrix=entanglement_matrix,
+                )
 
             step_final_gauntlet.end_time = datetime.now()
             step_final_gauntlet.status = "completed"
@@ -1026,6 +1170,8 @@ class UniversalProblemSolver:
             if hasattr(sp, "metadata") and isinstance(sp.metadata, dict):
                 entangled_with = sp.metadata.get("entangled_with", []) or []
                 entanglement_symbols = sp.metadata.get("entanglement_symbols", []) or []
+            if not entangled_with:
+                entangled_with = list(entanglement_matrix.get(sp.id, []) or [])
 
             result = self.blue_team_solver.solve_sub_problem(
                 sub_problem_id=sp.id,
@@ -1036,6 +1182,7 @@ class UniversalProblemSolver:
                 context={
                     "entanglement_matrix": entanglement_matrix,
                     "entangled_with": entangled_with,
+                    "entangled_components": entangled_with,
                     "entanglement_symbols": entanglement_symbols,
                     "domain": plan.original_problem.domain.value,
                 },
@@ -1076,6 +1223,225 @@ class UniversalProblemSolver:
 
         return solutions
 
+    def _solve_with_roma(
+        self,
+        plan: DecompositionPlan,
+        entanglement_matrix: Dict[str, List[str]],
+        target_ids: Optional[Set[str]] = None,
+    ) -> Dict[str, SubProblemSolution]:
+        """Solve sub-problems using ROMA phase-2 solver."""
+        if not self.roma_adapter:
+            return {}
+
+        payload: List[Dict[str, Any]] = []
+        for sp in plan.sub_problems:
+            if target_ids and sp.id not in target_ids:
+                continue
+            metadata = dict(sp.metadata or {})
+            if "entangled_with" not in metadata:
+                metadata["entangled_with"] = entanglement_matrix.get(sp.id, [])
+            if "entanglement_symbols" in sp.metadata:
+                metadata["entanglement_symbols"] = sp.metadata.get("entanglement_symbols")
+            payload.append(
+                {
+                    "id": sp.id,
+                    "title": sp.title,
+                    "description": sp.description,
+                    "dependencies": list(sp.dependencies or []),
+                    "type": sp.type.value if hasattr(sp.type, "value") else str(sp.type),
+                    "metadata": metadata,
+                }
+            )
+
+        result = self.roma_adapter.solve_sub_problems(payload)
+        solutions_list = result.get("solutions", []) if isinstance(result, dict) else []
+
+        solutions: Dict[str, SubProblemSolution] = {}
+        for sol in solutions_list:
+            if not isinstance(sol, dict):
+                continue
+            sol_id = sol.get("id") or sol.get("sub_problem_id") or sol.get("title")
+            if not sol_id:
+                sol_id = f"roma_sol_{len(solutions) + 1}"
+            content = sol.get("solution") or sol.get("solution_content") or ""
+            quality = sol.get("quality_score") or sol.get("confidence") or 0.7
+            metadata = sol.get("metadata", {}) if isinstance(sol.get("metadata"), dict) else {}
+            for key in ("entangled_with", "entanglement_symbols", "entanglement_source"):
+                if key in sol:
+                    metadata[key] = sol.get(key)
+            solutions[sol_id] = SubProblemSolution(
+                sub_problem_id=sol_id,
+                solution_content=str(content),
+                quality_score=float(quality),
+                metadata=metadata,
+            )
+
+        # Fill missing sub-problems with standard solver
+        missing = [sp for sp in plan.sub_problems if sp.id not in solutions]
+        for sp in missing:
+            if target_ids and sp.id not in target_ids:
+                continue
+            context = {
+                "entanglement_matrix": entanglement_matrix,
+                "entangled_with": entanglement_matrix.get(sp.id, []),
+                "entangled_components": entanglement_matrix.get(sp.id, []),
+                "entanglement_symbols": sp.metadata.get("entanglement_symbols", []),
+            }
+            fallback_solution = self.sub_problem_solver.solve(
+                sub_problem=sp,
+                parent_problem=plan.original_problem,
+                context=context,
+            )
+            solutions[sp.id] = fallback_solution
+
+        return solutions
+
+    def _plan_from_roma_result(
+        self,
+        problem_def: ProblemDefinition,
+        roma_result: Dict[str, Any],
+    ) -> Optional[DecompositionPlan]:
+        """Convert ROMA decomposition output into a Universal DecompositionPlan."""
+        sub_payload = roma_result.get("sub_problems") or []
+        if not isinstance(sub_payload, list) or not sub_payload:
+            return None
+
+        def _infer_type(title: str, description: str) -> SubProblemType:
+            text = f"{title} {description}".lower()
+            if "test" in text or "qa" in text:
+                return SubProblemType.TESTING
+            if "design" in text or "architecture" in text:
+                return SubProblemType.DESIGN
+            if "analy" in text or "analysis" in text:
+                return SubProblemType.ANALYSIS
+            if "research" in text or "investigate" in text:
+                return SubProblemType.RESEARCH
+            if "document" in text or "docs" in text:
+                return SubProblemType.DOCUMENTATION
+            if "integrat" in text or "interface" in text:
+                return SubProblemType.INTEGRATION
+            if "validate" in text or "verify" in text:
+                return SubProblemType.VALIDATION
+            return SubProblemType.IMPLEMENTATION
+
+        sub_problems: List[SubProblem] = []
+        for item in sub_payload:
+            if not isinstance(item, dict):
+                continue
+            sp_id = item.get("id") or item.get("sub_problem_id") or f"roma_sp_{uuid.uuid4().hex[:8]}"
+            title = item.get("title") or item.get("name") or sp_id
+            description = item.get("description") or item.get("detail") or title
+            dependencies = item.get("dependencies") or item.get("depends_on") or []
+            if isinstance(dependencies, str):
+                dependencies = [dependencies]
+            complexity_value = (
+                item.get("complexity_score")
+                or item.get("complexity")
+                or item.get("estimated_complexity")
+                or problem_def.complexity_score.overall_complexity
+            )
+            try:
+                complexity_value = float(complexity_value)
+            except (TypeError, ValueError):
+                complexity_value = problem_def.complexity_score.overall_complexity
+            complexity_score = ComplexityScore(
+                cognitive_complexity=min(10.0, complexity_value),
+                computational_complexity=min(10.0, complexity_value),
+                domain_complexity=min(10.0, complexity_value),
+                integration_complexity=min(10.0, complexity_value),
+                overall_complexity=min(10.0, complexity_value),
+                explanation="ROMA-derived complexity estimate",
+            )
+            type_value = item.get("type")
+            sp_type = _infer_type(title, description)
+            if isinstance(type_value, str):
+                try:
+                    sp_type = SubProblemType(type_value.lower())
+                except ValueError:
+                    pass
+
+            success_criteria = []
+            for sc in item.get("success_criteria", []) or []:
+                if isinstance(sc, str):
+                    success_criteria.append(
+                        SuccessCriterion(
+                            id=f"roma_sc_{uuid.uuid4().hex[:6]}",
+                            description=sc,
+                            metric="completion",
+                            threshold=0.9,
+                        )
+                    )
+
+            metadata = dict(item.get("metadata") or {})
+            for key in ("entangled_with", "entanglement_symbols", "entanglement_source"):
+                if key in item:
+                    metadata[key] = item.get(key)
+            metadata.setdefault("roma_source", True)
+
+            sub_problems.append(
+                SubProblem(
+                    id=str(sp_id),
+                    parent_id=problem_def.id,
+                    title=str(title),
+                    description=str(description),
+                    type=sp_type,
+                    complexity_score=complexity_score,
+                    dependencies=list(dependencies) if isinstance(dependencies, list) else [],
+                    success_criteria=success_criteria,
+                    estimated_effort_hours=max(1.0, complexity_value * 3),
+                    priority=int(item.get("priority", 5) or 5),
+                    status=SubProblemStatus.PENDING,
+                    metadata=metadata,
+                )
+            )
+
+        if not sub_problems:
+            return None
+
+        dependency_graph = self.decomposition_engine._build_dependency_graph(sub_problems)
+        execution_order = self.decomposition_engine._calculate_execution_order(
+            sub_problems, dependency_graph
+        )
+        parallel_groups = self.decomposition_engine._identify_parallel_groups(
+            sub_problems, dependency_graph
+        )
+        quality_score = self.decomposition_engine._calculate_quality_score(
+            problem_def, sub_problems, dependency_graph
+        )
+
+        plan = DecompositionPlan(
+            id=f"roma_plan_{uuid.uuid4().hex[:10]}",
+            original_problem=problem_def,
+            sub_problems=sub_problems,
+            strategy_used=self.decomposition_strategy,
+            dependency_graph=dependency_graph,
+            execution_order=execution_order,
+            parallel_groups=parallel_groups,
+            quality_score=quality_score,
+            metadata={},
+            analyzed_context={},
+        )
+        if isinstance(roma_result, dict):
+            plan.metadata["roma_result"] = roma_result
+        entanglement_matrix = roma_result.get("entanglement_matrix", {}) if isinstance(roma_result, dict) else {}
+        if entanglement_matrix:
+            normalized = normalize_entanglement_matrix(
+                entanglement_matrix,
+                allowed_ids=[sp.id for sp in sub_problems],
+                enforce_symmetry=True,
+                strict=False,
+            )
+            serialized = {key: sorted(list(val)) for key, val in normalized.items()}
+            plan.metadata["entanglement_matrix"] = serialized
+            plan.analyzed_context["entanglement_matrix"] = serialized
+            for sp in sub_problems:
+                entangled_with = serialized.get(sp.id, [])
+                if entangled_with:
+                    sp.metadata.setdefault("entangled_with", entangled_with)
+                    sp.metadata.setdefault("entanglement_source", "roma")
+
+        return plan
+
     def _recompose_with_enhanced_engine(
         self,
         plan: DecompositionPlan,
@@ -1092,6 +1458,200 @@ class UniversalProblemSolver:
             dependency_graph=dependency_graph,
             entanglement_matrix=entanglement_matrix or None,
         )
+
+    def _build_roma_solution_payload(
+        self,
+        plan: DecompositionPlan,
+        sub_solutions: Dict[str, Any],
+        entanglement_matrix: Dict[str, List[str]],
+    ) -> List[Dict[str, Any]]:
+        payload: List[Dict[str, Any]] = []
+        for sp_id, sol in sub_solutions.items():
+            content = getattr(sol, "solution_content", None) or getattr(sol, "solution", "")
+            metadata = sol.metadata if hasattr(sol, "metadata") else {}
+            payload.append(
+                {
+                    "id": sp_id,
+                    "solution": content,
+                    "dependencies": plan.dependency_graph.get(sp_id, []),
+                    "metadata": metadata if isinstance(metadata, dict) else {},
+                    "entangled_with": entanglement_matrix.get(sp_id, []),
+                }
+            )
+        return payload
+
+    @staticmethod
+    def _roma_outcome_from_item(
+        item: Dict[str, Any],
+        stage: str,
+        default_approved: bool = True,
+    ) -> GauntletOutcome:
+        approved = item.get("approved")
+        if approved is None:
+            approved = item.get("is_approved")
+        score = item.get("score") or item.get("overall_score") or item.get("confidence")
+        if approved is None and score is not None:
+            try:
+                approved = float(score) >= 0.6
+            except (TypeError, ValueError):
+                approved = default_approved
+        if approved is None:
+            approved = default_approved
+
+        summary = (
+            item.get("summary")
+            or item.get("critique")
+            or item.get("verification")
+            or item.get("message")
+            or ""
+        )
+        findings = item.get("findings") or item.get("issues") or []
+        targeted_feedback = []
+        if isinstance(findings, list):
+            for finding in findings:
+                if isinstance(finding, dict):
+                    detail = finding.get("finding") or finding.get("issue") or finding.get("detail")
+                    if detail:
+                        targeted_feedback.append(str(detail))
+                elif isinstance(finding, str):
+                    targeted_feedback.append(finding)
+
+        return GauntletOutcome(
+            stage=stage,
+            gauntlet_name=f"roma_{stage}",
+            team_name="ROMA",
+            team_role="ROMA",
+            is_approved=bool(approved),
+            report_summary=str(summary),
+            report_object=item,
+            targeted_feedback=targeted_feedback,
+        )
+
+    def _run_roma_subproblem_checks(
+        self,
+        plan: DecompositionPlan,
+        sub_solutions: Dict[str, Any],
+        entanglement_matrix: Dict[str, List[str]],
+    ) -> Tuple[Dict[str, Dict[str, GauntletOutcome]], Set[str]]:
+        if not self.roma_adapter or not self.roma_adapter.is_available():
+            return {}, set()
+
+        payload = self._build_roma_solution_payload(plan, sub_solutions, entanglement_matrix)
+        outcomes: Dict[str, Dict[str, GauntletOutcome]] = {sp_id: {} for sp_id in sub_solutions}
+        failed_ids: Set[str] = set()
+
+        critique_result = self.roma_adapter.critique_solutions(
+            solutions=payload,
+            problem_statement=plan.original_problem.description,
+        )
+        critiques = critique_result.get("critiques") if isinstance(critique_result, dict) else None
+        if isinstance(critiques, list) and critiques:
+            for item in critiques:
+                if not isinstance(item, dict):
+                    continue
+                sol_id = item.get("solution_id") or item.get("id") or item.get("sub_problem_id")
+                if not sol_id:
+                    continue
+                outcome = self._roma_outcome_from_item(item, "roma_critique")
+                outcomes.setdefault(sol_id, {})["roma_critique"] = outcome
+                if not outcome.is_approved:
+                    failed_ids.add(sol_id)
+        else:
+            for sp_id in sub_solutions:
+                outcome = self._roma_outcome_from_item(
+                    critique_result if isinstance(critique_result, dict) else {},
+                    "roma_critique",
+                    default_approved=True,
+                )
+                outcomes.setdefault(sp_id, {})["roma_critique"] = outcome
+                if not outcome.is_approved:
+                    failed_ids.add(sp_id)
+
+        verify_result = self.roma_adapter.verify_solutions(
+            solutions=payload,
+            requirements=[sc.description for sc in plan.original_problem.success_criteria],
+            problem_statement=plan.original_problem.description,
+        )
+        verifications = verify_result.get("verifications") if isinstance(verify_result, dict) else None
+        if verifications is None and isinstance(verify_result, dict):
+            verifications = verify_result.get("results") or verify_result.get("verification_results")
+        if isinstance(verifications, list) and verifications:
+            for item in verifications:
+                if not isinstance(item, dict):
+                    continue
+                sol_id = item.get("solution_id") or item.get("id") or item.get("sub_problem_id")
+                if not sol_id:
+                    continue
+                outcome = self._roma_outcome_from_item(item, "roma_verify")
+                outcomes.setdefault(sol_id, {})["roma_verify"] = outcome
+                if not outcome.is_approved:
+                    failed_ids.add(sol_id)
+        else:
+            for sp_id in sub_solutions:
+                outcome = self._roma_outcome_from_item(
+                    verify_result if isinstance(verify_result, dict) else {},
+                    "roma_verify",
+                    default_approved=True,
+                )
+                outcomes.setdefault(sp_id, {})["roma_verify"] = outcome
+                if not outcome.is_approved:
+                    failed_ids.add(sp_id)
+
+        return outcomes, failed_ids
+
+    def _run_roma_final_checks(
+        self,
+        plan: DecompositionPlan,
+        final_solution: Any,
+    ) -> Tuple[Optional[GauntletOutcome], bool]:
+        if not self.roma_adapter or not self.roma_adapter.is_available():
+            return None, False
+        content = getattr(final_solution, "assembled_content", None) or ""
+        result = self.roma_adapter.final_validation(
+            final_solution=content,
+            problem_statement=plan.original_problem.description,
+        )
+        outcome = self._roma_outcome_from_item(
+            result if isinstance(result, dict) else {},
+            "roma_final_validation",
+        )
+        return outcome, not outcome.is_approved
+
+    def _maybe_apply_roma_reassembly(
+        self,
+        plan: DecompositionPlan,
+        sub_solutions: Dict[str, Any],
+        final_solution: Any,
+        entanglement_matrix: Dict[str, List[str]],
+    ) -> Any:
+        if not self.roma_adapter or not self.roma_adapter.is_available():
+            return final_solution
+        if self.assembly_strategy not in (
+            AssemblyStrategy.ROMA_DETERMINISTIC,
+            AssemblyStrategy.ROMA_CREATIVE,
+        ):
+            return final_solution
+
+        payload = self._build_roma_solution_payload(plan, sub_solutions, entanglement_matrix)
+        roma_result = self.roma_adapter.reassemble_solutions(
+            solutions=payload,
+            problem_statement=plan.original_problem.description,
+        )
+        if not isinstance(roma_result, dict):
+            return final_solution
+        roma_content = roma_result.get("final_solution") or roma_result.get("reassembled_solution")
+        if not roma_content:
+            return final_solution
+        if hasattr(final_solution, "assembled_content"):
+            final_solution.assembled_content = roma_content
+        metadata = getattr(final_solution, "metadata", None)
+        if isinstance(metadata, dict):
+            metadata["roma_reassembly"] = {
+                "roma_used": roma_result.get("roma_used", False),
+                "roma_type": roma_result.get("roma_type"),
+                "message": roma_result.get("message"),
+            }
+        return final_solution
 
     def _resolve_gauntlet_bundle(self, config_override: Optional[Dict[str, Any]] = None) -> GauntletBundle:
         """Resolve gauntlet definitions and teams from config or managers."""
@@ -1614,12 +2174,19 @@ class UniversalProblemSolver:
         target_ids: Set[str],
         entanglement_matrix: Dict[str, List[str]],
         use_blue_team_solver: bool,
+        use_roma_solver: bool,
     ) -> Dict[str, Any]:
         """Solve a subset of sub-problems, optionally using Blue Team solver."""
         if not target_ids:
             return {}
         if use_blue_team_solver and self.blue_team_solver:
             return self._solve_with_blue_team(
+                plan=plan,
+                entanglement_matrix=entanglement_matrix,
+                target_ids=target_ids,
+            )
+        if use_roma_solver:
+            return self._solve_with_roma(
                 plan=plan,
                 entanglement_matrix=entanglement_matrix,
                 target_ids=target_ids,
@@ -1637,6 +2204,7 @@ class UniversalProblemSolver:
             context = {
                 "entanglement_matrix": entanglement_matrix,
                 "entangled_with": entangled_with,
+                "entangled_components": entangled_with,
                 "entanglement_symbols": entanglement_symbols,
             }
             existing = sub_solutions.get(sp.id)
@@ -1657,7 +2225,7 @@ class UniversalProblemSolver:
         updates: Dict[str, Dict[str, GauntletOutcome]],
     ) -> None:
         for sp_id, stage_results in updates.items():
-            base[sp_id] = stage_results
+            base.setdefault(sp_id, {}).update(stage_results)
 
     def _count_gauntlet_outcomes(self, results: Any) -> int:
         """Count gauntlet outcomes in nested result structures."""

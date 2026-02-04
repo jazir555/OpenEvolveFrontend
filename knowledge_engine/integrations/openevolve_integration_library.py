@@ -986,3 +986,10 @@ class OpenEvolveIntegrationLibrary:
             "msg": "OpenEvolve Integration Library resources closed",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
+
+# Availability flag
+try:
+    import openevolve
+    OPENEVOLVE_INTEGRATION_AVAILABLE = True
+except ImportError:
+    OPENEVOLVE_INTEGRATION_AVAILABLE = False

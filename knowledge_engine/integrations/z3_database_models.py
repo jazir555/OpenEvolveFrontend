@@ -28,6 +28,19 @@ except ImportError:
     class DummyBase:
         pass
     declarative_base = lambda: DummyBase
+    # Provide lightweight stubs to avoid NameError during class definitions
+    def Column(*args, **kwargs):  # type: ignore
+        return None
+    class _DummyType:  # type: ignore
+        def __init__(self, *args, **kwargs):
+            pass
+    Integer = String = Float = DateTime = Text = JSON = ForeignKey = Index = _DummyType
+    def create_engine(*args, **kwargs):  # type: ignore
+        return None
+    def sessionmaker(*args, **kwargs):  # type: ignore
+        return lambda *a, **k: None
+    def relationship(*args, **kwargs):  # type: ignore
+        return None
 
 Base = declarative_base()
 

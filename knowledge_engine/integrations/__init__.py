@@ -165,6 +165,78 @@ except ImportError:
     CausalLearnIntegration = None
     CausalDiscoveryEngine = None
 
+# DeepKE Integration
+try:
+    from .deepke_integration import (
+        DeepKEIntegration,
+        DeepKEEnhancedExtractor,
+        DEEPKE_INTEGRATION_AVAILABLE
+    )
+except ImportError:
+    DEEPKE_INTEGRATION_AVAILABLE = False
+
+# DSPy Integration
+try:
+    from .dspy_integration import (
+        DSPyIntegration,
+        DSPY_INTEGRATION_AVAILABLE
+    )
+except ImportError:
+    DSPY_INTEGRATION_AVAILABLE = False
+
+# Ragbits Integration
+try:
+    from .ragbits_integration import (
+        RagbitsIntegration,
+        RAGBITS_INTEGRATION_AVAILABLE
+    )
+except ImportError:
+    RAGBITS_INTEGRATION_AVAILABLE = False
+
+# Agentic Context Engine Integration
+try:
+    from .agentic_context_integration import (
+        AgenticContextEngine,
+        ACE_INTEGRATION_AVAILABLE
+    )
+except ImportError:
+    ACE_INTEGRATION_AVAILABLE = False
+
+# AgentJSON Integration
+try:
+    from .agentjson_integration import (
+        AgentJSONIntegration,
+        AGENTJSON_INTEGRATION_AVAILABLE
+    )
+except ImportError:
+    AGENTJSON_INTEGRATION_AVAILABLE = False
+
+# Research Quest Integration
+try:
+    from .research_quest_integration import (
+        ResearchQuestIntegration,
+        RESEARCH_QUEST_INTEGRATION_AVAILABLE
+    )
+except ImportError:
+    RESEARCH_QUEST_INTEGRATION_AVAILABLE = False
+
+# MCP Gateway Integration
+try:
+    from .mcp_gateway_integration import (
+        MCPGatewayIntegration,
+        MCP_GATEWAY_INTEGRATION_AVAILABLE
+    )
+except ImportError:
+    MCP_GATEWAY_INTEGRATION_AVAILABLE = False
+
+# OpenEvolve Integration Library
+try:
+    from .openevolve_integration_library import (
+        OPENEVOLVE_INTEGRATION_AVAILABLE
+    )
+except ImportError:
+    OPENEVOLVE_INTEGRATION_AVAILABLE = False
+
 
 __all__ = [
     # Z3 Knowledge Integration
@@ -265,4 +337,36 @@ __all__ = [
     "CausalLearnIntegration",
     "CausalDiscoveryEngine",
     "CAUSAL_LEARN_AVAILABLE",
+
+    # DeepKE Integration
+    "DeepKEIntegration",
+    "DeepKEEnhancedExtractor",
+    "DEEPKE_INTEGRATION_AVAILABLE",
+
+    # DSPy Integration
+    "DSPyIntegration",
+    "DSPY_INTEGRATION_AVAILABLE",
+
+    # Ragbits Integration
+    "RagbitsIntegration",
+    "RAGBITS_INTEGRATION_AVAILABLE",
+
+    # Agentic Context Engine Integration
+    "AgenticContextEngine",
+    "ACE_INTEGRATION_AVAILABLE",
+
+    # AgentJSON Integration
+    "AgentJSONIntegration",
+    "AGENTJSON_INTEGRATION_AVAILABLE",
+
+    # Research Quest Integration
+    "ResearchQuestIntegration",
+    "RESEARCH_QUEST_INTEGRATION_AVAILABLE",
+
+    # MCP Gateway Integration
+    "MCPGatewayIntegration",
+    "MCP_GATEWAY_INTEGRATION_AVAILABLE",
+
+    # OpenEvolve Integration Library
+    "OPENEVOLVE_INTEGRATION_AVAILABLE",
 ]

@@ -29,7 +29,17 @@ Date: 2026-01-30
 """
 
 from typing import Dict, Any, Optional, List
-from ..unified.config import UnifiedEvolutionConfig, EvolutionMode, DomainType, PESConfig, AdversarialConfig, LLMConfig, EvaluatorConfig, DatabaseConfig
+from ..unified.config import (
+    UnifiedEvolutionConfig,
+    EvolutionMode,
+    DomainType,
+    PESConfig,
+    AdversarialConfig,
+    LLMConfig,
+    EvaluatorConfig,
+    DatabaseConfig,
+    MOConfig,
+)
 from .base import DomainOptimizer
 
 # **ACTUAL INTEGRATION**: Adaptive MDAP for complexity-based simulation allocation
@@ -349,7 +359,7 @@ class EngineeringOptimizer(DomainOptimizer):
         config = self._general_config()
 
         # Multi-objective: weight, strength, cost
-        config.mo = MoConfig(
+        config.mo = MOConfig(
             enabled=True,
             objectives=["weight", "strength", "cost"],
             algorithm="nsga2",
@@ -370,7 +380,7 @@ class EngineeringOptimizer(DomainOptimizer):
         config = self._general_config()
 
         # Multi-objective: power, area, performance
-        config.mo = MoConfig(
+        config.mo = MOConfig(
             enabled=True,
             objectives=["power", "area", "performance"],
             algorithm="nsga2",
@@ -392,7 +402,7 @@ class EngineeringOptimizer(DomainOptimizer):
         config = self._general_config()
 
         # Multi-objective: response_time, stability, robustness
-        config.mo = MoConfig(
+        config.mo = MOConfig(
             enabled=True,
             objectives=["response_time", "stability", "robustness"],
             algorithm="nsga2",

@@ -22,6 +22,8 @@ from .config import (
     MOConfig,
     AdversarialConfig,
     OpenEvolveConfig,
+    EvolutionMode,
+    DomainType,
 )
 from .config_mapper import ConfigMapper
 from .config_validator import ConfigValidator
@@ -45,6 +47,8 @@ __all__ = [
     "MOConfig",
     "AdversarialConfig",
     "OpenEvolveConfig",
+    "EvolutionMode",
+    "DomainType",
     # Utilities
     "ConfigMapper",
     "ConfigValidator",

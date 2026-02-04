@@ -88,6 +88,7 @@ class LoongFlowAdapter:
         self.fallback_adapter = None
         self.using_loongflow = False
         self.mode = "unknown"
+        self.evolution_mode = config.get("mode", "standard")
         self.show_messages = config.get("show_messages", True)
 
         # Initialize with graceful fallback

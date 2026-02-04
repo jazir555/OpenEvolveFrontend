@@ -285,7 +285,7 @@ def domain_specific_problems():
         },
         "trading": {
             "description": "Design high-frequency trading strategy with Sharpe ratio > 2.0",
-            "objectives": ["sharpe_ratio", "profit_factor", "max_drawdown"],
+            "objectives": ["sharpe_ratio", "profit_factor", "max_drawdown", "risk"],
             "constraints": {"hold_time": "1-5min", "volume": "<1000"}
         },
         "science": {
@@ -1070,7 +1070,7 @@ class TestCrossDomainKnowledgeTransfer:
         extractor = LoongFlowKnowledgeExtractor(knowledge_engine=mock_knowledge_engine)
 
         # Mock search with relevance scores
-        async def mock_search_with_score(query, filters=None, limit=10):
+        async def mock_search_with_score(query=None, query_text=None, filters=None, limit=10):
             return [
                 {"content": "High relevance", "score": 0.95, "metadata": {}},
                 {"content": "Medium relevance", "score": 0.70, "metadata": {}},

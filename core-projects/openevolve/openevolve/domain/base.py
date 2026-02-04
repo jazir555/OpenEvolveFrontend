@@ -166,3 +166,34 @@ class DomainOptimizer:
             List of sub-domain names
         """
         return list(self.sub_domain_configs.keys())
+
+    def validate_config(
+        self,
+        config: Optional[UnifiedEvolutionConfig] = None
+    ) -> Dict[str, Any]:
+        """
+        Validate a configuration object for basic correctness.
+
+        Args:
+            config: Optional config to validate (defaults to current config)
+
+        Returns:
+            Dict with validity status and any validation issues
+        """
+        cfg = config or self.config
+        issues: List[str] = []
+
+        if not isinstance(cfg, UnifiedEvolutionConfig):
+            issues.append("Config must be UnifiedEvolutionConfig")
+            return {"valid": False, "issues": issues}
+
+        if getattr(cfg, "max_iterations", 0) <= 0:
+            issues.append("max_iterations must be > 0")
+        if getattr(cfg, "population_size", 0) <= 0:
+            issues.append("population_size must be > 0")
+
+        database = getattr(cfg, "database", None)
+        if database and getattr(database, "population_size", 1) <= 0:
+            issues.append("database.population_size must be > 0")
+
+        return {"valid": len(issues) == 0, "issues": issues}

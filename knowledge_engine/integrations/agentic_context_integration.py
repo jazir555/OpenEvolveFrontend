@@ -765,3 +765,10 @@ class AgenticContextEngine:
             "msg": "ACE integration resources closed",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
+
+# Availability flag
+try:
+    from ace import SkillBook
+    ACE_INTEGRATION_AVAILABLE = True
+except ImportError:
+    ACE_INTEGRATION_AVAILABLE = False

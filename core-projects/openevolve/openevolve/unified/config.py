@@ -11,9 +11,43 @@ Total Parameters Documented: 322+
 
 from typing import Any, Dict, List, Optional, Union
 from pathlib import Path
-from pydantic import BaseModel, Field, field_validator
+from enum import Enum
+from pydantic import BaseModel, Field, field_validator, model_validator
 import yaml
 import json
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class EvolutionMode(str, Enum):
+    """Supported evolution modes."""
+
+    PES = "pes"
+    QD = "qd"
+    MO = "mo"
+    ADVERSARIAL = "adversarial"
+    STANDARD = "standard"
+    HYBRID = "hybrid"
+    OPENEVOLVE = "openevolve"
+    AUTO = "auto"
+
+
+class DomainType(str, Enum):
+    """Problem domains."""
+
+    GENERAL = "general"
+    FINANCE = "finance"
+    TRADING = "trading"
+    SCIENCE = "science"
+    ENGINEERING = "engineering"
+    PHARMA = "pharma"
+    WEB = "web"
+    WEB_DESIGN = "web_design"
+    LEGAL = "legal"
+    MANUFACTURING = "manufacturing"
+    MATH = "math"
+    ML = "ml"
 
 
 class CommonConfig(BaseModel):
@@ -202,6 +236,74 @@ class LLMConfig(BaseModel):
         le=2.0,
         description="Default temperature for all models"
     )
+    temperature: float = Field(
+        default=0.7,
+        ge=0.0,
+        le=2.0,
+        description="Global temperature override"
+    )
+    top_p: float = Field(
+        default=0.95,
+        ge=0.0,
+        le=1.0,
+        description="Global top-p override"
+    )
+    max_tokens: int = Field(
+        default=4096,
+        ge=1,
+        description="Global max tokens override"
+    )
+    timeout: int = Field(
+        default=60,
+        ge=1,
+        description="Global timeout override (seconds)"
+    )
+    retries: int = Field(
+        default=3,
+        ge=0,
+        description="Global retries for LLM calls"
+    )
+    retry_delay: int = Field(
+        default=5,
+        ge=0,
+        description="Global retry delay (seconds)"
+    )
+    random_seed: Optional[int] = Field(
+        default=42,
+        description="Random seed for sampling"
+    )
+    reasoning_effort: Optional[str] = Field(
+        default=None,
+        description="Reasoning effort level for supported models"
+    )
+    plan_temperature: float = Field(
+        default=0.7,
+        ge=0.0,
+        le=2.0,
+        description="Temperature for PES planning phase"
+    )
+    summary_temperature: float = Field(
+        default=0.7,
+        ge=0.0,
+        le=2.0,
+        description="Temperature for PES summarization phase"
+    )
+
+    @property
+    def api_base(self) -> str:
+        return self.default_api_base
+
+    @api_base.setter
+    def api_base(self, value: str) -> None:
+        self.default_api_base = value
+
+    @property
+    def api_key(self) -> Optional[str]:
+        return self.default_api_key
+
+    @api_key.setter
+    def api_key(self, value: Optional[str]) -> None:
+        self.default_api_key = value
 
 
 class DatabaseConfig(BaseModel):
@@ -341,6 +443,20 @@ class EvaluatorConfig(BaseModel):
         default=3,
         ge=0,
         description="Maximum retries for failed evaluations"
+    )
+    early_stopping_patience: Optional[int] = Field(
+        default=None,
+        ge=1,
+        description="Early stopping patience for evaluator loops"
+    )
+    convergence_threshold: float = Field(
+        default=0.01,
+        ge=0.0,
+        description="Minimum improvement to reset evaluator patience"
+    )
+    early_stopping_metric: str = Field(
+        default="fitness",
+        description="Metric to track for evaluator early stopping"
     )
     evaluate_code: str = Field(
         default="",
@@ -502,6 +618,11 @@ class PESConfig(BaseModel):
         default=True,
         description="Enable memory compression for large histories"
     )
+    memory_top_k: int = Field(
+        default=5,
+        ge=1,
+        description="Number of top solutions to retrieve from memory"
+    )
 
     # === Context Management (3 parameters) ===
     context_window: int = Field(
@@ -519,9 +640,84 @@ class PESConfig(BaseModel):
         description="Enable intelligent context pruning"
     )
 
+    @model_validator(mode="before")
+    @classmethod
+    def _apply_legacy_aliases(cls, values: Any) -> Any:
+        """Map legacy alias fields into current PESConfig fields."""
+        if not isinstance(values, dict):
+            return values
+        data = dict(values)
+        if "plan_iterations" in data and "planning_iterations" not in data:
+            data["planning_iterations"] = data["plan_iterations"]
+        if "max_rounds" in data and "max_refinement_iterations" not in data:
+            data["max_refinement_iterations"] = data["max_rounds"]
+        if "use_memory" in data and "enable_memory" not in data:
+            data["enable_memory"] = data["use_memory"]
+        return data
+
+    @property
+    def plan_iterations(self) -> int:
+        return self.planning_iterations
+
+    @plan_iterations.setter
+    def plan_iterations(self, value: int) -> None:
+        self.planning_iterations = value
+
+    @property
+    def max_rounds(self) -> int:
+        return self.max_refinement_iterations
+
+    @max_rounds.setter
+    def max_rounds(self, value: int) -> None:
+        self.max_refinement_iterations = value
+
+    @property
+    def use_memory(self) -> bool:
+        return self.enable_memory
+
+    @use_memory.setter
+    def use_memory(self, value: bool) -> None:
+        self.enable_memory = value
+
 
 class QDConfig(BaseModel):
     """Quality Diversity (MAP-Elites) Specific Configuration (18 parameters)"""
+
+    @model_validator(mode="before")
+    @classmethod
+    def _apply_enabled_alias(cls, values: Any) -> Any:
+        """Support legacy aliases for enable_map_elites, archive_size, feature_dimensions."""
+        if not isinstance(values, dict):
+            return values
+        data = dict(values)
+        if "enabled" in data and "enable_map_elites" not in data:
+            data["enable_map_elites"] = data["enabled"]
+        if "archive_size" in data and "archive_size_limit" not in data:
+            data["archive_size_limit"] = data["archive_size"]
+        if "feature_dimensions" in data and "grid_dimensions" not in data:
+            data["grid_dimensions"] = data["feature_dimensions"]
+        return data
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        if name == "enabled":
+            name = "enable_map_elites"
+        elif name == "archive_size":
+            name = "archive_size_limit"
+        elif name == "feature_dimensions":
+            name = "grid_dimensions"
+        super().__setattr__(name, value)
+
+    @property
+    def enabled(self) -> bool:
+        return self.enable_map_elites
+
+    @property
+    def archive_size(self) -> int:
+        return self.archive_size_limit if self.archive_size_limit is not None else 1000
+
+    @property
+    def feature_dimensions(self) -> List[str]:
+        return self.grid_dimensions
 
     # === Grid Configuration (6 parameters) ===
     enable_map_elites: bool = Field(
@@ -596,6 +792,12 @@ class QDConfig(BaseModel):
         default=10000,
         ge=1,
         description="Number of samples for CVT initialization"
+    )
+    mutation_rate: float = Field(
+        default=0.1,
+        ge=0.0,
+        le=1.0,
+        description="Mutation rate for QD variation operators"
     )
     use_niching: bool = Field(
         default=True,
@@ -748,10 +950,33 @@ class AdversarialConfig(BaseModel):
         default=False,
         description="Enable arms race dynamics (progressive difficulty)"
     )
+    robustness_threshold: float = Field(
+        default=0.8,
+        ge=0.0,
+        le=1.0,
+        description="Minimum robustness score required to pass adversarial checks"
+    )
 
 
 class OpenEvolveConfig(BaseModel):
     """OpenEvolve-Specific Configuration (48 parameters)"""
+
+    # === Legacy Core Parameters (for backward compatibility) ===
+    max_iterations: int = Field(
+        default=10000,
+        ge=1,
+        description="Maximum number of iterations (legacy OpenEvolve config)"
+    )
+    checkpoint_interval: int = Field(
+        default=100,
+        ge=1,
+        description="Checkpoint interval (legacy OpenEvolve config)"
+    )
+    random_seed: Optional[int] = Field(
+        default=42,
+        ge=0,
+        description="Random seed for reproducibility (legacy OpenEvolve config)"
+    )
 
     # === Code Evolution (6 parameters) ===
     diff_based_evolution: bool = Field(
@@ -984,6 +1209,23 @@ class OpenEvolveConfig(BaseModel):
         description="Tournament size for selection"
     )
 
+    def to_unified(self) -> "UnifiedEvolutionConfig":
+        """Convert legacy OpenEvolve config to unified config."""
+        return UnifiedEvolutionConfig(
+            evolution_mode=EvolutionMode.QD if self.random_seed is not None else EvolutionMode.STANDARD,
+            max_iterations=self.max_iterations,
+            checkpoint_interval=self.checkpoint_interval,
+            random_seed=self.random_seed,
+            diff_based_evolution=self.diff_based_evolution,
+            max_code_length=self.max_code_length,
+            language=self.language,
+            early_stopping_patience=self.early_stopping_patience,
+            convergence_threshold=self.convergence_threshold,
+            early_stopping_metric=self.early_stopping_metric,
+            qd=QDConfig(enabled=True),
+            openevolve=self,
+        )
+
 
 class UnifiedEvolutionConfig(BaseModel):
     """
@@ -1022,13 +1264,31 @@ class UnifiedEvolutionConfig(BaseModel):
     )
 
     # === Mode Selection ===
-    evolution_mode: str = Field(
-        default="openevolve",
+    domain: DomainType = Field(
+        default=DomainType.GENERAL,
+        description="Problem domain (for domain-specific presets)"
+    )
+    evolution_mode: EvolutionMode = Field(
+        default=EvolutionMode.OPENEVOLVE,
         description="Evolution mode: openevolve, pes, qd, mo, adversarial, hybrid"
     )
-    enable_modes: List[str] = Field(
-        default_factory=lambda: ["openevolve"],
+    enable_modes: List[Union[EvolutionMode, str]] = Field(
+        default_factory=lambda: [EvolutionMode.OPENEVOLVE],
         description="List of enabled modes (for hybrid evolution)"
+    )
+
+    # === LoongFlow Optional Control ===
+    enable_loongflow: bool = Field(
+        default=True,
+        description="Enable LoongFlow PES system. If False, only OpenEvolve modes will be used."
+    )
+    loongflow_fallback_enabled: bool = Field(
+        default=True,
+        description="Allow fallback to OpenEvolve if LoongFlow is unavailable or fails."
+    )
+    require_loongflow: bool = Field(
+        default=False,
+        description="Require LoongFlow to be available (no fallback)."
     )
 
     # === Mode-Specific Configurations ===
@@ -1059,20 +1319,101 @@ class UnifiedEvolutionConfig(BaseModel):
         description="Additional metadata for the evolution run"
     )
 
+    @model_validator(mode="before")
+    @classmethod
+    def _map_legacy_fields(cls, data: Any) -> Any:
+        """Map legacy top-level fields into nested config sections."""
+        if not isinstance(data, dict):
+            return data
+
+        data = dict(data)
+
+        # Common overrides
+        common_overrides: Dict[str, Any] = {}
+        for key in ("max_iterations", "checkpoint_interval", "random_seed", "log_level", "log_dir"):
+            if key in data:
+                common_overrides[key] = data.pop(key)
+        if common_overrides:
+            common_section = data.get("common") or {}
+            if isinstance(common_section, CommonConfig):
+                common_section = common_section.model_dump()
+            common_section.update(common_overrides)
+            data["common"] = common_section
+
+        # Database overrides
+        db_map = {
+            "population_size": "population_size",
+            "num_islands": "num_islands",
+            "migration_interval": "migration_interval",
+            "migration_rate": "migration_rate",
+            "archive_size": "elite_archive_size",
+        }
+        db_overrides: Dict[str, Any] = {}
+        for key, mapped in db_map.items():
+            if key in data:
+                db_overrides[mapped] = data.pop(key)
+        if db_overrides:
+            db_section = data.get("database") or {}
+            if isinstance(db_section, DatabaseConfig):
+                db_section = db_section.model_dump()
+            db_section.update(db_overrides)
+            data["database"] = db_section
+
+        # Mutation rate overrides (apply to QD/MO if present)
+        if "mutation_rate" in data:
+            mutation_rate = data.pop("mutation_rate")
+
+            qd_section = data.get("qd") or {}
+            if isinstance(qd_section, QDConfig):
+                qd_section = qd_section.model_dump()
+            qd_section["mutation_rate"] = mutation_rate
+            data["qd"] = qd_section
+
+            mo_section = data.get("mo") or {}
+            if isinstance(mo_section, MOConfig):
+                mo_section = mo_section.model_dump()
+            mo_section["mutation_rate"] = mutation_rate
+            data["mo"] = mo_section
+
+        return data
+
     @field_validator("evolution_mode")
     @classmethod
-    def validate_evolution_mode(cls, v: str) -> str:
-        """Validate evolution mode"""
-        valid_modes = ["openevolve", "pes", "qd", "mo", "adversarial", "hybrid"]
-        if v not in valid_modes:
-            raise ValueError(f"Invalid evolution_mode '{v}'. Must be one of: {valid_modes}")
-        return v
+    def validate_evolution_mode(cls, v: Any) -> EvolutionMode:
+        """Validate evolution mode."""
+        if isinstance(v, EvolutionMode):
+            return v
+        if isinstance(v, str):
+            try:
+                return EvolutionMode(v)
+            except ValueError as exc:
+                valid_modes = [mode.value for mode in EvolutionMode]
+                raise ValueError(
+                    f"Invalid evolution_mode '{v}'. Must be one of: {valid_modes}"
+                ) from exc
+        raise TypeError("evolution_mode must be a string or EvolutionMode")
+
+    @model_validator(mode="after")
+    def validate_loongflow_settings(self) -> "UnifiedEvolutionConfig":
+        """Validate LoongFlow settings are consistent."""
+        if self.require_loongflow and not self.enable_loongflow:
+            raise ValueError(
+                "require_loongflow=True but enable_loongflow=False is contradictory. "
+                "Either set enable_loongflow=True or require_loongflow=False"
+            )
+        return self
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert configuration to dictionary"""
         return {
-            "evolution_mode": self.evolution_mode,
-            "enable_modes": self.enable_modes,
+            "domain": self.domain.value if isinstance(self.domain, DomainType) else self.domain,
+            "evolution_mode": self.evolution_mode.value if isinstance(self.evolution_mode, EvolutionMode) else self.evolution_mode,
+            "enable_modes": [
+                mode.value if isinstance(mode, EvolutionMode) else mode for mode in self.enable_modes
+            ],
+            "enable_loongflow": self.enable_loongflow,
+            "loongflow_fallback_enabled": self.loongflow_fallback_enabled,
+            "require_loongflow": self.require_loongflow,
             "common": self.common.model_dump(),
             "llm": self.llm.model_dump(),
             "database": self.database.model_dump(),
@@ -1109,8 +1450,12 @@ class UnifiedEvolutionConfig(BaseModel):
         openevolve = OpenEvolveConfig(**config_dict["openevolve"]) if config_dict.get("openevolve") else None
 
         return cls(
-            evolution_mode=config_dict.get("evolution_mode", "openevolve"),
-            enable_modes=config_dict.get("enable_modes", ["openevolve"]),
+            domain=config_dict.get("domain", DomainType.GENERAL),
+            evolution_mode=config_dict.get("evolution_mode", EvolutionMode.OPENEVOLVE),
+            enable_modes=config_dict.get("enable_modes", [EvolutionMode.OPENEVOLVE]),
+            enable_loongflow=config_dict.get("enable_loongflow", True),
+            loongflow_fallback_enabled=config_dict.get("loongflow_fallback_enabled", True),
+            require_loongflow=config_dict.get("require_loongflow", False),
             common=common,
             llm=llm,
             database=database,
@@ -1158,3 +1503,159 @@ class UnifiedEvolutionConfig(BaseModel):
         """Save configuration to JSON file"""
         with open(path, "w") as f:
             f.write(self.to_json())
+
+    # ------------------------------------------------------------------
+    # LoongFlow helper methods
+    # ------------------------------------------------------------------
+
+    def is_loongflow_enabled(self) -> bool:
+        """Check if LoongFlow is enabled in config."""
+        return self.enable_loongflow
+
+    def should_use_loongflow(self) -> bool:
+        """
+        Determine if LoongFlow should be used based on availability.
+
+        Returns True if LoongFlow is enabled and available.
+        Raises RuntimeError if require_loongflow=True but unavailable.
+        """
+        if not self.enable_loongflow:
+            return False
+
+        available = self._check_loongflow_availability()
+        if self.require_loongflow:
+            if not available:
+                raise RuntimeError(
+                    "require_loongflow=True but LoongFlow is not available. "
+                    "Please install LoongFlow or set require_loongflow=False."
+                )
+            return True
+
+        if self.loongflow_fallback_enabled and not available:
+            logger.warning(
+                "LoongFlow is enabled but not available. Falling back to OpenEvolve modes. "
+                "Set loongflow_fallback_enabled=False to require LoongFlow."
+            )
+
+        return available
+
+    def _check_loongflow_availability(self) -> bool:
+        """Check if LoongFlow package is available."""
+        try:
+            import loongflow  # noqa: F401
+            return True
+        except ImportError:
+            return False
+
+    # ------------------------------------------------------------------
+    # Convenience constructors
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def openevolve_only(**kwargs) -> "UnifiedEvolutionConfig":
+        """Create an OpenEvolve-only configuration (LoongFlow disabled)."""
+        return UnifiedEvolutionConfig(
+            enable_loongflow=False,
+            loongflow_fallback_enabled=False,
+            require_loongflow=False,
+            **kwargs,
+        )
+
+    @staticmethod
+    def loongflow_required(**kwargs) -> "UnifiedEvolutionConfig":
+        """Create a configuration that strictly requires LoongFlow."""
+        return UnifiedEvolutionConfig(
+            enable_loongflow=True,
+            require_loongflow=True,
+            loongflow_fallback_enabled=False,
+            **kwargs,
+        )
+
+    # ------------------------------------------------------------------
+    # Legacy compatibility properties
+    # ------------------------------------------------------------------
+
+    @property
+    def max_iterations(self) -> int:
+        return self.common.max_iterations
+
+    @max_iterations.setter
+    def max_iterations(self, value: int) -> None:
+        self.common.max_iterations = value
+
+    @property
+    def checkpoint_interval(self) -> int:
+        return self.common.checkpoint_interval
+
+    @checkpoint_interval.setter
+    def checkpoint_interval(self, value: int) -> None:
+        self.common.checkpoint_interval = value
+
+    @property
+    def random_seed(self) -> Optional[int]:
+        return self.common.random_seed
+
+    @random_seed.setter
+    def random_seed(self, value: Optional[int]) -> None:
+        self.common.random_seed = value
+
+    @property
+    def population_size(self) -> int:
+        return self.database.population_size
+
+    @population_size.setter
+    def population_size(self, value: int) -> None:
+        self.database.population_size = value
+
+    @property
+    def num_islands(self) -> int:
+        return self.database.num_islands
+
+    @num_islands.setter
+    def num_islands(self, value: int) -> None:
+        self.database.num_islands = value
+
+    @property
+    def migration_interval(self) -> int:
+        return self.database.migration_interval
+
+    @migration_interval.setter
+    def migration_interval(self, value: int) -> None:
+        self.database.migration_interval = value
+
+    @property
+    def migration_rate(self) -> float:
+        return self.database.migration_rate
+
+    @migration_rate.setter
+    def migration_rate(self, value: float) -> None:
+        self.database.migration_rate = value
+
+    @property
+    def archive_size(self) -> int:
+        return self.database.elite_archive_size
+
+    @archive_size.setter
+    def archive_size(self, value: int) -> None:
+        self.database.elite_archive_size = value
+
+    @property
+    def mutation_rate(self) -> float:
+        if self.qd is not None:
+            return self.qd.mutation_rate
+        if self.mo is not None:
+            return self.mo.mutation_rate
+        return 0.0
+
+    @mutation_rate.setter
+    def mutation_rate(self, value: float) -> None:
+        if self.qd is None:
+            self.qd = QDConfig()
+        self.qd.mutation_rate = value
+        if self.mo is not None:
+            self.mo.mutation_rate = value
+
+    model_config = {
+        "extra": "allow",
+        "arbitrary_types_allowed": True,
+    }

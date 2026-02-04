@@ -898,3 +898,9 @@ class DeepKEEnhancedExtractor:
             return True
         except ImportError:
             return False
+# Availability flag
+try:
+    import deepke
+    DEEPKE_INTEGRATION_AVAILABLE = True
+except ImportError:
+    DEEPKE_INTEGRATION_AVAILABLE = False
