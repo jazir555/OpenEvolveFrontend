@@ -11,12 +11,13 @@ import { openevolveApi } from "@/lib/openevolveApi";
 import {
   GauntletDefinition,
   GauntletRoundRule,
+  GauntletSummary,
   createDefaultGauntlet,
   createDefaultGauntletRound,
 } from "@/lib/types";
 
 export const GauntletDesignerTab: React.FC = () => {
-  const [gauntlets, setGauntlets] = useState<GauntletDefinition[]>([]);
+  const [gauntlets, setGauntlets] = useState<GauntletSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -52,7 +53,7 @@ export const GauntletDesignerTab: React.FC = () => {
     setErrorMessage(null);
     try {
       const result = await openevolveApi.listGauntlets(apiConfig);
-      setGauntlets(result);
+      setGauntlets(result.gauntlets ?? []);
     } catch (error: any) {
       setErrorMessage(error?.message ?? "Failed to load gauntlets.");
     } finally {
@@ -104,10 +105,16 @@ export const GauntletDesignerTab: React.FC = () => {
     setRoundErrors(roundErrors.filter((_, idx) => idx !== index));
   };
 
-  const handleEditGauntlet = (gauntlet: GauntletDefinition) => {
-    setEditingGauntlet(gauntlet.name);
-    setFormGauntlet(gauntlet);
-    syncRoundsFromGauntlet(gauntlet);
+  const handleEditGauntlet = async (gauntlet: GauntletSummary) => {
+    setErrorMessage(null);
+    try {
+      const detailed = await openevolveApi.getGauntlet(gauntlet.name, apiConfig);
+      setEditingGauntlet(gauntlet.name);
+      setFormGauntlet(detailed);
+      syncRoundsFromGauntlet(detailed);
+    } catch (error: any) {
+      setErrorMessage(error?.message ?? "Failed to load gauntlet details.");
+    }
   };
 
   const handleDeleteGauntlet = async (name: string) => {
@@ -222,10 +229,10 @@ export const GauntletDesignerTab: React.FC = () => {
                       <div className="space-y-1">
                         <div className="text-sm font-semibold">{gauntlet.name}</div>
                         <div className="text-xs text-muted-foreground">
-                          {gauntlet.team_name} · {gauntlet.rounds.length} round(s)
+                          {gauntlet.team_name} · {gauntlet.round_count} round(s)
                         </div>
                       </div>
-                      <Badge variant="outline">{gauntlet.gauntlet_type ?? "standard"}</Badge>
+                      <Badge variant="outline">standard</Badge>
                     </div>
                     <div className="mt-3 flex gap-2">
                       <Button size="sm" variant="secondary" onClick={() => handleEditGauntlet(gauntlet)}>

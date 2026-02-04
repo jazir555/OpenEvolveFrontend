@@ -11,6 +11,7 @@ import { openevolveApi } from "@/lib/openevolveApi";
 import {
   Team,
   TeamRole,
+  TeamSummary,
   createDefaultTeam,
   createDefaultModelConfig,
 } from "@/lib/types";
@@ -93,7 +94,7 @@ Solution:
 };
 
 export const TeamManagerTab: React.FC = () => {
-  const [teams, setTeams] = useState<Team[]>([]);
+  const [teams, setTeams] = useState<TeamSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -132,7 +133,7 @@ export const TeamManagerTab: React.FC = () => {
     setErrorMessage(null);
     try {
       const result = await openevolveApi.listTeams(apiConfig);
-      setTeams(result);
+      setTeams(result.teams ?? []);
     } catch (error: any) {
       setErrorMessage(error?.message ?? "Failed to load teams.");
     } finally {
@@ -182,10 +183,16 @@ export const TeamManagerTab: React.FC = () => {
     setMemberErrors(memberErrors.filter((_, idx) => idx !== index));
   };
 
-  const handleEditTeam = (team: Team) => {
-    setEditingTeam(team.name);
-    setFormTeam(team);
-    syncMembersFromTeam(team);
+  const handleEditTeam = async (team: TeamSummary) => {
+    setErrorMessage(null);
+    try {
+      const detailed = await openevolveApi.getTeam(team.name, apiConfig);
+      setEditingTeam(team.name);
+      setFormTeam(detailed);
+      syncMembersFromTeam(detailed);
+    } catch (error: any) {
+      setErrorMessage(error?.message ?? "Failed to load team details.");
+    }
   };
 
   const handleDeleteTeam = async (teamName: string) => {
@@ -296,10 +303,10 @@ export const TeamManagerTab: React.FC = () => {
                       <div className="space-y-1">
                         <div className="text-sm font-semibold">{team.name}</div>
                         <div className="text-xs text-muted-foreground">
-                          {team.role} · {team.members.length} model(s)
+                          {team.role} · {team.member_count} model(s)
                         </div>
                       </div>
-                      <Badge variant="outline">{team.team_type ?? "standard"}</Badge>
+                      <Badge variant="outline">standard</Badge>
                     </div>
                     <div className="mt-3 flex gap-2">
                       <Button size="sm" variant="secondary" onClick={() => handleEditTeam(team)}>

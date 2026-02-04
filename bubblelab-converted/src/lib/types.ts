@@ -88,6 +88,13 @@ export interface Team {
   team_type?: TeamType;
 }
 
+export interface TeamSummary {
+  name: string;
+  role: TeamRole;
+  description?: string | null;
+  member_count: number;
+}
+
 export type CollaborationMode = "independent" | "share_previous_feedback";
 export type VotingStrategy = "fixed_quorum" | "first_to_ahead_by_k";
 
@@ -149,6 +156,151 @@ export interface GauntletDefinition {
   automatic_formalization?: boolean;
   formal_verification_threshold?: number;
   lean_verification_config?: Record<string, unknown>;
+}
+
+export interface GauntletSummary {
+  name: string;
+  team_name: string;
+  description?: string | null;
+  round_count: number;
+}
+
+export interface WorkflowSummary {
+  workflow_id: string;
+  status: string;
+  current_stage: string;
+  progress: number;
+}
+
+export interface WorkflowDetail {
+  workflow_id: string;
+  problem_statement: string;
+  status: string;
+  current_stage: string;
+  progress: number;
+  start_time: number;
+  end_time?: number | null;
+  refinement_loop_count: number;
+  solved_sub_problems: number;
+  total_sub_problems: number;
+}
+
+export interface WorkflowCreateRequest {
+  problem_statement: string;
+  content_analyzer_team: string;
+  planner_team: string;
+  solver_team: string;
+  patcher_team: string;
+  assembler_team: string;
+  sub_problem_red_gauntlet: string;
+  sub_problem_gold_gauntlet: string;
+  final_red_gauntlet: string;
+  final_gold_gauntlet: string;
+  solver_generation_gauntlet: string;
+  max_refinement_loops?: number;
+  mdap_enabled?: boolean;
+  mdap_config?: Record<string, unknown>;
+  maker_enabled?: boolean;
+  maker_config?: Record<string, unknown>;
+}
+
+export interface WorkflowCreateResponse {
+  workflow_id: string;
+  status: string;
+  current_stage: string;
+  progress: number;
+  created_at: string;
+}
+
+export interface WorkflowResults {
+  workflow_id: string;
+  problem_statement: string;
+  status: string;
+  final_solution?: {
+    content: string;
+    generated_by?: string;
+    timestamp?: string;
+  } | null;
+  sub_problem_solutions: Record<
+    string,
+    {
+      content: string;
+      generated_by?: string;
+      timestamp?: string;
+    }
+  >;
+  execution_time?: number | null;
+  refinement_loops: number;
+}
+
+export interface StatisticsSummary {
+  total_workflows: number;
+  completed: number;
+  failed: number;
+  running: number;
+  total_teams: number;
+  total_gauntlets: number;
+}
+
+export interface AuditLogEntry {
+  timestamp?: string;
+  user?: string;
+  operation?: string;
+  resource?: string;
+  resource_id?: string;
+  success?: boolean;
+  details?: Record<string, unknown>;
+}
+
+export interface IcrOverview {
+  icr_enabled: boolean;
+  total_patterns: number;
+  overall_success_rate: number;
+  active_components: number;
+  total_refinements: number;
+}
+
+export type IcrComponents = Record<
+  string,
+  {
+    total_patterns?: number;
+    overall_pass_rate?: number;
+    active?: boolean;
+    recent_pass_rate?: number;
+    recent_fail_rate?: number;
+    top_failure_modes?: string[];
+  }
+>;
+
+export interface IcrRefinements {
+  events: Array<Record<string, unknown>>;
+  total_count: number;
+}
+
+export type TaskStatus = "To Do" | "In Progress" | "On Hold" | "Completed";
+
+export interface TaskItem {
+  id: string;
+  title: string;
+  description?: string | null;
+  assignee?: string | null;
+  status: TaskStatus;
+  due_date?: string | null;
+  created_at: string;
+}
+
+export interface AdaptiveMdapDashboard {
+  generated_at?: string;
+  summary?: Record<string, number>;
+  execution?: Record<string, Record<string, number>>;
+  costs?: Record<string, Record<string, number>>;
+  allocations?: Record<string, number>;
+  complexity_distribution?: Record<string, number>;
+}
+
+export interface AdaptiveMdapProfiles {
+  profiles: Record<string, string>;
+  default: string;
 }
 
 export const createDefaultModelConfig = (): ModelConfig => ({

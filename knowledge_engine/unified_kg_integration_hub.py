@@ -12,6 +12,7 @@ enabling seamless access to:
 - NeuralKG - Neural knowledge graph embeddings
 - Causal-Learn - Causal discovery and analysis
 - KarateClub - Graph analysis and community detection
+- Cognitive-Hydraulics - Hybrid neuro-symbolic reasoning (Soar+ACT-R)
 
 **Query & Generation:**
 - Graphiti - Temporal knowledge graph queries
@@ -45,7 +46,7 @@ Architecture:
       ▼     ▼          ▼      ▼          ▼       ▼
    DeepKE  OneKE   NeuralKG KG-Gen  KarateClub  PyGraphistry
    KG-Gen  AIKG                     Causal-Learn
-   GlobalChem                               Neuromancer
+   GlobalChem                     Cognitive-Hydraulics  Neuromancer
    Graphiti
 
     ┌─────────────────────────────────────────────────────────────┐
@@ -55,6 +56,11 @@ Architecture:
     │ (Structured      │ (Declarative     │ (Physics-Informed     │
     │  Generation)     │  Queries)        │  Simulation)          │
     └──────────────────┴──────────────────┴───────────────────────┘
+    ┌─────────────────────────────────────────────────────────────┐
+    │           Cognitive-Hydraulics (Hybrid Reasoning)            │
+    │     Soar (System 2) + ACT-R (System 1) + Evolutionary       │
+    │        U = P×G - C - HistoryPenalty + Noise(s)              │
+    └─────────────────────────────────────────────────────────────┘
 
 Copyright 2026 OpenEvolve
 
@@ -99,9 +105,10 @@ class KGOperationType(Enum):
     CHEMICAL_ANALYSIS = auto()
     ENTITY_STANDARDIZATION = auto()
     KNOWLEDGE_INFERENCE = auto()
-    STRUCTURED_GENERATION = auto()  # Outlines: constrained LLM outputs
-    DECLARATIVE_QUERY = auto()      # LMQL: SQL-like LLM queries
-    PHYSICS_SIMULATION = auto()     # Neuromancer: physics-informed reasoning
+    STRUCTURED_GENERATION = auto()    # Outlines: constrained LLM outputs
+    DECLARATIVE_QUERY = auto()        # LMQL: SQL-like LLM queries
+    PHYSICS_SIMULATION = auto()       # Neuromancer: physics-informed reasoning
+    HYBRID_REASONING = auto()         # Cognitive-Hydraulics: Soar+ACT-R reasoning
 
 
 class IntegrationStatus(Enum):
@@ -218,7 +225,8 @@ class UnifiedKGIntegrationHub:
             KGOperationType.KNOWLEDGE_INFERENCE: ['aikg', 'kggen'],
             KGOperationType.STRUCTURED_GENERATION: ['outlines'],
             KGOperationType.DECLARATIVE_QUERY: ['lmql'],
-            KGOperationType.PHYSICS_SIMULATION: ['neuromancer']
+            KGOperationType.PHYSICS_SIMULATION: ['neuromancer'],
+            KGOperationType.HYBRID_REASONING: ['cognitive_hydraulics']
         }
         
         logger.info({
@@ -255,6 +263,7 @@ class UnifiedKGIntegrationHub:
         await self._initialize_outlines()
         await self._initialize_lmql()
         await self._initialize_neuromancer()
+        await self._initialize_cognitive_hydraulics()
         
         self._initialized = True
         
@@ -621,6 +630,41 @@ class UnifiedKGIntegrationHub:
         except Exception as e:
             self._health_status['neuromancer'] = IntegrationHealth(
                 name='neuromancer',
+                status=IntegrationStatus.ERROR,
+                error_count=1,
+                details={'error': str(e)}
+            )
+    
+    async def _initialize_cognitive_hydraulics(self):
+        """Initialize Cognitive-Hydraulics integration for hybrid reasoning."""
+        start_time = datetime.now(timezone.utc)
+        try:
+            from .integrations.cognitive_hydraulics.cognitive_hydraulics_integration import CognitiveHydraulicsKGIntegration
+            integration = CognitiveHydraulicsKGIntegration(self.config.get('cognitive_hydraulics', {}))
+            available = integration.is_available()
+            
+            self._integrations['cognitive_hydraulics'] = integration
+            self._health_status['cognitive_hydraulics'] = IntegrationHealth(
+                name='cognitive_hydraulics',
+                status=IntegrationStatus.AVAILABLE if available else IntegrationStatus.UNAVAILABLE,
+                latency_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000,
+                details={
+                    'description': 'Hybrid Neuro-Symbolic Reasoning (Soar+ACT-R+Evolutionary)',
+                    'features': [
+                        'system2_symbolic_reasoning',
+                        'system1_heuristic_reasoning',
+                        'pressure_valve_switching',
+                        'evolutionary_fallback',
+                        'chunking_learning'
+                    ],
+                    'ssot_location': 'integrations/cognitive_hydraulics/',
+                    'equation': 'U = P×G - C - HistoryPenalty + Noise',
+                    'systems': ['Soar', 'ACT-R', 'Evolutionary']
+                }
+            )
+        except Exception as e:
+            self._health_status['cognitive_hydraulics'] = IntegrationHealth(
+                name='cognitive_hydraulics',
                 status=IntegrationStatus.ERROR,
                 error_count=1,
                 details={'error': str(e)}
@@ -1205,6 +1249,74 @@ class UnifiedKGIntegrationHub:
             operation_type=KGOperationType.PHYSICS_SIMULATION,
             integration_used='none',
             errors=['Neuromancer not available'],
+            processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+        )
+    
+    async def hybrid_reasoning(
+        self,
+        problem: Dict[str, Any],
+        goal: str,
+        reasoning_mode: str = 'auto'
+    ) -> KGOperationResult:
+        """
+        Execute hybrid neuro-symbolic reasoning using Cognitive-Hydraulics.
+        
+        Combines Soar (System 2 - symbolic) + ACT-R (System 1 - heuristic) +
+        Evolutionary fallback with automatic pressure-based switching.
+        
+        Args:
+            problem: Problem description with context
+            goal: Goal to achieve
+            reasoning_mode: 'soar', 'actr', 'evolutionary', or 'auto' (default)
+            
+        Returns:
+            KGOperationResult with reasoning result and explanation
+        """
+        start_time = datetime.now(timezone.utc)
+        
+        if 'cognitive_hydraulics' in self._integrations:
+            try:
+                integration = self._integrations['cognitive_hydraulics']
+                
+                if reasoning_mode == 'auto':
+                    # Let pressure valve decide
+                    result = await integration.solve_kg_problem(
+                        problem_description=problem,
+                        goal=goal
+                    )
+                elif reasoning_mode == 'soar':
+                    # Force symbolic reasoning
+                    result = await integration.reason_about_graph(
+                        kg_subgraph=problem.get('kg', {}),
+                        query=goal
+                    )
+                elif reasoning_mode == 'actr':
+                    # Force heuristic reasoning
+                    result = await integration.infer_relationship(
+                        entity1=problem.get('entity1'),
+                        entity2=problem.get('entity2')
+                    )
+                else:
+                    # Evolutionary fallback
+                    result = await integration.optimize_query_plan(
+                        query=goal
+                    )
+                
+                return KGOperationResult(
+                    success=result is not None,
+                    operation_type=KGOperationType.HYBRID_REASONING,
+                    integration_used='cognitive_hydraulics',
+                    data=result.to_dict() if hasattr(result, 'to_dict') else result,
+                    processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+                )
+            except Exception as e:
+                logger.error(f"Cognitive-Hydraulics reasoning failed: {e}")
+        
+        return KGOperationResult(
+            success=False,
+            operation_type=KGOperationType.HYBRID_REASONING,
+            integration_used='none',
+            errors=['Cognitive-Hydraulics not available'],
             processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
         )
     
