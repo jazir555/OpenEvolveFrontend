@@ -12,6 +12,13 @@ import { AnalyticsDashboardTab } from './AnalyticsDashboardTab';
 import { OpenEvolveDashboardTab } from './OpenEvolveDashboardTab';
 import { OrchestratorTab } from './OrchestratorTab';
 import { MonitoringTab } from './MonitoringTab';
+import { KnowledgeBaseTab } from './KnowledgeBaseTab';
+import { AutoApprovalTab } from './AutoApprovalTab';
+import { WorkflowTemplatesTab } from './WorkflowTemplatesTab';
+import { NotificationsTab } from './NotificationsTab';
+import { SuggestionsTab } from './SuggestionsTab';
+import { SettingsTab } from './SettingsTab';
+import { SovereignDashboardTab } from './SovereignDashboardTab';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 
@@ -71,7 +78,7 @@ export const OpenEvolveApp: React.FC = () => {
         <main className="flex-1 overflow-auto p-6">
           <div className="max-w-7xl mx-auto">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-6 md:grid-cols-12">
+              <TabsList className="flex flex-wrap gap-2">
                 <TabsTrigger value="evolution">Evolution</TabsTrigger>
                 <TabsTrigger value="adversarial">Adversarial Testing</TabsTrigger>
                 <TabsTrigger value="github">GitHub</TabsTrigger>
@@ -84,6 +91,13 @@ export const OpenEvolveApp: React.FC = () => {
                 <TabsTrigger value="openevolve">OpenEvolve</TabsTrigger>
                 <TabsTrigger value="orchestrator">Orchestrator</TabsTrigger>
                 <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
+                <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
+                <TabsTrigger value="auto-approval">Auto Approval</TabsTrigger>
+                <TabsTrigger value="workflow-templates">Workflow Templates</TabsTrigger>
+                <TabsTrigger value="notifications">Notifications</TabsTrigger>
+                <TabsTrigger value="suggestions">Suggestions</TabsTrigger>
+                <TabsTrigger value="settings">Settings</TabsTrigger>
+                <TabsTrigger value="sovereign">Sovereign</TabsTrigger>
               </TabsList>
               
               <TabsContent value="evolution" className="mt-6">
@@ -138,6 +152,34 @@ export const OpenEvolveApp: React.FC = () => {
               
               <TabsContent value="monitoring" className="mt-6">
                 <MonitoringTab />
+              </TabsContent>
+
+              <TabsContent value="knowledge" className="mt-6">
+                <KnowledgeBaseTab />
+              </TabsContent>
+
+              <TabsContent value="auto-approval" className="mt-6">
+                <AutoApprovalTab />
+              </TabsContent>
+
+              <TabsContent value="workflow-templates" className="mt-6">
+                <WorkflowTemplatesTab />
+              </TabsContent>
+
+              <TabsContent value="notifications" className="mt-6">
+                <NotificationsTab />
+              </TabsContent>
+
+              <TabsContent value="suggestions" className="mt-6">
+                <SuggestionsTab />
+              </TabsContent>
+
+              <TabsContent value="settings" className="mt-6">
+                <SettingsTab />
+              </TabsContent>
+
+              <TabsContent value="sovereign" className="mt-6">
+                <SovereignDashboardTab />
               </TabsContent>
             </Tabs>
           </div>

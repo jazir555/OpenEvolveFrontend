@@ -10,7 +10,6 @@
  * - Law of UTC: All timestamps in UTC
  */
 
-import { v4 as uuidv4 } from 'uuid';
 import { Logger } from '@openevolve/glue-lib';
 import {
   validateQuery,
@@ -98,7 +97,7 @@ export class UnifiedKnowledgeQueryEngine {
     query: string,
     options: QueryOptions = {}
   ): Promise<UnifiedQueryResult> {
-    const correlationId = options.correlationId || uuidv4();
+    const correlationId = options.correlationId || this.generateCorrelationId();
     const startTime = Date.now();
 
     // Build unified query object
@@ -300,7 +299,7 @@ export class UnifiedKnowledgeQueryEngine {
     plan: any
   ): Promise<any[]> {
     const systemResults: any[] = [];
-    const correlationId = query.correlationId || uuidv4();
+    const correlationId = query.correlationId || this.generateCorrelationId();
 
     // Check if parallel execution is possible
     if (plan.parallelizable && plan.systems.length > 1) {
@@ -547,6 +546,17 @@ export class UnifiedKnowledgeQueryEngine {
   private updateAverageQueryTime(queryTime: number): void {
     const total = this.metrics.averageQueryTime * (this.metrics.totalQueries - 1);
     this.metrics.averageQueryTime = (total + queryTime) / this.metrics.totalQueries;
+  }
+
+  /**
+   * Generate correlation ID (UUID v4)
+   */
+  private generateCorrelationId(): string {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
   }
 }
 

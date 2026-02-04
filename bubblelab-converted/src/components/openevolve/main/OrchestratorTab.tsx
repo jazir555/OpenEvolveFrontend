@@ -153,6 +153,26 @@ export const OrchestratorTab: React.FC = () => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const loadTemplateFromCache = () => {
+    try {
+      const raw = globalThis.localStorage?.getItem("openevolve_active_workflow_template");
+      if (!raw) {
+        setStatusMessage("No cached workflow template found.");
+        return;
+      }
+      const parsed = JSON.parse(raw);
+      if (parsed?.config) {
+        setForm((prev) => ({
+          ...prev,
+          ...parsed.config,
+        }));
+        setStatusMessage(`Loaded template ${parsed.name ?? "template"} into form.`);
+      }
+    } catch (error: any) {
+      setErrorMessage(error?.message ?? "Failed to load cached template.");
+    }
+  };
+
   const blueTeams = teams.filter((team) => team.role === "Blue");
   const redTeams = teams.filter((team) => team.role === "Red");
   const goldTeams = teams.filter((team) => team.role === "Gold");
@@ -188,6 +208,9 @@ export const OrchestratorTab: React.FC = () => {
             <div className="flex gap-2">
               <Button variant="outline" onClick={refreshAll} disabled={loading}>
                 Refresh
+              </Button>
+              <Button variant="outline" onClick={loadTemplateFromCache}>
+                Load Template
               </Button>
             </div>
           </div>

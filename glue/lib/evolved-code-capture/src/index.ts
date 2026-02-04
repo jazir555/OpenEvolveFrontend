@@ -83,6 +83,16 @@ export {
 } from './capturer';
 
 // ============================================================================
+// OPENEVOLVE INTEGRATION
+// ============================================================================
+
+export {
+  OpenEvolveClient,
+  OpenEvolveIntegration,
+  type OpenEvolveIntegrationConfig,
+} from './openevolve-integration';
+
+// ============================================================================
 // CONVENIENCE EXPORTS
 // ============================================================================
 

@@ -113,6 +113,59 @@ def _track_api_performance(operation, success, duration_seconds, endpoint, statu
         logger.warning(f"Failed to track API performance: {e}")
 
 
+def _request_openai_chat(
+    api_key: str,
+    base_url: str,
+    model: str,
+    messages: List[Dict[str, str]],
+    extra_headers: Optional[Dict[str, str]] = None,
+    temperature: float = 0.7,
+    top_p: float = 1.0,
+    frequency_penalty: float = 0.0,
+    presence_penalty: float = 0.0,
+    max_tokens: int = 1024,
+    seed: Optional[int] = None,
+) -> str:
+    """Make a request to an OpenAI-compatible API."""
+    try:
+        import openai
+        client = openai.OpenAI(api_key=api_key, base_url=base_url)
+        response = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=temperature,
+            top_p=top_p,
+            frequency_penalty=frequency_penalty,
+            presence_penalty=presence_penalty,
+            max_tokens=max_tokens,
+            seed=seed
+        )
+        return response.choices[0].message.content
+    except ImportError:
+        import requests
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        if extra_headers:
+            headers.update(extra_headers)
+        data = {
+            "model": model,
+            "messages": messages,
+            "temperature": temperature,
+            "top_p": top_p,
+            "frequency_penalty": frequency_penalty,
+            "presence_penalty": presence_penalty,
+            "max_tokens": max_tokens,
+        }
+        if seed is not None:
+            data["seed"] = seed
+        response = requests.post(f"{base_url}/chat/completions", headers=headers, json=data, timeout=60)
+        response.raise_for_status()
+        result = response.json()
+        return result["choices"][0]["message"]["content"]
+
+
 # Import environment helpers
 from env_helpers import is_production
 
@@ -428,7 +481,7 @@ class AutoApprovalRuleModel(BaseModel):
 
 class AutoApprovalConfigModel(BaseModel):
     enabled: bool = False
-    rules: List[AutoApprovalRuleModel] = []
+    rules: List[AutoApprovalRuleModel] = Field(default_factory=list)
 
 
 class AutoApprovalTestRequest(BaseModel):
@@ -2493,6 +2546,7 @@ def export_knowledge_base():
 @app.post("/knowledge/import", dependencies=[Depends(verify_api_key)])
 def import_knowledge_base(request: KnowledgeImportRequest):
     # File-based import to leverage existing KnowledgeManager logic
+    os.makedirs("data", exist_ok=True)
     temp_path = os.path.join("data", "knowledge_import.json")
     with open(temp_path, "w", encoding="utf-8") as f:
         import json
@@ -2689,6 +2743,104 @@ def list_sovereign_problems():
 def list_sovereign_plans():
     plans = sovereign_db.list_plans()
     return {"plans": [p.to_dict() for p in plans]}
+
+
+# Suggestions endpoints
+
+@app.post("/suggestions/content", dependencies=[Depends(verify_api_key)])
+def get_content_suggestions(request: SuggestionRequest):
+    system_prompt = (
+        "You are an AI assistant that provides suggestions for improving the given content. "
+        "Provide a list of suggestions in a clear and concise manner."
+    )
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": request.content},
+    ]
+    response = _request_openai_chat(
+        api_key=request.api_key,
+        base_url=request.base_url,
+        model=request.model,
+        messages=messages,
+        extra_headers=request.extra_headers,
+        temperature=request.temperature,
+        top_p=request.top_p,
+        frequency_penalty=request.frequency_penalty,
+        presence_penalty=request.presence_penalty,
+        max_tokens=request.max_tokens,
+        seed=request.seed,
+    )
+    suggestions = [line.strip() for line in response.split("\n") if line.strip()]
+    return {"suggestions": suggestions}
+
+
+@app.post("/suggestions/classification", dependencies=[Depends(verify_api_key)])
+def get_content_classification(request: SuggestionRequest):
+    system_prompt = (
+        "You are an AI assistant that classifies the given content and suggests relevant tags. "
+        "Provide the classification and a list of tags in JSON format."
+    )
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": request.content},
+    ]
+    response = _request_openai_chat(
+        api_key=request.api_key,
+        base_url=request.base_url,
+        model=request.model,
+        messages=messages,
+        extra_headers=request.extra_headers,
+        temperature=request.temperature,
+        top_p=request.top_p,
+        frequency_penalty=request.frequency_penalty,
+        presence_penalty=request.presence_penalty,
+        max_tokens=request.max_tokens,
+        seed=request.seed,
+    )
+    try:
+        import json
+        parsed = json.loads(response)
+    except Exception:
+        parsed = {"classification": "", "tags": []}
+    return parsed
+
+
+@app.post("/suggestions/security", dependencies=[Depends(verify_api_key)])
+def get_security_suggestions(request: SuggestionRequest):
+    system_prompt = (
+        "You are a security expert. Analyze the following code for common security vulnerabilities "
+        "and provide a list of potential issues."
+    )
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": request.content},
+    ]
+    response = _request_openai_chat(
+        api_key=request.api_key,
+        base_url=request.base_url,
+        model=request.model,
+        messages=messages,
+        extra_headers=request.extra_headers,
+        temperature=request.temperature,
+        top_p=request.top_p,
+        frequency_penalty=request.frequency_penalty,
+        presence_penalty=request.presence_penalty,
+        max_tokens=request.max_tokens,
+        seed=request.seed,
+    )
+    vulnerabilities = [line.strip() for line in response.split("\n") if line.strip()]
+    return {"vulnerabilities": vulnerabilities}
+
+
+@app.post("/suggestions/improvement", dependencies=[Depends(verify_api_key)])
+def get_improvement_potential(request: SuggestionRequest):
+    suggestions = get_content_suggestions(request)
+    classification = get_content_classification(request)
+    score = 0.0
+    score += len(suggestions.get("suggestions", [])) * 0.1
+    score += len(classification.get("tags", [])) * 0.05
+    score = min(1.0, score)
+    return {"score": score}
 
 
 server = None

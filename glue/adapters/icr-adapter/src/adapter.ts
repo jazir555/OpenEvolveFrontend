@@ -34,6 +34,17 @@ import {
   ModeOptions
 } from './icr-canonical';
 import { ICRClient, icrClient } from './icr-client';
+import {
+  EnhancedICRMemoryAgent,
+  MemoryAgentConfig
+} from './memory/memory-agent';
+import {
+  EnrichedContext,
+  ContextualSession,
+  RefinementInsights,
+  SessionOutcome,
+  LearningResult
+} from './memory/canonical';
 
 // ============================================================================
 // REQUEST BUILDERS
@@ -56,13 +67,20 @@ function buildMetadata(correlationId?: string) {
 
 export interface ICRAdapterOptions {
   client?: ICRClient;
+  memoryAgentConfig?: MemoryAgentConfig;
 }
 
 export class ICRAdapter {
   private readonly client: ICRClient;
+  private readonly memoryAgent?: EnhancedICRMemoryAgent;
 
   constructor(options?: ICRAdapterOptions) {
     this.client = options?.client || icrClient;
+
+    // Initialize memory agent if configuration is provided
+    if (options?.memoryAgentConfig) {
+      this.memoryAgent = new EnhancedICRMemoryAgent(options.memoryAgentConfig);
+    }
   }
 
   // ========================================================================
@@ -325,6 +343,121 @@ export class ICRAdapter {
     return this.client.executeMode(request, cid);
   }
 
+  /**
+   * Create a Contextual mode request with memory enhancement
+   * Mode: Iterative refinement with historical knowledge from Graphiti
+   *
+   * @param prompt - The user's prompt
+   * @param options - Mode options
+   * @param correlationId - Optional correlation ID for tracing
+   * @returns Contextual mode response enriched with historical knowledge
+   */
+  async createContextualRequestWithMemory(
+    prompt: string,
+    options?: ModeOptions & {
+      conversation_id?: string;
+      enable_memory_agent?: boolean;
+      memory_compression_threshold?: number;
+      context_window?: number;
+      enable_learning?: boolean;
+    },
+    correlationId?: string
+  ): Promise<ContextualModeResponse & {
+    enriched_context?: EnrichedContext;
+    learning_result?: LearningResult;
+  }> {
+    const cid = correlationId || uuidv4();
+    const sessionId = uuidv4();
+
+    // Check if memory agent is available
+    if (!this.memoryAgent) {
+      console.warn('Memory agent not configured. Falling back to standard contextual mode.');
+      return this.createContextualRequest(prompt, options, cid);
+    }
+
+    const startTime = Date.now();
+
+    try {
+      // Step 1: Retrieve historical knowledge
+      const enrichedContext = await this.memoryAgent.retrieveHistoricalKnowledge(
+        prompt,
+        options?.context_window || 5,
+        cid
+      );
+
+      // Step 2: Enrich prompt with historical knowledge
+      const enrichedPrompt = this.enrichPromptWithHistory(
+        prompt,
+        enrichedContext
+      );
+
+      // Step 3: Execute contextual request with enriched prompt
+      const response = await this.createContextualRequest(
+        enrichedPrompt,
+        {
+          ...options,
+          conversation_id: options?.conversation_id || sessionId
+        },
+        cid
+      );
+
+      // Step 4: Extract refinement insights from response
+      const refinementInsights = this.extractRefinementInsights(
+        sessionId,
+        response,
+        enrichedContext
+      );
+
+      // Step 5: Store insights in memory
+      await this.memoryAgent.storeRefinementInsights(
+        refinementInsights,
+        sessionId,
+        cid
+      );
+
+      // Step 6: Build contextual session for learning
+      const contextualSession = this.buildContextualSession(
+        sessionId,
+        prompt,
+        response,
+        enrichedContext
+      );
+
+      // Step 7: Store contextual session
+      await this.memoryAgent.storeContextualSession(
+        contextualSession,
+        cid
+      );
+
+      // Step 8: Learn from session if enabled
+      let learningResult: LearningResult | undefined;
+      if (options?.enable_learning) {
+        const outcomes = this.generateSessionOutcomes(
+          contextualSession,
+          response
+        );
+
+        learningResult = await this.memoryAgent.learnFromSession(
+          contextualSession,
+          outcomes,
+          cid
+        );
+      }
+
+      return {
+        ...response,
+        enriched_context: enrichedContext,
+        learning_result: learningResult
+      };
+
+    } catch (error) {
+      console.error('Error in contextual request with memory:', error);
+
+      // Fallback to standard contextual mode on error
+      return this.createContextualRequest(prompt, options, cid);
+    }
+  }
+
   // ========================================================================
   // GENERATIVE UI MODE
   // ========================================================================
@@ -400,6 +533,172 @@ export class ICRAdapter {
    */
   resetCircuitBreaker(): void {
     this.client.resetCircuitBreaker();
+  }
+
+  /**
+   * Check if memory agent is configured
+   */
+  hasMemoryAgent(): boolean {
+    return this.memoryAgent !== undefined;
+  }
+
+  // ========================================================================
+  // PRIVATE HELPER METHODS FOR MEMORY INTEGRATION
+  // ========================================================================
+
+  /**
+   * Enrich prompt with historical knowledge
+   */
+  private enrichPromptWithHistory(
+    originalPrompt: string,
+    enrichedContext: EnrichedContext
+  ): string {
+    const sections: string[] = [
+      `# Original Request`,
+      originalPrompt,
+      ''
+    ];
+
+    // Add historical context if available
+    if (enrichedContext.historical_knowledge.length > 0) {
+      sections.push(
+        `# Historical Context`,
+        `Based on ${enrichedContext.historical_knowledge.length} similar past refinements:`,
+        ''
+      );
+
+      for (const knowledge of enrichedContext.historical_knowledge.slice(0, 3)) {
+        sections.push(
+          `## Session ${knowledge.session_id.substring(0, 8)}`,
+          `- Pattern: ${knowledge.pattern_type}`,
+          `- Outcome: ${knowledge.outcome}`,
+          `- Insights: ${knowledge.insights.slice(0, 2).join('; ')}`,
+          ''
+        );
+      }
+    }
+
+    // Add suggested approaches if available
+    if (enrichedContext.suggested_approaches.length > 0) {
+      sections.push(
+        `# Suggested Approaches`,
+        ...enrichedContext.suggested_approaches.map(a => `- ${a}`),
+        ''
+      );
+    }
+
+    // Add common pitfalls if available
+    if (enrichedContext.common_pitfalls.length > 0) {
+      sections.push(
+        `# Common Pitfalls to Avoid`,
+        ...enrichedContext.common_pitfalls.map(p => `- ${p}`),
+        ''
+      );
+    }
+
+    return sections.join('\n');
+  }
+
+  /**
+   * Extract refinement insights from response
+   */
+  private extractRefinementInsights(
+    sessionId: string,
+    response: ContextualModeResponse,
+    enrichedContext: EnrichedContext
+  ): RefinementInsights {
+    const iterations = response.result.iteration_count || 1;
+    const success = response.result.success;
+
+    return {
+      session_id: sessionId,
+      mode: 'contextual',
+      iterations: [{
+        session_id: sessionId,
+        iteration_number: 1,
+        refinement_type: 'agent_collaboration',
+        prompt: response.request.prompt,
+        content: response.result.content,
+        outcome: success ? 'success' : 'failure',
+        insights: enrichedContext.historical_knowledge.flatMap(k => k.insights),
+        execution_time_ms: response.result.execution_time_ms,
+        timestamp_utc: new Date().toISOString()
+      }],
+      total_iterations: iterations,
+      successful_iterations: success ? 1 : 0,
+      failed_iterations: success ? 0 : 1,
+      total_execution_time_ms: response.result.execution_time_ms,
+      average_quality_score: response.metadata.quality_score,
+      overall_outcome: success ? 'success' : 'failure',
+      key_patterns_discovered: enrichedContext.related_patterns.map(p => p.pattern_name),
+      lessons_learned: enrichedContext.suggested_approaches,
+      session_start_utc: response.request.metadata.timestamp_utc,
+      session_end_utc: response.metadata.completed_at_utc,
+      metadata: {
+        enriched_context_quality: enrichedContext.confidence_score,
+        historical_knowledge_count: enrichedContext.historical_knowledge.length
+      }
+    };
+  }
+
+  /**
+   * Build contextual session from response
+   */
+  private buildContextualSession(
+    sessionId: string,
+    prompt: string,
+    response: ContextualModeResponse,
+    enrichedContext: EnrichedContext
+  ): ContextualSession {
+    const interactions = response.result.agent_interactions || [];
+
+    return {
+      session_id: sessionId,
+      mode: 'contextual',
+      prompt,
+      agents_involved: interactions.map(i => i.agent_type),
+      interactions: interactions,
+      context_window: enrichedContext.historical_knowledge.length,
+      successes: response.result.success ? 1 : 0,
+      failures: response.result.success ? 0 : 1,
+      duration_ms: response.result.execution_time_ms,
+      start_time_utc: response.request.metadata.timestamp_utc,
+      end_time_utc: response.metadata.completed_at_utc,
+      final_output: response.result.content,
+      quality_score: response.metadata.quality_score,
+      metadata: {
+        enriched_context: enrichedContext
+      }
+    };
+  }
+
+  /**
+   * Generate session outcomes for learning
+   */
+  private generateSessionOutcomes(
+    session: ContextualSession,
+    response: ContextualModeResponse
+  ): SessionOutcome[] {
+    const outcome: SessionOutcome = {
+      session_id: session.session_id,
+      outcome: response.result.success ? 'success' : 'failure',
+      quality_score: session.quality_score,
+      user_satisfaction: session.quality_score, // Using quality as proxy
+      iteration_count: response.result.iteration_count || 1,
+      success_metrics: {
+        execution_time_ms: session.duration_ms,
+        agent_count: session.agents_involved.length,
+        interaction_count: session.interactions.length
+      },
+      failure_reasons: response.result.success ? [] : ['Execution failed'],
+      successful_patterns: session.metadata?.enriched_context?.related_patterns
+        ?.map(p => p.pattern_name) || [],
+      problematic_patterns: [],
+      lessons_learned: session.metadata?.enriched_context?.suggested_approaches || [],
+      timestamp_utc: session.end_time_utc
+    };
+
+    return [outcome];
   }
 }
 

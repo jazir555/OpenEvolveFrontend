@@ -160,6 +160,9 @@ export const ReportTemplatesTab: React.FC = () => {
   const [reportOutput, setReportOutput] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [metricsFormat, setMetricsFormat] = useState<"json" | "csv">("json");
+  const [includeStats, setIncludeStats] = useState(true);
+  const [includeWorkflows, setIncludeWorkflows] = useState(true);
 
   const saveTemplates = (next: TemplateMap) => {
     setTemplates(next);
@@ -248,6 +251,34 @@ export const ReportTemplatesTab: React.FC = () => {
   useEffect(() => {
     loadWorkflows();
   }, [apiConfig.apiKey]);
+
+  const exportMetrics = async () => {
+    setErrorMessage(null);
+    try {
+      const payload: Record<string, unknown> = {};
+      if (includeStats) {
+        payload.statistics = await openevolveApi.getStatistics(apiConfig);
+      }
+      if (includeWorkflows) {
+        const list = await openevolveApi.listWorkflows(apiConfig);
+        payload.workflows = list.workflows ?? [];
+      }
+      if (metricsFormat === "json") {
+        downloadFile("workflow_metrics.json", JSON.stringify(payload, null, 2), "application/json");
+      } else {
+        const workflows = (payload.workflows as any[]) ?? [];
+        const csvRows = ["workflow_id,status,current_stage,progress"];
+        workflows.forEach((wf) => {
+          csvRows.push(
+            `${wf.workflow_id},${wf.status},${wf.current_stage},${wf.progress}`,
+          );
+        });
+        downloadFile("workflow_metrics.csv", csvRows.join("\n"), "text/csv");
+      }
+    } catch (error: any) {
+      setErrorMessage(error?.message ?? "Failed to export metrics.");
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -419,6 +450,51 @@ export const ReportTemplatesTab: React.FC = () => {
             <Label>Report Preview</Label>
             <Textarea value={reportOutput} readOnly className="min-h-[200px]" />
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Metrics Export</CardTitle>
+          <CardDescription>Download workflow metrics for offline analysis.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid gap-3 md:grid-cols-3">
+            <div className="space-y-2">
+              <Label>Format</Label>
+              <Select
+                value={metricsFormat}
+                onValueChange={(value) => setMetricsFormat(value as "json" | "csv")}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="json">JSON</SelectItem>
+                  <SelectItem value="csv">CSV</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={includeStats}
+                onChange={(event) => setIncludeStats(event.target.checked)}
+              />
+              <span className="text-sm">Include Statistics</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={includeWorkflows}
+                onChange={(event) => setIncludeWorkflows(event.target.checked)}
+              />
+              <span className="text-sm">Include Workflows</span>
+            </div>
+          </div>
+          <Button variant="outline" onClick={exportMetrics}>
+            Export Metrics
+          </Button>
         </CardContent>
       </Card>
     </div>

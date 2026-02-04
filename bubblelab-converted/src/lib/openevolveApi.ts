@@ -43,6 +43,14 @@ const resolveBaseUrl = (override?: string) => {
   if (fromWindow) {
     return fromWindow;
   }
+  try {
+    const stored = globalThis?.localStorage?.getItem("openevolve_api_base");
+    if (stored) {
+      return stored;
+    }
+  } catch (_) {
+    // ignore storage errors
+  }
   return "";
 };
 
@@ -346,4 +354,38 @@ export const openevolveApi = {
     ),
   getParameterCategories: (config?: ApiConfig) =>
     request<{ categories: string[] }>("/parameters/categories", {}, config),
+
+  // Sovereign dashboard
+  getSovereignHealth: (config?: ApiConfig) =>
+    request<Record<string, unknown>>("/sovereign/health", {}, config),
+  listSovereignProblems: (config?: ApiConfig) =>
+    request<{ problems: Record<string, unknown>[] }>("/sovereign/problems", {}, config),
+  listSovereignPlans: (config?: ApiConfig) =>
+    request<{ plans: Record<string, unknown>[] }>("/sovereign/plans", {}, config),
+
+  // Suggestions
+  getContentSuggestions: (payload: Record<string, unknown>, config?: ApiConfig) =>
+    request<{ suggestions: string[] }>(
+      "/suggestions/content",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  getContentClassification: (payload: Record<string, unknown>, config?: ApiConfig) =>
+    request<Record<string, unknown>>(
+      "/suggestions/classification",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  getSecuritySuggestions: (payload: Record<string, unknown>, config?: ApiConfig) =>
+    request<{ vulnerabilities: string[] }>(
+      "/suggestions/security",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  getImprovementPotential: (payload: Record<string, unknown>, config?: ApiConfig) =>
+    request<{ score: number }>(
+      "/suggestions/improvement",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
 };
