@@ -3,6 +3,9 @@ Matryoshka Adapter
 
 This module provides a Python interface to the Matryoshka Recursive Language Model (RLM) system.
 It wraps the Node.js CLI to allow analyzing large documents from within the Python codebase.
+
+Enhanced with unified memory system integration for persistent, searchable analysis history
+and cross-session learning capabilities.
 """
 
 import os
@@ -13,6 +16,17 @@ import logging
 import tempfile
 import urllib.request
 from typing import Dict, Any, Optional, Union, List
+
+# Unified memory system integration
+try:
+    from matryoshka_unified_memory_integration import (
+        MatryoshkaMemoryBridge,
+        UnifiedMatryoshkaClient,
+        create_unified_matryoshka_client
+    )
+    UNIFIED_MEMORY_AVAILABLE = True
+except ImportError:
+    UNIFIED_MEMORY_AVAILABLE = False
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -180,15 +194,119 @@ class MatryoshkaClient:
         """Check if Matryoshka is installed and runnable."""
         return os.path.exists(self.executable_path)
 
+
+class UnifiedMemoryMatryoshkaClient(MatryoshkaClient):
+    """
+    Matryoshka client with full unified memory system integration.
+    
+    Features:
+    - 4-layer indexing of exploration steps
+    - Always-true state management
+    - Hybrid retrieval for context
+    - Cross-session learning
+    """
+    
+    def __init__(self, *args, memory_storage_path: Optional[str] = None, **kwargs):
+        """
+        Initialize the unified memory Matryoshka client.
+        
+        Args:
+            *args: Positional arguments passed to MatryoshkaClient
+            memory_storage_path: Path to the memory database file.
+                                 Defaults to "./matryoshka_memory.db"
+            **kwargs: Keyword arguments passed to MatryoshkaClient
+        """
+        super().__init__(*args, **kwargs)
+        
+        if not UNIFIED_MEMORY_AVAILABLE:
+            raise ImportError(
+                "Unified memory system not available. "
+                "Please ensure matryoshka_unified_memory_integration.py is in the Python path."
+            )
+        
+        self.unified_client = create_unified_matryoshka_client(
+            storage_path=memory_storage_path or "./matryoshka_memory.db"
+        )
+        
+    def analyze_with_unified_memory(self, query: str, file_path: str, **kwargs):
+        """
+        Analyze using full unified memory system.
+        
+        Args:
+            query: The question or task to perform
+            file_path: Path to the document file
+            **kwargs: Additional arguments passed to the unified client
+            
+        Returns:
+            Analysis result with memory integration
+        """
+        return self.unified_client.analyze_with_memory(query, file_path, **kwargs)
+        
+    def continue_analysis(self, session_id: str, follow_up_query: str, **kwargs):
+        """
+        Continue a previous analysis with memory.
+        
+        Args:
+            session_id: Session ID from a previous analysis
+            follow_up_query: Follow-up question or task
+            **kwargs: Additional arguments passed to the unified client
+            
+        Returns:
+            Continued analysis result
+        """
+        return self.unified_client.continue_analysis(session_id, follow_up_query, **kwargs)
+        
+    def search_past_analyses(self, query: str, limit: int = 10):
+        """
+        Search insights across all past Matryoshka analyses.
+        
+        Args:
+            query: Search query
+            limit: Maximum number of results to return
+            
+        Returns:
+            List of relevant past analyses
+        """
+        return self.unified_client.search_across_sessions(query, limit)
+
+
 class StatefulMatryoshkaClient(MatryoshkaClient):
     """
     Extends MatryoshkaClient to manage stateful context sessions.
     Useful for solving 'context rot' in long-running LLM interactions.
+    
+    Now with optional unified memory system integration for persistent,
+    searchable session storage and cross-session learning.
     """
     
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, use_unified_memory: bool = False, memory_storage_path: Optional[str] = None, **kwargs):
+        """
+        Initialize the stateful Matryoshka client.
+        
+        Args:
+            *args: Positional arguments passed to MatryoshkaClient
+            use_unified_memory: Whether to use the unified memory system.
+                               Defaults to False for backward compatibility.
+            memory_storage_path: Path to the memory database (when using unified memory)
+            **kwargs: Keyword arguments passed to MatryoshkaClient
+        """
         super().__init__(*args, **kwargs)
-        self.sessions: Dict[str, Dict[str, Any]] = {}
+        self.use_unified_memory = use_unified_memory
+        
+        if use_unified_memory:
+            if not UNIFIED_MEMORY_AVAILABLE:
+                logger.warning(
+                    "Unified memory requested but not available. "
+                    "Falling back to simple dict storage. "
+                    "Please ensure matryoshka_unified_memory_integration.py is in the Python path."
+                )
+                self.use_unified_memory = False
+                self.sessions: Dict[str, Dict[str, Any]] = {}
+            else:
+                self.unified_client = create_unified_matryoshka_client(memory_storage_path)
+                self.sessions = {}  # Unified memory handles session storage
+        else:
+            self.sessions: Dict[str, Dict[str, Any]] = {}  # Legacy simple dict storage
 
     def get_or_create_session(self, session_id: str) -> Dict[str, Any]:
         if session_id not in self.sessions:
@@ -224,6 +342,122 @@ class StatefulMatryoshkaClient(MatryoshkaClient):
         """
         history_text = "\n".join([f"{m['role']}: {m['content']}" for m in messages])
         return self.analyze_text("Identify critical entities, decisions, and unanswered questions from this history.", history_text)
+    
+    def search_session_history(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
+        """
+        Search across all session history (requires unified memory).
+        
+        Args:
+            query: Search query
+            limit: Maximum number of results
+            
+        Returns:
+            List of matching historical analyses
+        """
+        if self.use_unified_memory and UNIFIED_MEMORY_AVAILABLE:
+            return self.unified_client.search_across_sessions(query, limit)
+        else:
+            logger.warning("Unified memory not enabled. Session history search not available.")
+            return []
+    
+    def continue_session(self, session_id: str, follow_up_query: str, file_path: str, **kwargs) -> str:
+        """
+        Continue a previous session with a follow-up query.
+        
+        When unified memory is enabled, this uses the memory system for
+        context retrieval. Otherwise, it falls back to simple session state.
+        
+        Args:
+            session_id: Session identifier
+            follow_up_query: Follow-up question or task
+            file_path: Path to the document file
+            **kwargs: Additional arguments for analysis
+            
+        Returns:
+            Analysis result
+        """
+        if self.use_unified_memory and UNIFIED_MEMORY_AVAILABLE:
+            return self.unified_client.continue_analysis(session_id, follow_up_query, **kwargs)
+        else:
+            # Legacy fallback: use existing session summary
+            session = self.get_or_create_session(session_id)
+            context = f"Previous summary: {session.get('summary', 'None')}\n\nFollow-up: {follow_up_query}"
+            return self.analyze(context, file_path, **kwargs)
+
+
+def create_matryoshka_client(
+    client_type: str = "basic",
+    memory_storage_path: Optional[str] = None,
+    **kwargs
+) -> MatryoshkaClient:
+    """
+    Factory function for creating Matryoshka clients.
+    
+    This factory provides a convenient way to create different types of
+    Matryoshka clients based on your needs.
+    
+    Args:
+        client_type: Type of client to create
+            - "basic": Standard MatryoshkaClient
+            - "stateful": Simple stateful client with in-memory sessions
+            - "unified": Full unified memory system with persistent storage
+            - "stateful_unified": Stateful client with unified memory enabled
+        memory_storage_path: Path to the memory database file
+                             (used for "unified" and "stateful_unified" types)
+        **kwargs: Additional arguments passed to the client constructor
+        
+    Returns:
+        Configured Matryoshka client instance
+        
+    Raises:
+        ValueError: If an unknown client_type is specified
+        ImportError: If unified memory is requested but not available
+        
+    Examples:
+        >>> # Basic client
+        >>> client = create_matryoshka_client("basic")
+        
+        >>> # Stateful client with unified memory
+        >>> client = create_matryoshka_client(
+        ...     "stateful_unified",
+        ...     memory_storage_path="./my_memory.db"
+        ... )
+        
+        >>> # Full unified memory client
+        >>> client = create_matryoshka_client("unified")
+    """
+    client_type = client_type.lower()
+    
+    if client_type == "basic":
+        return MatryoshkaClient(**kwargs)
+    
+    elif client_type == "stateful":
+        return StatefulMatryoshkaClient(**kwargs)
+    
+    elif client_type == "unified":
+        if not UNIFIED_MEMORY_AVAILABLE:
+            raise ImportError(
+                "Unified memory system not available. "
+                "Please ensure matryoshka_unified_memory_integration.py is in the Python path."
+            )
+        return UnifiedMemoryMatryoshkaClient(
+            memory_storage_path=memory_storage_path,
+            **kwargs
+        )
+    
+    elif client_type == "stateful_unified":
+        return StatefulMatryoshkaClient(
+            use_unified_memory=True,
+            memory_storage_path=memory_storage_path,
+            **kwargs
+        )
+    
+    else:
+        raise ValueError(
+            f"Unknown client_type: '{client_type}'. "
+            f"Valid options are: 'basic', 'stateful', 'unified', 'stateful_unified'"
+        )
+
 
 if __name__ == "__main__":
     # Simple test
