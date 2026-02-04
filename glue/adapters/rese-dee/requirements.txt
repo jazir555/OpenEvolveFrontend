@@ -1,0 +1,17 @@
+# RESE Deep Exploration Engine Dependencies
+# Python 3.11+
+
+# No external dependencies required for core DEE functionality
+# All functionality uses Python standard library
+
+# Optional dependencies for enhanced features:
+# numpy>=1.24.0  # For numerical optimizations (optional)
+# scipy>=1.10.0  # For advanced statistics (optional)
+# networkx>=3.1  # For graph algorithms (optional)
+
+# Development dependencies (install separately for dev):
+# pytest>=7.4.0
+# pytest-asyncio>=0.21.0
+# pytest-cov>=4.1.0
+# black>=23.7.0
+# mypy>=1.5.0

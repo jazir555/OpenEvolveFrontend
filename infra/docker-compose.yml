@@ -1,0 +1,253 @@
+# RESE Pipeline Docker Compose Configuration
+#
+# Following CLAUDE.md principles:
+# - Law of Configuration Explicitness: All config via env vars
+# - Service names: Use Docker service names for discovery
+# - Timeouts: All operations bounded
+#
+# Usage:
+#   docker-compose up -d  # Start all services
+#   docker-compose down  # Stop all services
+#   docker-compose logs -f rese-pipeline  # View logs
+
+version: '3.8'
+
+services:
+  # ========================================
+  # RESE Pipeline Orchestrator
+  # ========================================
+  rese-pipeline:
+    build:
+      context: ..
+      dockerfile: glue/orchestration/Dockerfile
+    container_name: rese-pipeline
+    hostname: rese-pipeline
+    ports:
+      - "8000:8000"  # API port
+    environment:
+      # Pipeline timeouts (milliseconds)
+      - PIPELINE_TIMEOUT_MS=300000  # 5 minutes
+      - PHASE_I_TIMEOUT_MS=60000  # 1 minute
+      - PHASE_II_TIMEOUT_MS=90000  # 1.5 minutes
+      - PHASE_III_TIMEOUT_MS=120000  # 2 minutes
+      - PHASE_IV_TIMEOUT_MS=60000  # 1 minute
+
+      # Retry configuration
+      - MAX_RETRIES=3
+      - RETRY_INITIAL_DELAY_MS=1000
+      - RETRY_MAX_DELAY_MS=30000
+      - RETRY_BACKOFF_MULTIPLIER=2.0
+
+      # Circuit breaker configuration
+      - CIRCUIT_BREAKER_THRESHOLD=5
+      - CIRCUIT_BREAKER_TIMEOUT_MS=60000
+      - CIRCUIT_BREAKER_HALF_OPEN_ATTEMPTS=3
+
+      # Dead Letter Queue configuration
+      - DLQ_MAX_SIZE=1000
+      - DLQ_PERSIST_PATH=/data/dlq
+
+      # Event bus configuration
+      - EVENT_BUS_MAX_EVENTS=10000
+      - EVENT_BUS_PERSIST_EVENTS=true
+      - EVENT_BUS_PERSIST_PATH=/data/events
+
+      # Phase enablement
+      - ENABLE_PHASE_I=true
+      - ENABLE_PHASE_II=true
+      - ENABLE_PHASE_III=true
+      - ENABLE_PHASE_IV=true
+
+      # DEE configuration
+      - DEE_EXPLORATION_DEPTH=10
+      - DEE_MCTS_ITERATIONS=1000
+      - DEE_CONVERGENCE_THRESHOLD=0.001
+
+      # LLTL configuration
+      - LLTL_ENCODING_DIM=128
+      - LLTL_TIMEOUT_MS=3000
+
+      # SCE configuration
+      - SCE_CONTRADICTION_DETECTION=true
+      - SCE_FORMAL_VERIFICATION=true
+
+      # Logging configuration
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT=json
+
+      # Service URLs
+      - DEE_ADAPTER_URL=http://rese-dee:8001
+      - LLTL_ADAPTER_URL=http://rese-lltl:8002
+      - SCE_ADAPTER_URL=http://rese-sce:8003
+
+    volumes:
+      - rese-data:/data
+      - ../glue/orchestration:/app/glue/orchestration:ro
+      - ../glue/schemas:/app/glue/schemas:ro
+      - ../glue/lib:/app/glue/lib:ro
+    networks:
+      - rese-network
+    depends_on:
+      - rese-dee
+      - rese-lltl
+      - rese-sce
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ========================================
+  # RESE DEE Adapter
+  # ========================================
+  rese-dee:
+    build:
+      context: ..
+      dockerfile: glue/adapters/rese-dee/Dockerfile
+    container_name: rese-dee
+    hostname: rese-dee
+    ports:
+      - "8001:8001"
+    environment:
+      - EXPLORATION_DEPTH=10
+      - MCTS_ITERATIONS=1000
+      - MCTS_EXPLORATION_CONSTANT=1.414
+      - CONVERGENCE_THRESHOLD=0.001
+      - EXPLORATION_TIMEOUT_MS=10000
+      - MAX_HYPOTHESES=100
+      - PATTERN_RECOGNITION_THRESHOLD=0.7
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT=json
+    volumes:
+      - rese-data:/data
+      - ../glue/adapters/rese-dee:/app/glue/adapters/rese-dee:ro
+      - ../glue/schemas:/app/glue/schemas:ro
+      - ../glue/lib:/app/glue/lib:ro
+    networks:
+      - rese-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ========================================
+  # RESE LLTL Adapter
+  # ========================================
+  rese-lltl:
+    build:
+      context: ..
+      dockerfile: glue/adapters/rese-lltl/Dockerfile
+    container_name: rese-lltl
+    hostname: rese-lltl
+    ports:
+      - "8002:8002"
+    environment:
+      - LLTL_ENCODING_DIM=128
+      - LLTL_USE_POSITIONAL=true
+      - LLTL_USE_TYPE_EMBEDDING=true
+      - LLTL_USE_CATEGORY_EMBEDDING=true
+      - LLTL_MAX_SEQUENCE_LENGTH=512
+      - LLTL_CACHE_SIZE=1000
+      - LLTL_DEFAULT_LOSS_TYPE=mse
+      - LLTL_COMBINATION_STRATEGY=weighted_sum
+      - LLTL_NORMALIZE_WEIGHTS=true
+      - LLTL_LEARNING_RATE=0.001
+      - LLTL_TIMEOUT_MS=3000
+      - LLTL_ENABLE_RTREE=false
+      - LLTL_ENABLE_LSH=false
+      - LLTL_ENABLE_HAG=false
+      - LLTL_CONTRADICTION_THRESHOLD=0.8
+      - LLTL_MAX_CONTRADICTIONS=1000
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT=json
+    volumes:
+      - rese-data:/data
+      - ../glue/adapters/rese-lltl:/app/glue/adapters/rese-lltl:ro
+      - ../glue/schemas:/app/glue/schemas:ro
+      - ../glue/lib:/app/glue/lib:ro
+    networks:
+      - rese-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ========================================
+  # RESE SCE Adapter
+  # ========================================
+  rese-sce:
+    build:
+      context: ..
+      dockerfile: glue/adapters/rese-sce/Dockerfile
+    container_name: rese-sce
+    hostname: rese-sce
+    ports:
+      - "8003:8003"
+    environment:
+      - SCE_CONTRADICTION_DETECTION=true
+      - SCE_FORMAL_VERIFICATION=true
+      - SCE_TIMEOUT_MS=5000
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT=json
+    volumes:
+      - rese-data:/data
+      - ../glue/adapters/rese-sce:/app/glue/adapters/rese-sce:ro
+      - ../glue/schemas:/app/glue/schemas:ro
+      - ../glue/lib:/app/glue/lib:ro
+    networks:
+      - rese-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ========================================
+  # Monitoring (Optional)
+  # ========================================
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: rese-prometheus
+  #   ports:
+  #     - "9090:9090"
+  #   volumes:
+  #     - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+  #     - prometheus-data:/prometheus
+  #   networks:
+  #     - rese-network
+  #   restart: unless-stopped
+
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   container_name: rese-grafana
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - GF_SECURITY_ADMIN_PASSWORD=admin
+  #   volumes:
+  #     - grafana-data:/var/lib/grafana
+  #   networks:
+  #     - rese-network
+  #   restart: unless-stopped
+
+networks:
+  rese-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  rese-data:
+    driver: local
+  # prometheus-data:
+  #   driver: local
+  # grafana-data:
+  #   driver: local

@@ -206,6 +206,57 @@ export {
   validateGraphAnalysisRequest,
 } from './karateclub-canonical';
 
+// Export RESE schemas
+export {
+  RESEPhase,
+  ConstraintCategory,
+  LogicalFallacy,
+  TacitAssumption,
+  ContradictionDetection,
+  FalsificationResult,
+  EpistemicAuditResult,
+  FunctionalDependencyGraph,
+  CrossDomainPattern,
+  InvertedConstraint,
+  IsomorphicMapping,
+  SearchTreeNode,
+  Hypothesis,
+  ValidationMetrics,
+  MCTSSearchResult,
+  ParadigmShift,
+  SynthesizedKnowledge,
+  ArchitectureAssembly,
+  type RESEPhase as RESEPhaseEnum,
+  type ConstraintCategory as ConstraintCategoryEnum,
+  type LogicalFallacy as LogicalFallacyEnum,
+  type TacitAssumption as RESETacitAssumption,
+  type ContradictionDetection as RESEContradictionDetection,
+  type FalsificationResult as RESEFalsificationResult,
+  type EpistemicAuditResult as RESEEpistemicAuditResult,
+  type FunctionalDependencyGraph as RESEFunctionalDependencyGraph,
+  type CrossDomainPattern as RESECrossDomainPattern,
+  type InvertedConstraint as RESEInvertedConstraint,
+  type IsomorphicMapping as RESEIsomorphicMapping,
+  type SearchTreeNode as RESESearchTreeNode,
+  type Hypothesis as RESEHypothesis,
+  type ValidationMetrics as RESEValidationMetrics,
+  type MCTSSearchResult as RESEMCTSSearchResult,
+  type ParadigmShift as RESEParadigmShift,
+  type SynthesizedKnowledge as RESESynthesizedKnowledge,
+  type ArchitectureAssembly as RESEArchitectureAssembly,
+  transformEpistemicAuditToCanonical,
+  transformIsomorphicMappingToCanonical,
+  transformMCTSSearchToCanonical,
+  transformArchitectureAssemblyToCanonical,
+  validateEpistemicAuditResult,
+  validateIsomorphicMapping,
+  validateMCTSSearchResult,
+  validateArchitectureAssembly,
+  createUTCTimestamp as createRESEUTCTimestamp,
+  createCorrelationId as createRESECorrelationId,
+  RESEExamples,
+} from './rese-canonical';
+
 /**
  * Schema Registry
  *
@@ -309,6 +360,30 @@ export const SchemaRegistry = {
       GraphEmbeddingResponse: 'GraphEmbeddingResponse',
       GraphAnalysisRequest: 'GraphAnalysisRequest',
       GraphAnalysisResponse: 'GraphAnalysisResponse',
+    },
+  },
+  rese: {
+    name: 'rese',
+    version: '1.0.0',
+    schemas: {
+      RESEPhase: 'RESEPhase',
+      ConstraintCategory: 'ConstraintCategory',
+      LogicalFallacy: 'LogicalFallacy',
+      TacitAssumption: 'TacitAssumption',
+      ContradictionDetection: 'ContradictionDetection',
+      FalsificationResult: 'FalsificationResult',
+      EpistemicAuditResult: 'EpistemicAuditResult',
+      FunctionalDependencyGraph: 'FunctionalDependencyGraph',
+      CrossDomainPattern: 'CrossDomainPattern',
+      InvertedConstraint: 'InvertedConstraint',
+      IsomorphicMapping: 'IsomorphicMapping',
+      SearchTreeNode: 'SearchTreeNode',
+      Hypothesis: 'Hypothesis',
+      ValidationMetrics: 'ValidationMetrics',
+      MCTSSearchResult: 'MCTSSearchResult',
+      ParadigmShift: 'ParadigmShift',
+      SynthesizedKnowledge: 'SynthesizedKnowledge',
+      ArchitectureAssembly: 'ArchitectureAssembly',
     },
   },
 } as const;
@@ -449,6 +524,22 @@ export function isKarateClubNodeEmbeddingRequest(
 }
 
 /**
+ * Check if data is a valid RESE EpistemicAuditResult
+ */
+export function isRESEEpistemicAuditResult(
+  data: unknown
+): data is import('./rese-canonical').EpistemicAuditResult {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'phase' in data &&
+    'audit_id' in data &&
+    'problem_description' in data &&
+    'timestamp' in data
+  );
+}
+
+/**
  * Constants for Common Use Cases
  */
 
@@ -500,6 +591,15 @@ export const MAX_SIZES = {
   GRAPH_NODES: 1000000,        // Maximum nodes in a graph
   GRAPH_EDGES: 10000000,       // Maximum edges in a graph
   EMBEDDING_DIMENSION: 1024,   // Maximum embedding dimension
+
+  // RESE limits
+  TACIT_ASSUMPTIONS: 1000,         // Maximum tacit assumptions
+  CONTRADICTIONS: 500,             // Maximum contradictions
+  HYPOTHESES: 10000,               // Maximum hypotheses
+  SEARCH_TREE_NODES: 100000,       // Maximum search tree nodes
+  CROSS_DOMAIN_PATTERNS: 500,      // Maximum cross-domain patterns
+  PARADIGM_SHIFTS: 50,             // Maximum paradigm shifts
+  SYNTHESIZED_KNOWLEDGE: 1000,     // Maximum knowledge items
 } as const;
 
 /**
@@ -623,6 +723,26 @@ export type {
   GraphEmbeddingResponse as KarateClubGraphEmbeddingResponseType,
   GraphAnalysisRequest as KarateClubGraphAnalysisRequestType,
   GraphAnalysisResponse as KarateClubGraphAnalysisResponseType,
+
+  // RESE Types
+  RESEPhase as RESEPhaseType,
+  ConstraintCategory as RESEConstraintCategoryType,
+  LogicalFallacy as RESELogicalFallacyType,
+  TacitAssumption as RESETacitAssumptionType,
+  ContradictionDetection as RESEContradictionDetectionType,
+  FalsificationResult as RESEFalsificationResultType,
+  EpistemicAuditResult as RESEEpistemicAuditResultType,
+  FunctionalDependencyGraph as RESEFunctionalDependencyGraphType,
+  CrossDomainPattern as RESECrossDomainPatternType,
+  InvertedConstraint as RESEInvertedConstraintType,
+  IsomorphicMapping as RESEIsomorphicMappingType,
+  SearchTreeNode as RESESearchTreeNodeType,
+  Hypothesis as RESEHypothesisType,
+  ValidationMetrics as RESEValidationMetricsType,
+  MCTSSearchResult as RESEMCTSSearchResultType,
+  ParadigmShift as RESEParadigmShiftType,
+  SynthesizedKnowledge as RESESynthesizedKnowledgeType,
+  ArchitectureAssembly as RESEArchitectureAssemblyType,
 } from './index';
 
 /**

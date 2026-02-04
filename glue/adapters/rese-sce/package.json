@@ -1,0 +1,66 @@
+{
+  "name": "@openevolve/rese-sce-adapter",
+  "version": "1.0.0",
+  "description": "RESE Symbolic Constraint Engine (SCE) Adapter - Foundation for RESE Phase I: Epistemic Audit",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "format": "prettier --write src/**/*.ts",
+    "probe": "./probes/check-sce.sh",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean"
+  },
+  "keywords": [
+    "rese",
+    "symbolic",
+    "constraint",
+    "engine",
+    "epistemic",
+    "audit",
+    "contradiction",
+    "detection",
+    "lean4",
+    "formal",
+    "verification"
+  ],
+  "author": "OpenEvolve Frontend Team",
+  "license": "MIT",
+  "dependencies": {
+    "uuid": "^9.0.1",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/uuid": "^9.0.7",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.54.0",
+    "jest": "^29.7.0",
+    "prettier": "^3.1.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.2"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/openevolve/frontend",
+    "directory": "glue/adapters/rese-sce"
+  },
+  "bugs": {
+    "url": "https://github.com/openevolve/frontend/issues"
+  },
+  "homepage": "https://github.com/openevolve/frontend/tree/main/glue/adapters/rese-sce#readme"
+}

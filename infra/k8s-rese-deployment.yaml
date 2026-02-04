@@ -1,0 +1,541 @@
+# RESE Pipeline Kubernetes Deployment Manifests
+#
+# Following CLAUDE.md principles:
+# - Law of Configuration Explicitness: All config via env vars
+# - Service names: Use Kubernetes service names for discovery
+# - Timeouts: All operations bounded
+# - Health checks: Liveness and readiness probes
+#
+# Usage:
+#   kubectl apply -f k8s-rese-deployment.yaml
+#   kubectl get pods -n rese-system
+#   kubectl logs -f deployment/rese-pipeline -n rese-system
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: rese-system
+  labels:
+    name: rese-system
+    app: rese-pipeline
+
+---
+# ConfigMap for RESE Pipeline Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rese-pipeline-config
+  namespace: rese-system
+data:
+  # Pipeline timeouts (milliseconds)
+  PIPELINE_TIMEOUT_MS: "300000"  # 5 minutes
+  PHASE_I_TIMEOUT_MS: "60000"  # 1 minute
+  PHASE_II_TIMEOUT_MS: "90000"  # 1.5 minutes
+  PHASE_III_TIMEOUT_MS: "120000"  # 2 minutes
+  PHASE_IV_TIMEOUT_MS: "60000"  # 1 minute
+
+  # Retry configuration
+  MAX_RETRIES: "3"
+  RETRY_INITIAL_DELAY_MS: "1000"
+  RETRY_MAX_DELAY_MS: "30000"
+  RETRY_BACKOFF_MULTIPLIER: "2.0"
+
+  # Circuit breaker configuration
+  CIRCUIT_BREAKER_THRESHOLD: "5"
+  CIRCUIT_BREAKER_TIMEOUT_MS: "60000"
+  CIRCUIT_BREAKER_HALF_OPEN_ATTEMPTS: "3"
+
+  # Dead Letter Queue configuration
+  DLQ_MAX_SIZE: "1000"
+  DLQ_PERSIST_PATH: "/data/dlq"
+
+  # Event bus configuration
+  EVENT_BUS_MAX_EVENTS: "10000"
+  EVENT_BUS_PERSIST_EVENTS: "true"
+  EVENT_BUS_PERSIST_PATH: "/data/events"
+
+  # Phase enablement
+  ENABLE_PHASE_I: "true"
+  ENABLE_PHASE_II: "true"
+  ENABLE_PHASE_III: "true"
+  ENABLE_PHASE_IV: "true"
+
+  # DEE configuration
+  DEE_EXPLORATION_DEPTH: "10"
+  DEE_MCTS_ITERATIONS: "1000"
+  DEE_CONVERGENCE_THRESHOLD: "0.001"
+
+  # LLTL configuration
+  LLTL_ENCODING_DIM: "128"
+  LLTL_TIMEOUT_MS: "3000"
+
+  # SCE configuration
+  SCE_CONTRADICTION_DETECTION: "true"
+  SCE_FORMAL_VERIFICATION: "true"
+
+  # Logging configuration
+  LOG_LEVEL: "INFO"
+  LOG_FORMAT: "json"
+
+---
+# Secret for sensitive configuration (if needed)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rese-pipeline-secrets
+  namespace: rese-system
+type: Opaque
+stringData:
+  # Add any sensitive configuration here
+  # EXAMPLE_API_KEY: "your-api-key-here"
+
+---
+# RESE Pipeline Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rese-pipeline
+  namespace: rese-system
+  labels:
+    app: rese-pipeline
+    component: orchestrator
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: rese-pipeline
+  template:
+    metadata:
+      labels:
+        app: rese-pipeline
+        component: orchestrator
+    spec:
+      containers:
+      - name: rese-pipeline
+        image: rese-pipeline:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: api
+          containerPort: 8000
+          protocol: TCP
+
+        # Environment variables from ConfigMap
+        envFrom:
+        - configMapRef:
+            name: rese-pipeline-config
+
+        # Service URLs (internal Kubernetes services)
+        env:
+        - name: DEE_ADAPTER_URL
+          value: "http://rese-dee-service:8001"
+        - name: LLTL_ADAPTER_URL
+          value: "http://rese-lltl-service:8002"
+        - name: SCE_ADAPTER_URL
+          value: "http://rese-sce-service:8003"
+
+        # Resource limits
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+
+        # Volume mounts
+        volumeMounts:
+        - name: rese-data
+          mountPath: /data
+
+        # Liveness probe
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: api
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        # Readiness probe
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: api
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+
+      # Volumes
+      volumes:
+      - name: rese-data
+        persistentVolumeClaim:
+          claimName: rese-data-pvc
+
+---
+# RESE Pipeline Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: rese-pipeline-service
+  namespace: rese-system
+  labels:
+    app: rese-pipeline
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8000
+    targetPort: api
+    protocol: TCP
+    name: api
+  selector:
+    app: rese-pipeline
+
+---
+# RESE Pipeline Ingress (optional, for external access)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rese-pipeline-ingress
+  namespace: rese-system
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+spec:
+  tls:
+  - hosts:
+    - rese-api.example.com
+    secretName: rese-pipeline-tls
+  rules:
+  - host: rese-api.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: rese-pipeline-service
+            port:
+              number: 8000
+
+---
+# RESE DEE Adapter Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rese-dee
+  namespace: rese-system
+  labels:
+    app: rese-dee
+    component: adapter
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rese-dee
+  template:
+    metadata:
+      labels:
+        app: rese-dee
+        component: adapter
+    spec:
+      containers:
+      - name: rese-dee
+        image: rese-dee:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: api
+          containerPort: 8001
+          protocol: TCP
+
+        envFrom:
+        - configMapRef:
+            name: rese-pipeline-config
+
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+
+        volumeMounts:
+        - name: rese-data
+          mountPath: /data
+
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: api
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: api
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+
+      volumes:
+      - name: rese-data
+        persistentVolumeClaim:
+          claimName: rese-data-pvc
+
+---
+# RESE DEE Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: rese-dee-service
+  namespace: rese-system
+  labels:
+    app: rese-dee
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8001
+    targetPort: api
+    protocol: TCP
+    name: api
+  selector:
+    app: rese-dee
+
+---
+# RESE LLTL Adapter Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rese-lltl
+  namespace: rese-system
+  labels:
+    app: rese-lltl
+    component: adapter
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rese-lltl
+  template:
+    metadata:
+      labels:
+        app: rese-lltl
+        component: adapter
+    spec:
+      containers:
+      - name: rese-lltl
+        image: rese-lltl:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: api
+          containerPort: 8002
+          protocol: TCP
+
+        envFrom:
+        - configMapRef:
+            name: rese-pipeline-config
+
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+
+        volumeMounts:
+        - name: rese-data
+          mountPath: /data
+
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: api
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: api
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+
+      volumes:
+      - name: rese-data
+        persistentVolumeClaim:
+          claimName: rese-data-pvc
+
+---
+# RESE LLTL Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: rese-lltl-service
+  namespace: rese-system
+  labels:
+    app: rese-lltl
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8002
+    targetPort: api
+    protocol: TCP
+    name: api
+  selector:
+    app: rese-lltl
+
+---
+# RESE SCE Adapter Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rese-sce
+  namespace: rese-system
+  labels:
+    app: rese-sce
+    component: adapter
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rese-sce
+  template:
+    metadata:
+      labels:
+        app: rese-sce
+        component: adapter
+    spec:
+      containers:
+      - name: rese-sce
+        image: rese-sce:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: api
+          containerPort: 8003
+          protocol: TCP
+
+        envFrom:
+        - configMapRef:
+            name: rese-pipeline-config
+
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+
+        volumeMounts:
+        - name: rese-data
+          mountPath: /data
+
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: api
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: api
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+
+      volumes:
+      - name: rese-data
+        persistentVolumeClaim:
+          claimName: rese-data-pvc
+
+---
+# RESE SCE Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: rese-sce-service
+  namespace: rese-system
+  labels:
+    app: rese-sce
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8003
+    targetPort: api
+    protocol: TCP
+    name: api
+  selector:
+    app: rese-sce
+
+---
+# Persistent Volume Claim for shared data
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rese-data-pvc
+  namespace: rese-system
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+
+---
+# Horizontal Pod Autoscaler for RESE Pipeline
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: rese-pipeline-hpa
+  namespace: rese-system
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: rese-pipeline
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+
+---
+# Pod Disruption Budget for RESE Pipeline
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: rese-pipeline-pdb
+  namespace: rese-system
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: rese-pipeline
