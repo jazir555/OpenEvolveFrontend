@@ -303,6 +303,125 @@ export interface AdaptiveMdapProfiles {
   default: string;
 }
 
+export interface KnowledgeArtifact {
+  id: string;
+  artifact_type: string;
+  content: string | Record<string, unknown>;
+  source_workflow_id: string;
+  extraction_timestamp: string | number;
+  domain?: string | null;
+  problem_type?: string | null;
+  usage_count: number;
+  effectiveness_score: number;
+  related_artifacts?: string[];
+}
+
+export interface KnowledgeGraphNode {
+  id: string;
+  type?: string;
+  domain?: string | null;
+  usage?: number;
+}
+
+export interface KnowledgeGraphEdge {
+  source: string;
+  target: string;
+}
+
+export interface KnowledgeGraph {
+  nodes: KnowledgeGraphNode[];
+  edges: KnowledgeGraphEdge[];
+}
+
+export interface KnowledgeStats {
+  total_artifacts: number;
+  total_usage: number;
+  average_effectiveness: number;
+  by_type: Record<string, number>;
+}
+
+export interface KnowledgeRecommendations {
+  recommended_approaches: Array<Record<string, unknown>>;
+  similar_problems: Array<Record<string, unknown>>;
+  team_recommendations: Array<Record<string, unknown>>;
+  gauntlet_recommendations: Array<Record<string, unknown>>;
+}
+
+export type AutoApprovalAction = "approve" | "reject" | "escalate";
+
+export interface AutoApprovalCondition {
+  field: string;
+  operator: string;
+  value: string | number;
+  logical_op?: "AND" | "OR";
+}
+
+export interface AutoApprovalRule {
+  name: string;
+  priority: number;
+  action: AutoApprovalAction;
+  enabled: boolean;
+  conditions: AutoApprovalCondition[];
+  created_at?: string;
+}
+
+export interface AutoApprovalConfig {
+  enabled: boolean;
+  rules: AutoApprovalRule[];
+}
+
+export interface AutoApprovalTestResult {
+  rule_name: string;
+  action: AutoApprovalAction;
+  matched: boolean;
+}
+
+export interface AutoApprovalAuditEntry {
+  timestamp: string;
+  rule_name: string;
+  action: AutoApprovalAction;
+  matched: boolean;
+  plan: Record<string, unknown>;
+}
+
+export interface WorkflowTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  version?: string;
+  config: Record<string, unknown>;
+  usage_count?: number;
+  created_at?: string;
+  updated_at?: string;
+  tags?: string[];
+}
+
+export interface ProviderSummary {
+  id: string;
+  name: string;
+  api_base?: string | null;
+  models_endpoint?: string | null;
+  default_model?: string | null;
+}
+
+export interface ParameterDefinition {
+  name: string;
+  type: string;
+  default: unknown;
+  description: string;
+  category: string;
+  min_value?: number | null;
+  max_value?: number | null;
+  options?: string[] | null;
+  required?: boolean;
+}
+
+export interface ParameterValidationResult {
+  valid: boolean;
+  errors: string[];
+  warnings: string[];
+}
+
 export const createDefaultModelConfig = (): ModelConfig => ({
   model_id: "",
   api_key: "",

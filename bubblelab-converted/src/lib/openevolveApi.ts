@@ -16,6 +16,19 @@ import type {
   AdaptiveMdapProfiles,
 } from "./types";
 import type { IcrOverview, IcrComponents, IcrRefinements } from "./types";
+import type {
+  KnowledgeArtifact,
+  KnowledgeGraph,
+  KnowledgeStats,
+  KnowledgeRecommendations,
+  AutoApprovalConfig,
+  AutoApprovalTestResult,
+  AutoApprovalAuditEntry,
+  WorkflowTemplate,
+  ProviderSummary,
+  ParameterDefinition,
+  ParameterValidationResult,
+} from "./types";
 
 export interface ApiConfig {
   baseUrl?: string;
@@ -215,4 +228,122 @@ export const openevolveApi = {
       config,
     ),
   getHealth: (config?: ApiConfig) => request<Record<string, unknown>>("/health", {}, config),
+
+  // Knowledge Base
+  listKnowledgeArtifacts: (config?: ApiConfig) =>
+    request<{ artifacts: KnowledgeArtifact[] }>("/knowledge/artifacts", {}, config),
+  getKnowledgeArtifact: (artifactId: string, config?: ApiConfig) =>
+    request<KnowledgeArtifact>(`/knowledge/artifacts/${encodeURIComponent(artifactId)}`, {}, config),
+  createKnowledgeArtifact: (payload: Record<string, unknown>, config?: ApiConfig) =>
+    request<KnowledgeArtifact>(
+      "/knowledge/artifacts",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  deleteKnowledgeArtifact: (artifactId: string, config?: ApiConfig) =>
+    request<{ success: boolean }>(
+      `/knowledge/artifacts/${encodeURIComponent(artifactId)}`,
+      { method: "DELETE" },
+      config,
+    ),
+  searchKnowledge: (payload: Record<string, unknown>, config?: ApiConfig) =>
+    request<{ results: KnowledgeArtifact[] }>(
+      "/knowledge/search",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  getKnowledgeGraph: (config?: ApiConfig) =>
+    request<KnowledgeGraph>("/knowledge/graph", {}, config),
+  getKnowledgeStats: (config?: ApiConfig) => request<KnowledgeStats>("/knowledge/stats", {}, config),
+  getKnowledgeRecommendations: (payload: Record<string, unknown>, config?: ApiConfig) =>
+    request<KnowledgeRecommendations>(
+      "/knowledge/recommendations",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  exportKnowledgeBase: (config?: ApiConfig) =>
+    request<Record<string, unknown>>("/knowledge/export", {}, config),
+  importKnowledgeBase: (payload: Record<string, unknown>, config?: ApiConfig) =>
+    request<{ success: boolean }>(
+      "/knowledge/import",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+
+  // Auto-Approval
+  getAutoApprovalConfig: (config?: ApiConfig) =>
+    request<AutoApprovalConfig>("/auto-approval/config", {}, config),
+  updateAutoApprovalConfig: (payload: AutoApprovalConfig, config?: ApiConfig) =>
+    request<AutoApprovalConfig>(
+      "/auto-approval/config",
+      { method: "PUT", body: JSON.stringify(payload) },
+      config,
+    ),
+  testAutoApproval: (payload: Record<string, unknown>, config?: ApiConfig) =>
+    request<{ results: AutoApprovalTestResult[] }>(
+      "/auto-approval/test",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  getAutoApprovalAudit: (config?: ApiConfig) =>
+    request<{ logs: AutoApprovalAuditEntry[] }>(
+      "/auto-approval/audit",
+      {},
+      config,
+    ),
+
+  // Workflow Templates
+  listWorkflowTemplates: (config?: ApiConfig) =>
+    request<{ templates: WorkflowTemplate[] }>("/workflow-templates", {}, config),
+  createWorkflowTemplate: (payload: Record<string, unknown>, config?: ApiConfig) =>
+    request<WorkflowTemplate>(
+      "/workflow-templates",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  updateWorkflowTemplate: (templateId: string, payload: Record<string, unknown>, config?: ApiConfig) =>
+    request<WorkflowTemplate>(
+      `/workflow-templates/${encodeURIComponent(templateId)}`,
+      { method: "PUT", body: JSON.stringify(payload) },
+      config,
+    ),
+  deleteWorkflowTemplate: (templateId: string, config?: ApiConfig) =>
+    request<{ success: boolean }>(
+      `/workflow-templates/${encodeURIComponent(templateId)}`,
+      { method: "DELETE" },
+      config,
+    ),
+  exportWorkflowTemplates: (config?: ApiConfig) =>
+    request<Record<string, unknown>>("/workflow-templates/export", {}, config),
+  importWorkflowTemplates: (payload: Record<string, unknown>, config?: ApiConfig) =>
+    request<{ success: boolean }>(
+      "/workflow-templates/import",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+
+  // Providers and parameters
+  listProviders: (config?: ApiConfig) =>
+    request<{ providers: ProviderSummary[] }>("/providers", {}, config),
+  getProviderModels: (providerId: string, apiKey?: string, config?: ApiConfig) =>
+    request<{ models: string[] }>(
+      `/providers/${encodeURIComponent(providerId)}/models`,
+      {
+        method: "POST",
+        body: JSON.stringify({ api_key: apiKey }),
+      },
+      config,
+    ),
+  getParameterSchema: (config?: ApiConfig) =>
+    request<{ parameters: ParameterDefinition[] }>("/parameters/schema", {}, config),
+  getParameterDefaults: (config?: ApiConfig) =>
+    request<Record<string, unknown>>("/parameters/defaults", {}, config),
+  validateParameters: (payload: Record<string, unknown>, config?: ApiConfig) =>
+    request<ParameterValidationResult>(
+      "/parameters/validate",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  getParameterCategories: (config?: ApiConfig) =>
+    request<{ categories: string[] }>("/parameters/categories", {}, config),
 };

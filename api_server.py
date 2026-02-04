@@ -120,6 +120,12 @@ from workflow_structures import (
     DecompositionPlan, SubProblem, Team, GauntletDefinition, GauntletRoundRule,
     WorkflowState, ModelConfig
 )
+from knowledge_manager import KnowledgeManager
+from template_manager import TemplateManager
+from parameter_manager import ParameterManager
+from sovereign_persistence import SovereignDatabase
+from sovereign_reliability import HealthMonitor
+from providercatalogue import PROVIDERS as PROVIDERS_MAP
 from team_manager import TeamManager
 from gauntlet_manager import GauntletManager
 from workflow_engine import run_sovereign_workflow
@@ -200,6 +206,15 @@ async def global_exception_handler(request, exc):
 # Initialize default managers (legacy fallback, use tenant-scoped managers in handlers)
 team_manager = TeamManager()
 gauntlet_manager = GauntletManager()
+knowledge_manager = KnowledgeManager()
+template_manager = TemplateManager()
+parameter_manager = ParameterManager()
+sovereign_db = SovereignDatabase()
+sovereign_health_monitor = HealthMonitor()
+
+# Auto-approval configuration (in-memory)
+AUTO_APPROVAL_CONFIG: Dict[str, Any] = {"enabled": False, "rules": []}
+AUTO_APPROVAL_AUDIT_LOG: List[Dict[str, Any]] = []
 
 # In-memory storage for workflows (replace with database in production)
 workflows: Dict[str, WorkflowState] = {}
@@ -233,6 +248,48 @@ def record_audit_event(
         "success": success,
         "details": details or {}
     })
+
+
+def _evaluate_auto_approval_rule(rule: Dict[str, Any], plan: Dict[str, Any]) -> bool:
+    """Evaluate a single auto-approval rule against a plan."""
+    conditions = rule.get("conditions", [])
+    if not conditions:
+        return False
+
+    results = []
+    for condition in conditions:
+        field = condition.get("field")
+        operator = condition.get("operator")
+        value = condition.get("value")
+        plan_value = plan.get(field)
+
+        try:
+            if operator == "<":
+                result = float(plan_value) < float(value)
+            elif operator == ">":
+                result = float(plan_value) > float(value)
+            elif operator == "==":
+                result = str(plan_value) == str(value)
+            elif operator == "!=":
+                result = str(plan_value) != str(value)
+            elif operator == "contains":
+                result = str(value).lower() in str(plan_value).lower()
+            else:
+                result = False
+        except (TypeError, ValueError):
+            result = False
+
+        results.append(result)
+
+    final_result = results[0]
+    for index, condition in enumerate(conditions[:-1]):
+        logical_op = condition.get("logical_op", "AND")
+        if logical_op == "AND":
+            final_result = final_result and results[index + 1]
+        else:
+            final_result = final_result or results[index + 1]
+
+    return final_result
 
 
 def _normalize_tenant_id(tenant_id: str) -> str:
@@ -326,6 +383,92 @@ class GauntletCreateRequest(BaseModel):
     team_name: str
     description: Optional[str] = None
     rounds: List[Dict[str, Any]]
+
+
+class KnowledgeArtifactCreateRequest(BaseModel):
+    artifact_type: str
+    content: Any
+    source_workflow_id: Optional[str] = "manual"
+    domain: Optional[str] = None
+    problem_type: Optional[str] = None
+    related_artifacts: Optional[List[str]] = None
+
+
+class KnowledgeSearchRequest(BaseModel):
+    query: str
+    domain: Optional[str] = None
+    artifact_types: Optional[List[str]] = None
+    limit: int = Field(10, ge=1, le=100)
+
+
+class KnowledgeRecommendationsRequest(BaseModel):
+    problem_statement: str
+    domain: Optional[str] = None
+
+
+class KnowledgeImportRequest(BaseModel):
+    artifacts: Dict[str, Any]
+
+
+class AutoApprovalConditionModel(BaseModel):
+    field: str
+    operator: str
+    value: Any
+    logical_op: Optional[str] = "AND"
+
+
+class AutoApprovalRuleModel(BaseModel):
+    name: str
+    priority: int = Field(0, ge=0, le=100)
+    action: str = Field("approve")
+    enabled: bool = True
+    conditions: List[AutoApprovalConditionModel]
+    created_at: Optional[str] = None
+
+
+class AutoApprovalConfigModel(BaseModel):
+    enabled: bool = False
+    rules: List[AutoApprovalRuleModel] = []
+
+
+class AutoApprovalTestRequest(BaseModel):
+    plan: Dict[str, Any]
+
+
+class WorkflowTemplateCreateRequest(BaseModel):
+    name: str
+    description: Optional[str] = ""
+    config: Dict[str, Any]
+    tags: Optional[List[str]] = None
+
+
+class WorkflowTemplateUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    config: Optional[Dict[str, Any]] = None
+    tags: Optional[List[str]] = None
+
+
+class ProviderModelsRequest(BaseModel):
+    api_key: Optional[str] = None
+
+
+class ParameterValidateRequest(BaseModel):
+    parameters: Dict[str, Any]
+
+
+class SuggestionRequest(BaseModel):
+    content: str
+    api_key: str
+    base_url: str = "https://api.openai.com/v1"
+    model: str = "gpt-4o-mini"
+    extra_headers: Optional[Dict[str, str]] = None
+    temperature: float = 0.7
+    top_p: float = 1.0
+    frequency_penalty: float = 0.0
+    presence_penalty: float = 0.0
+    max_tokens: int = 1024
+    seed: Optional[int] = None
 
 
 # Authentication and Authorization
@@ -2234,6 +2377,318 @@ def get_statistics():
         "total_teams": len(team_manager.get_all_teams()),
         "total_gauntlets": len(gauntlet_manager.get_all_gauntlets())
     }
+
+
+# Knowledge Base endpoints
+
+@app.get("/knowledge/artifacts", dependencies=[Depends(verify_api_key)])
+def list_knowledge_artifacts():
+    artifacts = knowledge_manager.get_all_artifacts()
+    return {"artifacts": [a.__dict__ for a in artifacts]}
+
+
+@app.get("/knowledge/artifacts/{artifact_id}", dependencies=[Depends(verify_api_key)])
+def get_knowledge_artifact(artifact_id: str):
+    artifact = knowledge_manager.artifacts.get(artifact_id)
+    if not artifact:
+        raise HTTPException(status_code=404, detail="Artifact not found")
+    return artifact.__dict__
+
+
+@app.post("/knowledge/artifacts", dependencies=[Depends(verify_api_key)])
+def create_knowledge_artifact(request: KnowledgeArtifactCreateRequest):
+    from workflow_structures import KnowledgeArtifact as KnowledgeArtifactModel
+    artifact_id = uuid.uuid4().hex[:16]
+    artifact = KnowledgeArtifactModel(
+        id=artifact_id,
+        artifact_type=request.artifact_type,
+        content=request.content,
+        source_workflow_id=request.source_workflow_id or "manual",
+        extraction_timestamp=datetime.now().isoformat(),
+        domain=request.domain,
+        problem_type=request.problem_type,
+        usage_count=0,
+        effectiveness_score=0.0,
+        related_artifacts=request.related_artifacts or []
+    )
+    knowledge_manager.store_knowledge_artifact(artifact)
+    return artifact.__dict__
+
+
+@app.delete("/knowledge/artifacts/{artifact_id}", dependencies=[Depends(verify_api_key)])
+def delete_knowledge_artifact(artifact_id: str):
+    success = knowledge_manager.delete_artifact(artifact_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Artifact not found")
+    return {"success": True}
+
+
+@app.post("/knowledge/search", dependencies=[Depends(verify_api_key)])
+def search_knowledge(request: KnowledgeSearchRequest):
+    results = knowledge_manager.retrieve_relevant_knowledge(
+        problem_statement=request.query,
+        domain=request.domain,
+        artifact_types=request.artifact_types,
+        limit=request.limit
+    )
+    return {"results": [a.__dict__ for a in results]}
+
+
+@app.get("/knowledge/graph", dependencies=[Depends(verify_api_key)])
+def get_knowledge_graph():
+    artifacts = knowledge_manager.get_all_artifacts()
+    nodes = [
+        {
+            "id": artifact.id,
+            "type": artifact.artifact_type,
+            "domain": artifact.domain,
+            "usage": artifact.usage_count
+        }
+        for artifact in artifacts
+    ]
+    edges = []
+    artifact_ids = {artifact.id for artifact in artifacts}
+    for artifact in artifacts:
+        for related_id in artifact.related_artifacts or []:
+            if related_id in artifact_ids:
+                edges.append({"source": artifact.id, "target": related_id})
+    return {"nodes": nodes, "edges": edges}
+
+
+@app.get("/knowledge/stats", dependencies=[Depends(verify_api_key)])
+def get_knowledge_stats():
+    artifacts = knowledge_manager.get_all_artifacts()
+    total_usage = sum(a.usage_count for a in artifacts)
+    avg_effectiveness = (
+        sum(a.effectiveness_score for a in artifacts) / len(artifacts)
+        if artifacts else 0.0
+    )
+    by_type: Dict[str, int] = {}
+    for artifact in artifacts:
+        by_type[artifact.artifact_type] = by_type.get(artifact.artifact_type, 0) + 1
+    return {
+        "total_artifacts": len(artifacts),
+        "total_usage": total_usage,
+        "average_effectiveness": avg_effectiveness,
+        "by_type": by_type
+    }
+
+
+@app.post("/knowledge/recommendations", dependencies=[Depends(verify_api_key)])
+def get_knowledge_recommendations(request: KnowledgeRecommendationsRequest):
+    recommendations = knowledge_manager.apply_learned_patterns(
+        request.problem_statement,
+        domain=request.domain
+    )
+    return recommendations
+
+
+@app.get("/knowledge/export", dependencies=[Depends(verify_api_key)])
+def export_knowledge_base():
+    artifacts = knowledge_manager.get_all_artifacts()
+    export_data = {artifact.id: artifact.__dict__ for artifact in artifacts}
+    return export_data
+
+
+@app.post("/knowledge/import", dependencies=[Depends(verify_api_key)])
+def import_knowledge_base(request: KnowledgeImportRequest):
+    # File-based import to leverage existing KnowledgeManager logic
+    temp_path = os.path.join("data", "knowledge_import.json")
+    with open(temp_path, "w", encoding="utf-8") as f:
+        import json
+        json.dump(request.artifacts, f, indent=2)
+    knowledge_manager.import_knowledge_base(temp_path)
+    return {"success": True}
+
+
+# Auto-approval endpoints
+
+@app.get("/auto-approval/config", dependencies=[Depends(verify_api_key)])
+def get_auto_approval_config():
+    return AUTO_APPROVAL_CONFIG
+
+
+@app.put("/auto-approval/config", dependencies=[Depends(verify_api_key)])
+def update_auto_approval_config(request: AutoApprovalConfigModel):
+    AUTO_APPROVAL_CONFIG["enabled"] = request.enabled
+    AUTO_APPROVAL_CONFIG["rules"] = [rule.dict() for rule in request.rules]
+    return AUTO_APPROVAL_CONFIG
+
+
+@app.post("/auto-approval/test", dependencies=[Depends(verify_api_key)])
+def test_auto_approval_rules(request: AutoApprovalTestRequest):
+    results = []
+    for rule in AUTO_APPROVAL_CONFIG.get("rules", []):
+        if not rule.get("enabled", True):
+            continue
+        matched = _evaluate_auto_approval_rule(rule, request.plan)
+        results.append({
+            "rule_name": rule.get("name", "Unnamed Rule"),
+            "action": rule.get("action", "approve"),
+            "matched": matched
+        })
+        AUTO_APPROVAL_AUDIT_LOG.append({
+            "timestamp": datetime.now().isoformat(),
+            "rule_name": rule.get("name", "Unnamed Rule"),
+            "action": rule.get("action", "approve"),
+            "matched": matched,
+            "plan": request.plan
+        })
+    return {"results": results}
+
+
+@app.get("/auto-approval/audit", dependencies=[Depends(verify_api_key)])
+def get_auto_approval_audit():
+    return {"logs": AUTO_APPROVAL_AUDIT_LOG}
+
+
+# Workflow template endpoints
+
+@app.get("/workflow-templates", dependencies=[Depends(verify_api_key)])
+def list_workflow_templates():
+    return {"templates": template_manager.get_all_templates()}
+
+
+@app.post("/workflow-templates", dependencies=[Depends(verify_api_key)])
+def create_workflow_template(request: WorkflowTemplateCreateRequest):
+    template_id = template_manager.create_template(
+        name=request.name,
+        description=request.description or "",
+        config=request.config,
+        tags=request.tags or []
+    )
+    template = template_manager.get_template(template_id)
+    if not template:
+        raise HTTPException(status_code=500, detail="Failed to create template")
+    return template
+
+
+@app.put("/workflow-templates/{template_id}", dependencies=[Depends(verify_api_key)])
+def update_workflow_template(template_id: str, request: WorkflowTemplateUpdateRequest):
+    success = template_manager.update_template(
+        template_id=template_id,
+        name=request.name,
+        description=request.description,
+        config=request.config,
+        tags=request.tags
+    )
+    if not success:
+        raise HTTPException(status_code=404, detail="Template not found")
+    return template_manager.get_template(template_id)
+
+
+@app.delete("/workflow-templates/{template_id}", dependencies=[Depends(verify_api_key)])
+def delete_workflow_template(template_id: str):
+    success = template_manager.delete_template(template_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Template not found")
+    return {"success": True}
+
+
+@app.get("/workflow-templates/export", dependencies=[Depends(verify_api_key)])
+def export_workflow_templates():
+    templates = template_manager.get_all_templates()
+    return {"templates": templates}
+
+
+@app.post("/workflow-templates/import", dependencies=[Depends(verify_api_key)])
+def import_workflow_templates(request: Dict[str, Any]):
+    templates = request.get("templates", [])
+    imported = []
+    for template in templates:
+        template_id = template_manager.create_template(
+            name=template.get("name", "Imported Template"),
+            description=template.get("description", ""),
+            config=template.get("config", {}),
+            tags=template.get("tags", []),
+        )
+        imported.append(template_id)
+    return {"success": True, "imported": imported}
+
+
+# Providers and parameters
+
+@app.get("/providers", dependencies=[Depends(verify_api_key)])
+def list_providers():
+    providers = []
+    for provider_id, data in PROVIDERS_MAP.items():
+        providers.append({
+            "id": provider_id,
+            "name": data.get("name"),
+            "api_base": data.get("api_base"),
+            "models_endpoint": data.get("models_endpoint"),
+            "default_model": data.get("default_model")
+        })
+    return {"providers": providers}
+
+
+@app.post("/providers/{provider_id}/models", dependencies=[Depends(verify_api_key)])
+def get_provider_models(provider_id: str, request: ProviderModelsRequest):
+    provider = PROVIDERS_MAP.get(provider_id)
+    if not provider:
+        raise HTTPException(status_code=404, detail="Provider not found")
+    loader = provider.get("loader")
+    if not callable(loader):
+        return {"models": [provider.get("default_model")]}
+    try:
+        models = loader(request.api_key)
+        return {"models": models}
+    except Exception as e:
+        logger.warning(f"Failed to fetch models for {provider_id}: {e}")
+        return {"models": [provider.get("default_model")]}
+
+
+@app.get("/parameters/schema", dependencies=[Depends(verify_api_key)])
+def get_parameter_schema():
+    params = []
+    for param in parameter_manager.schema.parameters.values():
+        params.append({
+            "name": param.name,
+            "type": param.type.value,
+            "default": param.default,
+            "description": param.description,
+            "category": param.category,
+            "min_value": param.min_value,
+            "max_value": param.max_value,
+            "options": param.options,
+            "required": param.required
+        })
+    return {"parameters": params}
+
+
+@app.get("/parameters/defaults", dependencies=[Depends(verify_api_key)])
+def get_parameter_defaults():
+    return parameter_manager.get_defaults()
+
+
+@app.get("/parameters/categories", dependencies=[Depends(verify_api_key)])
+def get_parameter_categories():
+    return {"categories": parameter_manager.get_categories()}
+
+
+@app.post("/parameters/validate", dependencies=[Depends(verify_api_key)])
+def validate_parameters(request: ParameterValidateRequest):
+    result = parameter_manager.validate(request.parameters)
+    return {"valid": result.valid, "errors": result.errors, "warnings": result.warnings}
+
+
+# Sovereign dashboard endpoints
+
+@app.get("/sovereign/health", dependencies=[Depends(verify_api_key)])
+def get_sovereign_health():
+    return sovereign_health_monitor.run_health_checks()
+
+
+@app.get("/sovereign/problems", dependencies=[Depends(verify_api_key)])
+def list_sovereign_problems():
+    problems = sovereign_db.list_problems()
+    return {"problems": [p.to_dict() for p in problems]}
+
+
+@app.get("/sovereign/plans", dependencies=[Depends(verify_api_key)])
+def list_sovereign_plans():
+    plans = sovereign_db.list_plans()
+    return {"plans": [p.to_dict() for p in plans]}
 
 
 server = None

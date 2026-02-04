@@ -1,0 +1,66 @@
+{
+  "name": "@openevolve/ragbits-graphiti-sync",
+  "version": "1.0.0",
+  "description": "Bidirectional synchronization adapter between RAGBits and Graphiti knowledge systems",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "test": "cd tests && npm test",
+    "test:coverage": "cd tests && npm run test:coverage",
+    "probe:sync": "bash probes/check_sync.sh",
+    "probe:conflicts": "bash probes/check_conflicts.sh",
+    "probe:bidirectional": "bash probes/check_bidirectional.sh",
+    "probe:all": "npm run probe:sync && npm run probe:conflicts && npm run probe:bidirectional",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "clean": "rm -rf dist node_modules"
+  },
+  "keywords": [
+    "ragbits",
+    "graphiti",
+    "sync",
+    "bidirectional",
+    "knowledge-graph",
+    "adapter",
+    "openevolve"
+  ],
+  "author": "OpenEvolve Federation",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "uuid": "^9.0.1",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "@types/uuid": "^9.0.7",
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
+    "eslint": "^8.56.0",
+    "prettier": "^3.1.1",
+    "typescript": "^5.3.3"
+  },
+  "peerDependencies": {
+    "@openevolve/lib": "workspace:*"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/openevolve/federation",
+    "directory": "glue/adapters/ragbits-graphiti-sync"
+  },
+  "files": [
+    "dist",
+    "src",
+    "probes",
+    "tests",
+    "README.md",
+    "ADR.md",
+    "Dockerfile",
+    "package.json"
+  ]
+}

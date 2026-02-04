@@ -1,0 +1,44 @@
+{
+  "name": "@openevolve/unified-knowledge-query",
+  "version": "1.0.0",
+  "description": "Unified Knowledge Query Interface - Federation Constitution compliant multi-system query engine",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src --ext .ts",
+    "probe:ragbits": "bash probes/check_ragbits.sh",
+    "probe:graphiti": "bash probes/check_graphiti.sh",
+    "probe:vectordb": "bash probes/check_vectordb.sh",
+    "probe:all": "npm run probe:ragbits && npm run probe:graphiti && npm run probe:vectordb"
+  },
+  "keywords": [
+    "knowledge-graph",
+    "rag",
+    "vector-search",
+    "temporal-query",
+    "graph-traversal",
+    "unified-query",
+    "federation"
+  ],
+  "author": "OpenEvolve",
+  "license": "MIT",
+  "dependencies": {
+    "@openevolve/glue-lib": "^1.0.0",
+    "axios": "^1.6.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  }
+}

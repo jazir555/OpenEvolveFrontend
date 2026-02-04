@@ -71,6 +71,11 @@ def get_capabilities() -> Dict[str, Any]:
             RESEARCH_QUEST_INTEGRATION_AVAILABLE,
             MCP_GATEWAY_INTEGRATION_AVAILABLE,
             OPENEVOLVE_INTEGRATION_AVAILABLE,
+            # Advanced Integrations (2026-02-03)
+            OUTLINES_INTEGRATION_AVAILABLE,
+            LMQL_INTEGRATION_AVAILABLE,
+            NEUROMANCER_INTEGRATION_AVAILABLE,
+            COGNITIVE_HYDRAULICS_INTEGRATION_AVAILABLE,
         )
 
         integrations = {
@@ -91,6 +96,12 @@ def get_capabilities() -> Dict[str, Any]:
             'research_quest': (RESEARCH_QUEST_INTEGRATION_AVAILABLE, 'Research-Quest Integration', 'See Research-Quest documentation'),
             'mcp_gateway': (MCP_GATEWAY_INTEGRATION_AVAILABLE, 'MCP Gateway Integration', 'See MCP documentation'),
             'openevolve': (OPENEVOLVE_INTEGRATION_AVAILABLE, 'OpenEvolve Integration Library', 'Core feature'),
+            
+            # Advanced Integrations (2026-02-03)
+            'outlines': (OUTLINES_INTEGRATION_AVAILABLE, 'Outlines - Structured LLM Generation', 'pip install outlines'),
+            'lmql': (LMQL_INTEGRATION_AVAILABLE, 'LMQL - Declarative Query Language', 'pip install lmql'),
+            'neuromancer_ke': (NEUROMANCER_INTEGRATION_AVAILABLE, 'Neuromancer - Physics-Informed Neural Operators', 'pip install neuromancer'),
+            'cognitive_hydraulics': (COGNITIVE_HYDRAULICS_INTEGRATION_AVAILABLE, 'Cognitive-Hydraulics - Hybrid Neuro-Symbolic Reasoning', 'Core feature'),
         }
 
         for key, (available, display_name, install_hint) in integrations.items():

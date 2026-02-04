@@ -52,6 +52,35 @@ from knowledge_engine.integrations.global_chem_integration import GlobalChemInte
 from knowledge_engine.integrations.neuromancer_integration import NeuromancerIntegration
 from knowledge_engine.integrations.roma_integration import ROMAIntegration, ROMA_INTEGRATION_AVAILABLE
 
+# New Advanced Integrations (2026-02-03)
+try:
+    from knowledge_engine.integrations.outlines.outlines_integration import OutlinesKGIntegration
+    OUTLINES_AVAILABLE = True
+except ImportError:
+    OutlinesKGIntegration = None
+    OUTLINES_AVAILABLE = False
+
+try:
+    from knowledge_engine.integrations.lmql.lmql_integration import LMQLKGIntegration
+    LMQL_AVAILABLE = True
+except ImportError:
+    LMQLKGIntegration = None
+    LMQL_AVAILABLE = False
+
+try:
+    from knowledge_engine.integrations.neuromancer.neuromancer_integration import NeuromancerKGIntegration
+    NEUROMANCER_KE_AVAILABLE = True
+except ImportError:
+    NeuromancerKGIntegration = None
+    NEUROMANCER_KE_AVAILABLE = False
+
+try:
+    from knowledge_engine.integrations.cognitive_hydraulics.cognitive_hydraulics_integration import CognitiveHydraulicsKGIntegration
+    COGNITIVE_HYDRAULICS_AVAILABLE = True
+except ImportError:
+    CognitiveHydraulicsKGIntegration = None
+    COGNITIVE_HYDRAULICS_AVAILABLE = False
+
 # Import orchestration components
 from knowledge_engine.orchestration.self_healing_orchestrator import (
     SelfHealingOrchestrator, HealingStrategy, FailureEvent, FailureType
@@ -174,7 +203,13 @@ class ComponentRegistry:
             'dspy': ['prompt_optimization', 'program_of_thought', 'demonstration_selection'],
             'openevolve_lib': ['system_integration', 'bubblelabs', 'workflow_orchestration'],
             'mcp_gateway': ['tool_orchestration', 'api_gateway', 'service_coordination'],
-            'roma': ['meta_agent', 'decomposition', 'execution', 'verification', 'recomposition', 'hierarchical_planning']
+            'roma': ['meta_agent', 'decomposition', 'execution', 'verification', 'recomposition', 'hierarchical_planning'],
+            
+            # Advanced Integrations (2026-02-03)
+            'outlines': ['structured_generation', 'json_constraints', 'regex_constraints', 'guaranteed_valid_output'],
+            'lmql': ['declarative_queries', 'constraint_programming', 'multi_turn_dialog', 'cypher_generation'],
+            'neuromancer_ke': ['physics_simulation', 'ode_solving', 'pde_solving', 'dynamics_learning', 'scientific_domains'],
+            'cognitive_hydraulics': ['hybrid_reasoning', 'symbolic_reasoning', 'heuristic_reasoning', 'evolutionary_fallback', 'learning_chunking']
         }
         
         # Define substitution matrix (which components can cover for others)
@@ -188,6 +223,12 @@ class ComponentRegistry:
             'causal_learn': ['neuralkg', 'karateclub'],
             'ragbits': ['crewai', 'aikg'],
             'crewai': ['openevolve_lib', 'mcp_gateway'],
+            
+            # Advanced Integrations substitution matrix
+            'outlines': ['agentjson', 'dspy'],  # Structured output alternatives
+            'lmql': ['crewai', 'dspy'],  # Query/delegation alternatives
+            'neuromancer_ke': ['neuromancer', 'causal_learn'],  # Scientific analysis alternatives
+            'cognitive_hydraulics': ['crewai', 'dspy', 'neuralkg'],  # Reasoning alternatives
         }
         
         # Core Knowledge Extraction (1-5)
@@ -226,6 +267,31 @@ class ComponentRegistry:
         self.components['dspy'] = self._safe_init(DSPyIntegration, 'dspy')
         self.components['openevolve_lib'] = self._safe_init(OpenEvolveIntegrationLibrary, 'openevolve_lib')
         self.components['mcp_gateway'] = self._safe_init(MCPGatewayIntegration, 'mcp_gateway')
+        
+        # Advanced Integrations (2026-02-03) - New capabilities
+        # Outlines - Structured LLM output generation with constraints
+        if OUTLINES_AVAILABLE:
+            self.components['outlines'] = self._safe_init(OutlinesKGIntegration, 'outlines')
+        else:
+            self.components['outlines'] = self._create_mock_component('outlines')
+        
+        # LMQL - Declarative SQL-like query language for LLMs
+        if LMQL_AVAILABLE:
+            self.components['lmql'] = self._safe_init(LMQLKGIntegration, 'lmql')
+        else:
+            self.components['lmql'] = self._create_mock_component('lmql')
+        
+        # Neuromancer KG - Physics-informed neural operators
+        if NEUROMANCER_KE_AVAILABLE:
+            self.components['neuromancer_ke'] = self._safe_init(NeuromancerKGIntegration, 'neuromancer_ke')
+        else:
+            self.components['neuromancer_ke'] = self._create_mock_component('neuromancer_ke')
+        
+        # Cognitive-Hydraulics - Hybrid neuro-symbolic reasoning (Soar+ACT-R+Evolutionary)
+        if COGNITIVE_HYDRAULICS_AVAILABLE:
+            self.components['cognitive_hydraulics'] = self._safe_init(CognitiveHydraulicsKGIntegration, 'cognitive_hydraulics')
+        else:
+            self.components['cognitive_hydraulics'] = self._create_mock_component('cognitive_hydraulics')
 
         # ROMA Meta-Agent (22) - Hierarchical problem decomposition and execution
         if ROMA_INTEGRATION_AVAILABLE:

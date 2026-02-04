@@ -237,6 +237,47 @@ try:
 except ImportError:
     OPENEVOLVE_INTEGRATION_AVAILABLE = False
 
+# New Advanced Integrations (2026-02-03)
+# Outlines - Structured LLM output generation
+try:
+    from .outlines.outlines_integration import (
+        OutlinesKGIntegration,
+        OUTLINES_INTEGRATION_AVAILABLE
+    )
+except ImportError:
+    OutlinesKGIntegration = None
+    OUTLINES_INTEGRATION_AVAILABLE = False
+
+# LMQL - Declarative query language for LLMs
+try:
+    from .lmql.lmql_integration import (
+        LMQLKGIntegration,
+        LMQL_INTEGRATION_AVAILABLE
+    )
+except ImportError:
+    LMQLKGIntegration = None
+    LMQL_INTEGRATION_AVAILABLE = False
+
+# Neuromancer - Physics-informed neural operators
+try:
+    from .neuromancer.neuromancer_integration import (
+        NeuromancerKGIntegration,
+        NEUROMANCER_INTEGRATION_AVAILABLE
+    )
+except ImportError:
+    NeuromancerKGIntegration = None
+    NEUROMANCER_INTEGRATION_AVAILABLE = False
+
+# Cognitive-Hydraulics - Hybrid neuro-symbolic reasoning
+try:
+    from .cognitive_hydraulics.cognitive_hydraulics_integration import (
+        CognitiveHydraulicsKGIntegration,
+        COGNITIVE_HYDRAULICS_INTEGRATION_AVAILABLE
+    )
+except ImportError:
+    CognitiveHydraulicsKGIntegration = None
+    COGNITIVE_HYDRAULICS_INTEGRATION_AVAILABLE = False
+
 
 __all__ = [
     # Z3 Knowledge Integration
@@ -369,4 +410,20 @@ __all__ = [
 
     # OpenEvolve Integration Library
     "OPENEVOLVE_INTEGRATION_AVAILABLE",
+    
+    # Outlines Integration (Structured LLM Output Generation)
+    "OutlinesKGIntegration",
+    "OUTLINES_INTEGRATION_AVAILABLE",
+    
+    # LMQL Integration (Declarative Query Language)
+    "LMQLKGIntegration",
+    "LMQL_INTEGRATION_AVAILABLE",
+    
+    # Neuromancer Integration (Physics-Informed Neural Operators)
+    "NeuromancerKGIntegration",
+    "NEUROMANCER_INTEGRATION_AVAILABLE",
+    
+    # Cognitive-Hydraulics Integration (Hybrid Neuro-Symbolic Reasoning)
+    "CognitiveHydraulicsKGIntegration",
+    "COGNITIVE_HYDRAULICS_INTEGRATION_AVAILABLE",
 ]
