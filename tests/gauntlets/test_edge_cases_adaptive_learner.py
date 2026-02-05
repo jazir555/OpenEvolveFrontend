@@ -29,7 +29,7 @@ from collections import deque
 # Add parent directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from glue.adapters.gauntlet_adapter.src.adaptive_learner import (
+from adaptive_learner import (
     AdvancedAdaptiveLearner,
     LearningAlgorithm,
     Experience,

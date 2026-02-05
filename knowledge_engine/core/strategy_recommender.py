@@ -528,7 +528,56 @@ class StrategyRecommender:
         """Basic strategy recommendation (override in subclass)"""
         # This is a minimal implementation
         # EnsembleStrategySelector provides the full implementation
-        raise NotImplementedError("Use EnsembleStrategySelector for full functionality")
+
+        # Analyze problem
+        problem_chars = await self.analyze_problem_characteristics(
+            problem_description, domain, constraints
+        )
+
+        # Default recommendation (simple rule-based)
+        if problem_chars.requires_diversity:
+            system = "openevolve"
+            mode = "qd"
+            reasoning_text = "Diverse solutions required, use MAP-Elites"
+        elif problem_chars.evaluation_cost in [EvaluationCost.EXPENSIVE, EvaluationCost.VERY_EXPENSIVE]:
+            system = "loongflow"
+            mode = "pes"
+            reasoning_text = "Expensive evaluations, use PES for efficiency"
+        else:
+            system = "openevolve"
+            mode = "standard"
+            reasoning_text = "Standard optimization problem"
+
+        # Create explanation object
+        explanation = Explanation(
+            primary_reason=reasoning_text,
+            detailed_reasoning=[reasoning_text],
+            evidence_from_history=[],
+            domain_considerations=[f"Domain: {domain}"],
+            risk_factors=["Basic recommender has limited accuracy"]
+        )
+
+        # Create performance prediction
+        performance = PerformancePrediction(
+            expected_iterations=100,
+            expected_time_seconds=60.0,
+            expected_score=0.75,
+            confidence_interval=(0.65, 0.85),
+            success_probability=0.7
+        )
+
+        return StrategyRecommendation(
+            recommended_system=system,
+            recommended_mode=mode,
+            config_overrides={},
+            confidence=0.7,
+            reasoning=explanation,
+            alternatives=[],
+            expected_performance=performance,
+            problem_analysis=problem_chars,
+            historical_context=[],
+            ranking=[]
+        )
 
     async def analyze_problem_characteristics(
         self,
@@ -765,6 +814,69 @@ class LoongFlowChecker:
         """Reset cached availability check (for testing)"""
         cls._is_available = None
         cls._check_attempted = False
+
+    async def rank_strategies(
+        self,
+        problem_chars: ProblemCharacteristics,
+        historical_runs: List[HistoricalRun]
+    ) -> List[Tuple[EvolutionSystem, EvolutionMode]]:
+        """Rank strategies based on problem and historical data"""
+        strategies = [
+            (EvolutionSystem.OPENEVOLVE, EvolutionMode.QD),
+            (EvolutionSystem.OPENEVOLVE, EvolutionMode.OPTIMIZATION),
+            (EvolutionSystem.LOONGFLOW, EvolutionMode.PES),
+        ]
+
+        # Score each strategy
+        scored = []
+        for strategy in strategies:
+            score = await self._score_strategy(strategy, problem_chars, historical_runs)
+            scored.append((strategy, score))
+
+        # Sort by score (descending)
+        scored.sort(key=lambda x: x[1], reverse=True)
+        return [s[0] for s in scored]
+
+    async def _score_strategy(
+        self,
+        strategy: Tuple[EvolutionSystem, EvolutionMode],
+        problem_chars: ProblemCharacteristics,
+        historical_runs: List[HistoricalRun]
+    ) -> float:
+        """Score a strategy for the given problem"""
+        system, mode = strategy
+        score = 0.5  # Base score
+
+        # Diversity bonus
+        if problem_chars.requires_diversity and system == EvolutionSystem.OPENEVOLVE:
+            if mode == EvolutionMode.QD:
+                score += 0.3
+
+        # Efficiency bonus
+        if problem_chars.evaluation_cost in [EvaluationCost.EXPENSIVE, EvaluationCost.VERY_EXPENSIVE]:
+            if system == EvolutionSystem.LOONGFLOW and mode == EvolutionMode.PES:
+                score += 0.3
+
+        # Multi-objective bonus
+        if problem_chars.has_multiple_objectives and system == EvolutionSystem.OPENEVOLVE:
+            if mode == EvolutionMode.QD:
+                score += 0.2
+
+        return min(1.0, score)
+
+    def _parse_historical_run(self, raw_data: Dict[str, Any]) -> HistoricalRun:
+        """Parse raw historical run data into HistoricalRun object"""
+        return HistoricalRun(
+            run_id=raw_data.get("run_id", "unknown"),
+            domain=raw_data.get("domain", "general"),
+            strategy_used=raw_data.get("strategy_used", "openevolve"),
+            mode_used=raw_data.get("mode_used", "qd"),
+            problem_complexity=raw_data.get("complexity", "medium"),
+            evaluation_cost=raw_data.get("evaluation_cost", "medium"),
+            performance_score=raw_data.get("performance", 0.75),
+            timestamp=raw_data.get("timestamp", datetime.now(UTC)),
+            metadata=raw_data.get("metadata", {})
+        )
 
 
 class EnsembleStrategySelector(StrategyRecommender):

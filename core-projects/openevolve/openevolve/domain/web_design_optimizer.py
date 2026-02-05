@@ -29,15 +29,8 @@ Date: 2026-01-30
 """
 
 from typing import Dict, Any, Optional, List
-from ..unified.config import (
-    UnifiedEvolutionConfig,
-    EvolutionMode,
-    DomainType,
-    LLMConfig,
-    EvaluatorConfig,
-    DatabaseConfig,
-    MOConfig,
-)
+from ..unified.config import UnifiedEvolutionConfig, MOConfig, LLMConfig, EvaluatorConfig, DatabaseConfig
+from . import EvolutionMode, DomainType
 from .base import DomainOptimizer
 
 
@@ -115,8 +108,6 @@ class WebDesignOptimizer(DomainOptimizer):
     # SUB-DOMAIN CONFIGURATIONS
     # ========================================================================
 
-    from ..unified.config import LLMConfig, EvaluatorConfig, DatabaseConfig
-
     def _general_config(self) -> UnifiedEvolutionConfig:
         """
         General web design configuration
@@ -125,7 +116,7 @@ class WebDesignOptimizer(DomainOptimizer):
         """
         return UnifiedEvolutionConfig(
             # Domain
-            domain=DomainType.WEB,
+            domain=DomainType.WEB_DESIGN,
 
             # Evolution mode
             evolution_mode=EvolutionMode.STANDARD,

@@ -1233,6 +1233,21 @@ class Z3AdvancedSolver(Z3SolverEngine):
     def __init__(self, config: Optional[Z3Config] = None):
         super().__init__(config)
         
+        # Update pool metadata to indicate this is an advanced solver
+        if self._pool is not None and self._solver_id is not None:
+            try:
+                instance = self._pool.get_solver(self._solver_id)
+                if instance is not None:
+                    instance.metadata['class'] = 'Z3AdvancedSolver'
+                    instance.metadata['features'] = [
+                        'pareto_optimization',
+                        'incremental_solving',
+                        'portfolio_strategies',
+                        'proof_extraction'
+                    ]
+            except Exception as e:
+                logger.debug(f"Failed to update advanced solver metadata: {e}")
+        
         # Optimization tracking
         self._optimization_history: List[OptimizationResult] = []
         

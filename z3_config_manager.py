@@ -122,9 +122,12 @@ class CacheConfig:
     compression: bool = False
     checksum_verification: bool = True
     distributed: bool = False
-    redis_host: Optional[str] = None
-    redis_port: int = 6379
-    redis_db: int = 0
+    valkey_host: Optional[str] = None
+    valkey_port: int = 6379
+    valkey_db: int = 0
+    valkey_password: Optional[str] = None
+    valkey_ssl: bool = False
+    valkey_key_prefix: str = "z3_cache"
 
 
 @dataclass

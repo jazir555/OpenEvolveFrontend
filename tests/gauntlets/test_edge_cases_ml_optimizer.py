@@ -30,7 +30,7 @@ from typing import List, Dict, Any
 # Add parent directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from glue.adapters.gauntlet_adapter.src.ml_optimizer import (
+from ml_optimizer import (
     MLBasedGauntletOptimizer,
     GauntletState,
     OptimizationAction,
@@ -114,21 +114,26 @@ class TestEmptyNullInputs(unittest.TestCase):
             "round3_threshold": 0.7
         }
 
-        # Should handle None values gracefully
-        with self.assertRaises((TypeError, AttributeError)):
-            state = GauntletState.from_dict(data)
+        # Should handle None values gracefully (will use None)
+        state = GauntletState.from_dict(data)
+        # None value is preserved
+        self.assertIsNone(state.round1_threshold)
+        self.assertEqual(state.round2_threshold, 0.5)
 
     def test_state_from_dict_with_missing_keys(self):
         """Test creating state from dict with missing keys"""
         data = {
             "round1_threshold": 0.5,
             "round2_threshold": 0.6
-            # Missing round3_threshold
+            # Missing round3_threshold - should use default
         }
 
-        # Should handle missing keys
-        with self.assertRaises((TypeError, KeyError)):
-            state = GauntletState.from_dict(data)
+        # Should use default values for missing keys
+        state = GauntletState.from_dict(data)
+        self.assertEqual(state.round1_threshold, 0.5)
+        self.assertEqual(state.round2_threshold, 0.6)
+        # round3_threshold should use default from dataclass
+        self.assertIsNotNone(state.round3_threshold)
 
     def test_optimize_with_none_initial_state(self):
         """Test optimization with None initial state"""

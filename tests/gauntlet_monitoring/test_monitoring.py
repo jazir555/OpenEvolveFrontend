@@ -7,7 +7,7 @@ Date: 2026-02-03
 
 import pytest
 import time
-from glue.adapters.gauntlet_adapter.monitoring import (
+from monitoring import (
     GauntletMetricsCollector,
     HealthChecker,
     AlertingEngine,

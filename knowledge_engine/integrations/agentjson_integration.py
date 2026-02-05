@@ -108,9 +108,9 @@ class AgentJSONIntegration:
     def _initialize_components(self):
         """Initialize AgentJSON components based on configuration."""
         try:
-            # Import AgentJSON components
-            from agentjson import RepairOptions, parse
-            
+            # Use module-level imports (which can be patched by tests)
+            from knowledge_engine.integrations.agentjson_integration import RepairOptions, parse
+
             # Create repair options based on config
             self.repair_options = RepairOptions(
                 mode=self.config.get("mode", "auto"),
@@ -124,17 +124,17 @@ class AgentJSONIntegration:
                 llm_min_confidence=self.config.get("llm_min_confidence", 0.2),
                 debug=self.config.get("debug", False)
             )
-            
+
             # Store the parse function
             self.parser = parse
-            
+
             logger.info({
                 "msg": "AgentJSON components initialized successfully",
                 "mode": self.config.get("mode", "auto"),
                 "top_k": self.config.get("top_k", 5),
                 "timestamp": datetime.now(timezone.utc).isoformat()
             })
-            
+
         except ImportError:
             logger.warning({
                 "msg": "AgentJSON not available, using mock implementation",

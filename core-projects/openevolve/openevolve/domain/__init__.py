@@ -15,7 +15,26 @@ Date: 2026-01-30
 """
 
 from typing import Dict, Any, Optional, List
-from ..unified.config import UnifiedEvolutionConfig, EvolutionMode, DomainType
+from ..unified.config import UnifiedEvolutionConfig
+
+# Define enums locally since they're not in unified.config
+from enum import Enum
+
+class EvolutionMode(str, Enum):
+    PES = "pes"
+    QD = "qd"
+    MO = "mo"
+    ADVERSARIAL = "adversarial"
+    STANDARD = "standard"
+
+class DomainType(str, Enum):
+    FINANCE = "finance"
+    TRADING = "trading"
+    SCIENCE = "science"
+    ENGINEERING = "engineering"
+    PHARMA = "pharma"
+    WEB_DESIGN = "web_design"
+    GENERAL = "general"
 
 # Import base class first
 from .base import DomainOptimizer
@@ -35,8 +54,6 @@ __all__ = [
     'EngineeringOptimizer',
     'PharmaOptimizer',
     'WebDesignOptimizer',
-    'EvolutionMode',
-    'DomainType',
     'detect_domain',
     'get_optimizer',
     'optimize_by_domain',
@@ -53,7 +70,7 @@ DOMAIN_KEYWORDS = {
         "portfolio", "asset", "allocation", "sharpe", "risk", "return",
         "volatility", "var", "cvar", "drawdown", "sortino", "treynor",
         "beta", "alpha", "benchmark", "rebalance", "diversification",
-        "optimization", "backtest", "asset_class", "equity", "bond",
+        "backtest", "asset_class", "equity", "bond",
         "derivative", "option", "future", "commodity"
     ],
     "trading": [
@@ -71,8 +88,8 @@ DOMAIN_KEYWORDS = {
         "assay", "screening", "validation", "clinical_trial"
     ],
     "engineering": [
-        "structural", "optimization", "fea", "simulation", "circuit", "control",
-        "design", "weight", "strength", "safety", "reliability", "fatigue",
+        "structural", "fea", "simulation", "circuit", "control",
+        "weight", "strength", "safety", "reliability", "fatigue",
         "resonance", "load_exceedance", "constraint", "manufacturing", "tolerance",
         "cad", "cae", "mesh", "finite_element", "vibration", "thermal",
         "fluid_dynamics", "optimization_engineering", "mechanical", "civil"
@@ -115,15 +132,22 @@ def detect_domain(problem_description: str, keywords: Optional[Dict[str, List[st
         >>> detect_domain("Design trading strategy with entry/exit rules")
         'trading'
     """
+    import re
     if keywords is None:
         keywords = DOMAIN_KEYWORDS
 
     problem_lower = problem_description.lower()
 
-    # Score each domain by keyword matches
+    # Score each domain by keyword matches (using word boundaries)
     scores = {}
     for domain, domain_keywords in keywords.items():
-        score = sum(1 for kw in domain_keywords if kw.lower() in problem_lower)
+        score = 0
+        for kw in domain_keywords:
+            # Use word boundary matching to avoid substring matches
+            # e.g., "rsi" shouldn't match in "conversion"
+            pattern = r'\b' + re.escape(kw.lower()) + r'\b'
+            if re.search(pattern, problem_lower):
+                score += 1
         scores[domain] = score
 
     # Find domain with highest score
@@ -256,3 +280,5 @@ async def optimize_multi_domain(
             }
 
     return results
+
+

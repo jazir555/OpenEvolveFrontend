@@ -16,7 +16,7 @@ import os
 # Add parent directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from glue.adapters.gauntlet_adapter.src.predictive_gauntlet_executor import (
+from predictive_gauntlet_executor import (
     PredictiveGauntletExecutor,
     PredictionResult,
     ExecutionPlan,

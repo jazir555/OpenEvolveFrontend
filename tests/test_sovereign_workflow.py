@@ -18,7 +18,8 @@ st.write = MagicMock()
 st.caption = MagicMock()
 st.rerun = MagicMock()
 
-from workflow_engine import run_sovereign_workflow, run_content_analysis, run_ai_decomposition, run_gauntlet, generate_solution_for_sub_problem, parse_targeted_feedback
+from workflow_engine import run_sovereign_workflow, run_content_analysis, run_ai_decomposition, run_gauntlet, parse_targeted_feedback
+# Don't import generate_solution_for_sub_problem at module level - it breaks mocking
 from workflow_structures import WorkflowState, DecompositionPlan, SubProblem, Team, ModelConfig, GauntletDefinition, GauntletRoundRule, SolutionAttempt, CritiqueReport, VerificationReport
 from team_manager import TeamManager
 from gauntlet_manager import GauntletManager
@@ -142,10 +143,13 @@ def test_run_gauntlet_gold_team_rejected(mock_request_chat):
     assert "sub_1.1" in result["verification_report"].reports_by_judge[0]["targeted_feedback"]
     mock_request_chat.assert_called_once()
 
-@patch('workflow_engine._request_openai_compatible_chat')
+@patch('llm_utils._request_openai_compatible_chat')
 def test_generate_solution_for_sub_problem_single_candidate(mock_request_chat):
+    # Import inside test to avoid mocking issues
+    from workflow_engine import generate_solution_for_sub_problem
+
     mock_request_chat.return_value = "Generated solution content."
-    
+
     solver_team = create_dummy_team("Solver", "Blue")
     sub_problem = SubProblem(id="sub_1.1", description="Solve X")
     workflow_state = WorkflowState(
@@ -162,9 +166,9 @@ def test_generate_solution_for_sub_problem_single_candidate(mock_request_chat):
         maker_enabled=False
     )
     solver_gauntlet = create_dummy_gauntlet("SolverGauntlet", "Solver", generation_mode="single_candidate")
-    
+
     result = generate_solution_for_sub_problem(sub_problem, solver_team, {}, workflow_state, solver_gauntlet)
-    
+
     assert result == "Generated solution content."
     mock_request_chat.assert_called_once()
 

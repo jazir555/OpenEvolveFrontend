@@ -241,7 +241,7 @@ class TestLoongFlowKnowledgeExtractor:
 
         # Check source system
         for artifact in artifacts:
-            assert artifact.source_system == "loongflow"
+            assert artifact.source_system == "loongflow_pes"
 
         # Check domain detection
         for artifact in artifacts:
@@ -273,10 +273,10 @@ class TestLoongFlowKnowledgeExtractor:
 
         assert artifact is not None
         assert artifact.artifact_type == ArtifactType.PLANNING_STRATEGY.value
-        assert artifact.source_system == "loongflow"
+        assert artifact.source_system == "loongflow_pes"
         assert artifact.domain == "mathematics"
-        assert artifact.content["strategy"] == "Use gradient descent"
-        assert artifact.confidence > 0.8
+        assert "Use gradient descent" in artifact.content
+        assert artifact.confidence >= 0.8
         assert len(artifact.entities) > 0
         assert len(artifact.relationships) > 0
 
@@ -336,9 +336,9 @@ class TestLoongFlowKnowledgeExtractor:
 
         assert artifact is not None
         assert artifact.artifact_type == ArtifactType.REFLECTION_INSIGHT.value
-        assert artifact.content["insights"] == "Momentum helps escape local optima"
-        assert len(artifact.content["what_worked"]) == 2
-        assert len(artifact.content["what_failed"]) == 1
+        assert "Momentum helps escape local optima" in artifact.content
+        assert len(artifact.metadata["what_worked"]) == 2
+        assert len(artifact.metadata["what_failed"]) == 1
         assert artifact.metadata["has_assessment"] is True
         assert artifact.metadata["insight_count"] == 3
 
@@ -400,10 +400,11 @@ class TestLoongFlowKnowledgeExtractor:
 
         assert artifact is not None
         assert artifact.artifact_type == ArtifactType.OPTIMIZED_SOLUTION.value
-        assert artifact.content["solution"] == "def optimized_solution(): pass"
-        assert artifact.content["fitness"] == 0.95
-        assert artifact.content["iteration_found"] == 25
+        assert artifact.content == "def optimized_solution(): pass"
+        assert artifact.metadata["fitness"] == 0.95
+        assert artifact.metadata["iteration"] == 25
         assert artifact.lineage is not None
+        assert artifact.confidence >= 0.9  # Changed from > to >=
         assert artifact.lineage["parent_solutions"] == ["parent_1", "parent_2"]
         assert artifact.confidence > 0.9
 

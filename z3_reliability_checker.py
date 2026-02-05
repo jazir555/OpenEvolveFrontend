@@ -45,6 +45,13 @@ try:
 except ImportError:
     Z3_ADVANCED_AVAILABLE = False
 
+# Import solver pool for metrics
+try:
+    from z3_solver_pool import get_solver_pool, get_active_solvers_count, get_queue_depth_count
+    SOLVER_POOL_AVAILABLE = True
+except ImportError:
+    SOLVER_POOL_AVAILABLE = False
+
 # Import ROMA components
 try:
     from roma_recomposition_config import Component, EntanglementConstraint
@@ -225,8 +232,8 @@ class Z3ReliabilityChecker:
         }
     
     def get_status(self) -> Dict[str, Any]:
-        """Get checker status."""
-        return {
+        """Get checker status with solver pool metrics."""
+        status = {
             "z3_available": Z3_AVAILABLE,
             "z3_advanced_available": Z3_ADVANCED_AVAILABLE,
             "roma_available": ROMA_AVAILABLE,
@@ -234,6 +241,24 @@ class Z3ReliabilityChecker:
             "statistics": self._stats.copy(),
             "cache_size": len(self._verification_cache)
         }
+        
+        # Add solver pool metrics if available
+        if SOLVER_POOL_AVAILABLE:
+            try:
+                status["solver_pool"] = {
+                    "active_solvers": get_active_solvers_count(),
+                    "queue_depth": get_queue_depth_count(),
+                    "available": True
+                }
+            except Exception as e:
+                status["solver_pool"] = {
+                    "available": False,
+                    "error": str(e)
+                }
+        else:
+            status["solver_pool"] = {"available": False}
+        
+        return status
     
     # =====================================================================
     # Component Reliability Verification

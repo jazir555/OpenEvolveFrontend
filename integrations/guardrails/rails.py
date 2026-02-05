@@ -259,8 +259,8 @@ class JailbreakDetectionRail(InputRail):
     
     # Known jailbreak patterns
     JAILBREAK_PATTERNS = [
-        re.compile(r'ignore (previous|above|all) instructions', re.IGNORECASE),
-        re.compile(r'disregard (your|the) (instructions|programming)', re.IGNORECASE),
+        re.compile(r'ignore (?:previous|above|all|all previous|all the|all your) instructions?', re.IGNORECASE),
+        re.compile(r'disregard (your|the)? ?(instructions|programming)', re.IGNORECASE),
         re.compile(r'you are (now|no longer) (?:a|an) (?:ai|assistant|language model)', re.IGNORECASE),
         re.compile(r'dan mode|developer mode|jailbreak', re.IGNORECASE),
         re.compile(r'system prompt|prompt injection', re.IGNORECASE),
@@ -654,17 +654,21 @@ class ValidationRail(OutputRail):
             for validator in validators:
                 result = validator.validate(current_output, correlation_id)
                 results.append(result)
-                
-                if not result.is_valid and self.auto_fix:
-                    fixed = validator.fix(current_output, result)
-                    if fixed is not None:
-                        current_output = fixed
-                        any_fixed = True
-                        # Re-validate after fix
-                        result = validator.validate(current_output, correlation_id)
-                        if not result.is_valid:
+
+                if not result.is_valid:
+                    if self.auto_fix:
+                        fixed = validator.fix(current_output, result)
+                        if fixed is not None:
+                            current_output = fixed
+                            any_fixed = True
+                            # Re-validate after fix
+                            result = validator.validate(current_output, correlation_id)
+                            if not result.is_valid:
+                                all_fixed = False
+                        else:
                             all_fixed = False
                     else:
+                        # Validation failed and auto_fix is disabled
                         all_fixed = False
                         
             failed = [r for r in results if not r.is_valid]

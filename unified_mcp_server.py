@@ -993,221 +993,173 @@ class UnifiedMCPServer:
                           }, "required": ["title", "description"]})
     
     # ========================================================================
-    # CATEGORY 4: Z3 PROVER TOOLS (9 tools)
+    # CATEGORY 4: Z3 PROVER TOOLS (12 tools - 9 original + 3 DSPy-enhanced)
     # ========================================================================
     def _register_z3_tools(self) -> None:
-        """Register Z3 SMT solver tools."""
+        """Register Z3 SMT solver tools by importing from z3_mcp_tools."""
+        # Import all Z3 MCP tool functions from the dedicated module
+        try:
+            from z3_mcp_tools import (
+                z3_solve_constraints,
+                z3_optimize,
+                z3_prove_theorem,
+                z3_translate_smt_to_lean,
+                z3_solve_incremental,
+                z3_extract_proof,
+                z3_analyze_problem,
+                z3_solve_portfolio,
+                Z3MCPServer,
+                MCPTool
+            )
+            Z3_MCP_TOOLS_AVAILABLE = True
+        except ImportError as e:
+            logger.warning(f"Z3 MCP tools not available: {e}")
+            Z3_MCP_TOOLS_AVAILABLE = False
         
-        async def z3_solve_constraints(args: Dict[str, Any]) -> Dict[str, Any]:
-            """Solve constraint satisfaction problems."""
-            try:
-                from z3 import Solver, sat
-                
-                solver = Solver()
-                
-                # Parse and add constraints
-                constraints = args.get("constraints", [])
-                for constraint in constraints:
-                    # Simplified constraint parsing
-                    pass
-                
-                result = solver.check()
-                
-                if result == sat:
-                    model = solver.model()
-                    return {"success": True, "satisfiable": True, "model": str(model)}
-                else:
-                    return {"success": True, "satisfiable": False}
-            except ImportError:
-                return {"success": False, "error": "Z3 not installed. Install with: pip install z3-solver"}
-            except Exception as e:
-                return {"success": False, "error": str(e)}
+        # Helper to wrap z3_mcp_tools functions for unified server
+        def wrap_z3_tool(tool_func):
+            """Wrap a z3_mcp_tools function to accept unified server args format."""
+            async def wrapper(args: Dict[str, Any]) -> Dict[str, Any]:
+                try:
+                    return await tool_func(**args)
+                except Exception as e:
+                    logger.error(f"Error in {tool_func.__name__}: {e}")
+                    return {"success": False, "error": str(e)}
+            return wrapper
         
-        self.register_tool("z3_solve_constraints", ToolCategory.Z3_PROVER,
-                          "Solve constraint satisfaction problems",
-                          z3_solve_constraints,
-                          {"type": "object", "properties": {
-                              "constraints": {"type": "array", "description": "List of constraint expressions"},
-                              "variables": {"type": "object", "description": "Variable definitions"},
-                              "timeout": {"type": "number", "default": 30000}
-                          }})
-        
-        # ALIAS: z3_solve for tests
-        self.register_tool("z3_solve", ToolCategory.Z3_PROVER,
-                          "Solve constraint satisfaction problems",
-                          z3_solve_constraints,
-                          {"type": "object", "properties": {
-                              "constraints": {"type": "array", "description": "List of constraint expressions"},
-                              "variables": {"type": "object", "description": "Variable definitions"},
-                              "timeout": {"type": "number", "default": 5.0}
-                          }})
-        
-        async def z3_optimize(args: Dict[str, Any]) -> Dict[str, Any]:
-            """Solve optimization problems."""
-            try:
-                from z3 import Optimize
-                
-                opt = Optimize()
-                
-                # Add constraints and objective
-                objective = args.get("objective", "")
-                direction = args.get("direction", "maximize")
-                
-                return {"success": True, "optimal_value": "TBD", "solution": {}}
-            except ImportError:
-                return {"success": False, "error": "Z3 not installed"}
-            except Exception as e:
-                return {"success": False, "error": str(e)}
-        
-        self.register_tool("z3_optimize", ToolCategory.Z3_PROVER,
-                          "Solve optimization problems",
-                          z3_optimize,
-                          {"type": "object", "properties": {
-                              "constraints": {"type": "array"},
-                              "objective": {"type": "string"},
-                              "direction": {"type": "string", "enum": ["minimize", "maximize"]}
-                          }})
-        
-        async def z3_prove_theorem(args: Dict[str, Any]) -> Dict[str, Any]:
-            """Prove theorems using Z3."""
-            try:
-                from z3 import Solver, Not, sat
-                
-                solver = Solver()
-                
-                # Add theorem as negation (proof by contradiction)
-                theorem = args.get("theorem", "")
-                assumptions = args.get("assumptions", [])
-                
-                result = solver.check()
-                
-                return {
-                    "success": True,
-                    "proved": result == sat,
-                    "result": str(result)
-                }
-            except ImportError:
-                return {"success": False, "error": "Z3 not installed"}
-            except Exception as e:
-                return {"success": False, "error": str(e)}
-        
-        self.register_tool("z3_prove_theorem", ToolCategory.Z3_PROVER,
-                          "Prove theorems using Z3",
-                          z3_prove_theorem,
-                          {"type": "object", "properties": {
-                              "theorem": {"type": "string"},
-                              "assumptions": {"type": "array"}
-                          }, "required": ["theorem"]})
-        
-        async def z3_translate_smt_to_lean(args: Dict[str, Any]) -> Dict[str, Any]:
-            """Translate SMT-LIB to Lean 4 code."""
-            try:
-                smt_lib = args.get("smt_lib", "")
-                
-                # Translation logic
-                lean_code = f"-- Translated from SMT-LIB\n-- {smt_lib[:100]}..."
-                
-                return {"success": True, "lean_code": lean_code}
-            except Exception as e:
-                return {"success": False, "error": str(e)}
-        
-        self.register_tool("z3_translate_smt_to_lean", ToolCategory.Z3_PROVER,
-                          "Translate SMT-LIB to Lean 4 code",
-                          z3_translate_smt_to_lean,
-                          {"type": "object", "properties": {
-                              "smt_lib": {"type": "string"}
-                          }, "required": ["smt_lib"]})
-        
-        async def z3_solve_incremental(args: Dict[str, Any]) -> Dict[str, Any]:
-            """Incremental constraint solving with push/pop."""
-            try:
-                from z3 import Solver
-                
-                solver = Solver()
-                
-                # Push/pop operations
-                operations = args.get("operations", [])
-                
-                return {"success": True, "results": []}
-            except ImportError:
-                return {"success": False, "error": "Z3 not installed"}
-            except Exception as e:
-                return {"success": False, "error": str(e)}
-        
-        self.register_tool("z3_solve_incremental", ToolCategory.Z3_PROVER,
-                          "Incremental constraint solving",
-                          z3_solve_incremental,
-                          {"type": "object", "properties": {
-                              "operations": {"type": "array"}
-                          }})
-        
-        async def z3_extract_proof(args: Dict[str, Any]) -> Dict[str, Any]:
-            """Extract proofs from Z3."""
-            try:
-                return {"success": True, "proof": "Proof extraction requires Z3 proof generation enabled"}
-            except Exception as e:
-                return {"success": False, "error": str(e)}
-        
-        self.register_tool("z3_extract_proof", ToolCategory.Z3_PROVER,
-                          "Extract proofs from Z3",
-                          z3_extract_proof,
-                          {"type": "object", "properties": {}})
-        
-        async def z3_analyze_problem(args: Dict[str, Any]) -> Dict[str, Any]:
-            """Analyze problem characteristics."""
-            try:
-                return {
-                    "success": True,
-                    "complexity": "medium",
-                    "theory": "unknown",
-                    "suggested_tactics": ["smt", "auto"]
-                }
-            except Exception as e:
-                return {"success": False, "error": str(e)}
-        
-        self.register_tool("z3_analyze_problem", ToolCategory.Z3_PROVER,
-                          "Analyze problem characteristics",
-                          z3_analyze_problem,
-                          {"type": "object", "properties": {
-                              "problem": {"type": "string"}
-                          }})
-        
-        async def z3_solve_portfolio(args: Dict[str, Any]) -> Dict[str, Any]:
-            """Portfolio solving with multiple strategies."""
-            try:
-                strategies = args.get("strategies", ["default", "qflia", "qfnra"])
-                
-                return {
-                    "success": True,
-                    "strategies_tried": strategies,
-                    "best_strategy": "default",
-                    "result": "TBD"
-                }
-            except Exception as e:
-                return {"success": False, "error": str(e)}
-        
-        self.register_tool("z3_solve_portfolio", ToolCategory.Z3_PROVER,
-                          "Portfolio solving with multiple strategies",
-                          z3_solve_portfolio,
-                          {"type": "object", "properties": {
-                              "constraints": {"type": "array"},
-                              "strategies": {"type": "array"}
-                          }})
-        
-        async def get_z3_status(args: Dict[str, Any]) -> Dict[str, Any]:
-            """Get Z3 integration status."""
-            try:
-                import z3
-                return {"success": True, "z3_installed": True, "version": z3.get_version_string()}
-            except ImportError:
-                return {"success": True, "z3_installed": False, "install_command": "pip install z3-solver"}
-            except Exception as e:
-                return {"success": False, "error": str(e)}
-        
-        self.register_tool("get_z3_status", ToolCategory.Z3_PROVER,
-                          "Get Z3 prover status",
-                          get_z3_status,
-                          {"type": "object", "properties": {}})
+        if Z3_MCP_TOOLS_AVAILABLE:
+            # Register all 8 core Z3 tools imported from z3_mcp_tools
+            self.register_tool("z3_solve_constraints", ToolCategory.Z3_PROVER,
+                              "Solve constraint satisfaction problems using Z3",
+                              wrap_z3_tool(z3_solve_constraints),
+                              {"type": "object", "properties": {
+                                  "variables": {
+                                      "type": "array",
+                                      "description": "List of variable definitions",
+                                      "items": {
+                                          "type": "object",
+                                          "properties": {
+                                              "name": {"type": "string"},
+                                              "type": {"type": "string", "enum": ["BOOLEAN", "INTEGER", "REAL", "BIT_VECTOR", "STRING", "FLOATING_POINT"]},
+                                              "bit_width": {"type": "integer", "optional": True}
+                                          }
+                                      }
+                                  },
+                                  "constraints": {
+                                      "type": "array",
+                                      "description": "List of SMT-LIB constraint expressions",
+                                      "items": {"type": "string"}
+                                  },
+                                  "timeout": {"type": "number", "default": 30, "description": "Timeout in seconds"}
+                              }, "required": ["variables", "constraints"]})
+            
+            # ALIAS: z3_solve for tests (same implementation)
+            self.register_tool("z3_solve", ToolCategory.Z3_PROVER,
+                              "Solve constraint satisfaction problems (alias)",
+                              wrap_z3_tool(z3_solve_constraints),
+                              {"type": "object", "properties": {
+                                  "variables": {"type": "array"},
+                                  "constraints": {"type": "array"},
+                                  "timeout": {"type": "number", "default": 30}
+                              }, "required": ["variables", "constraints"]})
+            
+            self.register_tool("z3_optimize", ToolCategory.Z3_PROVER,
+                              "Solve optimization problems using Z3",
+                              wrap_z3_tool(z3_optimize),
+                              {"type": "object", "properties": {
+                                  "variables": {"type": "array", "description": "List of variable definitions"},
+                                  "constraints": {"type": "array", "description": "List of constraint expressions"},
+                                  "objective": {
+                                      "type": "object",
+                                      "description": "Objective function",
+                                      "properties": {
+                                          "expression": {"type": "string"},
+                                          "direction": {"type": "string", "enum": ["minimize", "maximize"]}
+                                      }
+                                  },
+                                  "timeout": {"type": "number", "default": 30}
+                              }, "required": ["variables", "constraints", "objective"]})
+            
+            self.register_tool("z3_prove_theorem", ToolCategory.Z3_PROVER,
+                              "Prove theorems using Z3",
+                              wrap_z3_tool(z3_prove_theorem),
+                              {"type": "object", "properties": {
+                                  "theorem": {"type": "string", "description": "Theorem statement in SMT-LIB or natural language"},
+                                  "assumptions": {"type": "array", "description": "List of assumptions", "items": {"type": "string"}, "optional": True},
+                                  "extract_proof": {"type": "boolean", "default": False, "description": "Whether to extract detailed proof"}
+                              }, "required": ["theorem"]})
+            
+            self.register_tool("z3_translate_smt_to_lean", ToolCategory.Z3_PROVER,
+                              "Translate SMT-LIB to Lean 4 code",
+                              wrap_z3_tool(z3_translate_smt_to_lean),
+                              {"type": "object", "properties": {
+                                  "smtlib": {"type": "string", "description": "SMT-LIB content to translate"}
+                              }, "required": ["smtlib"]})
+            
+            self.register_tool("z3_solve_incremental", ToolCategory.Z3_PROVER,
+                              "Solve constraints incrementally with push/pop",
+                              wrap_z3_tool(z3_solve_incremental),
+                              {"type": "object", "properties": {
+                                  "operation": {"type": "string", "enum": ["create", "push", "pop", "add", "check"], "description": "Operation to perform"},
+                                  "state_id": {"type": "string", "description": "Incremental state ID (omit to create new)", "optional": True},
+                                  "variables": {"type": "array", "description": "Variables for create operation", "optional": True},
+                                  "constraints": {"type": "array", "description": "Constraints for create/add operations", "optional": True},
+                                  "constraint": {"type": "string", "description": "Single constraint for add operation", "optional": True}
+                              }, "required": ["operation"]})
+            
+            self.register_tool("z3_extract_proof", ToolCategory.Z3_PROVER,
+                              "Extract proofs from Z3",
+                              wrap_z3_tool(z3_extract_proof),
+                              {"type": "object", "properties": {
+                                  "smtlib": {"type": "string", "description": "SMT-LIB problem (must be UNSAT for proof)"},
+                                  "format": {"type": "string", "enum": ["text", "json", "dot", "smtlib2"], "default": "text"}
+                              }, "required": ["smtlib"]})
+            
+            self.register_tool("z3_analyze_problem", ToolCategory.Z3_PROVER,
+                              "Analyze problem characteristics",
+                              wrap_z3_tool(z3_analyze_problem),
+                              {"type": "object", "properties": {
+                                  "problem": {"type": "string", "description": "Problem description or SMT-LIB"}
+                              }, "required": ["problem"]})
+            
+            self.register_tool("z3_solve_portfolio", ToolCategory.Z3_PROVER,
+                              "Portfolio solving with multiple strategies",
+                              wrap_z3_tool(z3_solve_portfolio),
+                              {"type": "object", "properties": {
+                                  "smtlib": {"type": "string", "description": "SMT-LIB problem"},
+                                  "strategies": {"type": "array", "description": "List of strategies to try", "optional": True},
+                                  "timeout": {"type": "number", "default": 30}
+                              }, "required": ["smtlib"]})
+            
+            # Register get_z3_status using the Z3MCPServer
+            async def get_z3_status(args: Dict[str, Any]) -> Dict[str, Any]:
+                """Get Z3 integration status."""
+                try:
+                    import z3
+                    return {"success": True, "z3_installed": True, "version": z3.get_version_string()}
+                except ImportError:
+                    return {"success": True, "z3_installed": False, "install_command": "pip install z3-solver"}
+                except Exception as e:
+                    return {"success": False, "error": str(e)}
+            
+            self.register_tool("get_z3_status", ToolCategory.Z3_PROVER,
+                              "Get Z3 prover status",
+                              get_z3_status,
+                              {"type": "object", "properties": {}})
+        else:
+            # Fallback: register stub tools if z3_mcp_tools not available
+            logger.warning("Registering stub Z3 tools - z3_mcp_tools module not available")
+            
+            async def z3_unavailable(args: Dict[str, Any]) -> Dict[str, Any]:
+                return {"success": False, "error": "Z3 MCP tools not available. Install z3-solver and dependencies."}
+            
+            for tool_name in ["z3_solve_constraints", "z3_solve", "z3_optimize", "z3_prove_theorem",
+                             "z3_translate_smt_to_lean", "z3_solve_incremental", "z3_extract_proof",
+                             "z3_analyze_problem", "z3_solve_portfolio", "get_z3_status"]:
+                self.register_tool(tool_name, ToolCategory.Z3_PROVER,
+                                  f"Z3 tool (unavailable)",
+                                  z3_unavailable,
+                                  {"type": "object", "properties": {}})
 
         async def verify_with_z3_leanaide_dspy(args: Dict[str, Any]) -> Dict[str, Any]:
             """Verify problems using robust Z3-LeanAIDE integration with DSPy for enhanced problem understanding."""

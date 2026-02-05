@@ -231,13 +231,14 @@ class SafetyPolicy(Policy):
             ],
             "discrimination": [
                 re.compile(r'\b(hate|inferior|superior)\s+(race|gender|religion|nationality)\b', re.IGNORECASE),
-                re.compile(r'\b(all|every)\s+\w+\s+(are|is)\s+(stupid|bad|inferior)\b', re.IGNORECASE),
+                re.compile(r'\ball\s+\w+(\s+\w+)*\s+are\s+(stupid|bad|inferior)\b', re.IGNORECASE),
+                re.compile(r'\bevery\s+\w+(\s+\w+)*\s+is\s+(stupid|bad|inferior)\b', re.IGNORECASE),
             ],
             "misinformation": [
                 re.compile(r'\b(conspiracy|hoax|fake\s+news)\b', re.IGNORECASE),
             ],
             "privacy_violation": [
-                re.compile(r'\b(ssn|social\s+security|credit\s+card)\s*:\s*\d', re.IGNORECASE),
+                re.compile(r'\b(ssn|social\s+security|credit\s+card)\s*(is|:)?\s*\d', re.IGNORECASE),
                 re.compile(r'\bpassword\s*[=:]\s*\S+', re.IGNORECASE),
             ],
             "violence": [

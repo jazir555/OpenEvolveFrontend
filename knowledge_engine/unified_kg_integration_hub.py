@@ -278,6 +278,7 @@ class KGOperationType(Enum):
     SAFETY_VALIDATION = auto()        # Guardrails: AI safety checks
     ITERATIVE_REFINEMENT = auto()     # ICR: contextual refinements
     TOPOLOGICAL_ANALYSIS = auto()     # Lagrange Mapper: attractor landscapes
+    EPISODIC_RECORDING = auto()       # Chronicle/Graphiti: episodic memory recording
 
 
 @dataclass
@@ -369,6 +370,8 @@ class UnifiedKGIntegrationHub:
         self._integrations: Dict[str, Any] = {}
         self._health_status: Dict[str, IntegrationHealth] = {}
         self._initialized = False
+        self.chronicle = None
+        self.temporal_manager = None
         
         # Operation routing map: operation_type -> list of integrations (ordered by preference)
         self._routing_map: Dict[KGOperationType, List[str]] = {
@@ -391,7 +394,8 @@ class UnifiedKGIntegrationHub:
             KGOperationType.CONVERSATION_OPTIMIZATION: ['dts'],
             KGOperationType.SAFETY_VALIDATION: ['guardrails'],
             KGOperationType.ITERATIVE_REFINEMENT: ['icr'],
-            KGOperationType.TOPOLOGICAL_ANALYSIS: ['lagrange_mapper']
+            KGOperationType.TOPOLOGICAL_ANALYSIS: ['lagrange_mapper'],
+            KGOperationType.EPISODIC_RECORDING: ['chronicle', 'graphiti']
         }
         
         logger.info({

@@ -5,7 +5,7 @@ Provides:
 - Intelligent result caching with TTL
 - Persistent storage of solutions and proofs
 - Cache invalidation strategies
-- Distributed cache support
+- Distributed cache support (Valkey)
 - Result versioning
 - Cache analytics
 
@@ -27,6 +27,44 @@ from enum import Enum
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+# =============================================================================
+# Valkey Import with Graceful Fallback
+# =============================================================================
+
+VALKEY_AVAILABLE = False
+valkey = None
+ConnectionPool = None
+
+# Try to import from valkey_integration first (our wrapper)
+try:
+    from valkey_integration import valkey as valkey_module, ConnectionPool as ValkeyPool, VALKEY_AVAILABLE as VK_AVAIL
+    valkey = valkey_module
+    ConnectionPool = ValkeyPool
+    VALKEY_AVAILABLE = VK_AVAIL
+    if VALKEY_AVAILABLE:
+        logger.info("Valkey integration loaded successfully")
+except ImportError:
+    # Try direct valkey import
+    try:
+        import valkey as valkey_module
+        from valkey.connection import ConnectionPool as ValkeyPool
+        valkey = valkey_module
+        ConnectionPool = ValkeyPool
+        VALKEY_AVAILABLE = True
+        logger.info("Valkey library imported directly")
+    except ImportError:
+        # Fallback to redis-py (Valkey-compatible)
+        try:
+            import redis
+            from redis.connection import ConnectionPool as RedisPool
+            valkey = redis
+            ConnectionPool = RedisPool
+            VALKEY_AVAILABLE = True
+            logger.info("Using redis-py as Valkey-compatible backend")
+        except ImportError:
+            VALKEY_AVAILABLE = False
+            logger.debug("Neither valkey nor redis-py installed. Distributed cache will not be available.")
 
 
 # =============================================================================
@@ -52,10 +90,17 @@ class CacheConfig:
     compression: bool = False
     checksum_verification: bool = True
     
-    # Distributed cache settings
+    # Distributed cache settings (Valkey)
     distributed: bool = False
-    redis_host: Optional[str] = None
-    redis_port: int = 6379
+    valkey_host: Optional[str] = None
+    valkey_port: int = 6379
+    valkey_db: int = 0
+    valkey_password: Optional[str] = None
+    valkey_ssl: bool = False
+    valkey_socket_timeout: float = 5.0
+    valkey_socket_connect_timeout: float = 5.0
+    valkey_max_connections: int = 50
+    valkey_key_prefix: str = "z3_cache"
 
 
 @dataclass
@@ -93,6 +138,349 @@ class CacheEntry:
             "tags": self.tags,
             "version": self.version
         }
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any], value: Any) -> "CacheEntry":
+        """Create CacheEntry from dictionary."""
+        return cls(
+            key=data.get("key", ""),
+            value=value,
+            created_at=data.get("created_at", time.time()),
+            expires_at=data.get("expires_at"),
+            access_count=data.get("access_count", 0),
+            last_accessed=data.get("last_accessed", time.time()),
+            size_bytes=data.get("size_bytes", 0),
+            tags=data.get("tags", []),
+            version=data.get("version", 1)
+        )
+
+
+# =============================================================================
+# Valkey Cache Backend
+# =============================================================================
+
+class ValkeyCacheBackend:
+    """
+    Valkey-based distributed cache backend with connection pooling.
+    
+    Features:
+    - Connection pooling for efficient resource usage
+    - TTL support with native Valkey expiration
+    - Tag-based invalidation using Valkey sets
+    - Serialization/deserialization for dataclasses
+    - Graceful fallback handling
+    - Redis-compatible (works with Valkey, Redis, or redis-py)
+    """
+    
+    def __init__(self, config: CacheConfig):
+        self.config = config
+        self._valkey: Optional[Any] = None
+        self._pool: Optional[Any] = None
+        self._lock = threading.RLock()
+        self._initialized = False
+        
+        if not VALKEY_AVAILABLE:
+            logger.warning("Valkey/Redis not installed. Cannot use distributed cache.")
+            return
+        
+        self._initialize_connection()
+    
+    def _initialize_connection(self) -> bool:
+        """Initialize Valkey connection pool."""
+        if self._initialized:
+            return True
+        
+        try:
+            # Build connection kwargs
+            conn_kwargs = {
+                "host": self.config.valkey_host or "localhost",
+                "port": self.config.valkey_port,
+                "db": self.config.valkey_db,
+                "password": self.config.valkey_password,
+                "socket_timeout": self.config.valkey_socket_timeout,
+                "socket_connect_timeout": self.config.valkey_socket_connect_timeout,
+                "max_connections": self.config.valkey_max_connections,
+                "retry_on_timeout": True,
+                "health_check_interval": 30
+            }
+            
+            # Add SSL parameters only if SSL is enabled
+            if self.config.valkey_ssl:
+                conn_kwargs["ssl"] = True
+            
+            # Create connection pool
+            self._pool = ConnectionPool(**conn_kwargs)
+            
+            # Create Valkey/Redis client
+            self._valkey = valkey.Redis(connection_pool=self._pool)
+            
+            # Test connection
+            self._valkey.ping()
+            
+            self._initialized = True
+            logger.info(
+                f"Valkey cache connected to {self.config.valkey_host}:{self.config.valkey_port}"
+            )
+            return True
+            
+        except Exception as e:
+            logger.warning(f"Failed to connect to Valkey: {e}. Will fall back to SQLite.")
+            self._cleanup_connection()
+            return False
+    
+    def _cleanup_connection(self):
+        """Clean up Valkey connection resources."""
+        try:
+            if self._pool:
+                self._pool.disconnect()
+        except Exception:
+            pass
+        self._valkey = None
+        self._pool = None
+        self._initialized = False
+    
+    def is_available(self) -> bool:
+        """Check if Valkey connection is available."""
+        if not VALKEY_AVAILABLE or not self._initialized or not self._valkey:
+            return False
+        try:
+            return self._valkey.ping()
+        except Exception:
+            return False
+    
+    def _make_key(self, key: str) -> str:
+        """Create Valkey key with prefix."""
+        return f"{self.config.valkey_key_prefix}:{key}"
+    
+    def _make_tags_key(self, tag: str) -> str:
+        """Create Valkey key for tag set."""
+        return f"{self.config.valkey_key_prefix}:tags:{tag}"
+    
+    def _serialize_value(self, entry: CacheEntry) -> str:
+        """Serialize cache entry to JSON string."""
+        data = {
+            "key": entry.key,
+            "value": entry.value,
+            "created_at": entry.created_at,
+            "expires_at": entry.expires_at,
+            "access_count": entry.access_count,
+            "last_accessed": entry.last_accessed,
+            "size_bytes": entry.size_bytes,
+            "tags": entry.tags,
+            "version": entry.version
+        }
+        return json.dumps(data, default=self._json_serializer)
+    
+    def _deserialize_value(self, data: str) -> Optional[CacheEntry]:
+        """Deserialize JSON string to cache entry."""
+        try:
+            parsed = json.loads(data)
+            return CacheEntry.from_dict(parsed, parsed.get("value"))
+        except Exception as e:
+            logger.error(f"Failed to deserialize cache entry: {e}")
+            return None
+    
+    def _json_serializer(self, obj: Any) -> Any:
+        """Custom JSON serializer for special types."""
+        if hasattr(obj, 'to_dict'):
+            return obj.to_dict()
+        elif dataclasses.is_dataclass(obj):
+            return dataclasses.asdict(obj)
+        elif isinstance(obj, set):
+            return list(obj)
+        elif isinstance(obj, bytes):
+            return obj.decode('utf-8', errors='ignore')
+        raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
+    
+    def get(self, key: str) -> Optional[CacheEntry]:
+        """Get cache entry from Valkey."""
+        if not self.is_available():
+            return None
+        
+        try:
+            with self._lock:
+                valkey_key = self._make_key(key)
+                data = self._valkey.get(valkey_key)
+                
+                if data is None:
+                    return None
+                
+                entry = self._deserialize_value(data.decode('utf-8'))
+                
+                if entry and entry.is_expired():
+                    # Entry expired, remove it
+                    self._valkey.delete(valkey_key)
+                    return None
+                
+                return entry
+                
+        except Exception as e:
+            logger.error(f"Valkey get error: {e}")
+            return None
+    
+    def set(self, entry: CacheEntry) -> bool:
+        """Store cache entry in Valkey with TTL."""
+        if not self.is_available():
+            return False
+        
+        try:
+            with self._lock:
+                valkey_key = self._make_key(entry.key)
+                data = self._serialize_value(entry)
+                
+                # Calculate TTL
+                ttl_seconds = None
+                if entry.expires_at:
+                    ttl_seconds = int(entry.expires_at - time.time())
+                    if ttl_seconds <= 0:
+                        # Already expired, don't store
+                        return False
+                elif self.config.default_ttl > 0:
+                    ttl_seconds = int(self.config.default_ttl)
+                
+                # Store with TTL if specified
+                if ttl_seconds:
+                    self._valkey.setex(valkey_key, ttl_seconds, data)
+                else:
+                    self._valkey.set(valkey_key, data)
+                
+                # Add to tag sets for tag-based invalidation
+                for tag in entry.tags:
+                    tag_key = self._make_tags_key(tag)
+                    self._valkey.sadd(tag_key, entry.key)
+                    # Set expiration on tag set too
+                    if ttl_seconds:
+                        self._valkey.expire(tag_key, ttl_seconds)
+                
+                return True
+                
+        except Exception as e:
+            logger.error(f"Valkey set error: {e}")
+            return False
+    
+    def delete(self, key: str) -> bool:
+        """Delete cache entry from Valkey."""
+        if not self.is_available():
+            return False
+        
+        try:
+            with self._lock:
+                valkey_key = self._make_key(key)
+                
+                # Get entry first to remove from tag sets
+                data = self._valkey.get(valkey_key)
+                if data:
+                    entry = self._deserialize_value(data.decode('utf-8'))
+                    if entry:
+                        for tag in entry.tags:
+                            tag_key = self._make_tags_key(tag)
+                            self._valkey.srem(tag_key, entry.key)
+                
+                self._valkey.delete(valkey_key)
+                return True
+                
+        except Exception as e:
+            logger.error(f"Valkey delete error: {e}")
+            return False
+    
+    def invalidate_by_tags(self, tags: List[str]) -> int:
+        """Invalidate entries by tags."""
+        if not self.is_available() or not tags:
+            return 0
+        
+        try:
+            with self._lock:
+                keys_to_delete = set()
+                
+                # Collect keys from all matching tag sets
+                for tag in tags:
+                    tag_key = self._make_tags_key(tag)
+                    keys = self._valkey.smembers(tag_key)
+                    keys_to_delete.update(k.decode('utf-8') if isinstance(k, bytes) else k 
+                                          for k in keys)
+                    # Delete the tag set itself
+                    self._valkey.delete(tag_key)
+                
+                # Delete all collected entries
+                count = 0
+                for key in keys_to_delete:
+                    valkey_key = self._make_key(key)
+                    if self._valkey.delete(valkey_key):
+                        count += 1
+                
+                return count
+                
+        except Exception as e:
+            logger.error(f"Valkey invalidate by tags error: {e}")
+            return 0
+    
+    def clear(self) -> bool:
+        """Clear all cache entries with the configured prefix."""
+        if not self.is_available():
+            return False
+        
+        try:
+            with self._lock:
+                pattern = f"{self.config.valkey_key_prefix}:*"
+                cursor = 0
+                
+                while True:
+                    cursor, keys = self._valkey.scan(
+                        cursor=cursor, 
+                        match=pattern, 
+                        count=1000
+                    )
+                    if keys:
+                        self._valkey.delete(*keys)
+                    if cursor == 0:
+                        break
+                
+                logger.info("Valkey cache cleared")
+                return True
+                
+        except Exception as e:
+            logger.error(f"Valkey clear error: {e}")
+            return False
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """Get Valkey cache statistics."""
+        if not self.is_available():
+            return {"error": "Valkey not available"}
+        
+        try:
+            info = self._valkey.info()
+            pattern = f"{self.config.valkey_key_prefix}:*"
+            
+            # Count keys with our prefix
+            cursor = 0
+            key_count = 0
+            while True:
+                cursor, keys = self._valkey.scan(
+                    cursor=cursor,
+                    match=pattern,
+                    count=1000
+                )
+                key_count += len(keys)
+                if cursor == 0:
+                    break
+            
+            return {
+                "connected": True,
+                "used_memory_human": info.get("used_memory_human", "N/A"),
+                "total_keys": info.get("db" + str(self.config.valkey_db), {}).get("keys", key_count),
+                "cache_keys": key_count,
+                "connected_clients": info.get("connected_clients", 0),
+                "uptime_seconds": info.get("uptime_in_seconds", 0),
+                "backend": "valkey"
+            }
+            
+        except Exception as e:
+            logger.error(f"Valkey stats error: {e}")
+            return {"error": str(e)}
+    
+    def close(self):
+        """Close Valkey connection."""
+        self._cleanup_connection()
 
 
 # =============================================================================
@@ -137,7 +525,8 @@ class Z3ResultCache:
     
     Features:
     - Multiple eviction policies
-    - Persistent storage
+    - Persistent storage (SQLite fallback)
+    - Distributed cache support (Valkey with connection pooling)
     - TTL support
     - Tag-based invalidation
     - Statistics tracking
@@ -149,9 +538,21 @@ class Z3ResultCache:
         self._lock = threading.RLock()
         self._stats = CacheStats()
         self._db_conn = None
+        self._valkey_backend: Optional[ValkeyCacheBackend] = None
+        self._use_valkey = False
         
-        # Initialize persistent storage
-        if self.config.persistent_storage:
+        # Initialize Valkey if configured and available
+        if self.config.distributed and self.config.valkey_host:
+            self._valkey_backend = ValkeyCacheBackend(self.config)
+            if self._valkey_backend.is_available():
+                self._use_valkey = True
+                logger.info("Using Valkey as primary cache backend")
+        
+        # Initialize SQLite as fallback or for local caching
+        if self.config.persistent_storage and not self._use_valkey:
+            self._init_db()
+        elif self.config.persistent_storage:
+            # Use SQLite as secondary/backup storage
             self._init_db()
     
     def _init_db(self):
@@ -293,12 +694,30 @@ class Z3ResultCache:
         key = self._generate_key(operation, params)
         
         with self._lock:
+            # Try Redis first if enabled
+            if self._use_valkey and self._valkey_backend:
+                entry = self._valkey_backend.get(key)
+                if entry is not None:
+                    self._stats.hits += 1
+                    self._stats.update_hit_rate()
+                    # Update in-memory cache for faster subsequent access
+                    self._cache[key] = entry
+                    return True, entry.value
+            
+            # Check local cache
             entry = self._cache.get(key)
             
             if entry is None:
-                self._stats.misses += 1
-                self._stats.update_hit_rate()
-                return False, default
+                # Try loading from SQLite if Redis missed
+                if self._db_conn and not self._use_valkey:
+                    entry = self._load_entry_from_db(key)
+                    if entry:
+                        self._cache[key] = entry
+                
+                if entry is None:
+                    self._stats.misses += 1
+                    self._stats.update_hit_rate()
+                    return False, default
             
             if entry.is_expired():
                 self._evict_entry(key)
@@ -317,6 +736,39 @@ class Z3ResultCache:
             self._stats.update_hit_rate()
             
             return True, entry.value
+    
+    def _load_entry_from_db(self, key: str) -> Optional[CacheEntry]:
+        """Load a single entry from database."""
+        if not self._db_conn:
+            return None
+        
+        try:
+            cursor = self._db_conn.cursor()
+            cursor.execute('''
+                SELECT key, value, created_at, expires_at, access_count, 
+                       last_accessed, size_bytes, tags, version
+                FROM cache_entries
+                WHERE key = ? AND (expires_at IS NULL OR expires_at > ?)
+            ''', (key, time.time()))
+            
+            row = cursor.fetchone()
+            if row:
+                value = json.loads(row[1])
+                return CacheEntry(
+                    key=row[0],
+                    value=value,
+                    created_at=row[2],
+                    expires_at=row[3],
+                    access_count=row[4],
+                    last_accessed=row[5],
+                    size_bytes=row[6],
+                    tags=json.loads(row[7]) if row[7] else [],
+                    version=row[8]
+                )
+        except Exception as e:
+            logger.error(f"Failed to load entry from database: {e}")
+        
+        return None
     
     def set(
         self,
@@ -368,7 +820,19 @@ class Z3ResultCache:
         )
         
         with self._lock:
-            # Check if we need to evict
+            # Store in Redis if enabled
+            if self._use_valkey and self._valkey_backend:
+                if not self._valkey_backend.set(entry):
+                    # Redis failed, fall back to SQLite
+                    logger.warning("Redis set failed, falling back to SQLite")
+                    self._save_to_db(entry)
+                else:
+                    # Also update local cache for consistency
+                    self._cache[key] = entry
+                    self._stats.total_size_bytes += size
+                    return
+            
+            # Check if we need to evict (only for local cache)
             if len(self._cache) >= self.config.max_size and key not in self._cache:
                 self._evict_one()
             
@@ -381,8 +845,9 @@ class Z3ResultCache:
             self._stats.total_size_bytes += size
             self._stats.entry_count = len(self._cache)
             
-            # Save to database
-            self._save_to_db(entry)
+            # Save to database (SQLite fallback or secondary storage)
+            if self._db_conn:
+                self._save_to_db(entry)
     
     def invalidate(
         self,
@@ -401,7 +866,15 @@ class Z3ResultCache:
         Returns:
             Number of entries invalidated
         """
+        invalidated_count = 0
+        
         with self._lock:
+            # Invalidate in Redis if enabled
+            if self._use_valkey and self._valkey_backend and tags:
+                valkey_invalidated = self._valkey_backend.invalidate_by_tags(tags)
+                invalidated_count += valkey_invalidated
+            
+            # Invalidate in local cache and SQLite
             to_remove = []
             
             for key, entry in self._cache.items():
@@ -422,7 +895,8 @@ class Z3ResultCache:
             for key in to_remove:
                 self._evict_entry(key)
             
-            return len(to_remove)
+            invalidated_count += len(to_remove)
+            return invalidated_count
     
     def _evict_one(self):
         """Evict single entry based on policy."""
@@ -495,6 +969,10 @@ class Z3ResultCache:
     def clear(self):
         """Clear all cache entries."""
         with self._lock:
+            # Clear Redis if enabled
+            if self._use_valkey and self._valkey_backend:
+                self._valkey_backend.clear()
+            
             self._cache.clear()
             self._stats = CacheStats()
             
@@ -507,10 +985,16 @@ class Z3ResultCache:
                     logger.error(f"Failed to clear database: {e}")
 
     def __del__(self):
-        """Close database connection."""
+        """Close database and Redis connections."""
         if hasattr(self, '_db_conn') and self._db_conn:
             try:
                 self._db_conn.close()
+            except:
+                pass
+        
+        if hasattr(self, '_valkey_backend') and self._valkey_backend:
+            try:
+                self._valkey_backend.close()
             except:
                 pass
     
@@ -522,12 +1006,25 @@ class Z3ResultCache:
                 "config": {
                     "max_size": self.config.max_size,
                     "policy": self.config.policy.value,
-                    "persistent": self.config.persistent_storage
+                    "persistent": self.config.persistent_storage,
+                    "distributed": self.config.distributed,
+                    "valkey_host": self.config.valkey_host,
+                    "valkey_port": self.config.valkey_port
+                },
+                "backend": {
+                    "valkey_enabled": self._use_valkey,
+                    "valkey_available": self._valkey_backend.is_available() if self._valkey_backend else False,
+                    "sqlite_enabled": self._db_conn is not None
                 },
                 "entries": [
                     entry.to_dict() for entry in list(self._cache.values())[:10]
                 ]
             }
+            
+            # Add Redis stats if available
+            if self._use_valkey and self._valkey_backend:
+                info["valkey_stats"] = self._valkey_backend.get_stats()
+            
             return info
 
 

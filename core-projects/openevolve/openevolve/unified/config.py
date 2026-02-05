@@ -529,6 +529,9 @@ class EvaluatorConfig(BaseModel):
 class PESConfig(BaseModel):
     """LoongFlow PES (Plan-Evolve-Summarize) Specific Configuration (22 parameters)"""
 
+    # Enable PES mode
+    enabled: bool = Field(default=False, description="Enable PES mode")
+
     # === Planning Configuration (6 parameters) ===
     enable_planning: bool = Field(
         default=True,
@@ -813,6 +816,9 @@ class QDConfig(BaseModel):
 class MOConfig(BaseModel):
     """Multi-Objective Optimization Configuration (15 parameters)"""
 
+    # Enable MO mode
+    enabled: bool = Field(default=False, description="Enable multi-objective optimization")
+
     # === Objective Configuration (4 parameters) ===
     objectives: List[str] = Field(
         default_factory=lambda: ["score"],
@@ -890,6 +896,9 @@ class MOConfig(BaseModel):
 
 class AdversarialConfig(BaseModel):
     """Adversarial Evolution Configuration (12 parameters) ==="""
+
+    # Enable adversarial mode
+    enabled: bool = Field(default=False, description="Enable adversarial co-evolution")
 
     # === Adversarial Setup (4 parameters) ===
     enable_adversarial: bool = Field(

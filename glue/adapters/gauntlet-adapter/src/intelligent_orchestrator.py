@@ -58,12 +58,12 @@ class OrchestrationPlan:
         estimated_cost: Estimated computational cost
     """
     strategy: OrchestrationStrategy
-        execution_order: List[str] = field(default_factory=list)
-        resource_allocation: Dict[str, Dict[str, Any]] = field(default_factory=dict)
-        stopping_conditions: List[Dict[str, Any]] = field(default_factory=list)
-        fallback_plans: List[Dict[str, Any]] = field(default_factory=list)
-        estimated_time: float = 0.0
-        estimated_cost: float = 0.0
+    execution_order: List[str] = field(default_factory=list)
+    resource_allocation: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    stopping_conditions: List[Dict[str, Any]] = field(default_factory=list)
+    fallback_plans: List[Dict[str, Any]] = field(default_factory=list)
+    estimated_time: float = 0.0
+    estimated_cost: float = 0.0
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""

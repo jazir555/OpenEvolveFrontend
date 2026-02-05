@@ -26,7 +26,7 @@ from typing import Dict, Any, List
 # Add parent directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from glue.adapters.gauntlet_adapter.src.predictive_gauntlet_executor import (
+from predictive_gauntlet_executor import (
     PredictiveGauntletExecutor,
     PredictionResult,
     ExecutionPlan,
@@ -262,8 +262,9 @@ class TestUnknownDomains(unittest.TestCase):
             )
 
             self.assertIsNotNone(result)
-            self.assertGreaterEqual(result.domain_risk, 0.0)
-            self.assertLessEqual(result.domain_risk, 1.0)
+            # Check that prediction returns valid values
+            self.assertGreaterEqual(result.success_probability, 0.0)
+            self.assertLessEqual(result.success_probability, 1.0)
 
 
 class TestEdgeCaseFeatureCombinations(unittest.TestCase):

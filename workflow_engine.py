@@ -191,6 +191,14 @@ except ImportError:
     WorkflowIntegrationAPI = None
     MathematicalVerificationAPI = None
 
+try:
+    from adaptive_mdap_pes_integration import get_adaptive_workflow, AdaptiveWorkflow
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    get_adaptive_workflow = None
+    AdaptiveWorkflow = None
+
 
 from workflow_structures import (
     CritiqueReport, DecompositionPlan, GauntletDefinition, GauntletRoundRule,

@@ -481,6 +481,10 @@ class LoongFlowKnowledgeExtractor:
             reasoning = plan.get("reasoning", "")
             action_steps = plan.get("action_steps", [])
             success_criteria = plan.get("success_criteria", {})
+
+            # Return None for empty plan
+            if not strategy and not reasoning and not action_steps and not success_criteria:
+                return None
             
             # Handle dict strategy (convert to readable string)
             if isinstance(strategy, dict):

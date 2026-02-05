@@ -29,6 +29,14 @@ from enum import Enum
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# Import solver pool for real metrics
+try:
+    from z3_solver_pool import get_solver_pool, get_active_solvers_count, get_queue_depth_count
+    SOLVER_POOL_AVAILABLE = True
+except ImportError:
+    SOLVER_POOL_AVAILABLE = False
+    logger.debug("Z3 solver pool not available for metrics")
+
 
 # =============================================================================
 # Metric Types
@@ -395,8 +403,12 @@ class Z3PerformanceMonitor:
                 logger.error(f"Monitor loop error: {e}")
                 time.sleep(interval)
     
+    def get_current_snapshot(self) -> PerformanceSnapshot:
+        """Get current performance snapshot (public API)."""
+        return self._collect_snapshot()
+    
     def _collect_snapshot(self) -> PerformanceSnapshot:
-        """Collect current performance snapshot."""
+        """Collect current performance snapshot (internal)."""
         # Get resource usage
         memory_mb = 0.0
         cpu_percent = 0.0
@@ -409,12 +421,23 @@ class Z3PerformanceMonitor:
         except ImportError:
             pass
         
+        # Get real solver pool metrics if available
+        active_solvers = 0
+        queue_depth = 0
+        
+        if SOLVER_POOL_AVAILABLE:
+            try:
+                active_solvers = get_active_solvers_count()
+                queue_depth = get_queue_depth_count()
+            except Exception as e:
+                logger.debug(f"Failed to get solver pool metrics: {e}")
+        
         with self._lock:
             return PerformanceSnapshot(
                 timestamp=time.time(),
                 operations=dict(self._operation_metrics),
-                active_solvers=0,  # Would be populated by integration
-                queue_depth=0,     # Would be populated by integration
+                active_solvers=active_solvers,  # Real metrics from solver pool
+                queue_depth=queue_depth,        # Real metrics from solver pool
                 memory_usage_mb=memory_mb,
                 cpu_percent=cpu_percent
             )

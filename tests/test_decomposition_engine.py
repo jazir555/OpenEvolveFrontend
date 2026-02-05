@@ -31,58 +31,63 @@ class TestDecompositionModuleExistence:
         from decomposition_engine import DecompositionEngine
         assert DecompositionEngine is not None
 
-    def test_problem_analyzer_class_exists(self):
-        """Test ProblemAnalyzer class exists"""
-        from decomposition_engine import ProblemAnalyzer
-        assert ProblemAnalyzer is not None
+    def test_decomposition_strategy_base_exists(self):
+        """Test DecompositionStrategyBase class exists"""
+        from decomposition_engine import DecompositionStrategyBase
+        assert DecompositionStrategyBase is not None
 
-    def test_sub_problem_class_exists(self):
-        """Test SubProblem class exists"""
-        from decomposition_engine import SubProblem
-        assert SubProblem is not None
+    def test_semantic_decomposition_exists(self):
+        """Test SemanticDecomposition class exists"""
+        from decomposition_engine import SemanticDecomposition
+        assert SemanticDecomposition is not None
 
-    def test_dependency_graph_class_exists(self):
-        """Test DependencyGraph class exists"""
-        from decomposition_engine import DependencyGraph
-        assert DependencyGraph is not None
+    def test_dependency_decomposition_exists(self):
+        """Test DependencyDecomposition class exists"""
+        from decomposition_engine import DependencyDecomposition
+        assert DependencyDecomposition is not None
 
-    def test_decomposition_result_class_exists(self):
-        """Test DecompositionResult class exists"""
-        from decomposition_engine import DecompositionResult
-        assert DecompositionResult is not None
+    def test_complexity_decomposition_exists(self):
+        """Test ComplexityDecomposition class exists"""
+        from decomposition_engine import ComplexityDecomposition
+        assert ComplexityDecomposition is not None
 
-    def test_decomposition_config_class_exists(self):
-        """Test DecompositionConfig class exists"""
-        from decomposition_engine import DecompositionConfig
-        assert DecompositionConfig is not None
+    def test_hybrid_decomposition_exists(self):
+        """Test HybridDecomposition class exists"""
+        from decomposition_engine import HybridDecomposition
+        assert HybridDecomposition is not None
+
+    def test_research_decomposition_exists(self):
+        """Test ResearchDecomposition class exists"""
+        from decomposition_engine import ResearchDecomposition
+        assert ResearchDecomposition is not None
 
 
 class TestDecompositionEngineMethods:
     """Test decomposition engine methods"""
 
-    def test_decomposition_engine_has_initialize_method(self):
-        """Test DecompositionEngine has initialize method"""
+    def test_decomposition_engine_has_init_method(self):
+        """Test DecompositionEngine has __init__ method"""
         from decomposition_engine import DecompositionEngine
-        assert hasattr(DecompositionEngine, 'initialize')
-        assert callable(DecompositionEngine.initialize)
+        assert hasattr(DecompositionEngine, '__init__')
+        assert callable(DecompositionEngine.__init__)
 
-    def test_decomposition_engine_has_analyze_method(self):
-        """Test DecompositionEngine has analyze method"""
-        from decomposition_engine import DecompositionEngine
-        assert hasattr(DecompositionEngine, 'analyze')
-        assert callable(DecompositionEngine.analyze)
+    def test_decomposition_strategy_base_has_decompose_method(self):
+        """Test DecompositionStrategyBase has decompose method"""
+        from decomposition_engine import DecompositionStrategyBase
+        assert hasattr(DecompositionStrategyBase, 'decompose')
+        assert callable(DecompositionStrategyBase.decompose)
 
-    def test_decomposition_engine_has_decompose_method(self):
-        """Test DecompositionEngine has decompose method"""
-        from decomposition_engine import DecompositionEngine
-        assert hasattr(DecompositionEngine, 'decompose')
-        assert callable(DecompositionEngine.decompose)
+    def test_decomposition_strategy_base_has_get_strategy_name(self):
+        """Test DecompositionStrategyBase has get_strategy_name method"""
+        from decomposition_engine import DecompositionStrategyBase
+        assert hasattr(DecompositionStrategyBase, 'get_strategy_name')
+        assert callable(DecompositionStrategyBase.get_strategy_name)
 
-    def test_decomposition_engine_has_validate_method(self):
-        """Test DecompositionEngine has validate method"""
-        from decomposition_engine import DecompositionEngine
-        assert hasattr(DecompositionEngine, 'validate')
-        assert callable(DecompositionEngine.validate)
+    def test_semantic_decomposition_has_heuristic_decompose(self):
+        """Test SemanticDecomposition has _heuristic_decompose method"""
+        from decomposition_engine import SemanticDecomposition
+        assert hasattr(SemanticDecomposition, '_heuristic_decompose')
+        assert callable(SemanticDecomposition._heuristic_decompose)
 
 
 class TestDecompositionExports:
@@ -91,13 +96,25 @@ class TestDecompositionExports:
     def test_expected_exports_exist(self):
         """Test expected classes are exported"""
         import decomposition_engine
-        
+
+        # Base class
+        assert hasattr(decomposition_engine, 'DecompositionStrategyBase')
+
+        # Strategy classes
+        assert hasattr(decomposition_engine, 'SemanticDecomposition')
+        assert hasattr(decomposition_engine, 'DependencyDecomposition')
+        assert hasattr(decomposition_engine, 'ComplexityDecomposition')
+        assert hasattr(decomposition_engine, 'HybridDecomposition')
+        assert hasattr(decomposition_engine, 'ResearchDecomposition')
+
+        # Main engine
         assert hasattr(decomposition_engine, 'DecompositionEngine')
-        assert hasattr(decomposition_engine, 'ProblemAnalyzer')
-        assert hasattr(decomposition_engine, 'SubProblem')
-        assert hasattr(decomposition_engine, 'DependencyGraph')
-        assert hasattr(decomposition_engine, 'DecompositionResult')
-        assert hasattr(decomposition_engine, 'DecompositionConfig')
+
+        # Integration flags
+        assert hasattr(decomposition_engine, 'KNOWLEDGE_AVAILABLE')
+        assert hasattr(decomposition_engine, 'ALERTING_AVAILABLE')
+        assert hasattr(decomposition_engine, 'CACHE_AVAILABLE')
+        assert hasattr(decomposition_engine, 'ADAPTIVE_AVAILABLE')
 
 
 if __name__ == "__main__":

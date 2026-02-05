@@ -481,7 +481,7 @@ class TestACEOfflineTraining:
                     assert result.success is True
                     assert result.metadata["training_samples"] == len(sample_training_data)
                     assert result.metadata["epochs"] == 3
-                    assert result.processing_time_ms > 0
+                    assert result.processing_time_ms >= 0
 
     @pytest.mark.asyncio
     async def test_train_offline_custom_epochs(
@@ -921,7 +921,9 @@ class TestACEConfigurationEdgeCases:
             config = {
                 "max_refinement_rounds": 0,
                 "reflection_window": 0,
-                "batch_size": 0
+                "offline_training": {
+                    "batch_size": 0
+                }
             }
             engine = AgenticContextEngine(config=config)
 

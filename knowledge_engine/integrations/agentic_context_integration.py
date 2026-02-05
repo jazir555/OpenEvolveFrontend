@@ -14,13 +14,15 @@ import uuid
 
 # Try to import ACE classes for test patching compatibility
 try:
-    from ace import Sample, SimpleEnvironment
+    from ace import Sample, SimpleEnvironment, Skillbook
     _ace_available = True
 except ImportError:
     # Create stub classes for patching
     class Sample:
         pass
     class SimpleEnvironment:
+        pass
+    class Skillbook:
         pass
     _ace_available = False
 
@@ -71,7 +73,10 @@ class AgenticContextEngine:
         Args:
             config: Configuration for ACE components
         """
-        self.config = config or self._get_default_config()
+        # Deep merge provided config with defaults
+        self.config = self._get_default_config()
+        if config:
+            self.config = self._deep_merge_configs(self.config, config)
 
         # Initialize ACE components
         self.skillbook = None
@@ -93,7 +98,30 @@ class AgenticContextEngine:
             "config": self.config,
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-    
+
+    def _deep_merge_configs(self, base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Deep merge two configuration dictionaries.
+
+        Args:
+            base: Base configuration (default config)
+            override: Override configuration (user-provided config)
+
+        Returns:
+            Merged configuration dictionary
+        """
+        result = base.copy()
+
+        for key, value in override.items():
+            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+                # Recursively merge nested dictionaries
+                result[key] = self._deep_merge_configs(result[key], value)
+            else:
+                # Override with new value
+                result[key] = value
+
+        return result
+
     def _get_default_config(self) -> Dict[str, Any]:
         """Get default configuration for ACE integration."""
         return {
@@ -505,22 +533,24 @@ class AgenticContextEngine:
         })
         
         try:
+            # Import Sample and SimpleEnvironment - they may be patched by tests
+            from knowledge_engine.integrations.agentic_context_integration import Sample, SimpleEnvironment
+
             # Convert training samples to ACE Sample format
             ace_samples = []
             for sample_data in training_samples:
                 text = sample_data.get('text', '')
                 ground_truth = sample_data.get('ground_truth', '')
                 context = sample_data.get('context', '')
-                
+
                 ace_sample = Sample(
                     question=text,
                     context=context,
                     ground_truth=ground_truth
                 )
                 ace_samples.append(ace_sample)
-            
+
             # Create a simple environment for training
-            from ace import SimpleEnvironment
             environment = SimpleEnvironment()
             
             # Run offline training
@@ -625,15 +655,17 @@ class AgenticContextEngine:
         })
         
         try:
+            # Import Sample and SimpleEnvironment - they may be patched by tests
+            from knowledge_engine.integrations.agentic_context_integration import Sample, SimpleEnvironment
+
             # Create a sample for ACE processing
             sample = Sample(
                 question=text,
                 context=context,
                 ground_truth=ground_truth
             )
-            
+
             # Create a simple environment for evaluation
-            from ace import SimpleEnvironment
             environment = SimpleEnvironment()
             
             # Process with online ACE
@@ -743,9 +775,9 @@ class AgenticContextEngine:
     async def reset_skillbook(self):
         """Reset the skillbook to initial state."""
         try:
-            from ace import Skillbook
+            from knowledge_engine.integrations.agentic_context_integration import Skillbook
             self.skillbook = Skillbook()
-            
+
             logger.info({
                 "msg": "Skillbook reset to initial state",
                 "timestamp": datetime.now(timezone.utc).isoformat()

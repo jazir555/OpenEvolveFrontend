@@ -557,9 +557,9 @@ class PredictiveGauntletExecutor:
 
     def _recommend_difficulty(self, success_prob: float, features: Dict[str, Any]) -> str:
         """Recommend difficulty level"""
-        if success_prob > 0.8:
+        if success_prob >= 0.8:
             return "hard"
-        elif success_prob > 0.5:
+        elif success_prob >= 0.5:
             return "medium"
         else:
             return "easy"

@@ -16,12 +16,12 @@ import os
 # Add parent directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from glue.adapters.gauntlet_adapter.src.ml_optimizer import (
+from ml_optimizer import (
     MLBasedGauntletOptimizer,
     GauntletState,
     OptimizationAction,
     OptimizationStrategy,
-    OptimizationObjective,
+    Objective,  # Changed from OptimizationObjective
     create_optimizer
 )
 

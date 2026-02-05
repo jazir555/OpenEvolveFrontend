@@ -69,6 +69,14 @@ try:
 except (subprocess.CalledProcessError, FileNotFoundError, OSError):
     logger.warning("Z3 binary not detected - some features may be unavailable")
 
+# Import solver pool for metrics tracking
+try:
+    from z3_solver_pool import get_solver_pool, Z3SolverPool
+    SOLVER_POOL_AVAILABLE = True
+except ImportError:
+    SOLVER_POOL_AVAILABLE = False
+    logger.debug("Z3 solver pool not available")
+
 
 # =============================================================================
 # Data Classes and Enums
@@ -313,6 +321,7 @@ class Z3SolverEngine:
     Core Z3 solver engine providing constraint solving capabilities.
     
     Supports both Python API (when available) and CLI interface.
+    Integrates with Z3SolverPool for metrics tracking.
     """
     
     def __init__(self, config: Optional[Z3Config] = None):
@@ -329,15 +338,74 @@ class Z3SolverEngine:
             "error_results": 0,
             "total_time": 0.0
         }
+        
+        # Register with solver pool for metrics tracking
+        self._solver_id: Optional[str] = None
+        self._pool: Optional[Z3SolverPool] = None
+        if SOLVER_POOL_AVAILABLE:
+            try:
+                self._pool = get_solver_pool()
+                self._solver_id = self._pool.register_solver(
+                    metadata={
+                        'class': 'Z3SolverEngine',
+                        'config_timeout': self.config.timeout,
+                        'created_by': 'Z3SolverEngine.__init__'
+                    }
+                )
+                logger.debug(f"Z3SolverEngine registered with pool: {self._solver_id}")
+            except Exception as e:
+                logger.warning(f"Failed to register with solver pool: {e}")
+                self._pool = None
+                self._solver_id = None
     
     def get_status(self) -> Dict[str, Any]:
         """Get engine status."""
-        return {
+        status = {
             "z3_available": Z3_AVAILABLE,
             "z3_python_available": Z3_PYTHON_AVAILABLE,
             "config": asdict(self.config),
-            "statistics": self._stats.copy()
+            "statistics": self._stats.copy(),
+            "solver_id": self._solver_id,
+            "pool_registered": self._pool is not None
         }
+        
+        # Add pool metrics if available
+        if self._pool is not None:
+            try:
+                metrics = self._pool.get_metrics()
+                status["pool_metrics"] = metrics.to_dict()
+            except Exception as e:
+                logger.debug(f"Failed to get pool metrics: {e}")
+        
+        return status
+    
+    def _track_operation(self, operation_name: str = "solve"):
+        """
+        Context manager for tracking solver operations with the pool.
+        
+        Args:
+            operation_name: Name of the operation being tracked
+            
+        Yields:
+            None
+        """
+        if self._pool is not None and self._solver_id is not None:
+            return self._pool.active_operation(self._solver_id)
+        else:
+            # Return a no-op context manager if pool not available
+            from contextlib import nullcontext
+            return nullcontext()
+    
+    def __del__(self):
+        """Cleanup: unregister from solver pool."""
+        if self._pool is not None and self._solver_id is not None:
+            try:
+                self._pool.unregister_solver(self._solver_id)
+                if logger is not None:
+                    logger.debug(f"Z3SolverEngine unregistered from pool: {self._solver_id}")
+            except Exception:
+                # Ignore errors during cleanup, especially during interpreter shutdown
+                pass
     
     def solve_constraints(
         self,
@@ -361,35 +429,37 @@ class Z3SolverEngine:
         start_time = time.time()
         self._stats["total_calls"] += 1
         
-        try:
-            if Z3_PYTHON_AVAILABLE:
-                result = self._solve_with_python_api(variables, constraints, objective, minimize)
-            else:
-                result = self._solve_with_cli(variables, constraints, objective, minimize)
-            
-            # Update statistics
-            execution_time = time.time() - start_time
-            result.execution_time = execution_time
-            self._stats["total_time"] += execution_time
-            
-            if result.status == Z3ResultStatus.SAT:
-                self._stats["sat_results"] += 1
-            elif result.status == Z3ResultStatus.UNSAT:
-                self._stats["unsat_results"] += 1
-            else:
+        # Track this operation with the solver pool
+        with self._track_operation("solve_constraints"):
+            try:
+                if Z3_PYTHON_AVAILABLE:
+                    result = self._solve_with_python_api(variables, constraints, objective, minimize)
+                else:
+                    result = self._solve_with_cli(variables, constraints, objective, minimize)
+                
+                # Update statistics
+                execution_time = time.time() - start_time
+                result.execution_time = execution_time
+                self._stats["total_time"] += execution_time
+                
+                if result.status == Z3ResultStatus.SAT:
+                    self._stats["sat_results"] += 1
+                elif result.status == Z3ResultStatus.UNSAT:
+                    self._stats["unsat_results"] += 1
+                else:
+                    self._stats["error_results"] += 1
+                
+                return result
+                
+            except Exception as e:
+                logger.error(f"Z3 solving failed: {e}")
                 self._stats["error_results"] += 1
-            
-            return result
-            
-        except Exception as e:
-            logger.error(f"Z3 solving failed: {e}")
-            self._stats["error_results"] += 1
-            return Z3SolverResult(
-                status=Z3ResultStatus.ERROR,
-                reason=str(e),
-                execution_time=time.time() - start_time,
-                errors=[str(e)]
-            )
+                return Z3SolverResult(
+                    status=Z3ResultStatus.ERROR,
+                    reason=str(e),
+                    execution_time=time.time() - start_time,
+                    errors=[str(e)]
+                )
     
     def _solve_with_python_api(
         self,
@@ -681,6 +751,47 @@ class Z3SolverEngine:
         
         return assignments
     
+    def _extract_model_assignments(self, model) -> Dict[str, Any]:
+        """
+        Extract variable assignments from a Z3 model object.
+        
+        Args:
+            model: Z3 Model object
+            
+        Returns:
+            Dictionary mapping variable names to their Python values
+        """
+        import z3  # type: ignore
+        
+        assignments = {}
+        
+        for decl in model.decls():
+            name = decl.name()
+            value = model[decl]
+            
+            # Convert Z3 value to Python value based on sort
+            if z3.is_int_value(value):
+                assignments[name] = value.as_long()
+            elif z3.is_rational_value(value):
+                # Convert rational to float
+                assignments[name] = float(value.as_decimal(10).rstrip('?'))
+            elif z3.is_true(value) or z3.is_false(value):
+                assignments[name] = z3.is_true(value)
+            elif z3.is_bv_value(value):
+                # BitVec value - convert to int
+                assignments[name] = value.as_long()
+            elif z3.is_algebraic_value(value):
+                # Algebraic number - convert to approximate float
+                assignments[name] = float(value.approx(10).as_decimal(10).rstrip('?'))
+            else:
+                # For other types, try to get string representation
+                try:
+                    assignments[name] = str(value)
+                except Exception:
+                    assignments[name] = value
+        
+        return assignments
+    
     def solve_smtlib(self, smtlib_content: str) -> Z3SolverResult:
         """
         Solve directly from SMT-LIB2 content.
@@ -745,13 +856,11 @@ class Z3SolverEngine:
                     
                     if result == z3.sat:
                         model = solver.model()
-                        assignments = {}
-                        # Note: Retrieving all assignments from a parsed SMT-LIB model 
-                        # can be complex; this is a simplified version
+                        assignments = self._extract_model_assignments(model)
                         self._stats["sat_results"] += 1
                         return Z3SolverResult(
                             status=Z3ResultStatus.SAT,
-                            model=Z3Model(assignments={}),
+                            model=Z3Model(assignments=assignments),
                             execution_time=execution_time
                         )
                     elif result == z3.unsat:
@@ -859,12 +968,61 @@ class Z3TheoremProver:
     
     Provides capabilities for proving mathematical theorems and
     verifying logical formulas.
+    Integrates with Z3SolverPool for metrics tracking.
     """
     
     def __init__(self, config: Optional[Z3Config] = None):
         self.config = config or Z3Config()
         self.solver_engine = Z3SolverEngine(config)
         self._prover_lock = threading.RLock()
+        
+        # Register with solver pool for metrics tracking (separate from engine)
+        self._solver_id: Optional[str] = None
+        self._pool: Optional[Any] = None
+        if SOLVER_POOL_AVAILABLE:
+            try:
+                self._pool = get_solver_pool()
+                self._solver_id = self._pool.register_solver(
+                    metadata={
+                        'class': 'Z3TheoremProver',
+                        'config_timeout': self.config.timeout,
+                        'has_engine': self.solver_engine is not None,
+                        'engine_id': getattr(self.solver_engine, '_solver_id', None)
+                    }
+                )
+                logger.debug(f"Z3TheoremProver registered with pool: {self._solver_id}")
+            except Exception as e:
+                logger.debug(f"Failed to register Z3TheoremProver with solver pool: {e}")
+                self._pool = None
+                self._solver_id = None
+    
+    def _track_operation(self, operation_name: str = "prove"):
+        """
+        Context manager for tracking prover operations with the pool.
+        
+        Args:
+            operation_name: Name of the operation being tracked
+            
+        Yields:
+            None
+        """
+        if self._pool is not None and self._solver_id is not None:
+            return self._pool.active_operation(self._solver_id)
+        else:
+            # Return a no-op context manager if pool not available
+            from contextlib import nullcontext
+            return nullcontext()
+    
+    def __del__(self):
+        """Cleanup: unregister from solver pool."""
+        if self._pool is not None and self._solver_id is not None:
+            try:
+                self._pool.unregister_solver(self._solver_id)
+                if logger is not None:
+                    logger.debug(f"Z3TheoremProver unregistered from pool: {self._solver_id}")
+            except Exception:
+                # Ignore errors during cleanup, especially during interpreter shutdown
+                pass
     
     def prove_theorem(
         self,
@@ -885,20 +1043,22 @@ class Z3TheoremProver:
         """
         start_time = time.time()
         
-        try:
-            # Check if input is SMT-LIB or natural language
-            if self._is_smtlib(theorem_statement):
-                return self._prove_smtlib(theorem_statement, assumptions, timeout)
-            else:
-                return self._prove_natural_language(theorem_statement, assumptions, timeout)
-                
-        except Exception as e:
-            logger.error(f"Theorem proving failed: {e}")
-            return Z3TheoremResult(
-                proven=False,
-                errors=[str(e)],
-                execution_time=time.time() - start_time
-            )
+        # Track this operation with the solver pool
+        with self._track_operation("prove_theorem"):
+            try:
+                # Check if input is SMT-LIB or natural language
+                if self._is_smtlib(theorem_statement):
+                    return self._prove_smtlib(theorem_statement, assumptions, timeout)
+                else:
+                    return self._prove_natural_language(theorem_statement, assumptions, timeout)
+                    
+            except Exception as e:
+                logger.error(f"Theorem proving failed: {e}")
+                return Z3TheoremResult(
+                    proven=False,
+                    errors=[str(e)],
+                    execution_time=time.time() - start_time
+                )
     
     def _is_smtlib(self, text: str) -> bool:
         """Check if text is in SMT-LIB format."""
@@ -979,13 +1139,170 @@ class Z3TheoremProver:
         assumptions: Optional[List[str]],
         timeout: Optional[float]
     ) -> Z3TheoremResult:
-        """Prove theorem from natural language (requires translation)."""
-        # For now, return not proven - requires integration with translation
-        return Z3TheoremResult(
-            proven=False,
-            errors=["Natural language theorem proving requires translation to SMT-LIB"],
-            execution_time=0.0
+        """
+        Prove theorem from natural language using LLM translation to SMT-LIB.
+        
+        This method translates natural language theorem descriptions into SMT-LIB format
+        using an LLM, then calls the existing SMT-LIB prover to verify the theorem.
+        
+        Args:
+            theorem_statement: Natural language description of the theorem
+            assumptions: Optional list of assumptions in natural language
+            timeout: Optional timeout override
+            
+        Returns:
+            Z3TheoremResult with proof status
+        """
+        import os
+        start_time = time.time()
+        
+        # Get API configuration from environment
+        api_key = (
+            os.getenv("OPENAI_API_KEY")
+            or os.getenv("OPENAI_KEY")
+            or os.getenv("OPENAI_API_TOKEN")
         )
+        if not api_key:
+            logger.warning("Natural language theorem proving skipped: OPENAI_API_KEY not set")
+            return Z3TheoremResult(
+                proven=False,
+                errors=["Natural language theorem proving requires OPENAI_API_KEY environment variable"],
+                execution_time=time.time() - start_time
+            )
+        
+        # Translate natural language to SMT-LIB
+        smtlib_content = self._nl_to_smtlib(theorem_statement, assumptions)
+        if not smtlib_content:
+            return Z3TheoremResult(
+                proven=False,
+                errors=["Failed to translate natural language theorem to SMT-LIB format"],
+                execution_time=time.time() - start_time
+            )
+        
+        # Call the existing SMT-LIB prover
+        result = self._prove_smtlib(smtlib_content, None, timeout)
+        
+        # Update execution time to include translation
+        result.execution_time = time.time() - start_time
+        return result
+    
+    def _nl_to_smtlib(
+        self,
+        theorem_statement: str,
+        assumptions: Optional[List[str]] = None
+    ) -> Optional[str]:
+        """
+        Translate natural language theorem to SMT-LIB format using LLM.
+        
+        Args:
+            theorem_statement: Natural language theorem description
+            assumptions: Optional list of assumptions
+            
+        Returns:
+            SMT-LIB formatted theorem content or None if translation failed
+        """
+        try:
+            from llm_utils import _compose_messages, _request_openai_compatible_chat
+        except ImportError as exc:
+            logger.warning("LLM utilities not available for theorem translation: %s", exc)
+            return None
+        
+        import os
+        
+        api_key = (
+            os.getenv("OPENAI_API_KEY")
+            or os.getenv("OPENAI_KEY")
+            or os.getenv("OPENAI_API_TOKEN")
+        )
+        if not api_key:
+            return None
+        
+        base_url = (
+            os.getenv("OPENAI_API_BASE")
+            or os.getenv("OPENAI_BASE_URL")
+            or "https://api.openai.com/v1"
+        )
+        model = (
+            os.getenv("OPENAI_MODEL")
+            or os.getenv("OPENAI_MODEL_ID")
+            or "gpt-4o-mini"
+        )
+        
+        # Build the assumptions text if provided
+        assumptions_text = ""
+        if assumptions:
+            assumptions_text = "\nAssumptions:\n" + "\n".join(
+                f"- {a}" for a in assumptions
+            )
+        
+        system_prompt = (
+            "You are a formal methods expert that translates natural language "
+            "mathematical theorems into SMT-LIB2 format for Z3 theorem proving. "
+            "Return ONLY valid SMT-LIB2 code without markdown formatting or explanations."
+        )
+        
+        user_prompt = (
+            "Translate the following natural language theorem into SMT-LIB2 format "
+            "for Z3 theorem proving.\n\n"
+            "Requirements:\n"
+            "1. Include (set-logic ALL) at the beginning\n"
+            "2. Declare all variables using (declare-fun name () type)\n"
+            "3. Use appropriate types: Int, Real, Bool, (Array Int Int), etc.\n"
+            "4. Include (assert ...) for all constraints and assumptions\n"
+            "5. End with (check-sat) and (get-model)\n"
+            "6. The theorem should be negated for proof-by-contradiction\n"
+            "7. Return ONLY the SMT-LIB2 code, no markdown or explanations\n\n"
+            f"Theorem: {theorem_statement}{assumptions_text}\n\n"
+            "Example output format:\n"
+            "(set-logic ALL)\n"
+            "(declare-fun x () Int)\n"
+            "(assert (> x 0))\n"
+            "(assert (not (>= x 1)))\n"
+            "(check-sat)\n"
+            "(get-model)"
+        )
+        
+        messages = _compose_messages(system_prompt, user_prompt)
+        
+        try:
+            response = _request_openai_compatible_chat(
+                api_key=api_key,
+                base_url=base_url,
+                model=model,
+                messages=messages,
+                temperature=0.1,
+                top_p=1.0,
+                max_tokens=1500,
+                timeout=60
+            )
+        except Exception as exc:
+            logger.warning("Theorem translation LLM call failed: %s", exc)
+            return None
+        
+        if not response:
+            return None
+        
+        # Clean up the response - remove markdown code blocks if present
+        smtlib_content = response.strip()
+        if smtlib_content.startswith("```"):
+            lines = smtlib_content.split("\n")
+            # Remove first line (```smt2 or ```)
+            if lines and lines[0].startswith("```"):
+                lines = lines[1:]
+            # Remove last line if it's ```
+            if lines and lines[-1].strip() == "```":
+                lines = lines[:-1]
+            smtlib_content = "\n".join(lines).strip()
+        
+        # Basic validation: must contain required SMT-LIB elements
+        if "(check-sat)" not in smtlib_content:
+            logger.warning("LLM response missing (check-sat), adding it")
+            smtlib_content += "\n(check-sat)\n(get-model)"
+        
+        if "(set-logic" not in smtlib_content:
+            smtlib_content = "(set-logic ALL)\n" + smtlib_content
+        
+        return smtlib_content
     
     def verify_formula(
         self,
@@ -1450,135 +1767,873 @@ class Z3DSPyIntegration:
     - Enhanced theorem formulation from natural language
     - Improved constraint optimization
     - Structured problem analysis
+    - Support for linear, nonlinear, and boolean combinations
+    - Variable detection and type inference
     """
+
+    # Comprehensive patterns for natural language constraint parsing
+    CONSTRAINT_PATTERNS = {
+        # Linear constraints
+        'linear_greater_than': [
+            r'(\w+)\s+is\s+greater\s+than\s+(\d+(?:\.\d+)?)',
+            r'(\w+)\s+>\s+(\d+(?:\.\d+)?)',
+            r'(\w+)\s+exceeds\s+(\d+(?:\.\d+)?)',
+            r'(\w+)\s+is\s+above\s+(\d+(?:\.\d+)?)',
+            r'(\w+)\s+must\s+be\s+greater\s+than\s+(\d+(?:\.\d+)?)',
+        ],
+        'linear_less_than': [
+            r'(\w+)\s+is\s+less\s+than\s+(\d+(?:\.\d+)?)',
+            r'(\w+)\s+<\s+(\d+(?:\.\d+)?)',
+            r'(\w+)\s+is\s+below\s+(\d+(?:\.\d+)?)',
+            r'(\w+)\s+must\s+be\s+less\s+than\s+(\d+(?:\.\d+)?)',
+            r'(\w+)\s+does\s+not\s+exceed\s+(\d+(?:\.\d+)?)',
+        ],
+        'linear_equal': [
+            r'(\w+)\s+equals\s+(\d+(?:\.\d+)?)',
+            r'(\w+)\s+=\s+(\d+(?:\.\d+)?)',
+            r'(\w+)\s+is\s+equal\s+to\s+(\d+(?:\.\d+)?)',
+            r'(\w+)\s+must\s+be\s+(\d+(?:\.\d+)?)',
+        ],
+        'linear_geq': [
+            r'(\w+)\s+is\s+at\s+least\s+(\d+(?:\.\d+)?)',
+            r'(\w+)\s+>=\s+(\d+(?:\.\d+)?)',
+            r'(\w+)\s+is\s+greater\s+than\s+or\s+equal\s+to\s+(\d+(?:\.\d+)?)',
+            r'(\w+)\s+minimum\s+is\s+(\d+(?:\.\d+)?)',
+        ],
+        'linear_leq': [
+            r'(\w+)\s+is\s+at\s+most\s+(\d+(?:\.\d+)?)',
+            r'(\w+)\s+<=\s+(\d+(?:\.\d+)?)',
+            r'(\w+)\s+is\s+less\s+than\s+or\s+equal\s+to\s+(\d+(?:\.\d+)?)',
+            r'(\w+)\s+maximum\s+is\s+(\d+(?:\.\d+)?)',
+        ],
+        # Range constraints
+        'range_between': [
+            r'(\w+)\s+is\s+between\s+(\d+(?:\.\d+)?)\s+and\s+(\d+(?:\.\d+)?)',
+            r'(\w+)\s+in\s+range\s+(\d+(?:\.\d+)?)\s+to\s+(\d+(?:\.\d+)?)',
+            r'(\w+)\s+must\s+be\s+between\s+(\d+(?:\.\d+)?)\s+and\s+(\d+(?:\.\d+)?)',
+        ],
+        # Nonlinear constraints
+        'nonlinear_product': [
+            r'(\w+)\s*\*\s*(\w+)\s*(<=|>=|<|>|=)\s*(\d+(?:\.\d+)?)',
+            r'product\s+of\s+(\w+)\s+and\s+(\w+)\s+is\s+(\w+)',
+        ],
+        'nonlinear_square': [
+            r'(\w+)\^2\s*(<=|>=|<|>|=)\s*(\d+(?:\.\d+)?)',
+            r'square\s+of\s+(\w+)\s+is\s+(\w+)',
+            r'(\w+)\s+squared\s+is\s+(\w+)',
+        ],
+        # Boolean constraints
+        'boolean_true': [
+            r'(\w+)\s+is\s+true',
+            r'(\w+)\s+holds',
+            r'(\w+)\s+must\s+be\s+true',
+        ],
+        'boolean_false': [
+            r'(\w+)\s+is\s+false',
+            r'(\w+)\s+does\s+not\s+hold',
+            r'(\w+)\s+must\s+be\s+false',
+        ],
+        'boolean_and': [
+            r'both\s+(\w+)\s+and\s+(\w+)\s+(?:are\s+true|hold)',
+            r'(\w+)\s+and\s+(\w+)\s+must\s+both\s+be\s+true',
+        ],
+        'boolean_or': [
+            r'either\s+(\w+)\s+or\s+(\w+)\s+(?:is\s+true|holds)',
+            r'at\s+least\s+one\s+of\s+(\w+)\s+and\s+(\w+)',
+        ],
+        'boolean_not': [
+            r'(\w+)\s+is\s+not\s+true',
+            r'not\s+(\w+)',
+        ],
+        'boolean_implies': [
+            r'if\s+(\w+)\s+then\s+(\w+)',
+            r'(\w+)\s+implies\s+(\w+)',
+            r'(\w+)\s+=>\s+(\w+)',
+        ],
+        # Arithmetic relationships
+        'arithmetic_sum': [
+            r'sum\s+of\s+(\w+)\s+and\s+(\w+)\s+(?:is|equals)\s+(\w+)',
+            r'(\w+)\s+\+\s+(\w+)\s*=\s*(\w+)',
+        ],
+        'arithmetic_diff': [
+            r'difference\s+between\s+(\w+)\s+and\s+(\w+)\s+(?:is|equals)\s+(\w+)',
+            r'(\w+)\s+-\s+(\w+)\s*=\s*(\w+)',
+        ],
+        # All-different constraint
+        'all_different': [
+            r'all\s+(?:of\s+)?(\w+(?:,\s*\w+)*)\s+are\s+different',
+            r'(\w+(?:,\s*\w+)*)\s+must\s+be\s+distinct',
+            r'no\s+two\s+of\s+(\w+(?:,\s*\w+)*)\s+are\s+equal',
+        ],
+    }
+
+    # Variable detection patterns
+    VARIABLE_PATTERNS = [
+        r'\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(?:is|are|was|were|be|being|been|has|have|had|do|does|did|will|would|should|can|could|may|might|must|shall|need|dare|ought|used|greater|less|equal|between|at|most|least|above|below|exceeds)',  # Before verb
+        r'\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(?:<=|>=|<|>|=|==|!=|\+|-|\*|\/|%)',  # Before operator
+        r'(?:variable|parameter|let|const)\s+([a-zA-Z_][a-zA-Z0-9_]*)',  # After declaration keyword
+        r'\b([xyztuvwnmkij]\d?)\b',  # Common math variables
+        r'\b([a-zA-Z_][a-zA-Z0-9_]*)\s*[=:]\s*\d',  # Before assignment
+    ]
+
+    # Theorem pattern templates
+    THEOREM_TEMPLATES = {
+        'implication': {
+            'patterns': [
+                r'if\s+(.+?)\s+then\s+(.+)',
+                r'(.+?)\s+implies\s+(.+)',
+                r'(.+?)\s+=>\s+(.+)',
+                r'whenever\s+(.+?),\s*(.+)',
+                r'given\s+that\s+(.+?),\s*(.+)',
+            ],
+            'template': '(=> {premise} {conclusion})',
+        },
+        'forall': {
+            'patterns': [
+                r'for\s+all\s+(\w+),?\s*(.+)',
+                r'for\s+every\s+(\w+),?\s*(.+)',
+                r'forall\s+(\w+),?\s*(.+)',
+                r'for\s+any\s+(\w+),?\s*(.+)',
+                r'for\s+each\s+(\w+),?\s*(.+)',
+            ],
+            'template': '(forall (({var} Int)) {statement})',
+        },
+        'exists': {
+            'patterns': [
+                r'there\s+exists\s+(?:an?\s+)?(\w+)\s+(?:such\s+that\s+)?(.+)',
+                r'exists\s+(\w+),?\s*(.+)',
+                r'there\s+is\s+(?:an?\s+)?(\w+)\s+(?:such\s+that\s+)?(.+)',
+            ],
+            'template': '(exists (({var} Int)) {statement})',
+        },
+        'contradiction': {
+            'patterns': [
+                r'(.+?)\s+and\s+(.+?)\s+cannot\s+both\s+be\s+true',
+                r'(.+?)\s+contradicts\s+(.+)',
+                r'it\s+is\s+impossible\s+that\s+(.+)',
+            ],
+            'template': '(and {expr1} (not {expr2}))',
+        },
+        'transitivity': {
+            'patterns': [
+                r'if\s+(.+?)\s+and\s+(.+?)\s+then\s+(.+)',
+                r'(.+?)\s+and\s+(.+?)\s+imply\s+(.+)',
+            ],
+            'template': '(=> (and {premise1} {premise2}) {conclusion})',
+        },
+    }
 
     def __init__(self):
         self.dspy_available = DSPY_AVAILABLE
         self.solver_engine = Z3SolverEngine()  # Use existing solver engine
         self.theorem_prover = Z3TheoremProver()  # Use existing prover
+        
+        # Compile regex patterns for efficiency
+        self._compiled_constraint_patterns = {
+            key: [re.compile(p, re.IGNORECASE) for p in patterns]
+            for key, patterns in self.CONSTRAINT_PATTERNS.items()
+        }
+        self._compiled_variable_patterns = [re.compile(p, re.IGNORECASE) for p in self.VARIABLE_PATTERNS]
+        self._compiled_theorem_patterns = {
+            key: {
+                'patterns': [re.compile(p, re.IGNORECASE) for p in val['patterns']],
+                'template': val['template']
+            }
+            for key, val in self.THEOREM_TEMPLATES.items()
+        }
 
-    def natural_language_to_constraint_with_dspy(self, natural_language: str,
-                                               constraint_type: str = "general") -> Optional[str]:
+    def natural_language_to_constraint_with_dspy(
+        self,
+        natural_language: str,
+        constraint_type: str = "general",
+        variable_hints: Optional[Dict[str, str]] = None,
+        context: Optional[str] = None
+    ) -> Optional[str]:
         """
         Convert natural language description to SMT-LIB constraint using DSPy for enhanced parsing.
 
         Args:
             natural_language: Natural language description of the constraint
-            constraint_type: Type of constraint (arithmetic, boolean, etc.)
+            constraint_type: Type of constraint (linear, nonlinear, boolean, arithmetic, mixed)
+            variable_hints: Optional dictionary of variable names to their types
+            context: Optional context for better constraint understanding
 
         Returns:
             SMT-LIB formatted constraint string or None if failed
         """
+        if not natural_language or not natural_language.strip():
+            return None
+
         if not self.dspy_available:
             logger.info("DSPy not available, falling back to basic constraint formulation")
-            # Basic fallback - this would need more sophisticated implementation
-            return self._basic_natural_language_to_constraint(natural_language, constraint_type)
+            return self._basic_natural_language_to_constraint(
+                natural_language, constraint_type, variable_hints
+            )
 
         try:
-            # Define a DSPy signature for constraint translation
+            # Define an enhanced DSPy signature for constraint translation
             class ConstraintTranslationSignature(dspy.Signature):
-                """Translate natural language to SMT-LIB constraint."""
-                natural_language_description = dspy.InputField(desc="Natural language description of the constraint")
-                constraint_type = dspy.InputField(desc="Type of constraint (arithmetic, boolean, string, etc.)")
+                """
+                Translate natural language to SMT-LIB constraint.
+                
+                Examples:
+                - "x is greater than 5" -> (assert (> x 5))
+                - "x and y must be different" -> (assert (not (= x y)))
+                - "if x > 0 then y = 1" -> (assert (=> (> x 0) (= y 1)))
+                """
+                natural_language_description = dspy.InputField(
+                    desc="Natural language description of the constraint to translate"
+                )
+                constraint_type = dspy.InputField(
+                    desc="Type: 'linear' (linear inequalities), 'nonlinear' (products, powers), 'boolean' (logic), 'arithmetic' (equations), or 'mixed'"
+                )
+                variable_hints = dspy.InputField(
+                    desc="Optional JSON mapping variable names to types: {'x': 'Int', 'y': 'Real', 'flag': 'Bool'}"
+                )
+                context = dspy.InputField(
+                    desc="Optional context about the problem domain"
+                )
 
-                smt_lib_constraint = dspy.OutputField(desc="SMT-LIB2 formatted constraint")
-                variable_definitions = dspy.OutputField(desc="Variable declarations needed for the constraint")
-                comments = dspy.OutputField(desc="Brief explanation of the translation")
+                smt_lib_constraint = dspy.OutputField(
+                    desc="SMT-LIB2 formatted constraint expression (without 'assert' wrapper if standalone)"
+                )
+                variable_declarations = dspy.OutputField(
+                    desc="Variable declarations in SMT-LIB format, one per line: (declare-const x Int)"
+                )
+                constraint_logic = dspy.OutputField(
+                    desc="Brief explanation of the constraint logic and how it was derived"
+                )
+                validation_notes = dspy.OutputField(
+                    desc="Any validation warnings or notes about the constraint"
+                )
 
-            # Create a predictor using the signature
-            translate_constraint = dspy.Predict(ConstraintTranslationSignature)
+            # Create a predictor using the signature with Chain of Thought for better reasoning
+            translate_constraint = dspy.ChainOfThought(ConstraintTranslationSignature)
 
             # Run the translation
             result = translate_constraint(
                 natural_language_description=natural_language,
-                constraint_type=constraint_type
+                constraint_type=constraint_type,
+                variable_hints=json.dumps(variable_hints) if variable_hints else "{}",
+                context=context or ""
             )
 
-            # Construct the full SMT-LIB constraint
-            smt_constraint = f"; Generated from: {natural_language}\n"
-            smt_constraint += f"; Type: {constraint_type}\n"
-            smt_constraint += f"{result.variable_definitions}\n"
-            smt_constraint += f"{result.smt_lib_constraint}\n"
+            # Construct the full SMT-LIB constraint with proper formatting
+            lines = [
+                f"; Generated from: {natural_language}",
+                f"; Type: {constraint_type}",
+            ]
+            
+            if context:
+                lines.append(f"; Context: {context}")
+            
+            if result.constraint_logic:
+                lines.append(f"; Logic: {result.constraint_logic}")
+            
+            if result.validation_notes:
+                lines.append(f"; Notes: {result.validation_notes}")
+            
+            # Add variable declarations
+            if result.variable_declarations:
+                lines.append(result.variable_declarations)
+            
+            # Add the constraint with proper assert wrapper
+            constraint = result.smt_lib_constraint.strip()
+            if constraint and not constraint.startswith('('):
+                constraint = f"(assert {constraint})"
+            elif constraint and not constraint.startswith('(assert'):
+                constraint = f"(assert {constraint})"
+            
+            lines.append(constraint)
 
-            return smt_constraint
+            return '\n'.join(lines)
 
         except Exception as e:
             logger.warning(f"DSPy constraint translation failed, falling back to basic method: {e}")
-            return self._basic_natural_language_to_constraint(natural_language, constraint_type)
+            return self._basic_natural_language_to_constraint(
+                natural_language, constraint_type, variable_hints
+            )
 
-    def _basic_natural_language_to_constraint(self, natural_language: str,
-                                            constraint_type: str = "general") -> Optional[str]:
-        """Basic fallback for natural language to constraint conversion."""
-        # This is a very basic implementation - in practice would be more sophisticated
-        if "greater than" in natural_language.lower():
-            # Example: "x is greater than 5" -> (assert (> x 5))
-            import re
-            matches = re.findall(r'"([^"]+)"', natural_language)
-            if matches:
-                var_name = matches[0] if matches else "x"
-            else:
-                var_name = "x"
+    def _basic_natural_language_to_constraint(
+        self,
+        natural_language: str,
+        constraint_type: str = "general",
+        variable_hints: Optional[Dict[str, str]] = None
+    ) -> Optional[str]:
+        """
+        Enhanced basic fallback for natural language to constraint conversion.
+        
+        Supports:
+        - Linear constraints (>, <, >=, <=, =)
+        - Range constraints (between)
+        - Boolean combinations (and, or, not, implies)
+        - Nonlinear hints (products, squares)
+        - Variable detection and type inference
+        """
+        if not natural_language or not natural_language.strip():
+            return None
 
-            numbers = re.findall(r'\d+', natural_language)
-            if numbers:
-                value = numbers[0]
-                return f"(declare-const {var_name} Int)\n(assert (> {var_name} {value}))"
+        text = natural_language.strip()
+        lower_text = text.lower()
+        lines = [f"; Basic translation for: {text}", f"; Type: {constraint_type}"]
+        
+        variables = set()
+        constraints = []
+        
+        # Helper to detect variable type
+        def infer_type(var_name: str, value: Optional[str] = None) -> str:
+            if variable_hints and var_name in variable_hints:
+                return variable_hints[var_name]
+            if value and '.' in value:
+                return 'Real'
+            # Check if it looks like a boolean variable
+            if var_name.lower() in ['flag', 'is', 'has', 'valid', 'enabled', 'active']:
+                return 'Bool'
+            return 'Int'
+        
+        # Try to match linear constraints
+        for pattern_name, patterns in self._compiled_constraint_patterns.items():
+            for pattern in patterns:
+                match = pattern.search(text)
+                if match:
+                    groups = match.groups()
+                    
+                    if pattern_name == 'linear_greater_than' and len(groups) >= 2:
+                        var, val = groups[0], groups[1]
+                        var_type = infer_type(var, val)
+                        variables.add((var, var_type))
+                        constraints.append(f"(assert (> {var} {val}))")
+                    
+                    elif pattern_name == 'linear_less_than' and len(groups) >= 2:
+                        var, val = groups[0], groups[1]
+                        var_type = infer_type(var, val)
+                        variables.add((var, var_type))
+                        constraints.append(f"(assert (< {var} {val}))")
+                    
+                    elif pattern_name == 'linear_geq' and len(groups) >= 2:
+                        var, val = groups[0], groups[1]
+                        var_type = infer_type(var, val)
+                        variables.add((var, var_type))
+                        constraints.append(f"(assert (>= {var} {val}))")
+                    
+                    elif pattern_name == 'linear_leq' and len(groups) >= 2:
+                        var, val = groups[0], groups[1]
+                        var_type = infer_type(var, val)
+                        variables.add((var, var_type))
+                        constraints.append(f"(assert (<= {var} {val}))")
+                    
+                    elif pattern_name == 'linear_equal' and len(groups) >= 2:
+                        var, val = groups[0], groups[1]
+                        var_type = infer_type(var, val)
+                        variables.add((var, var_type))
+                        constraints.append(f"(assert (= {var} {val}))")
+                    
+                    elif pattern_name == 'range_between' and len(groups) >= 3:
+                        var, min_val, max_val = groups[0], groups[1], groups[2]
+                        var_type = infer_type(var, min_val if '.' in min_val else max_val)
+                        variables.add((var, var_type))
+                        constraints.append(f"(assert (and (>= {var} {min_val}) (<= {var} {max_val})))")
+                    
+                    elif pattern_name == 'boolean_true' and len(groups) >= 1:
+                        var = groups[0]
+                        variables.add((var, 'Bool'))
+                        constraints.append(f"(assert {var})")
+                    
+                    elif pattern_name == 'boolean_false' and len(groups) >= 1:
+                        var = groups[0]
+                        variables.add((var, 'Bool'))
+                        constraints.append(f"(assert (not {var}))")
+                    
+                    elif pattern_name == 'boolean_and' and len(groups) >= 2:
+                        var1, var2 = groups[0], groups[1]
+                        variables.add((var1, 'Bool'))
+                        variables.add((var2, 'Bool'))
+                        constraints.append(f"(assert (and {var1} {var2}))")
+                    
+                    elif pattern_name == 'boolean_or' and len(groups) >= 2:
+                        var1, var2 = groups[0], groups[1]
+                        variables.add((var1, 'Bool'))
+                        variables.add((var2, 'Bool'))
+                        constraints.append(f"(assert (or {var1} {var2}))")
+                    
+                    elif pattern_name == 'boolean_not' and len(groups) >= 1:
+                        var = groups[0]
+                        variables.add((var, 'Bool'))
+                        constraints.append(f"(assert (not {var}))")
+                    
+                    elif pattern_name == 'boolean_implies' and len(groups) >= 2:
+                        var1, var2 = groups[0], groups[1]
+                        variables.add((var1, 'Bool'))
+                        variables.add((var2, 'Bool'))
+                        constraints.append(f"(assert (=> {var1} {var2}))")
+                    
+                    elif pattern_name == 'nonlinear_product' and len(groups) >= 4:
+                        var1, var2, op, val = groups[0], groups[1], groups[2], groups[3]
+                        variables.add((var1, 'Int'))
+                        variables.add((var2, 'Int'))
+                        op_map = {'<': '<', '>': '>', '<=': '<=', '>=': '>=', '=': '='}
+                        smt_op = op_map.get(op, '=')
+                        constraints.append(f"(assert ({smt_op} (* {var1} {var2}) {val}))")
+                    
+                    elif pattern_name == 'arithmetic_sum' and len(groups) >= 3:
+                        var1, var2, result = groups[0], groups[1], groups[2]
+                        variables.add((var1, 'Int'))
+                        variables.add((var2, 'Int'))
+                        variables.add((result, 'Int'))
+                        constraints.append(f"(assert (= (+ {var1} {var2}) {result}))")
+                    
+                    elif pattern_name == 'arithmetic_diff' and len(groups) >= 3:
+                        var1, var2, result = groups[0], groups[1], groups[2]
+                        variables.add((var1, 'Int'))
+                        variables.add((var2, 'Int'))
+                        variables.add((result, 'Int'))
+                        constraints.append(f"(assert (= (- {var1} {var2}) {result}))")
+                    
+                    elif pattern_name == 'all_different' and len(groups) >= 1:
+                        # Parse comma-separated variable list
+                        var_list = re.split(r',\s*|\s+and\s+', groups[0])
+                        for var in var_list:
+                            var = var.strip()
+                            if var:
+                                variables.add((var, 'Int'))
+                        if len(var_list) >= 2:
+                            var_list = [v.strip() for v in var_list if v.strip()]
+                            pairs = []
+                            for i in range(len(var_list)):
+                                for j in range(i + 1, len(var_list)):
+                                    pairs.append(f"(not (= {var_list[i]} {var_list[j]}))")
+                            if pairs:
+                                constraints.append(f"(assert (and {' '.join(pairs)}))")
+        
+        # If no specific pattern matched, try variable extraction for generic constraints
+        if not constraints:
+            detected_vars = self._detect_variables(text)
+            for var in detected_vars:
+                if var not in [v[0] for v in variables]:
+                    variables.add((var, infer_type(var)))
+            
+            # Add a generic comment constraint
+            constraints.append(f"; Note: Could not fully parse constraint, detected variables: {', '.join(detected_vars)}")
+        
+        # Build output
+        # Add variable declarations
+        for var, var_type in sorted(variables):
+            lines.append(f"(declare-const {var} {var_type})")
+        
+        # Add constraints
+        lines.extend(constraints)
+        
+        return '\n'.join(lines) if constraints else None
 
-        return f"; Basic translation for: {natural_language}\n; Type: {constraint_type}"
+    def _detect_variables(self, text: str) -> List[str]:
+        """
+        Detect potential variable names from natural language text.
+        Returns a list of unique variable names.
+        """
+        variables = set()
+        
+        for pattern in self._compiled_variable_patterns:
+            matches = pattern.findall(text)
+            for match in matches:
+                if isinstance(match, tuple):
+                    variables.update(m for m in match if m and len(m) > 0)
+                elif isinstance(match, str) and match:
+                    variables.add(match)
+        
+        # Filter out common words that aren't variables
+        common_words = {'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
+                       'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'should',
+                       'can', 'could', 'may', 'might', 'must', 'shall', 'this', 'that',
+                       'these', 'those', 'and', 'or', 'but', 'if', 'then', 'else', 'when',
+                       'where', 'why', 'how', 'what', 'who', 'which', 'whose', 'whom',
+                       'than', 'as', 'like', 'so', 'very', 'just', 'only', 'even', 'also',
+                       'too', 'more', 'most', 'less', 'least', 'much', 'many', 'few',
+                       'some', 'any', 'all', 'both', 'each', 'every', 'either', 'neither',
+                       'one', 'two', 'three', 'first', 'second', 'last', 'next', 'previous',
+                       'true', 'false', 'not', 'nil', 'null', 'none'}
+        
+        variables = {v for v in variables if v.lower() not in common_words and len(v) > 0}
+        
+        return sorted(variables)
 
-    def formulate_theorem_with_dspy(self, natural_language_theorem: str) -> Optional[str]:
+    def formulate_theorem_with_dspy(
+        self,
+        natural_language_theorem: str,
+        logic_hint: Optional[str] = None,
+        assumptions: Optional[List[str]] = None,
+        quantified_vars: Optional[List[str]] = None
+    ) -> Optional[str]:
         """
         Formulate a theorem in SMT-LIB format from natural language using DSPy.
 
         Args:
             natural_language_theorem: Natural language description of the theorem
+            logic_hint: Hint for logic selection (LIA, LRA, QF_LIA, etc.)
+            assumptions: List of assumptions to include
+            quantified_vars: List of variables to quantify over
 
         Returns:
             SMT-LIB formatted theorem or None if failed
         """
+        if not natural_language_theorem or not natural_language_theorem.strip():
+            return None
+
         if not self.dspy_available:
             logger.info("DSPy not available, falling back to basic theorem formulation")
-            return self._basic_formulate_theorem(natural_language_theorem)
+            return self._basic_formulate_theorem(
+                natural_language_theorem, logic_hint, assumptions, quantified_vars
+            )
 
         try:
-            # Define a DSPy signature for theorem formulation
+            # Define an enhanced DSPy signature for theorem formulation
             class TheoremFormulationSignature(dspy.Signature):
-                """Formulate a theorem in SMT-LIB format from natural language."""
-                natural_language_theorem = dspy.InputField(desc="Natural language description of the theorem to prove")
+                """
+                Formulate a theorem in SMT-LIB format from natural language.
+                
+                Examples:
+                - "For all x, if x > 0 then x + 1 > 0" -> 
+                  (assert (forall ((x Int)) (=> (> x 0) (> (+ x 1) 0))))
+                - "If x = y and y = z then x = z" ->
+                  (assert (=> (and (= x y) (= y z)) (= x z)))
+                """
+                natural_language_theorem = dspy.InputField(
+                    desc="Natural language description of the theorem to prove"
+                )
+                logic_hint = dspy.InputField(
+                    desc="Suggested logic: LIA (linear int), LRA (linear real), NIA (nonlinear int), QF_LIA (quantifier-free), etc."
+                )
+                assumptions_json = dspy.InputField(
+                    desc="JSON list of assumptions as SMT-LIB expressions"
+                )
+                quantified_vars_json = dspy.InputField(
+                    desc="JSON list of variable names to quantify over"
+                )
 
-                smt_lib_theorem = dspy.OutputField(desc="SMT-LIB2 formatted theorem for proving")
-                variable_declarations = dspy.OutputField(desc="Variable declarations needed for the theorem")
-                logic_declaration = dspy.OutputField(desc="Appropriate logic declaration (e.g., QF_LIA, LIA)")
-                proof_strategy = dspy.OutputField(desc="Suggested proof strategy")
+                smt_lib_theorem = dspy.OutputField(
+                    desc="Complete SMT-LIB2 theorem as assertion(s) ready for checking"
+                )
+                variable_declarations = dspy.OutputField(
+                    desc="Variable declarations in SMT-LIB format"
+                )
+                logic_declaration = dspy.OutputField(
+                    desc="Appropriate SMT-LIB logic declaration (e.g., QF_LIA, LIA, LRA, NIA, UFLIA)"
+                )
+                proof_strategy = dspy.OutputField(
+                    desc="Suggested proof strategy: direct, contradiction, induction, case-analysis"
+                )
+                theorem_structure = dspy.OutputField(
+                    desc="Structural analysis: implication, universal, existential, conjunction, etc."
+                )
+                formalization_notes = dspy.OutputField(
+                    desc="Notes about the formalization choices made"
+                )
 
-            # Create a predictor using the signature
-            formulate_theorem = dspy.Predict(TheoremFormulationSignature)
+            # Create a predictor using Chain of Thought for better reasoning
+            formulate_theorem = dspy.ChainOfThought(TheoremFormulationSignature)
 
             # Run the theorem formulation
             result = formulate_theorem(
-                natural_language_theorem=natural_language_theorem
+                natural_language_theorem=natural_language_theorem,
+                logic_hint=logic_hint or "auto-detect",
+                assumptions_json=json.dumps(assumptions) if assumptions else "[]",
+                quantified_vars_json=json.dumps(quantified_vars) if quantified_vars else "[]"
             )
 
-            # Construct the full SMT-LIB theorem
-            smt_theorem = f"; Theorem: {natural_language_theorem}\n"
-            smt_theorem += f"(set-logic {result.logic_declaration})\n"
-            smt_theorem += f"{result.variable_declarations}\n"
-            smt_theorem += f"{result.smt_lib_theorem}\n"
-            smt_theorem += "; Check satisfiability to prove the theorem\n(check-sat)\n"
+            # Construct the full SMT-LIB theorem with proper structure
+            lines = [
+                f"; Theorem: {natural_language_theorem}",
+                f"; Structure: {result.theorem_structure}",
+                f"; Strategy: {result.proof_strategy}",
+            ]
+            
+            if result.formalization_notes:
+                lines.append(f"; Notes: {result.formalization_notes}")
+            
+            lines.append(f"(set-logic {result.logic_declaration})")
+            lines.append("(set-option :produce-proofs true)")
+            
+            # Add variable declarations
+            if result.variable_declarations:
+                lines.append(result.variable_declarations)
+            
+            # Add assumptions if provided
+            if assumptions:
+                for i, assumption in enumerate(assumptions):
+                    lines.append(f"(assert ; Assumption {i+1}")
+                    lines.append(f"  {assumption}")
+                    lines.append(")")
+            
+            # Add the main theorem assertion
+            lines.append("; Main theorem")
+            theorem = result.smt_lib_theorem.strip()
+            if not theorem.startswith('('):
+                theorem = f"(assert {theorem})"
+            lines.append(theorem)
+            
+            lines.append("; Check satisfiability (theorem is proven if result is unsat)")
+            lines.append("(check-sat)")
 
-            return smt_theorem
+            return '\n'.join(lines)
 
         except Exception as e:
             logger.warning(f"DSPy theorem formulation failed, falling back to basic method: {e}")
-            return self._basic_formulate_theorem(natural_language_theorem)
+            return self._basic_formulate_theorem(
+                natural_language_theorem, logic_hint, assumptions, quantified_vars
+            )
 
-    def _basic_formulate_theorem(self, natural_language_theorem: str) -> Optional[str]:
-        """Basic fallback for theorem formulation."""
-        # Basic implementation - would be more sophisticated in practice
-        return f"; Basic theorem formulation for: {natural_language_theorem}\n(set-logic LIA)\n; TODO: Implement proper translation"
+    def _basic_formulate_theorem(
+        self,
+        natural_language_theorem: str,
+        logic_hint: Optional[str] = None,
+        assumptions: Optional[List[str]] = None,
+        quantified_vars: Optional[List[str]] = None
+    ) -> Optional[str]:
+        """
+        Enhanced basic fallback for theorem formulation.
+        
+        Supports:
+        - Implication patterns (if...then, implies)
+        - Universal quantification (for all, forall)
+        - Existential quantification (there exists, exists)
+        - Transitivity patterns
+        - Conjunction/disjunction in premises
+        """
+        if not natural_language_theorem or not natural_language_theorem.strip():
+            return None
 
-    def solve_problem_with_dspy_guidance(self, problem_description: str,
-                                       constraint_type: str = "general") -> Dict[str, Any]:
+        text = natural_language_theorem.strip()
+        lines = [f"; Theorem: {text}"]
+        
+        # Determine logic
+        logic = logic_hint or self._infer_logic(text)
+        lines.append(f"(set-logic {logic})")
+        lines.append("(set-option :produce-proofs true)")
+        
+        # Detect variables
+        variables = self._detect_variables(text)
+        if quantified_vars:
+            variables = list(set(variables + quantified_vars))
+        
+        # Infer variable types
+        var_types = {}
+        for var in variables:
+            var_types[var] = self._infer_var_type(var, text)
+        
+        # Try to match theorem patterns
+        theorem_smt = None
+        
+        for theorem_type, config in self._compiled_theorem_patterns.items():
+            for pattern in config['patterns']:
+                match = pattern.search(text)
+                if match:
+                    groups = match.groups()
+                    
+                    if theorem_type == 'implication' and len(groups) >= 2:
+                        premise, conclusion = groups[0], groups[1]
+                        premise_smt = self._text_to_smt_expr(premise, var_types)
+                        conclusion_smt = self._text_to_smt_expr(conclusion, var_types)
+                        theorem_smt = f"(assert (=> {premise_smt} {conclusion_smt}))"
+                    
+                    elif theorem_type == 'forall' and len(groups) >= 2:
+                        var, statement = groups[0], groups[1]
+                        if var not in var_types:
+                            var_types[var] = 'Int'
+                        statement_smt = self._text_to_smt_expr(statement, var_types)
+                        theorem_smt = f"(assert (forall (({var} {var_types[var]})) {statement_smt}))"
+                    
+                    elif theorem_type == 'exists' and len(groups) >= 2:
+                        var, statement = groups[0], groups[1]
+                        if var not in var_types:
+                            var_types[var] = 'Int'
+                        statement_smt = self._text_to_smt_expr(statement, var_types)
+                        theorem_smt = f"(assert (exists (({var} {var_types[var]})) {statement_smt}))"
+                    
+                    elif theorem_type == 'transitivity' and len(groups) >= 3:
+                        premise1, premise2, conclusion = groups[0], groups[1], groups[2]
+                        premise1_smt = self._text_to_smt_expr(premise1, var_types)
+                        premise2_smt = self._text_to_smt_expr(premise2, var_types)
+                        conclusion_smt = self._text_to_smt_expr(conclusion, var_types)
+                        theorem_smt = f"(assert (=> (and {premise1_smt} {premise2_smt}) {conclusion_smt}))"
+                    
+                    elif theorem_type == 'contradiction' and len(groups) >= 2:
+                        expr1, expr2 = groups[0], groups[1]
+                        expr1_smt = self._text_to_smt_expr(expr1, var_types)
+                        expr2_smt = self._text_to_smt_expr(expr2, var_types)
+                        theorem_smt = f"(assert (not (and {expr1_smt} {expr2_smt})))"
+                    
+                    break
+            if theorem_smt:
+                break
+        
+        # If no pattern matched, create a generic theorem structure
+        if not theorem_smt:
+            # Declare all detected variables
+            for var in variables:
+                lines.append(f"(declare-const {var} {var_types.get(var, 'Int')})")
+            
+            # Add assumptions
+            if assumptions:
+                for i, assumption in enumerate(assumptions):
+                    lines.append(f"(assert ; Assumption {i+1}")
+                    lines.append(f"  {assumption}")
+                    lines.append(")")
+            
+            lines.append(f"; Note: Generic theorem - manual formalization needed")
+            lines.append(f"; Detected variables: {', '.join(variables)}")
+            lines.append("(check-sat)")
+            return '\n'.join(lines)
+        
+        # Add variable declarations
+        declared = set()
+        for var in variables:
+            if var not in declared:
+                lines.append(f"(declare-const {var} {var_types.get(var, 'Int')})")
+                declared.add(var)
+        
+        # Add assumptions
+        if assumptions:
+            for i, assumption in enumerate(assumptions):
+                lines.append(f"(assert ; Assumption {i+1}")
+                lines.append(f"  {assumption}")
+                lines.append(")")
+        
+        # Add the theorem
+        lines.append("; Main theorem")
+        lines.append(theorem_smt)
+        lines.append("(check-sat)")
+        
+        return '\n'.join(lines)
+
+    def _infer_logic(self, text: str) -> str:
+        """Infer appropriate SMT-LIB logic from theorem text."""
+        lower = text.lower()
+        
+        # Check for quantifiers
+        has_quantifiers = any(kw in lower for kw in ['for all', 'forall', 'exists', 'there exists', 'every', 'any'])
+        
+        # Check for reals
+        has_reals = any(kw in lower for kw in ['real', 'decimal', 'fraction', 'continuous'])
+        
+        # Check for nonlinearity
+        has_nonlinear = any(kw in lower for kw in ['*', 'product', 'square', 'multiply', 'times', 'power', '^'])
+        
+        # Check for arrays
+        has_arrays = any(kw in lower for kw in ['array', 'index', 'element', 'select', 'store'])
+        
+        # Determine logic
+        if has_arrays:
+            return 'AUFNIRA' if has_nonlinear else 'AUFLIA'
+        elif has_quantifiers:
+            if has_reals:
+                return 'NRA' if has_nonlinear else 'LRA'
+            else:
+                return 'NIA' if has_nonlinear else 'LIA'
+        else:
+            if has_reals:
+                return 'QF_NRA' if has_nonlinear else 'QF_LRA'
+            else:
+                return 'QF_NIA' if has_nonlinear else 'QF_LIA'
+
+    def _infer_var_type(self, var_name: str, context: str) -> str:
+        """Infer variable type from name and context."""
+        lower_name = var_name.lower()
+        lower_context = context.lower()
+        
+        # Boolean indicators
+        if lower_name in ['flag', 'is', 'has', 'valid', 'enabled', 'active', 'ok', 'success']:
+            return 'Bool'
+        
+        # Real indicators
+        if any(indicator in lower_name for indicator in ['rate', 'ratio', 'fraction', 'prob', 'percent']):
+            return 'Real'
+        
+        # Check surrounding context for type hints
+        # Look for patterns like "x is a real" or "y be an integer"
+        type_patterns = [
+            (rf'{var_name}\s+(?:is|are|be|as)\s+(?:a|an)?\s*real', 'Real'),
+            (rf'{var_name}\s+(?:is|are|be|as)\s+(?:a|an)?\s*integer', 'Int'),
+            (rf'{var_name}\s+(?:is|are|be|as)\s+(?:a|an)?\s*boolean', 'Bool'),
+            (rf'{var_name}\s+(?:is|are|be|as)\s+(?:a|an)?\s*bool', 'Bool'),
+        ]
+        
+        for pattern, vtype in type_patterns:
+            if re.search(pattern, lower_context):
+                return vtype
+        
+        return 'Int'
+
+    def _text_to_smt_expr(self, text: str, var_types: Dict[str, str]) -> str:
+        """Convert natural language text to SMT-LIB expression."""
+        lower = text.lower().strip()
+        
+        # Try to match comparison patterns
+        comparisons = [
+            (r'(\w+)\s*>=\s*(\w+|\d+)', '>='),
+            (r'(\w+)\s*<=\s*(\w+|\d+)', '<='),
+            (r'(\w+)\s*>\s*(\w+|\d+)', '>'),
+            (r'(\w+)\s*<\s*(\w+|\d+)', '<'),
+            (r'(\w+)\s*=\s*(\w+|\d+)', '='),
+            (r'(\w+)\s+is\s+greater\s+than\s+(\w+|\d+)', '>'),
+            (r'(\w+)\s+is\s+less\s+than\s+(\w+|\d+)', '<'),
+            (r'(\w+)\s+equals?\s+(\w+|\d+)', '='),
+        ]
+        
+        for pattern, op in comparisons:
+            match = re.search(pattern, lower)
+            if match:
+                left, right = match.group(1), match.group(2)
+                return f"({op} {left} {right})"
+        
+        # Handle arithmetic expressions
+        arithmetic = [
+            (r'(\w+)\s*\+\s*(\w+)', '+'),
+            (r'(\w+)\s*-\s*(\w+)', '-'),
+            (r'(\w+)\s*\*\s*(\w+)', '*'),
+            (r'sum\s+of\s+(\w+)\s+and\s+(\w+)', '+'),
+            (r'difference\s+of\s+(\w+)\s+and\s+(\w+)', '-'),
+        ]
+        
+        for pattern, op in arithmetic:
+            match = re.search(pattern, lower)
+            if match:
+                left, right = match.group(1), match.group(2)
+                return f"({op} {left} {right})"
+        
+        # If nothing matched, return the text as-is (might need manual fixing)
+        return text
+
+    def batch_translate_constraints(
+        self,
+        constraints: List[str],
+        constraint_type: str = "general",
+        variable_hints: Optional[Dict[str, str]] = None
+    ) -> List[Optional[str]]:
+        """
+        Translate multiple natural language constraints to SMT-LIB in batch.
+        
+        Args:
+            constraints: List of natural language constraint descriptions
+            constraint_type: Type of all constraints
+            variable_hints: Variable type hints
+            
+        Returns:
+            List of SMT-LIB constraint strings (None for failed translations)
+        """
+        results = []
+        for constraint in constraints:
+            result = self.natural_language_to_constraint_with_dspy(
+                constraint, constraint_type, variable_hints
+            )
+            results.append(result)
+        return results
+
+    def solve_problem_with_dspy_guidance(
+        self,
+        problem_description: str,
+        constraint_type: str = "general",
+        optimization_objective: Optional[str] = None,
+        minimize: bool = True
+    ) -> Dict[str, Any]:
         """
         Solve a constraint satisfaction problem using DSPy for enhanced problem understanding
         and Z3 for solving.
@@ -1586,68 +2641,129 @@ class Z3DSPyIntegration:
         Args:
             problem_description: Natural language description of the problem
             constraint_type: Type of constraints involved
+            optimization_objective: Optional objective function for optimization
+            minimize: Whether to minimize (True) or maximize (False) the objective
 
         Returns:
             Dictionary with solution results
         """
+        start_time = time.time()
+        
         try:
             # First, use DSPy to understand and structure the problem
             if self.dspy_available:
-                # Define a DSPy signature for problem analysis
+                # Define an enhanced DSPy signature for problem analysis
                 class ProblemAnalysisSignature(dspy.Signature):
-                    """Analyze a constraint satisfaction problem."""
-                    problem_description = dspy.InputField(desc="Natural language description of the problem to solve")
-                    constraint_type = dspy.InputField(desc="Type of constraints involved (arithmetic, boolean, etc.)")
+                    """
+                    Analyze a constraint satisfaction or optimization problem.
+                    
+                    Given a problem description, identify variables, constraints,
+                    and determine if it's a satisfaction or optimization problem.
+                    """
+                    problem_description = dspy.InputField(
+                        desc="Natural language description of the problem to solve"
+                    )
+                    constraint_type = dspy.InputField(
+                        desc="Type of constraints: linear, nonlinear, boolean, mixed"
+                    )
+                    has_objective = dspy.InputField(
+                        desc="Whether this is an optimization problem with an objective"
+                    )
 
-                    key_variables = dspy.OutputField(desc="List of key variables in the problem")
-                    constraints = dspy.OutputField(desc="List of constraints that need to be satisfied")
-                    objective = dspy.OutputField(desc="Objective if this is an optimization problem")
-                    solution_approach = dspy.OutputField(desc="Recommended approach to solve the problem")
+                    key_variables = dspy.OutputField(
+                        desc="JSON object mapping variable names to their types and descriptions"
+                    )
+                    constraints_list = dspy.OutputField(
+                        desc="JSON list of constraints in natural language"
+                    )
+                    objective_function = dspy.OutputField(
+                        desc="Objective function description if optimization, else 'none'"
+                    )
+                    problem_classification = dspy.OutputField(
+                        desc="Classification: CSP (satisfaction), COP (optimization), theorem, or verification"
+                    )
+                    recommended_logic = dspy.OutputField(
+                        desc="Recommended SMT-LIB logic: QF_LIA, QF_LRA, LIA, LRA, etc."
+                    )
+                    solution_approach = dspy.OutputField(
+                        desc="Recommended solving approach and any special considerations"
+                    )
 
                 # Create a predictor using the signature
-                analyze_problem = dspy.Predict(ProblemAnalysisSignature)
+                analyze_problem = dspy.ChainOfThought(ProblemAnalysisSignature)
 
                 # Run the problem analysis
                 result = analyze_problem(
                     problem_description=problem_description,
-                    constraint_type=constraint_type
+                    constraint_type=constraint_type,
+                    has_objective="yes" if optimization_objective else "no"
                 )
 
-                # Convert the analysis to SMT-LIB constraints
-                smt_constraints = self.natural_language_to_constraint_with_dspy(
-                    f"Variables: {result.key_variables}. Constraints: {result.constraints}. Objective: {result.objective}",
-                    constraint_type
+                # Parse the results
+                try:
+                    variables_dict = json.loads(result.key_variables) if result.key_variables else {}
+                except json.JSONDecodeError:
+                    variables_dict = {}
+                
+                try:
+                    constraints_list = json.loads(result.constraints_list) if result.constraints_list else []
+                except json.JSONDecodeError:
+                    constraints_list = []
+
+                # Convert constraints to SMT-LIB
+                smt_constraints = []
+                for constraint in constraints_list:
+                    smt = self.natural_language_to_constraint_with_dspy(
+                        constraint, constraint_type, variables_dict
+                    )
+                    if smt:
+                        smt_constraints.append(smt)
+
+                # Build complete SMT-LIB problem
+                smt_problem = self._build_smt_problem(
+                    variables=variables_dict,
+                    constraints=smt_constraints,
+                    objective=optimization_objective or result.objective_function,
+                    logic=result.recommended_logic,
+                    minimize=minimize
                 )
 
-                # Now solve with Z3
-                solver_result = self.solver_engine.solve_constraints(smt_constraints)
+                # Solve with Z3
+                solver_result = self.solver_engine.solve_smtlib(smt_problem)
+                execution_time = time.time() - start_time
 
                 return {
-                    "status": "success",
+                    "status": "success" if solver_result.status != Z3ResultStatus.ERROR else "error",
                     "dspy_analysis": {
-                        "key_variables": result.key_variables,
-                        "constraints": result.constraints,
-                        "objective": result.objective,
+                        "key_variables": variables_dict,
+                        "constraints": constraints_list,
+                        "objective": result.objective_function,
+                        "classification": result.problem_classification,
+                        "recommended_logic": result.recommended_logic,
                         "solution_approach": result.solution_approach
                     },
-                    "solver_result": solver_result,
+                    "smt_problem": smt_problem,
+                    "solver_result": solver_result.to_dict() if hasattr(solver_result, 'to_dict') else solver_result,
                     "problem_description": problem_description,
                     "constraint_type": constraint_type,
+                    "execution_time": execution_time,
                     "dspy_enhanced": True
                 }
             else:
                 # Fallback to basic approach
-                smt_constraints = self._basic_natural_language_to_constraint(
+                smt_constraint = self._basic_natural_language_to_constraint(
                     problem_description, constraint_type
                 )
 
-                solver_result = self.solver_engine.solve_constraints(smt_constraints)
+                solver_result = self.solver_engine.solve_smtlib(smt_constraint)
+                execution_time = time.time() - start_time
 
                 return {
-                    "status": "success",
-                    "solver_result": solver_result,
+                    "status": "success" if solver_result.status != Z3ResultStatus.ERROR else "error",
+                    "solver_result": solver_result.to_dict() if hasattr(solver_result, 'to_dict') else solver_result,
                     "problem_description": problem_description,
                     "constraint_type": constraint_type,
+                    "execution_time": execution_time,
                     "dspy_enhanced": False,
                     "message": "DSPy not available, using basic constraint solving"
                 }
@@ -1658,8 +2774,54 @@ class Z3DSPyIntegration:
                 "status": "error",
                 "error": str(e),
                 "problem_description": problem_description,
-                "dspy_enhanced": self.dspy_available
+                "dspy_enhanced": self.dspy_available,
+                "execution_time": time.time() - start_time
             }
+
+    def _build_smt_problem(
+        self,
+        variables: Dict[str, str],
+        constraints: List[str],
+        objective: Optional[str],
+        logic: str,
+        minimize: bool
+    ) -> str:
+        """Build a complete SMT-LIB problem from components."""
+        lines = [
+            "; Auto-generated SMT-LIB problem",
+            f"(set-logic {logic or 'ALL'})",
+            "(set-option :produce-models true)",
+        ]
+        
+        # Add variable declarations
+        for var_name, var_info in variables.items():
+            if isinstance(var_info, dict):
+                var_type = var_info.get('type', 'Int')
+            elif isinstance(var_info, str):
+                var_type = var_info
+            else:
+                var_type = 'Int'
+            lines.append(f"(declare-const {var_name} {var_type})")
+        
+        # Add constraints
+        for constraint in constraints:
+            lines.append(constraint)
+        
+        # Add optimization objective if provided
+        if objective and objective.lower() != 'none':
+            opt_cmd = "minimize" if minimize else "maximize"
+            # Try to extract the expression from objective
+            obj_expr = objective
+            if 'minimize' in obj_expr.lower():
+                obj_expr = re.sub(r'\bminimize\b', '', obj_expr, flags=re.IGNORECASE).strip()
+            if 'maximize' in obj_expr.lower():
+                obj_expr = re.sub(r'\bmaximize\b', '', obj_expr, flags=re.IGNORECASE).strip()
+            lines.append(f"({opt_cmd} {obj_expr})")
+        
+        lines.append("(check-sat)")
+        lines.append("(get-model)")
+        
+        return '\n'.join(lines)
 
 
 if __name__ == "__main__":

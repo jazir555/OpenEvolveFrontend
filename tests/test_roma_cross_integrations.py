@@ -173,11 +173,11 @@ def sample_subproblems():
 
 
 @pytest.fixture
-def sample_decomposition():
+def sample_decomposition(sample_problem):
     """Sample ROMA decomposition."""
     return ROMADecomposition(
         decomposition_id="test_decomp_1",
-        problem=sample_problem if 'sample_problem' in globals() else "Design system",
+        problem=sample_problem,
         sub_problems=[],
         is_atomic=False,
         depth=0,
@@ -215,15 +215,36 @@ def sample_roma_result(sample_decomposition, sample_solution):
 def mock_roma_integration():
     """Mock ROMA integration."""
     mock_roma = Mock(spec=ROMAIntegration)
-    mock_roma.decompose_problem = AsyncMock(return_value=sample_roma_result if 'sample_roma_result' in globals() else ROMAResult(
+
+    # Create sample decomposition and solution
+    sample_decomp = ROMADecomposition(
+        decomposition_id="test",
+        problem="Test problem",
+        sub_problems=[],
+        is_atomic=False,
+        depth=0
+    )
+
+    sample_sol = ROMASolution(
+        solution_id="sol_1",
+        problem_id="test",
+        solution="Test solution",
+        confidence=0.8,
+        reasoning="Test reasoning"
+    )
+
+    sample_verif = ROMAVerification(
+        verification_id="v1",
+        solution_id="sol_1",
+        passed=True,
+        score=0.9,
+        feedback="Good solution",
+        requirements_met={"completeness": True, "correctness": True}
+    )
+
+    mock_roma.decompose_problem = AsyncMock(return_value=ROMAResult(
         success=True,
-        decomposition=ROMADecomposition(
-            decomposition_id="test",
-            problem="Test problem",
-            sub_problems=[],
-            is_atomic=False,
-            depth=0
-        ),
+        decomposition=sample_decomp,
         solutions=[],
         verification=None,
         metadata={},
@@ -232,13 +253,7 @@ def mock_roma_integration():
     mock_roma.solve_atomic = AsyncMock(return_value=ROMAResult(
         success=True,
         decomposition=None,
-        solutions=[ROMASolution(
-            solution_id="sol_1",
-            problem_id="test",
-            solution="Test solution",
-            confidence=0.8,
-            reasoning="Test reasoning"
-        )],
+        solutions=[sample_sol],
         verification=None,
         metadata={},
         processing_time_ms=200.0
@@ -255,13 +270,7 @@ def mock_roma_integration():
         success=True,
         decomposition=None,
         solutions=[],
-        verification=ROMAVerification(
-            verification_id="v1",
-            solution_id="sol_1",
-            passed=True,
-            score=0.9,
-            feedback="Good solution"
-        ),
+        verification=sample_verif,
         metadata={},
         processing_time_ms=150.0
     ))
@@ -804,7 +813,7 @@ class TestROMARagbitsSolutionIndexing:
         assert doc_id is not None
 
     @pytest.mark.asyncio
-    async def test_batch_index_solutions(self, integration):
+    async def test_batch_index_solutions(self, integration, sample_roma_result):
         """Test batch indexing of solutions."""
         results = [sample_roma_result] * 5
 
@@ -1106,13 +1115,19 @@ class TestROMADeepKEFactory:
     @pytest.mark.asyncio
     async def test_create_roma_deepke_integration(self, mock_knowledge_engine):
         """Test creating ROMA-DeepKE integration via factory."""
-        integration = await create_roma_deepke_integration(
-            knowledge_engine=mock_knowledge_engine,
-            config={"confidence_threshold": 0.8}
-        )
+        from knowledge_engine.optional_imports import OptionalDependencyError
 
-        assert isinstance(integration, ROMADeepKEIntegration)
-        assert integration.config["confidence_threshold"] == 0.8
+        try:
+            integration = await create_roma_deepke_integration(
+                knowledge_engine=mock_knowledge_engine,
+                config={"confidence_threshold": 0.8}
+            )
+
+            assert isinstance(integration, ROMADeepKEIntegration)
+            assert integration.config["confidence_threshold"] == 0.8
+        except OptionalDependencyError:
+            # DeepKE not actually installed, skip test
+            pytest.skip("DeepKE dependency not installed")
 
     @pytest.mark.asyncio
     async def test_factory_requires_knowledge_engine(self):

@@ -5,7 +5,11 @@ Unified CLI for the Z3-LeanAIDE-OpenEvolve-BubbleLabs integration.
 
 Commands:
 - solve: Solve constraint problems
-- optimize: Run optimization
+- solve-batch: Batch problem solving from JSON file
+- solve-portfolio: Portfolio/multi-strategy solving
+- solve-incremental: Interactive incremental solving with push/pop/add/check
+- optimize: Run single-objective optimization
+- optimize-multi: Multi-objective optimization from JSON file
 - prove: Prove theorems
 - translate: Translate between formats
 - server: Run API server
@@ -201,6 +205,613 @@ if CLICK_AVAILABLE:
             if output:
                 with open(output, 'w') as f:
                     json.dump(result.to_dict(), f, indent=2)
+        
+        except Exception as e:
+            echo(style(f"Error: {e}", fg='red'), err=True)
+            sys.exit(1)
+
+
+    # =============================================================================
+    # Multi-Objective Optimize Command
+    # =============================================================================
+
+    @cli.command('optimize-multi')
+    @click.argument('input_file', type=click.Path(exists=True))
+    @click.option('--output', '-o', help='Output file')
+    @click.option('--format', 'output_format', default='json', type=click.Choice(['json', 'yaml', 'text']))
+    def optimize_multi(input_file, output, output_format):
+        """Run multi-objective optimization from a JSON input file.
+
+        Input file format:
+        {
+          "variables": [
+            {"name": "x", "type": "INTEGER"},
+            {"name": "y", "type": "INTEGER"}
+          ],
+          "constraints": ["x > 0", "y > 0", "x + y < 100"],
+          "objectives": [
+            {"expression": "x + y", "direction": "maximize"},
+            {"expression": "x - y", "direction": "minimize"}
+          ]
+        }
+
+        Examples:
+            z3 optimize-multi objectives.json
+            z3 optimize-multi objectives.json -o results.json
+            z3 optimize-multi objectives.json --format yaml
+        """
+        try:
+            from z3prover_advanced import get_z3_advanced_solver, OptimizationObjective
+            from z3prover_integration import Z3Variable, Z3Constraint, Z3ConstraintType
+            
+            echo(style("Running multi-objective optimization...", fg='blue'))
+            
+            # Load input file
+            with open(input_file, 'r') as f:
+                data = json.load(f)
+            
+            solver = get_z3_advanced_solver()
+            
+            # Parse variables
+            vars_list = data.get('variables', [])
+            z3_vars = [
+                Z3Variable(
+                    v['name'], 
+                    Z3ConstraintType[v.get('type', 'INTEGER').upper()],
+                    bit_width=v.get('bit_width')
+                )
+                for v in vars_list
+            ]
+            
+            # Parse constraints
+            constraints_list = data.get('constraints', [])
+            z3_constraints = [
+                Z3Constraint(c, Z3ConstraintType.INTEGER)
+                for c in constraints_list
+            ]
+            
+            # Parse multiple objectives
+            objectives_data = data.get('objectives', [])
+            if not objectives_data:
+                echo(style("Error: No objectives specified in input file", fg='red'), err=True)
+                sys.exit(1)
+            
+            objectives = []
+            for obj in objectives_data:
+                direction = obj.get('direction', 'minimize')
+                obj_type = OptimizationObjective.MINIMIZE if direction == 'minimize' else OptimizationObjective.MAXIMIZE
+                objectives.append((obj['expression'], obj_type))
+            
+            import time
+            start = time.time()
+            
+            result = solver.optimize(z3_vars, z3_constraints, objectives)
+            
+            elapsed = (time.time() - start) * 1000
+            
+            # Format output
+            output_data = {
+                "success": result.success,
+                "optimal_value": result.optimal_value,
+                "model": result.optimal_model.assignments if result.optimal_model else None,
+                "is_pareto": result.is_pareto,
+                "pareto_front_size": len(result.pareto_front),
+                "execution_time_ms": elapsed
+            }
+            
+            if result.is_pareto and result.pareto_front:
+                output_data["pareto_front"] = [
+                    {"value": p.value, "assignments": p.assignments}
+                    for p in result.pareto_front
+                ]
+            
+            _output_result(output_data, output, output_format)
+            
+            if result.success:
+                echo(style(f"[OK] Multi-objective optimization complete", fg='green'))
+                if result.is_pareto:
+                    echo(f"Pareto front size: {len(result.pareto_front)}")
+                if result.optimal_model:
+                    echo("Optimal solution:")
+                    for var, val in result.optimal_model.assignments.items():
+                        echo(f"  {var} = {val}")
+            else:
+                echo(style("[FAIL] Optimization failed", fg='red'))
+        
+        except Exception as e:
+            echo(style(f"Error: {e}", fg='red'), err=True)
+            sys.exit(1)
+
+
+    # =============================================================================
+    # Batch Solve Command
+    # =============================================================================
+
+    @cli.command('solve-batch')
+    @click.argument('input_file', type=click.Path(exists=True))
+    @click.option('--parallel/--sequential', default=True, help='Run problems in parallel')
+    @click.option('--max-workers', '-w', default=4, help='Maximum parallel workers')
+    @click.option('--output', '-o', help='Output file')
+    @click.option('--format', 'output_format', default='json', type=click.Choice(['json', 'yaml', 'text']))
+    def solve_batch(input_file, parallel, max_workers, output, output_format):
+        """Solve multiple constraint problems in batch from a JSON input file.
+
+        Input file format:
+        {
+          "problems": [
+            {
+              "problem": "x + y = 10",
+              "variables": [{"name": "x", "type": "INTEGER"}, {"name": "y", "type": "INTEGER"}],
+              "constraints": ["x > 0", "y > 0"]
+            },
+            ...
+          ]
+        }
+
+        Or for SMT-LIB problems:
+        {
+          "problems": [
+            {"problem": "(declare-fun x () Int) (assert (> x 0)) (check-sat)"},
+            ...
+          ]
+        }
+
+        Examples:
+            z3 solve-batch problems.json
+            z3 solve-batch problems.json --parallel -w 8
+            z3 solve-batch problems.json --sequential -o results.json
+        """
+        try:
+            from z3prover_integration import get_z3_solver_engine, Z3Variable, Z3Constraint, Z3ConstraintType
+            from concurrent.futures import ThreadPoolExecutor, as_completed
+            
+            echo(style(f"Loading batch problems from {input_file}...", fg='blue'))
+            
+            # Load input file
+            with open(input_file, 'r') as f:
+                data = json.load(f)
+            
+            problems = data.get('problems', [])
+            if not problems:
+                echo(style("Error: No problems found in input file", fg='red'), err=True)
+                sys.exit(1)
+            
+            echo(f"Solving {len(problems)} problems ({('parallel' if parallel else 'sequential')}, workers={max_workers})...")
+            
+            solver = get_z3_solver_engine()
+            results = []
+            completed = 0
+            failed = 0
+            
+            import time
+            start = time.time()
+            
+            def solve_single_problem(problem_data, idx):
+                """Solve a single problem."""
+                try:
+                    prob_text = problem_data.get('problem', '')
+                    vars_list = problem_data.get('variables', [])
+                    constraints_list = problem_data.get('constraints', [])
+                    timeout = problem_data.get('timeout', 60.0)
+                    
+                    # Check if SMT-LIB
+                    is_smtlib = any(kw in prob_text for kw in ['(assert', '(declare-fun', '(check-sat)'])
+                    
+                    p_start = time.time()
+                    
+                    if is_smtlib:
+                        result = solver.solve_smtlib(prob_text)
+                    else:
+                        z3_vars = [
+                            Z3Variable(
+                                v['name'], 
+                                Z3ConstraintType[v.get('type', 'INTEGER').upper()],
+                                bit_width=v.get('bit_width')
+                            )
+                            for v in vars_list
+                        ]
+                        z3_constraints = [
+                            Z3Constraint(c, Z3ConstraintType.INTEGER)
+                            for c in constraints_list
+                        ]
+                        if prob_text and prob_text.strip():
+                            z3_constraints.append(Z3Constraint(prob_text, Z3ConstraintType.INTEGER))
+                        result = solver.solve_constraints(z3_vars, z3_constraints)
+                    
+                    p_elapsed = (time.time() - p_start) * 1000
+                    
+                    return {
+                        "index": idx,
+                        "success": True,
+                        "status": result.status.value,
+                        "satisfiable": result.is_sat(),
+                        "model": result.model.assignments if result.model else None,
+                        "execution_time_ms": p_elapsed
+                    }
+                except Exception as e:
+                    return {
+                        "index": idx,
+                        "success": False,
+                        "status": "error",
+                        "error": str(e),
+                        "execution_time_ms": 0
+                    }
+            
+            if parallel:
+                with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                    futures = {executor.submit(solve_single_problem, p, i): i for i, p in enumerate(problems)}
+                    for future in as_completed(futures):
+                        result = future.result()
+                        results.append(result)
+                        if result['success']:
+                            completed += 1
+                        else:
+                            failed += 1
+                        echo(f"  Completed {completed + failed}/{len(problems)}...", nl=False)
+                        echo("\r", nl=False)
+            else:
+                for i, problem in enumerate(problems):
+                    result = solve_single_problem(problem, i)
+                    results.append(result)
+                    if result['success']:
+                        completed += 1
+                    else:
+                        failed += 1
+                    echo(f"  Completed {completed + failed}/{len(problems)}...", nl=False)
+                    echo("\r", nl=False)
+            
+            # Sort results by index
+            results.sort(key=lambda x: x['index'])
+            
+            total_elapsed = (time.time() - start) * 1000
+            
+            echo(f"\nCompleted: {completed}, Failed: {failed}, Total time: {total_elapsed:.0f}ms")
+            
+            # Format output
+            output_data = {
+                "success": True,
+                "completed": completed,
+                "failed": failed,
+                "total": len(problems),
+                "total_time_ms": total_elapsed,
+                "results": results
+            }
+            
+            _output_result(output_data, output, output_format)
+            
+            if completed == len(problems):
+                echo(style(f"[OK] All {completed} problems solved successfully", fg='green'))
+            else:
+                echo(style(f"[WARN] {completed} succeeded, {failed} failed", fg='yellow'))
+        
+        except Exception as e:
+            echo(style(f"Error: {e}", fg='red'), err=True)
+            sys.exit(1)
+
+
+    # =============================================================================
+    # Portfolio Solve Command
+    # =============================================================================
+
+    @cli.command('solve-portfolio')
+    @click.argument('input_file', type=click.Path(exists=True))
+    @click.option('--strategies', '-s', help='Comma-separated list of strategies (default: auto)')
+    @click.option('--timeout', '-t', default=30.0, help='Timeout per strategy in seconds')
+    @click.option('--sequential/--parallel', default=True, help='Run strategies in parallel')
+    @click.option('--output', '-o', help='Output file')
+    @click.option('--format', 'output_format', default='json', type=click.Choice(['json', 'yaml', 'text']))
+    def solve_portfolio(input_file, strategies, timeout, sequential, output, output_format):
+        """Solve using multiple strategies in parallel (portfolio solving).
+
+        Available strategies: simplify, solve-eqs, bit-blast, smt, qfbv, qflia,
+        qfnra, qfuf, auto-config, default
+
+        Input file should contain SMT-LIB problem:
+            (declare-fun x () Int)
+            (assert (> x 0))
+            (check-sat)
+
+        Examples:
+            z3 solve-portfolio problem.smt2
+            z3 solve-portfolio problem.smt2 -s "smt,qfbv,qflia"
+            z3 solve-portfolio problem.smt2 --sequential -t 60
+        """
+        try:
+            from z3prover_advanced import get_z3_advanced_solver
+            
+            echo(style("Running portfolio solve...", fg='blue'))
+            
+            # Load SMT-LIB problem
+            smtlib = Path(input_file).read_text()
+            
+            # Parse strategies
+            strategy_list = None
+            if strategies:
+                strategy_list = [s.strip() for s in strategies.split(',')]
+                echo(f"Using strategies: {strategy_list}")
+            else:
+                echo("Using default strategy portfolio")
+            
+            solver = get_z3_advanced_solver()
+            
+            import time
+            start = time.time()
+            
+            result = solver.solve_portfolio(
+                smtlib=smtlib,
+                strategies=strategy_list,
+                parallel=sequential
+            )
+            
+            elapsed = (time.time() - start) * 1000
+            
+            # Format output
+            output_data = {
+                "success": result.success,
+                "winner_strategy": result.winner_strategy,
+                "execution_time_ms": elapsed,
+                "parallel_speedup": result.parallel_speedup,
+                "strategies_tried": len(result.all_results),
+                "status": result.best_result.status.value if result.best_result else None,
+                "model": result.best_result.model.assignments if result.best_result and result.best_result.model else None
+            }
+            
+            if result.all_results:
+                output_data["all_results"] = [
+                    {
+                        "strategy": r.strategy,
+                        "status": r.status.value if hasattr(r.status, 'value') else str(r.status),
+                        "execution_time_ms": r.execution_time_ms
+                    }
+                    for r in result.all_results
+                ]
+            
+            _output_result(output_data, output, output_format)
+            
+            if result.success:
+                echo(style(f"[OK] Portfolio solve complete", fg='green'))
+                if result.winner_strategy:
+                    echo(f"Winner strategy: {result.winner_strategy}")
+                echo(f"Parallel speedup: {result.parallel_speedup:.2f}x")
+                echo(f"Strategies tried: {len(result.all_results)}")
+                if result.best_result and result.best_result.model:
+                    echo("Solution:")
+                    for var, val in result.best_result.model.assignments.items():
+                        echo(f"  {var} = {val}")
+            else:
+                echo(style("[FAIL] Portfolio solve failed", fg='red'))
+        
+        except Exception as e:
+            echo(style(f"Error: {e}", fg='red'), err=True)
+            sys.exit(1)
+
+
+    # =============================================================================
+    # Incremental Solve Command
+    # =============================================================================
+
+    @cli.command('solve-incremental')
+    @click.option('--state-id', help='Incremental state ID (omit to create new state)')
+    @click.option('--operation', '-op', 
+                  type=click.Choice(['create', 'push', 'pop', 'add', 'check', 'reset']),
+                  default='create', help='Incremental operation')
+    @click.option('--variables', '-v', help='Variables JSON (for create operation)')
+    @click.option('--constraints', '-c', help='Constraints JSON (for create operation)')
+    @click.option('--constraint', help='Single constraint to add (for add operation)')
+    @click.option('--output', '-o', help='Output file')
+    @click.option('--format', 'output_format', default='json', type=click.Choice(['json', 'yaml', 'text']))
+    def solve_incremental(state_id, operation, variables, constraints, constraint, output, output_format):
+        """Interactive incremental constraint solving with push/pop/add/check.
+
+        Operations:
+          create: Create a new incremental solver state
+          push:   Push a new scope onto the assertion stack
+          pop:    Pop a scope from the assertion stack
+          add:    Add a constraint to the current scope
+          check:  Check satisfiability of current constraints
+          reset:  Reset the solver state
+
+        Examples:
+            # Create new incremental state
+            z3 solve-incremental --operation create -v '[{"name":"x","type":"INTEGER"}]'
+
+            # Add constraint (use state-id from create output)
+            z3 solve-incremental --state-id <id> --operation add --constraint "x > 0"
+
+            # Check satisfiability
+            z3 solve-incremental --state-id <id> --operation check
+
+            # Push scope and add more constraints
+            z3 solve-incremental --state-id <id> --operation push
+            z3 solve-incremental --state-id <id> --operation add --constraint "x < 10"
+            z3 solve-incremental --state-id <id> --operation check
+
+            # Pop scope (removes x < 10 constraint)
+            z3 solve-incremental --state-id <id> --operation pop
+
+        For interactive mode, use state-id from the 'create' operation output.
+        """
+        try:
+            from z3prover_advanced import get_z3_advanced_solver
+            from z3prover_integration import Z3Variable, Z3Constraint, Z3ConstraintType
+            
+            echo(style(f"Incremental solve: {operation}...", fg='blue'))
+            
+            solver = get_z3_advanced_solver()
+            
+            import time
+            start = time.time()
+            
+            if operation == 'create':
+                # Parse variables and constraints
+                vars_list = json.loads(variables) if variables else []
+                constraints_list = json.loads(constraints) if constraints else []
+                
+                z3_vars = [
+                    Z3Variable(
+                        v['name'], 
+                        Z3ConstraintType[v.get('type', 'INTEGER').upper()],
+                        bit_width=v.get('bit_width')
+                    )
+                    for v in vars_list
+                ]
+                z3_constraints = [
+                    Z3Constraint(c, Z3ConstraintType.INTEGER)
+                    for c in constraints_list
+                ]
+                
+                new_state_id = solver.create_incremental_state(z3_vars, z3_constraints, state_id)
+                
+                elapsed = (time.time() - start) * 1000
+                
+                output_data = {
+                    "success": True,
+                    "state_id": new_state_id,
+                    "operation": operation,
+                    "message": "Incremental state created successfully",
+                    "execution_time_ms": elapsed
+                }
+                
+                _output_result(output_data, output, output_format)
+                
+                echo(style(f"[OK] Created incremental state: {new_state_id}", fg='green'))
+                echo(style("\nUse this state-id for subsequent operations:", fg='yellow'))
+                echo(f"  z3 solve-incremental --state-id {new_state_id} --operation push")
+                echo(f"  z3 solve-incremental --state-id {new_state_id} --operation add --constraint '...'")
+                echo(f"  z3 solve-incremental --state-id {new_state_id} --operation check")
+            
+            elif operation == 'push':
+                if not state_id:
+                    echo(style("Error: --state-id required for push operation", fg='red'), err=True)
+                    sys.exit(1)
+                
+                success = solver.push_scope(state_id)
+                
+                elapsed = (time.time() - start) * 1000
+                
+                output_data = {
+                    "success": success,
+                    "state_id": state_id,
+                    "operation": operation,
+                    "message": "Scope pushed" if success else "Failed to push scope",
+                    "execution_time_ms": elapsed
+                }
+                
+                _output_result(output_data, output, output_format)
+                
+                if success:
+                    echo(style(f"[OK] Scope pushed for state: {state_id}", fg='green'))
+                else:
+                    echo(style(f"[FAIL] Failed to push scope", fg='red'))
+            
+            elif operation == 'pop':
+                if not state_id:
+                    echo(style("Error: --state-id required for pop operation", fg='red'), err=True)
+                    sys.exit(1)
+                
+                success = solver.pop_scope(state_id)
+                
+                elapsed = (time.time() - start) * 1000
+                
+                output_data = {
+                    "success": success,
+                    "state_id": state_id,
+                    "operation": operation,
+                    "message": "Scope popped" if success else "Failed to pop scope",
+                    "execution_time_ms": elapsed
+                }
+                
+                _output_result(output_data, output, output_format)
+                
+                if success:
+                    echo(style(f"[OK] Scope popped for state: {state_id}", fg='green'))
+                else:
+                    echo(style(f"[FAIL] Failed to pop scope", fg='red'))
+            
+            elif operation == 'add':
+                if not state_id:
+                    echo(style("Error: --state-id required for add operation", fg='red'), err=True)
+                    sys.exit(1)
+                if not constraint:
+                    echo(style("Error: --constraint required for add operation", fg='red'), err=True)
+                    sys.exit(1)
+                
+                z3_constraint = Z3Constraint(constraint, Z3ConstraintType.INTEGER)
+                success = solver.add_constraint_incremental(state_id, z3_constraint)
+                
+                elapsed = (time.time() - start) * 1000
+                
+                output_data = {
+                    "success": success,
+                    "state_id": state_id,
+                    "operation": operation,
+                    "constraint": constraint,
+                    "message": "Constraint added" if success else "Failed to add constraint",
+                    "execution_time_ms": elapsed
+                }
+                
+                _output_result(output_data, output, output_format)
+                
+                if success:
+                    echo(style(f"[OK] Constraint added to state: {state_id}", fg='green'))
+                else:
+                    echo(style(f"[FAIL] Failed to add constraint", fg='red'))
+            
+            elif operation == 'check':
+                if not state_id:
+                    echo(style("Error: --state-id required for check operation", fg='red'), err=True)
+                    sys.exit(1)
+                
+                result = solver.check_incremental(state_id)
+                
+                elapsed = (time.time() - start) * 1000
+                
+                output_data = {
+                    "success": True,
+                    "state_id": state_id,
+                    "operation": operation,
+                    "status": result.status.value,
+                    "satisfiable": result.is_sat(),
+                    "model": result.model.assignments if result.model else None,
+                    "execution_time_ms": elapsed
+                }
+                
+                _output_result(output_data, output, output_format)
+                
+                if result.is_sat():
+                    echo(style(f"[OK] SATISFIABLE", fg='green'))
+                    if result.model:
+                        echo("Model:")
+                        for var, val in result.model.assignments.items():
+                            echo(f"  {var} = {val}")
+                elif result.is_unsat():
+                    echo(style(f"[OK] UNSATISFIABLE", fg='yellow'))
+                else:
+                    echo(style(f"[FAIL] UNKNOWN", fg='red'))
+            
+            elif operation == 'reset':
+                if not state_id:
+                    echo(style("Error: --state-id required for reset operation", fg='red'), err=True)
+                    sys.exit(1)
+                
+                success = solver.reset_incremental_state(state_id)
+                
+                elapsed = (time.time() - start) * 1000
+                
+                output_data = {
+                    "success": success,
+                    "state_id": state_id,
+                    "operation": operation,
+                    "message": "State reset" if success else "Failed to reset state",
+                    "execution_time_ms": elapsed
+                }
+                
+                _output_result(output_data, output, output_format)
+                
+                if success:
+                    echo(style(f"[OK] State reset: {state_id}", fg='green'))
+                else:
+                    echo(style(f"[FAIL] Failed to reset state", fg='red'))
         
         except Exception as e:
             echo(style(f"Error: {e}", fg='red'), err=True)
@@ -455,13 +1066,17 @@ else:
     def main():
         print("Click is required for CLI. Install with: pip install click")
         print("\nAvailable commands would be:")
-        print("  z3-cli solve <problem>")
-        print("  z3-cli optimize <objective>")
-        print("  z3-cli prove <theorem-file>")
-        print("  z3-cli server")
-        print("  z3-cli monitor")
-        print("  z3-cli config show")
-        print("  z3-cli knowledge patterns")
+        print("  z3 solve <problem>")
+        print("  z3 solve-batch <input-file>")
+        print("  z3 solve-portfolio <input-file>")
+        print("  z3 solve-incremental --operation <op>")
+        print("  z3 optimize <objective>")
+        print("  z3 optimize-multi <input-file>")
+        print("  z3 prove <theorem-file>")
+        print("  z3 server")
+        print("  z3 monitor")
+        print("  z3 config show")
+        print("  z3 knowledge patterns")
 
 
 if __name__ == "__main__":

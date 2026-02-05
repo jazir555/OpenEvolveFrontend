@@ -177,10 +177,12 @@ def sample_roma_verification():
         pytest.skip("ROMAVerification not available")
 
     return ROMAVerification(
+        verification_id="verif_1",
+        solution_id="sol_1",
         passed=True,
         score=0.95,
         feedback="Solution meets all requirements",
-        verified_at=datetime.now(timezone.utc).isoformat(),
+        requirements_met={"completeness": True, "correctness": True, "consistency": True},
         metadata={"verifier": "unit_tests"}
     )
 

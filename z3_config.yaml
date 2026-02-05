@@ -85,11 +85,14 @@ cache:
   compression: false
   checksum_verification: true
   
-  # Distributed cache (optional)
+  # Distributed cache (optional) - Valkey (Redis-compatible)
   distributed: false
-  redis_host: "localhost"
-  redis_port: 6379
-  redis_db: 0
+  valkey_host: "localhost"
+  valkey_port: 6379
+  valkey_db: 0
+  valkey_password: null
+  valkey_ssl: false
+  valkey_key_prefix: "z3_cache"
 
 # =============================================================================
 # Performance Monitoring
