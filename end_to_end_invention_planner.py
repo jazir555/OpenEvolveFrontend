@@ -380,15 +380,16 @@ class EndToEndInventionPlanner:
         self.kg_hub = None
         if KNOWLEDGE_ENGINE_AVAILABLE:
             try:
-                # Use a loop to avoid blocking initialization if KE services are slow
-                # In production, this would be properly awaited
                 import asyncio
+                from knowledge_engine import UnifiedKGIntegrationHub, get_knowledge_engine
+                
                 try:
                     loop = asyncio.get_event_loop()
                     if loop.is_running():
                         # Create a task to initialize the engine
                         self.knowledge_engine_task = loop.create_task(get_knowledge_engine())
-                        self.kg_hub_task = loop.create_task(UnifiedKGIntegrationHub().initialize())
+                        self.kg_hub = UnifiedKGIntegrationHub()
+                        self.kg_hub_task = loop.create_task(self.kg_hub.initialize())
                     else:
                         self.knowledge_engine = asyncio.run(get_knowledge_engine())
                         self.kg_hub = UnifiedKGIntegrationHub()
@@ -754,11 +755,13 @@ class EndToEndInventionPlanner:
                 if not self.knowledge_engine and hasattr(self, 'knowledge_engine_task'):
                     self.knowledge_engine = await self.knowledge_engine_task
                 
-                if not self.kg_hub and hasattr(self, 'kg_hub_task'):
-                    # The task was to initialize it, we still need the instance
+                if hasattr(self, 'kg_hub_task') and self.kg_hub:
+                    # Wait for initialization to complete if it's still running
+                    await self.kg_hub_task
+                elif not self.kg_hub:
                     from knowledge_engine import UnifiedKGIntegrationHub
                     self.kg_hub = UnifiedKGIntegrationHub()
-                    await self.kg_hub_task
+                    await self.kg_hub.initialize()
 
                 logger.info("Analyzing prompt with knowledge engine integration")
                 

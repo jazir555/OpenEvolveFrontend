@@ -438,6 +438,10 @@ class UnifiedKGIntegrationHub:
         await self._initialize_icr()
         await self._initialize_lagrange_mapper()
         
+        # Initialize specialized managers
+        await self._initialize_chronicle()
+        await self._initialize_temporal()
+        
         self._initialized = True
         
         # Log initialization results
@@ -1895,6 +1899,52 @@ class UnifiedKGIntegrationHub:
                 errors=[str(e)],
                 processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
             )
+
+    async def _initialize_chronicle(self):
+        """Initialize episodic chronicle memory."""
+        start_time = datetime.now(timezone.utc)
+        try:
+            from .chronicle.chronicle import Chronicle
+            storage_path = self.config.get('chronicle', {}).get('storage_path')
+            self.chronicle = Chronicle(storage_path=storage_path)
+            
+            self._health_status['chronicle'] = IntegrationHealth(
+                name='chronicle',
+                status=IntegrationStatus.AVAILABLE,
+                latency_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000,
+                details={'description': 'Episodic Chronicle Memory'}
+            )
+        except Exception as e:
+            logger.error(f"Failed to initialize chronicle: {e}")
+            self._health_status['chronicle'] = IntegrationHealth(
+                name='chronicle',
+                status=IntegrationStatus.ERROR,
+                error_count=1,
+                details={'error': str(e)}
+            )
+
+    async def _initialize_temporal(self):
+        """Initialize temporal knowledge manager (Graphiti)."""
+        start_time = datetime.now(timezone.utc)
+        try:
+            from .temporal import TemporalKnowledgeManager
+            self.temporal_manager = TemporalKnowledgeManager()
+            
+            status = self.temporal_manager.get_status()
+            self._health_status['temporal_manager'] = IntegrationHealth(
+                name='temporal_manager',
+                status=IntegrationStatus.AVAILABLE if status['available'] else IntegrationStatus.UNAVAILABLE,
+                latency_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000,
+                details=status
+            )
+        except Exception as e:
+            logger.error(f"Failed to initialize temporal manager: {e}")
+            self._health_status['temporal_manager'] = IntegrationHealth(
+                name='temporal_manager',
+                status=IntegrationStatus.ERROR,
+                error_count=1,
+                details={'error': str(e)}
+            )
     
     async def detect_landscape_transitions(
         self,
@@ -2002,9 +2052,94 @@ class UnifiedKGIntegrationHub:
                 success=False,
                 operation_type=KGOperationType.RELATION_EXTRACTION,
                 integration_used='none',
-                errors=[f'Extractor {extractor} not available'],
+                errors=[f"Extractor {extractor} not found"],
                 processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
             )
+
+    async def record_episode(
+        self,
+        name: str,
+        content: str,
+        agent: str = "workflow",
+        episode_type: str = "action",
+        context: Optional[Dict[str, Any]] = None,
+        outcome: Optional[str] = None,
+        lesson_learned: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        session_id: Optional[str] = None
+    ) -> KGOperationResult:
+        """
+        Record a knowledge episode in episodic memory (Chronicle and Graphiti).
+        
+        Args:
+            name: Name of the episode
+            content: Detailed body of the episode
+            agent: Agent or component recording the episode
+            episode_type: Type of episode (action, decision, observation, etc.)
+            context: Additional structured context
+            outcome: Outcome of the episode
+            lesson_learned: Knowledge gained from the episode
+            tags: Categorization tags
+            session_id: Optional session identifier
+            
+        Returns:
+            KGOperationResult with recorded IDs
+        """
+        start_time = datetime.now(timezone.utc)
+        ids = {}
+        errors = []
+        
+        # 1. Record in local Chronicle (Narrative Memory)
+        if self.chronicle:
+            try:
+                from .chronicle.chronicle import EpisodeType as ChronEpisodeType
+                try:
+                    c_type = ChronEpisodeType(episode_type.lower())
+                except ValueError:
+                    c_type = ChronEpisodeType.ACTION
+                    
+                ep_id = self.chronicle.record_episode(
+                    agent=agent,
+                    action=name,
+                    episode_type=c_type,
+                    context={**(context or {}), "content": content},
+                    outcome=outcome,
+                    lesson_learned=lesson_learned,
+                    tags=tags,
+                    session_id=session_id
+                )
+                ids['chronicle_id'] = ep_id
+            except Exception as e:
+                errors.append(f"Chronicle recording failed: {e}")
+        
+        # 2. Record in temporal Graph (Graphiti)
+        if self.temporal_manager and self.temporal_manager.available:
+            try:
+                # Combine name and content for Graphiti if needed
+                graphiti_content = f"{name}\n\n{content}"
+                if lesson_learned:
+                    graphiti_content += f"\n\nLesson Learned: {lesson_learned}"
+                if outcome:
+                    graphiti_content += f"\n\nOutcome: {outcome}"
+                    
+                g_id = await self.temporal_manager.record_episode(
+                    name=name,
+                    content=graphiti_content,
+                    source=agent
+                )
+                if g_id:
+                    ids['graphiti_uuid'] = g_id
+            except Exception as e:
+                errors.append(f"Temporal graph recording failed: {e}")
+                
+        return KGOperationResult(
+            success=len(ids) > 0,
+            operation_type=KGOperationType.EPISODIC_RECORDING,
+            integration_used='chronicle+graphiti',
+            data=ids,
+            errors=errors,
+            processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+        )
         
         try:
             integration = self._integrations[extractor]
