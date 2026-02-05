@@ -1190,7 +1190,8 @@ class TemporalKnowledgeGraph:
         confidence: float = 0.5,
         valid_from: Optional[datetime] = None,
         valid_until: Optional[datetime] = None,
-        derived_from: Optional[List[str]] = None
+        derived_from: Optional[List[str]] = None,
+        metadata: Optional[Dict[str, Any]] = None
     ) -> TemporalKnowledgeNode:
         """
         Add a node to the temporal knowledge graph.
@@ -1202,12 +1203,17 @@ class TemporalKnowledgeGraph:
             valid_from: When this knowledge becomes valid
             valid_until: When this knowledge expires
             derived_from: IDs of nodes this is derived from
+            metadata: Additional metadata
             
         Returns:
             Created node
         """
         with self._lock:
             node_id = f"tkn_{hashlib.md5(f'{content}_{datetime.now().isoformat()}'.encode()).hexdigest()[:12]}"
+            
+            # Build metadata
+            node_metadata = metadata or {}
+            node_metadata['created_timestamp'] = datetime.now().isoformat()
             
             node = TemporalKnowledgeNode(
                 node_id=node_id,
@@ -1217,9 +1223,7 @@ class TemporalKnowledgeGraph:
                 valid_until=valid_until,
                 confidence=confidence,
                 derived_from=derived_from or [],
-                metadata={
-                    'created_timestamp': datetime.now().isoformat()
-                }
+                metadata=node_metadata
             )
             
             self.nodes[node_id] = node
@@ -1229,7 +1233,8 @@ class TemporalKnowledgeGraph:
                     node_id,
                     content=content,
                     type=node_type,
-                    confidence=confidence
+                    confidence=confidence,
+                    **metadata if metadata else {}
                 )
             
             return node

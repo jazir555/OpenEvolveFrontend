@@ -37,6 +37,8 @@ from phase2_executor import (
 from rese_schemas import (
     Phase2Config,
     IsomorphicMappingResult,
+    IsomorphismType,
+    PatternType,
 )
 
 
@@ -197,8 +199,8 @@ class Phase2Adapter:
             self.logger.info(
                 "Phase II execution complete",
                 result_id=canonical_result["result_id"],
-                mapping_count=canonical_result["mapping_count"],
-                best_imech=canonical_result.get("best_imech_score", 0.0)
+                mapping_count=canonical_result["summary"]["mapping_count"],
+                best_imech=canonical_result["summary"].get("best_imech_score", 0.0)
             )
 
             return canonical_result

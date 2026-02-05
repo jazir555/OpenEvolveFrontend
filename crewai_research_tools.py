@@ -1492,6 +1492,17 @@ class WebSocketCollaborationServer:
         
         self.clients.pop(client_id, None)
         self.agent_info.pop(client_id, None)
+    
+    def get_status(self) -> Dict[str, Any]:
+        """Get server status"""
+        return {
+            "running": self._running,
+            "host": self.host,
+            "port": self.port,
+            "connected_clients": len(self.clients),
+            "active_channels": len(self.channels),
+            "total_messages": sum(len(h) for h in self.message_history.values())
+        }
 
 
 # =============================================================================

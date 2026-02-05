@@ -203,7 +203,7 @@ class RealFiniteElementAnalysis:
         length: float,
         n_elements: int,
         E: float,  # Young's modulus
-        A: Callable[[float], float],  # Cross-sectional area as function of x
+        A_func: Callable[[float], float],  # Cross-sectional area as function of x
         loads: List[Tuple[float, float]],  # List of (position, magnitude)
         constraints: List[Tuple[float, float]]  # List of (position, displacement)
     ) -> Dict[str, Any]:
@@ -239,7 +239,7 @@ class RealFiniteElementAnalysis:
         # Element stiffness matrices and assembly
         for e in range(n_elements):
             x_mid = (self.mesh.nodes[e, 0] + self.mesh.nodes[e+1, 0]) / 2
-            A_e = A(x_mid)
+            A_e = A_func(x_mid)
             
             # 1D bar element stiffness: k_e = EA/h * [[1, -1], [-1, 1]]
             k_e = E * A_e / h
@@ -280,7 +280,7 @@ class RealFiniteElementAnalysis:
         
         for e in range(n_elements):
             x_mid = (self.mesh.nodes[e, 0] + self.mesh.nodes[e+1, 0]) / 2
-            A_e = A(x_mid)
+            A_e = A_func(x_mid)
             
             # Strain = du/dx ≈ (u2 - u1) / h
             strain_e = (self.solution[e+1] - self.solution[e]) / h
@@ -1098,7 +1098,7 @@ class RealPhysicsValidator:
             length=length,
             n_elements=50,
             E=E,
-            A=A_func,
+            A_func=A_func,
             loads=nodal_loads,
             constraints=constraints
         )

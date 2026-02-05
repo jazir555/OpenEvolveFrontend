@@ -233,7 +233,8 @@ class AdversarialGauntlet(BaseGauntlet):
                     "red_team_result": red_team_result,
                     "blue_team_result": blue_team_result,
                     "attack_modes_used": self.attack_modes,
-                    "issues_found_count": len(red_team_result.get("issues", []))
+                    "issues_found_count": len(red_team_result.get("issues", [])),
+                    "score": robustness_score
                 },
                 feedback=red_team_result.get("summary", "Adversarial assessment completed"),
                 improvements=red_team_result.get("suggested_fixes", [])
