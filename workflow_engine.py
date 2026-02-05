@@ -13,7 +13,8 @@ from datetime import datetime
 import asyncio
 import logging
 
-# SECURITY: Import security framework
+# SECURITY: Import security framework - FAIL SECURE
+# If security framework is not available, we MUST fail-secure (deny all access)
 try:
     from security_framework import (
         Permission, Role, UserContext, JWTManager, get_jwt_manager,
@@ -21,9 +22,13 @@ try:
         AuditLogger, get_audit_logger, authenticated, authorized
     )
     SECURITY_FRAMEWORK_AVAILABLE = True
-except ImportError:
+except ImportError as e:
     SECURITY_FRAMEWORK_AVAILABLE = False
-    # Define stub classes for when security framework is not available
+    logger = logging.getLogger(__name__)
+    logger.critical(f"SECURITY FRAMEWORK NOT AVAILABLE: {e}")
+    logger.critical("SECURITY: Running in FAIL-SECURE mode - all security checks will DENY access")
+    
+    # Define FAIL-SECURE stubs that DENY all access when security framework is unavailable
     class Permission:
         WORKFLOW_CREATE = "workflow:create"
         WORKFLOW_READ = "workflow:read"
@@ -31,7 +36,12 @@ except ImportError:
         WORKFLOW_DELETE = "workflow:delete"
         WORKFLOW_EXECUTE = "workflow:execute"
     
+    class SecurityFrameworkUnavailableError(Exception):
+        """Raised when security framework is required but unavailable"""
+        pass
+    
     class UserContext:
+        """FAIL-SECURE: No permissions when security framework unavailable"""
         def __init__(self, user_id="anonymous", username="anonymous", email="", roles=None, permissions=None):
             self.user_id = user_id
             self.username = username
@@ -41,16 +51,29 @@ except ImportError:
             self.is_superuser = False
         
         def has_permission(self, permission):
-            return True  # Allow all when security framework unavailable
+            # FAIL-SECURE: Always return False when security framework unavailable
+            return False
     
     def authenticated(required=True):
+        """FAIL-SECURE decorator: denies access when security framework unavailable"""
         def decorator(func):
-            return func
+            def wrapper(*args, **kwargs):
+                if required:
+                    raise SecurityFrameworkUnavailableError(
+                        "Authentication required but security framework is unavailable"
+                    )
+                return func(*args, **kwargs)
+            return wrapper
         return decorator
     
     def authorized(permission):
+        """FAIL-SECURE decorator: denies access when security framework unavailable"""
         def decorator(func):
-            return func
+            def wrapper(*args, **kwargs):
+                raise SecurityFrameworkUnavailableError(
+                    f"Permission '{permission}' required but security framework is unavailable"
+                )
+            return wrapper
         return decorator
 
 # **ACTUAL INTEGRATION**: Import systems that Workflow Engine talks to

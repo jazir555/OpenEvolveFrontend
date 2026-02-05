@@ -36,6 +36,9 @@ try:
     Z3_ADVANCED_AVAILABLE = True
 except ImportError:
     Z3_ADVANCED_AVAILABLE = False
+    # Define placeholder types for type hints
+    ExtractedProof = Any
+    ProofStep = Any
 
 
 # =============================================================================

@@ -24,30 +24,20 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime, timezone
 
 # Add paths for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "lib"))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "schemas"))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
+_current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(_current_dir, "..", "..", "lib"))
+sys.path.insert(0, os.path.abspath(os.path.join(_current_dir, "..", "..", "schemas")))
+sys.path.insert(0, _current_dir)
 
-try:
-    from phase2_executor import (
-        IsomorphicMappingExecutor,
-        Phase2Logger,
-        create_executor,
-    )
-    from rese_schemas import (
-        Phase2Config,
-        IsomorphicMappingResult,
-    )
-except ImportError:
-    from glue.adapters.rese-phase2.src.phase2_executor import (
-        IsomorphicMappingExecutor,
-        Phase2Logger,
-        create_executor,
-    )
-    from glue.schemas.rese_schemas import (
-        Phase2Config,
-        IsomorphicMappingResult,
-    )
+from phase2_executor import (
+    IsomorphicMappingExecutor,
+    Phase2Logger,
+    create_executor,
+)
+from rese_schemas import (
+    Phase2Config,
+    IsomorphicMappingResult,
+)
 
 
 # ============================================================================

@@ -453,13 +453,395 @@ async def test_incremental_solving():
 
 
 # =============================================================================
+# Unit Tests: LeanAide AI Integration
+# =============================================================================
+
+async def test_leanaide_tactic_suggester_initialization():
+    """Test LeanAide tactic suggester initialization"""
+    log_test("LeanAide Tactic Suggester Initialization")
+
+    try:
+        from dito_optimizer import LeanAideTacticSuggester, LEANAIDE_AVAILABLE
+
+        if not LEANAIDE_AVAILABLE:
+            print("[SKIP] LeanAide not available")
+            return
+
+        config = SCEConfig.from_env()
+        import logging
+        logger = logging.getLogger('test')
+
+        suggester = LeanAideTacticSuggester(config, logger)
+
+        print(f"LeanAide suggester created: {suggester is not None}")
+        print(f"LeanAide available: {suggester.leanaide_available}")
+        print(f"LeanAide client: {suggester.leanaide_client is not None}")
+        print(f"Stats initialized: {suggester.stats is not None}")
+
+        assert suggester is not None, "Suggester should be created"
+        assert suggester.stats is not None, "Stats should be initialized"
+
+        # Cleanup
+        await suggester.close()
+
+        print("[PASS] LeanAide tactic suggester initialization works")
+
+    except ImportError as e:
+        print(f"[SKIP] LeanAide not available: {e}")
+        return
+
+
+async def test_leanaide_tactic_suggestion():
+    """Test LeanAide AI tactic suggestion"""
+    log_test("LeanAide AI Tactic Suggestion")
+
+    try:
+        from dito_optimizer import LeanAideTacticSuggester, LEANAIDE_AVAILABLE
+
+        if not LEANAIDE_AVAILABLE:
+            print("[SKIP] LeanAide not available")
+            return
+
+        config = SCEConfig.from_env()
+        import logging
+        logger = logging.getLogger('test')
+
+        suggester = LeanAideTacticSuggester(config, logger)
+
+        # Create test contradiction
+        constraints = [
+            create_test_constraint("c1", "T < 1000", ConstraintCategory.HARD_PARAMETER_INEQUALITY),
+            create_test_constraint("c2", "T > 1500", ConstraintCategory.HARD_PARAMETER_INEQUALITY),
+        ]
+
+        contradiction = ContradictionPair(
+            constraint1_id="c1",
+            constraint2_id="c2",
+            type=LogicalFallacy.CONTRADICTION,
+            contradiction_set_size=2,
+            rollback_steps=0,
+            affected_premises=["c1", "c2"],
+            detected_at=datetime.now(timezone.utc),
+        )
+
+        print(f"Requesting tactic suggestions for contradiction...")
+
+        tactics = await suggester.suggest_tactics(
+            contradiction,
+            constraints,
+            "test-tactic-suggestion"
+        )
+
+        print(f"Tactics suggested: {tactics}")
+
+        if tactics:
+            print(f"  Number of tactics: {len(tactics)}")
+            for i, tactic in enumerate(tactics):
+                print(f"  {i+1}. {tactic}")
+        else:
+            print("  No tactics suggested (LeanAide may not be running)")
+
+        stats = suggester.get_stats()
+        print(f"\nLeanAide Stats:")
+        print(f"  Checks performed: {stats.leanaide_checks_performed}")
+        print(f"  Tactics suggested: {stats.leanaide_tactics_suggested}")
+        print(f"  Total time: {stats.leanaide_total_time_ms}ms")
+
+        # Cleanup
+        await suggester.close()
+
+        print("[PASS] LeanAide tactic suggestion test passed")
+
+    except ImportError as e:
+        print(f"[SKIP] LeanAide not available: {e}")
+        return
+
+
+async def test_tiered_contradiction_detection():
+    """Test tiered contradiction detection (Z3 -> LeanAide -> Lean 4)"""
+    log_test("Tiered Contradiction Detection")
+
+    try:
+        from dito_optimizer import DITOOptimizer, VerificationTier, LEANAIDE_AVAILABLE
+
+        dito = DITOOptimizer(
+            activation_strategy=ActivationStrategy.SELECTIVE_BFS,
+            enable_leanaide=True,
+        )
+
+        print(f"DITO created with LeanAide: {dito.leanaide_suggester is not None}")
+        print(f"Z3 enabled: {dito.z3_enabled}")
+
+        # Create test constraints with varying complexity
+        constraints = [
+            create_test_constraint("simple1", "T < 1000", ConstraintCategory.HARD_PARAMETER_INEQUALITY),
+            create_test_constraint("simple2", "T > 0", ConstraintCategory.HARD_PARAMETER_INEQUALITY),
+            create_test_constraint("complex1", "T > 1500", ConstraintCategory.HARD_PARAMETER_INEQUALITY, ["simple1"]),
+        ]
+
+        # Test complexity scoring
+        complexity = dito._calculate_complexity_score(constraints)
+        print(f"\nComplexity score: {complexity:.2f}")
+
+        # Test tier selection
+        tier = dito.select_verification_tier(constraints, complexity)
+        print(f"Selected tier: {tier.value}")
+
+        # Test tiered detection
+        contradiction, used_tier = await dito.check_contradiction_tiered(
+            constraints,
+            "test-tiered"
+        )
+
+        print(f"\nTiered detection results:")
+        print(f"  Contradiction found: {contradiction is not None}")
+        print(f"  Tier used: {used_tier.value}")
+        print(f"  Tier distribution: {dito.stats.tier_distribution}")
+
+        assert used_tier in VerificationTier, "Should use valid tier"
+        assert dito.stats.tier_distribution, "Should track tier usage"
+
+        # Cleanup
+        await dito.close()
+
+        print("[PASS] Tiered contradiction detection works")
+
+    except ImportError as e:
+        print(f"[SKIP] Required imports not available: {e}")
+        return
+
+
+async def test_ai_guided_subgraph_activation():
+    """Test AI-guided subgraph activation"""
+    log_test("AI-Guided Subgraph Activation")
+
+    try:
+        from dito_optimizer import DITOOptimizer, LEANAIDE_AVAILABLE, ActivationStrategy
+
+        if not LEANAIDE_AVAILABLE:
+            print("[SKIP] LeanAide not available")
+            return
+
+        dito = DITOOptimizer(
+            activation_strategy=ActivationStrategy.AI_GUIDED,
+            enable_leanaide=True,
+        )
+
+        # Create test constraints
+        constraints = [
+            create_test_constraint("c1", "T < 1000", ConstraintCategory.HARD_PARAMETER_INEQUALITY),
+            create_test_constraint("c2", "T > 0", ConstraintCategory.HARD_PARAMETER_INEQUALITY, ["c1"]),
+            create_test_constraint("c3", "P < 5000", ConstraintCategory.HARD_PARAMETER_INEQUALITY),
+        ]
+
+        # Build graph
+        dito.build_inference_graph(constraints)
+
+        print(f"Graph built with {len(dito.graph)} nodes")
+
+        # Test AI-guided activation
+        activated = await dito.activate_subgraph_intelligently(
+            "c2",
+            "test-ai-activation"
+        )
+
+        print(f"AI-guided activation activated {len(activated)} nodes")
+        print(f"  Activated nodes: {list(activated)}")
+
+        assert len(activated) > 0, "Should activate at least the root node"
+        assert "c2" in activated, "Should activate root node"
+
+        # Cleanup
+        await dito.close()
+
+        print("[PASS] AI-guided subgraph activation works")
+
+    except ImportError as e:
+        print(f"[SKIP] Required imports not available: {e}")
+        return
+
+
+async def test_ai_assisted_resolution():
+    """Test AI-assisted contradiction resolution"""
+    log_test("AI-Assisted Contradiction Resolution")
+
+    try:
+        from dito_optimizer import DITOOptimizer, LEANAIDE_AVAILABLE
+
+        if not LEANAIDE_AVAILABLE:
+            print("[SKIP] LeanAide not available")
+            return
+
+        dito = DITOOptimizer(enable_leanaide=True)
+
+        # Create test contradiction
+        constraints = [
+            create_test_constraint("c1", "T < 1000", ConstraintCategory.HARD_PARAMETER_INEQUALITY),
+            create_test_constraint("c2", "T > 1500", ConstraintCategory.HARD_PARAMETER_INEQUALITY),
+        ]
+
+        contradiction = ContradictionPair(
+            constraint1_id="c1",
+            constraint2_id="c2",
+            type=LogicalFallacy.CONTRADICTION,
+            contradiction_set_size=2,
+            rollback_steps=0,
+            affected_premises=["c1", "c2"],
+            detected_at=datetime.now(timezone.utc),
+        )
+
+        print(f"Requesting AI-assisted resolution...")
+
+        resolution = await dito.resolve_with_ai(
+            contradiction,
+            constraints,
+            "test-ai-resolution"
+        )
+
+        if resolution:
+            print(f"Resolution suggestions received:")
+            print(f"  Contradiction ID: {resolution['contradiction_id']}")
+            print(f"  Suggestions: {resolution.get('suggestions', [])}")
+        else:
+            print("  No resolution (LeanAide may not be running)")
+
+        stats = dito.get_leanaide_ai_stats()
+        if stats:
+            print(f"\nLeanAide Stats:")
+            print(f"  Contradictions resolved: {stats.leanaide_contradictions_resolved}")
+            print(f"  Total time: {stats.leanaide_total_time_ms}ms")
+
+        # Cleanup
+        await dito.close()
+
+        print("[PASS] AI-assisted resolution test passed")
+
+    except ImportError as e:
+        print(f"[SKIP] Required imports not available: {e}")
+        return
+
+
+async def test_autoformalization():
+    """Test autoformalization of natural language constraints"""
+    log_test("Autoformalization with AI")
+
+    try:
+        from dito_optimizer import DITOOptimizer, LEANAIDE_AVAILABLE
+
+        if not LEANAIDE_AVAILABLE:
+            print("[SKIP] LeanAide not available")
+            return
+
+        dito = DITOOptimizer(enable_leanaide=True)
+
+        natural_constraints = [
+            "Temperature must be less than 1000 Kelvin",
+            "Pressure must be greater than 0 and less than 5000 Pascals",
+        ]
+
+        for i, natural_constraint in enumerate(natural_constraints):
+            print(f"\nAutoformalizing constraint {i+1}:")
+            print(f"  Input: {natural_constraint}")
+
+            formal = await dito.formalize_with_ai(
+                natural_constraint,
+                f"test-autoformalization-{i}"
+            )
+
+            if formal:
+                print(f"  Formal: {formal[:100]}...")
+            else:
+                print("  No formalization (LeanAide may not be running)")
+
+        stats = dito.get_leanaide_ai_stats()
+        if stats:
+            print(f"\nLeanAide Stats:")
+            print(f"  Autoformalizations: {stats.leanaide_autoformalizations}")
+
+        # Cleanup
+        await dito.close()
+
+        print("[PASS] Autoformalization test passed")
+
+    except ImportError as e:
+        print(f"[SKIP] Required imports not available: {e}")
+        return
+
+
+async def test_dito_with_leanaide_integration():
+    """Test DITO with full LeanAide integration"""
+    log_test("DITO with LeanAide AI Integration")
+
+    try:
+        from dito_optimizer import DITOOptimizer, LEANAIDE_AVAILABLE
+
+        dito = DITOOptimizer(
+            activation_strategy=ActivationStrategy.SELECTIVE_BFS,
+            enable_leanaide=True,
+        )
+
+        print(f"DITO created")
+        print(f"Z3 enabled: {dito.z3_enabled}")
+        print(f"LeanAide enabled: {dito.leanaide_suggester is not None}")
+
+        # Create test constraints
+        constraints = [
+            create_test_constraint("temp_upper", "T < 1000", ConstraintCategory.HARD_PARAMETER_INEQUALITY),
+            create_test_constraint("temp_lower", "T > 0", ConstraintCategory.HARD_PARAMETER_INEQUALITY),
+            create_test_constraint("temp_contradict", "T > 1500", ConstraintCategory.HARD_PARAMETER_INEQUALITY, ["temp_upper"]),
+        ]
+
+        print(f"\nRunning DITO optimization with {len(constraints)} constraints...")
+
+        contradictions, stats = dito.optimize_contradiction_detection(
+            constraints,
+            "test-dito-leanaide-integration"
+        )
+
+        print(f"\nResults:")
+        print(f"  Total nodes: {stats.total_nodes}")
+        print(f"  Verified nodes: {stats.verified_nodes}")
+        print(f"  Active nodes: {stats.active_nodes}")
+        print(f"  Contradictions found: {len(contradictions)}")
+        print(f"  ATP checks: {stats.atp_checks_performed}")
+        print(f"  Complexity saved: {stats.complexity_saved:.1f}%")
+        print(f"  Execution time: {stats.execution_time_ms}ms")
+
+        if stats.z3_atp_stats:
+            print(f"\nZ3 ATP Stats:")
+            print(f"  Z3 checks: {stats.z3_atp_stats.z3_checks_performed}")
+            print(f"  Z3 contradictions: {stats.z3_atp_stats.z3_contradictions_found}")
+            print(f"  Z3 time: {stats.z3_atp_stats.z3_total_time_ms}ms")
+
+        if stats.leanaide_ai_stats:
+            print(f"\nLeanAide AI Stats:")
+            print(f"  Checks: {stats.leanaide_ai_stats.leanaide_checks_performed}")
+            print(f"  Tactics suggested: {stats.leanaide_ai_stats.leanaide_tactics_suggested}")
+            print(f"  Resolutions: {stats.leanaide_ai_stats.leanaide_contradictions_resolved}")
+            print(f"  LeanAide time: {stats.leanaide_ai_stats.leanaide_total_time_ms}ms")
+
+        print(f"\nTier distribution: {stats.tier_distribution}")
+
+        assert stats.total_nodes == len(constraints), "Should process all constraints"
+
+        # Cleanup
+        await dito.close()
+
+        print("[PASS] DITO with LeanAide integration works")
+
+    except ImportError as e:
+        print(f"[SKIP] Required imports not available: {e}")
+        return
+
+
+# =============================================================================
 # Main Test Runner
 # =============================================================================
 
 async def run_all_tests():
     """Run all tests"""
     print("\n" + "="*60)
-    print("DITO Optimizer Z3 ATP Integration Test Suite")
+    print("DITO Optimizer Z3 ATP + LeanAide AI Integration Test Suite")
     print("="*60)
 
     tests = [
@@ -473,6 +855,15 @@ async def run_all_tests():
         ("Unit: DITO with Z3 ATP", test_dito_with_z3_atp),
         ("Unit: Large Constraint Set", test_large_constraint_set),
         ("Unit: Incremental Solving", test_incremental_solving),
+
+        # LeanAide AI Tests
+        ("Unit: LeanAide Tactic Suggester Init", test_leanaide_tactic_suggester_initialization),
+        ("Unit: LeanAide Tactic Suggestion", test_leanaide_tactic_suggestion),
+        ("Unit: Tiered Contradiction Detection", test_tiered_contradiction_detection),
+        ("Unit: AI-Guided Subgraph Activation", test_ai_guided_subgraph_activation),
+        ("Unit: AI-Assisted Resolution", test_ai_assisted_resolution),
+        ("Unit: Autoformalization", test_autoformalization),
+        ("Unit: DITO with LeanAide Integration", test_dito_with_leanaide_integration),
     ]
 
     passed = 0

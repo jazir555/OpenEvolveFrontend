@@ -42,30 +42,125 @@ from concurrent.futures import ThreadPoolExecutor
 import functools
 
 # Import bridge components
-from .rese_z3_client import (
-    Z3Client,
-    Z3ClientError,
-    Z3ClientConnectionError,
-    Z3ClientTimeoutError,
-    Z3ClientConfig,
-    CircuitBreakerConfig,
-)
-from .rese_z3_schema import (
-    CanonicalSolverRequest,
-    CanonicalSolverResponse,
-    CanonicalTheoremRequest,
-    CanonicalTheoremResponse,
-    CanonicalVariable,
-    CanonicalConstraint,
-    ConstraintType,
-    ProblemType,
-    Z3ResultStatus,
-    canonical_to_z3_request,
-    z3_to_canonical_response,
-    canonical_to_smtlib,
-    validate_solver_request,
-    validate_theorem_request,
-)
+try:
+    # Try relative imports first (when installed as package)
+    from .rese_z3_client import (
+        Z3Client,
+        Z3ClientError,
+        Z3ClientConnectionError,
+        Z3ClientTimeoutError,
+        Z3ClientConfig,
+        CircuitBreakerConfig,
+        LeanAideClientConfig,
+    )
+    from .rese_z3_schema import (
+        CanonicalSolverRequest,
+        CanonicalSolverResponse,
+        CanonicalTheoremRequest,
+        CanonicalTheoremResponse,
+        CanonicalVariable,
+        CanonicalConstraint,
+        ConstraintType,
+        ProblemType,
+        Z3ResultStatus,
+        canonical_to_z3_request,
+        z3_to_canonical_response,
+        canonical_to_smtlib,
+        validate_solver_request,
+        validate_theorem_request,
+        # LeanAide schemas
+        LeanAideAutoformalizeRequest,
+        LeanAideAutoformalizeResponse,
+        LeanAideProveRequest,
+        LeanAideProveResponse,
+        Z3ToLeanTranslationRequest,
+        Z3ToLeanTranslationResponse,
+        LeanAideTacticSuggestionRequest,
+        LeanAideTacticSuggestionResponse,
+        LeanAideTacticSuggestion,
+        validate_autoformalize_request,
+        validate_prove_request,
+        validate_translation_request,
+        validate_tactic_suggestion_request,
+    )
+except ImportError:
+    # Fall back to absolute imports (when running directly)
+    from rese_z3_client import (
+        Z3Client,
+        Z3ClientError,
+        Z3ClientConnectionError,
+        Z3ClientTimeoutError,
+        Z3ClientConfig,
+        CircuitBreakerConfig,
+        LeanAideClientConfig,
+    )
+    from rese_z3_schema import (
+        CanonicalSolverRequest,
+        CanonicalSolverResponse,
+        CanonicalTheoremRequest,
+        CanonicalTheoremResponse,
+        CanonicalVariable,
+        CanonicalConstraint,
+        ConstraintType,
+        ProblemType,
+        Z3ResultStatus,
+        canonical_to_z3_request,
+        z3_to_canonical_response,
+        canonical_to_smtlib,
+        validate_solver_request,
+        validate_theorem_request,
+        # LeanAide schemas
+        LeanAideAutoformalizeRequest,
+        LeanAideAutoformalizeResponse,
+        LeanAideProveRequest,
+        LeanAideProveResponse,
+        Z3ToLeanTranslationRequest,
+        Z3ToLeanTranslationResponse,
+        LeanAideTacticSuggestionRequest,
+        LeanAideTacticSuggestionResponse,
+        LeanAideTacticSuggestion,
+        validate_autoformalize_request,
+        validate_prove_request,
+        validate_translation_request,
+        validate_tactic_suggestion_request,
+    )
+
+# Import Z3-LeanAide bridge (existing implementation)
+try:
+    import sys
+    from pathlib import Path
+    # Add root directory to path to import existing modules
+    root_dir = Path(__file__).resolve().parent.parent.parent.parent.parent
+    if str(root_dir) not in sys.path:
+        sys.path.insert(0, str(root_dir))
+
+    from z3_leanaide_bridge import (
+        Z3LeanAideBridge,
+        Z3Constraint,
+        Lean4Constraint,
+        ConstraintType as Z3LeanConstraintType,
+        TranslationDirection,
+        TranslationResult,
+        VerificationBridgeResult,
+        HybridProofResult,
+    )
+    Z3_LEANAIDE_BRIDGE_AVAILABLE = True
+except ImportError:
+    Z3_LEANAIDE_BRIDGE_AVAILABLE = False
+    logging.warning("z3_leanaide_bridge not available - LeanAide integration will be limited")
+
+# Import LeanAide client (existing implementation)
+try:
+    from leanaide_client import (
+        LeanAideClient,
+        LeanAideConfig,
+        LeanAideResult,
+        TaskType,
+    )
+    LEANAIDE_CLIENT_AVAILABLE = True
+except ImportError:
+    LEANAIDE_CLIENT_AVAILABLE = False
+    logging.warning("leanaide_client not available - will use HTTP client")
 
 
 # =============================================================================
@@ -82,6 +177,11 @@ class RESEZ3BridgeConfig:
     # Z3 server configuration
     z3_base_url: str = "http://localhost:8000"
     z3_timeout_ms: int = 30000  # MANDATORY
+
+    # LeanAide server configuration
+    leanaide_base_url: str = "http://localhost:7654"
+    leanaide_timeout_ms: int = 60000  # MANDATORY (LeanAide is slower)
+    leanaide_enable: bool = True
 
     # Circuit breaker configuration
     circuit_breaker_threshold: int = 5
@@ -104,6 +204,9 @@ class RESEZ3BridgeConfig:
         return cls(
             z3_base_url=os.getenv("Z3_BASE_URL", "http://localhost:8000"),
             z3_timeout_ms=int(os.getenv("Z3_TIMEOUT_MS", "30000")),
+            leanaide_base_url=os.getenv("LEANAIDE_BASE_URL", "http://localhost:7654"),
+            leanaide_timeout_ms=int(os.getenv("LEANAIDE_TIMEOUT_MS", "60000")),
+            leanaide_enable=os.getenv("LEANAIDE_ENABLE", "true").lower() == "true",
             circuit_breaker_threshold=int(os.getenv("Z3_CIRCUIT_BREAKER_THRESHOLD", "5")),
             circuit_breaker_timeout_ms=int(os.getenv("Z3_CIRCUIT_BREAKER_TIMEOUT_MS", "60000")),
             max_retries=int(os.getenv("Z3_MAX_RETRIES", "3")),
@@ -314,6 +417,32 @@ class RESEZ3Bridge:
         )
         self.client = Z3Client(z3_client_config)
 
+        # Setup LeanAide client if enabled
+        self.leanaide_client = None
+        if self.config.leanaide_enable:
+            if LEANAIDE_CLIENT_AVAILABLE:
+                # Use existing LeanAide client
+                leanaide_config = LeanAideConfig(
+                    host="localhost",  # Extract from URL
+                    port=7654,
+                    timeout=self.config.leanaide_timeout_ms / 1000.0,
+                    max_retries=self.config.max_retries,
+                )
+                self.leanaide_client = LeanAideClient(config=leanaide_config)
+                self.logger.info("Using existing LeanAide client from leanaide_client.py")
+            else:
+                # Will use HTTP client through rese_z3_client
+                self.logger.info("Will use HTTP client for LeanAide")
+
+        # Setup Z3-LeanAide bridge if available
+        self.z3_leanaide_bridge = None
+        if Z3_LEANAIDE_BRIDGE_AVAILABLE:
+            try:
+                self.z3_leanaide_bridge = Z3LeanAideBridge()
+                self.logger.info("Z3-LeanAide bridge initialized")
+            except Exception as e:
+                self.logger.warning(f"Could not initialize Z3-LeanAide bridge: {e}")
+
         # Setup monitoring
         self.monitor = PerformanceMonitor(enabled=self.config.enable_monitoring)
 
@@ -327,8 +456,10 @@ class RESEZ3Bridge:
             "level": "info",
             "component": "RESEZ3Bridge",
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "message": "RESE-Z3 Bridge initialized",
+            "message": "RESE-Z3 Bridge initialized with LeanAide support",
             "config": asdict(self.config),
+            "leanaide_enabled": self.config.leanaide_enable,
+            "leanaide_bridge_available": self.z3_leanaide_bridge is not None,
         }))
 
     # ========================================================================
@@ -691,6 +822,618 @@ class RESEZ3Bridge:
             raise
 
     # ========================================================================
+    # LEANAIDE INTEGRATION METHODS
+    # ========================================================================
+
+    def autoformalize(
+        self,
+        natural_language: str,
+        theorem_name: Optional[str] = None,
+        correlation_id: Optional[str] = None,
+        timeout_ms: Optional[int] = None,
+    ) -> LeanAideAutoformalizeResponse:
+        """
+        Autoformalize natural language to Lean 4 theorem
+
+        Uses LeanAide AI to convert natural language theorems into Lean 4 code.
+
+        Args:
+            natural_language: Natural language theorem statement
+            theorem_name: Optional name for the theorem
+            correlation_id: Correlation ID for tracing
+            timeout_ms: Optional timeout override
+
+        Returns:
+            LeanAideAutoformalizeResponse with Lean 4 code
+        """
+        correlation_id = correlation_id or str(uuid.uuid4())
+        timeout_ms = timeout_ms or self.config.leanaide_timeout_ms
+
+        metrics = self.monitor.start_operation("autoformalize")
+
+        try:
+            # Build request
+            request = LeanAideAutoformalizeRequest(
+                natural_language=natural_language,
+                theorem_name=theorem_name,
+                timeout_ms=timeout_ms,
+                correlation_id=correlation_id,
+            )
+
+            # Validate request
+            is_valid, error_msg = validate_autoformalize_request(request.to_dict())
+            if not is_valid:
+                raise ValueError(error_msg)
+
+            # Check cache
+            if self.cache:
+                cache_key = self.cache._generate_key("autoformalize", request.to_dict())
+                cached_response = self.cache.get(cache_key)
+                if cached_response:
+                    metrics.cached = True
+                    self.monitor.record_success(metrics, cached=True)
+                    return LeanAideAutoformalizeResponse.from_dict(cached_response)
+
+            # Use existing LeanAide client if available
+            if self.leanaide_client:
+                result = self.executor.submit(
+                    self._autoformalize_with_client,
+                    request
+                ).result()
+            else:
+                # Use HTTP client
+                result = self._autoformalize_http(request)
+
+            # Cache result
+            if self.cache:
+                self.cache.set(cache_key, result.to_dict())
+
+            self.monitor.record_success(metrics)
+            return result
+
+        except Exception as e:
+            self.monitor.record_failure(metrics, str(e))
+            self.logger.error(json.dumps({
+                "level": "error",
+                "component": "RESEZ3Bridge",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "message": "autoformalize failed",
+                "correlation_id": correlation_id,
+                "error": str(e),
+            }))
+            raise
+
+    def prove_with_ai(
+        self,
+        theorem_text: str,
+        theorem_code: Optional[str] = None,
+        theorem_statement: Optional[str] = None,
+        correlation_id: Optional[str] = None,
+        timeout_ms: Optional[int] = None,
+    ) -> LeanAideProveResponse:
+        """
+        Prove theorem using AI (LeanAide)
+
+        Uses LeanAide AI to generate proofs for theorems.
+
+        Args:
+            theorem_text: Natural language theorem
+            theorem_code: Optional Lean 4 code
+            theorem_statement: Optional elaborated theorem type
+            correlation_id: Correlation ID for tracing
+            timeout_ms: Optional timeout override
+
+        Returns:
+            LeanAideProveResponse with proof
+        """
+        correlation_id = correlation_id or str(uuid.uuid4())
+        timeout_ms = timeout_ms or self.config.leanaide_timeout_ms
+
+        metrics = self.monitor.start_operation("prove_with_ai")
+
+        try:
+            # Build request
+            request = LeanAideProveRequest(
+                theorem_text=theorem_text,
+                theorem_code=theorem_code,
+                theorem_statement=theorem_statement,
+                timeout_ms=timeout_ms,
+                correlation_id=correlation_id,
+            )
+
+            # Validate request
+            is_valid, error_msg = validate_prove_request(request.to_dict())
+            if not is_valid:
+                raise ValueError(error_msg)
+
+            # Check cache
+            if self.cache:
+                cache_key = self.cache._generate_key("prove_ai", request.to_dict())
+                cached_response = self.cache.get(cache_key)
+                if cached_response:
+                    metrics.cached = True
+                    self.monitor.record_success(metrics, cached=True)
+                    return LeanAideProveResponse.from_dict(cached_response)
+
+            # Use existing LeanAide client if available
+            if self.leanaide_client:
+                result = self.executor.submit(
+                    self._prove_with_client,
+                    request
+                ).result()
+            else:
+                # Use HTTP client
+                result = self._prove_http(request)
+
+            # Cache result
+            if self.cache:
+                self.cache.set(cache_key, result.to_dict())
+
+            self.monitor.record_success(metrics)
+            return result
+
+        except Exception as e:
+            self.monitor.record_failure(metrics, str(e))
+            self.logger.error(json.dumps({
+                "level": "error",
+                "component": "RESEZ3Bridge",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "message": "prove_with_ai failed",
+                "correlation_id": correlation_id,
+                "error": str(e),
+            }))
+            raise
+
+    def translate_z3_to_lean(
+        self,
+        smtlib_content: str,
+        constraint_type: ConstraintType = ConstraintType.BOOLEAN,
+        correlation_id: Optional[str] = None,
+        timeout_ms: Optional[int] = None,
+    ) -> Z3ToLeanTranslationResponse:
+        """
+        Translate Z3 SMT-LIB to Lean 4
+
+        Uses Z3-LeanAide bridge to translate SMT-LIB constraints to Lean 4 theorems.
+
+        Args:
+            smtlib_content: SMT-LIB2 content
+            constraint_type: Type of constraints
+            correlation_id: Correlation ID for tracing
+            timeout_ms: Optional timeout override
+
+        Returns:
+            Z3ToLeanTranslationResponse with Lean 4 code
+        """
+        correlation_id = correlation_id or str(uuid.uuid4())
+        timeout_ms = timeout_ms or self.config.z3_timeout_ms
+
+        metrics = self.monitor.start_operation("translate_z3_to_lean")
+
+        try:
+            # Build request
+            request = Z3ToLeanTranslationRequest(
+                smtlib_content=smtlib_content,
+                constraint_type=constraint_type,
+                timeout_ms=timeout_ms,
+                correlation_id=correlation_id,
+            )
+
+            # Validate request
+            is_valid, error_msg = validate_translation_request(request.to_dict())
+            if not is_valid:
+                raise ValueError(error_msg)
+
+            # Check cache
+            if self.cache:
+                cache_key = self.cache._generate_key("translate_z3_lean", request.to_dict())
+                cached_response = self.cache.get(cache_key)
+                if cached_response:
+                    metrics.cached = True
+                    self.monitor.record_success(metrics, cached=True)
+                    return Z3ToLeanTranslationResponse.from_dict(cached_response)
+
+            # Use Z3-LeanAide bridge if available
+            if self.z3_leanaide_bridge:
+                result = self._translate_with_bridge(request)
+            else:
+                # Fallback to simple translation
+                result = self._translate_simple(request)
+
+            # Cache result
+            if self.cache:
+                self.cache.set(cache_key, result.to_dict())
+
+            self.monitor.record_success(metrics)
+            return result
+
+        except Exception as e:
+            self.monitor.record_failure(metrics, str(e))
+            self.logger.error(json.dumps({
+                "level": "error",
+                "component": "RESEZ3Bridge",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "message": "translate_z3_to_lean failed",
+                "correlation_id": correlation_id,
+                "error": str(e),
+            }))
+            raise
+
+    def suggest_tactics(
+        self,
+        goal_state: str,
+        context: Optional[str] = None,
+        num_suggestions: int = 3,
+        correlation_id: Optional[str] = None,
+        timeout_ms: Optional[int] = None,
+    ) -> LeanAideTacticSuggestionResponse:
+        """
+        Get AI-suggested proof tactics
+
+        Uses LeanAide to suggest appropriate tactics for the current proof state.
+
+        Args:
+            goal_state: Current goal state in Lean 4
+            context: Additional context
+            num_suggestions: Number of suggestions (1-10)
+            correlation_id: Correlation ID for tracing
+            timeout_ms: Optional timeout override
+
+        Returns:
+            LeanAideTacticSuggestionResponse with tactic suggestions
+        """
+        correlation_id = correlation_id or str(uuid.uuid4())
+        timeout_ms = timeout_ms or 15000  # 15 seconds default
+
+        metrics = self.monitor.start_operation("suggest_tactics")
+
+        try:
+            # Build request
+            request = LeanAideTacticSuggestionRequest(
+                goal_state=goal_state,
+                context=context,
+                num_suggestions=num_suggestions,
+                timeout_ms=timeout_ms,
+                correlation_id=correlation_id,
+            )
+
+            # Validate request
+            is_valid, error_msg = validate_tactic_suggestion_request(request.to_dict())
+            if not is_valid:
+                raise ValueError(error_msg)
+
+            # Use math_query from LeanAide
+            if self.leanaide_client:
+                result = self.executor.submit(
+                    self._suggest_tactics_with_client,
+                    request
+                ).result()
+            else:
+                # Fallback to basic suggestions
+                result = self._suggest_tactics_basic(request)
+
+            self.monitor.record_success(metrics)
+            return result
+
+        except Exception as e:
+            self.monitor.record_failure(metrics, str(e))
+            self.logger.error(json.dumps({
+                "level": "error",
+                "component": "RESEZ3Bridge",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "message": "suggest_tactics failed",
+                "correlation_id": correlation_id,
+                "error": str(e),
+            }))
+            raise
+
+    # ========================================================================
+    # LEANAIDE HELPER METHODS (IMPLEMENTATION)
+    # ========================================================================
+
+    def _autoformalize_with_client(
+        self,
+        request: LeanAideAutoformalizeRequest
+    ) -> LeanAideAutoformalizeResponse:
+        """Autoformalize using existing LeanAide client"""
+        import asyncio
+
+        async def run_autoformalize():
+            if request.theorem_name:
+                result = await self.leanaide_client.translate_thm_detailed(
+                    theorem_text=request.natural_language,
+                    theorem_name=request.theorem_name
+                )
+            else:
+                result = await self.leanaide_client.translate_thm(
+                    theorem_text=request.natural_language
+                )
+
+            if result.success:
+                return LeanAideAutoformalizeResponse(
+                    success=True,
+                    lean_code=result.data.get("lean_code", result.data.get("code", "")),
+                    theorem_name=result.data.get("name"),
+                    theorem_type=result.data.get("type"),
+                    execution_time_ms=result.response_time * 1000,
+                    correlation_id=request.correlation_id,
+                )
+            else:
+                return LeanAideAutoformalizeResponse(
+                    success=False,
+                    error=result.error,
+                    execution_time_ms=result.response_time * 1000,
+                    correlation_id=request.correlation_id,
+                )
+
+        try:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            return loop.run_until_complete(run_autoformalize())
+        finally:
+            loop.close()
+
+    def _autoformalize_http(
+        self,
+        request: LeanAideAutoformalizeRequest
+    ) -> LeanAideAutoformalizeResponse:
+        """Autoformalize using HTTP client (fallback)"""
+        # This would use the HTTP client from rese_z3_client
+        # For now, return a placeholder
+        return LeanAideAutoformalizeResponse(
+            success=False,
+            error="HTTP autoformalization not yet implemented - use LeanAide client",
+            correlation_id=request.correlation_id,
+        )
+
+    def _prove_with_client(
+        self,
+        request: LeanAideProveRequest
+    ) -> LeanAideProveResponse:
+        """Prove using existing LeanAide client"""
+        import asyncio
+
+        async def run_prove():
+            # First, if we don't have Lean code, autoformalize
+            theorem_code = request.theorem_code
+            theorem_statement = request.theorem_statement
+
+            if not theorem_code:
+                auto_result = await self.leanaide_client.translate_thm_detailed(
+                    theorem_text=request.theorem_text
+                )
+                if auto_result.success:
+                    theorem_code = auto_result.data.get("lean_code")
+                    theorem_statement = auto_result.data.get("type")
+
+            # Now generate proof
+            if theorem_code and theorem_statement:
+                result = await self.leanaide_client.prove_for_formalization(
+                    theorem_text=request.theorem_text,
+                    theorem_code=theorem_code,
+                    theorem_statement=theorem_statement
+                )
+
+                if result.success:
+                    return LeanAideProveResponse(
+                        success=True,
+                        proof=result.data.get("proof", ""),
+                        tactics_used=result.data.get("tactics", []),
+                        proof_script=result.data.get("script"),
+                        execution_time_ms=result.response_time * 1000,
+                        correlation_id=request.correlation_id,
+                    )
+
+            return LeanAideProveResponse(
+                success=False,
+                error="Could not generate proof",
+                execution_time_ms=0.0,
+                correlation_id=request.correlation_id,
+            )
+
+        try:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            return loop.run_until_complete(run_prove())
+        finally:
+            loop.close()
+
+    def _prove_http(
+        self,
+        request: LeanAideProveRequest
+    ) -> LeanAideProveResponse:
+        """Prove using HTTP client (fallback)"""
+        return LeanAideProveResponse(
+            success=False,
+            error="HTTP proving not yet implemented - use LeanAide client",
+            correlation_id=request.correlation_id,
+        )
+
+    def _translate_with_bridge(
+        self,
+        request: Z3ToLeanTranslationRequest
+    ) -> Z3ToLeanTranslationResponse:
+        """Translate using Z3-LeanAide bridge"""
+        import asyncio
+
+        async def run_translate():
+            try:
+                # Parse SMT-LIB to extract constraints
+                # This is simplified - full implementation would parse SMT-LIB properly
+                constraint_type_map = {
+                    ConstraintType.BOOLEAN: Z3LeanConstraintType.BOOLEAN,
+                    ConstraintType.ARITHMETIC: Z3LeanConstraintType.ARITHMETIC,
+                    ConstraintType.NONLINEAR: Z3LeanConstraintType.NONLINEAR,
+                    ConstraintType.ARRAY: Z3LeanConstraintType.ARRAY,
+                }
+
+                z3_constraint_type = constraint_type_map.get(
+                    request.constraint_type,
+                    Z3LeanConstraintType.BOOLEAN
+                )
+
+                # Use the bridge to translate
+                lean_constraint = self.z3_leanaide_bridge.z3_to_lean4(
+                    z3_expr=request.smtlib_content,  # In reality, would parse SMT-LIB first
+                    constraint_type=z3_constraint_type
+                )
+
+                return Z3ToLeanTranslationResponse(
+                    success=True,
+                    lean_code=lean_constraint.lean_code,
+                    theorem_statement=lean_constraint.theorem_statement,
+                    variables=lean_constraint.variables,
+                    translated_constraints=[lean_constraint.theorem_statement],
+                    correlation_id=request.correlation_id,
+                )
+
+            except Exception as e:
+                return Z3ToLeanTranslationResponse(
+                    success=False,
+                    error=str(e),
+                    correlation_id=request.correlation_id,
+                )
+
+        try:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            return loop.run_until_complete(run_translate())
+        finally:
+            loop.close()
+
+    def _translate_simple(
+        self,
+        request: Z3ToLeanTranslationRequest
+    ) -> Z3ToLeanTranslationResponse:
+        """Simple translation fallback"""
+        # Extract variable declarations from SMT-LIB
+        import re
+        variables = []
+        var_pattern = r'\(declare-fun (\w+)'
+
+        for match in re.finditer(var_pattern, request.smtlib_content):
+            variables.append(match.group(1))
+
+        # Generate basic Lean code
+        lean_code = f"-- Translated from Z3 SMT-LIB\n"
+        lean_code += f"-- Correlation ID: {request.correlation_id}\n\n"
+        lean_code += "import Mathlib\n\n"
+        lean_code += f"-- Variables: {', '.join(variables)}\n"
+        lean_code += f"-- Constraint type: {request.constraint_type.value}\n"
+        lean_code += "\n-- TODO: Complete formalization\n"
+
+        return Z3ToLeanTranslationResponse(
+            success=True,
+            lean_code=lean_code,
+            variables=variables,
+            correlation_id=request.correlation_id,
+        )
+
+    def _suggest_tactics_with_client(
+        self,
+        request: LeanAideTacticSuggestionRequest
+    ) -> LeanAideTacticSuggestionResponse:
+        """Suggest tactics using LeanAide client"""
+        import asyncio
+
+        async def run_suggest():
+            # Use math_query to get suggestions
+            query = f"What tactics should I use for this goal: {request.goal_state}"
+            if request.context:
+                query = f"{request.context}\n\n{query}"
+
+            result = await self.leanaide_client.math_query(
+                query=query,
+                n=request.num_suggestions
+            )
+
+            if result.success:
+                # Parse suggestions from result
+                suggestions = []
+                answers = result.data.get("answers", [])
+
+                for i, answer in enumerate(answers[:request.num_suggestions]):
+                    suggestions.append(LeanAideTacticSuggestion(
+                        tactic=f"suggestion_{i+1}",
+                        description=answer,
+                        confidence=1.0 / (i + 1),  # Decreasing confidence
+                        reasoning="Generated by LeanAide",
+                    ))
+
+                return LeanAideTacticSuggestionResponse(
+                    success=True,
+                    suggestions=suggestions,
+                    execution_time_ms=result.response_time * 1000,
+                    correlation_id=request.correlation_id,
+                )
+
+            return LeanAideTacticSuggestionResponse(
+                success=False,
+                error=result.error,
+                execution_time_ms=result.response_time * 1000,
+                correlation_id=request.correlation_id,
+            )
+
+        try:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            return loop.run_until_complete(run_suggest())
+        finally:
+            loop.close()
+
+    def _suggest_tactics_basic(
+        self,
+        request: LeanAideTacticSuggestionRequest
+    ) -> LeanAideTacticSuggestionResponse:
+        """Basic tactic suggestions (fallback)"""
+        # Provide basic suggestions based on goal
+        suggestions = []
+
+        goal_lower = request.goal_state.lower()
+
+        # Arithmetic goals
+        if any(op in goal_lower for op in ['+', '-', '*', '/', '<', '>', '=']):
+            suggestions.append(LeanAideTacticSuggestion(
+                tactic="linarith",
+                description="Linear arithmetic tactic",
+                confidence=0.8,
+                reasoning="Detected arithmetic constraints",
+            ))
+
+        # Logical goals
+        if any(op in goal_lower for op in ['and', 'or', 'not', 'implies']):
+            suggestions.append(LeanAideTacticSuggestion(
+                tactic="tauto",
+                description="Tautology solver for propositional logic",
+                confidence=0.7,
+                reasoning="Detected logical operators",
+            ))
+
+        # Equality goals
+        if '=' in goal_lower:
+            suggestions.append(LeanAideTacticSuggestion(
+                tactic="rfl",
+                description="Reflexivity tactic for equalities",
+                confidence=0.6,
+                reasoning="Detected equality",
+            ))
+
+        # Default suggestions
+        if len(suggestions) < request.num_suggestions:
+            suggestions.append(LeanAideTacticSuggestion(
+                tactic="simp",
+                description="Simplification tactic",
+                confidence=0.5,
+                reasoning="General-purpose tactic",
+            ))
+
+        return LeanAideTacticSuggestionResponse(
+            success=True,
+            suggestions=suggestions[:request.num_suggestions],
+            correlation_id=request.correlation_id,
+        )
+
+    # ========================================================================
     # HELPER METHODS
     # ========================================================================
 
@@ -755,5 +1498,17 @@ class RESEZ3Bridge:
     def close(self):
         """Close bridge and cleanup resources"""
         self.client.close()
+
+        # Close LeanAide client if available
+        if self.leanaide_client:
+            import asyncio
+            try:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                loop.run_until_complete(self.leanaide_client.close())
+                loop.close()
+            except Exception as e:
+                self.logger.warning(f"Error closing LeanAide client: {e}")
+
         self.executor.shutdown(wait=True)
         self.logger.info("RESE-Z3 Bridge closed")

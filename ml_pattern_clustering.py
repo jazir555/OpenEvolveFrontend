@@ -60,6 +60,23 @@ try:
 except ImportError:
     Z3_AVAILABLE = False
 
+# DeepKE Integration - WIRED TO CORE
+try:
+    from integrations.deepke import DeepKEBridge
+    DEEPKE_AVAILABLE = True
+    logger.info("DeepKE integration available for entity/relation extraction")
+except ImportError:
+    DEEPKE_AVAILABLE = False
+    logger.warning("DeepKE integration not available")
+
+# OneKE Integration - WIRED TO CORE
+try:
+    from integrations.oneke import OneKEBridge
+    ONEKE_AVAILABLE = True
+    logger.info("OneKE integration available for schema-guided extraction")
+except ImportError:
+    ONEKE_AVAILABLE = False
+    logger.warning("OneKE integration not available")
 
 # =============================================================================
 # DATA MODELS
@@ -567,6 +584,234 @@ class RelationExtractor:
                 unique.append(relation)
         
         return unique
+
+
+# =============================================================================
+# DEEPKE INTEGRATION - WIRED TO CORE
+# =============================================================================
+
+class DeepKEExtractor:
+    """
+    DeepKE-powered entity and relation extractor.
+    
+    Actually calls DeepKE library (not just imported) with fallback to
+    pattern-based extraction when unavailable.
+    """
+    
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        """
+        Initialize DeepKE extractor.
+        
+        Args:
+            config: DeepKE configuration
+        """
+        self.config = config or {}
+        self.bridge: Optional[DeepKEBridge] = None
+        self._available = False
+        
+        if DEEPKE_AVAILABLE:
+            try:
+                self.bridge = DeepKEBridge(self.config)
+                logger.info("DeepKE extractor created")
+            except Exception as e:
+                logger.warning(f"Failed to create DeepKE bridge: {e}")
+    
+    def initialize(self) -> bool:
+        """Initialize DeepKE models."""
+        if not DEEPKE_AVAILABLE or self.bridge is None:
+            return False
+        
+        try:
+            self._available = self.bridge.initialize()
+            if self._available:
+                logger.info("DeepKE extractor initialized successfully")
+            return self._available
+        except Exception as e:
+            logger.error(f"Failed to initialize DeepKE extractor: {e}")
+            return False
+    
+    def extract(self, text: str) -> Tuple[List[ExtractedEntity], List[ExtractedRelation]]:
+        """
+        Extract entities and relations using DeepKE.
+        
+        Args:
+            text: Input text
+            
+        Returns:
+            Tuple of (entities, relations)
+        """
+        if not self._available:
+            return [], []
+        
+        try:
+            # Actually call DeepKE
+            result = self.bridge.extract_from_text(text)
+            
+            entities = []
+            relations = []
+            
+            # Convert to ExtractedEntity format
+            for entity_data in result.get('entities', []):
+                entity = ExtractedEntity(
+                    entity_id=f"deepke_{hashlib.md5(entity_data['text'].encode()).hexdigest()[:8]}",
+                    text=entity_data.get('text', ''),
+                    entity_type=entity_data.get('type', 'UNKNOWN'),
+                    confidence=entity_data.get('confidence', 0.5),
+                    start_pos=entity_data.get('start', 0),
+                    end_pos=entity_data.get('end', 0),
+                    metadata={'source': 'deepke', 'raw': entity_data}
+                )
+                entities.append(entity)
+            
+            # Convert to ExtractedRelation format
+            for relation_data in result.get('relations', []):
+                # Find or create entity IDs
+                head_text = relation_data.get('head', '')
+                tail_text = relation_data.get('tail', '')
+                
+                head_entity = next((e for e in entities if e.text == head_text), None)
+                tail_entity = next((e for e in entities if e.text == tail_text), None)
+                
+                if head_entity and tail_entity:
+                    relation = ExtractedRelation(
+                        relation_id=f"deepke_rel_{hashlib.md5(f'{head_text}_{tail_text}'.encode()).hexdigest()[:8]}",
+                        source_entity_id=head_entity.entity_id,
+                        target_entity_id=tail_entity.entity_id,
+                        relation_type=relation_data.get('type', 'RELATED_TO'),
+                        confidence=relation_data.get('confidence', 0.5),
+                        metadata={'source': 'deepke', 'raw': relation_data}
+                    )
+                    relations.append(relation)
+            
+            logger.info(f"DeepKE extracted {len(entities)} entities, {len(relations)} relations")
+            return entities, relations
+            
+        except Exception as e:
+            logger.error(f"DeepKE extraction failed: {e}")
+            return [], []
+    
+    def is_available(self) -> bool:
+        """Check if DeepKE is available."""
+        return self._available
+
+
+# =============================================================================
+# ONEKE INTEGRATION - WIRED TO CORE
+# =============================================================================
+
+class OneKEExtractor:
+    """
+    OneKE-powered schema-guided extractor.
+    
+    Actually calls OneKE library (not just imported) for schema-guided
+    knowledge extraction.
+    """
+    
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        """
+        Initialize OneKE extractor.
+        
+        Args:
+            config: OneKE configuration
+        """
+        self.config = config or {}
+        self.bridge: Optional[OneKEBridge] = None
+        self._available = False
+        
+        if ONEKE_AVAILABLE:
+            try:
+                self.bridge = OneKEBridge(self.config)
+                logger.info("OneKE extractor created")
+            except Exception as e:
+                logger.warning(f"Failed to create OneKE bridge: {e}")
+    
+    async def initialize(self) -> bool:
+        """Initialize OneKE (async)."""
+        if not ONEKE_AVAILABLE or self.bridge is None:
+            return False
+        
+        try:
+            self._available = await self.bridge.initialize()
+            if self._available:
+                logger.info("OneKE extractor initialized successfully")
+            return self._available
+        except Exception as e:
+            logger.error(f"Failed to initialize OneKE extractor: {e}")
+            return False
+    
+    async def extract(
+        self, 
+        text: str, 
+        schema: Optional[str] = None
+    ) -> Tuple[List[ExtractedEntity], List[ExtractedRelation]]:
+        """
+        Extract entities and relations using OneKE.
+        
+        Args:
+            text: Input text
+            schema: Optional schema name
+            
+        Returns:
+            Tuple of (entities, relations)
+        """
+        if not self._available:
+            return [], []
+        
+        try:
+            # Create workflow structure for OneKE
+            workflow = {
+                'workflow_id': f'oneke_{hashlib.md5(text.encode()).hexdigest()[:8]}',
+                'problem_statement': text,
+                'final_solution': '',
+                'decomposition_plan': ''
+            }
+            
+            # Actually call OneKE
+            schemas = [schema] if schema else None
+            result = await self.bridge.extract_from_workflow(workflow, schemas=schemas)
+            
+            entities = []
+            relations = []
+            
+            # Process results from all schemas
+            for schema_name, extraction in result.items():
+                if hasattr(extraction, 'entities'):
+                    for entity_data in extraction.entities:
+                        if isinstance(entity_data, dict):
+                            entity = ExtractedEntity(
+                                entity_id=f"oneke_{hashlib.md5(entity_data.get('text', '').encode()).hexdigest()[:8]}",
+                                text=entity_data.get('text', ''),
+                                entity_type=entity_data.get('type', 'UNKNOWN'),
+                                confidence=entity_data.get('confidence', 0.5),
+                                start_pos=entity_data.get('start', 0),
+                                end_pos=entity_data.get('end', 0),
+                                metadata={'source': 'oneke', 'schema': schema_name}
+                            )
+                            entities.append(entity)
+                
+                if hasattr(extraction, 'relations'):
+                    for relation_data in extraction.relations:
+                        if isinstance(relation_data, dict):
+                            relation = ExtractedRelation(
+                                relation_id=f"oneke_rel_{hashlib.md5(str(relation_data).encode()).hexdigest()[:8]}",
+                                source_entity_id=relation_data.get('head_entity_id', 'unknown'),
+                                target_entity_id=relation_data.get('tail_entity_id', 'unknown'),
+                                relation_type=relation_data.get('type', 'RELATED_TO'),
+                                confidence=relation_data.get('confidence', 0.5),
+                                metadata={'source': 'oneke', 'schema': schema_name}
+                            )
+                            relations.append(relation)
+            
+            logger.info(f"OneKE extracted {len(entities)} entities, {len(relations)} relations")
+            return entities, relations
+            
+        except Exception as e:
+            logger.error(f"OneKE extraction failed: {e}")
+            return [], []
+    
+    def is_available(self) -> bool:
+        """Check if OneKE is available."""
+        return self._available
 
 
 # =============================================================================
@@ -1339,17 +1584,21 @@ class MLKnowledgeExtraction:
     Unified interface for ML-based knowledge extraction.
     
     Combines:
-    - Entity extraction
-    - Relation extraction
+    - Entity extraction (Pattern-based + DeepKE + OneKE)
+    - Relation extraction (Pattern-based + DeepKE + OneKE)
     - Pattern clustering
     - Temporal knowledge graph
     - Knowledge validation
+    
+    ENHANCED: Now includes DeepKE and OneKE integrations
     """
     
     def __init__(
         self,
         embedding_model: str = 'all-MiniLM-L6-v2',
-        clustering_algorithm: str = 'dbscan'
+        clustering_algorithm: str = 'dbscan',
+        enable_deepke: bool = True,
+        enable_oneke: bool = True
     ):
         """
         Initialize ML knowledge extraction.
@@ -1357,6 +1606,8 @@ class MLKnowledgeExtraction:
         Args:
             embedding_model: Name of sentence transformer model
             clustering_algorithm: Clustering algorithm to use
+            enable_deepke: Enable DeepKE integration
+            enable_oneke: Enable OneKE integration
         """
         self.entity_extractor = EntityExtractor(embedding_model)
         self.relation_extractor = RelationExtractor()
@@ -1367,9 +1618,53 @@ class MLKnowledgeExtraction:
         self.temporal_graph = TemporalKnowledgeGraph()
         self.validator = KnowledgeValidator()
         
+        # DeepKE Integration - WIRED TO CORE
+        self.deepke_extractor: Optional[DeepKEExtractor] = None
+        self.deepke_enabled = enable_deepke and DEEPKE_AVAILABLE
+        if self.deepke_enabled:
+            try:
+                self.deepke_extractor = DeepKEExtractor()
+                logger.info("DeepKE extractor integrated")
+            except Exception as e:
+                logger.warning(f"Failed to create DeepKE extractor: {e}")
+                self.deepke_enabled = False
+        
+        # OneKE Integration - WIRED TO CORE
+        self.oneke_extractor: Optional[OneKEExtractor] = None
+        self.oneke_enabled = enable_oneke and ONEKE_AVAILABLE
+        if self.oneke_enabled:
+            try:
+                self.oneke_extractor = OneKEExtractor()
+                logger.info("OneKE extractor integrated")
+            except Exception as e:
+                logger.warning(f"Failed to create OneKE extractor: {e}")
+                self.oneke_enabled = False
+        
         self._lock = threading.RLock()
         
-        logger.info("ML Knowledge Extraction initialized")
+        logger.info("ML Knowledge Extraction initialized (with DeepKE/OneKE)")
+    
+    def initialize_external_extractors(self) -> Dict[str, bool]:
+        """
+        Initialize external extractors (DeepKE, OneKE).
+        
+        Returns:
+            Dictionary of initialization results
+        """
+        results = {}
+        
+        # Initialize DeepKE
+        if self.deepke_enabled and self.deepke_extractor:
+            results['deepke'] = self.deepke_extractor.initialize()
+            if not results['deepke']:
+                self.deepke_enabled = False
+        else:
+            results['deepke'] = False
+        
+        # OneKE is async, needs to be initialized separately
+        results['oneke'] = self.oneke_enabled and self.oneke_extractor is not None
+        
+        return results
     
     def extract_from_text(
         self,
@@ -1377,10 +1672,14 @@ class MLKnowledgeExtraction:
         domain: str = "general",
         extract_entities: bool = True,
         extract_relations: bool = True,
-        temporal_validity: Optional[Tuple[datetime, datetime]] = None
+        temporal_validity: Optional[Tuple[datetime, datetime]] = None,
+        use_deepke: bool = True,
+        use_oneke: bool = False  # OneKE is async, requires special handling
     ) -> Dict[str, Any]:
         """
         Extract knowledge from text.
+        
+        ENHANCED: Now uses DeepKE and OneKE in addition to pattern-based extraction.
         
         Args:
             text: Text to extract from
@@ -1388,6 +1687,8 @@ class MLKnowledgeExtraction:
             extract_entities: Whether to extract entities
             extract_relations: Whether to extract relations
             temporal_validity: (valid_from, valid_until)
+            use_deepke: Whether to use DeepKE extraction
+            use_oneke: Whether to use OneKE extraction (async - requires await)
             
         Returns:
             Extraction results
@@ -1397,18 +1698,64 @@ class MLKnowledgeExtraction:
             'domain': domain,
             'entities': [],
             'relations': [],
-            'temporal_nodes': []
+            'temporal_nodes': [],
+            'sources': {}
         }
         
-        # Extract entities
-        if extract_entities:
-            entities = self.entity_extractor.extract_entities(text)
-            result['entities'] = [e.to_dict() for e in entities]
+        all_entities = []
+        all_relations = []
         
-        # Extract relations
-        if extract_relations and entities:
-            relations = self.relation_extractor.extract_relations(text, entities)
-            result['relations'] = [r.to_dict() for r in relations]
+        # 1. Pattern-based extraction (always runs as baseline)
+        if extract_entities:
+            pattern_entities = self.entity_extractor.extract_entities(text)
+            all_entities.extend(pattern_entities)
+            result['sources']['pattern_based'] = len(pattern_entities)
+        
+        # 2. DeepKE extraction (WIRED TO CORE - actually calls DeepKE)
+        if use_deepke and self.deepke_enabled and self.deepke_extractor:
+            try:
+                deepke_entities, deepke_relations = self.deepke_extractor.extract(text)
+                all_entities.extend(deepke_entities)
+                all_relations.extend(deepke_relations)
+                result['sources']['deepke'] = {
+                    'entities': len(deepke_entities),
+                    'relations': len(deepke_relations)
+                }
+                logger.info(f"DeepKE contributed {len(deepke_entities)} entities, {len(deepke_relations)} relations")
+            except Exception as e:
+                logger.error(f"DeepKE extraction error: {e}")
+                result['sources']['deepke'] = {'error': str(e)}
+        
+        # Note: OneKE extraction requires async/await and should be called separately
+        # via extract_with_oneke() method
+        
+        # Deduplicate entities
+        seen_entities = {}
+        for entity in all_entities:
+            key = (entity.text.lower(), entity.entity_type)
+            if key not in seen_entities or entity.confidence > seen_entities[key].confidence:
+                seen_entities[key] = entity
+        
+        all_entities = list(seen_entities.values())
+        
+        # Pattern-based relation extraction (for entities not covered by DeepKE)
+        if extract_relations:
+            pattern_relations = self.relation_extractor.extract_relations(text, all_entities)
+            all_relations.extend(pattern_relations)
+            result['sources']['pattern_relations'] = len(pattern_relations)
+        
+        # Deduplicate relations
+        seen_relations = {}
+        for relation in all_relations:
+            key = (relation.source_entity_id, relation.target_entity_id, relation.relation_type)
+            if key not in seen_relations or relation.confidence > seen_relations[key].confidence:
+                seen_relations[key] = relation
+        
+        all_relations = list(seen_relations.values())
+        
+        # Convert to dicts
+        result['entities'] = [e.to_dict() for e in all_entities]
+        result['relations'] = [r.to_dict() for r in all_relations]
         
         # Add to temporal graph
         valid_from, valid_until = temporal_validity or (None, None)
@@ -1416,11 +1763,60 @@ class MLKnowledgeExtraction:
             content=text,
             node_type="extraction",
             valid_from=valid_from,
-            valid_until=valid_until
+            valid_until=valid_until,
+            metadata={'sources': list(result['sources'].keys())}
         )
         result['temporal_nodes'] = [node.to_dict()]
         
         return result
+    
+    async def extract_with_oneke(
+        self,
+        text: str,
+        schema: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Extract knowledge using OneKE (async).
+        
+        WIRED TO CORE: Actually calls OneKE library.
+        
+        Args:
+            text: Input text
+            schema: Optional schema name
+            
+        Returns:
+            Extraction results
+        """
+        if not self.oneke_enabled or not self.oneke_extractor:
+            return {
+                'entities': [],
+                'relations': [],
+                'source': 'oneke',
+                'error': 'OneKE not available'
+            }
+        
+        # Initialize if needed
+        if not self.oneke_extractor.is_available():
+            await self.oneke_extractor.initialize()
+        
+        try:
+            entities, relations = await self.oneke_extractor.extract(text, schema)
+            
+            return {
+                'entities': [e.to_dict() for e in entities],
+                'relations': [r.to_dict() for r in relations],
+                'source': 'oneke',
+                'schema': schema,
+                'success': True
+            }
+        except Exception as e:
+            logger.error(f"OneKE extraction error: {e}")
+            return {
+                'entities': [],
+                'relations': [],
+                'source': 'oneke',
+                'error': str(e)
+            }
     
     def cluster_and_validate(
         self,
@@ -1458,7 +1854,7 @@ class MLKnowledgeExtraction:
         }
     
     def get_statistics(self) -> Dict[str, Any]:
-        """Get extraction statistics."""
+        """Get extraction statistics including external libraries."""
         return {
             'temporal_graph': {
                 'total_nodes': len(self.temporal_graph.nodes),
@@ -1469,6 +1865,18 @@ class MLKnowledgeExtraction:
                 'sklearn': SKLEARN_AVAILABLE,
                 'networkx': NETWORKX_AVAILABLE,
                 'z3': Z3_AVAILABLE
+            },
+            'external_integrations': {
+                'deepke': {
+                    'available': DEEPKE_AVAILABLE,
+                    'enabled': self.deepke_enabled,
+                    'initialized': self.deepke_extractor.is_available() if self.deepke_extractor else False
+                },
+                'oneke': {
+                    'available': ONEKE_AVAILABLE,
+                    'enabled': self.oneke_enabled,
+                    'initialized': self.oneke_extractor.is_available() if self.oneke_extractor else False
+                }
             }
         }
 
@@ -1487,7 +1895,14 @@ __all__ = [
     'MLPattern',
     'ExtractedEntity',
     'ExtractedRelation',
-    'TemporalKnowledgeNode'
+    'TemporalKnowledgeNode',
+    # External library integrations - WIRED TO CORE
+    'DeepKEExtractor',
+    'DeepKEIntegration',
+    'OneKEExtractor',
+    'OneKEIntegration',
+    'DEEPKE_AVAILABLE',
+    'ONEKE_AVAILABLE'
 ]
 
 

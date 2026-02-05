@@ -167,7 +167,17 @@ class CircuitBreaker:
             "component": "CircuitBreaker",
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "message": f"Circuit breaker transitioned: {old_state.value} -> {new_state.value}",
-            "stats": self.stats.__dict__,
+            "stats": {
+                "state": self.stats.state.value,
+                "failure_count": self.stats.failure_count,
+                "success_count": self.stats.success_count,
+                "last_failure_time": self.stats.last_failure_time,
+                "last_success_time": self.stats.last_success_time,
+                "opened_at": self.stats.opened_at,
+                "total_calls": self.stats.total_calls,
+                "total_failures": self.stats.total_failures,
+                "total_successes": self.stats.total_successes,
+            },
         }))
 
     def get_stats(self) -> Dict[str, Any]:
@@ -194,6 +204,16 @@ class Z3ClientConfig:
     """Z3 client configuration"""
     base_url: str = "http://localhost:8000"
     timeout_ms: int = 30000  # Request timeout (mandatory)
+    max_retries: int = 3
+    retry_backoff_ms: int = 1000
+    circuit_breaker: CircuitBreakerConfig = field(default_factory=CircuitBreakerConfig)
+
+
+@dataclass
+class LeanAideClientConfig:
+    """LeanAide client configuration"""
+    base_url: str = "http://localhost:7654"
+    timeout_ms: int = 60000  # Request timeout (mandatory) - LeanAide is slower
     max_retries: int = 3
     retry_backoff_ms: int = 1000
     circuit_breaker: CircuitBreakerConfig = field(default_factory=CircuitBreakerConfig)
@@ -408,6 +428,303 @@ class Z3Client:
                 "correlation_id": correlation_id,
                 "error": str(e),
             }))
+            raise Z3ClientError(f"Unexpected error: {str(e)}")
+
+    def get_stats(self) -> Dict[str, Any]:
+        """Get client statistics"""
+        return {
+            "circuit_breaker": self.circuit_breaker.get_stats(),
+            "config": {
+                "base_url": self.config.base_url,
+                "timeout_ms": self.config.timeout_ms,
+                "max_retries": self.config.max_retries,
+            },
+        }
+
+    def close(self):
+        """Close HTTP session"""
+        self.session.close()
+
+
+# =============================================================================
+# LEANAIDE CLIENT
+# =============================================================================
+
+class LeanAideClient:
+    """
+    HTTP client for LeanAide API server
+
+    Features:
+    - Circuit breaker pattern
+    - Exponential backoff retry
+    - Request timeout enforcement
+    - Structured logging with correlation_id
+    - Connection pooling
+
+    Law of Runtime Truth: Execute actual HTTP calls to LeanAide
+    Law of Timeout: All requests bounded by timeout
+    """
+
+    def __init__(self, config: LeanAideClientConfig):
+        self.config = config
+
+        # Setup logger
+        self.logger = logging.getLogger("rese.leanaide.client")
+        self.logger.setLevel(logging.INFO)
+
+        # Setup circuit breaker
+        self.circuit_breaker = CircuitBreaker(config.circuit_breaker, self.logger)
+
+        # Setup HTTP session with retry
+        self.session = self._create_session()
+
+        self.logger.info(json.dumps({
+            "level": "info",
+            "component": "LeanAideClient",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "message": "LeanAide client initialized",
+            "config": {
+                "base_url": config.base_url,
+                "timeout_ms": config.timeout_ms,
+                "max_retries": config.max_retries,
+            },
+        }))
+
+    def _create_session(self) -> requests.Session:
+        """Create HTTP session with retry logic"""
+        session = requests.Session()
+
+        # Configure retry strategy
+        retry_strategy = Retry(
+            total=self.config.max_retries,
+            backoff_factor=self.config.retry_backoff_ms / 1000.0,
+            status_forcelist=[429, 500, 502, 503, 504],
+            allowed_methods=["HEAD", "GET", "POST", "PUT", "DELETE", "OPTIONS", "TRACE"],
+        )
+
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        session.mount("http://", adapter)
+        session.mount("https://", adapter)
+
+        return session
+
+    def check_health(self) -> Dict[str, Any]:
+        """
+        Check LeanAide server health
+
+        Returns:
+            Health check response
+        """
+        try:
+            url = f"{self.config.base_url}/"
+            response = self.session.get(
+                url,
+                timeout=self.config.timeout_ms / 1000.0
+            )
+            response.raise_for_status()
+            return {
+                "status": "ok",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        except Exception as e:
+            self.logger.warning(json.dumps({
+                "level": "warn",
+                "component": "LeanAideClient",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "message": "Health check failed",
+                "error": str(e),
+            }))
+            return {
+                "status": "error",
+                "error": str(e),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+
+    def translate_thm(
+        self,
+        theorem_text: str,
+        correlation_id: str,
+        timeout_ms: Optional[int] = None
+    ) -> Dict[str, Any]:
+        """
+        Translate natural language theorem to Lean 4
+
+        Args:
+            theorem_text: Natural language theorem statement
+            correlation_id: Correlation ID for tracing
+            timeout_ms: Optional timeout override
+
+        Returns:
+            LeanAide translation response
+        """
+        # Check circuit breaker
+        if not self.circuit_breaker.can_execute():
+            self.logger.error(json.dumps({
+                "level": "error",
+                "component": "LeanAideClient",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "message": "Circuit breaker is OPEN, rejecting request",
+                "correlation_id": correlation_id,
+            }))
+            raise Z3ClientCircuitBreakerOpenError("Circuit breaker is OPEN")
+
+        timeout = timeout_ms or self.config.timeout_ms
+
+        try:
+            url = f"{self.config.base_url}/"
+            payload = {
+                "task": "translate_thm",
+                "theorem_text": theorem_text,
+            }
+
+            self.logger.debug(json.dumps({
+                "level": "debug",
+                "component": "LeanAideClient",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "message": "Sending translate_thm request",
+                "correlation_id": correlation_id,
+                "timeout_ms": timeout,
+            }))
+
+            response = self.session.post(
+                url,
+                json=payload,
+                timeout=timeout / 1000.0
+            )
+            response.raise_for_status()
+
+            result = response.json()
+
+            # Record success
+            self.circuit_breaker.record_success()
+
+            self.logger.debug(json.dumps({
+                "level": "debug",
+                "component": "LeanAideClient",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "message": "translate_thm request succeeded",
+                "correlation_id": correlation_id,
+            }))
+
+            return result
+
+        except requests.Timeout as e:
+            self.circuit_breaker.record_failure()
+            self.logger.error(json.dumps({
+                "level": "error",
+                "component": "LeanAideClient",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "message": "translate_thm request timed out",
+                "correlation_id": correlation_id,
+                "error": str(e),
+            }))
+            raise Z3ClientTimeoutError(f"Request timed out: {str(e)}")
+
+        except requests.ConnectionError as e:
+            self.circuit_breaker.record_failure()
+            self.logger.error(json.dumps({
+                "level": "error",
+                "component": "LeanAideClient",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "message": "Connection error to LeanAide server",
+                "correlation_id": correlation_id,
+                "error": str(e),
+            }))
+            raise Z3ClientConnectionError(f"Connection error: {str(e)}")
+
+        except requests.HTTPError as e:
+            self.circuit_breaker.record_failure()
+            self.logger.error(json.dumps({
+                "level": "error",
+                "component": "LeanAideClient",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "message": "HTTP error from LeanAide server",
+                "correlation_id": correlation_id,
+                "status_code": e.response.status_code if e.response else None,
+                "error": str(e),
+            }))
+            raise Z3ClientError(f"HTTP error: {str(e)}")
+
+        except Exception as e:
+            self.circuit_breaker.record_failure()
+            self.logger.error(json.dumps({
+                "level": "error",
+                "component": "LeanAideClient",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "message": "Unexpected error in translate_thm request",
+                "correlation_id": correlation_id,
+                "error": str(e),
+            }))
+            raise Z3ClientError(f"Unexpected error: {str(e)}")
+
+    def prove_for_formalization(
+        self,
+        theorem_text: str,
+        theorem_code: str,
+        theorem_statement: str,
+        correlation_id: str,
+        timeout_ms: Optional[int] = None
+    ) -> Dict[str, Any]:
+        """
+        Generate proof using LeanAide
+
+        Args:
+            theorem_text: Natural language theorem
+            theorem_code: Lean 4 code
+            theorem_statement: Elaborated theorem type
+            correlation_id: Correlation ID for tracing
+            timeout_ms: Optional timeout override
+
+        Returns:
+            LeanAide proof response
+        """
+        # Check circuit breaker
+        if not self.circuit_breaker.can_execute():
+            raise Z3ClientCircuitBreakerOpenError("Circuit breaker is OPEN")
+
+        timeout = timeout_ms or self.config.timeout_ms
+
+        try:
+            url = f"{self.config.base_url}/"
+            payload = {
+                "task": "prove_for_formalization",
+                "theorem_text": theorem_text,
+                "theorem_code": theorem_code,
+                "theorem_statement": theorem_statement,
+            }
+
+            self.logger.debug(json.dumps({
+                "level": "debug",
+                "component": "LeanAideClient",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "message": "Sending prove_for_formalization request",
+                "correlation_id": correlation_id,
+            }))
+
+            response = self.session.post(
+                url,
+                json=payload,
+                timeout=timeout / 1000.0
+            )
+            response.raise_for_status()
+
+            result = response.json()
+
+            # Record success
+            self.circuit_breaker.record_success()
+
+            return result
+
+        except requests.Timeout as e:
+            self.circuit_breaker.record_failure()
+            raise Z3ClientTimeoutError(f"Request timed out: {str(e)}")
+
+        except requests.ConnectionError as e:
+            self.circuit_breaker.record_failure()
+            raise Z3ClientConnectionError(f"Connection error: {str(e)}")
+
+        except Exception as e:
+            self.circuit_breaker.record_failure()
             raise Z3ClientError(f"Unexpected error: {str(e)}")
 
     def get_stats(self) -> Dict[str, Any]:

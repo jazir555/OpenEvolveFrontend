@@ -1530,12 +1530,83 @@ class IcrHeatmapSnapshot(BaseModel):
     auto_refine: Optional[bool] = None
 
 def verify_api_key(x_api_key: str = Header(...)) -> AuthUser:
-    """Verify API key from header and return user info."""
+    """Verify API key from header and return user info.
+    
+    Uses database-backed validation with expiration and revocation checking
+    when security framework is available. Falls back to environment variable
+    configuration only when database is unavailable.
+    """
     import time
+    import hashlib
     start_time = time.time()
     success = False
 
     try:
+        # First, try database-backed validation via security framework
+        if SECURITY_FRAMEWORK_AVAILABLE:
+            try:
+                from security_framework import get_api_key_database, APIKeyStatus
+                
+                key_hash = hashlib.sha256(x_api_key.encode()).hexdigest()
+                db = get_api_key_database()
+                key_record = db.get_key_by_hash(key_hash)
+                
+                if key_record:
+                    # Check if key is active
+                    if key_record.status != APIKeyStatus.ACTIVE:
+                        duration = time.time() - start_time
+                        _trigger_api_alerts("verify_api_key", False, None, 
+                                          f"API key not active: {key_record.status.value}")
+                        _track_api_performance("verify_api_key", False, duration, 
+                                             "verify_api_key", 401)
+                        raise HTTPException(
+                            status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="API key is not active",
+                            headers={"WWW-Authenticate": "ApiKey"}
+                        )
+                    
+                    # Check expiration
+                    from datetime import datetime
+                    if key_record.expires_at and key_record.expires_at < datetime.utcnow():
+                        duration = time.time() - start_time
+                        _trigger_api_alerts("verify_api_key", False, None, "API key expired")
+                        _track_api_performance("verify_api_key", False, duration, 
+                                             "verify_api_key", 401)
+                        raise HTTPException(
+                            status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="API key has expired",
+                            headers={"WWW-Authenticate": "ApiKey"}
+                        )
+                    
+                    # Update usage statistics
+                    db.update_last_used(key_record.id)
+                    
+                    # Determine role from permissions
+                    role = UserRole.READONLY
+                    if key_record.permissions:
+                        if "admin" in key_record.permissions or "system:admin" in key_record.permissions:
+                            role = UserRole.ADMIN
+                        elif "write" in key_record.permissions or "workflow:execute" in key_record.permissions:
+                            role = UserRole.USER
+                    
+                    user = AuthUser(
+                        api_key=x_api_key,
+                        role=role,
+                        name=key_record.name
+                    )
+                    
+                    success = True
+                    duration = time.time() - start_time
+                    _track_api_performance("verify_api_key", True, duration, 
+                                         "verify_api_key", 200)
+                    return user
+                    
+            except HTTPException:
+                raise
+            except Exception as e:
+                logger.warning(f"Database API key validation failed: {e}, falling back to env vars")
+        
+        # Fallback to environment variable configuration
         if x_api_key not in API_KEYS:
             # **ACTUAL INTEGRATION**: Trigger alert and track failure
             duration = time.time() - start_time
@@ -4387,10 +4458,62 @@ def get_improvement_potential(request: SuggestionRequest):
 
 server = None
 
-def start_api_server(host: str = "0.0.0.0", port: int = 8001):
-    """Start the API server."""
+def start_api_server(
+    host: str = "0.0.0.0", 
+    port: int = 8001,
+    use_tls: bool = None,
+    cert_path: str = None,
+    key_path: str = None
+):
+    """Start the API server with optional TLS support.
+    
+    Args:
+        host: Host to bind to
+        port: Port to bind to
+        use_tls: Whether to use TLS (defaults to SecurityConfig.TLS_ENABLED)
+        cert_path: Path to TLS certificate (defaults to SecurityConfig.TLS_CERT_PATH)
+        key_path: Path to TLS private key (defaults to SecurityConfig.TLS_KEY_PATH)
+    """
     global server
-    config = uvicorn.Config(app, host=host, port=port)
+    
+    # Initialize security components
+    if SECURITY_FRAMEWORK_AVAILABLE:
+        from security_framework import initialize_security, SecurityConfig
+        init_status = initialize_security()
+        logger.info(f"Security initialization status: {init_status}")
+        
+        # Determine TLS configuration
+        if use_tls is None:
+            use_tls = SecurityConfig.TLS_ENABLED
+        if cert_path is None:
+            cert_path = SecurityConfig.TLS_CERT_PATH
+        if key_path is None:
+            key_path = SecurityConfig.TLS_KEY_PATH
+    else:
+        use_tls = False
+    
+    # Configure uvicorn
+    config_kwargs = {
+        "app": app,
+        "host": host,
+        "port": port
+    }
+    
+    # Add TLS configuration if enabled
+    if use_tls:
+        try:
+            from security_framework import create_ssl_context
+            ssl_context = create_ssl_context(cert_path, key_path)
+            config_kwargs["ssl_version"] = ssl_context
+            logger.info(f"Starting API server with TLS on {host}:{port}")
+            logger.info(f"Using certificate: {cert_path}")
+        except Exception as e:
+            logger.error(f"Failed to configure TLS: {e}")
+            logger.warning("Starting API server WITHOUT TLS - this is insecure!")
+    else:
+        logger.info(f"Starting API server on {host}:{port} (no TLS)")
+    
+    config = uvicorn.Config(**config_kwargs)
     server = uvicorn.Server(config)
     server.run()
 

@@ -525,3 +525,512 @@ def validate_theorem_request(data: Dict[str, Any]) -> tuple[bool, Optional[str]]
 
     except Exception as e:
         return False, f"Validation error: {str(e)}"
+
+
+# =============================================================================
+# LEANAIDE INTEGRATION SCHEMAS
+# =============================================================================
+
+class LeanAideTaskType(Enum):
+    """LeanAide task types"""
+    TRANSLATE_THM = "translate_thm"
+    TRANSLATE_THM_DETAILED = "translate_thm_detailed"
+    TRANSLATE_DEF = "translate_def"
+    THEOREM_DOC = "theorem_doc"
+    DEF_DOC = "def_doc"
+    THEOREM_NAME = "theorem_name"
+    PROVE_FOR_FORMALIZATION = "prove_for_formalization"
+    JSON_STRUCTURED = "json_structured"
+    LEAN_FROM_JSON_STRUCTURED = "lean_from_json_structured"
+    ELABORATE = "elaborate"
+    MATH_QUERY = "math_query"
+
+
+@dataclass
+class LeanAideAutoformalizeRequest:
+    """
+    Request for autoformalization (natural language to Lean 4)
+
+    Law of Configuration Explicitness: timeout_ms is mandatory
+    Law of UTC: timestamp is UTC ISO-8601
+    """
+    natural_language: str  # Natural language theorem/definition
+    task_type: LeanAideTaskType = LeanAideTaskType.TRANSLATE_THM_DETAILED
+    theorem_name: Optional[str] = None
+    timeout_ms: int = 30000  # MANDATORY
+    correlation_id: Optional[str] = None
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self):
+        if not self.correlation_id:
+            self.correlation_id = str(uuid.uuid4())
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "natural_language": self.natural_language,
+            "task_type": self.task_type.value,
+            "theorem_name": self.theorem_name,
+            "timeout_ms": self.timeout_ms,
+            "correlation_id": self.correlation_id,
+            "timestamp": self.timestamp,
+            "metadata": self.metadata,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'LeanAideAutoformalizeRequest':
+        return cls(
+            natural_language=data["natural_language"],
+            task_type=LeanAideTaskType(data.get("task_type", LeanAideTaskType.TRANSLATE_THM_DETAILED.value)),
+            theorem_name=data.get("theorem_name"),
+            timeout_ms=data.get("timeout_ms", 30000),
+            correlation_id=data.get("correlation_id"),
+            timestamp=data.get("timestamp", datetime.now(timezone.utc).isoformat()),
+            metadata=data.get("metadata", {}),
+        )
+
+
+@dataclass
+class LeanAideAutoformalizeResponse:
+    """
+    Response from autoformalization
+
+    Contains Lean 4 code generated from natural language
+    """
+    success: bool
+    lean_code: Optional[str] = None
+    theorem_name: Optional[str] = None
+    theorem_type: Optional[str] = None
+    proof_sketch: Optional[str] = None
+    error: Optional[str] = None
+    execution_time_ms: float = 0.0
+    correlation_id: Optional[str] = None
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "success": self.success,
+            "lean_code": self.lean_code,
+            "theorem_name": self.theorem_name,
+            "theorem_type": self.theorem_type,
+            "proof_sketch": self.proof_sketch,
+            "error": self.error,
+            "execution_time_ms": self.execution_time_ms,
+            "correlation_id": self.correlation_id,
+            "timestamp": self.timestamp,
+            "metadata": self.metadata,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'LeanAideAutoformalizeResponse':
+        return cls(
+            success=data["success"],
+            lean_code=data.get("lean_code"),
+            theorem_name=data.get("theorem_name"),
+            theorem_type=data.get("theorem_type"),
+            proof_sketch=data.get("proof_sketch"),
+            error=data.get("error"),
+            execution_time_ms=data.get("execution_time_ms", 0.0),
+            correlation_id=data.get("correlation_id"),
+            timestamp=data.get("timestamp", datetime.now(timezone.utc).isoformat()),
+            metadata=data.get("metadata", {}),
+        )
+
+
+@dataclass
+class LeanAideProveRequest:
+    """
+    Request for AI-powered theorem proving
+
+    Law of Configuration Explicitness: timeout_ms is mandatory
+    Law of UTC: timestamp is UTC ISO-8601
+    """
+    theorem_text: str  # Natural language theorem
+    theorem_code: Optional[str] = None  # Lean 4 code (if already formalized)
+    theorem_statement: Optional[str] = None  # Elaborated theorem type
+    generate_proof: bool = True
+    timeout_ms: int = 60000  # MANDATORY
+    correlation_id: Optional[str] = None
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self):
+        if not self.correlation_id:
+            self.correlation_id = str(uuid.uuid4())
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "theorem_text": self.theorem_text,
+            "theorem_code": self.theorem_code,
+            "theorem_statement": self.theorem_statement,
+            "generate_proof": self.generate_proof,
+            "timeout_ms": self.timeout_ms,
+            "correlation_id": self.correlation_id,
+            "timestamp": self.timestamp,
+            "metadata": self.metadata,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'LeanAideProveRequest':
+        return cls(
+            theorem_text=data["theorem_text"],
+            theorem_code=data.get("theorem_code"),
+            theorem_statement=data.get("theorem_statement"),
+            generate_proof=data.get("generate_proof", True),
+            timeout_ms=data.get("timeout_ms", 60000),
+            correlation_id=data.get("correlation_id"),
+            timestamp=data.get("timestamp", datetime.now(timezone.utc).isoformat()),
+            metadata=data.get("metadata", {}),
+        )
+
+
+@dataclass
+class LeanAideProveResponse:
+    """
+    Response from AI-powered theorem proving
+    """
+    success: bool
+    proof: Optional[str] = None
+    tactics_used: List[str] = field(default_factory=list)
+    proof_script: Optional[str] = None
+    counterexample: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None
+    execution_time_ms: float = 0.0
+    correlation_id: Optional[str] = None
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "success": self.success,
+            "proof": self.proof,
+            "tactics_used": self.tactics_used,
+            "proof_script": self.proof_script,
+            "counterexample": self.counterexample,
+            "error": self.error,
+            "execution_time_ms": self.execution_time_ms,
+            "correlation_id": self.correlation_id,
+            "timestamp": self.timestamp,
+            "metadata": self.metadata,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'LeanAideProveResponse':
+        return cls(
+            success=data["success"],
+            proof=data.get("proof"),
+            tactics_used=data.get("tactics_used", []),
+            proof_script=data.get("proof_script"),
+            counterexample=data.get("counterexample"),
+            error=data.get("error"),
+            execution_time_ms=data.get("execution_time_ms", 0.0),
+            correlation_id=data.get("correlation_id"),
+            timestamp=data.get("timestamp", datetime.now(timezone.utc).isoformat()),
+            metadata=data.get("metadata", {}),
+        )
+
+
+@dataclass
+class Z3ToLeanTranslationRequest:
+    """
+    Request for Z3 to Lean 4 translation
+
+    Law of Configuration Explicitness: timeout_ms is mandatory
+    Law of UTC: timestamp is UTC ISO-8601
+    """
+    smtlib_content: str  # SMT-LIB2 content
+    constraint_type: ConstraintType = ConstraintType.BOOLEAN
+    generate_proof: bool = False
+    timeout_ms: int = 30000  # MANDATORY
+    correlation_id: Optional[str] = None
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self):
+        if not self.correlation_id:
+            self.correlation_id = str(uuid.uuid4())
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "smtlib_content": self.smtlib_content,
+            "constraint_type": self.constraint_type.value,
+            "generate_proof": self.generate_proof,
+            "timeout_ms": self.timeout_ms,
+            "correlation_id": self.correlation_id,
+            "timestamp": self.timestamp,
+            "metadata": self.metadata,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'Z3ToLeanTranslationRequest':
+        return cls(
+            smtlib_content=data["smtlib_content"],
+            constraint_type=ConstraintType(data.get("constraint_type", ConstraintType.BOOLEAN.value)),
+            generate_proof=data.get("generate_proof", False),
+            timeout_ms=data.get("timeout_ms", 30000),
+            correlation_id=data.get("correlation_id"),
+            timestamp=data.get("timestamp", datetime.now(timezone.utc).isoformat()),
+            metadata=data.get("metadata", {}),
+        )
+
+
+@dataclass
+class Z3ToLeanTranslationResponse:
+    """
+    Response from Z3 to Lean 4 translation
+    """
+    success: bool
+    lean_code: Optional[str] = None
+    theorem_statement: Optional[str] = None
+    variables: List[str] = field(default_factory=list)
+    translated_constraints: List[str] = field(default_factory=list)
+    error: Optional[str] = None
+    execution_time_ms: float = 0.0
+    correlation_id: Optional[str] = None
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "success": self.success,
+            "lean_code": self.lean_code,
+            "theorem_statement": self.theorem_statement,
+            "variables": self.variables,
+            "translated_constraints": self.translated_constraints,
+            "error": self.error,
+            "execution_time_ms": self.execution_time_ms,
+            "correlation_id": self.correlation_id,
+            "timestamp": self.timestamp,
+            "metadata": self.metadata,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'Z3ToLeanTranslationResponse':
+        return cls(
+            success=data["success"],
+            lean_code=data.get("lean_code"),
+            theorem_statement=data.get("theorem_statement"),
+            variables=data.get("variables", []),
+            translated_constraints=data.get("translated_constraints", []),
+            error=data.get("error"),
+            execution_time_ms=data.get("execution_time_ms", 0.0),
+            correlation_id=data.get("correlation_id"),
+            timestamp=data.get("timestamp", datetime.now(timezone.utc).isoformat()),
+            metadata=data.get("metadata", {}),
+        )
+
+
+@dataclass
+class LeanAideTacticSuggestionRequest:
+    """
+    Request for AI-powered tactic suggestions
+
+    Law of Configuration Explicitness: timeout_ms is mandatory
+    Law of UTC: timestamp is UTC ISO-8601
+    """
+    goal_state: str  # Current goal state in Lean 4
+    context: Optional[str] = None  # Additional context
+    num_suggestions: int = 3
+    timeout_ms: int = 15000  # MANDATORY
+    correlation_id: Optional[str] = None
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self):
+        if not self.correlation_id:
+            self.correlation_id = str(uuid.uuid4())
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "goal_state": self.goal_state,
+            "context": self.context,
+            "num_suggestions": self.num_suggestions,
+            "timeout_ms": self.timeout_ms,
+            "correlation_id": self.correlation_id,
+            "timestamp": self.timestamp,
+            "metadata": self.metadata,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'LeanAideTacticSuggestionRequest':
+        return cls(
+            goal_state=data["goal_state"],
+            context=data.get("context"),
+            num_suggestions=data.get("num_suggestions", 3),
+            timeout_ms=data.get("timeout_ms", 15000),
+            correlation_id=data.get("correlation_id"),
+            timestamp=data.get("timestamp", datetime.now(timezone.utc).isoformat()),
+            metadata=data.get("metadata", {}),
+        )
+
+
+@dataclass
+class LeanAideTacticSuggestion:
+    """Individual tactic suggestion"""
+    tactic: str
+    description: Optional[str] = None
+    confidence: float = 0.0
+    reasoning: Optional[str] = None
+
+
+@dataclass
+class LeanAideTacticSuggestionResponse:
+    """
+    Response with tactic suggestions
+    """
+    success: bool
+    suggestions: List[LeanAideTacticSuggestion] = field(default_factory=list)
+    error: Optional[str] = None
+    execution_time_ms: float = 0.0
+    correlation_id: Optional[str] = None
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "success": self.success,
+            "suggestions": [s.__dict__ for s in self.suggestions],
+            "error": self.error,
+            "execution_time_ms": self.execution_time_ms,
+            "correlation_id": self.correlation_id,
+            "timestamp": self.timestamp,
+            "metadata": self.metadata,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'LeanAideTacticSuggestionResponse':
+        suggestions = []
+        for sugg_data in data.get("suggestions", []):
+            suggestions.append(LeanAideTacticSuggestion(
+                tactic=sugg_data["tactic"],
+                description=sugg_data.get("description"),
+                confidence=sugg_data.get("confidence", 0.0),
+                reasoning=sugg_data.get("reasoning"),
+            ))
+
+        return cls(
+            success=data["success"],
+            suggestions=suggestions,
+            error=data.get("error"),
+            execution_time_ms=data.get("execution_time_ms", 0.0),
+            correlation_id=data.get("correlation_id"),
+            timestamp=data.get("timestamp", datetime.now(timezone.utc).isoformat()),
+            metadata=data.get("metadata", {}),
+        )
+
+
+# =============================================================================
+# LEANAIDE VALIDATION FUNCTIONS
+# =============================================================================
+
+def validate_autoformalize_request(data: Dict[str, Any]) -> tuple[bool, Optional[str]]:
+    """
+    Validate autoformalization request
+
+    Returns:
+        (is_valid, error_message)
+    """
+    try:
+        # Check required fields
+        if "natural_language" not in data:
+            return False, "Missing required field: natural_language"
+
+        # Validate timeout_ms (mandatory)
+        timeout_ms = data.get("timeout_ms", 0)
+        if not isinstance(timeout_ms, int) or timeout_ms <= 0:
+            return False, "timeout_ms must be a positive integer"
+
+        # Validate task_type if present
+        if "task_type" in data:
+            try:
+                LeanAideTaskType(data["task_type"])
+            except ValueError:
+                return False, f"Invalid task_type: {data['task_type']}"
+
+        return True, None
+
+    except Exception as e:
+        return False, f"Validation error: {str(e)}"
+
+
+def validate_prove_request(data: Dict[str, Any]) -> tuple[bool, Optional[str]]:
+    """
+    Validate AI-powered proving request
+
+    Returns:
+        (is_valid, error_message)
+    """
+    try:
+        # Check required fields
+        if "theorem_text" not in data:
+            return False, "Missing required field: theorem_text"
+
+        # Validate timeout_ms (mandatory)
+        timeout_ms = data.get("timeout_ms", 0)
+        if not isinstance(timeout_ms, int) or timeout_ms <= 0:
+            return False, "timeout_ms must be a positive integer"
+
+        return True, None
+
+    except Exception as e:
+        return False, f"Validation error: {str(e)}"
+
+
+def validate_translation_request(data: Dict[str, Any]) -> tuple[bool, Optional[str]]:
+    """
+    Validate Z3 to Lean translation request
+
+    Returns:
+        (is_valid, error_message)
+    """
+    try:
+        # Check required fields
+        if "smtlib_content" not in data:
+            return False, "Missing required field: smtlib_content"
+
+        # Validate timeout_ms (mandatory)
+        timeout_ms = data.get("timeout_ms", 0)
+        if not isinstance(timeout_ms, int) or timeout_ms <= 0:
+            return False, "timeout_ms must be a positive integer"
+
+        # Validate constraint_type if present
+        if "constraint_type" in data:
+            try:
+                ConstraintType(data["constraint_type"])
+            except ValueError:
+                return False, f"Invalid constraint_type: {data['constraint_type']}"
+
+        return True, None
+
+    except Exception as e:
+        return False, f"Validation error: {str(e)}"
+
+
+def validate_tactic_suggestion_request(data: Dict[str, Any]) -> tuple[bool, Optional[str]]:
+    """
+    Validate tactic suggestion request
+
+    Returns:
+        (is_valid, error_message)
+    """
+    try:
+        # Check required fields
+        if "goal_state" not in data:
+            return False, "Missing required field: goal_state"
+
+        # Validate timeout_ms (mandatory)
+        timeout_ms = data.get("timeout_ms", 0)
+        if not isinstance(timeout_ms, int) or timeout_ms <= 0:
+            return False, "timeout_ms must be a positive integer"
+
+        # Validate num_suggestions if present
+        if "num_suggestions" in data:
+            num_suggestions = data["num_suggestions"]
+            if not isinstance(num_suggestions, int) or num_suggestions < 1 or num_suggestions > 10:
+                return False, "num_suggestions must be between 1 and 10"
+
+        return True, None
+
+    except Exception as e:
+        return False, f"Validation error: {str(e)}"

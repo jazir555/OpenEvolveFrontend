@@ -76,6 +76,18 @@ except ImportError:
     Lean4ATPBridge = None  # type: ignore
     Lean4ProofResult = None  # type: ignore
 
+# Try to import LeanAide client for AI-guided tactic suggestion
+try:
+    import sys
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../../..'))
+    from leanaide_client import LeanAideClient, LeanAideConfig, LeanAideResult
+    LEANAIDE_AVAILABLE = True
+except ImportError:
+    LEANAIDE_AVAILABLE = False
+    LeanAideClient = None  # type: ignore
+    LeanAideConfig = None  # type: ignore
+    LeanAideResult = None  # type: ignore
+
 
 # ============================================================================
 # DATA STRUCTURES
@@ -125,6 +137,14 @@ class ActivationStrategy(Enum):
     SELECTIVE_BFS = 'selective_bfs'  # Breadth-first selective activation
     SELECTIVE_DFS = 'ive_dfs'  # Depth-first selective activation
     MINIMAL_SUBGRAPH = 'minimal_subgraph'  # Minimum subgraph isolation
+    AI_GUIDED = 'ai_guided'  # LeanAide-guided intelligent activation
+
+
+class VerificationTier(Enum):
+    """Tiered verification level"""
+    Z3_FAST = 'z3_fast'  # Level 1: Z3 fast contradiction detection
+    LEANAIDE_AI = 'leanaide_ai'  # Level 2: LeanAide AI-assisted proof discovery
+    LEAN4_FORMAL = 'lean4_formal'  # Level 3: Lean 4 formal verification
 
 
 @dataclass
@@ -157,6 +177,29 @@ class Z3ATPStats:
 
 
 @dataclass
+class LeanAideAIStats:
+    """LeanAide AI performance statistics"""
+    leanaide_checks_performed: int = 0
+    leanaide_tactics_suggested: int = 0
+    leanaide_contradictions_resolved: int = 0
+    leanaide_autoformalizations: int = 0
+    leanaide_total_time_ms: int = 0
+    leanaide_subgraph_activations: int = 0
+    leanaide_success_rate: float = 0.0
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'leanaide_checks_performed': self.leanaide_checks_performed,
+            'leanaide_tactics_suggested': self.leanaide_tactics_suggested,
+            'leanaide_contradictions_resolved': self.leanaide_contradictions_resolved,
+            'leanaide_autoformalizations': self.leanaide_autoformalizations,
+            'leanaide_total_time_ms': self.leanaide_total_time_ms,
+            'leanaide_subgraph_activations': self.leanaide_subgraph_activations,
+            'leanaide_success_rate': self.leanaide_success_rate,
+        }
+
+
+@dataclass
 class DITOStats:
     """DITO execution statistics"""
     total_nodes: int = 0
@@ -169,6 +212,12 @@ class DITOStats:
     execution_time_ms: int = 0
     complexity_saved: float = 0.0  # Percentage of graph not activated
     z3_atp_stats: Optional[Z3ATPStats] = None  # Z3 ATP performance stats
+    leanaide_ai_stats: Optional[LeanAideAIStats] = None  # LeanAide AI stats
+    tier_distribution: Dict[str, int] = None  # Distribution of verification tiers used
+
+    def __post_init__(self):
+        if self.tier_distribution is None:
+            self.tier_distribution = {}
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -182,6 +231,8 @@ class DITOStats:
             'execution_time_ms': self.execution_time_ms,
             'complexity_saved': self.complexity_saved,
             'z3_atp_stats': self.z3_atp_stats.to_dict() if self.z3_atp_stats else {},
+            'leanaide_ai_stats': self.leanaide_ai_stats.to_dict() if self.leanaide_ai_stats else {},
+            'tier_distribution': self.tier_distribution,
         }
 
 
@@ -649,6 +700,502 @@ class Z3ContradictionDetector:
 
 
 # ============================================================================
+# LEANAIDE TACTIC SUGGESTER (AI-Guided Proof Discovery)
+# ============================================================================
+
+class LeanAideTacticSuggester:
+    """
+    LeanAide-based AI tactic suggestion for contradiction resolution.
+
+    Key Features:
+    1. AI-guided proof tactic suggestion
+    2. Automatic constraint formalization
+    3. Subgraph activation guidance
+    4. Contradiction resolution assistance
+    5. Natural language constraint processing
+
+    Uses LeanAide ML models to suggest optimal proof tactics for resolving
+    contradictions detected by Z3 or found through other means.
+    """
+
+    def __init__(
+        self,
+        config: SCEConfig,
+        logger: logging.Logger
+    ):
+        """Initialize LeanAide Tactic Suggester
+
+        Args:
+            config: SCE configuration
+            logger: Logger instance
+        """
+        self.config = config
+        self.logger = logger
+
+        # Performance statistics
+        self.stats = LeanAideAIStats()
+
+        # LeanAide client (async)
+        self.leanaide_client: Optional[LeanAideClient] = None
+        self.leanaide_available = LEANAIDE_AVAILABLE
+
+        # Initialize LeanAide client if available
+        if self.leanaide_available:
+            try:
+                leanaide_config = LeanAideConfig(
+                    host=getattr(config, 'LEANAIDE_HOST', 'localhost'),
+                    port=getattr(config, 'LEANAIDE_PORT', 7654),
+                    timeout=getattr(config, 'LEANAIDE_TIMEOUT_MS', 30000) / 1000.0,
+                    max_retries=getattr(config, 'LEANAIDE_MAX_RETRIES', 3),
+                )
+                self.leanaide_client = LeanAideClient(config=leanaide_config)
+                self.logger.info(json.dumps({
+                    'level': 'info',
+                    'component': 'LeanAideTacticSuggester',
+                    'timestamp': datetime.now(timezone.utc).isoformat(),
+                    'message': 'LeanAide tactic suggester initialized',
+                    'leanaide_available': True,
+                }))
+            except Exception as e:
+                self.leanaide_available = False
+                self.logger.warning(json.dumps({
+                    'level': 'warn',
+                    'component': 'LeanAideTacticSuggester',
+                    'timestamp': datetime.now(timezone.utc).isoformat(),
+                    'message': 'LeanAide initialization failed',
+                    'error': str(e),
+                }))
+
+    async def suggest_tactics(
+        self,
+        contradiction: ContradictionPair,
+        constraints: List[Constraint],
+        correlation_id: str
+    ) -> Optional[List[str]]:
+        """
+        Suggest proof tactics for resolving a contradiction.
+
+        Uses LeanAide AI to analyze the contradiction and suggest optimal tactics.
+
+        Args:
+            contradiction: Detected contradiction pair
+            constraints: All constraints involved
+            correlation_id: Distributed tracing correlation ID
+
+        Returns:
+            List of suggested tactic names or None if unavailable
+        """
+        start_time = time.time()
+        self.stats.leanaide_checks_performed += 1
+
+        if not self.leanaide_available or not self.leanaide_client:
+            self.logger.debug(json.dumps({
+                'level': 'debug',
+                'component': 'LeanAideTacticSuggester',
+                'timestamp': datetime.now(timezone.utc).isoformat(),
+                'message': 'LeanAide not available for tactic suggestion',
+                'correlation_id': correlation_id,
+            }))
+            return None
+
+        try:
+            # Build natural language description of contradiction
+            contradiction_desc = self._build_contradiction_description(
+                contradiction,
+                constraints
+            )
+
+            # Use LeanAide math_query to get tactic suggestions
+            query = (
+                f"What are the best Lean 4 proof tactics to resolve this contradiction?\n"
+                f"Contradiction: {contradiction_desc}\n"
+                f"Suggest 3-5 specific Lean tactics (e.g., rw, simp, apply, cases, etc.)."
+            )
+
+            result: LeanAideResult = await self.leanaide_client.math_query(
+                query=query,
+                n=3
+            )
+
+            elapsed_ms = int((time.time() - start_time) * 1000)
+            self.stats.leanaide_total_time_ms += elapsed_ms
+
+            if result.success and result.data:
+                # Extract tactics from result
+                tactics = self._extract_tactics(result.data)
+                self.stats.leanaide_tactics_suggested += len(tactics)
+
+                self.logger.info(json.dumps({
+                    'level': 'info',
+                    'component': 'LeanAideTacticSuggester',
+                    'timestamp': datetime.now(timezone.utc).isoformat(),
+                    'message': 'LeanAide suggested tactics',
+                    'correlation_id': correlation_id,
+                    'contradiction': f"{contradiction.constraint1_id} vs {contradiction.constraint2_id}",
+                    'tactics': tactics,
+                    'response_time_ms': elapsed_ms,
+                }))
+
+                return tactics
+            else:
+                self.logger.warning(json.dumps({
+                    'level': 'warn',
+                    'component': 'LeanAideTacticSuggester',
+                    'timestamp': datetime.now(timezone.utc).isoformat(),
+                    'message': 'LeanAide tactic suggestion failed',
+                    'correlation_id': correlation_id,
+                    'error': result.error,
+                }))
+                return None
+
+        except Exception as e:
+            self.logger.warning(json.dumps({
+                'level': 'warn',
+                'component': 'LeanAideTacticSuggester',
+                'timestamp': datetime.now(timezone.utc).isoformat(),
+                'message': 'LeanAide tactic suggestion exception',
+                'correlation_id': correlation_id,
+                'error': str(e),
+            }))
+            return None
+
+    async def resolve_with_ai(
+        self,
+        contradiction: ContradictionPair,
+        constraints: List[Constraint],
+        correlation_id: str
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Use LeanAide AI to assist in resolving a contradiction.
+
+        Analyzes the contradiction and provides resolution suggestions.
+
+        Args:
+            contradiction: Detected contradiction pair
+            constraints: All constraints involved
+            correlation_id: Distributed tracing correlation ID
+
+        Returns:
+            Resolution suggestions or None if unavailable
+        """
+        start_time = time.time()
+
+        if not self.leanaide_available or not self.leanaide_client:
+            return None
+
+        try:
+            # Build detailed problem description
+            problem_desc = self._build_resolution_problem(
+                contradiction,
+                constraints
+            )
+
+            # Use LeanAide to get resolution suggestions
+            result = await self.leanaide_client.math_query(
+                query=f"How can I resolve this contradiction?\n{problem_desc}",
+                n=2
+            )
+
+            elapsed_ms = int((time.time() - start_time) * 1000)
+            self.stats.leanaide_total_time_ms += elapsed_ms
+
+            if result.success and result.data:
+                self.stats.leanaide_contradictions_resolved += 1
+
+                resolution = {
+                    'contradiction_id': f"{contradiction.constraint1_id}-{contradiction.constraint2_id}",
+                    'suggestions': result.data.get('result', []),
+                    'analysis_timestamp': datetime.now(timezone.utc).isoformat(),
+                    'response_time_ms': elapsed_ms,
+                }
+
+                self.logger.info(json.dumps({
+                    'level': 'info',
+                    'component': 'LeanAideTacticSuggester',
+                    'timestamp': datetime.now(timezone.utc).isoformat(),
+                    'message': 'LeanAide assisted resolution',
+                    'correlation_id': correlation_id,
+                    'resolution': resolution,
+                }))
+
+                return resolution
+            else:
+                return None
+
+        except Exception as e:
+            self.logger.warning(json.dumps({
+                'level': 'warn',
+                'component': 'LeanAideTacticSuggester',
+                'timestamp': datetime.now(timezone.utc).isoformat(),
+                'message': 'LeanAide resolution exception',
+                'correlation_id': correlation_id,
+                'error': str(e),
+            }))
+            return None
+
+    async def formalize_with_ai(
+        self,
+        natural_constraint: str,
+        correlation_id: str
+    ) -> Optional[str]:
+        """
+        Autoformalize natural language constraint to formal logic.
+
+        Uses LeanAide to convert natural language constraints to formal Lean 4 code.
+
+        Args:
+            natural_constraint: Natural language description
+            correlation_id: Distributed tracing correlation ID
+
+        Returns:
+            Formalized constraint or None if unavailable
+        """
+        start_time = time.time()
+
+        if not self.leanaide_available or not self.leanaide_client:
+            return None
+
+        try:
+            # Use LeanAide translate_thm to formalize
+            result = await self.leanaide_client.translate_thm_detailed(
+                theorem_text=natural_constraint,
+                theorem_name="auto_formalized"
+            )
+
+            elapsed_ms = int((time.time() - start_time) * 1000)
+            self.stats.leanaide_total_time_ms += elapsed_ms
+
+            if result.success and result.data:
+                self.stats.leanaide_autoformalizations += 1
+
+                # Extract formalization
+                formal_code = result.data.get('type', result.data.get('result', ''))
+
+                self.logger.info(json.dumps({
+                    'level': 'info',
+                    'component': 'LeanAideTacticSuggester',
+                    'timestamp': datetime.now(timezone.utc).isoformat(),
+                    'message': 'LeanAide autoformalization',
+                    'correlation_id': correlation_id,
+                    'input': natural_constraint[:100],
+                    'formal_code': formal_code[:200],
+                    'response_time_ms': elapsed_ms,
+                }))
+
+                return formal_code
+            else:
+                return None
+
+        except Exception as e:
+            self.logger.warning(json.dumps({
+                'level': 'warn',
+                'component': 'LeanAideTacticSuggester',
+                'timestamp': datetime.now(timezone.utc).isoformat(),
+                'message': 'LeanAide autoformalization exception',
+                'correlation_id': correlation_id,
+                'error': str(e),
+            }))
+            return None
+
+    async def suggest_subgraph_activation(
+        self,
+        root_node_id: str,
+        graph: Dict[str, 'InferenceGraphNode'],
+        correlation_id: str
+    ) -> Optional[Set[str]]:
+        """
+        Suggest optimal subgraph activation using AI analysis.
+
+        Analyzes constraint dependencies and suggests which nodes to activate.
+
+        Args:
+            root_node_id: Root node to activate from
+            graph: Full inference graph
+            correlation_id: Distributed tracing correlation ID
+
+        Returns:
+            Set of node IDs to activate or None for fallback
+        """
+        start_time = time.time()
+
+        if not self.leanaide_available or not self.leanaide_client:
+            return None
+
+        try:
+            # Build graph description for AI
+            graph_desc = self._build_graph_description(root_node_id, graph)
+
+            # Query LeanAide for activation suggestions
+            query = (
+                f"Given this constraint dependency graph, which nodes should I activate "
+                f"to efficiently check for contradictions around node '{root_node_id}'?\n"
+                f"{graph_desc}\n"
+                f"Return a comma-separated list of node IDs to activate."
+            )
+
+            result = await self.leanaide_client.math_query(query=query, n=1)
+
+            elapsed_ms = int((time.time() - start_time) * 1000)
+            self.stats.leanaide_total_time_ms += elapsed_ms
+            self.stats.leanaide_subgraph_activations += 1
+
+            if result.success and result.data:
+                # Extract node IDs from result
+                suggested = self._extract_node_ids(result.data, graph.keys())
+                self.logger.info(json.dumps({
+                    'level': 'info',
+                    'component': 'LeanAideTacticSuggester',
+                    'timestamp': datetime.now(timezone.utc).isoformat(),
+                    'message': 'LeanAide subgraph activation suggestion',
+                    'correlation_id': correlation_id,
+                    'root_node': root_node_id,
+                    'suggested_nodes': list(suggested),
+                    'response_time_ms': elapsed_ms,
+                }))
+                return suggested
+            else:
+                return None
+
+        except Exception as e:
+            self.logger.warning(json.dumps({
+                'level': 'warn',
+                'component': 'LeanAideTacticSuggester',
+                'timestamp': datetime.now(timezone.utc).isoformat(),
+                'message': 'LeanAide subgraph activation exception',
+                'correlation_id': correlation_id,
+                'error': str(e),
+            }))
+            return None
+
+    def _build_contradiction_description(
+        self,
+        contradiction: ContradictionPair,
+        constraints: List[Constraint]
+    ) -> str:
+        """Build natural language description of contradiction"""
+        # Find the two contradictory constraints
+        c1 = next((c for c in constraints if c.constraint_id == contradiction.constraint1_id), None)
+        c2 = next((c for c in constraints if c.constraint_id == contradiction.constraint2_id), None)
+
+        if c1 and c2:
+            return (
+                f"Constraint 1: {c1.description}\n"
+                f"Constraint 2: {c2.description}\n"
+                f"Type: {contradiction.type.value}\n"
+                f"Affected premises: {', '.join(contradiction.affected_premises)}"
+            )
+        else:
+            return f"Contradiction between {contradiction.constraint1_id} and {contradiction.constraint2_id}"
+
+    def _build_resolution_problem(
+        self,
+        contradiction: ContradictionPair,
+        constraints: List[Constraint]
+    ) -> str:
+        """Build detailed problem description for resolution"""
+        desc = self._build_contradiction_description(contradiction, constraints)
+        return (
+            f"{desc}\n\n"
+            f"Context: These constraints are part of a symbolic constraint engine.\n"
+            f"Please suggest how to resolve this contradiction by:\n"
+            f"1. Identifying which constraint should be modified\n"
+            f"2. Suggesting specific modifications\n"
+            f"3. Explaining why this resolves the contradiction"
+        )
+
+    def _build_graph_description(
+        self,
+        root_node_id: str,
+        graph: Dict[str, 'InferenceGraphNode']
+    ) -> str:
+        """Build description of graph structure for AI analysis"""
+        root_node = graph.get(root_node_id)
+        if not root_node:
+            return f"Node {root_node_id} not found"
+
+        lines = [
+            f"Root node: {root_node_id}",
+            f"Description: {root_node.constraint.description}",
+            f"Dependencies: {', '.join(root_node.dependencies) if root_node.dependencies else 'None'}",
+            f"Dependents: {', '.join(root_node.dependents) if root_node.dependents else 'None'}",
+            "",
+            "Related nodes:",
+        ]
+
+        # Add info about related nodes
+        for dep_id in list(root_node.dependencies)[:5]:  # Limit to 5
+            dep_node = graph.get(dep_id)
+            if dep_node:
+                lines.append(f"  - {dep_id}: {dep_node.constraint.description[:60]}")
+
+        for dep_id in list(root_node.dependents)[:5]:  # Limit to 5
+            dep_node = graph.get(dep_id)
+            if dep_node:
+                lines.append(f"  - {dep_id}: {dep_node.constraint.description[:60]}")
+
+        return "\n".join(lines)
+
+    def _extract_tactics(self, data: Dict[str, Any]) -> List[str]:
+        """Extract tactic names from LeanAide response"""
+        tactics = []
+
+        # Try to extract from 'result' field
+        result = data.get('result', [])
+        if isinstance(result, list):
+            for item in result:
+                if isinstance(item, str):
+                    # Look for tactic names in the text
+                    tactic_keywords = ['rw', 'simp', 'apply', 'cases', 'induction', 'intro', 'intros']
+                    for keyword in tactic_keywords:
+                        if keyword in item.lower():
+                            tactics.append(keyword)
+                elif isinstance(item, dict):
+                    # Extract from dict
+                    answer = item.get('answer', '')
+                    if answer:
+                        tactic_keywords = ['rw', 'simp', 'apply', 'cases', 'induction', 'intro', 'intros']
+                        for keyword in tactic_keywords:
+                            if keyword in answer.lower():
+                                tactics.append(keyword)
+
+        # Deduplicate
+        return list(set(tactics))
+
+    def _extract_node_ids(
+        self,
+        data: Dict[str, Any],
+        available_ids: Set[str]
+    ) -> Set[str]:
+        """Extract node IDs from LeanAide response"""
+        suggested = set()
+
+        # Try to extract from result
+        result = data.get('result', [])
+        if isinstance(result, list):
+            for item in result:
+                text = str(item)
+                # Look for node IDs in the text
+                for node_id in available_ids:
+                    if node_id in text:
+                        suggested.add(node_id)
+
+        return suggested
+
+    def get_stats(self) -> LeanAideAIStats:
+        """Get LeanAide AI statistics"""
+        if self.stats.leanaide_checks_performed > 0:
+            self.stats.leanaide_success_rate = (
+                self.stats.leanaide_contradictions_resolved / self.stats.leanaide_checks_performed
+            )
+        return self.stats
+
+    async def close(self):
+        """Close LeanAide client"""
+        if self.leanaide_client:
+            await self.leanaide_client.close()
+
+
+# ============================================================================
 # MAIN CLASS: Dynamic Inference Trace Optimizer
 # ============================================================================
 
@@ -680,6 +1227,7 @@ class DITOOptimizer:
         config: SCEConfig = None,
         activation_strategy: ActivationStrategy = ActivationStrategy.SELECTIVE_BFS,
         enable_lean4: bool = False,
+        enable_leanaide: bool = True,
     ):
         """Initialize DITO optimizer
 
@@ -687,10 +1235,12 @@ class DITOOptimizer:
             config: SCE configuration
             activation_strategy: Subgraph activation strategy
             enable_lean4: Enable Lean 4 formal verification
+            enable_leanaide: Enable LeanAide AI assistance
         """
         self.config = config or SCEConfig.from_env()
         self.activation_strategy = activation_strategy
         self.enable_lean4 = enable_lean4 and LEAN4_AVAILABLE
+        self.enable_leanaide = enable_leanaide and LEANAIDE_AVAILABLE
 
         # Inference graph
         self.graph: Dict[str, InferenceGraphNode] = {}
@@ -703,6 +1253,7 @@ class DITOOptimizer:
         # Statistics
         self.stats = DITOStats()
         self.z3_atp_stats = Z3ATPStats()
+        self.leanaide_ai_stats = LeanAideAIStats()
 
         # Setup logger
         self.logger = logging.getLogger('rese.dito')
@@ -724,15 +1275,25 @@ class DITOOptimizer:
                 self.logger
             )
 
+        # Initialize LeanAide tactic suggester
+        self.leanaide_suggester: Optional[LeanAideTacticSuggester] = None
+        if self.enable_leanaide:
+            self.leanaide_suggester = LeanAideTacticSuggester(
+                self.config,
+                self.logger
+            )
+
         self.logger.info(json.dumps({
             'level': 'info',
             'component': 'DITOOptimizer',
             'timestamp': datetime.now(timezone.utc).isoformat(),
-            'message': 'DITO initialized with Z3 ATP',
+            'message': 'DITO initialized with Z3 ATP and LeanAide AI',
             'activation_strategy': activation_strategy.value,
             'z3_enabled': self.z3_enabled,
             'z3_detector_available': self.z3_detector is not None,
             'lean4_enabled': self.enable_lean4,
+            'leanaide_enabled': self.enable_leanaide,
+            'leanaide_available': self.leanaide_suggester is not None,
         }))
 
     def _initialize_z3(self) -> bool:
@@ -856,6 +1417,9 @@ class DITOOptimizer:
             activated = self._activate_selective_dfs(root_node_id)
         elif strategy == ActivationStrategy.MINIMAL_SUBGRAPH:
             activated = self._activate_minimal_subgraph(root_node_id)
+        elif strategy == ActivationStrategy.AI_GUIDED:
+            # AI-guided falls back to selective BFS for sync version
+            activated = self._activate_selective_bfs(root_node_id)
         else:
             activated = self._activate_selective_bfs(root_node_id)
 
@@ -981,6 +1545,343 @@ class DITOOptimizer:
             activated.add(dep_id)
 
         return activated
+
+    async def activate_subgraph_intelligently(
+        self,
+        root_node_id: str,
+        correlation_id: str
+    ) -> Set[str]:
+        """
+        AI-guided subgraph activation using LeanAide.
+
+        Uses LeanAide AI to analyze the graph and suggest optimal activation.
+
+        Args:
+            root_node_id: Root node to activate from
+            correlation_id: Distributed tracing correlation ID
+
+        Returns:
+            Set of activated node IDs
+        """
+        if not self.leanaide_suggester:
+            # Fallback to BFS
+            return self.activate_subgraph(root_node_id, ActivationStrategy.SELECTIVE_BFS)
+
+        try:
+            # Get AI suggestion
+            suggested = await self.leanaide_suggester.suggest_subgraph_activation(
+                root_node_id,
+                self.graph,
+                correlation_id
+            )
+
+            if suggested and len(suggested) > 0:
+                # Use AI suggestion
+                activated = suggested
+                self.logger.info(json.dumps({
+                    'level': 'info',
+                    'component': 'DITOOptimizer',
+                    'timestamp': datetime.now(timezone.utc).isoformat(),
+                    'message': 'AI-guided subgraph activation',
+                    'correlation_id': correlation_id,
+                    'root_node': root_node_id,
+                    'ai_suggested_count': len(activated),
+                }))
+            else:
+                # Fallback to BFS
+                activated = self._activate_selective_bfs(root_node_id)
+
+            # Update activation timestamps
+            now = datetime.now(timezone.utc)
+            for node_id in activated:
+                if node_id in self.graph:
+                    self.graph[node_id].is_active = True
+                    self.graph[node_id].activation_timestamp = now
+
+            self.active_nodes.update(activated)
+            self.stats.activations_performed += len(activated)
+
+            return activated
+
+        except Exception as e:
+            self.logger.warning(json.dumps({
+                'level': 'warn',
+                'component': 'DITOOptimizer',
+                'timestamp': datetime.now(timezone.utc).isoformat(),
+                'message': 'AI-guided activation failed, using fallback',
+                'correlation_id': correlation_id,
+                'error': str(e),
+            }))
+            # Fallback to BFS
+            return self.activate_subgraph(root_node_id, ActivationStrategy.SELECTIVE_BFS)
+
+    # ========================================================================
+    # TIERED CONTRADICTION DETECTION
+    # ========================================================================
+
+    def select_verification_tier(
+        self,
+        constraints: List[Constraint],
+        complexity_score: float = 0.0
+    ) -> VerificationTier:
+        """
+        Select appropriate verification tier based on complexity.
+
+        Tiers:
+        - Level 1: Z3 fast contradiction detection (simple cases)
+        - Level 2: LeanAide AI-assisted proof discovery (medium complexity)
+        - Level 3: Lean 4 formal verification (complex cases)
+
+        Args:
+            constraints: Constraints to verify
+            complexity_score: Estimated complexity (0.0 to 1.0)
+
+        Returns:
+            Appropriate verification tier
+        """
+        # Calculate complexity if not provided
+        if complexity_score == 0.0:
+            complexity_score = self._calculate_complexity_score(constraints)
+
+        # Select tier based on complexity
+        if complexity_score < 0.3:
+            # Simple case - Z3 is sufficient
+            return VerificationTier.Z3_FAST
+        elif complexity_score < 0.7 and self.leanaide_suggester:
+            # Medium complexity - Use LeanAide AI
+            return VerificationTier.LEANAIDE_AI
+        elif self.enable_lean4:
+            # High complexity - Use Lean 4 formal verification
+            return VerificationTier.LEAN4_FORMAL
+        else:
+            # Default to Z3
+            return VerificationTier.Z3_FAST
+
+    def _calculate_complexity_score(self, constraints: List[Constraint]) -> float:
+        """
+        Calculate complexity score for a set of constraints.
+
+        Factors:
+        - Number of constraints
+        - Dependency depth
+        - Constraint types
+        - Quantifiers and logical complexity
+
+        Returns:
+            Complexity score (0.0 to 1.0)
+        """
+        if not constraints:
+            return 0.0
+
+        score = 0.0
+
+        # Factor 1: Number of constraints (normalized)
+        count_score = min(len(constraints) / 50.0, 1.0) * 0.3
+        score += count_score
+
+        # Factor 2: Dependency depth
+        max_depth = 0
+        for c in constraints:
+            depth = len(c.dependencies)
+            if depth > max_depth:
+                max_depth = depth
+        depth_score = min(max_depth / 10.0, 1.0) * 0.3
+        score += depth_score
+
+        # Factor 3: Constraint category complexity
+        complex_categories = {
+            ConstraintCategory.HARD_TEMPORAL_CONSTRAINT,
+            ConstraintCategory.HARD_QUANTIFIER,
+        }
+        complex_count = sum(1 for c in constraints if c.category in complex_categories)
+        category_score = min(complex_count / len(constraints), 1.0) * 0.4
+        score += category_score
+
+        return min(score, 1.0)
+
+    async def check_contradiction_tiered(
+        self,
+        constraints: List[Constraint],
+        correlation_id: str
+    ) -> Tuple[Optional[ContradictionPair], VerificationTier]:
+        """
+        Tiered contradiction detection.
+
+        Automatically selects appropriate verification tier based on complexity.
+
+        Args:
+            constraints: Constraints to check
+            correlation_id: Distributed tracing correlation ID
+
+        Returns:
+            Tuple of (contradiction if found, verification tier used)
+        """
+        # Calculate complexity
+        complexity_score = self._calculate_complexity_score(constraints)
+
+        # Select tier
+        tier = self.select_verification_tier(constraints, complexity_score)
+
+        # Update tier distribution
+        if not self.stats.tier_distribution:
+            self.stats.tier_distribution = {}
+        self.stats.tier_distribution[tier.value] = self.stats.tier_distribution.get(tier.value, 0) + 1
+
+        self.logger.debug(json.dumps({
+            'level': 'debug',
+            'component': 'DITOOptimizer',
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+            'message': 'Tiered contradiction detection',
+            'correlation_id': correlation_id,
+            'complexity_score': complexity_score,
+            'selected_tier': tier.value,
+        }))
+
+        # Execute based on tier
+        if tier == VerificationTier.Z3_FAST:
+            # Level 1: Z3 fast detection
+            contradiction = await self._check_with_z3(constraints, correlation_id)
+        elif tier == VerificationTier.LEANAIDE_AI:
+            # Level 2: LeanAide AI-assisted
+            contradiction = await self._check_with_leanaide(constraints, correlation_id)
+        elif tier == VerificationTier.LEAN4_FORMAL:
+            # Level 3: Lean 4 formal verification
+            contradiction = await self._check_with_lean4(constraints, correlation_id)
+        else:
+            # Default to Z3
+            contradiction = await self._check_with_z3(constraints, correlation_id)
+
+        return contradiction, tier
+
+    async def _check_with_z3(
+        self,
+        constraints: List[Constraint],
+        correlation_id: str
+    ) -> Optional[ContradictionPair]:
+        """Level 1: Fast Z3 contradiction detection"""
+        if not self.z3_detector:
+            return None
+
+        # Use existing Z3 detector
+        contradiction, result = self.z3_detector.check_contradiction_z3(
+            constraints,
+            correlation_id
+        )
+
+        return contradiction
+
+    async def _check_with_leanaide(
+        self,
+        constraints: List[Constraint],
+        correlation_id: str
+    ) -> Optional[ContradictionPair]:
+        """Level 2: LeanAide AI-assisted contradiction detection"""
+        if not self.leanaide_suggester:
+            # Fallback to Z3
+            return await self._check_with_z3(constraints, correlation_id)
+
+        # First try Z3 for fast detection
+        contradiction, z3_result = self.z3_detector.check_contradiction_z3(
+            constraints,
+            correlation_id
+        )
+
+        if contradiction:
+            # Z3 found it - get AI tactics for resolution
+            tactics = await self.leanaide_suggester.suggest_tactics(
+                contradiction,
+                constraints,
+                correlation_id
+            )
+
+            if tactics:
+                self.logger.info(json.dumps({
+                    'level': 'info',
+                    'component': 'DITOOptimizer',
+                    'timestamp': datetime.now(timezone.utc).isoformat(),
+                    'message': 'LeanAide suggested resolution tactics',
+                    'correlation_id': correlation_id,
+                    'tactics': tactics,
+                }))
+
+        return contradiction
+
+    async def _check_with_lean4(
+        self,
+        constraints: List[Constraint],
+        correlation_id: str
+    ) -> Optional[ContradictionPair]:
+        """Level 3: Lean 4 formal verification"""
+        if not self.lean4_bridge:
+            # Fallback to LeanAide
+            return await self._check_with_leanaide(constraints, correlation_id)
+
+        # Use Lean 4 for formal verification
+        # This would involve translating constraints to Lean 4 and proving
+        # For now, this is a placeholder
+        self.logger.debug(json.dumps({
+            'level': 'debug',
+            'component': 'DITOOptimizer',
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+            'message': 'Lean 4 formal verification (placeholder)',
+            'correlation_id': correlation_id,
+        }))
+
+        # Fallback to LeanAide
+        return await self._check_with_leanaide(constraints, correlation_id)
+
+    # ========================================================================
+    # AI-ASSISTED RESOLUTION METHODS
+    # ========================================================================
+
+    async def resolve_with_ai(
+        self,
+        contradiction: ContradictionPair,
+        constraints: List[Constraint],
+        correlation_id: str
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Use LeanAide AI to assist in resolving a contradiction.
+
+        Args:
+            contradiction: Detected contradiction pair
+            constraints: All constraints involved
+            correlation_id: Distributed tracing correlation ID
+
+        Returns:
+            Resolution suggestions or None
+        """
+        if not self.leanaide_suggester:
+            return None
+
+        return await self.leanaide_suggester.resolve_with_ai(
+            contradiction,
+            constraints,
+            correlation_id
+        )
+
+    async def formalize_with_ai(
+        self,
+        natural_constraint: str,
+        correlation_id: str
+    ) -> Optional[str]:
+        """
+        Autoformalize natural language constraint to formal logic.
+
+        Args:
+            natural_constraint: Natural language description
+            correlation_id: Distributed tracing correlation ID
+
+        Returns:
+            Formalized constraint or None
+        """
+        if not self.leanaide_suggester:
+            return None
+
+        return await self.leanaide_suggester.formalize_with_ai(
+            natural_constraint,
+            correlation_id
+        )
 
     # ========================================================================
     # TARGETED ATP (Automated Theorem Proving)
@@ -1350,16 +2251,18 @@ class DITOOptimizer:
             'level': 'info',
             'component': 'DITOOptimizer',
             'timestamp': datetime.now(timezone.utc).isoformat(),
-            'message': 'Starting DITO optimization with Z3 ATP',
+            'message': 'Starting DITO optimization with Z3 ATP and LeanAide AI',
             'correlation_id': correlation_id,
             'constraint_count': len(constraints),
             'strategy': self.activation_strategy.value,
             'z3_detector_available': self.z3_detector is not None,
+            'leanaide_available': self.leanaide_suggester is not None,
         }))
 
         # Reset state
         self.stats = DITOStats()
         self.z3_atp_stats = Z3ATPStats()
+        self.leanaide_ai_stats = LeanAideAIStats()
         contradictions = []
 
         # Build graph
@@ -1421,18 +2324,23 @@ class DITOOptimizer:
             self.z3_atp_stats = self.z3_detector.get_stats()
             self.stats.z3_atp_stats = self.z3_atp_stats
 
+        # Update LeanAide AI statistics
+        if self.leanaide_suggester:
+            self.leanaide_ai_stats = self.leanaide_suggester.get_stats()
+            self.stats.leanaide_ai_stats = self.leanaide_ai_stats
+
         # Complexity saved: percentage of graph not activated
         if self.stats.total_nodes > 0:
             self.stats.complexity_saved = (
                 1.0 - (self.stats.active_nodes / self.stats.total_nodes)
             ) * 100.0
 
-        # Log completion with Z3 ATP statistics
+        # Log completion with Z3 ATP and LeanAide AI statistics
         log_data = {
             'level': 'info',
             'component': 'DITOOptimizer',
             'timestamp': datetime.now(timezone.utc).isoformat(),
-            'message': 'DITO optimization completed with Z3 ATP',
+            'message': 'DITO optimization completed with Z3 ATP and LeanAide AI',
             'correlation_id': correlation_id,
             'contradictions': len(contradictions),
             'verified_nodes': self.stats.verified_nodes,
@@ -1440,6 +2348,8 @@ class DITOOptimizer:
             'complexity_saved': f"{self.stats.complexity_saved:.1f}%",
             'execution_time_ms': self.stats.execution_time_ms,
             'z3_atp_stats': self.z3_atp_stats.to_dict() if self.z3_atp_stats else {},
+            'leanaide_ai_stats': self.leanaide_ai_stats.to_dict() if self.leanaide_ai_stats else {},
+            'tier_distribution': self.stats.tier_distribution,
         }
 
         self.logger.info(json.dumps(log_data))
@@ -1451,6 +2361,17 @@ class DITOOptimizer:
         if self.z3_detector:
             return self.z3_detector.get_stats()
         return None
+
+    def get_leanaide_ai_stats(self) -> Optional[LeanAideAIStats]:
+        """Get LeanAide AI performance statistics"""
+        if self.leanaide_suggester:
+            return self.leanaide_suggester.get_stats()
+        return None
+
+    async def close(self):
+        """Close DITO and cleanup resources"""
+        if self.leanaide_suggester:
+            await self.leanaide_suggester.close()
 
     def _topological_sort(self) -> List[str]:
         """Topological sort of nodes by dependencies"""

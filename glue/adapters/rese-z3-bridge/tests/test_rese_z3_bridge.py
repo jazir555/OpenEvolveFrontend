@@ -31,9 +31,30 @@ from unittest.mock import Mock, patch, MagicMock
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from rese_z3_bridge import RESEZ3Bridge, RESEZ3BridgeConfig
-from rese_z3_client import Z3Client, Z3ClientConfig, CircuitBreakerConfig, CircuitBreakerState
-from rese_z3_schema import (
+# Import directly from modules to avoid relative import issues
+import importlib.util
+
+# Load modules
+spec = importlib.util.spec_from_file_location("rese_z3_schema", os.path.join(os.path.dirname(__file__), '..', 'src', 'rese_z3_schema.py'))
+rese_z3_schema = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(rese_z3_schema)
+
+spec = importlib.util.spec_from_file_location("rese_z3_client", os.path.join(os.path.dirname(__file__), '..', 'src', 'rese_z3_client.py'))
+rese_z3_client = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(rese_z3_client)
+
+spec = importlib.util.spec_from_file_location("rese_z3_bridge", os.path.join(os.path.dirname(__file__), '..', 'src', 'rese_z3_bridge.py'))
+rese_z3_bridge = importlib.util.module_from_spec(spec)
+sys.modules['rese_z3_schema'] = rese_z3_schema
+sys.modules['rese_z3_client'] = rese_z3_client
+spec.loader.exec_module(rese_z3_bridge)
+
+RESEZ3Bridge = rese_z3_bridge.RESEZ3Bridge
+RESEZ3BridgeConfig = rese_z3_bridge.RESEZ3BridgeConfig
+Z3Client = rese_z3_client.Z3Client
+Z3ClientConfig = rese_z3_client.Z3ClientConfig
+CircuitBreakerConfig = rese_z3_client.CircuitBreakerConfig
+CircuitBreakerState = rese_z3_client.CircuitBreakerState
     CanonicalSolverRequest,
     CanonicalSolverResponse,
     CanonicalTheoremRequest,

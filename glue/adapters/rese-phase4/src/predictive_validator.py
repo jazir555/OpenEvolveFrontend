@@ -410,15 +410,15 @@ class PredictiveValidator:
         new: List[float]
     ) -> Dict[str, Any]:
         """Mann-Whitney U test (simplified)."""
-        # Combine all samples
-        combined = [(x, "incumbent") for x in incumbent] + [(x, "new") for x in new]
+        # Combine all samples with indices
+        combined = [(idx, x, "incumbent") for idx, x in enumerate(incumbent)] + \
+                   [(idx + len(incumbent), x, "new") for idx, x in enumerate(new)]
 
-        # Rank all samples
-        sorted_combined = sorted(combined, key=lambda x: x[0])
-        ranks = {i: idx + 1 for idx, (i, _) in enumerate(sorted_combined)}
+        # Rank all samples by value
+        sorted_combined = sorted(combined, key=lambda x: x[1])
 
-        # Calculate U statistic
-        rank_sum_new = sum(ranks[i] for i, (_, label) in enumerate(sorted_combined) if label == "new")
+        # Calculate U statistic for 'new' group
+        rank_sum_new = sum(idx + 1 for idx, (_, _, label) in enumerate(sorted_combined) if label == "new")
         n1, n2 = len(incumbent), len(new)
 
         u1 = rank_sum_new - n2 * (n2 + 1) / 2

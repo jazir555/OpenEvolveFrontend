@@ -13,6 +13,7 @@ The RESE-Z3 Bridge Adapter provides a centralized, unified API for all RESE phas
 ## Features
 
 - **Unified API**: Single interface for all Z3 operations
+- **LeanAide Integration**: AI-powered autoformalization and theorem proving
 - **Circuit Breaker**: Prevents cascading failures
 - **Exponential Backoff Retry**: Handles transient failures
 - **Canonical Schema**: Anti-corruption layer for data transformation
@@ -35,9 +36,15 @@ pip install -r requirements.txt
 Set environment variables:
 
 ```bash
+# Z3 Server Configuration
 export Z3_BASE_URL=http://localhost:8000
 export Z3_TIMEOUT_MS=30000
 export Z3_CIRCUIT_BREAKER_THRESHOLD=5
+
+# LeanAide Server Configuration (NEW!)
+export LEANAIDE_BASE_URL=http://localhost:7654
+export LEANAIDE_TIMEOUT_MS=60000
+export LEANAIDE_ENABLE=true
 ```
 
 ### Basic Usage
@@ -159,12 +166,81 @@ lean4_code = bridge.translate_to_lean4(
 print(lean4_code)
 ```
 
+### 6. `autoformalize()` - LeanAide Autoformalization (NEW!)
+
+Convert natural language to Lean 4 theorems.
+
+```python
+response = bridge.autoformalize(
+    natural_language="There are infinitely many prime numbers",
+    theorem_name="infinitely_many_primes",
+    correlation_id="auto-123",
+)
+
+if response.success:
+    print(f"Lean 4 code: {response.lean_code}")
+    print(f"Theorem type: {response.theorem_type}")
+```
+
+### 7. `prove_with_ai()` - AI-Powered Proving (NEW!)
+
+Generate proofs using LeanAide AI.
+
+```python
+response = bridge.prove_with_ai(
+    theorem_text="For all natural numbers n, n + 0 = n",
+    theorem_code="theorem add_zero (n : Nat) : n + 0 = n",
+    correlation_id="prove-456",
+)
+
+if response.success:
+    print(f"Proof: {response.proof}")
+    print(f"Tactics used: {response.tactics_used}")
+```
+
+### 8. `translate_z3_to_lean()` - Z3 to Lean Translation (NEW!)
+
+Bridge Z3 constraints to Lean 4.
+
+```python
+response = bridge.translate_z3_to_lean(
+    smtlib_content="(declare-fun x () Int)(assert (> x 0))",
+    constraint_type=ConstraintType.INTEGER,
+    correlation_id="trans-789",
+)
+
+if response.success:
+    print(f"Lean code: {response.lean_code}")
+    print(f"Variables: {response.variables}")
+```
+
+### 9. `suggest_tactics()` - AI Tactic Suggestions (NEW!)
+
+Get AI-recommended proof tactics.
+
+```python
+response = bridge.suggest_tactics(
+    goal_state="⊢ x + y = y + x",
+    context="Working with real numbers",
+    num_suggestions=3,
+    correlation_id="tactics-101",
+)
+
+if response.success:
+    for suggestion in response.suggestions:
+        print(f"{suggestion.tactic}: {suggestion.description}")
+        print(f"Confidence: {suggestion.confidence}")
+```
+
 ## Environment Variables
 
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
 | `Z3_BASE_URL` | Z3 server URL | `http://localhost:8000` | No |
 | `Z3_TIMEOUT_MS` | Request timeout (ms) | `30000` | No |
+| `LEANAIDE_BASE_URL` | LeanAide server URL | `http://localhost:7654` | No |
+| `LEANAIDE_TIMEOUT_MS` | LeanAide timeout (ms) | `60000` | No |
+| `LEANAIDE_ENABLE` | Enable LeanAide features | `true` | No |
 | `Z3_CIRCUIT_BREAKER_THRESHOLD` | Failures before opening | `5` | No |
 | `Z3_CIRCUIT_BREAKER_TIMEOUT_MS` | Time to stay open (ms) | `60000` | No |
 | `Z3_MAX_RETRIES` | Maximum retry attempts | `3` | No |
@@ -203,8 +279,11 @@ python -m pytest tests/test_rese_z3_bridge.py::TestRESEZ3Bridge -v
 ### Runtime Verification Probe
 
 ```bash
-# Verify bridge is working end-to-end
+# Verify Z3 bridge is working end-to-end
 bash probes/check_z3_bridge.sh
+
+# Verify LeanAide integration (NEW!)
+bash probes/check_leanaide.sh
 ```
 
 **Law of Runtime Truth**: Probes execute actual calls to verify functionality.
@@ -365,6 +444,7 @@ class ACICalculator:
 ## Architecture
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed architecture documentation.
+See [docs/LEANAIDE_INTEGRATION.md](docs/LEANAIDE_INTEGRATION.md) for LeanAide-specific documentation.
 
 **Key Principles:**
 - Anti-Corruption Layer pattern
@@ -372,6 +452,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed architecture documentation.
 - Canonical schema for data isolation
 - Structured logging with correlation IDs
 - Performance monitoring built-in
+- LeanAide integration for AI-powered formalization
 
 ## Troubleshooting
 

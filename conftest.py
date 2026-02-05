@@ -11,6 +11,11 @@ import pytest
 # Add frontend directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+# Add schemas directory to path for RESE tests
+_schemas_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "glue", "schemas")
+if _schemas_dir not in sys.path:
+    sys.path.insert(0, _schemas_dir)
+
 # **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Test Configuration
 try:
     from alerting_system import get_alert_manager, AlertSeverity
