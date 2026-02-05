@@ -968,6 +968,18 @@ class StepExecutionResult:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
+@dataclass
+class WorkflowExecutionResult:
+    """Result of executing a workflow template"""
+    workflow_id: str
+    status: str  # success, failed, partial
+    step_results: Dict[str, StepExecutionResult] = field(default_factory=dict)
+    final_output: Any = None
+    execution_time_ms: float = 0.0
+    errors: List[str] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
 class WorkflowExecutionEngine:
     """
     REAL Workflow Template Execution Engine.
@@ -1001,6 +1013,26 @@ class WorkflowExecutionEngine:
                 self.openai_client = openai.OpenAI(api_key=api_key)
         except ImportError:
             pass
+    
+    async def execute_workflow(
+        self,
+        template: BaseWorkflowTemplate,
+        context: Dict[str, Any],
+        agent_configs: Optional[Dict[str, Dict[str, Any]]] = None
+    ) -> WorkflowExecutionResult:
+        """
+        Execute a workflow template (alias for execute_template).
+        
+        Args:
+            template: Workflow template to execute
+            context: Execution context with variables
+            agent_configs: Optional agent configurations
+            
+        Returns:
+            WorkflowExecutionResult with results
+        """
+        # Delegate to execute_template for actual implementation
+        return await self.execute_template(template, context, agent_configs)
     
     async def execute_template(
         self,

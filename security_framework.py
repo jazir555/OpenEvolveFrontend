@@ -427,7 +427,7 @@ class InputValidator:
             return False
         if len(key) < SecurityConfig.API_KEY_MIN_LENGTH:
             return False
-        # Check for valid characters only
+        # Check for valid characters only (base64url characters)
         if not re.match(r'^[a-zA-Z0-9_-]+$', key):
             return False
         return True
@@ -465,19 +465,21 @@ class APIKeyRecord:
     @classmethod
     def from_db_row(cls, row: sqlite3.Row) -> 'APIKeyRecord':
         """Create from database row"""
+        # Convert sqlite3.Row to dict for easier handling
+        row_dict = dict(row)
         return cls(
-            id=row['id'],
-            key_hash=row['key_hash'],
-            key_prefix=row['key_prefix'],
-            name=row['name'],
-            user_id=row['user_id'],
-            created_at=datetime.fromisoformat(row['created_at']),
-            expires_at=datetime.fromisoformat(row['expires_at']) if row['expires_at'] else None,
-            last_used=datetime.fromisoformat(row['last_used']) if row['last_used'] else None,
-            usage_count=row['usage_count'],
-            status=APIKeyStatus(row['status']),
-            permissions=json.loads(row['permissions']) if row['permissions'] else [],
-            ip_whitelist=json.loads(row['ip_whitelist']) if row.get('ip_whitelist') else []
+            id=row_dict['id'],
+            key_hash=row_dict['key_hash'],
+            key_prefix=row_dict['key_prefix'],
+            name=row_dict['name'],
+            user_id=row_dict['user_id'],
+            created_at=datetime.fromisoformat(row_dict['created_at']),
+            expires_at=datetime.fromisoformat(row_dict['expires_at']) if row_dict['expires_at'] else None,
+            last_used=datetime.fromisoformat(row_dict['last_used']) if row_dict['last_used'] else None,
+            usage_count=row_dict['usage_count'],
+            status=APIKeyStatus(row_dict['status']),
+            permissions=json.loads(row_dict['permissions']) if row_dict['permissions'] else [],
+            ip_whitelist=json.loads(row_dict['ip_whitelist']) if row_dict.get('ip_whitelist') else []
         )
     
     def is_valid(self) -> Tuple[bool, str]:
@@ -792,17 +794,19 @@ class AuditLogEntry:
     
     @classmethod
     def from_db_row(cls, row: sqlite3.Row) -> 'AuditLogEntry':
+        # Convert sqlite3.Row to dict for easier handling
+        row_dict = dict(row)
         return cls(
-            timestamp=datetime.fromisoformat(row['timestamp']),
-            user_id=row['user_id'],
-            action=row['action'],
-            resource_type=row['resource_type'],
-            resource_id=row['resource_id'],
-            success=bool(row['success']),
-            ip_address=row['ip_address'],
-            user_agent=row.get('user_agent'),
-            details=json.loads(row['details']) if row['details'] else {},
-            integrity_hash=row.get('integrity_hash')
+            timestamp=datetime.fromisoformat(row_dict['timestamp']),
+            user_id=row_dict['user_id'],
+            action=row_dict['action'],
+            resource_type=row_dict['resource_type'],
+            resource_id=row_dict['resource_id'],
+            success=bool(row_dict['success']),
+            ip_address=row_dict['ip_address'],
+            user_agent=row_dict.get('user_agent'),
+            details=json.loads(row_dict['details']) if row_dict['details'] else {},
+            integrity_hash=row_dict.get('integrity_hash')
         )
 
 

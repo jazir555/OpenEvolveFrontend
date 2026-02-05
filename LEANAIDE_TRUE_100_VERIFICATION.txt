@@ -1,0 +1,102 @@
+======================================================================
+LEANAIDE TRUE 100% VERIFICATION REPORT
+======================================================================
+Date: 2026-02-05T00:16:52.123739
+
+LEAN 4 INSTALLATION:
+  Status: [FAIL] FAIL
+  - elan: [FAIL]
+  - lean: [FAIL]
+  - lake: [FAIL]
+  - mathlib4: [FAIL]
+
+LLM INTEGRATION:
+  Status: [WARN] PARTIAL
+  - openai package: [OK]
+  - anthropic package: [OK]
+  - API keys: [FAIL]
+
+PROOF VERIFICATION:
+  Status: [FAIL] FAIL
+  - Simple proof: [FAIL]
+  - Sorry detection: [OK]
+  - Proof complete: [FAIL]
+
+PROOF COMPLETION (NO SORRY):
+  Status: [WARN] PARTIAL
+  - Engine works: [FAIL]
+  - Can complete: [WARN]
+
+AUTOFORMALIZATION:
+  Status: [WARN] PARTIAL
+  - Generates code: [WARN]
+
+TEST SUITE:
+  Status: [OK] PASS
+  - Collected: 23
+  - Passed: 23
+  - Failed: 0
+
+======================================================================
+OVERALL STATUS: [WARN] PARTIAL (Some components need attention)
+======================================================================
+
+Detailed Results:
+{
+  "lean_installation": {
+    "success": false,
+    "results": {
+      "elan_available": false,
+      "lean_available": false,
+      "lake_available": false,
+      "mathlib_available": false,
+      "lean_version": null,
+      "lake_version": null,
+      "elan_version": null
+    }
+  },
+  "llm_integration": {
+    "success": false,
+    "results": {
+      "openai_available": true,
+      "anthropic_available": true,
+      "openai_key_set": false,
+      "anthropic_key_set": false,
+      "llm_client_works": false
+    }
+  },
+  "proof_verification": {
+    "success": false,
+    "results": {
+      "simple_proof_verified": false,
+      "sorry_detected": true,
+      "proof_complete_detected": false,
+      "verification_works": false
+    }
+  },
+  "proof_completion": {
+    "success": false,
+    "results": {
+      "completion_engine_works": false,
+      "can_complete_simple": false,
+      "no_sorry_in_output": false
+    }
+  },
+  "autoformalization": {
+    "success": false,
+    "results": {
+      "autoformalization_works": false,
+      "generates_code": false,
+      "code_verifies": false
+    }
+  },
+  "pytest": {
+    "success": true,
+    "results": {
+      "tests_collected": 23,
+      "tests_passed": 23,
+      "tests_failed": 0,
+      "all_passed": true
+    }
+  }
+}

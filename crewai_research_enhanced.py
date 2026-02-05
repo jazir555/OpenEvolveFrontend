@@ -685,6 +685,33 @@ class SemanticMemory:
             self._evict_oldest()
         
         # Persist
+    
+    def store(
+        self,
+        content: str,
+        metadata: Optional[Dict[str, Any]] = None,
+        importance: float = 0.5,
+        memory_type: str = "general"
+    ) -> str:
+        """
+        Store content in semantic memory.
+        
+        Args:
+            content: Content to store
+            metadata: Additional metadata
+            importance: Importance score (0-1)
+            memory_type: Type of memory
+            
+        Returns:
+            Entry ID
+        """
+        # Delegate to add_memory for actual implementation
+        return self.add_memory(
+            content=content,
+            metadata=metadata,
+            importance=importance,
+            memory_type=memory_type
+        )
         self._persist_memory(entry)
         
         self.logger.debug(f"Added memory: {entry_id} ({memory_type})")

@@ -682,6 +682,11 @@ class Lean4VerificationEngine:
                 has_sorry=False,
                 proof_complete=False
             )
+    
+    async def verify_batch(self, codes: List[str], use_cache: bool = True) -> List[VerificationResult]:
+        """Verify multiple Lean 4 code snippets in parallel"""
+        tasks = [self.verify(code, use_cache) for code in codes]
+        return await asyncio.gather(*tasks)
 
 
 # ============================================================================

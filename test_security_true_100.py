@@ -660,8 +660,13 @@ class TestInputValidation:
     
     def test_api_key_format_validation(self):
         """Test API key format validation."""
-        assert InputValidator.validate_api_key_format("sk-test123") is True
-        assert InputValidator.validate_api_key_format("invalid") is False
+        # Valid keys (must be at least 32 chars, start with sk-)
+        assert InputValidator.validate_api_key_format("sk-test123456789012345678901234567") is True
+        assert InputValidator.validate_api_key_format("sk-12345678901234567890123456789012") is True
+        # Invalid keys
+        assert InputValidator.validate_api_key_format("sk-short") is False  # Too short
+        assert InputValidator.validate_api_key_format("invalid") is False  # Wrong prefix
+        assert InputValidator.validate_api_key_format("sk_underscore_not_dash123456789012") is False  # Wrong prefix
         assert InputValidator.validate_api_key_format("") is False
         assert InputValidator.validate_api_key_format(None) is False
 
@@ -844,6 +849,8 @@ class TestPermissionEnforcement:
     
     def test_role_permissions(self):
         """Test that roles grant correct permissions."""
+        from security_framework import Role
+        
         # Admin role should have all permissions
         admin_perms = Role.ADMIN["permissions"]
         assert Permission.WORKFLOW_CREATE.value in admin_perms
@@ -900,8 +907,8 @@ class TestUtilityFunctions:
     
     def test_mask_sensitive_data(self):
         """Test sensitive data masking."""
-        # Short data
-        assert mask_sensitive_data("abc", visible_chars=1) == "***"
+        # Short data (less than visible_chars * 2)
+        assert mask_sensitive_data("abc", visible_chars=4) == "***"
         
         # Normal data
         result = mask_sensitive_data("sk-test123456", visible_chars=4)

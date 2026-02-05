@@ -27,14 +27,16 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 def print_header(text: str):
     """Print a header"""
-    print("\n" + "=" * 70)
+    print("")
+    print("=" * 70)
     print(text)
     print("=" * 70)
 
 
 def print_section(text: str):
     """Print a section header"""
-    print("\n" + "-" * 70)
+    print("")
+    print("-" * 70)
     print(text)
     print("-" * 70)
 
@@ -62,11 +64,11 @@ def check_lean_installation() -> Tuple[bool, Dict[str, Any]]:
         results["elan_available"] = result.returncode == 0
         if results["elan_available"]:
             results["elan_version"] = result.stdout.strip()
-            print(f"✓ elan: {results['elan_version']}")
+            print(f"[OK] elan: {results['elan_version']}")
         else:
-            print("✗ elan: Not found")
+            print("[FAIL] elan: Not found")
     except Exception as e:
-        print(f"✗ elan: Error - {e}")
+        print(f"[FAIL] elan: Error - {e}")
     
     # Check lean
     try:
@@ -77,11 +79,11 @@ def check_lean_installation() -> Tuple[bool, Dict[str, Any]]:
         results["lean_available"] = result.returncode == 0
         if results["lean_available"]:
             results["lean_version"] = result.stdout.strip()
-            print(f"✓ lean: {results['lean_version']}")
+            print(f"[OK] lean: {results['lean_version']}")
         else:
-            print("✗ lean: Not found")
+            print("[FAIL] lean: Not found")
     except Exception as e:
-        print(f"✗ lean: Error - {e}")
+        print(f"[FAIL] lean: Error - {e}")
     
     # Check lake
     try:
@@ -92,11 +94,11 @@ def check_lean_installation() -> Tuple[bool, Dict[str, Any]]:
         results["lake_available"] = result.returncode == 0
         if results["lake_available"]:
             results["lake_version"] = result.stdout.strip()
-            print(f"✓ lake: {results['lake_version']}")
+            print(f"[OK] lake: {results['lake_version']}")
         else:
-            print("✗ lake: Not found")
+            print("[FAIL] lake: Not found")
     except Exception as e:
-        print(f"✗ lake: Error - {e}")
+        print(f"[FAIL] lake: Error - {e}")
     
     # Check mathlib
     try:
@@ -105,11 +107,11 @@ def check_lean_installation() -> Tuple[bool, Dict[str, Any]]:
         status = manager.check_installation()
         results["mathlib_available"] = status.mathlib_available
         if results["mathlib_available"]:
-            print(f"✓ mathlib4: Available at {status.mathlib_path}")
+            print(f"[OK] mathlib4: Available at {status.mathlib_path}")
         else:
-            print("✗ mathlib4: Not found")
+            print("[FAIL] mathlib4: Not found")
     except Exception as e:
-        print(f"✗ mathlib4: Error - {e}")
+        print(f"[FAIL] mathlib4: Error - {e}")
     
     # Overall status
     all_good = results["lean_available"] and results["lake_available"]
@@ -132,29 +134,29 @@ def check_llm_integration() -> Tuple[bool, Dict[str, Any]]:
     try:
         import openai
         results["openai_available"] = True
-        print("✓ openai package: Installed")
+        print("[OK] openai package: Installed")
         
         if os.environ.get("OPENAI_API_KEY"):
             results["openai_key_set"] = True
-            print("✓ OPENAI_API_KEY: Set")
+            print("[OK] OPENAI_API_KEY: Set")
         else:
-            print("✗ OPENAI_API_KEY: Not set")
+            print("[FAIL] OPENAI_API_KEY: Not set")
     except ImportError:
-        print("✗ openai package: Not installed")
+        print("[FAIL] openai package: Not installed")
     
     # Check Anthropic
     try:
         import anthropic
         results["anthropic_available"] = True
-        print("✓ anthropic package: Installed")
+        print("[OK] anthropic package: Installed")
         
         if os.environ.get("ANTHROPIC_API_KEY"):
             results["anthropic_key_set"] = True
-            print("✓ ANTHROPIC_API_KEY: Set")
+            print("[OK] ANTHROPIC_API_KEY: Set")
         else:
-            print("✗ ANTHROPIC_API_KEY: Not set")
+            print("[FAIL] ANTHROPIC_API_KEY: Not set")
     except ImportError:
-        print("✗ anthropic package: Not installed")
+        print("[FAIL] anthropic package: Not installed")
     
     # Test LLM client
     try:
@@ -169,11 +171,11 @@ def check_llm_integration() -> Tuple[bool, Dict[str, Any]]:
         client = LLMClient(config)
         if client.is_available():
             results["llm_client_works"] = True
-            print(f"✓ LLM Client: Working (provider: {client.get_provider().value})")
+            print(f"[OK] LLM Client: Working (provider: {client.get_provider().value})")
         else:
-            print("✗ LLM Client: Not available (no API keys)")
+            print("[FAIL] LLM Client: Not available (no API keys)")
     except Exception as e:
-        print(f"✗ LLM Client: Error - {e}")
+        print(f"[FAIL] LLM Client: Error - {e}")
     
     # Overall status
     any_llm = results["openai_key_set"] or results["anthropic_key_set"]
@@ -205,9 +207,9 @@ theorem simple_test : 1 + 1 = 2 := by
         result = await service.verify(simple_code)
         if result.success:
             results["simple_proof_verified"] = True
-            print("✓ Simple proof: Verified")
+            print("[OK] Simple proof: Verified")
         else:
-            print(f"✗ Simple proof: Failed - {result.errors}")
+            print(f"[FAIL] Simple proof: Failed - {result.errors}")
         
         # Test 2: Detect sorry
         print("\nTest 2: Detecting sorry...")
@@ -218,9 +220,9 @@ theorem sorry_test : 1 + 1 = 2 := by
         result = await service.verify(sorry_code)
         if result.has_sorry:
             results["sorry_detected"] = True
-            print("✓ Sorry detection: Working")
+            print("[OK] Sorry detection: Working")
         else:
-            print("✗ Sorry detection: Failed")
+            print("[FAIL] Sorry detection: Failed")
         
         # Test 3: Proof complete detection
         print("\nTest 3: Proof complete detection...")
@@ -232,12 +234,12 @@ theorem complete_test : 2 + 2 = 4 := by
         if result.proof_complete:
             results["proof_complete_detected"] = True
             results["verification_works"] = True
-            print("✓ Proof complete: Detected")
+            print("[OK] Proof complete: Detected")
         else:
-            print(f"✗ Proof complete: Not detected (success={result.success}, sorry={result.has_sorry})")
+            print(f"[FAIL] Proof complete: Not detected (success={result.success}, sorry={result.has_sorry})")
         
     except Exception as e:
-        print(f"✗ Verification test: Error - {e}")
+        print(f"[FAIL] Verification test: Error - {e}")
         import traceback
         traceback.print_exc()
     
@@ -262,7 +264,7 @@ async def test_proof_completion() -> Tuple[bool, Dict[str, Any]]:
         # Check if LLM available
         status = service.get_status()
         if not status["llm_available"]:
-            print("⚠ Skipping (LLM not available)")
+            print("[WARN] Skipping (LLM not available)")
             return False, results
         
         print("Test: Completing a proof with sorry...")
@@ -276,21 +278,21 @@ theorem simple_equality : 2 + 2 = 4 := by
         
         if result.success:
             results["can_complete_simple"] = True
-            print("✓ Proof completion: Success")
+            print("[OK] Proof completion: Success")
             print(f"  Tactics used: {result.tactics_used}")
             
             # Check no sorry in output
             if "sorry" not in result.completed_code.lower():
                 results["no_sorry_in_output"] = True
-                print("✓ No sorry in output: Confirmed")
+                print("[OK] No sorry in output: Confirmed")
             else:
-                print("⚠ Sorry still in output")
+                print("[WARN] Sorry still in output")
         else:
-            print(f"✗ Proof completion: Failed")
+            print(f"[FAIL] Proof completion: Failed")
             print(f"  Errors: {result.errors_fixed}")
         
     except Exception as e:
-        print(f"✗ Proof completion: Error - {e}")
+        print(f"[FAIL] Proof completion: Error - {e}")
         import traceback
         traceback.print_exc()
     
@@ -315,7 +317,7 @@ async def test_autoformalization() -> Tuple[bool, Dict[str, Any]]:
         # Check if LLM available
         status = service.get_status()
         if not status["llm_available"]:
-            print("⚠ Skipping (LLM not available)")
+            print("[WARN] Skipping (LLM not available)")
             return False, results
         
         print("Test: Autoformalizing natural language...")
@@ -328,19 +330,19 @@ async def test_autoformalization() -> Tuple[bool, Dict[str, Any]]:
         
         if result.lean_code:
             results["generates_code"] = True
-            print("✓ Code generation: Success")
+            print("[OK] Code generation: Success")
             print(f"  Generated {len(result.lean_code)} characters")
         else:
-            print("✗ Code generation: Failed")
+            print("[FAIL] Code generation: Failed")
         
         if result.success:
             results["code_verifies"] = True
-            print("✓ Code verification: Success")
+            print("[OK] Code verification: Success")
         else:
-            print(f"⚠ Code verification: Failed (may be incomplete proof)")
+            print(f"[WARN] Code verification: Failed (may be incomplete proof)")
         
     except Exception as e:
-        print(f"✗ Autoformalization: Error - {e}")
+        print(f"[FAIL] Autoformalization: Error - {e}")
         import traceback
         traceback.print_exc()
     
@@ -383,16 +385,16 @@ def run_pytest() -> Tuple[bool, Dict[str, Any]]:
         
         if result.returncode == 0:
             results["all_passed"] = True
-            print(f"✓ All {results['tests_passed']} tests passed")
+            print(f"[OK] All {results['tests_passed']} tests passed")
         else:
-            print(f"✗ {results['tests_failed']} tests failed")
+            print(f"[FAIL] {results['tests_failed']} tests failed")
             print("\nTest output:")
             print(output[-1000:])  # Last 1000 chars
         
     except subprocess.TimeoutExpired:
-        print("✗ Tests timed out")
+        print("[FAIL] Tests timed out")
     except Exception as e:
-        print(f"✗ Test run error: {e}")
+        print(f"[FAIL] Test run error: {e}")
     
     return results["all_passed"], results
 
@@ -411,55 +413,55 @@ def generate_report(all_results: Dict[str, Any]) -> str:
     report.append("LEAN 4 INSTALLATION:")
     lean_ok = all_results.get("lean_installation", {}).get("success", False)
     lean_results = all_results.get("lean_installation", {}).get("results", {})
-    report.append(f"  Status: {'✓ PASS' if lean_ok else '✗ FAIL'}")
-    report.append(f"  - elan: {'✓' if lean_results.get('elan_available') else '✗'}")
-    report.append(f"  - lean: {'✓' if lean_results.get('lean_available') else '✗'}")
-    report.append(f"  - lake: {'✓' if lean_results.get('lake_available') else '✗'}")
-    report.append(f"  - mathlib4: {'✓' if lean_results.get('mathlib_available') else '✗'}")
+    report.append(f"  Status: {'[OK] PASS' if lean_ok else '[FAIL] FAIL'}")
+    report.append(f"  - elan: {'[OK]' if lean_results.get('elan_available') else '[FAIL]'}")
+    report.append(f"  - lean: {'[OK]' if lean_results.get('lean_available') else '[FAIL]'}")
+    report.append(f"  - lake: {'[OK]' if lean_results.get('lake_available') else '[FAIL]'}")
+    report.append(f"  - mathlib4: {'[OK]' if lean_results.get('mathlib_available') else '[FAIL]'}")
     report.append("")
     
     # LLM
     report.append("LLM INTEGRATION:")
     llm_ok = all_results.get("llm_integration", {}).get("success", False)
     llm_results = all_results.get("llm_integration", {}).get("results", {})
-    report.append(f"  Status: {'✓ PASS' if llm_ok else '⚠ PARTIAL'}")
-    report.append(f"  - openai package: {'✓' if llm_results.get('openai_available') else '✗'}")
-    report.append(f"  - anthropic package: {'✓' if llm_results.get('anthropic_available') else '✗'}")
-    report.append(f"  - API keys: {'✓' if (llm_results.get('openai_key_set') or llm_results.get('anthropic_key_set')) else '✗'}")
+    report.append(f"  Status: {'[OK] PASS' if llm_ok else '[WARN] PARTIAL'}")
+    report.append(f"  - openai package: {'[OK]' if llm_results.get('openai_available') else '[FAIL]'}")
+    report.append(f"  - anthropic package: {'[OK]' if llm_results.get('anthropic_available') else '[FAIL]'}")
+    report.append(f"  - API keys: {'[OK]' if (llm_results.get('openai_key_set') or llm_results.get('anthropic_key_set')) else '[FAIL]'}")
     report.append("")
     
     # Verification
     report.append("PROOF VERIFICATION:")
     verify_ok = all_results.get("proof_verification", {}).get("success", False)
     verify_results = all_results.get("proof_verification", {}).get("results", {})
-    report.append(f"  Status: {'✓ PASS' if verify_ok else '✗ FAIL'}")
-    report.append(f"  - Simple proof: {'✓' if verify_results.get('simple_proof_verified') else '✗'}")
-    report.append(f"  - Sorry detection: {'✓' if verify_results.get('sorry_detected') else '✗'}")
-    report.append(f"  - Proof complete: {'✓' if verify_results.get('proof_complete_detected') else '✗'}")
+    report.append(f"  Status: {'[OK] PASS' if verify_ok else '[FAIL] FAIL'}")
+    report.append(f"  - Simple proof: {'[OK]' if verify_results.get('simple_proof_verified') else '[FAIL]'}")
+    report.append(f"  - Sorry detection: {'[OK]' if verify_results.get('sorry_detected') else '[FAIL]'}")
+    report.append(f"  - Proof complete: {'[OK]' if verify_results.get('proof_complete_detected') else '[FAIL]'}")
     report.append("")
     
     # Proof completion
     report.append("PROOF COMPLETION (NO SORRY):")
     completion_ok = all_results.get("proof_completion", {}).get("success", False)
     completion_results = all_results.get("proof_completion", {}).get("results", {})
-    report.append(f"  Status: {'✓ PASS' if completion_ok else '⚠ PARTIAL'}")
-    report.append(f"  - Engine works: {'✓' if completion_results.get('completion_engine_works') else '✗'}")
-    report.append(f"  - Can complete: {'✓' if completion_results.get('can_complete_simple') else '⚠'}")
+    report.append(f"  Status: {'[OK] PASS' if completion_ok else '[WARN] PARTIAL'}")
+    report.append(f"  - Engine works: {'[OK]' if completion_results.get('completion_engine_works') else '[FAIL]'}")
+    report.append(f"  - Can complete: {'[OK]' if completion_results.get('can_complete_simple') else '[WARN]'}")
     report.append("")
     
     # Autoformalization
     report.append("AUTOFORMALIZATION:")
     auto_ok = all_results.get("autoformalization", {}).get("success", False)
     auto_results = all_results.get("autoformalization", {}).get("results", {})
-    report.append(f"  Status: {'✓ PASS' if auto_ok else '⚠ PARTIAL'}")
-    report.append(f"  - Generates code: {'✓' if auto_results.get('generates_code') else '⚠'}")
+    report.append(f"  Status: {'[OK] PASS' if auto_ok else '[WARN] PARTIAL'}")
+    report.append(f"  - Generates code: {'[OK]' if auto_results.get('generates_code') else '[WARN]'}")
     report.append("")
     
     # Tests
     report.append("TEST SUITE:")
     test_ok = all_results.get("pytest", {}).get("success", False)
     test_results = all_results.get("pytest", {}).get("results", {})
-    report.append(f"  Status: {'✓ PASS' if test_ok else '✗ FAIL'}")
+    report.append(f"  Status: {'[OK] PASS' if test_ok else '[FAIL] FAIL'}")
     report.append(f"  - Collected: {test_results.get('tests_collected', 0)}")
     report.append(f"  - Passed: {test_results.get('tests_passed', 0)}")
     report.append(f"  - Failed: {test_results.get('tests_failed', 0)}")
@@ -474,9 +476,9 @@ def generate_report(all_results: Dict[str, Any]) -> str:
     ])
     
     if all_pass:
-        report.append("OVERALL STATUS: ✅ TRUE 100% COMPLETE")
+        report.append("OVERALL STATUS: [PASS] TRUE 100% COMPLETE")
     else:
-        report.append("OVERALL STATUS: ⚠ PARTIAL (Some components need attention)")
+        report.append("OVERALL STATUS: [WARN] PARTIAL (Some components need attention)")
     
     report.append("=" * 70)
     
@@ -551,10 +553,10 @@ async def main():
     if all_results["lean_installation"]["success"] and \
        all_results["proof_verification"]["success"] and \
        all_results["pytest"]["success"]:
-        print("\n✅ TRUE 100% VERIFICATION PASSED")
+        print("\n[PASS] TRUE 100% VERIFICATION PASSED")
         return 0
     else:
-        print("\n⚠ VERIFICATION INCOMPLETE")
+        print("\n[WARN] VERIFICATION INCOMPLETE")
         return 1
 
 

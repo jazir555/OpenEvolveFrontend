@@ -556,7 +556,17 @@ class ParetoOptimizer:
     
     def __init__(self, epsilon: float = 0.001):
         self.epsilon = epsilon
+
+
+class MultiObjectiveOptimizer(ParetoOptimizer):
+    """
+    Alias for ParetoOptimizer for backward compatibility.
     
+    Provides multi-objective optimization with Pareto frontier computation.
+    """
+    pass
+
+
     def pareto_optimize(
         self,
         variables: List[Z3Variable],
