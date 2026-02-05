@@ -2411,7 +2411,7 @@
       }
     },
     "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py": {
-      "hash": "a38d82895ba0651ab451675defee7fae7cd84f822d025cd57d9445e17c42d9d2",
+      "hash": "5fe842a28e0c75fe964b89a1b2417e7b6fc8957e4a9f2ac3662fbf4cf1bb1749",
       "nodes": [
         {
           "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::bridge_config",
@@ -2794,243 +2794,38 @@
           }
         },
         {
-          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_bridge_initialization",
-          "label": "Test Bridge Initialization",
-          "type": "step",
-          "source": {
-            "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py",
-            "line": 714,
-            "function": "test_bridge_initialization"
-          }
-        },
-        {
-          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_solve_constraints_success",
-          "label": "Test Solve Constraints Success",
-          "type": "step",
-          "source": {
-            "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py",
-            "line": 728,
-            "function": "test_solve_constraints_success"
-          }
-        },
-        {
-          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_solve_constraints_cache_hit",
-          "label": "Test Solve Constraints Cache Hit",
-          "type": "step",
-          "source": {
-            "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py",
-            "line": 759,
-            "function": "test_solve_constraints_cache_hit"
-          }
-        },
-        {
-          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_autoformalize_request_validation",
-          "label": "Test Autoformalize Request Validation",
-          "type": "step",
-          "source": {
-            "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py",
-            "line": 801,
-            "function": "test_autoformalize_request_validation"
-          }
-        },
-        {
-          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_autoformalize_request_missing_natural_language",
-          "label": "Test Autoformalize Request Missing Natural Language",
+          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::===================================================",
+          "label": "===================================================",
           "type": "step",
           "source": {
             "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py",
             "line": 815,
-            "function": "test_autoformalize_request_missing_natural_language"
+            "function": "==================================================="
           }
         },
         {
-          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_prove_request_validation",
-          "label": "Test Prove Request Validation",
-          "type": "step",
-          "source": {
-            "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py",
-            "line": 826,
-            "function": "test_prove_request_validation"
-          }
-        },
-        {
-          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_prove_request_missing_theorem_text",
-          "label": "Test Prove Request Missing Theorem Text",
-          "type": "step",
-          "source": {
-            "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py",
-            "line": 839,
-            "function": "test_prove_request_missing_theorem_text"
-          }
-        },
-        {
-          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_translation_request_validation",
-          "label": "Test Translation Request Validation",
-          "type": "step",
-          "source": {
-            "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py",
-            "line": 851,
-            "function": "test_translation_request_validation"
-          }
-        },
-        {
-          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_tactic_suggestion_request_validation",
-          "label": "Test Tactic Suggestion Request Validation",
-          "type": "step",
-          "source": {
-            "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py",
-            "line": 863,
-            "function": "test_tactic_suggestion_request_validation"
-          }
-        },
-        {
-          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_tactic_suggestion_request_invalid_num_suggestions",
-          "label": "Test Tactic Suggestion Request Invalid Num Suggestions",
-          "type": "step",
-          "source": {
-            "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py",
-            "line": 875,
-            "function": "test_tactic_suggestion_request_invalid_num_suggestions"
-          }
-        },
-        {
-          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_canonical_to_smtlib",
-          "label": "Test Canonical To Smtlib",
+          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::ic_suggestion_request_in",
+          "label": "Ic Suggestion Request In",
           "type": "step",
           "source": {
             "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py",
             "line": 896,
-            "function": "test_canonical_to_smtlib"
+            "function": "ic_suggestion_request_in"
           }
         },
         {
-          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_z3_to_canonical_response_sat",
-          "label": "Test Z3 To Canonical Response Sat",
-          "type": "step",
-          "source": {
-            "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py",
-            "line": 913,
-            "function": "test_z3_to_canonical_response_sat"
-          }
-        },
-        {
-          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_z3_to_canonical_response_unsat",
-          "label": "Test Z3 To Canonical Response Unsat",
-          "type": "step",
-          "source": {
-            "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py",
-            "line": 927,
-            "function": "test_z3_to_canonical_response_unsat"
-          }
-        },
-        {
-          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_z3_to_canonical_response_unknown",
-          "label": "Test Z3 To Canonical Response Unknown",
-          "type": "step",
-          "source": {
-            "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py",
-            "line": 940,
-            "function": "test_z3_to_canonical_response_unknown"
-          }
-        },
-        {
-          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_bridge_config_from_env",
-          "label": "Test Bridge Config From Env",
-          "type": "step",
-          "source": {
-            "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py",
-            "line": 960,
-            "function": "test_bridge_config_from_env"
-          }
-        },
-        {
-          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_z3_client_timeout_error",
-          "label": "Test Z3 Client Timeout Error",
-          "type": "step",
-          "source": {
-            "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py",
-            "line": 998,
-            "function": "test_z3_client_timeout_error"
-          }
-        },
-        {
-          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_z3_client_connection_error",
-          "label": "Test Z3 Client Connection Error",
+          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::===============================",
+          "label": "===============================",
           "type": "step",
           "source": {
             "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py",
             "line": 1012,
-            "function": "test_z3_client_connection_error"
-          }
-        },
-        {
-          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_circuit_breaker_prevents_requests",
-          "label": "Test Circuit Breaker Prevents Requests",
-          "type": "step",
-          "source": {
-            "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py",
-            "line": 1025,
-            "function": "test_circuit_breaker_prevents_requests"
-          }
-        },
-        {
-          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_circuit_breaker_opens_on_timeout",
-          "label": "Test Circuit Breaker Opens On Timeout",
-          "type": "step",
-          "source": {
-            "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py",
-            "line": 1039,
-            "function": "test_circuit_breaker_opens_on_timeout"
-          }
-        },
-        {
-          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_cache_performance_with_many_requests",
-          "label": "Test Cache Performance With Many Requests",
-          "type": "step",
-          "source": {
-            "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py",
-            "line": 1074,
-            "function": "test_cache_performance_with_many_requests"
-          }
-        },
-        {
-          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_monitoring_tracks_all_operations",
-          "label": "Test Monitoring Tracks All Operations",
-          "type": "step",
-          "source": {
-            "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py",
-            "line": 1103,
-            "function": "test_monitoring_tracks_all_operations"
-          }
-        },
-        {
-          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_autoformalize_method",
-          "label": "Test Autoformalize Method",
-          "type": "step",
-          "source": {
-            "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py",
-            "line": 1141,
-            "function": "test_autoformalize_method"
-          }
-        },
-        {
-          "id": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::mock_translate",
-          "label": "Mock Translate",
-          "type": "step",
-          "source": {
-            "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py",
-            "line": 1164,
-            "function": "mock_translate"
+            "function": "==============================="
           }
         }
       ],
-      "internalEdges": [
-        {
-          "source": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_autoformalize_method",
-          "target": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::mock_translate"
-        }
-      ],
-      "timestamp": 1770272775436,
+      "internalEdges": [],
+      "timestamp": 1770274325034,
       "nodeWorkflows": {
         "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::bridge_config": {
           "id": "workflow_test_rese_z3_comprehensive",
@@ -3184,95 +2979,15 @@
           "id": "workflow_test_rese_z3_comprehensive",
           "name": "test_rese_z3_comprehensive"
         },
-        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_bridge_initialization": {
+        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::===================================================": {
           "id": "workflow_test_rese_z3_comprehensive",
           "name": "test_rese_z3_comprehensive"
         },
-        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_solve_constraints_success": {
+        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::ic_suggestion_request_in": {
           "id": "workflow_test_rese_z3_comprehensive",
           "name": "test_rese_z3_comprehensive"
         },
-        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_solve_constraints_cache_hit": {
-          "id": "workflow_test_rese_z3_comprehensive",
-          "name": "test_rese_z3_comprehensive"
-        },
-        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_autoformalize_request_validation": {
-          "id": "workflow_test_rese_z3_comprehensive",
-          "name": "test_rese_z3_comprehensive"
-        },
-        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_autoformalize_request_missing_natural_language": {
-          "id": "workflow_test_rese_z3_comprehensive",
-          "name": "test_rese_z3_comprehensive"
-        },
-        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_prove_request_validation": {
-          "id": "workflow_test_rese_z3_comprehensive",
-          "name": "test_rese_z3_comprehensive"
-        },
-        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_prove_request_missing_theorem_text": {
-          "id": "workflow_test_rese_z3_comprehensive",
-          "name": "test_rese_z3_comprehensive"
-        },
-        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_translation_request_validation": {
-          "id": "workflow_test_rese_z3_comprehensive",
-          "name": "test_rese_z3_comprehensive"
-        },
-        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_tactic_suggestion_request_validation": {
-          "id": "workflow_test_rese_z3_comprehensive",
-          "name": "test_rese_z3_comprehensive"
-        },
-        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_tactic_suggestion_request_invalid_num_suggestions": {
-          "id": "workflow_test_rese_z3_comprehensive",
-          "name": "test_rese_z3_comprehensive"
-        },
-        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_canonical_to_smtlib": {
-          "id": "workflow_test_rese_z3_comprehensive",
-          "name": "test_rese_z3_comprehensive"
-        },
-        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_z3_to_canonical_response_sat": {
-          "id": "workflow_test_rese_z3_comprehensive",
-          "name": "test_rese_z3_comprehensive"
-        },
-        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_z3_to_canonical_response_unsat": {
-          "id": "workflow_test_rese_z3_comprehensive",
-          "name": "test_rese_z3_comprehensive"
-        },
-        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_z3_to_canonical_response_unknown": {
-          "id": "workflow_test_rese_z3_comprehensive",
-          "name": "test_rese_z3_comprehensive"
-        },
-        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_bridge_config_from_env": {
-          "id": "workflow_test_rese_z3_comprehensive",
-          "name": "test_rese_z3_comprehensive"
-        },
-        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_z3_client_timeout_error": {
-          "id": "workflow_test_rese_z3_comprehensive",
-          "name": "test_rese_z3_comprehensive"
-        },
-        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_z3_client_connection_error": {
-          "id": "workflow_test_rese_z3_comprehensive",
-          "name": "test_rese_z3_comprehensive"
-        },
-        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_circuit_breaker_prevents_requests": {
-          "id": "workflow_test_rese_z3_comprehensive",
-          "name": "test_rese_z3_comprehensive"
-        },
-        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_circuit_breaker_opens_on_timeout": {
-          "id": "workflow_test_rese_z3_comprehensive",
-          "name": "test_rese_z3_comprehensive"
-        },
-        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_cache_performance_with_many_requests": {
-          "id": "workflow_test_rese_z3_comprehensive",
-          "name": "test_rese_z3_comprehensive"
-        },
-        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_monitoring_tracks_all_operations": {
-          "id": "workflow_test_rese_z3_comprehensive",
-          "name": "test_rese_z3_comprehensive"
-        },
-        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::test_autoformalize_method": {
-          "id": "workflow_test_rese_z3_comprehensive",
-          "name": "test_rese_z3_comprehensive"
-        },
-        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::mock_translate": {
+        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_comprehensive.py::===============================": {
           "id": "workflow_test_rese_z3_comprehensive",
           "name": "test_rese_z3_comprehensive"
         }

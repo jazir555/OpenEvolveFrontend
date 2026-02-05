@@ -710,85 +710,93 @@ class TestZ3Client:
 class TestRESEZ3Bridge:
     """Test main RESE-Z3 Bridge."""
 
-    @patch('rese_z3_bridge.Z3Client')
-    def test_bridge_initialization(self, mock_z3_client_class, bridge_config):
+    def test_bridge_initialization(self, bridge_config):
         """Test bridge initializes correctly."""
-        mock_client = Mock()
-        mock_z3_client_class.return_value = mock_client
+        # Use direct import and patch.object
+        from rese_z3_client import Z3Client
 
-        bridge = RESEZ3Bridge(bridge_config)
+        with patch.object(Z3Client, '__init__', return_value=None):
+            mock_client = Mock()
+            with patch.object(Z3Client, '__new__', return_value=mock_client):
+                bridge = RESEZ3Bridge(bridge_config)
 
-        assert bridge.config == bridge_config
-        assert bridge.client == mock_client
-        assert bridge.leanaide_client is None  # Disabled in config
-        assert bridge.monitor is not None
-        assert bridge.cache is not None
+                assert bridge.config == bridge_config
+                assert bridge.client == mock_client
+                assert bridge.leanaide_client is None  # Disabled in config
+                assert bridge.monitor is not None
+                assert bridge.cache is not None
 
-    @patch('rese_z3_bridge.Z3Client')
     def test_solve_constraints_success(
         self,
-        mock_z3_client_class,
         bridge_config,
         sample_variables,
         sample_constraints,
         correlation_id,
     ):
         """Test solving constraints successfully."""
+        from rese_z3_client import Z3Client
+
         # Mock Z3 client
         mock_client = Mock()
-        mock_z3_client_class.return_value = mock_client
         mock_client.solve.return_value = {
             "status": "sat",
             "model": {"assignments": {"x": 42, "y": 0.75}},
             "execution_time": 100,
         }
+        mock_client.check_health.return_value = {"status": "ok"}
+        mock_client.get_stats.return_value = {"circuit_breaker": {}}
 
-        bridge = RESEZ3Bridge(bridge_config)
+        with patch.object(Z3Client, '__new__', return_value=mock_client):
+            bridge = RESEZ3Bridge(bridge_config)
+            bridge.client = mock_client  # Ensure the mock client is used
 
-        result = bridge.solve_constraints(
-            variables=sample_variables,
-            constraints=sample_constraints,
-            correlation_id=correlation_id,
-        )
+            result = bridge.solve_constraints(
+                variables=sample_variables,
+                constraints=sample_constraints,
+                correlation_id=correlation_id,
+            )
 
-        assert result.result == Z3ResultStatus.SAT
-        assert result.model is not None
-        assert result.execution_time_ms > 0
+            assert result.result == Z3ResultStatus.SAT
+            assert result.model is not None
+            assert result.execution_time_ms > 0
 
-    @patch('rese_z3_bridge.Z3Client')
     def test_solve_constraints_cache_hit(
         self,
-        mock_z3_client_class,
         bridge_config,
         sample_variables,
         sample_constraints,
     ):
         """Test cache hit on second call."""
+        from rese_z3_client import Z3Client
+
         mock_client = Mock()
-        mock_z3_client_class.return_value = mock_client
         mock_client.solve.return_value = {
             "status": "sat",
             "model": {"assignments": {"x": 42}},
             "execution_time": 100,
         }
+        mock_client.check_health.return_value = {"status": "ok"}
+        mock_client.get_stats.return_value = {"circuit_breaker": {}}
 
-        bridge = RESEZ3Bridge(bridge_config)
+        with patch.object(Z3Client, '__new__', return_value=mock_client):
+            bridge = RESEZ3Bridge(bridge_config)
+            bridge.client = mock_client  # Ensure the mock client is used
 
-        # First call
-        result1 = bridge.solve_constraints(
-            variables=sample_variables,
-            constraints=sample_constraints,
-        )
+            # First call
+            result1 = bridge.solve_constraints(
+                variables=sample_variables,
+                constraints=sample_constraints,
+            )
 
-        # Second call should hit cache
-        result2 = bridge.solve_constraints(
-            variables=sample_variables,
-            constraints=sample_constraints,
-        )
+            # Second call should hit cache
+            result2 = bridge.solve_constraints(
+                variables=sample_variables,
+                constraints=sample_constraints,
+            )
 
-        # Should only call Z3 once
-        assert mock_client.solve.call_count == 1
-        assert result1.result == result2.result
+            # Should only call Z3 once (first call), second from cache
+            assert mock_client.solve.call_count == 1
+            assert result1.result == result2.result
 
 
 # =============================================================================
