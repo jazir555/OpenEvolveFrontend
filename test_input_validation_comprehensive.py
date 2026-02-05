@@ -546,7 +546,7 @@ class TestLDAPInjectionPrevention:
         ("*)((|(uid=*", "OR injection"),
         ("*)(&))", "filter closure"),
         ("admin)(&))", "auth bypass"),
-        ("*")))((|(()))", "complex injection"),
+        ("*))((|(()))", "complex injection"),
     ]
     
     def test_ldap_filter_escaping(self):
