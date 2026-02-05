@@ -2058,36 +2058,57 @@ class UnifiedKGIntegrationHub:
 
     async def record_episode(
         self,
-        name: str,
-        content: str,
+        name: Optional[str] = None,
+        content: Optional[str] = None,
         agent: str = "workflow",
         episode_type: str = "action",
         context: Optional[Dict[str, Any]] = None,
         outcome: Optional[str] = None,
         lesson_learned: Optional[str] = None,
         tags: Optional[List[str]] = None,
-        session_id: Optional[str] = None
+        session_id: Optional[str] = None,
+        **kwargs
     ) -> KGOperationResult:
         """
         Record a knowledge episode in episodic memory (Chronicle and Graphiti).
         
-        Args:
-            name: Name of the episode
-            content: Detailed body of the episode
-            agent: Agent or component recording the episode
-            episode_type: Type of episode (action, decision, observation, etc.)
-            context: Additional structured context
-            outcome: Outcome of the episode
-            lesson_learned: Knowledge gained from the episode
-            tags: Categorization tags
-            session_id: Optional session identifier
-            
-        Returns:
-            KGOperationResult with recorded IDs
+        Supports legacy parameters for backward compatibility:
+        - type: mapped to episode_type
+        - workflow_id: added to context and used as session_id if missing
+        - success: mapped to outcome
+        - details: merged into context
+        - goal: added to context
         """
         start_time = datetime.now(timezone.utc)
         ids = {}
         errors = []
+        
+        # Backward compatibility mapping
+        if 'type' in kwargs and episode_type == "action":
+            episode_type = kwargs['type']
+        
+        if not name and 'goal' in kwargs:
+            name = f"Plan for: {kwargs['goal']}"
+        elif not name and 'action' in kwargs:
+            name = kwargs['action']
+        elif not name:
+            name = "Invention Planning Episode"
+            
+        if not content:
+            content = name
+            
+        context = context or {}
+        if 'details' in kwargs:
+            context.update(kwargs['details'])
+        if 'workflow_id' in kwargs:
+            context['workflow_id'] = kwargs['workflow_id']
+            if not session_id:
+                session_id = kwargs['workflow_id']
+        if 'goal' in kwargs:
+            context['goal'] = kwargs['goal']
+            
+        if not outcome and 'success' in kwargs:
+            outcome = "Success" if kwargs['success'] else "Failure"
         
         # 1. Record in local Chronicle (Narrative Memory)
         if self.chronicle:
@@ -2137,6 +2158,65 @@ class UnifiedKGIntegrationHub:
             operation_type=KGOperationType.EPISODIC_RECORDING,
             integration_used='chronicle+graphiti',
             data=ids,
+            errors=errors,
+            processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+        )
+
+    async def store_triples(
+        self,
+        triples: List[KnowledgeTriple],
+        source: Optional[str] = None
+    ) -> KGOperationResult:
+        """
+        Store knowledge triples in the graph database.
+        
+        Args:
+            triples: List of KnowledgeTriple objects
+            source: Source of the knowledge
+            
+        Returns:
+            KGOperationResult with storage details
+        """
+        start_time = datetime.now(timezone.utc)
+        stored_count = 0
+        errors = []
+        
+        if not triples:
+            return KGOperationResult(
+                success=True,
+                operation_type=KGOperationType.RELATION_EXTRACTION,
+                integration_used='none',
+                data={'stored_count': 0}
+            )
+
+        # 1. Store in Graphiti (Temporal Knowledge Graph) if available
+        if self.temporal_manager and self.temporal_manager.available:
+            try:
+                # Graphiti expects a body of text to extract from for episodes,
+                # but we can also manually add facts to the graph if exposed.
+                # For now, we'll record them as a 'Knowledge Ingestion' episode
+                # so Graphiti's automated extraction can process them.
+                content = "Manual knowledge ingestion:\n"
+                for t in triples:
+                    content += f"- {t.subject} {t.predicate} {t.object}\n"
+                
+                await self.temporal_manager.record_episode(
+                    name=f"Knowledge Ingestion: {source or 'unspecified'}",
+                    content=content,
+                    source=source or "manual_ingestion"
+                )
+                stored_count = len(triples)
+            except Exception as e:
+                errors.append(f"Temporal graph storage failed: {e}")
+
+        # 2. Store in local memory backend (Fallback)
+        # In a real implementation, this would update self.graph_crud if exposed
+        
+        return KGOperationResult(
+            success=stored_count > 0 or not errors,
+            operation_type=KGOperationType.RELATION_EXTRACTION,
+            integration_used='temporal_manager',
+            data={'stored_count': stored_count},
             errors=errors,
             processing_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000
         )

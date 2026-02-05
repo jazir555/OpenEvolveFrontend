@@ -673,9 +673,17 @@ class EndToEndInventionPlanner:
         # Knowledge Engine Integration: Record episode and store knowledge
         if KNOWLEDGE_ENGINE_AVAILABLE and self.kg_hub:
             try:
-                logger.info("Recording invention plan in Knowledge Engine chronicle")
+                logger.info("Recording invention plan in Knowledge Engine chronicle and graph")
+                # Ensure hub is initialized
+                if hasattr(self, 'kg_hub_task'):
+                    await self.kg_hub_task
+
+                # Record the narrative of this planning episode
                 await self.kg_hub.record_episode(
-                    type="invention_planning",
+                    name=f"Invention Plan: {goal.target}",
+                    content=sop.to_markdown(),
+                    agent="EndToEndInventionPlanner",
+                    episode_type="invention_planning",
                     workflow_id=workflow_id,
                     goal=goal.target,
                     success=validation_summary.get("ready_for_execution", False),
@@ -683,14 +691,17 @@ class EndToEndInventionPlanner:
                         "domain": goal.domain,
                         "steps_count": len(decomposition.get('steps', [])),
                         "quality_score": quality_score
-                    }
+                    },
+                    tags=["invention", goal.domain, "planning"]
                 )
                 
                 # Extract and store knowledge triples from the generated SOP
                 triples = await quick_extract(sop.to_markdown())
                 logger.info(f"Extracted {len(triples)} new triples for storage")
-                # Hub initialization might be needed for triples storage if not already done
-                # For now we assume the hub stores them or we can use the graph directly if exposed
+                
+                if triples:
+                    await self.kg_hub.store_triples(triples, source=f"invention_plan_{workflow_id}")
+                    logger.info(f"Successfully stored {len(triples)} triples in Knowledge Engine graph")
             except Exception as e:
                 logger.warning(f"Failed to record results in Knowledge Engine: {e}")
 

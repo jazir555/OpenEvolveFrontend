@@ -67,10 +67,16 @@ except ImportError as e:
 def mock_globalchem_core():
     """Mock GlobalChem core library."""
     mock_gc = MagicMock()
-    mock_gc.get_node_smiles = MagicMock(return_value={
-        'aspirin': 'CC(=O)OC1=CC=CC=C1C(=O)O',
-        'caffeine': 'Cn1cnc2c1c(=O)n(c(=O)n2C)C'
-    })
+
+    # Mock get_node_smiles to return SMILES for known chemicals, None for unknown
+    def mock_get_node_smiles(name):
+        chemicals = {
+            'aspirin': 'CC(=O)OC1=CC=CC=C1C(=O)O',
+            'caffeine': 'Cn1cnc2c1c(=O)n(c(=O)n2C)C'
+        }
+        return chemicals.get(name.lower())  # Returns None if not found
+
+    mock_gc.get_node_smiles = MagicMock(side_effect=mock_get_node_smiles)
     mock_gc.get_all_nodes = MagicMock(return_value=[
         'vitamins', 'amino_acids', 'narcotics', 'schedule_one'
     ])
@@ -80,28 +86,46 @@ def mock_globalchem_core():
 
 @pytest.fixture
 def mock_rdkit():
-    """Mock RDKit chemistry library."""
-    with patch('knowledge_engine.integrations.global_chem_integration.Chip') as mock_chem:
-        mock_mol = MagicMock()
-        mock_chem.MolFromSmiles = MagicMock(return_value=mock_mol)
-        mock_chem.MolToSmiles = MagicMock(return_value='CC(=O)OC1=CC=CC=C1C(=O)O')
+    """Mock RDKit chemistry library using sys.modules."""
+    # Create mock Chem module
+    mock_chem = MagicMock()
+    mock_mol = MagicMock()
+    mock_chem.MolFromSmiles = MagicMock(return_value=mock_mol)
+    mock_chem.MolToSmiles = MagicMock(return_value='CC(=O)OC1=CC=CC=C1C(=O)O')
 
-        # Mock Descriptors
-        mock_descriptors = MagicMock()
-        mock_descriptors.MolWt = MagicMock(return_value=180.16)
-        mock_descriptors.MolLogP = MagicMock(return_value=1.2)
-        mock_descriptors.TPSA = MagicMock(return_value=60.0)
+    # Mock Descriptors
+    mock_descriptors = MagicMock()
+    mock_descriptors.MolWt = MagicMock(return_value=180.16)
+    mock_descriptors.MolLogP = MagicMock(return_value=1.2)
+    mock_descriptors.TPSA = MagicMock(return_value=60.0)
 
-        # Mock Lipinski
-        mock_lipinski = MagicMock()
-        mock_lipinski.NumHDonors = MagicMock(return_value=1)
-        mock_lipinski.NumHAcceptors = MagicMock(return_value=4)
-        mock_lipinski.NumRotatableBonds = MagicMock(return_value=3)
+    # Mock Lipinski
+    mock_lipinski = MagicMock()
+    mock_lipinski.NumHDonors = MagicMock(return_value=1)
+    mock_lipinski.NumHAcceptors = MagicMock(return_value=4)
+    mock_lipinski.NumRotatableBonds = MagicMock(return_value=3)
 
-        mock_chem.Descriptors = mock_descriptors
-        mock_chem.Lipinski = mock_lipinski
+    mock_chem.Descriptors = mock_descriptors
+    mock_chem.Lipinski = mock_lipinski
 
-        yield mock_chem
+    # Create mock rdkit module
+    mock_rdkit_module = MagicMock()
+    mock_rdkit_module.Chem = mock_chem
+    mock_rdkit_module.Chem.Descriptors = mock_descriptors
+    mock_rdkit_module.Chem.Lipinski = mock_lipinski
+
+    # Inject into sys.modules before import
+    sys.modules['rdkit'] = mock_rdkit_module
+    sys.modules['rdkit.Chem'] = mock_chem
+    sys.modules['rdkit.Chem.Descriptors'] = mock_descriptors
+    sys.modules['rdkit.Chem.Lipinski'] = mock_lipinski
+
+    yield mock_chem
+
+    # Clean up sys.modules
+    for mod in ['rdkit', 'rdkit.Chem', 'rdkit.Chem.Descriptors', 'rdkit.Chem.Lipinski']:
+        if mod in sys.modules:
+            del sys.modules[mod]
 
 
 @pytest.fixture
@@ -404,10 +428,16 @@ class TestGlobalChemKnowledgeAdapter:
 
     def test_validate_smiles_invalid(self, globalchem_adapter, mock_rdkit):
         """Test SMILES validation with invalid SMILES."""
-        with patch('knowledge_engine.integrations.global_chem_integration.Chip') as mock_chem:
-            mock_chem.MolFromSmiles = MagicMock(return_value=None)
+        # mock_rdkit fixture already sets up the mocking
+        # Need to temporarily override MolFromSmiles to return None
+        import rdkit
+        rdkit.Chem.MolFromSmiles = MagicMock(return_value=None)
+        try:
             result = globalchem_adapter.validate_smiles('INVALID')
             assert result['valid'] is False
+        finally:
+            # Restore the mock
+            rdkit.Chem.MolFromSmiles = MagicMock(return_value=MagicMock())
 
     def test_validate_smiles_unavailable(self):
         """Test SMILES validation when GlobalChem is unavailable."""
@@ -419,10 +449,23 @@ class TestGlobalChemKnowledgeAdapter:
 
     def test_validate_smiles_no_rdkit(self, globalchem_adapter):
         """Test SMILES validation without RDKit (fallback)."""
-        with patch('knowledge_engine.integrations.global_chem_integration.Chip', side_effect=ImportError):
+        # Remove rdkit from sys.modules temporarily
+        rdkit_backup = sys.modules.get('rdkit')
+        chem_backup = sys.modules.get('rdkit.Chem')
+        if 'rdkit' in sys.modules:
+            del sys.modules['rdkit']
+        if 'rdkit.Chem' in sys.modules:
+            del sys.modules['rdkit.Chem']
+        try:
             result = globalchem_adapter.validate_smiles('CC(=O)OC1=CC=CC=C1C(=O)O')
             # Should return gracefully without RDKit
             assert 'valid' in result
+        finally:
+            # Restore rdkit modules
+            if rdkit_backup:
+                sys.modules['rdkit'] = rdkit_backup
+            if chem_backup:
+                sys.modules['rdkit.Chem'] = chem_backup
 
     # -------------------------------------------------------------------------
     # Chemical Properties Tests
@@ -440,44 +483,53 @@ class TestGlobalChemKnowledgeAdapter:
         assert 'lipinski_violations' in result
         assert 'drug_like' in result
 
-    def test_get_chemical_properties_lipinski_violations(self, globalchem_adapter):
+    def test_get_chemical_properties_lipinski_violations(self, globalchem_adapter, mock_rdkit):
         """Test Lipinski rule of five violations detection."""
-        with patch('knowledge_engine.integrations.global_chem_integration.Chip') as mock_chem:
-            # Mock properties that violate multiple Lipinski rules
-            mock_mol = MagicMock()
-            mock_chem.MolFromSmiles = MagicMock(return_value=mock_mol)
-            mock_chem.MolToSmiles = MagicMock(return_value='CC(=O)OC1=CC=CC=C1C(=O)O')
+        # Access rdkit from sys.modules (it's mocked there by mock_rdkit fixture)
+        rdkit = sys.modules['rdkit']
+        # Override the mock properties to violate multiple Lipinski rules
+        mock_mol = MagicMock()
+        rdkit.Chem.MolFromSmiles = MagicMock(return_value=mock_mol)
+        rdkit.Chem.MolToSmiles = MagicMock(return_value='CC(=O)OC1=CC=CC=C1C(=O)O')
 
-            mock_descriptors = MagicMock()
-            mock_descriptors.MolWt = MagicMock(return_value=600)  # > 500 violation
-            mock_descriptors.MolLogP = MagicMock(return_value=6)  # > 5 violation
-            mock_descriptors.TPSA = MagicMock(return_value=60.0)
+        rdkit.Chem.Descriptors.MolWt = MagicMock(return_value=600)  # > 500 violation
+        rdkit.Chem.Descriptors.MolLogP = MagicMock(return_value=6)  # > 5 violation
+        rdkit.Chem.Descriptors.TPSA = MagicMock(return_value=60.0)
 
-            mock_lipinski = MagicMock()
-            mock_lipinski.NumHDonors = MagicMock(return_value=6)  # > 5 violation
-            mock_lipinski.NumHAcceptors = MagicMock(return_value=12)  # > 10 violation
-            mock_lipinski.NumRotatableBonds = MagicMock(return_value=10)
+        rdkit.Chem.Lipinski.NumHDonors = MagicMock(return_value=6)  # > 5 violation
+        rdkit.Chem.Lipinski.NumHAcceptors = MagicMock(return_value=12)  # > 10 violation
+        rdkit.Chem.Lipinski.NumRotatableBonds = MagicMock(return_value=10)
 
-            mock_chem.Descriptors = mock_descriptors
-            mock_chem.Lipinski = mock_lipinski
-
-            result = globalchem_adapter.get_chemical_properties('CC(=O)OC1=CC=CC=C1C(=O)O')
-            assert result['lipinski_violations'] == 4
-            assert result['drug_like'] is False
+        result = globalchem_adapter.get_chemical_properties('CC(=O)OC1=CC=CC=C1C(=O)O')
+        assert result['lipinski_violations'] == 4
+        assert result['drug_like'] is False
 
     def test_get_chemical_properties_invalid_smiles(self, globalchem_adapter, mock_rdkit):
         """Test chemical properties with invalid SMILES."""
-        with patch('knowledge_engine.integrations.global_chem_integration.Chip') as mock_chem:
-            mock_chem.MolFromSmiles = MagicMock(return_value=None)
-            result = globalchem_adapter.get_chemical_properties('INVALID')
-            assert result['status'] == 'error'
+        import rdkit
+        rdkit.Chem.MolFromSmiles = MagicMock(return_value=None)
+        result = globalchem_adapter.get_chemical_properties('INVALID')
+        assert result['status'] == 'error'
 
     def test_get_chemical_properties_no_rdkit(self, globalchem_adapter):
         """Test chemical properties without RDKit."""
-        with patch('knowledge_engine.integrations.global_chem_integration.Chip', side_effect=ImportError):
+        # Remove rdkit from sys.modules temporarily
+        rdkit_backup = sys.modules.get('rdkit')
+        chem_backup = sys.modules.get('rdkit.Chem')
+        if 'rdkit' in sys.modules:
+            del sys.modules['rdkit']
+        if 'rdkit.Chem' in sys.modules:
+            del sys.modules['rdkit.Chem']
+        try:
             result = globalchem_adapter.get_chemical_properties('CC(=O)OC1=CC=CC=C1C(=O)O')
             assert result['status'] == 'error'
             assert 'RDKit' in result['message']
+        finally:
+            # Restore rdkit modules
+            if rdkit_backup:
+                sys.modules['rdkit'] = rdkit_backup
+            if chem_backup:
+                sys.modules['rdkit.Chem'] = chem_backup
 
     # -------------------------------------------------------------------------
     # Search Tests
