@@ -66158,6 +66158,1970 @@
           "name": "test_security_performance"
         }
       }
+    },
+    "test_fuzzing.py": {
+      "hash": "bb01a7c2194a74a9437e906c02ae7edb910fb542bbc6e0eb061f0f08c5449d64",
+      "nodes": [
+        {
+          "id": "test_fuzzing.py::validator",
+          "label": "Validator",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 469,
+            "function": "validator"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_safe_strings_never_crash",
+          "label": "Test Safe Strings Never Crash",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 52,
+            "function": "test_safe_strings_never_crash"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_arbitrary_strings_handled",
+          "label": "Test Arbitrary Strings Handled",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 60,
+            "function": "test_arbitrary_strings_handled"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_list_sanitization",
+          "label": "Test List Sanitization",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 72,
+            "function": "test_list_sanitization"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_dict_sanitization",
+          "label": "Test Dict Sanitization",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 80,
+            "function": "test_dict_sanitization"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_random_sql_fragments",
+          "label": "Test Random Sql Fragments",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 100,
+            "function": "test_random_sql_fragments"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_combined_sql_patterns",
+          "label": "Test Combined Sql Patterns",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 116,
+            "function": "test_combined_sql_patterns"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_random_html_content",
+          "label": "Test Random Html Content",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 135,
+            "function": "test_random_html_content"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_combined_xss_patterns",
+          "label": "Test Combined Xss Patterns",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 149,
+            "function": "test_combined_xss_patterns"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_unicode_handling",
+          "label": "Test Unicode Handling",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 161,
+            "function": "test_unicode_handling"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::sanitizer",
+          "label": "Sanitizer",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 416,
+            "function": "sanitizer"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_random_path_strings",
+          "label": "Test Random Path Strings",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 180,
+            "function": "test_random_path_strings"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_combined_traversal_patterns",
+          "label": "Test Combined Traversal Patterns",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 191,
+            "function": "test_combined_traversal_patterns"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_random_command_strings",
+          "label": "Test Random Command Strings",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 214,
+            "function": "test_random_command_strings"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_combined_command_patterns",
+          "label": "Test Combined Command Patterns",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 224,
+            "function": "test_combined_command_patterns"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_json_object_sanitization",
+          "label": "Test Json Object Sanitization",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 254,
+            "function": "test_json_object_sanitization"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_nested_structure_sanitization",
+          "label": "Test Nested Structure Sanitization",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 266,
+            "function": "test_nested_structure_sanitization"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::auth_manager",
+          "label": "Auth Manager",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 276,
+            "function": "auth_manager"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_random_credentials",
+          "label": "Test Random Credentials",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 281,
+            "function": "test_random_credentials"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_malformed_tokens",
+          "label": "Test Malformed Tokens",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 292,
+            "function": "test_malformed_tokens"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_idempotent_sanitization",
+          "label": "Test Idempotent Sanitization",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 309,
+            "function": "test_idempotent_sanitization"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_sanitization_reduces_risk",
+          "label": "Test Sanitization Reduces Risk",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 318,
+            "function": "test_sanitization_reduces_risk"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_no_infinite_loops",
+          "label": "Test No Infinite Loops",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 328,
+            "function": "test_no_infinite_loops"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::timeout_handler",
+          "label": "Timeout Handler",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 332,
+            "function": "timeout_handler"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_empty_and_whitespace_inputs",
+          "label": "Test Empty And Whitespace Inputs",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 354,
+            "function": "test_empty_and_whitespace_inputs"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_very_long_inputs",
+          "label": "Test Very Long Inputs",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 370,
+            "function": "test_very_long_inputs"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_null_byte_injection",
+          "label": "Test Null Byte Injection",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 383,
+            "function": "test_null_byte_injection"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_encoding_issues",
+          "label": "Test Encoding Issues",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 397,
+            "function": "test_encoding_issues"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_random_filenames",
+          "label": "Test Random Filenames",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 425,
+            "function": "test_random_filenames"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_integer_validation",
+          "label": "Test Integer Validation",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 446,
+            "function": "test_integer_validation"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_float_validation",
+          "label": "Test Float Validation",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 456,
+            "function": "test_float_validation"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_random_injection_payloads",
+          "label": "Test Random Injection Payloads",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 472,
+            "function": "test_random_injection_payloads"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::test_fuzzed_json_structures",
+          "label": "Test Fuzzed Json Structures",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 498,
+            "function": "test_fuzzed_json_structures"
+          }
+        },
+        {
+          "id": "test_fuzzing.py::generate_random_json",
+          "label": "Generate Random Json",
+          "type": "step",
+          "source": {
+            "file": "test_fuzzing.py",
+            "line": 502,
+            "function": "generate_random_json"
+          }
+        }
+      ],
+      "internalEdges": [
+        {
+          "source": "test_fuzzing.py::test_fuzzed_json_structures",
+          "target": "test_fuzzing.py::generate_random_json"
+        }
+      ],
+      "timestamp": 1770273625943,
+      "nodeWorkflows": {
+        "test_fuzzing.py::validator": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_safe_strings_never_crash": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_arbitrary_strings_handled": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_list_sanitization": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_dict_sanitization": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_random_sql_fragments": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_combined_sql_patterns": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_random_html_content": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_combined_xss_patterns": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_unicode_handling": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::sanitizer": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_random_path_strings": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_combined_traversal_patterns": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_random_command_strings": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_combined_command_patterns": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_json_object_sanitization": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_nested_structure_sanitization": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::auth_manager": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_random_credentials": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_malformed_tokens": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_idempotent_sanitization": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_sanitization_reduces_risk": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_no_infinite_loops": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::timeout_handler": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_empty_and_whitespace_inputs": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_very_long_inputs": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_null_byte_injection": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_encoding_issues": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_random_filenames": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_integer_validation": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_float_validation": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_random_injection_payloads": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::test_fuzzed_json_structures": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        },
+        "test_fuzzing.py::generate_random_json": {
+          "id": "workflow_test_fuzzing",
+          "name": "test_fuzzing"
+        }
+      }
+    },
+    "test_compliance.py": {
+      "hash": "6d3c66d9f8e02ff7eb508a1202b1d154de61937e0f8d03a76004d2f1352ccb8b",
+      "nodes": [
+        {
+          "id": "test_compliance.py::validator",
+          "label": "Validator",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 21,
+            "function": "validator"
+          }
+        },
+        {
+          "id": "test_compliance.py::auth_manager",
+          "label": "Auth Manager",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 25,
+            "function": "auth_manager"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_a01_enforce_least_privilege",
+          "label": "Test A01 Enforce Least Privilege",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 29,
+            "function": "test_a01_enforce_least_privilege"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_a01_deny_by_default",
+          "label": "Test A01 Deny By Default",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 39,
+            "function": "test_a01_deny_by_default"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_a01_path_traversal_protection",
+          "label": "Test A01 Path Traversal Protection",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 44,
+            "function": "test_a01_path_traversal_protection"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_a02_strong_password_hashing",
+          "label": "Test A02 Strong Password Hashing",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 57,
+            "function": "test_a02_strong_password_hashing"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_a02_encrypted_transmission",
+          "label": "Test A02 Encrypted Transmission",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 67,
+            "function": "test_a02_encrypted_transmission"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_a02_proper_key_management",
+          "label": "Test A02 Proper Key Management",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 81,
+            "function": "test_a02_proper_key_management"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_a03_sql_injection_prevention",
+          "label": "Test A03 Sql Injection Prevention",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 92,
+            "function": "test_a03_sql_injection_prevention"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_a03_xss_prevention",
+          "label": "Test A03 Xss Prevention",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 105,
+            "function": "test_a03_xss_prevention"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_a03_command_injection_prevention",
+          "label": "Test A03 Command Injection Prevention",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 118,
+            "function": "test_a03_command_injection_prevention"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_a04_rate_limiting",
+          "label": "Test A04 Rate Limiting",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 132,
+            "function": "test_a04_rate_limiting"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_a04_input_validation",
+          "label": "Test A04 Input Validation",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 143,
+            "function": "test_a04_input_validation"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_a05_security_headers",
+          "label": "Test A05 Security Headers",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 154,
+            "function": "test_a05_security_headers"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_a05_error_handling",
+          "label": "Test A05 Error Handling",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 168,
+            "function": "test_a05_error_handling"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_a06_dependency_scanning",
+          "label": "Test A06 Dependency Scanning",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 181,
+            "function": "test_a06_dependency_scanning"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_a07_strong_authentication",
+          "label": "Test A07 Strong Authentication",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 190,
+            "function": "test_a07_strong_authentication"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_a07_session_management",
+          "label": "Test A07 Session Management",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 199,
+            "function": "test_a07_session_management"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_a07_mfa_support",
+          "label": "Test A07 Mfa Support",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 209,
+            "function": "test_a07_mfa_support"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_a08_signature_verification",
+          "label": "Test A08 Signature Verification",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 218,
+            "function": "test_a08_signature_verification"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_a08_dependency_integrity",
+          "label": "Test A08 Dependency Integrity",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 230,
+            "function": "test_a08_dependency_integrity"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_a09_audit_logging",
+          "label": "Test A09 Audit Logging",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 241,
+            "function": "test_a09_audit_logging"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_a09_failed_login_logging",
+          "label": "Test A09 Failed Login Logging",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 256,
+            "function": "test_a09_failed_login_logging"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_a10_ssrf_prevention",
+          "label": "Test A10 Ssrf Prevention",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 265,
+            "function": "test_a10_ssrf_prevention"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_nist_identify_asset_management",
+          "label": "Test Nist Identify Asset Management",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 283,
+            "function": "test_nist_identify_asset_management"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_nist_identify_risk_assessment",
+          "label": "Test Nist Identify Risk Assessment",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 295,
+            "function": "test_nist_identify_risk_assessment"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_nist_protect_access_control",
+          "label": "Test Nist Protect Access Control",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 308,
+            "function": "test_nist_protect_access_control"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_nist_protect_data_security",
+          "label": "Test Nist Protect Data Security",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 316,
+            "function": "test_nist_protect_data_security"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_nist_protect_protective_technology",
+          "label": "Test Nist Protect Protective Technology",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 324,
+            "function": "test_nist_protect_protective_technology"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_nist_detect_anomalies",
+          "label": "Test Nist Detect Anomalies",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 333,
+            "function": "test_nist_detect_anomalies"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_nist_detect_continuous_monitoring",
+          "label": "Test Nist Detect Continuous Monitoring",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 345,
+            "function": "test_nist_detect_continuous_monitoring"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_nist_respond_response_planning",
+          "label": "Test Nist Respond Response Planning",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 354,
+            "function": "test_nist_respond_response_planning"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_nist_respond_communications",
+          "label": "Test Nist Respond Communications",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 362,
+            "function": "test_nist_respond_communications"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_nist_recover_recovery_planning",
+          "label": "Test Nist Recover Recovery Planning",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 368,
+            "function": "test_nist_recover_recovery_planning"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_nist_recover_improvements",
+          "label": "Test Nist Recover Improvements",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 376,
+            "function": "test_nist_recover_improvements"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_iso27001_a5_policies",
+          "label": "Test Iso27001 A5 Policies",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 386,
+            "function": "test_iso27001_a5_policies"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_iso27001_a6_roles",
+          "label": "Test Iso27001 A6 Roles",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 393,
+            "function": "test_iso27001_a6_roles"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_iso27001_a7_background_checks",
+          "label": "Test Iso27001 A7 Background Checks",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 399,
+            "function": "test_iso27001_a7_background_checks"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_iso27001_a7_termination",
+          "label": "Test Iso27001 A7 Termination",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 403,
+            "function": "test_iso27001_a7_termination"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_iso27001_a8_inventory",
+          "label": "Test Iso27001 A8 Inventory",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 408,
+            "function": "test_iso27001_a8_inventory"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_iso27001_a9_access_policy",
+          "label": "Test Iso27001 A9 Access Policy",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 418,
+            "function": "test_iso27001_a9_access_policy"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_iso27001_a9_user_registration",
+          "label": "Test Iso27001 A9 User Registration",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 422,
+            "function": "test_iso27001_a9_user_registration"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_iso27001_a9_privilege_management",
+          "label": "Test Iso27001 A9 Privilege Management",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 426,
+            "function": "test_iso27001_a9_privilege_management"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_iso27001_a10_policy",
+          "label": "Test Iso27001 A10 Policy",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 431,
+            "function": "test_iso27001_a10_policy"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_iso27001_a10_key_management",
+          "label": "Test Iso27001 A10 Key Management",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 435,
+            "function": "test_iso27001_a10_key_management"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_iso27001_a11_physical_security",
+          "label": "Test Iso27001 A11 Physical Security",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 440,
+            "function": "test_iso27001_a11_physical_security"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_iso27001_a12_malware_protection",
+          "label": "Test Iso27001 A12 Malware Protection",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 445,
+            "function": "test_iso27001_a12_malware_protection"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_iso27001_a12_backups",
+          "label": "Test Iso27001 A12 Backups",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 449,
+            "function": "test_iso27001_a12_backups"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_iso27001_a12_logging",
+          "label": "Test Iso27001 A12 Logging",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 453,
+            "function": "test_iso27001_a12_logging"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_iso27001_a13_network_security",
+          "label": "Test Iso27001 A13 Network Security",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 459,
+            "function": "test_iso27001_a13_network_security"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_iso27001_a13_data_transfer",
+          "label": "Test Iso27001 A13 Data Transfer",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 463,
+            "function": "test_iso27001_a13_data_transfer"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_iso27001_a14_secure_development",
+          "label": "Test Iso27001 A14 Secure Development",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 468,
+            "function": "test_iso27001_a14_secure_development"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_iso27001_a16_incident_management",
+          "label": "Test Iso27001 A16 Incident Management",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 473,
+            "function": "test_iso27001_a16_incident_management"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_iso27001_a17_continuity",
+          "label": "Test Iso27001 A17 Continuity",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 478,
+            "function": "test_iso27001_a17_continuity"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_iso27001_a18_compliance",
+          "label": "Test Iso27001 A18 Compliance",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 483,
+            "function": "test_iso27001_a18_compliance"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_gdpr_data_minimization",
+          "label": "Test Gdpr Data Minimization",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 491,
+            "function": "test_gdpr_data_minimization"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_gdpr_consent",
+          "label": "Test Gdpr Consent",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 499,
+            "function": "test_gdpr_consent"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_gdpr_right_to_access",
+          "label": "Test Gdpr Right To Access",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 506,
+            "function": "test_gdpr_right_to_access"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_gdpr_right_to_erasure",
+          "label": "Test Gdpr Right To Erasure",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 514,
+            "function": "test_gdpr_right_to_erasure"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_gdpr_data_portability",
+          "label": "Test Gdpr Data Portability",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 519,
+            "function": "test_gdpr_data_portability"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_gdpr_breach_notification",
+          "label": "Test Gdpr Breach Notification",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 528,
+            "function": "test_gdpr_breach_notification"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_gdpr_dpo",
+          "label": "Test Gdpr Dpo",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 532,
+            "function": "test_gdpr_dpo"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_gdpr_privacy_by_design",
+          "label": "Test Gdpr Privacy By Design",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 537,
+            "function": "test_gdpr_privacy_by_design"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_pci_firewall",
+          "label": "Test Pci Firewall",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 545,
+            "function": "test_pci_firewall"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_pci_no_default_passwords",
+          "label": "Test Pci No Default Passwords",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 550,
+            "function": "test_pci_no_default_passwords"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_pci_encrypted_storage",
+          "label": "Test Pci Encrypted Storage",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 554,
+            "function": "test_pci_encrypted_storage"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_pci_encrypted_transmission",
+          "label": "Test Pci Encrypted Transmission",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 558,
+            "function": "test_pci_encrypted_transmission"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_pci_antivirus",
+          "label": "Test Pci Antivirus",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 562,
+            "function": "test_pci_antivirus"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_pci_secure_systems",
+          "label": "Test Pci Secure Systems",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 566,
+            "function": "test_pci_secure_systems"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_pci_access_control",
+          "label": "Test Pci Access Control",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 571,
+            "function": "test_pci_access_control"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_pci_unique_ids",
+          "label": "Test Pci Unique Ids",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 575,
+            "function": "test_pci_unique_ids"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_pci_physical_access",
+          "label": "Test Pci Physical Access",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 579,
+            "function": "test_pci_physical_access"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_pci_logging",
+          "label": "Test Pci Logging",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 583,
+            "function": "test_pci_logging"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_pci_testing",
+          "label": "Test Pci Testing",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 588,
+            "function": "test_pci_testing"
+          }
+        },
+        {
+          "id": "test_compliance.py::test_pci_policy",
+          "label": "Test Pci Policy",
+          "type": "step",
+          "source": {
+            "file": "test_compliance.py",
+            "line": 593,
+            "function": "test_pci_policy"
+          }
+        }
+      ],
+      "internalEdges": [],
+      "timestamp": 1770273766563,
+      "nodeWorkflows": {
+        "test_compliance.py::validator": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::auth_manager": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_a01_enforce_least_privilege": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_a01_deny_by_default": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_a01_path_traversal_protection": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_a02_strong_password_hashing": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_a02_encrypted_transmission": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_a02_proper_key_management": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_a03_sql_injection_prevention": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_a03_xss_prevention": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_a03_command_injection_prevention": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_a04_rate_limiting": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_a04_input_validation": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_a05_security_headers": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_a05_error_handling": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_a06_dependency_scanning": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_a07_strong_authentication": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_a07_session_management": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_a07_mfa_support": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_a08_signature_verification": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_a08_dependency_integrity": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_a09_audit_logging": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_a09_failed_login_logging": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_a10_ssrf_prevention": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_nist_identify_asset_management": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_nist_identify_risk_assessment": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_nist_protect_access_control": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_nist_protect_data_security": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_nist_protect_protective_technology": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_nist_detect_anomalies": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_nist_detect_continuous_monitoring": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_nist_respond_response_planning": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_nist_respond_communications": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_nist_recover_recovery_planning": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_nist_recover_improvements": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_iso27001_a5_policies": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_iso27001_a6_roles": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_iso27001_a7_background_checks": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_iso27001_a7_termination": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_iso27001_a8_inventory": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_iso27001_a9_access_policy": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_iso27001_a9_user_registration": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_iso27001_a9_privilege_management": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_iso27001_a10_policy": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_iso27001_a10_key_management": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_iso27001_a11_physical_security": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_iso27001_a12_malware_protection": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_iso27001_a12_backups": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_iso27001_a12_logging": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_iso27001_a13_network_security": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_iso27001_a13_data_transfer": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_iso27001_a14_secure_development": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_iso27001_a16_incident_management": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_iso27001_a17_continuity": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_iso27001_a18_compliance": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_gdpr_data_minimization": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_gdpr_consent": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_gdpr_right_to_access": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_gdpr_right_to_erasure": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_gdpr_data_portability": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_gdpr_breach_notification": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_gdpr_dpo": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_gdpr_privacy_by_design": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_pci_firewall": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_pci_no_default_passwords": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_pci_encrypted_storage": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_pci_encrypted_transmission": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_pci_antivirus": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_pci_secure_systems": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_pci_access_control": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_pci_unique_ids": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_pci_physical_access": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_pci_logging": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_pci_testing": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        },
+        "test_compliance.py::test_pci_policy": {
+          "id": "workflow_test_compliance",
+          "name": "test_compliance"
+        }
+      }
+    },
+    "test_security_regression.py": {
+      "hash": "9d3a3aaa07d976b5a50e54b542f889e53a81037f3919a052a77422abc1039fa5",
+      "nodes": [
+        {
+          "id": "test_security_regression.py::validator",
+          "label": "Validator",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 384,
+            "function": "validator"
+          }
+        },
+        {
+          "id": "test_security_regression.py::auth_manager",
+          "label": "Auth Manager",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 259,
+            "function": "auth_manager"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_cve_2021_44228_log4j_injection",
+          "label": "Test Cve 2021 44228 Log4j Injection",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 28,
+            "function": "test_cve_2021_44228_log4j_injection"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_cve_2017_5638_struts_ognl",
+          "label": "Test Cve 2017 5638 Struts Ognl",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 45,
+            "function": "test_cve_2017_5638_struts_ognl"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_cve_2019_11358_prototype_pollution",
+          "label": "Test Cve 2019 11358 Prototype Pollution",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 60,
+            "function": "test_cve_2019_11358_prototype_pollution"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_cve_2018_11776_namespace_traversal",
+          "label": "Test Cve 2018 11776 Namespace Traversal",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 81,
+            "function": "test_cve_2018_11776_namespace_traversal"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_directory_traversal_variations",
+          "label": "Test Directory Traversal Variations",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 102,
+            "function": "test_directory_traversal_variations"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_xss_filter_evasion",
+          "label": "Test Xss Filter Evasion",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 130,
+            "function": "test_xss_filter_evasion"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_sql_injection_evasion",
+          "label": "Test Sql Injection Evasion",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 167,
+            "function": "test_sql_injection_evasion"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_xxe_variations",
+          "label": "Test Xxe Variations",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 201,
+            "function": "test_xxe_variations"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_command_injection_evasion",
+          "label": "Test Command Injection Evasion",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 226,
+            "function": "test_command_injection_evasion"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_no_hardcoded_secrets",
+          "label": "Test No Hardcoded Secrets",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 266,
+            "function": "test_no_hardcoded_secrets"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_secure_defaults",
+          "label": "Test Secure Defaults",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 286,
+            "function": "test_secure_defaults"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_error_message_sanitization",
+          "label": "Test Error Message Sanitization",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 297,
+            "function": "test_error_message_sanitization"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_session_fixation_protection",
+          "label": "Test Session Fixation Protection",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 309,
+            "function": "test_session_fixation_protection"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_csrf_protection",
+          "label": "Test Csrf Protection",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 320,
+            "function": "test_csrf_protection"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_secure_cookies",
+          "label": "Test Secure Cookies",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 330,
+            "function": "test_secure_cookies"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_clickjacking_protection",
+          "label": "Test Clickjacking Protection",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 343,
+            "function": "test_clickjacking_protection"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_content_type_sniffing_protection",
+          "label": "Test Content Type Sniffing Protection",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 355,
+            "function": "test_content_type_sniffing_protection"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_xss_protection_headers",
+          "label": "Test Xss Protection Headers",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 362,
+            "function": "test_xss_protection_headers"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_hsts_header",
+          "label": "Test Hsts Header",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 370,
+            "function": "test_hsts_header"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_bypass_authentication_patterns",
+          "label": "Test Bypass Authentication Patterns",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 387,
+            "function": "test_bypass_authentication_patterns"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_dos_attack_patterns",
+          "label": "Test Dos Attack Patterns",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 408,
+            "function": "test_dos_attack_patterns"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_ssrf_patterns",
+          "label": "Test Ssrf Patterns",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 422,
+            "function": "test_ssrf_patterns"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_file_upload_attacks",
+          "label": "Test File Upload Attacks",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 439,
+            "function": "test_file_upload_attacks"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_equifax_style_breach_prevention",
+          "label": "Test Equifax Style Breach Prevention",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 463,
+            "function": "test_equifax_style_breach_prevention"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_marriott_breach_prevention",
+          "label": "Test Marriott Breach Prevention",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 471,
+            "function": "test_marriott_breach_prevention"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_capital_one_breach_prevention",
+          "label": "Test Capital One Breach Prevention",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 479,
+            "function": "test_capital_one_breach_prevention"
+          }
+        },
+        {
+          "id": "test_security_regression.py::test_solarwinds_style_prevention",
+          "label": "Test Solarwinds Style Prevention",
+          "type": "step",
+          "source": {
+            "file": "test_security_regression.py",
+            "line": 487,
+            "function": "test_solarwinds_style_prevention"
+          }
+        }
+      ],
+      "internalEdges": [],
+      "timestamp": 1770273898152,
+      "nodeWorkflows": {
+        "test_security_regression.py::validator": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::auth_manager": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_cve_2021_44228_log4j_injection": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_cve_2017_5638_struts_ognl": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_cve_2019_11358_prototype_pollution": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_cve_2018_11776_namespace_traversal": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_directory_traversal_variations": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_xss_filter_evasion": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_sql_injection_evasion": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_xxe_variations": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_command_injection_evasion": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_no_hardcoded_secrets": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_secure_defaults": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_error_message_sanitization": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_session_fixation_protection": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_csrf_protection": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_secure_cookies": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_clickjacking_protection": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_content_type_sniffing_protection": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_xss_protection_headers": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_hsts_header": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_bypass_authentication_patterns": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_dos_attack_patterns": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_ssrf_patterns": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_file_upload_attacks": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_equifax_style_breach_prevention": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_marriott_breach_prevention": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_capital_one_breach_prevention": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        },
+        "test_security_regression.py::test_solarwinds_style_prevention": {
+          "id": "workflow_test_security_regression",
+          "name": "test_security_regression"
+        }
+      }
     }
   },
   "crossFileEdges": [],
@@ -68507,6 +70471,24 @@
       "name": "test_security_performance",
       "description": "Workflow from test_security_performance",
       "primaryFile": "test_security_performance.py"
+    },
+    "workflow_test_fuzzing": {
+      "id": "workflow_test_fuzzing",
+      "name": "test_fuzzing",
+      "description": "Workflow from test_fuzzing",
+      "primaryFile": "test_fuzzing.py"
+    },
+    "workflow_test_compliance": {
+      "id": "workflow_test_compliance",
+      "name": "test_compliance",
+      "description": "Workflow from test_compliance",
+      "primaryFile": "test_compliance.py"
+    },
+    "workflow_test_security_regression": {
+      "id": "workflow_test_security_regression",
+      "name": "test_security_regression",
+      "description": "Workflow from test_security_regression",
+      "primaryFile": "test_security_regression.py"
     }
   }
 }
