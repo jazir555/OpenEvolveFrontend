@@ -962,4 +962,10 @@ __all__ = [
     "KnowledgeIntegrator",
     "ArchitectureValidator",
     "Phase4Config",
+    # Additional Phase IV components
+    "OutputGenerator",
+    "PredictiveValidator",
+    "ResultVerifier",
+    "StructuredLogger",
+    "CircuitBreaker",
 ]

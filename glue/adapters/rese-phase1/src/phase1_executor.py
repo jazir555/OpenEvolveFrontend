@@ -568,6 +568,31 @@ class EpistemicAuditExecutor:
                 sce_available=False,
             )
 
+        # Initialize Lean 4 autoformalization pipeline (Category A constraints)
+        self.lean4_formalizer = None
+        if self.config.ENABLE_LEAN4_INTEGRATION:
+            try:
+                # Import autoformalization pipeline from leanaide-adapter
+                sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../leanaide-adapter/src'))
+                from autoformalization_pipeline import AutoformalizationPipeline, AutoformalizationConfig
+
+                # Create formalizer
+                lean4_config = AutoformalizationConfig.from_env()
+                self.lean4_formalizer = AutoformalizationPipeline(config=lean4_config)
+
+                self.logger.info("Lean 4 autoformalization pipeline initialized",
+                    lean4_enabled=True,
+                    category_a_formalization=True,
+                )
+            except ImportError as e:
+                self.logger.warn("Lean 4 autoformalization pipeline not available",
+                    error=str(e),
+                )
+            except Exception as e:
+                self.logger.warn("Failed to initialize Lean 4 autoformalization pipeline",
+                    error=str(e),
+                )
+
         self.logger.info("EpistemicAuditExecutor initialized",
             max_assumptions=self.config.MAX_ASSUMPTIONS,
             max_constraints=self.config.MAX_CONSTRAINTS,
@@ -575,6 +600,7 @@ class EpistemicAuditExecutor:
             enable_red_team=self.config.ENABLE_RED_TEAM_PROTOCOL,
             debiasing_enabled=self.metacognitive_reflector is not None,
             sce_available=self.sce is not None,
+            lean4_enabled=self.lean4_formalizer is not None,
         )
 
     # ========================================================================
@@ -629,6 +655,37 @@ class EpistemicAuditExecutor:
                 problem_description=problem_description,
                 correlation_id=correlation_id,
             )
+
+            # Φ₁.ℝ: Lean 4 Formalization (Category A Constraints)
+            # Per RESE Technical Manual §2.1.5
+            lean4_formalization_result = None
+            if self.lean4_formalizer:
+                self.logger.info("Starting Φ₁.ℝ: Lean 4 Formalization of Category A Constraints",
+                    correlation_id=correlation_id
+                )
+                try:
+                    lean4_formalization_result = self.lean4_formalizer.run(
+                        correlation_id=correlation_id
+                    )
+
+                    self.logger.info("Φ₁.ℝ: Lean 4 Formalization completed",
+                        correlation_id=correlation_id,
+                        total_constraints=lean4_formalization_result.total_constraints,
+                        formalized_count=lean4_formalization_result.formalized_count,
+                        coverage_percentage=lean4_formalization_result.coverage_percentage,
+                    )
+
+                    # Add formalization metadata to hardened constraints
+                    for constraint in hardened_constraints:
+                        constraint['lean4_formalized'] = True
+                        constraint['lean4_file'] = lean4_formalization_result.lean4_file_path
+                        constraint['formalization_timestamp'] = lean4_formalization_result.timestamp
+
+                except Exception as e:
+                    self.logger.warn("Lean 4 formalization failed, continuing without formalization",
+                        correlation_id=correlation_id,
+                        error=str(e),
+                    )
 
             # Φ₁.₅: Tacit Assumption Mining
             self.logger.info("Starting Φ₁.₅: Tacit Assumption Mining",
@@ -719,12 +776,15 @@ class EpistemicAuditExecutor:
                     'average_cbi': sum(r.get('confirmation_bias_index', 0) for r in debiasing_results) / len(debiasing_results) if debiasing_results else None,
                     'average_bias_reduction': sum(r.get('bias_reduction', 0) for r in debiasing_results) / len(debiasing_results) if debiasing_results else None,
                     'reduction_in_failure_rate': None,  # To be updated after Phase II/III
+                    'category_a_constraints_formalized': lean4_formalization_result.formalized_count if lean4_formalization_result else 0,
+                    'category_a_coverage_percentage': lean4_formalization_result.coverage_percentage if lean4_formalization_result else None,
                 },
                 metadata={
                     'execution_time_ms': execution_time_ms,
                     'lean4_version': '4.7.0' if self.config.ENABLE_LEAN4_INTEGRATION else None,
                     'epoch_number': 1,  # Default to first epoch
                     'debiasing_enabled': self.metacognitive_reflector is not None,
+                    'lean4_formalization_enabled': self.lean4_formalizer is not None,
                 },
                 correlation_id=correlation_id,
                 timestamp=datetime.now(timezone.utc).isoformat(),  # Law of UTC

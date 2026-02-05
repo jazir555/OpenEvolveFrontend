@@ -1,0 +1,40 @@
+# ============================================================================
+# Python Dependencies for Lean 4 Bridge
+# ============================================================================
+#
+# Following CLAUDE.md principles:
+# - Law of Configuration Explicitness: All config via env vars
+# - Circuit breaker pattern for Lean 4 failures
+# - Structured logging with correlation IDs
+# ============================================================================
+
+# Core dependencies
+psutil>=5.9.0          # Process monitoring and resource limits
+requests>=2.31.0       # HTTP client for Lean server API
+pydantic>=2.0.0        # Data validation and schemas
+python-dotenv>=1.0.0   # Environment variable loading
+typing-extensions>=4.5.0
+
+# Logging and monitoring
+structlog>=23.1.0      # Structured logging (JSON output)
+
+# Circuit breaker and retry
+tenacity>=8.2.0        # Retry logic with exponential backoff
+
+# Async support (for future enhancements)
+aiohttp>=3.8.0         # Async HTTP client
+asyncio>=3.11.0
+
+# Testing (dev dependencies)
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-mock>=3.11.0
+
+# Type checking
+mypy>=1.5.0
+
+# Code quality
+black>=23.7.0
+flake8>=6.0.0
+isort>=1.12.0

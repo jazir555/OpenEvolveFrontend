@@ -1,0 +1,154 @@
+# ============================================================================
+# Lean 4 Docker Compose Configuration for RESE
+# ============================================================================
+#
+# Following CLAUDE.md principles:
+# - Law of Configuration Explicitness: All config via env vars
+# - Service names: Use Docker service names for discovery
+# - Timeouts: All operations bounded
+# - Health checks: Verify Lean 4 + Mathlib operational
+#
+# Usage:
+#   docker-compose -f docker-compose.lean4.yml up -d
+#   docker-compose -f docker-compose.lean4.yml logs -f lean4
+#   docker-compose -f docker-compose.lean4.yml down
+# ============================================================================
+
+version: '3.8'
+
+services:
+  # ========================================
+  # Lean 4 Formal Verification Engine
+  # ========================================
+  lean4:
+    build:
+      context: ../../
+      dockerfile: infra/lean4-docker/Dockerfile
+    container_name: rese-lean4
+    hostname: rese-lean4
+
+    ports:
+      - "8080:8080"  # Lean server port
+
+    environment:
+      # Lean 4 configuration
+      - LEAN4_VERSION=v4.11.0
+      - LEAN4_TIMEOUT_MS=${LEAN4_TIMEOUT_MS:-30000}
+      - LEAN4_MAX_MEMORY_MB=${LEAN4_MAX_MEMORY_MB:-4096}
+      - LEAN4_MAX_PROOF_TIME_MS=${LEAN4_MAX_PROOF_TIME_MS:-60000}
+
+      # Mathlib cache configuration
+      - MATHLIB_CACHE_DIR=/workspace/.mathlib_cache
+
+      # Python bridge configuration
+      - PYTHON_VERSION=3.11
+      - LEAN4_BRIDGE_LOG_LEVEL=${LEAN4_BRIDGE_LOG_LEVEL:-INFO}
+      - LEAN4_BRIDGE_TIMEOUT_MS=${LEAN4_BRIDGE_TIMEOUT_MS:-30000}
+
+      # Circuit breaker configuration
+      - LEAN4_CIRCUIT_BREAKER_THRESHOLD=${LEAN4_CIRCUIT_BREAKER_THRESHOLD:-5}
+      - LEAN4_CIRCUIT_BREAKER_TIMEOUT_MS=${LEAN4_CIRCUIT_BREAKER_TIMEOUT_MS:-60000}
+      - LEAN4_CIRCUIT_BREAKER_HALF_OPEN_ATTEMPTS=${LEAN4_CIRCUIT_BREAKER_HALF_OPEN_ATTEMPTS:-3}
+
+      # Retry configuration
+      - LEAN4_RETRY_MAX=${LEAN4_RETRY_MAX:-3}
+      - LEAN4_RETRY_INITIAL_DELAY_MS=${LEAN4_RETRY_INITIAL_DELAY_MS:-1000}
+      - LEAN4_RETRY_MAX_DELAY_MS=${LEAN4_RETRY_MAX_DELAY_MS:-10000}
+
+      # Logging configuration (Law of UTC)
+      - TZ=UTC
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=json
+
+      # Service URLs (for distributed tracing)
+      - RES_PIPELINE_URL=${RES_PIPELINE_URL:-http://rese-pipeline:8000}
+
+    volumes:
+      # Persist Mathlib cache (speed up builds)
+      - lean4-mathlib-cache:/workspace/.mathlib_cache
+
+      # Lean 4 project workspace
+      - lean4-workspace:/workspace/lean4
+
+      # Python bridge code (mounted read-only for production)
+      - ../../glue/lib/lean4_bridge:/workspace/bridge:ro
+
+      # Shared schemas
+      - ../../glue/schemas:/workspace/schemas:ro
+
+    networks:
+      - lean4-network
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    # Resource limits (prevent runaway proofs)
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          cpus: '1'
+          memory: 2G
+
+  # ========================================
+  # Lean 4 Development Tools (Optional)
+  # ========================================
+  # lean4-dev:
+  #   build:
+  #     context: ../../
+  #     dockerfile: infra/lean4-docker/Dockerfile
+  #   container_name: rese-lean4-dev
+  #   hostname: rese-lean4-dev
+  #
+  #   ports:
+  #     - "8081:8080"  # Alternative Lean server port
+  #
+  #   environment:
+  #     - LEAN4_VERSION=v4.11.0
+  #     - LOG_LEVEL=DEBUG
+  #
+  #   volumes:
+  #     - lean4-mathlib-cache:/workspace/.mathlib_cache
+  #     - ../../glue/lib/lean4_bridge:/workspace/bridge  # Read-write for dev
+  #     - ../../glue/schemas:/workspace/schemas:ro
+  #
+  #   networks:
+  #     - lean4-network
+  #
+  #   command: tail -f /dev/null  # Keep running for interactive use
+  #
+  #   restart: unless-stopped
+
+# ========================================
+# NETWORKS
+# ========================================
+
+networks:
+  lean4-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+
+# ========================================
+# VOLUMES
+# ========================================
+
+volumes:
+  lean4-mathlib-cache:
+    driver: local
+
+  lean4-workspace:
+    driver: local
+
+# ============================================================================
+# END OF DOCKER COMPOSE CONFIGURATION
+# ============================================================================
