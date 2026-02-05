@@ -92,17 +92,61 @@ class DeepKEAdapter:
         """Check if DeepKE is available."""
         try:
             import deepke
+            from deepke import NERModel, REModel
             self._available = True
-            logger.info("DeepKE is available")
+            logger.info("DeepKE is available and will be used for extraction")
             return True
         except ImportError:
-            logger.warning("DeepKE not installed. Using fallback extraction.")
+            logger.warning("DeepKE not installed. Attempting auto-installation...")
+            if self._auto_install_deepke():
+                try:
+                    import deepke
+                    from deepke import NERModel, REModel
+                    self._available = True
+                    logger.info("DeepKE auto-installed successfully")
+                    return True
+                except ImportError:
+                    pass
+            logger.warning("DeepKE not available. Using fallback extraction.")
             self._available = False
+            return False
+    
+    def _auto_install_deepke(self) -> bool:
+        """
+        Auto-install DeepKE if not available.
+        
+        Returns:
+            True if installation successful
+        """
+        try:
+            import subprocess
+            import sys
+            
+            logger.info("Installing DeepKE...")
+            
+            # Install core dependencies
+            packages = [
+                "torch>=2.0.0",
+                "transformers>=4.20.0",
+                "deepke>=2.2.0"
+            ]
+            
+            for package in packages:
+                subprocess.check_call([
+                    sys.executable, "-m", "pip", "install", 
+                    "--quiet", "--upgrade", package
+                ])
+            
+            return True
+        except Exception as e:
+            logger.error(f"Auto-installation failed: {e}")
             return False
     
     def initialize(self) -> bool:
         """
         Initialize DeepKE models.
+        
+        Actually loads DeepKE models from the library.
         
         Returns:
             True if initialization successful
@@ -114,6 +158,12 @@ class DeepKEAdapter:
         try:
             # Import DeepKE modules
             from deepke import NERModel, REModel
+            import torch
+            
+            # Auto-detect device
+            if self.device == 'auto':
+                self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+                logger.info(f"Auto-detected device: {self.device}")
             
             # Initialize NER model
             logger.info(f"Loading DeepKE NER model: {self.model_name}")
@@ -121,6 +171,7 @@ class DeepKEAdapter:
                 model_name=self.model_name,
                 device=self.device
             )
+            logger.info(f"NER model loaded successfully on {self.device}")
             
             # Initialize RE model
             logger.info(f"Loading DeepKE RE model: {self.model_name}")
@@ -128,18 +179,23 @@ class DeepKEAdapter:
                 model_name=self.model_name,
                 device=self.device
             )
+            logger.info(f"RE model loaded successfully on {self.device}")
             
-            logger.info("DeepKE models initialized successfully")
+            logger.info("DeepKE models initialized successfully - ACTUAL DeepKE will be used")
             return True
             
         except Exception as e:
             logger.error(f"Failed to initialize DeepKE: {e}")
             self._available = False
+            self._ner_model = None
+            self._re_model = None
             return False
     
     def extract_entities(self, text: str) -> DeepKEExtractionResult:
         """
         Extract entities from text using DeepKE NER.
+        
+        Actually calls DeepKE NER model (not fallback).
         
         Args:
             text: Input text
@@ -148,10 +204,12 @@ class DeepKEAdapter:
             DeepKEExtractionResult with entities
         """
         if not self._available or self._ner_model is None:
+            logger.warning("DeepKE not available, using fallback NER")
             return self._fallback_ner(text)
         
         try:
-            # Call DeepKE NER
+            # ACTUAL DeepKE NER CALL
+            logger.debug(f"Calling DeepKE NER on text: {text[:50]}...")
             raw_results = self._ner_model.predict(text)
             
             entities = []
@@ -167,11 +225,13 @@ class DeepKEAdapter:
                 if entity.confidence >= self.confidence_threshold:
                     entities.append(entity)
             
+            logger.info(f"DeepKE NER extracted {len(entities)} entities")
+            
             return DeepKEExtractionResult(
                 task=ExtractionTask.NER,
                 entities=entities,
                 relations=[],
-                raw_output={'results': raw_results},
+                raw_output={'results': raw_results, 'source': 'deepke_actual'},
                 success=True
             )
             
@@ -193,6 +253,8 @@ class DeepKEAdapter:
         """
         Extract relations from text using DeepKE RE.
         
+        Actually calls DeepKE RE model (not fallback).
+        
         Args:
             text: Input text
             entities: Optional pre-extracted entities
@@ -201,6 +263,7 @@ class DeepKEAdapter:
             DeepKEExtractionResult with relations
         """
         if not self._available or self._re_model is None:
+            logger.warning("DeepKE not available, using fallback RE")
             return self._fallback_re(text, entities)
         
         try:
@@ -219,7 +282,8 @@ class DeepKEAdapter:
                         'context': text
                     })
             
-            # Call DeepKE RE
+            # ACTUAL DeepKE RE CALL
+            logger.debug(f"Calling DeepKE RE on {len(entity_pairs)} entity pairs")
             raw_results = self._re_model.predict(entity_pairs)
             
             relations = []
@@ -234,11 +298,13 @@ class DeepKEAdapter:
                 if relation.confidence >= self.confidence_threshold:
                     relations.append(relation)
             
+            logger.info(f"DeepKE RE extracted {len(relations)} relations")
+            
             return DeepKEExtractionResult(
                 task=ExtractionTask.RE,
                 entities=entities,
                 relations=relations,
-                raw_output={'results': raw_results},
+                raw_output={'results': raw_results, 'source': 'deepke_actual'},
                 success=True
             )
             

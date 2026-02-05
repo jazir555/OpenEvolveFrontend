@@ -48,7 +48,8 @@ except ImportError:
     BLUE_TEAM_AVAILABLE = False
 
 try:
-    from evolution import EvolutionEngine
+    from evolution import EvolutionEngine, run_evolution_loop, EvolutionConfiguration
+    from evolutionary_optimization import run_evolution
     EVOLUTION_AVAILABLE = True
 except ImportError:
     EVOLUTION_AVAILABLE = False
@@ -58,6 +59,24 @@ try:
     PHYSICS_VALIDATOR_AVAILABLE = True
 except ImportError:
     PHYSICS_VALIDATOR_AVAILABLE = False
+
+try:
+    from finance_validator import FinanceValidator, FinanceValidationResult
+    FINANCE_VALIDATOR_AVAILABLE = True
+except ImportError:
+    FINANCE_VALIDATOR_AVAILABLE = False
+
+try:
+    from chemistry_validator import ChemistryValidator, ChemistryValidationResult
+    CHEMISTRY_VALIDATOR_AVAILABLE = True
+except ImportError:
+    CHEMISTRY_VALIDATOR_AVAILABLE = False
+
+try:
+    from engineering_validator import EngineeringValidator, EngineeringValidationResult
+    ENGINEERING_VALIDATOR_AVAILABLE = True
+except ImportError:
+    ENGINEERING_VALIDATOR_AVAILABLE = False
 
 try:
     from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
@@ -929,14 +948,39 @@ class DomainSpecificGauntlet(BaseGauntlet):
         self.domain = domain_lower
         self.domain_rules = self._load_domain_rules()
         
-        # Initialize real validators
+        # Initialize real validators based on domain
         self.physics_validator = None
+        self.finance_validator = None
+        self.chemistry_validator = None
+        self.engineering_validator = None
+        
         if self.domain == "physics" and PHYSICS_VALIDATOR_AVAILABLE:
             try:
                 self.physics_validator = PhysicsValidator()
                 self.logger.info("PhysicsValidator initialized for domain gauntlet")
             except Exception as e:
                 self.logger.warning(f"Failed to initialize PhysicsValidator: {e}")
+        
+        if self.domain == "finance" and FINANCE_VALIDATOR_AVAILABLE:
+            try:
+                self.finance_validator = FinanceValidator()
+                self.logger.info("FinanceValidator initialized for domain gauntlet")
+            except Exception as e:
+                self.logger.warning(f"Failed to initialize FinanceValidator: {e}")
+        
+        if self.domain == "chemistry" and CHEMISTRY_VALIDATOR_AVAILABLE:
+            try:
+                self.chemistry_validator = ChemistryValidator()
+                self.logger.info("ChemistryValidator initialized for domain gauntlet")
+            except Exception as e:
+                self.logger.warning(f"Failed to initialize ChemistryValidator: {e}")
+        
+        if self.domain == "engineering" and ENGINEERING_VALIDATOR_AVAILABLE:
+            try:
+                self.engineering_validator = EngineeringValidator()
+                self.logger.info("EngineeringValidator initialized for domain gauntlet")
+            except Exception as e:
+                self.logger.warning(f"Failed to initialize EngineeringValidator: {e}")
     
     def _load_domain_rules(self) -> List[Dict]:
         """Load domain-specific validation rules."""
@@ -1056,7 +1100,70 @@ class DomainSpecificGauntlet(BaseGauntlet):
     def _execute_finance_validation(
         self, solution: Any, context: Dict, start_time: float, solution_id: str
     ) -> GauntletResult:
-        """Execute REAL finance validation."""
+        """Execute REAL finance validation using FinanceValidator."""
+        
+        if FINANCE_VALIDATOR_AVAILABLE:
+            try:
+                # Use REAL FinanceValidator
+                validator = FinanceValidator()
+                
+                # Extract returns data and constraints from context
+                returns_data = context.get("returns_data")
+                portfolio_weights = context.get("portfolio_weights")
+                constraints = context.get("constraints", {})
+                
+                # Perform REAL validation
+                validation_result = validator.validate(
+                    solution=solution,
+                    returns_data=returns_data,
+                    portfolio_weights=portfolio_weights,
+                    constraints=constraints
+                )
+                
+                execution_time = time.time() - start_time
+                
+                # Convert issues to improvements
+                improvements = [
+                    issue.suggestion for issue in validation_result.issues 
+                    if issue.suggestion
+                ]
+                
+                return self._create_result(
+                    solution_id=solution_id,
+                    passed=validation_result.valid,
+                    score=validation_result.confidence,
+                    confidence=validation_result.confidence,
+                    execution_time=execution_time,
+                    details={
+                        "domain": self.domain,
+                        "validation_method": "FinanceValidator",
+                        "risk_metrics": {
+                            "var_95": validation_result.risk_metrics.var_95,
+                            "volatility": validation_result.risk_metrics.volatility,
+                            "sharpe_ratio": validation_result.risk_metrics.sharpe_ratio,
+                            "max_drawdown": validation_result.risk_metrics.max_drawdown
+                        },
+                        "arbitrage_detected": validation_result.arbitrage_detected,
+                        "compliance_status": validation_result.compliance_status,
+                        "issues_count": len(validation_result.issues),
+                        "warnings_count": len(validation_result.warnings)
+                    },
+                    feedback=f"Finance validation: Risk level={validation_result.get_summary()['risk_level']}, "
+                            f"Arbitrage={validation_result.arbitrage_detected}, "
+                            f"Issues={len(validation_result.issues)}",
+                    improvements=improvements
+                )
+                
+            except Exception as e:
+                self.logger.warning(f"FinanceValidator failed: {e}, using fallback")
+        
+        # Fallback to rule-based validation
+        return self._execute_finance_validation_fallback(solution, context, start_time, solution_id)
+    
+    def _execute_finance_validation_fallback(
+        self, solution: Any, context: Dict, start_time: float, solution_id: str
+    ) -> GauntletResult:
+        """Fallback finance validation without FinanceValidator."""
         solution_text = str(solution).lower()
         
         check_results = []
@@ -1092,14 +1199,15 @@ class DomainSpecificGauntlet(BaseGauntlet):
             solution_id=solution_id,
             passed=score >= self.config.get("pass_threshold", 0.8),
             score=score,
-            confidence=0.9,
+            confidence=0.7,  # Lower confidence for fallback
             execution_time=execution_time,
             details={
                 "domain": self.domain,
+                "validation_method": "fallback",
                 "check_results": check_results,
                 "finance_metrics": context.get("finance_metrics", {})
             },
-            feedback=f"Finance validation: {sum(1 for r in check_results if r['passed'])}/{len(check_results)} checks passed",
+            feedback=f"Finance validation (fallback): {sum(1 for r in check_results if r['passed'])}/{len(check_results)} checks passed",
             improvements=[r.get("message", "") for r in check_results if not r.get("passed")]
         )
     
@@ -1168,7 +1276,74 @@ class DomainSpecificGauntlet(BaseGauntlet):
     def _execute_chemistry_validation(
         self, solution: Any, context: Dict, start_time: float, solution_id: str
     ) -> GauntletResult:
-        """Execute REAL chemistry validation."""
+        """Execute REAL chemistry validation using ChemistryValidator."""
+        
+        if CHEMISTRY_VALIDATOR_AVAILABLE:
+            try:
+                # Use REAL ChemistryValidator
+                validator = ChemistryValidator()
+                
+                # Extract reaction and constraints from context
+                expected_reaction = context.get("expected_reaction")
+                constraints = context.get("constraints", {})
+                
+                # Perform REAL validation
+                validation_result = validator.validate(
+                    solution=solution,
+                    expected_reaction=expected_reaction,
+                    constraints=constraints
+                )
+                
+                execution_time = time.time() - start_time
+                
+                # Convert findings to improvements
+                improvements = [
+                    finding.suggestion for finding in validation_result.findings
+                    if finding.suggestion
+                ]
+                
+                # Get reaction details if available
+                reaction_info = {}
+                if validation_result.reaction:
+                    reaction_info = {
+                        "reaction_type": validation_result.reaction.reaction_type.value,
+                        "balanced": validation_result.reaction.balanced,
+                        "reactants": [(r.formula, r.coefficient) for r in validation_result.reaction.reactants],
+                        "products": [(p.formula, p.coefficient) for p in validation_result.reaction.products]
+                    }
+                
+                return self._create_result(
+                    solution_id=solution_id,
+                    passed=validation_result.valid,
+                    score=validation_result.confidence,
+                    confidence=validation_result.confidence,
+                    execution_time=execution_time,
+                    details={
+                        "domain": self.domain,
+                        "validation_method": "ChemistryValidator",
+                        "stoichiometry_valid": validation_result.stoichiometry_valid,
+                        "safety_passed": validation_result.safety_passed,
+                        "thermodynamic_feasible": validation_result.thermodynamic_feasible,
+                        "reaction": reaction_info,
+                        "findings_count": len(validation_result.findings),
+                        "summary": validation_result.get_summary()
+                    },
+                    feedback=f"Chemistry validation: Stoichiometry={validation_result.stoichiometry_valid}, "
+                            f"Safety={validation_result.safety_passed}, "
+                            f"Thermo={validation_result.thermodynamic_feasible}",
+                    improvements=improvements
+                )
+                
+            except Exception as e:
+                self.logger.warning(f"ChemistryValidator failed: {e}, using fallback")
+        
+        # Fallback to rule-based validation
+        return self._execute_chemistry_validation_fallback(solution, context, start_time, solution_id)
+    
+    def _execute_chemistry_validation_fallback(
+        self, solution: Any, context: Dict, start_time: float, solution_id: str
+    ) -> GauntletResult:
+        """Fallback chemistry validation without ChemistryValidator."""
         solution_text = str(solution).lower()
         
         check_results = []
@@ -1213,20 +1388,81 @@ class DomainSpecificGauntlet(BaseGauntlet):
             solution_id=solution_id,
             passed=score >= self.config.get("pass_threshold", 0.8),
             score=score,
-            confidence=0.85,
+            confidence=0.7,  # Lower confidence for fallback
             execution_time=execution_time,
             details={
                 "domain": self.domain,
+                "validation_method": "fallback",
                 "check_results": check_results
             },
-            feedback=f"Chemistry validation: {sum(1 for r in check_results if r['passed'])}/{len(check_results)} checks passed",
+            feedback=f"Chemistry validation (fallback): {sum(1 for r in check_results if r['passed'])}/{len(check_results)} checks passed",
             improvements=[r.get("message", "") for r in check_results if not r.get("passed")]
         )
     
     def _execute_engineering_validation(
         self, solution: Any, context: Dict, start_time: float, solution_id: str
     ) -> GauntletResult:
-        """Execute REAL engineering validation."""
+        """Execute REAL engineering validation using EngineeringValidator."""
+        
+        if ENGINEERING_VALIDATOR_AVAILABLE:
+            try:
+                # Use REAL EngineeringValidator
+                validator = EngineeringValidator()
+                
+                # Extract load case and constraints from context
+                material_name = context.get("material", "steel_a36")
+                load_case = context.get("load_case")
+                constraints = context.get("constraints", {})
+                
+                # Perform REAL validation
+                validation_result = validator.validate(
+                    solution=solution,
+                    material_name=material_name,
+                    load_case=load_case,
+                    constraints=constraints
+                )
+                
+                execution_time = time.time() - start_time
+                
+                # Convert issues to improvements
+                improvements = [
+                    issue.suggestion for issue in validation_result.issues
+                    if issue.suggestion
+                ]
+                
+                return self._create_result(
+                    solution_id=solution_id,
+                    passed=validation_result.valid,
+                    score=validation_result.confidence,
+                    confidence=validation_result.confidence,
+                    execution_time=execution_time,
+                    details={
+                        "domain": self.domain,
+                        "validation_method": "EngineeringValidator",
+                        "safety_factor": validation_result.safety_factor,
+                        "max_stress_mpa": validation_result.max_stress,
+                        "stress_analysis_passed": validation_result.stress_analysis_passed,
+                        "safety_check_passed": validation_result.safety_check_passed,
+                        "manufacturability_passed": validation_result.manufacturability_passed,
+                        "material": material_name,
+                        "summary": validation_result.get_summary()
+                    },
+                    feedback=f"Engineering validation: Safety factor={validation_result.safety_factor:.2f}, "
+                            f"Max stress={validation_result.max_stress:.1f} MPa, "
+                            f"Stress OK={validation_result.stress_analysis_passed}",
+                    improvements=improvements
+                )
+                
+            except Exception as e:
+                self.logger.warning(f"EngineeringValidator failed: {e}, using fallback")
+        
+        # Fallback to rule-based validation
+        return self._execute_engineering_validation_fallback(solution, context, start_time, solution_id)
+    
+    def _execute_engineering_validation_fallback(
+        self, solution: Any, context: Dict, start_time: float, solution_id: str
+    ) -> GauntletResult:
+        """Fallback engineering validation without EngineeringValidator."""
         solution_text = str(solution).lower()
         
         check_results = []
@@ -1272,13 +1508,14 @@ class DomainSpecificGauntlet(BaseGauntlet):
             solution_id=solution_id,
             passed=score >= self.config.get("pass_threshold", 0.8),
             score=score,
-            confidence=0.85,
+            confidence=0.7,  # Lower confidence for fallback
             execution_time=execution_time,
             details={
                 "domain": self.domain,
+                "validation_method": "fallback",
                 "check_results": check_results
             },
-            feedback=f"Engineering validation: {sum(1 for r in check_results if r['passed'])}/{len(check_results)} checks passed",
+            feedback=f"Engineering validation (fallback): {sum(1 for r in check_results if r['passed'])}/{len(check_results)} checks passed",
             improvements=[r.get("message", "") for r in check_results if not r.get("passed")]
         )
     
@@ -1687,16 +1924,108 @@ class EvolutionaryGauntlet(BaseGauntlet):
     def _simulate_evolution(
         self, seed_solution: Any, fitness_fn: Callable, config: Dict
     ) -> List[Any]:
-        """Simulate evolution to generate solution variants."""
+        """
+        Simulate evolution using REAL EvolutionEngine.
+        ACTUALLY calls EvolutionEngine to generate evolved variants.
+        """
         variants = []
         
-        # Generate variants through mutation and crossover
+        # Generate variants through REAL evolution if available
+        if EVOLUTION_AVAILABLE and self.evolution_engine is not None:
+            try:
+                # Use the REAL evolution engine
+                evolved_variants = self._run_real_evolution_engine(
+                    seed_solution=seed_solution,
+                    fitness_fn=fitness_fn,
+                    config=config
+                )
+                if evolved_variants:
+                    return evolved_variants
+            except Exception as e:
+                self.logger.warning(f"Real evolution engine failed: {e}, using fallback")
+        
+        # Fallback to mutation-based variant generation
         num_variants = min(config.get("population_size", 50) - 1, 100)
         
         for i in range(num_variants):
             # Create mutated variant
             variant = self._create_variant(seed_solution, mutation_rate=config.get("mutation_rate", 0.1))
             variants.append(variant)
+        
+        return variants
+    
+    def _run_real_evolution_engine(
+        self, seed_solution: Any, fitness_fn: Callable, config: Dict
+    ) -> List[Any]:
+        """
+        ACTUALLY call the EvolutionEngine to evolve solutions.
+        This is the REAL implementation that uses the evolution module.
+        """
+        variants = []
+        
+        try:
+            # Get solution text representation
+            seed_text = str(seed_solution)
+            
+            # Configure evolution parameters
+            population_size = config.get("population_size", 50)
+            generations = config.get("generations", 10)
+            
+            # Create evolution configuration
+            if 'EvolutionConfiguration' in globals():
+                evo_config = EvolutionConfiguration(
+                    max_iterations=generations,
+                    population_size=population_size,
+                    temperature=0.7,
+                    mutation_rate=config.get("mutation_rate", 0.1),
+                    crossover_rate=config.get("crossover_rate", 0.8),
+                    fitness_function=config.get("fitness_function", "default")
+                )
+            else:
+                evo_config = None
+            
+            # Run ACTUAL evolution using run_evolution_loop if available
+            if 'run_evolution_loop' in globals():
+                self.logger.info(f"Running REAL evolution with population={population_size}, generations={generations}")
+                
+                # Run evolution loop - this ACTUALLY calls the evolution engine
+                evolved_content = run_evolution_loop(
+                    current_content=seed_text,
+                    content_type="gauntlet_evaluation",
+                    config=evo_config,
+                    max_iterations=generations,
+                    population_size=population_size
+                )
+                
+                # Add evolved content as a variant
+                if evolved_content and evolved_content != seed_text:
+                    variants.append(evolved_content)
+                    self.logger.info("Successfully generated evolved variant using REAL EvolutionEngine")
+            
+            # Also try evolutionary_optimization if available
+            if 'run_evolution' in globals() and len(variants) < population_size // 2:
+                try:
+                    import os
+                    api_key = os.getenv("OPENAI_API_KEY", "")
+                    
+                    if api_key:
+                        result = run_evolution(
+                            initial_content=seed_text,
+                            content_type="gauntlet_evaluation",
+                            api_key=api_key,
+                            max_iterations=min(generations, 5),  # Limit for gauntlet context
+                            population_size=min(population_size, 20)
+                        )
+                        
+                        if result.get("success") and result.get("best_content"):
+                            variants.append(result["best_content"])
+                            self.logger.info("Generated variant using evolutionary_optimization")
+                except Exception as e:
+                    self.logger.debug(f"Evolutionary optimization not available: {e}")
+            
+        except Exception as e:
+            self.logger.error(f"Error running real evolution engine: {e}")
+            raise
         
         return variants
     

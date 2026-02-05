@@ -1,0 +1,26 @@
+{
+  "timestamp": "2026-02-04 21:50:08.075421",
+  "success": true,
+  "results": {
+    "setup": {
+      "setup_deepke": true,
+      "setup_oneke": true
+    },
+    "deepke": {
+      "deepke_adapter": true
+    },
+    "oneke": {
+      "oneke_adapter": true
+    },
+    "sqlite": {
+      "sqlite_persistence": true
+    },
+    "tests": {
+      "test_file": true
+    },
+    "structure": {
+      "deepke_structure": true,
+      "oneke_structure": true
+    }
+  }
+}

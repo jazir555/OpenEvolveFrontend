@@ -582,6 +582,8 @@ class TemporalKnowledgePersistence:
         # Initialize storage
         if backend == 'sqlite':
             self._init_sqlite()
+            # Load existing records from SQLite on startup
+            self.load_all_from_sqlite()
         elif backend == 'json':
             self._init_json()
         
@@ -712,13 +714,104 @@ class TemporalKnowledgePersistence:
         """
         Get a record by ID.
         
+        First checks memory cache, then queries SQLite if not found.
+        This ensures persistence across restarts.
+        
         Args:
             record_id: Record ID
             
         Returns:
             Record if found
         """
-        return self.records.get(record_id)
+        # First check memory cache
+        if record_id in self.records:
+            return self.records[record_id]
+        
+        # If using SQLite backend, query database
+        if self.backend == 'sqlite':
+            return self._get_from_sqlite(record_id)
+        
+        return None
+    
+    def _get_from_sqlite(self, record_id: str) -> Optional[TemporalKnowledgeRecord]:
+        """Retrieve record from SQLite database."""
+        try:
+            import sqlite3
+            conn = sqlite3.connect(str(self.db_path))
+            cursor = conn.cursor()
+            
+            cursor.execute(
+                'SELECT * FROM knowledge_records WHERE record_id = ?',
+                (record_id,)
+            )
+            row = cursor.fetchone()
+            conn.close()
+            
+            if row:
+                # Convert row to TemporalKnowledgeRecord
+                record = self._row_to_record(row)
+                # Cache in memory
+                self.records[record_id] = record
+                return record
+            
+            return None
+        except Exception as e:
+            logger.error(f"Failed to get from SQLite: {e}")
+            return None
+    
+    def _row_to_record(self, row) -> TemporalKnowledgeRecord:
+        """Convert SQLite row to TemporalKnowledgeRecord."""
+        from datetime import datetime
+        
+        # Row format: (record_id, content, created_at, valid_from, valid_until, 
+        #              version, previous_version_id, confidence, source)
+        return TemporalKnowledgeRecord(
+            record_id=row[0],
+            content=json.loads(row[1]) if row[1] else {},
+            created_at=datetime.fromisoformat(row[2]) if row[2] else datetime.now(),
+            valid_from=datetime.fromisoformat(row[3]) if row[3] else None,
+            valid_until=datetime.fromisoformat(row[4]) if row[4] else None,
+            version=row[5] if row[5] else 1,
+            previous_version_id=row[6],
+            confidence=row[7] if row[7] is not None else 0.5,
+            source=row[8] if row[8] else "unknown"
+        )
+    
+    def load_all_from_sqlite(self) -> int:
+        """
+        Load all records from SQLite into memory.
+        Call this on startup to restore state.
+        
+        Returns:
+            Number of records loaded
+        """
+        if self.backend != 'sqlite':
+            return 0
+        
+        try:
+            import sqlite3
+            conn = sqlite3.connect(str(self.db_path))
+            cursor = conn.cursor()
+            
+            cursor.execute('SELECT * FROM knowledge_records')
+            rows = cursor.fetchall()
+            conn.close()
+            
+            count = 0
+            for row in rows:
+                try:
+                    record = self._row_to_record(row)
+                    self.records[record.record_id] = record
+                    count += 1
+                except Exception as e:
+                    logger.warning(f"Failed to load record: {e}")
+            
+            logger.info(f"Loaded {count} records from SQLite")
+            return count
+            
+        except Exception as e:
+            logger.error(f"Failed to load from SQLite: {e}")
+            return 0
     
     def get_valid_records(
         self, 

@@ -369,7 +369,7 @@ class TestPhaseIEpistemicAudit:
 
 # =============================================================================
 # TEST: PHASE II - ISOMORPHIC MAPPING
-    =============================================================================
+# =============================================================================
 
 class TestPhaseIIIsomorphicMapping:
     """Test Phase II: Isomorphic Mapping workflows."""
@@ -469,7 +469,7 @@ class TestPhaseIIIsomorphicMapping:
 
 # =============================================================================
 # TEST: PHASE III - MCTS REFINEMENT
-    =============================================================================
+# =============================================================================
 
 class TestPhaseIIIMCTSRefinement:
     """Test Phase III: MCTS Refinement workflows."""
@@ -567,7 +567,7 @@ class TestPhaseIIIMCTSRefinement:
 
 # =============================================================================
 # TEST: PHASE IV - ARCHITECTURAL SYNTHESIS
-    =============================================================================
+# =============================================================================
 
 class TestPhaseIVArchitecturalSynthesis:
     """Test Phase IV: Architectural Synthesis workflows."""

@@ -28,6 +28,7 @@ import json
 import time
 import uuid
 import asyncio
+import logging
 from datetime import datetime, timezone
 from typing import Dict, List, Any
 import pytest
@@ -187,18 +188,26 @@ class TestPhase1Config:
 
     def test_config_invalid_confidence_too_high(self):
         """Test invalid confidence > 1.0"""
+        os.environ['PHASE1_TIMEOUT_MS'] = '15000'
+        os.environ['PHASE1_MAX_ASSUMPTIONS'] = '100'
         os.environ['PHASE1_MIN_ASSUMPTION_CONFIDENCE'] = '1.5'
         with pytest.raises(ValueError, match='between 0 and 1'):
             Phase1Config.from_env()
 
     def test_config_invalid_confidence_negative(self):
         """Test invalid negative confidence"""
+        os.environ['PHASE1_TIMEOUT_MS'] = '15000'
+        os.environ['PHASE1_MAX_ASSUMPTIONS'] = '100'
         os.environ['PHASE1_MIN_ASSUMPTION_CONFIDENCE'] = '-0.1'
         with pytest.raises(ValueError, match='between 0 and 1'):
             Phase1Config.from_env()
 
     def test_config_feature_flags(self):
         """Test feature flag configuration"""
+        os.environ['PHASE1_TIMEOUT_MS'] = '15000'
+        os.environ['PHASE1_MAX_ASSUMPTIONS'] = '100'
+        os.environ['PHASE1_MIN_ASSUMPTION_CONFIDENCE'] = '0.3'
+        os.environ['PHASE1_MIN_ROBUSTNESS_SCORE'] = '0.5'
         os.environ['PHASE1_ENABLE_TACIT_MINING'] = 'false'
         os.environ['PHASE1_ENABLE_RED_TEAM'] = 'false'
         config = Phase1Config.from_env()
@@ -207,6 +216,10 @@ class TestPhase1Config:
 
     def test_config_circuit_breaker_settings(self):
         """Test circuit breaker configuration"""
+        os.environ['PHASE1_TIMEOUT_MS'] = '15000'
+        os.environ['PHASE1_MAX_ASSUMPTIONS'] = '100'
+        os.environ['PHASE1_MIN_ASSUMPTION_CONFIDENCE'] = '0.3'
+        os.environ['PHASE1_MIN_ROBUSTNESS_SCORE'] = '0.5'
         os.environ['PHASE1_CIRCUIT_BREAKER_THRESHOLD'] = '10'
         os.environ['PHASE1_CIRCUIT_BREAKER_TIMEOUT_MS'] = '120000'
         config = Phase1Config.from_env()
@@ -215,6 +228,10 @@ class TestPhase1Config:
 
     def test_config_iteration_limits(self):
         """Test iteration limit configuration"""
+        os.environ['PHASE1_TIMEOUT_MS'] = '15000'
+        os.environ['PHASE1_MAX_ASSUMPTIONS'] = '100'
+        os.environ['PHASE1_MIN_ASSUMPTION_CONFIDENCE'] = '0.3'
+        os.environ['PHASE1_MIN_ROBUSTNESS_SCORE'] = '0.5'
         os.environ['PHASE1_MAX_CONSTRAINTS'] = '500'
         os.environ['PHASE1_MAX_CONTRADICTIONS'] = '50'
         config = Phase1Config.from_env()
@@ -236,67 +253,75 @@ class TestStructuredLogger:
 
     def test_logger_info(self, capsys):
         """Test info logging"""
-        logger = StructuredLogger('TestComponent')
+        logger = StructuredLogger('TestComponent_info')
         logger.info('Test message', key1='value1', key2='value2')
         captured = capsys.readouterr()
-        log_output = json.loads(captured.out.strip())
+        # Logs go to stderr
+        log_output = json.loads(captured.err.strip().split('\n')[0])
         assert log_output['level'] == 'info'
-        assert log_output['component'] == 'TestComponent'
+        assert log_output['component'] == 'TestComponent_info'
         assert log_output['message'] == 'Test message'
         assert log_output['key1'] == 'value1'
 
     def test_logger_warn(self, capsys):
         """Test warning logging"""
-        logger = StructuredLogger('TestComponent')
+        logger = StructuredLogger('TestComponent_warn')
         logger.warn('Warning message', warning_code='W001')
         captured = capsys.readouterr()
-        log_output = json.loads(captured.out.strip())
+        # Logs go to stderr
+        log_output = json.loads(captured.err.strip().split('\n')[0])
         assert log_output['level'] == 'warn'
         assert log_output['message'] == 'Warning message'
 
     def test_logger_error(self, capsys):
         """Test error logging"""
-        logger = StructuredLogger('TestComponent')
+        logger = StructuredLogger('TestComponent_error')
         error = ValueError('Test error')
         logger.error('Error occurred', error=error, context='test')
         captured = capsys.readouterr()
-        log_output = json.loads(captured.out.strip())
+        # Logs go to stderr
+        log_output = json.loads(captured.err.strip().split('\n')[0])
         assert log_output['level'] == 'error'
         assert log_output['error'] == 'Test error'
         assert log_output['error_type'] == 'ValueError'
 
     def test_logger_debug(self, capsys):
         """Test debug logging"""
-        logger = StructuredLogger('TestComponent')
+        logger = StructuredLogger('TestComponent_debug')
+        # Set logger level to DEBUG to see debug messages
+        logger.logger.setLevel(logging.DEBUG)
         logger.debug('Debug message')
         captured = capsys.readouterr()
-        log_output = json.loads(captured.out.strip())
+        # Logs go to stderr
+        log_output = json.loads(captured.err.strip().split('\n')[0])
         assert log_output['level'] == 'debug'
 
     def test_logger_utc_timestamp(self, capsys):
         """Test UTC timestamps in logs"""
-        logger = StructuredLogger('TestComponent')
+        logger = StructuredLogger('TestComponent_timestamp')
         logger.info('Test')
         captured = capsys.readouterr()
-        log_output = json.loads(captured.out.strip())
+        # Logs go to stderr
+        log_output = json.loads(captured.err.strip().split('\n')[0])
         # Verify ISO-8601 format
         assert 'T' in log_output['timestamp']
         assert log_output['timestamp'].endswith('Z') or '+' in log_output['timestamp']
 
     def test_logger_json_format(self, capsys):
         """Test JSON log format"""
-        logger = StructuredLogger('TestComponent')
+        logger = StructuredLogger('TestComponent_json')
         logger.info('Test')
         captured = capsys.readouterr()
-        # Should be valid JSON
-        json.loads(captured.out.strip())
+        # Logs go to stderr, should be valid JSON
+        json.loads(captured.err.strip().split('\n')[0])
 
     def test_logger_correlation_id(self, capsys):
         """Test correlation ID in logs"""
-        logger = StructuredLogger('TestComponent')
+        logger = StructuredLogger('TestComponent_correlation')
         logger.info('Test', correlation_id='test-123')
         captured = capsys.readouterr()
-        log_output = json.loads(captured.out.strip())
+        # Logs go to stderr
+        log_output = json.loads(captured.err.strip().split('\n')[0])
         assert log_output['correlation_id'] == 'test-123'
 
 
@@ -819,7 +844,7 @@ class TestBiasMetricsTracker:
         summary = tracker.calculate_summary()
         assert summary.total_epochs == 2
         assert summary.current_cbi == 0.60
-        assert summary.average_cbi == 0.65
+        assert abs(summary.average_cbi - 0.65) < 0.001  # Floating point tolerance
 
     def test_tracker_threshold_check_ok(self, tracker):
         """Test threshold check with OK status"""
@@ -909,7 +934,7 @@ class TestBiasMetricsTracker:
             initial_cbi=0.8,
             final_cbi=0.6,
         )
-        assert reduction == 25.0  # (0.8 - 0.6) / 0.8 * 100
+        assert abs(reduction - 25.0) < 0.001  # Floating point tolerance: (0.8 - 0.6) / 0.8 * 100
 
     def test_calculate_bias_reduction_zero_initial(self):
         """Test bias reduction with zero initial CBI"""

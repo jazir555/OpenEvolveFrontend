@@ -675,11 +675,8 @@ class OneKEAdapter(ExtractionInterface):
         """
         Call OneKE extraction API.
 
-        This is a placeholder - actual implementation depends on OneKE's API.
-        May involve:
-        - HTTP requests to OneKE server
-        - Subprocess calls to OneKE CLI
-        - Direct Python imports if OneKE is installed
+        Actually calls OneKE library if available, otherwise uses
+        LLM-based extraction with schema guidance.
 
         Args:
             config: Extraction configuration
@@ -687,19 +684,192 @@ class OneKEAdapter(ExtractionInterface):
         Returns:
             Extraction results
         """
-        # Placeholder: Simulate OneKE response
-        # In production, this would call actual OneKE API
-        await asyncio.sleep(0.1)  # Simulate API call
+        # Try to use actual OneKE library
+        oneke_result = await self._call_actual_oneke(config)
+        if oneke_result is not None:
+            return oneke_result
+        
+        # Fallback: Use LLM-based extraction with schema guidance
+        return await self._call_llm_extraction(config)
+    
+    async def _call_actual_oneke(self, config: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """
+        Try to call actual OneKE library.
+        
+        Returns:
+            Extraction results or None if OneKE not available
+        """
+        try:
+            # Try to import OneKE wrapper
+            import sys
+            from pathlib import Path
+            
+            # Add OneKE to path if it exists locally
+            oneke_path = Path(__file__).parent.parent.parent / "OneKE"
+            if oneke_path.exists():
+                sys.path.insert(0, str(oneke_path))
+            
+            # Try importing OneKE
+            try:
+                from oneke import OneKE
+            except ImportError:
+                return None  # OneKE not installed
+            
+            # Get API key
+            api_key = self.config['connection'].get('api_key')
+            model_name = self.config['connection'].get('model_name_or_path', 'gpt-4o-mini')
+            
+            # Initialize OneKE
+            if api_key:
+                oneke = OneKE(
+                    model_name_or_path=model_name,
+                    api_key=api_key,
+                    model_category="ChatGPT"
+                )
+            else:
+                # Try local model
+                oneke = OneKE(
+                    model_name_or_path="zjunlp/oneke",
+                    model_category="Local"
+                )
+            
+            # Call extraction
+            text = config.get('text', '')
+            schema = config.get('schema', {})
+            task = config.get('task', 'NER')
+            
+            result = oneke.extract(
+                text=text,
+                schema=schema,
+                task=task
+            )
+            
+            # Log actual OneKE usage
+            logger.info(f"OneKE actual call successful: {len(result.get('entities', []))} entities")
+            
+            return {
+                'entities': result.get('entities', []),
+                'relations': result.get('relations', []),
+                'events': result.get('events', []),
+                'triples': result.get('triples', []),
+                'confidence': result.get('confidence', 0.85),
+                'metadata': {
+                    'model': model_name,
+                    'source': 'oneke_actual',
+                    'task': task
+                }
+            }
+            
+        except Exception as e:
+            logger.debug(f"Actual OneKE call failed: {e}")
+            return None
+    
+    async def _call_llm_extraction(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Fallback: Use LLM-based extraction with schema guidance.
+        
+        This provides real extraction using OpenAI API when OneKE library
+        is not available.
+        """
+        import os
+        import openai
+        
+        text = config.get('text', '')
+        schema = config.get('schema', {})
+        task = config.get('task', 'NER')
+        
+        api_key = self.config['connection'].get('api_key') or os.getenv('OPENAI_API_KEY')
+        
+        if not api_key:
+            logger.warning("No API key available for LLM extraction")
+            return self._create_fallback_response(config)
+        
+        try:
+            client = openai.OpenAI(api_key=api_key)
+            
+            # Build prompt based on task and schema
+            prompt = self._build_extraction_prompt(text, schema, task)
+            
+            response = client.chat.completions.create(
+                model=self.config['connection'].get('model_name_or_path', 'gpt-4o-mini'),
+                messages=[
+                    {"role": "system", "content": "You are a knowledge extraction system. Extract structured information according to the schema provided."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.0,
+                response_format={"type": "json_object"}
+            )
+            
+            result_text = response.choices[0].message.content
+            result = json.loads(result_text)
+            
+            logger.info(f"LLM extraction successful: {len(result.get('entities', []))} entities")
+            
+            return {
+                'entities': result.get('entities', []),
+                'relations': result.get('relations', []),
+                'events': result.get('events', []),
+                'triples': result.get('triples', []),
+                'confidence': result.get('confidence', 0.8),
+                'metadata': {
+                    'model': self.config['connection'].get('model_name_or_path', 'gpt-4o-mini'),
+                    'source': 'llm_extraction',
+                    'task': task
+                }
+            }
+            
+        except Exception as e:
+            logger.error(f"LLM extraction failed: {e}")
+            return self._create_fallback_response(config)
+    
+    def _build_extraction_prompt(self, text: str, schema: Dict[str, Any], task: str) -> str:
+        """Build extraction prompt based on schema and task."""
+        entity_types = schema.get('entity_types', [])
+        relation_types = schema.get('relation_types', [])
+        
+        prompt = f"""Extract information from the following text according to the schema.
 
+Text: {text}
+
+Task: {task}
+
+Entity Types: {', '.join([et.get('name', str(et)) for et in entity_types]) if entity_types else 'Any'}
+Relation Types: {', '.join([rt.get('name', str(rt)) for rt in relation_types]) if relation_types else 'Any'}
+
+Return a JSON object with the following structure:
+{{
+    "entities": [
+        {{
+            "text": "extracted entity text",
+            "type": "entity type",
+            "start": 0,
+            "end": 10
+        }}
+    ],
+    "relations": [
+        {{
+            "head": "head entity text",
+            "tail": "tail entity text",
+            "type": "relation type"
+        }}
+    ],
+    "confidence": 0.85
+}}
+"""
+        return prompt
+    
+    def _create_fallback_response(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a minimal fallback response."""
         return {
-            'entities': [
-                {'text': 'example', 'type': 'ENTITY', 'start': 0, 'end': 7}
-            ],
+            'entities': [],
             'relations': [],
             'events': [],
             'triples': [],
-            'confidence': 0.85,
-            'metadata': {'model': self.config['connection']['model_name_or_path']}
+            'confidence': 0.0,
+            'metadata': {
+                'source': 'fallback',
+                'error': 'OneKE not available and LLM extraction failed'
+            }
         }
 
     def _schema_to_dict(self, schema: SchemaDefinition) -> Dict[str, Any]:

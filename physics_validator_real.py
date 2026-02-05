@@ -431,7 +431,10 @@ class RealFiniteElementAnalysis:
                 B[2, 2*i] = c[i]
                 B[2, 2*i+1] = b[i]
             
-            u_elem = np.array([U[elem[i]*2], U[elem[i]*2+1]] for i in range(3)).flatten()
+            u_elem = np.array([
+                [U[elem[i]*2], U[elem[i]*2+1]] 
+                for i in range(3)
+            ]).flatten()
             strain = B @ u_elem
             stress = D @ strain
             stresses.append(stress)
