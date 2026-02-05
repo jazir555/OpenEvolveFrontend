@@ -18,6 +18,7 @@ Version: 1.0.0
 
 import asyncio
 import logging
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Union
@@ -49,6 +50,7 @@ try:
     from lean4_integration import (
         LeanAideService,
         VerificationResult,
+        VerificationStatus,
         create_lean4_service,
     )
     LEAN4_AVAILABLE = True
@@ -57,6 +59,7 @@ except ImportError as e:
     LEAN4_AVAILABLE = False
     LeanAideService = None
     VerificationResult = None
+    VerificationStatus = None
 
 try:
     from leanaide_client import LeanAideClient, TaskType
@@ -295,18 +298,17 @@ class UnifiedMathService:
             semantic_primitives = []
             parsed_statement = None
             
-            if hasattr(self.cav_nlp_bridge, 'parser') and self.cav_nlp_bridge.parser:
-                try:
-                    from openevolve.cav_nlp_integration.flexible_semantic_parsing import (
-                        SemanticNormalizer
-                    )
-                    normalizer = SemanticNormalizer()
-                    semantic_primitives = normalizer.normalize(text)
-                    components_used.append("semantic_normalizer")
-                    logger.debug(f"Extracted {len(semantic_primitives)} semantic primitives")
-                except Exception as e:
-                    warnings.append(f"Semantic parsing fallback: {e}")
-                    logger.warning(f"CAV-NLP semantic parsing failed: {e}")
+            try:
+                from openevolve.cav_nlp_integration.flexible_semantic_parsing import (
+                    SemanticNormalizer
+                )
+                normalizer = SemanticNormalizer()
+                semantic_primitives = normalizer.normalize(text)
+                components_used.append("semantic_normalizer")
+                logger.debug(f"Extracted {len(semantic_primitives)} semantic primitives")
+            except Exception as e:
+                warnings.append(f"Semantic parsing fallback: {e}")
+                logger.warning(f"CAV-NLP semantic parsing failed: {e}")
             
             # =====================================================================
             # Step 2: Dependency DAG Extraction
@@ -339,55 +341,53 @@ class UnifiedMathService:
             # =====================================================================
             synthesized_type = None
             
-            if hasattr(self.cav_nlp_bridge, 'synthesizer') and self.cav_nlp_bridge.synthesizer:
-                try:
-                    from openevolve.cav_nlp_integration.z3_semantic_synthesis import (
-                        Z3SemanticSynthesizer
-                    )
-                    synthesizer = Z3SemanticSynthesizer()
-                    
-                    # Create a simple parse tree placeholder for synthesis
-                    class SimpleParseTree:
-                        def __init__(self, text):
-                            self.text = text
-                    
-                    parse_tree = SimpleParseTree(text)
-                    interpretations = synthesizer.synthesize_semantics(text, parse_tree)
-                    
-                    if interpretations:
-                        synthesized_type = interpretations[0]
-                        components_used.append("z3_synthesizer")
-                        logger.debug(f"Synthesized type: {synthesized_type.lean_output[:50] if hasattr(synthesized_type, 'lean_output') else 'N/A'}...")
-                except Exception as e:
-                    warnings.append(f"Semantic synthesis fallback: {e}")
-                    logger.warning(f"CAV-NLP semantic synthesis failed: {e}")
+            try:
+                from openevolve.cav_nlp_integration.z3_semantic_synthesis import (
+                    Z3SemanticSynthesizer
+                )
+                synthesizer = Z3SemanticSynthesizer()
+                
+                # Create a simple parse tree placeholder for synthesis
+                class SimpleParseTree:
+                    def __init__(self, text):
+                        self.text = text
+                
+                parse_tree = SimpleParseTree(text)
+                interpretations = synthesizer.synthesize_semantics(text, parse_tree)
+                
+                if interpretations:
+                    synthesized_type = interpretations[0]
+                    components_used.append("z3_synthesizer")
+                    logger.debug(f"Synthesized type: {synthesized_type.lean_output[:50] if hasattr(synthesized_type, 'lean_output') else 'N/A'}...")
+            except Exception as e:
+                warnings.append(f"Semantic synthesis fallback: {e}")
+                logger.warning(f"CAV-NLP semantic synthesis failed: {e}")
             
             # =====================================================================
             # Step 4: Canonical Lean Generation
             # Generate final Lean 4 code from all previous steps
             # =====================================================================
-            if hasattr(self.cav_nlp_bridge, 'generator') and self.cav_nlp_bridge.generator:
-                try:
-                    from openevolve.cav_nlp_integration.canonical_lean_generator import (
-                        CanonicalLeanGenerator, SemanticGrammar
-                    )
-                    from openevolve.cav_nlp_integration.dependency_dag import StatementKind
-                    
-                    # Create grammar and generator
-                    grammar = SemanticGrammar()
-                    generator = CanonicalLeanGenerator(grammar)
-                    
-                    # If we have a DAG, use it for full generation
-                    if dag and dag.nodes:
-                        paper_title = context.paper_title if context else None
-                        lean_code = generator.generate_from_dag(dag, paper_title)
-                        components_used.append("canonical_generator_dag")
-                        logger.info(f"Generated Lean from DAG with {len(dag.nodes)} statements")
-                        return lean_code
-                    
-                except Exception as e:
-                    warnings.append(f"Canonical generator fallback: {e}")
-                    logger.warning(f"CAV-NLP canonical generator failed: {e}")
+            try:
+                from openevolve.cav_nlp_integration.canonical_lean_generator import (
+                    CanonicalLeanGenerator, SemanticGrammar
+                )
+                from openevolve.cav_nlp_integration.dependency_dag import StatementKind
+                
+                # Create grammar and generator
+                grammar = SemanticGrammar()
+                generator = CanonicalLeanGenerator(grammar)
+                
+                # If we have a DAG, use it for full generation
+                if dag and dag.nodes:
+                    paper_title = context.paper_title if context else None
+                    lean_code = generator.generate_from_dag(dag, paper_title)
+                    components_used.append("canonical_generator_dag")
+                    logger.info(f"Generated Lean from DAG with {len(dag.nodes)} statements")
+                    return lean_code
+                
+            except Exception as e:
+                warnings.append(f"Canonical generator fallback: {e}")
+                logger.warning(f"CAV-NLP canonical generator failed: {e}")
             
             # =====================================================================
             # Fallback: Smart Template Generation using semantic primitives
@@ -563,9 +563,12 @@ theorem formalized_statement : True := by
             logger.warning("LeanAide not available - cannot verify")
             return None
         
+        start_time = time.time()
+        
         try:
             if self.lean_service:
-                return await self.lean_service.verify(code)
+                result = await self.lean_service.verify(code)
+                return result
             elif self.lean_client and LEANAIDE_CLIENT_AVAILABLE:
                 # Use LeanAide client for verification via elaboration
                 # Elaboration checks if the code compiles and is valid
@@ -582,35 +585,44 @@ theorem formalized_statement : True := by
                     errors.extend(result.data["errors"])
                 
                 # Create verification result
+                elapsed = time.time() - start_time
                 message = "Verified via LeanAide elaboration" if is_valid else (result.error or "Verification failed")
                 if errors:
                     message += f"; Errors: {'; '.join(errors)}"
                 
                 return VerificationResult(
+                    status=VerificationStatus.SUCCESS if is_valid else VerificationStatus.PROOF_ERROR,
                     success=is_valid,
-                    message=message,
                     code=code,
-                    errors=errors if errors else None
+                    errors=errors if errors else [],
+                    output=message,
+                    execution_time=elapsed
                 )
             else:
                 logger.warning("No LeanAide service or client available for verification")
                 return None
                 
         except asyncio.TimeoutError:
+            elapsed = time.time() - start_time
             logger.error("Verification timed out")
             return VerificationResult(
+                status=VerificationStatus.TIMEOUT,
                 success=False,
-                message="Verification timed out",
                 code=code,
-                errors=["Timeout error"]
+                errors=["Timeout error"],
+                output="Verification timed out",
+                execution_time=elapsed
             )
         except Exception as e:
+            elapsed = time.time() - start_time
             logger.error(f"Verification failed: {e}")
             return VerificationResult(
+                status=VerificationStatus.SERVER_ERROR,
                 success=False,
-                message=f"Verification error: {str(e)}",
                 code=code,
-                errors=[str(e)]
+                errors=[str(e)],
+                output=f"Verification error: {str(e)}",
+                execution_time=elapsed
             )
     
     # ========================================================================
@@ -655,11 +667,15 @@ theorem formalized_statement : True := by
                 errors=["LeanAide client not available"]
             )
         
+        result = None
         try:
             # Call LeanAide client elaborate method
             # The client's elaborate() method sends the code to the server
             # and returns a LeanAideResult with the elaboration output
-            result = await self.lean_client.elaborate(code)
+            if timeout:
+                result = await asyncio.wait_for(self.lean_client.elaborate(code), timeout=timeout)
+            else:
+                result = await self.lean_client.elaborate(code)
             
             if result.success and result.data:
                 # Extract elaborated information from the response
@@ -690,13 +706,13 @@ theorem formalized_statement : True := by
                 )
             else:
                 # Elaboration failed
-                error_msg = result.error or "Unknown elaboration error"
+                error_msg = result.error or "Unknown elaboration error" if result else "Unknown elaboration error"
                 return ElaborationResult(
                     success=False,
                     original_code=code,
                     elaborated_code=code,
                     errors=[error_msg],
-                    info=result.logs
+                    info=result.logs if result else None
                 )
                 
         except asyncio.TimeoutError:

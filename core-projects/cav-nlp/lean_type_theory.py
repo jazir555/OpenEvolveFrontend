@@ -12,7 +12,7 @@ composition must satisfy.
 from dataclasses import dataclass, field
 from typing import Optional, List, Set, Dict, Union, Tuple
 from enum import Enum
-from z3 import *
+import z3
 
 
 class UniverseLevel:

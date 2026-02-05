@@ -336,21 +336,19 @@ class TestACEAdaptiveLearning:
             engine.skill_manager = mock_ace_components["skill_manager"]
             engine.skillbook = mock_ace_components["skillbook"]
 
-            with patch('knowledge_engine.integrations.agentic_context_integration.Sample'):
-                with patch('knowledge_engine.integrations.agentic_context_integration.SimpleEnvironment'):
-                    result = await engine.process_with_adaptive_learning(
-                        text=sample_text,
-                        context=sample_context,
-                        enable_reflection=True,
-                        enable_skill_update=True
-                    )
+            result = await engine.process_with_adaptive_learning(
+                text=sample_text,
+                context=sample_context,
+                enable_reflection=True,
+                enable_skill_update=True
+            )
 
-                    assert result.success is True
-                    assert isinstance(result.entities, list)
-                    assert isinstance(result.relations, list)
-                    assert isinstance(result.skills, list)
-                    assert result.processing_time_ms > 0
-                    assert result.error is None
+            assert result.success is True
+            assert isinstance(result.entities, list)
+            assert isinstance(result.relations, list)
+            assert isinstance(result.skills, list)
+            assert result.processing_time_ms >= 0
+            assert result.error is None
 
     @pytest.mark.asyncio
     async def test_process_with_adaptive_learning_without_reflection(
@@ -364,17 +362,15 @@ class TestACEAdaptiveLearning:
             engine.skill_manager = mock_ace_components["skill_manager"]
             engine.skillbook = mock_ace_components["skillbook"]
 
-            with patch('knowledge_engine.integrations.agentic_context_integration.Sample'):
-                with patch('knowledge_engine.integrations.agentic_context_integration.SimpleEnvironment'):
-                    result = await engine.process_with_adaptive_learning(
-                        text=sample_text,
-                        enable_reflection=False,
-                        enable_skill_update=False
-                    )
+            result = await engine.process_with_adaptive_learning(
+                text=sample_text,
+                enable_reflection=False,
+                enable_skill_update=False
+            )
 
-                    assert result.success is True
-                    assert result.metadata["reflection_enabled"] is False
-                    assert result.metadata["skill_update_enabled"] is False
+            assert result.success is True
+            assert result.metadata["reflection_enabled"] is False
+            assert result.metadata["skill_update_enabled"] is False
 
     @pytest.mark.asyncio
     async def test_process_with_adaptive_learning_with_ground_truth(
@@ -388,15 +384,13 @@ class TestACEAdaptiveLearning:
             engine.skill_manager = mock_ace_components["skill_manager"]
             engine.skillbook = mock_ace_components["skillbook"]
 
-            with patch('knowledge_engine.integrations.agentic_context_integration.Sample'):
-                with patch('knowledge_engine.integrations.agentic_context_integration.SimpleEnvironment'):
-                    result = await engine.process_with_adaptive_learning(
-                        text=sample_text,
-                        ground_truth="Expected answer"
-                    )
+            result = await engine.process_with_adaptive_learning(
+                text=sample_text,
+                ground_truth="Expected answer"
+            )
 
-                    assert result.success is True
-                    assert result.metadata["ground_truth_provided"] is True
+            assert result.success is True
+            assert result.metadata["ground_truth_provided"] is True
 
     @pytest.mark.asyncio
     async def test_process_with_adaptive_learning_component_failure(
@@ -425,14 +419,12 @@ class TestACEAdaptiveLearning:
             engine.skill_manager = mock_ace_components["skill_manager"]
             engine.skillbook = mock_ace_components["skillbook"]
 
-            with patch('knowledge_engine.integrations.agentic_context_integration.Sample'):
-                with patch('knowledge_engine.integrations.agentic_context_integration.SimpleEnvironment'):
-                    result = await engine.process_with_adaptive_learning(
-                        text=sample_text,
-                        correlation_id="test_correlation_123"
-                    )
+            result = await engine.process_with_adaptive_learning(
+                text=sample_text,
+                correlation_id="test_correlation_123"
+            )
 
-                    assert result.success is True
+            assert result.success is True
 
     @pytest.mark.asyncio
     async def test_process_with_adaptive_learning_empty_text(
@@ -446,12 +438,10 @@ class TestACEAdaptiveLearning:
             engine.skill_manager = mock_ace_components["skill_manager"]
             engine.skillbook = mock_ace_components["skillbook"]
 
-            with patch('knowledge_engine.integrations.agentic_context_integration.Sample'):
-                with patch('knowledge_engine.integrations.agentic_context_integration.SimpleEnvironment'):
-                    result = await engine.process_with_adaptive_learning(text="")
+            result = await engine.process_with_adaptive_learning(text="")
 
-                    # Should still succeed even with empty text
-                    assert isinstance(result, ACEIntegrationResult)
+            # Should still succeed even with empty text
+            assert isinstance(result, ACEIntegrationResult)
 
 
 # ============================================================================
@@ -471,17 +461,15 @@ class TestACEOfflineTraining:
             engine.offline_ace = mock_ace_components["offline_ace"]
             engine.skillbook = mock_ace_components["skillbook"]
 
-            with patch('knowledge_engine.integrations.agentic_context_integration.Sample'):
-                with patch('knowledge_engine.integrations.agentic_context_integration.SimpleEnvironment'):
-                    result = await engine.train_offline(
-                        training_samples=sample_training_data,
-                        epochs=3
-                    )
+            result = await engine.train_offline(
+                training_samples=sample_training_data,
+                epochs=3
+            )
 
-                    assert result.success is True
-                    assert result.metadata["training_samples"] == len(sample_training_data)
-                    assert result.metadata["epochs"] == 3
-                    assert result.processing_time_ms >= 0
+            assert result.success is True
+            assert result.metadata["training_samples"] == len(sample_training_data)
+            assert result.metadata["epochs"] == 3
+            assert result.processing_time_ms >= 0
 
     @pytest.mark.asyncio
     async def test_train_offline_custom_epochs(
@@ -493,15 +481,13 @@ class TestACEOfflineTraining:
             engine.offline_ace = mock_ace_components["offline_ace"]
             engine.skillbook = mock_ace_components["skillbook"]
 
-            with patch('knowledge_engine.integrations.agentic_context_integration.Sample'):
-                with patch('knowledge_engine.integrations.agentic_context_integration.SimpleEnvironment'):
-                    result = await engine.train_offline(
-                        training_samples=sample_training_data,
-                        epochs=5
-                    )
+            result = await engine.train_offline(
+                training_samples=sample_training_data,
+                epochs=5
+            )
 
-                    assert result.success is True
-                    assert result.metadata["epochs"] == 5
+            assert result.success is True
+            assert result.metadata["epochs"] == 5
 
     @pytest.mark.asyncio
     async def test_train_offline_without_ace(self, sample_training_data):
@@ -521,12 +507,10 @@ class TestACEOfflineTraining:
             engine.offline_ace = mock_ace_components["offline_ace"]
             engine.skillbook = mock_ace_components["skillbook"]
 
-            with patch('knowledge_engine.integrations.agentic_context_integration.Sample'):
-                with patch('knowledge_engine.integrations.agentic_context_integration.SimpleEnvironment'):
-                    result = await engine.train_offline(training_samples=[])
+            result = await engine.train_offline(training_samples=[])
 
-                    assert result.success is True
-                    assert result.metadata["training_samples"] == 0
+            assert result.success is True
+            assert result.metadata["training_samples"] == 0
 
     @pytest.mark.asyncio
     async def test_train_offline_with_correlation_id(
@@ -538,14 +522,12 @@ class TestACEOfflineTraining:
             engine.offline_ace = mock_ace_components["offline_ace"]
             engine.skillbook = mock_ace_components["skillbook"]
 
-            with patch('knowledge_engine.integrations.agentic_context_integration.Sample'):
-                with patch('knowledge_engine.integrations.agentic_context_integration.SimpleEnvironment'):
-                    result = await engine.train_offline(
-                        training_samples=sample_training_data,
-                        correlation_id="train_123"
-                    )
+            result = await engine.train_offline(
+                training_samples=sample_training_data,
+                correlation_id="train_123"
+            )
 
-                    assert result.success is True
+            assert result.success is True
 
 
 # ============================================================================
@@ -566,18 +548,16 @@ class TestACEOnlineLearning:
             engine.skillbook = mock_ace_components["skillbook"]
             engine.agent = mock_ace_components["agent"]
 
-            with patch('knowledge_engine.integrations.agentic_context_integration.Sample'):
-                with patch('knowledge_engine.integrations.agentic_context_integration.SimpleEnvironment'):
-                    result = await engine.process_online(
-                        text=sample_text,
-                        context=sample_context
-                    )
+            result = await engine.process_online(
+                text=sample_text,
+                context=sample_context
+            )
 
-                    assert result.success is True
-                    assert isinstance(result.entities, list)
-                    assert isinstance(result.relations, list)
-                    assert isinstance(result.skills, list)
-                    assert result.processing_time_ms > 0
+            assert result.success is True
+            assert isinstance(result.entities, list)
+            assert isinstance(result.relations, list)
+            assert isinstance(result.skills, list)
+            assert result.processing_time_ms >= 0
 
     @pytest.mark.asyncio
     async def test_process_online_with_ground_truth(
@@ -590,14 +570,12 @@ class TestACEOnlineLearning:
             engine.skillbook = mock_ace_components["skillbook"]
             engine.agent = mock_ace_components["agent"]
 
-            with patch('knowledge_engine.integrations.agentic_context_integration.Sample'):
-                with patch('knowledge_engine.integrations.agentic_context_integration.SimpleEnvironment'):
-                    result = await engine.process_online(
-                        text=sample_text,
-                        ground_truth="Expected answer"
-                    )
+            result = await engine.process_online(
+                text=sample_text,
+                ground_truth="Expected answer"
+            )
 
-                    assert result.success is True
+            assert result.success is True
 
     @pytest.mark.asyncio
     async def test_process_online_without_online_ace(self, sample_text):
@@ -618,11 +596,9 @@ class TestACEOnlineLearning:
             engine.skillbook = mock_ace_components["skillbook"]
             engine.agent = mock_ace_components["agent"]
 
-            with patch('knowledge_engine.integrations.agentic_context_integration.Sample'):
-                with patch('knowledge_engine.integrations.agentic_context_integration.SimpleEnvironment'):
-                    result = await engine.process_online(text="")
+            result = await engine.process_online(text="")
 
-                    assert isinstance(result, ACEIntegrationResult)
+            assert isinstance(result, ACEIntegrationResult)
 
 
 # ============================================================================

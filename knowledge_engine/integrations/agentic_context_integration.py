@@ -19,11 +19,29 @@ try:
 except ImportError:
     # Create stub classes for patching
     class Sample:
-        pass
+        def __init__(self, *args, **kwargs):
+            self.question = kwargs.get('question', '')
+            self.context = kwargs.get('context', '')
+            self.ground_truth = kwargs.get('ground_truth', None)
+
+    class EnvResult:
+        """Stub environment result."""
+        def __init__(self):
+            self.ground_truth = None
+            self.feedback = "Stub feedback"
+
     class SimpleEnvironment:
-        pass
+        def __init__(self, *args, **kwargs):
+            pass
+        def evaluate(self, sample, agent_output):
+            """Stub evaluate method."""
+            result = EnvResult()
+            result.ground_truth = getattr(sample, 'ground_truth', None)
+            return result
+
     class Skillbook:
-        pass
+        def __init__(self, *args, **kwargs):
+            pass
     _ace_available = False
 
 

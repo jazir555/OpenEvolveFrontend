@@ -20,7 +20,10 @@ Components:
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from enum import Enum, auto
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from lean4_integration import VerificationResult
 
 
 class TranslationDirection(Enum):
@@ -192,7 +195,7 @@ class VerificationBridgeResult:
     
     Attributes:
         z3_result: Result from Z3 verification (SAT/UNSAT/UNKNOWN)
-        lean_result: Result from Lean 4 verification (proved/disproved/unknown)
+        lean_result: Result from Lean 4 verification (VerificationResult object)
         agreed: Whether both systems agree on the result
         z3_model: Optional model from Z3 if satisfiable
         lean_proof: Optional proof term from Lean 4
@@ -202,8 +205,8 @@ class VerificationBridgeResult:
         dag: Optional dependency graph for verification (CAV-NLP)
         canonicalization_verified: Whether canonical form was validated (CAV-NLP)
     """
-    z3_result: str
-    lean_result: str
+    z3_result: Optional[str]
+    lean_result: Optional['VerificationResult']
     agreed: bool
     z3_model: Optional[Dict[str, Any]] = None
     lean_proof: Optional[str] = None
