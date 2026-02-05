@@ -150,7 +150,7 @@ async def example_intervention_prediction(model: CausalModel, builder: CausalMod
         if prediction.risk_assessment:
             print("\nRisk Assessment:")
             for risk in prediction.risk_assessment:
-                print(f"  ⚠ {risk}")
+                print(f"  [WARN] {risk}")
 
 
 async def example_outcome_explanation(model: CausalModel, builder: CausalModelBuilder):

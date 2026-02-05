@@ -128,7 +128,7 @@ def solve(
     # Check for resume flag - try to resume from last active context
     if resume:
         if not enable_learning:
-            console.print("[yellow]⚠ Warning: --resume requires learning to be enabled. Ignoring --resume flag.[/yellow]\n")
+            console.print("[yellow][WARN] Warning: --resume requires learning to be enabled. Ignoring --resume flag.[/yellow]\n")
             resume = False
         else:
             try:
@@ -150,7 +150,7 @@ def solve(
                     console.print("[yellow]ℹ No active context found to resume. Starting fresh.[/yellow]\n")
                     resume = False
             except Exception as e:
-                console.print(f"[yellow]⚠ Warning: Failed to load memory for resume: {e}[/yellow]\n")
+                console.print(f"[yellow][WARN] Warning: Failed to load memory for resume: {e}[/yellow]\n")
                 console.print("[yellow]Starting fresh without resume.[/yellow]\n")
                 resume = False
 
@@ -190,7 +190,7 @@ def solve(
                 console.print(f"  - Chunks learned: {stats['total_chunks']}")
 
         except KeyboardInterrupt:
-            console.print("\n[yellow]⚠ Interrupted by user[/yellow]")
+            console.print("\n[yellow][WARN] Interrupted by user[/yellow]")
         except Exception as e:
             console.print(f"\n[bold red]Error: {e}[/bold red]")
             raise

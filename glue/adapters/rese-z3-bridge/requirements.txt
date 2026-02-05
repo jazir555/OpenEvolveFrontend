@@ -1,0 +1,17 @@
+# RESE-Z3 Bridge Adapter Requirements
+#
+# Following CLAUDE.md principles:
+# - Minimal dependencies
+# - Explicit version pinning
+# - Security-first approach
+
+# HTTP client with retry and connection pooling
+requests>=2.31.0
+
+# For SMT-LIB parsing (optional, for advanced features)
+lark>=1.1.8
+
+# Testing dependencies (dev only)
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-mock>=3.11.1

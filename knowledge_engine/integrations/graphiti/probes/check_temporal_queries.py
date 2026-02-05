@@ -108,7 +108,7 @@ async def probe_temporal_queries() -> bool:
                 await bridge.close()
                 print("\n[OK] Cleanup completed")
             except Exception as e:
-                print(f"\n⚠ Cleanup warning: {e}")
+                print(f"\n[WARN] Cleanup warning: {e}")
 
 
 async def main() -> int:

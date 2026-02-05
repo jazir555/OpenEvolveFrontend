@@ -207,7 +207,7 @@ async def test_bias_reduction_measurement():
         if result.metrics.get('average_bias_reduction'):
             print(f"  - Average bias reduction: {result.metrics['average_bias_reduction']:.2f}%")
     else:
-        print("⚠ No debiasing results (assumptions may be below threshold)")
+        print("[WARN] No debiasing results (assumptions may be below threshold)")
 
 
 async def test_error_handling_when_debiasing_disabled():

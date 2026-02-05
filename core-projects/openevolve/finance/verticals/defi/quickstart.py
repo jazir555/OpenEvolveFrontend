@@ -77,14 +77,14 @@ async def quickstart():
     elif result.validation.risk_score < 50:
         print(f"  ! Good security profile - monitor in production")
     else:
-        print(f"  ⚠ Moderate risk - consider tightening parameters")
+        print(f"  [WARN] Moderate risk - consider tightening parameters")
 
     if result.capital_efficiency > 0.75:
         print(f"  [OK] High capital efficiency - good utilization")
     elif result.capital_efficiency > 0.60:
         print(f"  ! Moderate capital efficiency - acceptable")
     else:
-        print(f"  ⚠ Low capital efficiency - parameters may be too conservative")
+        print(f"  [WARN] Low capital efficiency - parameters may be too conservative")
 
     print("\n" + "=" * 80)
     print("Quickstart complete! See examples.py for more advanced usage.")

@@ -165,7 +165,7 @@ def validate_config(config_file, verbose, format):
                 if output.get('warnings'):
                     click.echo("\nWarnings:")
                     for warning in output['warnings']:
-                        click.echo(f"  ⚠ {warning}")
+                        click.echo(f"  [WARN] {warning}")
 
             return 0
 

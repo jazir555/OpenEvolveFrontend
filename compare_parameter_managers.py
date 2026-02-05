@@ -595,7 +595,7 @@ def main():
         if all(r.success for r in results):
             return 0
         else:
-            print(f"\n⚠ {len([r for r in results if not r.success])} benchmark(s) failed")
+            print(f"\n[WARN] {len([r for r in results if not r.success])} benchmark(s) failed")
             return 1
 
     except (RuntimeError, OSError, ValueError) as e:

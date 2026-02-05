@@ -140,7 +140,7 @@ async def test_decomposition_engine_imports():
         print("\n[OK] At least one decomposition engine is available")
         return True
     else:
-        print("\n⚠ No decomposition engines available (will use MAKER fallback)")
+        print("\n[WARN] No decomposition engines available (will use MAKER fallback)")
         return True
 
 
@@ -262,7 +262,7 @@ async def main():
         print("\nPhase 1 Foundation Implementation is complete!")
         return 0
     else:
-        print(f"\n⚠ {total - passed} test(s) had issues")
+        print(f"\n[WARN] {total - passed} test(s) had issues")
         print("\nNote: Some components may be optional (fallbacks will be used)")
         return 0
 

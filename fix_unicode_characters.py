@@ -10,22 +10,20 @@ from pathlib import Path
 
 # Mapping of Unicode characters to ASCII replacements
 UNICODE_REPLACEMENTS = {
-    '[OK]': '[OK]',      # Check mark
-    '[OK]': '[OK]',      # Check mark (light)
-    '[FAIL]': '[FAIL]',    # Cross mark
-    '[FAIL]': '[FAIL]',    # Cross mark (light)
-    '[WARN]': '[WARN]',    # Warning sign
-    '*': '*',          # Star
-    '*': '*',          # Bullet
-    '->': '->',         # Right arrow
-    '->': '->',         # Right arrow (heavy)
-    '<-': '<-',         # Left arrow
-    '^': '^',          # Up arrow
-    'v': 'v',          # Down arrow
+    '\u2705': '[OK]',      # Check mark (U+2705)
+    '\u2713': '[OK]',      # Check mark (light) (U+2713)
+    '\u274C': '[FAIL]',    # Cross mark (U+274C)
+    '\u2717': '[FAIL]',    # Cross mark (light) (U+2717)
+    '\u26A0\uFE0F': '[WARN]',  # Warning sign with variation selector (U+26A0 U+FE0F)
+    '\u26A0': '[WARN]',    # Warning sign without variation selector (U+26A0)
+    '\u2605': '*',         # Star (U+2605)
+    '\u2022': '*',         # Bullet (U+2022)
+    '\u2192': '->',        # Right arrow (U+2192)
+    '\u27A1': '->',        # Right arrow (heavy) (U+27A1)
+    '\u2190': '<-',        # Left arrow (U+2190)
+    '\u2191': '^',         # Up arrow (U+2191)
+    '\u2193': 'v',         # Down arrow (U+2193)
 }
-
-# Pattern to match any Unicode character we want to replace
-UNICODE_PATTERN = re.compile('|'.join(map(re.escape, UNICODE_REPLACEMENTS.keys())))
 
 
 def fix_unicode_in_file(filepath):
@@ -38,7 +36,13 @@ def fix_unicode_in_file(filepath):
         return False
     
     # Check if file contains any of the Unicode characters
-    if not UNICODE_PATTERN.search(content):
+    has_unicode = False
+    for unicode_char in UNICODE_REPLACEMENTS.keys():
+        if unicode_char in content:
+            has_unicode = True
+            break
+    
+    if not has_unicode:
         return False
     
     # Replace each Unicode character
@@ -68,6 +72,9 @@ def main():
                  '.gemini', '.leanaide_cache', '.c2c_cache', '.openevolve',
                  '.steer', '.tdad'}
     
+    # Excluded files
+    skip_files = {'fix_unicode_characters.py', 'test_unicode_fix.py'}
+    
     print("Scanning Python files for Unicode characters...\n")
     
     # Use os.walk for more robust directory traversal
@@ -77,7 +84,7 @@ def main():
         dirs[:] = [d for d in dirs if d not in skip_dirs]
         
         for filename in files:
-            if filename.endswith('.py'):
+            if filename.endswith('.py') and filename not in skip_files:
                 filepath = os.path.join(root, filename)
                 python_files.append(filepath)
     

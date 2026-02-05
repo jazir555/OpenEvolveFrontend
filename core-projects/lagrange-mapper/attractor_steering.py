@@ -450,7 +450,7 @@ class DualModeAttractorSteering:
             self.neutral_steering = load_steering(model_name, config_dir)
             print(f"[OK] Loaded neutral attractors for {model_name}")
         except FileNotFoundError:
-            print(f"⚠ No neutral attractors found for {model_name}")
+            print(f"[WARN] No neutral attractors found for {model_name}")
         
         # Load controversial attractors
         self.controversial_steering = None
@@ -461,7 +461,7 @@ class DualModeAttractorSteering:
             )
             print(f"[OK] Loaded controversial attractors for {model_name}")
         except FileNotFoundError:
-            print(f"⚠ No controversial attractors found for {model_name}")
+            print(f"[WARN] No controversial attractors found for {model_name}")
         
         # Combined config for compatibility
         if self.neutral_steering:

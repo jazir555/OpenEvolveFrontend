@@ -459,7 +459,7 @@ class Judge:
         # Individual criteria
         lines.append("\nBy Criterion:")
         for criterion, score in sorted(criteria_scores.items()):
-            status = "[OK]" if score >= 0.8 else "⚠" if score >= 0.6 else "[FAIL]"
+            status = "[OK]" if score >= 0.8 else "[WARN]" if score >= 0.6 else "[FAIL]"
             lines.append(f"  {status} {criterion}: {score:.1%}")
         
         # Strengths

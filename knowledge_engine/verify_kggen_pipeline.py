@@ -154,7 +154,7 @@ async def verify_engine_integration():
         if engine.kggen_pipeline:
             print("  [OK] KG-Gen pipeline initialized")
         else:
-            print("  ⚠ KG-Gen pipeline not initialized (this is OK if dependencies are missing)")
+            print("  [WARN] KG-Gen pipeline not initialized (this is OK if dependencies are missing)")
 
         print("\n[3/3] Testing knowledge graph extraction...")
         text = "Python is a programming language created by Guido van Rossum."
@@ -162,7 +162,7 @@ async def verify_engine_integration():
             graph = await engine.extract_knowledge_graph(text, upload_to_neo4j=False)
             print(f"  [OK] Extraction successful ({len(graph.entities)} entities)")
         except Exception as e:
-            print(f"  ⚠ Extraction failed: {e}")
+            print(f"  [WARN] Extraction failed: {e}")
 
         print("\n" + "=" * 60)
         print("KnowledgeEngine Integration Verification Complete")
@@ -201,7 +201,7 @@ async def main():
         print('  graph = await engine.extract_knowledge_graph("Your text here")')
         return 0
     else:
-        print("⚠ Some verifications failed or warnings were issued.")
+        print("[WARN] Some verifications failed or warnings were issued.")
         print("Please review the output above for details.")
         return 1
 

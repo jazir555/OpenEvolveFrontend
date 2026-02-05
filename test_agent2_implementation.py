@@ -187,22 +187,22 @@ def test_agent2_integration():
         if agent2.uncertainty_propagator:
             print("[OK] Uncertainty propagator available")
         else:
-            print("⚠ Uncertainty propagator not available (will use fallback)")
+            print("[WARN] Uncertainty propagator not available (will use fallback)")
 
         if agent2.problem_analyzer:
             print("[OK] Problem analyzer available")
         else:
-            print("⚠ Problem analyzer not available (will use fallback)")
+            print("[WARN] Problem analyzer not available (will use fallback)")
 
         if agent2.red_team:
             print("[OK] Red team available")
         else:
-            print("⚠ Red team not available (will use fallback)")
+            print("[WARN] Red team not available (will use fallback)")
 
         if agent2.blue_team:
             print("[OK] Blue team available")
         else:
-            print("⚠ Blue team not available (will use fallback)")
+            print("[WARN] Blue team not available (will use fallback)")
 
     except Exception as e:
         print(f"[FAIL] Agent 2 initialization failed: {e}")

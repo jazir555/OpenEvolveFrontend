@@ -75,7 +75,7 @@ def all(config, verbose, strict):
             if verbose and hasattr(result, 'warnings') and result.warnings:
                 click.echo("\nWarnings:")
                 for warning in result.warnings:
-                    click.echo(f"  ⚠ {warning}")
+                    click.echo(f"  [WARN] {warning}")
 
             return 0
         else:
@@ -86,7 +86,7 @@ def all(config, verbose, strict):
             if verbose and hasattr(result, 'warnings') and result.warnings:
                 click.echo("\nWarnings:")
                 for warning in result.warnings:
-                    click.echo(f"  ⚠ {warning}")
+                    click.echo(f"  [WARN] {warning}")
 
             return 1
 
@@ -143,7 +143,7 @@ def validate_config_file(config_file, verbose, format):
                 if verbose and hasattr(result, 'warnings') and result.warnings:
                     click.echo("\nWarnings:")
                     for warning in result.warnings:
-                        click.echo(f"  ⚠ {warning}")
+                        click.echo(f"  [WARN] {warning}")
             else:
                 click.echo(f"[FAIL] Configuration has {len(result.errors)} error(s):", err=True)
                 for error in result.errors:
@@ -185,7 +185,7 @@ def check_profile(profile_name, verbose):
             if verbose and hasattr(result, 'warnings') and result.warnings:
                 click.echo("\nWarnings:")
                 for warning in result.warnings:
-                    click.echo(f"  ⚠ {warning}")
+                    click.echo(f"  [WARN] {warning}")
 
             return 0
         else:
@@ -229,7 +229,7 @@ def check_preset(preset_name, verbose):
             if verbose and hasattr(result, 'warnings') and result.warnings:
                 click.echo("\nWarnings:")
                 for warning in result.warnings:
-                    click.echo(f"  ⚠ {warning}")
+                    click.echo(f"  [WARN] {warning}")
 
             return 0
         else:

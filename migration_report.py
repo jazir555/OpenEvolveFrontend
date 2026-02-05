@@ -251,7 +251,7 @@ def generate_report() -> str:
         for detail in result['file_details']:
             status_icon = {
                 'COMPLETE': '[OK]',
-                'PARTIAL': '⚠',
+                'PARTIAL': '[WARN]',
                 'IN_PROGRESS': '🔄',
                 'NOT_STARTED': '[FAIL]',
                 'MISSING': '[FAIL]',

@@ -295,7 +295,7 @@ def evaluate(program_path):
             # Check if we have API keys
             api_key = os.environ.get("OPENAI_API_KEY")
             if not api_key:
-                print(f"⚠ No OPENAI_API_KEY found, using mock mode")
+                print(f"[WARN] No OPENAI_API_KEY found, using mock mode")
 
                 # In mock mode, just test that the initial code is valid
                 print(f"[OK] Running in mock mode - validating initial code only")
@@ -390,7 +390,7 @@ def evaluate(program_path):
                             print(f"  Test: bubble_sort([5, 2, 8, 1]) = {test_result}")
 
                     except Exception as e:
-                        print(f"⚠ Evolved code execution error: {e}")
+                        print(f"[WARN] Evolved code execution error: {e}")
                         # Still pass if evolution worked, even if evolved code has issues
 
                     execution_time = time.time() - start_time
@@ -413,7 +413,7 @@ def evaluate(program_path):
                     )
 
                 else:
-                    print(f"⚠ No evolved code generated")
+                    print(f"[WARN] No evolved code generated")
                     execution_time = time.time() - start_time
 
                     return TestResult(

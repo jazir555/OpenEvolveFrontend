@@ -53,7 +53,7 @@ def print_error(text: str):
 
 def print_warning(text: str):
     """Print warning message"""
-    print(f"{Colors.WARNING}⚠ {text}{Colors.ENDC}")
+    print(f"{Colors.WARNING}[WARN] {text}{Colors.ENDC}")
 
 
 def print_info(text: str):

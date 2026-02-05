@@ -287,7 +287,7 @@ class TestOpenEvolveCrewAIIntegration:
             return True
             
         except requests.exceptions.ConnectionError:
-            print("⚠ CREWAI API not accessible - server may not be running")
+            print("[WARN] CREWAI API not accessible - server may not be running")
             print("  To run the server: python -m CREWAI.main")
             return False
         except Exception as e:
@@ -367,7 +367,7 @@ class TestOpenEvolveCrewAIIntegration:
                 return False
                 
         except requests.exceptions.ConnectionError:
-            print("⚠ CREWAI server not accessible - unable to test ticket functionality")
+            print("[WARN] CREWAI server not accessible - unable to test ticket functionality")
             print("  To run the server: python -m CREWAI.main")
             return False
         except Exception as e:
@@ -480,7 +480,7 @@ class TestOpenEvolveCrewAIIntegration:
         if failed == 0:
             print("\n🎉 All integration tests passed! OpenEvolve and CREWAI are fully integrated.")
         else:
-            print(f"\n⚠ {failed} test(s) failed. Please review the output above and address any issues.")
+            print(f"\n[WARN] {failed} test(s) failed. Please review the output above and address any issues.")
         
         return overall_success
 

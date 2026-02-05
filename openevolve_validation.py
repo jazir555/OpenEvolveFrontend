@@ -94,7 +94,7 @@ class ValidationResult:
             ValidationStatus.PASSED: "[OK]",
             ValidationStatus.FAILED: "[FAIL]",
             ValidationStatus.SKIPPED: "○",
-            ValidationStatus.WARNING: "⚠"
+            ValidationStatus.WARNING: "[WARN]"
         }
         return icons.get(self.status, "?")
 

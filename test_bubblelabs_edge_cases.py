@@ -176,7 +176,7 @@ class TestBubbleLabsAnalyticsEdgeCases(unittest.TestCase):
             )
             print("[OK] Handled very large token count (1 trillion)")
         except Exception as e:
-            print(f"⚠ Very large token count: {e}")
+            print(f"[WARN] Very large token count: {e}")
 
         # Test with very large execution time
         try:
@@ -189,7 +189,7 @@ class TestBubbleLabsAnalyticsEdgeCases(unittest.TestCase):
             )
             print("[OK] Handled very large execution time (1 million seconds)")
         except Exception as e:
-            print(f"⚠ Very large execution time: {e}")
+            print(f"[WARN] Very large execution time: {e}")
 
         print("[OK] Large number tests completed")
 
@@ -354,7 +354,7 @@ class TestBubbleLabsAnalyticsEdgeCases(unittest.TestCase):
             )
             print("[OK] Accepted invalid status (logs warning)")
         except Exception as e:
-            print(f"⚠ Rejected invalid status: {e}")
+            print(f"[WARN] Rejected invalid status: {e}")
 
         analytics.end_workflow_tracking(
             workflow_id="workflow-state",
@@ -369,7 +369,7 @@ class TestBubbleLabsAnalyticsEdgeCases(unittest.TestCase):
             )
             print("[OK] Allowed status update (idempotent)")
         except Exception as e:
-            print(f"⚠ Prevented re-ending: {e}")
+            print(f"[WARN] Prevented re-ending: {e}")
 
         print("[OK] Invalid state transition tests completed")
 
@@ -399,7 +399,7 @@ class TestBubbleLabsAnalyticsEdgeCases(unittest.TestCase):
         if result is None:
             print("[OK] Returned None for non-existent workflow")
         else:
-            print("⚠ Did not return None for non-existent workflow")
+            print("[WARN] Did not return None for non-existent workflow")
 
         print("[OK] Missing file tests completed")
 
@@ -421,7 +421,7 @@ class TestBubbleLabsAnalyticsEdgeCases(unittest.TestCase):
             try:
                 result = analytics.export_analytics_report(output_path=invalid_path)
                 if result:
-                    print(f"⚠ Path accepted: {invalid_path}")
+                    print(f"[WARN] Path accepted: {invalid_path}")
                 else:
                     print(f"[OK] Rejected invalid path: {invalid_path}")
             except Exception as e:
@@ -468,7 +468,7 @@ class TestBubbleLabsCREWAIBridgeEdgeCases(unittest.TestCase):
 
         try:
             bridge = self.BubbleLabsCREWAIBridge(batch_size=None)
-            print("⚠ Accepted None batch_size")
+            print("[WARN] Accepted None batch_size")
         except (ValueError, TypeError):
             print("[OK] Rejected None batch_size")
 
@@ -487,13 +487,13 @@ class TestBubbleLabsCREWAIBridgeEdgeCases(unittest.TestCase):
         if not result:
             print("[OK] Returned False for empty workflow_id")
         else:
-            print("⚠ Did not return False for empty workflow_id")
+            print("[WARN] Did not return False for empty workflow_id")
 
         result = bridge.get_ticket_for_workflow("")
         if result is None:
             print("[OK] Returned None for empty workflow_id")
         else:
-            print("⚠ Did not return None for empty workflow_id")
+            print("[WARN] Did not return None for empty workflow_id")
 
         print("[OK] Empty string tests passed")
 
@@ -506,20 +506,20 @@ class TestBubbleLabsCREWAIBridgeEdgeCases(unittest.TestCase):
 
         try:
             bridge = self.BubbleLabsCREWAIBridge(batch_size=-1)
-            print("⚠ Accepted negative batch_size")
+            print("[WARN] Accepted negative batch_size")
         except ValueError:
             print("[OK] Rejected negative batch_size")
 
         bridge = self.BubbleLabsCREWAIBridge(mappings_db_path=self.test_db)
         try:
             bridge.stop_background_sync(timeout=-10)
-            print("⚠ Accepted negative timeout")
+            print("[WARN] Accepted negative timeout")
         except ValueError:
             print("[OK] Rejected negative timeout")
 
         try:
             bridge.cleanup_old_mappings(max_age_days=-30)
-            print("⚠ Accepted negative max_age_days")
+            print("[WARN] Accepted negative max_age_days")
         except ValueError:
             print("[OK] Rejected negative max_age_days")
 
@@ -534,14 +534,14 @@ class TestBubbleLabsCREWAIBridgeEdgeCases(unittest.TestCase):
 
         try:
             bridge = self.BubbleLabsCREWAIBridge(batch_size=10**9)
-            print("⚠ Accepted very large batch_size")
+            print("[WARN] Accepted very large batch_size")
         except ValueError:
             print("[OK] Rejected very large batch_size")
 
         bridge = self.BubbleLabsCREWAIBridge(mappings_db_path=self.test_db)
         try:
             bridge.stop_background_sync(timeout=10**9)
-            print("⚠ Accepted very large timeout")
+            print("[WARN] Accepted very large timeout")
         except ValueError:
             print("[OK] Rejected very large timeout")
 
@@ -565,7 +565,7 @@ class TestBubbleLabsCREWAIBridgeEdgeCases(unittest.TestCase):
             if not result:
                 print(f"[OK] Rejected: {current} -> {new}")
             else:
-                print(f"⚠ Accepted invalid: {current} -> {new}")
+                print(f"[WARN] Accepted invalid: {current} -> {new}")
 
         invalid_ticket_transitions = [
             ("DONE", "IN_PROGRESS"),
@@ -577,7 +577,7 @@ class TestBubbleLabsCREWAIBridgeEdgeCases(unittest.TestCase):
             if not result:
                 print(f"[OK] Rejected ticket: {current} -> {new}")
             else:
-                print(f"⚠ Accepted invalid ticket: {current} -> {new}")
+                print(f"[WARN] Accepted invalid ticket: {current} -> {new}")
 
         print("[OK] Invalid state transition tests passed")
 
@@ -632,7 +632,7 @@ class TestBubbleLabsTypeScriptExportEdgeCases(unittest.TestCase):
         if not result.success:
             print("[OK] Rejected None workflow")
         else:
-            print("⚠ Accepted None workflow")
+            print("[WARN] Accepted None workflow")
 
         print("[OK] None value tests passed")
 
@@ -645,13 +645,13 @@ class TestBubbleLabsTypeScriptExportEdgeCases(unittest.TestCase):
 
         try:
             self.validate_output_path("")
-            print("⚠ Accepted empty path")
+            print("[WARN] Accepted empty path")
         except ValueError:
             print("[OK] Rejected empty path")
 
         try:
             self.validate_file_extension("", ['.ts'])
-            print("⚠ Accepted empty filename")
+            print("[WARN] Accepted empty filename")
         except ValueError:
             print("[OK] Rejected empty filename")
 
@@ -688,7 +688,7 @@ class TestBubbleLabsTypeScriptExportEdgeCases(unittest.TestCase):
             if result.success:
                 print(f"[OK] Handled: {repr(special_name[:20])}...")
             else:
-                print(f"⚠ Failed for: {repr(special_name[:20])}...")
+                print(f"[WARN] Failed for: {repr(special_name[:20])}...")
 
         print("[OK] Special character tests completed")
 
@@ -707,19 +707,19 @@ class TestBubbleLabsTypeScriptExportEdgeCases(unittest.TestCase):
         for invalid_path in invalid_paths:
             try:
                 result = self.validate_output_path(invalid_path)
-                print(f"⚠ Accepted: {invalid_path}")
+                print(f"[WARN] Accepted: {invalid_path}")
             except ValueError:
                 print(f"[OK] Rejected: {invalid_path}")
 
         try:
             self.validate_file_extension("test.exe", ['.ts', '.js'])
-            print("⚠ Accepted .exe extension")
+            print("[WARN] Accepted .exe extension")
         except ValueError:
             print("[OK] Rejected .exe extension")
 
         try:
             self.validate_file_extension("../test.ts", ['.ts'])
-            print("⚠ Accepted path with separator")
+            print("[WARN] Accepted path with separator")
         except ValueError:
             print("[OK] Rejected path with separator")
 
@@ -761,19 +761,19 @@ class TestBubbleLabsMCPToolsEdgeCases(unittest.TestCase):
 
         try:
             self.validate_not_empty(None, "test_param")
-            print("⚠ Accepted None")
+            print("[WARN] Accepted None")
         except ValueError:
             print("[OK] Rejected None")
 
         try:
             self.validate_string_length(None, 100, "test_param")
-            print("⚠ Accepted None length")
+            print("[WARN] Accepted None length")
         except ValueError:
             print("[OK] Rejected None length")
 
         try:
             self.validate_range(None, 0, 100, "test_param")
-            print("⚠ Accepted None range")
+            print("[WARN] Accepted None range")
         except ValueError:
             print("[OK] Rejected None range")
 
@@ -788,13 +788,13 @@ class TestBubbleLabsMCPToolsEdgeCases(unittest.TestCase):
 
         try:
             self.validate_not_empty("", "test_param")
-            print("⚠ Accepted empty string")
+            print("[WARN] Accepted empty string")
         except ValueError:
             print("[OK] Rejected empty string")
 
         try:
             self.validate_not_empty("   ", "test_param")
-            print("⚠ Accepted whitespace")
+            print("[WARN] Accepted whitespace")
         except ValueError:
             print("[OK] Rejected whitespace")
 
@@ -809,7 +809,7 @@ class TestBubbleLabsMCPToolsEdgeCases(unittest.TestCase):
 
         try:
             self.validate_range(-1, 0, 100, "test_param")
-            print("⚠ Accepted negative")
+            print("[WARN] Accepted negative")
         except ValueError:
             print("[OK] Rejected negative")
 
@@ -828,14 +828,14 @@ class TestBubbleLabsMCPToolsEdgeCases(unittest.TestCase):
 
         try:
             self.validate_range(10**12, 0, 1000, "test_param")
-            print("⚠ Accepted very large number")
+            print("[WARN] Accepted very large number")
         except ValueError:
             print("[OK] Rejected very large number")
 
         very_long = "a" * 1000000
         try:
             self.validate_string_length(very_long, 1000, "test_param")
-            print("⚠ Accepted very long string")
+            print("[WARN] Accepted very long string")
         except ValueError:
             print("[OK] Rejected very long string")
 
@@ -859,7 +859,7 @@ class TestBubbleLabsMCPToolsEdgeCases(unittest.TestCase):
                 result = self.validate_not_empty(special_str, "test_param")
                 print(f"[OK] Accepted: {repr(special_str[:20])}...")
             except (ValueError, TypeError, RuntimeError):
-                print(f"⚠ Rejected: {repr(special_str[:20])}...")
+                print(f"[WARN] Rejected: {repr(special_str[:20])}...")
 
         print("[OK] Special character tests completed")
 

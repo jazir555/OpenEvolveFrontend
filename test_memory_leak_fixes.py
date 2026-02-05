@@ -353,7 +353,7 @@ def test_leak_7_singleton_cleanup():
         if cleanup_registered:
             print("[OK] cleanup_shared_instances() registered with atexit")
         else:
-            print("⚠ cleanup_shared_instances() not found in atexit callbacks (may be called differently)")
+            print("[WARN] cleanup_shared_instances() not found in atexit callbacks (may be called differently)")
 
         print("[OK] LEAK #7 FIXED: Singleton cleanup function implemented")
         return True

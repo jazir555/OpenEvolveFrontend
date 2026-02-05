@@ -403,7 +403,7 @@ class TestZ3DITOBenchmark(unittest.TestCase):
             if speedup > 1.0:
                 print(f"[OK] Z3 is {speedup:.2f}x faster than naive method")
             else:
-                print(f"⚠ Z3 is slower (speedup: {speedup:.2f}x)")
+                print(f"[WARN] Z3 is slower (speedup: {speedup:.2f}x)")
                 print(f"  This may be due to overhead or Z3 not being fully utilized")
 
         print("\n" + "="*80)

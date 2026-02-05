@@ -38,7 +38,7 @@ async def test_pygraphistry_bubblelab_integration():
             print(f"   [OK] Visualization created at: {temp_path}")
             os.unlink(temp_path)  # Clean up
         else:
-            print("   ⚠ Visualization file not created (expected if PyGraphistry not configured)")
+            print("   [WARN] Visualization file not created (expected if PyGraphistry not configured)")
             
     except ImportError as e:
         print(f"   X KnowledgeGraphVisualizer import failed: {e}")
@@ -69,7 +69,7 @@ async def test_pygraphistry_bubblelab_integration():
                 print("   [OK] Visualization file exists")
                 os.unlink(result)  # Clean up
         else:
-            print("   ⚠ get_pygraphistry_viz returned None (expected if PyGraphistry not configured)")
+            print("   [WARN] get_pygraphistry_viz returned None (expected if PyGraphistry not configured)")
             
     except ImportError as e:
         print(f"   X get_pygraphistry_viz import failed: {e}")

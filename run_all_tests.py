@@ -94,7 +94,7 @@ class TestRunner:
             # Check if files exist
             existing_files = [f for f in test_files if Path(f).exists()]
             if not existing_files:
-                print(f"\n⚠ Skipping {suite_name} - files not found")
+                print(f"\n[WARN] Skipping {suite_name} - files not found")
                 continue
             
             success, duration, output = self.run_test_suite(suite_name, existing_files)

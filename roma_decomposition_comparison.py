@@ -198,7 +198,7 @@ class ROMAComparator:
                 )
             else:
                 recommendations.append(
-                    f"⚠ ROMA quality is lower than expected. Consider using {best_quality.strategy}"
+                    f"[WARN] ROMA quality is lower than expected. Consider using {best_quality.strategy}"
                 )
 
         # Content-based recommendations

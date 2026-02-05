@@ -30,6 +30,13 @@ from dataclasses import dataclass, asdict
 from enum import Enum
 import logging
 
+# Add root directory to Python path for Z3 integration (Law of Air Gap)
+_current_dir = os.path.dirname(os.path.abspath(__file__))
+# Go up from: glue/adapters/rese-sce/src -> glue/adapters/rese-sce -> glue/adapters -> glue -> Frontend root
+_root_dir = os.path.abspath(os.path.join(_current_dir, '..', '..', '..', '..'))
+if _root_dir not in sys.path:
+    sys.path.insert(0, _root_dir)
+
 # Z3 Integration (Law of Air Gap: Use root-level integration, not core-projects)
 try:
     from z3prover_integration import (

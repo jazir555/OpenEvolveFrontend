@@ -223,7 +223,7 @@ async def example_with_knowledge_engine():
     print("=" * 80)
 
     if not HAS_KE:
-        print("\n⚠ Knowledge Engine not available. Skipping this example.")
+        print("\n[WARN] Knowledge Engine not available. Skipping this example.")
         return
 
     # Initialize Knowledge Engine
@@ -233,7 +233,7 @@ async def example_with_knowledge_engine():
         await ke.initialize()
         print("[OK] Knowledge Engine initialized")
     except Exception as e:
-        print(f"⚠ Failed to initialize Knowledge Engine: {e}")
+        print(f"[WARN] Failed to initialize Knowledge Engine: {e}")
         print("  Running without storage...")
         ke = None
 
@@ -334,7 +334,7 @@ async def example_querying_knowledge():
     print("=" * 80)
 
     if not HAS_KE:
-        print("\n⚠ Knowledge Engine not available. Using mock data.")
+        print("\n[WARN] Knowledge Engine not available. Using mock data.")
         return
 
     extractor = create_loongflow_extractor()
@@ -436,7 +436,7 @@ async def main():
         print("=" * 80)
 
     except Exception as e:
-        print(f"\n⚠ Error running examples: {e}")
+        print(f"\n[WARN] Error running examples: {e}")
         import traceback
 
         traceback.print_exc()

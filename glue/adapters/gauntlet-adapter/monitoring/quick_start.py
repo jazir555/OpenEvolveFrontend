@@ -104,7 +104,7 @@ def quick_start():
     triggered = alerts.evaluate()
 
     if triggered:
-        print(f"⚠ {len(triggered)} alert(s) triggered:")
+        print(f"[WARN] {len(triggered)} alert(s) triggered:")
         for alert in triggered:
             print(f"  - [{alert.severity.value.upper()}] {alert.message}")
     else:

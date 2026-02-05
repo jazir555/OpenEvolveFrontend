@@ -127,7 +127,7 @@ async def main():
 
     # Check if we should proceed
     if diligence_report.recommendation == "reject":
-        print("\n   ⚠ Deal rejected based on due diligence")
+        print("\n   [WARN] Deal rejected based on due diligence")
         return
 
     # 6. Analyze Deal (Valuation, Structure, Integration)

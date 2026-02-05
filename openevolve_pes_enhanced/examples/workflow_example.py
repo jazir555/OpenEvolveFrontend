@@ -309,7 +309,7 @@ def example_3_budget_enforcement():
     print("-" * 60)
     
     for sp, allocation in allocations:
-        status = "[OK]" if allocation.decision.value != "defer" else "⚠ DEFERRED"
+        status = "[OK]" if allocation.decision.value != "defer" else "[WARN] DEFERRED"
         print(f"  {status} {sp.id}: ${allocation.budget_usd:.2f} - {allocation.reason}")
     
     # Check budget status

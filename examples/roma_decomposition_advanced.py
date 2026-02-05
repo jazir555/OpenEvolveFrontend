@@ -127,7 +127,7 @@ def example_error_handling():
 
     # Check if ROMA succeeded or used fallback
     if decomposer.last_roma_error:
-        print(f"\n⚠ ROMA encountered an error:")
+        print(f"\n[WARN] ROMA encountered an error:")
         print(f"  {decomposer.last_roma_error}")
         print(f"\n[OK] Fallback decomposition used:")
         print(f"  Strategy: {result.decomposition_strategy.value}")
@@ -139,7 +139,7 @@ def example_error_handling():
 
     # Verify result quality regardless of method used
     if result.quality_score < 0.5:
-        print(f"\n⚠ Low quality score detected. Consider:")
+        print(f"\n[WARN] Low quality score detected. Consider:")
         print(f"  - Increasing max_components")
         print(f"  - Adjusting min_component_size")
         print(f"  - Using a different decomposition strategy")
@@ -218,7 +218,7 @@ def example_custom_config_validation():
     errors = validate_roma_config(config)
 
     if errors:
-        print(f"\n⚠ Configuration Errors:")
+        print(f"\n[WARN] Configuration Errors:")
         for error in errors:
             print(f"  - {error}")
     else:

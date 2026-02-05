@@ -89,7 +89,7 @@ def test_capabilities(engine):
             print(f"[OK] {cap}: {len(capabilities[cap])} component(s)")
             found_count += 1
         else:
-            print(f"⚠ {cap}: not found")
+            print(f"[WARN] {cap}: not found")
     
     print(f"[OK] Found capabilities: {found_count}/{len(expected_caps)}")
     print(f"[OK] Total capabilities: {len(capabilities)}")
@@ -202,7 +202,7 @@ async def test_healing(engine):
     for name, breaker in engine.circuit_breakers.items():
         state = 'closed' if breaker.can_execute() else 'open'
         if state == 'open':
-            print(f"⚠ {name}: circuit {state}")
+            print(f"[WARN] {name}: circuit {state}")
     
     print(f"[OK] Circuit breakers active: {len(engine.circuit_breakers)}")
     

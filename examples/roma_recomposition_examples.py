@@ -196,7 +196,7 @@ def example_3_recommended_config():
     # Validate and show kwargs
     errors = config.validate()
     if errors:
-        print(f"\n⚠ Validation Errors:")
+        print(f"\n[WARN] Validation Errors:")
         for error in errors:
             print(f"  - {error}")
     else:

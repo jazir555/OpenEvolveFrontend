@@ -211,7 +211,7 @@ def main():
         print("[OK] All tests passed! DTS integration is working correctly.")
         return 0
     else:
-        print(f"⚠ {tests_total - tests_passed} tests failed.")
+        print(f"[WARN] {tests_total - tests_passed} tests failed.")
         print("Note: Some failures may be expected if DTS API keys are not configured.")
         print("The integration should fall back gracefully to standard methods.")
         return 1

@@ -204,13 +204,13 @@ def main():
         print("  export Z3_TIMEOUT=10000")
         return 0
     elif python_available:
-        print("⚠ Z3 Python bindings only (usable)")
+        print("[WARN] Z3 Python bindings only (usable)")
         print("\nConfiguration:")
         print("  export RESE_Z3_PHASE2_ENABLED=true")
         print("  export Z3_TIMEOUT=10000")
         return 1
     elif cli_available:
-        print("⚠ Z3 CLI only (usable)")
+        print("[WARN] Z3 CLI only (usable)")
         print("\nConfiguration:")
         print("  export RESE_Z3_PHASE2_ENABLED=true")
         print("  export Z3_TIMEOUT=10000")

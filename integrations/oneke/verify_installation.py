@@ -33,7 +33,7 @@ def warn(condition, name, description):
     """Check a condition and record warning."""
     if not condition:
         results['warnings'].append((name, description))
-        print(f"⚠ {name}: {description}")
+        print(f"[WARN] {name}: {description}")
     else:
         print(f"[OK] {name}: {description}")
 
@@ -281,7 +281,7 @@ print("="*80)
 
 print(f"\n[OK] Passed: {len(results['passed'])}")
 print(f"[FAIL] Failed: {len(results['failed'])}")
-print(f"⚠ Warnings: {len(results['warnings'])}")
+print(f"[WARN] Warnings: {len(results['warnings'])}")
 
 if results['failed']:
     print("\nFailed Checks:")
@@ -291,7 +291,7 @@ if results['failed']:
 if results['warnings']:
     print("\nWarnings:")
     for name, desc in results['warnings']:
-        print(f"  ⚠ {name}: {desc}")
+        print(f"  [WARN] {name}: {desc}")
 
 # Overall result
 if not results['failed']:

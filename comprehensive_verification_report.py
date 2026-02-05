@@ -141,7 +141,7 @@ class VerificationReporter:
         all_passed = True
         for test_file in test_files:
             if not Path(test_file).exists():
-                print(f"  ⚠ {test_file}: File not found")
+                print(f"  [WARN] {test_file}: File not found")
                 continue
 
             try:
@@ -188,7 +188,7 @@ class VerificationReporter:
         self.print_section_header("4. MEMORY LEAK TESTING")
 
         if not Path("test_memory_leak_fixes.py").exists():
-            print("  ⚠ test_memory_leak_fixes.py not found")
+            print("  [WARN] test_memory_leak_fixes.py not found")
             return False
 
         try:
@@ -261,7 +261,7 @@ class VerificationReporter:
         self.print_section_header("6. DATA CONSISTENCY VERIFICATION")
 
         if not Path("data_consistency_verification.py").exists():
-            print("  ⚠ data_consistency_verification.py not found")
+            print("  [WARN] data_consistency_verification.py not found")
             return False
 
         try:

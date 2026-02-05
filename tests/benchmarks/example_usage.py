@@ -159,7 +159,7 @@ def example_regression_detection():
             change = ((new_result.value - prev_result["value"]) / prev_result["value"]) * 100
 
             if change > 10:
-                print(f"  ⚠ REGRESSION: {new_result.metric_name}")
+                print(f"  [WARN] REGRESSION: {new_result.metric_name}")
                 print(f"    Previous: {prev_result['value']:.2f}")
                 print(f"    Current:  {new_result.value:.2f}")
                 print(f"    Change:   +{change:.1f}%")

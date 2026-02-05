@@ -47,7 +47,7 @@ async def demo_basic_translation():
         print(f"\nServer Health: {'[OK] Healthy' if is_healthy else '[FAIL] Unhealthy'}")
 
         if not is_healthy:
-            print("\n⚠ Server is not responding. Please start the LeanAide server:")
+            print("\n[WARN] Server is not responding. Please start the LeanAide server:")
             print("  cd LeanAide && python3 leanaide_server.py")
             return
 
@@ -254,7 +254,7 @@ async def run_interactive_demo():
         # Check health
         is_healthy = await client.health_check()
         if not is_healthy:
-            print("\n⚠ Server is not responding. Please start the LeanAide server.")
+            print("\n[WARN] Server is not responding. Please start the LeanAide server.")
             return
 
         print("\n[OK] Server is healthy!")

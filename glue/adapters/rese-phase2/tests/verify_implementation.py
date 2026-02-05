@@ -235,7 +235,7 @@ def test_simple_imech_calculation():
             print("\n[OK] I_mech calculation works correctly\n")
             return True
         else:
-            print(f"\n⚠ I_mech score lower than expected: {score}\n")
+            print(f"\n[WARN] I_mech score lower than expected: {score}\n")
             return True  # Still pass, just warning
 
     except Exception as e:

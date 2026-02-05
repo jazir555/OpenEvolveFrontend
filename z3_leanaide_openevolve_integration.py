@@ -71,6 +71,17 @@ try:
     Z3_LEANAIDE_BRIDGE_AVAILABLE = True
 except ImportError:
     Z3_LEANAIDE_BRIDGE_AVAILABLE = False
+    # Define a fallback VerificationStrategy enum for type hints
+    class VerificationStrategy:
+        Z3_FIRST = "z3_first"
+        LEAN_FIRST = "lean_first"
+        PARALLEL = "parallel"
+        ADAPTIVE = "adaptive"
+    Z3LeanAideBridge = None
+    Z3LeanAideConfig = None
+    CombinedVerificationResult = None
+    TranslationResult = None
+    get_z3_leanaide_bridge_sync = None
     logger.warning("Z3-LeanAIDE bridge not available")
 
 # Import LeanAIDE Integration

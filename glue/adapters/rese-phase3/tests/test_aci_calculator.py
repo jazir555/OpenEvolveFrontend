@@ -38,6 +38,8 @@ try:
         ACIConfig,
         AnomalyCharacterizationIndex,
         SyntheticDataGenerator,
+        Z3AnomalyDetector,
+        Z3_AVAILABLE,
     )
     from rese_dee import DEELogger, CircuitBreakerOpenError
 except ImportError as e:
@@ -636,6 +638,285 @@ class TestIntegrationWithMCTS(unittest.TestCase):
         self.assertGreater(high_priority[0].aci_score, 0.5)
 
 
+class TestZ3AnomalyDetector(unittest.TestCase):
+    """Test Z3-based anomaly detection."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        self.config = ACIConfig.from_env()
+        self.logger = DEELogger()
+
+        # Skip tests if Z3 not available
+        if not Z3_AVAILABLE:
+            self.skipTest("Z3 not available")
+
+        self.detector = Z3AnomalyDetector(self.config, self.logger)
+
+    def test_z3_detector_initialization(self):
+        """Test Z3 detector initialization."""
+        self.assertIsNotNone(self.detector)
+        self.assertEqual(self.detector.config, self.config)
+        self.assertIsNotNone(self.detector.logger)
+
+        if Z3_AVAILABLE:
+            self.assertTrue(self.detector.z3_enabled)
+        else:
+            self.assertFalse(self.detector.z3_enabled)
+
+    def test_encode_anomaly_constraints(self):
+        """Test encoding anomaly conditions as Z3 constraints."""
+        if not Z3_AVAILABLE:
+            self.skipTest("Z3 not available")
+
+        entropy_value = 0.8
+        coherence_value = 0.7
+        entropy_threshold = 0.7
+        coherence_threshold = 0.5
+
+        variables, constraints = self.detector.encode_anomaly_constraints(
+            entropy_value, coherence_value,
+            entropy_threshold, coherence_threshold
+        )
+
+        # Should return variables and constraints
+        self.assertIsInstance(variables, list)
+        self.assertIsInstance(constraints, list)
+        self.assertGreater(len(variables), 0)
+        self.assertGreater(len(constraints), 0)
+
+    def test_verify_anomaly_satisfiability(self):
+        """Test verifying anomaly satisfiability with Z3."""
+        if not Z3_AVAILABLE:
+            self.skipTest("Z3 not available")
+
+        # Test case: High entropy and high coherence
+        entropy_value = 0.8
+        coherence_value = 0.7
+
+        result = self.detector.verify_anomaly_satisfiability(
+            entropy_value, coherence_value,
+            self.config.entropy_threshold,
+            self.config.coherence_threshold
+        )
+
+        # Should return verification result
+        self.assertIsInstance(result, dict)
+        self.assertIn('satisfiable', result)
+        self.assertIn('verified', result)
+        self.assertIn('entropy_bounds', result)
+        self.assertIn('coherence_bounds', result)
+
+    def test_verify_high_entropy_signal(self):
+        """Test verifying high-entropy signal."""
+        if not Z3_AVAILABLE:
+            self.skipTest("Z3 not available")
+
+        # Test case: Signal above thresholds
+        entropy_value = 0.8
+        coherence_value = 0.7
+
+        is_verified = self.detector.verify_high_entropy_signal(
+            entropy_value, coherence_value
+        )
+
+        # Should return boolean
+        self.assertIsInstance(is_verified, bool)
+
+    def test_formal_entropy_analysis(self):
+        """Test formal entropy analysis using Z3."""
+        if not Z3_AVAILABLE:
+            self.skipTest("Z3 not available")
+
+        np.random.seed(42)
+        time_series = np.random.rand(100)
+
+        result = self.detector.formal_entropy_analysis(time_series)
+
+        # Should return analysis result
+        self.assertIsInstance(result, dict)
+        self.assertIn('entropy_value', result)
+        self.assertIn('bounds_verified', result)
+        self.assertIn('determinism_verified', result)
+
+        # Entropy should be calculated
+        self.assertIsNotNone(result['entropy_value'])
+        self.assertIsInstance(result['entropy_value'], float)
+
+    def test_low_entropy_not_verified(self):
+        """Test that low entropy is not verified as anomaly."""
+        if not Z3_AVAILABLE:
+            self.skipTest("Z3 not available")
+
+        # Test case: Low entropy and low coherence
+        entropy_value = 0.2
+        coherence_value = 0.1
+
+        is_verified = self.detector.verify_high_entropy_signal(
+            entropy_value, coherence_value
+        )
+
+        # Should not be verified
+        self.assertFalse(is_verified)
+
+    def test_z3_tolerance_bounds(self):
+        """Test Z3 tolerance bounds for anomaly detection."""
+        if not Z3_AVAILABLE:
+            self.skipTest("Z3 not available")
+
+        # Test case: Entropy at threshold + tolerance
+        entropy_value = self.config.entropy_threshold + self.config.z3_entropy_tolerance * 0.5
+        coherence_value = self.config.coherence_threshold + self.config.z3_coherence_tolerance * 0.5
+
+        result = self.detector.verify_anomaly_satisfiability(
+            entropy_value, coherence_value,
+            self.config.entropy_threshold,
+            self.config.coherence_threshold
+        )
+
+        # Should be within bounds
+        if result['entropy_bounds']:
+            e_min, e_max = result['entropy_bounds']
+            self.assertLessEqual(entropy_value, e_max)
+            self.assertGreaterEqual(entropy_value, e_min)
+
+
+class TestZ3EnhancedACI(unittest.TestCase):
+    """Test ACI Calculator with Z3 enhancement."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        self.config = ACIConfig.from_env()
+        self.logger = DEELogger()
+
+        if Z3_AVAILABLE:
+            z3_detector = Z3AnomalyDetector(self.config, self.logger)
+            self.aci = AnomalyCharacterizationIndex(
+                self.config, self.logger, z3_detector
+            )
+        else:
+            self.aci = AnomalyCharacterizationIndex(self.config, self.logger)
+
+    def test_aci_with_z3_verification(self):
+        """Test ACI calculation with Z3 verification enabled."""
+        if not Z3_AVAILABLE:
+            self.skipTest("Z3 not available")
+
+        np.random.seed(42)
+
+        # Create high-entropy signal
+        length = 500
+        input_var = np.random.rand(length)
+        output = input_var * 0.8 + np.random.randn(length) * 0.2
+
+        experiment_data = {
+            'output': output,
+            'input1': input_var,
+        }
+
+        results = self.aci.detect_high_entropy_signals(
+            experiment_data,
+            time_series_key='output'
+        )
+
+        # Should detect signals
+        self.assertGreater(len(results), 0)
+
+        # Check Z3 verification fields
+        for result in results:
+            self.assertIsInstance(result.z3_constraint_verified, bool)
+            self.assertIsInstance(result.z3_anomaly_satisfiable, bool)
+
+    def test_z3_fields_in_result_dict(self):
+        """Test that Z3 fields are included in result dictionary."""
+        if not Z3_AVAILABLE:
+            self.skipTest("Z3 not available")
+
+        result = ACIResult(
+            disorder_entropy=0.8,
+            causal_coherence=0.7,
+            aci_score=0.75,
+            is_high_entropy_signal=True,
+            causal_variables=['var1'],
+            correlation_id='test-123',
+            timestamp='2026-02-04T12:00:00Z',
+            window_start_idx=0,
+            window_end_idx=100,
+            z3_constraint_verified=True,
+            z3_anomaly_satisfiable=True,
+            z3_entropy_bounds=(0.65, 0.75),
+            z3_coherence_bounds=(0.45, 0.55),
+            z3_formal_proof="test-proof"
+        )
+
+        result_dict = result.to_dict()
+
+        # Check Z3 fields are present
+        self.assertIn('z3_constraint_verified', result_dict)
+        self.assertIn('z3_anomaly_satisfiable', result_dict)
+        self.assertIn('z3_entropy_bounds', result_dict)
+        self.assertIn('z3_coherence_bounds', result_dict)
+        self.assertIn('z3_formal_proof', result_dict)
+
+        # Check values
+        self.assertTrue(result_dict['z3_constraint_verified'])
+        self.assertTrue(result_dict['z3_anomaly_satisfiable'])
+
+    def test_result_dict_from_dict_with_z3(self):
+        """Test creating ACIResult from dictionary with Z3 fields."""
+        result_dict = {
+            'disorder_entropy': 0.6,
+            'causal_coherence': 0.5,
+            'aci_score': 0.55,
+            'is_high_entropy_signal': False,
+            'causal_variables': [],
+            'correlation_id': 'test-456',
+            'timestamp': '2026-02-04T12:00:00Z',
+            'window_start_idx': 100,
+            'window_end_idx': 200,
+            'metadata': {},
+            'z3_constraint_verified': True,
+            'z3_anomaly_satisfiable': True,
+            'z3_entropy_bounds': (0.65, 0.75),
+            'z3_coherence_bounds': (0.45, 0.55),
+        }
+
+        result = ACIResult.from_dict(result_dict)
+
+        # Check Z3 fields
+        self.assertTrue(result.z3_constraint_verified)
+        self.assertTrue(result.z3_anomaly_satisfiable)
+        self.assertEqual(result.z3_entropy_bounds, (0.65, 0.75))
+        self.assertEqual(result.z3_coherence_bounds, (0.45, 0.55))
+
+    def test_z3_disabled_fallback(self):
+        """Test that ACI works when Z3 is disabled."""
+        # Create config with Z3 disabled
+        original_z3_env = os.environ.get('PHASE3_ACI_ENABLE_Z3', 'true')
+        os.environ['PHASE3_ACI_ENABLE_Z3'] = 'false'
+
+        try:
+            config = ACIConfig.from_env()
+            aci = AnomalyCharacterizationIndex(config, self.logger)
+
+            np.random.seed(42)
+            length = 200
+            experiment_data = {
+                'output': np.random.rand(length),
+                'input1': np.random.rand(length),
+            }
+
+            # Should still work without Z3
+            results = aci.detect_high_entropy_signals(
+                experiment_data,
+                time_series_key='output'
+            )
+
+            self.assertIsInstance(results, list)
+
+        finally:
+            os.environ['PHASE3_ACI_ENABLE_Z3'] = original_z3_env
+
+
 class TestACIResultSerialization(unittest.TestCase):
     """Test ACIResult serialization."""
 
@@ -707,6 +988,8 @@ def run_tests():
     suite.addTests(loader.loadTestsFromTestCase(TestSyntheticDataGenerator))
     suite.addTests(loader.loadTestsFromTestCase(TestIntegrationWithMCTS))
     suite.addTests(loader.loadTestsFromTestCase(TestACIResultSerialization))
+    suite.addTests(loader.loadTestsFromTestCase(TestZ3AnomalyDetector))
+    suite.addTests(loader.loadTestsFromTestCase(TestZ3EnhancedACI))
 
     # Run tests
     runner = unittest.TextTestRunner(verbosity=2)

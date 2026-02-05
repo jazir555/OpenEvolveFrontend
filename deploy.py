@@ -236,7 +236,7 @@ class DeploymentManager:
                 print("[OK] Health monitoring configured and system healthy")
                 return True
             else:
-                print("⚠ Health monitoring configured but system unhealthy")
+                print("[WARN] Health monitoring configured but system unhealthy")
                 return False
         except (OSError, IOError, RuntimeError, ImportError) as e:
             print(f"[FAIL] Failed to setup health monitoring: {e}")

@@ -41,7 +41,7 @@ async def test_pygraphistry_integration():
         if success:
             print("   [OK] PyGraphistry integration working with KnowledgeGraphVisualizer")
         else:
-            print("   ⚠ PyGraphistry visualization failed, using fallback")
+            print("   [WARN] PyGraphistry visualization failed, using fallback")
             
     except (IOError, ValueError, RuntimeError, ImportError) as e:
         print(f"   [FAIL] Error in KnowledgeGraphVisualizer with PyGraphistry: {e}")
@@ -63,7 +63,7 @@ async def test_pygraphistry_integration():
             print(f"   Pattern analysis successful: {len(patterns.get('cluster_info', []))} clusters found")
             print("   [OK] Pattern analysis with PyGraphistry working")
         else:
-            print("   ⚠ Pattern analysis returned no results")
+            print("   [WARN] Pattern analysis returned no results")
             
     except (IOError, ValueError, RuntimeError, ImportError) as e:
         print(f"   [FAIL] Error in pattern analysis: {e}")
@@ -84,7 +84,7 @@ async def test_pygraphistry_integration():
         if success:
             print("   [OK] Convenience function with PyGraphistry working")
         else:
-            print("   ⚠ Convenience function failed, using fallback")
+            print("   [WARN] Convenience function failed, using fallback")
             
     except (IOError, ValueError, RuntimeError, ImportError) as e:
         print(f"   [FAIL] Error in convenience function: {e}")
@@ -102,7 +102,7 @@ async def test_pygraphistry_integration():
             print(f"   Pattern analysis convenience function successful")
             print("   [OK] Pattern analysis convenience function working")
         else:
-            print("   ⚠ Pattern analysis convenience function returned no results")
+            print("   [WARN] Pattern analysis convenience function returned no results")
             
     except (IOError, ValueError, RuntimeError, ImportError) as e:
         print(f"   [FAIL] Error in pattern analysis convenience function: {e}")
@@ -132,7 +132,7 @@ async def test_pygraphistry_integration():
             print(f"   API endpoint simulation successful: {url is not None}")
             print("   [OK] API endpoint connection working")
         else:
-            print("   ⚠ API endpoint simulation returned no URL (expected if PyGraphistry not configured)")
+            print("   [WARN] API endpoint simulation returned no URL (expected if PyGraphistry not configured)")
             
     except (IOError, ValueError, RuntimeError, ImportError) as e:
         print(f"   [FAIL] Error in API endpoint simulation: {e}")

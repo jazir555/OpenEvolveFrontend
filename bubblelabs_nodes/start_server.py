@@ -52,7 +52,7 @@ def check_openevolve_integration():
         print(f"  [OK] Found {len(nodes)} registered nodes")
         return True
     except ImportError as e:
-        print(f"  ⚠ NodeRegistry not available: {e}")
+        print(f"  [WARN] NodeRegistry not available: {e}")
         print("  Continuing anyway...\n")
         return True
 
@@ -77,7 +77,7 @@ def show_registered_nodes():
         print("\n" + "=" * 60 + "\n")
 
     except Exception as e:
-        print(f"⚠ Could not list nodes: {e}\n")
+        print(f"[WARN] Could not list nodes: {e}\n")
 
 
 def show_api_info():

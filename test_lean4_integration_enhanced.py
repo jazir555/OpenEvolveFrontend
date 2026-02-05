@@ -75,7 +75,7 @@ class Lean4IntegrationTester:
                 print(f"Server URL: {self.server_url}")
                 print("[OK] Test passed: Server is reachable")
             else:
-                print("⚠ Test warning: Server not available, will use fallback mode")
+                print("[WARN] Test warning: Server not available, will use fallback mode")
 
             await client.close()
             return is_available
@@ -445,7 +445,7 @@ lemma test_mul_one (n : Nat) : n * 1 = n := by
         if speedup > 2:
             print("[OK] Cache is working effectively!")
         else:
-            print("⚠ Cache may not be optimally configured")
+            print("[WARN] Cache may not be optimally configured")
 
         await engine.close()
 

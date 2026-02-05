@@ -49,7 +49,7 @@ async def test_comprehensive_integration():
         if viz:
             print("   [OK] Integration Factory can access PyGraphistry")
         else:
-            print("   ⚠ Integration Factory returned None for PyGraphistry (may be expected if not installed)")
+            print("   [WARN] Integration Factory returned None for PyGraphistry (may be expected if not installed)")
             
         # Test validation
         validation = await factory.validate_all()
@@ -72,7 +72,7 @@ async def test_comprehensive_integration():
         if hasattr(visualizer, 'pygraphistry_bridge') and visualizer.pygraphistry_bridge:
             print("   [OK] PyGraphistry bridge created successfully")
         else:
-            print("   ⚠ PyGraphistry bridge not created (expected if pygraphistry not installed)")
+            print("   [WARN] PyGraphistry bridge not created (expected if pygraphistry not installed)")
         
         # Try to build a simple graph
         stats = visualizer.build_graph(max_nodes=10)  # Small test

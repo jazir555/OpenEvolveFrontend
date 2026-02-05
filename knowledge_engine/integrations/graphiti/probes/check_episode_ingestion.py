@@ -88,7 +88,7 @@ async def probe_episode_ingestion() -> bool:
         if workflow_state:
             print(f"[OK] Workflow state retrieved: {workflow_state.state.value}")
         else:
-            print("⚠ Workflow state not found (may be expected)")
+            print("[WARN] Workflow state not found (may be expected)")
 
         print("\n[OK] All probe checks passed")
         return True
@@ -104,7 +104,7 @@ async def probe_episode_ingestion() -> bool:
                 await bridge.close()
                 print("\n[OK] Cleanup completed")
             except Exception as e:
-                print(f"\n⚠ Cleanup warning: {e}")
+                print(f"\n[WARN] Cleanup warning: {e}")
 
 
 async def main() -> int:

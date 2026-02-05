@@ -167,7 +167,7 @@ def run_all_tests():
     if failed == 0:
         print("\n[OK] ALL TESTS PASSED!")
     else:
-        print(f"\n⚠ {failed} test(s) failed")
+        print(f"\n[WARN] {failed} test(s) failed")
 
     return failed == 0
 

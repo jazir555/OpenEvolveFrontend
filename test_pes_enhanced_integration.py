@@ -809,7 +809,7 @@ class PESIntegrationTester:
         
         print(f"\nTotal Tests: {len(self.results)}")
         print(f"  [OK] WORKS:    {status_counts['WORKS']}")
-        print(f"  ⚠ PARTIAL:  {status_counts['PARTIAL']}")
+        print(f"  [WARN] PARTIAL:  {status_counts['PARTIAL']}")
         print(f"  [FAIL] BROKEN:   {status_counts['BROKEN']}")
         print(f"  ? UNKNOWN:  {status_counts['UNKNOWN']}")
         
@@ -849,7 +849,7 @@ class PESIntegrationTester:
         elif broken_pct < 10:
             print("[OK] GOOD: Minor issues found but core functionality works.")
         elif broken_pct < 25:
-            print("⚠ MODERATE: Several issues need attention before production use.")
+            print("[WARN] MODERATE: Several issues need attention before production use.")
         else:
             print("[FAIL] POOR: Significant issues found. Integration needs major work.")
         

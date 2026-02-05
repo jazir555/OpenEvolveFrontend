@@ -760,7 +760,7 @@ class ConfigValidator:
             print("WARNINGS:")
             print("-" * 80)
             for warning in self.result.warnings:
-                print(f"  ⚠ {warning}")
+                print(f"  [WARN] {warning}")
             print()
 
         # Print present configuration

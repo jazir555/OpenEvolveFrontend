@@ -434,7 +434,7 @@ def step_1_mapper():
             if not has_both:
                 # Missing one type - generate just that type
                 missing_type = "controversial" if not existing_info['has_controversial'] else "neutral"
-                print(f"\n⚠ Existing data is missing {missing_type} probes!")
+                print(f"\n[WARN] Existing data is missing {missing_type} probes!")
                 print(f"  Will generate missing {missing_type} probes and merge with existing data.")
                 
                 results_file = generate_missing_probes(

@@ -44,7 +44,7 @@ def test_all_openevolve_integrations():
             required_metrics = ['combined_score', 'complexity', 'diversity']
             missing_metrics = [metric for metric in required_metrics if metric not in result]
             if missing_metrics:
-                print(f"⚠ Missing OpenEvolve-compatible metrics: {missing_metrics}")
+                print(f"[WARN] Missing OpenEvolve-compatible metrics: {missing_metrics}")
                 results.append(False)
             else:
                 print("[OK] All required OpenEvolve-compatible metrics present")
@@ -69,7 +69,7 @@ def test_all_openevolve_integrations():
             print("[OK] OpenEvolve API available")
             results.append(True)
         except ImportError:
-            print("⚠ OpenEvolve API not available - fallback to API-based testing expected")
+            print("[WARN] OpenEvolve API not available - fallback to API-based testing expected")
             results.append(True)  # This is expected behavior
         
     except Exception as e:

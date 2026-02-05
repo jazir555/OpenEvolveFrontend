@@ -32,7 +32,7 @@ def print_error(msg: str):
     print(f"{Colors.RED}[FAIL]{Colors.RESET} {msg}")
 
 def print_warning(msg: str):
-    print(f"{Colors.YELLOW}⚠{Colors.RESET} {msg}")
+    print(f"{Colors.YELLOW}[WARN]{Colors.RESET} {msg}")
 
 def print_info(msg: str):
     print(f"{Colors.BLUE}ℹ{Colors.RESET} {msg}")

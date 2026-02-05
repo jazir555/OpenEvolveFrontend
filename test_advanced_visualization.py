@@ -156,7 +156,7 @@ def test_graph_export():
         assert len(png_bytes) > 0
         print("[OK] PNG export successful")
     except Exception as e:
-        print(f"⚠ PNG export skipped (matplotlib may not be configured): {e}")
+        print(f"[WARN] PNG export skipped (matplotlib may not be configured): {e}")
     
     print("[OK] Graph export tests passed")
 
