@@ -1,0 +1,1874 @@
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+000
+001
+      CARD: T OWARDS C ONDITIONAL D ESIGN OF M ULTI - AGENT
+002   T OPOLOGICAL S TRUCTURES
+003
+004
+005    Anonymous authors
+006    Paper under double-blind review
+007
+008
+009                                                    A BSTRACT
+010
+011
+               Large language model (LLM)-based multi-agent systems have shown strong capabilities in
+012
+               tasks such as code generation and collaborative reasoning. However, the effectiveness and
+013            robustness of these systems critically depend on their communication topology, which is
+014            often fixed or statically learned, ignoring real-world dynamics such as model upgrades, API
+015            (or tool) changes, or knowledge source variability. To address this limitation, we propose
+016            CARD (Conditional Agentic Graph Designer), a conditional graph-generation framework
+017            that instantiates AMACP, a protocol for adaptive multi-agent communication. CARD
+018            explicitly incorporates dynamic environmental signals into graph construction, enabling
+019            topology adaptation at both training and runtime. Through a conditional variational graph
+020            encoder and environment-aware optimization, CARD produces communication structures
+021
+               that are both effective and resilient to shifts in model capability or resource availability.
+               Empirical results on HumanEval, MATH, and MMLU demonstrate that CARD consistently
+022
+               outperforms static and prompt-based baselines, achieving higher accuracy and robustness
+023
+               across diverse conditions. The source code is available at: https://anonymous.
+024            4open.science/r/agentgraph-FF9A.
+025
+026
+027
+028   1    I NTRODUCTION
+029
+030   Multi-agent systems powered by large language models (LLMs) (OpenAI, 2024a; Liu et al., 2023a) have
+031   recently demonstrated remarkable capabilities across a wide range of complex tasks, from code synthe-
+032   sis (Chen et al., 2023) to collaborative reasoning (Liu et al., 2023b). By integrating each model’s internal
+033
+      knowledge, natural language generation, and inference abilities with external tools (Zhang et al., 2023) or peer
+      LLMs, these systems effectively decompose problems (Yao et al., 2023a), coordinate subgoals (Liang et al.,
+034
+      2023), and integrate diverse information sources (Lee et al., 2023). However, the communication topology,
+035
+      which specifies how agents are interconnected, significantly influences performance, affecting both solution
+036   quality and robustness to evolving conditions such as model upgrades, API modifications, and fluctuating
+037   data sources.
+038
+039
+      Current topology design approaches typically fall into two categories (Bei et al., 2025; Liu et al., 2025). Many
+      systems depend on manually crafted pipelines (Hong et al., 2023) or predefined agent sequences (Wu et al.,
+040
+      2023), which perform effectively in stable, well-understood scenarios but lack adaptability. Conversely, recent
+041
+      methods automatically learn communication structures by backpropagating through "text gradients" (Zhuge
+042   et al., 2024) or parameterizing inter-agent connections via differentiable modules (Zhang et al., 2025a).
+043   Yet, these learned topologies generally assume static environments, failing to account for transient external
+044   factors. Consequently, when conditions change, such as upgrading a model base (e.g. GPT-4o → GPT-5),
+045   tool availability variations, or deterioration in data source quality, static or naively learned topologies become
+046   fragile, resulting in redundant interactions or disrupted information flows (see Figure 1).
+
+                                                         1
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+047
+               Agent Attributes                         Multi Agent System with different configurations          Topology Variations Under Different Configurations
+048
+                          Role                         Configuration I                     Configuration II            Topology I                  Topology II
+049
+050          Historian    Manager     Programmer
+                                                                          A                                   A
+                          Task
+051
+             MATH          CODE           QA                              B                                   B
+052
+                         LLM BASE
+053                                                                       C                                   C
+054          Openai Deepseek       Qwen    Llama
+
+
+055            External Tool/Source                                       D                                   D
+056                                                                                                                                     CARD
+            Google Duckduckgo Wiki        Python
+                                                                          E                                   E
+057
+               Stackoverflow           CSDN
+058                                                Agent C                            Agent C
+                                                   Role: Programmer                   Role: Programmer
+059          Quora         Arxiv
+                                                   LLM: Deepseek-V3                   LLM: Qwen-72B-Chat
+                                          Reddit
+                                                   Tool: Python                       Tool: Python
+060                                                Knowledge                          Knowledge
+061            PPT             Word        PDF
+                                                   source: CSDN                       source: Stackoverflow
+
+062
+063   Figure 1: Agent attributes and corresponding communication topologies under two environmental configura-
+064   tions, illustrating that topology is determined by both task requirements and the capabilities of the model base
+065   and available resources.
+066
+067
+         Adaptive LLM-based Multi-agent Communication Protocol (AMACP):
+068
+069
+         Given a task/query q, an optimal communication topology for q should satisfy the following protocol
+070
+         logics: Effectiveness: The communication structure must effectively produce a qualified solution for
+071      the given task q. Cost-efficiency: The communication structure should minimize the overall resource
+072      consumption (e.g., model usage, API calls, token cost) required to solve q under the given condition.
+073      Adaptiveness: The communication structure should dynamically adjust to varying conditions, ensuring
+074      robustness across diverse availability.
+075
+076   We address this gap by formalizing the Adaptive Multi-Agent Communication Protocol (AMACP) and
+077   instantiating it via the Conditional Agentic gRaph Designer (CARD). CARD is a conditional graph-generation
+078   framework that (i) represents each agent via profile and condition channels, (ii) encodes dynamic environment
+079   signals, and (iii) decodes an interaction graph whose edges adapt at training time and at runtime as conditions
+080   change without retraining. The objective balances task utility and condition-aware communication cost,
+081   enforcing effectiveness, cost-efficiency, and adaptiveness required by AMACP. Empirically, on H UMAN E VAL,
+082   MATH, and MMLU with simulated environmental changes (model upgrades, tool availability, data-source
+083   perturbations), CARD yields substantial gains over static and prompt-only or naively learned topologies
+084
+      while remaining competitive in static regimes. Our primary contributions are:
+085
+             • Formalization of AMACP, a protocol enabling adaptive multi-agent communication under dynamic
+086
+               external conditions.
+087
+088
+             • Introduction of CARD, a conditional graph-generation framework explicitly learning effective and
+               adaptive agent topologies from environmental states.
+089
+090          • Comprehensive empirical validation demonstrating that CARD consistently outperforms existing
+091            fixed and learned topology baselines under dynamic conditions.
+092          • Detailed analyses of topology adaptations, elucidating how environmental state conditioning en-
+093            hances the efficiency and robustness of multi-agent coordination.
+
+
+                                                                                       2
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+094
+      2     R ELATED W ORK
+095
+096
+      Collaborative LLM Agents. Early work on LLM-based multi-agent communication has relied on manually
+097   defined coordination pipelines, with ranging from non-interactive queries and chain-of-thought prompting to
+098   debate frameworks and fixed tree- or graph-based structures (Wei et al., 2022b; Yao et al., 2023b; Besta et al.,
+099   2024). To reduce the effort of handcrafting these pipelines, automated topology-learning methods such as
+100   GPT-Swarm (Zhuge et al., 2024), G-Designer (Zhang et al., 2025a), and Aflow (Zhang et al., 2025b) have
+101   been developed. These approaches optimize agent connections via differentiable modules or heuristic search,
+102   yielding strong performance in static settings. However, they continue to assume a stationary environment
+103   and lack mechanisms for responding to changes in model capabilities, tool access, or data quality.
+104
+105   Multi-Agents as Graphs. Although a few dynamic communication protocols have been proposed in
+106   distributed-systems literature (Wei et al., 2022a; Yao et al., 2023a; Liang et al., 2023), most learned topologies
+107
+      remain static and brittle under evolving conditions, such as model upgrades, fluctuations in external tool
+      reliability, or shifts in data-source quality (Pareja et al., 2020; Chang et al., 2020). In these scenarios, pre-
+108
+      defined or naively optimized graphs can produce redundant interactions or disrupted information flows (Liu
+109
+      et al., 2025). To bridge this gap, we introduce the Conditional Agentic Graph Designer, which explicitly
+110   conditions graph generation on external signals (e.g., model version, tool performance, data-source fidelity)
+111   to produce adaptive, robust multi-agent topologies .
+112
+113
+114
+      3     P ROBLEM F ORMULATION
+115
+      We begin by formalizing the topology and protocol design space for LLM-based multi-agent systems (MAS),
+116
+      grounding the CARD framework (Figure 2) in well-defined constructs.
+117
+118
+      Topological Structure of LLM-based Multi-Agent Systems. A multi-agent system is represented as
+119   a directed graph G = (V, E), where each node vi ∈ V denotes an LLM-based agent and each directed
+120   edge (vi , vj ) ∈ E represents a communication path from vi to vj . Each agent vi is described by: profile
+121   attributes Pi , including [role identity, model base, tool access, historical state];
+122   And condition attributes Ci , capturing runtime environmental conditions. We model the condition C as a
+123   composition of multiple features, where each feature corresponds to a distinct semantic aspect F such as
+124   model type, tool availability, or task complexity. Formally,
+125                                          C = {c1 , c2 , . . . , ck }, ci ∈ Fi ,                                 (1)
+126
+                                             C = F1 × F2 × · · · × Fk ,                                             (2)
+127
+128   To ensure semantic consistency across heterogeneous features, we encode the structured condition using a
+129
+      unified pretrained language model, aligning all feature dimensions into a shared embedding space, enabling
+      the model to handle unseen combinations of features during inference.
+130
+131
+132
+      3.1   C OMMUNICATION P IPELINE
+133   Given a user query Q, our system executes K rounds of communication across a multi-agent topology
+134   G = (V, E), where V = {v1 , . . . , vN } is the set of agents and E represents directed communication edges.
+135
+136   Topological Scheduling. To ensure valid information flow, a topological scheduling function φ determines
+137   a permutation σ = {v(1) , . . . , v(N ) } of agents that respects acyclic dependencies:
+138
+                                   φ : G → σ,      such that    ∀j > i, v(j) ∈
+                                                                             / Nin (v(i) ),                         (3)
+139
+140   where Nin (v(i) ) denotes the set of upstream neighbors of agent v(i) .
+
+
+                                                          3
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+141                                                      Agent Representation                                                               Conditional Graph Generation
+142                       Role
+                                                                 "Project Manager": "You are a
+                                                                project manager. You will be given a             Xp
+143         Historian   Manager     Programmer
+                                                                function signature..."
+
+                                                     discript
+144                      Task
+                                                                "Math" : "Find the smallest positive
+                                                                integer that is greater than $1$..."
+145         MATH         CODE            QA                                                             Node
+                                                                                                       Encoder
+                        LLM BASE
+146                                                             "DeepSeek-V3" : "A 671B-parameter
+                                                                model developed by DeepSeek,
+147         Openai Deepseek     Qwen      Llama
+                                                                achieves SOTA performance in
+                                                                programming, mathematics..."                                                   Condition
+                                                     estimate
+148           External Tool/Source
+                                                                "Wikipedia": "Wikipedia is a                                  Encoder
+                                                                                                                                                                   CARD
+                                                                                                                                                                                Decoder
+                                                                multilingual, crowd-sourced                      Xc
+149         Google Duckduckgo     Wiki   Python
+                                                                encyclopedia..."
+
+
+150
+151                                                                                       Conditional Graph                Environment-Aware                       Runtime Adaptation via
+            Agent Representation
+                                                                                             Generation                         Training                                   CARD
+152
+153
+                                                                                                                          Configuration I                                 Configuration II
+154                                                                                                                                              Shift Condition
+                Environment Group
+155                           Search              Knoledge
+              LLM
+                              engine               source
+156
+157
+158
+159
+160
+                                                                                                                                                       CARD
+161
+162                                                     Environment-Aware Training                                                          Runtime Adaptation via CARD
+
+163
+164   Figure 2: Overview of the Conditional Agentic Graph Designer (CARD) framework. Agent profiles and
+165   dynamic environment conditions are encoded into embeddings, which a conditional graph-generation module
+166   (Encoder → Condition Adaptation → Decoder) uses to produce an adaptive communication topology.
+167
+      CARD then performs environment-aware training, iteratively refining graphs under changing resource
+      configurations, and deploys runtime adaptation to automatically update the multi-agent topology in response
+168
+      to new environmental states.
+169
+170
+171   Message Propagation. At each communication round t ∈ {1, . . . , K}, each agent vi receives (i) a system-
+172                   (t)                             (t)
+      level prompt Psys , (ii) a user-level prompt Pusr , and (iii) the collection of responses from its incoming
+173   neighbors at the same round:
+174                                     (t)
+                                                              (t)                
+                                                 (t)     (t)
+175                                  Ri = vi Psys    , Pusr  , Rj : vj ∈ Nin (vi ) ,                           (4)
+176                      (t)
+177
+      where Ri is the response generated by agent vi at round t.
+178
+      Output Aggregation. After K rounds of interaction, the system aggregates the final-round outputs from all
+179
+      agents to form the final system response:
+180
+                                                           (K)          (K) 
+181                                      α(K) = Aggregate R1 , . . . , RN ,                                 (5)
+182   where Aggregate(·) denotes a task-specific aggregation function (e.g., voting, selection, or summarization)
+183   over the terminal responses.
+184
+185   3.2        AMACP: A DAPTIVE M ULTI -AGENT C OMMUNICATION P ROTOCOL
+186
+187   To ensure meaningful topology construction, we define AMACP:
+
+                                                                                                                      4
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+188
+          AMACP Definition
+189
+190       Given a query Q, a communication topology G must satisfy: 1. Effectiveness: Maximize condi-
+191       tioned task utility u(G(Q|C); 2. Cost-efficiency: Minimize conditioned financial cost w(G; C); 3.
+192       Adaptiveness: Adjust topology in response to environmental condition C shifts.
+193       These objectives are jointly encoded in the following optimization problem:
+194
+                                  min LAMACP (G; Q, C) = −u(G(Q | C)) + β · w(G; C),                                 (6)
+195                               G∈G
+196
+          where u(·) denotes the task-specific utility function, w(·) is the conditioned communication cost, and
+197
+          β ∈ R+ is a tunable trade-off hyperparameter.
+198
+199
+200
+201   4    C ONDITIONAL AGENTIC G RAPH D ESIGNER
+202
+203   We introduce Conditional Agentic Graph Designer (CARD) that constructs adaptive, environment-conditioned
+204   multi-agent topologies. CARD comprises four key stages: (1) Agent representation, (2) Conditional graph gen-
+205   eration, (3) Environment-aware training, and (4) Runtime adaptation. The complete workflow is summarized
+206
+      in Algorithm 1 and visualized in Figure 2.
+207
+208   Agent Representation. Given a query Q and an environment configuration C, CARD first constructs an
+209   initial multi-agent network. Each agent vi ∈ V is described by two components: Firstly, a profile vector
+210
+      Pi = [Tp (Basei ), Rolei , Tp (Plugini )], capturing static attributes of the agent, including its base model,
+      assigned role, and supported tools. Here, Tp (·) denotes a natural-language template function used to verbalize
+211
+      categorical features (e.g., model name, role identity, plugin type) into a text embedding. Secondly, a condition
+212
+      vector Ci = Tc (Ci ), describing runtime environment status for vi , such as model availability, token cost, or
+213   API reliability. The function Tc (·) generates textual descriptions that encode dynamic system conditions.
+214   These representations are later encoded as node features for conditional graph generation (Section 4). See
+215   Appendix F for template instantiations of Tp and Tc .
+216
+217   Conditional Graph Generation Given a user query Q and an initial environment configuration, CARD
+218   constructs a preliminary agent graph Ge = (V, E)e over N = |V| agents. Each agent vi ∈ V is associated with
+219   a profile text Pi and a condition text Ci , which are embedded as Xip and Xic , respectively. Stacking across
+220
+      agents yields Xp = [X1p , . . . , XN
+                                         p
+                                           ] and Xc = [X1c , . . . , XN
+                                                                      c
+                                                                        ]. The edge set Ee is initialized from an anchor
+221   topology A (e.g., chain or star), which provides structural priors for initial connectivity.
+222
+223   To obtain a refined, query- and context-aware communication topology, CARD applies an encoder–decoder
+224
+      graph generation module. The encoder comprises two learnable graph encoders, ϕp and ϕc , that produce
+      latent representations for profile and condition channels:
+225
+226                                              Hp = ϕp (Hp | Xp , A; Θp ),                                               (7)
+227
+                                                 Hc = ϕc (Hc | Xc , A; Θc ),                                               (8)
+228
+229   where Hp = [hp1 , . . . , hpN ] and Hc = [hc1 , . . . , hcN ] denote the latent states, and Θp , Θc are encoder parame-
+230   ters. The decoder ψθ then estimates pairwise edge probabilities conditioned on these latent states and a query
+231   embedding hQ (the query is treated as an auxiliary node that attends to all agents in both channels):
+232                                                       Y
+                                                               ψ Sij hpi , hci , hpj , hcj , hQ ; Θd ,
+                                                                                                    
+233                                  ψ(S | Hp , Hc ) =                                                                    (9)
+234                                                    i,j
+
+
+
+                                                             5
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+235
+      where Sij ∈ [0, 1] is the predicted link probability and Θd are decoder parameters. Finally, the communication
+236
+      topology is obtained by thresholding the predicted adjacency:
+237
+238                               Ecom = {(vi , vj ) | Sij > τ },              Gcom = (V, Ecom ),                    (10)
+239   with a user-specified or validation-selected threshold τ ∈ (0, 1). The resulting Gcom serves as the backbone for
+240   downstream multi-agent communication and reasoning, adaptively modulated by static profiles and dynamic
+241   runtime states.
+242
+243   Environment-Aware Training. Given a query Q and an environment condition C (Section 3), CARD trains
+244   by iterating over sampled (Q, C) pairs and running K ∈ N rounds of multi-agent interaction on Gcom . At
+                                                                                        (t)                       (t)
+245   communication round t ∈ {1, . . . , K}, agent vi receives a system-level prompt Isys , a user-level prompt Iusr ,
+                                 (t)                                                (t)
+246   and upstream messages {Rj | vj ∈ Nin (vi )}, and produces a response Ri with equation 4. And after
+247   K rounds, a task-specific aggregation operator AGGREGATE(·) (e.g., voting, selection, or summarization)
+248   combines terminal responses into the system output α(K) with equation 5.
+249
+250
+      Let Θp , Θc , Θd denote the parameters of the profile encoder ϕp , condition encoder ϕc , and graph decoder ψ.
+      We optimize these parameters by gradient descent on a CARD loss that instantiates the AMACP objective
+251
+      (Eq. equation 6):
+252                                                                 
+253
+                             LCARD (Q, C; Θp , Θc , Θd ) = − u α(K) + β w(Gcom ; C) ,                          (11)
+                                                            | {z }              | {z }
+254                                                             task utility
+                                                                                      condition-aware cost
+255
+      where u(·) is a task-specific utility (e.g., accuracy/probability of correctness), w(·) measures the conditioned
+256
+      communication cost, and β > 0 balances utility and cost. Specifically, to encourage communication efficiency
+257
+      while preserving performance, we regularize the soft communication graph Gecom output by the decoder. Let
+258
+      S ∈ [0, 1]N ×N be the predicted (directed) link-probability matrix and define pij := Sij as the probability that
+259   edge (vi → vj ) is active under condition C. Let Costij ≥ 0 denote the expected token-level inference cost
+260   on edge (i, j) (a function of the base model(s) and the number of exchanged tokens). The condition-aware
+261   regularizer is:                                       
+262
+                                                                     X
+                                          min w Gecom , C =                 Costij pij ,                           (12)
+263                                     G
+                                        ecom ∈G
+                                                                  (i,j)∈G
+                                                                        ecom
+264
+265
+      where G is the space of admissible (soft) directed graphs over V. In practice, Gcom used for execution is
+      obtained by thresholding S; training backpropagates through S to update (Θp , Θc , Θd ) via equation 11.
+266
+267
+      Runtime Adaptation via CARD. At deployment, when external conditions change (e.g., base model
+268
+      capability, tool reliability, or cost), CARD updates the communication topology without retraining by
+269
+      decoding new edges from refreshed condition signals:
+270
+                                              new
+                                                  = ψ ϕp (Xp ), ϕc (Xcnew ), A ,
+                                                                              
+271                                        Gcom                                                         (13)
+272   where Xp encodes the agent profiles static (role, base model, and tools), Xcnew encodes the runtime conditions
+273   updated, ϕp , ϕc maps these to latent node states, A is the anchor prior (e.g. chain, star, or fully connected), and
+274   ψ decodes edge probabilities (thresholded at τ ) to produce the revised adjacency. This one-pass recomputation
+275   preserves robust, cost-efficient collaboration under real-time shifts.
+276
+277   5    E XPERIMENT
+278
+279   Datasets and Metrics. We assess CARD on three standard benchmarks: programming code generation
+280   (HumanEval)Chen et al. (2021), mathematical reasoning (MATH)Hendrycks et al. (2021b), and general
+281   reasoning and language understanding (MMLU)Hendrycks et al. (2021a).
+
+                                                          6
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+282
+      Baselines and Setup. We compare our approach against three categories of methods: Vanilla LLM,
+283
+      using the model’s native capabilities to produce direct answers; Manually designed agents, including
+284   Chain-of-Thought (CoT)Wei et al. (2022b) in a single-agent setup, and LLM-DebateDu et al. (2023) and
+285   Random Graph in a multi-agent configuration; And Automatically optimized topologies — graph-learning
+286   techniques such as GPT-SwarmZhuge et al. (2024) and G-DesignerZhang et al. (2025a) (which share our
+287   graph formulation), alongside the heuristic rule-based optimizer AflowZhang et al. (2025b). We evaluate
+288   a diverse set of language models sourced from different providers, each representing distinct technical
+289   paradigms, training methodologies, and architectural designs. Please see Appendix C and G for more details.
+290
+291   5.1   M AIN R ESULTS
+292
+293
+      Table 1: Evaluation of multi-agent and topology design methods on HumanEval, MATH, and MMLU.
+      "Mul.", "Auto.", and "Cond." indicate support for multi-agent collaboration, automated topology design, and
+294
+      conditional configuration, where ✓ indicates "Yes" and ✗ indicates "No". For automated methods, CYAN
+295
+      cells denote in-domain adaptation (trained and tested on the same LLM), GREEN cells denote out-domain
+296   adaptation (generalization to unseen LLMs), and YELLOW cells denote the average performance.
+297
+298                   Method      Mul.   Auto.   Cond.   gpt4o-mini   deepseek-v3   llama3-70B   gpt4o   qwen-72B   Avg.
+299                                                                                 HumanEval
+300                Vanilla         ✗      ✗       ✗        85.83         92.50        76.66      85.83    86.66     85.50
+                   CoT             ✗      ✗       ✗        88.33         93.33        78.33      90.00    88.33     87.66
+301                Random-graph    ✓      ✗       ✗        87.50         94.16        73.33      90.00    85.00     86.00
+302                LLM-Debate      ✓      ✗       ✗        91.66         95.00        75.83      87.50    80.00     86.00
+                   GPTswarm        ✓      ✓       ✗        89.16         92.50        78.33      91.66    81.66     86.66
+303                Aflow           ✓      ✓       ✗        90.83         92.50        85.83      93.33    86.66     89.83
+304                G-designer      ✓      ✓       ✗        89.16         94.16        75.00      88.33    85.83     86.50
+                   CARD            ✓      ✓       ✓        93.33         95.83        81.66      93.33    88.33     90.50
+305
+                                                                                     MATH
+306                Vanilla         ✗      ✗       ✗        59.16         74.16        41.66      70.00    71.66     63.33
+307                CoT             ✗      ✗       ✗        61.66         80.00        41.66      65.00    73.33     64.33
+                   Random-graph    ✓      ✗       ✗        60.00         88.33        38.33      70.00    66.67     64.67
+308                LLM-Debate      ✓      ✗       ✗        59.16         85.00        46.66      71.66    71.66     66.83
+309                GPTswarm        ✓      ✓       ✗        67.50         90.83        46.66      67.50    78.33     70.16
+                   Aflow           ✓      ✓       ✗        80.83         91.66        40.00      75.83    80.83     73.83
+310                G-designer      ✓      ✓       ✗        70.00         91.66        47.50      75.00    79.16     72.66
+311                CARD            ✓      ✓       ✓        73.33         91.66        48.33      76.67    82.50     74.50
+                                                                                     MMLU
+312
+                   Vanilla         ✗      ✗       ✗        77.12         86.27        75.16      86.93    79.74     81.04
+313                CoT             ✗      ✗       ✗        81.05         92.16        75.16      88.89    83.66     84.18
+314                Random-graph    ✓      ✗       ✗        79.74         90.85        75.82      86.93    83.00     83.27
+                   LLM-Debate      ✓      ✗       ✗        80.39         90.20        76.47      88.24    84.31     83.92
+315                GPTswarm        ✓      ✓       ✗        82.35         89.54        77.78      86.27    84.31     84.05
+316                Aflow           ✓      ✓       ✗        79.74         84.97        77.12      89.54    83.00     82.87
+                   G-designer      ✓      ✓       ✗        83.00         90.85        77.12      86.93    84.31     84.44
+317                CARD            ✓      ✓       ✓        84.97         93.46        80.39      89.54    84.97     86.67
+318
+319
+320
+      Conditional design (CARD) consistently delivers the best overall performance. With 90.50% on
+      HumanEval, 74.50% on MATH, and 86.67% on MMLU, remarkably, CARD attains or ties for the top score
+321
+      in 13 out of 15 model–benchmark combinations, demonstrating strong robustness across different LLM bases.
+322
+323
+      Gains accrue progressively with richer design abstractions. Single-agent methods (Vanilla, CoT) estab-
+324   lish a competitive baseline but lack collaboration. Fixed multi-agent topologies (Random-graph, LLM-Debate)
+325   add modest gains (+0.5–2.0 pp) by enabling parallel reasoning. Automated topology learners (GPT-swarm,
+326   Aflow, G-designer) further boost performance (+1.0–4.0 pp) by optimizing static communication structures.
+327   Finally, CARD’s conditional adaptation delivers an extra +0.5–3.0 pp advantage over these static designs by
+328   tailoring the topology to environmental signals.
+
+                                                               7
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340
+341
+342   Figure 3: Performance and gains of w/o Cond., w/ Cond.p, and CARD on HumanEval, MATH, and MMLU
+343   across LLM bases (M1–M5, same to Table 1). Top: absolute accuracy (%). Bottom: ∆ accuracy (%) over
+344
+      the w/o Cond. baseline.
+345
+346   Conditional adaptation pays off especially under out-of-domain settings. By explicitly conditioning
+347   on model- and tool-state, CARD narrows the gap between in-domain and out-domain evaluations. For
+348   example, on MATH, G-designer’s accuracy falls from 91.66% to 79.16% when changing from deepseek-v3
+349   to qwen-72B, whereas CARD’s drop is smaller (from 91.66% to 82.50%), underscoring its adaptability to
+350
+      unseen settings.
+351
+352   5.2   H OW TO E MBED C ONDITIONS IN LLM T OPOLOGY G ENERATION ?
+353
+      Figure 3 reports an ablation study on different ways to inject environmental conditions into the generation of
+354
+      multi-agent topologies. We compare an unconditioned baseline (w/o Cond.), a naive prompt-level injection
+355   (w/ Cond.p) that appends condition descriptors to the system prompt, and our CARD approach which embeds
+356   conditions directly within the graph-generation module. Each variant is evaluated in HumanEval, MATH,
+357   and MMLU on five LLM bases, reporting absolute precision and ∆ precision relative to the unconditioned
+358   baseline.
+359
+360   CARD delivers robust, non-negative gains across all benchmarks. While simple prompt conditioning
+361   can backfire, causing up to a –12.50 % drop on MATH with base M5 and –2.00 % on MMLU with base M1.
+362   CARD consistently yields positive improvements on every model–benchmark pair (e.g., +0.83 % to +3.34 %
+363   on MATH, +0.66 % to +2.62 % on MMLU, and +2.50 % to +23.33 % on HumanEval), proving structured
+364
+      topology adaptation far more reliable than prompt-only methods.
+365
+366
+      CARD compensates for weaker baseline models. The greatest uplifts appear in the most challenging
+      settings, such as a +2.62 % gain on MMLU with M3 and a +3.34 % boost on MATH with M5, demonstrating
+367
+      the ability of CARD to narrow out-of-domain performance gaps and mitigate the limitations of less capable
+368
+      LLM bases. Further analyses isolating source/tool effects and localized condition perturbations are in
+369   Appendix B.2.
+370
+371
+      5.3   H OW D O E NVIRONMENTAL C ONDITIONS S HAPE THE F INAL C OMMUNICATION A RCHITECTURE ?
+372
+373   In Figure 4, we present four representative experimental configurations, combining two LLM capacities
+374   (GPT-4o-mini vs. GPT-4o or Llama3-70B) with two search engines (Google Search vs. Wiki Search) to
+375   illustrate CARD’s conditional adaptation in action. By visualizing the resulting topology matrices, we aim
+
+                                                        8
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+376
+377
+378
+379
+380
+381
+382
+383
+384
+385
+386
+      Figure 4: Visualization of CARD topology matrices (See Appendix D for matrices and correlation analysis
+      details.) under different conditions. Edge thickness reflects the communication probability between agents.
+387
+      Configurations 1 to 4 (Table 10) are shown from left to right.
+388
+389
+      to quantify how variations in model strength and retrieval quality drive changes in edge density, directional
+390   flow patterns, and overall graph structure. This case study validates CARD’s ability to tailor multi-agent
+391   communication graphs to dynamic environmental signals, providing insight into the practical behavior of the
+392   protocol under realistic operational changes.
+393
+394   Weaker Models Demand Denser Collaboration. In Configuration 1 (GPT-4o-mini + Google Search), the
+395   average edge weight is substantially greater than in Configuration 2 (GPT-4o + Google Search), demonstrating
+396   that the smaller model compensates for lower inherent capacity by intensifying multi-agent communication.
+397
+398   Search-Engine Swap Preserves Global Structure but Shifts Local Flows. Replacing Google with Wiki
+399   for GPT-4o-mini (Config 1 vs. 3) yields a Pearson correlation of r = 0.9797 and p = 0.0006 (Appendix D.2),
+400   confirming near-identical overall topology. Locally, however, the Knowledge Expert→Searcher edge weight
+401   decreases markedly, and the Searcher→Mathematician link drops more than Searcher→Philosopher, reflect-
+402   ing domain-specific retrieval efficacy differences.
+403
+404   Lowest Capacity + Lower-Quality Search Maximizes External-Knowledge Reliance. The Llama3-
+405   70B + Wiki configuration (Config 4) produces the densest graph with the highest average edge weights,
+406   demonstrating peak dependence on external information when both model capacity and search quality are
+407   reduced (Config 1 vs. 4: r = 0.7789, p = 0.0679 (Appendix D.2)).
+408   We provide additional quantitative breakdowns by model capability and size in Appendix B.1 and by
+409   tools/knowledge sources in Appendix B.2. Scalability under varying agent counts is detailed in Appendix B.3,
+410   and robustness under targeted attacks and accuracy–cost trade-offs are summarized in Appendix B.4.
+411
+412
+413
+      6   C ONCLUSION
+414
+415
+      We introduced AMACP, a protocol for adaptive multi-agent communication, and CARD, a conditional
+      graph-generation framework that tailors LLM-based agent topologies to dynamic environments. Experiments
+416
+      on HumanEval, MATH, and MMLU under simulated shifts (model upgrades, tool changes, and data per-
+417
+      turbations) show CARD outperforms static and prompt-based designs by up to three percentage points in
+418   accuracy while remaining cost-effective. Topology visualizations underscore CARD’s capability to adjust
+419   communication patterns based on agent capabilities and resource quality. Future work will scale to larger
+420   agent ensembles, integrate online reinforcement for continual adaptation, and validate CARD in real-world
+421   multi-agent applications. For a detailed discussion of limitations and avenues for future work, please refer to
+422   Appendix A.
+
+                                                        9
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+423
+      7   E THICS S TATEMENT
+424
+425
+      This work uses only publicly available datasets and models, and does not involve human subjects or private
+426   data. We acknowledge the broader societal risks of autonomous multi-agent LLM systems and encourage
+427   responsible deployment with appropriate safeguards.
+428
+429
+430
+      8   R EPRODUCIBILITY S TATEMENT
+431
+      To support reproducibility, we provide the full source code, training and evaluation scripts, and prompt
+432
+      templates at https://anonymous.4open.science/r/agentgraph-FF9A. All experiments are
+433
+      based on publicly available benchmarks (HumanEval, MATH, MMLU) and open-source or API-accessible
+434   LLMs, with full implementation details, model configurations, and hyperparameters documented in Appen-
+435   dices C–F. Results are averaged over multiple runs, and all metrics and visualizations are script-generated for
+436   easy verification.
+437
+438
+      R EFERENCES
+439
+440   Yuanchen Bei, Weizhi Zhang, Siwen Wang, Weizhi Chen, Sheng Zhou, Hao Chen, Yong Li, Jiajun Bu,
+441     Shirui Pan, Yizhou Yu, Irwin King, Fakhri Karray, and Philip S. Yu. Graphs meet AI agents: Taxonomy,
+442     progress, and future opportunities. CoRR, abs/2506.18019, 2025. URL https://doi.org/10.
+443
+        48550/arXiv.2506.18019.
+444   Maciej Besta, Nils Blach, Ales Kubicek, Robert Gerstenberger, Michal Podstawski, Lukas Gianinazzi, Joanna
+445    Gajda, Tomasz Lehmann, Hubert Niewiadomski, Piotr Nyczyk, and Torsten Hoefler. Graph of thoughts:
+446    Solving elaborate problems with large language models. In Michael J. Wooldridge, Jennifer G. Dy, and
+447    Sriraam Natarajan (eds.), Thirty-Eighth AAAI Conference on Artificial Intelligence, AAAI 2024, Thirty-Sixth
+448    Conference on Innovative Applications of Artificial Intelligence, IAAI 2024, Fourteenth Symposium on
+449    Educational Advances in Artificial Intelligence, EAAI 2014, February 20-27, 2024, Vancouver, Canada, pp.
+450
+       17682–17690. AAAI Press, 2024. doi: 10.1609/AAAI.V38I16.29720. URL https://doi.org/10.
+       1609/aaai.v38i16.29720.
+451
+452   Xiaofu Chang, Xuqin Liu, Jianfeng Wen, Shuang Li, Yanming Fang, Le Song, and Yuan Qi. Continuous-time
+453     dynamic graph learning via neural interaction processes. In Proceedings of the 29th ACM International
+454     Conference on Information & Knowledge Management, pp. 145–154, 2020.
+455
+      Bei Chen, Fengji Zhang, Anh Nguyen, Daoguang Zan, Zeqi Lin, Jian-Guang Lou, and Weizhu Chen.
+456     Codet: Code generation with generated tests. In The Eleventh International Conference on Learning
+457     Representations, 2023. URL https://openreview.net/forum?id=ktrw68Cmu9c.
+458
+459   Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde de Oliveira Pinto, Jared Kaplan, Harri
+460
+       Edwards, Yuri Burda, Nicholas Joseph, Brockman, et al. Evaluating large language models trained on code.
+       CoRR, abs/2107.03374, 2021. URL https://arxiv.org/abs/2107.03374.
+461
+462   DeepSeek-AI, Aixin Liu, Bei Feng, Bing Xue, Bingxuan Wang, Bochao Wu, Chengda Lu, Chenggang
+463     Zhao, Chengqi Deng, Chenyu Zhang, Chong Ruan, Damai Dai, Daya Guo, Dejian Yang, Deli Chen, et al.
+464     Deepseek-v3 technical report. CoRR, abs/2412.19437, 2024. doi: 10.48550/ARXIV.2412.19437. URL
+465     https://doi.org/10.48550/arXiv.2412.19437.
+466   DeepSeek-AI, Daya Guo, Dejian Yang, Haowei Zhang, Junxiao Song, Ruoyu Zhang, Runxin Xu, Qihao
+467     Zhu, Shirong Ma, Peiyi Wang, Xiao Bi, et al. Deepseek-r1: Incentivizing reasoning capability in llms
+468     via reinforcement learning. CoRR, abs/2501.12948, 2025. doi: 10.48550/ARXIV.2501.12948. URL
+469     https://doi.org/10.48550/arXiv.2501.12948.
+
+                                                       10
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+470
+      Yilun Du, Shuang Li, Antonio Torralba, Joshua B. Tenenbaum, and Igor Mordatch. Improving factuality and
+471
+        reasoning in language models through multiagent debate. CoRR, abs/2305.14325, 2023.
+472
+473   Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian, Ahmad Al-Dahle, Aiesha Letman,
+474    Akhil Mathur, Alan Schelten, Amy Yang, Angela Fan, Anirudh Goyal, and others. The llama 3 herd of
+475     models. CoRR, abs/2407.21783, 2024. doi: 10.48550/ARXIV.2407.21783. URL https://doi.org/
+476    10.48550/arXiv.2407.21783.
+477   Dan Hendrycks, Collin Burns, Steven Basart, Andy Zou, Mantas Mazeika, Dawn Song, and Jacob Steinhardt.
+478     Measuring massive multitask language understanding. In 9th International Conference on Learning
+479     Representations, ICLR 2021, Virtual Event, Austria, May 3-7, 2021. OpenReview.net, 2021a. URL
+480     https://openreview.net/forum?id=d7KBjmI3GmQ.
+481
+482
+      Dan Hendrycks, Collin Burns, Saurav Kadavath, Akul Arora, Steven Basart, Eric Tang, Dawn Song,
+        and Jacob Steinhardt. Measuring mathematical problem solving with the MATH dataset. In Joaquin
+483
+        Vanschoren and Sai-Kit Yeung (eds.), Proceedings of the Neural Information Processing Systems
+484
+       Track on Datasets and Benchmarks 1, NeurIPS Datasets and Benchmarks 2021, December 2021, vir-
+485     tual, 2021b. URL https://datasets-benchmarks-proceedings.neurips.cc/paper/
+486     2021/hash/be83ab3ecd0db773eb2dc1b0a17836a1-Abstract-round2.html.
+487
+488   Sirui Hong, Xiawu Zheng, Jonathan Chen, Yuheng Cheng, Jinlin Wang, Ceyao Zhang, Zili Wang, Steven
+489     Ka Shing Yau, Zijuan Lin, Liyang Zhou, Chenyu Ran, Lingfeng Xiao, and Chenglin Wu. Metagpt: Meta
+490
+        programming for multi-agent collaborative framework, August 01, 2023 2023.
+491   Sungwoo Lee, Younghyun Oh, Hyunhoe An, Hyebhin Yoon, Karl J. Friston, Seok Jun Hong, and Choong-
+492     Wan Woo. Life-inspired interoceptive artificial intelligence for autonomous and adaptive agents. CoRR,
+493     abs/2309.05999, 2023. doi: 10.48550/ARXIV.2309.05999. URL https://doi.org/10.48550/
+494     arXiv.2309.05999.
+495
+      Tian Liang, Zhiwei He, Wenxiang Jiao, Xing Wang, Yan Wang, Rui Wang, Yujiu Yang, Zhaopeng Tu, and
+496
+        Shuming Shi. Encouraging divergent thinking in large language models through multi-agent debate, May
+497
+        01, 2023 2023. Work in progress.
+498
+499   Pengfei Liu, Weizhe Yuan, Jinlan Fu, Zhengbao Jiang, Hiroaki Hayashi, and Graham Neubig. Pre-train,
+500     prompt, and predict: A systematic survey of prompting methods in natural language processing. ACM
+501     Comput. Surv., 55(9), 2023a. ISSN 0360-0300. doi: 10.1145/3560815. URL https://doi.org/10.
+502
+        1145/3560815.
+503   Ruibo Liu, Jason Wei, Shixiang Shane Gu, Te-Yen Wu, Soroush Vosoughi, Claire Cui, Denny Zhou,
+504     and Andrew M. Dai. Mind’s eye: Grounded language model reasoning through simulation. In ICLR.
+505     OpenReview.net, 2023b. URL https://openreview.net/pdf?id=4rXMRuoJlai.
+506
+507
+      Yixin Liu, Guibin Zhang, Kun Wang, Shiyuan Li, and Shirui Pan. Graph-augmented large language
+        model agents: Current progress and future prospects. CoRR, abs/2507.21407, 2025. URL https:
+508
+        //doi.org/10.48550/arXiv.2507.21407.
+509
+510   OpenAI. Hello gpt-4o, 2024a. URL https://openai.com/index/hello-gpt-4o/.
+511
+512
+      OpenAI. Gpt-4o mini: advancing cost-efficient intelligence, 2024b. URL https://openai.com/
+        index/gpt-4o-mini-advancing-cost-efficient-intelligence/.
+513
+514   Aldo Pareja, Giacomo Domeniconi, Jie Chen, Tengfei Ma, Toyotaro Suzumura, Hiroki Kanezashi, Tim Kaler,
+515     Tao Schardl, and Charles Leiserson. Evolvegcn: Evolving graph convolutional networks for dynamic
+516     graphs. In Proceedings of the AAAI Conference on Artificial Intelligence, volume 34, pp. 5363–5370, 2020.
+
+                                                     11
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+517
+      Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Brian Ichter, Fei Xia, Ed Chi, Quoc Le, and
+518
+        Denny Zhou. Chain-of-thought prompting elicits reasoning in large language models, January 01, 2022
+519     2022a.
+520
+521   Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Brian Ichter, Fei Xia, Ed H. Chi,
+522     Quoc V. Le, and Denny Zhou. Chain-of-thought prompting elicits reasoning in large language
+523     models. In Sanmi Koyejo, S. Mohamed, A. Agarwal, Danielle Belgrave, K. Cho, and A. Oh
+524
+        (eds.), Advances in Neural Information Processing Systems 35: Annual Conference on Neural In-
+        formation Processing Systems 2022, NeurIPS 2022, New Orleans, LA, USA, November 28 - Decem-
+525
+        ber 9, 2022, 2022b. URL http://papers.nips.cc/paper_files/paper/2022/hash/
+526
+        9d5609613524ecf4f15af0f7b31abca4-Abstract-Conference.html.
+527
+528   Qingyun Wu, Gagan Bansal, Jieyu Zhang, Yiran Wu, Shaokun Zhang, Erkang Zhu, Beibin Li, Li Jiang,
+529     Xiaoyun Zhang, and Chi Wang. Autogen: Enabling next-gen llm applications via multi-agent conversation
+530     framework, August 01, 2023 2023.
+531
+      An Yang, Baosong Yang, Binyuan Hui, Bo Zheng, Bowen Yu, Chang Zhou, Chengpeng Li, Chengyuan
+532     Li, Dayiheng Liu, Fei Huang, , et al. Qwen2 technical report. CoRR, abs/2407.10671, 2024. doi:
+533    10.48550/ARXIV.2407.10671. URL https://doi.org/10.48550/arXiv.2407.10671.
+534
+535   Shunyu Yao, Dian Yu, Jeffrey Zhao, Izhak Shafran, Thomas L. Griffiths, Yuan Cao, and Karthik Narasimhan.
+536     Tree of thoughts: Deliberate problem solving with large language models, May 01, 2023 2023a.
+537   Shunyu Yao, Dian Yu, Jeffrey Zhao, Izhak Shafran, Tom Griffiths, Yuan Cao, and Karthik
+538     Narasimhan. Tree of thoughts: Deliberate problem solving with large language models. In
+539     Alice Oh, Tristan Naumann, Amir Globerson, Kate Saenko, Moritz Hardt, and Sergey Levine
+540     (eds.), Advances in Neural Information Processing Systems 36: Annual Conference on Neu-
+541     ral Information Processing Systems 2023, NeurIPS 2023, New Orleans, LA, USA, December 10
+542     - 16, 2023, 2023b. URL http://papers.nips.cc/paper_files/paper/2023/hash/
+543     271db9922b8d1f4dd7aaef84ed5ac703-Abstract-Conference.html.
+544
+      Guibin Zhang, Yanwei Yue, Xiangguo Sun, Guancheng Wan, Miao Yu, Junfeng Fang, Kun Wang, Tianlong
+545     Chen, and Dawei Cheng. G-designer: Architecting multi-agent communication topologies via graph
+546     neural networks. In Forty-second International Conference on Machine Learning, 2025a. URL https:
+547    //openreview.net/forum?id=LpE54NUnmO.
+548
+549   Jiayi Zhang, Jinyu Xiang, Zhaoyang Yu, Fengwei Teng, Xiong-Hui Chen, Jiaqi Chen, Mingchen Zhuge,
+550
+         Xin Cheng, Sirui Hong, Jinlin Wang, Bingnan Zheng, Bang Liu, Yuyu Luo, and Chenglin Wu. AFlow:
+         Automating agentic workflow generation. In The Thirteenth International Conference on Learning
+551
+         Representations, 2025b. URL https://openreview.net/forum?id=z5uVAKwmjf.
+552
+553   Jintian Zhang, Xin Xu, and Shumin Deng. Exploring collaboration mechanisms for llm agents: A social
+554      psychology view. arXiv preprint arXiv:2310.02124, 2023.
+555
+      Mingchen Zhuge, Wenyi Wang, Louis Kirsch, Francesco Faccio, Dmitrii Khizbullin, and Jürgen Schmidhuber.
+556
+       Gptswarm: Language agents as optimizable graphs. In Forty-first International Conference on Machine
+557
+       Learning, 2024.
+558
+559
+560
+561
+562
+563
+
+
+                                                    12
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+564
+      A PPENDIX C ONTENTS
+565
+566
+567   A Limitation                                                                                              14
+568
+569   B Analysis and Discussion                                                                                 14
+570
+         B.1 Quantitative Analysis of Conditions: Model Size and Reasoning Ability . . . . . . . . . . .        14
+571
+572      B.2 Quantitative Analysis of Conditions: Tools and Knowledge Resources . . . . . . . . . . . .         15
+573      B.3 Multi-agent Scalability Analysis . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   15
+574
+575
+         B.4 Multi-agent Robustness & Cost-Efficiency Analysis . . . . . . . . . . . . . . . . . . . . . .      16
+576
+577   C Implementation Details                                                                                  17
+578
+579   D Source Data                                                                                             18
+580
+         D.1 Adjacency Matrix of Visualization . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    18
+581
+582      D.2 Correlation Analysis of Adjacency Matrix . . . . . . . . . . . . . . . . . . . . . . . . . . .     19
+583
+584   E Algorithm Workflow                                                                                      19
+585
+586
+      F Prompt                                                                                                  20
+587
+588
+589   G Experiment Configuration Sets                                                                           25
+590
+591
+592
+593
+594
+595
+596
+597
+598
+599
+600
+601
+602
+603
+604
+605
+606
+607
+608
+609
+610
+
+
+                                                      13
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+611
+      A     L IMITATION
+612
+613
+      This work focuses on conditional optimization and adaptation of multi-agent communication topologies.
+614
+      However, it does not explicitly update agent-level configurations such as individual prompts or internal
+615   profiles in response to environmental shifts. In practice, jointly optimizing both the communication topology
+616   and agent behaviors, including prompt augmentation and tool selection strategies, may further improve
+617   system performance. Exploring this direction remains an open avenue for future research. Additionally, while
+618   our formulation represents the multi-agent system as a graph, which offers a cognitively interpretable and
+619   analyzable abstraction, graph-based representations may be insufficient for capturing domain-specific nuances
+620   in complex real-world settings. For example, in software engineering workflows, procedural constraints, tool
+621   dependencies, and execution semantics are often critical. Future work may incorporate human-in-the-loop
+622   expertise, such as software development best practices and debugging heuristics, and explore hybrid models
+623
+      that combine symbolic priors with learned agent adaptation mechanisms.
+624
+625   B     A NALYSIS AND D ISCUSSION
+626
+627   B.1   Q UANTITATIVE A NALYSIS OF C ONDITIONS : M ODEL S IZE AND R EASONING A BILITY
+628
+629   We conduct further experimental analysis to investigate how variations in model capability, model size,
+630   external tools, and knowledge sources impact multi-agent topology design and overall performance.
+631
+632
+633
+634
+635
+636
+637
+638
+639
+640
+641
+642   Figure 5: Left: Accuracy on MATH and HumanEval across LLMs with different reasoning capabilities.
+643   Right: Accuracy across different model sizes within the same LLM family.
+644
+645   Stronger and larger base models yield higher multi-agent performance, with CARD amplifying these
+646   gains, but on simple tasks a single powerful LLM can outperform multi-agent coordination due to
+647   communication overhead On both MATH and HumanEval benchmarks, upgrading from qwen-7b to
+648
+      the higher-capability deepseek-distill-qwen-7b yields consistent accuracy improvements across all methods,
+      with CARD showing the largest absolute gains and the best performance(e.g., MATH accuracy rises from
+649
+      69.16 % to 88.33 % (+19.17 pp)). However, on simple benchmarks with a capable model (Figure 5 Right),
+650
+      vanilla single-agent slightly outperforms multi-agent due to redundant communication. This underscores that
+651   multi-agent benefits require task complexity to outweigh coordination costs.
+652
+653   CARD exhibits superior robustness to variations in external tools and knowledge resources Evidence:
+654   When switching among Google Search, DuckDuckGo, and Wikipedia as the external tool, CARD’s Hu-
+655   manEval accuracy only drops from 85.62 % to 83.00 % Figure 6(Left), a smaller decline than alternative
+656   methods. Similarly, across knowledge sources (Wikipedia, Tutorialspoint, Quora), CARD achieves its highest
+657   performance (85.62 %) on the richest data source and outperforms other approaches by 1–2 percentage points
+
+                                                      14
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+658
+      even on less informative sources. This resilience highlights CARD’s ability to maintain strong multi-agent
+659
+      topologies under diverse resource conditions.
+660
+661
+      B.2   Q UANTITATIVE A NALYSIS OF C ONDITIONS : T OOLS AND K NOWLEDGE R ESOURCES
+662
+663
+664
+665
+666
+667
+668
+669
+670
+671
+672
+673
+674
+675   Figure 6: Left: Performance comparison using different external knowledge sources. Central: Performance
+676   across various available tools (search engines). Right: Impact on multi-agent performance on HumanEval,
+677   when only a single node’s condition is updated instead of the global agent condition.
+678
+679
+      We evaluate how external conditions, namely knowledge sources and retrieval tools, affect performance in the
+680
+      CARD framework. Experiments use HumanEval with the same base LLM and agent-role design as in the
+681   main paper. The only varying factors are the condition features: switching among three knowledge corpora
+682   (Wikipedia, Tutorialspoint, Quora), changing search tools (Google, DuckDuckGo, WikiSearch), and applying
+683   localized perturbations by modifying a single node’s condition embedding. All configurations share the same
+684   retrieval budget, prompt formatting, and random seed.
+685
+      Across source and tool variations, CARD consistently outperforms baselines and exhibits smaller performance
+686
+      drops under weaker conditions. Accuracy declines from 85.6% on Wikipedia to 83.0% on Quora, yet CARD
+687   maintains a clear margin over LLM-Debate and G-Designer. This resilience stems from condition-aware
+688   graph generation that adapts edge density and agent coordination to upstream content quality. The results
+689   indicate that topology-level adaptation provides stronger robustness than prompt-only conditioning when
+690   facing domain shift or noisy external knowledge.
+691
+      In local perturbation tests, changing the condition for only one node, either the root or an intermediate node,
+692
+      preserves most performance at 88.3% and 85.0% respectively, substantially surpassing baselines. This shows
+693   that CARD enables low-cost, localized reconfiguration without full graph retraining. The modular design
+694   supports practical online adaptation in production, allowing lightweight updates in response to tool variability
+695   or hotfixes while maintaining stable accuracy under dynamic real-world constraints.
+696
+697   B.3   M ULTI - AGENT S CALABILITY A NALYSIS
+698
+699   We evaluate the scalability and robustness of CARD against G-Designer by grouping base LLMs into
+700   in-domain (gpt4o-mini, deepseek-v3, llama3) and out-of-domain (GPT-4o, qwen-72B) settings.
+701   CARD scales more effectively than G-Designer as agent count increases, especially in out-of-domain
+702   settings. As shown in Figure 7, CARD consistently achieves higher MMLU scores as the number of agents
+703   increases, with particularly pronounced gains in the out-of-domain setting (up to +1.99 pp over G-Designer at
+704   10 agents). In the in-domain case, both methods improve over Vanilla, but CARD shows a steeper upward
+
+                                                        15
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+705
+706
+707
+708
+709
+710
+711
+712
+713
+714
+715   Figure 7: MMLU performance of CARD vs G-Designer across varying agent counts. CARD consistently
+716   outperforms G-Designer in both (a) in-domain and (b) out-of-domain settings, with larger gains under domain
+717   shift; shaded areas denote 95% confidence intervals.
+718
+719
+720
+721
+722
+723
+724
+725
+726
+727
+728
+729
+      Figure 8: Left: Accuracy comparison before and after adversarial attacks across different methods. Right:
+730
+      The inference cost (USD per instance) across methods and LLMs.
+731
+732
+733   trend, with its advantage widening at 5–10 agents. This indicates that conditional topology generation in
+734
+      CARD helps agents coordinate more effectively as system size grows.
+735   CARD also demonstrates stronger robustness under domain shift with comparable uncertainty. The
+736   method also exhibits greater robustness under distribution shift. While G-Designer’s performance gains
+737   plateau in the out-of-domain setting, CARD continues to benefit from agent scaling. Moreover, CARD
+738   achieves these improvements with comparable or slightly lower confidence interval widths, suggesting more
+739   reliable and generalizable coordination gains. These results align with the design goal of CARD—namely, to
+740
+      generate topology conditioned on external constraints (e.g., model type, cost, capability), enabling adaptive
+      and scalable multi-agent collaboration even in unseen environments.
+741
+742
+743   B.4   M ULTI - AGENT ROBUSTNESS & C OST-E FFICIENCY A NALYSIS
+744
+      We evaluate both robustness and cost-efficiency by simulating targeted attacks and configuration faults at
+745   intermediate agents on the HumanEval benchmark to measure resilience in accuracy, and by calculating
+746   total training and evaluation expenses across different LLM bases to quantify economic trade-offs, thereby
+747   enabling a systematic comparison of static, learned, and conditionally adapted communication topologies
+748   under both adverse conditions and budget constraints.
+749
+750   Robustness under attack is markedly improved by conditional adaptation. As shown in Figure 8
+751   (Left), when an agent node is attacked, LLM Debate, which relies on fixed pairwise prompting without
+
+                                                       16
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+752
+      structural adaptation, and suffers the sharpest performance drop (–6.67 pp on HumanEval, -3.34 pp on MATH).
+753
+      G-Designer, trained under attack conditions, filters out the faulty node and shows smaller degradation (–1.24
+754   pp on HumanEval, –3.33 pp on MATH), but loses generalization once the node recovers. In contrast, CARD,
+755   trained under both attacked and clean conditions, not only outperforms G-Designer under attack (87.50%
+756   vs. 86.66% on HumanEval; 65.83% vs. 60.00% on MATH), but also shows significantly greater recovery
+757   when the compromised node is restored (+3.33 pp vs. +1.24 pp on HumanEval; the accuracy under attack
+758   is even higher than non-attacked on MATH, indicating that our topology is fully adaptable to both attacked
+759   and non-attacked conditions.) highlighting its superior resilience and adaptability across both degraded and
+760   recovered environments.
+761
+762
+763
+764
+      Localized condition updates recover most of the lost performance at minimal adaptation cost. Figure 6
+765
+      (Right) illustrates that, upon replacing only a single node’s condition rather than regenerating the entire
+766   communication graph, CARD retains 88.33 % accuracy under head-node perturbations and 85.00 % under
+767   intermediate-node perturbations, demonstrating overall superiority over both LLM-Debate and G-Designer,
+768   highlighting that fine-grained adaptation can preserve robustness with far lower computational overhead than
+769   global reconfiguration.
+770
+771
+772
+773
+774   Conditional designs deliver the best accuracy-to-cost balance among all methods. In Figure 8 (Right),
+775
+      CARD’s configurations (e.g., achieving 94 % accuracy at an evaluation cost of 4 × 10−3 USD) occupy the
+      upper–left region of the cost–performance plane, while static multi-agent schemes like LLM-Debate and
+776
+      learned topologies such as G-Designer generally cost more to reach a lower accuracy; this confirms that
+777
+      conditionally adapted graphs not only boost resilience but also minimize economic expenditure for a given
+778   performance level.
+779
+780
+781
+782
+783
+      C    I MPLEMENTATION D ETAILS
+784
+785
+786
+787   Specifically, we include OpenAI’s GPT-4oOpenAI (2024a) and GPT-4o-miniOpenAI (2024b),
+788   DeepSeek’s DeepSeek-V3DeepSeek-AI et al. (2024) (630B), Meta’s Llama3-70BDubey et al. (2024),
+789   and the Qwen series from Alibaba, comprising Qwen-2.5 models (7B, 14B, and 72B)Yang et al.
+790   (2024) as well as the distilled variant qwen-distill-r1-7bDeepSeek-AI et al. (2025) derived from
+791
+      Qwen-2.5-7B. These models differ across providers (capturing variations in technical trajectories and
+      architectural choices), model sizes (correlating with computational capacity and performance), and domain
+792
+      specializations (affecting knowledge scope and inference behaviors). In addition, we examine the influence of
+793
+      external tools on multi-agent architectures by varying the underlying data sources and search engines. The
+794   search engines considered are Google Search, DuckDuckGo, and Wiki Search; the data sources
+795   include Quora, Wikipedia, and Tutorialspoint. These configurations represent diverse retrieval
+796   qualities and knowledge coverage levels. This setup is intended to emulate the dynamic evolution of resources
+797   in real-world multi-agent systems, enhancing the robustness and adaptability of learned multi-agent topologies
+798   under changing conditions.
+
+                                                       17
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+799
+      D     S OURCE DATA
+800
+801
+802   D.1   A DJACENCY M ATRIX OF V ISUALIZATION
+803
+804                         Table 2: Adjacency Matrix 1: gpt-4o-mini + Google
+805
+806                           Knowlegable Expert        Searcher   Philosopher   Mathematician   Critic
+807
+808
+       Knowlegable Expert            Masked              0.79         0.88           0.81          0.5
+       Searcher                       0.17              Masked        0.79           0.69         0.34
+809
+       Philosopher                    0.11               0.17        Masked          0.81          0.5
+810
+       Mathematician                  0.15               0.21         0.15          Masked        0.37
+811    Critic                         0.25               0.22         0.25           0.23        Masked
+812
+813
+814
+815                            Table 3: Adjacency Matrix 2: gpt-4o + Google
+816
+817
+                              Knowlegable Expert        Searcher   Philosopher   Mathematician   Critic
+818
+819    Knowlegable Expert            Masked              0.54         0.15            0.4         0.14
+820
+       Searcher                       0.25              Masked        0.53           0.81          0.5
+       Philosopher                    0.13               0.25        Masked          0.39         0.13
+821
+       Mathematician                  0.24               0.15         0.24          Masked        0.36
+822    Critic                         0.12               0.25         0.11           0.23        Masked
+823
+824
+825
+826
+                             Table 4: Adjacency Matrix 3: gpt-4o-mini + Wiki
+827
+828
+                              Knowlegable Expert        Searcher   Philosopher   Mathematician   Critic
+829
+830    Knowlegable Expert            Masked              0.73         0.86           0.73         0.46
+831
+       Searcher                        0.2              Masked        0.76           0.57          0.3
+       Philosopher                    0.12               0.18        Masked          0.75          0.5
+832
+       Mathematician                   0.2               0.25         0.19          Masked        0.29
+833
+       Critic                         0.25               0.21         0.25           0.21        Masked
+834
+835
+836
+837
+                             Table 5: Adjacency Matrix 4: Llama-3-70B + Wiki
+838
+839
+                              Knowlegable Expert        Searcher   Philosopher   Mathematician   Critic
+840
+841    Knowlegable Expert            Masked              0.84         0.73            0.8          0.5
+842    Searcher                       0.13              Masked        0.67           0.75         0.42
+843
+       Philosopher                     0.2               0.22        Masked          0.6          0.27
+       Mathematician                  0.16               0.19         0.24          Masked        0.35
+844
+       Critic                         0.25               0.24          0.2           0.23        Masked
+845
+
+
+                                                   18
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+846
+      D.2    C ORRELATION A NALYSIS OF A DJACENCY M ATRIX
+847
+848
+      C ORRELATION A NALYSIS
+849
+850
+851         Table 6: Pearson correlation between matrix pairs with corresponding strength and significance.
+852
+853                            Comparison             r          p    Strength           Sig.
+854
+855                            Matrix 1 vs 2         0.32    0.54      Weak             No
+856                            Matrix 1 vs 3         0.98   0.001    Very strong       Yes
+857                            Matrix 1 vs 4         0.78    0.07      Strong         Marginal
+858
+859
+860
+      E     A LGORITHM W ORKFLOW
+861
+862
+863
+864   Algorithm 1 Workflow of CARD: Conditional Agentic Graph Designer
+865   Input: Query set {Q1 , . . . , QD }, condition configurations {C1 , . . . , CC },
+866   Graph auto-encoder fν = (qstat , qdyn , ψ) with parameters (Θp , Θc , Θd ), learning rate α
+867    1: for each query Qd ∈ {Q1 , . . . , QD } do
+868    2:     for each condition Cc ∈ {C1 , . . . , CC } do
+869    3:         /* Construct agent features under condition Cc */
+870    4:         for agent vi ∈ {v1 , . . . , vN } do
+871
+       5:             xpi ← Tp (Basei , Rolei , Plugini )
+       6:             xci ← Tc (Cc [i])
+872
+       7:         end for
+873
+       8:         Xp ← [xp1 , . . . , xpN ]⊤ , Xc ← [xc1 , . . . , xcN ]⊤
+874    9:         xQ ← Embed(Qd )                                                  ▷ query treated as a virtual agent node
+875   10:         Define anchor topology A (e.g., fully-connected + task node)
+876   11:         Ge ← ({Xp , Xc , xQ }, A)
+877   12:         /* Generate communication topology via encoder-decoder */
+878   13:         Hp ← ϕp (Xp | A), Hc ← ϕc (Xc | A)
+879   14:         S ← ψ(Hp , Hc , xQ )                                                       ▷ compute link probabilities
+880   15:         Gcom ← {(i, j) | Sij > τ }                                              ▷ retain edges above threshold
+881   16:         /* Multi-agent collaboration under Gcom */
+882   17:         for t = 1 to K do
+883   18:             for agent vi in schedule ϕ(Gcom ) do
+                            (t)                   (t)
+884   19:                 Pusr ← {Qd } ∪ {Rj | vj ∈ Nin (vi )}
+885                          (t)         (t)   (t)
+      20:                Ri ← vi (Psys , Pusr )
+886   21:            end for
+                                          (t)
+887   22:            α(t) ← Aggregate({Ri }N    i=1 )
+888   23:        end for
+889   24:        /* Optimize graph generation parameters */
+890   25:        Θ ← Θ − α · ∇Θ LCARD
+891   26:    end for
+      27: end for
+892
+
+
+                                                            19
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+893
+      F   P ROMPT
+894
+895
+896
+897
+898       LLM Dynamic Information Template
+899
+900
+901       model_template = {
+902           'Name': '{model_name}',
+              'Description': '{ModelName} is a {model_type} model developed by
+903           ,→ {developer}, supporting {modalities}. '
+904                          'It is optimized for {key_strengths}. '
+905                          '{ModelName} offers {performance_advantage}. '
+906                          'The model costs ${input_cost} per million input
+                             ,→  tokens and ${output_cost} per million output
+907
+                             ,→  tokens. '
+908                          '{evaluation_info}'
+909       }
+910
+911       evaluation_info = (
+              'In {domain_a}, {ModelName} achieves an accuracy of
+912           ,→ {evaluation_score_a}. '
+913           'In {domain_b}, {ModelName} achieves an accuracy of
+914           ,→ {evaluation_score_b}. '...
+
+915       )
+916
+917
+918
+919
+920
+921
+922       Search Engine Dynamic Information Template
+923
+924
+925       search_engine_template = {
+926
+              'Name': '{engine_name}',
+              'Description': '{EngineName} is a {engine_type} developed by
+927           ,→ {provider}. '
+928                          'It supports {supported_query_types} and delivers
+929                          ,→  results across {content_scope}. '
+930                          'The engine integrates {additional_features}, making
+                             ,→  it suitable for {application_scenarios}. '
+931
+                             '{evaluation_info}'
+932       }
+933
+934       evaluation_info = (
+935
+              'In the task of {task_name}, {EngineName} achieved a score of
+              ,→ {score_value} on the {metric_name} metric. '
+936           ...
+937       )
+938
+939
+
+
+                                                   20
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+940
+         HumanEval Role Profile
+941
+942      "Project Manager":
+943          "You are a project manager. "
+944          "You will be given a function signature and its docstring by the
+945
+             ,→  user. "
+             "You are responsible for overseeing the overall structure of the
+946          ,→  code, ensuring that the code is structured to complete the task
+947          ,→  Implement code concisely and correctly without pursuing
+948          ,→  over-engineering."
+949          "You need to suggest optimal design patterns to ensure that the code
+             ,→  follows best practices for maintainability and flexibility. "
+950
+             "You can specify the overall design of the code, including the
+951          ,→  classes that need to be defined(maybe none) and the functions
+952          ,→  used (maybe only one function) ."
+953          "I hope your reply will be more concise. Preferably within fifty
+954          ,→  words. Don’t list too many points.",
+         "Algorithm Designer":
+955
+             "You are an algorithm designer. "
+956          "You will be given a function signature and its docstring by the
+957          ,→  user. "
+958          "You need to specify the specific design of the algorithm, including
+959
+             ,→  the classes that may be defined and the functions used. "
+             "You need to generate the detailed documentation, including
+960          ,→  explanations of the algorithm, usage instructions, and API
+961          ,→  references. "
+962          "When the implementation logic is complex, you can give the
+963          ,→  pseudocode logic of the main algorithm."
+             "I hope your reply will be more concise. Preferably within fifty
+964
+             ,→  words. Don’t list too many points.",
+965      "Programming Expert":
+966          "You are a programming expert. "
+967          "You will be given a function signature and its docstring by the
+968          ,→  user. "
+             "You may be able to get the output results of other agents. They may
+969          ,→  have passed internal tests, but they may not be completely
+970          ,→  correct. "
+971          "Write your full implementation (restate the function signature). "
+972          "Use a Python code block to write your response. For
+             ,→  example:\n```python\nprint('Hello world!')\n```"
+973
+             "Do not include anything other than Python code blocks in your
+974          ,→  response. "
+975          "Do not change function names and input variable types in tasks.",
+976      "Test Analyst":
+977          "You are a test analyst. "
+             "You will be given a function signature and its docstring by the
+978
+             ,→  user. "
+979          "You need to provide problems in the current code or solution based
+980          ,→  on the test data and possible test feedback in the question. "
+981          "You need to provide additional special use cases, boundary
+982
+             ,→  conditions, etc. that should be paid attention to when writing
+             ,→  code. "
+983          "You can point out any potential errors in the code."
+984          "I hope your reply will be more concise. Preferably within fifty
+985          ,→  words. Don’t list too many points.",
+986      "Bug Fixer":
+             "You are a bug fixer."
+             "You will be given a function signature and its docstring by the
+             ,→  user. "                  21
+             "You need to provide modified and improved python code based on the
+             ,→  current overall code design, algorithm framework, code
+             ,→  implementation or test problems. "
+             "Write your full implementation (restate the function signature). "
+             "Use a Python code block to write your response. For
+             ,→  example:\n```python\nprint('Hello world!')\n```"
+             "Do not include anything other than Python code blocks in your
+             ,→  response "
+             "Do not change function names and input variable types in tasks",
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+987
+          MATH Role Profile
+988
+989       "Math Solver":
+990           "You are a math expert. "
+991           "You will be given a math problem and hints from other agents. "
+              "Give your own solving process step by step based on hints. "
+992
+              "The last line of your output contains only the final result without
+993           ,→  any units, for example: The answer is 140\n"
+994           "You will be given some examples you may refer to.",
+995       "Mathematical Analyst":
+996           "You are a mathematical analyst. "
+              "You will be given a math problem, analysis and code from other
+997
+              ,→  agents. "
+998           "You need to first analyze the problem-solving process step by step,
+999           ,→  where the variables are represented by letters. "
+1000          "Then you substitute the values into the analysis process to perform
+1001
+              ,→  calculations and get the results."
+              "The last line of your output contains only the final result without
+1002          ,→  any units, for example: The answer is 140\n"
+1003          "You will be given some examples you may refer to.",
+1004      "Programming Expert":
+1005          "You are a programming expert. "
+              "You will be given a math problem, analysis and code from other
+1006
+              ,→  agents. "
+1007          "Integrate step-by-step reasoning and Python code to solve math
+1008          ,→  problems. "
+1009          "Analyze the question and write functions to solve the problem. "
+1010
+              "The function should not take any arguments and use the final result
+              ,→  as the return value. "
+1011          "The last line of code calls the function you wrote and assigns the
+1012          ,→  return value to the \(answer\) variable. "
+1013          "Use a Python code block to write your response. For
+1014          ,→  example:\n```python\ndef fun():\n x = 10\n y = 20\n return x +
+              ,→  y\nanswer = fun()\n```\n"
+1015
+              "Do not include anything other than Python code blocks in your
+1016          ,→  response."
+1017          "You will be given some examples you may refer to.",
+1018      "Inspector":
+1019          "You are an Inspector. "
+              "You will be given a math problem, analysis and code from other
+1020          ,→  agents. "
+1021          "Check whether the logic/calculation of the problem solving and
+1022          ,→  analysis process is correct(if present). "
+1023          "Check whether the code corresponds to the solution analysis(if
+              ,→  present). "
+1024
+              "Give your own solving process step by step based on hints. "
+1025          "The last line of your output contains only the final result without
+1026          ,→  any units, for example: The answer is 140\n"
+1027          "You will be given some examples you may refer to.",
+1028
+1029
+1030
+1031
+1032
+1033
+
+
+                                                    22
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1034
+          MMLU Role Profile
+1035
+1036      "Knowlegable Expert":
+1037      """
+1038      You are a knowlegable expert in question answering.
+          Please give less than 3 key entities that need to be searched on the
+1039
+          ,→  Internet to solve the problem. Each entity must be wrapped with @
+1040      ,→  symbols.
+1041      For example: @catfish effect@, @broken window effect@, @Shakespeare@.
+1042      If there is no entity in the question that needs to be searched on the
+1043      ,→  Internet, you don't have to provide it.
+          """
+1044
+          "Searcher":
+1045      """
+1046      You will be given a question and Internet search overview of the key
+1047      ,→  entities within it.
+1048
+          Please refer to them step by step to give your answer.
+          """
+1049      "Critic":
+1050      """
+1051      You are an excellent critic.
+1052      Please point out potential issues in other agent's analysis point by
+          ,→  point.
+1053
+          """
+1054      "Mathematician":
+1055      """
+1056      You are a mathematician who is good at arithmetic calculation and
+          ,→  long-term planning.
+1057
+          You can use your logic and reasoning skills to solve problems step by
+1058      ,→  step.
+1059      """
+1060      "Philosopher":
+1061      """
+          You are a philosopher with deep knowledge in literature, history, and
+1062
+          ,→  cultural studies.
+1063      You analyze texts critically, draw nuanced interpretations, and make
+1064      ,→  connections across time, societies, and disciplines.
+1065      """
+          "Doctor":
+1066
+          """
+1067      You are a medical professional who good at biology, medicine, and health.
+1068      You combine modern medicine with herbal and natural remedies.
+1069      You consider age, lifestyle, and medical history in every recommendation.
+1070      """
+          "Programmer":
+1071      """
+1072      You are a programmer skilled in software development, systems design, and
+1073      ,→  technical problem-solving.
+1074      You apply principles from computer science, engineering, and coding.
+          You write clean, efficient code across diverse platforms.
+1075
+          """
+1076
+1077
+1078
+1079
+1080
+
+
+                                                    23
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1081                            Table 7: HumanEval Environment Configuration Set
+1082
+1083                                       Configuration     LLM            Role
+1084                                                         gpt-4o-mini    Project Manager
+1085                                                         gpt-4o-mini    Algorithm Designer
+1086                                       Configuration 1   gpt-4o-mini    Programming Expert
+                                                             gpt-4o-mini    Test Analyst
+1087
+                                                             gpt-4o-mini    Bug Fixer
+1088
+                                                             deepseek-v3    Project Manager
+1089                                                         deepseek-v3    Algorithm Designer
+1090                        Train & Test
+                                           Configuration 2   deepseek-v3    Programming Expert
+1091                                                         deepseek-v3    Test Analyst
+                                                             deepseek-v3    Bug Fixer
+1092
+1093                                                         llama-3-70B    Project Manager
+                                                             llama-3-70B    Algorithm Designer
+1094                                       Configuration 3   llama-3-70B    Programming Expert
+1095                                                         llama-3-70B    Test Analyst
+1096                                                         llama-3-70B    Bug Fixer
+1097                                                         gpt-4o         Project Manager
+1098                                                         gpt-4o         Algorithm Designer
+                                           Configuration 4   gpt-4o         Programming Expert
+1099                                                         gpt-4o         Test Analyst
+1100                                                         gpt-4o         Bug Fixer
+                            Only Test
+1101                                                         qwen-2.5-72B   Project Manager
+1102                                                         qwen-2.5-72B   Algorithm Designer
+1103                                       Configuration 5   qwen-2.5-72B   Programming Expert
+                                                             qwen-2.5-72B   Test Analyst
+1104                                                         qwen-2.5-72B   Bug Fixer
+1105
+1106
+1107
+1108
+1109
+1110
+1111
+1112
+1113
+1114
+1115
+1116
+1117
+1118
+1119
+1120
+1121
+1122
+1123
+1124
+1125
+1126
+1127
+
+
+                                                        24
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1128
+       G    E XPERIMENT C ONFIGURATION S ETS
+1129
+1130
+1131                               Table 8: MATH Environment Configuration Set
+1132
+                                           Configuration     LLM            Role
+1133
+1134                                                         gpt-4o-mini    Math Solver
+                                                             gpt-4o-mini    Mathematical Analyst
+1135                                       Configuration 1   gpt-4o-mini    Mathematical Analyst
+1136                                                         gpt-4o-mini    Programming Expert
+1137                                                         gpt-4o-mini    Inspector
+1138                                                         deepseek-v3    Math Solver
+1139                                                         deepseek-v3    Mathematical Analyst
+                            Train & Test
+                                           Configuration 2   deepseek-v3    Mathematical Analyst
+1140                                                         deepseek-v3    Programming Expert
+1141                                                         deepseek-v3    Inspector
+1142                                                         llama-3-70B    Math Solver
+1143                                                         llama-3-70B    Mathematical Analyst
+                                           Configuration 3   llama-3-70B    Mathematical Analyst
+1144
+                                                             llama-3-70B    Programming Expert
+1145                                                         llama-3-70B    Inspector
+1146                                                         gpt-4o         Math Solver
+1147                                                         gpt-4o         Mathematical Analyst
+1148                                       Configuration 4   gpt-4o         Mathematical Analyst
+                                                             gpt-4o         Programming Expert
+1149                                                         gpt-4o         Inspector
+1150                        Only Test
+                                                             qwen-2.5-72B   Math Solver
+1151                                                         qwen-2.5-72B   Mathematical Analyst
+1152                                       Configuration 5   qwen-2.5-72B   Mathematical Analyst
+1153                                                         qwen-2.5-72B   Programming Expert
+                                                             qwen-2.5-72B   Inspector
+1154
+1155
+1156
+1157
+1158
+1159
+1160
+1161
+1162
+1163
+1164
+1165
+1166
+1167
+1168
+1169
+1170
+1171
+1172
+1173
+1174
+
+
+                                                        25
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1175
+1176
+1177
+1178
+1179
+1180
+1181
+1182
+1183
+1184
+1185
+                                  Table 9: MMLU Environment Configuration Set
+1186
+1187
+                                           Configuration     LLM            Role
+1188
+1189
+                                                             gpt-4o-mini    Mathematician
+                                                             gpt-4o-mini    Programmer
+1190                                       Configuration 1   gpt-4o-mini    Critic
+1191                                                         gpt-4o-mini    Doctor
+1192                                                         gpt-4o-mini    Psychologist
+1193                                                         deepseek-v3    Mathematician
+1194                                                         deepseek-v3    Programmer
+                            Train & Test
+1195                                       Configuration 2   deepseek-v3    Critic
+1196                                                         deepseek-v3    Doctor
+                                                             deepseek-v3    Psychologist
+1197
+1198                                                         llama-3-70B    Mathematician
+1199
+                                                             llama-3-70B    Programmer
+                                           Configuration 3   llama-3-70B    Critic
+1200                                                         llama-3-70B    Doctor
+1201                                                         llama-3-70B    Psychologist
+1202
+                                                             gpt-4o         Mathematician
+1203                                                         gpt-4o         Programmer
+1204                                       Configuration 4   gpt-4o         Critic
+1205                                                         gpt-4o         Doctor
+1206                                                         gpt-4o         Psychologist
+                            Only Test
+1207                                                         qwen-2.5-72B   Mathematician
+1208                                                         qwen-2.5-72B   Programmer
+1209                                       Configuration 5   qwen-2.5-72B   Critic
+                                                             qwen-2.5-72B   Doctor
+1210
+                                                             qwen-2.5-72B   Psychologist
+1211
+1212
+1213
+1214
+1215
+1216
+1217
+1218
+1219
+1220
+1221
+
+
+                                                      26
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1222
+1223
+1224
+1225
+1226
+1227
+1228
+1229
+1230
+1231
+1232
+1233
+1234                    Table 10: MMLU Environment Configuration Set with External Tools
+1235
+1236                   Configuration     LLM                Role                 External Tool (search engine)
+1237                                     gpt-4o-mini        Knowlegable Expert
+1238                                     gpt-4o-mini        Searcher             Google
+1239    Train & Test   Configuration 1   gpt-4o-mini        Psychologist
+1240                                     gpt-4o-mini        Mathematician
+1241                                     gpt-4o-mini        Critic
+1242                                     gpt-4o             Knowlegable Expert
+1243                                     gpt-4o             Searcher             Google
+1244                   Configuration 2   gpt-4o             Psychologist
+1245                                     gpt-4o             Mathematician
+1246                                     gpt-4o             Critic
+        Only Test
+1247                                     gpt-4o-mini        Knowlegable Expert
+1248                                     gpt-4o-mini        Searcher             Wiki
+1249                   Configuration 3   gpt-4o-mini        Psychologist
+1250                                     gpt-4o-mini        Mathematician
+1251                                     gpt-4o-mini        Critic
+1252                                     llama-3-70B        Knowlegable Expert
+1253                                     llama-3-70B        Searcher             Wiki
+1254    Train & Test   Configuration 4   llama-3-70B        Psychologist
+1255                                     llama-3-70B        Mathematician
+1256                                     llama-3-70B        Critic
+1257
+1258
+1259
+1260
+1261
+1262
+1263
+1264
+1265
+1266
+1267
+1268
+
+
+                                                       27
+

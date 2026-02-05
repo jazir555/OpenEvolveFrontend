@@ -1,0 +1,495 @@
+{
+  "correlation_id": "aef5d5fb-3c89-46d0-81ac-71e61ff5a47c",
+  "metrics": {
+    "total_execution_time_ms": 52,
+    "test_results": [
+      {
+        "phase": "deployment",
+        "test_name": "docker_compose_exists",
+        "passed": true,
+        "details": "Found docker-compose.yml",
+        "timestamp": "2026-02-04T22:10:28.405412+00:00"
+      },
+      {
+        "phase": "deployment",
+        "test_name": "docker_compose_valid",
+        "passed": true,
+        "details": "Contains openevolve service",
+        "timestamp": "2026-02-04T22:10:28.405412+00:00"
+      },
+      {
+        "phase": "deployment",
+        "test_name": "environment_vars",
+        "passed": true,
+        "details": "Executors provide defaults for all required env vars",
+        "timestamp": "2026-02-04T22:10:28.405412+00:00"
+      },
+      {
+        "phase": "phase1",
+        "test_name": "executor_initialization",
+        "passed": true,
+        "details": "Executor created in 0ms",
+        "timestamp": "2026-02-04T22:10:28.424714+00:00"
+      },
+      {
+        "phase": "phase1",
+        "test_name": "audit_execution",
+        "passed": true,
+        "details": "Found 3 assumptions, 0 contradictions",
+        "timestamp": "2026-02-04T22:10:28.424714+00:00"
+      },
+      {
+        "phase": "phase1",
+        "test_name": "result_validation",
+        "passed": true,
+        "details": "Audit ID: 5f235559-e8e5-4221-98cd-b0eb3ef8069d",
+        "timestamp": "2026-02-04T22:10:28.424714+00:00"
+      },
+      {
+        "phase": "phase2",
+        "test_name": "executor_initialization",
+        "passed": true,
+        "details": "Executor created successfully",
+        "timestamp": "2026-02-04T22:10:28.431232+00:00"
+      },
+      {
+        "phase": "phase2",
+        "test_name": "isomorphic_mapping",
+        "passed": true,
+        "details": "Found 3 mappings, 1 cross-domain patterns",
+        "timestamp": "2026-02-04T22:10:28.431232+00:00"
+      },
+      {
+        "phase": "phase2",
+        "test_name": "constraint_inversion",
+        "passed": true,
+        "details": "Inverted 2 constraints",
+        "timestamp": "2026-02-04T22:10:28.431232+00:00"
+      },
+      {
+        "phase": "phase3",
+        "test_name": "executor_initialization",
+        "passed": true,
+        "details": "Executor created successfully",
+        "timestamp": "2026-02-04T22:10:28.453830+00:00"
+      },
+      {
+        "phase": "phase3",
+        "test_name": "mcts_search",
+        "passed": true,
+        "details": "Performed 101 iterations, built 1 nodes",
+        "timestamp": "2026-02-04T22:10:28.453830+00:00"
+      },
+      {
+        "phase": "phase3",
+        "test_name": "convergence_detection",
+        "passed": true,
+        "details": "Converged: True",
+        "timestamp": "2026-02-04T22:10:28.453830+00:00"
+      },
+      {
+        "phase": "phase4",
+        "test_name": "executor_initialization",
+        "passed": true,
+        "details": "Executor created successfully",
+        "timestamp": "2026-02-04T22:10:28.458348+00:00"
+      },
+      {
+        "phase": "phase4",
+        "test_name": "architecture_assembly",
+        "passed": true,
+        "details": "Assembled with 0 paradigm shifts",
+        "timestamp": "2026-02-04T22:10:28.458348+00:00"
+      },
+      {
+        "phase": "phase4",
+        "test_name": "knowledge_integration",
+        "passed": true,
+        "details": "Integrated knowledge with 0.57 confidence",
+        "timestamp": "2026-02-04T22:10:28.458348+00:00"
+      },
+      {
+        "phase": "integration",
+        "test_name": "correlation_id_consistency",
+        "passed": true,
+        "details": "",
+        "timestamp": "2026-02-04T22:10:28.458348+00:00"
+      },
+      {
+        "phase": "integration",
+        "test_name": "phase1_to_phase2",
+        "passed": true,
+        "details": "Constraints flowed from Phase I to Phase II",
+        "timestamp": "2026-02-04T22:10:28.458348+00:00"
+      },
+      {
+        "phase": "integration",
+        "test_name": "phase2_to_phase3",
+        "passed": true,
+        "details": "Isomorphic mappings flowed to Phase III",
+        "timestamp": "2026-02-04T22:10:28.458348+00:00"
+      },
+      {
+        "phase": "integration",
+        "test_name": "phase3_to_phase4",
+        "passed": true,
+        "details": "Validated hypotheses flowed to Phase IV",
+        "timestamp": "2026-02-04T22:10:28.458348+00:00"
+      },
+      {
+        "phase": "integration",
+        "test_name": "complete_pipeline",
+        "passed": true,
+        "details": "Pipeline completion: True",
+        "timestamp": "2026-02-04T22:10:28.458348+00:00"
+      }
+    ],
+    "passed_tests": 20,
+    "failed_tests": 0,
+    "total_tests": 20
+  },
+  "phase1_result": {
+    "phase": "phase1_epistemic_audit",
+    "audit_id": "5f235559-e8e5-4221-98cd-b0eb3ef8069d",
+    "problem_description": "\nWe need to design a material that is both extremely strong and lightweight.\nCurrent materials cannot achieve both properties simultaneously due to\natomic lattice constraints. The loading ratio is limited by crystal defects,\nand temperature variations cause unpredictable failures. We need a breakthrough\napproach that circumvents these traditional limitations.\n",
+    "tacit_assumptions": [
+      {
+        "id": "ce3b8f16-30f2-4740-b6fd-7e4390a3ab5a",
+        "description": "Loading ratio is the critical factor",
+        "source_pattern": "High failure rate when loading ratio exceeds 0.5",
+        "confidence_score": 0.65,
+        "supporting_evidence_count": 450,
+        "formalized_in_lean4": false,
+        "lean4_proposition": null
+      },
+      {
+        "id": "94f5e025-5f89-4d30-ad8f-ada1f09de11c",
+        "description": "Temperature is the primary control variable",
+        "source_pattern": "Temperature spikes cause catastrophic lattice failure",
+        "confidence_score": 0.78,
+        "supporting_evidence_count": 320,
+        "formalized_in_lean4": false,
+        "lean4_proposition": null
+      },
+      {
+        "id": "29f9230a-c8c2-4a66-bd03-227ef3923c1b",
+        "description": "Unstated assumption about Crystal defects propagate under stress",
+        "source_pattern": "Crystal defects propagate under stress",
+        "confidence_score": 0.82,
+        "supporting_evidence_count": 510,
+        "formalized_in_lean4": false,
+        "lean4_proposition": null
+      }
+    ],
+    "contradictions": [],
+    "falsification_results": [
+      {
+        "hypothesis_id": "ce3b8f16-30f2-4740-b6fd-7e4390a3ab5a",
+        "falsified": false,
+        "degree_of_violation": null,
+        "hypothesis_robustness_score": 0.65,
+        "falsifying_evidence": [],
+        "counter_examples": []
+      },
+      {
+        "hypothesis_id": "94f5e025-5f89-4d30-ad8f-ada1f09de11c",
+        "falsified": false,
+        "degree_of_violation": null,
+        "hypothesis_robustness_score": 0.78,
+        "falsifying_evidence": [],
+        "counter_examples": []
+      },
+      {
+        "hypothesis_id": "29f9230a-c8c2-4a66-bd03-227ef3923c1b",
+        "falsified": false,
+        "degree_of_violation": null,
+        "hypothesis_robustness_score": 0.82,
+        "falsifying_evidence": [],
+        "counter_examples": []
+      }
+    ],
+    "hardened_constraints": [
+      {
+        "category": "hard_parameter_inequality",
+        "description": "Current materials cannot achieve both properties simultaneously due to\natomic lattice constraints",
+        "inverted_description": "Current materials can achieve both properties simultaneously due to\natomic lattice constraints",
+        "formalized": false,
+        "lean4_theorem": null,
+        "constraint_id": "b64a4ec3-1ae3-41e9-8b38-90eda92d0301"
+      },
+      {
+        "category": "hard_parameter_inequality",
+        "description": "The loading ratio is limited by crystal defects,\nand temperature variations cause unpredictable failures",
+        "inverted_description": "The loading ratio is unlimited by crystal defects,\nand temperature variations cause unpredictable failures",
+        "formalized": false,
+        "lean4_theorem": null,
+        "constraint_id": "d1bf599b-76a3-42e1-a2fd-3208a889f0ef"
+      }
+    ],
+    "metrics": {
+      "total_assumptions_analyzed": 3,
+      "confirmed_contradictions": 0,
+      "hypotheses_falsified": 0,
+      "reduction_in_failure_rate": null
+    },
+    "metadata": {
+      "execution_time_ms": 0,
+      "lean4_version": null,
+      "epoch_number": 1
+    },
+    "correlation_id": "aef5d5fb-3c89-46d0-81ac-71e61ff5a47c",
+    "timestamp": "2026-02-04T22:10:28.424714+00:00"
+  },
+  "phase2_result": {
+    "source_domain": "materials_science",
+    "target_domains": [
+      "physics",
+      "biology",
+      "computer_science"
+    ],
+    "mappings_found": 3,
+    "cross_domain_patterns": 1,
+    "inverted_constraints": 2,
+    "execution_time_ms": 0.0,
+    "confidence": 0.72
+  },
+  "phase3_result": {
+    "search_id": "8261ba14-1b25-4383-aabe-36c4c090c926",
+    "id": "8261ba14-1b25-4383-aabe-36c4c090c926",
+    "root_hypothesis": {
+      "hypothesis_id": "ce3b8f16-30f2-4740-b6fd-7e4390a3ab5a",
+      "id": "ce3b8f16-30f2-4740-b6fd-7e4390a3ab5a",
+      "statement": "Loading ratio is the critical factor",
+      "type": "causal",
+      "status": "pending",
+      "confidence": 0.65,
+      "evidence": [],
+      "counter_evidence": [],
+      "dependencies": [],
+      "source_hypotheses": [],
+      "domain": "general",
+      "tags": [],
+      "metadata": {},
+      "created_at": "2026-02-04T22:10:28.444790+00:00",
+      "updated_at": "2026-02-04T22:10:28.444790+00:00",
+      "tested_at": null
+    },
+    "best_hypothesis": {
+      "hypothesis_id": "ce3b8f16-30f2-4740-b6fd-7e4390a3ab5a",
+      "id": "ce3b8f16-30f2-4740-b6fd-7e4390a3ab5a",
+      "statement": "Loading ratio is the critical factor",
+      "type": "causal",
+      "status": "pending",
+      "confidence": 0.65,
+      "evidence": [],
+      "counter_evidence": [],
+      "dependencies": [],
+      "source_hypotheses": [],
+      "domain": "general",
+      "tags": [],
+      "metadata": {},
+      "created_at": "2026-02-04T22:10:28.444790+00:00",
+      "updated_at": "2026-02-04T22:10:28.444790+00:00",
+      "tested_at": null
+    },
+    "tree_root": {
+      "node_id": "ce3b8f16-30f2-4740-b6fd-7e4390a3ab5a",
+      "id": "ce3b8f16-30f2-4740-b6fd-7e4390a3ab5a",
+      "hypothesis": {
+        "hypothesis_id": "ce3b8f16-30f2-4740-b6fd-7e4390a3ab5a",
+        "id": "ce3b8f16-30f2-4740-b6fd-7e4390a3ab5a",
+        "statement": "Loading ratio is the critical factor",
+        "type": "causal",
+        "status": "pending",
+        "confidence": 0.65,
+        "evidence": [],
+        "counter_evidence": [],
+        "dependencies": [],
+        "source_hypotheses": [],
+        "domain": "general",
+        "tags": [],
+        "metadata": {},
+        "created_at": "2026-02-04T22:10:28.444790+00:00",
+        "updated_at": "2026-02-04T22:10:28.444790+00:00",
+        "tested_at": null
+      },
+      "state": "expanded",
+      "visit_count": 0,
+      "value": 0.0,
+      "mean_value": 0.0,
+      "children": [],
+      "parent_id": null,
+      "depth": 0,
+      "is_terminal": false,
+      "exploration_bonus": 0.0,
+      "metadata": {},
+      "created_at": "2026-02-04T22:10:28.444790+00:00"
+    },
+    "iterations": 101,
+    "convergence_reached": true,
+    "convergence_iteration": 100,
+    "total_nodes": 1,
+    "max_depth": 0,
+    "execution_time_ms": 9.040594100952148,
+    "strategy": "mcts",
+    "metadata": {
+      "dlq_size": 101,
+      "aci_final": 0.0
+    },
+    "created_at": "2026-02-04T22:10:28.453830+00:00"
+  },
+  "phase4_result": {
+    "assembly_id": "752b1f3a-0984-4efd-aa92-9b4f67eee981",
+    "id": "752b1f3a-0984-4efd-aa92-9b4f67eee981",
+    "synthesized_knowledge": {
+      "knowledge_id": "0d55f74a-6b84-4417-94f4-7827250a881d",
+      "id": "0d55f74a-6b84-4417-94f4-7827250a881d",
+      "knowledge_type": "architecture_assembly",
+      "description": "Synthesized knowledge from 3 RESE phases",
+      "source_phase1": {
+        "audit_id": "5f235559-e8e5-4221-98cd-b0eb3ef8069d",
+        "constraints": [],
+        "contradictions": [],
+        "tacit_assumptions": [
+          {
+            "id": "ce3b8f16-30f2-4740-b6fd-7e4390a3ab5a",
+            "description": "Loading ratio is the critical factor",
+            "source_pattern": "High failure rate when loading ratio exceeds 0.5",
+            "confidence_score": 0.65,
+            "supporting_evidence_count": 450,
+            "formalized_in_lean4": false,
+            "lean4_proposition": null
+          },
+          {
+            "id": "94f5e025-5f89-4d30-ad8f-ada1f09de11c",
+            "description": "Temperature is the primary control variable",
+            "source_pattern": "Temperature spikes cause catastrophic lattice failure",
+            "confidence_score": 0.78,
+            "supporting_evidence_count": 320,
+            "formalized_in_lean4": false,
+            "lean4_proposition": null
+          },
+          {
+            "id": "29f9230a-c8c2-4a66-bd03-227ef3923c1b",
+            "description": "Unstated assumption about Crystal defects propagate under stress",
+            "source_pattern": "Crystal defects propagate under stress",
+            "confidence_score": 0.82,
+            "supporting_evidence_count": 510,
+            "formalized_in_lean4": false,
+            "lean4_proposition": null
+          }
+        ],
+        "cognitive_biases": [],
+        "validation_status": "pending",
+        "confidence": 0.5,
+        "metadata": {
+          "execution_time_ms": 0,
+          "lean4_version": null,
+          "epoch_number": 1
+        },
+        "created_at": "2026-02-04T22:10:28.458348+00:00"
+      },
+      "source_phase2": {
+        "mapping_id": "30d49947-955a-47f2-9dea-91a26629a92b",
+        "isomorphisms": [],
+        "functional_dependencies": [],
+        "domain_mappings": [],
+        "similarity_scores": [],
+        "validation_results": [],
+        "confidence": 0.72,
+        "metadata": {},
+        "created_at": "2026-02-04T22:10:28.458348+00:00"
+      },
+      "source_phase3": {
+        "refinement_id": "d9708a7a-246f-4a5c-afef-89cdf433a7ee",
+        "search_results": [],
+        "validated_hypotheses": [],
+        "convergence_metrics": {},
+        "aci_reduction": 0.0,
+        "statistical_validation": [],
+        "confidence": 0.5,
+        "metadata": {
+          "dlq_size": 101,
+          "aci_final": 0.0
+        },
+        "created_at": "2026-02-04T22:10:28.453830+00:00"
+      },
+      "paradigm_shifts": [],
+      "integration_strategy": "synthesize",
+      "synthesis_rules": [
+        {
+          "rule_id": "295a0b84-e0a8-4f29-82be-ada8ff22181e",
+          "type": "validation_priority",
+          "description": "Prioritize validated hypotheses from Phase III",
+          "priority": 1.0
+        },
+        {
+          "rule_id": "18e5d686-1ad8-4f8e-9223-3f60bb0f4f4f",
+          "type": "cross_validation",
+          "description": "Cross-validate Phase II isomorphisms with Phase I constraints",
+          "priority": 0.9
+        },
+        {
+          "rule_id": "12fe1cc2-1a43-4fe6-ae10-1deb4b55c00e",
+          "type": "confidence_weighting",
+          "description": "Weight contributions by confidence scores",
+          "priority": 0.8
+        }
+      ],
+      "confidence": 0.5733333333333334,
+      "completeness": 1.0,
+      "consistency": 1.0,
+      "metadata": {},
+      "created_at": "2026-02-04T22:10:28.458348+00:00",
+      "updated_at": "2026-02-04T22:10:28.458348+00:00"
+    },
+    "paradigm_shifts": [],
+    "validation_results": [
+      {
+        "validation_type": "completeness",
+        "passed": true,
+        "phases_present": 3,
+        "completeness_score": 1.0
+      },
+      {
+        "validation_type": "consistency",
+        "passed": true,
+        "consistency_score": 1.0
+      },
+      {
+        "validation_type": "confidence",
+        "passed": false,
+        "confidence_score": 0.5733333333333334,
+        "threshold": 0.7
+      },
+      {
+        "validation_type": "aci_reduction",
+        "passed": false,
+        "aci_reduction": 0.0,
+        "target": 0.2
+      }
+    ],
+    "final_architecture": {
+      "architecture_id": "345227dc-ff4a-4933-beda-eb2860b0020d",
+      "knowledge_base": {
+        "knowledge_id": "0d55f74a-6b84-4417-94f4-7827250a881d",
+        "confidence": 0.5733333333333334,
+        "completeness": 1.0,
+        "consistency": 1.0
+      },
+      "paradigm_shifts": [],
+      "integration_strategy": "synthesize",
+      "metadata": {
+        "generated_at": "2026-02-04T22:10:28.458348+00:00",
+        "total_shifts": 0
+      }
+    },
+    "aci_reduction_achieved": 0.0,
+    "confidence": 0.5733333333333334,
+    "validation_level": "standard",
+    "status": "failed",
+    "metadata": {},
+    "created_at": "2026-02-04T22:10:28.458348+00:00",
+    "updated_at": "2026-02-04T22:10:28.458348+00:00"
+  }
+}

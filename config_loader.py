@@ -211,6 +211,40 @@ class AdaptiveMDAPConfig:
 
 
 @dataclass
+class PESEnhancedConfig:
+    """PES Enhanced configuration for cost optimization and early stopping."""
+    
+    # Cost Optimization
+    enable_cost_optimization: bool = False
+    max_cost_usd: float = 10.0
+    cost_warning_threshold: float = 0.7
+    cost_critical_threshold: float = 0.9
+    prompt_token_price: float = 0.00001
+    completion_token_price: float = 0.00003
+    
+    # Early Stopping
+    enable_early_stopping: bool = True
+    early_stopping_patience: int = 5
+    early_stopping_min_improvement: float = 0.001
+    early_stopping_plateau_threshold: float = 0.001
+    
+    # PES Phases
+    pes_planning_enabled: bool = True
+    pes_summarization_enabled: bool = True
+    pes_auto_select_strategy: bool = True
+    
+    # Budget allocation percentages
+    planning_budget_pct: float = 0.05
+    evolution_budget_pct: float = 0.85
+    verification_budget_pct: float = 0.10
+    
+    # Model selection for cost optimization
+    use_cheap_models_for_execution: bool = True
+    cheap_model: str = "gpt-3.5-turbo"
+    expensive_model: str = "gpt-4o"
+
+
+@dataclass
 class Config:
     """Main configuration container."""
     generation: GenerationConfig = field(default_factory=GenerationConfig)
@@ -223,6 +257,7 @@ class Config:
     server: ServerConfig = field(default_factory=ServerConfig)
     security: SecurityConfig = field(default_factory=SecurityConfig)
     adaptive_mdap: AdaptiveMDAPConfig = field(default_factory=AdaptiveMDAPConfig)
+    pes_enhanced: PESEnhancedConfig = field(default_factory=PESEnhancedConfig)
 
     # Environment
     environment: str = "development"
@@ -644,6 +679,92 @@ class ConfigLoader:
             compute_savings_metrics=adaptive_mdap_raw.get("compute_savings_metrics", True),
         )
 
+        # PES Enhanced config
+        pes_raw = self._raw_config.get("pes_enhanced", {})
+        pes_enhanced = PESEnhancedConfig(
+            enable_cost_optimization=env_var_bool(
+                "PES_COST_OPTIMIZATION",
+                default=pes_raw.get("enable_cost_optimization", False)
+            ),
+            max_cost_usd=env_var_float(
+                "PES_MAX_COST_USD",
+                default=pes_raw.get("max_cost_usd", 10.0),
+                min_val=0.01,
+                max_val=1000.0
+            ),
+            cost_warning_threshold=env_var_float(
+                "PES_COST_WARNING",
+                default=pes_raw.get("cost_warning_threshold", 0.7),
+                min_val=0.0,
+                max_val=1.0
+            ),
+            cost_critical_threshold=env_var_float(
+                "PES_COST_CRITICAL",
+                default=pes_raw.get("cost_critical_threshold", 0.9),
+                min_val=0.0,
+                max_val=1.0
+            ),
+            prompt_token_price=env_var_float(
+                "PES_PROMPT_TOKEN_PRICE",
+                default=pes_raw.get("prompt_token_price", 0.00001),
+                min_val=0.0
+            ),
+            completion_token_price=env_var_float(
+                "PES_COMPLETION_TOKEN_PRICE",
+                default=pes_raw.get("completion_token_price", 0.00003),
+                min_val=0.0
+            ),
+            enable_early_stopping=env_var_bool(
+                "PES_EARLY_STOPPING",
+                default=pes_raw.get("enable_early_stopping", True)
+            ),
+            early_stopping_patience=env_var_int(
+                "PES_STOPPING_PATIENCE",
+                default=pes_raw.get("early_stopping_patience", 5),
+                min_val=1,
+                max_val=100
+            ),
+            early_stopping_min_improvement=env_var_float(
+                "PES_MIN_IMPROVEMENT",
+                default=pes_raw.get("early_stopping_min_improvement", 0.001),
+                min_val=0.0,
+                max_val=1.0
+            ),
+            early_stopping_plateau_threshold=env_var_float(
+                "PES_PLATEAU_THRESHOLD",
+                default=pes_raw.get("early_stopping_plateau_threshold", 0.001),
+                min_val=0.0,
+                max_val=1.0
+            ),
+            pes_planning_enabled=env_var_bool(
+                "PES_PLANNING",
+                default=pes_raw.get("pes_planning_enabled", True)
+            ),
+            pes_summarization_enabled=env_var_bool(
+                "PES_SUMMARIZATION",
+                default=pes_raw.get("pes_summarization_enabled", True)
+            ),
+            pes_auto_select_strategy=env_var_bool(
+                "PES_AUTO_SELECT",
+                default=pes_raw.get("pes_auto_select_strategy", True)
+            ),
+            planning_budget_pct=pes_raw.get("planning_budget_pct", 0.05),
+            evolution_budget_pct=pes_raw.get("evolution_budget_pct", 0.85),
+            verification_budget_pct=pes_raw.get("verification_budget_pct", 0.10),
+            use_cheap_models_for_execution=env_var_bool(
+                "PES_USE_CHEAP_MODELS",
+                default=pes_raw.get("use_cheap_models_for_execution", True)
+            ),
+            cheap_model=env_var_str(
+                "PES_CHEAP_MODEL",
+                default=pes_raw.get("cheap_model", "gpt-3.5-turbo")
+            ),
+            expensive_model=env_var_str(
+                "PES_EXPENSIVE_MODEL",
+                default=pes_raw.get("expensive_model", "gpt-4o")
+            ),
+        )
+
         return Config(
             generation=generation,
             evolution=evolution,
@@ -653,6 +774,7 @@ class ConfigLoader:
             server=server,
             security=security,
             adaptive_mdap=adaptive_mdap,
+            pes_enhanced=pes_enhanced,
             environment=environment,
             log_level=log_level,
         )
@@ -720,6 +842,15 @@ class ConfigLoader:
             logger.info(f"Adaptive MDAP thresholds: {config.adaptive_mdap.thresholds}")
             logger.info(f"Adaptive MDAP learning: {config.adaptive_mdap.enable_learning}")
             logger.info(f"Adaptive MDAP context-aware: {config.adaptive_mdap.enable_context_aware}")
+        
+        # Log PES Enhanced configuration
+        logger.info(f"PES Enhanced cost optimization: {config.pes_enhanced.enable_cost_optimization}")
+        if config.pes_enhanced.enable_cost_optimization:
+            logger.info(f"PES Enhanced max cost: ${config.pes_enhanced.max_cost_usd}")
+            logger.info(f"PES Enhanced warning threshold: {config.pes_enhanced.cost_warning_threshold}")
+        logger.info(f"PES Enhanced early stopping: {config.pes_enhanced.enable_early_stopping}")
+        logger.info(f"PES Enhanced planning: {config.pes_enhanced.pes_planning_enabled}")
+        logger.info(f"PES Enhanced summarization: {config.pes_enhanced.pes_summarization_enabled}")
 
 
 # Global config instance

@@ -1,0 +1,511 @@
+name: RESE Framework - Deployment Pipeline
+
+on:
+  push:
+    tags:
+      - 'rese-v*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      skip_tests:
+        description: 'Skip tests (use with caution)'
+        required: false
+        type: boolean
+        default: false
+
+# Concurrency group to prevent duplicate deployments
+concurrency:
+  group: rese-deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: rese-phase
+
+jobs:
+  # ============================================================================
+  # Job 1: Pre-deployment Validation
+  # ============================================================================
+  pre-deploy-checks:
+    name: Pre-deployment Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pydantic pydantic-settings
+
+      - name: Validate configuration
+        run: |
+          python glue/adapters/rese-integration/config_validator.py --verbose || exit 1
+        env:
+          RESE_ENV: ${{ github.event.inputs.environment || 'staging' }}
+          RESE_LOG_LEVEL: INFO
+          RESE_CORRELATION_ID: deploy-${{ github.run_id }}
+          # Include all required env vars (abbreviated for brevity)
+          PHASE1_TIMEOUT_MS: 15000
+          PHASE1_MAX_ASSUMPTIONS: 100
+          PHASE1_MIN_ASSUMPTION_CONFIDENCE: 0.3
+          PHASE1_CIRCUIT_BREAKER_THRESHOLD: 5
+          PHASE1_ENABLE_TACIT_MINING: true
+          PHASE1_ENABLE_RED_TEAM: true
+          PHASE1_ENABLE_LEAN4_INTEGRATION: false
+          PHASE2_TIMEOUT_MS: 30000
+          PHASE2_IMECH_THRESHOLD: 0.7
+          PHASE2_MAX_TARGET_DOMAINS: 10
+          PHASE2_PATTERN_THRESHOLD: 0.6
+          PHASE2_MAX_MAPPINGS: 50
+          PHASE2_ENABLE_CONSTRAINT_INVERSION: true
+          PHASE2_SEARCH_DEPTH: 5
+          PHASE3_TIMEOUT_MS: 60000
+          PHASE3_ITERATIONS: 1000
+          PHASE3_UCB1_C: 1.41
+          PHASE3_CONVERGENCE_THRESHOLD: 0.001
+          PHASE3_ACI_WINDOW: 100
+          PHASE3_SIG_THRESHOLD: 0.05
+          PHASE3_PARALLEL_WORKERS: 4
+          PHASE4_TIMEOUT_MS: 30000
+          PHASE4_BEAM_WIDTH: 10
+          PHASE4_VALIDATION_LEVEL: 1
+          PHASE4_INTEGRATION_STRATEGY: balanced
+          PHASE4_MIN_CONFIDENCE_THRESHOLD: 0.5
+          LLTL_ENCODING_DIM: 128
+          LLTL_DEFAULT_LOSS_TYPE: cross_entropy
+          LLTL_CONTRADICTION_THRESHOLD: 0.3
+          LLTL_TIMEOUT_MS: 3000
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: gpt-4
+          REDIS_URL: redis://localhost:6379
+          REDIS_KEY_TTL: 3600
+          ENABLE_METRICS: false
+          ENABLE_TRACING: false
+          ENABLE_CIRCUIT_BREAKERS: true
+          CIRCUIT_BREAKER_RESET_TIMEOUT_MS: 60000
+          ENABLE_RETRY: true
+          MAX_RETRY_ATTEMPTS: 3
+          RETRY_BASE_DELAY_MS: 1000
+          ENABLE_DLQ: true
+          MAX_MEMORY_MB: 2048
+
+      - name: Verify Kubernetes manifests
+        run: |
+          echo "Validating Kubernetes manifests..."
+          # Install kubectl
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+
+          # Validate YAML syntax
+          for yaml in infra/*.yaml; do
+            if [ -f "$yaml" ]; then
+              echo "Validating $yaml..."
+              kubectl apply --dry-run=client -f "$yaml" || exit 1
+            fi
+          done
+          echo "All Kubernetes manifests are valid!"
+
+  # ============================================================================
+  # Job 2: Build Docker Images
+  # ============================================================================
+  build-images:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: pre-deploy-checks
+    strategy:
+      matrix:
+        phase: [phase1, phase2, phase3, phase4, dee, lltl, sce]
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_PREFIX }}-${{ matrix.phase }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}},prefix=${{ env.IMAGE_PREFIX }}-
+            type=semver,pattern={{major}}.{{minor}},prefix=${{ env.IMAGE_PREFIX }}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build Phase ${{ matrix.phase }} image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: glue/adapters/rese-${{ matrix.phase }}/
+          file: glue/adapters/rese-${{ matrix.phase }}/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+          build-args: |
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            VCS_REF=${{ github.sha }}
+            VERSION=${{ github.ref_name }}
+
+      - name: Image digest
+        run: |
+          echo "Image built successfully!"
+          echo "Digest: ${{ steps.build.outputs.digest }}"
+          echo "Tags: ${{ steps.meta.outputs.tags }}"
+
+  # ============================================================================
+  # Job 3: Run Smoke Tests
+  # ============================================================================
+  smoke-tests:
+    name: Smoke Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: build-images
+    if: github.event.inputs.skip_tests != 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull all images
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_PREFIX }}-phase1:latest
+          docker pull ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_PREFIX }}-phase2:latest
+          docker pull ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_PREFIX }}-phase3:latest
+          docker pull ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_PREFIX }}-phase4:latest
+
+      - name: Run Phase I smoke test
+        run: |
+          echo "Running Phase I smoke test..."
+          docker run --rm \
+            -e PHASE1_TIMEOUT_MS=10000 \
+            -e PHASE1_MAX_ASSUMPTIONS=10 \
+            -e RESE_LOG_LEVEL=INFO \
+            ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_PREFIX }}-phase1:latest \
+            python3 /app/src/phase1_executor.py --help || exit 1
+
+      - name: Run Phase II smoke test
+        run: |
+          echo "Running Phase II smoke test..."
+          docker run --rm \
+            -e PHASE2_TIMEOUT_MS=10000 \
+            -e RESE_LOG_LEVEL=INFO \
+            ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_PREFIX }}-phase2:latest \
+            python3 /app/src/phase2_executor.py --help || exit 1
+
+      - name: Run Phase III smoke test
+        run: |
+          echo "Running Phase III smoke test..."
+          docker run --rm \
+            -e PHASE3_TIMEOUT_MS=10000 \
+            -e RESE_LOG_LEVEL=INFO \
+            ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_PREFIX }}-phase3:latest \
+            python3 /app/src/phase3_executor.py --help || exit 1
+
+      - name: Run Phase IV smoke test
+        run: |
+          echo "Running Phase IV smoke test..."
+          docker run --rm \
+            -e PHASE4_TIMEOUT_MS=10000 \
+            -e RESE_LOG_LEVEL=INFO \
+            ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_PREFIX }}-phase4:latest \
+            python3 /app/src/phase4_executor.py --help || exit 1
+
+      - name: Upload smoke test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-results
+          path: |
+            smoke-test-*.log
+          retention-days: 7
+
+  # ============================================================================
+  # Job 4: Deploy to Kubernetes
+  # ============================================================================
+  deploy-kubernetes:
+    name: Deploy to Kubernetes
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [build-images, smoke-tests]
+    environment:
+      name: ${{ github.event.inputs.environment || 'staging' }}
+      url: https://rese-${{ github.event.inputs.environment || 'staging' }}.example.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Kubernetes CLI
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Configure kubectl
+        run: |
+          # Note: In production, use actual kubeconfig secret
+          echo "Configuring kubectl for ${{ github.event.inputs.environment || 'staging' }}..."
+          mkdir -p ~/.kube
+          # This would normally use a secret
+          # echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
+
+      - name: Update Kubernetes manifests with new image tags
+        run: |
+          echo "Updating Kubernetes manifests..."
+          IMAGE_TAG="${{ github.ref_name }}"
+          if [ -z "$IMAGE_TAG" ]; then
+            IMAGE_TAG="latest"
+          fi
+
+          # Update image tags in deployment manifest
+          sed -i.bak "s|image: rese-phase1:.*|image: ${{ env.REGISTRY }}/${{ github.repository }}/rese-phase1:${IMAGE_TAG}|g" infra/k8s-rese-deployment.yaml
+          sed -i.bak "s|image: rese-phase2:.*|image: ${{ env.REGISTRY }}/${{ github.repository }}/rese-phase2:${IMAGE_TAG}|g" infra/k8s-rese-deployment.yaml
+          sed -i.bak "s|image: rese-phase3:.*|image: ${{ env.REGISTRY }}/${{ github.repository }}/rese-phase3:${IMAGE_TAG}|g" infra/k8s-rese-deployment.yaml
+          sed -i.bak "s|image: rese-phase4:.*|image: ${{ env.REGISTRY }}/${{ github.repository }}/rese-phase4:${IMAGE_TAG}|g" infra/k8s-rese-deployment.yaml
+          sed -i.bak "s|image: rese-dee:.*|image: ${{ env.REGISTRY }}/${{ github.repository }}/rese-dee:${IMAGE_TAG}|g" infra/k8s-rese-deployment.yaml
+          sed -i.bak "s|image: rese-lltl:.*|image: ${{ env.REGISTRY }}/${{ github.repository }}/rese-lltl:${IMAGE_TAG}|g" infra/k8s-rese-deployment.yaml
+          sed -i.bak "s|image: rese-sce:.*|image: ${{ env.REGISTRY }}/${{ github.repository }}/rese-sce:${IMAGE_TAG}|g" infra/k8s-rese-deployment.yaml
+
+          echo "Updated manifests:"
+          grep "image:" infra/k8s-rese-deployment.yaml | head -10
+
+      - name: Deploy to Kubernetes
+        run: |
+          echo "Deploying to Kubernetes..."
+          # Apply namespace first
+          kubectl apply -f infra/k8s-rese-deployment.yaml --dry-run=client
+
+          # Note: In production, remove --dry-run
+          # kubectl apply -f infra/k8s-rese-deployment.yaml
+
+          # Wait for deployment to be ready
+          # kubectl wait --for=condition=available --timeout=300s \
+          #   deployment/rese-pipeline \
+          #   deployment/rese-dee \
+          #   deployment/rese-lltl \
+          #   deployment/rese-sce \
+          #   -n rese-system
+
+          echo "Deployment successful (dry-run mode)"
+
+      - name: Verify deployment
+        run: |
+          echo "Verifying deployment..."
+          # Check pod status
+          # kubectl get pods -n rese-system
+
+          # Check service status
+          # kubectl get services -n rese-system
+
+          # Check logs
+          # kubectl logs -l app=rese-pipeline -n rese-system --tail=50
+
+          echo "Deployment verified (dry-run mode)"
+
+      - name: Upload deployment manifests
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-manifests
+          path: |
+            infra/k8s-rese-deployment.yaml
+          retention-days: 30
+
+  # ============================================================================
+  # Job 5: Post-deployment Tests
+  # ============================================================================
+  post-deploy-tests:
+    name: Post-deployment Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: deploy-kubernetes
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pydantic pydantic-settings requests
+
+      - name: Run health checks
+        run: |
+          echo "Running health checks against deployed services..."
+          # Note: These would be actual service URLs in production
+          SERVICES=(
+            "http://rese-pipeline-service.rese-system.svc.cluster.local:8000/health"
+            "http://rese-dee-service.rese-system.svc.cluster.local:8001/health"
+            "http://rese-lltl-service.rese-system.svc.cluster.local:8002/health"
+            "http://rese-sce-service.rese-system.svc.cluster.local:8003/health"
+          )
+
+          for service in "${SERVICES[@]}"; do
+            echo "Checking $service..."
+            # curl -f "$service" || exit 1
+            echo "✓ $service is healthy (dry-run)"
+          done
+
+      - name: Run readiness checks
+        run: |
+          echo "Running readiness checks..."
+          # Check that all services are ready to accept traffic
+          for service in rese-pipeline rese-dee rese-lltl rese-sce; do
+            echo "Checking $service readiness..."
+            # kubectl wait --for=condition=ready pod \
+            #   -l app=$service \
+            #   -n rese-system \
+            #   --timeout=60s
+            echo "✓ $service is ready (dry-run)"
+          done
+
+      - name: Upload post-deployment test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: post-deploy-test-results
+          path: |
+            post-deploy-*.log
+          retention-days: 7
+
+  # ============================================================================
+  # Job 6: Deployment Report
+  # ============================================================================
+  deployment-report:
+    name: Generate Deployment Report
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [pre-deploy-checks, build-images, smoke-tests, deploy-kubernetes, post-deploy-tests]
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Generate deployment report
+        run: |
+          cat > DEPLOYMENT_REPORT.md << 'EOF'
+          # RESE Framework Deployment Report
+
+          **Deployment Date:** $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          **Environment:** ${{ github.event.inputs.environment || 'staging' }}
+          **Commit:** ${{ github.sha }}
+          **Tag:** ${{ github.ref_name }}
+          **Triggered By:** ${{ github.actor }}
+
+          ## Deployment Status
+
+          ### Job Results
+          - Pre-deployment Checks: ${{ needs.pre-deploy-checks.result }}
+          - Build Images: ${{ needs.build-images.result }}
+          - Smoke Tests: ${{ needs.smoke-tests.result }}
+          - Deploy to Kubernetes: ${{ needs.deploy-kubernetes.result }}
+          - Post-deployment Tests: ${{ needs.post-deploy-tests.result }}
+
+          ### Deployed Images
+          - Phase I: ${{ env.REGISTRY }}/${{ github.repository }}/rese-phase1:${{ github.ref_name || 'latest' }}
+          - Phase II: ${{ env.REGISTRY }}/${{ github.repository }}/rese-phase2:${{ github.ref_name || 'latest' }}
+          - Phase III: ${{ env.REGISTRY }}/${{ github.repository }}/rese-phase3:${{ github.ref_name || 'latest' }}
+          - Phase IV: ${{ env.REGISTRY }}/${{ github.repository }}/rese-phase4:${{ github.ref_name || 'latest' }}
+          - DEE Adapter: ${{ env.REGISTRY }}/${{ github.repository }}/rese-dee:${{ github.ref_name || 'latest' }}
+          - LLTL Adapter: ${{ env.REGISTRY }}/${{ github.repository }}/rese-lltl:${{ github.ref_name || 'latest' }}
+          - SCE Adapter: ${{ env.REGISTRY }}/${{ github.repository }}/rese-sce:${{ github.ref_name || 'latest' }}
+
+          ### Kubernetes Resources
+          - Namespace: rese-system
+          - Deployments: rese-pipeline, rese-dee, rese-lltl, rese-sce
+          - Services: rese-pipeline-service, rese-dee-service, rese-lltl-service, rese-sce-service
+          - HPA: rese-pipeline-hpa (3-10 replicas)
+
+          ## Verification Steps
+          - [ ] All pods are running
+          - [ ] All health checks pass
+          - [ ] All readiness checks pass
+          - [ ] Smoke tests pass
+          - [ ] Post-deployment tests pass
+          - [ ] Monitoring is configured
+          - [ ] Alerts are configured
+
+          ## Rollback Plan
+          If issues are detected:
+          1. Run: `kubectl rollout undo deployment/rese-pipeline -n rese-system`
+          2. Verify: `kubectl get pods -n rese-system`
+          3. Check logs: `kubectl logs -l app=rese-pipeline -n rese-system --tail=100`
+
+          ## Next Steps
+          1. Monitor the deployment for 24 hours
+          2. Review metrics and logs
+          3. Check for any errors or warnings
+          4. Validate that all features work as expected
+
+          EOF
+
+          cat DEPLOYMENT_REPORT.md
+
+      - name: Upload deployment report
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-report
+          path: DEPLOYMENT_REPORT.md
+          retention-days: 90
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: RESE Framework Release ${{ github.ref_name }}
+          body_path: DEPLOYMENT_REPORT.md
+          draft: false
+          prerelease: ${{ github.event.inputs.environment == 'staging' }}

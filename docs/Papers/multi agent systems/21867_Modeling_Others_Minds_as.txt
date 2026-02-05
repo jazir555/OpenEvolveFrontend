@@ -1,0 +1,2905 @@
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+000
+001
+      Modeling Others’ Minds as Code
+002
+003    Anonymous authors
+004    Paper under double-blind review
+005
+006
+007
+008
+                                              Abstract
+009
+              Accurate prediction of human behavior is essential for robust and safe
+010
+              human-AI collaboration. However, existing approaches for modeling peo-
+011
+              ple are often data-hungry and brittle because they either make unrealistic
+012           assumptions about rationality or are too computationally demanding to
+013           adapt rapidly. Our key insight is that many everyday social interactions may
+014           follow predictable patterns; efficient “scripts” that minimize cognitive load
+015           for actors and observers, e.g., “wait for the green light, then go.” We propose
+016           modeling these routines as behavioral programs instantiated in computer
+017           code rather than policies conditioned on beliefs and desires. We introduce
+018           ROTE, a novel algorithm that leverages both large language models (LLMs)
+019           for synthesizing a hypothesis space of behavioral programs, and probabilistic
+020
+              inference for reasoning about uncertainty over that space. We test ROTE
+              in a suite of gridworld tasks and a large-scale embodied household simu-
+021
+              lator. ROTE predicts human and AI behaviors from sparse observations,
+022
+              outperforming competitive baselines—including behavior cloning and LLM-
+023           based methods—by as much as 50% in terms of in-sample accuracy and
+024           out-of-sample generalization. By treating action understanding as a program
+025           synthesis problem, ROTE opens a path for AI systems to efficiently and
+026           effectively predict human behavior in the real-world.
+027
+028
+029   1   Introduction
+030
+      Predicting the behavior of others (Theory of Mind) is a core challenge for building intelligent
+031   social agents. Whether anticipating a pedestrian’s movements, coordinating with teammates,
+032   or interacting safely in public spaces, machines must infer what others are likely to do next.
+033   Existing approaches such as behavior cloning (BC) and inverse reinforcement learning (IRL)
+034   rely on learning models to predict low-level actions or infer latent reward functions (Abbeel &
+035   Ng, 2004; Ng et al., 2000; Torabi et al., 2018; Wulfmeier et al., 2016). However, these methods
+036   are often data-hungry and brittle because they try to learn what an agent might do in every
+037   possible state, frequently overfitting to specific environments or overcomplicating behaviors
+038   that are surprisingly routine for humans (Skalse & Abate, 2024; Yildirim et al., 2024).
+039
+      Alternatively, probabilistic methods for goal inference (Fuchs et al., 2023; Zhi-Xuan et al.,
+      2020; 2024) are more sample efficient but demand computationally intensive online reasoning
+040
+      about potential intentions and beliefs, alongside human-specified priors and hypothesis
+041
+      spaces. Thus, conventional methods for modeling others present a trade-off illustrated in
+042   Figure 1: data-intensive and brittle, or compute-intensive and manually constructed for each
+043   new domain.
+044
+045
+      Recent work in cognitive science shows that when humans interact with one another, we do
+      not always imbue others with deeply held mental states such as goals or beliefs. Instead we
+046
+      often perceive others as following a script or mindlessly applying a set of rules (Ullman &
+047
+      Bass, 2024; Bass et al., 2024). For example, when someone steps into a crosswalk, we do
+048   not need to infer their ultimate destination, their complex mental states, or their opinion on
+049   pineapple on pizza. It is enough to apply a commonly understood “crosswalk script” shaped
+050   by social convention. While there are perspectives on how people adopt roles in societies or
+051   prescribe agency to others (Dennett, 1972; Field, 1978; Dennett & Gorey, 1981; Dennett,
+052   1987; 2017; Jara-Ettinger & Dunham, 2024), to the best of our knowledge, there are currently
+053   no computational models that adequately describe how machines can represent and reason
+      about other agents acting in a script-like manner.
+
+
+                                                    1
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+054
+             Behavior Cloning                Inverse Planning                ROTE (Ours)
+055
+056
+057                                                                       def act(obs): à int
+058                                            Beliefs   Goals
+                                                                           if valid(obs):
+                                                                            ...
+059                                                Planner
+
+060                                                 Action
+
+061
+062
+063
+064
+065
+066
+067
+068   Figure 1: Comparison of action prediction methods: Behavior cloning requires large datasets
+069   and has limited generalization, while inverse planning is computationally expensive at
+070   test time. Our approach, ROTE, uses LLMs to generate efficient and interpretable code
+071   representations of observed behavior, providing a superior balance of efficiency and accuracy.
+072
+073
+      The notion of representing an intelligent agent through logical rules and predetermined
+      decision-making processes is a foundational idea in computer science (Newell & Simon, 1956;
+074
+      Schank & Abelson, 2013; Newell & Simon, 1976), influencing fields from planning (Campbell
+075
+      et al., 2002; Zhu et al., 2025) to game theory (Axelrod, 1980). Finite State Machines (FSMs),
+076   for instance, are still used in video games to efficiently simulate large numbers of agents.
+077   By defining a sequence of states and transitions (e.g., patrol border → find agents → chase
+078   agents), code can flexibly model the causal behaviors underpinning social norms and routines.
+079
+      Here we develop ROTE — Representing Others’ Trajectories as Executables — a novel
+080
+      algorithm that leverages LLMs as code synthesis tools to predict others’ actions. We prompt
+081
+      LLMs to generate computer programs explaining observed behavioral traces, then perform
+082   Bayesian inference to reason about which programs are most likely. This gives us a dynamic
+083   representation that can be analyzed, modified, and composed across agents and environments.
+084
+085
+      ROTE significantly improves generalization and efficiency in predicting complex agent
+      behavior, showing up to a 50% increase in accuracy across multiple challenging embodied
+086
+      domains. Our results in gridworlds and the scaled-up Partnr household robotics simulator
+087
+      demonstrate that code is a highly effective representation for modeling and predicting
+088   behavior. To validate its applicability to real-world complexity, we collected human gameplay
+089   data and found that our method achieves human-level accuracy in predicting human actions,
+090   outperforming all baselines. This offers a promising new path for creating scalable, adaptable,
+091   and interpretable socially intelligent AI systems. Concretely, our contributions are:
+092
+      1. Modeling Agentic Behavior via Program Synthesis: We develop ROTE, a novel
+093      algorithm that combines LLMs with Sequential Monte Carlo to model other agents’
+094      behavior as programs from sparse observations.
+095
+      2. Superior, Scalable Action Prediction: Across two embodied domains, we show
+096      that ROTE offers superior generalization for predicting others’ behaviors, outperforming
+097      alternative methods by as much as 50%. Our method generates executable code that is
+098      reusable across environments, bypassing costly reasoning over goals and beliefs. These
+099      code-based representations scale more efficiently than behavior cloning or inverse planning
+100      alternatives, even when the ground truth behavior does not come from a known program.
+101   3. Human Studies Validation: We recruit real human participants to generate behavior
+102      and predict others’ actions. We find that ROTE outperforms baselines and achieves human-
+103      level performance in predicting human behaviors, even for noisy and sparse trajectories.
+104
+105
+      2    Related Work
+106
+107   Action Prediction. Prior work developing AI for action prediction follows two dominant
+      categories: symbolic methods and neural networks. Symbolic methods, such as Bayesian
+
+
+                                                     2
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+108
+      Inverse Planning (BIP), infer an agent’s goals and beliefs by calculating their probabilities
+109   based on observed actions (Ullman et al., 2009; Baker et al., 2017; Shum et al., 2019;
+110   Netanyahu et al., 2021; Kleiman-Weiner et al., 2016; Wang et al., 2020; Kleiman-Weiner et al.,
+111   2020; Serrino et al., 2019; Kleiman-Weiner et al., 2025). While robust, these methods are not
+112   scalable due to the exponential complexity of a multi-agent environment (Rathnasabapathy
+113   et al., 2006; Doshi & Gmytrasiewicz, 2009; Seaman et al., 2018). In contrast, neural
+114   approaches like behavioral cloning (BC) and inverse reinforcement learning (IRL) train
+115   models to directly mimic actions (Torabi et al., 2018; Ng et al., 2000; Abbeel & Ng, 2004;
+116   Wulfmeier et al., 2016; Wang et al., 2021; Christiano et al., 2023), but are often data-intensive,
+117
+      fragile, and prone to overfitting. Recent work has tried modeling reward functions as finite-
+      state automatons, a concept known as “reward machines” (Icarte et al., 2018; Toro Icarte
+118
+      et al., 2022; Li et al., 2025). This method, which does not use LLMs, allows for structured
+119
+      representation of reward and can provide non-Markovian feedback to agents. While primarily
+120   used for training agents to solve compositional tasks, there has been work on inferring
+121   reward machines from expert demonstrations (Zhou & Li, 2022) or learning safety constraints
+122   (Malik et al., 2021; Lindner et al., 2024; Liu et al., 2025). Despite these advances, neural
+123   models still struggle with generalization, particularly in social reasoning, as they often fail to
+124   capture the causal structure of behavior (de Haan et al., 2019; Codevilla et al., 2019; Bain &
+125   Sammut, 1995). This brittleness persists even with advanced techniques that learn contextual
+126   representations (Rabinowitz et al., 2018; Chuang et al., 2020; Jha et al., 2024) and does not
+127   disappear at scale under an assumption of imperfect rationality (Poddar et al., 2024). In
+128
+      contrast, our approach, which uses an LLM to generate open-ended code describing observed
+      behavior, makes fewer assumptions about the nature of the agents being modeled. This
+129
+      allows it to capture everyday decision-making processes that may not be reward-maximizing.
+130
+131   Large Language Models (LLMs) for Behavior Modeling. LLMs may be a more
+132   effective bridge between the neural and symbolic paradigms. They enable enumerative
+133   inference for social reasoning (Wilf et al., 2023; Jung et al., 2024; Huang et al., 2024; Jin
+134
+      et al., 2024; Cross et al., 2024; Kim et al., 2025; Zhang et al., 2025), while neuro-symbolic
+      frameworks (e.g., BIP + LLMs) improve robustness in embodied cooperation (Ying et al.,
+135
+      2024; Ding et al., 2024; Ying et al., 2025; Wan et al., 2025; Castro et al., 2025; Zhou et al.,
+136
+      2024; Qiu et al., 2024; Yang et al., 2024; Cao et al., 2024). However, existing implementations
+137   remain computationally intensive, often generating thousands of tokens for each prediction.
+138   In realistic settings, we need methods capable of rapid inference that still capture the
+139   structure of culturally shaped conventions and behaviors performed without deep cognitive
+140   processing (Bargh, 1994; Wood, 2024). By learning a code-based agent representation, ROTE
+141   avoids the high computational cost that BIP must incur to enumerate every possible goal.
+142
+      Program Induction. Program synthesis has proven effective for world modeling (Guan
+143   et al., 2023; Wong et al., 2023b;a; Zhu & Simmons, 2024), action selection (Verma et al.,
+144   2021; Wang et al., 2023; Yao et al., 2023), and has even achieved near-expert performance on
+145   mathematical reasoning tasks such as International Math Olympiad problems (Trinh et al.,
+146   2024). Neurosymbolic approaches, which combine LLMs or domain-specific neural networks
+147   with probabilistic program inference, have enabled agents to learn environment dynamics
+148   (Das et al., 2023) and master complex games like Sokoban and Frostbite with impressive
+149   sample efficiency (Tang et al., 2024; Tsividis et al., 2021; Tomov et al., 2023). Code-like
+150   representations have been used to infer reward functions from state-action transitions (Yu
+151
+      et al., 2023; Davidson et al., 2025), and LLMs have been harnessed to synthesize policies
+      or planning strategies in domain-specific contexts (Liang et al., 2023; Sun et al., 2023;
+152
+      Trivedi et al., 2022). However, these prior approaches typically rely on well-defined rewards,
+153
+      domain-specific constraints, or focus on partial aspects of agent behavior, such as reward
+154   inference or demonstration summarization. In contrast, ROTE aims to infer an agent’s
+155   causal decision-making process directly from observed behavior and assumes no access to
+156   reward signals or domain-specific structure.
+157
+158   3    Representing Others’ Trajectories as Executables
+159
+160   Drawing upon recent conceptualizations of “agents” in reinforcement learning and theoretical
+161   computer science (Abel et al., 2023a; Dong et al., 2021; Lu et al., 2023; Leike, 2016;
+      Lattimore et al., 2013; Majeed & Hutter, 2018; Majeed, 2021; Cohen et al., 2019), we
+
+
+                                                      3
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+162
+                          Representing Others’ Trajectories as Executables (ROTE)
+163
+164    What will the        1) Generate Candidate Agent Programs                             2) Refine Program Likelihood
+165    Agent do next?              with LLMs given History                                      via Bayesian Inference
+
+
+
+
+                                                                              Ground Truth
+166                       class ToyChair:           class ToyBedroom:
+                           def act(self, obs):       def act(self, obs):
+
+
+
+
+                                                                                  State
+167                         if found_toy(obs):        if found_toy(obs):
+                             move_to_chair(obs)        move_to_room(obs)
+168                         else: find_toy(obs)       else: find_toy(obs)
+
+169                        a. Toys to the Chairs    b. Toys to the Bedroom                     t=1       t=3       t=5
+
+170                       class CleanKitchen:       class WanderHouse:
+                           def act(self, obs):       def act(self, obs):
+171                         if in_kitchen(obs):       t = obs.timestep
+                             scrub_dishes(obs)        rID = t % len(rooms)
+172                         else: go_kitchen(obs)     visitRoom(rID, obs)
+
+173                           c. Clean dishes       d. Wander Between Rooms
+
+174
+175   Figure 2: Overview of ROTE. ROTE predicts an agent’s next action by generating and
+176
+      weighting Python programs that explain its observed behavior. From t = 0 to t = 7, ROTE
+      observes a blue robot’s trajectory. Initially, at t = 1, programs related to moving to the
+177
+      dining room are up-weighted. However, at t = 3, the robot picks up a toy, and ROTE
+178
+      remains uncertain if the goal is to clean up toys in the bedroom or place them on chairs
+179   in the living room. After the robot places the toy on a chair at t = 5, ROTE confidently
+180   updates its program weights to reflect the “bringing toys to chairs” script. By t = 7, ROTE
+181   can use this inferred script to rapidly and accurately predict future actions.
+182
+183   represent computationally bounded agents as programs with internal states, which can be
+184   conceptualized as Finite State Machines. This is formally represented using the notation
+185   λ = (S, s0 , π, u) from Abel et al. (2023b), where finite internal states st ∈ S used for decision-
+186   making in the policy π : S → ∆A evolve via a transition function u(st−1 , at−1 , ot ) → st ,
+187   which maps the observations from the external world to the agent’s next internal decision-
+188   making state. In the following section, we will demonstrate how we can search for the minimal
+189
+      program in the space of agents λ ∈ Λ that best explains observed history of (observation
+      o ∈ O, action a ∈ A) pairs, h ∈ H. For the rest of this section, we use the notation h0:t to
+190
+      indicate the history of pairs from time 0 to t.
+191
+192
+      3.1   Agent Program Synthesis with Large Language Models
+193
+194   Given a finite length history h0:t−1 ∈ H, from time 0 to t − 1, our objective is to find an
+195   agent λ̂ ∈ Λ that both (1) takes the same action at as the ground truth agent λ∗ when
+196   presented with observation ot , and (2) minimizes its program size |λ̂|. Encouraging concise
+197   program synthesis is not just a matter of engineering preference but is theoretically grounded
+198   in the foundations of algorithmic probability and inductive inference. Solomonoff’s theory of
+199   inductive inference formalizes Occam’s razor, demonstrating that the best scientific model
+200   for a given set of observations is the shortest algorithm (in terms of description length) that
+201
+      generates the data in question (Solomonoff, 1964; 1978; 1996). Under this framework, shorter
+      programs are assigned higher prior probability, providing a universal solution to the problem
+202
+      of induction with strong convergence guarantees: the expected cumulative prediction error is
+203
+      bounded by the Kolmogorov complexity of the true data-generating process (Solomonoff,
+204   1978; 1996). Thus, searching for minimal agent representations is not only computationally
+205   desirable but also theoretically optimal for generalization, a bias also observed in human
+206   programmatic reasoning (Bigelow & Ullman, 2025).
+207
+      We operationalize our search through the space of agents Λ with a two-stage approach: First,
+208
+      we optionally prompt an LLM to transform raw perceptual inputs into a natural language
+209
+      description of an agent’s path. These percepts can be low-level observations like object
+210   coordinates in gridworlds, or even natural language scene-graphs from datasets like Partnr
+211   (Chang et al., 2025). Next, we have the LLM generate many possible Python programs
+212   to obtain a distribution over possible code-based agent models which explain the observed
+213   behavior, ∆(Λ). Python is chosen for its readability, widespread use in AI research, and its
+214   power as a Turing-complete language, enabling the representation of arbitrarily complex
+215   decision-making logic in the worst case where |S| = |O| for the ground-truth agent λ∗ . Our
+      prompting strategy makes two key assumptions: (1) the observed agent follows deterministic
+
+
+                                                            4
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+216
+      transitions between finite internal states S contingent on environmental/historical cues
+217   rather than executing complex adaptive policies, and (2) generated code should produce
+218   deterministic actions a ∈ A. Importantly, we ask the LLM to assume these properties of the
+219   observed trajectories even if the ground truth agent generating the behavior is probabilistic
+220   and following sophisticated, goal-directed plans. While this assumes a deterministic agent, we
+221   account for potential stochasticity in behavior with a noise model, allowing our approach
+222   to best approximate the underlying deterministic policy. We instruct the LLM to generate
+223   code that is efficient (low runtime complexity) and concise (minimize |λ|).
+224
+225   3.2   Refining Generations through Bayesian Inference
+226   To form a more robust estimate of the true underlying agent program λ∗ , we refine the
+227   distribution over candidate programs ∆(Λ) obtained from the language model using Sequential
+228   Monte Carlo. Specifically, we estimate the posterior probability of a candidate agent program
+229   λ given the observed history h0:t−1 using the relationship:
+230
+231
+                                        p(λ|h0:t−1 ) ∝ p(h0:t−1 |λ)p(λ).                                 (1)
+232
+      This approach is related to inverse planning-based methods that infer latent goals given
+233
+      observed behavior (Ullman et al., 2009; Baker et al., 2017; Shum et al., 2019; Netanyahu
+234
+      et al., 2021). However, instead of assuming a fixed, often complex, planner (like MCTS or
+235   brute-force search) and performing inference over a space of goals, our method condenses
+236   all behavioral conventions and scripts an agent might follow into a single programmatic
+237   representation λ. Since λ is a deterministic program, we give the action aˆt it predicts the
+238   ground-truth agent will take at observation ot a probability of (1 − ϵ) and all other actions
+239   a− ∈ A − {aˆt } a probability of |A|−1     ϵ
+                                                      . This effectively allows λ to predict a distribution
+240   over actions ∆(A) it might take at each step. Then, we can perform inference directly over
+241   the space of likely decision-making processes encoded as Python programs by calculating
+242   p(λ|h0:t−1 ) ∝ Πoi ,ai ∈h0:t−1 p(ai |oi , λ) · pprior (λ). With this refined posterior distribution, we
+243   select the k most likely agent programs, and execute the corresponding Python code for each
+244   from the current observation ot . Then, ROTE P             performs a weighted combination of agent
+245   programs to form our approximation λ∗ ≈ λ̂ = λ∈∆(Λ) p(λ|h0:t−1 ) · λ(·|ot ).
+246
+      The combination of LLM-based program synthesis with Bayesian Inference results in our
+247   method for inferring others’ behaviors, ROTE. Pseudocode for our approach can be found
+248   in Algorithm 1, and in Figure 2, we provide an overview of ROTE on an intuitive example
+249   in the Partnr environment, an embodied robotics simulator where an agent tries to help a
+250   human complete a variety of household chores (Chang et al., 2025). We additionally include
+251   examples of agent code inferred by ROTE in Construction and Partnr in Appendix A.11.2.
+252
+253   4     Experiments
+254
+255
+      Environments. We evaluate ROTE across two distinct environments. First, we use
+      Construction (shown in Figure 7), a fully-observable 2D grid-world where agents actively
+256
+      navigate obstacles like walls and other agents, and can transport colored blocks to different
+257
+      locations on the map (Jha et al., 2024). Then, we explore the efficacy of our method on
+258   Partnr (shown in Figure 5), a large-scale embodied robotics simulator where an AI-assistant
+259   perceives a realistic home or office space as a natural language scene-graph (Chang et al.,
+260   2025). Built on the Habitat benchmark, this environment requires the agent to utilize tools
+261   to help a human complete tasks in a partially observable world (Puig et al., 2023).
+262
+      Baselines. We compare ROTE against three baselines: Behavior Cloning (BC). In
+263
+      the Construction environment, the BC model is a neural network with an LSTM trained
+264   on pixel-based observations of agent trajectories (Rabinowitz et al., 2018); for Partnr, we
+265   fine-tuned Llama-3.1-8b to imitate a ground-truth LLM agent’s behaviors using a training
+266   set of (scene-graph, action) pairs (Chang et al., 2025). Automated Theory of Mind
+267   (AutoToM) (Zhang et al., 2025). AutoToM is a neuro-symbolic approach which uses LLMs
+268   to generate open-ended hypotheses about an agent’s beliefs, goals, and desires, then applies
+269   Bayesian Inverse Planning to find the most likely action. Naive LLM (NLLM). NLLM
+      simply prompts an LLM with observed states and environment dynamics to predict the next
+
+
+                                                        5
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+270
+      action directly. Our evaluation for all methods except for BC uses a suite of LLMs: Llama-3.1-
+271   8b Instruct, DeepSeek-V2-Lite (16b), DeepSeek-Coder-V2-Lite-Instruct (16b), and we report
+272   the highest accuracy achieved for each baseline to ensure the most competitive comparison.
+273   All results for ROTE were obtained using DeepSeek-Coder-V2-Lite-Instruct, while other
+274   baselines show the highest-performing model for each environment. Appendix A.7 provides
+275   a detailed breakdown of per-task and per-LLM accuracy for all methods, demonstrating our
+276   approach’s consistent success across different LLM model types.
+277   Dataset Generation. For the fully observable Construction environment, we hand-
+278   designed 10 distinct Finite State Machines to generate 50, 000 state-action pairs across 100
+279   trajectories/agent ×10 agents = 1000 trajectories. Behaviors ranged from simple tasks,
+280   such as patrolling, where agents rely on planning heuristics, to complex goal-directed tasks
+281   using A* search, like finding all green blocks. We have included some for illustration in
+282   Figure 7 and the full list of behaviors in Appendix A.1. For the partially observable Partnr
+283   environment, we used the LLM agents defined in (Chang et al., 2025) to generate state-action
+284   pairs for a robot assistant completing diverse tasks (i.e. “clean all toys in the bedroom”)
+285
+      from their “train” and “validation” datasets. In these datasets, states are represented as
+      natural language scene graphs, and actions are high-level tools.
+286
+287   Evaluation Protocol. We evaluate using two protocols: (1) single-step prediction, where
+288   given observations from timesteps 0 to t, the task is to predict the action at ; and (2) multi-step
+289   prediction, where we iteratively predict actions ât , . . . , ât+10 conditioned on the ground-truth
+290   observed states o0 , . . . , ot . For the BC model in Construction, we hold out 100 trajectories
+291
+      for evaluation, training on the remaining data. All baselines are evaluated on these 100
+      held-out trajectories. For Partnr, we evaluate single-step prediction with t = |H| − 2, since
+292
+      varying trajectory lengths make multi-step evaluation inconsistent, and the final timestep
+293
+      is always the terminal action. We evaluate all models on the entire “validation” dataset,
+294   using the “train” dataset to finetune the BC model. We only predict high-level tools used by
+295   agents in Partnr, since AutoToM requires static-sized action spaces (Zhang et al., 2025).
+296
+297
+      Human Studies. We conducted human studies in the single-agent Construction environment
+      to evaluate ROTE’s ability to predict human behavior and to benchmark its performance
+298
+      against human predictions. For the first study, 10 participants were recruited to perform
+299
+      their interpretation of each of the 10 handcrafted FSMs without observing the ground-truth
+300   code, generating 30 state-action pairs/person/script. In a separate study, we recruited 25
+301   humans to act as predictors. They were shown a human’s trajectory from t = 0 to t = 19
+302   and the state at t = 20, and asked to predict its next five actions, from t = 20 to t = 24.
+303   We use the same setup for a third study to explore how well people predict the behavior of
+304   the ground-truth FSM’s next actions instead. We compared peoples’ prediction accuracy
+305   to ROTE and the other baselines to benchmark different behavior modeling algorithms.
+306   All studies were approved by our university’s Institutional Review Board (IRB) and were
+307              0.66                                                 0.66
+308                       Single-Step                                          Single-Step
+      Accuracy
+
+
+
+
+                                                           Accuracy
+
+
+
+
+309              0.44     Multi-Step                                  0.44     Multi-Step
+310
+                 0.22                                                 0.22
+311
+312              0.00                                                 0.00
+                        BC AutoToM NLLM   ROTE Human                         BC AutoToM NLLM   ROTE Human
+313
+      (a) Single-step vs. multi-step prediction accuracy (b) Single-step vs. multi-step prediction accuracy
+314
+      for Construction with scripted agents              for Construction with human agents
+315
+316   Figure 3: ROTE outperforms all baselines in both single-step and multi-step action prediction
+317   for scripted (a) and human agents (b). ROTE’s code-based representations, which treat
+318   human actions as efficient scripts, enable it to generalize effectively from limited observations.
+319   For single-step predictions, ROTE was significantly more accurate than all baselines for
+320   both scripted (p < 0.05 for NLLM, p < 0.001 for BC and AutoToM) and human agents
+321   (p < 0.05 for BC, p < 0.01 for NLLM, p < 0.001 for AutoToM). This superior performance
+322
+      was maintained in multi-step predictions for both agent types (scripted: p < 0.001 for BC,
+      AutoToM, and NLLM; human: p < 0.01 for BC, p < 0.001 for NLLM and AutoToM). ROTE
+323
+      achieved human-level predictive accuracy of human behavior.
+
+
+                                                       6
+          Under review as a conference paper at ICLR 2026
+
+
+
+
+324
+                                        Generalization Accuracy
+                                                                                Figure 4: ROTE demonstrates superior zero-
+325              0.66                                                           shot generalization to novel environments in
+326   Accuracy
+                 0.44
+                                                                                Construction. Without any additional condi-
+327                                                                             tioning on an agent’s behavior, the programs
+328              0.22                                                           ROTE infers from one environment transfer to
+329                                                                             novel settings more effectively than all other
+                 0.00
+330                                BC      AutoToM      NLLM     ROTE           baselines (p < 0.001 in a two-sided t-test).
+331
+332
+333       designed using NiceWebRL (Carvalho et al., 2025). We used Prolific for crowdsourcing data.
+334
+          We plan to open-source the code for our baselines, datasets, and human evaluations.
+335
+336       5                   Results
+337
+          How well does ROTE model and predict scripted agent behavior? To evaluate
+338       the effectiveness of ROTE, we first examined its predictive accuracy in a controlled setting
+339       where agents in the Construction environment followed one of 10 handcrafted programs.
+340       These programs were not provided to ROTE at any point during evaluation. Our results in
+341       Figure 3a demonstrate that ROTE consistently surpasses all baselines in both single-step and
+342       multi-step prediction accuracy in this evaluation setting and does not statistically significantly
+343       underperform human performance (p=0.3087 for single-step and p=0.1679 for multi-step in
+344       a two-sided t-test). While these initial results were promising, a potential concern was that
+345       ROTE might simply be exploiting repetitive patterns, rather than learning the underlying
+346
+          policy. We investigated this by measuring how often an agent revisited a state or repeated
+          an action. We found an extremely low correlation between ROTE’s accuracy and either of
+347
+          these metrics (0.303 for matching states, 0.064 for matching actions), confirms that ROTE is
+348
+          not exploiting simple data regularities. This finding, paired with ROTE’s strong multi-step
+349       performance, suggests that code-based representations can be effective for learning the
+350       underlying policies that enable robust, long-term predictions.
+351
+352
+          How well does ROTE model and predict human behavior? Having established that
+          ROTE’s code-based representations are effective in controlled, scripted environments, we next
+353
+          wanted to test its ability to model more complex, nuanced behaviors. We began by evaluating
+354
+          ROTE against human agents performing 10 tasks in the Construction environment. As
+355       illustrated in Figure 3b, ROTE outperforms all baseline algorithms and achieves human-
+356       level predictive accuracy of next-step human actions. A deeper per-task accuracy
+357       analysis, shown in Figure 9, reveals that ROTE has greater accuracy than humans on some
+358       tasks with repetitive patterns, such as “move up if possible, otherwise down” or “move in
+359       an L-shape.” However, humans are still much better at anticipating scripts for tasks such
+360       as “patrol the grid clockwise” and goal-directed tasks such as “move all pink blocks to the
+361       corner of the grid.” This gap highlights that while the code produced by ROTE is expressive
+362
+363                                                                     Robot Observation         Inferred Agent Code
+364                                                                         in Partnr                  from ROTE
+365                         0.66                                                              class FSMAgent:
+          Partnr Accuracy
+
+
+
+
+                                                                                                def __init__(self): self.state = “IDLE”
+                                                                                                def act(self, obs):
+366                                                                                               transitions = {“IDLE”: (“Explore”, “SEARCHING”),
+                                                                                              “SEARCHING”: (“Navigate”, “MOVING”), “MOVING”:
+
+367                         0.44                                                              (“Place”, “IDLE”)}
+
+                                                                                                  check_inventory(obs)
+368                                                                                               if self.has_firetruck:
+                                                                                                      action, self.state = transitions[self.state]
+                            0.22                                                                  else: action = “Navigate”
+369                                                                                               return action
+
+
+370
+                            0.00                                         Ground-Truth Task: “Put the fire truck on the chest”
+371                                BC    AutoToM NLLM     ROTE
+372      (a) Action prediction accuracy in Partnr (b) Example Partnr task with ROTE’s inferred program
+373
+374      Figure 5: (a) Prediction accuracy in the large-scale, partially observable Partnr environment.
+375      ROTE demonstrated a superior ability to anticipate the behavior of goal-directed, LLM-based
+376
+         agents, with a two-sided t-test showing ROTE significantly outperformed all other models
+         (p < 0.001). (b) The pseudocode example illustrates how ROTE’s inferred programs capture
+377
+         complex task logic using conditionals and state-tracking.
+
+
+                                                                            7
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+378                                                                           Figure 6: Total multi-step prediction time in
+379                                                                           Construction. Despite being slower than BC
+380
+      Total Prediction
+                         103                                                  and Naive LLM prompting in the single-step
+381        Time (s)      102
+                                                                              prediction case, ROTE’s programmatic rep-
+382                                                                           resentations enable its multi-step compute
+383
+                         101                                                  cost to scale orders of magnitude more ef-
+384                      100
+                                                                              ficiently than other approaches, making it
+385                            0   5     10    15  20    25   30
+                                                                              better suited for long-horizon settings than
+                                       # of Predictions                       other approaches for predicting individual
+386                        BC          AutoToM        NLLM         ROTE       behavior.
+387
+388
+389
+      enough to capture many behaviors, more powerful LLMs with enhanced reasoning may be
+390
+      needed to achieve human-level prediction in all settings.
+391
+392   Generalizing to Novel Environments: A key advantage of modeling behavior with
+393   scripts is the potential for rapid generalization to new, but similar, environments. We wanted
+394
+      to know if ROTE’s inferred programs could transfer without needing to be relearned. To
+      test this, we first observed a scripted agent following a pattern like “patrol counterclockwise”
+395
+      for 20 timesteps, and then showed the same agent in a distinct environment. We then asked
+396
+      ROTE and the baselines to predict the next 10 actions of the same agent. For ROTE, this
+397   was done by using the same set of programs inferred in the first environment for prediction
+398   without updating their likelihoods. Figure 4 shows that ROTE can still predict the agent’s
+399   behavior accurately in the new setting, outperforming all baselines without needing to
+400   re-incur the cost of text generation, a necessary step for NLLM and AutoToM. Although
+401   ROTE’s performance decreases compared to predicting behavior in the original environment
+402   in Figure 3a, its ability to generalize makes it a more accurate and efficient alternative to
+403   traditional Inverse Planning or purely neural methods.
+404   Can ROTE’s code-based approach scale to model behavior in complex, realistic
+405   environments? To further push the boundaries of ROTE’s capabilities, we tested it on the
+406   embodied robotics benchmark Partnr, where the task is to predict the next tool utilized by
+407   LLM-agents simulating a human or robot completing chores. This environment is particularly
+408   challenging due to partial observability and long-horizon, compositional tasks such as “find a
+409   plate and clean it in the kitchen” or “look for toys and organize them neatly in the bedroom.”
+410   Despite this complexity, Figure 5 shows our approach significantly outperformed all baselines,
+411
+      including inverse planning and behavior cloning methods, and those incorporating LLMs. To
+      better understand the types of problems ROTE excels at, we used Llama-3.1-8B-Instruct to
+412
+      cluster the ground-truth tasks from our test set into three categories, as shown in Figure 10.
+413
+      While baselines like AutoToM and Behavior Cloning showed success with tasks involving
+414   simple navigation, ROTE demonstrated a superior ability to handle more intricate problems,
+415   such as turning items on/off and cleaning objects. This demonstrates its generalizability in
+416   creating code for agents that face uncertainty and possess beliefs about their environment.
+417
+      How does the computational efficiency of ROTE compare to other approaches?
+418
+      Forming long-horizon plans in the presence of other agents requires predicting their behaviors
+419
+      over time quickly and not just accurately. To understand whether ROTE scales effectively,
+420   we plot the time in seconds required for different baselines to make predictions about agents’
+421   behaviors multiple times into the future in Construction. As shown in Figure 6, while ROTE
+422   is initially slower for single-step predictions compared to BC and NLLM baselines due to the
+423   need to generate and prune candidate programs, its test-time compute costs scale orders of
+424   magnitude more efficiently with the number of predictions. This is because once ROTE’s
+425   code-based representations are inferred, it can execute these programs rapidly for all future
+426   steps. In contrast, other LLM-based methods must re-generate a response for every new
+427   time step. We analyze additional factors contributing to this efficiency in Appendix A.5 and
+428
+      Figure 14. Taken together with the results from Figures 3, 4, and 5, this illustrates that
+      code-based representations can balance predictive power with prediction efficiency.
+429
+430   What is the relationship between ROTE’s core components and its predictive
+431   performance? To understand how ROTE achieves its superior generalization and human-
+      level accuracy, we conducted a series of ablation studies on its core components. We found
+
+
+                                                                          8
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+432
+      that ROTE’s two-stage observation parsing, which converts observations into a natural
+433   language description before generating code, had a minimal effect on accuracy for the FSM
+434   and human gameplay datasets in Construction (Figure 11). However, this process significantly
+435   hurt performance in Partnr. This is likely because Partnr’s observations are already rich
+436   scene graphs (Chang et al., 2025), and the abstraction step removes crucial details needed
+437   for effective program generation. Additionally, we investigated the use of Sequential Monte
+438   Carlo (SMC) with rejuvenation versus standard Importance Sampling. SMC, which replaces
+439   low-likelihood programs with new ones, improved early-stage accuracy when the number of
+440   sampled hypotheses was small (Figure 12). This benefit, however, diminished as the initial
+441
+      set of candidate hypotheses increased, suggesting that the initial diversity provided by the
+      LLM is often sufficient.
+442
+443   Lastly, we analyzed the impact of imposing different degrees of structural constraints on
+444   ROTE’s program generation, inspired by methods for inferring reward functions (Yu et al.,
+445   2023). We evaluated three variants: “Light” (assuming agents are FSMs without providing
+446   examples), “Moderate” (defining FSM states explicitly but allowing open-ended code), and
+447
+      “Severe” (a two-stage process converting natural language predictions of FSMs into code).
+      Our previous results were based on the “Light” condition. The optimal level of structure,
+448
+      however, varied by environment, as shown in Figure 13. In the Construction environment,
+449
+      where agents followed predictable FSMs, the Severe approach performed as well as others.
+450   This suggests that for predictable, rote behaviors, an explicitly structured representation can
+451   be just as effective while also being computationally efficient (Callaway et al., 2018; Lieder
+452   & Griffiths, 2020; Callaway et al., 2022; Icard, 2023). Conversely, modeling human behavior
+453   proved less suited for strict FSMs. The Moderate condition was superior for human gameplay,
+454   highlighting the need for representational flexibility when agents are following a general script
+455   but exhibiting inherent variability. In the partially observable Partnr environment, forcing
+456   agents into a strict FSM representation performed significantly worse than open-ended code
+457   generation, suggesting these scenarios might be better suited for traditional Inverse Planning
+458
+      methods that can handle a wider range of states and tasks. These findings reveal a gradient of
+      agentic representations, from automatic to goal-directed, which allows for flexible prediction
+459
+      across different scenarios. Future work could use meta-reinforcement learning to dynamically
+460
+      select the appropriate level of representational structure based on the task.
+461
+462
+463
+      6    Discussion
+464   In this work, we framed behavior inference as a program synthesis problem, showing that
+465   our approach, ROTE, can accurately and efficiently predict the actions of machines and real
+466   people in complex environments. ROTE offers a scalable alternative to traditional methods
+467   that require extensive datasets or significant computational resources. This has immediate
+468   implications for domains where real-time adaptability and interpretability are crucial, such
+469   as with caregiver robots that could use ROTE’s representations to anticipate daily routines.
+470   Limitations: While our results highlight the effectiveness of program synthesis for text-
+471
+      based observations, we note the limitations of the applicability of our findings in Partnr since
+      we only predicted high-level tools used by agents, which was done to accommodate baselines
+472
+      which required static action spaces. While our evaluation in Partnr still involved more
+473
+      tools than our other experiments (19 actions in Partnr compared to 6 in the Construction),
+474   future research should explore ROTE in high-dimensional, continuous control settings. In
+475   those cases, ROTE might need to be integrated with vision-language models (VLMs) to
+476   parse pixel-based inputs (e.g., raw video feeds for assistive robots) and neural control
+477   mechanisms to execute plans, effectively operating at the level of option prediction (Sutton
+478   et al., 1999). Another interesting direction would be to explore how the size of LLMs used
+479   for behavioral program inference impacts prediction quality in more sophisticated scenarios,
+480   such as modeling team coordination in workplaces or norm enforcement on social platforms.
+481   Lastly, unlike traditional Theory of Mind approaches that predict beliefs and goals, our
+482   work focuses solely on action prediction. If we view beliefs as dispositions to act (Ramsey &
+483   Moore, 1927; Ryle, 1949), predicting a distribution over an agent’s internal decision-making
+484   states and logic for transitioning between them is functionally equivalent to belief inference.
+485   ROTE is designed to excel in scenarios dominated by predictable, routine, or script-like
+      behaviors, such as daily routines in warehouses and stores, relatively stable social conventions
+
+
+                                                     9
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+486
+      like driving, or routine household settings. This is because ROTE exploits the efficiency
+487   of executing simple code for long-horizon prediction in these routine settings. For ROTE
+488   to gain true generality and address the rigidity concern, future work is explicitly focused
+489   on extending it to generate Probabilistic Programming Languages (PPLs), such as memo,
+490   which is specialized for social reasoning in JAX (Chandra et al., 2025). This extension would
+491   allow ROTE to infer the distribution over actions or latent mental states, directly addressing
+492   the stochastic nature of human actions without abandoning the executable code format. In
+493   terms of failure modes, domains requiring high-fidelity continuous control over raw sensor
+494   data (e.g., video feeds) require ROTE’s inferred high-level programs to be integrated into a
+495
+      Task and Motion Planning architecture, where ROTE provides the symbolic task plan to
+      a low-level neural control mechanism. Finally, for deeply complex, goal-directed behaviors
+496
+      involving “unknown unknowns” in partially observable environments, the very notion of a
+497
+      fixed FSM-like programmatic model may be fundamentally unsuitable, indicating that in
+498   these cases, the representation itself is too rigid to capture the agent’s full intentionality.
+499   Thus, we view ROTE as generating and reasoning over one of many possible representations
+500   that are suitable for behavior prediction rather than a catch-all.
+501
+502
+503
+504
+505
+506
+507
+508
+509
+510
+511
+512
+513
+514
+515
+516
+517
+518
+519
+520
+521
+522
+523
+524
+525
+526
+527
+528
+529
+530
+531
+532
+533
+534
+535
+536
+537
+538
+539
+
+
+
+                                                    10
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+540
+      References
+541
+542   Pieter Abbeel and Andrew Y Ng. Apprenticeship learning via inverse reinforcement learning.
+543     In Proceedings of the twenty-first international conference on Machine learning, pp. 1,
+544     2004.
+545
+      David Abel, André Barreto, Benjamin Van Roy, Doina Precup, Hado van Hasselt, and
+546    Satinder Singh. A definition of continual reinforcement learning, 2023a. URL https:
+547    //arxiv.org/abs/2307.11046.
+548
+549   David Abel, André Barreto, Hado van Hasselt, Benjamin Van Roy, Doina Precup, and
+550    Satinder Singh. On the convergence of bounded agents, 2023b. URL https://arxiv.
+551    org/abs/2307.11044.
+552
+      Robert Axelrod. Effective Choice in the Prisoner’s Dilemma. Journal of Conflict Resolution,
+553     24(1):3–25, 1980. doi: 10.1177/002200278002400101. URL https://doi.org/10.1177/
+554     002200278002400101. _eprint: https://doi.org/10.1177/002200278002400101.
+555
+556   Michael Bain and Claude Sammut. A framework for behavioural cloning. In Machine
+557    intelligence 15, pp. 103–129, 1995.
+558
+      Chris L Baker, Julian Jara-Ettinger, Rebecca Saxe, and Joshua B Tenenbaum. Rational
+559
+       quantitative attribution of beliefs, desires and percepts in human mentalizing. Nature
+560    Human Behaviour, 1(4):0064, 2017.
+561
+562   John A. Bargh. The four horsemen of automaticity: Awareness, intention, efficiency, and
+563     control in social cognition. In Handbook of social cognition: Basic processes; Applications,
+564     Vols. 1-2, 2nd ed., pp. 1–40. Lawrence Erlbaum Associates, Inc, Hillsdale, NJ, US, 1994.
+565     ISBN 0-8058-1056-0 (Hardcover); 0-8058-1057-9 (Hardcover).
+566
+      Ilona Bass, Cristian Espinoza, Elizabeth Bonawitz, and Tomer D Ullman. Teaching without
+567      thinking: Negative evaluations of rote pedagogy. Cognitive science, 48(6):e13470, 2024.
+568
+569   Eric Bigelow and Tomer Ullman. People evaluate agents based on the algorithms that drive
+570     their behavior. Open Mind, 9:1411–1430, 08 2025. ISSN 2470-2986. doi: 10.1162/opmi.a.26.
+571     URL https://doi.org/10.1162/opmi.a.26.
+572
+      Frederick Callaway, Falk Lieder, Priyam Das, Sayan Gul, and Paul M Krueger. A resource-
+573
+        rational analysis of human planning. In Proceedings of the Annual Meeting of the Cognitive
+574     Science Society, volume 40, 2018.
+575
+576   Frederick Callaway, Bas van Opheusden, Sayan Gul, Priyam Das, Paul M Krueger, Thomas L
+577     Griffiths, and Falk Lieder. Rational use of cognitive resources in human planning. Nature
+578     Human Behaviour, 6(8):1112–1125, 2022.
+579
+      Murray Campbell, A.Joseph Hoane, and Feng-hsiung Hsu. Deep Blue. Artificial Intelligence,
+580
+       134(1-2):57–83, January 2002. ISSN 00043702. doi: 10.1016/S0004-3702(01)00129-1. URL
+581
+       https://linkinghub.elsevier.com/retrieve/pii/S0004370201001291.
+582
+583   Chengzhi Cao, Chao Yang, and Shuang Li. Discovering intrinsic spatial-temporal logic rules
+584     to explain human actions, 2024. URL https://arxiv.org/abs/2306.12244.
+585
+586
+      Wilka Carvalho, Vikram Goddla, Ishaan Sinha, Hoon Shin, and Kunal Jha. Nicewebrl: a
+       python library for human subject experiments with reinforcement learning environments,
+587
+       2025. URL https://arxiv.org/abs/2508.15693.
+588
+589   Pablo Samuel Castro, Nenad Tomasev, Ankit Anand, Navodita Sharma, Rishika Mohanta,
+590     Aparna Dev, Kuba Perlin, Siddhant Jain, Kyle Levin, Noémi Éltető, Will Dabney,
+591     Alexander Novikov, Glenn C Turner, Maria K Eckstein, Nathaniel D Daw, Kevin J
+592     Miller, and Kimberly L Stachenfeld. Discovering symbolic cognitive models from hu-
+593     man and animal behavior. bioRxiv, 2025. doi: 10.1101/2025.02.05.636732. URL
+        https://www.biorxiv.org/content/early/2025/02/06/2025.02.05.636732.
+
+
+                                                   11
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+594
+      Kartik Chandra, Tony Chen, Joshua B. Tenenbaum, and Jonathan Ragan-Kelley. A domain-
+595    specific probabilistic programming language for reasoning about reasoning (or: A memo on
+596    memo). Proc. ACM Program. Lang., 9(OOPSLA2), October 2025. doi: 10.1145/3763078.
+597    URL https://doi.org/10.1145/3763078.
+598
+599   Matthew Chang, Gunjan Chhablani, Alexander Clegg, Mikael Dallaire Cote, Ruta Desai,
+600    Michal Hlavac, Vladimir Karashchuk, Jacob Krantz, Roozbeh Mottaghi, Priyam Parashar,
+601
+       Siddharth Patki, Ishita Prasad, Xavier Puig, Akshara Rai, Ram Ramrakhya, Daniel Tran,
+       Joanne Truong, John M. Turner, Eric Undersander, and Tsung-Yen Yang. Partnr: A
+602
+       benchmark for planning and reasoning in embodied multi-agent tasks. In International
+603
+       Conference on Learning Representations (ICLR), 2025. alphabetical author order.
+604
+605   Paul Christiano, Jan Leike, Tom B. Brown, Miljan Martic, Shane Legg, and Dario Amodei.
+606     Deep reinforcement learning from human preferences, 2023. URL https://arxiv.org/
+607     abs/1706.03741.
+608
+      Yun-Shiuan Chuang, Hsin-Yi Hung, Edwinn Gamborino, Joshua Oon Soo Goh, Tsung-Ren
+609
+        Huang, Yu-Ling Chang, Su-Ling Yeh, and Li-Chen Fu. Using machine theory of mind to
+610
+        learn agent social network structures from observed interactive behaviors with targets. In
+611    2020 29th IEEE International Conference on Robot and Human Interactive Communication
+612    (RO-MAN), pp. 1013–1019. IEEE, 2020.
+613
+614   Felipe Codevilla, Eder Santana, Antonio M. López, and Adrien Gaidon. Exploring the
+615     limitations of behavior cloning for autonomous driving, 2019. URL https://arxiv.org/
+616     abs/1904.08980.
+617   Michael K. Cohen, Elliot Catt, and Marcus Hutter. A strongly asymptotically optimal agent
+618    in general environments, 2019. URL https://arxiv.org/abs/1903.01021.
+619
+620   Logan Cross, Violet Xiang, Agam Bhatia, Daniel LK Yamins, and Nick Haber. Hypothetical
+621     minds: Scaffolding theory of mind for multi-agent tasks with large language models, 2024.
+622     URL https://arxiv.org/abs/2407.07086.
+623
+      Ria Das, Joshua B. Tenenbaum, Armando Solar-Lezama, and Zenna Tavares. Combining
+624     functional and automata synthesis to discover causal reactive programs. Proc. ACM
+625     Program. Lang., 7(POPL), January 2023. doi: 10.1145/3571249. URL https://doi.org/
+626     10.1145/3571249.
+627
+628   Guy Davidson, Graham Todd, Julian Togelius, Todd M. Gureckis, and Brenden M. Lake.
+629    Goals as reward-producing programs. Nature Machine Intelligence, 7(2):205–220, February
+630
+       2025. ISSN 2522-5839. doi: 10.1038/s42256-025-00981-4. URL https://doi.org/10.
+       1038/s42256-025-00981-4.
+631
+632   Pim de Haan, Dinesh Jayaraman, and Sergey Levine. Causal confusion in imitation learning,
+633     2019. URL https://arxiv.org/abs/1905.11979.
+634
+635   D. C. Dennett. Content and consciousness. International library of philosophy and scientific
+636     method. Routledge & Kegan Paul [u.a.], London, reprinted edition, 1972. ISBN 978-0-
+637
+        7100-6512-4.
+638   D. C. Dennett. From bacteria to Bach and back: the evolution of minds. W.W. Norton &
+639     Company, New York, first edition edition, 2017. ISBN 978-0-393-24207-2.
+640
+641   D. C. Dennett and Edward Gorey. Brainstorms: philosophical essays on mind and psychology.
+642     The MIT Press, Cambridge, Massachusetts ; London, England, 1981. ISBN 978-0-262-
+643
+        54037-7.
+644   Daniel C. Dennett. The Intentional Stance. The MIT Press, Cambridge, MA, 1987.
+645
+646   Wei Ding, Fanhong Li, Ziteng Ji, Zhengrong Xue, and Jia Liu. Atom-bot: Embodied
+647    fulfillment of unspoken human needs with affective theory of mind. arXiv preprint
+       arXiv:2406.08455, 2024.
+
+
+                                                  12
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+648
+      Shi Dong, Benjamin Van Roy, and Zhengyuan Zhou. Simple agent, complex environment:
+649     Efficient reinforcement learning with agent states, 2021. URL https://arxiv.org/abs/
+650     2102.05261.
+651
+652   Prashant Doshi and Piotr J Gmytrasiewicz. Monte Carlo sampling methods for approximating
+653     interactive POMDPs. Journal of Artificial Intelligence Research, 34:297–337, 2009.
+654   Hartry H. Field. Mental representation. Erkenntnis, 13(1):9–61, January 1978. ISSN
+655    0165-0106, 1572-8420. doi: 10.1007/BF00160888. URL http://link.springer.com/10.
+656    1007/BF00160888.
+657
+658
+      Andrew Fuchs, Andrea Passarella, and Marco Conti. Modeling, replicating, and predicting
+       human behavior: A survey. ACM Transactions on Autonomous and Adaptive Systems, 18
+659
+       (2):1–47, 2023.
+660
+661   Lin Guan, Karthik Valmeekam, Sarath Sreedharan, and Subbarao Kambhampati. Leveraging
+662     pre-trained large language models to construct and utilize world models for model-based
+663     task planning, 2023. URL https://arxiv.org/abs/2305.14909.
+664
+      X. Angelo Huang, Emanuele La Malfa, Samuele Marro, Andrea Asperti, Anthony Cohn, and
+665     Michael Wooldridge. A notion of complexity for theory of mind via discrete world models,
+666     2024. URL https://arxiv.org/abs/2406.11911.
+667
+668   Thomas Icard. Resource rationality. Book manuscript, 434, 2023.
+669   Rodrigo Toro Icarte, Toryn Klassen, Richard Valenzano, and Sheila McIlraith. Using reward
+670     machines for high-level task specification and decomposition in reinforcement learning. In
+671    Jennifer Dy and Andreas Krause (eds.), Proceedings of the 35th International Conference on
+672    Machine Learning, volume 80 of Proceedings of Machine Learning Research, pp. 2107–2116.
+673     PMLR, 10–15 Jul 2018. URL https://proceedings.mlr.press/v80/icarte18a.html.
+674
+      Julian Jara-Ettinger and Yarrow Dunham. The institutional stance, Apr 2024. URL
+675
+        osf.io/preprints/psyarxiv/pefsx_v1.
+676
+677   Kunal Jha, Tuan Anh Le, Chuanyang Jin, Yen-Ling Kuo, Joshua B Tenenbaum, and Tianmin
+678    Shu. Neural amortized inference for nested multi-agent reasoning. In Proceedings of the
+679    AAAI Conference on Artificial Intelligence, volume 38, pp. 530–537, 2024.
+680   Chuanyang Jin, Yutong Wu, Jing Cao, Jiannan Xiang, Yen-Ling Kuo, Zhiting Hu, Tomer Ull-
+681     man, Antonio Torralba, Joshua B. Tenenbaum, and Tianmin Shu. Mmtom-qa: Multimodal
+682     theory of mind question answering, 2024. URL https://arxiv.org/abs/2401.08743.
+683
+684   Chani Jung, Dongkwan Kim, Jiho Jin, Jiseon Kim, Yeon Seonwoo, Yejin Choi, Alice Oh,
+685
+       and Hyunwoo Kim. Perceptions to beliefs: Exploring precursory inferences for theory of
+       mind in large language models, 2024. URL https://arxiv.org/abs/2407.06004.
+686
+687   Hyunwoo Kim, Melanie Sclar, Tan Zhi-Xuan, Lance Ying, Sydney Levine, Yang Liu, Joshua B.
+688    Tenenbaum, and Yejin Choi. Hypothesis-driven theory-of-mind reasoning for large language
+689     models, 2025. URL https://arxiv.org/abs/2502.11881.
+690
+      Max Kleiman-Weiner, Mark K Ho, Joseph L Austerweil, Michael L Littman, and Joshua B
+691
+       Tenenbaum. Coordinate to cooperate or compete: abstract goals and joint intentions in
+692    social interaction. In Proceedings of the annual meeting of the cognitive science society,
+693    volume 38, 2016.
+694
+695   Max Kleiman-Weiner, Felix Sosa, Bill Thompson, Bas van Opheusden, Thomas L Griffiths,
+696
+       Samuel Gershman, and Fiery Cushman. Downloading culture. zip: Social learning by
+       program induction. In Proceedings of the Annual Meeting of the Cognitive Science Society,
+697
+       volume 42, 2020.
+698
+699   Max Kleiman-Weiner, Alejandro Vientós, David G. Rand, and Joshua B. Tenenbaum.
+700    Evolving general cooperation with a bayesian theory of mind. Proceedings of the National
+701    Academy of Sciences, 122(25), June 2025. ISSN 1091-6490. doi: 10.1073/pnas.2400993122.
+       URL http://dx.doi.org/10.1073/pnas.2400993122.
+
+
+                                                  13
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+702
+      Tor Lattimore, Marcus Hutter, and Peter Sunehag. The sample-complexity of general
+703     reinforcement learning, 2013. URL https://arxiv.org/abs/1308.4828.
+704
+705   Jan Leike. Nonparametric general reinforcement learning, 2016. URL https://arxiv.org/
+706     abs/1611.08944.
+707
+      Andrew C. Li, Zizhao Chen, Toryn Q. Klassen, Pashootan Vaezipoor, Rodrigo Toro Icarte,
+708
+       and Sheila A. McIlraith. Reward machines for deep rl in noisy and uncertain environments,
+709
+       2025. URL https://arxiv.org/abs/2406.00120.
+710
+711   Jacky Liang, Wenlong Huang, Fei Xia, Peng Xu, Karol Hausman, Brian Ichter, Pete Florence,
+712     and Andy Zeng. Code as policies: Language model programs for embodied control, 2023.
+713     URL https://arxiv.org/abs/2209.07753.
+714
+      Falk Lieder and Thomas L Griffiths. Resource-rational analysis: Understanding human
+715
+        cognition as the optimal use of limited computational resources. Behavioral and brain
+716
+        sciences, 43:e1, 2020.
+717
+718   David Lindner, Xin Chen, Sebastian Tschiatschek, Katja Hofmann, and Andreas Krause.
+719    Learning safety constraints from demonstrations with unknown rewards, 2024. URL
+720    https://arxiv.org/abs/2305.16147.
+721
+      Guiliang Liu, Sheng Xu, Shicheng Liu, Ashish Gaurav, Sriram Ganapathi Subramanian, and
+722
+       Pascal Poupart. A comprehensive survey on inverse constrained reinforcement learning:
+723
+       Definitions, progress and challenges, 2025. URL https://arxiv.org/abs/2409.07569.
+724
+725   Xiuyuan Lu, Benjamin Van Roy, Vikranth Dwaracherla, Morteza Ibrahimi, Ian Osband, and
+726     Zheng Wen. Reinforcement learning, bit by bit, 2023. URL https://arxiv.org/abs/
+727     2103.04047.
+728
+      Sultan J. Majeed. Abstractions of general reinforcement learning, 2021. URL https:
+729
+        //arxiv.org/abs/2112.13404.
+730
+731   Sultan Javed Majeed and Marcus Hutter. On q-learning convergence for non-markov
+732     decision processes. In Proceedings of the Twenty-Seventh International Joint Conference
+733     on Artificial Intelligence, IJCAI-18, pp. 2546–2552. International Joint Conferences on
+734     Artificial Intelligence Organization, 7 2018. doi: 10.24963/ijcai.2018/353. URL https:
+735     //doi.org/10.24963/ijcai.2018/353.
+736
+      Shehryar Malik, Usman Anwar, Alireza Aghasi, and Ali Ahmed. Inverse constrained
+737
+        reinforcement learning. In Marina Meila and Tong Zhang (eds.), Proceedings of the 38th
+738     International Conference on Machine Learning, volume 139 of Proceedings of Machine
+739     Learning Research, pp. 7390–7399. PMLR, 18–24 Jul 2021. URL https://proceedings.
+740     mlr.press/v139/malik21a.html.
+741
+742   Aviv Netanyahu, Tianmin Shu, Boris Katz, Andrei Barbu, and Joshua B Tenenbaum. Phase:
+743     Physically-grounded abstract social events for machine social perception. In Proceedings
+744
+        of the aaai conference on artificial intelligence, volume 35, pp. 845–853, 2021.
+745   Allen Newell and Herbert Simon. The logic theory machine–a complex information processing
+746     system. IRE Transactions on information theory, 2(3):61–79, 1956.
+747
+748   Allen Newell and Herbert A. Simon. Computer science as empirical inquiry: symbols and
+749     search. Commun. ACM, 19(3):113–126, March 1976. ISSN 0001-0782. doi: 10.1145/360018.
+750     360022. URL https://doi.org/10.1145/360018.360022.
+751
+      Andrew Y Ng, Stuart Russell, et al. Algorithms for inverse reinforcement learning. In Icml,
+752    volume 1, pp. 2, 2000.
+753
+754   Sriyash Poddar, Yanming Wan, Hamish Ivison, Abhishek Gupta, and Natasha Jaques.
+755     Personalizing reinforcement learning from human feedback with variational preference
+        learning, 2024. URL https://arxiv.org/abs/2408.10075.
+
+
+                                                  14
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+756
+      Xavi Puig, Eric Undersander, Andrew Szot, Mikael Dallaire Cote, Ruslan Partsey, Jimmy
+757    Yang, Ruta Desai, Alexander William Clegg, Michal Hlavac, Tiffany Min, Theo Gervet,
+758    Vladimír Vondruš, Vincent-Pierre Berges, John Turner, Oleksandr Maksymets, Zsolt Kira,
+759     Mrinal Kalakrishnan, Jitendra Malik, Devendra Singh Chaplot, Unnat Jain, Dhruv Batra,
+760    Akshara Rai, and Roozbeh Mottaghi. Habitat 3.0: A co-habitat for humans, avatars and
+761     robots, 2023.
+762
+      Linlu Qiu, Liwei Jiang, Ximing Lu, Melanie Sclar, Valentina Pyatkin, Chandra Bhagavatula,
+763
+        Bailin Wang, Yoon Kim, Yejin Choi, Nouha Dziri, and Xiang Ren. Phenomenal yet
+764
+        puzzling: Testing inductive reasoning capabilities of language models with hypothesis
+765     refinement, 2024. URL https://arxiv.org/abs/2310.08559.
+766
+767   Neil Rabinowitz, Frank Perbet, Francis Song, Chiyuan Zhang, SM Ali Eslami, and Matthew
+768     Botvinick. Machine theory of mind. In International conference on machine learning, pp.
+769     4218–4227. PMLR, 2018.
+770   F. P. Ramsey and G. E. Moore. Vi.–symposium: ?facts and propositions.? Aristotelian
+771     Society Supplementary Volume, 7(1):153–206, 1927. doi: 10.1093/aristoteliansupp/7.1.153.
+772
+773   Bharanee Rathnasabapathy, Prashant Doshi, and Piotr Gmytrasiewicz. Exact solutions of
+774
+        interactive pomdps using behavioral equivalence. In Proceedings of the fifth international
+        joint conference on Autonomous agents and multiagent systems, pp. 1025–1032, 2006.
+775
+776   Gilbert Ryle. The concept of mind. British Journal for the Philosophy of Science, 1(4):
+777     328–332, 1949.
+778
+779
+      Roger C. Schank and Robert P. Abelson. Scripts, Plans, Goals, and Understanding. Psy-
+       chology Press, 0 edition, May 2013. ISBN 978-1-134-91966-6. doi: 10.4324/9780203781036.
+780
+       URL https://www.taylorfrancis.com/books/9781134919666.
+781
+782   Iris Rubi Seaman, Jan-Willem van de Meent, and David Wingate. Nested reasoning about
+783      autonomous agents using probabilistic programs. arXiv preprint arXiv:1812.01569, 2018.
+784
+      Jack Serrino, Max Kleiman-Weiner, David C Parkes, and Josh Tenenbaum. Finding friend
+785
+        and foe in multi-agent games. Advances in Neural Information Processing Systems, 32,
+786     2019.
+787
+788   Michael Shum, Max Kleiman-Weiner, Michael L Littman, and Joshua B Tenenbaum. Theory
+789    of minds: Understanding behavior in groups through inverse planning. In Proceedings of
+790    the AAAI conference on artificial intelligence, volume 33, pp. 6163–6170, 2019.
+791   Joar Skalse and Alessandro Abate. Quantifying the sensitivity of inverse reinforcement
+792     learning to misspecification. arXiv preprint arXiv:2403.06854, 2024.
+793
+794   Ray Solomonoff. Complexity-based induction systems: comparisons and convergence theo-
+795
+        rems. IEEE transactions on Information Theory, 24(4):422–432, 1978.
+796   Ray Solomonoff. Does algorithmic probability solve the problem of induction. Oxbridge
+797    Research, POB, 391887, 1996.
+798
+799   Ray J Solomonoff. A formal theory of inductive inference. part i. Information and control, 7
+800
+       (1):1–22, 1964.
+801   Haotian Sun, Yuchen Zhuang, Lingkai Kong, Bo Dai, and Chao Zhang. Adaplanner: Adaptive
+802     planning from feedback with language models, 2023. URL https://arxiv.org/abs/2305.
+803    16653.
+804
+      Richard S Sutton, Doina Precup, and Satinder Singh. Between MDPs and semi-MDPs: A
+805
+        framework for temporal abstraction in reinforcement learning. Artif. Intell., 112(1-2):
+806
+        181–211, August 1999.
+807
+808   Hao Tang, Darren Key, and Kevin Ellis. Worldcoder, a model-based llm agent: Building
+809    world models by writing code and interacting with the environment. Advances in Neural
+       Information Processing Systems, 37:70148–70212, 2024.
+
+
+                                                  15
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+810
+      Momchil S. Tomov, Pedro A. Tsividis, Thomas Pouncy, Joshua B. Tenenbaum, and Samuel J.
+811    Gershman. The neural architecture of theory-based reinforcement learning. Neuron, 111
+812    (8):1331–1344.e8, April 2023. ISSN 0896-6273. doi: 10.1016/j.neuron.2023.01.023. URL
+813    https://doi.org/10.1016/j.neuron.2023.01.023. Publisher: Elsevier.
+814
+815   Faraz Torabi, Garrett Warnell, and Peter Stone. Behavioral cloning from observation, 2018.
+816
+        URL https://arxiv.org/abs/1805.01954.
+817   Rodrigo Toro Icarte, Toryn Q. Klassen, Richard Valenzano, and Sheila A. McIlraith. Reward
+818     machines: Exploiting reward function structure in reinforcement learning. Journal of
+819    Artificial Intelligence Research, 73:173–208, January 2022. ISSN 1076-9757. doi: 10.1613/
+820     jair.1.12440. URL http://dx.doi.org/10.1613/jair.1.12440.
+821
+      Trieu H. Trinh, Yuhuai Wu, Quoc V. Le, He He, and Thang Luong. Solving olympiad
+822
+        geometry without human demonstrations. Nature, 625(7995):476–482, January 2024.
+823     ISSN 1476-4687. doi: 10.1038/s41586-023-06747-5. URL https://doi.org/10.1038/
+824     s41586-023-06747-5.
+825
+826   Dweep Trivedi, Jesse Zhang, Shao-Hua Sun, and Joseph J. Lim. Learning to synthesize
+827
+       programs as interpretable and generalizable policies, 2022. URL https://arxiv.org/
+       abs/2108.13643.
+828
+829   Pedro A. Tsividis, Joao Loula, Jake Burga, Nathan Foss, Andres Campero, Thomas Pouncy,
+830     Samuel J. Gershman, and Joshua B. Tenenbaum. Human-level reinforcement learning
+831     through theory-based modeling, exploration, and planning, 2021. URL https://arxiv.
+832     org/abs/2107.12544.
+833
+      Tomer Ullman, Chris Baker, Owen Macindoe, Owain Evans, Noah Goodman, and Joshua
+834     Tenenbaum. Help or hinder: Bayesian models of social goal inference. Advances in neural
+835     information processing systems, 22, 2009.
+836
+837   Tomer D Ullman and Ilona Bass. The detection of automatic behavior in other people, May
+838     2024. URL osf.io/preprints/psyarxiv/8r4yf_v1.
+839   Abhinav Verma, Hoang M. Le, Yisong Yue, and Swarat Chaudhuri. Imitation-projected
+840    programmatic reinforcement learning, 2021. URL https://arxiv.org/abs/1907.05431.
+841
+842   Yanming Wan, Yue Wu, Yiping Wang, Jiayuan Mao, and Natasha Jaques. Infer human’s
+843
+        intentions before following natural language instructions. In Proceedings of the AAAI
+       Conference on Artificial Intelligence, volume 39, pp. 25309–25317, 2025.
+844
+845   Huaxiaoyue Wang, Gonzalo Gonzalez-Pumariega, Yash Sharma, and Sanjiban Choudhury.
+846    Demo2code: From summarizing demonstrations to synthesizing code via extended chain-
+847    of-thought, 2023. URL https://arxiv.org/abs/2305.16744.
+848
+      Pin Wang, Hanhan Li, and Ching-Yao Chan. Meta-adversarial inverse reinforcement learning
+849
+        for decision-making tasks, 2021. URL https://arxiv.org/abs/2103.12694.
+850
+851   Rose E. Wang, Sarah A. Wu, James A. Evans, Joshua B. Tenenbaum, David C. Parkes, and
+852     Max Kleiman-Weiner. Too many cooks: Bayesian inference for coordinating multi-agent
+853     collaboration, 2020. URL https://arxiv.org/abs/2003.11778.
+854   Alex Wilf, Sihyun Shawn Lee, Paul Pu Liang, and Louis-Philippe Morency. Think twice:
+855     Perspective-taking improves large language models’ theory-of-mind capabilities, 2023. URL
+856     https://arxiv.org/abs/2311.10227.
+857
+858
+      Lionel Wong, Gabriel Grand, Alexander K. Lew, Noah D. Goodman, Vikash K. Mansinghka,
+        Jacob Andreas, and Joshua B. Tenenbaum. From word models to world models: Translating
+859
+        from natural language to the probabilistic language of thought, 2023a. URL https:
+860
+        //arxiv.org/abs/2306.12672.
+861
+862   Lionel Wong, Jiayuan Mao, Pratyusha Sharma, Zachary S. Siegel, Jiahai Feng, Noa Korneev,
+863     Joshua B. Tenenbaum, and Jacob Andreas. Learning adaptive planning representations
+        with natural language guidance, 2023b. URL https://arxiv.org/abs/2312.08566.
+
+
+                                                  16
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+864
+      Wendy Wood. Habits, goals, and effective behavior change. Current Directions in
+865    Psychological Science, 33(4):226–232, 2024. doi: 10.1177/09637214241246480. URL
+866    https://doi.org/10.1177/09637214241246480.
+867
+868   Markus Wulfmeier, Peter Ondruska, and Ingmar Posner. Maximum entropy deep inverse
+869    reinforcement learning, 2016. URL https://arxiv.org/abs/1507.04888.
+870
+871   Yang Yang, Chao Yang, Boyang Li, Yinghao Fu, and Shuang Li. Neuro-symbolic temporal
+872     point processes, 2024. URL https://arxiv.org/abs/2406.03914.
+873
+      Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik Narasimhan, and
+874
+        Yuan Cao. React: Synergizing reasoning and acting in language models, 2023. URL
+875
+        https://arxiv.org/abs/2210.03629.
+876
+877   Mustafa Yildirim, Barkin Dagda, Vinal Asodia, and Saber Fallah. Behavioral cloning models
+878    reality check for autonomous driving, 2024. URL https://arxiv.org/abs/2409.07218.
+879
+880   Lance Ying, Jason Xinyu Liu, Shivam Aarya, Yizirui Fang, Stefanie Tellex, Joshua B
+881     Tenenbaum, and Tianmin Shu. Siftom: Robust spoken instruction following through
+882     theory of mind. arXiv preprint arXiv:2409.10849, 2024.
+883
+      Lance Ying, Kunal Jha, Shivam Aarya, Joshua B. Tenenbaum, Antonio Torralba, and
+884
+        Tianmin Shu. Goma: Proactive embodied cooperative communication via goal-oriented
+885
+        mental alignment, 2025. URL https://arxiv.org/abs/2403.11075.
+886
+887   Wenhao Yu, Nimrod Gileadi, Chuyuan Fu, Sean Kirmani, Kuang-Huei Lee, Montse Gonzalez
+888    Arenas, Hao-Tien Lewis Chiang, Tom Erez, Leonard Hasenclever, Jan Humplik, Brian
+889    Ichter, Ted Xiao, Peng Xu, Andy Zeng, Tingnan Zhang, Nicolas Heess, Dorsa Sadigh, Jie
+890    Tan, Yuval Tassa, and Fei Xia. Language to rewards for robotic skill synthesis, 2023. URL
+891    https://arxiv.org/abs/2306.08647.
+892
+893
+      Zhining Zhang, Chuanyang Jin, Mung Yao Jia, and Tianmin Shu. Autotom: Automated
+        bayesian inverse planning and model discovery for open-ended theory of mind, 2025. URL
+894
+        https://arxiv.org/abs/2502.15676.
+895
+896   Tan Zhi-Xuan, Jordyn L. Mann, Tom Silver, Joshua B. Tenenbaum, and Vikash K. Mans-
+897     inghka. Online bayesian goal inference for boundedly-rational planning agents, 2020. URL
+898     https://arxiv.org/abs/2006.07532.
+899
+900   Tan Zhi-Xuan, Lance Ying, Vikash Mansinghka, and Joshua B Tenenbaum. Pragmatic
+901     instruction following and goal assistance via cooperative language-guided inverse planning.
+902     arXiv preprint arXiv:2402.17930, 2024.
+903
+904
+      Weichao Zhou and Wenchao Li. A hierarchical bayesian approach to inverse reinforcement
+       learning with symbolic reward machines, 2022. URL https://arxiv.org/abs/2204.
+905
+       09772.
+906
+907   Yangqiaoyu Zhou, Haokun Liu, Tejes Srivastava, Hongyuan Mei, and Chenhao Tan. Hypoth-
+908     esis generation with large language models. In Proceedings of the 1st Workshop on NLP
+909     for Science (NLP4Science), pp. 117–139. Association for Computational Linguistics, 2024.
+910     doi: 10.18653/v1/2024.nlp4science-1.10. URL http://dx.doi.org/10.18653/v1/2024.
+911     nlp4science-1.10.
+912
+913   Chuning Zhu, Raymond Yu, Siyuan Feng, Benjamin Burchfiel, Paarth Shah, and Abhishek
+914
+        Gupta. Unified world models: Coupling video and action diffusion for pretraining on large
+        robotic datasets, 2025. URL https://arxiv.org/abs/2504.02792.
+915
+916
+      Feiyu Zhu and Reid Simmons. Bootstrapping cognitive agents with a large language model,
+917     2024. URL https://arxiv.org/abs/2403.00810.
+
+
+                                                   17
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+918
+      A     Appendix
+919
+920
+      A.1    Ground Truth Agent Behaviors for Construction
+921
+922   For research question 1 in Section 5, we hand designed 10 agents, represented as Finite State
+923   Machines, to engage in diverse behaviors. The agents varied in complexity, with some using
+924   sophisticated A-star search to achieve a goal, and others using faster, less resource-intensive
+925   planning heuristics, namely the Manhattan distance as an approximation of how valuable an
+926   action is for an agent looking to move to a target location. While there is a large body of
+927
+      literature and debate surrounding what it means to be goal-directed, in this work we say any
+      agents conducting forward plans, denoted by explicit rollouts within the environment, are
+928
+      considered to be goal-directed. In the Construction gridworld task, this means the agents
+929
+      using A-star to complete tasks such as “pickup green blocks and move them to the corner”
+930   and “pair all blue blocks together” are goal-directed, whereas “patrol the grid in a clockwise
+931   direction,” which uses the Manhattan distance and FSM states as planning heuristics, are
+932   considered scripted. In Partnr, all of the LLM agents are goal-directed since they use the
+933   ReAct framework to plan how to complete household tasks. When collecting human data,
+934   we do not know if the participants are conducting detailed planning. We note that while we
+935   motivate our work from prior literature in cognitive science about predicting the behavior of
+936   scripted agents, our empirical results demonstrate that our approach is robust to predicting
+937   goal-directed behavior in the sense that we define it here. We summarize the behaviors and
+938
+      internal decision making states for all ground-truth agents below:
+939
+            1. Block Cycle: Using the manhattan distance as the planning heuristic, move from
+940
+               the green block to the blue block to the purple block to the green block and so on.
+941            If the agent ever has a block in its inventory, it will immediately drop it and resume
+942            its cycling behavior.
+943
+            2. Clockwise Patrol: If an agent is not along the outermost wall of the grid, it will
+944
+               repeatedly alternate between moving left and moving up until it hits a wall. Then,
+945            it will follow the wall clockwise: if there is a wall above it, the agent will move right
+946            repeatedly until it hits a wall, then repeats this process for going down, left, up and
+947            right again. If the agent ever has a block in its inventory, it will immediately drop it
+948            and resume its cycling behavior.
+949         3. Counter-clockwise Patrol: This agent is the same as Clockwise Patrol, except it
+950            it will patrol the border wall in a counter-clockwise manner, moving left repeatedly
+951            until it hits a wall, then doing the same for moving down, right, up and left again.
+952
+            4. Left-Right Patrol: The agent will move left until it hits a wall, then will move
+953
+               right until it hits a wall, and repeat this process. If the agent ever has a block in its
+954            inventory, it will immediately drop it and resume its patrolling behavior.
+955
+            5. Pair Blue Blocks: This agent uses A-star search for planning. If it does not have
+956
+               a blue block in its inventory, it finds and executes the shortest path to a blue block.
+957
+               Then, it uses the “interact” action to add the block to its inventory, and uses A-star
+958            to find the shortest path to a different blue block.
+959
+            6. Patrol with A-Star: Here, the agent’s goal is to repeatedly cycle between the top
+960
+               left, top right, bottom right, and bottom left corners of the grid. While Clockwise
+961
+               Patrol has a behavior which on the surface may seem similar, for Patrol with A-star
+962            we introduced addition complexity by having the agent believe it incurs a penalty for
+963            touching any of the colored blocks. As such, it uses A-star with negative edge values
+964            given to any action which leads an agent to landing on a colored block, thus resulting
+965            in behavior which tries to patrol but frequently leaves and returns to the border to
+966            avoid colored blocks. Again, if it ever picks up a colored block, it immediately drops
+967            it.
+968         7. L-shaped Patrol: This agent, initially at a coordinate (x, y), will move down until
+969            it collides with a wall, then will move right until it collides with a wall. Then, it
+970            will return to its original location, first moving left until its x-coordinate is x, and
+971            up until its final coordinate is (x, y). It repeatedly does this process. The agent
+               immediately drops any blocks in its inventory.
+
+
+                                                     18
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+972
+973
+974                                                                  Figure 7: Example scripts from Construction.
+975                                                                  We designed a suite of goal-directed (planner-
+976                                                                  based) and automatic (heuristic-based) agentic
+977         Cycle Between      Move in an   Snake through the
+                                                                     behaviors, from patrolling to transporting spe-
+       Purple à Green à Blue    ‘L’-shape      environment           cific blocks to a location.
+978
+979
+980           8. Transport Green: Here, the agent uses A-star search to move towards a green
+981              block and pick it up. Then, it uses A-star search to move the green block as close to
+982              an empty corner grid cell.
+983
+              9. Snake Patrol: This agent has four internal decision-making states: 1) Moving
+984              down/right, where the agent moves right until it cannot any more, then moves down
+985              one step; 2) Moving down/left, where the agent moves left until it cannot any more,
+986              then moves down one step; 3) Moving up/right, where the agent moves right until
+987              it cannot any more, then moves up one step; 4) Moving up/left, where the agent
+988              moves left until it cannot any more, then moves up one step. The resulting pattern
+989              appears like a snake moving throughout the grid.
+990          10. Up/Down Patrol: The agent will move up until it hits a wall, then will move
+991              down until it hits a wall, and repeat this process. If the agent ever has a block in its
+992              inventory, it will immediately drop it and resume its patrolling behavior.
+993
+994    A.2     Human Results Breakdown
+995
+996    In Figure 8, we show the accuracy for ROTE compared to humans when predicting FSM
+997
+       behavior in Construction. An example of some of the task are shown in Figure 7. In Figure 9,
+       we show the accuracy for ROTE compared to humans when predicting Human behavior in
+998
+       Construction. We find that humans excel at predicting goal-directed tasks while our method
+999
+       performs better with repetitive tasks, although all of the variance in predictive accuracy
+1000   cannot be captured by this distinction. In subsequent followups, we plan to do a greater
+1001   exploration of the different error modes of humans and other models, as well as scale ROTE
+1002   to larger language models, to see whether ROTE is an accurate computational model of
+1003   human behavior.
+1004
+1005   A.3     Clustered Task Breakdown in Partnr
+1006
+1007   To understand the types of tasks ROTE excels at compared to baselines in the Partnr
+1008   simulator, we used Llama-3.1-8B-Instruct to cluster the ground-truth tasks from our test
+1009   set into three categories. As shown in Figure 10, we report the mean prediction accuracy
+1010
+       and standard error for each algorithm on a per-cluster basis. While AutoToM and Behavior
+       Cloning show some success on tasks involving simple actions like moving and rearranging
+1011
+       objects, they struggle significantly with more complex interactions, such as turning items
+1012
+       on/off or cleaning. ROTE, in contrast, maintains a degree of accuracy in these more
+1013   challenging settings.
+1014
+1015   A.4     Model Component Analysis
+1016
+1017   We show the effect of different model components. While the choice of observation parsing
+1018   did not have too much of an impact on the Construction evaluations, Figure 11 indicates
+1019   it has a significant effect on predictive performance in Partnr. This is likely because the
+1020   observations, which are already in natural language, contain critical information on the data
+1021   structures they are represented as that abstraction removes.
+1022   Figure 12 demonstrates the benefits of different inference algorithms in ROTE. While ROTE
+1023   is not very sensitive to the choice of probabilistic inference method used as it has more
+1024   candidate agent programs, if agents are constrained by the number of hypotheses they can
+1025   maintain, performing SMC with rejuvenation proves to be a more effective strategy, since
+       this effectively augments the number of programs considered.
+
+
+                                                                19
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1026
+1027
+1028
+1029
+1030
+1031
+1032
+1033
+1034                                   Accuracy by FSM ID and Model
+1035
+1036
+1037                        up_down
+1038
+1039
+1040                         snake
+1041
+1042
+                pickup_green_a_star
+1043
+1044
+1045                     pattern_l
+1046
+1047
+       FSM ID
+
+
+
+
+1048            patrol_with_a_star
+1049
+1050
+                         pair_blue
+1051
+1052
+1053                    left_right
+1054
+1055
+1056                counter_patrol
+1057
+1058
+                  clockwise_patrol
+1059
+1060
+1061                   block_cycle
+1062
+1063
+                                 0.0     0.2   0.4    0.6   0.8   1.0
+1064                                             Accuracy
+1065
+1066
+1067
+1068
+1069                Human              ROTE          NLLM             AutoToM             BC
+1070
+1071   Figure 8: Per-task accuracy comparison between different methods predicting ground truth
+1072   FSM gameplay.
+1073
+1074
+1075
+1076
+1077
+1078
+1079
+
+
+
+                                                    20
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1080
+                                                     Accuracy by FSM ID and Model
+1081
+1082
+1083
+                                      Up and down
+1084
+1085
+1086                           Snake up and down
+1087
+1088                              Pink to corner
+1089
+1090
+                                 Green to corner
+1091
+1092
+       FSM ID
+
+
+
+
+1093                                      L-shape
+1094
+1095                            Pair blue blocks
+1096
+1097
+1098                               Left to right
+
+1099
+1100                     Patrol Counter-clockwise
+1101
+1102
+                                Patrol Clockwise
+1103
+1104
+1105            Repeat green-->blue-->purple
+1106
+1107                                             0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8
+                                                               Accuracy
+1108
+1109
+1110
+1111
+                                  Human             ROTE            NLLM            AutoToM           BC
+1112
+1113
+1114
+       Figure 9: Per-task accuracy comparison between different methods predicting human game-
+       play. While ROTE succeeds at more routine tasks, humans excel in predicting more goal
+1115
+       directed behaviors.
+1116
+1117
+1118
+                   0.7       Model
+1119                          BC
+                   0.6
+1120                          AutoToM
+                   0.5
+        Accuracy
+
+
+
+
+1121                          NLLM
+1122               0.4        ROTE
+1123               0.3
+1124               0.2
+1125               0.1
+1126
+                   0.0
+1127                          Organizing Items      Moving Objects Across Rooms Interacting With Objects
+                                                              Cluster
+1128
+1129
+       Figure 10: Task-specific generalization in Partnr. We used Llama-3.1-8B-Instruct to cluster
+1130
+       our prediction tasks into three distinct categories. We report the mean accuracy and standard
+1131
+       error (SE bars) for each algorithm. While baselines like AutoToM and Behavior Cloning
+1132   perform adequately on tasks involving object manipulation, they struggle with more complex
+1133   interactions. ROTE, however, maintains performance on these more intricate problems.
+
+
+                                                              21
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1134                        Construction Dataset                            Human Dataset                                   Partnr Dataset
+                                                                 0.3                                          0.50
+1135
+                  0.4
+       Accuracy
+
+
+
+
+                                                      Accuracy
+
+
+
+
+                                                                                                   Accuracy
+1136
+1137                                                             0.2                                          0.25
+1138              0.2
+1139                    0       10      20       30                    0      10     20       30                        0     10     20       30
+                              # of Hypotheses                              # of Hypotheses                                  # of Hypotheses
+1140
+                                                   ROTE w/ 2-stage                    ROTE w/o 2-stage
+1141
+1142
+1143
+                                                Figure 11: Ablating Observation Parsing
+1144
+                            Construction Dataset                            Human Dataset                                   Partnr Dataset
+1145                                                             0.3
+                  0.4                                                                                             0.3
+       Accuracy
+
+
+
+
+                                                      Accuracy
+
+
+
+
+                                                                                                       Accuracy
+1146
+1147
+                                                                 0.2                                              0.2
+1148              0.2
+1149                    0       10      20       30                    0      10     20       30                  0.1 0       10     20       30
+1150                          # of Hypotheses                              # of Hypotheses                                  # of Hypotheses
+1151                                    ROTE w/ Rejuvenation                        ROTE w/ Importance Sampling
+1152
+1153                                            Figure 12: Ablating Inference Algorithm
+1154
+1155
+1156   Figure 13 reveals an interesting gradient along which different degrees of structure influence
+1157   ROTE’s ability to predict behaviors. In controlled settings where agents are Finite State
+1158   Machines following deterministic transitions between behaviors, increasing the amount of
+1159   structure used to predict what they will do next does not significantly harm performance.
+1160   This can be a useful inductive bias that reduces cognitive load for agents interacting with
+1161
+       systems that require prediction in order to effectively interact with, such as a thermostat,
+       but are nevertheless simple enough to represent as a series of rules. In the human-behavior
+1162
+       setting, this does not hold as well. We find a moderate amount of structure, where providing
+1163
+       more detailed examples about what the internal mechanisms of the observed agent look like
+1164   without forcing ROTE to generate code following that structure, performs the best. These
+1165   settings are closest to realistic encounters with other people: when walking down the street
+1166   or ordering coffee, we may try to follow scripts or conventions for how to interact, but there
+1167   is inherent variability in our behaviors that more open-ended programs must account for.
+1168   Lastly, when predicting the behavior of agents that are goal-directed in a partially observable
+1169   world, imposing FSM structure greatly diminishes performance. These are scenarios where
+1170   prediction might best be performed by more complex reasoning processes about an agent’s
+1171   intentions and beliefs. Here, constraining code to be structured as an FSM might fail to
+1172
+       account for how agents react to the presence of unknown unknowns they encounter.
+1173
+1174   A.5                  Relationship between Program Size (|λ|) and Accuracy
+1175
+       As shown in Figure 14, higher prediction accuracy in Construction and Partnr corresponds
+1176
+       to shorter programs (in characters). This occurs even though program length is not explicitly
+1177
+1178
+1179                        Construction Dataset                            Human Dataset                                   Partnr Dataset
+1180              0.4                                            0.3                                              0.3
+       Accuracy
+
+
+
+
+                                                      Accuracy
+
+
+
+
+                                                                                                       Accuracy
+
+
+
+
+1181
+                                                                 0.2                                              0.2
+1182
+1183              0.2                                                                                             0.1
+1184
+                        0       10      20       30                    0      10     20       30                        0     10     20       30
+                              # of Hypotheses                              # of Hypotheses                                  # of Hypotheses
+1185
+                                      ROTE w/ Light                        ROTE w/ Moderate                       ROTE w/ Severe
+1186
+1187
+                                     Figure 13: Ablating Structure Enforced in Generated Code
+
+
+                                                                               22
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1188                    Construction Dataset                                         Human Dataset                                                 Partnr Dataset
+                  0.35
+
+
+
+
+                                                    Program Length
+
+
+
+
+                                                                                                            Program Length
+
+
+
+
+                                                                                                                                                                          Program Length
+                                                4400                                                     4400                           0.20
+1189                                                                 0.225
+       Accuracy
+
+
+
+
+                                                       Accuracy
+
+
+
+
+                                                                                                                             Accuracy
+1190              0.30                          4300                                                                                                                   4000
+                                                                     0.200                                                              0.15
+1191              0.25                          4200                 0.175                               4200
+1192
+                                                                                                                                        0.10                           3800
+1193                     0            20                                        0              20                                              0             20
+                             # of Hypotheses                                        # of Hypotheses                                                # of Hypotheses
+1194
+1195                                                                       Accuracy             Program Length
+1196
+1197   Figure 14: Average program length (in characters) versus prediction accuracy as a function
+1198   of the number of generated hypotheses for Construction and Partnr. Shorter programs yield
+1199   higher accuracy for scripted, human, and LLM agents.
+1200
+1201                        Construction Dataset                                       Human Dataset                                                  Partnr Dataset
+                                                                          0.3
+                  0.4                                                                                                                    0.3
+       Accuracy
+
+
+
+
+                                                               Accuracy
+
+
+
+
+                                                                                                                              Accuracy
+1202
+1203
+1204                                                                      0.2                                                            0.2
+                  0.2
+1205
+                        0        10        20      30                           0       10          20      30                                 0        10        20      30
+1206                          # of Hypotheses                                         # of Hypotheses                                                # of Hypotheses
+1207                                            ROTE (K=1)                             ROTE (K=10)                           ROTE (K=30)
+1208
+1209   Figure 15: Top-k parameter analysis in Construction. No appreciable difference in accuracy
+1210   as a result of different parameters, suggesting the choice between uncertainty preservation
+1211   (maintaining a larger set of hypotheses from a larger k) and prediction speed (by executing
+1212   less programs with a smaller k) is up to the agent and agent designer.
+1213
+1214
+1215   factored into the likelihood computation, suggesting that the approach naturally favors a
+1216   simple, efficient representation of the agent’s behavior. This aligns with our hypothesis,
+1217   inspired by Solomonoff (Solomonoff, 1964; 1978; 1996), that shorter programs will generalize
+1218   more effectively due to Occam’s razor.
+1219
+1220   A.6                  Top-k Effect
+1221
+1222   In Figure 15 we explore the impact of different k values for the top-k hypothesis pruning phase
+1223
+       after generation. We tried k = 1, 10, and 30. We did not find any meaningful variation in
+       performance as a function of k. This suggest the choice of which hyperparameter to use may
+1224
+       be left to the agent designer. Whereas smaller k values enable faster inference, larger values
+1225
+       enable better uncertainty estimation. Moreover, because of the largely deterministic nature of
+1226   the generated programs, there can be an implicit top-k effect at higher hypothesis numbers,
+1227   wherein unlikely programs are assigned very low probabilities throughout a trajectory,
+1228   effectively leading to their pruning during policy selection for action prediction.
+1229
+1230
+       A.7                  Per-llm Results
+1231
+1232   In Tables 1, 2 and 3, we report the raw accuracy of different LLM models using different
+1233   algorithms, as well as the standard error, on the Scripted, Human, and LLM-agent behavior
+1234   datasets in Construction and Partnr. For the results reported in the paper, we had to tune
+1235   the number of hypothesis and other hyperparameters, such as whether to use two-stage
+1236   observation parsing, on a dataset-by-dataset basis. We did this by running a sweep of
+1237   hyperparameters and comparing their performance on 20% of the data, then utilizing the
+1238
+       best performing hyperparameter from that subset, as the selected model configuration for
+       the remaining 80% of the data. The hyperparameters used for each environment can be
+1239
+       found in Section A.11.
+1240
+1241   In Table 4, we explored how well ROTE scales when paired with a powerful foundation
+       model, GPT-4o. Due to cost constraints, we only compared ROTE to the most successful
+
+
+                                                                                          23
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1242
+1243
+        Algorithm           DeepSeek-Coder-V2- DeepSeek-V2-Lite             Llama-3.1-8B-
+                            Lite-Instruct (16B) (16B)                       Instruct
+1244
+1245    AutoToM             0.000 ± 0.000           0.000 ± 0.000           0.202 ± 0.023
+1246    NLLM                0.310 ± 0.032           0.266 ± 0.018           0.340 ± 0.033
+1247    Chain-of-Thought    0.210 ± 0.04            0.210 ± 0.04            0.269 ± .025
+1248
+        ROTE (light)        0.479 ± 0.033           0.312 ± 0.032           0.477 ± 0.044
+1249
+        ROTE (moderate)     0.436 ± 0.042           0.256 ± 0.032           0.446 ± 0.051
+1250
+1251
+        ROTE (severe)       0.457 ± 0.037           0.298 ± 0.033           0.390 ± 0.049
+1252    ROTE (two-stage)    0.522 ± 0.046           0.271 ± 0.028           0.468 ± 0.052
+1253
+1254   Table 1: Multi-step LLM results (with standard error) for Ground-truth Scripted Gameplay
+1255   Data Prediction in Construction.
+1256
+1257    Algorithm           DeepSeek-Coder-V2- DeepSeek-V2-Lite             Llama-3.1-8B-
+1258                        Lite-Instruct (16B) (16B)                       Instruct
+1259
+        AutoToM             0.000 ± 0.000           0.000 ± 0.000           0.156 ± 0.011
+1260
+1261
+        NLLM                0.151 ± 0.012           0.176 ± 0.013           0.171 ± 0.016
+1262    Chain-of-Thought    0.000 ± 0.000           0.000 ± 0.000           0.156 ± 0.011
+1263    ROTE (light)        0.296 ± 0.019           0.199 ± 0.015           0.305 ± 0.022
+1264    ROTE (moderate)     0.310 ± 0.018           0.204 ± 0.021           0.266 ± 0.024
+1265    ROTE (severe)       0.304 ± 0.022           0.230 ± 0.018           0.245 ± 0.026
+1266    ROTE (two-stage)    0.329 ± 0.031           0.209 ± 0.014           0.327 ± 0.026
+1267
+1268   Table 2: Multi-step LLM results (with standard error) for Human Gameplay Data Prediction
+1269   in Construction.
+1270
+1271
+1272   baseline from our prior results, NLLM. We find that across the board, ROTE outperforms
+1273   NLLM even with this more powerful model. However, we observe this benefit degrades
+1274   slightly in the Partnr benchmark, indicating the advantages of predicting in code compared
+1275
+       to natural language may diminish in certain goal-directed, embodied settings. In Table 5, we
+       ran a similar analysis on the Qwen models, and found that while all baselines improve with
+1276
+       greater model size, ROTE offers a substantial boost in performance in almost all domains
+1277
+       except for Partnr.
+1278
+1279
+       A.8   ROTE in the Context of Existing Program Induction Methods
+1280
+1281   We also draw parallels to concurrent work that leverages large language models (LLMs)
+1282   for program synthesis in cognitive modeling, such as CogFunSearch (Castro et al., 2025).
+1283   CogFunSearch focuses on the mechanistic discovery of symbolic cognitive learning and
+1284   decision-making algorithms (such as Q-learning with forgetting terms) in dynamic multi-
+1285   armed bandit tasks, operating on large datasets across multiple species. Its methodology
+1286   employs a high-cost, bilevel optimization, featuring a time-intensive outer evolutionary loop
+1287
+       to explore novel program structures (ϕ) and an inner differentiable loop to fit continuous
+       parameters (θ). This high computational budget is justified by the complexity of simulta-
+1288
+       neously discovering program structure and fitting continuous parameters to capture subtle
+1289
+       learning dynamics. In contrast, ROTE is engineered for the real-time action prediction
+1290   problem in non-Markovian embodied settings, prioritizing scenarios where data is sparse and
+1291   rapid inference is essential. ROTE eschews the evolutionary loop and continuous parameter
+1292   optimization, instead relying on an efficient, single-step generative process where the LLM
+1293   synthesizes a constrained space of executable program hypotheses, often implicitly modeling a
+1294   Finite State Machine, from sparse observations. This results in an executable representation
+1295   that enables orders-of-magnitude faster long-horizon prediction by executing inferred code
+       directly, bypassing repeated LLM calls. While CogFunSearch excels at high-fidelity mechanis-
+
+
+                                                    24
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1296
+1297
+        Algorithm            DeepSeek-Coder-V2- DeepSeek-V2-Lite               Llama-3.1-8B-
+                             Lite-Instruct (16B) (16B)                         Instruct
+1298
+1299    AutoToM              0.000 ± 0.000            0.000 ± 0.000            0.050 ± 0.015
+1300    NLLM                 0.113 ± 0.018            0.333 ± 0.027            0.170 ± 0.022
+1301    Chain-of-Thought     0.000 ± 0.000            0.000 ± 0.000            0.050 ± 0.015
+1302
+        ROTE (light)         0.537 ± 0.029            –                        0.439 ± 0.066
+1303
+        ROTE (moderate)      0.472 ± 0.029            0.026 ± 0.026            0.426 ± 0.051
+1304
+1305
+        ROTE (severe)        0.440 ± 0.029            –                        0.510 ± 0.072
+1306    ROTE (two-stage)     0.160 ± 0.021            0.114 ± 0.055            0.112 ± 0.034
+1307
+1308   Table 3: Single-step LLM results (with standard error) for LLM Agent Gameplay Data
+1309   Prediction in Partnr.
+1310
+1311    Algorithm Construction                  Human                       Partnr
+1312
+1313
+        NLLM        0.313 ± 0.064               0.149 ± 0.017               0.78 ± 0.042
+1314    ROTE        0.566 ± 0.028               0.402 ± 0.017               0.857 ± 0.142
+1315
+1316   Table 4: Accuracy results (with standard error) across 3 datasets with models using GPT-4o
+1317   as the underlying LLM.
+1318
+1319
+             Table 5: Qwen Model Accuracy (%) and Std. Error on All Tasks and Baselines
+1320
+1321            Model               Construction           Human                Partnr
+1322            ROTE Baseline
+1323
+                14B − Instruct     63.78% ± 4.55%      50.00% ± 6.32%      50.00% ± 13.87%
+1324
+                7B − Instruct      48.89% ± 9.14%      31.46% ± 2.27%       22.58% ± 7.63%
+1325            3B − Instruct      45.62% ± 5.97%      32.50% ± 2.50%      26.32% ± 10.38%
+1326
+1327
+                NLLM Baseline
+1328            14B − Instruct     33.48% ± 4.89%      17.00% ± 1.51%       71.00% ± 4.56%
+1329            7B − Instruct      32.21% ± 4.42%      12.00% ± 1.18%       26.00% ± 4.41%
+1330            3B − Instruct      25.30% ± 3.87%       8.00% ± 0.91%       29.00% ± 4.56%
+1331            Chain-of-Thought Baseline
+1332
+                14B − Instruct     26.74% ± 2.96%      11.50% ± 0.69%       42.00% ± 4.96%
+1333
+                7B − Instruct      24.52% ± 1.65%       8.60% ± 0.90%       12.00% ± 3.27%
+1334
+                3B − Instruct      19.80% ± 3.21%       4.80% ± 0.66%       11.00% ± 3.14%
+1335
+1336            AutoToM Baseline
+1337            14B − Instruct      0.00% ± 0.00%       0.00% ± 0.00%       0.00% ± 0.00%
+1338            7B − Instruct       0.00% ± 0.00%       0.00% ± 0.00%       0.00% ± 0.00%
+1339            3B − Instruct       0.00% ± 0.00%       0.00% ± 0.00%       0.00% ± 0.00%
+1340
+1341
+1342   tic discovery with high computational costs, ROTE offers a complementary, computationally
+1343   efficient framework for representing and rapidly inferring the sequential, script-like behavioral
+1344   structures prevalent in robotics and social prediction. A potential synthesis lies in using
+1345   ROTE’s efficiency to rapidly converge on a high-level program/script, which can then be
+1346
+       refined using CogFunSearch’s methods to tune continuous cognitive parameters within that
+       specific structure.
+1347
+1348   Temporal Point Processes (TPPs), particularly those enhanced with logic rules, are a related
+1349   research thread for modeling behavior by predicting both future action time and type based on
+       constrained, human-readable logic (Cao et al., 2024). TPP methods like the Neuro-Symbolic
+
+
+                                                      25
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1350
+       TPP (NS-TPP) excel at utilizing continuous-time models and differentiable rule induction to
+1351   maximize data likelihood, offering a highly precise view of event dynamics (Yang et al., 2024).
+1352   ROTE, however, offers distinct advantages rooted in its executable representation. ROTE’s
+1353   core strength is inferring a complete, explicit behavioral program (code), which directly serves
+1354   as the agent’s policy for long-horizon prediction. This programmatic approach inherently
+1355   provides a causal model of the agent’s decision-making logic, offering greater interpretability
+1356   in understanding why an action sequence occurs. While TPPs are naturally constrained
+1357   by a predefined set of logical predicates, which limits their expressive range, ROTE uses a
+1358   Turing-complete language (Python). This design choice enables ROTE to capture arbitrarily
+1359
+       complex, non-Markovian behavior, making it more expressive for open-ended, embodied
+       domains like Partnr compared to predicate-based TPPs. This difference in representation
+1360
+       highlights their complementary focuses: TPPs are effective at predicting when the next
+1361
+       discrete event will occur, while ROTE focuses on inferring what the agent is doing (the
+1362   behavioral script)
+1363
+1364   In Table 6, we baseline against a program induction method “Iterated Hypothesis Refinement,”
+1365
+       which tries to extract rules underlying observed behavior and apply them to novel observations
+       (Qiu et al., 2024). While our results are still preliminary, we find that this method on its
+1366
+       own is insufficient for making robust behavioral predictions.
+1367
+1368
+       Table 6: Model Accuracy (%) and Std. Error comparison between ROTE and Iterated
+1369
+       Hypothesis Refinement
+1370
+1371
+             Model                                           Construction            Human
+1372
+1373         ROTE Baseline
+1374         DeepSeek-Coder-V2-Lite-Instruct (16B)            52.2% ± 4.6%        32.9% ± 3.1%
+1375         DeepSeek-V2-Lite (16B)                           31.2% ± 3.2%         23% ± 1.8%
+1376         Llama3.1-8b-Instruct                             47.7% ± 4.4%        32.7% ± 2.6%
+1377         Qwen-7B-Instruct                                48.89% ± 9.14%      31.46% ± 2.27%
+1378         Iterated Hypothesis Refinement Baseline
+1379
+             DeepSeek-Coder-V2-Lite-Instruct (16B)                 7%                   4%
+1380
+             DeepSeek-V2-Lite (16B)                               19%                  0.2%
+1381
+             Llama3.1-8b-Instruct                                  8%                  6.8%
+1382         Qwen-7B-Instruct                                     7.6%                 2.8%
+1383
+1384
+1385
+       A.9    Human Experiment Details
+1386
+1387   As described in Section 4, we conducted three separate human experiments: the first was
+1388   collecting human gameplay data, the second was having humans predict human behavioral
+1389   data, and the third was having humans predict scripted FSM agent behavior. We will
+1390   open-source all of the code and stimuli used for conducting all three human experiments.
+1391   For the gameplay collection, we gave participants a tutorial stage to learn the controls,
+1392   and randomized the order of the tasks they played to control for ordering effects. For the
+1393   behavior prediction experiments, the setup was virtually identical to that of the AI, albeit
+1394   with two small modifications. The first is that we only had humans predict five timesteps
+1395
+       into the future. This was done to make the experiment flow smoother and take less time
+       so that participants did not fatigue for later scripts, resulting in lower prediction quality.
+1396
+       The second change we made was we showed people 3 distinct trajectories generated by the
+1397
+       observed agent before giving them h20 = {(o1 , a1 ), (o2 , a2 ) . . . , (o19 , a19 ), o20 } and having
+1398   them predict an agent’s behavior. This additional context was used to help participants
+1399   familiarize themselves with the dynamics of the gridworld and the space of potential agent
+1400   behaviors. In contrast, all of our baselines only saw the current trajectory h20 . While this
+1401   was done due to the limited context window of the models we used, we feel that this is
+1402   still a fair comparison between humans and our baselines, since the training corpora for
+1403   LLMs is rich with gridworld implementations and agent programs, and the BC model had an
+       extended training period with the agent behavior it is predicting. In future work, we plan on
+
+
+                                                        26
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1404
+       relaxing this constraint by exploring dynamically growing libraries of agent programs which
+1405   persist across multiple context windows, similar to an approach used in (Tang et al., 2024).
+1406
+1407
+       A.10    Behavior Cloning Model Implementation Details
+1408
+1409
+       We use an architecture and training methadology similar to the one in (Rabinowitz et al.,
+1410   2018) for training a BC model with recurrence. The model uses a 2-layer ResNet to extract
+1411   features from the input observations. Each observation is an image of size 70×70 pixels. The
+1412   ResNet consists of two ResNet blocks, each containing two convolutional layers with batch
+1413   normalization and a ReLU activation function. The first block uses a feature size of 64 while
+1414   the second uses a feature size of 32. All blocks use stride length of 1 for all convolutional
+1415   layersand a kernel size of 3.
+1416   The features extracted by the ResNet are then passed through a recurrent neural network.
+1417   The model uses an LSTM with a hidden size of 128. The output of the LSTM is processed by
+1418   several fully connected layers with ReLU activations. The final output is passed through a
+1419   softmax layer to produce a probability distribution over the possible actions. This probability
+1420   distribution represents the model’s prediction of the next action an agent will take. The
+1421   action space has a size of 6, corresponding to a set of discrete actions. The entire network is
+1422   designed to be fully differentiable, allowing for end-to-end training using cross-entropy as
+1423   the loss-function. We use the following hyperparameters for training:
+1424    Hyperparameter               Purpose                              Value
+1425    # Agents to Sample           The number of agent scripts to       1
+1426                                 sample per epoch.
+1427    # Datapoints per Agent       The number of trajectories per       3
+1428                                 agent to sample from the dataset
+1429                                 per epoch.
+1430    # Agents                     The total number of agents in the    10
+1431
+                                     dataset.
+        # Steps                      The number of steps per trajec-      50
+1432
+                                     tory in the dataset.
+1433
+        Environment Size             The size of the environment.         10×10
+1434
+        Image Size                   The size of a single observation     70×70 pixels
+1435                                 in a trajectory.
+1436    Num Epochs                   The number of training epochs.       5000
+1437
+1438
+       A.11    ROTE Implementation Details
+1439
+1440
+       We will fully open-source our code, including the prompts we used for generating programs
+1441   with ROTE across the various levels of structure. In Algorithm 1, we show the full algorithm
+1442   for ROTE and subsequently discuss the implementation details. Our approach, ROTE,
+1443   constructs the program space Λ using LLMs to synthesize executable Python programs,
+1444   which serve as agent representations. These programs are structured as a class with a
+1445   required act(self, observation) -> int method, ensuring a standard and executable format
+1446   for all candidates. We intentionally avoid rigid, manually defined syntactic constraints
+1447   across all domains to maintain representational flexibility, which is particularly important
+1448   when modeling noisy human behaviors, and we analyze how these representations impact
+1449
+       performance in Figure 13. Instead, we impose a soft constraint based on Solomonoff’s
+       theory of inductive inference and Occam’s razor, encouraging the LLM to generate concise
+1450
+       and efficient programs (minimizing |λ|), which empirically correlates with higher prediction
+1451
+       accuracy. For a practical upper bound on program complexity, we limit the LLM’s output
+1452   to a maximum of 2000 tokens and restrict the number of generated hypotheses to N = 30,
+1453   directly limiting the size of Λ and thus the potential complexity of any individual program.
+1454   Regarding the state complexity for programs that do not strictly adhere to the Finite State
+1455   Machine (FSM) structure—which we permit, especially under the “Light” and “Moderate”
+1456   structural conditions to accommodate inherent behavioral variability —the theoretical upper
+1457   bound on the number of internal states, |S|, is equivalent to the size of the observation space,
+       |O|. This is because Python is a Turing-complete language, meaning a synthesized program
+
+
+                                                     27
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1458
+1459     Algorithm 1 ROTE (Representing Others’ Trajectories as Executables)
+1460     Require: Observed history h0:t−1 = {(o0 , a0 ), . . . , (ot−1 , at−1 )}, current observation ot , Environment
+1461         E, Initial set of candidate programs Λcandidates (can be empty), Initial set of program priors Ppriors .
+1462     Ensure: Predicted action aˆt , Predicted programs Λcandidates , Predicted program posterior Pposteriors
+          1: procedure PredictAction(h0:t−1 , ot , E, k, Λcandidates , Ppriors )
+1463
+          2:     for N − |Λcandidates | generations do                                 ▷ Number of programs to sample
+1464      3:         Prompt LLM with h0:t−1 , ot , E, and synthesize an FSM-like Python program λ
+1465      4:         Λcandidates ← Λcandidates ∪ {λ}
+                                    |λ|
+1466      5:         pprior (λ) ← Πn=1 pLLM (tokenn |h0:t−1 , ot , E, tokenn−1 , · · · , token1 )
+1467      6:         Ppriors ← Ppriors ∪ {pprior (λ)}
+          7:     end for
+1468      8:     Ppriors ← normalize(Ppriors )                      ▷ Renormalize priors to account for new hypotheses
+1469      9:     Pposteriors = ∅
+1470     10:     for λ ∈ Λcandidates do
+1471
+         11:         p(λ) ∝ Πoi ,ai ∈h0:t−1 p(ai |oi , λ) · pprior (λ)              ▷ Calculate likelihood p(H[0,t−1] |λ)
+         12:         Pposteriors ← Pposteriors ∪ {p(λ)}
+1472     13:     end for
+1473     14:     Pposteriors ← normalize(top-k(Pposteriors  P , k))                        ▷ Subsample and Renormalize
+1474     15:     Predicted action aˆt ← argmaxa∈A λ∈Λcandidates pposteriors (λ) · λ(a|ot )
+1475              return aˆt , Λcandidates , Pposteriors
+         16: end procedure
+1476
+1477
+1478
+1479
+1480
+1481
+1482
+1483
+1484
+1485   could, in theory, generate a unique action for every possible observation, resulting in a number
+1486
+       of states equal to the number of unique observation-action mappings, |S| = |O|. However,
+       as you noted, this empirical realization is highly unlikely, especially given our imposed
+1487
+       constraint on the maximum program size. Finally, we provide control over the complexity via
+1488
+       three levels of structural enforcement: “Light” (minimal constraint), “Moderate” (providing
+1489   FSM examples), and “Severe” (enforcing a two-stage FSM generation process), allowing
+1490   researchers to explore the trade-off between structure and flexibility based on the domain.
+1491
+1492
+1493
+1494
+1495
+1496
+1497
+1498
+1499
+1500   A.11.1     ROTE Hyperparameters for Construction and Partnr
+1501
+1502
+1503
+1504
+       Across the prediction tasks for ground-truth scripted agents and humans in Construction, and
+1505
+       LLM agents in Partnr, we used the same set of hyperparameters, indicating the generality of
+1506   our method with minimal environment-specific finetuning. The only hyperparameter which
+1507   varied across environments was the use of two-stage observation parsing. We used two-stage
+1508   observation parsing for predicting scripted agent behavior in Construction and LLM-agent
+1509   behavior in Partnr. We did not use it for predicting human behavior. As mentioned in
+1510   Section A.7, all hyperparameters were fit by comparing their performance on 20% of the
+1511   data, then utilizing the best performing hyperparameter from that subset, as the selected
+       model configuration for the remaining 80% of the data.
+
+
+                                                               28
+           Under review as a conference paper at ICLR 2026
+
+
+
+
+1512        Hyperparameter                       Purpose                              Value
+1513        Structure Enforcement                How strictly we constrain gener-     Light
+1514                                             ated programs to adhere to FSM
+1515                                             structure
+1516        Rejuvenation                         Whether to use rejuvenation for      True
+1517                                             the FSM model.
+1518        Max rejuvenation attempts            Maximum number of times to re-       2
+1519                                             sample a program during rejuve-
+1520                                             nation.
+1521
+            Rejuvenation threshold               The minimum number of cor-           1
+                                                 rect action predictions a program
+1522
+                                                 must make over 20 timesteps to
+1523
+                                                 avoid resampling.
+1524
+            Max number of retries                The number of times a hypoth-        2
+1525                                             esis can be revised if it fails to
+1526                                             compile.
+1527        Number of hypotheses                 The number of hypotheses to gen-     30
+1528                                             erate for the thought trace.
+1529        Top K                                The number of most likely hy-        30
+1530                                             potheses to average over.
+1531        Minimum hypothesis probability       The minimum probability a hy-        1e-6
+1532                                             pothesis can have.
+1533        Maximum number of tokens             The maximum number of tokens         2000
+1534
+                                                 the large language model can gen-
+                                                 erate.
+1535
+            Minimum action probability           The minimum probability an ac-       1e-8
+1536
+                                                 tion can have.
+1537
+1538       For our execution speed comparisons in Figure 6, all models ran on a single Nvidia GPU-L40.
+1539       Handling Errors in Program Generation. Given that we are generating programs from
+1540       smaller LLMs trying to adhere to a consistent Agent API, and that the observation space can
+1541       be challenging to operate on, there are several cases where the LLMs generate semantically
+1542       meaningful programs to describe observed behaviors that fail to compile or predict actions
+1543       given an observation. As such, we explored two different methods for dealing with erroneous
+1544       programs. The first was revision, where we prompted an LLM to fix the code it generated
+1545       given the full error trace for a program’s prediction. We also gave it the original prompt and
+1546       observations. The second method was completely resampling a program given the original
+1547
+           prompt, discarding the erroneous program completely. From preliminary tests, we found
+           completely resampling was the more effective strategy given the LLMs we were using. Since
+1548
+           we paired this error correction process with methods like rejuvenation, we limited the number
+1549
+           of times we could resample or revise a program to be min(Max rejuvenation attempts, Max
+1550       number of retries), shared across the rejuvenation and error corrections steps. This increased
+1551       the likelihood of a good program which is executable being generated, without significantly
+1552       slowing our single-step inference speed.
+1553
+1554       A.11.2    Examples of Programs Generated By ROTE
+1555
+1556       In Listings 1 and 2, we show sample agent programs inferred by ROTE for the Construction
+1557
+           and Partnr tasks, respectively. Using the same prompts and hyperparameters for both
+           settings, our approach can flexibly model agents as Finite State Machines when the underlying
+1558
+           agents are following scripts (Construction, Listing 1) or more open-ended decision makers
+1559
+           trying to accomplish goals such as move an item from one room to another (Partnr, Listing 2).
+1560
+1561   1
+
+1562
+       2   import numpy as np
+       3
+1563   4 class FSMAgent :
+1564   5     def __init__ ( self , num_agents : int , num_blocks : int , num_actions :
+1565         int =6) :
+       6           self . num_agents = num_agents
+
+
+                                                        29
+          Under review as a conference paper at ICLR 2026
+
+
+
+
+1566
+      7             self . num_blocks = num_blocks
+1567 8              self . num_actions = num_actions
+1568 9              self . actions = [0 , 1 , 2 , 3 , 4 , 5] # stay , right , left , down ,
+1569          up , interact
+1570 10             self . action_to_name = [ " stay " , " right " , " left " , " down " , " up " ,
+              " interact " ]
+1571
+     11             self . state = " IDLE " # Initial state
+1572 12
+1573 13        def act ( self , observation ) -> int :
+1574 14            agent_id = observation [ ’ agent_id ’]
+1575 15            agent_location = observation [ ’ agent_locations ’ ][ agent_id ]
+     16            inventory = observation [ ’ agent_inventory ’ ][ agent_id ]
+1576
+     17
+1577 18            if self . state == " IDLE " :
+1578 19                # Check if there is a block at the agent ’s location and we
+1579           can interact with it
+1580 20                for block_location in observation [ ’ block_locations ’ ]:
+     21                      if np . array_equal ( block_location , agent_location ) :
+1581
+     22                          if inventory == -1:
+1582 23                                self . state = " INTERACT "
+1583 24                                break
+1584 25                else :
+1585 26                      # No block at the agent ’s location , check for possible
+               movements
+1586
+     27                      possible_actions = []
+1587 28                      for action in self . actions [: -1]: # Exclude interact
+1588 29                           new_location = self . apply_action ( agent_location ,
+1589          action )
+1590 30                          if not self . is_wall ( new_location , observation [ ’
+              wall_locations ’ ]) and not self . is_other_agent ( new_location ,
+1591
+              observation [ ’ agent_locations ’] , agent_id ) :
+1592 31                                possible_actions . append ( action )
+1593 32                      if possible_actions :
+1594 33                          self . state = " MOVE "
+1595 34                          self . target_action = np . random . choice (
+              possible_actions )
+1596
+     35
+1597 36            if self . state == " MOVE " :
+1598 37                self . state = " IDLE " # Transition back to IDLE after
+1599          moving
+1600 38                return self . target_action
+     39
+1601
+     40           if self . state == " INTERACT " :
+1602 41                self . state = " IDLE " # Transition back to IDLE after
+1603          interacting
+1604 42                return 5 # Interact action
+1605 43
+     44        def apply_action ( self , location , action ) :
+1606
+     45            if action == 1: # right
+1607 46                 return [ location [0] , location [1] + 1]
+1608 47            elif action == 2: # left
+1609 48                 return [ location [0] , location [1] - 1]
+1610 49            elif action == 3: # down
+     50                 return [ location [0] + 1 , location [1]]
+1611
+     51            elif action == 4: # up
+1612 52                 return [ location [0] - 1 , location [1]]
+1613 53            else :
+1614 54                 return location # stay
+1615 55
+     56        def is_wall ( self , location , wall_locations ) :
+1616
+     57            for wall in wall_locations :
+1617 58                if np . array_equal ( wall , location ) :
+1618 59                      return True
+1619 60            return False
+     61
+
+
+
+
+                                                     30
+            Under review as a conference paper at ICLR 2026
+
+
+
+
+1620
+     62          def is_other_agent ( self , location , agent_locations , agent_id ) :
+1621 63              for i , agent_loc in enumerate ( agent_locations ) :
+1622 64                  if i != agent_id and np . array_equal ( agent_loc , location ) :
+1623 65                       return True
+1624 66              return False
+1625           Listing 1: Sample Agent Codes Inferred by ROTE for Construction prediction task
+1626
+1627    1
+1628    2   import numpy as np
+1629    3
+
+1630
+       class FSMAgent :
+        4
+        5  def __init__ ( self , num_agents : int =1 , num_blocks : int =1) :
+1631 6         self . num_agents = num_agents
+1632 7         self . num_blocks = num_blocks # irrelevant , can ignore
+1633 8
+1634 9          def parse_scene_graph ( self , observation ) :
+1635
+     10               for keys in observation [ ’ scene_graph ’ ]:
+     11                   if keys == ’ furniture ’:
+1636 12                        for room_name , furniture_list in observation [ ’
+1637            scene_graph ’ ][ keys ]. items () :
+1638 13                              for furniture_piece in furniture_list :
+1639 14                                   pass # each furniture_piece is a string
+1640
+     15                   if keys == ’ objects ’:
+     16                        if type ( observation [ ’ scene_graph ’ ][ keys ]) == list and
+1641            len ( observation [ ’ scene_graph ’ ][ keys ]) == 0:
+1642 17                              pass # no objects seen
+1643 18                        else :
+1644 19                              for object , object_holder_list in observation [ ’
+1645
+                scene_graph ’ ][ keys ]. items () :
+     20                                  for object_holder in object_holder_list :
+1646 21                                       pass # each object is either on or in an
+1647            object holder
+1648 22               return # do whatever is most helpful here
+1649 23
+1650
+     24          def act ( self , observation ) -> int :
+     25               ’’’
+1651 26               observation is a dictionary with the following keys :
+1652 27               - tool_list : List of tools available to the agent
+1653 28               - tool_descriptions : Description of how each tool is used
+1654 29               - scene_graph : Scene graph of the environment , dictionary with
+1655
+                  keys
+     30                    - " furniture " which maps to a dictionary with the keys
+1656 31                         - room description string ( i . e . keys could be "
+1657            living_room_1 " , " bathroom_1 " , etc .) that maps to list of
+1658 32                             - object_id string ( i . e . table_21 , chair_32 , etc .)
+1659 33                    - " objects " which maps to a dictionary of
+1660
+       34                       - object_id string ( i . e . keys could be "
+                plate_container_2 " , " vase_1 " etc .) to list of
+1661 35                             - object_base string ( i . e " table_14 " , " table_21 ")
+1662 36                         if type ( observation [ ’ scene_graph ’ ][ ’ objects ’ ]) == list
+1663            , then you do not observe any objects
+1664 37               - agent_state : Dictionary mapping to
+1665
+     38                    - string of agent id ( i . e . "0") maps to string describing
+                what agent is doing
+1666 39               ’’’
+1667 40               agent_id = list ( observation [ ’ agent_state ’ ]. keys () ) [0]
+1668 41               agent_state = observation [ ’ agent_state ’ ][ agent_id ]
+1669 42               tool_list = observation [ ’ tool_list ’]
+     43
+1670
+     44                if ’ Explore ’ in tool_list :
+1671 45                     tool = ’ Explore ’
+1672 46                     target = list ( observation [ ’ scene_graph ’ ][ ’ furniture ’ ]. keys
+1673            () ) [0]
+       47              elif ’ Pick ’ in tool_list and ’ Standing ’ in agent_state :
+
+
+                                                     31
+            Under review as a conference paper at ICLR 2026
+
+
+
+
+1674
+     48                     tool = ’ Pick ’
+1675 49                     targets = []
+1676 50                     for key in observation [ ’ scene_graph ’ ][ ’ objects ’ ]:
+1677 51                         if ’ agent_0 ’ in observation [ ’ scene_graph ’ ][ ’ objects ’ ][
+1678            key ]:
+     52                               targets . append ( key )
+1679
+       53                   if targets :
+1680 54                          target = targets [0]
+1681 55                     else :
+1682 56                          target = None
+1683 57               elif ’ Place ’ in tool_list and ’ Standing ’ in agent_state :
+     58                     tool = ’ Place ’
+1684
+     59                     target = None
+1685 60                     for key in observation [ ’ scene_graph ’ ][ ’ objects ’ ]:
+1686 61                          if agent_id in observation [ ’ scene_graph ’ ][ ’ objects ’ ][
+1687            key ]:
+1688 62                               target = key
+     63                               break
+1689
+     64                     if not target :
+1690 65                          for key in observation [ ’ scene_graph ’ ][ ’ furniture ’ ]:
+1691 66                               for furniture_piece in observation [ ’ scene_graph ’ ][
+1692            ’ furniture ’ ][ key ]:
+1693 67                                   if agent_id in observation [ ’ scene_graph ’ ][ ’
+                furniture ’ ][ key ]:
+1694
+     68                                         target = key
+1695 69                                         break
+1696 70                     if not target :
+1697 71                          target = list ( observation [ ’ scene_graph ’ ][ ’ objects ’ ].
+1698            keys () ) [0]
+     72               else :
+1699
+     73                     tool = ’ Wait ’
+1700 74                     target = None
+1701 75
+1702 76               # # DON ’T CHANGE ANYTHING BELOW HERE
+1703 77           return ( tool , target , None )
+1704
+              Listing 2: Sample Agent Codes Inferred by ROTE for Partnr prediction task
+1705
+1706
+1707
+1708    A.11.3 Examples of High Level Trajectory Summaries Generated by ROTE
+1709
+1710        In Listings 3 and 4, we show sample high-level trajectory summarizations from the optional
+1711
+            two-stage observation parsing step. While in 3 the model attributes the movements of the
+            ground truth patrolling agent as “exploring randomly,” it still is able to capture some aspects
+1712
+            of its movement, such as not interacting with blocks. In 4, ROTE can better summarize
+1713
+            the behavior of agents in Partnr, but without a clear guess as to which objects the agent is
+1714        trying to rearrange, it can be difficult to make a program which concisely narrows down the
+1715        hypothesis space.
+1716
+1717    1
+
+1718   1. The agent ’ s overall goal or strategy : The agent appears to be
+        2
+
+1719
+           exploring its environment , possibly looking for a specific block
+           or blocks .
+1720 3    It is not actively engaging with the environment in a goal - directed
+1721        way , as it does not seem to be collecting , storing , or moving
+1722       blocks in a strategic manner .
+1723    4
+
+1724
+       2. How the agent responds to different environmental features ( blocks ,
+        5
+            walls ) : The agent moves around the environment , avoiding walls
+1725       and seemingly indifferent to blocks .
+1726 6    It repeatedly moves left and right and up and down , indicating a
+1727       lack of strategy or goal - directed behavior .
+        7
+
+
+
+
+                                                          32
+            Under review as a conference paper at ICLR 2026
+
+
+
+
+1728
+      8 3. Any patterns in movement or interaction : The agent moves in a
+1729        pattern that suggests exploration but does not show any indication
+1730         of avoiding walls or blocks ,
+1731 9     indicating a lack of awareness of its environment or purpose in the
+1732         grid world .
+     10
+1733
+       11   The agent ’ s behavior is essentially random exploration , with no
+1734            apparent strategy or goal - directed behavior .
+1735
+1736        Listing 3: Sample Trajectory Summary Generated by ROTE for Construction prediction
+1737        task
+1738
+1739    1
+
+1740    2 1. The agent ’ s overall goal or strategy : The agent ’ s main goal seems
+              to be to rearrange objects in the environment , specifically
+1741
+              placing them on different surfaces according to its actions . The
+1742          actions are organized into sequences , each sequence aiming to move
+1743           an object from its initial position to a target position .
+1744    3 2. The agent responds to different environmental features : The agent
+
+1745          interacts with specific furniture and objects within the
+              environment , responding to their availability and positions . For
+1746
+              example , it navigates to the kitchen to interact with a chair and
+1747          rearrange an object on it .
+1748    4 3. Any patterns in movement or interaction : The agent tends to move
+1749          objects from one place to another , often towards the garage or
+1750          kitchen , and interacts with objects like chairs and benches . It
+              also arranges objects on benches and other surfaces when not
+1751
+              carrying them .
+1752    5
+1753    6   The agent ’ s behavior pattern emerges from a sequence of actions that
+1754            involve picking up and moving objects to rearrange them according
+1755            to its strategy .
+1756         Listing 4: Sample Trajectory Summary Generated by ROTE for Partnr prediction task
+1757
+1758
+1759        A.11.4   Examples of Explicit FSMs Generated by ROTE in the “Severe”
+1760                 Structure Condition
+1761
+            In Listings 6 and 5, we show sample FSMs predicted by ROTE which describe observed
+1762
+            behaviors in the Construction and Parntr environments, respectively. These are produced
+1763        by an LLM as an intermediate step during the “Severe” structure condition, where ROTE
+1764        tries to generate agent programs implementing these high-level behavioral abstractions. As
+1765        indicated by Listing 6, sometimes the models will hallucinate internal states and actions
+1766        which are not within an agent’s capabilities (i.e. introducing a “charge” state). As a result,
+1767        the “Severe” condition is not always beneficial for model performance, especially when
+1768        predicting the behaviors of goal-directed agents in partially observable settings (Figure 13).
+1769    1
+1770    2 ‘‘‘ python
+1771    3 class AgentFSM :
+1772    4      def __init__ ( self ) :
+1773
+        5          self . state = ’ explore ’
+        6
+1774 7           def transition ( self , state , action , info ) :
+1775 8               if state == ’ explore ’:
+1776 9                   if action == ’up ’:
+1777 10                      return ’ move_up ’ , info
+1778
+     11                  elif action == ’ down ’:
+     12                      return ’ move_down ’ , info
+1779 13                  elif action == ’ left ’:
+1780 14                      return ’ move_left ’ , info
+1781 15                  elif action == ’ right ’:
+       16                    return ’ move_right ’ , info
+
+
+                                                         33
+            Under review as a conference paper at ICLR 2026
+
+
+
+
+1782
+     17                   elif action == ’ interact ’:
+1783 18                        return ’ interact ’ , info
+1784 19                   else :
+1785 20                        return ’ stay ’ , info
+1786 21               elif state == ’ move_up ’:
+     22                   return ’ stay ’ , info
+1787
+       23             elif state == ’ move_down ’:
+1788 24                   return ’ stay ’ , info
+1789 25               elif state == ’ move_left ’:
+1790 26                   return ’ stay ’ , info
+1791 27               elif state == ’ move_right ’:
+     28                   return ’ stay ’ , info
+1792
+     29               elif state == ’ interact ’:
+1793 30                   return ’ stay ’ , info
+1794 31
+1795 32          def get_action ( self , info ) :
+1796 33              if self . state == ’ explore ’:
+     34                   # Randomly choose an action from the available options
+1797
+     35                   import random
+1798 36                   actions = [ ’ up ’ , ’ down ’ , ’ left ’ , ’ right ’ , ’ interact ’]
+1799 37                   action = random . choice ( actions )
+1800 38                   self . state , _ = self . transition ( ’ explore ’ , action , info )
+1801 39                   return action
+     40              else :
+1802
+     41                   action = self . state
+1803 42                   self . state , _ = self . transition ( self . state , action , info )
+1804 43                   return action
+1805 44 ‘‘‘
+1806 45 ‘‘‘
+     46
+1807
+     47 Let ’ s write the code for the agent ’ s behavior , taking into account the
+1808           experiences provided :
+1809 48
+1810 49 1. The agent ’ s overall goal or strategy : The agent appears to be
+1811        exploring its environment , possibly looking for a specific block
+            or blocks .
+1812
+     50    It is not actively engaging with the environment in a goal - directed
+1813         way , as it does not seem to be collecting , storing , or moving
+1814        blocks in a strategic manner .
+1815 51
+1816 52 2. How the agent responds to different environmental features ( blocks ,
+                 walls ) : The agent moves around the environment , avoiding walls
+1817
+             and seemingly indifferent to blocks .
+1818 53     It repeatedly moves left and right and up and down , indicating a
+1819         lack of
+1820
+        Listing 5: Sample FSM Transition Logic Generated by ROTE for Construction prediction
+1821
+            task (“Severe” Structure Condition)
+1822
+1823    1   To model the behavior of the agent in this environment , we can define
+1824           a finite state machine ( FSM ) with the following states and
+1825            transitions :
+1826    2
+
+1827
+        3 ** States :**
+        4 1. ** IDLE **: The agent is waiting or resting , possibly exploring its
+1828           surroundings to identify potential tasks or resources .
+1829    5 2. ** SEARCH **: The agent is actively searching for specific objects or
+1830            locations of interest , such as a target object to collect or a
+1831           specific location to navigate to .
+        6 3. ** COLLECT **: The agent is moving towards and collecting the target
+1832
+               object .
+1833    7 4. ** TRANSIT **: The agent is on its way to a designated drop - off or
+1834           storage location after collecting an object .
+1835    8 5. ** DROP_OFF **: The agent is depositing the collected object at its
+               destination .
+
+
+                                                     34
+           Under review as a conference paper at ICLR 2026
+
+
+
+
+1836
+       9   6. ** CHARGE **: If the agent is a robot or uses a battery , it may need
+1837         to recharge . This state is triggered when the battery level
+1838         becomes critical .
+1839 10
+1840 11 ** Transitions :**
+     12 - ** IDLE -> SEARCH **: When the agent identifies a task or a resource
+1841
+               to collect , it transitions from an idle state to a search state .
+1842 13 - ** SEARCH -> COLLECT **: When the agent locates the target object , it
+1843        transitions from a search state to a collect state .
+1844 14 - ** COLLECT -> TRANSIT **: After collecting the object , the agent
+1845        transitions to a transit state to move towards the drop - off
+            location .
+1846
+     15 - ** TRANSIT -> DROP_OFF **: Upon reaching the drop - off location , the
+1847        agent transitions to a drop - off state to deposit the object .
+1848 16 - ** DROP_OFF -> IDLE **: After depositing the object , the agent returns
+1849          to an idle state , possibly searching for a new task or resource .
+1850 17 - ** COLLECT -> CHARGE **: If the agent is battery - operated and the
+            battery level becomes too low during collection , it transitions to
+1851
+             a charge state to recharge .
+1852 18 - ** TRANSIT -> CHARGE **: Similarly , if the agent needs to recharge
+1853        while moving to the drop - off location , it transitions to the
+1854        charge state .
+1855 19 - ** DROP_OFF -> CHARGE **: If the agent needs to recharge after
+            depositing an object , it transitions to the charge state .
+1856
+     20
+1857 21 This FSM design allows the agent to efficiently manage its activities ,
+1858          transitioning smoothly between states based on its observations
+1859        and needs , such as searching for resources , collecting them ,
+1860           moving to a drop - off location , and recharging when necessary .
+1861       Listing 6: Sample FSM Transition Logic Generated by ROTE for Partnr prediction task
+1862       (“Severe” Structure Condition)
+1863
+1864
+1865
+1866
+1867
+1868
+1869
+1870
+1871
+1872
+1873
+1874
+1875
+1876
+1877
+1878
+1879
+1880
+1881
+1882
+1883
+1884
+1885
+1886
+1887
+1888
+1889
+
+
+
+                                                    35
+

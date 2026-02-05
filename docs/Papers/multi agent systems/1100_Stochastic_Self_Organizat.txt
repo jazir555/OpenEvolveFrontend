@@ -1,0 +1,2188 @@
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+000
+001
+      S TOCHASTIC S ELF -O RGANIZATION IN M ULTI -AGENT
+002   S YSTEMS
+003
+004
+005    Anonymous authors
+006    Paper under double-blind review
+007
+008
+009                                               A BSTRACT
+010
+011
+               Multi-agent systems (MAS) based on Large Language Models (LLMs) have the
+012
+               potential to solve tasks that are beyond the reach of any single LLM. However,
+013
+               this potential can only be realized when the collaboration mechanism between
+014            agents is optimized. Specifically, optimizing the communication structure be-
+015            tween agents is critical for fruitful collaboration. Most existing approaches rely on
+016            fixed topologies, pretrained graph generators, optimization over edges, or employ
+017            external LLM judges, thereby adding to the complexity. In this work, we introduce
+018            a response-conditioned framework that adapts communication on-the-fly. Agents
+019            independently generate responses to the user query and assess peer contributions
+020            using an approximation of the Shapley value. A directed acyclic graph (DAG) is
+021            then constructed to regulate the propagation of the responses among agents, which
+022
+               ensures stable and efficient message transmission from high-contributing agents
+               to others. This graph is dynamically updated based on the agent responses from
+023
+               the previous collaboration round. Since the proposed framework enables the self-
+024
+               organization of agents without additional supervision or training, we refer to it
+025            as S ELF O RG. The S ELF O RG framework goes beyond task- and query-level opti-
+026            mization and takes into account the stochastic nature of agent responses. Experi-
+027            ments with both strong and weak LLM backends demonstrate robust performance,
+028            with significant gains in the weak regime where prior methods collapse. We also
+029            theoretically show that multiple agents increase the chance of correctness and that
+030            the correct responses naturally dominate the information flow.
+031
+032
+033
+034
+      1   I NTRODUCTION
+035
+036   Large Language Models (LLMs) (OpenAI, 2023; Dubey et al., 2024; Anthropic, 2025; Qwen et al.,
+037   2025) have rapidly advanced capabilities across planning, analysis, coding, and dialog, yet a single
+038   LLM still faces notable limitations: stochastic or unreliable generations, hallucinations, and diffi-
+039
+      culty with long-horizon, multi-step tasks. A natural response has been to move from a solitary model
+      to a multi-agent system (MAS) of LLMs, where agents interact, critique, and refine one another’s
+040
+      outputs (Li et al., 2023; Chen et al., 2024; Zhuge et al., 2024; Qian et al., 2024b; Ye et al., 2025a).
+041
+      In principle, this collective can surpass an individual model by pooling complementary reasoning
+042   paths; in practice, however, the gains depend critically on how the agents are orchestrated: who
+043   communicates with whom, when, and how final outputs are aggregated.
+044
+045
+      Prior work has explored a spectrum of communication topologies. Fixed structures include chains,
+      trees, complete graphs, and random graphs; scalable studies compare these patterns across task
+046
+      families such as mathematical reasoning, knowledge reasoning, and coding (Qian et al., 2025).
+047
+      Beyond static designs, some approaches treat the topology as optimizable: edges are sampled and
+048   trained with policy gradients or masks (e.g., GPTSwarm (Zhuge et al., 2024), AgentPrune (Zhang
+049   et al., 2025a)). A complementary line delegates topology design to a separate model that outputs
+050   a task/query-specific communication graph (e.g., G-Designer (Zhang et al., 2025b), MAS-GPT (Ye
+051   et al., 2025b). Others rely on an external LLM “judge” to rank, filter, or make final decisions
+052   (Ebrahimi et al., 2025). While effective in certain settings, these strategies introduce substantial
+053   overhead: pretraining a graph generator; reinforcement learning over edges; repeated calls to a
+      judge LLM.
+
+
+                                                        1
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+054
+055
+056
+057
+058
+059
+060
+061
+062
+063
+064
+065
+066
+067
+      Figure 1: Overview of S ELF O RG. A query Q is distributed to N agents, each producing a response
+      Rn . Responses are embedded, contributions estimated via Shapley-based valuation, and a directed
+068
+      acyclic communication graph is formed where edges reflect contributions and high-contribution
+069
+      agents lead. The figure depicts a single round; the process is iterated for T rounds.
+070
+071   A common hypothesis in this literature is that there exists a “best” topology per task category (e.g.,
+072   math vs. coding). This idea has evolved toward finer granularity, that the query should determine
+073   the topology (one graph per problem). We argue that both views are ultimately brittle. Because
+074   LLM agents are inherently stochastic, the information that matters for coordination is not the static
+075   task label nor the problem identity, but the state the agents are actually in – their concrete responses
+076   at a given time step. Two agents may answer the same query differently across runs; a topology
+077   that was ideal yesterday may be suboptimal today. Thus, the communication pattern should be
+078   decided on the fly, conditioned on the current pool of responses. Searching for a universally superior
+079
+      topology per task or per query is therefore potentially confounded and fragile: it risks overfitting to
+      incidental response patterns or to powerful base models whose single-shot accuracy already masks
+080
+      orchestration weaknesses.
+081
+082   This state-driven perspective is especially revealing in the weak-backend regime, where each agent
+083   has a modest chance of being correct. In such settings, the value of orchestration should be to
+084   amplify rare correct responses and suppress noise, not to lean on an already-competent model.
+085
+      Our approach embraces this principle: we propose a decentralized, response-conditioned framework
+      in which agents (i) independently produce initial answers, (ii) locally assess peers via a Shapley
+086
+      value-inspired contribution valuation, and (iii) construct a directed acyclic communication graph
+087
+      (DAG) that routes information from high-contribution agents to others. This yields a lightweight
+088   system with no external judge, no pretrained topology generator, and no edge-level reinforcement
+089   learning, yet it adapts its structure per instance.
+090
+091
+      We make the following contributions:
+092         1. We construct a per-instance DAG directly from agents’ current responses via semantic
+093            alignment, avoiding fixed topologies, pretrained graph generators, and edge-level RL.
+094
+            2. We quantify influence with a Shapley-inspired utility, together with efficient approximation
+095
+               and ranking-stability guarantees, enabling lightweight, model-agnostic credit assignment.
+096
+097
+            3. We analyze why multi-agent interaction amplifies correct signals and why correct respon-
+               ders dominate contributions, and we validate S ELF O RG across various reasoning bench-
+098
+               marks and multiple backbones.
+099
+100
+101   2   M ETHODOLOGY
+102
+103   We propose a multi-agent collaborative framework that adaptively constructs its communication
+104   structure without relying on external judges, pretrained graph generators, or reinforcement learning
+105   for edge optimization. The key principle is to leverage agents’ own responses to estimate their con-
+106   tributions, estimate these contributions using Shapley values, and enforce a directed acyclic com-
+107   munication graph (DAG) for stable information propagation. In what follows, we describe each
+      component in detail. The overall pipeline of S ELF O RG is illustrated in Figure 1.
+
+
+                                                         2
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+108
+      2.1   S YSTEM OVERVIEW
+109
+110   We formalize the collaboration in a multi-agent system as a dynamic directed graph G (t) = (V, E (t) ),
+111   where V = {v1 , . . . , vN } represents the set of nodes (with |V| = N ) and E (t) denotes the set of
+112   edges in collaboration round t ∈ [T ]. Each node vn ∈ V represents an agent An , instantiated with a
+113                                                        (t)                           (t)
+      backend LLM. Each agent An receives a prompt Pn and generates a response Rn :
+114
+                                                                            (t)
+115                               R(t)      (t)        (t)
+                                   n = An (Pn ) = An (Pn,sys , Pn,user , Pn,coll ),                       (1)
+116
+117   where Pn,sys represents the system prompt that describes the agent’s role and current state, Pn,user
+118   denotes the user prompt, which includes the given tasks, and Pn,coll includes responses from other
+119   agents (if available) and externally retrieved knowledge.
+120                     (t)
+121   A directed edge em→n ∈ E (t) indicates that agent An incorporates information from agent Am in
+122
+      round t. The presence (or absence) of an edge reflects the usefulness of Am ’s response for An .
+      Thus, edges encode the information flow among agents. The graph can be equivalently expressed as
+123                                                   (t)         (t)
+124   an adjacency matrix A(t) ∈ {0, 1}N ×N , where An,m = 1 if em→n ∈ E (t) , otherwise 0.
+125
+126   2.2   D ECENTRALIZED I NITIALIZATION
+127
+128
+      This first stage of S ELF O RG (referred to as collaboration round t = 0) aims to generate a pool
+      of diverse, but potentially noisy responses from N agents. Given the user query Q, each agent
+129                                                        (0)                       (0)
+130   independently generates its own initial response Rn . For this initial round, Pn,coll = ∅ because
+                                                                                            (0)
+131   agent An receives no input from other agents. We map each agent response Rn to an embed-
+             (0)       (0)
+132   ding rn = f (Rn ) with a lightweight model f (e.g., all-MiniLM-L6 (Reimers & Gurevych,
+133   2019)), which need not be the same LLM used by the agents. These embeddings provide a fixed-
+134   dimensional, semantically meaningful representation of the agent responses. Subsequent stages use
+135   these response embeddings to infer contributions and construct the communication graph.
+136
+137   2.3   C ONTRIBUTION E STIMATION
+138
+139   Given responses {r1 , . . . , rN } from the N agents, we wish to estimate the contribution of individual
+140   agents towards generating the collective response. We frame the problem of contribution estimation
+141
+      as computing Shapley values (Shapley, 1953), a well-known concept in cooperative game theory.
+      For a cooperative game, the Shapley value of agent n is
+142
+143                                  X         |S|!(N − |S| − 1)!
+144                        ϕn =                                   [v(S ∪ {n}) − v(S)] .                   (2)
+                                                      N!
+145                               S⊆[N ]\{n}
+
+146
+      Here, v(S) is the utility of coalition S. Computing the true Shapley value using Eq. 2 requires 2N
+147
+      evaluations, which is intractable for large N . Furthermore, an efficient mechanism is required to
+148   evaluate v(S). This challenge is well-known in collaborative learning scenarios, where quantifying
+149   each player’s contribution is crucial for tasks such as incentive mechanisms, fairness, and robustness
+150   (Lyu et al., 2020; Wang et al., 2020; Xu et al., 2021; Tastan et al., 2024; 2025a;b).
+151
+      In this work, we adopt an approximation strategy inspired by Xu et al. (2021). Firstly, we define
+152
+      the utility of a coalition S as the cosine similarity between the average response embedding of the
+153
+      agents in S and the average response embedding of all agents. Moreover, instead of enumerat-
+154   ing all coalitions, we compare each agent’s embedding rn directly against the average embedding
+155                   PN
+      ravg = (1/N ) n=1 rn . In other words, the true Shapley value ϕn is approximated by the estimated
+156   contribution ψn of agent An , which is defined as
+157
+158                                         ϕn ≈ ψn := cos(rn , ravg ).                                   (3)
+159
+160   The above approximation reduces the complexity of Shapley value computation from exponential to
+161   linear in N . Intuitively, the contribution is estimated based on how well an agent’s response aligns
+      with the collective (average) response. We now formalize the quality of this approximation.
+
+
+                                                          3
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+162
+      Theorem 1 (Approximation Bound (Xu et al., 2021)). Suppose ∥rn ∥ = Γ for all n ∈ [N ] and
+163   |⟨rn , ravg ⟩| ≥ 1/I for some I > 0. Then
+164
+165                                            ϕn − Ln ψn ≤ IΓ2 ,                                         (4)
+166
+      where Ln is a multiplicative factor that can be normalized away (Xu et al., 2021).
+167
+168   Corollary 1 (Ranking Stability). Let Ln be the multiplicative factor from Theorem 1, and let L =
+169
+      minj Lj . If
+170
+                                                          2 I Γ2
+                                             ψn − ψ k >          ,                                  (5)
+171                                                         L
+172   then the normalized Shapley scores ϕen = ϕn /Ln satisfy ϕen > ϕek .
+173
+174   All proofs are deferred to the appendix. Thus, the approximate Shapley value ψn not only pro-
+175   vides an efficient approximation but also preserves the relative ordering of contributions when the
+176   separation between agents is sufficiently large.
+177
+178   2.4    C OMMUNICATION G RAPH F ORMATION
+179                                     (t)      (t)
+180
+      Given the current responses {r1 , . . . , rN }
+      from N agents, our goal is to form a directed Algorithm 1 S ELF O RG
+181
+      acyclic communication graph G (t+1) = Require: Query Q, similarity threshold τ , optional
+182
+      (V, E (t+1) ) that governs how information           neighbor budget k, total rounds T
+183                                                                                     ⋆
+      flows among agents in the next round of Ensure: Final response R
+184                                                          (0)
+      collaboration (t + 1). To form this graph,        1: Rn ← An (Q), ∀n ∈ [N ]
+185   we first estimate the agent contributions as:                            (0)                   (0)
+186     (t+1)            (t) (t)
+                                                        2: (G (0) , π (0) , {ψn }) ← A LG . 2({Rn }, τ, k)
+      ψn       = cos(rn , ravg ). We also com- 3: for t = 1 to T do
+187
+      pute pairwise similarities between the agent      4:     for n in π (t−1) do
+188                                                                                 (t−1)
+      responses by computing the cosine similar-        5:           Collect {Rm          : em→n ∈ E (t−1) }
+189   ity between their response embeddings, i.e.,                                       (t)
+        (t)          (t) (t)
+                                                        6:           Form prompt Pn ← (Q, peer outputs)
+190   Sn,m = cos(rn , rm ).                                                                  (t)           (t)
+191                                                     7:           Update response Rn ← An (Pn )
+192   To avoid a fully connected graph, we retain       8:     end for
+                                                                                   (t)                 (t)
+      only semantically meaningful links: for agent     9:     (G (t) , π (t) , {ψn })←A LG . 2({Rn }, τ, k)
+193
+                                              (t+1)
+      An , an incoming candidate edge em→n ∈ 10:               Aggregate responses (Eq. 6)
+194                                                                                          (t) (t)
+195   E (t+1)
+              is activated (set to 1) if and only if 11:       R⋆ ← arg maxn cos(rn , rcentroid )
+      Sn,m ≥ τ , where τ is a similarity thresh- 12:           Set R⋆ as round output (fed to leading agent
+196
+                 (t+1)      (t+1)                          in next round)
+197   old and ψm       > ψn       . Alternatively, one
+                                                       13: end for
+198   may achieve sparsification by restricting ac-
+                                                       14: return R⋆ from final round T
+199   tive edges to k-most similar neighbors of each
+200
+      agent.
+201   The communication graph formed based on the above heuristics may still contain cycles. To avoid
+202   such cycles, we find the agent with the least estimated contribution within the detected cycle and
+203   remove the edge directed from the weaker agent (lower ψ (t+1) ) towards the stronger agent (higher
+204   ψ (t+1) ). This approach guarantees that more contributive agents remain upstream in the information
+205   flow. After the removal of the cycle, a topological ordering of the graph is computed, with ties
+206   broken in favor of nodes (agents) with higher ψ (t+1) .
+207   The resulting graph balances two principles:
+208
+209         (i) local alignment, since each agent selectively listens only to semantically aligned peers, and
+210
+            (ii) global reliability, since contribution scores govern the final order and ensure correctness
+211              amplification.
+212
+213   Since most decisions regarding graph formation (except cycle detection and removal) are made lo-
+214   cally, the resulting graph G is quite dynamic. Crucially, it is not predetermined by human design, but
+215   emerges from the content of the agent responses, embodying a form of self-organizing team struc-
+      ture. Each agent effectively votes on who should influence it, and the collective result is a network
+
+
+                                                         4
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+216
+      0.5                                                                            C1                   1.00
+217                                 : Aiden and 12 of his friends are going to see   C2
+218   0.4        a film at the cinema, and meet up with 7804773 more friends         C3                   0.95
+                 there. They each save a seat and then buy enough drinks and
+219   0.3           snacks to fill the seats. Each seat has enough room to hold      C4
+                         one person, two drinks, and three snacks. If drinks and     C5                   0.90
+220                   snacks cost $2 each, how much money, in dollars, has the       W1
+      0.2                              group spent overall on snacks and drinks?
+221                                                                                  W2                   0.85
+222   0.1                                                                            W3
+223                                                                                  W4                   0.80
+      0.0                                                                            W5
+224
+           C
+          W1
+          W2
+          W3
+          W4
+          W5
+          W6
+          W7
+          W8
+          W9
+         W10
+         W11
+         W12
+         W13
+         W14
+         W15
+         W16
+         W17
+         W18
+         W19
+         W20
+         W21
+         W22
+         W23
+         W24
+         W25
+         W26
+
+
+                                                                                      C1
+                                                                                      C2
+                                                                                      C3
+                                                                                      C4
+                                                                                      C5
+                                                                                      W1
+                                                                                      W2
+                                                                                      W3
+                                                                                      W4
+                                                                                      W5
+225
+226   (a) Countplot of generated answers: the correct answer appears re- (b) Heatmap plot of cosine similarities
+227   peatedly, while wrong answers scatter across many alternatives with of embeddings from 5 correct and 5
+228   little agreement. Y-axis denotes no. of times the answer occurred.  wrong responses.
+229
+230
+            Figure 2: Analysis of Qwen-1.5B over 100 runs on the same math problem (GSM-Hard).
+231
+      that channels information from the most promising agents to the ones that need help. For example,
+232   if one agent produces a particularly strong response and others recognize its value, many edges will
+233   point from the stronger agent to others, making it a hub of influence akin to a spontaneously elected
+234   leader. Thus, the topology adapts on-the-fly to the query at hand and the stochastic responses of the
+235   agents, rather than being fixed in advance. The full procedure is summarized in Algorithm 1.
+236
+237   2.5   R ESPONSE P ROPAGATION AND AGGREGATION
+238
+239   Once the communication graph G (t+1) is formed, the next round of collaboration (t + 1) is ini-
+240   tiated. There could be cases when the leader (root node) receives a message from the previous
+241
+      round (Algorithm 1, line 12) or it could coincide with its own response; in the latter case it is al-
+                                                             (t+1)         (t)
+242   lowed to self-reflect on its previous response, i.e., Proot,coll ⊇ Rroot . This ensures that the round
+243   begins with the most reliable response so far, while still leaving room for refinement. For the subse-
+244   quent nodes in the graph, the response from the previous node is included in their collective prompt
+        (t+1)       (t+1)     (t+1)
+245   Pn,coll ⊇ Rm , if em→n = 1. This response propagation procedure continues until all nodes
+246   in the current communication graph are processed. At the end of the response propagation, the
+247   agent contributions are re-estimated and the communication graph for the next collaboration round
+248   is formed. This process is repeated for a fixed number of collaboration rounds T or until some early
+249
+      stopping criterion is met.
+250   Thus, a multi-round procedure naturally emerges: (i) the first round establishes contributions and
+251   the influence structure, (ii) the highest-contributor’s response initializes the next round, and (iii)
+252   subsequent agents refine or align their responses through the updated communication graph. In
+253   practice, two rounds are typically sufficient: the first for exploration, the second for consolidation.
+254   After response propagation over multiple collaboration rounds, the final aggregate response of the
+255   multi-agent system is obtained as follows. First, the contribution-weighted centroid of the response
+256   embeddings after round T is computed as:
+257                                                  PN       (T ) (T )
+                                           (T )         n=1 ψn rn
+258                                       rcentroid = P   N      (T )
+                                                                        ,                              (6)
+259                                                       n=1 ψn
+260           (T )                                                                        (T )
+      where rn is the response embedding of agent An in the last round and ψn is its contribution
+261   score. The final aggregate response is not generated anew, but chosen among the existing responses
+262      (T )
+      {Rn }N  n=1 . Specifically, we select the response whose embedding aligns closest to the centroid:
+263                                                                                 
+                                                                          ) (T )
+264                        Rfinal = Rn⋆ , where n⋆ = arg max cos r(T    n , rcentroid .                 (7)
+265                                                                     n∈[N ]
+
+266
+267   2.6   P ROBABILISTIC M ODELING OF M ULTI -AGENT S YSTEM
+268
+269   We now provide a probabilistic perspective to explain why our framework amplifies correct re-
+      sponses, particularly when the underlying LLMs are weak. The following analysis highlights two
+
+
+                                                                    5
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+270
+      complementary mechanisms: (i) with multiple agents, the probability that at least two agents are
+271   correct grows rapidly with N ; and (ii) whenever multiple agents agree on the same response, that
+272   response is overwhelmingly likely to be correct. Together, these principles explain why correctness
+273   not only appears more often in multi-agent settings but also dominates the contribution scores.
+274
+      We begin with the experiments in Figure 2. Figure 2a shows that while the correct answer con-
+275
+      sistently appears across 100 runs of Qwen-1.5B, wrong answers are scattered with little overlap.
+276
+      Panel 2b shows a cosine similarity of embeddings from 5 correct and 5 incorrect responses: correct
+277   answers form a tight cluster, whereas incorrect ones are scattered. Finally, an intervention study
+278   shows that when an agent receives input from the top-contributor, its probability of solving the task
+279   rises from 49% to 69%. These findings motivate the need for contribution estimation and leader
+280   selection in S ELF O RG.
+281
+      If each agent independently answers correctly with probability p ∈ (0, 1), then the probability that
+282
+      at least two of N agents correct is 1 − (1 − p)N − N p(1 − p)N −1 . This is an increasing function
+283   with N that quickly approaches 1. Therefore, even weak agents collectively increase the chance that
+284   agreement on correctness is present in the system. The role of S ELF O RG is then to identify these
+285   consensuses and amplify them. In the following straightforward lemma, we argue that consensus
+286   about a correct answer (Xc ) is more likely than consensus about an incorrect answer (Xi ) using
+287   observations from Figure 2.
+288   Lemma 1 (Agreement Concentration). Let one agent be correct with probability p ∈ (0, 1) and
+289                                                                                   PK
+      otherwise choose one of K incorrect answers with probabilities p1 , . . . , pK , k=1 pk = 1 − p. For
+290   two independent agents,
+291                                                    K
+                                                       X
+292                                     Pr[Xc ] = p2 >    p2k = Pr[Xi ]
+293                                                       k=1
+                                                                                          2
+294                                                                                    p
+      whenever the errors are sufficiently dispersed (as in Fig. 2a), e.g., maxk pk ≤ 1−p .
+295
+296   We now connect the above probabilistic intuition to the contribution estimation of S ELF O RG. Fig-
+297   ure 2b empirically supports the following assumption: embeddings of correct answers cluster to-
+298   gether, while embeddings of wrong answers remain scattered.
+299   Assumption 1. Suppose there exist constants α > β such that:
+300
+301        (i) For all n, m ∈ S (correct cluster), cos(rn , rm ) ≥ α;
+302
+          (ii) For all n ∈ S, k ∈
+                                / S, cos(rn , rk ) ≤ β,
+303
+304       (iii) For all k, ℓ ∈
+                             / S, cos(rk , rℓ ) ≤ β,
+305
+306
+      Lemma 2 (Contribution Dominance). Under Assumption 1, for every n ∈ S and k ∈
+                                                                                  / S we have
+      ψn > ψk , where ψn = cos(rn , rall ) is the contribution score.
+307
+308   Lemmas 1 and 2 together yield the following guarantee:
+309
+      Corollary 2 (Correctness Amplification). If at least two agents output the correct response, then this
+310
+      response is strictly more likely to receive high contribution scores than any incorrect alternative. The
+311   communication graph, therefore, routes information preferentially from correct agents, amplifying
+312   their signals while suppressing noise.
+313
+314   Together, these results formalize why S ELF O RG remains effective under the weak-backend regime.
+315
+316   3   E XPERIMENTS
+317
+318   Our empirical evaluation largely follows the MASLab benchmark protocol (Ye et al., 2025a). We
+319   test S ELF O RG across various LLM backbones: Qwen (Qwen-2.5-{1.5, 3, 7, 14, 32, 72}B) (Qwen
+320   et al., 2025), LLaMA (LLaMA-3-8B-Instruct, LLaMA-3.3-70B-Instruct) (Dubey et al., 2024), Fal-
+321   con (Falcon3-7B-Instruct) (TII, 2024; Almazrouei et al., 2023), and Mistral (Mistral-7B-Instruct-
+322   v0.3) (Jiang et al., 2023a) on mathematics (MATH (Hendrycks et al., 2021), GSM8K (Cobbe
+323   et al., 2021), GSM-Hard (Gao et al., 2023), AQUA-RAT (Ling et al., 2017), AIME-2024), science
+      (GPQA (Rein et al., 2024)), and knowledge (MMLU (Hendrycks et al., 2021), MMLU-Pro (Wang
+
+
+                                                          6
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+324   Table 1: Main results on Qwen-2.5-1.5B-Instruct. Comparison of S ELF O RG with single-agent
+325   prompting and multi-agent baselines across seven reasoning benchmarks. AVG reports mean accu-
+326   racy, while AVG-R reports average rank across methods (lower is better).
+327
+328         Method    MATH      GSM8K       AQUA        GSM-H        MMLU        MMLU-P           AIME       AVG     AVG-R
+329                                           Qwen-2.5-1.5B-Instruct
+330        Single      49.20      70.40       51.18        36.20       49.60            28.80      3.33     41.24     2.57
+331          CoT       46.80      69.20       53.54        36.20       50.60            28.60      3.33     41.18     2.71
+332       DyLAN        49.80      67.80       51.18        27.20       50.00            15.40      3.33     37.82     4.00
+333
+          MacNet       45.40      64.20       49.21        29.40       42.00            26.00      0.00     36.60     4.57
+       G-Designer      42.20      61.40       44.48        24.20       40.00            22.00      0.00     33.47     5.86
+334    AgentVerse      45.20      69.00       50.39        27.80       38.20            24.00      0.00     36.37     4.86
+335      AutoGen       11.60      69.40       28.74         5.40       12.20             5.20      0.00     18.93     6.06
+336      S ELF O RG    52.40      74.60      58.27        38.00        53.80            31.60      6.67     45.05    1.00
+337
+338   Table 2: Main results on large models (LLaMA-3.3-70B-Instruct & Qwen-2.5-72B-Instruct).
+339   Comparison of S ELF O RG with baselines across reasoning benchmarks. AVG reports mean accuracy
+340   and AVG-R reports average rank across methods (lower is better).
+341
+342         Method    MATH     GSM8K    AQUA        GSM-H      MMLU        MMLU-P        GPQA      AIME       AVG    AVG-R
+343                                            LLaMA-3.3-70B-Instruct
+344        Single     74.80     96.20     77.56        54.00    84.40          68.40      55.36     23.33    66.76    3.88
+345          CoT      75.00     95.80     79.92       57.40    85.20           71.00      56.70     26.67    68.46    2.50
+          DyLAN       77.60     95.20     76.38        53.00    83.60          31.60      58.04     26.67    62.76    4.25
+346       MacNet      74.80     96.00     79.13        55.20    83.00          65.40      58.26     26.67    67.31    3.63
+347    AgentVerse     76.80     94.60     76.38        51.20    83.60          69.20      55.36     26.67    66.73    4.50
+348      AutoGen      70.80     93.00     79.50        51.40    82.60          64.60      52.68    30.00     65.57    5.13
+349     S ELF O RG    79.80     96.60     81.10       56.80        85.00       72.40      59.82    30.00     70.19    1.25
+350                                                Qwen-2.5-72B-Instruct
+351        Single     83.00     95.00     81.10       63.80     82.40           70.60     46.65     20.00    67.82    2.88
+             CoT      82.80     95.20      80.71      62.00     82.80          71.40      44.20     16.67    66.97    3.50
+352
+          DyLAN       80.60     95.40      77.95      63.20    84.20            69.20     46.43     13.33    66.29    3.75
+353       MacNet      81.40     95.40      79.13      62.80     83.20           65.60     40.40     16.67    65.58    4.13
+354    AgentVerse     82.80     95.20      77.17      57.80     81.40           71.20     45.98    23.33     66.86    4.13
+         AutoGen      81.20     95.80      78.35      64.20     82.60           69.40     45.54     13.33    66.30    3.75
+355
+        S ELF O RG    84.40     96.20     80.71       64.20        83.80       71.20      47.77    23.33     68.95    1.38
+356
+357
+358   et al., 2024)) benchmarks. We set the default max token limit as 2048 and a temperature 0.5. Our
+359   baselines include single call, chain-of-thought (CoT) (Wei et al., 2022), AutoGen Wu et al. (2024),
+360
+      AgentVerse Chen et al. (2024), G-Designer Zhang et al. (2025b), DyLAN Liu et al. (2024), and
+      MacNet Qian et al. (2025). S ELF O RG defaults to use N = 4 agents, top-2 neighbors and at most 3
+361
+      rounds. Additional configurations, baseline methods, and other details are provided in Appendix B.
+362
+363
+364
+      3.1    M AIN E XPERIMENTAL R ESULTS
+365
+      Table 1 highlights the key advantage of S ELF O RG in scenarios where orchestration is most chal-
+366   lenging. With Qwen-1.5B, all multi-agent baselines cluster around average accuracies of roughly
+367   33 − 37%, showing limited ability to harness collaboration when the underlying agents are weak.
+368   In contrast, S ELF O RG achieves an average accuracy of 45.05%, a clear margin above all baselines,
+369   while also attaining the best average rank (AVG-R). This represents a gain of nearly +4 points over
+370   the strongest non-collaborative baseline (single agent or CoT). These results confirm our central
+371   hypothesis: when responses are noisy and correctness is sparse, a response-conditioned, adaptive
+372   graph provides the necessary amplification mechanism to elevate correct signals and suppress noise.
+373   We include G-Designer at a small scale; see Appendix B for discussion.
+374   We also test S ELF O RG on stronger backbone models (Table 2). For LLaMA-70B, S ELF O RG
+375   achieves the highest average accuracy (70.19%) and best AVG-R (1.25), outperforming all base-
+376   lines. The same holds for the Qwen-72B model, where S ELF O RG attains the best average rank
+377   (1.38) with clear gains over prior methods. These results demonstrate that S ELF O RG remains effec-
+      tive even with frontier-scale models, providing complementary improvements.
+
+
+                                                               7
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+378                                                                              AQUA-RAT                MMLU-Pro
+379    Dataset        AQUA-RAT              MMLU-Pro                                             70
+                                                                          80
+380      Model     Single   S ELF O RG   Single   S ELF O RG                                     60
+
+
+
+
+                                                               Accuracy
+381         1.5B   51.18      58.27      28.80      31.60                 70
+382                                                                                              50
+              3B   65.35      73.62      42.60      46.20
+383           7B   73.62      78.35      53.20      56.40                 60                      40
+             14B   75.79      81.50      61.80      65.40                                 Single                 Single
+384                                                                                       SelfOrg 30             SelfOrg
+385          32B   79.53      83.07      67.40      70.20                 50
+             72B   81.10      80.71      70.60      71.20                   1.5B 3B 7B 14B 32B 72B 1.5B 3B 7B 14B 32B 72B
+386                                                                                 Model                  Model
+387
+388   Figure 3: Scaling laws of Qwen-2.5-X-Instruct models across two reasoning benchmarks (AQUA-
+389   RAT and MMLU-Pro). The table shows exact accuracy values for different model sizes under the
+390   Single and S ELF O RG settings, while plot visualizes performance trends.
+391   Together, these results demonstrate that S ELF O RG consistently outperforms prior orchestration
+392   frameworks. Gains are most pronounced in the low-capacity regime, where amplification of cor-
+393   rect signals is crucial, but remain competitive even for frontier-scale models.
+394
+395
+396   3.2    S CALING L AWS
+397
+398   We analyze how S ELF O RG scales with model size by evaluating Qwen-2.5-X-Instruct models rang-
+399
+      ing from 1.5B to 72B parameters on AQUA-RAT and MMLU-Pro (Table 3). Across most sizes,
+      S ELF O RG consistently improves over the single-agent baseline. For example, gains are most pro-
+400
+      nounced in the weak-to-medium regime, with the 3B model improving from 65.35 to 73.62 on
+401
+      AQUA-RAT and from 42.60 to 46.20 on MMLU-Pro. At larger scales, improvements persist but
+402   become smaller, reflecting that strong single agents already achieve high reliability.
+403
+404   Interestingly, at the extreme high end (72B), the benefit nearly vanishes on AQUA-RAT, where ac-
+405
+      curacy slightly decreases from 81.10 to 80.71. This suggests diminishing returns when base models
+      are sufficiently strong that agreement across agents offers limited additional signal. Nevertheless,
+406
+      S ELF O RG never underperforms substantially, and its advantages are clearest when individual models
+407
+      are weak or moderately strong, confirming the theoretical expectation that multi-agent collaboration
+408   amplifies correctness most in the low-resource regime.
+409
+410
+411   3.3    H ETEROGENEOUS AGENTS
+412
+413   We evaluate S ELF O RG in set-
+                                            Model AQUA-RAT MMLU-Pro
+414   tings where agents are instanti-
+      ated with heterogeneous back-          Qwen     76.38       51.60
+415                                         Falcon    61.42       47.00
+416   bones: Qwen2.5-7B, Falcon3-          LLaMA      44.09       40.60
+417
+      7B, Llama-3-8B, and Mistral-          Mistral   25.20       26.80
+      7B. Although similar in param-         Single (↑) / AQUA-RAT (↓)
+418
+      eter count, these models differ       Model    Single    S ELF O RG
+419
+      substantially in ability (Table 4,      Mix     53.94       66.14
+420   top), with Qwen strongest, Mis-         Mix     41.60       50.40
+421   tral weakest, and Falcon serving
+422   as the second-best. Since multi- Figure 4: Heterogeneous Agents. Left: accuracies on AQUA-
+423   agent success depends on agree- RAT and MMLU-Pro for each backbone and for the mixed-pool
+424   ment among strong contributors, baseline (Single) vs. S ELF O RG . Right: percentage of times each
+425   the system’s performance is ef- agent attains contribution rank r (rank-1 highest).
+426   fectively bounded by Falcon’s
+427   reliability while aiming to approach Qwen’s level.
+428   The lower part of Table 4 compares the Single baseline (where one model is randomly sampled
+429   per query) and S ELF O RG . The Single setting yields 53.94 accuracy on AQUA-RAT and 41.60 on
+430   MMLU-Pro, whereas S ELF O RG improves to 66.14 and 50.40. Thus, S ELF O RG leverages agree-
+431   ment between strong models while still extracting useful signals from weaker ones, outperforming
+      the stochastic baseline and approaching the best single-agent.
+
+
+                                                         8
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+432
+      Contribution rank distributions (Figure 4) further illustrate this effect: Qwen and Falcon dominate
+433   higher ranks, while LLaMA and Mistral are usually relegated lower, though occasionally contribut-
+434   ing at mid-rank when aligned with stronger peers.
+435
+436
+      We further evaluate configurations that mix strong and weak agents, with detailed results presented
+      in Appendix D.1. Beyond accuracy, we also analyze efficiency in terms of token usage (Ap-
+437
+      pendix D.2). Additional ablation studies examine the impact of the number of agents, the effect of
+438
+      reform across rounds, and the role of the embedding model in contribution estimation (Appendix E).
+439
+440   4   R ELATED W ORK
+441
+442   Multi-Agent Systems. Early multi-agent systems such as CAMEL (Li et al., 2023) and AutoGen
+443   (Wu et al., 2024) introduced role-based LLM agents that collaborate through dialogue. Debate-style
+444   systems encourage adversarial or diverse reasoning to refine answers (Du et al., 2023; Liang et al.,
+445   2024; Subramaniam et al., 2025), while dynamic orchestration (AgentVerse (Chen et al., 2024),
+446
+      DyLAN (Liu et al., 2024)) adapts team composition or roles during execution. More recent efforts
+      aim for automatic workflow generation (Hu et al., 2025; Zhang et al., 2025c;b; Ye et al., 2025b),
+447
+      though these rely on strong meta-agents or pretrained generators, adding overhead and limiting
+448
+      autonomy. Multi-agent collaboration has also been applied to diverse domains including software
+449   (Hong et al., 2024; Qian et al., 2024a), recommendation (Zhang et al., 2024), medicine (Tang et al.,
+450   2024), finance (Li et al., 2024), education (Zhang et al., 2025e), and science (Zeng et al., 2024).
+451
+452
+      Communication Graphs. Prior work has explored a spectrum of communication topologies. Fixed
+      structures include chains, trees, complete graphs, and random graphs, with recent studies system-
+453
+      atically comparing these patterns across task families such as mathematical reasoning, knowledge
+454
+      reasoning, and coding (Qian et al., 2025). Beyond static designs, some approaches treat the topol-
+455   ogy as optimizable: edges are sampled and trained with policy gradients or masks (Zhuge et al.,
+456   2024; Zhang et al., 2025a; Qian et al., 2025). A complementary line delegates topology design to a
+457   separate model that outputs a task- or query-specific communication graph (Zhang et al., 2025b; Ye
+458   et al., 2025b). Other frameworks rely on an external LLM “judge” to rank, filter, or finalize outputs
+459   (Liu et al., 2024; Zhang et al., 2025c; Zhuge et al., 2025; Ebrahimi et al., 2025). While effective
+460   in constrained settings, these strategies incur substantial overhead: pretraining graph generators,
+461   optimization over edges, or repeated calls to a judge LLM.
+462   These approaches assume that an optimal or near-optimal graph exists either per task category or
+463   even per query. However, such assumptions can be misleading: because LLM agents are stochastic,
+464   the same agent may succeed on one query and fail on another. Our method instead constructs the
+465   graph on-the-fly, adapting dynamically to the actual responses produced.
+466
+      Contribution Assessment in Collaborative Systems. Numerous systems in LLM-based MAS as-
+467   sess agent quality with additional LLMs. For instance, LLM-Blender (Jiang et al., 2023b) uses an
+468   additional LLM for pairwise comparisons, incurring O(N 2 ) operations for N agents, while DyLAN
+469   (Liu et al., 2024) introduces a dedicated LLM agent to score responses; other MAS frameworks
+470   similarly rely on judge models to value and select contributions (Ebrahimi et al., 2025). Outside
+471   multi-agent systems, the broader literature on contribution valuation offers principled tools originat-
+472   ing from cooperative game theory (Shapley, 1953), with concrete instantiations in federated learning
+473   (McMahan et al., 2017; Jia et al., 2019). FL works measure participant contributions via Shapley
+474   values (Jia et al., 2019; Xu et al., 2021; Liu et al., 2022; Tastan et al., 2024), influence functions
+475
+      (Rokvic et al., 2024), self-reported information (Kang et al., 2019), and utility-game formulations
+      (Wang et al., 2019). We draw a direct parallel to MAS and instantiate Shapley-style contribution es-
+476
+      timates over agent responses (Section 2.3), eliminating external judges and additional training while
+477
+      maintaining principled contribution estimation.
+478
+479
+480   5   C ONCLUSION
+481
+482   We presented S ELF O RG, a framework for orchestrating LLM-based multi-agent systems without ex-
+483   ternal pretrained topology generators or reinforcement learning. By leveraging response-conditioned
+484
+      contribution estimation and adaptive graph formation, S ELF O RG amplifies correct signals and sup-
+      presses noise. Our theoretical analysis and empirical results across diverse reasoning benchmarks
+485
+      confirm that it consistently outperforms prior orchestration baselines.
+
+
+                                                        9
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+486
+      R EFERENCES
+487
+488   Ebtesam Almazrouei, Hamza Alobeidli, Abdulaziz Alshamsi, Alessandro Cappelli, Ruxandra Co-
+489     jocaru, Mérouane Debbah, Étienne Goffinet, Daniel Hesslow, Julien Launay, Quentin Malartic,
+490     Daniele Mazzotta, Badreddine Noune, Baptiste Pannier, and Guilherme Penedo. The falcon series
+491     of open language models, 2023. URL https://arxiv.org/abs/2311.16867.
+492
+      Anthropic. Claude 4. 2025. URL https://www.anthropic.com/news/claude-4.
+493
+494   Ding Chen, Qingchen Yu, Pengyuan Wang, Wentao Zhang, Bo Tang, Feiyu Xiong, Xinchi Li,
+495     Minchuan Yang, and Zhiyu Li. xverify: Efficient answer verifier for reasoning model evalua-
+496     tions, 2025. URL https://arxiv.org/abs/2504.10481.
+497
+498
+      Weize Chen, Yusheng Su, Jingwei Zuo, Cheng Yang, Chenfei Yuan, Chi-Min Chan, Heyang Yu,
+       Yaxi Lu, Yi-Hsin Hung, Chen Qian, Yujia Qin, Xin Cong, Ruobing Xie, Zhiyuan Liu, Maosong
+499
+       Sun, and Jie Zhou. Agentverse: Facilitating multi-agent collaboration and exploring emergent
+500
+       behaviors. In The Twelfth International Conference on Learning Representations, 2024. URL
+501    https://openreview.net/forum?id=EHg5GDnyq1.
+502
+503   Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo Jun, Lukasz Kaiser,
+504     Matthias Plappert, Jerry Tworek, Jacob Hilton, Reiichiro Nakano, et al. Training verifiers to
+505     solve math word problems. arXiv preprint arXiv:2110.14168, 2021.
+506
+      Yilun Du, Shuang Li, Antonio Torralba, Joshua B Tenenbaum, and Igor Mordatch. Improving fac-
+507
+        tuality and reasoning in language models through multiagent debate. In Forty-first International
+508     Conference on Machine Learning, 2023.
+509
+510   Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian, Ahmad Al-Dahle, Aiesha
+511     Letman, Akhil Mathur, Alan Schelten, Amy Yang, Angela Fan, Anirudh Goyal, Anthony
+512     Hartshorn, Aobo Yang, Archi Mitra, Archie Sravankumar, Artem Korenev, Arthur Hinsvark,
+513     Arun Rao, Aston Zhang, Aurélien Rodriguez, Austen Gregerson, Ava Spataru, Baptiste Rozière,
+514
+        Bethany Biron, Binh Tang, Bobbie Chern, Charlotte Caucheteux, Chaya Nayak, Chloe Bi,
+        Chris Marra, Chris McConnell, Christian Keller, Christophe Touret, Chunyang Wu, Corinne
+515
+        Wong, Cristian Canton Ferrer, Cyrus Nikolaidis, Damien Allonsius, Daniel Song, Danielle Pintz,
+516
+        Danny Livshits, David Esiobu, Dhruv Choudhary, Dhruv Mahajan, Diego Garcia-Olano, Diego
+517     Perino, Dieuwke Hupkes, Egor Lakomkin, Ehab AlBadawy, Elina Lobanova, Emily Dinan,
+518     Eric Michael Smith, Filip Radenovic, Frank Zhang, Gabriel Synnaeve, Gabrielle Lee, Geor-
+519     gia Lewis Anderson, Graeme Nail, Grégoire Mialon, Guan Pang, Guillem Cucurell, Hailey
+520     Nguyen, Hannah Korevaar, Hu Xu, Hugo Touvron, Iliyan Zarov, Imanol Arrieta Ibarra, Is-
+521     abel M. Kloumann, Ishan Misra, Ivan Evtimov, Jade Copet, Jaewon Lee, Jan Geffert, Jana
+522     Vranes, Jason Park, Jay Mahadeokar, Jeet Shah, Jelmer van der Linde, Jennifer Billock, Jenny
+523     Hong, Jenya Lee, Jeremy Fu, Jianfeng Chi, Jianyu Huang, Jiawen Liu, Jie Wang, Jiecao Yu,
+524     Joanna Bitton, Joe Spisak, Jongsoo Park, Joseph Rocca, Joshua Johnstun, Joshua Saxe, Jun-
+525
+        teng Jia, Kalyan Vasuden Alwala, Kartikeya Upasani, Kate Plawiak, Ke Li, Kenneth Heafield,
+        Kevin Stone, and et al. The llama 3 herd of models. CoRR, abs/2407.21783, 2024. URL
+526
+        https://doi.org/10.48550/arXiv.2407.21783.
+527
+528   Sana Ebrahimi, Mohsen Dehghankar, and Abolfazl Asudeh. An adversary-resistant multi-agent llm
+529     system via credibility scoring. arXiv preprint arXiv:2505.24239, 2025.
+530
+531   Luyu Gao, Aman Madaan, Shuyan Zhou, Uri Alon, Pengfei Liu, Yiming Yang, Jamie Callan,
+532
+        and Graham Neubig. PAL: Program-aided language models. In Andreas Krause, Emma
+        Brunskill, Kyunghyun Cho, Barbara Engelhardt, Sivan Sabato, and Jonathan Scarlett (eds.),
+533
+        Proceedings of the 40th International Conference on Machine Learning, volume 202 of Pro-
+534
+        ceedings of Machine Learning Research, pp. 10764–10799. PMLR, 23–29 Jul 2023. URL
+535     https://proceedings.mlr.press/v202/gao23f.html.
+536
+537   Dan Hendrycks, Collin Burns, Saurav Kadavath, Akul Arora, Steven Basart, Eric Tang, Dawn
+538     Song, and Jacob Steinhardt. Measuring mathematical problem solving with the MATH dataset.
+539     In Thirty-fifth Conference on Neural Information Processing Systems Datasets and Benchmarks
+        Track (Round 2), 2021. URL https://openreview.net/forum?id=7Bywt2mQsCe.
+
+
+                                                     10
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+540
+      Sirui Hong, Mingchen Zhuge, Jonathan Chen, Xiawu Zheng, Yuheng Cheng, Jinlin Wang, Ceyao
+541     Zhang, Zili Wang, Steven Ka Shing Yau, Zijuan Lin, Liyang Zhou, Chenyu Ran, Lingfeng Xiao,
+542     Chenglin Wu, and Jürgen Schmidhuber. MetaGPT: Meta programming for a multi-agent collab-
+543     orative framework. In The Twelfth International Conference on Learning Representations, 2024.
+544     URL https://openreview.net/forum?id=VtmBAGCN7o.
+545
+546   Shengran Hu, Cong Lu, and Jeff Clune. Automated design of agentic systems. In The Thirteenth
+547     International Conference on Learning Representations, 2025. URL https://openreview.
+548
+        net/forum?id=t9U3LW7JVX.
+549
+      Ruoxi Jia, David Dao, Boxin Wang, Frances Ann Hubis, Nick Hynes, Nezihe Merve Gürel,
+550     Bo Li, Ce Zhang, Dawn Song, and Costas J. Spanos. Towards efficient data valuation based
+551     on the shapley value. In Kamalika Chaudhuri and Masashi Sugiyama (eds.), Proceedings of the
+552     Twenty-Second International Conference on Artificial Intelligence and Statistics, volume 89 of
+553     Proceedings of Machine Learning Research, pp. 1167–1176. PMLR, 16–18 Apr 2019. URL
+554     https://proceedings.mlr.press/v89/jia19a.html.
+555
+556   Albert Q. Jiang, Alexandre Sablayrolles, Arthur Mensch, Chris Bamford, Devendra Singh Chap-
+557
+        lot, Diego de las Casas, Florian Bressand, Gianna Lengyel, Guillaume Lample, Lucile Saulnier,
+        Lélio Renard Lavaud, Marie-Anne Lachaux, Pierre Stock, Teven Le Scao, Thibaut Lavril,
+558
+        Thomas Wang, Timothée Lacroix, and William El Sayed. Mistral 7b, 2023a. URL https:
+559
+        //arxiv.org/abs/2310.06825.
+560
+561   Dongfu Jiang, Xiang Ren, and Bill Yuchen Lin. LLM-blender: Ensembling large language mod-
+562     els with pairwise ranking and generative fusion. In Anna Rogers, Jordan Boyd-Graber, and
+563     Naoaki Okazaki (eds.), Proceedings of the 61st Annual Meeting of the Association for Com-
+564     putational Linguistics (Volume 1: Long Papers), pp. 14165–14178, Toronto, Canada, July
+565     2023b. Association for Computational Linguistics. doi: 10.18653/v1/2023.acl-long.792. URL
+566     https://aclanthology.org/2023.acl-long.792/.
+567
+      Jiawen Kang, Zehui Xiong, Dusit Niyato, Shengli Xie, and Junshan Zhang. Incentive mechanism for
+568
+         reliable federated learning: A joint optimization approach to combining reputation and contract
+569      theory. IEEE Internet of Things Journal, 6(6):10700–10714, 2019.
+570
+571   Guohao Li, Hasan Abed Al Kader Hammoud, Hani Itani, Dmitrii Khizbullin, and Bernard Ghanem.
+572     CAMEL: Communicative agents for ”mind” exploration of large language model society. In
+573     Thirty-seventh Conference on Neural Information Processing Systems, 2023. URL https://
+574     openreview.net/forum?id=3IyL2XWDkG.
+575
+      Nian Li, Chen Gao, Mingyu Li, Yong Li, and Qingmin Liao. EconAgent: Large language model-
+576
+        empowered agents for simulating macroeconomic activities. In Lun-Wei Ku, Andre Martins,
+577
+        and Vivek Srikumar (eds.), Proceedings of the 62nd Annual Meeting of the Association for Com-
+578     putational Linguistics (Volume 1: Long Papers), pp. 15523–15536, Bangkok, Thailand, August
+579     2024. Association for Computational Linguistics. doi: 10.18653/v1/2024.acl-long.829. URL
+580     https://aclanthology.org/2024.acl-long.829/.
+581
+582   Tian Liang, Zhiwei He, Wenxiang Jiao, Xing Wang, Yan Wang, Rui Wang, Yujiu Yang, Shum-
+583     ing Shi, and Zhaopeng Tu. Encouraging divergent thinking in large language models through
+584     multi-agent debate. In Yaser Al-Onaizan, Mohit Bansal, and Yun-Nung Chen (eds.), Pro-
+585     ceedings of the 2024 Conference on Empirical Methods in Natural Language Processing, pp.
+586
+        17889–17904, Miami, Florida, USA, November 2024. Association for Computational Linguis-
+        tics. doi: 10.18653/v1/2024.emnlp-main.992. URL https://aclanthology.org/2024.
+587
+        emnlp-main.992/.
+588
+589   Wang Ling, Dani Yogatama, Chris Dyer, and Phil Blunsom. Program induction by rationale gener-
+590    ation: Learning to solve and explain algebraic word problems. In Regina Barzilay and Min-Yen
+591    Kan (eds.), Proceedings of the 55th Annual Meeting of the Association for Computational Lin-
+592    guistics (Volume 1: Long Papers), pp. 158–167, Vancouver, Canada, July 2017. Association for
+593    Computational Linguistics. doi: 10.18653/v1/P17-1015. URL https://aclanthology.
+       org/P17-1015/.
+
+
+                                                     11
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+594
+      Zelei Liu, Yuanyuan Chen, Han Yu, Yang Liu, and Lizhen Cui. Gtg-shapley: Efficient and accurate
+595     participant contribution evaluation in federated learning. ACM Transactions on intelligent Systems
+596     and Technology (TIST), 13(4):1–21, 2022.
+597
+598   Zijun Liu, Yanzhe Zhang, Peng Li, Yang Liu, and Diyi Yang. A dynamic LLM-powered agent
+599     network for task-oriented agent collaboration. In First Conference on Language Modeling, 2024.
+600
+        URL https://openreview.net/forum?id=XII0Wp1XA9.
+601   Lingjuan Lyu, Xinyi Xu, Qian Wang, and Han Yu. Collaborative fairness in federated learning. In
+602     Federated Learning: Privacy and Incentive, pp. 189–204. Springer, 2020.
+603
+604
+      Brendan McMahan, Eider Moore, Daniel Ramage, Seth Hampson, and Blaise Aguera y Arcas.
+        Communication-efficient learning of deep networks from decentralized data. In Artificial intelli-
+605
+        gence and statistics, pp. 1273–1282. PMLR, 2017.
+606
+607   OpenAI. Gpt-4 technical report. arXiv preprint arXiv:2303.08774, 2023.
+608
+      Chen Qian, Yufan Dang, Jiahao Li, Wei Liu, Zihao Xie, YiFei Wang, Weize Chen, Cheng Yang,
+609
+        Xin Cong, Xiaoyin Che, Zhiyuan Liu, and Maosong Sun. Experiential co-learning of software-
+610
+        developing agents. In Lun-Wei Ku, Andre Martins, and Vivek Srikumar (eds.), Proceedings
+611     of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long
+612     Papers), pp. 5628–5640, Bangkok, Thailand, August 2024a. Association for Computational Lin-
+613     guistics. doi: 10.18653/v1/2024.acl-long.305. URL https://aclanthology.org/2024.
+614     acl-long.305/.
+615
+      Chen Qian, Wei Liu, Hongzhang Liu, Nuo Chen, Yufan Dang, Jiahao Li, Cheng Yang, Weize
+616
+        Chen, Yusheng Su, Xin Cong, Juyuan Xu, Dahai Li, Zhiyuan Liu, and Maosong Sun. Chat-
+617
+        Dev: Communicative agents for software development. In Lun-Wei Ku, Andre Martins, and
+618     Vivek Srikumar (eds.), Proceedings of the 62nd Annual Meeting of the Association for Com-
+619     putational Linguistics (Volume 1: Long Papers), pp. 15174–15186, Bangkok, Thailand, August
+620     2024b. Association for Computational Linguistics. doi: 10.18653/v1/2024.acl-long.810. URL
+621     https://aclanthology.org/2024.acl-long.810/.
+622
+623
+      Chen Qian, Zihao Xie, YiFei Wang, Wei Liu, Kunlun Zhu, Hanchen Xia, Yufan Dang, Zhuoyun Du,
+        Weize Chen, Cheng Yang, Zhiyuan Liu, and Maosong Sun. Scaling large language model-based
+624
+        multi-agent collaboration. In The Thirteenth International Conference on Learning Representa-
+625
+        tions, 2025. URL https://openreview.net/forum?id=K3n5jPkrU6.
+626
+627   Qwen, :, An Yang, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen Yu, Chengyuan
+628    Li, Dayiheng Liu, Fei Huang, Haoran Wei, Huan Lin, Jian Yang, Jianhong Tu, Jianwei Zhang,
+629    Jianxin Yang, Jiaxi Yang, Jingren Zhou, Junyang Lin, Kai Dang, Keming Lu, Keqin Bao, Kexin
+630
+       Yang, Le Yu, Mei Li, Mingfeng Xue, Pei Zhang, Qin Zhu, Rui Men, Runji Lin, Tianhao Li,
+       Tianyi Tang, Tingyu Xia, Xingzhang Ren, Xuancheng Ren, Yang Fan, Yang Su, Yichang Zhang,
+631
+       Yu Wan, Yuqiong Liu, Zeyu Cui, Zhenru Zhang, and Zihan Qiu. Qwen2.5 technical report, 2025.
+632
+       URL https://arxiv.org/abs/2412.15115.
+633
+634   Nils Reimers and Iryna Gurevych. Sentence-bert: Sentence embeddings using siamese bert-
+635     networks. In Proceedings of the 2019 Conference on Empirical Methods in Natural Language
+636     Processing. Association for Computational Linguistics, 11 2019. URL https://arxiv.
+637     org/abs/1908.10084.
+638   David Rein, Betty Li Hou, Asa Cooper Stickland, Jackson Petty, Richard Yuanzhe Pang, Julien
+639     Dirani, Julian Michael, and Samuel R. Bowman. GPQA: A graduate-level google-proof q&a
+640     benchmark. In First Conference on Language Modeling, 2024. URL https://openreview.
+641     net/forum?id=Ti67584b98.
+642
+      Ljubomir Rokvic, Panayiotis Danassis, Sai Praneeth Karimireddy, and Boi Faltings. Lia: Privacy-
+643
+        preserving data quality evaluation in federated learning using a lazy influence approximation. In
+644
+        2024 IEEE International Conference on Big Data (BigData), pp. 8005–8014. IEEE, 2024.
+645
+646   Lloyd S Shapley. A value for n-person games. In Harold W. Kuhn and Albert W. Tucker (eds.),
+647     Contributions to the Theory of Games II, pp. 307–317. Princeton University Press, Princeton,
+        1953.
+
+
+                                                      12
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+648
+      Vighnesh Subramaniam, Yilun Du, Joshua B. Tenenbaum, Antonio Torralba, Shuang Li, and
+649     Igor Mordatch. Multiagent finetuning: Self improvement with diverse reasoning chains. In
+650     The Thirteenth International Conference on Learning Representations, 2025. URL https:
+651     //openreview.net/forum?id=JtGPIZpOrz.
+652
+653   Xiangru Tang, Anni Zou, Zhuosheng Zhang, Ziming Li, Yilun Zhao, Xingyao Zhang, Arman Co-
+654
+        han, and Mark Gerstein. MedAgents: Large language models as collaborators for zero-shot med-
+        ical reasoning. In Lun-Wei Ku, Andre Martins, and Vivek Srikumar (eds.), Findings of the As-
+655
+        sociation for Computational Linguistics: ACL 2024, pp. 599–621, Bangkok, Thailand, August
+656
+        2024. Association for Computational Linguistics. doi: 10.18653/v1/2024.findings-acl.33. URL
+657     https://aclanthology.org/2024.findings-acl.33/.
+658
+659   Nurbek Tastan, Samar Fares, Toluwani Aremu, Samuel Horváth, and Karthik Nandakumar. Redefin-
+660     ing contributions: Shapley-driven federated learning. In Kate Larson (ed.), Proceedings of the
+661
+        Thirty-Third International Joint Conference on Artificial Intelligence, IJCAI-24, pp. 5009–5017.
+        International Joint Conferences on Artificial Intelligence Organization, 8 2024. Main Track.
+662
+663   Nurbek Tastan, Samuel Horváth, and Karthik Nandakumar. Aequa: Fair model rewards in collab-
+664     orative learning via slimmable networks. In Forty-second International Conference on Machine
+665     Learning, 2025a. URL https://openreview.net/forum?id=Tw81RElDpe.
+666
+      Nurbek Tastan, Samuel Horváth, and Karthik Nandakumar. CYCle: Choosing your collabora-
+667
+        tors wisely to enhance collaborative fairness in decentralized learning. Transactions on Machine
+668     Learning Research, 2025b. ISSN 2835-8856. URL https://openreview.net/forum?
+669     id=ygqNiLQqfH.
+670
+671   Team TII. The falcon 3 family of open models, December 2024.
+672   Guan Wang, Charlie Xiaoqian Dang, and Ziye Zhou. Measure contribution of participants in fed-
+673     erated learning. In 2019 IEEE international conference on big data (Big Data), pp. 2597–2604.
+674     IEEE, 2019.
+675
+676   Tianhao Wang, Johannes Rausch, Ce Zhang, Ruoxi Jia, and Dawn Song. A principled approach to
+677
+        data valuation for federated learning. Federated Learning: Privacy and Incentive, pp. 153–167,
+        2020.
+678
+679   Yubo Wang, Xueguang Ma, Ge Zhang, Yuansheng Ni, Abhranil Chandra, Shiguang Guo, Weim-
+680     ing Ren, Aaran Arulraj, Xuan He, Ziyan Jiang, Tianle Li, Max Ku, Kai Wang, Alex Zhuang,
+681     Rongqi Fan, Xiang Yue, and Wenhu Chen. MMLU-pro: A more robust and challenging multi-
+682     task language understanding benchmark. In The Thirty-eight Conference on Neural Information
+683     Processing Systems Datasets and Benchmarks Track, 2024. URL https://openreview.
+684
+        net/forum?id=y10DM6R2r3.
+685   Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Fei Xia, Ed Chi, Quoc V Le, Denny
+686     Zhou, et al. Chain-of-thought prompting elicits reasoning in large language models. Advances in
+687     neural information processing systems, 35:24824–24837, 2022.
+688
+689
+      Qingyun Wu, Gagan Bansal, Jieyu Zhang, Yiran Wu, Beibin Li, Erkang Zhu, Li Jiang, Xiaoyun
+        Zhang, Shaokun Zhang, Jiale Liu, Ahmed Hassan Awadallah, Ryen W White, Doug Burger, and
+690
+        Chi Wang. Autogen: Enabling next-gen LLM applications via multi-agent conversations. In First
+691
+        Conference on Language Modeling, 2024. URL https://openreview.net/forum?id=
+692     BAakY1hNKS.
+693
+694   Xinyi Xu, Lingjuan Lyu, Xingjun Ma, Chenglin Miao, Chuan Sheng Foo, and Bryan Kian Hsiang
+695     Low. Gradient driven rewards to guarantee fairness in collaborative machine learning. In
+696
+        M. Ranzato, A. Beygelzimer, Y. Dauphin, P.S. Liang, and J. Wortman Vaughan (eds.), Ad-
+        vances in Neural Information Processing Systems, volume 34, pp. 16104–16117. Curran
+697
+        Associates, Inc., 2021. URL https://proceedings.neurips.cc/paper_files/
+698
+        paper/2021/file/8682cc30db9c025ecd3fee433f8ab54c-Paper.pdf.
+699
+700   Rui Ye, Keduan Huang, Qimin Wu, Yuzhu Cai, Tian Jin, Xianghe Pang, Xiangrui Liu, Jiaqi Su,
+701     Chen Qian, Bohan Tang, et al. Maslab: A unified and comprehensive codebase for llm-based
+        multi-agent systems. arXiv preprint arXiv:2505.16988, 2025a.
+
+
+                                                     13
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+702
+      Rui Ye, Shuo Tang, Rui Ge, Yaxin Du, Zhenfei Yin, Siheng Chen, and Jing Shao. MAS-GPT: Train-
+703     ing LLMs to build LLM-based multi-agent systems. In Forty-second International Conference on
+704     Machine Learning, 2025b. URL https://openreview.net/forum?id=3CiSpY3QdZ.
+705
+706   Zheni Zeng, Bangchen Yin, Shipeng Wang, Jiarui Liu, Cheng Yang, Haishen Yao, Xingzhi Sun,
+707     Maosong Sun, Guotong Xie, and Zhiyuan Liu. ChatMol: Interactive Molecular Discovery
+708
+        with Natural Language. In Bioinformatics, 2024. URL https://doi.org/10.1093/
+        bioinformatics/btae534.
+709
+710   An Zhang, Yuxin Chen, Leheng Sheng, Xiang Wang, and Tat-Seng Chua. On generative agents in
+711     recommendation. In Proceedings of the 47th international ACM SIGIR conference on research
+712     and development in Information Retrieval, pp. 1807–1817, 2024.
+713
+      Guibin Zhang, Yanwei Yue, Zhixun Li, Sukwon Yun, Guancheng Wan, Kun Wang, Dawei Cheng,
+714
+        Jeffrey Xu Yu, and Tianlong Chen. Cut the crap: An economical communication pipeline for
+715
+        LLM-based multi-agent systems. In The Thirteenth International Conference on Learning Rep-
+716     resentations, 2025a. URL https://openreview.net/forum?id=LkzuPorQ5L.
+717
+718   Guibin Zhang, Yanwei Yue, Xiangguo Sun, Guancheng Wan, Miao Yu, Junfeng Fang, Kun Wang,
+719     Tianlong Chen, and Dawei Cheng. G-designer: Architecting multi-agent communication topolo-
+720     gies via graph neural networks. In Forty-second International Conference on Machine Learning,
+721
+        2025b. URL https://openreview.net/forum?id=LpE54NUnmO.
+722   Jiayi Zhang, Jinyu Xiang, Zhaoyang Yu, Fengwei Teng, Xiong-Hui Chen, Jiaqi Chen, Mingchen
+723      Zhuge, Xin Cheng, Sirui Hong, Jinlin Wang, Bingnan Zheng, Bang Liu, Yuyu Luo, and Chenglin
+724      Wu. AFlow: Automating agentic workflow generation. In The Thirteenth International Confer-
+725      ence on Learning Representations, 2025c. URL https://openreview.net/forum?id=
+726      z5uVAKwmjf.
+727
+      Yanzhao Zhang, Mingxin Li, Dingkun Long, Xin Zhang, Huan Lin, Baosong Yang, Pengjun
+728
+        Xie, An Yang, Dayiheng Liu, Junyang Lin, Fei Huang, and Jingren Zhou. Qwen3 embed-
+729     ding: Advancing text embedding and reranking through foundation models, 2025d. URL
+730     https://arxiv.org/abs/2506.05176.
+731
+732   Zheyuan Zhang, Daniel Zhang-Li, Jifan Yu, Linlu Gong, Jinchang Zhou, Zhanxin Hao, Jianx-
+733     iao Jiang, Jie Cao, Huiqin Liu, Zhiyuan Liu, Lei Hou, and Juanzi Li. Simulating classroom
+734
+        education with LLM-empowered agents. In Luis Chiruzzo, Alan Ritter, and Lu Wang (eds.),
+        Proceedings of the 2025 Conference of the Nations of the Americas Chapter of the Associ-
+735
+        ation for Computational Linguistics: Human Language Technologies (Volume 1: Long Pa-
+736
+        pers), pp. 10364–10379, Albuquerque, New Mexico, April 2025e. Association for Computa-
+737     tional Linguistics. ISBN 979-8-89176-189-6. doi: 10.18653/v1/2025.naacl-long.520. URL
+738     https://aclanthology.org/2025.naacl-long.520/.
+739
+740   Mingchen Zhuge, Wenyi Wang, Louis Kirsch, Francesco Faccio, Dmitrii Khizbullin, and Jürgen
+741    Schmidhuber. GPTSwarm: Language agents as optimizable graphs. In Ruslan Salakhutdi-
+742
+       nov, Zico Kolter, Katherine Heller, Adrian Weller, Nuria Oliver, Jonathan Scarlett, and Felix
+       Berkenkamp (eds.), Proceedings of the 41st International Conference on Machine Learning, vol-
+743
+       ume 235 of Proceedings of Machine Learning Research, pp. 62743–62767. PMLR, 21–27 Jul
+744
+       2024. URL https://proceedings.mlr.press/v235/zhuge24a.html.
+745
+746   Mingchen Zhuge, Changsheng Zhao, Dylan R. Ashley, Wenyi Wang, Dmitrii Khizbullin, Yun-
+747    yang Xiong, Zechun Liu, Ernie Chang, Raghuraman Krishnamoorthi, Yuandong Tian, Yangyang
+748    Shi, Vikas Chandra, and Jürgen Schmidhuber. Agent-as-a-judge: Evaluate agents with agents.
+749    In Forty-second International Conference on Machine Learning, 2025. URL https://
+750
+       openreview.net/forum?id=Nn9POI9Ekt.
+751
+752
+753
+754
+755
+
+
+
+                                                    14
+756
+      Contents
+757
+758   1   Introduction                                                                                    1
+759
+760   2   Methodology                                                                                     2
+761       2.1 System Overview . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       3
+762       2.2 Decentralized Initialization . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    3
+763
+          2.3 Contribution Estimation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     3
+          2.4 Communication Graph Formation . . . . . . . . . . . . . . . . . . . . . . . . . .           4
+764
+          2.5 Response Propagation and Aggregation . . . . . . . . . . . . . . . . . . . . . . .          5
+765
+          2.6 Probabilistic Modeling of Multi-Agent System . . . . . . . . . . . . . . . . . . .          5
+766
+767   3   Experiments                                                                                     6
+768       3.1 Main Experimental Results . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       7
+769       3.2 Scaling Laws . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      8
+770       3.3 Heterogeneous Agents . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        8
+771
+772
+      4   Related Work                                                                                    9
+773
+      5   Conclusion                                                                                     9
+774
+775   A Mathematical Proofs                                                                              16
+776     A.1 Proof of Theorem 1 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       16
+777     A.2 Proof of Corollary 1 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     17
+778     A.3 Proof of Lemma 1 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       17
+779     A.4 Proof of Lemma 2 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       17
+780
+      B Implementation Details                                                                           18
+781
+782   C Graph Formation Function                                                                         20
+783
+784   D Additional Experiments                                                                           20
+785     D.1 Weak Agent in a Pool . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       20
+786     D.2 Token Consumption . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        21
+787     D.3 Efficient S ELF O RG . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     22
+788     D.4 Embedding Model . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .          24
+789
+      E Ablation Study                                                                                   25
+790
+        E.1 Number of Agents . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       25
+791     E.2 To Reform or Not To Reform . . . . . . . . . . . . . . . . . . . . . . . . . . . . .         26
+792
+793
+794
+795
+796
+797
+798
+799
+800
+801
+802
+803
+804
+805
+806
+807
+808
+809
+
+
+
+                                                       15
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+810
+      A     M ATHEMATICAL P ROOFS
+811
+812
+      A.1   P ROOF OF T HEOREM 1
+813
+814   Proof. We adapt the argument of (Xu et al., 2021) to our setting.
+815
+      By definition,
+816
+817
+                  X                                                                   |S|!(N − |S| − 1)!
+        ϕn =                 wS ∆n (S),    ∆n (S) = v(S ∪ {n}) − v(S),         wS =                      . (8)
+818                                                                                          N!
+                S⊆[N ]\{n}
+819
+820             P                          1
+                                                    PN
+      Let x =     j∈S rm and recall ravg = N             j=1 rm .
+821
+822
+823
+      Exact decomposition.          Expanding the marginal contribution (difference in the utilities) ∆n (S)
+      and regrouping gives
+824
+825
+826                   ∆n (S)       =   v(S ∪ {n}) − v(S)                                                   (9)
+827
+                                         ⟨x + rn , ravg ⟩      ⟨x, ravg ⟩
+828                                =                        −                                             (10)
+829
+                                       ∥x + rn ∥∥ravg ∥ ∥x∥∥ravg ∥
+                                                                                        
+830                                        1      ⟨x, ravg ⟩     ⟨x, ravg ⟩ ⟨rn , ravg ⟩
+                                   =                           −            +                             (11)
+831                                    ∥ravg ∥ ∥x + rn ∥            ∥x∥       ∥x + rn ∥
+832
+                                                                                               
+                                           1      ∥x∥ − ∥x + rn ∥ ⟨x, ravg ⟩ ⟨rn , ravg ⟩
+833                                =                                  ·           +                       (12)
+                                       ∥ravg ∥        ∥x + rn ∥           ∥x∥       ∥x + rn ∥
+834
+                                       ∥x∥ − ∥x + rn ∥ ⟨x, ravg ⟩              1     ⟨rn , ravg ⟩
+835                                =                                    +                                 (13)
+836                                         ∥x + rn ∥       ∥x∥∥ravg ∥ ∥x + rn ∥ ∥ravg ∥
+837                                    ∥x∥ − ∥x + rn ∥                  ∥rn ∥
+                                   =                        ·v(S) +             ·ψn                       (14)
+838                                         ∥x + rn ∥                ∥x + rn ∥
+839
+                                       |       {z         }          | {z }
+                                               AS                         BS
+840
+841
+                                                                       ∥x∥ − ∥x + rn ∥            ∥rn ∥
+      where v(S) = cos(x, ravg ) and ψn = cos(rn , ravg ). AS =                        and BS =           .
+842                                                                       ∥x + rn ∥             ∥x + rn ∥
+843   Plugging this back into the original equation of Shapley value gives the exact split
+844                                           "           #
+                         X                     X                            X
+845                ϕn =      wS AS v(S) +          wS BS ψn = Ln ψn +           wS AS v(S).               (15)
+846                           S                      S                            S
+847
+848   Bounding the error.         Consider the ratio
+849                               |AS | |v(S)|   |∥x∥ − ∥x + rn ∥| | cos(x, ravg )|
+850                                            =                  ·                 .                     (16)
+                                    BS ψn               Γ           cos(rn , ravg )
+851
+852
+      Using (i) the reverse triangle inequality |∥x∥ − ∥x + rn ∥| ≤ ∥rn ∥ = Γ, (ii) | cos(x, ravg )| ≤ 1, and
+853                                                   1
+854   (iii) the alignment assumption (|⟨rn , ravg ⟩| ≥ ), we obtain
+                                                      I
+855
+856                                    |AS | |v(S)|
+                                                    ≤ I Γ ∥ravg ∥ ≤ I Γ2 ,                         (17)
+857                                       BS ψn
+858   using ∥ravg ∥ ≤ Γ (average of Γ-norm vectors). Averaging with weights wS (linear interpolation in
+859   our case) preserves this bound, yielding
+860
+                                                    ϕn − Ln ψn ≤ I Γ2 .                                   (18)
+861
+862
+      This concludes the proof.
+863
+
+
+
+                                                              16
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+864
+      A.2     P ROOF OF C OROLLARY 1
+865
+866   Proof. From Theorem 1, we can write
+867                                                       Rℓ
+868                                            ϕeℓ = ψℓ +    ,         |Rℓ | ≤ IΓ2 .                               (19)
+                                                          Lℓ
+869
+870   Then,
+                                                                                                            2
+871                                                 |Rn | |Rk |                2IΓ
+                           ϕen − ϕek ≥ (ψn − ψk ) −      −      ≥ (ψn − ψk ) −     .                               (20)
+872                                                  Ln    Lk                   L
+873
+874   Hence, if ψn − ψk > 2IΓ2 /L, then ϕen > ϕek .
+875
+876
+877   A.3     P ROOF OF L EMMA 1
+878
+      Proof. By independence, Pr[Xc ] = p2 and Pr[Xi ] =                        2
+                                                                        P
+879                                                                          k pk . Using dispersion,
+880
+881                     K                       K
+                        X                       X                                                 p2
+882                           p2k ≤ (max pk )         pk = (1 − p) max pk ≤ (1 − p)                  = p2 .        (21)
+883
+                                        k                                k                       1−p
+                        k=1                     k=1
+884
+      Strict inequality holds unless all mass concentrates on a single incorrect option at exactly maxk pk =
+885    p2
+886   1−p . Hence, agreement is more likely on the correct answer.
+887   This completes the proof.
+888
+889
+890
+891
+      A.4     P ROOF OF L EMMA 2
+892   Proof. Fix n ∈ S. Decompose
+893                                                             X                      X
+894                               ⟨rn , ravg ⟩ = ⟨rn , rn ⟩ +          ⟨rn , rm ⟩ +           ⟨rn , ru ⟩.          (22)
+895                                                             j∈S                    u∈S
+                                                                                        /
+                                                                j̸=i
+896
+897   By assumptions (i)-(ii),
+898
+              ⟨rn , rn ⟩ = Γ2 ,        ⟨rn , rm ⟩ ≥ Γ2 α (j ∈ S \ {i}),               ⟨rn , ru ⟩ ≤ Γ2 β (u ∈
+                                                                                                           / S).   (23)
+899
+900   Hence
+901                                 ⟨rn , ravg ⟩ ≥ Γ2 + (m − 1) Γ2 α + (N − m) Γ2 β.                               (24)
+902
+903
+      Now fix k ∈
+                / S. Similarly,
+                                                                X                      X
+904                               ⟨rk , ravg ⟩ = ⟨rk , rk ⟩ +          ⟨rk , rv ⟩ +           ⟨rk , rw ⟩.          (25)
+905                                                             v∈S                    w∈S
+                                                                                         /
+                                                                                       w̸=k
+906
+907
+      By assumptions (ii)-(iii),
+908
+909
+                      ⟨rk , ravg ⟩ ≤ Γ2 + m Γ2 β + (N − m − 1) Γ2 β = Γ2 + (N − 1) Γ2 β.                           (26)
+910
+      Subtracting yields
+911
+912                                ⟨rn , ravg ⟩ − ⟨rk , ravg ⟩ ≥ (m − 1) (α − β) Γ2 > 0.                           (27)
+913
+      Since avg ψr = cos(rr , ravg ) share the same denominator ∥rr ∥ ∥ravg ∥ = Γ ∥ravg ∥, the inequality
+914
+      implies ψn > ψk .
+915
+916   This completes the proof.
+917
+
+
+
+                                                                17
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+918
+      B    I MPLEMENTATION D ETAILS
+919
+920   Baselines.   We use the benchmark authors’ implementations where available (Ye et al., 2025a).
+921
+922         • MacNet (Qian et al., 2025) is run with 5 agents and the random topology, following the
+923           paper’s strongest reported configuration.
+924         • DyLAN (Liu et al., 2024) uses 4 agents and 3 rounds.
+925
+            • AgentVerse (Chen et al., 2024) and AutoGen (Wu et al., 2024) are run with their public
+926           defaults adapted to the benchmark.
+927
+            • G-Designer (Zhang et al., 2025b) is evaluated on Qwen-2.5-1.5B-Instruct; we omit larger
+928
+              models because it requires training a separate graph generator, and thus latency-inefficient
+929           (see Sections 1 and 4 for discussion).
+930
+931            We include G-Designer (Zhang et al., 2025b) in our Qwen-1.5B experiments, as it is
+932            among the most closely related graph-optimizing methods. However, its design differs
+933            fundamentally from S ELF O RG. G-Designer trains a separate graph generator that outputs
+934            a communication topology conditioned on the query and predefined agent roles. While this
+935            is effective with stronger backbones, it does not adapt to the responses actually produced
+936            by weak agents, which are often noisy. As a result, its learned graphs fail to amplify correct
+937            signals in the low-capacity regime, leading to poor empirical performance (see Table 1).
+938
+939           For larger models, we do not run G-Designer, since it requires training a dedicated
+940           graph generator. This introduces substantial overhead and deviates from our goal of ef-
+941
+              ficient, judge-free orchestration. Our design philosophy emphasizes lightweight, response-
+              conditioned self-organization without external generators or meta-agents, as discussed in
+942
+              Sections 1 and 4.
+943
+944
+            • To compare with single agent execution methods, we incorporate evaluations against sin-
+              gle execution and chain-of-thought (CoT) prompting (Wei et al., 2022).
+945
+946
+      S ELF O RG configuration.     S ELF O RG is configured as:
+947
+948         • Agent pool:       {Assistant, Programmer, Mathematician, Economist,
+949           Psychologist, Historian, Lawyer, Doctor}.
+950         • Number of agents: for math-based tasks: 4 agents with fixed roles (from the pool), and
+951           for science and knowledge: 5 agents up to psychologist.
+952
+            • Neighbor selection: top-2 neighbors per agent (by pairwise cosine similarity S); similarity
+953
+              threshold τ = 0.5 for edge formation.
+954
+            • Rounds and structure: maximum of 3 rounds (including decentralized initialization);
+955
+              with DAG enforcement.
+956
+957         • Contribution estimation: we use all-MiniLM-L6-v2 embedding model with embed-
+958
+              ding dimension of 384 (lightweight sentence embedding model).
+959         • Aggregation: contribution-weighted centroid (Equation 6); final answer is the nearest re-
+960           sponse to the centroid.
+961         • Reform policy: we reform the DAG in each round from updated responses.
+962
+963   Agent Profiling. We adopt a standard community template for defining agent roles, widely used
+964   in prior multi-agent system benchmarks. In our experiments, a subset of four/five agents is instan-
+965   tiated per run (default), selected in fixed order unless otherwise specified. Each role is assigned a
+966
+      default prompt template (system instruction) from the benchmark community, without additional
+      fine-tuning or hand-engineering. This ensures that performance differences arise from orchestration
+967
+      rather than custom role design.
+968
+969   The role descriptions are provided below.
+970
+971   Evaluation. We use a direct scoring approach using a task-specific evaluator (xVerify (Chen et al.,
+      2025)), which is fine-tuned to assess correctness across various domains (Ye et al., 2025a).
+
+
+                                                        18
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+972
+          Assistant
+973
+974       You are a super-intelligent AI assistant capable of performing tasks
+          more effectively than humans.
+975
+976
+977
+          Mathematician
+978
+979       You are a mathematician.
+980       You are good at math games, arithmetic calculation, and long-term
+          planning.
+981
+982
+983
+          Economist
+984
+985       You are an economist.
+986       You are good at economics, finance, and business. You have
+          experience on understanding charts while interpreting the
+987
+          macroeconomic environment prevailing across world economies.
+988
+989
+990
+          Psychologist
+991
+992       You are a psychologist.
+993       You are good at psychology, sociology, and philosophy. You give
+          people scientific suggestions that will make them feel better.
+994
+995
+996
+          Programmer
+997
+998       You are a programmer.
+999       You are good at computer science, engineering, and physics. You
+          have experience in designing and developing computer software and
+1000
+          hardware.
+1001
+1002
+1003      Historian
+1004
+          You are a historian.
+1005
+          You research and analyze cultural, economic, political, and social
+1006      events in the past, collect data from primary sources and use it
+1007      to develop theories about what happened during various periods of
+1008      history.
+1009
+1010
+1011      Lawyer
+1012
+          You are a lawyer.
+1013      You are good at law, politics, and history.
+1014
+1015
+1016      Doctor
+1017
+          You are a doctor and come up with creative treatments for illnesses
+1018
+          or diseases. You are able to recommend conventional medicines,
+1019      herbal remedies and other natural alternatives. You also consider
+1020      the patient’s age, lifestyle and medical history when providing your
+1021      recommendations.
+1022
+1023
+1024
+1025
+
+
+
+                                                    19
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1026
+       C     G RAPH F ORMATION F UNCTION
+1027
+1028
+1029   Algorithm 2 Graph Formation
+1030   Require: Responses {Rn }N    n=1 , similarity threshold τ , optional neighbor budget k
+1031   Ensure: Graph G = (V, E), topological order π, contribution scores {ψn }N      n=1
+1032    1: Compute embeddings rn ← f (Rn ), ∀n ∈ [N ]
+1033    2: Form similarity matrix S
+1034    3: Get contribution scores {ψn }N  n=1 (Eq. 3)
+1035    4: Initialize edge set E ← {}
+        5: for n = 1 to N do
+1036
+        6:     N ← { m ̸= n : Sn,m ≥ τ }
+1037
+        7:     if k specified then
+1038
+        8:          keep top-k in N
+1039    9:     end if
+1040   10:     for m ∈ N do
+1041   11:          add edge em→n to E
+1042   12:     end for
+1043   13: end for
+1044   14: while E contains a cycle do
+1045   15:     Identify cycle C
+1046   16:     Remove edge from lower-ψ to higher-ψ node in C
+       17: end while
+1047
+       18: Obtain topological order π of G = (V, E)
+1048
+       19: return (G, π, {ψn })
+1049
+1050
+1051
+1052
+       D     A DDITIONAL E XPERIMENTS
+1053
+       D.1   W EAK AGENT IN A P OOL
+1054
+1055   To test the robustness of S ELF O RG in a setting with a weak agent present, we evaluate configurations
+1056   where weaker agents are introduced alongside stronger peers. Figure 5 reports the distribution of
+1057   contribution ranks assigned across two scenarios: (i) three powerful agents backed by the Qwen-
+1058   2.5-7B-Instruct model paired with one Qwen-2.5-1.5B-Instruct agent, and (ii) two agents of each
+1059   type.
+1060   Table 3 summarizes AQUA-RAT performance under these settings. In case (i), where three strong
+1061   and one weak agent are present, the single-agent performance is 71.65, while S ELF O RG raises it to
+1062   75.98, approaching the 76.77 level achieved when all four agents are strong. In case (ii), with two
+1063   strong and two weak agents, S ELF O RG again yields large gains, improving accuracy from 66.54 in
+1064   the single baseline to 74.80. These results demonstrate that S ELF O RG is able to reliably mitigate
+1065   the drag introduced by weaker models, often recovering performance close to the all-strong setting.
+1066
+1067
+       Table 3: Performance with weak agents in the pool (AQUA-RAT). Comparison of S ELF O RG
+       against single-agent baselines in the (3 strong vs 1 weak) and (2 strong vs 2 weak) settings.
+1068
+1069
+        Method       A1   A2     A3    A4     AQUA-RAT    Note
+1070
+        Single                 1.5B             51.18     Single agent; Qwen-1.5B backbone (single weak)
+1071    Single                  7B              76.77     Single agent; Qwen-7B backbones (single strong)
+1072
+        Single       7B   7B     7B    1.5B     71.65     Backbone assignment is random per query (7B prob. 0.75)
+1073    S ELF O RG   7B   7B     7B    1.5B     75.98     Each agent uses its fixed backbone
+1074    Single       7B   7B    1.5B   1.5B     66.54     Backbone assignment is random per query (7B prob. 0.5)
+1075    S ELF O RG   7B   7B    1.5B   1.5B     74.80     Each agent uses its fixed backbone
+1076
+1077   In setting (i), the weak agent is consistently identified as the least contributive, being placed in
+1078   rank-4 in the majority of runs (68.1%). The stronger 7B models distribute across the higher ranks,
+1079   demonstrating that the contribution estimation mechanism sharply separates weak from strong par-
+       ticipants. The observation supports the theoretical guarantee in Section 2.6, namely that agreement
+
+
+                                                         20
+         Under review as a conference paper at ICLR 2026
+
+
+
+
+1080
+         among correct agents amplifies their contribution scores, relegating weaker outliers downstream in
+1081     the communication graph.
+1082
+1083     The case (ii) exhibits a more competitive dynamic. While the .15B agents remain overrepresented
+1084
+         in the lower ranks, they also occasionally occupy intermediate positions (ranks 2 and 3), and the
+         separation between strong and weak agents becomes less pronounced (due to the fact that the weak
+1085
+         agents occasionally produce correct answers, thus leading to increased variability in contribution
+1086
+         signals). Nevertheless, the stronger agents still dominate the top positions, ensuring that information
+1087     flow in the communication graph is largely governed by higher-quality responses.
+1088
+1089                                                                                                                                       40
+1090                                         7B 38.6 26.4 26.4 8.7                 40           7B 40.2 26.8 21.6 11.4
+1091
+                                                                                                                                           35
+1092                                         7B 27.2 34.2 27.2 11.4                30           7B 30.7 35.8 16.9 16.5                     30
+1093                                                                                                                                       25
+1094                                         7B 31.5 31.9 24.8 11.8                20         1.5B 14.2 18.9 33.5 33.5
+                                                                                                                                           20
+1095
+                                            1.5B 2.8    7.5 21.6 68.1              10         1.5B 15.0 18.5 27.9 38.6                     15
+1096
+1097                                               1     2           3      4                             1     2          3   4
+1098                                                         Rank                                                   Rank
+1099
+         Figure 5: Heatmaps of ranking outcomes with a weak agent in the pool. Each heatmap depicts the
+1100
+         percentage (%) of times agents were assigned to contribution ranks (rank 1 = highest contribution,
+1101
+         rank 4 = weakest). The y-axis denotes the model type (Qwen-2.5-{7,1.5}B-Instruct) assigned to
+1102     each agent.
+1103
+1104
+1105      D.2                     T OKEN C ONSUMPTION
+1106
+1107     We compare S ELF O RG to prior coordination frameworks with respect to both accuracy and token
+1108     efficiency. Figures 6 and 7 visualize this trade-off, where bubble area corresponds to total token
+1109     usage. For clarity, only DyLAN and MacNet are included among the baselines in the plots. Although
+1110     AgentVerse and AutoGen achieve lower token usage than all other methods, their performance is
+1111     substantially weaker (Table 1), with AutoGen in particular failing across nearly all benchmarks.
+1112
+         Since our objective is to highlight the efficiency of coordination methods that remain competitive in
+         accuracy, we restrict the visualization to DyLAN and MacNet.
+1113
+1114     By contrast, DyLAN and MacNet represent stronger baselines that consume a similar number of
+1115     tokens as S ELF O RG . DyLAN exhibits relatively competitive performance on some reasoning tasks,
+1116     but its overall average lags behind, especially on challenging datasets such as MMLU-Pro. MacNet
+1117     shows modest efficiency advantages in prompt token usage but suffers from accuracy degradation
+1118
+         across nearly all tasks. In both cases, S ELF O RG outperforms these baselines in accuracy while
+         maintaining a comparable token budget, indicating a more favorable accuracy-efficiency trade-off.
+1119
+1120
+                                  1e6   AQUA-RAT               1e6        MATH                      1e6       MMLU                       1e6    AVG
+1121                                                    2.25
+                           1.50
+1122                                                                                         2.10
+       Token consumption
+
+
+
+
+                                                        2.00                                                                       1.8
+1123                       1.45
+                                                        1.75                                 2.05
+1124                       1.40
+1125                                                    1.50                                 2.00                                  1.7
+1126                       1.35                         1.25
+                                                                                        1.95                                       1.6
+1127                                                    1.00
+                                  50.0 52.5 55.0 57.5           46         48 50 52                       45        50                    37.5 40.0 42.5 45.0
+1128                                   Accuracy (%)                      Accuracy (%)                      Accuracy (%)                       Accuracy (%)
+1129                                                                       DyLAN      MacNet                SelfOrg
+1130
+1131     Figure 6: Visualization of performance and completion token consumption. Each bubble corre-
+1132     sponds to a coordination method, with bubble area proportional to token consumption. Correspond-
+1133     ing table: Table 1.
+
+
+
+                                                                                        21
+         Under review as a conference paper at ICLR 2026
+
+
+
+
+1134                             1e6   AQUA-RAT               1e7     MATH                      1e6       MMLU                  1e6    AVG
+1135                                                    1.0                                 6                               6
+                           3.0
+1136   Token consumption   2.5                          0.8                                 5                               5
+1137
+                                                                                            4                               4
+1138                       2.0                          0.6
+                                                                                            3                               3
+1139                       1.5
+                                                        0.4                                 2                               2
+1140                       1.0
+                                                                                            1                               1
+1141                              50.0 52.5 55.0 57.5          46     48 50        52                  45         50             37.5 40.0 42.5 45.0
+1142                                   Accuracy (%)                 Accuracy (%)                        Accuracy (%)                 Accuracy (%)
+1143                                                                   DyLAN            MacNet            SelfOrg
+1144
+1145     Figure 7: Visualization of performance and prompt token consumption. Each bubble corre-
+1146
+         sponds to a coordination method, with bubble area proportional to token consumption. Correspond-
+         ing table: Table 1.
+1147
+1148
+1149
+         Table 4: Token consumption across coordination methods. Completion tokens (top) and prompt
+         tokens (bottom) consumed on each dataset on Qwen-2.5-1.5B-Instruct model. Corresponding table:
+1150
+         Table 1.
+1151
+1152
+                                 Method      MATH       GSM8K           AQUA-RAT            GSM-Hard              MMLU          MMLU-P       AIME
+1153
+1154                                                                    completion tokens
+1155                     DyLAN              2249026     2086972              1312830              2468878         1961663        2786528     238078
+1156                     MacNet             1056599     1806092              1513390              2238769         2137874        2925015     243205
+1157                  AgentVerse            1077488      609241               530435               711561          338957         703302      74665
+                        AutoGen              487744      282592               202713               371429          271488         390695      53990
+1158
+1159                        S ELF O RG      2002530     1858577              1369879              2214019         1934568        1587246     213939
+1160
+1161
+                                 Method       MATH       GSM8K          AQUA-RAT                GSM-Hard           MMLU         MMLU-P       AIME
+1162                                                                       prompt tokens
+1163                     DyLAN             10391904      4706386             3241463                  5719811     6267944       10847226     797505
+1164                     MacNet             2647651       536500              829202                   486320     1149266        1471736      61122
+1165                  AgentVerse            3309868      2048995             1793383                  2283561     1338962        2723973     240881
+1166
+                        AutoGen             2026745      1292144              874703                  1564267     1442236        2050001     176709
+1167                        S ELF O RG       6016239     3836070             2556599                  4351062     4038531         4251306    325588
+1168
+1169
+1170      D.3                     E FFICIENT S ELF O RG
+1171
+1172     While the main pipeline of S ELF O RG proceeds through multiple rounds, not all rounds are equally
+1173     necessary. In practice, if the agents already achieve strong agreement, further refinement may waste
+1174
+         tokens without improving accuracy. To address this, we introduce an early-stopping mechanism
+         based on natural consensus among peers.
+1175
+1176
+1177     Consensus Criterion. Let the similarity matrix S ∈ [−1, 1] be defined as in Section 2.4, where
+1178
+         Si,j = cos (rn , rm ) encodes the pairwise agreement between agents i and j. We define the minimum
+         consensus across all pairs as Smin = mini̸=j Si,j . Intuitively, Smin captures the weakest agreement
+1179
+         within the system. If this minimum exceeds a predefined threshold γ ∈ [0, 1], then the agents are
+1180
+         deemed to have reached sufficient consensus.
+1181
+1182     Formally, the system halts further rounds if Smin ≥ γ, where γ is the consensus parameter con-
+1183     trolling strictness of agreement. For example, γ = 0.9 requires that all pairs of responses have at
+1184
+         least 90% cosine similarity. When satisfied, the system outputs the centroid-based final response
+         (Equation 6) without additional rounds.
+1185
+1186     This mechanism directly builds upon the communication graph formation step (Section 2.4). Since
+1187     embeddings and similarities are already computed, evaluating Smin incurs negligible overhead. By
+         stopping once consensus is achieved, S ELF O RG avoids redundant propagation and aggregation,
+
+
+                                                                                    22
+         Under review as a conference paper at ICLR 2026
+
+
+
+
+1188                              1e6     AQUA-RAT                     1e6       MATH                       1e6     MMLU                    1e6        AVG
+1189                                                            2.00
+                           1.36                                                                       1.9                            1.75
+1190   Token consumption   1.34                                 1.95                                                                 1.70
+1191                                                                                                  1.8
+                           1.32                                 1.90                                                                 1.65
+1192                                                                                                  1.7
+                           1.30                                 1.85                                                                 1.60
+1193
+                           1.28                                                                       1.6
+1194                                                            1.80                                                                 1.55
+                           1.26                                                                       1.5
+1195
+                                   58.0       58.5       59.0          52.0        52.2         52.4              52         53              54.0          54.5
+1196                                      Accuracy (%)                         Accuracy (%)                       Accuracy (%)                      Accuracy (%)
+1197                                                                      SelfOrg         SelfOrg ( =0.9)         SelfOrg ( =0.95)
+1198
+1199     Figure 8: Visualization of performance and completion token consumption across benchmarks
+1200
+         (AQUA-RAT, MATH, MMLU, and overall average). Each point corresponds to a method, with
+         bubble size proportional to token usage. Methods include original S ELF O RG and efficient S ELF O RG
+1201
+         with early stopping at γ = {0.9, 0.95}. Early stopping variants show improved efficiency (fewer
+1202
+         tokens) while maintaining comparable accuracy.
+1203
+1204
+1205     yielding substantial token efficiency. In scenarios where weak agents initially diverge, multiple
+1206     rounds remain valuable; however, when natural agreement arises early, Efficient S ELF O RG prevents
+1207     unnecessary computation.
+1208     Experimental Results. Figure 8 compares the baseline S ELF O RG with its early-stopping variants
+1209     under consensus thresholds γ ∈ {0.9, 0.95} on AQUA-RAT, MATH, and MMLU. All experiments
+1210     were run with N = 4 agents, each selecting its top-2 neighbors, and 3 rounds. We report both
+1211     accuracy and completion token consumption. Bubble sizes reflect token usage, with smaller bubbles
+1212     denoting higher efficiency.
+1213     Baseline S ELF O RG achieves accuracies of 58.27% (AQUA-RAT), 52.40% (MATH), and 53.80%
+1214     (MMLU). Under γ = 0.95, accuracy slightly drops on AQUA-RAT (57.87%), MMLU (51.60%),
+1215     and MATH (52.2%). With a looser threshold γ = 0.9, performance closely matches or even ex-
+1216     ceeds the baseline on AQUA-RAT (59.06%), while remaining comparable on MATH (52.00%) and
+1217     MMLU (51.20%). This indicates that early stopping preserves task quality and, in some cases,
+1218     improves it by preventing over-refinement.
+1219     The key advantage lies in efficiency. Both early-stopping settings consistently reduce token usage
+1220     compared to the baseline. The stricter γ = 0.95 yields moderate savings, while the looser γ = 0.9
+1221     achieves the largest reductions. In relative terms, token usage decreases substantially while accuracy
+1222     remains stable, with savings on the order of 10 − 15% across benchmarks.
+1223
+1224     Summary. Efficient S ELF O RG demonstrates that natural peer consensus can serve as a reliable
+1225     early-stopping signal. By halting once strong agreement is reached, the system avoids redundant
+1226     message-passing rounds, improving token efficiency while preserving accuracy. Unlike prior MAS
+1227     approaches such as DyLAN, which require explicit answer extraction from responses to measure
+1228
+         consensus (and may fail if the LLM deviates from formatting instructions), our method operates
+         purely in the embedding space and thus avoids brittle dependencies on response parsing. Similarly,
+1229
+         works that rely on external LLM judges to check consensus introduce additional computational and
+1230
+         monetary overhead. In contrast, Efficient S ELF O RG is lightweight, model-agnostic, and robust: no
+1231     answer extraction is needed, no external judge is invoked, and consensus is measured semantically
+1232     rather than syntactically. This makes it especially suitable for scaling to large agent pools and diverse
+1233     task domains.
+1234
+         For completeness, we provide Figures 9 and 10, which include efficient S ELF O RG along with the
+1235
+         other baseline methods and depict the performance and completion/prompt token consumption.
+1236
+1237
+1238
+1239
+1240
+1241
+
+
+
+                                                                                                 23
+         Under review as a conference paper at ICLR 2026
+
+
+
+
+1242                              1e6      AQUA-RAT                        1e6         MATH                           1e6       MMLU                       1e6            AVG
+1243                       1.50                                      2.2                                      2.1
+                                                                                                                                                     1.8
+1244   Token consumption   1.45                                      2.0                                      2.0
+1245                                                                 1.8                                      1.9                                    1.7
+                           1.40
+1246                                                                 1.6                                      1.8
+                           1.35
+1247                                                                 1.4                                      1.7                                    1.6
+1248                       1.30                                      1.2                                      1.6
+1249                       1.25                                      1.0                                      1.5
+                                   50             55                            46     48    50     52                       45         50                                50         55
+1250                                       Accuracy (%)                             Accuracy (%)                               Accuracy (%)                           Accuracy (%)
+1251                                                        DyLAN               MacNet        SelfOrg                 SelfOrg ( =0.9)         SelfOrg ( =0.95)
+1252
+1253     Figure 9: Visualization of performance and completion token consumption across benchmarks
+1254     (AQUA-RAT, MATH, MMLU, and overall average). Each point corresponds to a method, with
+1255
+         bubble size proportional to token usage. Methods include DyLAN, MacNet, S ELF O RG and efficient
+         S ELF O RG with early stopping at γ = {0.9, 0.95}.
+1256
+1257
+1258
+                                 1e6       AQUA-RAT                       1e7         MATH                        1e6           MMLU                     1e6              AVG
+1259                                                                1.0                                       6
+                           3.0                                                                                                                       6
+1260
+       Token consumption
+
+
+
+
+                           2.5                                                                                5
+1261                                                                0.8                                                                              5
+                                                                                                              4
+1262                       2.0                                      0.6                                                                              4
+                                                                                                              3
+1263                       1.5                                                                                                                       3
+1264                                                                0.4                                       2
+                           1.0                                                                                                                       2
+1265                                                                                                          1
+                                  50.0 52.5 55.0 57.5                       46       48     50      52                      45         50                    47.5 50.0 52.5 55.0
+1266                                   Accuracy (%)                                Accuracy (%)                              Accuracy (%)                       Accuracy (%)
+1267                                                DyLAN                       MacNet         SelfOrg                SelfOrg ( =0.9)         SelfOrg ( =0.95)
+1268
+1269     Figure 10: Visualization of performance and prompt token consumption across benchmarks
+1270     (AQUA-RAT, MATH, MMLU, and overall average). Each point corresponds to a method, with
+1271     bubble size proportional to token usage. Methods include DyLAN, MacNet, S ELF O RG and efficient
+1272
+         S ELF O RG with early stopping at γ = {0.9, 0.95}.
+1273
+1274
+1275     D.4                       E MBEDDING M ODEL
+1276
+1277
+         In our main experiments, we employ the all-MiniLM-L6-v2 (Reimers & Gurevych, 2019)
+         model, a lightweight embedding model with only 22.7M parameters, to estimate similarity between
+1278
+1279
+1280                                       All-MiniLM                                            All-MPNet                                       Qwen-0.6B-Emb
+1281                       7B 27.2 34.2 27.2 11.4                                     7B 29.5 33.9 30.7 5.9                              7B 32.7 37.8 23.6 5.9                       40
+1282
+1283                       7B 31.5 31.9 24.8 11.8                                     7B 35.0 29.9 25.2 9.8                              7B 35.8 22.8 33.9 7.5                       30
+1284
+1285                       7B 38.6 26.4 26.4 8.7                                      7B 33.9 31.1 27.9 7.1                              7B 28.7 33.5 28.4 9.4                       20
+1286
+1287          1.5B 2.8                      7.5 21.6 68.1                            1.5B 1.6      5.1 16.1 77.2                       1.5B 2.8          5.9 14.2 77.2               10
+1288
+                                       1     2          3      4                             1      2             3         4                    1         2          3         4
+1289                                             Rank                                                    Rank                                                  Rank
+1290
+1291     Figure 11: Embedding model comparison in the weak-agent-in-a-pool scenario. Heatmaps show
+1292     the percentage of times of each agent (rows) being assigned to contribution ranks (columns) when
+1293     using different embedding models for similarity estimation: All-MiniLM (22.7M parameters),
+1294
+         All-MPNet (109M), and Qwen-0.6B (600M). All models are able to correctly identify the weak-
+         est agent (A4), with MPNet and Qwen-0.6B providing sharper separation between strong and weak
+1295
+         agents.
+
+
+                                                                                                         24
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1296
+       agent responses. This choice is intentional: we aim to keep the method efficient and avoid reliance
+1297   on large embedding models, even if this introduces some additional noise into similarity estimates.
+1298
+1299   To validate this design choice, we conduct an ablation study in the weak-agent-in-a-pool scenario us-
+1300
+       ing different embedding models. In addition to all-MiniLM, we evaluate all-MPNet-base-v2 (109M
+       parameters) (Reimers & Gurevych, 2019) and Qwen3-0.6B-Embedding (600M parameters) (Zhang
+1301
+       et al., 2025d). Across all cases, the embedding models are able to correctly identify the weakest
+1302
+       agent: the weak participant is consistently ranked lowest in the majority of runs. Moreover, both
+1303   MPNet and Qwen-0.6B provide sharper separation between strong and weak agents compared to
+1304   MiniLM, reflecting their stronger representational capacity.
+1305
+1306
+       Nevertheless, our goal is to design a coordination mechanism that remains effective with lightweight
+       embeddings. Despite the noisier similarity signals from all-MiniLM, S ELF O RG still succeeds in
+1307
+       differentiating weak and strong contributors and delivers strong overall performance. This confirms
+1308
+       that our approach does not require powerful encoders and can operate effectively under a minimal
+1309   embedding budget, making it broadly applicable in resource-constrained settings.
+1310
+1311
+1312   E     A BLATION S TUDY
+1313
+1314
+1315
+       E.1   N UMBER OF AGENTS
+1316
+       We conduct an ablation study to analyze the effect of the number of agents on both accuracy and
+1317
+       efficiency. Figure 12 reports results for Qwen-2.5-1.5B-Instruct on the AQUA-RAT benchmark. The
+1318
+       left y-axis shows accuracy, while the right y-axis shows token consumption; latency (in seconds) is
+1319   annotated above each bar.
+1320
+1321   We observe that increasing the number of agents improves accuracy, from 53.54% with N = 3
+1322
+       agents to 59.84% with N = 10. However, this gain comes at the cost of both higher token usage
+       (scaling from 1.07M to 3.53M tokens) and longer latency (from 145s to 581s). Interestingly, accu-
+1323
+       racy improvements are not strictly monotonic with N : performance plateaus at 58.27% for N = 5
+1324
+       and N = 7, before rising again at N = 10. This suggests diminishing returns when adding ad-
+1325   ditional weak agents, with benefits re-emerging only when coordination capacity (via K) increases
+1326   sufficiently.
+1327
+1328
+       Overall, the ablation highlights the trade-off between accuracy and efficiency: more agents improve
+       reliability but induce significant computational overhead, pointing to the importance of balancing
+1329
+       scale against efficiency in multi-agent design.
+1330
+1331
+1332                                                 Qwen-1.5B - AQUA-RAT        581 1e6
+                                                                                     s
+                                         60                                             3.5
+1333                                              Accuracy (%)
+1334                                              Token Consumption                     3.0
+                                                                                           Token Consumption
+
+
+
+
+1335
+                                         58                       384 s                 2.5
+                          Accuracy (%)
+
+
+
+
+1336
+1337
+                                         56               235 s                         2.0
+1338                                                185 s                               1.5
+                                         54   145 s
+1339                                                                                    1.0
+1340
+1341
+                                         52                            Standalone (N=1) 0.5
+                                                                                        0.0
+1342                                            3     4     5   6   7     8    9 10
+1343                                                    Number of Agents (N)
+1344
+1345   Figure 12: Ablation on the number of agents. Results for Qwen-2.5-1.5B-Instruct on AQUA-RAT.
+1346   The blue line (left axis) shows accuracy as the number of agents N increases, while orange bars
+1347
+       (right axis) show token consumption. Latency (s) is annotated above each bar. Accuracy improves
+       with more agents, but at the cost of higher latency and token usage, illustrating the trade-off between
+1348
+       performance and efficiency in multi-agent coordination.
+1349
+
+
+
+                                                                  25
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1350
+       E.2   T O R EFORM OR N OT T O R EFORM
+1351
+1352   An important design choice in S ELF O RG is whether to reform the communication graph between
+1353   rounds of interaction. Reforming allows agents to dynamically update their information flow struc-
+1354   ture based on the latest responses, while a static graph keeps the initial topology fixed throughout.
+1355   We conduct an ablation on two benchmarks, GSM8K and MMLU, using N = 5 agents and neighbor
+1356   budget K = 3, to evaluate the impact of graph reform.
+1357
+1358
+                     Table 5: Ablation on reforming the communication graph across rounds.
+1359
+1360
+                                    Dataset     Reform      N     K    Accuracy
+1361                                             True         5   3      73.8
+                                    GSM8K
+1362                                             False        5   3      73.2
+1363                                             True         5   3      52.8
+1364                                MMLU
+                                                 False        5   3      51.4
+1365
+1366
+       As shown in Table 5, reforming the graph consistently improves performance, though the absolute
+1367   gains are modest. This suggests that while the initial communication structure already captures
+1368   useful alignment among agents, dynamically restructuring the graph allows the system to consolidate
+1369   correct signals more effectively, especially on more challenging knowledge-intensive tasks. The
+1370   relatively small gap also indicates that S ELF O RG is robust to whether reform is applied, but benefits
+1371   from it most in settings where agent responses are more diverse and noisy.
+1372
+1373
+1374
+1375
+1376
+1377
+1378
+1379
+1380
+1381
+1382
+1383
+1384
+1385
+1386
+1387
+1388
+1389
+1390
+1391
+1392
+1393
+1394
+1395
+1396
+1397
+1398
+1399
+1400
+1401
+1402
+1403
+
+
+
+                                                         26
+

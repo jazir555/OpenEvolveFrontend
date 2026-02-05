@@ -568,6 +568,39 @@ class ParameterSchema:
         self._add_param("adaptive_mdap_threshold_4", ParameterType.FLOAT, 0.8,
                        "MAKER_FULL to MAKER_ULTRA threshold", "adaptive_mdap", min_value=0.0, max_value=1.0)
         
+        # Category 21: PES Enhanced Configuration (12 parameters)
+        self._add_param("enable_cost_optimization", ParameterType.BOOLEAN, False,
+                       "Enable cost optimization in PES", "pes_enhanced")
+        self._add_param("max_cost_usd", ParameterType.FLOAT, 10.0,
+                       "Maximum budget for PES evolution in USD", "pes_enhanced",
+                       min_value=0.01, max_value=1000.0)
+        self._add_param("cost_warning_threshold", ParameterType.FLOAT, 0.7,
+                       "Budget warning threshold (0.0-1.0)", "pes_enhanced",
+                       min_value=0.0, max_value=1.0)
+        self._add_param("cost_critical_threshold", ParameterType.FLOAT, 0.9,
+                       "Budget critical threshold (0.0-1.0)", "pes_enhanced",
+                       min_value=0.0, max_value=1.0)
+        self._add_param("enable_early_stopping", ParameterType.BOOLEAN, True,
+                       "Enable early stopping in PES", "pes_enhanced")
+        self._add_param("early_stopping_patience", ParameterType.INTEGER, 5,
+                       "Patience for early stopping", "pes_enhanced",
+                       min_value=1, max_value=100)
+        self._add_param("early_stopping_min_improvement", ParameterType.FLOAT, 0.001,
+                       "Minimum improvement threshold for early stopping", "pes_enhanced",
+                       min_value=0.0, max_value=1.0)
+        self._add_param("pes_planning_enabled", ParameterType.BOOLEAN, True,
+                       "Enable PES planning phase", "pes_enhanced")
+        self._add_param("pes_summarization_enabled", ParameterType.BOOLEAN, True,
+                       "Enable PES summarization phase", "pes_enhanced")
+        self._add_param("pes_auto_select_strategy", ParameterType.BOOLEAN, True,
+                       "Auto-select PES strategy based on problem", "pes_enhanced")
+        self._add_param("use_cheap_models_for_execution", ParameterType.BOOLEAN, True,
+                       "Use cheaper models for execution phase", "pes_enhanced")
+        self._add_param("pes_cheap_model", ParameterType.STRING, "gpt-3.5-turbo",
+                       "Cheap model for cost optimization", "pes_enhanced")
+        self._add_param("pes_expensive_model", ParameterType.STRING, "gpt-4o",
+                       "Expensive model for critical operations", "pes_enhanced")
+        
         # Additional core parameters from API reference
         self._add_param("convergence_threshold", ParameterType.FLOAT, 0.001,
                        "Threshold for convergence detection", "core_evolution", min_value=0.0, max_value=1.0)

@@ -1,0 +1,1805 @@
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+000
+001
+      E MERGENT C OORDINATION IN M ULTI -AGENT L AN -
+002   GUAGE M ODELS
+003
+004
+005    Anonymous authors
+006    Paper under double-blind review
+007
+008
+009                                                     A BSTRACT
+010
+011                When are multi-agent LLM systems merely a collection of individual agents
+012                versus an integrated collective with higher-order structure? We introduce an
+013                information-theoretic framework to test—in a purely data-driven way—whether
+014                multi-agent systems show signs of higher-order structure. This information de-
+015                composition lets us measure whether dynamical emergence is present in multi-
+016                agent LLM systems, localize it, and distinguish spurious temporal coupling from
+017
+                   performance-relevant cross-agent synergy. We implement both a practical cri-
+                   terion and an emergence capacity criterion operationalized as partial informa-
+018
+                   tion decomposition of time-delayed mutual information (TDMI). We apply our
+019
+                   framework to experiments using a simple guessing game without direct agent
+020                communication and only minimal group-level feedback with three randomized
+021                interventions. Groups in the control condition exhibit strong temporal synergy
+022                but only little coordinated alignment across agents. Assigning a persona to each
+023                agent introduces stable identity-linked differentiation. Combining personas with
+024                an instruction to “think about what other agents might do” shows identity-linked
+025                differentiation and goal-directed complementarity across agents. Taken together,
+026                our framework establishes that multi-agent LLM systems can be steered with
+027                prompt design from mere aggregates to higher-order collectives. Our results
+028
+                   are robust across emergence measures and entropy estimators, and not explained
+                   by coordination-free baselines or temporal dynamics alone. Without attributing
+029
+                   human-like cognition to the agents, the patterns of interaction we observe mirror
+030
+                   well-established principles of collective intelligence in human groups: effective
+031                performance requires both alignment on shared objectives and complementary
+032                contributions across members.
+033
+034
+035   1       I NTRODUCTION
+036
+037   Recent advances in generative AI (specifically LLMs) have led to tremendous advances in multi-
+038   agent systems (Qu et al., 2024; Hong et al., 2024; Qian et al., 2023; Li et al., 2024a; Subramaniam
+039   et al., 2025). Multi-agent systems often show impressive performance increases over single-agent
+040   solutions (Wu et al., 2023; Chen et al., 2023; Li et al., 2024b; Tao et al., 2024). A key argument
+041   behind such performance gains are claims to “greater-than-the-sum-of-its-parts” effects from differ-
+042
+      entiated agents (Chen et al., 2023, p.1). Connecting multiple differentiated agents has the potential
+      benefit to leverage unique contributions that would not be available if the task was assigned to only
+043
+      a single agent (Fazelpour & De-Arteaga, 2022; Tollefsen et al., 2013; Luppi et al., 2024; Lix et al.,
+044
+      2022). Conceptually, any group gains depend on emergence and synergy (Theiner, 2018; Riedl
+045   et al., 2021; Page, 2008; Hayek, 1945).1 Despite impressive performance of many multi-agent sys-
+046   tems we do not yet have a principled understanding when and how such synergy emerges, what role
+047   agent differentiation plays, and how to steer it systematically. This all points to a crucial need for
+048   deeper understanding of collective intelligence in multi-agent systems, specifically whether multi-
+049   agent LLMs exhibit any synergy or complementarity at all—the necessary prerequisite for absolute
+050   team-over-solo gains.
+051   In this paper, we address the question when is a population of LLM agents a mere collection vs. a
+052   higher-order collective? We follow a purely data-driven approach to assess whether multi-agent
+053
+          1
+              This is true for both human groups and multi-agent systems.
+
+
+                                                              1
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+054
+      systems show signs of emergence in the form of higher-order synergy characterized by structural
+055   coupling and joint information about future states and task outcomes. Intuitively, synergy refers
+056   to information about a target that a collection of variables provide only jointly but not individually
+057   (Rosas et al., 2020; Humphreys, 1997).2 We develop a principled framework (Figure 1a) building
+058   on new insights in information theory (Rosas et al., 2020; Mediano et al., 2022). Our goal is to
+059   develop methods to measure emergent role specialization, determine whether multi-agent systems
+060   show such signs of emergent synergy, explore whether synergy enables increased performance, and
+061   explore whether emergent behavior can be systematically steered with prompting.
+062   We apply our framework to study multi-agent systems of gpt-4.1 and Llama-3.1-8B agents solving
+063   a simple group guessing task (Figure 1b) with three treatment interventions: a control condition,
+064   a condition that assigns personas to each agent, and one that uses personas with an instruction to
+065   “think about what other agents might do” (a theory of mind (ToM) prompt). The paper is organized
+066   into addressing three concrete research questions:
+067
+068
+          RQ1: Do multi-agent LLM systems possess the capacity for emergence?
+069       RQ2: What functional advantages—such as synergistic coordination and higher performance—
+070            arise when multi-agent systems exhibit emergence?
+071       RQ3: Can we design prompts, roles, or reasoning structures that steer the internal coordination
+072            of multi-agent to encourage positive, goal-directed synergy?
+073
+074
+      Our findings provide evidence for multi-agent LLM system capacity for emergence and that it under-
+      pins performance. Through a variety of complementary analyses and robustness tests, we show that
+075
+      coordination style across interventions is very different. While emergence is present in all, only the
+076
+      ToM-prompt condition leads to groups with identity-linked differentiation and goal-directed com-
+077   plementarity across agents: they operate as an integrated, goal-directed unit. This is consistent with
+078   research on human groups showing that performance gains are not automatic (e.g., Stasser & Titus,
+079   1985) and that complementarity needs to be balanced with integration and goal alignment (Theiner,
+080   2018; DeChurch & Mesmer-Magnus, 2010; Riedl et al., 2021).
+081
+      This paper helps us understand when and how multi-agent systems exhibit higher-order properties,
+082
+      how to control them, and their internal coordination. This can inform multi-agent system design by
+083   showing how to combine agents effectively. We make four contributions:
+084
+085          1. Novel framework to quantify emergent properties in multi-agent systems based on infor-
+086             mation decomposition including conditional/residual variants and outcome-relevant partial
+087             information decomposition.
+088          2. Principled diagnostic approaches to localize where synergy resides and distinguish it
+089             from alternative explanations (such as heterogeneous learning rates). Specifically, we de-
+090             velop two surrogate null distribution tests (row-shuffle to probe identity-locked structure;
+091             column-shuffle for dynamic alignment). This design lets us tease apart “good” synergy
+092             aligned with task goals from spurious or misaligned synergy.
+093          3. Demonstrate how to steer emergence with specific prompts. Prompt-level manipula-
+094             tions causally change higher-order dependencies and reliably induces distinct coordina-
+095             tion regimes, shifting collectives from spurious and misdirected synergy to stable & goal-
+096             aligned complementarity driven by differentiated identities.
+097          4. Internal coordination is measurable and controllable with interventions. Groups differ in
+098             variance, stability, and adaptability—properties relevant to reliability and deployment.
+099
+100
+101   2     M ETHOD
+102
+103   Group Task. We study a group guessing game (developed by Goldstone et al., 2024, who called
+104
+      it group binary search) without communication: agents propose integers whose sum needs to match
+      a randomly generated hidden target number. Agents are unaware of each others’ guesses and the
+105
+106      2
+           The key claim explored in this paper is conditional, cross-agent synergy—i.e., synergistic information and
+107   coordinated differentiation across agents given the multi-agent constraint (not absolute outperformance over a
+      solo agent). We do not attempt to establish team-over-solo superiority on this task.
+
+
+                                                            2
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+108
+      a Information Decomposition Framework                                               b Experiment Setup: Group Guessing Task                  c
+109                                                                                                                                                    0.8
+                                                                                                                                                                                                                             0.8
+
+                                                                                                                     ! group
+
+
+
+
+                  en cy
+                                                                                                                                                                                                                             0.7
+
+
+
+
+                       ted
+               fer an
+                             Alignment        Incidental
+110                                                                                                             ! guess
+
+
+
+                    tia
+
+
+
+
+                                                                   Sy
+                                                                                                                                                        0.7                                                                  0.6
+
+
+
+
+            dif nd
+                                    Integration
+                                                                                                                 "
+
+
+
+
+                                                                                                                                                   Succe
+                                                                      ne
+          Un e d u
+                                                                                                                                                                                                                             0.5
+
+
+
+
+                                                                         rgy
+111      R
+                                                                                                                                                         0.6
+                                                                                                                                                                                                                             0.4
+
+
+
+
+                                                                                      y
+                                                                                                     8
+
+
+
+
+                                                                                                                                                        ss
+                                                                                  tar
+                                                                                                                                                             0.5
+112                                                                                           4            5
+
+
+
+
+                                                                                en
+                                                                                                                                    match target
+
+
+
+
+                                                                            lem
+                                                                                                                                                              0.4
+113                                                                                                                                  number?
+
+
+
+
+                                                                     Co n
+                                                                         mp
+                                                                        tio
+                                                                     tia
+                                                                                                                                                                    4
+                                                                                                                                                                                                                             0.0
+
+
+
+
+                                                                  ren
+114                                                                                                                                                                     6
+                                                                                                                                                                                                                       0.2
+
+
+
+
+                                                          de Diffe
+                                                                                                                                                                            8
+
+
+
+
+                                                                                                                                                                   Gr
+115                                                                                                                  group feedback:                                                                             0.4     re
+
+
+
+
+                                                                                                                                                                    ou
+                                                                                                                                                                                                                    tu
+
+
+
+                                                            nt
+                                                                                                                                                                                10
+                                                                                                                                                                                                                 ra
+
+
+
+
+                                                                                                                                                                        p
+                                                                                                                   “too high” / “too low”                                                                  0.6
+                                                                                              LLM agents make                                                                                                  pe
+
+                                                        en
+
+
+
+
+                                                                                                                                                                            Si
+                                                                                                                                                                                     12
+116                                    Unique                                                                                                                                                                 m
+
+
+
+
+                                                                                                                                                                              ze
+                                                      ep
+                                                                                                                                                                                                     0.8
+                                                                                              private guess                                                                                                Te
+                                                   Ind
+                                     information                                                                                                                                          14
+                                                                                                                                                                                               1.0
+117
+118
+119
+      Figure 1: a) Information decomposition provides framework to explain tension in multi-agent sys-
+      tems. Agents are either undifferentiated or differentiated, provide independent or complementary
+120
+      information, which is either well aligned or incidental (adapted from Luppi et al., 2024). b) Experi-
+121
+      ment setup of the group binary search task. c) Preliminary experiments testing different group sizes
+122   and temperature settings. Surface values were smoothed using a local 3×3 weighted averaging filter,
+123   giving higher weight to each cell’s original value to reduce noise while preserving local structure.
+124
+125
+126   size of their group, and receive only group-level feedback “too high” or “too low.” The task is
+127   challenging because identical strategies induce oscillation and only complementary strategies yield
+128   success. This setting naturally pits redundancy (alignment) against synergy (useful diversity), and
+129   admits clear nulls via row-wise (break identities) and column-wise (break alignment) surrogates.
+130   The binary search setting is a minimalist testbed to isolate emergence of cross-agent complementar-
+131   ity and dynamic coordination, not to establish team-over-solo superiority. The implementation of a
+132   textbook-like XOR dynamic allows us to study the benefits of emergence capacity conditional on a
+133   multi-agent setup (and not to establish team-over-solo superiority). Research on humans has shown
+134
+      that groups can reliably solve this task through the emergence of specialized, complementary roles
+      (Goldstone et al., 2024).
+135
+136
+137   Analytical Framework. How would we know if a multi-agent system shows emergent properties
+138   that could suggest that the sum is more than its parts? We develop a principled test based on a recent
+139   formal theory of dynamic emergence based on information decomposition (Rosas et al., 2020; Medi-
+140
+      ano et al., 2022; Bedau & Humphreys, 2008). Our framework connects emergence with information
+      about a system’s temporal evolution—future states of the whole—with information that cannot be
+141
+      traced to the current state of its parts. This framework is based on partial information decomposition
+142
+      (PID; Williams & Beer, 2010) and time-delayed mutual information (TDMI; Luppi et al., 2022),
+143   is data-driven, quantifiable, and amenable to empirical testing with falsifiable conjectures against
+144   specific null hypotheses. Combining this with permutation tests, focused either on breaking connec-
+145   tions between agents or connections across time allow us not only to quantity emergent properties
+146   but also to localize them in the system. This is crucial for multi-agent systems because we care about
+147   distinguishing synergy among specialized, differentiated agents from mere dynamic alignment.
+148
+      We implement three tests. The first, termed emergence capacity, captures ability of the multi-agent
+149   system to host any synergy. It measures the predictive synergy from two agents’ current states to
+150   their joint future state. For each pair of agents (i, j) and time t, let the sources be Xi,t and Xj,t ,
+151   and define the bivariate target as the next-step joint state Tij,t+ℓ ≡ (Xi,t+ℓ , Xj,t+ℓ ). From the
+152   joint contingency table over (Xi,t , Xj,t , Tij,t+ℓ ) we compute a two-source PID of the predictive
+153   information
+154
+155
+156                                                       I({Xi,t , Xj,t }; Tij,t+ℓ ) = UIi + UIj + Redij + Synij                                                                                                             (1)
+157
+158   and take Synij as the pairwise dynamical synergy. A positive score Synij > 0 indicates that the
+159   macro captures predictive information about the joint future not recoverable from any single com-
+160   ponent. We compute this for all unordered pairs (i, j) and take the median as group-level synergy
+161   capacity. Compared to the practical criterion, this test is limited to detect synergy of order k = 2 but
+      has the advantage that it does not rely on the definition of a suitable whole-system macro signal.
+
+
+                                                                                                               3
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+162
+      The second test, termed the practical criterion, concerns predicting a macro signal V of the sys-
+163   tem. It asks whether the macro contains predictive information beyond any individual part. Given
+164   microstate Xt = (X1,t , . . . , Xn,t ), macro Vt = f (Xt ), and I(·) denoting mutual information. We
+165   align samples (t, t + ℓ) and compute the score as
+166
+167                                                                  n
+                                                                     X
+168                                  Smacro (ℓ) = I(Vt ; Vt+ℓ ) −          I(Xk,t ; Vt+ℓ ).                           (2)
+169                                                                  k=1
+170
+171   A positive value indicates that the macro’s self-predictability exceeds what the sum of its parts can
+172   explain, thus indicating emergent dynamical synergy. We refer to “dynamical” synergy because
+173
+      targets are time-lagged and do not claim causal directionality beyond the temporal ordering (see
+      Rosas et al., 2020, for a nuanced discussion). It is a coarse, order-agnostic screen sensitive to multi-
+174
+      part synergy (i.e., synergy of any order ≥ 2). However, it is also penalized by redundancy across
+175
+      parts which can make the score negative even when higher-order synergy exists.
+176
+177   To explore system dynamics, we implement a coalition test. Let I3 be the mutual information be-
+178   tween a triplet’s current state and the future macro signal: I3 = I((Xi,t , Xj,t , Xk,t ); Vt+ℓ ). I.e.,
+179
+      how much the three agents jointly predict the macro’ future. High I3 indicates that agents’ behav-
+      iors are coherently organized toward the shared macro, whereas low I3 signals weak alignment or
+180
+      uncoordinated behavior. Then
+181
+182
+183                                     G3 = I3 − max(I2{1,2} , I2{1,3} , I2{2,3} )                                   (3)
+184
+185   measures the additional predictive information the full triplet provides over the most predictive pair
+186
+      I2 (a form of whole-minus-parts metric; Barrett & Seth, 2011; Mediano et al., 2025). If we find
+      G3 > 0 this means no pair is sufficient to capture information that the triplet contains about the
+187
+      macro signal at t + ℓ. We again compute I3 and G3 for all possible triplets and take the median as
+188
+      group measure. This measure complements the other two by offering a coalition-level test geared
+189   towards functional relevance: it helps answers whether the joint information provided by coalitions
+190   of agents is actually about the goal. It allows us to localize where macro predictability depends on
+191   beyond-pair structure and to rule out “explained by best pair” explanations.
+192
+193   Estimation Details. As microstates Xt = (X1,t , . . . , Xn,t ) we use each agent i’s guess at time t
+194   and transform it into the deviation from equal-share contribution toP hit the target number: devsi,t =
+195   raw i,t − target/N  . As  macro  signal Vt we take the group   error     rawi,t − target (equivalently
+         devsi,t ).3 This minimal transformation removes the trivial level differences imposed by the target
+      P
+196
+197   and aligns agents on a comparable scale, so that remaining variation reflects coordination (who
+198   compensates for whom). Over-/under-contributions are interpretable as the sign of deviations.
+199   We use the Williams–Beer two-source PID (Williams & Beer, 2010) with the Imin (minimum spe-
+200   cific information) redundancy, estimated via plug-in probabilities. For robustness, we also use
+201   Jeffreys-smoothed probabilities, and alternatively MMI redundancy (minimum of whole mutual in-
+202   formations; Mediano et al., 2025) with MI estimated with Miller–Madow bias correction (Miller,
+203   1955). All variables are discretized into K = 2 bins using quantile binning. Data are encoded as
+204   factors with fixed levels 1, 2 (and for the joint target as the Cartesian product levels) to avoid drop-
+205   ping empty categories. We report ℓ = 1 which is suitable to detect next-step oscillating behavior
+206   (see task description). Because trials end at success, episode lengths vary (see plot of rounds to suc-
+207
+      cess in Appendix). We report additional sensitivity tests using “early synergy” truncated to a fixed
+      horizon of H ∈ {10, 15} rounds to ensure comparability (results in Appendix A.2 and A.12; main
+208
+      analyses use full trajectories).
+209
+210
+      Falsification Tests. We perform two different falsification tests of each of the three criteria intro-
+211
+      duced above. Our primary test assesses significance by comparing the observed value against a null
+212   distribution computed on permuted (shuffled) instances of the devs data. We use two surrogates:
+213   row-wise shuffles (to break identities) and column-wise time-shift surrogates (preserve individual
+214
+          3
+215         We also performed additional sensitivity analyses using alternative specification of the macro signal as first
+      principle component of individual guesses as used in Rosas et al. (2020).
+
+
+                                                               4
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+216
+      dynamics while disrupting cross-agent alignment). Full details in Appendix. We combine p-values
+217   across independently simulated groups (independent seeds, independently sampled targets, and no
+218   shared state) using Fisher’s method. As a robustness test, we also compute bias-corrected (BC)
+219   estimates using time-demeaned data against a block-shuffled null with ℓ = 2 to mitigate autocorre-
+220   lation confounds. We use both (a) linear regression demeaning and (b) a functional baseline without
+221   between-agent synergy (see Appendix for details). These tests provide additional robustness to the
+222   ℓ = 2 block size in the shuffled null and auto-correlation concerns.
+223
+224   Entropy Estimation. Small-sample entropy estimation is often challenging because the true dis-
+225   tribution is only partially observed and many outcome categories receive few or even zero counts
+226
+      (“empty bins”). Such finite-sample estimation of information measures is biased upward and can
+      yield spurious positive findings. Bias grows with more bins, dimensionality (e.g., using triplets
+227
+      instead of pairs), and small N (few timesteps). The empirical plug-in estimator replace true proba-
+228
+      bilities with sample frequencies and unseen (or under-sampled) outcomes often are assigned zero or
+229   very low probabilities (Hausser & Strimmer, 2009). To account for this issue, we follow best prac-
+230   tices and take several steps. First, we compute the emergence capacity and the coalition tests as order
+231   k = 2 instead of the entire system of n agents. Second, we apply quantile binning (with two bins) to
+232   reduce the dimensionality of our data (sensitivity analyses with three bins reported in A.8). Third,
+233   we use bias-corrected entropy estimator with Jeffreys’ prior, which smooths estimates and avoids
+234   empty bins by adding α = 12 pseudo-counts in the Dirichlet estimator (Jeffreys, 1946). This reduces
+235   systematic inflation and cures zero-count pathologies. Finally, as a robustness check, we also report
+236   results using the Miller–Madow bias-corrected estimator (Miller, 1955), and the MMI redundancy
+237
+      measure (MMI typically overestimates redundancy, making synergy estimates more conservative;
+      Mediano et al., 2025).
+238
+239
+      Test of Agent Differentiation. To futer localize Are there detectable between-agent differences
+240
+      in either the level of their contribution to the group guess or their temporal evolution (i.e., learning
+241   rate)? Third, we test agent differentiation: do individual agents develop stable, identity-locked
+242   behaviors that distinguish them within the group? new.pdf
+243
+244
+      old.pdf Our third pillar evaluates agent differentiation via hierarchical modeling, asking whether
+      agents adopt consistent, person-specific patterns. old.pdf We next assess identity-locked differentia-
+245
+      tion—the emergence of distinct, stable agent “personalities” under each prompt condition. new.pdf
+246
+247   old.pdf Pillar three probes agent differentiation: evidence that behavior is tied to agent identity
+248   rather than transient noise, as captured by hierarchical linear models. old.pdf Finally, we examine
+249   agent differentiation to quantify whether interventions produce distinguishable, stable patterns at the
+250
+      individual level. new.pdf
+251   We complement the information theoretic measures with a test for agent differentiation based on
+252   hierarchical (mixed) models (Gelman & Hill, 2007). We estimate a sequence of three models for
+253   each multi-agent experiment:
+254
+                            m0 : yi = β0 + utime[i] + ϵi
+255
+256
+                            m1 : yi = β0 + utime[i] + uagent[i] + ϵi
+257                         m2 : yi = β0 + utime[i] + uagent[i],0 + uagent[i],time[i] + ϵi
+258
+259   where yi are devsi,t , utime[i] are random intercepts for (continuous) time, uagent[i] are agent-level
+260   random intercepts, and uagent[i],time[i] are agent-level random slopes varying by time. The random
+261
+      intercepts capturing differentiation in agents based on their level differences and varying slopes
+      capture heterogeneous learning rates. Using equal-share deviations removes target-level drift and
+262
+      makes agents directly comparable round-by-round. The random intercepts for time captures round-
+263
+      to-round shifts due to group-wide feedback and oscillation. Hence, agent effects reflect relative,
+264   identity-linked behavior rather than shared dynamics. The partial pooling of hierarchical models
+265   regularizes per-agent estimates, improving stability in short time series. We then use likelihood
+266   ratio tests to compare the nested hierarchical models. Comparing m0 → m1 asks whether agents
+267   differ in their group contribution (some agents guess higher/lower than others), while m1 → m2
+268   tests whether agents vary in how much their contribution changes across rounds (learning rates). A
+269   significant p-values (e.g., below conventional 0.05 levels) indicates that the more complex model
+      explains the data significantly better, suggesting the added random effects (e.g., agent-level differ-
+
+
+                                                          5
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+270
+      ences or varying slopes) are meaningful in this group. This offers an interpretable, non-information
+271   theoretic test of monotonic learning-rate heterogeneity. Furthermore, this test does not require dis-
+272   cretization, giving a complementary failure mode to the information-theoretic analyses.
+273
+274
+      Together, these four tests of our framework allow us to (a) detect higher-order structure in multi-
+      agent systems, (b) assess whether it is driven by redundancy or synergy, (c) localize whether it is
+275
+      identity-locked vs. dynamic alignment, and (d) show whether the higher-order structure is func-
+276
+      tionally useful for the task. No single measure does all four. Combined with the prompt-level
+277   interventions, the framework allow us to test whether interventions (Plain, Persona, ToM) causally
+278   increases dynamic synergy, how it affects identity-locked differentiation, and goal alignment (i.e.,
+279   increase in I3 ).
+280
+281
+282
+      3     E XPERIMENTS
+283
+      3.1   P RELIMINARY E XPERIMENTS : G ROUP S IZE AND T EMPERATURE
+284
+285   To see if LLMs can solve this task and how sensitive results are to different group sizes and temper-
+286   ature settings we ran a first set of preliminary experiments (see Appendix for prompt). We used a
+287   frontier-class model, OpenAI’s gpt-4.1-2025-04-14. We varied group size from 3 to 15, and
+288   temperature from [0, 1] in steps of 0.1. For each grid point we ran 50 group experiments (13 group
+289   sizes × 11 temperature settings × 50 groups = 7,150 experiments; Figure 1c). Multi-agent systems
+290   of gpt-4.1 agents can solve the task reliably but encounter substantial challenges. We fit a logistic
+291   regression, predicting the probability of success from group size and temperature. We find the task is
+292   significantly easier for smaller groups: each additional group member decreased the odds by roughly
+293
+      8% (OR = 0.92, p < 10−16 ). This replicates the same results as for human groups (Goldstone et al.,
+      2024). Each unit increase in temperature increased the odds of success by approximately 50% (OR
+294
+      = 1.50, p < 10−7 ).
+295
+296
+      3.2   M AIN E XPERIMENTS
+297
+298   For the main set of experiments, we chose groups of N = 10 because that appears to be the most
+299   difficult setup, and a temperature of 1, and used OpenAI’s gpt-4.1-2025-04-14 (OpenAI,
+300   2025) and Meta’s Llama-3.1-8B (Meta, 2024) with the prompts shown in Appendix A.1. We
+301   query gpt-4.1 through the OpenAI API and Llama through locally hosted Ollama with a NVIDIA
+302   RTX Pro 6000 Blackwell. We replicate each group experiment 200 times per treatment condition
+303   (600 experiments total). Overall success rate is not significantly different across the interventions
+304   (Figure 2a).
+305
+306   Interventions. Plain: The control condition uses only instructions for the guessing game, similar
+307
+      to those used in human subject experiments (Goldstone et al., 2024). Persona: For the persona con-
+      dition, we follow recent insights into the use of personas within the LLM community (Chen et al.,
+308
+      2024) and ensure personas have relevant attributes: name, gender, age, occupation or skill back-
+309
+      ground, pronouns, personality traits (Goldberg, 1992), and personal values (Cieciuch & Davidov,
+310   2012). ToM: The ToM condition instructs agents to think about what other agents might do, and
+311   how their actions might affect the group outcome, inspired by chain-of-thought reasoning (Wei et al.,
+312   2022). See Appendix A.1 for all prompts, full persona generation recipes, and example persona.
+313
+314
+315
+      4     R ESULTS
+316
+      4.1   E MERGENT S YNERGY
+317
+318   We first test if there are signs of emergence using the practical emergence criterion (predicting a
+319   time-lagged macroscopic group signal from micro-level states). First, we take the criterion computed
+320   using the equal-share contribution data and compare it against a null distribution of block-shuffled
+321   permutations. Individually, about 3.5% of experiments show a p−value below 0.05. A joint Fisher
+322   test using all p-values is highly significant, both individual and when tested within in each treatment
+323   condition separately (p-values are below 10−16 ). Our second test takes the bias-corrected versions
+      of the measure and performs a Wilcoxon signed rank test of the null hypothesis that the median
+
+                                                        6
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+324                  a                                                    b                                                          c
+                                                          ns                                              ***         ***   *                                  0.04   ***     *** p=0.099
+325                                       60%                                                         3
+
+326
+
+
+
+
+                                                                                                                                    Emergence Capacity (BC)
+                                                                          Practical Criterion (BC)
+327
+
+
+
+
+                   Average Success Rate
+                                                                                                      2
+328                                                                                                                                                            0.02
+                                          40%
+329
+                                                                                                      1
+330
+331                                       20%
+                                                                                                                                                               0.00
+
+332                                                                                                   0
+
+333
+334                                                                                                  −1
+                                          0%                                                                                                                  −0.02
+335                                             Plain   Persona Persona                                   Plain   Persona Persona                                     Plain Persona Persona
+                                                                 + ToM                                                     + ToM                                                     + ToM
+336
+337
+338   Figure 2: a) Group success across three interventions. b) Practical emergence criterion (bias
+339   corrected). c) Emergence capacity dynamical synergy (bias corrected). Data Winsorized at the
+340   1st and 99th percentiles for visual clarity. Stars indicate significance level of Wilcoxon test. Notes:
+      *** p < 0.001; ** p < 0.01; * p < 0.05.
+341
+342
+343
+      value is above 0 (Figure 2b). We report our most conservative results using time-trend demeaned
+344   data. The bias-corrected estimates are well above 0 in all conditions (Plain: p = 1.5 × 10−16 ;
+345   Persona: p = 6.6 × 10−7 ; ToM: p = 0.02). We report additional robustness tests using (a) raw
+346   data, (b) functional null model residuals, (c) using agent reactivity as data, and (d) bias correction
+347   using Jeffrey’s smoothing and Miller-Madow in the Appendix.
+348
+      We repeat analyses using the emergence capacity criterion. We find it is significantly above its null
+349
+      across conditions; results hold under residualization and alternative entropy corrections (Figure 2c;
+350   see Appendix for details). Taken together, across two different tests (one using a macro signal the
+351   other using future system behavior) and across a variety of robustness tests we find evidence of
+352   dynamic emergence capacity in multi-agent LLM systems (answering RQ1).
+353
+354
+      4.2   DYNAMICAL M ECHANISMS
+355
+356   How is this emergence dynamically maintained and where is it located within the groups? We find
+357   time-trend demeaned bias-corrected I3 around 0 in the Plain (Wilcoxon p-value 0.974) and Persona
+358   condition (p = 0.846) indicating groups that fail to escape chaotic, uncoordinated states. In contrast,
+359   the ToM shows significant positive mutual information (p = 3.5×10−14 ), collapsing the group’s be-
+360   havior into a predictable macro-state (Figure A2)). The number of groups with significantly positive
+361   I3 is substantially higher in the ToM condition (Figure 3a). To formalize this transition dynamic,
+362   we compute the Total Stability of the system (computed as I3 normalized by the entropy of the
+363
+      macro-signal) which serves as a proxy for the Lyapunov stability of the collective state (Haddad &
+      Chellaboina, 2008). We find Total Stability indistinguishable form zero in the Plain (Wilcoxon p-
+364
+      value 0.976) and Persona (p-value = 0.858) indicating a “gaseous” state where groups fail to settle
+365
+      into a stable attractor. However, the ToM intervention induces a sharp increase in Total Stability
+366   (p-value = 2.9 × 10−14 ). Theoretically, this suggests the ToM prompt acts as a control parameter,
+367   steering the multi-agent system from a chaotic regime into a deep basin of attraction where collective
+368   behavior stabilizes: turning the system from a collection of individuals into a collective group.
+369
+      Decomposition this stability reveals the specific mechanism of coordination. While the system ex-
+370
+      hibits strong emergence capacity and practical emergence, we find the stability in group behavior
+371
+      is supported by pairwise alignment rather than irreducible triplet complexity. Specifically, triadic
+372   information gain (G3) is around 0 in Persona and ToM (Figure 3c). The Plain conditions shows
+373   small positive G3 > 0 (Wilcoxon p-value = 0.026) but given the near-zero Total Stability, this likely
+374   reflects transient stochastic correlations and oscillation rather than sustained coordination. In dy-
+375   namical systems terms, the ToM prompt creates a deep basin of attraction where agents converge
+376   on a shared schematic (or Schelling point), making the collective state robust but informationally
+377   redundant. This mirrors “Mean Field” coupling in physics: because agents receive only global feed-
+      back and cannot observe individual peers, they couple to the aggregate signal rather than forming
+
+
+                                                                                                                  7
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+378
+      distinct local bonds. In such an environment, attempting complex higher-order synergy would be
+379   fragile; instead, the system converges on the efficient solution of dense pairwise alignment to the
+380   Mean Field.
+381
+382
+      Next, we explore whether agents evolve specialized roles & identities. Are there detectable between-
+      agent differences in either the level of their contribution to the group guess or their temporal evolu-
+383
+      tion (i.e., learning rate)? Using the hierarchical model comparison test we find that agents in may
+384
+      groups have differentiated identities (Figure 3a; a Fisher test for joint p-value evidence is again
+385   highly significant). There is substantially more differentiation among agents in the Persona con-
+386   dition, and even more in the ToM condition. Inspecting the reasoning traces of agents, they often
+387   contain references to the “personal experience” of their assigned persona such as “In my experience
+388   (whether it’s corraling cattle or wrangling numbers), starting toward the middle gives the group the
+389   best shot to zero in after the first feedback” (see Appendix for additional sample quotes). In Ap-
+390   pendix A.10 we provide additional robustness tests ruling out heterogeneous learning rates as the
+391   sole source of differentiation and provide additional evidence for stable agent identities that persist
+392   over time. That is, in the Plain condition, differentiation results only from idiosyncratic noise and
+393
+      transient drift introduced by probabilistic LLM responses. With Persona, agents gain stable, iden-
+      tity linked behavioral preferences that refine their differentiation. The addition of ToM sharpens
+394
+      role differentiation through feedback loops from mutual predictive modeling by conditioning on the
+395
+      public history (which functions as a common ground and coordination device; Lewis, 1969; Skyrms,
+396   2010). This converts small persona-induced asymmetries into stable, self-reinforcing roles, creating
+397   the basis for strategic complementarity (answering RQ2 and RQ3)
+398
+399
+      4.3   F UNCTIONAL ROLE OF E MERGENCE IN G ROUP P ERFORMANCE
+400
+401
+      What functional differences—if any—does emergence allow? We use regression analysis to ex-
+402   plore the joint effect of synergy and redundancy (based on emergence capacity formulation) while
+403   carefully controlling for endogeneity of variables measuring emergent properties and performance
+404   and controlling for sample selection bias with stabilized inverse probability weighting (see Ap-
+405   pendix A.11 for method details). On their own, higher levels of either synergy or redundancy do not
+406   predict success. However, when both are present, performance improves significantly (significant
+407   interaction with β = 0.24; p = 0.014). In marginal-effect terms, redundancy amplifies the benefit
+408   of synergy on the log-odds scale by 27%; and vice versa synergy amplifies benefits of redundancy
+409   by 27%. This pattern implies that systems benefit when redundant pathways create goal alignment,
+410
+      while synergistic interactions extract novel, non-overlapping information—together enabling higher
+      overall performance. We complement the regression analysis with causal mediation analysis (Imai
+411
+      et al., 2010). While reaching only marginal significant levels the effect is consistent: the ToM treat-
+412
+      ment causally increases performance indirectly by increasing synergy (ACME = 0.034 [95%CI:
+413   −0.000 − 0.07], p = 0.053). This aligns with the interpretation that performance benefits emerge
+414   when systems achieve both redundancy (aligned toward a common goal) and synergistic integration
+415   (differentiated, complementary roles)—a form of functional and collective complexity (Varley et al.,
+416   2023; Luppi et al., 2024; Sterelny, 2007).
+417
+418
+      4.4   E XPERIMENTS USING L LAMA -3.1-8B
+419
+420   Repeating the experiments using another class of LLM with 8B parameters (Llama-3.1) we find
+421   multi-agent systems are generally not able to solve the task (at least not with the identical prompt
+422   as used in the other experiments). Only 10% of groups manage to solve the task (Plain: 10.5%;
+423   Persona: 14%; ToM: 5.5%). Model capacity to support reasoning about other agents seems crucial
+424   and despite the instruction to do so, Llama-3.1-8B agents fail to execute it effectively. Groups
+425   in the ToM condition perform significantly worse than in the Plain condition (test for equality of
+426   proportions p = 0.007) thus reversing the findings of the more capable gpt-4.1 agents. Results
+427   regarding emergence capacity are mixed (see Appendix).
+428   The strong oscillating pattern in guesses materializes as high predictive power over the group out-
+429   come (15.8% groups show significant I3 compared to only 2% in gpt-4.1 groups) but much lower
+430   G3 synergy between agents (significant synergy present in 2.6% Llama groups compared with 20%
+431   of gpt-4.1 groups). There is extremely strong coupling across time (current individual states predict
+      future joint states well as agents oscillate) but very little cross-agent complementarity. This suggests
+
+
+                                                         8
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+432             a                                                                    b                                                           c                                                                  d
+                                                                 ***                                          ns      ns     ***                                                  *      ns      ns                                                                 ***
+
+
+      Groups with Significant Mutual Information
+433                                                                    ***                                                                                                                                                                     80%
+                                                                                                       0.10                                                                                                                                                               ***
+
+
+
+
+                                                                                                                                                                                                         Groups with Significant Differentiation
+434
+
+
+
+
+                                                                                                                                      Triadic Information Gain G3 (BC)
+                                               75%                                                                                                                        0.04
+435             (Wilcoxon BC I3 > 0)
+                                                                                                       0.05                                                                                                                                    60%
+
+
+
+
+                                                                               Total Stability (BC)
+436                                                         ns                                                                                                                                                                                                  *
+437                                            50%                                                                                                                        0.02
+
+438                                                                                                    0.00                                                                                                                                    40%
+
+439
+                                               25%                                                                                                                        0.00
+440                                                                                                   −0.05                                                                                                                                    20%
+441
+442
+                                                                                                      −0.10
+                                                   0%                                                                                                                    −0.02                                                                     0%
+443
+                                                        Plain PersonaPersona                                  Plain Persona Persona                                              Plain Persona Persona                                                  Plain   Persona Persona
+444                                                                   + ToM                                                  + ToM                                                              + ToM                                                                    + ToM
+
+445
+446   Figure 3: a) ToM-prompt condition has substantially more groups with significant I3 content (above
+447   0). b) Total Stability (time-delayed mutual information of triplets (I3 normalized by macro-signal
+448   entropy, bias corrected). c) Information gain of triads over most informative dyad (G3 , bias cor-
+449   rected). d) Agent differentiation using hierarchical mixed model comparison (counting groups in
+450   which at least one test (different intercepts or slopes) is below p < 0.05. In panel a) and d), error
+451   bars show Wilson confidence intervals for binary data. Stars indicate significance level of test for
+452
+      equal proportion. Panel b) and c) shows bias corrected data with Jeffreys’ prior. Data are Winsorized
+      at the 1st and 99th percentiles for visual clarity. Stars indicate significance level of Wilcoxon test.
+453
+      Notes: *** p < 0.001; ** p < 0.01; * p < 0.05.
+454
+455
+456   that while multi-agent systems with lower-capacity LLMs still show some signs of emergence, it
+457   is mostly spurious across the temporal dimension rather than the productive cross-agent dimension
+458   found in gpt-4.1 agents. Lower ToM reasoning reasoning capacity in Llama-3.1-8B (Xiao et al.,
+459   2025) may explain the lack of useful, goal-directed cross-agent synergy. Capacity-matched prompt
+460   tuning (e.g., lower temperature or simplified instructions) might yield different results.
+461
+462   5                                            R ELATED W ORK
+463
+464   Shortly after the release of ChatGPT, the community began exploring multi-agent LLM systems,
+465   where multiple LLM agents interact with each other. One early example is Park et al. (2023), who
+466   simulated a small population of “individuals” in a The Sims-style environment with friends, houses,
+467   and jobs, showing the emergence of rich social behaviors such as coordinating a Valentine’s Day
+468   party. This was followed by multi-agent systems for complex tasks such as software development
+469   (Chen et al., 2023; Hong et al., 2024; Qian et al., 2023), healthcare (Li et al., 2024a), and other
+470   domains (Subramaniam et al., 2025; Ashery et al., 2025). Federated systems or “society of models”
+471
+      also gained attention (Juneja et al., 2024; Li et al., 2024b). These systems often achieve significant
+      performance gains over single-agent baselines (Wu et al., 2023; Chen et al., 2023; Li et al., 2024b;
+472
+      Tao et al., 2024).
+473
+474   A recurring explanation for such gains invokes “greater-than-the-sum-of-its-parts” effects (Chen
+475   et al., 2023, p.1), often attributed to division of labor among differentiated agents (Subramaniam
+476   et al., 2025). Yet while this work is “inspired by human group dynamics” (Chen et al., 2023,
+477
+      p.1), it rarely evaluates whether the same principles that underlie effective (and ineffective) hu-
+      man groups also emerge in multi-agent systems. Two gaps stand out. First, human groups often
+478
+      coordinate by developing role specialization (Goldstone et al., 2024). Multi-agent systems often in-
+479
+      tuitively induce role specialization (such as “programmer”, “tester”, and “CEO”; Qian et al., 2023)
+480   yet have not systematically evaluated the impact on emergent shared cognition beyond win-rate
+481   comparisons. Second, groups only outperform individuals if their members specialize in contribut-
+482   ing different pieces of information to the group task (Theiner, 2013; DeChurch & Mesmer-Magnus,
+483   2010; Fazelpour & De-Arteaga, 2022; Nickerson & Zenger, 2004). Effective groups balance
+484   complementarity—members contributing distinct information—with redundancy, the alignment on
+485   shared goals (Theiner, 2013; DeChurch & Mesmer-Magnus, 2010; Fazelpour & De-Arteaga, 2022;
+      Luppi et al., 2024; Tollefsen et al., 2013). Too much of either undermines performance. Unlike win-
+
+
+                                                                                                                                      9
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+486
+      rate–centric evaluations—and tests of whether agents in multi-agent systems can sustain cooperation
+487   per se Piedrahita et al. (2025); Piatti et al. (2024)—we propose falsification tests and null modeling,
+488   thus extending multi-agent frameworks with formal theory. While these principles likely apply to
+489   LLM-based collectives given the universality of the integration-segregation tradeoff (Tononi et al.,
+490   1994), it remains unclear whether agents develop differentiated roles, whether such roles comple-
+491   ment each other, how to steer it with prompts, and what role ToM capacity of models plays for
+492   collaboration (Westby & Riedl, 2023; Kleiman-Weiner et al., 2025; Riedl & Weidmann, 2025).
+493
+494
+      6   C ONCLUSION
+495
+496
+      Collectives of LLM agents are emerging as a powerful new paradigm, capable of tackling tasks that
+497
+      exceed the reach of any single model. Yet raw capability alone may not determine their effectiveness.
+498
+      Effective multi-agent systems depend on acting as integrated, cohesive units as opposed to loose ag-
+499   gregations of individual agents. In collective intelligence, this distinction often separates groups that
+500   merely average their parts from those that achieve true synergy (Riedl et al., 2021). This paper asks
+501   whether such coordination dynamics also matter for LLM collectives, what functional benefits they
+502   have, and whether we can design prompts, roles, or reasoning structures that foster such integrated
+503   yet synergistic behavior. The framework we developed connects human group cognition theory to
+504   LLM multi-agent systems, offering a novel conceptual bridge. Methodologically, we demonstrate
+505   how to operationalize group-level synergy in AI collectives using quantitative information-theoretic
+506   measures. We also provide specific design principles for creating productive LLM collectives that
+507
+      are aligned on “shared goals,” which can inform multi-agent orchestration tools, cooperative AI, and
+      mixed human–AI teamwork. This work extends ToM research beyond standard false-belief tests to
+508
+      realistic collaborative tasks (Shapira et al., 2024; 2023). Those insights will help us understand when
+509
+      multiple LLMs working together will be beneficial, why that is, and inform their design.
+510
+511   We note that evidence of higher-order synergy should not be interpreted as implying sophisticated
+512   cognition or consciousness. As conceptualized here, synergy is a structural property of part-whole
+513
+      relationships within multi-agent interactions. Such higher-order structures are known to arise in sim-
+      ple systems, including agents governed by reinforcement learning (Fulker et al., 2024) or via basic
+514
+      nonlinearities in contagion processes (Iacopini et al., 2019; Lee et al., 2025). Without attributing
+515
+      human-like cognition to the agents, the patterns of interaction we observe mirror well-established
+516   principles of collective intelligence in human groups (Riedl et al., 2021; DeChurch & Mesmer-
+517   Magnus, 2010): effective multi-agent performance requires both alignment on shared objectives and
+518   complementary contributions across members.
+519
+520   Limitations and Future Work. This work focuses on developing a framework, characterizing
+521   emergence, and localizing it. While we explore the degree of goal alignment via a performance-
+522   related macro signal and performance effects of “early synergy”, the analysis linking synergy and
+523   redundancy to performance is challenging because synergy and redundancy are often co-dependent
+524   and emerge alongside performance. Future work should aim to more directly connect measures
+525   of synergy with performance. Despite a significant number of robustness tests, estimating entropy
+526   and establishing synergy is difficult. Furthermore, this work established results only using a sin-
+527   gle task—albeit one that is uniquely suited to studying synergy given how closely it mirrors ideal
+528
+      case of complementary behavior in a minimalist setting. More work will be necessary to convinc-
+      ingly establish when and how multi-agent LLM systems develop emergent synergy across tasks and
+529
+      measures. Given the small-data setting some of our information theoretic measures are limited to
+530
+      computing dynamic emergence on order k = 2 which is bound to miss synergy of a higher order.
+531   Finally, this work points to the importance of ToM. LLMs capacity to act in a ToM-like manner ap-
+532   pears crucial to achieve functional alignment in multi-agent systems. This should provide additional
+533   motivation for research on ToM in LLMs.
+534
+535   ACKNOWLEDGMENTS
+536
+537   We thank Andrea Barolo for some early work on the implementation and Amritesh Anand for ex-
+538   cellent research assistance on the project. We thank Fernando Rosas, Yonatan Belinkov, and Patrick
+539   Forber for comments. This work was supported by the D’Amore-McKim School of Business’ DASH
+      initiative which provided access to crucial computational resources.
+
+
+                                                         10
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+540
+      R EFERENCES
+541
+542   Herman Aguinis and Kyle J Bradley. Best practice recommendations for designing and imple-
+543     menting experimental vignette methodology studies. Organizational research methods, 17(4):
+544     351–371, 2014.
+545   Ariel Flint Ashery, Luca Maria Aiello, and Andrea Baronchelli. Emergent social conventions and
+546     collective bias in llm populations. Science Advances, 11(20):eadu9368, 2025.
+547
+548   Adam B Barrett and Anil K Seth. Practical measures of integrated information for time-series data.
+549     PLoS Computational Biology, 7(1):e1001052, 2011.
+550
+      Mark Bedau. Downward causation and the autonomy of weak emergence. Principia: an Interna-
+551    tional Journal of Epistemology, 6(1):5–50, 2002.
+552
+553   Mark A Bedau and Paul Humphreys. Emergence: Contemporary readings in philosophy and sci-
+554    ence. MIT Press, Cambridge, MA, 2008.
+555
+      Jiangjie Chen, Xintao Wang, Rui Xu, Siyu Yuan, Yikai Zhang, Wei Shi, Jian Xie, Shuang Li, Ruihan
+556
+         Yang, Tinghui Zhu, et al. From persona to personalization: A survey on role-playing language
+557      agents. arXiv:2404.18231, 2024.
+558
+559   Weize Chen, Yusheng Su, Jingwei Zuo, Cheng Yang, Chenfei Yuan, Chen Qian, Chi-Min Chan,
+560    Yujia Qin, Yaxi Lu, Ruobing Xie, et al. Agentverse: Facilitating multi-agent collaboration and
+561    exploring emergent behaviors in agents. arXiv:2308.10848, 2023.
+562   Jan Cieciuch and Eldad Davidov. A comparison of the invariance properties of the PVQ-40 and
+563     the PVQ-21 to measure human values across german and polish samples. In Survey Research
+564     Methods, volume 6, pp. 37–48, 2012.
+565
+566   Leslie A DeChurch and Jessica R Mesmer-Magnus. The cognitive underpinnings of effective team-
+567
+        work: a meta-analysis. Journal of applied psychology, 95(1):32, 2010.
+568   Tyna Eloundou, Alex Beutel, David G Robinson, Keren Gu-Lemberg, Anna-Luisa Brakman, Pamela
+569     Mishkin, Meghan Shah, Johannes Heidecke, Lilian Weng, and Adam Tauman Kalai. First-person
+570     fairness in chatbots. arXiv:2410.19803, 2024.
+571
+572   Sina Fazelpour and Maria De-Arteaga. Diversity in sociotechnical machine learning systems. Big
+573
+        Data & Society, 9(1):20539517221082027, 2022.
+574   Zachary Fulker, Patrick Forber, Rory Smead, and Christoph Riedl. Spontaneous emergence of
+575     groups and signaling diversity in dynamic networks. Physical Review E, 109(1):014309, 2024.
+576
+577   Andrew Gelman and Jennifer Hill. Data analysis using regression and multilevel/hierarchical mod-
+578     els. Cambridge University Press, Cambridge, UK, 2007.
+579   Lewis R Goldberg. The development of markers for the big-five factor structure. Psychological
+580     Assessment, 4(1):26, 1992.
+581
+582   Robert L Goldstone, Edgar J Andrade-Lotero, Robert D Hawkins, and Michael E Roberts. The
+583     emergence of specialized roles within groups. Topics in Cognitive Science, 16(2):257–281, 2024.
+584
+      Wassim M Haddad and VijaySekhar Chellaboina. Nonlinear dynamical systems and control: a
+585    Lyapunov-based approach. Princeton University Press, Princeton, NJ, 2008.
+586
+587   David A Harrison and Katherine J Klein. What’s the difference? diversity constructs as separation,
+588     variety, or disparity in organizations. Academy of management review, 32(4):1199–1228, 2007.
+589
+      Jean Hausser and Korbinian Strimmer. Entropy inference and the james-stein estimator, with ap-
+590     plication to nonlinear gene association networks. Journal of Machine Learning Research, 10(7),
+591     2009.
+592
+593   Friedrich August Hayek. The use of knowledge in society. American Economic Review, 35:519–
+        530, 1945.
+
+
+                                                     11
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+594
+      Sirui Hong, Mingchen Zhuge, Jonathan Chen, Xiawu Zheng, Yuheng Cheng, Ceyao Zhang, Jinlin
+595     Wang, Zili Wang, Steven Ka Shing Yau, Zijuan Lin, et al. MetaGPT: Meta programming for a
+596     multi-agent collaborative framework. In Proceedings of International Conference on Learning
+597     Representations, 2024.
+598
+599   Paul Humphreys. How properties emerge. Philosophy of Science, 64(1):1–17, 1997.
+600
+      Iacopo Iacopini, Giovanni Petri, Alain Barrat, and Vito Latora. Simplicial models of social conta-
+601      gion. Nature communications, 10(1):2485, 2019.
+602
+603   Kosuke Imai, Luke Keele, and Dustin Tingley. A general approach to causal mediation analysis.
+604     Psychological methods, 15(4):309, 2010.
+605
+      Harold Jeffreys. An invariant form for the prior probability in estimation problems. Proceedings of
+606
+        the Royal Society of London. Series A. Mathematical and Physical Sciences, 186(1007):453–461,
+607     1946.
+608
+609   Gurusha Juneja, Subhabrata Dutta, and Tanmoy Chakraborty. LM2 : A simple society of language
+610     models solves complex reasoning. arXiv:2404.02255, 2024.
+611
+      Max Kleiman-Weiner, Alejandro Vientós, David G Rand, and Joshua B Tenenbaum. Evolving
+612
+       general cooperation with a bayesian theory of mind. Proceedings of the National Academy of
+613    Sciences, 122(25):e2400993122, 2025.
+614
+615   Jaemin Lee, David Lazer, and Christoph Riedl. Complex contagion in viral marketing: Causal
+616     evidence from a country-scale field experiment. Sociological Science, (in press), 2025.
+617
+      David Kellogg Lewis. Convention: A Philosophical Study. Wiley-Blackwell, Cambridge, MA,
+618
+        1969.
+619
+620   Junkai Li, Siyu Wang, Meng Zhang, Weitao Li, Yunghwei Lai, Xinhui Kang, Weizhi Ma, and Yang
+621     Liu. Agent hospital: A simulacrum of hospital with evolvable medical agents. arXiv:2405.02957,
+622     2024a.
+623
+      Junyou Li, Qin Zhang, Yangbin Yu, Qiang Fu, and Deheng Ye. More agents is all you need.
+624
+        arXiv:2402.05120, 2024b.
+625
+626   Katharina Lix, Amir Goldberg, Sameer B Srivastava, and Melissa A Valentine. Aligning differences:
+627     Discursive diversity and team performance. Management Science, 68(11):8430–8448, 2022.
+628
+629
+      Andrea I Luppi, Pedro AM Mediano, Fernando E Rosas, Negin Holland, Tim D Fryer, John T
+        O’Brien, James B Rowe, David K Menon, Daniel Bor, and Emmanuel A Stamatakis. A synergistic
+630
+        core for human brain evolution and cognition. Nature Neuroscience, 25(6):771–782, 2022.
+631
+632   Andrea I Luppi, Fernando E Rosas, Pedro AM Mediano, David K Menon, and Emmanuel A Sta-
+633     matakis. Information decomposition and the informational architecture of the brain. Trends in
+634     Cognitive Sciences, 28(4):352–368, 2024.
+635
+      Pedro AM Mediano, Fernando E Rosas, Andrea I Luppi, Henrik J Jensen, Anil K Seth, Adam B
+636
+        Barrett, Robin L Carhart-Harris, and Daniel Bor. Greater than the parts: a review of the infor-
+637
+        mation decomposition approach to causal emergence. Philosophical Transactions of the Royal
+638     Society A, 380(2227):20210246, 2022.
+639
+640   Pedro AM Mediano, Fernando E Rosas, Andrea I Luppi, Robin L Carhart-Harris, Daniel Bor,
+641     Anil K Seth, and Adam B Barrett. Toward a unified taxonomy of information dynamics via
+642     integrated information decomposition. Proceedings of the National Academy of Sciences, 122
+643
+        (39):e2423297122, 2025.
+644   Meta. Llama 3.1 model card. https://github.com/meta-llama/llama-models/
+645    blob/main/models/llama3_1/MODEL_CARD.md, 2024. Accessed: 2025-09-20.
+646
+647   George A. Miller. Note on the bias of information estimates. In Henry Quastler (ed.), Information
+        Theory in Psychology: Problems and Methods, pp. 95–100. Free Press, Glencoe, IL, 1955.
+
+
+                                                      12
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+648
+      Jack A Nickerson and Todd R Zenger. A knowledge-based theory of the firm—the problem-solving
+649     perspective. Organization science, 15(6):617–632, 2004.
+650
+651   OpenAI. Introducing gpt-4.1 in the api. https://openai.com/index/gpt-4-1/, 2025.
+652     Accessed: 2025-09-20.
+653
+654   Scott Page. The difference: How the power of diversity creates better groups, firms, schools, and
+655
+        societies-new edition. Princeton University Press, Princeton, NJ, 2008.
+656   Joon Sung Park, Joseph O’Brien, Carrie Jun Cai, Meredith Ringel Morris, Percy Liang, and
+657     Michael S Bernstein. Generative agents: Interactive simulacra of human behavior. In Proceedings
+658     of the 36th Annual ACM Symposium on User Interface Software and Technology, pp. 1–22, 2023.
+659
+660   Giorgio Piatti, Zhijing Jin, Max Kleiman-Weiner, Bernhard Schölkopf, Mrinmaya Sachan, and Rada
+661     Mihalcea. Cooperate or collapse: Emergence of sustainable cooperation in a society of llm agents.
+662     Advances in Neural Information Processing Systems, 37:111715–111759, 2024.
+663
+      David Guzman Piedrahita, Yongjin Yang, Mrinmaya Sachan, Giorgia Ramponi, Bernhard
+664
+        Schölkopf, and Zhijing Jin. Corrupted by reasoning: Reasoning language models become free-
+665     riders in public goods games. arXiv preprint arXiv:2506.23276, 2025.
+666
+667   Chen Qian, Xin Cong, Cheng Yang, Weize Chen, Yusheng Su, Juyuan Xu, Zhiyuan Liu, and
+668     Maosong Sun. Communicative agents for software development. arXiv:2307.07924, 2023.
+669
+670
+      Yuanhao Qu, Kaixuan Huang, Henry Cousins, William Arthur Johnson, Di Yin, Mihir Mukesh
+        Shah, Denny Zhou, Russ B Altman, Mengdi Wang, and Le Cong. CRISPR-GPT: An llm agent
+671
+        for automated design of gene-editing experiments. bioRxiv, pp. 2024–04, 2024.
+672
+673   Christoph Riedl and Ben Weidmann. Quantifying human-AI synergy, Sep 2025. URL osf.io/
+674     preprints/psyarxiv/vbkmt_v1.
+675
+676   Christoph Riedl, Young Ji Kim, Pranav Gupta, Thomas W Malone, and Anita Williams Woolley.
+677     Quantifying collective intelligence in human groups. Proceedings of the National Academy of
+678
+        Sciences, 118(21):e2005737118, 2021.
+679
+      Fernando E Rosas, Pedro AM Mediano, Henrik J Jensen, Anil K Seth, Adam B Barrett, Robin L
+680     Carhart-Harris, and Daniel Bor. Reconciling emergences: An information-theoretic approach to
+681     identify causal emergence in multivariate data. PLoS Computational Biology, 16(12):e1008289,
+682     2020.
+683
+684   Natalie Shapira, Guy Zwirn, and Yoav Goldberg. How well do large language models perform
+685     on faux pas tests? In Findings of the Association for Computational Linguistics: ACL 2023,
+686     pp. 10438–10451, Toronto, Canada, July 2023. Association for Computational Linguistics. URL
+687
+        https://aclanthology.org/2023.findings-acl.663.
+688   Natalie Shapira, Mosh Levy, Seyed Hossein Alavi, Xuhui Zhou, Yejin Choi, Yoav Goldberg,
+689     Maarten Sap, and Vered Shwartz. Clever hans or neural theory of mind? stress testing social
+690     reasoning in large language models. In Yvette Graham and Matthew Purver (eds.), Proceedings
+691     of the 18th Conference of the European Chapter of the Association for Computational Linguistics
+692     (Volume 1: Long Papers), pp. 2257–2273, St. Julian’s, Malta, March 2024. Association for Com-
+693     putational Linguistics. URL https://aclanthology.org/2024.eacl-long.138.
+694
+695
+      Brian Skyrms. Signals: Evolution, learning, and information. Oxford University Press, Oxford,
+        UK, 2010.
+696
+697   Garold Stasser and William Titus. Pooling of unshared information in group decision making:
+698     Biased information sampling during discussion. Journal of Personality and Social Psychology,
+699     48(6):1467, 1985.
+700
+701   Kim Sterelny. Social intelligence, human intelligence and niche construction. Philosophical Trans-
+        actions of the Royal Society B: Biological Sciences, 362(1480):719–730, 2007.
+
+
+                                                      13
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+702
+      Vighnesh Subramaniam, Yilun Du, Joshua B Tenenbaum, Antonio Torralba, Shuang Li, and
+703     Igor Mordatch. Multiagent finetuning: Self improvement with diverse reasoning chains.
+704     arXiv:2501.05707, 2025.
+705
+706   Wei Tao, Yucheng Zhou, Wenqiang Zhang, and Yu Cheng. Magis: Llm-based multi-agent frame-
+707    work for github issue resolution. arXiv:2403.17927, 2024.
+708   Georg Theiner. Transactive memory systems: A mechanistic analysis of emergent group memory.
+709     Review of Philosophy and Psychology, 4(1):65–89, 2013.
+710
+711   Georg Theiner. Groups as distributed cognitive systems. In K Ludwig and M Jankovic (eds.), The
+712     Routledge Handbook of Collective Intentionality, pp. 233–248. Routledge, New York, NY, 2018.
+713   Dustin Tingley, Teppei Yamamoto, Kentaro Hirose, Luke Keele, and Kosuke Imai. Mediation: R
+714     package for causal mediation analysis. Journal of statistical software, 59:1–38, 2014.
+715
+716   Deborah P Tollefsen, Rick Dale, and Alexandra Paxton. Alignment, transactive memory, and col-
+717     lective cognitive systems. Review of Philosophy and Psychology, 4(1):49–64, 2013.
+718   Giulio Tononi, Olaf Sporns, and Gerald M Edelman. A measure for brain complexity: relating func-
+719     tional segregation and integration in the nervous system. Proceedings of the National Academy of
+720     Sciences, 91(11):5033–5037, 1994.
+721
+722   Thomas F Varley, Maria Pope, Joshua Faskowitz, and Olaf Sporns. Multivariate information theory
+723
+        uncovers synergistic subsystems of the human cerebral cortex. Communications Biology, 6(1):
+        451, 2023.
+724
+725   Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Fei Xia, Ed Chi, Quoc V Le, Denny
+726     Zhou, et al. Chain-of-thought prompting elicits reasoning in large language models. Advances in
+727     Neural Information Processing Systems, 35:24824–24837, 2022.
+728
+      Samuel Westby and Christoph Riedl. Collective intelligence in human-ai teams: A bayesian theory
+729
+        of mind approach. In Proceedings of the AAAI Conference on Artificial Intelligence, volume 37,
+730
+        pp. 6119–6127, 2023.
+731
+732   Paul L Williams and Randall D Beer. Nonnegative decomposition of multivariate information.
+733     arXiv:1004.2515, 2010.
+734
+      Jeffrey M Wooldridge. Inverse probability weighted m-estimators for sample selection, attrition,
+735
+         and stratification. Portuguese Economic Journal, 1(2):117–139, 2002.
+736
+737   Qingyun Wu, Gagan Bansal, Jieyu Zhang, Yiran Wu, Shaokun Zhang, Erkang Zhu, Beibin Li,
+738     Li Jiang, Xiaoyun Zhang, and Chi Wang. Autogen: Enabling next-gen llm applications via multi-
+739     agent conversation framework. arXiv:2308.08155, 2023.
+740
+      Yang Xiao, Jiashuo Wang, Qiancheng Xu, Changhe Song, Chunpu Xu, Yi Cheng, Wenjie Li, and
+741     Pengfei Liu. Towards dynamic theory of mind: Evaluating llm adaptation to temporal evolution
+742     of human states. arXiv:2505.17663, 2025.
+743
+744
+745
+746
+747
+748
+749
+750
+751
+752
+753
+754
+755
+
+
+
+                                                     14
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+756
+      A     A PPENDIX
+757
+758
+      A.1   P ROMPTS
+759
+760    Preliminary Experiments
+761
+762    You are playing a sum guessing game. Your goal is to help your group sum to the mystery
+763    number. Your guess range is 0 to 50.
+764    Game History:
+765    Round 1: Your guess: 25
+766    Result: too HIGH
+767
+       Round 2: Your guess: 12
+       Result: too HIGH
+768
+       ...
+769
+       Based on this feedback, what should your next guess be?
+770    Respond with only an integer between 0 and 50.
+771
+772
+773    Plain
+774
+       You are playing a sum guessing game. Your goal is to help your group sum to the mystery
+775
+       number. Your guess range is 0 to 50.
+776    Game History:
+777    Round 1: Your guess: 25
+778    Result: too HIGH
+779    Round 2: Your guess: 12
+780    Result: too HIGH
+781    ...
+782    What is your guess this round? Always start with the efficient strategy in guessing games which
+783    is to use a binary search approach: guessing the midpoint of the current range. Always anchor
+784
+       your guess on the group feedback from previous rounds (too high / too low).
+       End your answer with: FINAL GUESS: [0-50]
+785
+786
+787    Persona
+788
+789    [PERSONA – Sample: You are Andrej, the Quantum Computing Engineer: Andrej, a Serbian
+790
+       engineer in Berlin, is one of a handful of experts in cutting-edge quantum tech. Systematic,
+       inquisitive, and fond of classical music, Andrej also volunteers as a coding mentor for refugee
+791
+       youth.]
+792
+       You are playing a sum guessing game. Your goal is to help your group sum to the mystery
+793    number. Your guess range is 0 to 50.
+794    Game History:
+795    [GAME HISTORY]
+796    What is your guess this round? Always start with the efficient strategy in guessing games which
+797    is to use a binary search approach: guessing the midpoint of the current range. Always anchor
+798    your guess on the group feedback from previous rounds (too high / too low).
+799    End your answer with: FINAL GUESS: [0-50]
+800
+801
+802
+803
+804
+805
+806
+807
+808
+809
+
+
+
+                                                     15
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+810
+       ToM
+811
+812    [PERSONA]
+813    You are playing a sum guessing game. Your goal is to help your group sum to the mystery
+814    number. Your guess range is 0 to 50.
+815    Game History:
+816    [GAME HISTORY]
+817
+       What is your guess this round? Always start with the efficient strategy in guessing games which
+       is to use a binary search approach: guessing the midpoint of the current range. Only as a sec-
+818
+       ondary approach, carefully think through step-by-step what others might guess and how the
+819
+       contributions of others contribute to the sum of the group guesses for the mystery number. Con-
+820    sider what roles other agents might be playing (e.g., guessing higher or lower) and adapt your
+821    own adjustment to complement the group. Always anchor your guess on the group feedback
+822    from previous rounds (too high / too low).
+823    End your answer with: FINAL GUESS: [0-50]
+824
+825   To generate personas, we used the following prompt with gpt-4.1-2025-04-14.
+826
+827    Persona Generation
+828
+829    Generate list of 20 personas. each persona description should be about one paragraph long.
+830    personas should include diverse people with different backgrounds, jobs, skills, different prefer-
+831    ences, and different personalities. format the output as follows ”You are [name], the [job title or
+832
+       professional identitiy]: [name] [rest of the persona]”
+833
+834   A.2    ROUNDS TO S UCCESS
+835
+836
+837                             Persona
+                                  + ToM
+838
+839                             Persona
+
+840
+841                               Plain
+
+842
+                                             5         10         15         20
+843                                                Rounds to Success
+844
+845
+                  Figure A1: Conditional on success, we plot which round it was achieved.
+846
+847
+848   A.3    S AMPLE Q UOTES FROM R EASONING T RACES
+849
+850   Below we show some illustrative quotes to illustrate both diversity and reasoning about others. Clear
+851   reasoning about other agents in the ToM condition with different personal approaches (from same
+852
+      group, in round 3, with identical group feedback too high, too high, too low:
+853     Because it’s possible others might go for 4 or 5 (the absolute lower bound or just above the last
+854     ”too low”), and someone else might go for 7 or 8, I stick with the most efficient: 6.
+855
+856
+        I’ll round down to stay cautious (as sometimes others might guess the midpoint up), so I’ll guess
+857
+        8.
+858
+859
+        Now, before some revolutionary comes in and throws a wild number for the sake of dramatic
+860
+        effect (”Viva el ocho!”), it’s sensible for me to go with the midpoint. If my compañeros are
+861     clever, they’ll flank me with 8 and 10, and we’ll box in this mystery number tighter than a late-
+862     night metro in Gràcia. So, unless you want me to make a “radical” guess for the sake of satire
+863     (which, let’s be honest, sometimes works), I’ll go boring and efficient.
+
+
+                                                       16
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+864
+865     If anyone else in the group is feeling feisty and picks 9 or 10, my 8 will help cover the lower part
+866     safely.
+867
+868
+      A.4   FALSIFICATION T ESTS : A DDITIONAL M ETHOD D ETAILS
+869
+870   We perform a falsification test of each of the three criteria introduced above in two different ways.
+871   In our robustness test, we remove time trends from the equal-share deviations via agent-level linear
+872   regression residualization to mitigate autocorrelation confounds. We then generate a null distri-
+873   bution of our statistics computed on column-wise block shuffled data (we use B = 200 random
+874   shuffles for main analyses and confirm results using B = 1, 000 on the emergence criteria tests).
+875   We permute time indices jointly across agents in blocks of length ℓ, preserving within-block iden-
+876   tity alignment while disrupting cross-agent temporal coupling beyond short time frames. Finally,
+877
+      we compute the bias-corrected estimate as the observed value minus the median of the null. We
+      then perform a Wilcoxon signed-rank tests to test whether the bias-corrected values exceed zero
+878
+      (p(H1 :> 0). In some of our sensitivity tests we also perform a full within-row shuffle completely
+879
+      permuting guesses within each trial across agents (breaking agent identities), while preserving row
+880   constraints. This role differentiation or identity-specific coordination, including time-trend effects
+881   (tests identity-locked differentiation beyond task induced temporal dynamics). Comparison between
+882   results using the full row-shuffle vs. the column-block-shuffle separates signs of identity-locked
+883   (specialized roles) from dynamic alignment (mutual adaptation, turn-taking, oscillation). In addi-
+884   tion to regression residualizing we also implement a functional baseline (see Appendix).
+885
+886   A.5   E MERGENCE C APACITY: F ULL R ESULT D ETAILS
+887
+888   Next, we test if there are signs of emergence capacity, again using both the p-value test on raw data
+889   and the test whether bias corrected values are above 0. We compute the dynamical synergy, which
+890   measures how much of the system’s future behavior is only predictable from the whole system and
+891
+      not any subset of its parts. The main test finds that about 32% of groups show significant emergence
+      capacity with p-values below 0.05 (Plain: 37%; Persona: 44%; ToM 18%). A joint Fisher test of
+892
+      all p-values is also highly significant. As robustness test we check whether the bias corrected value
+893
+      of dynamical synergy is above 0 using the Wilcoxon test (Figure 2b). The test is highly significant
+894   overall, as well as in the Plain and Persona condition. The ToM condition is marginally significant
+895   (p = 0.099).
+896
+897   A.6   ROBUSTNESS T ESTS USING E MERGENCE C APACITY C RITERION
+898
+899   Using MMI PID with Miller-Madow bias correction, we find 20% of p-values are below 0.05 (across
+900   treatment conditions: 0.22%, 26%, 12.4%). Fisher test is highly significant overall, and in each
+901   condition individually (all p = 0).
+902
+903   A.7   ROBUSTNESS T ESTS USING P RACTICAL E MERGENCE C RITERION
+904
+905   The main paper outlines how we use regression to residualize data from time trends. Since this
+906
+      removes only a specific version of time trend (in this case linear) it may not capture the specific
+      time trend present in the data. We creating a baseline expectation for behavior under a null scenario
+907
+      (no synergies) and then measuring deviations from that baseline. Specifically we implement a naive
+908
+      agent that performs deterministic binary search. Groups of this null-model agent are generally un-
+909   able to solve the task and oscillate between guessing too high and too low (they only solve it when
+910   the target number happens to be divisible by the group size). This provides a residualization against
+911   a generative null model correction (aka a functional baseline).
+912
+913   A.8   ROBUSTNESS T ESTS USING T HREE B INS
+914
+915   Quantile binning with K = 2 could potentially compress dynamics too much, blur role structure, and
+916   inflate apparent synergy by introducing threshold artifacts. We therefore report sensitivity analyses
+917   using K = 3 bins for our main analyses. We find consistent results and support for the presence of
+      emergence using three bins (instead of two as in the main analyses).
+
+
+                                                        17
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+918
+                                   Raw                                           Time-Trend                   Residualized against   Reactivity
+919
+                                 Data (BC)                                    Residualized (BC)               Functional Null (BC)     (BC)
+920
+921    Min.                          -4.234                                                    -2.476                      -3.323       -2.650
+922
+       1st Qu.                        0.105                                                    -0.041                       0.002       -0.015
+       Median                         0.187                                                     0.073                       0.110        0.111
+923
+       Mean                           0.352                                                     0.114                       0.183        0.313
+924
+       3rd Qu.                        0.406                                                     0.168                       0.269        0.352
+925    Max.                           4.881                                                     4.881                       3.886        4.869
+926
+927
+       Wilcoxon p (H1: > 0)           0.000                                                    0.000                        0.000        0.000
+928
+929
+            Table A1: Robustness tests using alternative version of the practical emergence criterion.
+930
+931
+932
+      Emergence Capacity. 20% of individual experiment p-values are below 0.05 and Fisher test is
+      highly significant (the largest p value is in the ToM condition with 4.47 × 10−3 the others are much
+933
+      smaller). Wilcoxon signed rank test for µ > 0 of the bias-corrected and time-trend demeand data
+934
+      are as follows. Overall: p = 0.005; Plain: p = 0.0004; Persona: p = 3.2 × 10−6 ; ToM: p = 0.991.
+935   Wilcoxon signed rank test for µ > 0 of the bias-corrected and functional-null demeand data are as
+936   follows. Overall: p = 0.0.9484; Plain: p = 0.0.999; Persona: p = 0.896; ToM: p = 0.0252.
+937   Using this stricter null indicates that only the ToM condition exhibits complementary cross-agent
+938   structure not explained by shared trends or independent feedback-following. That is, the stricter
+939   test isolates the construct of interest—synergy beyond coordination-free dynamics—and ToM is the
+940   only condition that passes it. The high p-value for ToM under the simpler time-trend demeaning
+941   should be taken as a methodological sensitivity (sparsity and a fat null). Together they show the
+942   ToM effect is robust to deconfounding but fragile under known low-power discretization.
+943
+944   Practical Criterion. 5.8% of individual experiment p-values are below 0.05 and Fisher test is
+945   highly significant (p < 10−16 ). Wilcoxon signed rank test for µ > 0 of the bias-corrected and
+946   time-trend demeand data are as follows. Overall: p = 3.6 × 10−8 ; Plain: p = 3.1 × 10−5 ; Persona:
+947   p = 0.001; ToM: p = 0.009.
+948
+949   A.9    A DDITIONAL R ESULTS ON DYNAMICAL M ECHANISM
+950
+951   The main paper shows results for Total Stability: I3 normalized by the entropy of the macro signal.
+952   Here we show results for I3 as well.
+953
+954                                                                                  ns        ns       ***
+955                                                                           0.10
+                                          Total Mutual Information I3 (BC)
+
+
+
+
+956
+957
+958                                                                           0.05
+959
+960
+                                                                              0.00
+961
+962
+963                                                                          −0.05
+964
+965
+966                                                                          −0.10
+967                                                                                  Plain Persona Persona
+968                                                                                                 + ToM
+
+969
+970   Figure A2: I3 mutual information (time-trend demean, bias corrected) with Wilcoxon > 0 p-value
+971   indicators.
+
+
+                                                                                          18
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+972
+       A.10    A RE I DENTITIES P ERSISTENT ?
+973
+974    If some agents learn faster than others, even without persistent “roles,” synergy can emerge simply
+975    because differentiated trajectories create complementarity across time. As indeed the mixed model
+976    test shows that 32% of groups have significant slopes provides strong evidence for the presence of
+977    heterogeneous learning rates. That is, heterogeneous learning rates could be a confound explaining
+978    some of our observed synergy effects. To rule out this alternative explanation we explore if agents
+979    have persistent “identities.” We find the block-shuffle nulls show more significant G3 than the
+980
+       full row shuffle. This suggests that synergy depends on temporal continuity of identities (not just on
+       different learning rates at each timepoint). Furthermore, the hierarchical model test shows significant
+981
+       variance even without varying slopes, indicating stable role-like differences beyond learning rates.
+982
+       Finally, our analyses removing time trends and the functional null-model also remove learning rate
+983    slopes (Table A1). The functional null-model in particular does this in a non-linear way that is
+984    directly tied to our task. In summary, we find both heterogeneous learning rates and stable identity-
+985    linked differentiation. Heterogeneous learning rates alone cannot explain the observed emergent
+986    synergy that persist across time (providing additional insights regarding RQ2).
+987
+       Together, the results suggest a nuanced picture of emergence in multi-agent systems. Persona
+988
+       and ToM produce agents with distinct, stable identities—moving agents on the differentiated-
+989    undifferentiated axis in Figure 1a. This differentiation shapes the space in which other agents can
+990    adapt, and specialization by one agent constrains the (useful) actions of the others (agents mutu-
+991    ally constrain each other; cf. Tollefsen et al., 2013)—shifts on the interdependent-complementary
+992    axis. When combined with ToM, mutual adaptation both strengthens agent differentiation (creating
+993    the foundation for possible synergistic complementarity) while also increasing mutual alignment
+994    on shared goals (the target signal)—shifts on the integration axis. Differentiation enables synergy,
+995    but without redundancy and integration, synergy alone does not translate into higher collective per-
+996    formance. Agents in the ToM condition develop specialized, complementary roles while achieving
+997
+       stronger shared goal alignment: they are simultaneously more differentiated yet also more integrated
+       along highly overlapping task-relevant information which the capacity for synergy can now exploit
+998
+       in productive ways.
+999
+1000
+1001
+       A.11    A DDITIONAL D ETAILS FOR P ERFORMANCE A NALYSIS
+1002
+       What does synergy enable? In particular, does synergy affect performance? Connecting emergent
+1003   properties of synergy and redundancy to performance is a challenging task for two main reasons.
+1004   First, redundancy and synergy sit at opposite ends of the informational spectrum of correlations.
+1005   Systems constrained by limited resources (such as energy or bandwidth) cannot maximize both
+1006   simultaneously. The “informational budget” of correlations can be spent on shared overlap (redun-
+1007   dancy) or on higher-order joint structures (synergy), but not both simultaneously (Williams & Beer,
+1008   2010; Varley et al., 2023; Luppi et al., 2024). Second, emergent properties are dichromatic—they
+1009   require time to evolve (Bedau, 2002)—making them endogenous with run-length of the simulation.
+1010   Namely, simulations in which the multi-agent system performs worse and takes longer to solve the
+1011
+       task (or fails to solve the task altogether) provide them with more time to evolve sophisticated group
+       coordination patterns; while successful runs terminate early, giving collectives less time to evolve
+1012
+       emergent properties. This complicates meaningful analyses as it can make it appear that higher syn-
+1013
+       ergy is correlated with failure. In technical terms: time is an endogenous variable and confounds
+1014   both performance and observed values of synergy and redundancy.
+1015
+1016   We address these issue as follows. First, we focus our analysis on the interaction of synergy and re-
+1017
+       dundancy, rather than each variable individually to capture the tradeoff between the two. Second, we
+       compute both emergent properties (synergy and redundancy) only on early rounds (in our case, 10
+1018
+       time steps). We chose 10 rounds as a good tradeoff between giving the multi-agent systems enough
+1019
+       time to evolve, while limiting the amount of runs that have already completed. While this reduces
+1020   our ability to detect the full emergent potential of the multi-agent system (since agents have less
+1021   time to evolve) it creates a clean apples-to-apples comparison between measured values (they are all
+1022   based on exactly 10 time steps). In that sense, our analyses likely underestimate the full effect of
+1023   synergy because we only capture the early onset of synergy. Focusing on only the first 10 time steps,
+1024   leads to additional complications, however. About 23% of experiments finish early and do not make
+1025   it till round ten (roughly balanced across treatments with 22% in Plain, 25% in Persona, and 20% in
+       ToM). Simply removing these observations would bias our results since this censoring occurs post-
+
+
+                                                         19
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1026
+       treatment assignment: removing those observations would introduce sampling bias. Instead, we take
+1027   these observations as censored (i.e., we cannot compute the early synergy measure) and control for
+1028   this censoring using stabilized inverse probability weighting (IPW; Wooldridge, 2002). That is, in
+1029   a separate modeling step we predict (via logistic regression and only task difficulty as exogenous
+1030   predictor variables that is independent of the treatment) the likelihood of observing (early) synergy
+1031   and redundancy.4 We then take the inverse of the predicted likelihood as weight in the causal medi-
+1032   ation analysis. This adjust observations in the primary analysis with the inverse of the probability of
+1033   making such observations.
+1034   Our first analysis is a plain quasibinomial regression on the binary success vs. failure outcome5 with
+1035   synergy, redundancy, their interaction, task difficulty as controls, and dummy indicators for the three
+1036   treatment conditions. We use our most conservative estimate of synergy and redundancy with the
+1037   bias-corrected estimates with high null model sampling (B = 2, 000), and the conservative MMI
+1038   redundancy (Mediano et al., 2025) with MI estimated with Miller–Madow bias correction (Miller,
+1039   1955). Results are robust to using MI redundancy and Jeffreys-smoothed probabilities.
+1040   For our second analysis we perform causal mediation analysis (Imai et al., 2010) to link our inter-
+1041   ventions to performance, via multi-agent synergy as a mechanism. We estimate the model using the
+1042   {mediation} package in R (Tingley et al., 2014). We find that the ToM intervention has a sig-
+1043   nificant indirect effect on performance through its impact on synergy, beyond any direct treatment
+1044   effects.
+1045
+1046   A.12     ROBUSTNESS T ESTS USING “E ARLY S YNERGY ”
+1047
+1048   Since our experiment is censored when groups correctly guess the target number, length of data in
+1049   our analyses varies between groups. As robustness test, we also compute “early synergy” using only
+1050
+       data up to round 15 (removing about 40% of the data). Using the practical criterion, we find about
+       5% of individual p-values are below 0.05. Fisher test is highly significant overall (p = 2.7 × 10−6 ),
+1051
+       significant in the Plain (0.001) and ToM condition (p = 0.0004) and marginally significant in the
+1052
+       Persona condition (p = 0.059). Using a more aggressive cutoff in round 10 (dropping only about
+1053   20% of trials but giving multi-agent systems less time to evolve synergy and having less data for
+1054   estimation we find only significant in the ToM condition (p = 0.028).
+1055
+1056
+       A.13     A DDITIONAL R ESULTS USING L LAMA -3.1-8B
+1057
+1058   The majority of Llama agent groups fail to solve the task. In the vast majority of instances, groups
+1059   get stuck in oscillating behavior of guessing too high (low) and then overcompensating by guessing
+1060   too low (high), unable to break out of the cycle by establishing specialized differentiation across
+1061   agents and pursuing complementary behavior.
+1062   Robustness tests using the emergence capacity measure are mixed. Using the emergence capacity
+1063   test indicates that Llama agents can exhibit emergent synergy (10.5% of individual groups show
+1064   p-values are below 0.05 compared to 32% of gpt-4.1; the joint Fisher test is highly significant). Ro-
+1065   bustness tests using bias corrected estimates on time-trend residualized data find significant signs
+1066   of emergence in the Persona condition (Wilcoxon signed rank test p = 0.020), marginal evidence
+1067   in the ToM condition (p = 0.061), and no evidence in the Plain condition (p = 0.252; see Ap-
+1068   pendix for more).
+1069   The test for emergence using the practical criterion shows no evidence for emergence (only 3.3% of
+1070   individual groups show p-value below 0.05 and joint Fisher suggests no evidence with p = 1 either
+1071   overall or within any of the treatment conditions). The robustness test using the bias-corrected
+1072   estimates on time-trend demeaned data suggest emergence in the Plain condition (p = 0.011),
+1073   no evidence in the Persona condition (p = 0.232), and marginal evidence in the ToM condition
+1074   (p = 0.068).
+1075      4
+             As measures for task difficulty we use (a) how far groups target number was from the mid point (smaller
+1076
+       numbers requiring more steps of the binary search process); and (b) the modulo remainder of the target number
+1077   and the group size (target numbers that are closer to divisibility by the group size are easier to guess by pure
+1078   chance).
+           5
+1079         While the raw outcome is binary and binomial regression would be appropriate, after the IPW weighting
+       step, outcomes are no longer binary, hence quasibinomial model.
+
+
+                                                             20
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1080
+       A.14    S PECIFIC P ERSONA E FFECTS
+1081
+1082   Both the Persona and ToM conditions rely on personas. Do the specific personas—or combinations
+1083   of personas—present in a multi-agent system affect performance or the emergence of higher-order
+1084   structures? We explore these questions with several test. Recall that our experiments are based on
+1085   20 different personas that are generated once globally, and then reused throughout the experiments
+1086   by sampling 10 persona from the library (without replacement). First, we perform joint F-tests
+1087   (based on linear regression) of the null hypothesis that all persona dummies have no effect on the
+1088
+       outcome (i.e., no specific persona substantially affects group outcomes and all coefficients equal
+       zero). Rejecting the null would indicate that at least one of the persona indicators is significantly
+1089
+       associated with the outcome variable. We find no evidence that the presence of specific personas
+1090
+       effect performance (F = 1.217; p = 0.239), number of rounds to success (F = 1.356; p = 0.144),
+1091   PID synergy (F = 0.839; p = 0.66), or PID redundancy (F = 0.596; p = 0.910). These results
+1092   suggest that what matters is the presence of personas overall—markers that allow the LLM agents
+1093   to center their differentiation on—rather than who those personas are specifically.
+1094
+       Next, we used an LMRA (Eloundou et al., 2024; Riedl & Weidmann, 2025) to judge the pairwise
+1095
+       similarity of the personas in terms of their personality and background (we used gpt-oss-120b
+1096
+       to assess similarity on a 0-10 scale). Even though judgments are subjective, the input they judge
+1097   is standardized, controlled, information-rich, and deliberately designed to reveal deep-level charac-
+1098   teristics in line with personas used in vignette studies (Aguinis & Bradley, 2014). This allows the
+1099   LMRA to integrate many deep-level characteristics in a controlled and comparable format. From
+1100   these, we compute group-level diversity as one minus the mean pairwise similarity rating, following
+1101   the dispersion-based operationalization of separation diversity in Harrison & Klein (2007) (mean
+1102   diversity: 5.457; SD = 0.385). In the last step, we explore whether group diversity is systematically
+1103   related with key group-level outcomes using linear regression. We find no effect of diversity on
+1104   performance (β = 0.067; p = 0.403), number of rounds to success (β = −0.195; p = 0.877), PID
+1105
+       synergy (β = −0.000; p = 0.856), or PID redundancy (β = 0.003; p = 0.113). These results again
+       suggest that there are no strong effects for specific combinations of personas.
+1106
+1107
+1108
+1109
+1110
+1111
+1112
+1113
+1114
+1115
+1116
+1117
+1118
+1119
+1120
+1121
+1122
+1123
+1124
+1125
+1126
+1127
+1128
+1129
+1130
+1131
+1132
+1133
+
+
+
+                                                        21
+

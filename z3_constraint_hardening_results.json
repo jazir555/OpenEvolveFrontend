@@ -1,0 +1,121 @@
+{
+  "test_type": "end_to_end_z3_integration",
+  "timestamp": "2026-02-04T23:51:38.776732+00:00",
+  "correlation_id": "80db40cf-60b8-4892-86f1-f61b83a9750e",
+  "problem_description": "\n    The system cannot process more than 1000 items per second.\n    The temperature is impossible to exceed 500 degrees Celsius.\n    Pressure must remain below 200 psi at all times.\n    Data transfer rate is limited to 10 Gbps.\n    ",
+  "constraints": [
+    {
+      "category": "hard_parameter_inequality",
+      "description": "The system cannot process more than 1000 items per second",
+      "formalized": true,
+      "z3_encoded": true,
+      "lean4_theorem": null,
+      "constraint_id": "d2e3a041-2857-4124-bc98-5d2e293663ab",
+      "fol_structure": {
+        "variables": [
+          "system"
+        ],
+        "quantifiers": [],
+        "predicates": [
+          "impossible"
+        ],
+        "original": "The system cannot process more than 1000 items per second"
+      },
+      "z3_formula": "(not the system cannot process more than 1000 items per second)",
+      "simplified_formula": "(not the system cannot process more than 1000 items per second)",
+      "inverted_description": "Constraint inverted: logical negation applied",
+      "inverted_formula": "(not (not the system cannot process more than 1000 items per second))",
+      "satisfiable": true,
+      "model": {
+        "x": 0.0
+      }
+    },
+    {
+      "category": "hard_parameter_inequality",
+      "description": "The temperature is impossible to exceed 500 degrees Celsius",
+      "formalized": true,
+      "z3_encoded": true,
+      "lean4_theorem": null,
+      "constraint_id": "ebd60a24-98df-4b20-849b-f79237e4c326",
+      "fol_structure": {
+        "variables": [
+          "temperature",
+          "Celsius"
+        ],
+        "quantifiers": [],
+        "predicates": [
+          "impossible"
+        ],
+        "original": "The temperature is impossible to exceed 500 degrees Celsius"
+      },
+      "z3_formula": "(not the temperature is impossible to exceed 500 degrees celsius)",
+      "simplified_formula": "(not the temperature is impossible to exceed 500 degrees celsius)",
+      "inverted_description": "Constraint inverted: logical negation applied",
+      "inverted_formula": "(not (not the temperature is impossible to exceed 500 degrees celsius))",
+      "satisfiable": true,
+      "model": {
+        "x": 0.0
+      }
+    },
+    {
+      "category": "hard_parameter_inequality",
+      "description": "Pressure must remain below 200 psi at all times",
+      "formalized": true,
+      "z3_encoded": true,
+      "lean4_theorem": null,
+      "constraint_id": "713c9120-ef2b-4292-882d-d9618e53de83",
+      "fol_structure": {
+        "variables": [
+          "Pressure"
+        ],
+        "quantifiers": [
+          "forall"
+        ],
+        "predicates": [
+          "required"
+        ],
+        "original": "Pressure must remain below 200 psi at all times"
+      },
+      "z3_formula": "(forall ((Pressure Real)) pressure must remain below 200 psi at all times)",
+      "simplified_formula": "(forall ((Pressure Real)) pressure must remain below 200 psi at all times)",
+      "inverted_description": "Constraint inverted: logical negation applied",
+      "inverted_formula": "(not (forall ((Pressure Real)) pressure must remain below 200 psi at all times))",
+      "satisfiable": true,
+      "model": {
+        "x": 0.0
+      }
+    },
+    {
+      "category": "hard_parameter_inequality",
+      "description": "Data transfer rate is limited to 10 Gbps",
+      "formalized": true,
+      "z3_encoded": true,
+      "lean4_theorem": null,
+      "constraint_id": "c997273b-0fce-4c77-bf16-232d5ca3d457",
+      "fol_structure": {
+        "variables": [
+          "Gbps",
+          "Data"
+        ],
+        "quantifiers": [],
+        "predicates": [],
+        "original": "Data transfer rate is limited to 10 Gbps"
+      },
+      "z3_formula": "P",
+      "simplified_formula": "P",
+      "inverted_description": "Constraint inverted: logical negation applied",
+      "inverted_formula": "(not P)",
+      "satisfiable": true,
+      "model": {
+        "x": 0.0
+      }
+    }
+  ],
+  "statistics": {
+    "total_constraints": 4,
+    "formalized_count": 4,
+    "z3_encoded_count": 4,
+    "satisfiable_count": 4,
+    "unsatisfiable_count": 0
+  }
+}

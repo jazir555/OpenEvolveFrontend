@@ -1,0 +1,4108 @@
+RPG: A R EPOSITORY P LANNING G RAPH FOR U NIFIED AND
+S CALABLE C ODEBASE G ENERATION
+Jane Luo1 ∗,‡ Xin Zhang1 ∗ † Steven Liu1,‡ Jie Wu1 2,‡ Jianfeng Liu1
+Chengyu Yin1 Ying Xin1 Yuefeng Zhan1 Hao Sun1 Qi Chen1
+arXiv:2509.16198v5 [cs.CL] 20 Oct 2025
+1
+Microsoft
+2
+Tsinghua University
+3
+Yiming Huang3 Yangyu Huang1
+Scarlett Li1 Mao Yang1
+University of California, San Diego
+October 21, 2025
+A BSTRACT
+Large language models excel at generating individual functions or single files of code, yet generating
+complete repositories from scratch remains a fundamental challenge. This capability is key to building
+coherent software systems from high-level specifications and realizing the full potential of automated
+code generation. The process requires planning at two levels: deciding what features and modules
+to build (proposal stage) and defining their implementation details (implementation stage). Current
+approaches rely on natural language planning, which often produces unclear specifications, misaligned
+components, and brittle designs due to its inherent ambiguity and lack of structure. To address these
+limitations, we introduce the Repository Planning Graph (RPG), a structured representation that
+encodes capabilities, file structures, data flows, and functions in a unified graph. By replacing
+free-form natural language with an explicit blueprint, RPG enables consistent long-horizon planning
+for repository generation. Building on RPG, we develop ZeroRepo, a graph-driven framework that
+operates in three stages: proposal-level planning, implementation-level construction, and graphguided code generation with test validation To evaluate, we construct RepoCraft, a benchmark of six
+real-world projects with 1,052 tasks. On RepoCraft, ZeroRepo produces nearly 36K Code Lines and
+445K Code Tokens, on average 3.9× larger than the strongest baseline (Claude Code), and 68× larger
+than other baselines. It achieves 81.5% coverage and 69.7% test accuracy, improving over Claude
+Code by 27.3 and 35.8 points. Further analysis shows that RPG models complex dependencies,
+enables more sophisticated planning through near-linear scaling, and improves agent understanding
+of repositories, thus accelerating localization.
+
+1
+Introduction
+Recent large language models (LLMs) have shown strong performance on function-level and file-level code generation,
+reliably producing functions and files from natural language descriptions [1–4]. However, scaling this capability from
+functions and files to generate large-scale software repositories from scratch remains a fundamental challenge. The core
+difficulty is bridging the gap between high-level user intent and the repository’s intricate network of files, classes, and
+dependencies[5, 6]. Successfully navigating this gap necessitates a process of progressive planning, which naturally
+decomposes into two complementary phases: proposal-level planning, which determines what to build by defining
+the functional scope and key capabilities, and implementation-level planning, which determines how to build it by
+specifying the file structure, interfaces, dependencies, and data flows.
+Prior work has explored this challenge through three paradigms. Distributed planning frameworks (e.g., MetaGPT [7],
+ChatDev [8]) assign specialized roles such as manager, architect, and engineer to negotiate between requirements and
+implementations. Workflow-based systems (e.g., Paper2Code [9], AutoP2C [10]) follow fixed pipelines that first build
+∗
+†
+‡
+Equal contribution, Contact: janeluo1210@163.com
+Corresponding author: xinzhang3@microsoft.com
+This work is done during their internships at Microsoft.
+
+A PREPRINT - O CTOBER 21, 2025
+architectural skeletons before filling in details. Iterative terminal agents (e.g., OpenHands [11], Claude Code [12],
+Gemini CLI [13]) externalize intermediate plans, often in markdown, and refine them step by step. Despite their
+differences, these approaches share a dependency: natural language as the intermediate medium for planning.
+While natural language remains a flexible and human-readable medium, it can often be less efficient for large-scale
+repository generation. Its inherent ambiguity may blur distinctions between intent and constraints [14], its lack of
+explicit hierarchy makes dependency tracking particularly difficult [15], and static plans may gradually degrade over
+long horizons without adaptive adjustment [16]. When extended to automatic repository generation, these limitations
+can more easily lead to unstable proposal-level planning, where functionalities are sometimes incomplete, overlapping,
+or unevenly scoped [17], and fragmented implementation-level planning, where plans drift across iterations, introducing
+inconsistencies in dependencies, data flows, and modular boundaries [18, 19].
+To address these limitations, we introduce the Repository Planning Graph (RPG), a persistent and evolvable representation that unifies proposal and implementation planning for repository generation. RPG encodes functional goals and
+designs in a single graph: nodes capture hierarchical capabilities with files, classes, and functions, while edges specify
+semantic relations and data flows. By replacing free-form language with a structured medium, RPG provides a compact,
+interpretable basis for consistent long-horizon planning. Building on this representation, we develop ZeroRepo, a
+graph-driven framework for controllable repository generation. Given a user specification, ZeroRepo proceeds in three
+stages: (1) Proposal-Level Construction, which organizes and refines requirements into a functional graph via a
+large-scale feature tree; (2) Implementation-Level Construction, which expands this graph into the full RPG by
+encoding file skeletons, interfaces, and flows; and (3) Graph-Guided Code Generation, which traverses the RPG in
+topological order with test-driven development, guided localization, and iterative editing.
+To evaluate agents’ planning ability in repository generation, we construct RepoCraft, a benchmark of six projects with
+1,052 tasks. On RepoCraft, ZeroRepo attains 81.5% functional coverage and a 69.7% pass rate, exceeding the strongest
+baseline (Claude Code) by 27.3 and 35.8 points, while producing repositories with 36K Lines of Code and 445K Code
+Tokens, about 3.9× larger than Claude Code and 68× larger than other baselines. Further analysis shows that Repository
+Planning Graph (RPG) captures complex dependencies, including inter-module data flows and function-level relations.
+It enables near-linear scaling of functionality and code size, supporting complex planning and providing a foundation
+for large-scale repositories and long-horizon development. As a global representation, RPG enhances agents’ repository
+understanding and accelerates localization.
+Our Contributions are list below:
+1. We introduce the Repository Planning Graph (RPG), a unified representation integrating proposal- and
+implementation-level planning, encoding functionality, file structures, data flows, and function designs.
+2. We develop ZeroRepo, a graph-driven framework that constructs RPG through proposal- and implementationlevel planning, and generates code with test validation.
+3. To evaluate agent planning ability in repository generation, we build RepoCraft, a benchmark of 6 projects
+with 1,052 tasks assessing coverage, accuracy, and code scale.
+4. On RepoCraft, ZeroRepo achieves strong improvements over baselines, reaching 81.5% functional coverage
+and nearly 69.7% test accuracy, while producing repositories 3.9× larger than the strongest baseline. Further
+analysis shows that RPG captures complex dependencies, enables more sophisticated planning through
+near-linear scaling, and enhances agents’ repository understanding, thereby accelerating localization.
+
+2
+Related Work
+LLM-based Code Generation SOTA models (e.g., GPT-4o [20], Claude 4 [21], Gemini [22], DeepSeek-R1 [23])
+excel at diverse SWE tasks, including code completion, test generation [24, 25], refactoring [26], and program repair [27].
+Instruction-tuned variants (e.g., Qwen-Coder [28], EpiCoder [2]) further improve reliability. These advances establish
+strong function-level performance, laying the foundation for progress toward broader software engineering tasks.
+Agents for Repository-Level Generation Agent frameworks embed LLMs in planning–coding loops [29, 30].
+Multi-agent systems (e.g., ChatDev [8], MetaGPT [7]) assign roles under fixed procedures, while workflow systems
+(e.g., Paper2Code [9], AutoP2C [10]) decompose synthesis into phases. Industrial systems (e.g., Codex [31], Gemini
+Cli [32] Claude Code [12]) extend these ideas to multi-file projects. However, most rely on ad-hoc natural language
+plans without persistent structural representations, often leading to fragmented implementations. By contrast, ZeroRepo
+employs a graph-guided abstraction that enforces structured planning and implementation guide.
+
+3
+Repository Planning Graph Construction
+To address the ambiguity of natural language plans, we propose the Repository Planning Graph (RPG), a structured
+representation that encodes repository functionality and implementation logic as nodes and edges. Building on RPG, we
+2
+A PREPRINT - O CTOBER 21, 2025
+Figure
+Legend
+Functionality Node
+Data Loading Node
+Folder-Augmented
+Node
+ML Algorithms Node
+File-Augmented
+Node
+Function-Augmented
+Node
+File-Augmented
+Graph
+Repository Planning
+Graph(RPG)
+Evaluation Node
+Functionality
+Graph
+Skeleton
+B.1 File Structure Encoding
+LLM Involvement
+Update Folder
+Information Flow
+Folder
+Root
+Nodes
+Embedding Nodes
+Sample
+Explore-Subtree
+Feature Tree
+Retrieve
+Exploit-Subtree
+system input
+Please Generate a
+Machine Learning
+Repository.
+
+src
+src/algos
+data_load
+src/eval
+load_data.py
+preprocess.py
+Transform
+Vector Database
+Select
+Query
+User Query
+src/data_load
+Mapping
+A. Proposal-Level Construction
+&
+Update
+algos
+Iteratively Update Files
+to Skeleton
+regression
+linear.py
+×𝒌
+pop
+Select & Update
+`
+Root
+Nodes
+eval
+Intermediate
+Nodes
+cls_metrics.py
+Design
+visualize.py
+File
+Refactor
+After Iteration
+load_data.py
+load_data.py
+preprocess.py
+preprocess.py
+Intermediate
+Nodes
+Repo-Aligned Subtree
+B. Implementation-Level Construction
+src/data_load
+B.1
+File Structure
+Encoding
+load_data.py
+B.2 Data Flow and Functions Encoding
+B.2
+Data Flow
+& Functions
+Encoding class DataLoader
+Design
+Root
+Nodes
+Base
+Classes
+Leaf
+Nodes
+Root
+Nodes
+C. Graph-Guided Code Generation
+RPG-Guided Search
+2
+load_data.py
+class DataLoader
+Repository Code View
+Dependency Explore
+1
+Fail
+Input
+Features
+Design
+Update Base Classes
+Predicted
+Output
+Label Flow
+Data
+Flow
+Base Classes
+class BaseEstimator:
+Assign
+def fit(self, X, y):
+pass
+class
+def predict(self, X):
+BaseEstimator
+pass
+Iteratively Update Functions
+Functions/Classes
+Feedback
+Write
+Test
+Update
+Pass
+Test
+Code
+Execution
+Edit Code
+Localization
+Design
+class DataLoader:
+Functions def load_csv(self,p):
+Topological
+Ordering
+pass
+def load_json(self,p):
+pass
+Leaf
+Nodes
+class DataLoader:
+def load_csv(self, path):
+return pd.read_csv (path)
+...
+
+class DataLoader
+Figure 1: The ZeroRepo pipeline for repository generation. (A) Proposal-level construction translates specifications
+into a functionality graph. (B) Implementation-level construction refines it via (B1) file-structure encoding into a
+file-augmented graph and (B2) data-flow/function encoding into the final Repository Planning Graph (RPG). (C)
+Graph-guided code generation traverses RPG in topological order to produce a stable repository.
+develop ZeroRepo, a framework for repository generation from scratch. This section first introduces the structure of RPG
+(§3.1), and then explains how ZeroRepo constructs it through proposal-level planning (§3.2) and implementation-level
+refinement (§3.3). The overall pipeline is shown in Figure 1(A-B).
+3.1
+Repository Planning Graph Structure
+As shown in Figure 2, RPG provides a unified representation for repository planning by encoding functionality and
+implementation in a structured graph, rather than unstable
+natural language descriptions. Its nodes carry dual semantics. At the functional level, they represent progressively
+refined capabilities: high-level modules (e.g., algorithms,
+evaluation) decompose into mid-level components and
+ultimately into leaf nodes corresponding to concrete algorithms. At the structural level, this hierarchy naturally mirrors repository organization: root nodes typically align with
+file regions, intermediate nodes with files, and leaf nodes
+with functions or classes, thereby unifying functional decomposition with code structure.
+
+Partial
+Repository Planning Graph
+of
+Machine Learning Library
+regression/
+linear.py
+src/algos
+ML
+Algorithms
+Lasso
+Linear
+Regression
+class
+LassoRegression(BaseEsti
+mator)
+class BaseEstimator
+Training Data /
+Feature Matrix
+Data
+Loading
+Predictions
+Target Values / Target Data
+Evaluation
+src/data_load
+load_data.py
+load
+json
+load
+data
+src/eval
+preprocess
+preprocess.py
+load
+load
+csv
+csv
+class DataLoader
+Elastic class
+ElasticNet(BaseEstimator)
+Net
+normalize
+text
+func
+norm_text
+visualize
+visualize.py
+plot
+roc curve
+func
+plot_roc_curve
+clustering
+Metrics
+silhouette
+score
+func
+silhouette_score
+cluster_metrics.py
+rand
+index
+func
+rand_index
+Beyond the hierarchical nodes, edges in RPG capture execution dependencies across granularity. Inter-module edges Figure 2: Example of a Repository Planning Graph: Solid
+(black arrows in Figure 2) encode data flows between mod- lines show hierarchy, black arrows for inter-module flows,
+ules, such as outputs from Data Loading feeding into dashed gray arrows for intra-module order.
+ML Algorithms and then into Evaluation. Intra-module
+edges (gray dashed arrows) capture file-level orderings; for instance, load_data.py precedes preprocess.py, with
+3
+A PREPRINT - O CTOBER 21, 2025
+outputs propagated to preprocessing. Collectively, these edges impose a topological order that aligns functional decomposition with code organization, ensuring coherence between global execution semantics and local implementation.
+3.2
+Proposal-Level Construction
+At the proposal level, the aim is to translate high-level user specifications into a coherent functionality graph. This
+involves three steps: grounding functionalities in a large-scale Feature Tree, selecting a repository-aligned subtree via
+explore–exploit search, and refactoring it into the graph. The full algorithm is detailed in Appendix A.1.
+A Global Tree as Knowledge Base LLMs alone provide unstable and biased capability enumeration, often yielding
+incomplete coverage [33, 34]. To stabilize planning, we ground functionality selection in the EpiCoder Feature Tree [2],
+a large-scale ontology of over 1.5M software capabilities. Its broad coverage and hierarchy serve as a structured prior,
+mitigating randomness and bias while ensuring repository functionalities are systematically captured and diverse. For
+efficient retrieval, each feature node is embedded into a vector representation, with its full hierarchical path stored as
+metadata in a vector database. This design preserves both semantic similarity and structural context, enabling precise
+and scalable functionality grounding. Detailed statistics of the Feature Tree are provided in Appendix A.2.
+Explore–Exploit Subtree Selection Using the Feature Tree as a structured knowledge base, the first step is to
+construct a repo-aligned subtree tailored to the user’s goal. Exhaustive enumeration is infeasible at the 1.5M scale,
+so ZeroRepo incrementally expands the subtree via an explore–exploit strategy. (1) Exploitation ensures precision:
+we retrieve top-k feature paths most aligned with the user goal and augment them with keywords suggested by LLM
+queries. (2) Exploration ensures diversity: we deliberately expand into unvisited regions of the ontology to capture less
+obvious but relevant functionalities. Candidates from both strategies are filtered by the LLM and integrated into the
+evolving subtree, yielding a balanced and comprehensive foundation for downstream planning.
+Refactoring by Goal Alignment The repo-aligned subtree, though capturing relevant functionalities, still inherits
+the generic organization of the global ontology. To align it with the user’s repository goal, we refactor feature
+placements into a modular functionality graph. The LLM partitions functionalities into cohesive modules following
+software engineering principles of cohesion and coupling. For instance, in a machine learning library, metrics such
+as silhouette_score are reorganized under an evaluation module rather than within clustering algorithms. The
+resulting graph establishes clear functional boundaries, encoding proposal-level planning directly into the representation.
+3.3
+Implementation-Level Construction
+After proposal-level construction establishes the multi-level functional plan, the graph is further enriched with implementation details, culminating in the complete Repository Planning Graph (RPG) at this stage. The process includes
+encoding the repository’s file structure, modeling inter-module data flows and intra-module orderings, and specifying
+concrete functions and interfaces.
+3.3.1 File Structure Encoding
+While proposal-level planning defines modular functionalities, it remains abstract and detached from implementation.
+To bridge this gap, the graph is extended with folder and file layouts, instantiating a repository skeleton that maps
+functional modules into executable structures, resulting in a file-augmented graph.
+Folder-Level Encoding Proposal-level planning partitions functionalities into modular subgraphs, but this abstraction
+does not yet define the repository’s structural layout. To bridge the gap, we enrich root nodes with folder-level
+specifications, assigning each subgraph a dedicated directory namespace (e.g., algoritms/, evaluation/). This
+encoding couples semantic modularity with explicit structural separation, ensuring that descendant functionalities
+inherit a consistent namespace and that the repository skeleton align with high-level capability decomposition.
+File-Level Encoding Once folder regions are encoded at the root nodes, the graph is enriched by assigning files
+to intermediate nodes. This step specifies how functionalities within a module are grouped into executable files. For
+example, preprocessing utilities are consolidated into preprocess.py, while models such as linear regression and
+its variants are grouped into linear_models.py. By embedding file structure in the graph, we preserve semantic
+cohesion, reduce cross-file coupling, and obtain a file-augmented graph that anchors downstream design.
+3.3.2
+Data Flow and Functions Encoding
+After obtaining the file-augmented graph, this stage finalizes the full Repository Planning Graph (RPG) by assigning
+executable roles to leaf nodes. To ensure coherence across modules and functions, we first incorporate inter- and
+intra-module data flows as input–output constraints, then abstract shared structures as design anchors, and finally refine
+leaf nodes into concrete functions or classes.
+4
+A PREPRINT - O CTOBER 21, 2025
+Data-Flow Encoding To ground interface design in execution semantics, the graph is augmented with data-flow edges
+that capture inter- and intra-module relations. At the global level, as shown in Figure 2, typed input–output flows connect
+subgraph roots; for example, a data-loading module may provide an array of training data to downstream algorithms.
+At the local level, files within a module are planned in a specific order, ensuring coherent and dependency-aware
+implementation. These flows impose a hierarchical topological order that constrains and organizes interface design.
+Abstracting Global Interfaces To improve scalability and maintainability, recurring input–output patterns across
+modules are abstracted into common data structures or base classes, providing design anchors that enforce interface
+consistency and reduce redundancy. For example, algorithms can be unified under a BaseEstimator class to ensure
+standardized interaction with preprocessing and evaluation modules.
+Adaptive Interface Design Within each file-level subgraph, leaf features are clustered into executable interfaces
+according to semantic relatedness. Independent features are implemented as standalone functions, while interdependent
+features are consolidated into shared classes with individual methods. For example, in Figure 2, load_json and
+load_csv are grouped into a DataLoader class, while regression variants are unified under LinearModels. This
+adaptive mapping balances granularity with cohesion, yielding a complete Repository Planning Graph (RPG) that
+preserves modularity and semantic consistency at the repository scale.
+
+4
+Graph-Guided Code Generation
+As shown in Figure 1(D), given a user query and the completed RPG, ZeroRepo generates repositories by traversing the
+graph in topological order, ensuring dependencies are implemented before dependents. At each leaf node, test-driven
+development (TDD) is applied: a test is derived from the task specification, after which the corresponding functions or
+classes are implemented and validated against it; failing cases trigger revisions until the test passes. Only functions that
+pass all tests are committed to the repository, enabling incremental expansion while preserving stability. Additional
+details are provided in Appendix C.
+Graph-Guided Localization and Editing To handle implementation and debugging requests, we adopt a two-stage
+workflow: first localizing the target in the RPG, then editing the associated code. Localization leverages the graph’s
+global structure and three complementary tools: (1) RPG-Guided search, which uses functionality-based fuzzy
+matching to identify candidate definitions; (2) repository code view, retrieving full interface bodies for inspection
+or modification; and (3) dependency exploration, tracing edges to reveal related modules and interactions. Once
+localized, the agent revises or generates the corresponding code to complete the requested implementation or repair.
+Graph-Guided Test Validation To ensure correctness and contain errors early, validation follows a staged workflow
+aligned with the graph. Each function or class is first verified in isolation through unit tests automatically derived from
+its docstring. Validated components trigger regression tests upon modification, while completed subgraphs undergo
+integration tests to ensure consistent data flows and contracts across modules. A lightweight majority-vote diagnosis
+distinguishes genuine implementation errors from environment or test issues, automatically handling the latter and
+returning the former for repair through the localization–editing workflow.
+
+5
+Experiment Setup
+Table 1: Overview of the six reference repositories and their paraphrased counterparts (Para. Name) in RepoCraft. #F.
+Cate. denotes functional categories, #Files the total source files, LOC the effective lines of code, and Task Counts the
+evaluation tasks for measuring code accuracy.
+Real Repo Para. Name
+#F. Cate. #Files
+LOC Code Tokens Task Counts
+scikit-learn
+pandas
+sympy
+statsmodels
+requests
+django
+5.1
+MLKit-Py
+TableKit
+SymbolicMath
+StatModeler
+HttpEasy
+PyWebEngine
+47
+81
+40
+88
+22
+42
+185
+217
+699
+271
+17
+681
+65,972
+106,447
+218,924
+83,325
+2,793
+109,457
+592,187
+943,873
+2,339,881
+893,824
+22,297
+917,622
+236
+175
+192
+234
+50
+165
+RepoCraft Benchmark
+A key challenge in evaluating repository-level generation is the absence of benchmarks that assess end-to-end reasoning
+and planning from scratch. Existing work either focuses on incremental development (editing, refactoring, or bug
+5
+A PREPRINT - O CTOBER 21, 2025
+fixing in existing codebases [26, 27, 35–37]) or repo generation but provides detailed skeletons and specifications that
+reduce the need for autonomous planning [38, 39]. RepoCraft addresses this gap by requiring agents to build complete
+repositories from high-level natural language descriptions and evaluating them against real-world projects in terms of
+scale, functionality, and correctness, with final statistics shown in Table 1.
+5.1.1
+Reference Repository Selection
+To provide a strong reference for evaluating reasoning and planning, RepoCraft grounds assessment in six widely
+used Python projects: scikit-learn, pandas, sympy, statsmodels, requests, and django. These repositories exemplify
+high-quality engineering practice as they have been developed by active communities, exhibit modular structures, and
+include comprehensive test suites. Their diversity across scientific computing, data analysis, symbolic reasoning, web
+services, and full-stack frameworks ensures that the benchmark captures breadth and realism. To mitigate pretraining
+leakage, we paraphrase their names and descriptions into lexically distinct forms before providing them to agents.
+5.1.2
+Metrics
+RepoCraft evaluates generated repositories along four complementary dimensions, with detailed definitions and formulas
+provided in Appendix D.3.1:
+Functionality Coverage Coverage is measured as the proportion of functional categories, drawn from official
+documentation, that are represented by the generated functionalities. A category is counted as covered if at least one
+generated functionality corresponds to it. This metric reflects only the breadth of functionality, without assessing
+correctness. Reference taxonomies are provided in Appendix D.4.
+Functionality Novelty Novelty is defined as the proportion of generated functionalities that fall outside the reference
+taxonomy, i.e., those assigned to the new features category. It captures the system’s ability to propose coherent but
+unseen capabilities beyond the ground specification.
+Functionality Accuracy Accuracy evaluates correctness at the task level using two metrics: (1) Pass Rate, the
+fraction of ground-truth tests passed; and (2) Voting Rate, the fraction validated by majority-vote semantic checks.
+Unlike coverage, accuracy measures whether implementations faithfully realize the intended algorithms.
+Code-Level Statistics We sreport repository scale indicators, including file count, normalized Lines of Code (LOC),
+and token count, measured after excluding non-core code such as tests and examples.
+5.1.3
+Functional Task Construction and Evaluation
+Parse Test Tree
+Filter Test Files
+Project
+svm
+svm/
+sklearn/
+setup.py
+examples/
+README
+build/
+Makefile
+test_svm
+tests/
+test_svm.py
+test_sparse.py
+Collect Tasks
+1.Sample and Filter Tests
+test_sparse
+svr
+oneclass
+test_svr_
+predict
+test_sparse_
+oneclasssvm
+test_svr_
+predict
+test_version
+2. Generate Tasks
+test_svr_
+predict
+Testing the SVR
+algorithm...
+
+Figure 3: Pipeline for Evaluation Task Collection. It comprises test file filtering, hierarchical parsing into test trees,
+sampling and filtering, and final task generation.
+To assess models’ planning ability on constructed repositories, we evaluate whether they (i) implement the intended
+algorithms and (ii) realize them correctly. Simple measures of repository size or coverage are insufficient for this
+purpose, so RepoCraft introduces task-level evaluations that capture both functional fidelity and implementation
+accuracy (see Appendix D.2 for details).
+To enable such fine-grained evaluation, RepoCraft derives tasks from reference repositories. As shown in Figure 3, we
+collect all available test functions and classes, organize them hierarchically following each project’s modular structure,
+and apply stratified sampling to ensure representative coverage. Trivial or non-algorithmic tests are filtered out, resulting
+in a diverse and computationally meaningful set of 1,052 tasks that closely mirror practical software evaluation.
+Each task includes a natural language description of the target algorithm, a ground-truth test, and auxiliary materials.
+Evaluation proceeds in three steps: (1) Localization, mapping requirements to candidate functions or classes in the
+generated repository; (2) Semantic Validation, applying majority-vote checks over two rounds to confirm fidelity to
+the specification; and (3) Execution Testing, adapting and running the ground-truth test to verify interface correctness
+under realistic inputs and outputs. This design mirrors real-world development while reducing sensitivity to spurious
+model errors. We use o3-mini as the base model for automated evaluation.
+6
+A PREPRINT - O CTOBER 21, 2025
+Table 2: Performance of agent frameworks and model backbones on RepoCraft. "Nov." denotes the novelty rate; the
+number in parentheses is Novel/Total, where Novel is the number of novel functionalities and Total is the total number
+of planned functionalities. Gold Projects are used as a confidence ablation for the automatic evaluation pipeline, and
+per-repository detailed results are reported in Appendix E.2.
+Agent
+Model
+Cov. (%) ↑
+Nov. (%) (Novel/Total) ↑
+Pass. / Vot. (%) ↑
+Files ↑
+LOC ↑
+Tokens ↑
+MetaGPT
+o3-mini
+Qwen3-Coder
+16.6
+17.1
+0.0 (0.0/24.8)
+0.0 (0.0/32.7)
+4.5 / 10.2
+3.2 / 9.4
+2.3
+8.5
+225.3
+326.5
+2180.3
+3369.3
+ChatDev
+o3-mini
+Qwen3-Coder
+18.3
+22.1
+9.2 (3.0/32.8)
+3.9 (1.5/38.3)
+2.6 / 10.5
+6.9 / 11.6
+5.8
+6.3
+410.3
+540.7
+4458
+5422.2
+OpenHands
+o3-mini
+Qwen3-Coder
+22.0
+21.7
+0.3 (0.1/36.5)
+0.0 (0.0/33.7)
+5.1 / 16.9
+5.8 / 11.2
+9.8
+8.3
+292.2
+458.0
+2712.8
+4778.3
+Paper2Code
+o3-mini
+Qwen3-Coder
+21.7
+30.2
+5.2 (2.1/40.0)
+5.5 (4.0/73.8)
+6.0 / 15.8
+4.9 / 15.9
+7.2
+8.8
+547.7
+1365.2
+5920.8
+14,555.0
+Codex CLI
+Gemini CLI
+Claude Code CLI
+o3 pro
+gemini 2.5 pro
+claude 4 sonnet
+28.4
+42.0
+54.2
+0.0 (0.0/48.5)
+0.6 (0.8/132.7)
+6.7 (41.6/621.0)
+11.0 / 20.0
+14.5 / 37.9
+33.9 / 52.5
+5.3
+15.2
+33.3
+611.5
+1484.8
+10,586.7
+6248.5
+14,922.2
+105,236.2
+Gold Projects
+Human Developers
+-
+-
+81.0 / 92.0
+345
+97,819.7
+951,614
+ZeroRepo
+o3-mini
+Qwen3-Coder
+81.5
+75.1
+13.6 (151.5/1114.2)
+9.2 (108.3/1173.3)
+69.7 / 75.0
+57.3 / 68.0
+271.5
+389.0
+23,977.3
+36,941.0
+260,761.2
+445,511.8
+5.2
+Baselines
+We compare three paradigms: (1) Multi-agent frameworks (MetaGPT [7], ChatDev [8]) assigning specialized roles for
+end-to-end development; (2) Workflow-based system (Paper2Code [9]) with a fixed three-stage pipeline; (3) Terminal
+agents (Codex CLI [40], Claude Code CLI [12], Gemini CLI [13], OpenHands [11]) performing natural language
+editing, debugging, and multi-file reasoning. For comparability, MetaGPT, ChatDev, and Paper2Code are run with two
+backbones: o3-mini [41] and Qwen3-Coder-480B-A35B-Instruct (Qwen3-Coder) [42]. Codex CLI, Claude Code CLI,
+and Gemini CLI are evaluated with their official strongest model. We enable Terminal Agents to retrieve real-world
+knowledge via web search. To ensure fairness, all runs extend to 30 iterations, with agents prompted at each step to
+propose or implement functionality.
+5.3
+Implementation Details
+We conduct 30 iterations for feature selection in Proposal-Level Graph Construction. Each function in the Code
+Generation Stage undergoes up to 8 debugging iterations, with 20 localization attempts per iteration. For test failures,
+we use 5-round majority voting to attribute and allow up to 20 remediation attempts for test or environment errors.
+
+6
+Main Results
+RPG enables richer functionality and larger repositories. ZeroRepo demonstrates that RPG–guided planning
+yields repositories of substantially greater scale, diversity, and novelty than existing approaches. On RepoCraft, it
+achieves up to 81.5% coverage with o3-mini, representing a 27.3% absolute improvement over the strongest baseline
+(Claude Code at 54.2%). Beyond covering the required functionality, ZeroRepo also exhibits strong innovation, attaining
+novelty rates of 11–13% with over 100 new functionalities, whereas most baselines contribute fewer than 10. In terms
+of repository size, ZeroRepo with Qwen3-Coder generates 36K LOC and 445K tokens, corresponding to 3.9× the
+code scale of Claude Code and about 68× that of other baselines. Among these approaches, ZeroRepo is the closest
+to human-developed Gold Projects, underscoring that RPG serves as the key structured representation for building
+repositories that are larger, more diverse, and closer to real-world software complexity.
+RPG enhances reasoning consistency and structural fidelity. Beyond scale, ZeroRepo delivers substantially higher
+correctness and stability. To ensure reliability, we first validate the automatic localization and validation pipeline on
+human-developed Gold Projects, where it achieves 81.0% pass rate and 92.0% voting agreement, establishing the
+ceiling under our test harness. Under the same protocol, ZeroRepo attains a 69.7% pass rate with o3-mini, an absolute
+improvement of 35.8% compared to the strongest baseline (Claude Code at 33.9%). These results indicate that RPG
+serves as a structured reasoning representation that enforces modular boundaries and functional contracts, thereby
+supporting coherent planning and yielding repositories that more faithfully realize intended specifications.
+7
+A PREPRINT - O CTOBER 21, 2025
+configs
+scripts
+general
+Inputs (List…)
+Skeleton
+model_base.py
+src
+clustering
+data_lifecycle
+time_series
+Time-indexed array
+Prediction
+array evaluation
+Temporal features
+Metrics
+Processed data
+Output features
+data_lifecycle feature_enigeering
+Reduced
+Models
+Cluster labels
+Clustering
+Model
+artifacts
+Base
+Classes
+exprimental
+general
+feature_enigeering
+models
+time_series
+Kmeans
+Structure:
+FeatureSet
+Base Class:
+BaseModel
+README.md
+Interpretation
+objects
+explainability
+DBSCANDetector
+DBSCAN
+visualization
+setup.py
+visualization
+features
+explainability
+evaluation
+Module
+UML
+DecisionTreeClaissifer
+AutoencoderDetector
+Code
+Dependency
+AutomaticFeatureSelector
+AdaBoostClassifier
+OneClassSVMDetector
+SelectKBestFeatures
+SVMClassifier
+RidgeRegressor
+ChiSquareFeatureSelector
+RANSACRegressor
+inherit
+invoke
+Figure 4: Illustration of dependencies in the repository generated by Qwen3-Coder on MLKit-Py, showing (1) the
+repository skeleton at the folder/file level, (2) inter-module data flows, and (3) class and function dependencies.
+
+RPG induces complex data flows and dependencies. To illustrate the capacity of RPG–guided planning for
+generating complex repositories, we visualize ZeroRepo with Qwen3-Coder on the MLKit-Py task. At the file
+level, RPG organizes a coherent folder hierarchy; at the module level, inter-module flows define execution pipelines
+from data_lifecycle through clustering and models to evaluation; and at the function level, inheritance and
+invocation edges capture intricate class interactions. These results show that RPG induces layered dependencies and
+coordinated execution, enabling repositories with both structural complexity and internal coherence.
+
+7
+7.1
+Analysis
+Analysis of the RPG’s Scalability
+RPG enables near-linear growth of repository functionalities.
+A key question in repository-level generation is whether functionalities can continue to expand with iterative planning, or whether
+growth quickly stagnates. To examine this, we compute the number of planned features at each iteration on RepoCraft, averaging
+across 30 rounds for strong baselines (Claude Code, Gemini CLI,
+Codex CLI) and for ZeroRepo. As shown in Figure 5, ZeroRepo
+exhibits near-linear growth, surpassing 1,100 leaf features with
+o3-mini, while natural-language–based baselines display limited
+scalability: Claude Code grows steadily but with diminishing rates,
+Gemini CLI increases only slowly before converging by round 30,
+and Codex ceases to add features after just 4–5 iterations. These
+results demonstrate that the RPG provides a persistent and extensible planning substrate, enabling high-level goals to be refined into
+progressively richer functionalities. In contrast to natural-language
+representations, which degrade in coherence and stagnate, RPG
+sustains structural consistency and extensibility, establishing it as Figure 5: Feature comparison of ZeroRepo
+a stronger representational foundation for modeling repositories (o3-mini) against strong baselines (Codex, Gemwith increasingly complex functionalities and architectures.
+ini CLI, Claude Code) across iterations.
+
+8
+A PREPRINT - O CTOBER 21, 2025
+RPG ensures near-linear growth in repository size. Functional
+scalability is only meaningful if it translates into executable code.
+To examine this, we analyze how repository size evolves across
+iterations, measured in lines of code (LOC). As shown in Figure 6,
+ZeroRepo sustains near-linear growth, surpassing 30K LOC within
+30 iterations. In contrast, natural-language–based baselines stagnate: Claude Code and Gemini CLI plateau around 3–4K LOC,
+while Codex remains below 1K LOC. This divergence reflects
+a fundamental representational gap. Natural language planning
+rapidly accumulates inconsistencies across iterations, leading to
+fragmented specifications that fail to translate into coherent code.
+In contrast, the RPG maintains a persistent, extensible structure in
+which proposed functionalities are grounded in explicit modules,
+interfaces, and data flows. This grounding ensures that planned
+expansions are consistently realized as executable code, producing
+repositories that grow not only in size but also in organizational Figure 6: Scaling behavior of total lines of code
+coherence. These results highlight the RPG’s ability to sustain across iteration steps on MLKit-Py
+repository scaling in both volume and integrity, positioning it as a
+robust representational basis for long-horizon code generation.
+7.2
+Analysis of RPG’s Stability and Innovation Potential
+RPG supports comprehensive and extensible functionality. A
+central challenge in repository-level generation is ensuring repos- Table 3: Coverage and Novelty of the Constructed
+itories not only satisfy user-specified requirements but also extend RPG over Iterations on MLKit-Py (o3-mini)
+beyond them coherently. As shown in Table 3, ZeroRepo steadily
+increases coverage from 70.2% at 5 iterations to nearly 96% at 30,
+Iteration Cov. (%) ↑
+Nov. (%) ↑
+far surpassing baselines below 60% (Table 2). Simultaneously, it
+5
+70.2
+4.6 (15.3/336.1)
+maintains novelty, reaching 8% with over 100 additional features,
+10
+80.9
+5.4 (29.01/542.0)
+whereas baselines contribute fewer than 50. These results suggest
+15
+83.0
+4.9 (39.0/796.0)
+that RPG functions as a persistent planning substrate, enabling
+20
+85.1
+5.2 (51.0/981.0)
+repositories to achieve comprehensive coverage while supporting
+87.2
+7.0 (73.5/1043.0)
+principled growth beyond reference implementations. Represen- 25
+tative examples in Appendix E.3 validate that RPG sustains co- 30 (ours)
+95.7
+7.9 (99.4/1258.0)
+herence in both coverage allocation and novel feature proposals.
+7.3
+Analysis of Graph-Guided Localization
+Graph guidance accelerates agent localization. We evaluate
+the impact of RPG guidance by comparing localization steps with Table 4: Ablation of Graph-Guided Localization
+and without graph support (Table 4). Across Integration Testing on MLKit-Py (o3-mini). Steps (mean ± SD).
+(Int. Test.), Incremental Development (Incr. Dev.), and Debugging “wo/Graph” denotes ZeroRepo without Graph.
+(Debug.), graph-guided search reduces effort by 30–50%. This
+demonstrates that RPG equips agents with a principled navigation
+Category
+IntTest
+IncDev
+Debug
+mechanism, enabling faster dependency tracing, more accurate
+bug localization, and smoother module integration, thereby im- ZeroRepo
+6.2 ± 2.1 6.8 ± 1.8 5.8 ± 2.8
+proving repository development efficiency. Compared to natural
+w/o
+Graph
+13.3
+± 11.1 10.8 ± 2.6 8.5 ± 2.9
+language, RPG offers a global structural representation of the repository, enabling agents to localize targets from a functionality-wide
+perspective and accelerating the development cycle.
+
+8
+Conclusion
+In this paper, we presented the Repository Planning Graph (RPG), a structured representation that unifies proposaland implementation-level planning for repository generation. Built on RPG, we introduced ZeroRepo, a graph-driven
+framework that achieves state-of-the-art coverage, correctness, and scalability on the RepoCraft benchmark. Our
+analyses show that RPG models complex dependencies, enables progressively more sophisticated planning through
+near-linear scaling of functionality and code size, and improves agents’ repository understanding, thereby accelerating
+localization. These results highlight the potential of graph-based representations as a foundation for advancing
+long-horizon and large-scale repository generation.
+9
+A PREPRINT - O CTOBER 21, 2025
+References
+[1] Qihao Zhu, Daya Guo, Zhihong Shao, Dejian Yang, Peiyi Wang, Runxin Xu, Y Wu, Yukun Li, Huazuo Gao,
+Shirong Ma, et al. Deepseek-coder-v2: Breaking the barrier of closed-source models in code intelligence. arXiv
+preprint arXiv:2406.11931, 2024.
+[2] Yaoxiang Wang, Haoling Li, Xin Zhang, Jie Wu, Xiao Liu, Wenxiang Hu, Zhongxin Guo, Yangyu Huang, Ying
+Xin, Yujiu Yang, et al. Epicoder: Encompassing diversity and complexity in code generation. arXiv preprint
+arXiv:2501.04694, 2025.
+[3] Yifei Liu, Li Lyna Zhang, Yi Zhu, Bingcheng Dong, Xudong Zhou, Ning Shang, Fan Yang, and Mao Yang. rstarcoder: Scaling competitive code reasoning with a large-scale verified dataset. arXiv preprint arXiv:2505.21297,
+2025.
+[4] Huaye Zeng, Dongfu Jiang, Haozhe Wang, Ping Nie, Xiaotong Chen, and Wenhu Chen. Acecoder: Acing coder rl
+via automated test-case synthesis. arXiv preprint arXiv:2502.01718, 2025.
+[5] Hongyuan Tao, Ying Zhang, Zhenhao Tang, Hongen Peng, Xukun Zhu, Bingchang Liu, Yingguang Yang, Ziyin
+Zhang, Zhaogui Xu, Haipeng Zhang, et al. Code graph model (cgm): A graph-integrated large language model for
+repository-level software engineering tasks. arXiv preprint arXiv:2505.16901, 2025.
+[6] Haiyang Li. Mrg-bench: Evaluating and exploring the requirements of context for repository-level code generation.
+arXiv preprint arXiv:2508.02998, 2025.
+[7] Sirui Hong, Xiawu Zheng, Jonathan Chen, Yuheng Cheng, Jinlin Wang, Ceyao Zhang, Zili Wang, Steven Ka Shing
+Yau, Zijuan Lin, Liyang Zhou, et al. Metagpt: Meta programming for multi-agent collaborative framework. arXiv
+preprint arXiv:2308.00352, 3(4):6, 2023.
+[8] Chen Qian, Wei Liu, Hongzhang Liu, Nuo Chen, Yufan Dang, Jiahao Li, Cheng Yang, Weize Chen, Yusheng Su,
+Xin Cong, et al. Chatdev: Communicative agents for software development. arXiv preprint arXiv:2307.07924,
+2023.
+[9] Minju Seo, Jinheon Baek, Seongyun Lee, and Sung Ju Hwang. Paper2code: Automating code generation from
+scientific papers in machine learning. arXiv preprint arXiv:2504.17192, 2025.
+[10] Zijie Lin, Yiqing Shen, Qilin Cai, He Sun, Jinrui Zhou, and Mingjun Xiao. Autop2c: An llm-based agent framework for code repository generation from multimodal content in academic papers. arXiv preprint arXiv:2504.20115,
+2025.
+[11] Xingyao Wang, Boxuan Li, Yufan Song, Frank F Xu, Xiangru Tang, Mingchen Zhuge, Jiayi Pan, Yueqi Song,
+Bowen Li, Jaskirat Singh, et al. Openhands: An open platform for ai software developers as generalist agents.
+arXiv preprint arXiv:2407.16741, 2024.
+[12] Anthropic. Claude code: agentic coding command-line tool, 2025. URL https://www.anthropic.com/
+claude-code.
+[13] Google. Gemini cli: Open-source ai agent for developer terminals, June 2025. Accessed: 2025-07-22.
+[14] Evan Wang, Federico Cassano, Catherine Wu, Yunfeng Bai, Will Song, Vaskar Nath, Ziwen Han, Sean Hendryx,
+Summer Yue, and Hugh Zhang. Planning in natural language improves llm search for code generation. arXiv
+preprint arXiv:2409.03733, 2024.
+[15] Maciej Besta, Nils Blach, Ales Kubicek, Robert Gerstenberger, Michal Podstawski, Lukas Gianinazzi, Joanna
+Gajda, Tomasz Lehmann, Hubert Niewiadomski, Piotr Nyczyk, et al. Graph of thoughts: Solving elaborate
+problems with large language models. In Proceedings of the AAAI conference on artificial intelligence, volume 38,
+pages 17682–17690, 2024.
+[16] Haotian Sun, Yuchen Zhuang, Lingkai Kong, Bo Dai, and Chao Zhang. Adaplanner: Adaptive planning from
+feedback with language models. Advances in neural information processing systems, 36:58202–58245, 2023.
+[17] Yueheng Zhu, Chao Liu, Xuan He, Xiaoxue Ren, Zhongxin Liu, Ruwei Pan, and Hongyu Zhang. Adacoder: An
+adaptive planning and multi-agent framework for function-level code generation. arXiv preprint arXiv:2504.04220,
+2025.
+[18] Amr Almorsi, Mohanned Ahmed, and Walid Gomaa. Guided code generation with llms: A multi-agent framework
+for complex code tasks. In 2024 12th International Japan-Africa Conference on Electronics, Communications,
+and Computations (JAC-ECC), pages 215–218. IEEE, 2024.
+[19] Nazmus Ashrafi, Salah Bouktif, and Mohammed Mediani. Enhancing llm code generation: A systematic evaluation
+of multi-agent collaboration and runtime debugging for improved accuracy, reliability, and latency. arXiv preprint
+arXiv:2505.02133, 2025.
+10
+A PREPRINT - O CTOBER 21, 2025
+[20] OpenAI. Gpt-4o system card. arXiv preprint arXiv:2410.21276, 2024. URL https://arXiv.org/abs/2410.
+21276.
+[21] Anthropic. Introducing claude 4, May 2025. URL https://www.anthropic.com/news/claude-4.
+[22] Gemini Team. Gemini 2.5: Pushing the frontier with advanced reasoning, multimodality, long context, and next
+generation agentic capabilities, June 2025. URL https://storage.googleapis.com/deepmind-media/
+gemini/gemini_v2_5_report.pdf.
+[23] Daya Guo, Dejian Yang, Haowei Zhang, Junxiao Song, Ruoyu Zhang, Runxin Xu, Qihao Zhu, Shirong Ma, Peiyi
+Wang, Xiao Bi, et al. Deepseek-r1: Incentivizing reasoning capability in llms via reinforcement learning. arXiv
+preprint arXiv:2501.12948, 2025.
+[24] Muhammad Nouman Zafar, Wasif Afzal, and Eduard Enoiu. Evaluating system-level test generation for industrial
+software: A comparison between manual, combinatorial and model-based testing. In Proceedings of the 3rd
+ACM/IEEE international conference on automation of software test, pages 148–159, 2022.
+[25] Arghavan Moradi Dakhel, Amin Nikanjam, Vahid Majdinasab, Foutse Khomh, and Michel C Desmarais. Effective
+test generation using pre-trained large language models and mutation testing. Information and Software Technology,
+171:107468, 2024.
+[26] Dhruv Gautam, Spandan Garg, Jinu Jang, Neel Sundaresan, and Roshanak Zilouchian Moghaddam. Refactorbench:
+Evaluating stateful reasoning in language agents through code. arXiv preprint arXiv:2503.07832, 2025.
+[27] Carlos E Jimenez, John Yang, Alexander Wettig, Shunyu Yao, Kexin Pei, Ofir Press, and Karthik Narasimhan.
+Swe-bench: Can language models resolve real-world github issues? arXiv preprint arXiv:2310.06770, 2023.
+[28] Binyuan Hui, Jian Yang, Zeyu Cui, Jiaxi Yang, Dayiheng Liu, Lei Zhang, Tianyu Liu, Jiajun Zhang, Bowen Yu,
+Keming Lu, et al. Qwen2. 5-coder technical report. arXiv preprint arXiv:2409.12186, 2024.
+[29] Jianwen Luo, Yiming Huang, Jinxiang Meng, Fangyu Lei, Shizhu He, Xiao Liu, Shanshan Jiang, Bin Dong,
+Jun Zhao, and Kang Liu. Gate: Graph-based adaptive tool evolution across diverse tasks. arXiv preprint
+arXiv:2502.14848, 2025.
+[30] Qingyun Wu, Gagan Bansal, Jieyu Zhang, Yiran Wu, Beibin Li, Erkang Zhu, Li Jiang, Xiaoyun Zhang, Shaokun
+Zhang, Jiale Liu, et al. Autogen: Enabling next-gen llm applications via multi-agent conversations. In First
+Conference on Language Modeling, 2024.
+[31] OpenAI. Introducing codex: a cloud-based software engineering agent, 2025. URL https://openai.com/
+index/introducing-codex/.
+[32] Google. Gemini cli: your open-source ai agent, 2025. URL https://blog.google/technology/
+developers/introducing-gemini-cli-open-source-ai-agent/.
+[33] Karthik Valmeekam, Sarath Sreedharan, Matthew Marquez, Alberto Olmo, and Subbarao Kambhampati. On the
+planning abilities of large language models (a critical investigation with a proposed benchmark). arXiv preprint
+arXiv:2302.06706, 2023.
+[34] Ma’ayan Armony, Albert Meroño-Peñuela, and Gerard Canal. How far are llms from symbolic planners? an
+nlp-based perspective. arXiv preprint arXiv:2508.01300, 2025.
+[35] Linghao Zhang, Shilin He, Chaoyun Zhang, Yu Kang, Bowen Li, Chengxing Xie, Junhao Wang, Maoquan Wang,
+Yufan Huang, Shengyu Fu, et al. Swe-bench goes live! arXiv preprint arXiv:2505.23419, 2025.
+[36] Wei Li, Xin Zhang, Zhongxin Guo, Shaoguang Mao, Wen Luo, Guangyue Peng, Yangyu Huang, Houfeng
+Wang, and Scarlett Li. Fea-bench: A benchmark for evaluating repository-level code generation for feature
+implementation. arXiv preprint arXiv:2503.06680, 2025.
+[37] Yiming Huang, Jianwen Luo, Yan Yu, Yitong Zhang, Fangyu Lei, Yifan Wei, Shizhu He, Lifu Huang, Xiao Liu,
+Jun Zhao, et al. Da-code: Agent data science code generation benchmark for large language models. arXiv
+preprint arXiv:2410.07331, 2024.
+[38] Wenting Zhao, Nan Jiang, Celine Lee, Justin T Chiu, Claire Cardie, Matthias Gallé, and Alexander M Rush.
+Commit0: Library generation from scratch. arXiv preprint arXiv:2412.01769, 2024.
+[39] Giulio Starace, Oliver Jaffe, Dane Sherburn, James Aung, Jun Shern Chan, Leon Maksin, Rachel Dias, Evan
+Mays, Benjamin Kinsella, Wyatt Thompson, et al. Paperbench: Evaluating ai’s ability to replicate ai research.
+arXiv preprint arXiv:2504.01848, 2025.
+[40] OpenAI. Codex cli: Local-first terminal ai coding agent. https://openai.com/introducing-codex, April
+2025. Launched April 15, 2025 as an open-source CLI coding agent that executes commands locally :contentReference[oaicite:1]index=1.
+11
+A PREPRINT - O CTOBER 21, 2025
+[41] OpenAI. Openai o3-mini reasoning model. System Card and official release (OpenAI), 2025. URL https:
+//openai.com/index/openai-o3-mini/. Released January 31, 2025. Accessed: 2025-07-28.
+[42] Qwen Team. Qwen3 technical report, 2025. URL https://arxiv.org/abs/2505.09388.
+
+12
+A PREPRINT - O CTOBER 21, 2025
+A
+Appendix of Proposal-Level Graph Construction
+The construction of the RPG is central to our framework, as it transforms high-level repository goals into a structured
+and persistent representation. The process starts with carefully designed prompting strategies for selecting repositoryrelevant functionalities from the global feature ontology, followed by iterative refinement to ensure both semantic
+coverage and modular coherence.
+A.1
+Algorithms of Functionality Graph Construction
+Algorithm 1 Feature Sampling with Diversity-Aware Rejection Sampling
+Require: Root node R; frequency library F ; temperature t; per-tree sample size S; overlap threshold ρ; maximum
+number of retries Tmax
+1: function BASE S AMPLE(R, F, t, S)
+2:
+selected_set ← ∅
+3:
+for s = 1 to S do
+4:
+C ← GET _ CHILDREN(R)
+5:
+if C = ∅ then
+6:
+break
+7:
+end if
+8:
+fi ← F [i]P
+for all i ∈ C
+9:
+pi ← fi / j∈C fj for all i ∈ C
+10:
+qi ← T EMP T RANSFORM(pi , t) for all i ∈ C
+11:
+cur_node ← SAMPLE _ NODE(C, [q1 , q2 , . . . ])
+12:
+selected_set.ADD(cur_node)
+13:
+R ← cur_node
+▷ move root downward for next step
+14:
+end for
+15:
+return selected_set
+16: end function
+17: function R EJECT S AMPLE(R, F, t, S, ρ, Tmax )
+18:
+best_T ← ∅; best_ovl ← +∞
+19:
+T⋆ ← ∅
+20:
+for τ = 1 to Tmax do
+21:
+Tcand ← BASE S AMPLE(R, F, t, S)
+22:
+ovl ← OVERLAP(Tcand , Sseen )
+23:
+if ovl < best_ovl then
+24:
+best_ovl ← ovl; best_T ← Tcand
+25:
+end if
+26:
+if ovl ≤ ρ then
+27:
+T ⋆ ← Tcand
+28:
+break
+29:
+end if
+30:
+end for
+31:
+if T ⋆ = ∅ then
+32:
+T ⋆ ← best_T
+33:
+end if
+34:
+return T ⋆
+35: end function
+▷ retry up to Tmax times
+▷ sample a candidate tree
+▷ compute overlap with seen nodes
+▷ update best candidate so far
+▷ accept immediately if overlap ≤ threshold
+▷ fallback: choose least-overlap candidate
+▷ return the final selected tree
+Rejection Sampling Algorithm We extend the base sampling strategy introduced in E PI C ODER [2] by incorporating
+a diversity-aware rejection mechanism, as shown in Algorithm 1. At each step, a candidate tree is accepted only if its
+overlap with previously sampled nodes is below a specified threshold; otherwise, the tree with the minimal overlap is
+returned. This encourages broader feature space exploration under a limited number of sampling iterations.
+Repository-Aligned Subtree Selection Algorithm 2 outlines the procedure for constructing a repository-specific
+feature subtree from a global feature tree. The algorithm iteratively selects candidate features based on a combination of
+exploitation (retrieving top-scoring nodes) and exploration (sampling unvisited nodes). At each iteration, an LLM agent
+13
+A PREPRINT - O CTOBER 21, 2025
+filters and ranks candidates, proposes missing but relevant features, and performs batch-level self-checks to ensure
+internal consistency. Accepted candidates are incorporated into the current subtree, and the process continues until a
+fixed iteration budget is reached. The resulting subtree captures features most relevant to the target repository while
+balancing coverage and quality.
+Algorithm 2 Repository-Specific Subtree Selection
+Require: Global Feature Tree T ; Repo description R; iteration budget K; top-k; termination threshold τ ; batch size
+B; LLM
+Ensure: Repository-specific subtree T ′
+1: Initialize current repo tree T ′ ← ∅; missing features Cmissing ← ∅; visited set V ← ∅
+2: for k = 1 . . . K do
+▷ iterate with given budget
+3:
+Eexploit ← R ETRIEVE T OP K(T , R, k = top-k)
+▷ select promising nodes (exploit)
+4:
+Eexplore ← S AMPLE U NVISITED(T , V)
+▷ sample unexplored nodes (explore)
+5:
+// Candidate selection via LLM
+6:
+Cexploit ← LLM.S ELECT E XPLOIT C ANDIDATES(Eexploit , T ′ , R)
+▷ filter exploit candidates
+7:
+8:
+9:
+10:
+Cexplore ← LLM.S ELECT E XPLORE C ANDIDATES(Eexplore , T ′ , R)
+Cmissing ← Cmissing ∪ LLM.P ROPOSE M ISSING(T ′ , R)
+Craw ← Cexploit ∪ Cexplore ∪ Cmissing
+// Batch self-check (filter useful paths within each batch)
+11:
+for all batch B ⊆ Craw with |B| ≤ B do
+12:
+B ⋆ ← LLM.SELFCHECK(T ′ , B)
+13:
+T ′ ← I NSERT PATHS(T ′ , B ⋆ )
+14:
+V ←V ∪B
+15:
+end for
+16: end for
+17: return T ′
+▷ filter explore candidates
+▷ generate novel candidates not in tree
+▷ merge all candidate sources
+▷ process in small batches
+▷ accept only consistent/relevant paths
+▷ expand repo-specific tree
+▷ mark all evaluated paths as visited
+▷ return final subtree
+Repository Subtree Reorganization into the functionality graph The algorithm operates in three stages to refactor
+subtree. In the first stage, an LLM agent iteratively extracts features from the input, organizing them into subgraphs
+until sufficient coverage of leaf nodes is reached. In the second stage, the agent reorganizes subgraphs by merging
+semantically related components or moving branches across groups to improve structure. Finally, each subgraph is
+refined to ensure naming consistency and hierarchical coherence, yielding a clean, interpretable functionality graph.
+A.2
+Detailed Construction Process
+Global Feature Tree The global feature tree consists of
+more than one million nodes across seven hierarchical levels
+(Table 5), reflecting a broad and diverse functional knowledge base. Nevertheless, the distribution of features across
+Level-1 categories is highly skewed (Figure 8). In particular,
+the data processing branch dominates the tree, while many
+other categories contain only a small number of nodes, resulting in a pronounced long-tail distribution. Such bias is
+inherent to real-world software ecosystems, where data processing utilities are disproportionately prevalent compared
+to specialized functionalities. As a consequence, constructing a repository-specific RPG requires large-scale filtering
+and reorganization in order to extract the most relevant fea- Figure 8: Distribution of feature counts under Level-1
+tures and mitigate the imbalance of the global distribution. categories in the global feature tree.
+Model-Specific Growth Patterns Beyond the two traces
+in Fig. 7. Concretely, qwen3-coder exhibits the most open expansion, with a linear increase in leaf counts—maximizing
+coverage early but with a higher risk of admitting loosely related features. o3-mini follows with a moderately
+aggressive trajectory, striking a balance between breadth and relevance. Together, these curves delineate points on the
+recall–precision spectrum of subtree selection strategies matched to repository needs.
+14
+A PREPRINT - O CTOBER 21, 2025
+Figure 7: Evolution of Feature Tree Leaf Counts over Iterations Across Repositories, Highlighting the Differences
+Between qwen3 coder and o3-mini
+Table 5: Statistics of the global feature tree across hierarchical levels, with representative examples from each level.
+Level
+1
+2
+3
+4
+5
+6
+7
+#Elements
+17
+1,527
+21,739
+113,348
+613,311
+33,801
+781
+Examples
+functionality, data structures, data processing
+text processing, process monitoring, create flowchart
+heap allocation, dayjs, affine transformation
+update record by ID, automated versioning, M5 Model Tree
+add vertices, angular velocity, find minimum by group, mark outlier data
+min with inclusion, multiple with keyword
+validate against thesaurus, swipe event detection
+From Global to Repository-Specific Distributions The comparison between the global feature tree (Fig.8) and
+the final repository-specific profiles (Figs.10) highlights the transformative effect of model-guided reorganization.
+While the global tree is dominated by generic categories such as data processing and user interaction, the
+restructured graphs consistently downweight these high-frequency but less discriminative categories and elevate
+domain-relevant branches to the foreground. This shift effectively counteracts the inherent long-tail bias of the global
+ontology, redistributing feature density toward categories that better capture repository semantics. As a result, the
+constructed graphs are not only semantically sharper but also more functionally coherent with respect to the target
+domain. Between models, qwen3-coder favors broad coverage with slower convergence and higher variance, whereas
+o3-mini achieves a more balanced trade-off between generality and specificity. Together, these contrasting tendencies
+illustrate complementary strategies along the recall–precision spectrum, offering flexibility in matching feature selection
+to downstream repository needs.
+Final Graph Structures The final RPGs (Figure 11a, 11b) reveal how repository-specific functionalities are consolidated into coherent modular organizations. Compared to the more diffuse subtree distributions, the resulting graphs
+exhibit a markedly skewed allocation of functionalities across subgraphs: a small number of core subgraphs absorb the
+majority of features, while peripheral subgraphs remain lightweight. This reflects a natural modularization process,
+where dominant clusters correspond to central repository capabilities and minor clusters capture auxiliary or specialized
+functions. Between models, the partitioning strategies diverge: qwen3-coder produces a larger number of medium-sized
+subgraphs, favoring breadth and parallel coverage; whereas o3-mini yields a more balanced distribution, with several
+15
+A PREPRINT - O CTOBER 21, 2025
+Figure 9: Final distribution of feature counts across subtrees for all repositories under o3-mini. The figure shows how
+features are reorganized after the iterative construction process, reflecting the model’s preference in balancing breadth
+and precision.
+
+subgraphs of comparable size anchoring distinct semantic roles. These differences indicate that model-driven reorganization not only mitigates the global ontology’s long-tail bias but also shapes the granularity of modular decomposition,
+thereby influencing how functional responsibilities are distributed within the generated graph.
+A.3
+Prompt Template
+Parts of Prompt Templates for Exploit–Explore Strategy in Subtree Selection
+Prompt for Exploitation Paths
+You are a GitHub project assistant responsible for expanding a repository’s feature tree through path-based
+modifications to ensure alignment with the project’s goals.
+In each response, you will be given:
+- An Exploit Feature Tree: A curated subset of high-relevance feature paths.
+- The Current Repository Feature Tree.
+When returning selected paths, always use ‘"path/to/feature"‘ format with ‘/‘ as the separator.
+Objective (excerpt)
+Expand the Repository Feature Tree so it: 1. Aligns with the repository’s purpose and scope.
+2. Achieves broad coverage across functional areas.
+3. Ensures essential capabilities are represented.
+4. Identify and fill critical gaps. . . .
+Selection Principles (excerpt)
+- Select exclusively from the Exploit Feature Tree.
+- Include all non-duplicated, useful paths.
+
+16
+A PREPRINT - O CTOBER 21, 2025
+Figure 10: Final distribution of feature counts across subtrees for all repositories under qwen3-coder. The figure shows
+how features are reorganized after the iterative construction process, reflecting the model’s preference in balancing
+breadth and precision.
+
+- Maintain structural balance by covering underrepresented modules.
+...
+Exclusions (excerpt)
+Skip generic infra (e.g., logging, configuration) and abstract goals (e.g., “optimize CPU usage”).
+Response Format
+Respond only with a Thought and an Action.
+<think>
+Reason about relevance and gaps in the Exploit Tree. </think>
+<action>
+{
+"all_selected_feature_paths": [
+"path/to/feature", ...
+]
+}
+</action>
+Prompt for Exploration Paths
+You are a GitHub project assistant responsible for expanding a repository’s feature tree through path-based
+modifications to ensure alignment with the project’s goals.
+In each response, you will be given:
+- A Sampled Feature Tree (Exploration Tree).
+- The Current Repository Feature Tree.
+When returning selected paths, always use ‘"path/to/feature"‘ format with ‘/‘ as the separator.
+Objective (excerpt)
+17
+A PREPRINT - O CTOBER 21, 2025
+(a) o3-mini
+(b) qwen3-coder
+Figure 11: Leaf node counts distribution across feature subgraphs in each repository RPG, reorganized by different
+models.
+
+Improve and expand the Repository Feature Tree so that it: - Aligns with the repository’s purpose and usage
+scenarios.
+- Achieves comprehensive coverage of core and supporting areas.
+...
+Selection Principles (excerpt)
+- Select only from the Exploration Tree.
+- Include actionable, domain-relevant features.
+- Skip paths already present in the current Repository Tree.
+- Slight over-inclusion is acceptable.
+...
+
+18
+A PREPRINT - O CTOBER 21, 2025
+Exclusions (excerpt)
+Do not select generic infra (e.g., logging, config) or large-scale features (e.g., cloud integrations).
+Response Format
+Respond only with a single <think> and <action> block.
+<think>
+Explain how each Exploration Tree path was evaluated and why it was included or excluded.
+</think>
+<action>
+{ "all_selected_feature_paths": [ "path/to/feature", ... ] }
+</action>
+Parts for Prompt Template for Retrieving Missing Features
+Instruction You are a GitHub project assistant tasked with designing a functionally complete, production-grade
+repository.
+Your goal is to identify and recommend missing functional capabilities or algorithms that the project should
+include, based on its real-world purpose, scope, and domain expectations.
+Focus on intended functionality — not the existing Feature Tree, which may be incomplete.
+Objective (excerpt)
+Identify groups of functionally concrete features that: 1. Align with the repository’s domain and purpose.
+2. Are entirely missing or only superficially represented.
+3. Are specific and implementable (e.g., functions, classes, modules, algorithms).
+Inclusion Criteria (excerpt)
+- Must be code-level operations (computation, transformation, algorithm, evaluation).
+- Realistically implementable within the repository’s scope.
+- Both standard and advanced algorithms are allowed.
+Exclusion Criteria (excerpt)
+Do not include abstract intentions (e.g., “improve accuracy”), generic infra (e.g., logging, connectors), placeholders, or duplicates.
+Naming Rules (excerpt)
+- Use 3–5 lowercase words, separated by spaces.
+- Each leaf node must describe a concrete algorithm or behavior.
+- Avoid vague terms, camelCase, or snake_case.
+Structure Guidelines (excerpt)
+- Organize into logical hierarchies (up to 4–5 levels).
+- Reflect computational architecture, not documentation taxonomy.
+Response Format Respond with ONLY a <think> and <action> block:
+<think>
+Reason about functional domains, workflows, and algorithms that are missing from the current Feature Tree but
+expected in real-world use.
+</think>
+<action>
+{ "missing_features": { "root node": { "child node 1": [ "leaf feature 1", "leaf feature 2" ], "child node 2": [
+"leaf feature 3", "leaf feature 4" ] } } }
+</action>
+B
+Appendix of Implementation-Level Graph Construction
+This section illustrates how the RPG is enriched with file organization and function design to form concrete code
+structures.
+19
+A PREPRINT - O CTOBER 21, 2025
+B.1
+Prompt Template for Implementation-Level Graph Construction
+We provide the prompt templates that guide the transformation from graph subtrees into modular code skeletons.
+Prompt
+You are a system architect tasked with designing the inter-subtree data flow for a Python software repository.
+Your goal is to define how data moves between functional modules (subtrees) — including who produces it,
+who consumes it, and how it is transformed — and express this as a structured, directed graph.
+## Data Flow
+### Format
+[ { "from": "<source subtree name>", "to": "<target subtree name>", "data_id": "<unique name or description
+of the data>", "data_type": "<type or structure of the data>", "transformation": "<summary of what happens
+to the data, if anything>" }, ... ]
+### Validity & Structural Constraints
+2. Full Connectivity Required
+- Every subtree listed in {trees_names} must appear in at least one edge.
+- No subtree should be isolated or unused.
+3. Acyclic Structure
+- The data flow must form a Directed Acyclic Graph (DAG):
+4. Field Guidelines
+- ‘data_id‘: Use unique, descriptive names to identify each data exchange.
+- ‘data_type‘: Use precise and interpretable types to describe the structure, format, or abstract role of the data
+being passed.
+- ‘transformation‘: Describe how the data is modified, filtered, enriched, or combined. If unchanged, say
+‘"none"‘.
+...
+## Output Format
+<solution>
+[ { "from": "...", "to": "...", "data_id": "...", "data_type": "...", "transformation": "..." }, ... ] </solution>
+Parts of Prompt Templates for Raw Skeleton Mapping
+You are a repository architect responsible for designing the initial project structure of a software repository in
+its early development stage. Your task is to design a clean, modular file system skeleton that organizes the
+repository into appropriate top-level folders based on these subtrees.
+## Requirements
+1. The folder structure must clearly separate each functional subtree and reflect logical domain boundaries.
+2. Folder names must be concise, meaningful, and follow Python conventions (e.g., ‘snake_case‘). Names
+should feel natural and developer-friendly.
+3. Folder names do not need to match subtree names exactly.
+- Treat subtree names as functional labels.
+- Rename folders as needed for clarity and convention, while preserving the correct mapping.
+- When assigning a subtree to a folder, include the exact subtree name in the mapping (e.g., ‘"ml_models":
+["Machine Learning"]‘).
+4. You may choose a flat structure (all folders at root level) or a nested structure (e.g., under ‘src‘), depending
+on what best supports clarity, organization, and practical use.
+5. Include commonly used auxiliary folders as appropriate.
+6. The proposed structure should balance clarity, scalability, and maintainability. Avoid unnecessary complexity
+or excessive nesting.
+...
+## Output Format
+20
+A PREPRINT - O CTOBER 21, 2025
+Return a single JSON-style nested object representing the repository folder structure:
+- ‘"folder_name": ["Subtree Name"]‘ means this folder is assigned to a specific subtree. The name in the list
+must match exactly what appears in the given list of subtrees.
+- ‘"folder_name": []‘ means the folder exists but does not correspond to a specific subtree (e.g., utility or support
+folders).
+- ‘"file_name.ext": null‘ indicates the presence of a file. File content is not required.
+Prompt for Mapping Feature Paths to Python Skeleton Files
+You are a repository architect tasked with incrementally assigning all remaining leaf-level features from a
+functional subtree into the repository’s file structure. This is an iterative process, You are not expected to
+assign all features at once — each round should make clear, meaningful progress. Your ultimate goal is a
+production-grade file organization that evolves cleanly and logically over time.
+## Context
+In each iteration, you will receive:
+- A list of unassigned leaf features (each is a full path like ‘"a/b/c"‘).
+- A designated functional folder under which all new paths must begin.
+- A partial skeleton showing the current structure (existing assignments are hidden).
+Assign the remaining features to ‘.py‘ file paths that:
+- Begin with the designated folder.
+- Group semantically related features together.
+- Reflect how real developers would modularize logic in a production Python codebase. - Prefer organizing
+major functional categories into subfolders when appropriate.
+### File & Folder Structure
+- Group features by functionality into logically meaningful modules that reflect real-world development practice.
+- Avoid bundling many unrelated features into a single file
+- If a folder contains 10 or more files, introduce subfolders based on semantic structure (e.g., ‘format/‘, ‘client/‘,
+‘csv/‘) to keep directories manageable.
+### Naming & Organization Guidelines
+...
+### Examples
+...
+## Output Format
+You must structure your response in two clearly separated blocks, each wrapped with the appropriate tags:
+<think>
+Explain how you grouped the features into logically coherent modules with clean file and folder structure.
+Describe how your choices improve clarity, minimize clutter, and reflect good design principles.
+</think>
+<solution>
+{ "<path to file1.py>": [ "feature1", "feature2" ], "<path to file2.py>": [ "feature3" ] } </solution>
+Prompt for Converting Subgraphs into Base Classes
+You are an expert software engineer tasked with designing reusable abstractions and shared data structures for a
+Python codebase.
+...
+## Base Class Output Format
+You must return your design as a set of code blocks grouped by target subtree and file:
+## General
+### path/to/file.py
+“‘python
+...
+“‘
+21
+A PREPRINT - O CTOBER 21, 2025
+...
+## <Subtree Name>
+### path/to/file.py
+“‘python
+...
+“‘
+</solution>
+## Design Strategy
+Abstractions must follow system structure and dataflow analysis, not mechanical repetition.
+- Shared Data Structures: define for nodes with high out-degree (outputs consumed widely). Good candidates
+are feature batches, inference results, or training containers. Create a global type only when field names, data
+types, and usage context are stable and consistent.
+- Functional Base Classes: define for nodes with high in-degree (consuming many inputs). Use when multiple
+modules share roles (e.g., cleaning, predicting), follow common lifecycles (‘run()‘, ‘build()‘, ‘validate()‘), or
+rely on similar hooks.
+- Principles:
+- Avoid speculative abstractions.
+- Prefer fewer, well-justified classes (typically 1–3 globally).
+- Capture structural commonality that aids extensibility and coordination.
+...
+## Output Formate
+Wrap your entire output in two blocks:
+<think>
+...
+</think>
+<solution>
+## SubtreeA
+### path/to/file.py
+“‘python
+...
+“‘
+...
+</solution>
+Prompt for Mapping Feature Paths to Interfaces
+You are designing modular interfaces for a large-scale Python system. You are given repository context:
+overview, tree structure, skeleton, data flow, base classes, upstream interfaces, target subtree, and target file.
+### Objective
+- For each feature, define exactly one interface (function or class).
+- Provide imports, signature, and detailed docstring (purpose, args, returns, assumptions).
+- No implementation: use ‘pass‘.
+- One interface per block.
+### Design Guidelines
+- Function: simple, atomic, stateless.
+- Class: stateful, multiple methods, inherits base class, or extensible.
+- Prefer fewer, well-justified abstractions.
+- Group only tightly related features.
+- Use global abstractions sparingly.
+### Output Format
+Use two blocks:
+<think>
+reasoning
+</think>
+<solution>
+22
+A PREPRINT - O CTOBER 21, 2025
+design_itfs_for_feature(features=["feature/path", ...]):
+“‘python
+# One interface (function or class) with docstring and pass
+“‘
+</solution>
+B.2
+Case of Built Skeleton and Designed Interfaces
+We present the skeleton generated by o3-mini, together with the mapping between the generated skeleton and the
+nodes of machine learning algorithms. In addition, we illustrate one or two designed base classes as well as concrete
+functions or classes.
+Repository Skeleton
+src /
+algorithms /
+advanced /
+enhancements /
+general_enhancements /
+__init__ . py
+a c t i v e _ l e a r n i n g _ s t r a t e g i e s . py
+c l a s s i f i c a t i o n _ c l u s t e r i n g _ e n h a n c e m e n t s . py
+m i s c _ g e n e r a l _ e n h a n c e m e n t s . py
+o p t i m i z a t i o n _ a n d _ m e t a _ l e a r n i n g . py
+r e g r e s s i o n _ e n h a n c e m e n t s . py
+__init__ . py
+extended_techniques /
+ex t e n d e d _ m e t h o d s /
+__init__ . py
+i n t e r p o l a t i o n _ a n d _ m o d e l _ l e a r n i n g . py
+v a l i d a t i o n _ a n d _ c l u s t e r i n g . py
+new_models /
+__init__ . py
+n e w _ m o d e l _ t e c h n i q u e s . py
+n e w _ m o d e l _ t e c h n i q u e s _ a d d i t i o n a l . py
+__init__ . py
+baselines . py
+supplemental_algorithms /
+__init__ . py
+a d v a n c e d _ c l u s t e r i n g _ a n d _ d i m e n s i o n a l i t y _ m e t h o d s . py
+a d v a n c e d _ t o k e n i z a t i o n _ a n d _ p e r c e p t r o n . py
+c l a s s i f i c a t i o n _ a n d _ f e a t u r e _ i m p o r t a n c e _ m e t h o d s . py
+d i v e r s e _ a l g o r i t h m i c _ m e t h o d s . py
+e n s e m b l e _ e v a l u a t i o n _ a n d _ a n o m a l y _ d e t e c t i o n . py
+m e t a _ o p t i m i z a t i o n _ m e t h o d s . py
+m o d e l _ o p t i m i z a t i o n _ m e t h o d s . py
+n u m e r i c a l _ i n t e r p o l a t i o n _ m e t h o d s . py
+r e g r e s s i o n _ a n d _ s v m _ o p t i m i z a t i o n _ m e t h o d s . py
+s p l i n e _ i n t e r p o l a t i o n _ a n d _ a d j u s t e d _ c l a s s i f i e r s . py
+s v m _ e n s e m b l e _ a n d _ o p t i m i z a t i o n _ m e t h o d s . py
+t o k e n i z a t i o n _ m e t h o d s . py
+__init__ . py
+ensemble_tree /
+boos t i n g _ b a g g i n g /
+boosting /
+__init__ . py
+b o o s t i n g _ a d v a n c e d _ f e a t u r e s . py
+b o o s t i n g _ a l g o r i t h m s . py
+b o o s t i n g _ p a r a m e t e r _ t u n i n g . py
+sta ck i ng _ vo ti n g /
+__init__ . py
+primary . py
+secondary . py
+__init__ . py
+bagging . py
+gr a d i e n t _ b o o s t i n g . py
+decision_ trees /
+__init__ . py
+g r a d i e n t _ b o o s t i n g _ t r e e . py
+id3 . py
+post_pruning . py
+random_forest . py
+reg re s si o n_ tr e e . py
+23
+A PREPRINT - O CTOBER 21, 2025
+__init__ . py
+regression /
+linear_models /
+__init__ . py
+lasso . py
+mul ti p le _ li ne a r . py
+polynomial . py
+simple_linear . py
+__init__ . py
+e l a s t i c _ n e t _ r e g r e s s i o n . py
+ridg e _ c l a s s i f i e r . py
+supervised /
+classific ation /
+logistic /
+__init__ . py
+cost . py
+optimization . py
+sigmoid . py
+__init__ . py
+decision_tree . py
+knearest . py
+naive_bayes . py
+sup port_v ector . py
+__init__ . py
+unsupervised /
+clustering /
+__init__ . py
+a d v a n c e d _ c l u s t e r i n g . py
+kmeans . py
+s u p p l e m e n t a l _ c l u s t e r i n g . py
+dimensionality_reduction /
+__init__ . py
+extended_dr . py
+kernel_pca . py
+pca . py
+__init__ . py
+__init__ . py
+core /
+data_c on v er si o n /
+__init__ . py
+api_requests . py
+feat u r e _ e n c o d i n g . py
+f ea t u r e _ e x t r a c t i o n . py
+fo rm a t _ c o n v e r s i o n . py
+sql_queries . py
+data_tran sform /
+__init__ . py
+filte r _a dv a nc e d . py
+filter_basic . py
+join_ o pe ra t io n s . py
+scal i n g _ a d v a n c e d . py
+scaling_basic . py
+sorting . py
+splitting . py
+numerics /
+__init__ . py
+basi c _ s t a t i s t i c s . py
+b l o c k _ m u l t i p l i c a t i o n . py
+deco mposit ions . py
+dot_products . py
+i n t e g r a t i o n _ a n d _ d i s t a n c e s . py
+inversions . py
+m a t r i x _ f a c t o r i z a t i o n . py
+m a t r i x _ r e a r r a n g e m e n t s . py
+r e g r e s s i o n _ s t a t i s t i c s . py
+sparse_lu . py
+preprocessing /
+__init__ . py
+csv_io . py
+data_cleaning . py
+d i m e n s i o n a l i t y _ a n a l y s i s . py
+i n v e r s e _ t r a n s f o r m a t i o n s . py
+json_io . py
+l o g _ t r a n s f o r m a t i o n s . py
+n oi s e _ a u g m e n t a t i o n . py
+__init__ . py
+data_pro ce s si n g /
+an aly s i s _ p i p e l i n e /
+analytical /
+24
+A PREPRINT - O CTOBER 21, 2025
+__init__ . py
+a g g r e g a t i o n _ a l g o r i t h m s . py
+da t a _ p e r t u r b a t i o n . py
+data_query . py
+joi n_ o pe r at io n s . py
+li s t _ m a n i p u l a t i o n . py
+sa m p l e _ p a r t i t i o n . py
+se a s o n a l _ a n a l y s i s . py
+p ip e l i n e _ u t i l i t i e s /
+__init__ . py
+dat a_stre aming . py
+lea rning_ setup . py
+mo d e l _ v a l i d a t i o n . py
+p e r f o r m a n c e _ m e t r i c s . py
+__init__ . py
+cleaning_preparation /
+advanced /
+__init__ . py
+d u p l i c a t e _ h a n d l i n g . py
+i m p u t a t i o n _ m e t h o d s . py
+ou t l i e r _ d e t e c t i o n . py
+preparation /
+__init__ . py
+dat a_spli tting . py
+i m p u t a t i o n _ l a b e l i n g . py
+validation . py
+__init__ . py
+type _c on v er si o n . py
+in teg r a t i o n _ m e r g e /
+__init__ . py
+a g g r e g a t i o n _ r e t r i e v a l . py
+merg e _ o p e r a t i o n s . py
+merge_search . py
+integration_storage /
+__init__ . py
+api_opera tions . py
+conv er si o n_ au t h . py
+di ct i o n a r y _ c o n f i g . py
+e xp o r t _ i n t e g r a t i o n . py
+io_logging . py
+manipulation /
+__init__ . py
+da ta _ m a n i p u l a t i o n . py
+shuffling . py
+string_pivot /
+__init__ . py
+pivoting . py
+st ri n g _ o p e r a t i o n s . py
+transformation_feature_eng /
+__init__ . py
+f e a t u r e _ e x t r a c t i o n _ e n c o d i n g . py
+file_io . py
+te xt _ e n h a n c e m e n t s . py
+t r a n s f o r m a t i o n _ n o r m a l i z a t i o n . py
+utilities /
+__init__ . py
+metadata . py
+metrics . py
+parallel . py
+sparse_st orage . py
+text _p ro c es si n g . py
+validation /
+inspection /
+__init__ . py
+overview . py
+sorting . py
+statistics . py
+__init__ . py
+data_inte grity . py
+__init__ . py
+extended_eval /
+diagnostics /
+__init__ . py
+model_quality . py
+s t a t i s t i c a l _ d i a g n o s t i c s . py
+te mp o r a l _ a n a l y s i s . py
+__init__ . py
+explainabi lity . py
+p r e d i c t i v e _ a s s e s s m e n t . py
+25
+A PREPRINT - O CTOBER 21, 2025
+robustness . py
+math_utils /
+algorithms /
+core_ t ec hn i qu e s /
+__init__ . py
+c l u s t e r i n g _ a n d _ d e t e c t i o n . py
+f a i r n e s s _ a n d _ f e a t u r e _ a n a l y s i s . py
+ma t r i x _ o p e r a t i o n s . py
+o p t i m i z a t i o n _ a n d _ s e l e c t i o n . py
+s t a t i s t i c a l _ m e t h o d s . py
+__init__ . py
+auxiliary /
+__init__ . py
+da ta _ m a n i p u l a t i o n . py
+g e o m e t r i c _ o p e r a t i o n s . py
+g r a d i e n t _ a n d _ i m a g i n g . py
+ma th _ c o m p u t a t i o n s . py
+ml_utilities . py
+o p t i m i z a t i o n _ m e t h o d s . py
+o ut l i e r _ v a l i d a t i o n . py
+ra nd o m _ o p e r a t i o n s . py
+t e n s o r _ a n d _ l i k e l i h o o d . py
+text_ p ro ce s si n g . py
+time_ p ro ce s si n g . py
+d at a _p r e p r o c e s s i n g /
+__init__ . py
+mo de l _ p e r s i s t e n c e . py
+sampling . py
+text_tools . py
+performance /
+__init__ . py
+drift _ de te c ti o n . py
+st at i s t i c a l _ t e s t s . py
+sy st e m _ m o n i t o r i n g . py
+t i m e _ s e r i e s _ a n a l y s i s . py
+pipeline_evaluation /
+__init__ . py
+ad va n c e d _ a n a l y s i s . py
+data_ r es am p li n g . py
+e va l u a t i o n _ m e t r i c s . py
+h y p e r p a r a m e t e r _ t u n i n g . py
+m o d e l _ e x p o r t _ a n d _ c v . py
+o n l i n e _ l e a r n i n g _ s u p p o r t . py
+p e r f o r m a n c e _ b e n c h m a r k i n g . py
+pipe l i n e _ c r e a t o r . py
+simulation /
+__init__ . py
+h y p e r p a r a m e t e r _ t u n i n g . py
+n e a r e s t _ n e i g h b o r _ s e a r c h . py
+rando m _s am p li n g . py
+simulation . py
+t im e _ i n t e r p o l a t i o n . py
+statistical_analysis /
+__init__ . py
+de sc r i p t i v e _ s t a t s . py
+i n f e r e n t i a l _ m e t h o d s . py
+m u l t i v a r i a t e _ a n a l y s i s . py
+p r o b a b i l i s t i c _ m o d e l s . py
+su rv i v a l _ a n a l y s i s . py
+t im e _ s e r i e s _ m o d e l s . py
+vari a n c e _ m e t r i c s . py
+__init__ . py
+ml_compute /
+ml_methods /
+__init__ . py
+c lu s t e r i n g _ m e t h o d s . py
+d i m e n s i o n a l i t y _ r e d u c t i o n . py
+svm_ valida tion . py
+optimization /
+__init__ . py
+c l u s t e r i n g _ g r a p h _ t e c h n i q u e s . py
+o p t i m i z a t i o n _ a l g o r i t h m s . py
+trai n i n g _ c o n t r o l . py
+stat_infe rence /
+__init__ . py
+h y p o t h e s i s _ t e s t s _ a d v a n c e d . py
+h y p o t h e s i s _ t e s t s _ b a s i c . py
+m o d e l _ e v a l u a t i o n _ m e t r i c s . py
+m o d e l _ s e l e c t i o n _ m e t r i c s . py
+26
+A PREPRINT - O CTOBER 21, 2025
+p a r a m e t e r _ e s t i m a t i o n . py
+s t a t i s t i c a l _ t e s t s _ m e t r i c s . py
+time_series /
+distribution /
+__init__ . py
+b a y e s i a n _ l i k e l i h o o d . py
+d i s t r i b u t i o n _ e s t i m a t i o n . py
+i n f e r e n t i a l _ h y p o t h e s i s . py
+i n f e r e n t i a l _ v a r i a n c e . py
+__init__ . py
+forecast_ plots . py
+f o r e c a s t i n g _ a l g o r i t h m s . py
+__init__ . py
+model_eval /
+deployment /
+__init__ . py
+deploymen t_ops . py
+te st i n g _ r e s o u r c e s . py
+evaluation /
+diagnostics /
+__init__ . py
+a d v a n c e d _ d i a g n o s t i c s . py
+ba s i c _ d i a g n o s t i c s . py
+p e r f o r m a n c e _ m e t r i c s . py
+__init__ . py
+a d d i t i o n a l _ a n a l y s i s . py
+error_display . py
+r e g r e s s i o n _ d i a g n o s t i c s . py
+training_ops . py
+management /
+__init__ . py
+counterfa ctual . py
+f e a t u r e _ e x p l a n a t i o n . py
+hyperpara meter . py
+persi s te nc e _o p s . py
+p i p e l i n e _ i n t e g r a t i o n . py
+uncertainty . py
+visualization /
+__init__ . py
+dashboard . py
+visual_re ports . py
+__init__ . py
+pipeline /
+data_cleaning /
+__init__ . py
+dimension ality . py
+encoding . py
+filtering . py
+imputation . py
+knn_methods . py
+merging . py
+deployment /
+__init__ . py
+export . py
+i n t e g r a t i o n _ t e s t i n g . py
+interactive . py
+monitoring . py
+online . py
+re po r t i n g _ f o r m a t s . py
+standard_ plots . py
+trend_ana lysis . py
+evaluation /
+__init__ . py
+cros s _ v a l i d a t i o n . py
+gd_op t im iz a ti o n . py
+metrics_plots . py
+misc_ e va lu a ti o n . py
+monitoring . py
+feature_engineering /
+__init__ . py
+b a s i c _ t r a n s f o r m a t i o n . py
+extraction . py
+interaction . py
+selection . py
+synthesis . py
+orchestration /
+__init__ . py
+configuration . py
+startup . py
+27
+A PREPRINT - O CTOBER 21, 2025
+transformers . py
+workflow . py
+preprocessing /
+__init__ . py
+adva n c e d _ p a r s i n g . py
+imputation . py
+inpu t _ v a l i d a t i o n . py
+training /
+__init__ . py
+t r a i n i n g _ a d j u s t m e n t s . py
+t r a i n i n g _ s t r a t e g i e s . py
+tuning /
+__init__ . py
+calibration . py
+evolution . py
+gaussian . py
+meta . py
+parzen . py
+__init__ . py
+ui /
+interactivity /
+__init__ . py
+domai n _c om m an d s . py
+gene r a l _ c o m m a n d s . py
+help_support . py
+n av i g a t i o n _ a c t i o n s . py
+visualization /
+__init__ . py
+dashboard . py
+stand a rd _c h ar t s . py
+__init__ . py
+__init__ . py
+main . py
+setup . py
+SubGraph-to-Skeleton
+Machine Learning Algorithms
+A dv a nc e d E x t e n s i o n s [ - > dir : src / algorithms / advanced ]
+Miscellaneous [ - > dir : src / algorithms / advanced / s u p p l e m e n t a l _ a l g o r i t h m s ]
+O th er A lg o ri th m s [ - > file : src / algorithms / advanced / s u p p l e m e n t a l _ a l g o r i t h m s /
+c l a s s i f i c a t i o n _ a n d _ f e a t u r e _ i m p o r t a n c e _ m e t h o d s . py , file : src / algorithms / advanced /
+s u p p l e m e n t a l _ a l g o r i t h m s / r e g r e s s i o n _ a n d _ s v m _ o p t i m i z a t i o n _ m e t h o d s . py , file : src /
+algorithms / advanced / s u p p l e m e n t a l _ a l g o r i t h m s /
+a d v a n c e d _ c l u s t e r i n g _ a n d _ d i m e n s i o n a l i t y _ m e t h o d s . py , file : src / algorithms / advanced /
+s u p p l e m e n t a l _ a l g o r i t h m s / m e t a _ o p t i m i z a t i o n _ m e t h o d s . py , file : src / algorithms /
+advanced / s u p p l e m e n t a l _ a l g o r i t h m s / s v m _ e n s e m b l e _ a n d _ o p t i m i z a t i o n _ m e t h o d s . py , file :
+src / algorithms / advanced / s u p p l e m e n t a l _ a l g o r i t h m s /
+s p l i n e _ i n t e r p o l a t i o n _ a n d _ a d j u s t e d _ c l a s s i f i e r s . py , file : src / algorithms / advanced /
+s u p p l e m e n t a l _ a l g o r i t h m s / n u m e r i c a l _ i n t e r p o l a t i o n _ m e t h o d s . py , file : src / algorithms /
+advanced / s u p p l e m e n t a l _ a l g o r i t h m s / d i v e r s e _ a l g o r i t h m i c _ m e t h o d s . py , file : src /
+algorithms / advanced / s u p p l e m e n t a l _ a l g o r i t h m s / a d v a n c e d _ t o k e n i z a t i o n _ a n d _ p e r c e p t r o n .
+py , file : src / algorithms / advanced / s u p p l e m e n t a l _ a l g o r i t h m s /
+e n s e m b l e _ e v a l u a t i o n _ a n d _ a n o m a l y _ d e t e c t i o n . py , file : src / algorithms / advanced /
+s u p p l e m e n t a l _ a l g o r i t h m s / t o k e n i z a t i o n _ m e t h o d s . py , file : src / algorithms / advanced /
+s u p p l e m e n t a l _ a l g o r i t h m s / m o d e l _ o p t i m i z a t i o n _ m e t h o d s . py ]
+E x t e n d e d T e c h n i q u e s [ - > dir : src / algorithms / advanced / e x t e n d e d _ t e c h n i q u e s ]
+E xt en d ed M et ho d s [ - > file : src / algorithms / advanced / e x t e n d e d _ t e c h n i q u e s / e x t e n d e d _ m e t h ods /
+i n t e r p o l a t i o n _ a n d _ m o d e l _ l e a r n i n g . py , file : src / algorithms / advanced /
+e x t e n d e d _ t e c h n i q u e s / e x t e n d e d _ m e t h o d s / v a l i d a t i o n _ a n d _ c l u s t e r i n g . py ]
+NewModels [ - > file : src / algorithms / advanced / e x t e n d e d _ t e c h n i q u e s / new_models /
+n e w _ m o d e l _ t e c h n i q u e s . py , file : src / algorithms / advanced / e x t e n d e d _ t e c h n i q u e s /
+new_models / n e w _ m o d e l _ t e c h n i q u e s _ a d d i t i o n a l . py ]
+Baselines [ - > file : src / algorithms / advanced / e x t e n d e d _ t e c h n i q u e s / baselines . py ]
+E n h a n c e m e n t s A n d G e n e r a l [ - > dir : src / algorithms / advanced / enhancements / g e n e r a l _ e n h a n c e m e n t s ]
+G e n e r a l E n h a n c e m e n t s [ - > file : src / algorithms / advanced / enhancements / g e n e r a l _ e n h a n c e m e n t s
+/ o p t i m i z a t i o n _ a n d _ m e t a _ l e a r n i n g . py , file : src / algorithms / advanced / enhancements /
+g e n e r a l _ e n h a n c e m e n t s / r e g r e s s i o n _ e n h a n c e m e n t s . py , file : src / algorithms / advanced /
+enhancements / g e n e r a l _ e n h a n c e m e n t s / a c t i v e _ l e a r n i n g _ s t r a t e g i e s . py , file : src /
+algorithms / advanced / enhancements / g e n e r a l _ e n h a n c e m e n t s / m i s c _ g e n e r a l _ e n h a n c e m e n t s . py
+, file : src / algorithms / advanced / enhancements / g e n e r a l _ e n h a n c e m e n t s /
+c l a s s i f i c a t i o n _ c l u s t e r i n g _ e n h a n c e m e n t s . py ]
+Regression [ - > dir : src / algorithms / regression / linear_models ]
+LinearModels [ - > dir : src / algorithms / regression / linear_models ]
+Mul tipleL inear [ - > file : src / algorithms / regression / linear_models / m ul t ip le _ li ne a r . py ,
+file : src / algorithms / regression / linear_models / lasso . py ]
+28
+A PREPRINT - O CTOBER 21, 2025
+P o l y n o m i a l R e g r e s s i o n [ - > file : src / algorithms / regression / linear_models / polynomial . py ]
+Lasso [ - > file : src / algorithms / regression / linear_models / m u lt i pl e_ l in ea r . py , file : src /
+algorithms / regression / linear_models / lasso . py ]
+SimpleLinear [ - > file : src / algorithms / regression / linear_models / simple_linear . py ]
+Oth er R eg r es si o n [ - > dir : src / algorithms / regression ]
+R i d g e R e g r e s s i o n C l a s s i f i c a t i o n [ - > file : src / algorithms / regression / r i d g e _ c l a s s i f i e r . py ]
+ElasticNet [ - > file : src / algorithms / regression / e l a s t i c _ n e t _ r e g r e s s i o n . py ]
+U n s u p e r v i s e d L e a r n i n g [ - > dir : src / algorithms / unsupervised ]
+D i m e n s i o n a l i t y R e d u c t i o n [ - > dir : src / algorithms / unsupervised / d i m e n s i o n a l i t y _ r e d u c t i o n ]
+KernelMethods [ - > file : src / algorithms / unsupervised / d i m e n s i o n a l i t y _ r e d u c t i o n / kernel_pca
+. py ]
+OtherDR [ - > file : src / algorithms / unsupervised / d i m e n s i o n a l i t y _ r e d u c t i o n / extended_dr . py ]
+PCA [ - > file : src / algorithms / unsupervised / d i m e n s i o n a l i t y _ r e d u c t i o n / pca . py ]
+Clustering [ - > dir : src / algorithms / unsupervised / clustering ]
+KMeans [ - > file : src / algorithms / unsupervised / clustering / kmeans . py ]
+O th er C lu s te ri n g [ - > file : src / algorithms / unsupervised / clustering /
+s u p p l e m e n t a l _ c l u s t e r i n g . py ]
+A d v a n c e d C l u s t e r i n g [ - > file : src / algorithms / unsupervised / clustering / a d v a n c e d _ c l u s t e r i n g
+. py ]
+E n s e m b l e A n d T r e e M e t h o d s [ - > dir : src / algorithms / ensemble_tree / b o o s t i n g _ b a g g i n g ]
+Boo st i ng B ag gi n g [ - > dir : src / algorithms / ensemble_tree / b o o s t i n g _ b a g g i n g ]
+Sta ckingV oting [ - > file : src / algorithms / ensemble_tree / b o o s t i n g _ b a g g i n g / st a ck in g _v ot ing /
+secondary . py , file : src / algorithms / ensemble_tree / b o o s t i n g _ b a g g i n g / st a ck in g _v o ti ng /
+primary . py ]
+Bagging [ - > file : src / algorithms / ensemble_tree / b o o s t i n g _ b a g g i n g / bagging . py ]
+G r a d i e n t B o o s t i n g [ - > file : src / algorithms / ensemble_tree / b o o s t i n g _ b a g g i n g /
+g r a d i e n t _ b o o s t i n g . py ]
+Boosting [ - > file : src / algorithms / ensemble_tree / b o o s t i n g _ b a g g i n g / boosting /
+b o o s t i n g _ a l g o r i t h m s . py , file : src / algorithms / ensemble_tree / b o o s t i n g _ b a g g i n g /
+boosting / b o o s t i n g _ a d v a n c e d _ f e a t u r e s . py , file : src / algorithms / ensemble_tree /
+dec ision_ trees / g r a d i e n t _ b o o s t i n g _ t r e e . py , file : src / algorithms / ensemble_tree /
+b o o s t i n g _ b a g g i n g / boosting / b o o s t i n g _ p a r a m e t e r _ t u n i n g . py ]
+DecisionTrees [ - > dir : src / algorithms / ensemble_tree / deci sion_t rees ]
+ID3 [ - > file : src / algorithms / ensemble_tree / decis ion_tr ees / id3 . py ]
+Reg ressio nTree [ - > file : src / algorithms / ensemble_tree / deci sion_t rees / r eg r es si o n_ tr e e . py
+]
+G r a d i e n t B o o s t i n g T r e e [ - > file : src / algorithms / ensemble_tree / b o o s t i n g _ b a g g i n g / boosting /
+b o o s t i n g _ a d v a n c e d _ f e a t u r e s . py , file : src / algorithms / ensemble_tree / decis ion_tr ees /
+g r a d i e n t _ b o o s t i n g _ t r e e . py ]
+PostPruning [ - > file : src / algorithms / ensemble_tree / deci sion_t rees / post_pruning . py ]
+RandomForest [ - > file : src / algorithms / ensemble_tree / decisi on_tre es / random_forest . py ]
+S up e rv i s e d L e a r n i n g [ - > dir : src / algorithms / supervised / c lassif icati on / logistic ]
+Clas sific ation [ - > dir : src / algorithms / supervised / clas sifica tion / logistic ]
+L o g i s t i c R e g r e s s i o n [ - > file : src / algorithms / supervised / class ificat ion / logistic / sigmoid .
+py , file : src / algorithms / supervised / c lassif icatio n / logistic / optimization . py , file :
+src / algorithms / supervised / cla ssific ation / logistic / cost . py ]
+Sup portAn dTree [ - > file : src / algorithms / supervised / cl assifi cation / decision_tree . py ,
+file : src / algorithms / supervised / c lassif icatio n / su pport_ vector . py ]
+NaiveBayes [ - > file : src / algorithms / supervised / class ificat ion / naive_bayes . py ]
+KNearest [ - > file : src / algorithms / supervised / c lassif icatio n / knearest . py ]
+Base Classes Example
+## General
+### src / general / b as e _c om p on en t s . py
+‘‘‘ python
+from abc import ABC , abst ractme thod
+class BaseComponent ( ABC ) :
+"""
+Abstract base class for core pipeline components .
+Provides a standard lifecycle :
+- initialize () : Prepare the component .
+- process ( data ) : Process input data .
+- finalize () : Clean up resources .
+Concrete subclasses must implement process () .
+"""
+def __init__ ( self ) -> None :
+self . initialized : bool = False
+def initialize ( self ) -> None :
+"""
+Set up the component before processing starts .
+
+29
+A PREPRINT - O CTOBER 21, 2025
+"""
+self . initialized = True
+@abstr ac t me th o d
+def process ( self , data ) :
+"""
+Process the input data .
+Args :
+data : Input data in a predefined schema .
+Returns :
+Output data after processing .
+"""
+pass
+def finalize ( self ) -> None :
+"""
+Tear down or clean up the component after processing .
+"""
+self . initialized = False
+class Es t i m a t o r C o m p o n e n t ( BaseComponent ) :
+"""
+Abstract base class for estimator components ( e . g . , models ) .
+Defines the contract for model training and prediction .
+"""
+@abstr ac t me th o d
+def fit ( self , training_data ) -> None :
+"""
+Train the estimator using the provided training data .
+Args :
+training_data : Data batch conforming to a shared TrainingBatch schema .
+"""
+pass
+@abstr ac t me th o d
+def predict ( self , input_data ) :
+"""
+Generate predictions based on the input data .
+Args :
+input_data : Data in a format specified by the pipeline .
+Returns :
+Predictions corresponding to the input features .
+"""
+pass
+def process ( self , data ) :
+"""
+For an estimator , process () defaults to prediction .
+"""
+return self . predict ( data )
+‘‘‘
+Designed Interfaces
+## Feature Paths : " Regression / LinearModels / P o l y n o m i a l R e g r e s s i o n / Cubic Regression with
+regulariz ation " , " Regression / LinearModels / P o l y n o m i a l R e g r e s s i o n / polynomial model fitting " , "
+Regression / LinearModels / P o l y n o m i a l R e g r e s s i o n / cubic regression " , " Regression / LinearModels /
+P o l y n o m i a l R e g r e s s i o n / quadratic regression " , " Regression / LinearModels / P o l y n o m i a l R e g r e s s i o n /
+Quadratic Regression with r egular izatio n "
+### src / algorithms / regression / linear_models / polynomial . py
+from src . general . b as e_ c om p on en t s import E s t i m a t o r C o m p o n e n t
+class P o l y n o m i a l R e g r e s s o r ( E s t i m a t o r C o m p o n e n t ) :
+def __init__ ( self , degree : int , r e g u l a r i z a t i o n _ l a m b d a : float =0.0) -> None :
+pass
+def fit ( self , X : list [ float ] , y : list [ float ]) -> None :
+"""
+Fit the polynomial regression model to the provided data .
+
+30
+A PREPRINT - O CTOBER 21, 2025
+Constructs the polynomial features based on the specified degree and applies
+optional reg ulariz ation if r e g u l a r i z a t i o n _ l a m b d a is provided ( > 0) .
+Args :
+X ( list [ float ]) : A list of feature values .
+y ( list [ float ]) : A list of target values corresponding to the features .
+Returns :
+None
+Raises :
+ValueError : If the degree is not supported or if input lists are empty or mismatched .
+"""
+pass
+def predict ( self , X : list [ float ]) -> list [ float ]:
+"""
+Generate predictions using the fitted polynomial regression model .
+Transforms the input features into polynomial features and computes
+the output via the fitted model coefficients . Applies regu lariza tion adjustments
+if the model was fitted with a regu lariza tion term .
+Args :
+X ( list [ float ]) : A list of feature values for prediction .
+Returns :
+list [ float ]: A list of predicted values .
+"""
+pass
+B.3
+Patterns in Implementation-Level Graph Construction
+The mapping from RPGs to code structures exhibits a strong isomorphic relationship: each subgraph corresponds
+to a coherent code region, with files, classes, and functions serving as structural anchors. Table 7 illustrates this
+correspondence for the case of o3-mini during sklearn generation, where algorithmic subgraphs (e.g., ML Algorithms,
+Data Processing, ML Pipeline) map to a larger number of files and functions, while auxiliary subgraphs (e.g., Diagnostics,
+Visualization) remain compact yet feature-dense. This pattern reflects the semantic granularity of different subgraphs:
+core computational domains require broader structural scaffolding, whereas specialized domains concentrate more
+features per unit. Extending to the cross-repository view in Table 6, we observe that both models preserve this
+structural isomorphism but with distinct emphases: o3-mini tends to distribute features more evenly across units, while
+qwen3-coder consistently produces the highest feature densities, especially at the class level. Together, these results
+demonstrate that the graph-to-code translation process not only preserves the hierarchical semantics of the RPG but also
+manifests in distinct structural footprints that vary with model choice.
+
+Table 6: Per-repository structural statistics across o3-mini and qwen-coder. “Count” = number of entities (Files/Classes/Functions) per repository; “Avg Feat.” = mean number of features per entity (features per file/class/function).
+o3-mini
+Repo
+Count
+TableKit
+MLKit-Py
+StatModeler
+SymbolicMath
+PyWebEngine
+HttpEasy
+Average
+Files
+Avg Feat.
+
+Classes
+Count Avg Feat.
+
+qwen-coder
+Functions
+Count Avg Feat.
+
+Count
+Files
+Avg Feat.
+
+Classes
+Count Avg Feat.
+
+Functions
+Count Avg Feat.
+
+475
+266
+219
+126
+440
+104
+3.64
+4.74
+4.71
+4.70
+3.89
+4.17
+252
+321
+117
+95
+576
+79
+2.28
+1.64
+2.47
+2.17
+1.74
+2.43
+1092
+708
+726
+370
+689
+235
+1.05
+1.04
+1.02
+1.04
+1.02
+1.03
+271
+566
+330
+89
+482
+178
+6.69
+2.44
+3.48
+8.98
+3.52
+4.28
+496
+815
+573
+71
+890
+239
+1.62
+1.30
+1.22
+1.73
+1.26
+1.52
+587
+281
+411
+786
+501
+366
+1.50
+1.13
+1.07
+0.86
+1.13
+1.06
+271.7
+4.31
+240
+2.12
+636.7
+1.03
+319.3
+4.90
+514
+1.44
+488.7
+1.12
+31
+A PREPRINT - O CTOBER 21, 2025
+Table 7: Structural distribution of files, classes, functions, and feature densities corresponding to each subgraph in
+the feature graph of o3-mini during sklearn synthesis. Here, “Files/Classes/Functions” denote the number of code
+units mapped from each subgraph; “File/Class/Function Features” are the total extracted features; and “Avg Features/...”
+indicates the average number of features per unit type.
+Subgraph
+ML Algorithms
+Math Utilities
+Data Processing
+ML Pipeline
+Core Operations
+ML Computation
+ML Evaluation
+ML Diagnostics
+Visualization
+C
+Files
+Classes
+Functions
+File Features
+Class Features
+Function Features
+Avg Feat./File
+Avg Feat./Class
+Avg Feat./Func
+58
+47
+45
+38
+30
+19
+17
+6
+6
+171
+26
+30
+23
+15
+39
+12
+3
+2
+67
+102
+169
+149
+76
+34
+51
+44
+16
+323
+143
+231
+202
+124
+88
+77
+50
+24
+256
+40
+59
+42
+33
+54
+25
+6
+8
+67
+103
+172
+160
+91
+34
+52
+44
+16
+5.57
+3.04
+5.13
+5.32
+4.13
+4.63
+4.53
+8.33
+4.00
+1.50
+1.54
+1.97
+1.83
+2.20
+1.38
+2.08
+2.00
+4.00
+1.00
+1.01
+1.02
+1.07
+1.20
+1.00
+1.02
+1.00
+1.00
+Appendix of Graph-Guided Repository Generation
+C.1
+Details on Localization
+To facilitate the localization stage in graph-guided repository generation, we designed a graph-guided toolset that allows
+agents to systematically explore and map design-level features onto concrete code artifacts. The tools support both
+fine-grained inspection of files and interfaces, as well as feature-driven exploration across the repository. Specifically,
+view_file_interface_feature_map and get_interface_content enable inspection of code structures and
+retrieval of their implementations, while expand_leaf_node_info and search_interface_by_functionality
+allow navigation of the RPG and fuzzy semantic search. Finally, the Terminate command ensures that the localization
+process produces a ranked and standardized output. Together, these tools provide a structured workflow that balances
+automation with flexibility, ensuring both accuracy and interpretability in the localization process.
+Localization Tools
+### Interface Inspection Tools
+- ‘ v i e w _ f i l e _ i n t e r f a c e _ f e a t u r e _ m a p ( file_path ) ‘
+Inspects a single Python file to list the interface structures ( functions , classes , methods ) it
+contains , along with the feature mappings they support .
+* Usage *: Useful for quickly understanding which interfaces exist in a given file and the feature
+tags associated with them .
+* Example *:
+\ begin { verbatim }
+v i e w _ f i l e _ i n t e r f a c e _ f e a t u r e _ m a p ( ’ src / algorithms / classifier . py ’)
+\ end { verbatim }
+- ‘ g e t _ i n t e r f a c e _ c o n t e n t ( target_specs ) ‘
+Retrieves the full implem entati on code of a specific function , class , or method , given its fully
+qualified name ( file path + entity name ) .
+* Usage *: Applied when a particular interface has been located and its source code needs to be
+examined in detail .
+* Example *:
+\ begin { verbatim }
+g e t _ i n t e r f a c e _ c o n t e n t ([ ’ src / core / data_loader . py : DataLoader . load_data ’])
+g e t _ i n t e r f a c e _ c o n t e n t ([ ’ src / core / utils . py : clean_text ’])
+\ end { verbatim }
+### Feature - Driven Exploration Tools
+- ‘ e x p a n d _ l e a f _ n o d e _ i n f o ( feature_path ) ‘
+Given a feature path from the implemented feature tree , this tool expands and lists all
+associated interfaces ( functions or classes ) in a structural summary .
+* Usage *: Applied when analyzing how a specific functional leaf node in the design tree maps to
+repository interfaces .
+* Example *:
+\ begin { verbatim }
+e x p a n d _ l e a f _ n o d e _ i n f o ( ’ Algorithm / Supervised Learning / Cl assifi cation Algorithms / Naive Bayes ’)
+\ end { verbatim }
+- ‘ s e a r c h _ i n t e r f a c e _ b y _ f u n c t i o n a l i t y ( keywords ) ‘
+Performs a fuzzy semantic search for interfaces based on given keywords and returns the top -5
+most relevant interface i mp le m enta t io n s .
+
+32
+A PREPRINT - O CTOBER 21, 2025
+* Usage *: Useful when the exact file or interface name is unknown , but functionality - related
+keywords are available .
+* Example *:
+\ begin { verbatim }
+s e a r c h _ i n t e r f a c e _ b y _ f u n c t i o n a l i t y ([ ’ optimize ’ , ’ initialize ’])
+\ end { verbatim }
+### Termination Tool
+- ‘ Terminate ( result ) ‘
+Terminates the localization exploration and returns the final ranked list of located interfaces .
+The result must follow the specified JSON - style format , including file path and interface
+type ( function , class , or method ) .
+* Usage *: Invoked after completing exploration to deliver the final interface localization results
+.
+* Example *:
+\ begin { verbatim }
+Terminate ( result =[
+{" file_path ": " t o p 1 _ f i l e _ f u l l p a t h . py " , " interface ": " method : Class1 . function1 "} ,
+{" file_path ": " t o p 2 _ f i l e _ f u l l p a t h . py " , " interface ": " function : function2 "} ,
+{" file_path ": " t o p 3 _ f i l e _ f u l l p a t h . py " , " interface ": " class : Class3 "} ,
+])
+\ end { verbatim }
+C.2
+Tools for Coding
+To support systematic repository modification, we introduce a suite of editing tools that operate at multiple levels of
+code granularity.
+Editing Coding Tools
+### e d i t _ w h o l e _ c l a s s _ i n _ f i l e ( file_path , class_name )
+Use when : An entire class ( including all methods and its docstring ) requires editing or replacement
+.
+Output must : Provide the full class definition , with all methods and docstring .
+### e d i t _ m e t h o d _ o f _ c l a s s _ i n _ f i l e ( file_path , class_name , method_name )
+Use when : A single method inside a class needs to be edited or replaced .
+Output must :
+- Return the full ‘ class ClassName : ‘ block containing only the target method .
+- Exclude all unrelated methods .
+- Do not output the method alone ; it must appear within its class block .
+### e d i t _ f u n c t i o n _ i n _ f i l e ( file_path , function_name )
+Use when : A top - level function requires editing or replacement .
+Output must : Provide the full function , including signature , logic , and docstring .
+### e d i t _ i m p o r t s _ a n d _ a s s i g n m e n t s _ i n _ f i l e ( file_path )
+Use when : Import statements or top - level assignments in the file need to be added or corrected .
+Output must :
+- Contain only import statements and top - level assignments ( no functions or classes ) .
+- Follow a strict import order : (1) standard library , (2) third - party packages , (3) local modules .
+Important :
+- Do not remove existing imports unless they are demonstrably incorrect ( e . g . , invalid path , typo ,
+or non - existent module ) .
+- Retain imports even if they appear unused , to preserve runtime dependencies .
+
+### Terminate ()
+Use when : All required edits are complete and no further tool invocations are necessary .
+Important : Do not call prematurely ; ensure the issue is fully resolved before termination .
+
+C.3
+Graph-Guided Localization and Editing Logs
+To illustrate how the proposed system operates in practice, we include representative logs that demonstrate the end-toend process: (i) locating relevant interfaces in the repository through RPG–guided exploration, and (ii) applying code
+editing operations to implement the required functionality. These logs capture the step-by-step decision process, tool
+invocations, and final termination results.
+
+33
+A PREPRINT - O CTOBER 21, 2025
+Task Example Trajectory
+Task : This issue is to implement the A d v a n c e d D i f f e r e n t i a l T r a n s f o r m e r class in src / symbolic /
+enhanced / c a l c u l u s _ s u m m a t i o n / differential . py . Contributors should aim to encapsulate the
+necessary tr ansfor mation logic and ensure the methods integrate well with the rest of the
+symbolic algebra framework . Clear error handling and input validation are expected in order to
+gracefully manage undefined behaviors .
+============ Localization = = = = = = = = = = = = = = = =
+Agent : < think >
+I will begin by exploring the file " src / symbolic / enhanced / c a l c u l u s _ s u m m a t i o n / differential . py " since
+the A d v a n c e d D i f f e r e n t i a l T r a n s f o r m e r class should be implemented here . I will use the
+v i e w _ f i l e _ i n t e r f a c e _ f e a t u r e _ m a p tool on that file to inspect its structure and get an idea of
+what is already provided , and any hints or TODOs might be present .
+</ think >
+< solution >
+‘‘‘
+v i e w _ f i l e _ i n t e r f a c e _ f e a t u r e _ m a p ( ’ src / symbolic / enhanced / c a l c u l u s _ s u m m a t i o n / differential . py ’)
+‘‘‘
+</ solution >
+Env : ‘‘‘ python
+## src / symbolic / enhanced / c a l c u l u s _ s u m m a t i o n / differential . py
+from typing import Any , Dict
+### Features : Calculus & Advanced Summation / Differential & Asymptotic Methods / Advanced
+Transform ation Methods / asymptotic series expansion , Calculus & Advanced Summation / Differential
+& Asymptotic Methods / Advanced Tran sforma tion Methods / differentiate special functions ,
+Calculus & Advanced Summation / Differential & Asymptotic Methods / Advanced Tran sforma tion
+Methods / simplify inequality expressions
+class A d v a n c e d D i f f e r e n t i a l T r a n s f o r m e r :
+def a s y m p t o t i c _ s e r i e s _ e x p a n s i o n ( self , expression : Any , e xp a ns io n _o r de r : int ) -> Any :
+...
+def d i f f e r e n t i a t e _ s p e c i a l _ f u n c t i o n ( self , expression : Any , function_name : str , a d d i t i o n a l _ p a r am s
+: Dict [ str , Any ]= None ) -> Any :
+...
+def s i m p l i f y _ i n e q u a l i t y ( self , in e qu al i ty _e x pr : Any , tolerance : float =1 e -05) -> Any :
+...
+‘‘‘
+Agent : < think >
+I ’ ll now check the file " src / symbolic / enhanced / sim plific ation / algebraic . py " since it is part of the
+Enhanced Symbolic Algorithms si mplifi catio n area , and it might contain functions or methods
+relevant to simplifying inequalities .
+</ think >
+< solution >
+‘‘‘
+v i e w _ f i l e _ i n t e r f a c e _ f e a t u r e _ m a p ( ’ src / symbolic / enhanced / sim plific ation / algebraic . py ’)
+‘‘‘
+</ solution >
+Env : ‘‘‘ python
+## src / symbolic / enhanced / simpl ificat ion / algebraic . py
+from typing import Any
+from src . expr_t ransfo rm . si mplifi catio n . techniques import a p p l y _ c o m m u t a t i v e _ a s s o c i a t i v e _ r e w r i t i n g ,
+order_terms
+from src . symbolic . core . e x p r e s s i o n _ m a n i p u l a t i o n . tree_utils import c o l l e c t _ l i k e _ t e r m s
+from src . symbolic . core . e x p r e s s i o n _ m a n i p u l a t i o n . rewriting import c a n o n i c a l i z e _ e x p r e s s i o n _ t r e e
+### Features : Si mplifi cation / Algebraic Simpli ficati on / Basic Techniques / simplify expressions
+def s i m p l i f y _ e x p r e s s i o n ( expr : Any ) -> Any :
+...
+‘‘‘
+Agent : < think >
+I will now search for interfaces related to " differentiate special function " or advanced symbolic
+differ en t ia ti o n since our method d i f f e r e n t i a t e _ s p e c i a l _ f u n c t i o n might rely on those routines .
+This might reveal supporting functions or logic that can be reused .
+</ think >
+< solution >
+‘‘‘
+s e a r c h _ i n t e r f a c e _ b y _ f u n c t i o n a l i t y ([ ’ differentiate special function ’ , ’ advanced symbolic
+differentiation ’])
+‘‘‘
+</ solution >
+34
+A PREPRINT - O CTOBER 21, 2025
+Env :
+Keyword " differentiate special function " matched interfaces : class AdvancedExpressionAnalyzer
+, class AutomaticDifferentiator , class M u l t i v a r i a b l e D i f f e r e n t i a t o r .
+Keyword " advanced symbolic di f fe re n ti at i on " matched interfaces : class AutomaticDifferentiator ,
+class IntegerAdditionOperations , class M u l t i v a r i a b l e D i f f e r e n t i a t o r .
+
+## File : src / calculus / di ff e re nt i at i on / p a r t i a l _ d e r i v a t i v e s . py
+from typing import Any , List , Callable
+### Features : Di ff e re n ti at i on / Specialized / Techniques / validate partial derivatives , D i ff er e nt ia t ion /
+Specialized / Techniques / compute partial derivatives , Di ff e re nt i at i on / Specialized / Techniques /
+symbolic gradient computation , D i ff er e nt ia t io n / Specialized / Techniques / Jacobian matrix ,
+Differ en t ia ti o n / Specialized / Techniques / symbolic hessian computation , Di f fe re n ti at i on /
+Specialized / Techniques / multivariable di ff e re n ti at i on
+class M u l t i v a r i a b l e D i f f e r e n t i a t o r :
+def v a l i d a t e _ p a r t i a l _ d e r i v a t i v e s ( self , function : Callable [... , Any ] , variables : List [ str ] ,
+computed : Any ) -> bool :
+...
+def c o m p u t e _ p a r t i a l _ d e r i v a t i v e ( self , function : Any , variable : str ) -> Any :
+"""
+...
+def c o m p u t e _ s y m b o l i c _ g r a d i e n t ( self , function : Any , variables : List [ str ]) -> Any :
+...
+def c o m p u t e _ j a c o b i a n _ m a t r i x ( self , functions : List [ Any ] , variables : List [ str ]) -> Any :
+...
+def c o m p u t e _ s y m b o l i c _ h e s s i a n ( self , function : Any , variables : List [ str ]) -> Any :
+...
+def d i f f e r e n t i a t e _ m u l t i v a r i a b l e ( self , function : Any , variables : List [ str ]) -> Any :
+...
+...
+Agent : < think >
+Next , I ’ ll search for interfaces that mention " asymptotic series expansion " because that
+functionality is required in A d v a n c e d D i f f e r e n t i a l T r a n s f o r m e r . a s y m p t o t i c _ s e r i e s _ e x p a n s i o n . This
+might reveal candidate functions that can be reused to generate series expansions .
+I ’ ll also search for interfaces related to " simplify inequality " to see if there ’ s any existing
+logic for inequality si mplifi cation that we can leverage .
+Let ’ s perform both searches .
+</ think >
+< solution >
+‘‘‘
+s e a r c h _ i n t e r f a c e _ b y _ f u n c t i o n a l i t y ([ ’ asymptotic series expansion ’])
+s e a r c h _ i n t e r f a c e _ b y _ f u n c t i o n a l i t y ([ ’ simplify inequality ’])
+‘‘‘
+</ solution >
+Env : Keyword " asymptotic series expansion " matched interfaces : class AdvancedExpressionAnalyzer ,
+class MultivariableDifferentiator , class N u m e r i c a l I n t e g r a t o r .
+## File : src / calculus / di ff e re nt i at i on / p a r t i a l _ d e r i v a t i v e s . py
+from typing import Any , List , Callable
+### Features : Di ff e re n ti at i on / Specialized / Techniques / validate partial derivatives , D i ff er e nt ia t ion /
+Specialized / Techniques / compute partial derivatives , Di ff e re nt i at i on / Specialized / Techniques /
+symbolic gradient computation , D i ff er e nt ia t io n / Specialized / Techniques / Jacobian matrix ,
+Differ en t ia ti o n / Specialized / Techniques / symbolic hessian computation , Di f fe re n ti at i on /
+Specialized / Techniques / multivariable di ff e re nt i at i on
+class M u l t i v a r i a b l e D i f f e r e n t i a t o r :
+...
+
+Agent : < think >
+We have gathered several candidate supporting interfaces needed for our implem entati on of
+A d v a n c e d D i f f e r e n t i a l T r a n s f o r m e r . Our analysis indicates that the following components are very
+likely to be relevant dependencies :
+...
+These are our top -5 interface - level code units that are most likely to serve as essential
+dependencies for implementing the class A d v a n c e d D i f f e r e n t i a l T r a n s f o r m e r with its three key
+methods .
+
+35
+A PREPRINT - O CTOBER 21, 2025
+</ think >
+< solution >
+‘‘‘
+Terminate ( result =[
+{" file_path ": " src / symbolic / core / calculus / d i ff er e nt i at io n . py " , " interface ": " function :
+d i f f e r e n t i a t e _ e x p r e s s i o n _ t r e e "} ,
+{" file_path ": " src / symbolic / enhanced / simpl ificat ion / algebraic . py " , " interface ": " function :
+s i m p l i f y _ e x p r e s s i o n "} ,
+{" file_path ": " src / ex pr_tra nsform / tran sforma tion / a n a l y s i s _ e x p r e s s i o n . py " , " interface ": " class :
+A d v a n c e d E x p r e s s i o n A n a l y z e r "} ,
+{" file_path ": " src / arith_algebra / d if f er en t ia t io n . py " , " interface ": " class :
+A u t o m a t i c D i f f e r e n t i a t o r "} ,
+{" file_path ": " src / arith_algebra / e q u a t i o n _ s o l v i n g / n o n l i n e a r _ s y m b o l i c . py " , " interface ": " class :
+S y m b o l i c E q u a t i o n S o l v e r "}
+])
+‘‘‘
+=========== Coding ============
+Agent : < think >
+We need to implement the A d v a n c e d D i f f e r e n t i a l T r a n s f o r m e r class in the file src / symbolic / enhanced /
+c al c ul u s _ s u m m a t i o n / differential . py . The class should provide three methods . For
+asymptotic_series_expansion , we will check that e x pa ns i on _o r de r is a positive integer and that
+the expression is provided . Our imp lement ation will simulate an asymptotic expansion by
+returning a new symbolic expression with a type marker ( e . g . , " a s y m p t o t i c _ s e r i e s ") including
+the original expression and the specified order . Similarly , d i f f e r e n t i a t e _ s p e c i a l _ f u n c t i o n
+should validate that the provided function name is among a set of allowed special functions (
+for example , erf , gamma , beta , bessel , hype rgeome tric ) and then simulate a specialized
+differ en t ia ti o n by returning a new symbolic expression that indicates that the transf ormati on
+has been applied . Finally , s i m p l i f y _ i n e q u a l i t y will check that the input is structured ( i . e . a
+dictionary ) and that tolerance is a positive float reasonably bounded ( we can enforce
+tolerance > 0 and maybe below 1 to avoid very high tolerance ) and then simulate a
+simplific ation by deep - copying the input expression with additional metadata fields . We also
+include proper error handling and input validation .
+</ think >
+< solution >
+e d i t _ w h o l e _ c l a s s _ i n _ f i l e (" src / symbolic / enhanced / c a l c u l u s _ s u m m a t i o n / differential . py " , "
+A d v a n c e d D i f f e r e n t i a l T r a n s f o r m e r ")
+‘‘‘ python
+from typing import Any , Dict
+import copy
+class A d v a n c e d D i f f e r e n t i a l T r a n s f o r m e r :
+"""
+Provides advanced differential trans forma tion methods for asymptotic series expansion ,
+differ en t ia ti n g special functions , and simplifying inequality expressions within symbolic
+mathematics .
+This class encapsulates transf ormati on techniques that are applied to symbolic expressions
+in the context of differential and asymptotic methods , enabling enhanced symbolic analyses and
+computations .
+Methods :
+a s y m p t o t i c _ s e r i e s _ e x p a n s i o n ( expression : Any , ex p an si o n_ or d er : int ) -> Any :
+Expand the provided expression into its asymptotic series r eprese ntati on up to the
+given order .
+d i f f e r e n t i a t e _ s p e c i a l _ f u n c t i o n ( expression : Any , function_name : str , a d d i t i o n a l _ p a r a m s : Dict
+[ str , Any ] = None ) -> Any :
+Differentiate a symbolic expression that contains a special function using advanced
+rules .
+s i m p l i f y _ i n e q u a l i t y ( in e qu al i ty _ ex pr : Any , tolerance : float = 1e -5) -> Any :
+Simplify a symbolic inequality expression using t ransfo rmatio n techniques to reduce
+complexity .
+"""
+...
+‘‘‘
+</ solution >
+Env :
+# Code Patch Diff :
+--- src / symbolic / enhanced / c a l c u l u s _ s u m m a t i o n / differential . py
++++ src / symbolic / enhanced / c a l c u l u s _ s u m m a t i o n / differential . py
+@@ -1 ,4 +1 ,5 @@
+from typing import Any , Dict
++ import copy
+class A d v a n c e d D i f f e r e n t i a l T r a n s f o r m e r :
+"""
+36
+A PREPRINT - O CTOBER 21, 2025
+@@ -18 ,6 +19 ,7 @@
+s i m p l i f y _ i n e q u a l i t y ( in e qu al i ty _e x pr : Any , tolerance : float = 1e -5) -> Any :
+Simplify a symbolic inequality expression using t ransfo rmatio n techniques to reduce
+complexity .
+"""
++
+A L L O W E D _ S P E C I A L _ F U N C T I O N S = { ’ erf ’ , ’ gamma ’ , ’ beta ’ , ’ bessel ’ , ’ hypergeometric ’}
+def a s y m p t o t i c _ s e r i e s _ e x p a n s i o n ( self , expression : Any , e xp a ns io n _o r de r : int ) -> Any :
+"""
+@@ -26 ,15 +28 ,23 @@
+Args :
+expression ( Any ) : The symbolic expression to be expanded .
+e xp an s io n _o rd e r ( int ) : The order up to which the series expansion should be computed .
++
+Returns :
+Any : A symbolic expression representing the asymptotic series expansion .
++
++
++
++
+...
+
+Edge Cases :
+- If ex p an si o n_ o rd er is non - positive , the behavior is undefined .
+- The function expects a valid symbolic expression input .
+Raises :
+ValueError : If e xp an s io n_ o rd e r is not a positive integer .
+TypeError : If the expression is not in a valid symbolic format ( e . g . , a dictionary ) .
+"""
+pass
+if not isinstance ( expansion_order , int ) or ex p an s io n_ o rd er <= 0:
+Agent : < solution >
+Terminate ()
+</ solution >
+C.4
+Testing Framework
+As illustrated in Algorithm 3, the testing framework combines unit tests, regression tests, and integration tests into a
+unified process. Unit tests validate each new patch at a fine-grained level, regression tests re-execute existing nodes to
+ensure backward compatibility, and integration tests verify that multiple patched components interact correctly when
+combined.
+As illustrated in Algorithm 4, the testing pipeline proceeds in a sequence of stages: branch planning, test generation,
+execution, judgment, and repair. First, a candidate test branch is created for the given code unit(s). Then, test code
+is generated and wrapped into a TestNode or IntegrationTestNode, which is executed inside a controlled Docker
+environment. The execution results are judged by an LLM; if failures are detected, the framework automatically
+generates fix queries and iteratively repairs the test until a validated version is obtained.
+C.5
+Statistics of Three Stage
+Table 8 demonstrates that graph-guided localization provides reasonable efficiency across repositories, with Incremental
+Development generally easier to localize than Integration Testing or Debugging. In terms of models, o3-mini achieves
+higher localization efficiency but with larger variance, whereas qwen3-coder shows more stable yet overall lower
+efficiency. These results suggest that while graph guidance is effective, model capacity and stability jointly influence
+localization performance.
+Table 8: Localization results across six open-source repositories under three task categories: Integration Testing,
+Incremental Development, and Debugging. Each entry reports the mean performance with standard deviation (mean±std)
+of the corresponding model–task pair.
+Model
+Task
+TableKit
+MLKit-Py
+HttpEasy
+PyWebEngine
+StatModeler
+SymbolicMath
+o3-mini
+Integration Testing
+Incremental Development
+Debugging
+13.33±2.92
+12.30±5.19
+11.59±5.74
+8.75±4.32
+9.83±4.00
+8.24±4.40
+10.94±3.44
+11.60±5.09
+9.15±5.55
+6.65±1.98
+12.51±6.67
+10.28±8.50
+9.24±3.65
+12.62±6.15
+13.02±7.01
+7.88±3.30
+9.93±5.13
+8.90±6.21
+qwen3-coder
+Integration Testing
+Incremental Development
+Debugging
+6.16±2.37
+6.81±1.87
+6.75±2.21
+6.62±2.12
+7.10±1.98
+6.01±2.16
+7.89±2.42
+7.48±1.85
+6.25±1.82
+5.93±2.06
+6.98±1.92
+6.62±2.47
+9.24±3.65
+6.49±1.79
+5.94±2.19
+7.88±3.30
+7.12±1.77
+6.42±1.94
+37
+A PREPRINT - O CTOBER 21, 2025
+Algorithm 3 Patch-Oriented Testing with Unit, Regression, and Integration Stages
+Require: Patch set P; repo skeleton R; dependency code D; existing unit nodes Nu ; existing integration nodes Ni ;
+task description Θ
+1: function T EST PATCHES(P, R, D, Θ)
+2:
+Tunit ← []; Tinte ← []
+3:
+Ttraj ← {unit : {}, inte : {}}
+4:
+P ′ ← P ∪ F IND D EP PATCHES(P)
+▷ Extend patch set with dependency patches
+5:
+for patch p ∈ P ′ do
+6:
+nold ← F IND E XISTING U NIT N ODE(Nu , p)
+7:
+if nold ̸= ∅ and S AME S IGNATURE O R L OGIC(nold , p) then
+8:
+nnew ← nold
+▷ Regression test: reuse existing node if signature/logic unchanged
+9:
+else
+10:
+nnew , traj ← C REATE O RU PDATE U NIT N ODE(p, D, Θ, nold )
+11:
+Ttraj [unit][p.key] ← traj
+12:
+end if
+13:
+R.I NSERT F ILE(nnew .test_file, nnew .test_code)
+14:
+res ← nnew .E XECUTE T EST()
+15:
+Tunit .APPEND(res)
+16:
+end for
+17:
+for patch group G clustered by integration-node do
+18:
+nold ← F IND E XISTING I NTEGRATION N ODE(Ni , G)
+19:
+if nold ̸= ∅ and A LL E QUAL(nold , G) then
+20:
+nnew ← nold
+▷ Regression integration test: reuse existing node
+21:
+else
+22:
+nnew , traj ← C REATE I NTEGRATION N ODE(G, Θ)
+23:
+Ttraj [inte][G] ← traj
+24:
+R.I NSERT F ILE(nnew .test_file, nnew .test_code)
+25:
+end if
+26:
+res ← nnew .E XECUTE T EST()
+27:
+Tinte .APPEND(res)
+28:
+end for
+29:
+return Tunit ∪ Tinte , Ttraj
+30: end function
+As shown in Table 9, o3-mini achieves relatively high code success rates across repositories, often exceeding 75%
+and in some cases approaching 90%, whereas qwen3-coder lags behind with rates around 50–55%. In contrast, the
+corresponding test coverage remains moderate, typically within the 60–70% range. Figure 12 further illustrates that
+coverage fluctuates and tends to decline as code length increases: shorter implementations reach high class-level
+coverage, but both function-level and overall coverage drop significantly with greater complexity. These results suggest
+that while current models are increasingly effective at generating functional code, their ability to produce comprehensive
+and high-quality test cases remains limited, highlighting test generation as a key bottleneck for practical deployment.
+Table 9: Average success rate and test coverage (%) for six repositories across two models.
+Model
+o3-mini
+qwen3-coder
+D
+TableKit
+MLKit-Py
+HttpEasy
+PyWebEngine
+StatModeler
+SymbolicMath
+Success
+Coverage
+Success
+Coverage
+Success
+Coverage
+Success
+Coverage
+Success
+Coverage
+Success
+Coverage
+81.8%
+55.0%
+65.0%
+48.0%
+82.8%
+52.0%
+61.0%
+46.0%
+88.9%
+50.0%
+64.0%
+45.0%
+74.7%
+53.0%
+60.0%
+47.0%
+71.0%
+54.0%
+62.0%
+48.0%
+84.8%
+51.0%
+59.0%
+46.0%
+Details about RepoCraft Benchmark
+In this section, we describe the construction of the R EPO C RAFT benchmark, covering four key aspects: the choice of
+repositories, the preparation of test data, the evaluation methodology, and the configuration of agent systems.
+38
+A PREPRINT - O CTOBER 21, 2025
+Algorithm 4 End-to-End Test Generation, Execution, and Repair
+Require: Repo skeleton R; tested unit(s) U ; source code C; optional prior test node nold ; maximum retries Tmax
+1: function RUN T ESTING P IPELINE(R, U, C, nold )
+▷ Main entry point for testing workflow
+2:
+// — Step 1: Plan test branches —
+3:
+branch ← G ENERATE C ODE B RANCH(C, nold , Tmax )
+4:
+// — Step 2: Generate candidate test code —
+5:
+test_code ← G ENERATE T EST(branch, C, U, nold )
+6:
+// — Step 3: Build a TestNode —
+7:
+if U represents integration of multiple units then
+8:
+n ← I NTEGRATION T EST N ODE(U, test_code)
+9:
+else
+10:
+n ← U NIT T EST N ODE(U, C, test_code)
+11:
+end if
+12:
+// — Step 4: Execute test code in Docker —
+13:
+result ← n.E XECUTE T EST()
+14:
+output ← result.stdout ∥ result.stderr
+15:
+// — Step 5: LLM judge outcome —
+16:
+if result contains errors then
+17:
+(err_type, reviews) ← LLMJ UDGE(C, test_code, output, branch)
+18:
+if err_type ∈ {test_code, environment} then
+19:
+query ← G ENERATE F IX Q UERY(C, test_code, output, branch, reviews)
+20:
+n ← F IX T ESTAND E NV(query, U, C, output, n)
+21:
+end if
+22:
+end if
+23:
+// — Step 7: Return final validated test node —
+24:
+return n
+25: end function
+D.1
+Repositories Selection
+For the benchmark, we curated six representative open-source repositories: scikit-learn, pandas, Django, statsmodels,
+SymPy, and requests. These projects span diverse functional domains including machine learning, data analysis, web
+frameworks, statistical modeling, symbolic computation, and HTTP communication, thereby ensuring broad coverage
+of typical software development tasks. To prevent models from simply memorizing or retrieving solutions from training
+data, we deliberately anonymized the repositories by modifying their names and descriptions. Furthermore, the task
+instructions prohibit directly reusing the original implementations, requiring models to generate solutions guided only
+by feature specifications. This setup enforces a fairer evaluation, focusing on the models’ capacity for feature-grounded
+reasoning and code generation rather than exploitation of prior exposure.
+D.2
+Evaluation Tasks Collection
+To construct a diverse and reliable evaluation set, we developed an automated pipeline that extends and systematizes the
+collection of test functions from the official repositories. Our design leverages the fact that mature open-source projects
+typically include comprehensive test suites with robust inputs and ground-truth outputs, ranging from unit-level checks
+to integration-level workflows. These tests provide a principled source of evaluation data, ensuring that generated
+repositories are assessed on both algorithmic diversity and functional correctness.
+Test Function Harvesting. For each repository, we first gathered all available test functions and classes. These serve
+as the raw pool of evaluation candidates, capturing the behaviors developers themselves deemed important to verify.
+Hierarchical Categorization. Next, we organized the collected tests into a hierarchical taxonomy. At the top
+level, categories follow the natural modular structure used by human developers (e.g., metrics, linear_model,
+decomposition). Within each category, we grouped related test classes and functions by algorithmic target. For
+example:
+{
+" metrics ": {
+" test_reg re ss i on ": {
+" functions ": {
+39
+A PREPRINT - O CTOBER 21, 2025
+Figure 12: Test coverage of o3-mini on MLKit-Py during generation. The figure shows how the coverage of generated
+test functions varies as code length increases.
+
+" reg_targets ": [
+" test__check_reg_targets ",
+" test__check_reg_targets_exception "
+],
+" re g r e s s i o n _ m e t r i c s ": [
+" test_regression_metrics ",
+" test_root_mean_squared_error_multioutput_raw_value ",
+...
+],
+" pinball_loss ": [
+" test_mean_pinball_loss_on_constant_predictions ",
+" test_dummy_quantile_parameter_tuning ",
+" test_pinball_loss_relation_with_mae "
+]
+}
+}
+}
+}
+This taxonomy mirrors repository semantics: higher levels correspond to broad functional modules, while deeper levels
+capture fine-grained algorithmic tests.
+Sampling and Filtering. To ensure balanced coverage, we applied the sampling algorithm(Alg 1) to draw representative subsets of test categories. Each sampled test was then refined into a task description that models could follow
+during generation. Finally, we filtered out cases irrelevant to core algorithmic behavior (e.g., string formatting checks,
+version consistency tests), retaining only tests that probe substantive computational functionality.
+Example Task Instance. To illustrate the outcome of the pipeline, consider the following task specification extracted
+from the Django repository:
+{
+" category ": " g is_mig ration s " ,
+" file ": " tests / gis_tests / g is_mig ration s / te st _ op er a ti o ns . py " ,
+" module ": " class O perati onTest s " ,
+" cap ": " spatial_index " ,
+" functions ": [
+" test_create_model_spatial_index ",
+" test_alter_field_add_spatial_index ",
+" test_alter_field_remove_spatial_index ",
+" test_alter_field_nullable_with_spatial_index ",
+" test_alter_field_with_spatial_index "
+40
+A PREPRINT - O CTOBER 21, 2025
+Table 10: Overview of the six benchmark repositories in R EPO C RAFT. Each repository is anonymized by renaming to
+prevent direct memorization or retrieval by models. We list both the anonymized names and their original counterparts,
+together with category, purpose, and scope.
+Original
+Name
+Anonymized
+Name
+Category
+Purpose
+scikit-learn
+MLKit-Py
+Machine
+Learning
+Framework
+sympy
+SymbolicMath
+Symbolic
+Computation
+Library
+pandas
+TableKit
+Data Analysis
+Library
+django
+PyWebEngine
+Web Framework
+requests
+HttpEasy
+HTTP Client
+Library
+statsmodels
+StatModeler
+Statistical
+Modeling
+Library
+Provides efficient tools for data Focuses on model training, evalmining and analysis, supporting uation, and selection for standard
+classical supervised and unsuper- ML tasks; excludes deep learning
+vised learning algorithms.
+and distributed systems.
+Enables symbolic mathematics in- Pure Python implementation of
+cluding algebraic manipulation, symbolic and algebraic computacalculus, simplification, and equa- tion, lightweight and extensible,
+tion solving.
+without external dependencies.
+Provides flexible data structures Supports efficient single-machine
+(e.g., DataFrame, Series) for ma- structured data processing; exnipulating and analyzing tabular cludes distributed data framedata.
+works.
+High-level framework for rapid Offers an all-in-one toolkit for
+development with ORM, routing, building web applications on
+templating, and admin support.
+small-scale/single-server deployments.
+Simple, human-friendly library Covers API for requests, refor sending HTTP requests and sponses, cookies, sessions, headhandling responses.
+ers; excludes advanced networking and async features.
+Provides econometric and statisti- Focuses on classical statistical
+cal modeling tools, including re- analysis and diagnostics; exgression, time series, and hypoth- cludes modern machine learning
+esis testing.
+and deep learning.
+
+Scope
+],
+" task_query ": " You are testing an algorithm that applies migration operations to GIS models , ensuring
+that spatial indexes on spatial fields are properly created , enabled , disabled , or removed as
+dictated by the migration speci ficati ons ." ,
+" id ": " django -0109"
+}
+Each task is represented by (i) its repository category and file location, (ii) the associated test class and functions, and
+(iii) a natural-language query summarizing the algorithm under test.
+Given such a task, the benchmark provides the algorithm description, its corresponding input–output ground truth,
+and the test method. Evaluation is then conducted along two dimensions: (1) Algorithm Presence — whether the
+generated repository contains an implementation that matches the target algorithm, and (2) Algorithm Correctness —
+whether the adapted tests pass against the generated implementation, reflecting functional accuracy. This dual perspective
+allows us to measure both coverage of algorithmic functionality and the reliability of generated implementations.
+D.3
+Agent Pipeline
+The evaluation employs a three-stage agent pipeline to connect task descriptions with generated repositories and derive
+executable judgments of success.
+Stage 1: Localization. Given a task and its algorithmic description, the agent first explores the generated repository
+to locate candidate functions or classes that may implement the target algorithm. This step uses the exploration tools
+detailed in Appendix C.1, and produces a set of potentially relevant code anchors.
+Stage 2: Majority-Vote Validation. To verify whether the localized candidates truly correspond to the target
+algorithm, we employ a majority-voting mechanism with a large language model (LLM). Each candidate is evaluated
+five times; the majority outcome is taken as the decision. If the validation fails, the pipeline triggers a re-localization
+41
+A PREPRINT - O CTOBER 21, 2025
+attempt. The localization–validation loop is retried up to three times; if all attempts fail, the repository is judged to lack
+an implementation of the algorithm.
+Stage 3: Test Adaptation and Execution. For validated candidates, the agent then adapts the task’s reference test
+code. Concretely, the provided ground-truth test (including inputs, outputs, and checking methods) is rewritten to match
+the naming and structural conventions of the localized function or class. The adapted test is executed, and its outcome
+determines whether the generated implementation is functionally correct.
+This pipeline ensures that evaluation captures both coverage (whether an algorithm is present in the generated repository)
+and correctness (whether its implementation passes the adapted tests).
+D.3.1
+Metrics
+To comprehensively evaluate the generated repositories, we adopt a multi-dimensional set of metrics that capture four
+complementary aspects: functionality alignment, novelty, execution accuracy, and code scale. The motivation is to
+move beyond a single success/failure judgment and instead characterize (i) whether the right algorithms are generated,
+(ii) whether new functionalities are introduced, (iii) whether these implementations actually work, and (iv) at what
+level of scale and complexity they are realized. Together, these metrics provide a holistic view of the strengths and
+limitations of different models.
+Functionality Coverage. The first question is whether a model can reproduce the expected range of functionalities
+in a target repository. We extract feature descriptions from both ground-truth repositories and generated repositories,
+and define a reference set of categories C = {c1 , . . . , cK } based on official documentation and developer guidelines.
+Generated functionalities G = {g1 , . . . , gN } are obtained either from structured intermediate outputs (for agent-based
+methods) or directly from raw code (for baseline models). To align generated features with reference categories, we
+perform K-Means clustering with C as fixed centroids, plus an additional centroid cOOD for out-of-distribution features.
+Each generated feature gi is mapped to f (gi ) ∈ C ∪ {cOOD }, with assignments further refined by an LLM-as-Judge
+to reduce semantic drift. Coverage is then defined as the fraction of reference categories that are “hit” by at least one
+generated feature:
+K
+1 X
+1 [∃gi ∈ G, f (gi ) = cj ] .
+(1)
+Coverage =
+|C| j=1
+This metric quantifies how well the generated repository aligns with the intended functionality footprint.
+Functionality Novelty. Coverage alone cannot distinguish between a model that simply memorizes existing categories
+and one that proposes extensions. To capture creativity and diversity, we measure the proportion of generated
+functionalities that fall outside the reference taxonomy. Specifically, novelty is the fraction of generated nodes assigned
+to the out-of-distribution centroid cOOD :
+N
+Novelty =
+1 X
+1 [f (gi ) = cOOD ] .
+|G| i=1
+(2)
+High novelty indicates a tendency to introduce new capabilities, though such capabilities may or may not be useful.
+This metric is therefore best interpreted jointly with accuracy (below).
+Functionality Accuracy. Even if a repository covers the right categories, the implementations must be correct.
+We therefore evaluate repository-specific tasks by checking whether generated code passes adapted test cases. Two
+complementary statistics are reported:
+• Voting Rate — the fraction of tasks where the localization–validation pipeline confirms that an implementation of
+the target algorithm is present. This measures algorithm presence.
+• Success Rate — the fraction of tasks where the adapted tests execute successfully. This measures algorithm
+correctness.
+Together, these metrics disentangle whether errors stem from missing functionality versus incorrect implementation.
+Code-Level Statistics. Finally, we report statistics on the scale and complexity of generated codebases. This helps
+distinguish minimal solutions from more realistic, full-fledged repositories. We compute these metrics over filtered
+Python source files, excluding directories unrelated to core functionality (e.g., tests, examples, benchmarks). The
+reported quantities are:
+42
+A PREPRINT - O CTOBER 21, 2025
+• File Count: number of valid source files, reflecting modular spread;
+• Normalized LOC: effective lines of code after removing comments, docstrings, and blank lines, capturing
+implementation size;
+• Code Token Count: number of tokens in normalized code, measured with a standard tokenizer, reflecting lexical
+complexity.
+By jointly considering these four dimensions (coverage, novelty, accuracy in terms of presence and correctness, and
+scale), we obtain a nuanced evaluation of generated repositories. This design ensures that models are rewarded not only
+for producing functional code, but also for producing diverse, accurate, and realistically sized repositories.
+D.4
+Ground-Truth Taxonomy for Coverage and Novelty Calculation
+{
+" Supervised learning ": {
+" Linear Models ": [] ,
+" Kernel ridge regression ": [] ,
+" Support Vector Machines ": {
+" SVC ": [] ,
+" SVR ": [] ,
+" OneClassSVM ": []
+},
+" Nearest Neighbors ": [] ,
+" Gaussian Processes ": [] ,
+" Cross decomposition ": [] ,
+" Naive Bayes ": [] ,
+" Decision Trees ": [] ,
+" Ensembles ": [] ,
+" Multiclass and multioutput algorithms ": [] ,
+" Feature selection ": [] ,
+" Semi - supervised learning ": [] ,
+" Isotonic regression ": [] ,
+" Probability calibration ": [] ,
+" Neural network models ( supervised )": []
+},
+" Unsupervised learning ": {
+" Gaussian mixture models ": [] ,
+" Manifold learning ": [] ,
+" Clustering ": [] ,
+" Biclustering ": [] ,
+" matrix factorization problems ": [] ,
+" Covariance estimation ": [] ,
+" Novelty and Outlier Detection ": [] ,
+" Density Estimation ": [] ,
+" Neural network models ( unsupervised )": []
+},
+" Model selection and evaluation ": {
+" Cross - validation ": [] ,
+" Tuning the hyper - parameters of an estimator ": [] ,
+" Validation curves ": {
+" Classification Metrics ": [] ,
+" Regression Metrics ": [] ,
+" Clustering Metrics ": []
+}
+},
+" Inspection ": {
+" Permutation feature importance ": []
+},
+" Dataset transformations ": {
+" Feature extraction ": {
+" Feature hashing ": [] ,
+" Text feature extraction ": [] ,
+43
+A PREPRINT - O CTOBER 21, 2025
+" Image feature extraction ": []
+},
+" Preprocessing data ": {
+" Scaling and Normalization ": [] ,
+" Discretization and Binarization ": [] ,
+" Polynomial and Non - linear Feature Engineering ": [] ,
+" Categorical Feature Encoding ": [] ,
+" Missing Value Imputation ": [] ,
+" Kernel and Matrix Centering ": []
+},
+" Unsupervised dimensionality reduction ": [] ,
+" Random Projection ": [] ,
+" Kernel Approximation ": [] ,
+" Pairwise metrics , Affinities and Kernels ": []
+},
+" Dataset loading utilities ": {} ,
+" Model persistence ": []
+}
+{
+" requests ": {
+" Core Request Features ": {
+" HTTP Method Support ": [] ,
+" URL and Query Handling ": [] ,
+" Request Body Construction ": [] ,
+" Custom Headers ": []
+},
+" Response Handling ": {
+" Response Body Access ": [] ,
+" JSON Processing ": [] ,
+" Response Metadata ": [] ,
+" Cookie Handling ": []
+},
+" Session Management ": {
+" Session Persistence ": [] ,
+" Session Customization ": []
+},
+" Advanced Configuration ": {
+" Timeouts and Retries ": [] ,
+" Redirect Control ": [] ,
+" Streaming and Chunking ": [] ,
+" Authentication Support ": [] ,
+" Event Hooks ": []
+},
+" Security and Transport ": {
+" SSL Verification ": [] ,
+" Client Certificates ": [] ,
+" Transport Control ": [] ,
+" Proxy Support ": []
+},
+" Compliance and Encoding ": {
+" Encoding Handling ": [] ,
+" Standards Compliance ": [] ,
+" Blocking Behavior ": []
+}
+}
+}
+44
+A PREPRINT - O CTOBER 21, 2025
+E
+E.1
+Experiment Results
+Baseline Configurations
+To ensure fair comparison, we evaluate three representative systems for repository synthesis: MetaGPT, ChatDev,
+and Paper2Code, together with several single-agent LLM baselines. All methods are run with their official or default
+configurations.
+MetaGPT. MetaGPT is a multi-agent framework that simulates a software company by assigning roles such as
+Product Manager, Architect, Project Manager, Engineer, and Tester. The agents collaborate following predefined
+Standard Operating Procedures to complete planning, design, implementation, and debugging.
+ChatDev. ChatDev also follows a company-style organization, where agents take charge of requirement analysis,
+coding, testing, and review. It uses a chat-based interaction mechanism to coordinate between stages. We run ChatDev
+with its default settings.
+Paper2Code. Paper2Code is a fixed workflow system designed to convert machine learning papers into executable
+repositories. It follows a three-stage pipeline of planning, analysis, and generation, which we execute sequentially using
+the default setup.
+Vibe-Coding Agent (OpenHands, Codex, Claude Code, Gemini CLI). For comparison with standalone LLM
+systems, we configure each model with a maximum of 30 iterations. The first round is initialized with the repository
+description. In each subsequent round, the model receives a fixed self-reflection prompt:
+Please check whether the current repository still has any features that could be enhanced or any missing
+functionality that needs to be added . If there are no further improvements , or if you consider the
+task complete , please reply with " yes " only . If there are still potential enhancements or
+improvements to be made , please continue working on them , and do not reply with " yes " just because
+you are concerned about complexity .
+
+E.2
+Detailed Experiment Results
+We report the results of different methods on six repositories. For each repository, the methods are evaluated under the
+same settings to enable direct comparison.
+Table 11: Performance on the MLKit-Py "Nov." denotes the novelty rate; the number in parentheses is Novel/Total,
+where Novel is the number of novel functionalities and Total is the total number of planned functionalities.
+Agent
+Model
+Cov. (%) ↑
+Nov. (%) (Novel/Total) ↑
+Pass. / Vot. (%) ↑
+Files ↑
+LOC ↑
+Tokens ↑
+MetaGPT
+o3-mini
+Qwen3-Coder
+14.9
+19.2
+0.0 (0.0/13.0)
+0.0 (0.0/23.0)
+6.3 / 7.3
+9.9 / 12.0
+3.0
+8.0
+95.0
+170.0
+928.0
+1718
+ChatDev
+o3-mini
+Qwen3-Coder
+8.5
+12.8
+14.3 (2/14)
+0.0 (0/49)
+6.3 / 7.3
+10.5 / 11.5
+6
+7
+163
+280
+2064
+3100
+OpenHands
+o3-mini
+Qwen3-Coder
+31.9
+34.0
+0.0 (0/39)
+0.0 (0/48)
+11.5 / 13.6
+11.0 / 14.0
+14
+26
+272
+1020
+2499
+10213
+Paper2Code
+o3-mini
+Qwen3-Coder
+25.5
+31.9
+0.0 (0/41)
+0.0 (0/118)
+17.8 / 19.9
+18.8 / 24.6
+5
+12
+564
+1710
+6346
+20821
+Codex CLI
+Gemini CLI
+Claude Code CLI
+o3 pro
+gemini 2.5 pro
+claude 4 sonnet
+31.9
+59.6
+59.6
+0.0 (0/59)
+0.0 (0/141)
+0.0 (0/163)
+11.0 / 16.9
+0.0 / 33.5
+27.5 / 42.4
+14
+19
+31
+829
+2316
+3559
+8344
+24782
+37056
+Gold Projects
+Human Developers
+-
+-
+85.1 / 98.3
+185
+65972
+592187
+ZeroRepo
+o3-mini
+Qwen3-Coder
+97.9
+85.1
+4.7 (54/1258)
+15.0 (176/1233)
+73.5 / 78.7
+63.6 / 74.6
+266
+642
+31596
+60553
+351554
+741634
+E.3
+Examples of Coverage Calculation and Novelty Assessment
+In this subsection, we provide examples of how coverage and novelty are computed from the constructed RPG,
+illustrating category alignment for coverage and out-of-distribution detection for novelty.
+45
+A PREPRINT - O CTOBER 21, 2025
+Table 12: Performance on the HttpEasy repo. "Nov." denotes the novelty rate; the number in parentheses is Novel/Total,
+where Novel is the number of novel functionalities and Total is the total number of planned functionalities.
+Cov. (%) ↑
+Nov. (%) (Novel/Total) ↑
+Pass. / Vot. (%) ↑
+Files ↑
+LOC ↑
+Tokens ↑
+o3-mini
+Qwen3-Coder
+22.7
+31.8
+0.0 (0/12)
+0.0 (0/17)
+5.0 / 15.0
+20.0 / 25.0
+1
+4
+167
+175
+1802
+2023
+ChatDev
+o3-mini
+Qwen3-Coder
+36.4
+40.9
+18.2 (2/11)
+3.5 (1/31)
+15.0 / 15.0
+20.0 / 30.0
+3
+2
+177
+323
+2055
+3151
+OpenHands
+o3-mini
+Qwen3-Coder
+22.7
+31.8
+0.0 (0/5)
+0.0 (0/20)
+20.5 / 28.2
+20.0 / 30.0
+3
+2
+72
+214
+669
+1960
+Paper2Code
+o3-mini
+Qwen3-Coder
+27.3
+50.0
+0.0 (0/18)
+2.7 (1/39)
+0.0 / 24.2
+0.0 / 45.5
+5
+5
+192
+377
+1856
+3965
+Codex CLI
+Gemini CLI
+Claude Code CLI
+o3 pro
+gemini 2.5 pro
+claude 4 sonnet
+45.5
+59.1
+50.0
+0.0 (0/19)
+3.1 (1/33)
+0.0 (0/21)
+14.0 / 28.0
+40.0 / 56.0
+36.0 / 42.0
+1
+1
+2
+197
+420
+436
+1879
+5407
+4931
+Gold Projects
+Human Developers
+-
+-
+72.3 / 87.2
+17
+2793
+22297
+ZeroRepo
+o3-mini
+Qwen3-Coder
+100.0
+95.5
+2.05 (7/433)
+0.3 (2/854)
+64.0 / 72.0
+54.0 / 64.0
+109
+245
+6192
+15559
+61922
+165051
+Agent
+Model
+MetaGPT
+Table 13: Performance on the PyWebEngine repo. "Nov." denotes the novelty rate; the number in parentheses is
+Novel/Total, where Novel is the number of novel functionalities and Total is the total number of planned functionalities.
+Cov. (%) ↑
+Nov. (%) (Novel/Total) ↑
+Pass. / Vot. (%) ↑
+Files ↑
+LOC ↑
+Tokens ↑
+o3-mini
+Qwen3-Coder
+27.1
+18.8
+0.0 (0/52)
+0.0 (0/52)
+0.0 / 13.5
+0.0 / 9.2
+2
+9
+421
+238
+3733
+1928
+ChatDev
+o3-mini
+Qwen3-Coder
+25.0
+27.1
+0.0 (0/40)
+0.0 (0/49)
+0.0 / 14.2
+0.0 / 12.1
+8
+11
+372
+679
+3185
+5950
+OpenHands
+o3-mini
+Qwen3-Coder
+31.3
+25.0
+2.0 (1/55)
+0.0 (0/52)
+0.0 / 14.2
+0.0 / 19.1
+18
+13
+304
+427
+2628
+3996
+Paper2Code
+o3-mini
+Qwen3-Coder
+27.1
+43.8
+0.0 (0/46)
+0.0 (0/103)
+0.0 / 15.6
+0.0 / 19.9
+11
+10
+619
+1761
+6342
+16076
+Codex CLI
+Gemini CLI
+Claude Code CLI
+o3 pro
+gemini 2.5 pro
+claude 4 sonnet
+39.6
+45.8
+64.6
+0.0 (0/88)
+0.3 (1/318)
+38.1 (669/2165)
+12.1 / 26.7
+7.6 / 48.1
+33.9 / 66.1
+2
+45
+80
+769
+2975
+34302
+7751
+27655
+317883
+Gold Projects
+Human Developers
+-
+-
+81.6 / 86.5
+681
+109457
+917622
+ZeroRepo
+o3-mini
+Qwen3-Coder
+79.2
+68.8
+38.2 (566/1680)
+18.1 (244/1561)
+74.1 / 84.4
+56.4 / 64.8
+430
+521
+27647
+48058
+275782
+539052
+Agent
+Model
+MetaGPT
+Analysis of Coverage Examples. These examples demonstrate that our coverage metric provides a reasonable
+allocation of generated functionalities to reference categories. Core areas such as regression, classification, clustering,
+and preprocessing are consistently captured, while supporting utilities (e.g., normalization, imputation) are distributed
+into their respective modules without overlap or misplacement. This validates the soundness of our metric design
+for assessing functional completeness. Moreover, the RPG ensures that functionalities are not only well aligned
+with reference categories but also diversified across them, highlighting its effectiveness as a planning substrate for
+repository-level generation.
+{
+" SVR ": [
+" NuSVR "
+],
+" Gaussian mixture models ": [
+" gmm expectation maximization " ,
+" dp gaussian mixture "
+],
+" Scaling and Normalization ": [
+" quantile scaling " ,
+46
+A PREPRINT - O CTOBER 21, 2025
+Table 14: Performance on the TableKit repo. "Nov." denotes the novelty rate; the number in parentheses is Novel/Total,
+where Novel is the number of novel functionalities and Total is the total number of planned functionalities.
+Agent
+Model
+Cov. (%) ↑
+Nov. (%) (Novel/Total) ↑
+Pass. / Vot. (%) ↑
+Files ↑
+LOC ↑
+Tokens ↑
+MetaGPT
+o3-mini
+Qwen3-Coder
+13.2
+6.6
+0.0 (0/21)
+0.0 (0/17)
+0.0 / 11.5
+0.0 / 6.4
+1
+3
+186
+133
+1814
+1453
+ChatDev
+o3-mini
+Qwen3-Coder
+21.1
+19.7
+0.0 (0/36)
+0.0 (0/54)
+0.0 / 15.0
+0.0 / 0.0
+2
+6
+332
+918
+3517
+9168
+OpenHands
+o3-mini
+Qwen3-Coder
+11.8
+11.8
+0.0 (0/26)
+0.0 (0/23)
+0.0 / 18.1
+0.0 / 12.1
+6
+2
+193
+174
+1753
+1914
+Paper2Code
+o3-mini
+Qwen3-Coder
+17.1
+17.1
+9.4 (5/53)
+0.0 (0/61)
+0.0 / 23.5
+6.2 / 20.4
+7
+9
+529
+1886
+5325
+19337
+Codex CLI
+Gemini CLI
+Claude Code CLI
+o3 pro
+gemini 2.5 pro
+claude 4 sonnet
+11.8
+44.7
+52.6
+0.0 (0/23)
+0.0 (0/117)
+0.0 (0/191)
+21.1 / 30.9
+38.6 / 48.5
+53.1 / 77.7
+2
+15
+11
+552
+1249
+8509
+6299
+12242
+83834
+Gold Projects
+Human Developers
+-
+-
+90.6 / 94.0
+217
+106447
+943873
+ZeroRepo
+o3-mini
+Qwen3-Coder
+72.4
+65.8
+21.1 (306/1701)
+13.9 (178/1500)
+81.4 / 88.3
+48.0 / 64.8
+477
+347
+37331
+32387
+395536
+389886
+Table 15: Performance on the StatModeler repo. "Nov." denotes the novelty rate; the number in parentheses is
+Novel/Total, where Novel is the number of novel functionalities and Total is the total number of planned functionalities.
+Agent
+Model
+Cov. (%) ↑
+Nov. (%) (Novel/Total) ↑
+Pass. / Vot. (%) ↑
+Files ↑
+LOC ↑
+Tokens ↑
+MetaGPT
+o3-mini
+Qwen3-Coder
+11.4
+5.7
+0.0 (0/19)
+0.0 (0/10)
+5.6 / 6.1
+0.0 / 2.8
+6
+13
+228
+437
+2330
+5435
+ChatDev
+o3-mini
+Qwen3-Coder
+10.2
+11.4
+21.1 (8/38)
+0.0 (0/18)
+1.1 / 9.5
+3.2 / 7.7
+9
+6
+726
+320
+9644
+3797
+OpenHands
+o3-mini
+Qwen3-Coder
+13.6
+14.8
+0.0 (0/32)
+0.0 (0/27)
+7.9 / 9.0
+9.5 / 12.8
+9
+5
+335
+670
+3338
+8476
+Paper2Code
+o3-mini
+Qwen3-Coder
+12.5
+13.6
+21.6 (8/29)
+30.0 (12/50)
+0.0 / 10.7
+3.2 / 14.0
+9
+8
+813
+1179
+9793
+13519
+Codex CLI
+Gemini CLI
+Claude Code CLI
+o3 pro
+gemini 2.5 pro
+claude 4 sonnet
+20.5
+23.7
+34.1
+0.0 (0/23)
+0.0 (0/55)
+0.0 (0/191)
+8.2 / 9.9
+13.5 / 23.2
+18.4 / 27.8
+9
+6
+28
+709
+736
+4043
+8473
+8063
+46182
+Gold Projects
+Human Developers
+-
+-
+87.2 / 96.2
+271
+83325
+893824
+ZeroRepo
+o3-mini
+Qwen3-Coder
+77.3
+77.3
+15.6 (143/1021)
+8.2 (83/1113)
+76.4 / 81.1
+66.2 / 73.9
+220
+436
+24141
+47370
+294292
+598058
+" scale to [0 , 1]" ,
+"z - score scaling " ,
+" IQR scaling "
+],
+" Missing Value Imputation ": [
+" mean imputation " ,
+" matrix completion imputation " ,
+" impute using K - nearest neighbors " ,
+" impute with global median " ,
+" impute missing data " ,
+],
+" Ensembles ": [
+" light gradient boosting " ,
+" H i stGradientBoosting " ,
+" bagging classification trees " ,
+" random forest " ,
+" LightGBM " ,
+" CatBoost " ,
+" XGBoost "
+47
+A PREPRINT - O CTOBER 21, 2025
+],
+" Clustering Metrics ": [
+" density peak clustering " ,
+" gap statistic " ,
+" silhouette score calculation " ,
+" inertia calculation "
+],
+" Naive Bayes ": [
+" multinomial naive bayes " ,
+" bernoulli naive bayes " ,
+" gaussian naive bayes "
+],
+" Linear Models ": [
+" ridge regression " ,
+" lasso regression " ,
+" huber regression " ,
+" ransac regression "
+],
+" SVC ": [
+" soft margin SVM " ,
+" hard margin SVM " ,
+" SVM with precomputed kernel "
+]
+}
+{
+" Proxy Support ": [
+" rotate proxy list " ,
+" auto detect system proxy " ,
+" custom dns resolver integration "
+],
+" HTTP Method Support ": [
+" send POST request " ,
+" GET request with cookies " ,
+" send DELETE request " ,
+" PUT with JSON payload "
+],
+" URL and Query Handling ": [
+" encode path segments " ,
+" parse query string " ,
+" normalize request url "
+],
+" Redirect Control ": [
+" auto follow redirects " ,
+" limit redirect chain "
+],
+" Authentication Support ": [
+" send basic auth " ,
+" include oauth2 bearer token " ,
+" refresh auth token "
+],
+" Timeouts and Retries ": [
+" set request timeout " ,
+" apply exponential backoff " ,
+" custom retry hook "
+],
+" JSON Processing ": [
+" auto deserialize json " ,
+" validate json schema " ,
+" serialize dict to JSON "
+],
+48
+A PREPRINT - O CTOBER 21, 2025
+" SSL Verification ": [
+" ssl hostname verification " ,
+" load custom certificates "
+],
+" Streaming and Chunking ": [
+" process chunked response " ,
+" resume file download support "
+]
+}
+Analysis of Novelty Examples The novelty cases illustrate two key observations. First, novelty captures meaningful
+extensions rather than random noise: in MLKit-Py, we see coherent additions such as Prophet forecasting, STL
+decomposition, and genetic programming feature synthesis, while in StatModeler new capabilities include vector
+autoregression and Cox proportional hazards models. Second, the new functionalities proposed by the RPG remain
+reasonable within the target domain: they extend statistical modeling, optimization, or robustness analysis in ways
+that align with real-world software evolution. Together, these examples confirm that the RPG supports not only stable
+replication of reference repositories but also the introduction of coherent and domain-consistent innovations.
+{
+" new_features ": [
+" vector autoregression model " ,
+" forecasting with Prophet " ,
+" genetic programming feature synthesis " ,
+" multi - objective bayesian optimization " ,
+" online learning " ,
+" apriori association mining " ,
+" Cox proportional hazards model " ,
+" STL decomposition " ,
+" temporal drift detection " ,
+" fuzz testing " ,
+" interactive dashboards " ,
+" NoSQL queries " ,
+" pareto optimization " ,
+" demographic parity test " ,
+" secure argument parsing " ,
+...
+]
+}
+{
+" new_features ": [
+" vector autoregression model " ,
+" forecasting with Prophet " ,
+" genetic programming feature synthesis " ,
+" multi - objective bayesian optimization " ,
+" online learning " ,
+" apriori association mining " ,
+" Cox proportional hazards model " ,
+" STL decomposition " ,
+" temporal drift detection " ,
+" fuzz testing " ,
+" interactive dashboards " ,
+" NoSQL queries " ,
+" pareto optimization " ,
+" demographic parity test " ,
+" secure argument parsing " ,
+...
+
+49
+A PREPRINT - O CTOBER 21, 2025
+]
+}
+E.4
+Examples of Localization Behavior
+Figure 13: Aggregated function call frequency distribution across localization steps in all repositories using o3-mini.
+Graph guidance structures localization into systematic search. Figure 13 shows that with graph guidance,
+localization behavior follows a structured CCG pattern (Coarse Search → Content Inspection → Global Graph
+Exploration). The agent begins by traversing the RPG at a coarse level to identify high-level candidates, then inspects
+content-rich nodes for detailed signals, and finally explores semantically related structures across the graph. Termination
+calls rise as the search converges. This progression indicates that the RPG reshapes the agent’s behavior into a
+systematic, relation-aware search process, replacing ad hoc or repetitive probing.
+
+50
+

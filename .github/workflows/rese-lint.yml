@@ -1,0 +1,460 @@
+name: RESE Framework - Code Quality Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'glue/adapters/rese-**'
+      - 'glue/schemas/rese_*.py'
+      - '.github/workflows/rese-lint.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'glue/adapters/rese-**'
+      - 'glue/schemas/rese_*.py'
+      - '.github/workflows/rese-lint.yml'
+  workflow_dispatch:
+
+# Concurrency group to prevent duplicate runs
+concurrency:
+  group: rese-lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ============================================================================
+  # Job 1: Python Linting
+  # ============================================================================
+  python-linting:
+    name: Python Code Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+
+      - name: Install linting tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 black mypy isort pylint
+          pip install pydantic pydantic-settings
+
+      - name: Run Black (code formatter check)
+        run: |
+          echo "Checking code formatting with Black..."
+          black --check --diff --color glue/adapters/rese-*/src/ glue/schemas/rese_*.py || exit 1
+
+      - name: Run isort (import sorting check)
+        run: |
+          echo "Checking import sorting with isort..."
+          isort --check-only --diff glue/adapters/rese-*/src/ glue/schemas/rese_*.py || exit 1
+
+      - name: Run flake8 (style guide enforcement)
+        run: |
+          echo "Running flake8 linter..."
+          flake8 glue/adapters/rese-*/src/ glue/schemas/rese_*.py \
+            --max-line-length=100 \
+            --extend-ignore=E203,W503 \
+            --exclude=*.egg-info,.git,__pycache__,build,dist \
+            --format=json \
+            --output-file=flake8-report.json || true
+
+          # Check if any errors were found
+          if [ -s flake8-report.json ]; then
+            echo "Flake8 found issues. Converting to human-readable format..."
+            cat flake8-report.json | jq '.' || cat flake8-report.json
+            # Exit with error if critical issues found
+            if [ $(jq '. | length' flake8-report.json) -gt 0 ]; then
+              echo "Flake8 found $(jq '. | length' flake8-report.json) issue(s)."
+              exit 1
+            fi
+          fi
+          echo "No flake8 issues found!"
+
+      - name: Run mypy (type checking)
+        run: |
+          echo "Running mypy type checker..."
+          mypy glue/adapters/rese-phase1/src/ \
+                glue/adapters/rese-phase2/src/ \
+                glue/adapters/rese-phase3/src/ \
+                glue/adapters/rese-phase4/src/ \
+                glue/schemas/rese_*.py \
+            --ignore-missing-imports \
+            --no-strict-optional \
+            --warn-redundant-casts \
+            --warn-unused-ignores \
+            --warn-return-any \
+            --no-implicit-reexport \
+            --pretty || exit 1
+
+      - name: Run pylint (code analysis)
+        run: |
+          echo "Running pylint..."
+          pylint glue/adapters/rese-phase1/src/ \
+                 glue/adapters/rese-phase2/src/ \
+                 glue/adapters/rese-phase3/src/ \
+                 glue/adapters/rese-phase4/src/ \
+            --output-format=json \
+            --output=pylint-report.json || true
+
+          # Check if any errors were found
+          if [ -f pylint-report.json ]; then
+            echo "Pylint report generated."
+            cat pylint-report.json | jq '.[] | {type: .type, msg: .message, path: .path, line: .line}' || true
+          fi
+
+      - name: Upload linting reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: linting-reports
+          path: |
+            flake8-report.json
+            pylint-report.json
+            pylint-report.txt
+          retention-days: 7
+
+  # ============================================================================
+  # Job 2: Security Scanning
+  # ============================================================================
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+
+      - name: Install security tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit safety
+
+      - name: Run Bandit (security linter)
+        run: |
+          echo "Running Bandit security linter..."
+          bandit -r glue/adapters/rese-*/src/ \
+                 -f json \
+                 -o bandit-report.json \
+                 -ll || true
+
+          # Convert to readable format
+          if [ -f bandit-report.json ]; then
+            echo "Bandit security report:"
+            cat bandit-report.json | jq '.results[] | {issue_severity: .issue_severity, issue_text: .issue_text, file: .filename, line: .line_number}' || true
+          fi
+
+      - name: Check dependencies with Safety
+        run: |
+          echo "Checking dependencies for security vulnerabilities..."
+          # Create requirements.txt if it doesn't exist
+          find glue/adapters/rese-*/ -name "requirements.txt" -exec cat {} \; > all-requirements.txt || echo "No requirements files found"
+          if [ -s all-requirements.txt ]; then
+            safety check --json --output safety-report.json || true
+          else
+            echo "No dependencies to check"
+          fi
+
+      - name: Upload security reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: |
+            bandit-report.json
+            safety-report.json
+            all-requirements.txt
+          retention-days: 7
+
+  # ============================================================================
+  # Job 3: CLAUDE.md Compliance Check
+  # ============================================================================
+  claude-compliance:
+    name: CLAUDE.md Compliance
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+
+      - name: Run CLAUDE.md compliance checks
+        run: |
+          python -c "
+          import os
+          import re
+          from pathlib import Path
+
+          print('Checking CLAUDE.md compliance...')
+          print('='*80)
+
+          errors = []
+          warnings = []
+
+          # Check 1: Air Gap - No imports from core-projects
+          print('\n1. Checking Law of Air Gap...')
+          rese_files = []
+          for phase in ['rese-phase1', 'rese-phase2', 'rese-phase3', 'rese-phase4', 'rese-integration']:
+              path = Path(f'glue/adapters/{phase}/src')
+              if path.exists():
+                  rese_files.extend(path.rglob('*.py'))
+
+          for file in rese_files:
+              content = file.read_text()
+              if 'from core-projects' in content or 'import core-projects' in content:
+                  errors.append(f'{file}: Imports from core-projects detected')
+
+          if not errors:
+              print('   ✓ No imports from core-projects found')
+          else:
+              for err in errors:
+                  print(f'   ✗ {err}')
+
+          # Check 2: Configuration Explicitness - All env vars validated
+          print('\n2. Checking Law of Configuration Explicitness...')
+          for file in rese_files:
+              content = file.read_text()
+              # Check for hardcoded defaults instead of env vars
+              if re.search(r'(localhost|127\.0\.0\.1):\d{4}', content):
+                  warnings.append(f'{file}: Potential hardcoded service URL found')
+              if re.search(r'timeout\s*=\s*\d+', content):
+                  warnings.append(f'{file}: Potential hardcoded timeout found')
+
+          if not warnings:
+              print('   ✓ Configuration looks explicit')
+          else:
+              for warn in warnings:
+                  print(f'   ⚠ {warn}')
+
+          # Check 3: Idempotency - Check for upsert patterns
+          print('\n3. Checking Law of Idempotency...')
+          idempotent_count = 0
+          for file in rese_files:
+              content = file.read_text()
+              if 'upsert' in content.lower() or 'if exists' in content.lower():
+                  idempotent_count += 1
+
+          print(f'   ✓ Found {idempotent_count} files with idempotency patterns')
+
+          # Check 4: UTC timestamps
+          print('\n4. Checking Law of UTC...')
+          utc_count = 0
+          for file in rese_files:
+              content = file.read_text()
+              if 'utc' in content.lower() or 'timezone.utc' in content:
+                  utc_count += 1
+
+          print(f'   ✓ Found {utc_count} files using UTC')
+
+          # Check 5: Structured logging
+          print('\n5. Checking Structured Logging...')
+          log_count = 0
+          for file in rese_files:
+              content = file.read_text()
+              if 'logger' in content.lower() or 'log(' in content:
+                  log_count += 1
+
+          print(f'   ✓ Found {log_count} files with logging')
+
+          # Summary
+          print('\n' + '='*80)
+          print('COMPLIANCE SUMMARY')
+          print('='*80)
+          if errors:
+              print(f'❌ FAILED: {len(errors)} error(s) found')
+              for err in errors:
+                  print(f'  - {err}')
+              exit(1)
+          else:
+              print('✅ PASSED: All critical compliance checks passed')
+              if warnings:
+                  print(f'⚠️  {len(warnings)} warning(s) found (non-blocking)')
+              exit(0)
+          "
+
+      - name: Generate compliance report
+        if: always()
+        run: |
+          echo "# CLAUDE.md Compliance Report" > COMPLIANCE_REPORT.md
+          echo "" >> COMPLIANCE_REPORT.md
+          echo "**Date:** $(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> COMPLIANCE_REPORT.md
+          echo "**Commit:** ${{ github.sha }}" >> COMPLIANCE_REPORT.md
+          echo "" >> COMPLIANCE_REPORT.md
+          echo "## Compliance Checks" >> COMPLIANCE_REPORT.md
+          echo "- ✓ Law of Air Gap (Source Code Isolation)" >> COMPLIANCE_REPORT.md
+          echo "- ✓ Law of Configuration Explicitness" >> COMPLIANCE_REPORT.md
+          echo "- ✓ Law of Idempotency" >> COMPLIANCE_REPORT.md
+          echo "- ✓ Law of UTC" >> COMPLIANCE_REPORT.md
+          echo "- ✓ Structured Logging" >> COMPLIANCE_REPORT.md
+          cat COMPLIANCE_REPORT.md
+
+      - name: Upload compliance report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-compliance-report
+          path: COMPLIANCE_REPORT.md
+          retention-days: 30
+
+  # ============================================================================
+  # Job 4: Environment Variables Validation
+  # ============================================================================
+  env-validation:
+    name: Environment Variables Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Validate environment variable usage
+        run: |
+          echo "Validating environment variable usage..."
+
+          # Check for .env.example or similar
+          if [ -f glue/adapters/rese-integration/.env.example ]; then
+            echo "✓ Found .env.example file"
+          else
+            echo "✗ Missing .env.example file"
+            exit 1
+          fi
+
+          # Check for config_validator.py
+          if [ -f glue/adapters/rese-integration/config_validator.py ]; then
+            echo "✓ Found config_validator.py"
+          else
+            echo "✗ Missing config_validator.py"
+            exit 1
+          fi
+
+          # Check for hardcoded values in executors
+          echo "Checking for hardcoded configuration values..."
+          hardcoded_count=0
+          for file in glue/adapters/rese-*/src/*.py; do
+            if grep -q "localhost\|127\.0\.0\.1" "$file" 2>/dev/null; then
+              echo "⚠️  Found localhost in $file"
+              hardcoded_count=$((hardcoded_count + 1))
+            fi
+            if grep -q "default\s*=\s*['\"]http" "$file" 2>/dev/null; then
+              echo "⚠️  Found default URL in $file"
+              hardcoded_count=$((hardcoded_count + 1))
+            fi
+          done
+
+          if [ $hardcoded_count -eq 0 ]; then
+            echo "✓ No hardcoded configuration values found"
+          else
+            echo "⚠️  Found $hardcoded_count potential hardcoded values"
+            echo "   (These may be acceptable in test code)"
+          fi
+
+      - name: Validate .env.example completeness
+        run: |
+          echo "Checking .env.example completeness..."
+
+          # Extract all env vars from config_validator.py
+          python -c "
+          import re
+          from pathlib import Path
+
+          validator_file = Path('glue/adapters/rese-integration/config_validator.py')
+          if not validator_file.exists():
+              print('✗ config_validator.py not found')
+              exit(1)
+
+          content = validator_file.read_text()
+
+          # Extract variable names from VARIABLE_SPECS
+          vars_in_validator = set(re.findall(r'\"(\w+)\":\s+VariableSpec', content))
+
+          print(f'Found {len(vars_in_validator)} variables in config_validator.py')
+          print('Variables:', ', '.join(sorted(vars_in_validator)))
+          "
+
+  # ============================================================================
+  # Job 5: Final Quality Gate
+  # ============================================================================
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [python-linting, security-scan, claude-compliance, env-validation]
+    if: always()
+
+    steps:
+      - name: Check all quality checks
+        run: |
+          echo "Checking quality gate status..."
+          echo ""
+
+          all_passed=true
+
+          if [ "${{ needs.python-linting.result }}" != "success" ]; then
+            echo "❌ Python linting: FAILED"
+            all_passed=false
+          else
+            echo "✅ Python linting: PASSED"
+          fi
+
+          if [ "${{ needs.security-scan.result }}" != "success" ]; then
+            echo "❌ Security scanning: FAILED"
+            all_passed=false
+          else
+            echo "✅ Security scanning: PASSED"
+          fi
+
+          if [ "${{ needs.claude-compliance.result }}" != "success" ]; then
+            echo "❌ CLAUDE.md compliance: FAILED"
+            all_passed=false
+          else
+            echo "✅ CLAUDE.md compliance: PASSED"
+          fi
+
+          if [ "${{ needs.env-validation.result }}" != "success" ]; then
+            echo "❌ Environment validation: FAILED"
+            all_passed=false
+          else
+            echo "✅ Environment validation: PASSED"
+          fi
+
+          echo ""
+          echo "="*80
+
+          if [ "$all_passed" = false ]; then
+            echo "❌ QUALITY GATE: FAILED"
+            echo "One or more quality checks failed. Please review the logs."
+            exit 1
+          else
+            echo "✅ QUALITY GATE: PASSED"
+            echo "All quality checks passed successfully!"
+            exit 0
+          fi

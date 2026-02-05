@@ -5,6 +5,9 @@
 
 set -e
 
+# Python command configuration
+PYTHON_CMD="/c/Users/mmeadow/AppData/Local/Programs/Python/Python311/python.exe"
+
 echo "==================================="
 echo "RESE DEE Probe Script"
 echo "==================================="
@@ -38,7 +41,8 @@ fi
 # Test 3: Check if required dependencies are available
 echo ""
 echo "Test 3: Checking dependencies..."
-python3 -c "
+PYTHON_CMD="/c/Users/mmeadow/AppData/Local/Programs/Python/Python311/python.exe"
+$PYTHON_CMD -c "
 import sys
 sys.path.insert(0, '.')
 try:
@@ -58,7 +62,7 @@ echo -e "${GREEN}✓${NC} Dependencies available"
 # Test 4: Import DEE module
 echo ""
 echo "Test 4: Importing DEE module..."
-python3 -c "
+$PYTHON_CMD -c "
 import sys
 sys.path.insert(0, '.')
 from glue.lib.rese_dee import DeepExplorationEngine, HypothesisGenerator, PatternRecognizer, MCTSExplainer
@@ -69,7 +73,7 @@ echo -e "${GREEN}✓${NC} DEE module imported"
 # Test 5: Import schemas
 echo ""
 echo "Test 5: Importing RESE schemas..."
-python3 -c "
+$PYTHON_CMD -c "
 import sys
 sys.path.insert(0, '.')
 from glue.schemas.rese_schemas import Hypothesis, SearchTreeNode, Pattern, MCTSSearchResult, ExplorationConfig
@@ -83,7 +87,7 @@ echo "Test 6: Testing configuration from environment..."
 export EXPLORATION_DEPTH=10
 export MCTS_ITERATIONS=100
 export EXPLORATION_TIMEOUT_MS=5000
-python3 -c "
+$PYTHON_CMD -c "
 import sys
 import os
 sys.path.insert(0, '.')
@@ -99,7 +103,7 @@ echo -e "${GREEN}✓${NC} Configuration from environment working"
 # Test 7: Create a hypothesis
 echo ""
 echo "Test 7: Testing hypothesis creation..."
-python3 -c "
+$PYTHON_CMD -c "
 import sys
 sys.path.insert(0, '.')
 from glue.schemas.rese_schemas import Hypothesis, HypothesisStatus
@@ -119,7 +123,7 @@ echo -e "${GREEN}✓${NC} Hypothesis creation working"
 # Test 8: Test hypothesis idempotency (Law of Idempotency)
 echo ""
 echo "Test 8: Testing hypothesis idempotency..."
-python3 -c "
+$PYTHON_CMD -c "
 import sys
 sys.path.insert(0, '.')
 from glue.schemas.rese_schemas import Hypothesis
@@ -139,7 +143,7 @@ echo -e "${GREEN}✓${NC} Hypothesis idempotency working"
 # Test 9: Test MCTS node creation and UCB calculation
 echo ""
 echo "Test 9: Testing MCTS node operations..."
-python3 -c "
+$PYTHON_CMD -c "
 import sys
 sys.path.insert(0, '.')
 from glue.schemas.rese_schemas import SearchTreeNode
@@ -160,7 +164,7 @@ echo "Test 10: Testing simple DEE exploration..."
 export EXPLORATION_DEPTH=3
 export MCTS_ITERATIONS=10
 export EXPLORATION_TIMEOUT_MS=10000
-python3 -c "
+$PYTHON_CMD -c "
 import sys
 import os
 sys.path.insert(0, '.')

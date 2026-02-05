@@ -1,0 +1,417 @@
+name: RESE Framework - Testing Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'glue/adapters/rese-**'
+      - 'glue/schemas/rese_*.py'
+      - 'test_rese_*.py'
+      - '.github/workflows/rese-test.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'glue/adapters/rese-**'
+      - 'glue/schemas/rese_*.py'
+      - 'test_rese_*.py'
+      - '.github/workflows/rese-test.yml'
+  workflow_dispatch:
+
+# Concurrency group to prevent duplicate runs
+concurrency:
+  group: rese-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ============================================================================
+  # Job 1: Configuration Validation
+  # ============================================================================
+  config-validation:
+    name: Validate Configuration
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pydantic pydantic-settings
+
+      - name: Validate configuration
+        run: |
+          python glue/adapters/rese-integration/config_validator.py --verbose || exit 1
+        env:
+          RESE_ENV: development
+          RESE_LOG_LEVEL: INFO
+          RESE_CORRELATION_ID: test-${{ github.run_id }}
+          PHASE1_TIMEOUT_MS: 15000
+          PHASE1_MAX_ASSUMPTIONS: 100
+          PHASE1_MIN_ASSUMPTION_CONFIDENCE: 0.3
+          PHASE1_CIRCUIT_BREAKER_THRESHOLD: 5
+          PHASE1_ENABLE_TACIT_MINING: true
+          PHASE1_ENABLE_RED_TEAM: true
+          PHASE1_ENABLE_LEAN4_INTEGRATION: false
+          PHASE2_TIMEOUT_MS: 30000
+          PHASE2_IMECH_THRESHOLD: 0.7
+          PHASE2_MAX_TARGET_DOMAINS: 10
+          PHASE2_PATTERN_THRESHOLD: 0.6
+          PHASE2_MAX_MAPPINGS: 50
+          PHASE2_ENABLE_CONSTRAINT_INVERSION: true
+          PHASE2_SEARCH_DEPTH: 5
+          PHASE3_TIMEOUT_MS: 60000
+          PHASE3_ITERATIONS: 1000
+          PHASE3_UCB1_C: 1.41
+          PHASE3_CONVERGENCE_THRESHOLD: 0.001
+          PHASE3_ACI_WINDOW: 100
+          PHASE3_SIG_THRESHOLD: 0.05
+          PHASE3_PARALLEL_WORKERS: 4
+          PHASE4_TIMEOUT_MS: 30000
+          PHASE4_BEAM_WIDTH: 10
+          PHASE4_VALIDATION_LEVEL: 1
+          PHASE4_INTEGRATION_STRATEGY: balanced
+          PHASE4_MIN_CONFIDENCE_THRESHOLD: 0.5
+          LLTL_ENCODING_DIM: 128
+          LLTL_DEFAULT_LOSS_TYPE: cross_entropy
+          LLTL_CONTRADICTION_THRESHOLD: 0.3
+          LLTL_TIMEOUT_MS: 3000
+          OPENAI_API_KEY: sk-test-key-for-validation
+          OPENAI_MODEL: gpt-4
+          REDIS_URL: redis://localhost:6379
+          REDIS_KEY_TTL: 3600
+          ENABLE_METRICS: false
+          ENABLE_TRACING: false
+          ENABLE_CIRCUIT_BREAKERS: true
+          CIRCUIT_BREAKER_RESET_TIMEOUT_MS: 60000
+          ENABLE_RETRY: true
+          MAX_RETRY_ATTEMPTS: 3
+          RETRY_BASE_DELAY_MS: 1000
+          ENABLE_DLQ: true
+          MAX_MEMORY_MB: 2048
+
+      - name: Upload validation results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: config-validation-results
+          path: |
+            *.log
+            validation_report.json
+          retention-days: 7
+
+  # ============================================================================
+  # Job 2: Probe Tests
+  # ============================================================================
+  probe-tests:
+    name: Run Probe Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: config-validation
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pydantic pydantic-settings
+
+      - name: Make probes executable
+        run: |
+          find glue/adapters/rese-*/probes -name "*.sh" -exec chmod +x {} \;
+          ls -la glue/adapters/rese-*/probes/
+
+      - name: Run Phase I probe
+        run: |
+          echo "Running Phase I probe..."
+          bash glue/adapters/rese-phase1/probes/check_phase1.sh || exit 1
+        continue-on-error: false
+
+      - name: Run Phase II probe
+        run: |
+          echo "Running Phase II probe..."
+          bash glue/adapters/rese-phase2/probes/check_phase2.sh || exit 1
+        continue-on-error: false
+
+      - name: Run Phase III probe
+        run: |
+          echo "Running Phase III probe..."
+          bash glue/adapters/rese-phase3/probes/check_phase3.sh || exit 1
+        continue-on-error: false
+
+      - name: Run Phase IV probe
+        run: |
+          echo "Running Phase IV probe..."
+          bash glue/adapters/rese-phase4/probes/check_phase4.sh || exit 1
+        continue-on-error: false
+
+      - name: Run full pipeline probe
+        run: |
+          echo "Running full pipeline probe..."
+          bash glue/adapters/rese-integration/probes/check_full_pipeline.sh || exit 1
+        continue-on-error: false
+
+      - name: Upload probe results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: probe-results
+          path: |
+            /tmp/phase_*.txt
+            /tmp/pipeline_probe_*.json
+          retention-days: 7
+
+  # ============================================================================
+  # Job 3: End-to-End Tests
+  # ============================================================================
+  e2e-tests:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: probe-tests
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl jq
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pydantic pydantic-settings
+          pip install numpy
+
+      - name: Run end-to-end tests
+        run: |
+          echo "Running RESE end-to-end tests..."
+          python test_rese_end_to_end.py || exit 1
+        env:
+          RESE_ENV: development
+          RESE_LOG_LEVEL: INFO
+          RESE_CORRELATION_ID: e2e-test-${{ github.run_id }}
+          PHASE1_TIMEOUT_MS: 15000
+          PHASE1_MAX_ASSUMPTIONS: 100
+          PHASE1_MIN_ASSUMPTION_CONFIDENCE: 0.3
+          PHASE1_CIRCUIT_BREAKER_THRESHOLD: 5
+          PHASE1_ENABLE_TACIT_MINING: true
+          PHASE1_ENABLE_RED_TEAM: true
+          PHASE1_ENABLE_LEAN4_INTEGRATION: false
+          PHASE2_TIMEOUT_MS: 30000
+          PHASE2_IMECH_THRESHOLD: 0.7
+          PHASE2_MAX_TARGET_DOMAINS: 10
+          PHASE2_PATTERN_THRESHOLD: 0.6
+          PHASE2_MAX_MAPPINGS: 50
+          PHASE2_ENABLE_CONSTRAINT_INVERSION: true
+          PHASE2_SEARCH_DEPTH: 5
+          PHASE3_TIMEOUT_MS: 60000
+          PHASE3_ITERATIONS: 1000
+          PHASE3_UCB1_C: 1.41
+          PHASE3_CONVERGENCE_THRESHOLD: 0.001
+          PHASE3_ACI_WINDOW: 100
+          PHASE3_SIG_THRESHOLD: 0.05
+          PHASE3_PARALLEL_WORKERS: 4
+          PHASE4_TIMEOUT_MS: 30000
+          PHASE4_BEAM_WIDTH: 10
+          PHASE4_VALIDATION_LEVEL: 1
+          PHASE4_INTEGRATION_STRATEGY: balanced
+          PHASE4_MIN_CONFIDENCE_THRESHOLD: 0.5
+          LLTL_ENCODING_DIM: 128
+          LLTL_DEFAULT_LOSS_TYPE: cross_entropy
+          LLTL_CONTRADICTION_THRESHOLD: 0.3
+          LLTL_TIMEOUT_MS: 3000
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: gpt-4
+          REDIS_URL: redis://localhost:6379
+          REDIS_KEY_TTL: 3600
+          ENABLE_METRICS: false
+          ENABLE_TRACING: false
+          ENABLE_CIRCUIT_BREAKERS: true
+          CIRCUIT_BREAKER_RESET_TIMEOUT_MS: 60000
+          ENABLE_RETRY: true
+          MAX_RETRY_ATTEMPTS: 3
+          RETRY_BASE_DELAY_MS: 1000
+          ENABLE_DLQ: true
+          MAX_MEMORY_MB: 2048
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results
+          path: |
+            END_TO_END_TEST_RESULTS.json
+            END_TO_END_TEST_REPORT.md
+            *.log
+          retention-days: 30
+
+      - name: Generate test summary
+        if: always()
+        run: |
+          echo "## RESE End-to-End Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f END_TO_END_TEST_RESULTS.json ]; then
+            echo "Test completed successfully. Results uploaded as artifacts." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Test execution failed. Check logs for details." >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # ============================================================================
+  # Job 4: Integration Tests
+  # ============================================================================
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: config-validation
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov pytest-json-report
+          pip install pydantic pydantic-settings
+
+      - name: Run integration tests
+        run: |
+          pytest glue/adapters/rese-*/tests/ -v \
+            --json-report \
+            --json-report-file=integration-test-results.json \
+            --cov=glue/adapters/rese-phase1/src \
+            --cov=glue/adapters/rese-phase2/src \
+            --cov=glue/adapters/rese-phase3/src \
+            --cov=glue/adapters/rese-phase4/src \
+            --cov-report=xml \
+            --cov-report=html || exit 1
+
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: |
+            integration-test-results.json
+            coverage.xml
+            htmlcov/
+          retention-days: 7
+
+  # ============================================================================
+  # Job 5: Test Report Aggregation
+  # ============================================================================
+  generate-report:
+    name: Generate Test Report
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [probe-tests, e2e-tests, integration-tests]
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Generate comprehensive test report
+        run: |
+          echo "# RESE Framework Test Report" > TEST_REPORT.md
+          echo "" >> TEST_REPORT.md
+          echo "**Workflow Run:** ${{ github.run_number }}" >> TEST_REPORT.md
+          echo "**Commit:** ${{ github.sha }}" >> TEST_REPORT.md
+          echo "**Branch:** ${{ github.ref }}" >> TEST_REPORT.md
+          echo "**Timestamp:** $(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> TEST_REPORT.md
+          echo "" >> TEST_REPORT.md
+          echo "## Job Status" >> TEST_REPORT.md
+          echo "" >> TEST_REPORT.md
+          echo "- Configuration Validation: ${{ needs.config-validation.result }}" >> TEST_REPORT.md
+          echo "- Probe Tests: ${{ needs.probe-tests.result }}" >> TEST_REPORT.md
+          echo "- End-to-End Tests: ${{ needs.e2e-tests.result }}" >> TEST_REPORT.md
+          echo "- Integration Tests: ${{ needs.integration-tests.result }}" >> TEST_REPORT.md
+          echo "" >> TEST_REPORT.md
+          echo "## Artifacts" >> TEST_REPORT.md
+          echo "" >> TEST_REPORT.md
+          ls -R artifacts/ >> TEST_REPORT.md || echo "No artifacts found" >> TEST_REPORT.md
+          cat TEST_REPORT.md
+
+      - name: Upload final report
+        uses: actions/upload-artifact@v4
+        with:
+          name: comprehensive-test-report
+          path: TEST_REPORT.md
+          retention-days: 90
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('TEST_REPORT.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });
+
+  # ============================================================================
+  # Job 6: Status Check
+  # ============================================================================
+  status-check:
+    name: Overall Status
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [config-validation, probe-tests, e2e-tests, integration-tests]
+    if: always()
+
+    steps:
+      - name: Check overall status
+        run: |
+          if [ "${{ needs.config-validation.result }}" != "success" ] || \
+             [ "${{ needs.probe-tests.result }}" != "success" ] || \
+             [ "${{ needs.e2e-tests.result }}" != "success" ] || \
+             [ "${{ needs.integration-tests.result }}" != "success" ]; then
+            echo "One or more test jobs failed."
+            echo "Config Validation: ${{ needs.config-validation.result }}"
+            echo "Probe Tests: ${{ needs.probe-tests.result }}"
+            echo "E2E Tests: ${{ needs.e2e-tests.result }}"
+            echo "Integration Tests: ${{ needs.integration-tests.result }}"
+            exit 1
+          fi
+          echo "All tests passed successfully!"
+          exit 0

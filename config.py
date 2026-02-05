@@ -220,6 +220,48 @@ class APIConfig:
 
 
 # =============================================================================
+# PES Enhanced Configuration
+# =============================================================================
+
+@dataclass
+class PESEnhancedConfig:
+    """Configuration for PES Enhanced integration.
+    
+    Adds cost optimization, early stopping, planning, and summarization
+    capabilities to the RESE pipeline.
+    """
+    
+    # Cost Optimization
+    enable_cost_optimization: bool = False
+    max_cost_usd: float = 10.0
+    cost_warning_threshold: float = 0.7
+    cost_critical_threshold: float = 0.9
+    prompt_token_price: float = 0.00001  # $0.01 per 1K tokens
+    completion_token_price: float = 0.00003  # $0.03 per 1K tokens
+    
+    # Early Stopping
+    enable_early_stopping: bool = True
+    early_stopping_patience: int = 5
+    early_stopping_min_improvement: float = 0.001
+    early_stopping_plateau_threshold: float = 0.001
+    
+    # PES Phases
+    pes_planning_enabled: bool = True
+    pes_summarization_enabled: bool = True
+    pes_auto_select_strategy: bool = True
+    
+    # Budget allocation percentages
+    planning_budget_pct: float = 0.05
+    evolution_budget_pct: float = 0.85
+    verification_budget_pct: float = 0.10
+    
+    # Model selection for cost optimization
+    use_cheap_models_for_execution: bool = True
+    cheap_model: str = "gpt-3.5-turbo"
+    expensive_model: str = "gpt-4o"
+
+
+# =============================================================================
 # Monitoring Configuration
 # =============================================================================
 
@@ -273,6 +315,7 @@ class RESEConfig:
     pipeline: PipelineConfig = field(default_factory=PipelineConfig)
     api: APIConfig = field(default_factory=APIConfig)
     monitoring: MonitoringConfig = field(default_factory=MonitoringConfig)
+    pes_enhanced: PESEnhancedConfig = field(default_factory=PESEnhancedConfig)
 
     # Paths
     base_path: Path = field(default_factory=lambda: Path.cwd())
@@ -335,11 +378,12 @@ class RESEConfig:
         pipeline = PipelineConfig(**data.get('pipeline', {}))
         api = APIConfig(**data.get('api', {}))
         monitoring = MonitoringConfig(**data.get('monitoring', {}))
+        pes_enhanced = PESEnhancedConfig(**data.get('pes_enhanced', {}))
 
         # Create main config
         config_data = {k: v for k, v in data.items()
                       if k not in ['phase1', 'phase2', 'phase3', 'phase4',
-                                   'pipeline', 'api', 'monitoring']}
+                                   'pipeline', 'api', 'monitoring', 'pes_enhanced']}
 
         return cls(
             phase1=phase1,
@@ -349,6 +393,7 @@ class RESEConfig:
             pipeline=pipeline,
             api=api,
             monitoring=monitoring,
+            pes_enhanced=pes_enhanced,
             **config_data
         )
 
@@ -370,6 +415,7 @@ class RESEConfig:
             'pipeline': asdict(self.pipeline),
             'api': asdict(self.api),
             'monitoring': asdict(self.monitoring),
+            'pes_enhanced': asdict(self.pes_enhanced),
             'base_path': str(self.base_path),
             'data_path': str(self.data_path) if self.data_path else None,
             'cache_path': str(self.cache_path) if self.cache_path else None,
@@ -582,6 +628,7 @@ __all__ = [
     'PipelineConfig',
     'APIConfig',
     'MonitoringConfig',
+    'PESEnhancedConfig',
 
     # Enums
     'Environment',

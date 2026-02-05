@@ -1,0 +1,3539 @@
+
+
+
+
+1	PathDiffusion: modeling protein folding pathway
+2	using evolution-guided diffusion
+
+3 Kailong Zhao1,2, Chenxiao Xiang1, Bin Cheng1, Yunyun Shen1, Wenkai Wang1, Shuyun Chen1,
+4 Baoquan Su1, Guijun Zhang3,*, Zhenling Peng1,*, Jianyi Yang1,*
+
+
+5 1 MOE Frontiers Science Center for Nonlinear Expectations, Research Center for Mathematics and
+6 Interdisciplinary Sciences, Shandong University, Qingdao 266237, China.
+7 2 Suzhou Research Institute of Shandong University, Suzhou, Jiangsu Province, 215123, China.
+8 3 College of Information Engineering, Zhejiang University of Technology, Hangzhou 310023, China.
+9 *Corresponding  authors:  JY  (yangjy@sdu.edu.cn),  ZP  (zhenling@email.sdu.edu.cn),  GZ
+10 (zgj@zjut.edu.cn)
+
+
+11	Abstract
+
+12 Despite remarkable advances in protein structure prediction, a fundamental question
+13 remains unresolved: how do proteins fold from unfolded conformations into their native
+14 states? Here, we introduce PathDiffusion, a novel generative framework that simulates
+15 protein folding pathways using evolution-guided diffusion models. PathDiffusion first
+16 extracts structure-aware evolutionary information from 52 million predicted structures
+17 the AlphaFold database. Then an evolution-guided diffusion model with a dual-score
+18 fusion strategy is trained to generate high-fidelity folding pathways. Unlike existing
+19 deep learning methods, which primarily sample equilibrium ensembles, PathDiffusion
+20 explicitly models the temporal evolution of folding. On a benchmark of 52 proteins
+21 with experimentally validated folding pathways, PathDiffusion accurately reconstructs
+22 the order of folding events. We further demonstrate its versatility across four
+23 challenging applications: (1) recapitulating Anton's molecular dynamics trajectory for
+24 12 fast-folding proteins, (2) reproducing functionally important local folding-unfolding
+25 transitions in 20 proteins, (3) characterizing conformational ensembles of 50
+26 intrinsically disordered proteins, and (4) resolving distinct folding mechanisms among
+
+
+
+
+27 3 TIM-barrel proteins. We anticipate that PathDiffusion will be a valuable tool for
+28 probing protein folding mechanisms and dynamics at scale.
+29
+
+30
+
+31	Introduction
+
+32 Though protein structure prediction has achieved significant advance in recent years,
+33 the problem of protein folding remains a grand challenge. Unraveling protein folding
+34 pathway is crucial for understanding its function. Although protein function is generally
+35 considered to be associated with its native state, increasing evidence suggests that even
+36 non-native states also play important biological roles1, 2. For example, certain folding
+37 intermediates may be precursors to amyloid protein aggregation, which is closely
+38 associated with several diseases including Alzheimer's and Parkinson's diseases3, 4.
+39 Therefore, exploring the dynamic process and intermediate states of protein folding is
+40 of great importance for understanding disease mechanisms and drug design5, 6.
+41
+
+42 Traditionally, protein folding research has relied on experimental methods such as
+43 hydrogen-deuterium exchange, circular dichroism, and fluorescence spectroscopy7.
+44 Although these techniques provide valuable data on protein dynamics, they often
+45 require complex procedures and are limited to a small number of proteins, making it
+46 difficult to achieve large-scale investigations in a wider range of protein folding
+47 systems8, 9. Molecular dynamics (MD) is an important tool for studying folding
+48 dynamics. However, it is limited by computational costs, and its time scale is difficult
+49 to cover the entire folding process.
+50
+
+51 In recent years, generative artificial intelligence has significantly advanced the
+52 development of the field of protein structure prediction10, 11 and protein design12, 13.
+53 More recently, deep learning models such as BioEmu, AlphaFlow, and DIG have
+54 extended these capabilities to generate heterogeneous conformational ensembles14-17.
+55 Despite these advances, most existing methodologies still prioritize the characterization
+
+
+
+
+56 of thermodynamic equilibrium states over the reconstruction of continuous folding
+57 trajectory. We previously developed FoldPAthreader, which explores potential
+58 intermediates through folding force field-based conformation sampling18. Other
+59 emerging methods include generative world models, which learn a strategy from latent
+60 spatiotemporal representations to drive folding simulations in latent representations19;
+61 and the iterative AlphaFold2 strategy, which utilizes implicit energy landscapes to
+62 estimate folding pathways based solely on sequence20. Despite these methodological
+63 advances, developing a generalizable data-driven framework for folding dynamics is
+64 still impeded by fundamental constraints, most notably the scarcity of high-resolution
+65 experimental data and the computational infeasibility of generating comprehensive
+66 training sets via MD21, 22.
+67
+
+68 In this study, we developed PathDiffusion, a novel framework for protein folding
+69 pathway prediction using evolution-guided diffusion models. Our method is built on
+70 the fundamental relationship between evolution and protein dynamics18, 23. Evaluation
+71 on 52 proteins with experimental evidence of folding pathway suggests the superior
+72 performance of PathDiffusion. Further applications on four datasets related to folding
+73 pathway, including fast-folding proteins from Anton's molecular dynamic simulations,
+74 local folding-unfolding transition proteins, intrinsically disordered proteins, and TIM-
+75 barrel proteins, confirm that PathDiffusion is promising to explore the landscape
+76 protein dynamics.
+77
+
+78
+
+79	Results
+
+80 Overview of PathDiffusion
+
+81 The overall workflow of PathDiffusion is illustrated in Figure 1. It comprises two main
+82 modules: the first module focuses on preparing position-specific noise schedules (PSNS)
+83 from evolutionary information, while the second module iteratively generates the
+
+
+
+
+84 folding pathway using evolution-guided diffusion models. In the first module, we begin
+85 with an input protein sequence and construct a multiple sequence alignment (MSA) by
+86 searching for homologous sequences in the AFDB5024, 25 using MMseqs226 and
+87 JackHMMER27. Following this, we obtain a multiple structure alignment (MSTA) by
+88 aligning the structure models found in AFDB50. Subsequently, PSNS are derived based
+89 on the structural consensus and variations observed in the MSTA, which are used to
+90 guide the diffusion process in the second module (see Methods for more detail).
+91
+
+92 The second module employs an evolution-guided two-stage diffusion model to simulate
+93 the dynamic process of protein folding, transitioning from unfolded to folded states. In
+94 the first stage, a sequence-conditional diffusion model is used to generate an initial
+95 folding trajectory. It starts from Gaussian noise and performs T steps of evolution-
+96 guided reverse denoising. Conserved residues undergo rapid denoising, forming stable
+97 local structures in the early steps. Conversely, flexible residues retain noise longer,
+98 leading to gradual formation of the global fold as denoising progresses. The resulting T
+99 denoised states form a continuous trajectory: the initial state (step 1) represents
+100 complete Gaussian noise, while the final state (step T) corresponds to the fully folded
+101 structure. The intermediates (steps 2 to T-1) are partially folded, containing varying
+102 degrees of noise and local structures, thereby capturing the continuous trajectory of
+103 protein folding. In the second stage, an unconditional diffusion model is employed in
+104 conjunction with the sequence-conditional model to refine the trajectory dynamics.
+105 Adaptive weighting derived from the trajectory in first stage is applied to balance the
+106 contributions of both the sequence-conditional and unconditional models. This two-
+107 stage  pipeline  generates  continuous  trajectory  of  protein  folding,  allowing  a
+108 comprehensive characterization of intermediate states and elucidation of the folding
+109 pathway.
+110
+
+111
+
+112
+
+
+
+
+113 Performance of PathDiffusion
+
+114 To evaluate PathDiffusion's capability in modeling protein folding pathways, we
+115 compiled a benchmark set consisting of 52 proteins with experimentally characterized
+116 folding order from existing literature, termed FP52. Based on experimental evidence,
+117 we annotated early folded regions (EFRs) and late folded regions (LFRs) for each
+118 protein in FP52, as detailed in Supplementary Text S1 and Table S1.
+119
+
+120 Figure 2A illustrates the dynamic evolution of the protein dihedral angles (?, ?) along
+121 the PathDiffusion folding trajectory, offering a comprehensive view of how the model
+122 explores conformational space and progresses toward the final folded state. Two
+123 Ramachandran plots (shown in red) are included as references, depicting the expected
+124 dihedral preferences of unfolded and folded states, respectively. The first plot
+125 corresponds to unfolded structures and was derived from ~24,000 structures of
+126 intrinsically disordered regions (IDRs) in the human proteome29. The second plot
+127 represents folded structures, sourced from 20,000 randomly selected structures in PDB.
+128 The blue plots show the dihedral angle distributions from PathDiffusion's folding
+129 trajectory, aggregated from conformations at various sampling steps across the 52
+130 benchmark proteins. In the initial stages (steps 1-10), the distributions span a broad
+131 range of conformational space, largely consistent with highly unfolded starting
+132 conformations. As the denoising process advances, the dihedral angles progressively
+133 converge and become enriched in regions characteristic of folded structures, such as ß-
+134 strands and a-helices, capturing the formation of local secondary structures in
+135 intermediate states. At the final stages (steps 290-300), the distributions show strong
+136 convergence, closely resembling the patterns observed in PDB structures. This smooth
+137 transition in dihedral space demonstrates that PathDiffusion effectively recapitulates
+138 the physical folding process, transitioning from a high-entropy disordered state to a
+139 low-entropy folded state.
+140
+
+
+
+
+141 We further compare PathDiffusion with several leading methods for folding pathway
+142 prediction,  including  FoldPAthreader18, AlphaFolding20  and  Pathfinder30.  Both
+143 PathDiffusion and FoldPAthreader sample continuous folding trajectory, while
+144 AlphaFolding  and  Pathfinder  sample  only  discrete  folding  intermediates.  To
+145 concentrate our evaluation on the critical folding process, we filtered the sampled
+146 conformations for all methods. For PathDiffusion, we retained 200 intermediate
+147 conformations, omitting the initial 50 and the final 50 steps. For FoldPAtheader, we
+148 removed conformations from the initialization and finalization stages, retaining only
+149 those from the folding nucleation stage. For AlphaFolding and Pathfinder, we used a
+150 clustering strategy with a local Distance Difference Test (lDDT) 31 threshold of 0.9 to
+151 eliminate redundant structures and select representative conformations.
+152
+
+153 The performance of the predicted folding pathway is evaluated using success rate. For
+154 each conformation, lDDT relative to the native state is calculated separately for EFRs
+155 and LFRs (see Supplementary Text S2). A conformation is classified as a true positive
+156 conformation (TPC) if the lDDT of the EFRs is more than 10% higher than that of the
+157 LFRs21. A predicted pathway is deemed successful if the TPC ratio (number of TPCs
+158 divided by the total conformations) exceeds 0.5 and the TM-score of the final structure
+159 surpasses a specified threshold. Finally, the overall success rate is the fraction of
+160 proteins in the benchmark dataset with successfully predicted pathways.
+161
+
+162 Among the 52 test proteins, PathDiffusion consistently achieves the highest success
+163 rate across all TM-score thresholds (Figure 2B). For instance, at a TM-score threshold
+164 of 0.5, the success rates are 59.6%, 40.4%, 23.1% and 28.8% for PathDiffusion,
+165 FoldPAthreader, AlphaFolding and Pathfinder, respectively. Detailed results in Figure
+166 2C and Supplementary Figure S2 show that PathDiffusion not only accurately
+167 captures the folding order but also produces high-quality structures, yielding the highest
+168 TPC ratio (55.7%) and the highest proportion of near-native structures (90.3% with
+169 TM-score = 0.7). This hierarchical folding process is further illustrated in Figure 2D,
+170 which displays the trajectory of a representative protein (PDB ID: 1AB7_A), showing
+
+
+
+
+171 that EFRs attain stable structures (higher lDDT) significantly earlier than LFRs. In
+172 contrast, FoldPAthreader has a TPC ratio of 39.3% and a near-native rate of 80.7%.
+173 Pathfinder generates a substantial fraction of near-native structures (73.1%) but poorly
+174 recapitulated folding order (TPC ratio 29.7%). AlphaFolding, limited in landscape
+175 exploration, produces the lowest near-native proportion (21.1%). Figure 3 illustrates
+176 the predicted folding order for 31 proteins successfully modeled by PathDiffusion (TM-
+177 score = 0.5), with structures colored by relative folding timing.
+178
+
+179
+
+180 PathDiffusion recapitulates molecular dynamics trajectory
+181 generated on the Anton supercomputer
+182 To evaluate PathDiffusion's ability to capture the equilibrium distribution of folding
+183 conformations, we test it on the MD12 dataset, comprising 12 fast-folding proteins that
+184 were extensively simulated by MD on the Anton supercomputer32. We compare
+185 PathDiffusion against BioEmu using its official model, sampling 300 (BioEmu-3×102)
+186 and  10,000  (BioEmu-1×104)  conformations.  For  PathDiffusion,  we  generated
+187 continuous folding pathway for each protein comprising 300 conformations, evolving
+188 from unfolded to folded states.
+189
+
+190 To measure the similarity between sampled and reference MD distributions, we
+191 calculated the Jensen-Shannon distance (JSD; range 0-1, lower values indicate greater
+192 similarity) across three projected feature dimensions: pairwise distance between ????-
+193 carbon atoms (PWD); radius of gyration (RG); and time-lagged independent
+194 components (TIC), a low-dimensional representation of dynamics33.
+195
+
+196 The quantitative results, presented in Figure 4A, demonstrate that PathDiffusion
+197 significantly outperforms BioEmu across all projected dimensions. For PWD,
+198 PathDiffusion reduces the average JSD by approximately 28.5% and 24.5% compared
+199 to	BioEmu-3×102	and	BioEmu-1×104,	respectively.	Improvements	are	more
+
+
+
+
+200 pronounced for RG (62.2% and 59.2% reductions, respectively), which probes
+201 structural compactness, and remains strong for TIC (30.5% and 21.9% reductions). The
+202 scatter plots in Figure 4B further confirm this advantage: for most proteins,
+203 PathDiffusion JSD values are above the diagonal, indicating closer alignment with
+204 ground-truth MD than BioEmu.
+205
+
+206 To gain deeper insights into the structural distributions, we visualize the 2D free energy
+207 surfaces for the 12 proteins (Figure 4C-E and Supplementary Figure S3). For both
+208 Protein G and BBA, the results reveal a similar folding mechanism, characterized by
+209 the preferential formation of helical structures followed by the assembly of ß-sheets. In
+210 the case of the ????-repressor, the first half of helix 1 along with helices 3 and 4 form
+211 preferentially, followed by the assembly of the remaining helices. For Villin, the process
+212 exhibits a sequential formation of helices 1-3.
+213
+
+214 The free energy surfaces presented in Figure 4D illustrate that the conformations
+215 generated by PathDiffusion extensively cover the low-energy basins and transition
+216 regions, demonstrating a close overlap with the MD data. In contrast, although BioEmu
+217 performs comparably for the protein BBA, its conformations for other proteins are
+218 largely restricted to narrow regions near the native state, which limits its ability to
+219 adequately sample the intermediate ensembles. This visual analysis is quantitatively
+220 supported by the bar charts in Figure 4E, where PathDiffusion yields lower JSD values.
+221 This outcome reflects PathDiffusion's superior capability in capturing the distribution
+222 of protein folding conformations compared to BioEmu.
+223
+
+224 One key advantage of PathDiffusion, beyond accurately estimating conformational
+225 distributions, is its ability to generate continuous folding pathways. As illustrated in
+226 Supplementary Figure S4, mapping the sampling order of PathDiffusion onto the TIC-
+227 projected free energy surface reveals that the generated conformations follow the
+228 energy gradient, transitioning smoothly from high-energy unfolded states to low-energy
+229 stable states. The intermediate structures generated along this pathway closely align
+
+
+
+
+230 with key structures observed in MD simulations. In contrast, BioEmu is restricted to
+231 sampling the final equilibrium or metastable states, lacking the capability to provide
+232 insights into the folding trajectory or transition states.
+233
+
+234
+
+235 PathDiffusion reproduces local folding-unfolding transitions
+236 The local folding-unfolding transitions of specific regions plays a key role in biological
+237 functions, such as the regulation of signaling switches and autoinhibition mechanisms34,
+238 35. PathDiffusion explicitly simulates folding dynamics by sequentially sampling the
+239 folding pathway, enabling it to capture locally unfolding states. To assess this capability,
+240 we compare PathDiffusion with BioEmu17, DIG14, and AlphaFlow15 on the LT20
+241 dataset (derived from the BioEmu study), which includes 20 proteins known to undergo
+242 local folding-unfolding transitions. Since local unfolding typically occurs late in
+243 folding and/or involves equilibrium fluctuations, we sampled conformations from steps
+244 100-300 in the second stage of PathDiffusion. Evaluations were conducted at two
+245 sampling scales: a small batch of 200 conformations and a large batch of 10,000
+246 conformations.
+247
+
+248 We evaluate the quality of the sampled ensembles using the fraction of native contacts
+249 (FNC), as defined in the BioEmu study. For a fair comparison, we only consider
+250 samples where the non-local regions remain folded (non-local FNC = 0.5). Following
+251 the criteria established by BioEmu, a successful sample was defined as having an FNC
+252 below 0.3 for the locally unfolded state and above 0.7 for the folded state. We measured
+253 the coverage, defined as the percentage of successful conformations in the top 1% of
+254 sampled conformations (ranked by local FNC). With a sample size of 200,
+255 PathDiffusion achieves a 72.5% recall rate for accurately identifying locally unfolded
+256 states, compared with 65%, 37.5%, and 37.5% for BioEmu, DIG, and AlphaFlow,
+257 respectively (Figure 5A). While BioEmu has the highest recall for folded states (70%),
+258 PathDiffusion remains competitive, correctly identifying 60% of the folded states
+
+
+
+
+259 (Figure 5B). Similar trends are observed when the sample size is increased to 10,000,
+260 demonstrating that PathDiffusion can efficiently explore the conformational landscape
+261 without requiring massive sampling.
+262
+
+263 To validate the biological relevance of PathDiffusion's predictions, we examine three
+264 well-characterized proteins known to undergo local folding-unfolding transitions
+265 (Figure 5C). The first example is the GAF3 domain of the cyanobacteriochrome
+266 Slr1393 (UniProt ID: P73184), a photoreceptor that regulates red/green light switching.
+267 Its photocycle involves major structural rearrangement, in which a long disordered loop
+268 in the parental state refolds into a short a-helix in the photoproduct state to stabilize the
+269 isomerized chromophore. Crystallographic evidence confirms this disorder-to-order
+270 transition36. PathDiffusion successfully captures this dynamic feature by generating
+271 conformations that represent both flexible loops and folded helices. The second
+272 example is the BMP antagonist PRDC (also known as Gremlin-2; UniProt ID: O88273).
+273 In the ligand-free state, its N-terminal region of PRDC is intrinsically disordered and
+274 highly flexible, enabling it to adopt an ordered conformation upon BMP binding that
+275 fills the ligand's binding pocket37. PathDiffusion correctly captures this behavior,
+276 producing apo-state conformations with pronounced local flexibility in the N-terminus
+277 while maintaining a stable, well-structured core. The third example is human frataxin
+278 (UniProt ID: Q16595), a mitochondrial protein whose dysfunction causes Friedreich's
+279 ataxia. Experimental studies have linked pathogenicity to increased flexibility of the C-
+280 terminal region, which disrupts mitochondrial iron homeostasis38. PathDiffusion
+281 sampling consistently reveals elevated local flexibility in this C-terminal segment, in
+282 excellent agreement with the experimental observations. Furthermore, visualizations of
+283 the predicted results for all 20 proteins are provided in Supplementary Figure S5.
+284 These cases collectively demonstrate that PathDiffusion not only generates structurally
+285 accurate conformations but also reliably identifies functionally relevant flexibility and
+286 folding-unfolding transitions.
+287
+
+288
+
+
+
+
+289 PathDiffusion	characterizes	conformational	ensembles	of
+290 intrinsically disordered proteins
+291 Beyond predicting folding pathways for structured proteins, a critical challenge in
+292 protein  folding  is  characterizing  the conformational  dynamics  of  intrinsically
+293 disordered proteins (IDPs). Because PathDiffusion was trained on both structured and
+294 disordered proteins, we applied it to generate ensembles for the dataset IDP50
+295 consisting of 50 IDPs. For comparison, we selected 19 structured proteins from the
+296 FP52 dataset with matched sequence lengths as controls.
+297
+
+298 Analysis of the generated ensembles reveals clear distinctions between structured
+299 proteins and IDPs. Root-mean-square fluctuation (RMSF) show that structured proteins
+300 rapidly converge to low RMSF values within the first ~100 steps, stabilizing at levels
+301 indicative of rigid, native-like states (Figure 6A). In contrast, IDPs sustain markedly
+302 higher RMSF throughout the 300-step trajectory, including the final interval (steps 271-
+303 300). A parallel pattern emerges in the radius of gyration (Rg, Figure 6B), where IDPs
+304 exhibit persistently larger Rg values, consistent with their expanded and heterogeneous
+305 conformational ensembles.
+306
+
+307 To probe the structural origins of this flexibility, we examined the correlation between
+308 per-residue contact degree (based on native contacts) and intra-ensemble lDDT scores
+309 (Figure 6C). Residues with high contact degrees achieve higher lDDT values,
+310 indicating greater structural stability, while those with few contacts show lower lDDT,
+311 reflecting	elevated	flexibility.	This	demonstrates	that	PathDiffusion	reliably
+312 distinguishes locally ordered motifs from fully disordered regions. We conducted an
+313 analysis of an example intrinsically disordered protein (IDP) that has experimentally
+314 resolved NMR ensembles in PDB (Figure 6D, E). It is an Arabidopsis thaliana RALF8
+315 peptide (PDB ID: 6NU4), which is primarily disordered but features a short segment
+316 that is locally ordered (residues 20-30). PathDiffusion effectively identifies this
+317 structured segment while accurately capturing the overall disordered behavior of the
+
+
+
+
+318 peptide. These results highlight PathDiffusion's robustness in modeling both stable
+319 structural elements and flexible regions, facilitating the exploration of complex and
+320 heterogeneous conformational landscapes.
+321
+
+322
+
+323 PathDiffusion resolves distinct folding mechanisms in TIM-
+324 barrel proteins
+325 Although TIM-barrel proteins are characterized by a highly conserved topology,
+326 featuring eight parallel ß-strands surrounded by eight a-helices, they exhibit remarkably
+327 distinct folding mechanisms. To evaluate whether PathDiffusion can capture these
+328 variations in folding pathways, we analyzed three representative TIM-barrel proteins:
+329 indole-3-glycerol phosphate synthase (sIGPS, PDB ID: 2C3Z)39, a-subunit of
+330 tryptophan synthase (aTS, PDB ID: 1BKS)40, and rabbit muscle aldolase (Aldolase,
+331 PDB ID: 1ADO)41. These proteins exhibit high structural similarity (average TM-score
+332 0.63) but low sequence identity (average 0.19), and their folding intermediates have
+333 been extensively characterized by hydrogen-deuterium exchange mass spectrometry
+334 (HX-MS).
+335
+
+336 For sIGPS, the folding trajectory simulated by PathDiffusion is highly consistent with
+337 the "center-first" folding mechanism revealed by experimental data (Figure 7A). HX-
+338 MS studies have identified a stable equilibrium intermediate comprising the central
+339 regions (ßa)2-5ß6, whereas the N- and C-terminal regions remain largely unprotected
+340 and disordered39. Accordingly, the central segment (residues 50-160) is classified as the
+341 EFRs, while the two ends are LFRs. Consistent with this mechanism, PathDiffusion
+342 demonstrates a clear hierarchical folding where the lDDT of the EFRs increases
+343 significantly faster than that of the LFRs. Structurally, the central ß barrel forms a stable
+344 core by step 93, whereas the N- and C-termini remain disordered until after step 205.
+345 This observation was confirmed by quantitative Z-score analysis (Supplementary Text
+346 S3), where the PathDiffusion produces high scores (indicating early folding) for the
+
+
+
+
+347 central residues (50-160), almost identical to the high urea protection profile of the
+348 native structure.
+349
+
+350 For aTS, experimental data indicates that the folding intermediate resides in the N-
+351 terminal submodule40. PathDiffusion recapitulates this this N-terminal preference:
+352 lDDT and secondary structure analyses show that the N-terminal domain forms earlier
+353 than the C-terminus (Figure 7B). Visual inspection of the trajectory reveals that the N-
+354 terminal region has formed a stable region at step 86, while the C-terminal region
+355 gradually folds in subsequent steps. This asymmetry is further corroborated by the Z-
+356 score profile, which shows positive scores at the N-terminus (residues 12-130).
+357 Together, these results highlight PathDiffusion's sensitivity to sequence-specific
+358 stability determinants, rather than merely memorizing a generic barrel topology.
+359
+
+360 For Aldolase, the folding mechanism is notably more complex. Experimental dialysis
+361 studies categorize the protein backbone into three stability levels based on their folding
+362 rates41. Accordingly, we designated regions with the slowest refolding rates (residues
+363 58-130 and 300-363) as LFRs and those with fast or medium rates as EFRs. The
+364 PathDiffusion generated trajectory reveals that the EFRs begin to form around step 101,
+365 subsequently integrating with other regions (Figure 7C). Overall, the predicted folding
+366 hierarchy aligns closely with the experimental refolding rates, with one key exception
+367 at the N-terminus (residues 1-17). PathDiffusion assigns lower Z-scores (indicating
+368 later folding) than observed experimentally. This discrepancy likely stems from
+369 quaternary interactions that stabilize the N-terminus in the native homotetramer, which
+370 are absent in our monomeric simulations.
+371
+
+372 In conclusion, although the three TIM-barrel proteins follow different folding pathways,
+373 they exhibit common features. All TIM-barrel proteins appear to form a small ß-a-ß-a
+374 module in the early stages. This module provides a basic scaffold, to which other
+375 secondary structural elements are added sequentially, ultimately yielding one or more
+376 stable intermediates. PathDiffusion successfully detects these early stable regions and
+
+
+
+
+377 predicts their folding order, providing mechanistic insights into how TIM-barrel
+378 proteins navigate their complex folding energy landscapes.
+379
+
+380
+
+381 Ablation studies
+382 To quantify the contributions of two key data-driven components (evolution-informed
+383 noise schedule and sequence-conditional score model) in PathDiffusion, we conduct
+384 ablation studies (Figure 8A). The default PathDiffusion achieves a baseline success
+385 rate of 59.6% at a TPC threshold of 0.5. When both the evolution-informed noise
+386 schedule and the score model are removed, the performance drop to the lowest level,
+387 with a success rate of only 11.5%.
+388
+
+389 Evolution-informed noise schedule. We investigate the impact of the evolution-
+390 informed noise schedule (i.e., PSNS). We first replace PSNS by random noise schedule.
+391 In this setting, the target sequence is segmented based on predicted secondary structures,
+392 and random noise schedules are assigned to the residues within each segment. This
+393 leads to a sharp decline in success rate from 59.6% to 28.8%. To test if a general
+394 physical prior could bridge this gap, we then implement a rule-based schedule. We
+395 introduce a rule-based noise schedule that imposes sequential ordering from N- to C-
+396 terminus and a structural hierarchy assigning progressively lower noise to a-helices, ß-
+397 sheets, and loops, respectively. Although this rule-based schedule outperforms the
+398 random schedule at lower TPC thresholds, it yielded only comparable results at higher
+399 thresholds, and both strategies falling far short of the full model. This result highlights
+400 that general physical rules cannot substitute for the position-specific evolutionary signal
+401 encoded in PSNS. The PSNS, derived from multiple structure alignment, is essential
+402 for guiding PathDiffusion toward the correct folding pathway of the target protein.
+403
+
+404 Sequence-conditional score model. We next ablate the sequence-conditional score
+405 network by replacing its predicted scores with scores computed directly from the static
+
+
+
+
+406 ground-truth structure (see Section 2.3). This change reduces the success rate to 34.6%
+407 at a TPC threshold of 0.5, indicating that the learned score model captures evolutionary
+408 information about folding dynamics that is superior to static geometric priors derived
+409 solely from the native state.
+410
+
+411 Examination of TPC distributions for models relying on only one component further
+412 confirms that that the two components are complementary (Figure 8B), thus combining
+413 both sources yields markedly superior pathway reconstruction compared to either alone.
+414 These ablation experiments demonstrate that PathDiffusion's strong performance arises
+415 from the tight synergy between the evolution-informed noise schedule and the
+416 sequence-conditioned score model.
+417
+
+418 Generative capabilities of the score models. We further evaluate the generative
+419 capabilities of the sequence-conditional score model and the unconditional score model.
+420 Both models are trained to convergence, using 100 denoising steps for structure
+421 generation. For the sequence-conditional score model, we utilized a uniform noise
+422 schedule (applying the same noise level to all residues) to generate 100 structures for
+423 each target. As shown in Figure 8C, the average RMSF for EFRs and LFRs were 1.205
+424 Å and 1.676 Å, respectively, with 81% of targets exhibiting higher RMSF in LFRs than
+425 in EFRs. This indicates that the sequence-conditional model effectively captures
+426 intrinsic	structural	flexibility,	revealing	that	LFRs	typically	exhibit	greater
+427 conformational diversity than EFRs during functional dynamics with representative
+428 ensembles shown in Figure 8E. For the unconditional score model, we generate one
+429 conformation per target and calculated the radius of gyration (Rg) (Figure 8D). The
+430 resulting Rg values increase with protein length in close agreement with the statistical
+431 scaling laws observed for intrinsically disordered proteins42, 43. This suggests that the
+432 unconditional model has successfully learned the generic physical properties and spatial
+433 scaling constraints that govern expanded and disordered conformations.
+434
+
+435
+
+
+
+
+436 Analysis of compactional efficiency
+437 To evaluate the practical utility of PathDiffusion, we benchmarked its computational
+438 efficiency. All experiments were conducted locally on an A100 GPU with 40 GB of
+439 memory. We measured the runtime required to sample folded trajectory on the FP52
+440 dataset using the default parameters for each method. As illustrated in Supplementary
+441 Figure S6A, PathDiffusion is slower than AlphaFolding but 5-10 times faster than both
+442 FoldPAthreader and Pathfinder.
+443
+
+444 We further assessed the computational cost of generating extensive conformational
+445 ensembles for 12 fast-folding proteins (Supplementary Figure S6B). PathDiffusion
+446 samples 10,000 conformations in under 3 hours. Although slower than BioEmu (< l.5
+447 hours) due to its more extensive denoising schedule (100 steps versus 30-50 for
+448 BioEmu), both methods operate on comparable timescales suitable for practical use. In
+449 contrast, previous studies have reported that all-atom MD simulations require 2,000-
+450 100,000 GPU hours to produce equivalent ensembles17. Consequently, PathDiffusion
+451 achieves an acceleration of four to five orders of magnitude compared to traditional
+452 MD	simulations.	In	summary,	PathDiffusion	effectively	recovers	protein
+453 conformational ensembles and elucidates folding pathways with high accuracy, offering
+454 substantial potential for investigating protein folding pathway and dynamics.
+455
+
+456
+
+457	Conclusions
+458 In this study, we introduce PathDiffusion, a generative diffusion framework that
+459 directly predicts continuous protein folding pathway from amino acid sequence. By
+460 incorporating residue-level evolutionary information into a two-stage diffusion process,
+461 PathDiffusion efficiently explores protein folding pathway while preserving high
+462 native-state accuracy. Unlike existing methods that primarily sample near-native
+463 equilibrium distributions, PathDiffusion explicitly simulates the dynamic process of
+464 folding. It allocates more sampling resources to exploring unfolded states and transition
+
+
+
+
+465 regions as well as nucleation events, making the method more suitable for studying
+466 folding mechanisms that evolve over time.
+467
+
+468 PathDiffusion does not rely on MD simulations data for training or fine-tuning. It
+469 predicts folding pathways in a zero-shot manner, achieving several orders of magnitude
+470 speed	improvement	while	maintaining	strong	agreement	with	MD-derived
+471 conformational ensembles. Compared to existing deep learning-based ensemble
+472 generators, PathDiffusion generates a richer variety of intermediates and can
+473 distinguish different folding mechanisms even among topologically similar proteins.
+474 PathDiffusion can also reproduce function-related local unfolding-folding transition
+475 events, which are crucial for allosteric regulation and misfolding-related diseases.
+476 Furthermore, extensive evaluations on intrinsically disordered proteins demonstrate
+477 that PathDiffusion effectively reproduces the intrinsic structural flexibility and
+478 conformational heterogeneity of disordered regions. Collectively, these capabilities
+479 position PathDiffusion as a powerful bridge linking sequence information to structural
+480 dynamics and biological function.
+481
+
+482 Despite these advances, limitations remain. The current framework relies on MSA and
+483 homologous structures to estimate the evolutionary information, reducing accuracy for
+484 orphan proteins or de novo designs lacking evolutionary context. Future work could
+485 develop single-sequence dynamical inference from predicted features44. Additionally,
+486 diffusion steps represent abstract progression rather than physical time, precluding
+487 direct prediction of absolute folding rates or metastable state lifetimes. Future
+488 extensions could incorporate biophysical principles, such as coarse-grained energy
+489 estimation or kinetic network models, to map generated pathways onto a physically-
+490 based free energy landscape and provide approximate kinetic information45, 46.
+491
+492
+
+
+
+
+493	Methods
+494 1. Training and test data
+495 Training datasets
+496 PathDiffusion employs two specialized diffusion models: a sequence-conditional
+497 diffusion model for folding structured regions and a conditional diffusion model for
+498 handling unstructured (intrinsically disordered) regions. To train these models, we
+499 constructed two dedicated datasets. The structured dataset consists of ~530,000
+500 structures from PDB and the unstructured dataset contains ~24,000 intrinsically
+501 disordered	regions	from	CALVADOS	coarse-grained	simulations29.	Detailed
+502 procedures for dataset construction, including filtering criteria and processing steps, are
+503 provided in the Supplementary Information.
+
+504
+
+505 Test datasets
+506 PathDiffusion are evaluated on four independent benchmark datasets that cover diverse
+507 aspects of protein folding dynamics, which are briefly introduced below. FP52: 52
+508 proteins with experimentally determined folding pathways, curated from the literature;
+509 MD12: 12 fast-folding proteins with long-timescale molecular dynamics trajectory
+510 simulated on the Anton supercomputer32; LT20: 20 proteins exhibiting local folding-
+511 unfolding transitions, selected from the BioEmu study17; IDP50: 50 intrinsically
+512 disordered proteins sourced from PDB. Additional details on dataset composition,
+513 selection criteria, and preprocessing are available in the Supplementary Information.
+514
+
+515
+
+516 2. PathDiffusion algorithm
+517 PathDiffusion works through two major modules (Figure 1), where the first module
+518 prepares a position-specific noise schedules (PSNS) from evolutionary information and
+519 the second module iteratively generate folding pathway using PSNS-guided two-stage
+520 diffusion models.
+
+
+
+
+
+521 2.1 Derivation of PSNS from evolutionary information
+522 In the first module (Figure 1A top panel), we derive the PSNS for a target protein from
+523 its evolutionary information captured by multiple sequence alignment (MSA) and
+524 multiple structure alignment (MSTA).
+525
+
+526 MSA generation
+527 For a target protein sequence, an MSA is first constructed by searching for homologous
+528 sequences in AFDB50, a clustered subset of the AlphaFold Protein Structure Database
+529 containing over 52 million representative structures selected at 50% sequence identity.
+530 The search is performed using MMseqs226 and JackHMMER27, with search hits ranked
+531 according to sequence identity and E-value. Specific parameters are set to non-default
+532 values to ensure search quality: for MMseqs2 (--evalue 1 --sensitivity 6.0 --sort-results
+533 1 --max_seqs 10000) and for JackHMMER (-N 3 -E 1). In practice, we prioritize
+534 homologous sequences identified by MMseqs2; JackHMMER is utilized only if fewer
+535 than 10 sequences are returned by MMseqs2.
+536
+
+537 MSTA construction and PSNS derivation
+538 We construct an MSTA by aligning the corresponding structures of the identified
+539 homologs from AFDB50. Specifically, the structure of the top-ranked protein in the
+540 MSA serves as the reference. The remaining homologs are structurally aligned to this
+541 reference using TM-align28, resulting in the MSTA. The PSNS is then derived from the
+542 MSTA using the following formula:
+
+
+????
+1
+
+????2
+
+543
+
+????????????????????
+
+=
+????
+
+? exp ?-  ???? ?
+2
+????=1
+
+(1)
+
+
+544	where N is the number of aligned homologous structures in the MSTA, and ???????? is the Ca
+545	distance between the i-th residue of a homologous structure and its corresponding
+546	residue in the reference structure.
+547
+
+548 2.2 Evolution-guided diffusion models for pathway generation
+
+
+
+
+549 In the second module, evolution-guided diffusion models are proposed to simulate
+550 protein folding pathway using the framework of the score-based Stochastic Differential
+551 Equations (SDE)47, 48. For clarity, we introduce the main concept of the pathway
+552 generation briefly in this Section. More detail about the evolution-guided forward SDE,
+553 reverse SDE, and score function is presented in the next Section.
+554
+
+555 This module consists of two stages. The first stage (Figure 1A bottom left) generates
+556 an initial folding trajectory using an evolution-guided conditional diffusion model. It
+557 begins with pure Gaussian noise at ???? = 1 and performs 300 reverse denoising steps
+558 toward the native state at ???? = 0. This results in intermediate states that are partially
+559 structured yet still contain noise. The detailed sampling procedure for stage 1 is
+560 described in Supplementary Text S5.
+561
+
+562 In stage 2 (Figure 1A, bottom right), the intermediate conformations generated in stage
+563 1 are further refined using a fused conditional and unconditional diffusion model. To
+564 incorporate trajectory information into the refinement process, we assign dynamic per-
+565 residue weights to each intermediate conformation by measuring its structural deviation
+566 from the final stage-1 structure. The weight ???????? for the i-th residue in a given
+567 conformation is computed using its neighbors. Specifically, if there exists a sliding
+568 window [????, ????] of at least three consecutive residues, i.e., for 1 = ???? = ???? = ???? = ????,
+
+
+
+
+569
+
+0.95, if max ???????? < 1
+????=????=????
+???????? = ?0.5,	if min ???????? = 1 and max ???????? < 5
+
+
+(2)
+
+????=????=????
+0.05, otherwise
+
+????=????=????
+
+
+570 where N is the number of residues in the protein, and ???????? denotes the Euclidean distance
+571 between the C???? atom of residue j in the conformation and the final stage-1 structure.
+572 This ensures that high weight is given preferentially to locally correct structural
+573 segments while discouraging isolated or short-range agreements. The resulting per-
+574 residue weights are then used to construct the adaptive dual-score function for the
+575 reverse SDE during denoising (see Section 2.5).
+
+
+
+
+
+576
+
+577	Reverse denoising is performed over 100 steps with a uniform noise schedule,
+578	ultimately producing a refined conformation in which well-predicted structured regions
+579	exhibit high stability, while intrinsically unstructured regions retain appropriate
+580	flexibility. More technical details of stage 2 are provided in Supplementary Text S6.
+581
+
+582
+
+583 2.3 Evolution-guided forward diffusion
+584 Frame representation of protein structure
+585 To facilitate the diffusion process, we convert the protein structure into frames.
+586 Specifically, for a protein with N residues, the backbone atoms (N, Ca, C) are
+587 transformed into a sequence of frames using the Gram-Schmidt process:
+588	???? = [????1, ????1; ? ; ????????, ???????? ] ? SE(3)????	(3)
+589	where ???????? ? R3 denotes the translation vector and ???????? ? SO(3) is the rotation matrix of
+590	the i-th residue.
+591
+
+592 Evolution-guided forward diffusion time
+593 The forward noising process gradually injects noise into the native protein structure,
+594 transforming it into a near-isotropic random distribution. We employ a frame-based
+595 diffusion process on the manifold SE(3)????, following the FrameDiff49 method. Unlike
+596 standard homogeneous diffusion, which applies uniform noise schedules across all
+597 residues, our method modulates the noising process by incorporating evolutionary
+598 priors. This modulation is achieved through a position-specific diffusion time derived
+599 from PSNS, which assigns a distinct effective diffusion time to each residue and thereby
+600 controls the rate of noise injection on a per-residue basis. For the sequence-conditional
+601 diffusion model, the effective time step for residue i is calculated as follows:
+
+602	???????? = max?0.01, 1 - ????rand · (1 + ???? · ????????????????????)?, ????rand ? [0, 1)	(4)
+
+603	where ????rand is a randomly sampled scalar, and ????>0 is a hyperparameter that controls
+604	the strength of the PSNS modulation. This ensures that residues with larger/smaller
+
+
+
+
+605	PSNS values are assigned smaller/larger time, resulting in weak/strong perturbations
+606	during the forward noising process.
+607
+
+608	For the unconditional diffusion model, the PSNS-based modulation is omitted. Instead,
+609	a global diffusion time t is uniformly applied to all residues:
+
+610	???? = max(0.01, 1 - ????rand), ????rand ? [0, 1)	(5)
+611
+
+612	Forward SDE from data to noise
+613	Based on the residue-specific diffusion time t defined above, we model the noise
+614	injection using a forward SDE. For the translational components, the forward SDE is
+615	given by:
+
+
+616
+
+617
+
+618
+
+619
+
+620
+
+621
+
+622
+
+623
+
+624
+
+625
+
+1
+d???????? = - 2 ????????????????d???? + ?????????????dw????	(6)
+where C is a projection operator that eliminates global rigid-body translation of the protein; w???? ? R3???? is a standard Wiener process that introduces Gaussian noise into the translational subspace; and ???????? = ????min + ????(????max - ????min) . We set ????min = 0.1 and
+????max = 20 to control the noise intensity. Each residue i is assigned a unique diffusion time ???????? , which regulates the injection of noise. As ???????? increases, the structure of the corresponding backbone is gradually disrupted toward a near-isotropic noise distribution.
+
+For the rotational components, the forward SDE is defined as:
+
+
+
+
+
+
+626
+
+d????
+
+= ? d ????2dwr	(7)
+
+????
+
+
+d????
+
+????
+
+????
+
+
+627	where dwr denotes the Brownian motion on the rotation group SO(3), ???????? =
+628	log(????????????max + (1 - ????)????????min) with ????min = 0.1 and ????max = 1.5.
+629
+
+630
+
+631 2.4 Evolution-guided reverse diffusion
+
+
+
+
+632 Evolution-guided reverse diffusion time
+633 The inverse diffusion process in stage 1 begins with the random noise at ???? = 1, and
+634 progressively recovers the protein backbone structure by estimating and removing the
+635 added noise. Analogous to the forward noising process, the generative (denoising)
+636 process is modulated by evolutionary priors. These priors are incorporated via position-
+637 specific time increments, ?????????, for residue i:
+
+
+
+638
+
+1
+????????? = ???? + ????
+
+
+· ?1 +
+????
+
+????
+
+· ?????????????????????	(8)
+
+base	base
+
+639	????????+1 = max?0.01, ???????? - ??????????	(9)
+????	????
+
+640 where k represents the current reverse diffusion step, T is the total number of diffusion
+641 steps, and ????base is the base step parameter. Notably, ????base is the minimal number of
+642 diffusion steps required for the model to generate valid structures. In this work, ????base
+643 is set to 100. Consistent with the training stage, this strategy ensures that residues with
+644 higher PSNS values are assigned smaller diffusion times.
+645
+
+646	For stage 2, the diffusion time is defined as a global variable t, uniformly applied to all
+647	residues:
+
+
+
+648
+
+????????+1 = max ?0.01, ???????? -	1
+????stage2
+
+
+?	(10)
+
+
+649	where ????stage2 is the total number of steps in the second stage. The hyperparameters are
+
+650	detailed in Supplementary Table S2.
+651
+
+652	Reverse SDE from noise to data
+653	Using the adaptive time steps derived above, the reverse SDE for the translational
+654	component P is formulated as:
+
+
+
+655
+
+1
+d???????? = C ?- 2 ???????????????? - ????????? log ????????(????????)? d???? + ?????????Cdw? ????	(11)
+
+
+
+656
+
+where -
+
+????????????????d???? reverses the deterministic drift in the forward process for the
+
+
+
+
+657	translational component; ? log ????????(????????) d???? is the denoising term (score function), guiding
+
+658	the translation toward the native structure; and ?????????Cdw? ???? is the reverse Wiener process
+659	term, introducing necessary randomness into the denoising process.
+660
+
+661	For the rotational component Q, the SDE for reverse denoising is:
+
+
+
+
+662
+
+d????
+
+= - d ????2? log ???? (???? )d???? + ? d ????2dw? r	(12)
+
+????
+
+
+d????
+
+????
+
+????
+
+????
+
+
+d????
+
+????
+
+????
+
+
+663	where the first term is the denoising term (driven by the score function) adapted to the
+664	derivative of the noise schedule in the rotational space, and the second term is the
+665	reverse rotational Wiener process term, introducing noise that conforms to the manifold
+666	properties of the rotation group.
+667
+668 To solve the reverse SDEs, we need to estimate the score function ? log ????????(????????). The
+669 operator ? denotes the gradient with respect to the noisy state variable at time t (i.e., ????????
+670 or ????????), and will be used hereafter unless otherwise specified. During training, we utilize
+671 the native structure ???????? = [????0, ????0] to compute the theoretical ground truth. According
+672 to FrameDiff49, the theoretical scores for the translational and rotational components P
+673 and Q can be analytically calculated as labels:
+
+
+
+
+674
+
+? log ????????(????????|????0) = -
+
+???????? - ?????????????0
+
+
+1 - ????????
+
+(13)
+
+
+
+
+675
+
+
+? log ???? (???? |????
+
+) = ???????? log(????? ???? ) · ????
+
+
+log IGSO
+
+
+(???? ; ????
+
+, ????2)	(14)
+
+????
+
+????	0
+
+????????
+
+0 ????
+
+????????
+
+
+????
+
+3	????
+
+0	????
+
+
+676	where ???????? denotes the geodesic distance on the SO(3) manifold, which is calculated via
+677	the trace of the relative rotation matrix:
+
+
+
+678
+
+
+????
+
+
+
+????
+
+ Tr(????? ????????) - 1
+= arccos ?		?	(15) 2
+
+
+679	The term IGSO3 represents the probability density function of the Isotropic Gaussian
+680	distribution on SO(3). It is defined as an infinite series expansion based on the rotation
+
+
+
+
+681	angle ????????:
+
+
+
+IGSO
+
+
+(???? ; ????
+
+8
+, ????2)
+
+1
+-l(l+1)????2/2 sin ((l + 2)????????)
+
+682
+
+3	????
+
+0	????
+
+= ?(2l + 1)????
+l=0
+
+????
+
+(16)
+sin (????????/2)
+
+
+683	In our implementation, the infinite series is approximated by summing the first 1000
+684	terms.
+685
+
+686 During diffusion model training, we start with a native structure ????0, gradually add noise
+687 to obtain ???????? , and then train the neural network to predict the theoretical score
+688 ? log ????????(????????|????0) (defined by Eq. 13 and Eq. 14). The network's outputs are optimized to
+689 match this score, enabling the recovery of protein structure from noise during inference.
+690 Details of the single-step reverse diffusion process are described in Supplementary
+691 Text S4.
+692
+
+693
+
+694	2.5 Stage-specific denoising strategies
+695	During inference, since the native structure ???????? is unknown, we employ the trained
+696	networks to approximate the score functions. The sampling strategy differs between the
+697	two stages to address specific generation goals.
+698
+
+699	In stage 1, the reverse process is driven solely by the sequence-conditional score
+700	function to efficiently generate an initial folding trajectory toward the native state
+701	constraints:
+702	? log ????????(????????|seq) ˜ ????????(????????, seq)	(17)
+703
+
+704 In stage 2, to balance the accurate folding of native structures with the exploration of
+705 conformational landscapes, we employ an adaptive dual-score fusion guidance
+706 mechanism (Figure 1B). Grounded in the principle of classifier-free guidance47, this
+707 formulation provides a way to estimate the conditional score by leveraging a Bayesian
+708 combination of conditional and unconditional diffusion models. The score function is
+
+
+
+
+709 defined as a linear combination of the conditional and unconditional estimators:
+
+710	? log ????????(????????|seq) = ???? · ? log ????????(????????|seq) + (1 - ????) · ? log ????????(????????)
+
+711	˜ ???? · ????????(????????, seq) + (1 - ????) · ????????(????????)	(18)
+
+712 where ???????? = [????????, ????????], and the hyperparameter ???? (defined in Section 2.2) regulates the
+713 balance between sequence-specific structural constraints and intrinsic disorder: near-
+714 native structures are generated by the conditional estimator when ???? ? 1; disordered
+715 states are generated by the unconditional estimator when ???? ? 0; and values in between
+716 produce conformations that have both near-native and disordered structural features,
+717 which is crucial for exploring folding intermediates.
+718
+
+719
+
+720 2.6 Model implementation and training
+721 PathDiffusion trains two complementary diffusion models: a sequence-conditional
+722 model and an unconditional model. The sequence-conditional diffusion model is trained
+723 on a clustered version of the PDB database, enabling it to generate structured
+724 conformations guided by the input amino acid sequence. In contrast, the unconditional
+725 model is trained on conformational ensembles of human intrinsically disordered regions
+726 generated through coarse-grained molecular dynamics simulations from CALVADOS29.
+727 This specialized training allows the unconditional model to capture the characteristic
+728 flexibility and dynamical behavior of disordered segments.
+
+729
+
+730 Input representations
+731 For the sequence-conditional model, the input representations are designed to integrate
+732 evolutionary and structural signals (Figure 1D). The single representation is
+733 constructed by concatenating amino acid sequence embeddings with PSNS-based
+734 diffusion time embeddings, and ESMFold-derived node embeddings. Pairwise
+735 representations are constructed by concatenating sequence embeddings, PSNS-based
+736 diffusion time embeddings, inter-residue distances computed from the noisy frame, and
+
+
+
+
+737 ESMFold-derived edge embeddings.
+738
+
+739 For the unconditional model, the input features are adjusted to avoid biasing the model
+740 towards precomputed structural priors. The single representation is constructed by
+741 concatenating a masked residue position encoding (hiding amino acid identity) with a
+742 global time embedding, where the PSNS is replaced with a uniform noise schedule.
+743 Similarly, pairwise representations are constructed by concatenating residue position
+744 encodings, a global time embedding, and inter-residue distances.
+745
+
+746 Structure Module
+747 Following the ConfDiff48 framework, our structure module adapts the AlphaFold250
+748 architecture to a frame-based system. It integrates invariant point attention (IPA) layers,
+749 transformer layers, and multilayer perceptron (MLP) to generate and refine three-
+750 dimensional conformations. The network architecture is shown in Supplementary
+751 Figure S1.
+752
+
+753 The IPA module comprises 6 layers, with a single representation dimensionality of 256,
+754 a pair representation dimensionality of 128, and a hidden dimensionality of 256. Each
+755 IPA layer employs 6 attention heads, 8 query points, and 12 value points. The
+756 Transformer module contains 2 layers, each with 8 attention heads. Finally, multi-head
+757 attention and MLP layers are used for edge feature transitions and torsion angle updates,
+758 enabling the accurate prediction of folded protein conformations.
+759
+
+760	Loss function
+761	The loss function is defined as:
+
+762	Loss = 1.0 · ????trans + 0.5 · ????rot + 1.0 · ????fape + 0.5 · ????torsion
+
+
+763	+0.2 · ????bb + 0.2 · ????pair	(19)
+
+764	where the denoising score matching losses for translations and rotations are given by:
+
+
+
+
+
+765	????tran = ????????,???? ,???? ~???? ????? ????? ?[????????(????) ? ????????(????????, ????) - ? log ????????(????????|????0) ?2]	(20)
+0  ????	????	????	0
+
+
+766????	2
+????rot = ????????,????0,????????~??????????????????????0?[???? (????) ? ????????(????????, ????) - ? log ????????(????????|????0) ? ](21)
+767????????(????) = (1 - ????-????)/????-????/2(22)
+768????????(????) = 1/???????? ,???? [? ?log????????(????????|????0) ?2]
+0  ????(23)
+769	Here, ? log ????????(????????|????0) and ? log ????????(????????|????0) represent the theoretical ground-truth score
+770	functions for the translational and rotational components, respectively (see Eq. 13 and
+771	Eq. 14). The weighting functions ????????(????) and ????????(????) are employed to balance the loss
+772	magnitudes across different diffusion time steps, ensuring stable optimization.
+773
+
+774 These losses are combined with auxiliary structural losses: a frame aligned point error
+
+775 (FAPE) loss (????fape) for global fold correctness, a torsion angle loss (????torsion) for protein
+
+776 backbone dihedrals (f, ?, ?), a backbone coordinate MSE loss (????bb), and a pairwise
+777 distance loss (????pair) for local atomic interactions. This multi-component loss ensures
+
+778 the model learns accurate denoising dynamics while generating physically plausible
+779 protein structures.
+780
+
+781
+
+782	Data availability
+
+783	The benchmark dataset can be downloaded at
+784	https://yanglab.qd.sdu.edu.cn/PathDiffusion/
+785
+
+786	Software availability
+
+787	The source code and model parameters are available at https://github.com/YangLab-
+788	SDU/PathDiffusion
+789
+
+
+
+
+
+790Acknowledgements
+791This work is supported by the following funding sources: National Natural Science792Foundation of China (NSFC T2225007, 62503282, 32430063, 62501364), Postdoctoral793Fellowship Program and China Postdoctoral Science Foundation (2025M773121,794BX20240212, 2025M783122), the Basic Research Program of Jiangsu Province795(BK20250432), Qingdao Postdoctoral Applied Research Project, and Fundamental796Research Funds for the Central Universities.797
+798References7991.	Zhao, K. et al. Protein structure and folding pathway prediction based on remote homologs800recognition using PAthreader. Communications biology 6, 243 (2023).8012.	Feige, M.J. et al. The structure of a folding intermediate provides insight into differences in802immunoglobulin amyloidogenicity. Proceedings of the National Academy of Sciences 105,80313373-13378 (2008).8043.	Eisenberg, D. & Jucker, M. The amyloid state of proteins in human diseases. Cell 148, 1188-8051203 (2012).8064.	Chiti, F. & Dobson, C.M. Protein misfolding, amyloid formation, and human disease: a summary807of progress over the last decade. Annual review of biochemistry 86, 27-68 (2017).8085.	Wang, X. et al. Multitask joint strategies of self-supervised representation learning on809biomedical networks for drug discovery. Nature Machine Intelligence 5, 445-456 (2023).8106.	Fersht, A.R. & Daggett, V. Protein folding and unfolding at atomic resolution. Cell 108, 573-582811(2002).8127.	Zhao, K., Liang, F., Xia, Y., Hou, M. & Zhang, G. Recent Advances in Protein Folding Pathway813Prediction through Computational Methods. Current medicinal chemistry (2023).8148.	Englander, S.W. & Mayne, L. The nature of protein folding pathways. Proceedings of the815National Academy of Sciences of the United States of America 111, 15873-15880 (2014).8169.	Baldwin, A.J. & Kay, L.E. NMR spectroscopy brings invisible protein states into focus. Nature817chemical biology 5, 808-814 (2009).81810.	Abramson, J. et al. Accurate structure prediction of biomolecular interactions with AlphaFold8193. Nature 630, 493-500 (2024).82011.	Wu, K.E. et al. Protein structure generation via folding diffusion. Nature communications 15,8211059 (2024).82212.	Liu, Y. et al. De novo protein design with a denoising diffusion network independent of823pretrained structure prediction models. Nature Methods 21, 2107-2116 (2024).82413.	Watson, J.L. et al. De novo design of protein structure and function with RFdiffusion. Nature825620, 1089-1100 (2023).82614.	Zheng, S. et al. Predicting equilibrium distributions for molecular systems with deep learning.827Nature Machine Intelligence 6, 558-567 (2024).
+
+
+
+828	15.	Jing, B., Berger, B. & Jaakkola, T. AlphaFold meets flow matching for generating protein
+829	ensembles. arXiv:.04845 (2024).
+830	16.	Wayment-Steele, H.K. et al. Predicting multiple conformations via sequence clustering and
+831	AlphaFold2. Nature 625, 832-839 (2024).
+832 17.	Lewis, S. et al. Scalable emulation of protein equilibrium ensembles with generative deep
+833 learning. Science 389, eadv9817 (2025).
+834 18.	Zhao, K., Zhao, P., Wang, S., Xia, Y. & Zhang, G. FoldPAthreader: predicting protein folding
+835 pathway using a novel folding force field model derived from known protein universe. Genome
+836 Biology 25, 152 (2024).
+837 19.	Ianeselli, A., Im, J., Cavallin, E. & Gerstein, M.B. Generative World Models to compute protein
+838	folding pathways. bioRxiv, 2025.2003. 2026.645554 (2025).
+839	20.	Chang, L. & Perez, A. Rapid estimation of protein folding pathways from sequence alone using
+840	AlphaFold2. Nature Communications (2025).
+841	21.	Noé, F., Tkatchenko, A., Müller, K.-R. & Clementi, C. Machine learning for molecular simulation.
+842	Annual review of physical chemistry 71, 361-390 (2020).
+843	22.	Husic, B.E. & Pande, V.S. Markov state models: From an art to a science. Journal of the American
+844	Chemical Society 140, 2386-2396 (2018).
+845	23.	Tang, Q.-Y. & Kaneko, K. Dynamics-evolution correspondence in protein structures. Physical
+846	review letters 127, 098103 (2021).
+847	24.	Fleming, J. et al. AlphaFold Protein Structure Database and 3D-Beacons: New Data and
+848	Capabilities. J Mol Biol 437, 168967 (2025).
+849	25.	Barrio-Hernandez, I. et al. Clustering predicted structures at the scale of the known protein
+850	universe. Nature 622, 637-645 (2023).
+851 26.	Steinegger, M. & Söding, J. MMseqs2 enables sensitive protein sequence searching for the
+852 analysis of massive data sets. Nature biotechnology 35, 1026-1028 (2017).
+853 27.	Johnson, L.S., Eddy, S.R. & Portugaly, E. Hidden Markov model speed heuristic and iterative
+854 HMM search procedure. BMC bioinformatics 11, 431 (2010).
+855 28.	Zhang, Y. & Skolnick, J. TM-align: a protein structure alignment algorithm based on the TM-
+856 score. Nucleic acids research 33, 2302-2309 (2005).
+857 29.	Tesei, G. et al. Conformational ensembles of the human intrinsically disordered proteome.
+858	Nature 626, 897-904 (2024).
+859 30.	Huang, Z., Cui, X., Xia, Y., Zhao, K. & Zhang, G. Pathfinder: Protein folding pathway prediction
+860 based on conformational sampling. PLoS computational biology 19, e1011438 (2023).
+861 31.	Mariani, V., Biasini, M., Barbato, A. & Schwede, T. lDDT: a local superposition-free score for
+862 comparing protein structures and models using distance difference tests. Bioinformatics
+863 (Oxford, England) 29, 2722-2728 (2013).
+864 32.	Lindorff-Larsen, K., Piana, S., Dror, R.O. & Shaw, D.E. How Fast-Folding Proteins Fold. Science
+865	334, 517-520 (2011).
+866	33.	Lu, J., Zhong, B., Zhang, Z. & Tang, J. Str2str: A score-based framework for zero-shot protein
+867	conformation sampling. arXiv:.03117 (2023).
+868	34.	Motlagh, H.N., Wrabl, J.O., Li, J. & Hilser, V.J. The ensemble nature of allostery. Nature 508,
+869	331-339 (2014).
+870 35.	Xiang, C., Wang, W., Peng, Z. & Yang, J. Generating dynamic structures through physics-based
+871 sampling of trRosettaX2-predicted inter-residue geometries. bioRxiv, 2025.2005.2028.656531
+
+
+
+
+872 (2025).
+873 36.	Xu, X. et al. Structural elements regulating the photochromicity in a cyanobacteriochrome.
+874 Proceedings of the National Academy of Sciences 117, 2432-2440 (2020).
+875 37.	Nolan, K. et al. Structure of Gremlin-2 in complex with GDF5 gives insight into DAN-family-
+876 mediated BMP antagonism. Cell reports 16, 2077-2086 (2016).
+877 38.	Musco, G. et al. Towards a structural understanding of Friedreich's ataxia: the solution
+878 structure of frataxin. Structure 8, 695-707 (2000).
+879 39.	Gu, Z., Zitzewitz, J.A. & Matthews, C.R. Mapping the structure of folding cores in TIM barrel
+880 proteins by hydrogen exchange mass spectrometry: the roles of motif and sequence for the
+881 indole-3-glycerol phosphate synthase from Sulfolobus solfataricus. Journal of molecular
+882 biology 368, 582-594 (2007).
+883 40.	Wintrode, P.L., Rojsajjakul, T., Vadrevu, R., Matthews, C.R. & Smith, D.L. An obligatory
+884 intermediate controls the folding of the a-subunit of tryptophan synthase, a TIM barrel protein.
+885 Journal of molecular biology 347, 911-919 (2005).
+886 41.	Pan, H. & Smith, D.L. Quaternary structure of aldolase leads to differences in its folding and
+887 unfolding intermediates. Biochemistry 42, 5713-5721 (2003).
+888 42.	Erdos, G. & Dosztányi, Z. Deep learning for intrinsically disordered proteins: From improved
+889 predictions to deciphering conformational ensembles. Curr Opin Struct Biol 89, 102950 (2024).
+890 43.	Lotthammer, J.M., Ginell, G.M., Griffith, D., Emenecker, R.J. & Holehouse, A.S. Direct prediction
+891 of intrinsically disordered protein conformational properties from sequence. Nat Methods 21,
+892 465-476 (2024).
+893 44.	Wang, W., Peng, Z. & Yang, J. Single-sequence protein structure prediction using supervised
+894 transformer protein language models. Nature computational science 2, 804-814 (2022).
+895 45.	Noé, F., Olsson, S., Köhler, J. & Wu, H. Boltzmann generators: Sampling equilibrium states of
+896 many-body systems with deep learning. Science 365 (2019).
+897 46.	Mardt, A., Pasquali, L., Wu, H. & Noé, F. VAMPnets for deep learning of molecular kinetics. Nat
+898	Commun 9, 5 (2018).
+899	47.	Song, Y. et al. Score-based generative modeling through stochastic differential equations. arXiv
+900	preprint arXiv:.13456 (2020).
+901	48.	Wang, Y. et al. Protein conformation generation via force-guided se (3) diffusion models.
+902	arXiv:.14088 (2024).
+903	49.	Yim, J. et al. SE (3) diffusion model with application to protein backbone generation.
+904	arXiv:.02277 (2023).
+905	50.	Jumper, J. et al. Highly accurate protein structure prediction with AlphaFold. Nature 596, 583-
+906	589 (2021).
+907
+
+
+
+
+
+
+A
+
+
+Input
+
+
+
+
+···DINGADI···
+···DIQGAKI···
+···DINGADI···
+···NIQFAKI···
+
+
+
+Position-specific
+
+B
+···DINGADI··· Sequence
+
+
+···???? ??? ···	Masked
+
+sequence	MSA
+
+
+Stage1
+
+MSTA
+
+noise schedules
+
+
+
+Stage2
+
+
+XT	X0
+Sequence-conditional score model
+w ?
+
+
+XT	X0
+Unconditional score model
++	(1-w) ?
+
+
+
+ Folding conformation
+=	f^ (Xt, t)
+
+
+
+
+C	Forward noising with position-specific noise schedules
+q(Xt|Xt-1)
+
+Single step
+
+
+XT	XT-1
+
+Xt  pd(Xt-1|Xt)
+
+
+Xt-1
+
+
+X1	X0
+
+
+		
+
+
+
+
+D
+Single step
+
+Reverse denoising with position-specific noise schedules
+
+
+
+
+  Time embedding
+
+
+
+
+
+
+908
+
+
+
+
+
+
+
+Module 2
+
+
+
+
+ Residue-wise Gaussian noise
+
+Xt
+
+
+
+···DINGADI···
+Sequence
+
+
+
+
+ESM
+embedding
+
+Pair
+representation
+
+
+
+
+    Single representation
+
+
+
+
+
+
+
+Xt-?t
+
+909 Figure 1. Overview of PathDiffusion. (A) The workflow of PathDiffusion. The
+910 framework consists of two modules. Module 1 derives position-specific noise schedules
+911 (PSNS) from evolutionary information encoded in multiple sequence alignment (MSA)
+912 and multiple structure alignment (MSTA). Module 2 simulates the folding pathway
+913 using an evolution-guided, two-stage diffusion strategy. In Stage 1 a sequence-
+914 conditional diffusion model is used to generate an initial folding trajectory. In Stage 2,
+915 trajectory dynamics are refined via an adaptive dual-score fusion mechanism. (B)
+916 Adaptive dual-score fusion mechanism in Stage 2. During denoising, the model
+917 combines two score estimators: a sequence-conditional score (directing toward the
+918 native  folded  state)  and  an  unconditional  score  (directing  toward  unfolded
+919 conformations). These are integrated via a residue-specific adaptive weight w to
+920 produce the final predicted score. (C) Evolution-guided diffusion process. Forward
+921 noising and reverse denoising steps are modulated by PSNS, enabling structurally
+922 heterogeneous folding rates: evolutionarily conserved regions denoise (structure)
+923 earlier and more robustly, while variable regions remain flexible/noisy longer,
+924 reflecting biophysical folding principles. (D) Single-step denoising architecture. The
+925 model accepts a noisy conformation (and optional sequence) as input. This state,
+926 together with timestep embeddings and ESM-derived features, is processed by the
+927 structure module to predict the denoised conformation.
+
+
+
+
+
+
+A
+IDRs	PDBs
+
+
+
+
+Steps 1-10	Steps 100-110	Steps 200-210	Steps 290-300
+
+180
+
+90
+
+0
+
+-90
+
+-180
+-180 -90  0  90 180
+f (°)
+
+180
+
+90
+
+0
+
+-90
+
+-180
+-180 -90  0  90 180
+f (°)
+
+180
+
+90
+
+0
+
+-90
+
+-180
+-180 -90  0  90 180
+f (°)
+
+180
+
+90
+
+0
+
+-90
+
+-180
+-180 -90  0  90 180
+f (°)
+
+180
+
+90
+
+0
+
+-90
+
+-180
+-180 -90  0  90 180
+f (°)
+
+180
+
+90
+
+0
+
+-90
+
+-180
+-180 -90  0  90 180
+f (°)
+
+
+
+B
+0.6
+0.5
+
+
+
+PathDiffusion FoldPAthreader
+
+C
+0.8
+
+0.4	AlphaFolding	PathDiffusion
+
+
+0.3
+0.2
+0.1
+0.0
+a	b	c
+
+Pathfinder
+a: TM-score > 0.1 b: TM-score > 0.3 c: TM-score > 0.5 d: TM-score > 0.7
+d
+
+0.6
+
+
+0.4
+
+
+0.2
+
+
+
+
+
+
+<100	100-200	= 200
+
+
+FoldPAthreader AlphaFolding Pathfinder
+
+Success criteria	Protein length
+
+
+
+
+
+
+
+
+
+
+
+928
+929 Figure 2. Performance of PathDiffusion on the experimental folding pathway
+930 benchmark dataset (FP52). (A) Dynamic evolution of backbone dihedral angles (?,
+931 ?). Red Ramachandran plots represent reference distributions from intrinsically
+932 disordered regions and experimental structures in PDB. Blue plots depict the
+933 progressive shift in PathDiffusion-generated conformations, transitioning from a
+934 disordered, high-entropy ensemble (early steps 1-10) to a converged, near-native state
+935 (late steps 290-300). (B) Comparison of folding pathway prediction success rates on
+936 the FP52 benchmark (52 proteins with experimental folding data). (C) Final-state TM-
+937 score for proteins with different lengths. (D) Representative folding trajectory
+938 generated by PathDiffusion for an example protein (PDB ID: 1AB7_A). lDDT scores
+939 computed for early-folding regions (EFRs) and late-folding regions (LFRs) at each step
+940 quantitatively demonstrate that evolutionarily conserved EFRs attain stable structure
+941 earlier than variable LFRs, consistent with hierarchical folding principles.
+942
+943
+
+
+
+
+
+			 
+
+
+
+
+
+
+
+
+
+
+
+
+
+			
+
+
+944
+ 
+Haloalkane dehalogenase
+
+Aldolase	Tryptophan synthase
+
+sIGPS
+
+Apomyoglobin
+
+T4 Lysozyme
+
+
+945 Figure 3. Visualization of the predicted folding order for 31 proteins successfully
+946 modeled by PathDiffusion. The structures are colored to illustrate the relative timing
+947 derived from the sampled folding trajectory. Blue represents early folding regions,
+948 while pink indicates late folding regions. The color gradient is based on the proportion
+949 of sampled conformations where the residue aligns within 3 Å of the final state.
+
+950
+
+
+
+
+
+A	B
+0.6
+0.5
+0.4
+0.3
+0.2
+0.1
+0.0
+
+ 
+
+
+
+
+0.5
+
+0.4
+
+0.3
+
+0.2
+
+0.1
+
+0.0
+
+
+D
+
+
+
+
+
+
+
+
+
+
+
+
+102
+
+102
+
+
+
+0.5
+
+0.4
+
+0.3
+
+0.2
+
+0.1
+
+0.0
+
+
+
+BioEmu-3×102
+
+
+
+
+
+
+
+
+
+
+
+
+102
+
+
+
+0.2
+
+0.2
+
+0.1
+
+0.1
+
+0.0
+
+0.0
+
+
+
+E
+
+
+		
+
+Step51-60  Step141-150  Step291-300
+
+TIC1
+
+TIC1
+
+TIC1
+
+
+
+102
+
+BioEmu-3×102
+
+BioEmu-1×104
+
+
+
+
+
+
+Step20-25  Step120-127  Step291-300
+
+
+TIC1
+
+
+TIC1
+
+
+TIC1
+
+
+
+
+
+
+
+
+
+
+
+
+Step60-69  Step111-120  Step291-300
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIC1
+
+102
+
+BioEmu-3×102
+
+
+
+
+
+
+
+TIC1
+
+BioEmu-1×104
+
+
+
+
+
+
+
+TIC1
+
+
+
+102
+
+BioEmu-3×102
+
+BioEmu-1×104
+
+
+
+
+
+
+951
+
+
+TIC1
+
+
+TIC1
+
+
+TIC1
+
+952 Figure 4. Performance on the molecular dynamics simulation dataset (MD12). (A)
+953 Comparison of Jensen-Shannon distances (JSD) between generated ensembles and
+954 ground-truth MD simulations across 12 test proteins. A lower JSD value indicates
+955 higher similarity to the MD distribution. (B) Head-to-head comparison of JSD for
+956 PathDiffusion against BioEmu. Points above the diagonal indicate that PathDiffusion
+957 yields distributions closer to the MD ground truth. (C) Visual comparison of MD-
+958 simulated ensembles and PathDiffusion folding trajectory at indicated sampling steps.
+959 (D) Projection of sampled conformations (scatter points) onto the MD-derived 2D free
+960 energy surface. (E) Summary of JSD values for each protein across the three metrics.
+961
+
+
+
+
+
+A	B
+
+1.0
+
+0.8
+
+0.6
+
+0.4
+
+1.0
+
+0.8
+
+0.6
+
+0.4
+
+1.0
+
+0.8
+
+0.6 	
+
+0.4
+
+Folded
+
+
+0.2
+
+0
+0  0.2
+
+
+
+
+0.4 0.6 0.8 1.0
+
+
+0.2
+
+0
+0  0.2
+
+
+
+
+0.4 0.6 0.8 1.0
+
+
+0.2
+
+0
+0  0.2 0.4 0.6
+
+
+
+
+0.8 1.0
+
+
+
+
+0  0.2 0.4 0.6
+
+
+
+
+0.8 1.0
+
+Fraction of native contacts	Fraction of native contacts	Fraction of native contacts	Fraction of native contacts
+
+C
+
+Unfolded (Step 253)	Unfolded (Step 251)
+
+		
+
+962
+
+Folded (Step 300)
+
+Folded (Step 300)
+
+Folded (Step 300)
+
+963 Figure 5. Performance on local folding-unfolding transition dataset (LT20). (A, B)
+964 Comparison of the 1% coverage metric at different fraction of native contacts (FNC)
+965 thresholds for detecting locally unfolded states and folded states. Evaluations were
+966 performed at two sampling scales (2×102 and 1×104). Dashed lines mark the specific
+967 FNC thresholds used to define unfolded (< 0.3) and folded (> 0.7) states. (C)
+968 Visualization of predicted functional dynamics for representative proteins. Pink
+969 segments highlight the specific regions of the native structure known to undergo local
+970 unfolding, displayed in both their locally unfolded states and fully folded states.
+971
+
+
+
+
+
+A 25
+
+20
+
+15
+
+10
+
+5
+
+0
+B 
+30
+25
+
+20
+
+15
+
+10
+
+5
+
+0
+
+
+C 1.0
+
+0.8
+
+
+0.6
+
+
+0.4
+
+
+0.2
+
+0  50 100 150 200 250 300	2	4	6	8  10  12  14
+
+
+
+
+
+
+
+
+
+
+
+
+
+972
+
+
+D  1.0
+
+0.8
+
+0.6
+
+0.4
+
+0.2
+
+0
+
+Sampling steps
+E
+
+
+
+
+
+
+
+
+0	10	20	30	40	50	60
+Residue index
+
+Sampling steps
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NMR (PDB ID: 6NU4)
+
+Residue contact degree
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PathDiffusion (Step 291-300)
+
+973 Figure 6. Performance on the intrinsically disordered regions dataset (IDP50).
+974 (A) Evolution of average root-mean-square fluctuation (RMSF) calculated in 30-step
+975 intervals. (B) Evolution of the radius of gyration (Rg). (C) Box plots showing the
+976 relationship between residue contact degree and the average intra-ensemble lDDT
+977 (steps 291-300 of IDRs dataset). The contact degree is defined as the number of residues
+978 within an 8 Å distance cutoff in the native state. Note that lDDT here quantifies the
+979 conformational diversity within the ensemble (lower scores indicate higher flexibility).
+980 (D) Comparison of per-residue lDDT for the PathDiffusion ensemble and the reference
+981 NMR  ensemble.  (E) Structural  superposition  of  the  NMR  ensemble  and  the
+982 PathDiffusion-generated  ensemble.  Pink  represents  flexible  regions,  and  blue
+983 represents stable regions.
+984
+
+
+
+
+
+
+A	1.0
+0.8
+0.6
+0.4
+0.2
+0
+
+
+1.0	3
+2
+0.5	1
+0	0
+1.0
+-1
+0.5	-2
+0	-3
+
+2C3Z_A
+
+0	50  100 150  200 250  300
+
+0	50	100	150	200	0	50	100	150	200
+Residue index	Residue index
+
+
+			
+
+Step 300
+
+
+B	1.0
+0.8
+0.6
+0.4
+0.2
+00
+
+
+
+
+
+
+
+
+
+
+300
+
+
+1.0
+
+0.5
+
+0
+1.0
+
+0.5
+
+0
+
+
+3
+2
+1
+0
+-1
+-2
+-3
+0	50	100  150  200  250	0	50	100  150  200  250
+
+
+
+C	1.0
+0.8
+0.6
+0.4
+0.2
+
+
+1.0
+
+0.5
+
+0
+1.0
+
+0.5
+
+3
+2
+1
+0
+-1
+PathDiffusion
+-2	Experimental data
+
+
+1ADO_A
+
+00	50  100 150  200 250  300
+
+0
+0	100	200	300
+
+-3
+0	100	200	300
+
+Sampling steps	Residue index	Residue index
+
+
+
+
+
+
+
+985
+986
+987
+988
+989
+990
+991
+992
+993
+994
+995
+996
+
+
+
+Step 1	Step 11	Step 53	Step101	Step 198	Step 300
+
+Figure 7. Case studies of folding pathways for three representative TIM-barrel proteins. (A-C) For each protein, the native structure is displayed on the left, colored to distinguish EFRs (blue) and LFRs (orange). The adjacent line plot tracks the lDDT evolution of these regions throughout the sampling process. The bar charts compare predicted secondary structure formation with experimental annotations: the black line indicates the formation frequency predicted by PathDiffusion, while blue and orange background bars denote the native secondary structural elements within experimentally defined EFRs and LFRs, respectively. The Z-score plot compares the predicted folding order with experimental data (see Supplementary Text S3). The bottom row presents representative snapshots along the generated folding trajectory, visualizing the continuous transition from a disordered state (pink) to the folded structure (blue).
+
+
+
+
+
+A	B
+1.0
+
+0.8
+
+0.6
+
+0.4
+
+0.2
+
+0.0
+0.0 0.2  0.4  0.6  0.8  1.0
+
+
+
+1.0
+
+0.8
+
+0.6
+
+0.4
+
+0.2
+
+0.0
+
+
+
+0.0 0.2  0.4 0.6 0.8  1.0
+
+C	D
+10
+
+8
+
+6
+
+4
+
+2
+
+0 0	2	4	6	8  10
+
+
+60
+
+50
+
+40
+
+30
+
+20
+
+10
+0	100  200  300  400
+
+TPC ratio
+
+
+E
+
+
+
+
+
+1BE9_A
+
+TPC ratio of w/o PSNS(use rand)
+
+RMSF of EFR (Å)
+
+Protein length
+
+
+
+
+
+
+997
+998
+999
+1000
+1001
+1002
+1003
+1004
+1005
+1006
+1007
+1008
+1009
+1010
+1011
+1012
+
+2F52_A
+
+Figure 8. Results of ablation study. (A) Contributions of evolution-informed noise schedule and sequence-conditional score model. The curves display the success rate across varying TPC ratio thresholds. The dashed lines indicate the default performance baseline at an TPC threshold of 0.5. (B) Scatter plot compares the TPC ratio achieved when sampling without using PSNS versus without using a sequential conditional scoring model. The pink shaded region indicates targets where at least one component achieves an TPC ratio greater than 0.5. (C) Conformational diversity analysis of the sequence-conditional model. The scatter plot compares the RMSF of EFRs against LFRs within the generated equilibrium ensembles. Points above the diagonal line indicate that LFRs exhibit higher structural flexibility than EFRs. (D) The relationship between Rg and length of proteins sampled by the unconditional score model. (E) Visualization of representative conformational ensembles generated by the sequence- conditional model. These superimposed structures illustrate the equilibrium fluctuations quantified in (B).
+
+
+
+
+
+1013Supplementary Information
+1014Text S1. Dataset10151.1 Training dataset1016The PathDiffusion network consists of two models: sequence-conditional diffusion1017model and conditional diffusion model, which are used to fold structured regions and1018unstructured regions, respectively. Two training datasets were constructed accordingly1019to train both models.10201021Training dataset of structured proteins. The training and validation datasets were1022constructed using single-chain structures from the Protein Data Bank (PDB) to train the1023sequence-conditional diffusion model. We used entries released prior to April 10, 2024,1024for training, and those deposited between April 10, 2024, and April 16, 2025, for1025validation. Following the data processing strategy proposed in ConfDiff1, we expanded1026our dataset by extracting and preserving all available structural models within each1027PDB entry, which allows us to fully leverage the conformational ensembles provided1028by experimental techniques such as solution NMR. To ensure data quality, we applied1029the following filtering criteria: (1) sequence length is 20-500 residues; (2) chains1030with >30% missing backbone atoms were discarded; and (3) chains with random coil1031ratio >50% were removed. After strictly removing proteins overlapping with the1032benchmark test set, we obtained a final dataset of 538,380 structures for training and103340,835 for validation. All chains were clustered at a 70% sequence identity threshold.1034In each training iteration, the data loader first randomly selected a cluster and then1035extracted a specific structural conformation from that cluster.10361037Training dataset of unstructured proteins. We used intrinsically disordered regions1038(IDRs) from CALVADOS simulations to train the unconditional diffusion model2.1039These simulations covered nearly all intrinsically disordered regions in the human1040proteome, but only contained Ca atoms. We selected protein chains ranging from 20 to1041500 in length and used pdbfixer3 to restore the coarse-grained structures into all-atom1042models. The final dataset was split into a training set and a validation set in a 9:1 ratio:104324,206 structures were used for training, and 2,688 structures were used for validation.104410451.2 Test dataset1046Four benchmark datasets were constructed to evaluate PathDiffusion: FP52, MD12,
+
+
+
+
+1047
+1048
+1049
+1050
+1051
+1052
+1053
+1054
+1055
+1056
+1057
+1058
+1059
+1060
+1061
+1062
+1063
+1064
+1065
+1066
+1067
+1068
+1069
+1070
+1071
+1072
+1073
+1074
+1075
+1076
+1077
+1078
+1079
+1080
+1081
+
+LT20 and IDP50.
+
+FP52: The original FoldPAthreader benchmark contains 30 proteins. We expanded this dataset to include 22 more proteins, resulting in 52 proteins (denoted by FP52). The folding information for these proteins were collected from the literature, derived from experimental methods including hydrogen-deuterium exchange mass spectrometry (HX-MS), circular dichroism (CD), fluorescence resonance energy transfer (FRET), nuclear magnetic resonance (NMR), and related approaches. The sequence lengths of these 52 proteins range from 43 to 363 residues. A detailed list of proteins and their annotations are provided in Supplementary Table 1.
+
+MD12. The dataset includes 12 small proteins, ranging from 10 to 80 residues in length (denoted by MD12). Their structures have been extensively simulated by MD on the Anton supercomputer4. Each protein was simulated in 1 to 4 independent runs, with a total simulation time of ~8 milliseconds. This extended sampling captured more than 400 folding and unfolding events, yielding sufficient statistics to characterize folding dynamics. The structural data are represented at the Ca-atom level, which provides a coarse but informative description of the folding process.
+
+LT20. This dataset comprises 20 proteins known to exhibit local folding-unfolding transition (denoted by LT20), from the BioEmu study5. In each instance, a specific segment of at least 8 residues is defined as undergoing a transition from a folded to an unfolded state.
+
+IDP50. This dataset contains 50 intrinsically disordered proteins from PDB (denoted by IDP50). The selection criteria included: (1) more than 70% of the residues are random coils; (2) sequence length is from 50 to 100; and (3) pairwise sequence identity is lower than 70%. This screening process yielded 681 candidate proteins, from which 50 were randomly selected.
+
+
+Text S2. Folding pathway evaluation metrics
+To quantitatively assess the folding sequence, we calculated the experimentally defined early folded region (EFR) and late folded region (LFR) lDDT scores by comparing sampled conformations with the native. Specifically, the EFR lDDT was computed
+
+
+
+
+
+1082
+1083
+1084
+1085
+1086
+1087
+1088
+1089
+1090
+1091
+1092
+1093
+1094
+1095
+1096
+1097
+1098
+1099
+1100
+1101
+1102
+1103
+1104
+1105
+1106
+
+1107
+
+1108
+1109
+1110
+1111
+1112
+1113
+1114
+1115
+1116
+
+exclusively based on the intra-regional contacts within the early folded residues. In contrast, the calculation of the LFR lDDT was designed to cover the entire late-stage folding process; therefore, it considered not only the intra-regional contacts within the late folded regions but also the inter-regional contacts formed between the early and late regions. This ensures that the LFR lDDT reflects both the local structure of the late regions and their packing with the already folded core. A conformation with an lDDT of the EFR being more than 10% higher than that of the LFR was defined as a true positive conformation (TPC).
+
+
+Text S3. Z-score analysis of folding order
+To quantitatively validate the predicted folding pathways against experimental evidence, we performed a comparative Z-score analysis. The experimental data were derived from HX-MS datasets reported in the literature, utilizing specific metrics appropriate for each protein's experimental design:
+* sIGPS (PDB: 2C3Z): Data were obtained from equilibrium pulse-labeling experiments in urea6. The metric used was the percentage of protected amide protons within the stable equilibrium intermediate populated at ~5 M urea. Higher protection levels indicate regions that form the stable structural core.
+* ????TS (PDB: 1BKS): Data were derived from kinetic refolding pulse-labeling experiments7. The metric used was the relative population of protected species for each peptide segment, measured after 2 seconds of refolding. A higher population indicates regions that fold rapidly into the kinetic intermediate.
+* Aldolase (PDB: 1ADO): Data were collected during refolding via dialysis8. The metric used was the inverse of the dialysis time (1/????1/2) required for a
+segment to achieve protection. Since earlier protection occurs at higher denaturant concentrations (shorter dialysis times), the inverse time serves as a proxy for folding priority.
+
+For the PathDiffusion predictions, we quantified the folding timing for each residue by analyzing the generated trajectories. All sample conformations were globally aligned to the final state. We calculated a folding proportion for each residue, defined as the percentage of conformations in the trajectory where the C???? atomic distance to the corresponding residue of final state was less than 3 Å.
+
+
+
+
+
+
+1117
+1118
+1119
+1120
+1121
+1122
+1123
+1124
+1125
+1126
+1127
+1128
+1129
+
+1130
+
+1131
+
+1132
+
+1133
+
+1134
+
+1135
+
+1136
+1137
+
+
+
+To ensure direct comparability with the low-resolution MS data, the residue-level folding proportions from PathDiffusion were averaged over the specific segments defined in the respective experimental studies. Finally, both the segment-averaged experimental values and the segment-averaged predicted values were standardized into Z-scores (???? = (???? - ????)/????). In the comparative plots, horizontal lines represent the Z- scores for experimentally resolved peptide segments, while diagonal lines connect these segments, indicating regions where experimental data were unavailable. A positive Z- score signifies an early folded region, while a negative Z-score signifies a late folded region.
+
+
+Text S4. Algorithm 1: reverse diffusion
+This algorithm outlines the single-step reverse denoising operation, which implements the numerical discretization of the reverse-time SDEs defined in the reverse denoising process in Section 2.4. It takes the current conformational state ????(????) , the predicted score ???? (derived from the neural network output), and the current time step ???? as inputs. For each residue ????, the algorithm updates translational coordinates in Euclidean space and rotational orientations on the ????????(3) manifold separately, incorporating the residue- wise diffusion time to transition the structure from state ????(????) to ????(????-????????).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1138
+1139
+
+
+1140
+
+1141
+1142
+1143
+1144
+1145
+1146
+1147
+1148
+
+
+Text S5. Algorithm 2: sampling process in stage 1
+This algorithm outlines the sampling process in stage 1. The SampleStage1 initializes the protein backbone with random noise for both rotations and translations. It then defines a position-specific diffusion time based on the input position-specific noise schedules (PSNS). In each iteration ????, the model predicts the denoised structure ?????(0), computes the conditional score ????cond , and updates the conformation using the ReverseStep function. Intermediate structures are saved when the process enters the designated time window to record the folding trajectory.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1149
+
+1150
+
+
+1151
+
+1152
+1153
+1154
+1155
+1156
+1157
+
+
+Text S6. Algorithm 3: sampling process in stage 2
+This algorithm presents the adaptive dual-score fusion strategy employed in the second stage to refine the trajectory dynamics. The algorithm first computes dynamic weights ???? for each residue based on the structural consistency with the predicted final state of stage1 (Lines 2-15). These weights govern the interpolation between the sequence-conditional score ????cond and the unconditional score ????unc (Line 28).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1158
+1159
+
+
+
+
+
+1160
+1161
+
+Table S1. Detailed information of FP52 dataset. Early folded residues were annotated based on evidence from the literature.
+
+
+
+
+
+
+Ribonuclease H
+1RNH_A
+148
+42-117 10.1126/science.1116702 10.1016/j.jmb.2009.05.085
+10.1073/pnas.1305887110Fyn SH3 domain1SHF_A5925-30, 36-41,
+47-5110.1073/pnas.0404436101Staphylococcal nuclease1STN_A1361-36, 66-9010.1016/j.bbrc.2008.08.073
+10.1073/pnas.91.2.449Polyubiquitin-C1UBQ_A761-16, 22-34,
+64-7610.1073/pnas.89.6.2017
+10.1021/bi00161a019
+FF domain
+1UZC_A
+69
+1-5110.1016/j.jmb.2007.06.012
+ 10.1126/science.1191723 10.1016/j.jmb.2005.04.067Rd-apocytochrome b5621YYJ_A10422-43, 65-8910.1073/pnas.0501372102
+10.1016/j.bpj.2010.01.052Acylphosphatase2ACY_A9848-15510.1016/j.jmb.2006.06.041sIGPS2C3Z_A2201-20, 36-68,
+76-8110.1016/j.jmb.2007.02.027CTX III2CRT_A6019-39, 49-6010.1074/jbc.273.17.10181CspB2F52_A671-19, 46-5310.1016/j.jmb.2004.04.011DESIGNED TOP72GJH_A5719-5710.1073/pnas.0708411105Ubq-UIM2KDI_A11411-8010.1016/j.bpc.2011.05.004T4 Lysozyme2LZM_A1641-11, 65-16410.1016/j.jmb.2006.10.048PinWW2M8I_A4327-4310.1073/pnas.0905466106Gelation factor2N62_L2211-11210.1016/j.pnmrs.2016.10.002tANK2RFM_A18387-18310.1073/pnas.0710657105Thioredoxin2TRX_A1081-9010.1016/j.bbapap.2014.11.004Beta-lactoglobulin3BLG_A16291-16210.1038/84145
+10.1006/jmbi.1999.3515CHEY3CHY_A1281-6010.1016/S1359-0278(96)00011-
+9Chymotrypsin Inhibitor 23CI2_A6412-34, 45-5010.1016/j.polymer.2003.10.092
+10.1073/pnas.0702265104Monellin3PXM_A9610-4710.1021/acs.chemrev.1c00704RNase T13RNT_A10456-61, 75-81,
+86-9210.1002/pro.5560060702SasG3TIP_A13253-13210.1073/pnas.1608762113Utrophin3UUL_A1151-26, 74-104 Haloalkane dehalogenase5UY1_A2901-127, 212-
+238, 275-29010.1126/sciadv.aas9098
+Lysozyme C
+6LYZ_A
+129
+1-39, 85-12910.1110/ps.8.1.35
+10.1096/fasebj.10.1.8566530
+10.1073/pnas.92.20.9029
+Plastocyanin
+9PCY_A
+991-6, 13-15, 18-
+31, 69-83, 93-
+99
+10.1021/bi00097a0051162
+1163
+
+
+
+
+
+1164
+1165
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1166
+1167
+1168
+
+Table S2. Hyperparameter of PathDiffusion.
+
+CategoryParameterValueDescription
+
+
+
+   Model Architecturenum_ipa_blocks6Number of IPA blocksc_s256Dimension of single representationc_z128Dimension of pair representationc_hidden256Hidden dimensionc_skip64Dimension of skip connectionsno_heads6Number of attention heads in IPAno_qk_points8Number of query/key points for IPAno_v_points12Number of value points for IPAseq_tfmr_num_layers2Number of Transformer layersseq_tfmr_num_heads8Number of heads in Transformer
+
+Embeddingsnode_emb_size256Dimension of node embeddingsedge_emb_size128Dimension of edge embeddingstime_emb_size64Dimension of sinusoidal time embeddingsres_idx_emb_size64Dimension of residue index embeddings
+
+
+InferenceT300Steps for stage1????base100Minimum number of diffusion steps????stage2100Steps for stage2starting_steps0 Define the start and end points of the reverse diffusion trajectory, allowing flexible sampling of arbitrary partial of
+the trajectoriesfinal_steps300
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1169
+1170
+1171
+1172
+1173
+1174
+1175
+
+
+Figure S1. Flowchart of the structure module. The module takes the single representation, pair representation, and backbone frames as inputs. It utilizes Invariant Point Attention (IPA), Transformer blocks, and a Multilayer Perceptron (MLP) to iteratively update the representations and backbone geometry.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1176
+1177
+1178
+1179
+1180
+1181
+1182
+1183
+
+
+Figure S2. Performance evaluation of folding pathway and final state on FP52. (A) Scatter plots of lDDT scores for early folded regions (EFRs) versus late folded regions (LFRs). The grey shaded region represents true positive conformations (TPCs). The percentages indicate the overall proportion of TPCs for each method. (B) Head-to-head comparison of final state TM-scores between PathDiffusion and other methods. The grey shaded area represents the near-native (TM-score = 0.7).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Step60-69	Step111-120	Step291-300
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIC1
+
+
+102
+
+
+BioEmu (3×102)
+
+
+
+
+
+
+
+TIC1
+
+
+BioEmu (1×104)
+
+
+
+
+
+
+
+TIC1
+
+
+BioEmu (3×102)	BioEmu (1×104)
+
+
+
+
+
+TIC1	TIC1
+
+
+102
+MD
+
+
+
+
+PD
+
+BioEmu (3×102)
+
+BioEmu (1×104)
+
+
+
+Step20-25	Step120-127	Step291-300
+
+
+TIC1
+
+
+TIC1
+
+
+TIC1
+
+
+
+102
+
+BioEmu (3×102)
+
+BioEmu (1×104)
+
+	
+
+
+
+Step85-93	Step131-140	Step291-300
+
+
+Step201-210	Step291-300
+
+
+TIC1
+
+
+
+
+
+
+
+
+
+
+
+TIC1
+
+
+
+
+102
+
+
+TIC1
+
+
+BioEmu (3×102)
+
+
+
+
+
+
+
+TIC1
+
+
+TIC1
+
+
+
+BioEmu (1×104)
+
+
+
+
+
+
+
+TIC1
+
+
+
+102
+
+BioEmu (3×102)
+
+BioEmu (1×104)
+
+		
+
+TIC1
+
+TIC1
+
+TIC1
+
+
+
+
+
+MD
+
+
+
+PD
+	
+Step80-88
+
+BioEmu (3×102)
+
+
+
+
+
+
+
+TIC1
+
+BioEmu (1×104)
+
+
+
+
+
+
+
+TIC1
+
+
+
+
+MD
+
+
+
+PD
+
+
+
+1184
+
+
+
+
+Step291-300
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIC1
+
+102
+
+BioEmu (3×102)
+
+
+TIC1
+
+BioEmu (1×104)
+
+TIC1
+
+
+
+
+
+102	BioEmu (3×102)
+	
+
+TIC1
+
+TIC1
+
+TIC1
+
+
+BioEmu (3×102)	BioEmu (1×104)
+
+
+
+
+
+
+TIC1	TIC1
+
+BioEmu (3×102)	BioEmu (1×104)
+
+
+
+
+
+Step20-25	Step81-90	Step291-300
+
+
+TIC1
+
+
+TIC1
+
+
+TIC1
+
+
+BioEmu (3×102)	BioEmu (1×104)
+
+
+1185
+
+TIC1
+
+TIC1
+
+1186
+1187
+1188
+1189
+1190
+1191
+1192
+1193
+
+Figure S3. Detailed evaluation on molecular dynamics simulation dataset (MD12). Left panels: Visual comparison of MD-simulated ensembles and PathDiffusion folding trajectories at indicated sampling steps. Middle panels: Projection of sampled conformations (scatter points) onto the MD-derived 2D free energy surface. Right panels: Corresponding Jensen-Shannon distance (JSD) for each protein across the three metrics (TIC, RG, and PWD). Purple represents PathDiffusion (3×102), light blue represents BioEmu (3×102), and orange represents BioEmu (1×104).
+
+
+
+
+
+Villin	BBA
+
+	
+
+
+
+TIC1
+
+Step 84
+
+
+
+TIC1
+
+Step 19
+
+
+							
+Step 150	Step 221	Step 262	Step 300	Step 53	Step 135	Step 188	Step 300
+
+NTL9	BBL
+
+		
+
+
+
+TIC1
+
+Step 39
+
+
+
+TIC1
+
+Step 18	Step 60
+
+						
+Step 88	Step 110	Step 132	Step 300	Step 89	Step 114	Step 206	Step 300
+
+
+
+
+
+
+
+	 
+
+Step 50
+
+
+
+TIC1
+
+Step 69	Step 75
+
+					
+Step 300	Step 81	Step 127	Step 224	Step 300
+
+
+Chignolin
+
+
+
+
+
+
+
+
+TIC1
+
+Trp-cage
+
+Step 33	Step 227	Step 300	Step 76	Step 146	Step 300
+TIC1
+
+
+Homeodomain
+
+
+
+
+
+
+
+
+TIC1
+
+
+WW domain
+
+Step 53	Step 137	Step 300	Step 44	Step 83	Step 300
+TIC1
+
+1194
+
+Folding pathway of PathDiffusion
+
+ PathDiffusion	MD
+
+1195
+1196
+1197
+
+Figure S4. Visualization of PathDiffusion folding pathways. For each protein, the 2D free energy surface is projected onto the first two Time-lagged Independent Components (TICs) derived from ground-truth MD simulations. Yellow scatter points
+
+
+
+
+
+1198
+1199
+1200
+1201
+1202
+1203
+
+represent the conformations sampled by PathDiffusion, while the black arrow indicates the direction of the predicted folding trajectory. Representative snapshots at specific diffusion steps illustrate the structural evolution. In each snapshot, the PathDiffusion- generated conformation (rainbow colored) is superimposed onto the most structurally similar conformation identified in the MD simulation (black).
+
+
+
+
+
+			
+			
+
+Unfolded (Step 160)
+
+Unfolded (Step 209)
+
+Unfolded (Step 194)
+
+Unfolded (Step 253)
+
+
+			
+
+Folded (Step 300)
+
+Folded (Step 300)
+
+Folded (Step 300)
+
+Folded (Step 300)
+
+Folded (Step 300)
+
+
+			
+
+
+
+
+
+Unfolded (Step 217)
+
+Folded (Step 300)
+
+Unfolded (Step 253)
+
+
+
+
+
+
+
+Folded (Step 300)
+
+Unfolded (Step 182)
+
+
+
+
+
+
+
+
+
+
+
+Folded (Step 300)
+
+Unfolded (Step 209)
+
+Folded (Step 300)
+
+
+			
+
+	
+
+Unfolded (Step 203)
+
+Unfolded (Step 272)
+
+Unfolded (Step 59)
+
+
+
+
+
+
+Folded (Step 300)
+
+
+
+
+Folded (Step 300)
+
+
+
+
+Folded (Step 300)
+
+
+Unfolded (Step 206)
+
+
+Unfolded (Step 224)
+
+
+
+
+
+Unfolded (Step 251)	Folded (Step 300)
+
+Folded (Step 300)
+
+Folded (Step 300)
+
+
+		
+		
+
+Unfolded (Step 163)
+
+Unfolded (Step 149)
+
+Unfolded (Step 245)
+
+
+		
+
+1204
+
+Folded (Step 300)
+
+Folded (Step 300)
+
+Folded (Step 300)
+
+Folded (Step 300)
+
+1205
+
+Figure S5. Visualization of predicted results for 20 proteins in the local folding-
+
+
+
+
+
+1206
+1207
+1208
+1209
+1210
+1211
+1212
+1213
+1214
+
+
+
+
+
+
+
+
+
+
+
+
+
+1215
+1216
+1217
+1218
+1219
+1220
+
+unfolding transition dataset (LT20). For each target, the figure displays a representative intermediate conformation (labeled "Unfolded" with the specific step number) alongside the final generated structure (labeled "Folded", Step 300). Pink segments highlight the specific regions of the protein known to undergo local unfolding or exhibit intrinsic disorder.
+
+
+
+
+
+A	B
+
+
+
+
+
+
+
+
+
+
+Figure S6. Computational efficiency analysis. (A) Comparison of the running time required to sample folding pathways across varying protein lengths. (B) Comparison of sample time for generating conformational ensembles (10,000 samples) for the 12 MD- simulated proteins.
+
+
+
+
+
+
+1221
+1222
+1223
+1224
+1225
+1226
+1227
+1228
+1229
+1230
+1231
+1232
+1233
+1234
+1235
+1236
+1237
+1238
+1239
+1240
+1241
+1242
+
+Supplementary References
+1. Wang, Y. et al. Protein conformation generation via force-guided se (3) diffusion models.
+arXiv:.14088 (2024).
+2. Tesei, G. et al. Conformational ensembles of the human intrinsically disordered proteome.
+Nature 626, 897-904 (2024).
+3. Maier, J.A. et al. ff14SB: Improving the Accuracy of Protein Side Chain and Backbone Parameters from ff99SB. Journal of chemical theory and computation 11, 3696-3713 (2015).
+4. Lindorff-Larsen, K., Piana, S., Dror, R.O. & Shaw, D.E. How Fast-Folding Proteins Fold. Science
+334, 517-520 (2011).
+5. Lewis, S. et al. Scalable emulation of protein equilibrium ensembles with generative deep learning. Science 389, eadv9817 (2025).
+6. Gu, Z., Zitzewitz, J.A. & Matthews, C.R. Mapping the structure of folding cores in TIM barrel proteins by hydrogen exchange mass spectrometry: the roles of motif and sequence for the indole-3-glycerol phosphate synthase from Sulfolobus solfataricus. Journal of molecular biology 368, 582-594 (2007).
+7. Wintrode, P.L., Rojsajjakul, T., Vadrevu, R., Matthews, C.R. & Smith, D.L. An obligatory intermediate controls the folding of the a-subunit of tryptophan synthase, a TIM barrel protein. Journal of molecular biology 347, 911-919 (2005).
+8. Pan, H. & Smith, D.L. Quaternary structure of aldolase leads to differences in its folding and unfolding intermediates. Biochemistry 42, 5713-5721 (2003).
+
+
+
+
+
+
+
+
+
+
+
+

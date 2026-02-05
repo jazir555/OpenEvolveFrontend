@@ -1,0 +1,2402 @@
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+000
+001
+      D OV ER : I NTERVENTION -D RIVEN AUTO D EBUGGING
+002   FOR LLM M ULTI -AGENT S YSTEMS
+003
+004
+005    Anonymous authors
+006    Paper under double-blind review
+007
+008
+009                                               A BSTRACT
+010
+011            Large language model (LLM)–based multi-agent systems are challenging to de-
+012            bug because failures often arise from long, branching interaction traces. The pre-
+013            vailing practice is to leverage LLMs for log-based failure localization, attributing
+014            errors to a specific agent and step. However, this paradigm has two key limitations:
+015            (i) log-only debugging lacks validation, producing untested hypotheses, and (ii)
+016            single-step or single-agent attribution is often ill-posed, as we find that multiple
+017            distinct interventions can independently repair the failed task. To address the first
+018
+               limitation, we introduce DoVer, an intervention-driven debugging framework,
+               which augments hypothesis generation with active verification through targeted
+019
+               interventions (e.g., editing messages, altering plans). For the second limitation,
+020
+               rather than evaluating on attribution accuracy, we focus on measuring whether the
+021            system resolves the failure or makes quantifiable progress toward task success,
+022            reflecting a more outcome-oriented view of debugging. On the datasets derived
+023            from GAIA and AssistantBench, DoVer flips 18–28% of failed trials into suc-
+024            cesses, achieves up to 16% milestone progress, and validates or refutes 30-60%
+025            of failure hypotheses. Our findings highlight intervention as a practical mecha-
+026            nism for improving reliability in agentic systems and open opportunities for more
+027            robust, scalable debugging methods for LLM-based multi-agent systems.
+028
+029
+030   1   I NTRODUCTION
+031
+032   The advancement of Large Language Models (LLMs) has led to the rapid rise of LLM-based agent
+033
+      systems, particularly multi-agent architectures where agents of different roles work collaboratively
+      to solve complex tasks Li et al. (2023); Wu et al. (2023a); Hong et al. (2024). As these systems
+034
+      are increasingly developed and deployed in production, the need to debug their failures becomes
+035
+      inevitable during their lifecycle. Importantly, by “failures” we do not refer to conventional software
+036   errors (e.g., exceptions or crashes), but rather to the errors where the system executes without in-
+037   terruption yet produces incorrect or unsatisfactory results Mialon et al. (2024); Yoran et al. (2024).
+038   Such failures frequently arise in scenarios where one diagnoses why an agent system underperforms
+039   on benchmark tasks during the development phase, or when one addresses user-reported dissatisfac-
+040   tion (e.g., a ‘thumbs-down’ signal with textual feedback) from an online deployed system.
+041
+      Debugging failures in LLM-based agent systems presents unique challenges. These systems typi-
+042   cally involve multiple rounds of LLM calls, each with extensive textual context, making manual log
+043   inspection labor-intensive. Furthermore, in multi-agent tasks, tracking inter-agent information flow
+044   is crucial, as failures often stem from Inter-Agent Misalignment Cemri et al. (2025). Recent efforts
+045   address these issues by using LLMs to analyze system failures Zhuge et al. (2024); Zhang et al.
+046   (2025b;a), often via single-agent, single-step failure attribution. In this method, an execution log is
+047   input to an LLM tasked with identifying the agent and step responsible for the failure Zhang et al.
+048   (2025b). However, as shown in our reproduction study (Section 3), log-based failure attribution is
+049   fundamentally limited by the uncertainty of ground-truth annotations. This uncertainty arises for
+050
+      several reasons: agent systems often employ multiple strategies (e.g., ReAct Yao et al. (2023)) with
+      distinct failure points in a single session, and inter-agent misalignment can render the assignment of
+051
+      responsibility to a single agent or step ambiguous.
+052
+053   To circumvent the limitations of uncertain ground-truth attribution, we propose explicit validation
+      via intervention, introducing DoVer (Do-then-Verify), an intervention-driven framework for auto-
+
+
+                                                        1
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+054
+      mated debugging. DoVer explicitly validates failure hypotheses derived from session logs by inter-
+055   vening at suspected failure points, modifying agent instructions or task plans, while preserving prior
+056   context. The system is then re-executed from the intervention point onward. If the failure resolves,
+057   the hypothesis is supported; if it persists despite faithful intervention, the hypothesis is refuted. This
+058   process enables an iterative cycle of hypothesis generation and testing.
+059
+      DoVer also supports interventions across multiple steps rather than restricting to single-point edits.
+060
+      By decomposing the failure trace into separate trials, we intervene at each and assess the impact.
+061   Experimental results show that this approach recovers 18% and 28% of failures in datasets from
+062   AssistantBench Yoran et al. (2024) and GAIA Mialon et al. (2024), respectively. Furthermore, it
+063   enables the validation or refutation of 30–60% of failure hypotheses, depending on task complexity.
+064
+      To summarize, our main contributions are: (i) We propose DoVer, an intervention-driven framework
+065
+      for automatically debugging failures in LLM-based multi-agent systems; (ii) We identify and ana-
+066
+      lyze the challenges posed by uncertain ground-truth annotations in log-based failure attribution; (iii)
+067   We demonstrate experimentally that DoVer not only recovers a significant portion of failure cases
+068   but also enables explicit validation and refutation of failure hypotheses.
+069
+070
+071
+072
+      2     R ELATED W ORK
+073
+074   2.1   FAILURE A NALYSIS AND ATTRIBUTION FOR LLM- BASED AGENT S YSTEMS .
+075
+076   LLM-based agent systems exhibit diverse and frequent failure patterns that accumulate along long
+077   execution logs. To characterize why and where errors arise, MAST Cemri et al. (2025) catalogs
+078   failures across task interpretation, planning, tool/environment interaction, and verification, while
+079   evaluation frameworks Zhuge et al. (2024); Arabzadeh et al. (2024) argue that end-to-end pass/fail
+080   is too coarse and introduce requirement graphs or task-utility criteria that reveal where progress
+081
+      stalls. Extending this perspective to execution logs, TRAIL Deshpande et al. (2025) creates turn-
+      level traces and a fine-grained taxonomy (reasoning, planning, execution), empirically showing that
+082
+      even strong long-context models struggle at trace debugging.
+083
+084   A parallel line of work seeks failure attribution: identifying the earliest decisive step or agent that
+085   is responsible for the earliest sufficient cause of failure Zhang et al. (2025b;a). However, these
+086   attributions are inferred from logs and remain an untested hypothesis unless validated by execution.
+087
+      In DoVer, we treat attribution as a hypothesis to be tested. We apply a targeted edit at the implicated
+      location (message, plan, tool call), and rerun the system, judging success by milestone/utility gains.
+088
+      This places emphasis on verified repair and is consistent with trajectory-aware evaluation advocated
+089
+      in Arabzadeh et al. (2024); Deshpande et al. (2025).
+090
+091
+092
+      2.2   D EBUGGING A PPROACHES FOR LLM- BASED AGENT S YSTEMS
+093
+094
+      Beyond failure analysis and attribution, several systems explore how to debug trajectories, i.e., in-
+095
+      tervention and replay. Human-in-the-loop tools such as AGDebugger Epperson et al. (2025) en-
+096   able rewind/edit/re-execute with trace visualization, and graph runtimes like LangGraph LangChain
+097   (2025) provide checkpoints, interrupts, and “time-travel” branching. These demonstrate that small,
+098   targeted interventions often work, but they are manual and hard to scale. At the orchestration layer,
+099   multi-agent systems such as Magentic-One (M1) Fourney et al. (2024) dynamically re-plan, track
+100   stalls, and recover, yet typically stop short of testing concrete hypotheses about a failing step.
+101
+      From the software-repair perspective, Rahardja et al. (2025) package real agent-system issues into
+102   executable environments with failing tests (AgentIssue-Bench) and find low resolution rates for
+103   current software engineering agents, highlighting the difficulty of maintaining agent software. In-
+104   dustrial experience at Google similarly evaluates agent-based program repair on production bugs,
+105   showing promise but also current limits Rondon et al. (2025). This motivates auto debugging that
+106   verifies edits within the original run and measures intermediate progress. DoVer does so by choos-
+107   ing a minimal intervention, re-running the trajectory, and scoring milestone/utility gains, in line
+      with Zhuge et al. (2024); Deshpande et al. (2025).
+
+
+                                                          2
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+108
+      3       F ROM L OG -BASED ATTRIBUTION TO I NTERVENTION -BASED D EBUGGING
+109
+110
+      In this section, we surface several subtleties in existing log-based failure analysis that motivate our
+111
+      intervention-based auto-debugging system. We begin by recapping the prevailing task formulation
+112
+      for log-based single-agent/step failure attribution, and then revisit evaluation on an existing bench-
+113   mark to highlight sources of uncertainty in ground-truth annotation that shape our design.
+114
+115
+      Log-based Single-Agent/Single-Step Failure Attribution. A common setup for log-based fail-
+116
+      ure attribution proceeds as follows. The input is a session log, typically from an LLM-driven multi-
+117   agent system, covering the full trajectory from an initial user query to either a final answer or ter-
+118   mination caused by system-defined stopping rules (e.g., a maximum number of replanning rounds).
+119   The log is a sequence of agent messages organized by turns.1 The task is to identify the single agent
+120   and single step responsible for the failure. A failure step is defined as a decisive error: if one were
+121   to replace the agent’s incorrect action at that step with a correct one, the trajectory would subse-
+122   quently succeed. To evaluate this setup, the Who&When (WW) dataset was introduced in Zhang
+123   et al. (2025b). In WW, multiple annotators independently reviewed session logs and then recon-
+124   ciled discrepancies through discussion. Reported results show that state-of-the-art LLMs at the time
+125
+      achieved below 10% accuracy on failure step attribution.
+126
+127   Reproduction and Prompt Refinements. We reproduced the WW step/agent attribution protocol
+128   to understand why step-level accuracy is low. Through failure case analysis, we identified two
+129   minimal, non-invasive prompt refinements that consistently improve accuracy: (i) adding explicit
+130
+      step indices to the failure log, and (ii) embedding a concise reminder of the annotators’ guidance as
+      instructions. With these refinements, attribution accuracy rises noticeably. For example, on the Hand
+131
+      Crafted category of WW (WW-HC) with the setting of including ground-truth answers and adopting
+132
+      the All-at-Once prompt (a single LLM call over the full session log), step attribution accuracy for
+133   GPT-4o increases from 6% to 24%.2 Reproduction details are provided in Appendix A.
+134
+135
+      Impact of Uncertain Ground-Truth Labels on Attribution. Despite these gains, absolute step-
+136
+      level accuracy remains low for practical deployment. By comparing model outputs against the
+137
+      ground-truth (GT) labels, we found that uncertainty in the GT annotation is a major contributing
+138   factor. Specifically, for the 29 GAIA Mialon et al. (2024) cases in WW, our independent review
+139   suggests that 14 of 29 cases exhibit GT uncertainty. This is consistent with WW, which reports
+140   annotator uncertainty of 15–30% and an average initial disagreement of ∼20% Zhang et al. (2025b).
+141
+      To assess the impact of GT uncertainty on model performance, we stratified evaluation into two
+142
+      subsets. For the 14 uncertain cases, average step attribution accuracy is 24% for GPT-4o and 7%
+143
+      for GPT-5. In contrast, for the remaining certain 15 cases, average accuracy increases to 44%
+144   for GPT-4o and 53% for GPT-5. These results indicate that GT uncertainty substantially affects
+145   model performance. Per-case annotation notes and results are provided in Appendix A.
+146
+147
+      Sources of Uncertainty in Failure Agent/Step Annotations. Our re-annotation surfaced three
+148   sources of GT uncertainty among the 14 uncertain GAIA cases in WW:
+149
+150   (1) Multiple trials within a single session. Modern agentic systems frequently employ ReAct-
+151
+      style Yao et al. (2023) loops with repeated planning–execution cycles, producing multiple trials of
+      task solving. We define a trial as the contiguous span starting from a planning step and continuing
+152
+      through the execution steps for that plan. Each trial may contain its own decisive error step(s), espe-
+153
+      cially when exploring new strategies or branches. For instance, Figure 1 illustrates the failure trace
+154   of Case 3 in WW-HC, which comprises four distinct trials within a single session. Different strate-
+155   gies were explored (e.g., Trial 1 attempted to locate the target webpage via direct scrolling, whereas
+156   Trial 2 used the calendar feature), each introducing distinct potential error points. Consequently,
+157   enforcing a single-step attribution across the entire session is intrinsically ambiguous. In our review,
+158   9 of the 14 uncertain cases exhibit this pattern.
+159
+          1
+160       We do not consider logs from asynchronous agent executions in this work.
+          2
+161       Unless otherwise specified, GPT-4o and GPT-5 refer to the versions of “GPT-4o-20241120” and “GPT-
+      5-chat-20250807”, respectively. All LLM API calls are made through Azure OpenAI using default parameters.
+
+
+                                                         3
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+162                                   Trial 1: Step (1-38) Baseline Plan: APOD → City → Landmark → Firm
+163       User Query                                            Execution: Archive Navigation, Scrolling, Info Gathering                    Step 53-55 (Ambiguous Failure Attribution)
+
+164                        0               1               2               …               32                …              38               Please click on '2015' in the APOD calendar,
+                                      Initial plan                                                                                           navigate to August, and select images from August 1-
+165                                                        Error: WebSurfer did not directly scroll to the bottom as instructed.             7, 2015. Identify the image showing the lights of a city
+          During the first week of                                                                                                                  on the horizon and note the city name.
+166       August 2015, one of the
+          NASA Astronomy              Trial 2: Step (39-65) Plan to Pivot to APOD Calendar for Direct Dates
+          Pictures of the Day                                                                                                                                   I clicked the control…
+167       (APOD) shows the lights                                       Execution: Calendar Feature Exploration                             Unclickable!
+          of a city on the horizon.
+168       The namesake of this            39              40        …          53          54           55         …             65
+          city also has a landmark
+169       building in Chicago         Plan Update         Error: Orchestrator gives error instruction; WebSurfer execute incorrectly.
+          named after him. What
+170       is the name of the
+          architectural firm that     Trial 3: Step (66-87) Refine and Leverage APOD URL Patterns
+171       designed this landmark
+          building?
+                                                         Execution: Repeated a path like Trial 1; Proposed URL pattern near the end
+172                                       66              67               …               77                …              87
+173               Input Node          Plan Update                                                             Error: Orchestrator stalled
+                  Plan Node
+174
+                  Execution Node      Trial 4: Step (88-92) Apply URL-Patterned Links and Verify
+175               Error Node
+                  Error Node in WW                                   Execution: Explored the URL pattern strategy
+176
+                  Orchestrator            88              89               …               90                 …              92
+177               WebSurfer           Plan Update                                                                  Error: LLM API error
+
+178
+179
+      Figure 1: Failure trace of Case 3 in WW-HC, illustrating ambiguity in failure attribution. The session
+180
+      consists of four distinct trials, each initiated by a plan update and executed via a ReAct-style Yao
+181
+      et al. (2023) loop. Different strategies (e.g., direct scrolling in Trial 1 vs. calendar navigation
+182   in Trial 2) yield separate error points, making single-step attribution across the session inherently
+183   ambiguous. Trial 2 (Steps 53–55) further shows inter-agent misalignment: the Orchestrator issued
+184   an invalid instruction, while the WebSurfer compounded the error by executing an unrelated action.
+185
+186
+187   (2) Ambiguity from multi-agent coordination. Attribution to a specific agent/step can be unclear
+188   when the underlying issue stems from inter-agent coordination. For instance, when a sub-agent
+189   fails to carry out an instruction, responsibility may lie with the sub-agent’s capabilities or with
+190
+      ambiguous/misaligned guidance from a supervising agent. In Trial 2 of Figure 1, for example, the
+      Orchestrator agent instructed the WebSurfer agent to click on a non-existent control. Rather than
+191
+      reporting the issue, the WebSurfer instead clicked on an unrelated control that had no connection to
+192
+      the target year “2015”. In this case, both agents exhibited failures, making attribution to either one
+193   alone inappropriate. Such ambiguous attribution aligns with the Inter-Agent Misalignment category
+194   identified in Cemri et al. (2025). We observed this phenomenon in 5 of the 14 uncertain cases.
+195
+196
+      (3) Cross-annotator alignment challenges. Even with adjudication, achieving fully aligned labels
+      can be difficult. For 7 of the uncertain cases in WW, we found no clear error at the GT-designated
+197
+      step, suggesting that differing interpretations can persist despite careful protocol design.
+198
+199
+      Implications for Intervention-Based Debugging. The above analysis suggests that log-only fail-
+200   ure attribution can fundamentally suffer from the issue of uncertain ground-truth labels. Conse-
+201   quently, we propose explicit validation via intervention: hypothesize the failure step, intervene on
+202   it (e.g., replace the action or instruction), and verify whether the trajectory subsequently succeeds.
+203   This protocol operationalizes the “decisive error” definition while simultaneously eliminating de-
+204   pendence on noisy human labels and thus reducing annotation burden. Moreover, two design take-
+205   aways follow from our uncertainty study. (i) Trial awareness. Because logs often contain multiple
+206   planning–execution trials, interventions must be applied at the trial level, motivating our trial-based
+207   intervention framework. (ii) Role-specific interventions. Given ambiguity in attributing responsi-
+208
+      bility between an orchestrator and its sub-agents, we adopt a clear taxonomy of interventions: (a)
+      interventions on the orchestrator’s plan and its instructions to sub-agents, and (b) direct capability
+209
+      improvements for sub-agents (e.g., skills). These implications motivate our intervention-based auto
+210
+      debugging system; in the next section, we detail the framework and its concrete instantiations.
+211
+212
+213   4        M ETHODOLOGY
+214
+215   Following the implications for intervention-based debugging, we present DoVer, a do-then-verify
+      debugging pipeline that turns failure-attribution hypotheses into controlled edits and checks whether
+
+
+                                                                                                4
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+216                                                   Trial 1
+                                                   intervention
+217                      Hypothesis 𝒉𝟏
+      Trial 1
+218
+219
+                         Hypothesis 𝒉𝟐                Trial 2 intervention
+220   Trial 2                                                                                                                     plan/re-plan
+                                                                                                                                  execution
+221                                                                                                                               attributed failure
+
+222                      Hypothesis 𝒉𝟑                                                                                            task fail
+      Trial 3                                                Trial 3 intervention
+                                                                                                                                  task succeed
+223                                                                                                                               intervention
+                                                                                                                                  new plan/re-plan
+224                                                                                                                               new execution
+
+225              Trial                   Failure
+        1 Segmentation             2 Attribution                  3 Intervention Generation            4 Intervention Execution
+226
+227
+      Figure 2: DoVer (Do–then–Verify) Debugging Pipeline. (1) Trial segmentation: split the failed
+228
+      session log into trials using re-plan steps as cut points. (2) Failure attribution: for each trial, propose
+229   a hypothesis hi that marks a faulty step or agent. (3) Intervention generation: turn hi into an
+230   actionable intervention that edits either the plan or the attributed message or step in the original log.
+231   (4) Intervention execution: replay the trajectory in place, i.e., preserve all steps before the intervened
+232   step, then execute the intervention and measure progress of the new log. Colors indicate plan/re-plan
+233   (blue), execution (green), attributed failure (red), terminal failure (dark red), terminal success (dark
+234   green), intervention (yellow), new plan/re-plan (blue hatch), and new execution (green hatch).
+235
+236
+      those edits change outcomes. As shown in Figure 2, DoVer consists of four stages: (1) trace seg-
+237
+      mentation to break an execution log into trials, (2) hypothesis generation to hypothesize a failure
+238
+      step or agent, (3) intervention generation to synthesize a testable change and replay the trace, and
+239   (4) intervention execution with differential evaluation against the original run using task success and
+240   a progress score.
+241
+242   4.1       D OV ER P IPELINE
+243
+244   Trace Segmentation. After a task is executed by an agentic system, we have obtained a long
+245   execution session log τ = {(at , mt , σt )}Tt=1 , where at represents the active agent that produces the
+246   message mt at step t, and σt keeps stateful information that is necessary for state restore and replay.
+247   This includes historical context (e.g., prior messages sent to LLMs) as well as browsing history for
+248
+      agents acting in a web-browsing role. Modern LLM-based agent systems Fourney et al. (2024);
+      SmolAgents (2025); AutoGen2 (2025) have the self-reflection capabilities Yao et al. (2023); Shinn
+249
+      et al. (2023), and re-plan after reflection. We first segment the trace τ into trials τ i using re-plan
+250
+      steps as segmentation point, as illustrated in Figure 2. This trial segmentation shortens context so
+251   LLMs can reason about a single causal chain, and enables independent and parallel interventions for
+252   efficiency. Thus, multiple hypotheses can be proposed for a single session trace, which is essential
+253   as many failures admit more than one viable repair.
+254
+      While one could implement trace segmentation by leveraging system-specific message patterns (e.g.,
+255
+      in the M1 agent system, plan or re-plan steps often begin with “We are working to address the
+256
+      following user request”), we instead adopt a prompt-based approach. Specifically, we employ LLMs
+257   to reason over the full session log and identify planning-related steps. This method generalizes more
+258   effectively to other agent systems whose log patterns for planning steps are not known a priori. The
+259   prompt used for trace segmentation is provided in Figure 4 in the Appendix B.
+260
+      Failure Attribution. For each trial τ i , we generate candidate failure attribution hypothesis
+261
+262                                                                            hi = (âit̂ , rt̂i ),
+263
+264   where t̂ is the step index of attributed failure step, i is the trial index, âi the suspected agent, and ri a
+265   natural-language rationale. We build on existing log-based attribution methods (e.g., our improved
+266
+      All-at-Once prompt from Section 3) but crucially do not require perfect precision, since correctness
+      will later be tested via explicit intervention. Here we adapt the All-at-Once prompt (see Figure 5 in
+267
+      the Appendix B) so that it can be applied to session logs segmented into trials by the preceding step.
+268
+269   Intervention Generation. In this stage, failure attribution hypotheses are transformed into concrete
+      interventions. Each intervention Ii represents a targeted edit to the failing context, informed both
+
+
+                                                                                        5
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+270
+      by the specific failure hypothesis and by the broader context of the intervention step. As noted in
+271   Section 3, ambiguity may arise in attributing responsibility between the Orchestrator and its sub-
+272   agents. We thus distinguish interventions directed at Orchestrator from those directed at sub-agents.
+273
+274
+      Direct interventions on sub-agents typically require substantial system modifications. For example,
+      adapting the WebSurfer agent to support interventions such as in-page search would involve invasive
+275
+      code changes. To avoid this complexity, we focus on interventions at the Orchestrator level, so that
+276
+      they can be applied at the message-passing layer, making them agnostic to the underlying agent
+277   architecture. Specifically, we consider two categories:
+278
+279   • Modified Instructions to Sub-Agents: Adjusting the Orchestrator’s messages to sub-agents to clar-
+280     ify intent, correct arguments, or supply missing context. This approach indirectly influences sub-
+281     agent behavior.
+282   • Plan Updates: Revising the Orchestrator’s high-level plan, e.g., reordering, decomposing, or re-
+283     placing steps, to route around the identified failure.
+284
+285   Intervention Execution. The agentic system replays each trial with interventions taken in place.
+286   All steps are preserved before the intervened step and execute the intervention Ii , yielding a counter-
+287   factual trace τ̃I = {τ1 , τ2 , · · · , τi−1 , τ̃i }. Note that one intervention creates one new trace, verifying
+288   the failure attribution of each trial.
+289
+290   4.2   E VALUATION M ETRICS
+291
+292   We consider two sets of evaluation metrics to address our research questions: (1) whether failed
+293
+      cases can be turned into successful ones through intervention and (2) how effective our debugging
+      system is at validating or refuting the initial failure hypothesis. To reduce the impact of execution
+294
+      randomness (e.g., LLM stochasticity), we perform three independent runs for each intervention.
+295
+296
+      Metrics for Turning Failures into Successes. To answer the first question, we introduce two
+297
+      failure-flipping related metrics: Trial Success Rate and Progress Made. The Trial Success Rate is
+298   defined as the ratio of trial runs that successfully complete the task after intervention. The Progress
+299   Made metric captures whether intervention brings a failed trial closer to success, even if it does
+300   not ultimately succeed. Thus, it provides a more fine-grained measure of improvement when the
+301   intervention makes the failed case “more correct”.
+302
+      Specifically, when an intervention does not yield full success and human-annotated solution steps
+303
+      are available (e.g., in the GAIA benchmark Mialon et al. (2024)), we could evaluate the degree
+304   of progress by comparing the new execution trace against human-annotated steps. For each log
+305   τ , we extract up to K ≤ 5 milestones {mk }K  k=1 and measure how many of these milestones the
+306   new trace accomplishes. Both the extraction of milestones and their evaluation are performed using
+307   LLMs with carefully designed instructions. The actual prompts are provided in Figures 8 and 9 in
+308   Appendix B. We then define the milestone achievement count for a trace γ as:
+309                                          K
+310
+                                             X
+                                               I milestone mk is achieved in γ .
+                                                                             
+                                  A(γ) =
+311
+                                             k=1
+312
+313   We measure Progress Made as the ratio of additional milestones achieved:
+314                                                       A(τ̃I ) − A(τ )
+315                                 P rog(τ → τ̃I ) =                     ∈ [−1, 1],
+                                                                 K
+316
+317
+      where τ̃I is the new execution trace after intervention, K is the number of extracted milestones from
+      human-annotated trace.
+318
+319   In settings where human-annotated intermediate steps are unavailable, the progress metric above
+320   cannot be directly applied. In such cases, one may instead directly compare execution traces before
+321   and after intervention with LLM-as-a-judge. We leave this alternative evaluation for future work.
+322
+323   Metrics for Validating Failure Hypotheses. To evaluate the effectiveness of our debugging sys-
+      tem in validating or refuting the initial failure hypothesis, we classify each trial after intervention
+
+
+                                                             6
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+324
+      into four categories: Validated, Partially Validated, Refuted and Inconclusive. The Inconclusive cat-
+325   egory is necessary because we frequently observe that agents fail to follow the intervened instruction,
+326   resulting in unsuccessful trials. In such cases, it is unclear whether the outcome stems from an in-
+327   correct failure hypothesis or from other limitations of the system that prevent the intervention from
+328   being carried out.
+329
+      To handle this ambiguity, we conduct a comparative analysis of traces before and after intervention.
+330
+      We leverage LLMs to determine whether the intervention was faithfully executed by the agent,
+331   resulting in a boolean metric “is intervention fulfilled” for each trial run. The prompt employed in
+332   this work can be found in Figure 10 in the Appendix B. Together with the overall Trial Success Rate
+333   and Progress Made metrics, we define the four outcomes as follows:
+334
+335   • Validated: At least 2 of 3 repeated runs succeed.
+336   • Partially Validated: Fewer than 2 of 3 runs succeed, and at least 2 of 3 runs both fulfill the
+337     intervention and show additional 20% progress (i.e., they advance by one key milestone).
+338
+      • Refuted: Same as “Partially Validated,” except that progress does not exceed 20%.
+339
+340   • Inconclusive: All other cases.
+341
+342   In summary, these metrics allow us to quantify both the extent to which interventions make failed
+343
+      cases more correct and how effectively the system validates or refutes hypotheses. We now apply
+      them in the next subsection to analyze our experimental results.
+344
+345
+346   5     E XPERIMENT R ESULTS
+347
+348   5.1   E XPERIMENT S ETUP
+349
+350   Agent System. We consider two distinct agent frameworks in this work. Following Zhang et al.
+351   (2025b), we begin by conducting experiments using Magentic-One (M1) Fourney et al. (2024), a
+352
+      popular LLM-based multi-agent framework that was also used for collecting failure traces in WW.
+      We enable DoVer on M1 by adapting the manual debugging tool AGDebugger Epperson et al. (2025)
+353
+      so that DoVer can (without human intervention): (i) save the state at each step as a checkpoint; (ii)
+354
+      load checkpoints from a prior failed run; (iii) intervene by modifying an agent message at a specified
+355   step; and (iv) resume execution from the intervened step.
+356
+357   To evaluate DoVer’s generality, we further construct a MathChat multi-agent system using a sec-
+358
+      ond framework, AutoGen2 (AG2) AutoGen2 (2025); Wu et al. (2023b). This MathChat system is
+      instantiated using the prompts provided in MAST Cemri et al. (2025), and we extend AG2 with
+359
+      checkpointing and re-execution capabilities analogous to those in M1. Implementation details and
+360
+      practical lessons for reducing the integration burden on new frameworks are provided in Appendix C.
+361
+362
+      Datasets. We first follow Zhang et al. (2025b) and include all cases in the Hand Crafted category
+363   of WW: 28 cases from AssistantBench Yoran et al. (2024) and 29 cases spanning all three GAIA
+364   levels Mialon et al. (2024). To increase data volume, we additionally include all 53 Level-1 cases
+365   from GAIA’s validation set; after excluding those already present in WW, this yields 45 extra cases.
+366   We refer to these three sets as WW-AB, WW-GAIA, and GAIA-Level-1, respectively.
+367
+      For the MathChat system, following MAST Cemri et al. (2025), we additionally use the GSMPlus
+368
+      dataset Li et al. (2024). Concretely, we adopt the 2,400 examples in the “testmini” split and re-
+369   collect execution traces with checkpoints for all problems, forming the GSMPlus setting used in our
+370   AG2-based experiments.
+371
+372   Failure Trace Collection. We begin with an initial run over all cases and evaluate outcomes to
+373   identify failure traces. The failure logs published with WW and MAST are not directly usable for our
+374   purposes: logs of agent messages alone are insufficient to support replay and targeted intervention.
+375   The number of failed cases per dataset is given in Table 1 (“Failed Cases” column). The overall
+376   success rate on the full GAIA Level-1 set matches the value reported for Magentic-One Fourney
+377   et al. (2024), suggesting that our collected failure traces faithfully reflect M1’s capabilities. As in
+      WW and MAST, we use GPT-4o both to generate traces and to power the intervened session runs.
+
+
+                                                        7
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+378                       Total    Failed Cases     Intervened Cases       Intervened Trials     Trials per Case
+379      WW-AB             28            26                 23                     72                   3.1
+380      WW-GAIA           29            26                 25                     99                   4.0
+381      GAIA-Level-1      45            26                 25                     63                   2.5
+382
+         GSMPlus          2400          214                141                    198                   1.4
+383
+      Table 1: Summary of failed and intervened cases across datasets, showing the total number of cases,
+384
+      failed cases, intervened cases, total intervened trials, and the average number of trials per case.
+385
+386
+387   Auto Debugging with DoVer. We apply DoVer to each failed trace using GPT-4o while obtain-
+388   ing the progress made metric and failure hypothesis validation results with GPT-5. As described in
+389   Section 4, DoVer first segments the full trace into distinct trials, then performs failure attribution and
+390   intervention generation for each trial. Finally, it collects the intervened session traces and conducts
+391   comparative analysis. Table 1 reports the number of cases for which an intervention was success-
+392   fully generated (LLMs may occasionally conclude, incorrectly, that no mistake occurred), the total
+393
+      number of intervened trials, and the average number of intervened trials per case. On average, we
+      perform about 3 (1.5) intervened trials per case in the AB and GAIA (GSMPlus) datasets, indicating
+394
+      that most cases contain multiple trials and multiple potential failure points, making them worthwhile
+395
+      targets for debugging.
+396
+397
+      5.2   Q UANTITATIVE E VALUATION R ESULTS
+398
+399
+400                                   Intervened Trials        Trial Success Rate   Progress Made
+401
+                     WW-AB                    72                     17.6%               +0%
+                     WW-GAIA                  99                     17.6%              +8.8%
+402
+                     GAIA-Level-1             63                     27.5%             +15.7%
+403                  GSMPlus                 198                     49.0%                -
+404
+405   Table 2: Experimental results on failure-flipping metrics across settings. The table reports the num-
+406   ber of Intervened Trials, the Trial Success Rate, and the average Progress Made.
+407
+408   Table 2 presents the experimental results for the failure-flipping metrics. For making failure cases
+409   more correct, the Trial Success Rate across all intervened trials is 17.6% for cases in WW, compared
+410   to a higher success rate of 27.5% for GAIA-Level-1 cases. This difference can be explained by
+411   the fact that WW contains more challenging cases (e.g., Level-2/3 GAIA tasks). A similar pattern
+412
+      is observed for the Progress Made metric: interventions yield a 15.7% improvement (i.e., nearly
+      one key milestone) in GAIA-Level-1, but considerably less progress in WW-AB and WW-GAIA.
+413
+      Notably, for WW-AB, almost no progress is achieved after intervention, suggesting that in some
+414
+      situations interventions may even hinder progress toward success. Finally, in the GSMPlus setting,
+415   DoVer achieves nearly a 50% trial success rate, underscoring that its effectiveness generalizes well
+416   across datasets and agent frameworks. Note that the Progress Made metric cannot be computed for
+417   GSMPlus due to the absence of human-annotated solution steps in the dataset.
+418
+419                               Intervened                                    Partially
+                                                  Validated      Inconclusive                   Refuted
+420                                 Trials                                      Validated
+421             WW-AB                 72          11 (15.3%)      48 (66.7%)     3 (4.2%)      10 (13.9%)
+                WW-GAIA               99          16 (16.2%)      57 (57.6%)     5 (5.1%)      21 (21.2%)
+422
+                GAIA-Level-1          63          22 (34.9%)      18 (28.6%)    8 (12.7%)      15 (23.8%)
+423
+424   Table 3: Validation outcomes of failure hypotheses across datasets. The table reports the number
+425   and percentage of trials classified as Validated, Inconclusive, Partially Validated, or Refuted.
+426
+427   Turning to the validation of failure hypotheses, Table 3 shows that for both WW-AB and WW-
+428   GAIA, the proportions of Validated and Refuted hypotheses are similar, each around 15%, while the
+429   majority (about 60%) fall into the Inconclusive category. In contrast, GAIA-Level-1 exhibits higher
+430   rates of both validated and refuted hypotheses, with inconclusive cases reduced to about 30%. This
+431   pattern suggests that the more difficult cases in WW make it harder for the agent system to reliably
+      carry out the intended interventions.
+
+
+                                                           8
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+432
+      5.3   A BLATION S TUDY
+433
+434   Impact of Different DoVer Underlying Models. To test whether DoVer depends on a proprietary
+435   frontier model, we vary its debugging model while keeping failure traces, the agent system, and all
+436   prompts fixed. In the WW-GAIA setting, we replace GPT-4o with two locally hosted open-source
+437   models, Qwen3-8B and Qwen3-32B in thinking mode. As shown in Table 4, Qwen3-8B recovers
+438   11.3% of 77 trials and Qwen3-32B recovers 16.9% of 87 trials, compared to 17.6% for GPT-4o
+439   over 99 trials. These results show that (i) DoVer does not rely on a single proprietary backend
+440
+      and works with medium-sized local models, and (ii) larger open-source models (e.g., Qwen3-32B)
+      substantially narrow the gap to GPT-4o, underscoring DoVer’s generality and practicality for open-
+441
+      source deployments.
+442
+443                        DoVer Model            Intervened Trials    Trial Success Rate
+444                        Qwen3-8B (0-shot)             77                  11.3%
+445                        Qwen3-8B (3-shot)             77                  14.3%
+446                        Qwen3-32B (0-shot)            87                  16.9%
+447                        GPT-4o (0-shot)               99                  17.6%
+448
+            Table 4: Ablation of DoVer models and few-shot prompting in the WW-GAIA setting.
+449
+450
+451   Effect of Few-Shot Prompting for Smaller DoVer Models. To assess whether prompt-based
+452   guidance can mitigate the limitations of smaller models, we compare DoVer performance with and
+453   without few-shot examples. In the WW-GAIA setting described above, we enhance the intervention-
+454   generation prompt for the Qwen3-8B model by adding three manually curated few-shot examples,
+455
+      each demonstrating how the orchestrator refines an initially suboptimal instruction into a clear and
+      effective one, along with brief context before and after the intervention. The resulting trial success
+456
+      rate is reported as “Qwen3-8B (3-shot)” in Table 4. The results show that Qwen3-8B with this 3-
+457
+      shot prompt achieves a 14.3% trial success rate, compared to 11.3% in the zero-shot setting. This
+458   improvement indicates that even small models can benefit considerably from lightweight in-context
+459   supervision, suggesting that richer prompt design or future supervised or reinforcement learning on
+460   intervention data may further narrow the gap to larger models.
+461
+462   Compare with other Self-Improvement Methods. To contextualize DoVer’s gains, we compare
+463   against two self-improvement style methods adapted from Self-Refine Madaan et al. (2023) and
+464   CRITIC Gou et al. (2023) in the WW-GAIA setting. In the Self-Refine-style baseline, the under-
+465   lying LLM first critiques the final answer given the full session log and then generates a revised
+466   answer in a second pass. In the CRITIC-style baseline, we similarly elicit feedback from the final
+467   answer and log, but inject this feedback as an additional agent message and allow the agent system
+468
+      to run for one extra round so that all tools and sub-agents can react to it. Across all 26 failed WW-
+      GAIA cases, neither baseline is able to flip any failure into success (0% recovery), whereas DoVer
+469
+      recovers 17.6% of trials (Table 2). Further examination reveals why these self-improvement meth-
+470
+      ods fall short: trial trajectories between the initial failure point and the final answer are often long,
+471   noisy, and highly divergent, making end-of-trace refinement insufficient for reliably redirecting the
+472   system. In contrast, DoVer performs in-situ interventions at potential failure points, enabling timely
+473   and targeted corrections that are essential in multi-agent settings.
+474
+475   5.4   Q UALITATIVE C ASE S TUDIES
+476
+477   We next present two representative case studies corresponding to the Refuted and Inconclusive of the
+478   above intervention outcome category while leaving the other two categories in Appendix D. Each
+479   vignette briefly introduce the task context, the hypothesized failure point, the concrete intervention
+480   applied, and the observed outcome.
+481   (1) Refuted: Case 46 (Trial 1) in WW-GAIA
+482
+      - Task: What time was the Tri-Rail train that carried the most passengers on May 27, 2019, sched-
+483
+      uled to arrive in Pompano Beach?
+484
+485   - Diagnosis: The failure proposer hypothesized that the issue arose from WebSurfer’s inability to
+      locate a data file at a particular step, even though WebSurfer had in fact already opened that file.
+
+
+                                                         9
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+486
+      - Intervention: WebSurfer was explicitly instructed to open the file that it had already accessed.
+487
+488   - Effect: Although the intervention generator produced instructions consistent with the hypothesized
+489   failure, and the agents followed these instructions faithfully, the trials still failed. Because the agent
+490
+      correctly executed the intervention and the intervention accurately reflected the failure hypothesis,
+      the resulting failure demonstrates that the original hypothesis was invalid. We therefore classify this
+491
+      trial as refuted.
+492
+493   (2) Inconclusive: Case 21 (Trial 2) in WW-GAIA
+494   - Task: Locate the paper linked at the bottom of Carolyn Collins Petersen’s June 6, 2023 Universe
+495   Today article and identify the NASA award number that supported R. G. Arendt.
+496
+497
+      - Diagnosis: The Orchestrator remained stuck in the planning phase and never activated WebSurfer
+      or other agents. No evidence was collected, leaving the trial incomplete.
+498
+499   - Intervention: The WebSurfer was told to bypass incremental scrolling and jump straight to the
+500   article’s footer to scan for DOIs, arXiv links, or other research references.
+501   - Effect: The WebSurfer could not execute the “scroll-to-bottom” action. Instead, it performed a
+502   single page scroll without reaching the references, so the plan failed to advance. The inconclusive
+503   outcome reflected tool constraints rather than wrong failure hypothesis or intervention. Correct strat-
+504   egy was blocked by limited execution abilities, pointing to the need for stronger action primitives.
+505
+      Across these four cases, DoVer exhibits all intended outcomes: (i) validated when a targeted edit
+506
+      repairs the trajectory; (ii) partially validated when the edit induces measurable progress yet external
+507   frictions block completion; (iii) refuted when faithful execution of the edit leaves the failure state
+508   intact; and (iv) inconclusive when tooling prevents faithful execution of the intended intervention.
+509
+510
+511   5.5   A NALYSIS OF I NCONCLUSIVE C ASES AND TARGETED T OOL E NHANCEMENT
+512
+513
+      The 29–67% Inconclusive cases in Table 3 reveal the limits of orchestrator-level interventions: many
+      failures arise from sub-agent capability gaps the orchestrator cannot resolve. These cases highlight
+514
+      the boundaries of sub-agent competence and indicate the improvement directions. We thus view
+515
+      DoVer as part of a larger debugging loop: (i) DoVer provides automated orchestrator-level interven-
+516   tions; (ii) unresolved failures surface sub-agent weaknesses requiring human or auto refinement.
+517
+518   To illustrate the effectiveness of this “DoVer automation + human-in-the-loop” cycle, we analyzed
+519
+      the failure traces of inconclusive cases in WW-GAIA and discovered two recurring failure modes
+      in WebSurfer: (i) missing a “scroll-to-bottom” tool, causing repeated partial scrolling, and (ii) in-
+520
+      ability to process PDFs, leading to empty summaries. We implemented targeted fixes by adding the
+521
+      scrolling tool and revising PDF handling. After these upgrades, previously inconclusive Cases 20,
+522   21, and 26 can now be solved using only DoVer’s orchestrator-level interventions. This shows that
+523   DoVer not only repairs recoverable failures but also surfaces concrete sub-agent bottlenecks.
+524
+525
+      We see two future work directions depending on the degree of permissible system modification: (i)
+      fully automated debugging loops, where DoVer’s insights feed into automated sub-agent improve-
+526
+      ment (e.g., using a coding agent to implement fixes). (ii) capability-aware intervention generation,
+527
+      allowing DoVer to tailor interventions to known sub-agent limits when code changes are not allowed.
+528   Both directions support the goal of building robust, self-improving multi-agent systems.
+529
+530
+531   6     C ONCLUSION
+532
+533
+      We introduced DoVer, an intervention-driven framework that reframes debugging in LLM-based
+534   multi-agent systems as a do-then-verify process. Rather than relying solely on log-based attribu-
+535   tion, DoVer actively tests failure hypotheses through targeted interventions, recovering 18–28% of
+536   failed trials, making measurable progress in others, and validating or refuting a majority of hypothe-
+537   ses. This outcome-oriented perspective highlights intervention as a practical and scalable tool for
+538   improving reliability, while reducing dependence on ambiguous human annotations. By bridging
+539   failure analysis with practical repair, DoVer takes a step toward more robust, verifiable, and self-
+      improving multi-agent systems.
+
+
+                                                         10
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+540
+      E THICS S TATEMENT
+541
+542
+      We acknowledge the ICLR Code of Ethics and confirm that our work complies with its principles.
+543   Our research does not involve human subjects or personally identifiable information. All datasets
+544   used are publicly available, and we adhered to their licenses and usage policies. We considered
+545   potential risks of privacy leakage, bias, or unfairness, and we believe our findings provide a positive
+546   contribution to the research community without foreseeable harmful applications.
+547
+548
+      R EPRODUCIBILITY S TATEMENT
+549
+550
+      The optimized results on the WW dataset and all major prompt templates are illustrated in the
+551
+      appendix figures. We provide an anonymous repository containing the complete source code and
+552   experiment scripts at: https://anonymous.4open.science/r/DoVer-0734/.
+553
+554
+555
+      R EFERENCES
+556   Negar Arabzadeh, Siqing Huo, Nikhil Mehta, Qingyun Wu, Chi Wang, Ahmed Hassan Awadal-
+557     lah, Charles L. A. Clarke, and Julia Kiseleva. Assessing and verifying task utility in LLM-
+558     powered applications. In Yaser Al-Onaizan, Mohit Bansal, and Yun-Nung Chen (eds.), Pro-
+559     ceedings of the 2024 Conference on Empirical Methods in Natural Language Processing, pp.
+560     21868–21888, Miami, Florida, USA, November 2024. Association for Computational Linguis-
+561     tics. doi: 10.18653/v1/2024.emnlp-main.1219. URL https://aclanthology.org/
+562
+        2024.emnlp-main.1219/.
+563   AutoGen2. Autogen 0.2: An open-source programming framework for agentic ai. https://
+564     microsoft.github.io/autogen/0.2/, 2025. Accessed: 2025-09-01.
+565
+566   Mert Cemri, Melissa Z. Pan, Shuyi Yang, Lakshya A. Agrawal, Bhavya Chopra, Rishabh Tiwari,
+567
+       Kurt Keutzer, Aditya Parameswaran, Dan Klein, Kannan Ramchandran, Matei Zaharia, Joseph E.
+       Gonzalez, and Ion Stoica. Why do multi-agent llm systems fail?, 2025. URL https://arxiv.
+568
+       org/abs/2503.13657.
+569
+570   Darshan Deshpande, Varun Gangal, Hersh Mehta, Jitin Krishnan, Anand Kannappan, and Rebecca
+571     Qian. TRAIL: trace reasoning and agentic issue localization. CoRR, abs/2505.08638, 2025.
+572     doi: 10.48550/ARXIV.2505.08638. URL https://doi.org/10.48550/arXiv.2505.
+573     08638.
+574
+      Will Epperson, Gagan Bansal, Victor C Dibia, Adam Fourney, Jack Gerrits, Erkang (Eric) Zhu, and
+575    Saleema Amershi. Interactive debugging and steering of multi-agent ai systems. In Proceed-
+576    ings of the 2025 CHI Conference on Human Factors in Computing Systems, CHI ’25, pp. 1–15.
+577    ACM, April 2025. doi: 10.1145/3706598.3713581. URL http://dx.doi.org/10.1145/
+578    3706598.3713581.
+579
+580
+      Adam Fourney, Gagan Bansal, Hussein Mozannar, Cheng Tan, Eduardo Salinas, Erkang Zhu,
+        Friederike Niedtner, Grace Proebsting, Griffin Bassman, Jack Gerrits, Jacob Alber, Peter Chang,
+581
+        Ricky Loynd, Robert West, Victor Dibia, Ahmed Awadallah, Ece Kamar, Rafah Hosn, and
+582
+        Saleema Amershi. Magentic-one: A generalist multi-agent system for solving complex tasks.
+583     CoRR, abs/2411.04468, 2024. doi: 10.48550/ARXIV.2411.04468. URL https://doi.org/
+584     10.48550/arXiv.2411.04468.
+585
+586   Zhibin Gou, Zhihong Shao, Yeyun Gong, Yelong Shen, Yujiu Yang, Nan Duan, and Weizhu Chen.
+587     Critic: Large language models can self-correct with tool-interactive critiquing. arXiv preprint
+588
+        arXiv:2305.11738, 2023.
+589   Sirui Hong, Mingchen Zhuge, Jonathan Chen, Xiawu Zheng, Yuheng Cheng, Jinlin Wang, Ceyao
+590     Zhang, Zili Wang, Steven Ka Shing Yau, Zijuan Lin, Liyang Zhou, Chenyu Ran, Lingfeng
+591     Xiao, Chenglin Wu, and Jürgen Schmidhuber. Metagpt: Meta programming for A multi-agent
+592     collaborative framework. In The Twelfth International Conference on Learning Representa-
+593     tions, ICLR 2024, Vienna, Austria, May 7-11, 2024. OpenReview.net, 2024. URL https:
+        //openreview.net/forum?id=VtmBAGCN7o.
+
+
+                                                        11
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+594
+      LangChain.  Langgraph: Time travel (checkpoints & forking) — human-in-the-loop.
+595     https://langchain-ai.github.io/langgraph/how-tos/human_in_the_
+596     loop/time-travel/, 2025. Accessed: 2025-09-01.
+597
+598   Guohao Li, Hasan Hammoud, Hani Itani, Dmitrii Khizbullin, and Bernard Ghanem. CAMEL:
+599     communicative agents for ”mind” exploration of large language model society. In Alice Oh,
+600     Tristan Naumann, Amir Globerson, Kate Saenko, Moritz Hardt, and Sergey Levine (eds.),
+601     Advances in Neural Information Processing Systems 36: Annual Conference on Neural In-
+602
+        formation Processing Systems 2023, NeurIPS 2023, New Orleans, LA, USA, December 10 -
+        16, 2023, 2023. URL http://papers.nips.cc/paper_files/paper/2023/hash/
+603
+        a3621ee907def47c1b952ade25c67698-Abstract-Conference.html.
+604
+605   Qintong Li, Leyang Cui, Xueliang Zhao, Lingpeng Kong, and Wei Bi. Gsm-plus: A comprehensive
+606     benchmark for evaluating the robustness of llms as mathematical problem solvers. arXiv preprint
+607     arXiv:2402.19255, 2024.
+608
+609   Aman Madaan, Niket Tandon, Prakhar Gupta, Skyler Hallinan, Luyu Gao, Sarah Wiegreffe, Uri
+610    Alon, Nouha Dziri, Shrimai Prabhumoye, Yiming Yang, et al. Self-refine: Iterative refinement
+611    with self-feedback. Advances in Neural Information Processing Systems, 36:46534–46594, 2023.
+612
+      Grégoire Mialon, Clémentine Fourrier, Thomas Wolf, Yann LeCun, and Thomas Scialom. GAIA:
+613
+        a benchmark for general AI assistants. In The Twelfth International Conference on Learning
+614     Representations, ICLR 2024, Vienna, Austria, May 7-11, 2024. OpenReview.net, 2024. URL
+615     https://openreview.net/forumReact?id=fibxvahvs3.
+616
+617   Alfin Wijaya Rahardja, Junwei Liu, Weitong Chen, Zhenpeng Chen, and Yiling Lou. Can agents fix
+618     agent issues? CoRR, abs/2505.20749, 2025. doi: 10.48550/ARXIV.2505.20749. URL https:
+619     //doi.org/10.48550/arXiv.2505.20749.
+620
+      Pat Rondon, Renyao Wei, José Cambronero, Jürgen Cito, Aaron Sun, Siddhant Sanyam, Michele
+621
+        Tufano, and Satish Chandra. Evaluating agent-based program repair at google. In 47th
+622
+        IEEE/ACM International Conference on Software Engineering: Software Engineering in Prac-
+623     tice, SEIP@ICSE 2025, Ottawa, ON, Canada, April 27 - May 3, 2025, pp. 365–376. IEEE,
+624     2025. doi: 10.1109/ICSE-SEIP66354.2025.00038. URL https://doi.org/10.1109/
+625     ICSE-SEIP66354.2025.00038.
+626
+627   Noah Shinn, Federico Cassano, Ashwin Gopinath, Karthik Narasimhan, and Shunyu Yao. Re-
+628     flexion: language agents with verbal reinforcement learning. In Alice Oh, Tristan Nau-
+629     mann, Amir Globerson, Kate Saenko, Moritz Hardt, and Sergey Levine (eds.), Advances
+630     in Neural Information Processing Systems 36: Annual Conference on Neural Informa-
+631
+        tion Processing Systems 2023, NeurIPS 2023, New Orleans, LA, USA, December 10 - 16,
+        2023, 2023. URL http://papers.nips.cc/paper_files/paper/2023/hash/
+632
+        1b44b878bb782e6954cd888628510e90-Abstract-Conference.html.
+633
+634   SmolAgents. smolagents: a barebones library for agents that think in code. https://github.
+635     com/huggingface/smolagents, 2025. Accessed: 2025-09-01.
+636
+637   Qingyun Wu, Gagan Bansal, Jieyu Zhang, Yiran Wu, Shaokun Zhang, Erkang Zhu, Beibin Li,
+638     Li Jiang, Xiaoyun Zhang, and Chi Wang. Autogen: Enabling next-gen LLM applications via
+639     multi-agent conversation framework. CoRR, abs/2308.08155, 2023a. doi: 10.48550/ARXIV.
+640
+        2308.08155. URL https://doi.org/10.48550/arXiv.2308.08155.
+641
+      Yiran Wu, Feiran Jia, Shaokun Zhang, Hangyu Li, Erkang Zhu, Yue Wang, Yin Tat Lee, Richard
+642     Peng, Qingyun Wu, and Chi Wang. Mathchat: Converse to tackle challenging math problems
+643     with llm agents. arXiv preprint arXiv:2306.01337, 2023b.
+644
+645   Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik R. Narasimhan, and Yuan
+646     Cao. React: Synergizing reasoning and acting in language models. In The Eleventh International
+647     Conference on Learning Representations, ICLR 2023, Kigali, Rwanda, May 1-5, 2023, 2023.
+        URL https://openreview.net/forum?id=WE_vluYUL-X.
+
+
+                                                     12
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+648
+      Ori Yoran, Samuel Joseph Amouyal, Chaitanya Malaviya, Ben Bogin, Ofir Press, and Jonathan
+649     Berant. Assistantbench: Can web agents solve realistic and time-consuming tasks?       In
+650     Yaser Al-Onaizan, Mohit Bansal, and Yun-Nung Chen (eds.), Proceedings of the 2024 Confer-
+651     ence on Empirical Methods in Natural Language Processing, EMNLP 2024, Miami, FL, USA,
+652     November 12-16, 2024, pp. 8938–8968. Association for Computational Linguistics, 2024. doi:
+653     10.18653/V1/2024.EMNLP-MAIN.505. URL https://doi.org/10.18653/v1/2024.
+654     emnlp-main.505.
+655
+      Guibin Zhang, Junhao Wang, Junjie Chen, Wangchunshu Zhou, Kun Wang, and Shuicheng
+656
+        Yan. Agentracer: Who is inducing failure in the llm agentic systems? arXiv preprint
+657
+        arXiv:2509.03312, 2025a.
+658
+659   Shaokun Zhang, Ming Yin, Jieyu Zhang, Jiale Liu, Zhiguang Han, Jingyang Zhang, Beibin Li,
+660     Chi Wang, Huazheng Wang, Yiran Chen, and Qingyun Wu. Which agent causes task failures
+661     and when? on automated failure attribution of LLM multi-agent systems. In Forty-second In-
+662     ternational Conference on Machine Learning, 2025b. URL https://openreview.net/
+663     forum?id=GazlTYxZss.
+664
+      Mingchen Zhuge, Changsheng Zhao, Dylan R. Ashley, Wenyi Wang, Dmitrii Khizbullin, Yunyang
+665    Xiong, Zechun Liu, Ernie Chang, Raghuraman Krishnamoorthi, Yuandong Tian, Yangyang Shi,
+666    Vikas Chandra, and Jürgen Schmidhuber. Agent-as-a-judge: Evaluate agents with agents. CoRR,
+667    abs/2410.10934, 2024. doi: 10.48550/ARXIV.2410.10934. URL https://doi.org/10.
+668    48550/arXiv.2410.10934.
+669
+670
+671   A    R EVISIT L OG - BASED FAILURE ATTRIBUTION ON THE W HO &W HEN
+672        DATASET
+673
+674
+                                          Hand Crafted                      Algorithm Generated
+675           Method
+676                             Agent-Level Acc.   Step-Level Acc.   Agent-Level Acc.    Step-Level Acc.
+677            Random                 12.00              4.16              29.10              19.06
+678        Baseline (WW)              55.17              5.26              54.33              12.50
+679      Baseline (GPT-4o)         55.17±8.09         6.04±2.23         55.16±2.71         15.28±2.70
+       + Step Index (GPT-4o)       52.30±1.00        20.69±2.98         58.73±3.46         40.47±4.20
+680
+       + Guidance (GPT-4o)         59.19±1.99        23.56±4.98         57.41±1.83         35.45±3.58
+681     + Guidance (GPT-5)         59.19±1.99        23.56±1.00         62.43±1.66         45.77±1.65
+682
+683   Table 5: Reproduced evaluation results on the WW dataset using the All-at-Once method with
+684   the ground-truth annotation. Results are reported for both Hand-Crafted and Algorithm-Generated
+685   scenarios at agent-level and step-level accuracy. Rows show baseline results from WW, our repro-
+686   duction with GPT-4o, and refinements with explicit step indices and guidance reminders, as well
+687   as the latest GPT-5 model.
+688
+689   In this section, we revisit the log-based failure attribution task on the Who&When (WW) dataset. We
+690   present the details of our reproduced evaluation on WW as well as two minimal, non-invasive prompt
+691   refinements. We further examine the ground-truth labels in WW, providing detailed annotation notes
+692
+      for each examined case and discussing sources of uncertainty during ground-truth annotation.
+693   Our reproduced evaluation on WW focuses on the All-at-Once (AAO) method, in which a single
+694   LLM call is made over the full input log. While we also reproduced results for the other two
+695   methods, “Step-by-Step” and “Binary Search” introduced in WW, we focus on AAO because it
+696   requires only one LLM call and achieves performance comparable to the other methods. In our
+697   reproduction, we run experiments with both GPT-4o and GPT-5, repeating each run three times to
+698
+      reduce randomness. Detailed results are shown in Table 5. Following WW, we include the ground-
+      truth annotation in the AAO prompt (the “With Ground-Truth” setting); results without ground-truth
+699
+      are similar and omitted for brevity.
+700
+701   Table 5 first lists the “Random” setting and the reported results in WW (denoted as “Baseline”).
+      Examining the baseline failure cases yields two observations. First, for some cases the predicted
+
+
+                                                      13
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+702
+      failure step index is hallucinated, i.e., the index exceeds the total number of steps in the log. Specif-
+703   ically, we find that the percentages of cases exhibiting this issue are 13.8% and 20.6% for the “Hand
+704   Crafted” and “Algorithm Generated” scenarios, respectively. To mitigate this, we add explicit step
+705   indices to the failure log (see Figure 3). The corresponding results appear in the “+Step Index” row
+706   of Table 5. This simple change substantially improves step-level attribution accuracy. We addition-
+707   ally verify that no outputs have out-of-range indices after this modification. Second, the baseline
+708   AAO prompt does not explicitly restate the guidance used during ground-truth annotation, which
+709   may cause LLMs and human annotators to apply different criteria for the failure agent/step. To align
+710   the criteria, we embed a concise reminder of the annotators’ guidance into the baseline prompt (see
+711
+      Figure 3). With this addition, attribution performance improves further; see the “+Guidance” row in
+      Table 5.
+712
+713   Despite these prompt refinements, step-level attribution accuracy remains only around 20%, even
+714   with the latest GPT-5 model. To better understand this gap, we compare model outputs with ground-
+715   truth labels and find that a major contributing factor is uncertainty in the ground-truth annotation.
+716   As discussed in Section 3, we identify three sources of annotation uncertainty. Table 6 provides
+717
+      detailed annotation notes for each GAIA case presented in WW. For example, for Case 3, we list the
+      step ranges for all 4 trial presented in the log. In each trial, we also provide the annotation notes for
+718
+      key steps (e.g., for the current ground-truth annotation Step 32, we agree that it can be a potential
+719
+      error step). Brief trial summary for later Trials 2/3/4 are also given in which we explicitly point out
+720   whether new strategies of solving task are explored. Note that we exclude Case 25 due to ambiguity
+721   in its question (i.e., two different ways of interpreting the year of 2019).
+722
+723
+      In our independent annotation, we also tag each case along the following dimensions: (i) whether the
+      ground-truth failure step appears correct; (ii) whether alternative failure steps can be justified when
+724
+      the log contains multiple trials exploring different strategies; (iii) whether agent/step attribution is
+725
+      ambiguous; and (iv) whether API errors or flaky behavior are present. We then mark a case as
+726   uncertain if any of the first three tags is positive. The full tagging results are summarized in Table 7,
+727   which also includes auxiliary information such as the number of trials, the GT failure step from
+728   WW, and the outputs from each model run. Outputs matching the GT failure step are highlighted
+729   in green. As shown, agreement between model outputs and GT labels is substantially higher for
+730   cases with uncertain GT annotation (i.e., where the “Is Current GT Uncertain?” column equals 1)
+731   than for cases with more certain GT annotation. This finding indicates that current log-based failure
+732   attribution can be confounded by uncertainty in ground-truth labels, motivating the intervention-
+733   based auto-debugging approach presented in the main text.
+734
+                   Table 6: Detailed annotation notes for each GAIA case in WW. The table
+735
+                   records trial-level observations, potential errors, ambiguous attributions,
+736
+                   and API issues associated with the ground-truth labels.
+737
+738    WW ID       Annotation Notes
+739     3          Trial 1 (Step 0–38):
+740                – Step 32: current GT; potential error as WebSurfer did not directly scroll to the
+741                bottom as instructed.
+742                Trial 2 (Step 39–65): Tried a new strategy using the calendar feature but remained
+743                stuck navigating within the calendar.
+744                – Steps 53–55: Ambiguous Agent/Step Attribution; WebSurfer could not click the
+745
+                   target year instructed by Orchestrator because the calendar tool lacks a year filter.
+                   Trial 3 (Step 66–87): Repeated a path similar to Trial 1, proposing a new strategy
+746
+                   of leveraging URL patterns near the end.
+747
+                   Trial 4 (Step 88–92): Explored the URL-pattern strategy but encountered an LLM
+748                API error.
+749                – Step 92: LLM API error due to content filter.
+750        5       Step 12: current GT; potential error due to missing OCR text.
+751                Steps 12–16: Ambiguous Agent/Step Attribution; Orchestrator did not verify the
+752                OCR output but still instructed WebSurfer to proceed, and WebSurfer did not per-
+753                form a sanity check and guessed the answer.
+754                                                                              Continued on next page
+755
+
+
+
+                                                         14
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+756    Continued from previous page
+757    WW ID Annotation Notes
+758       9       Trial 1 (0–25):
+759               – Step 25: current GT; potential error due to unnecessary replanning.
+760               Trial 2 (26–51): Repeated the strategy in Trial 1.
+761               Trial 3 (52–74): Tried a new website.
+762               Trial 4 (75–94): Visited the same websites as before.
+763      11       Trial 1 (Step 0–38):
+764
+                  – Step 24: current GT; no obvious error. If attributing a mistake to not recognizing
+                  clickable tabs, one may attribute earlier Steps such as 12/16/20.
+765
+                  Trial 2 (39–73): Repeated the same page-scrolling as Trial 1; tried a new strategy
+766
+                  of in-page search but got stuck.
+767               – Step 67: potential error using the email feature for search.
+768               Trial 3 (74–115): Made progress and identified the correct oldest flavor; stuck at
+769               inspecting the background photo.
+770               Trial 4 (116–129): Tried directly searching for the target photo from other sources;
+771               terminated due to max rounds reached.
+772               – Step 129: almost solved the task but stopped due to max rounds reached.
+773      20       Trial 1 (0–34):
+774               – Step 3: current GT; no obvious error.
+775
+                  – Step 24: potential error; unable to open the downloaded PDF.
+                  – Steps 30–32: Ambiguous Agent/Step Attribution; Orchestrator asked FileSurfer
+776
+                  to open a paper that had not been downloaded; FileSurfer tried to open a halluci-
+777
+                  nated file path.
+778               Trial 2 (35–66): Still stuck downloading/opening the PDF; LLM API error due to
+779               content filter.
+780               – Step 66: LLM API error due to content filter.
+781      21       Step 4: current GT; no obvious error.
+782               Step 24: LLM API error due to content filter.
+783      22       Step 4: current GT; no obvious error.
+784               Steps 14–20: Ambiguous Agent/Step Attribution; Orchestrator instructed
+785               FileSurfer to process a downloaded PDF that WebSurfer had not clearly down-
+786               loaded, resulting in “File not found.”
+787
+                  Step 23: LLM API error due to content filter.
+788
+         27       Trial 1 (Step 0–30):
+                  – Step 4: current GT; no obvious error.
+789
+                  – Steps 18–20: Ambiguous Agent/Step Attribution; Orchestrator instructed
+790
+                  FileSurfer to process a downloaded PDF that WebSurfer had not clearly down-
+791               loaded, resulting in “File not found.”
+792               Trial 2 (Step 31–50): Encountered the same “File not found” issue, tried to resolve
+793               it, then terminated due to LLM API error.
+794               – Step 50: LLM API error due to content filter.
+795      41       Trial 1 (0–37):
+796               – Step 8: current GT; no obvious error.
+797               – Step 16: potential error; access to the desired website was blocked by human veri-
+798               fication.
+799
+                  Trial 2 (38–82): Tried a different website; attempted a new strategy of asking for
+                  help by submitting a post; terminated due to LLM API error from content filter.
+800
+                  – Step 82: LLM API error due to content filter.
+801
+                                                                                 Continued on next page
+802
+803
+804
+805
+806
+807
+808
+809
+
+
+
+                                                     15
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+810    Continued from previous page
+811    WW ID Annotation Notes
+812      46       Trial 1 (0–42):
+813               – Step 32: current GT; if attributing to this step due to failure to retrieve the desired
+814               information, one may attribute earlier steps such as Step 20.
+815               Trial 2 (43–93): Initially still stuck finding relevant information; later tried a new
+816               strategy of contacting a potential source via email but was unable to send it.
+817               Trial 3 (94–123): Continued exploring direct-contact strategies; tried a new strategy
+818
+                  of live chat and phone call but did not succeed.
+                  Trial 4 (124–129): Continued direct-contact strategy; terminated due to max rounds
+819
+                  reached.
+820
+                  – Step 129: max rounds reached.
+821      47       Trial 1 (0–50):
+822               – Step 24: potential error; FileSurfer did not follow the instruction to unzip a file.
+823               Trial 2 (51–66): Tried a new strategy using ComputerTerminal to run code gener-
+824               ated by Orchestrator; got a wrong answer due to incorrect code.
+825               – Step 51: current GT; potential error due to wrong code.
+826      51       Trial 1 (0–31):
+827               – Step 5: current GT; potential error; FileSurfer unable to transcribe an MP3 audio
+828               file.
+829
+                  Trial 2 (32–46): Tried another device but was not successful.
+                  Trial 3 (47–99): Attempted to use a new strategy of using online service to tran-
+830
+                  scribe audio; not successful.
+831
+                  Trial 4 (100–122): Continued exploring the online-service approach.
+832
+         56       Trial 1 (0–33):
+833               – Step 4: current GT; no obvious error.
+834               Trial 2 (34–67): Tried a different website; stuck locating the desired information.
+835               Trial 3 (68–94): Tried another website but still could not locate the desired infor-
+836               mation.
+837               Trial 4 (95–128): Returned to the initially explored website; deeply explored its
+838               content; terminated due to max rounds reached.
+839               – Step 128: max rounds reached.
+840      58       Trial 1 (0–22):
+841
+                  – Step 22: current GT; potential error due to unnecessary triggering of replanning.
+                  Trial 2 (23–81): Repeated steps from Trial 1; made progress and explored new
+842
+                  ways to find the “Regression” label but each attempt failed.
+843
+                  Trial 3 (82–105): Continued web search for the desired page but landed on the
+844               wrong page, leading to an incorrect final result.
+845       7       GT appears correct.
+846      12       GT appears correct.
+847      14       GT appears correct.
+848      24       GT appears correct.
+849      26       Step 32: current GT; LLM API error due to content filter.
+850      29       Step 12: current GT; LLM API error due to content filter.
+851      33       Step 8: current GT; LLM API error due to content filter.
+852      34       Step 4: current GT; LLM API error due to content filter.
+853      37       Trial 1 (0–24):
+854               – Step 4: current GT; potential error due to unspecified search query.
+855               Trial 2 (24–58): Continued the same strategy as Trial 1.
+856
+                  – Step 58: LLM API error due to content filter.
+         42       GT appears correct.
+857
+         43       GT appears correct.
+858
+         45       Step 20: current GT; LLM API error due to content filter.
+859
+         49       GT appears correct.
+860
+         53       GT appears correct.
+861      54       GT appears correct.
+862
+863
+
+
+
+                                                       16
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+864
+865
+866
+867
+868
+869
+870
+871
+872
+873                                                         Optimal Prompt Template
+
+874    You are an AI assistant tasked with analyzing a multi-agent conversation history when solving a real world problem.
+
+875    Here is the Annotation Guideline:
+
+876    Failure Responsible Agent:
+
+877    a) Select the single agent that should be directly responsible for this failure in your mind. Allow for some subjectivity, but be
+       prepared to give your reasons.
+878    b) Don't be too strict. If there exist agents that do redundant steps and agents that make mistakes, choose the agent who makes
+       mistakes.
+879    c) If there are no agents that make obvious mistakes, decide one single agent in your mind.
+880    d) If multiple agents make mistakes, choose the one that made the most serious mistake.
+
+881    Decisive error step:
+
+882    a) First decide one single mistake agent, then decide one single mistake step. The Mistake step must be made by the mistake agent.
+       b) If the mistake agent makes mistakes in multiple steps, choose the first step.
+883    c) Index from 0.
+       Failure Reasons:
+884    a) First, use natural language to describe the reason. E.g.,
+       "The agent wrote the wrong code."
+885    b) Make sure the reader could understand the annotations.
+886
+       Others:
+887
+       a) Accurately record the time of labeling.
+888    b) Mark all annotation if you have any uncertain, and then we need to vote and discuss later.
+
+889    While following the Annotation Guideline above, you must still strictly produce the final answer in the exact output format
+       specified below.
+890
+       The problem is: {problem}
+891    The Answer for the problem is: {ground_truth}
+892    Identify which agent made an error, at which step, and explain the reason for the error. Here's the conversation:
+
+893    [Step {step_idx_i}] {agent_name_i}: {content_i}…
+
+894    Based on this conversation, please predict the following:
+       1. The name of the agent who made a mistake that should be directly responsible for the wrong solution to the real world problem.
+895    If there are no agents that make obvious mistakes, decide one single agent in your mind. Directly output the name of the Expert.
+       2. In which step the mistake agent first made mistake. For example, in a conversation structured as follows:
+896    {
+          [Step 0] "agent a": "xx",
+897       [Step 1] "agent b": "xxxx",
+          [Step 2] "agent c": "xxxxx",
+898       [Step 3] "agent a": "xxxxxxx"
+899    },
+       each entry represents a 'step' where an agent provides input. The 'x' symbolizes the speech of each agent. If the mistake is in
+900    agent c's speech, the step number is 2. If the second speech by 'agent a' contains the mistake, the step number is 3, and so on.
+       Please determine the step number where the first mistake occurred.
+901    Important: Count steps strictly using the bracketed indices [Step k] shown in the conversation/example, and report the first [Step
+       k] where the mistake first appears.
+902    3. The reason for your prediction.
+       Output exactly in this format (no extra text):
+903    Please answer in the format:
+       Agent Name: (Your prediction)\n
+904    Step Number: (Your prediction)\n
+905    Reason for Mistake: \n
+
+906
+907
+908   Figure 3: Extended prompt template: orange marks explicit step indices, and blue marks the embed-
+909   ded concise reminder of annotators’ guidance.
+910
+911
+912
+913
+914
+915
+916
+917
+
+
+
+                                                                      17
+      971
+      970
+      969
+      968
+      967
+      966
+                          965
+                          964
+                          963
+                          962
+                          961
+                          960
+                                                959
+                                                958
+                                                957
+                                                956
+                                                955
+                                                                    954
+                                                                    953
+                                                                    952
+                                                                    951
+                                                                    950
+                                                                    949
+                                                                                            948
+                                                                                            947
+                                                                                            946
+                                                                                            945
+                                                                                            944
+                                                                                            943
+                                                                                                                   942
+                                                                                                                   941
+                                                                                                                   940
+                                                                                                                   939
+                                                                                                                   938
+                                                                                                                   937
+                                                                                                                                         936
+                                                                                                                                         935
+                                                                                                                                         934
+                                                                                                                                         933
+                                                                                                                                         932
+                                                                                                                                                          931
+                                                                                                                                                          930
+                                                                                                                                                          929
+                                                                                                                                                          928
+                                                                                                                                                          927
+                                                                                                                                                          926
+                                                                                                                                                                                 925
+                                                                                                                                                                                 924
+                                                                                                                                                                                 923
+                                                                                                                                                                                 922
+                                                                                                                                                                                 921
+                                                                                                                                                                                 920
+                                                                                                                                                                                                    919
+                                                                                                                                                                                                    918
+
+
+
+
+                 Is Current     Does GT Step       Can Multi-Failures be         Has Ambiguity in            Is API Error or     Trial   Ground-truth       GPT-4o-20241120        GPT-5-chat-20250807
+       WW ID
+                GT Uncertain?   Look Correct?   Extracted from Multi-Trials?   Agent/Step Attribution?   Flaky Issue Observed?   Count   Mistake Step   Run 1    Run 2   Run 3   Run 1    Run 2    Run 3
+         3           1               0                       1                           1                          1              4          32          4       14       14     39       39       39
+         5           1               0                       0                           1                          0              1          12         16       16       16     16       16       16
+         9           1               0                       1                           0                          0              4          25         42        3       42     26       26       26
+         11          1               1                       1                           0                          0              4          24          4        4        4     128      128      128
+         20          1               1                       0                           1                          1              2           3          4        4        3     20       20       20
+         21          1               1                       0                           0                          1              1           4          4        4       16     24       24       24
+         22          1               1                       0                           1                          1              1           4          4        9       20     23       19       23
+         27          1               1                       0                           1                          1              2           4          4       16       24     20       20       20
+         41          1               1                       1                           0                          1              2           8         16        6        5      4        4         4
+         46          1               0                       1                           0                          0              4          32          4       58       63     129      129      129
+         47          1               0                       1                           0                          0              2          51         16        4        4     59       59       59
+         51          1               0                       1                           0                          0              4           5          5        5        5       5        5        5
+         56          1               1                       1                           0                          0              4           4          4        4       11     11       11       11
+         58          1               0                       1                           0                          0              3          22          4        4        4     39       39       39
+         7           0               0                       0                           0                          0              1           8          4        4        4      4        4         4
+         12          0               0                       0                           0                          0              1          16         16        16       16     16       16       16
+                                                                                                                                                                                                           Under review as a conference paper at ICLR 2026
+
+
+
+
+18
+         14          0               0                       0                           0                          0              1          14         31       31       30      14       14       14
+         24          0               0                       0                           0                          0              1           1          1        1        1       1        1        1
+         26          0               0                       0                           0                          1              1          32         16       16       16     16       16       16
+         29          0               0                       0                           0                          1              1          12          4        4        4      6        6        10
+         33          0               0                       0                           0                          1              1           8          4        4        4      4        4         4
+         34          0               0                       0                           0                          1              1           4          4        2        4      6        0         0
+         37          0               0                       0                           0                          1              2           4          4        4        3       4        4        4
+         42          0               0                       0                           0                          0              1          29         29       28        4      29       29       29
+         43          0               0                       0                           0                          0              1          12         12        12       12     12       12       12
+         45          0               0                       0                           0                          1              1          20          4        6        8      1        1         1
+         49          0               0                       0                           0                          0              1          12         12        12       12     12       12       12
+         53          0               0                       0                           0                          0              1          24         24        24       24     24       24       24
+         54          0               0                       0                           0                          0              1          15         16       16       16     16       16       16
+
+     Table 7: Tagging results for each GAIA case in WW. The table reports ground-truth annotations, uncertainty tags, possibility for multi-failure step attribution,
+     presence of ambiguous attributions, potential API or flaky errors, and case-specific details such as number of trials and model outputs. Model predictions matching
+     the ground-truth failure step are highlighted in green.
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+972
+       B    P ROMPTS U SED IN D OV ER
+973
+974    In our debugging pipeline, we adopt a layered prompt template design to enable systematic diagnosis
+975    and intervention. The Trial Segmenter first partitions the full session log into trials according to
+976    the “plan–execution” structure, identifying the indices of the initial planning step and each major
+977    plan update. It outputs only the step indices and criteria for initial planning and update planning,
+978    providing anchor points for subsequent trial-level analysis.
+979
+       Next, the Failure Proposer summarizes each trial by extracting its plan and execution trajectory,
+980    reporting success or failure. In case of failure, it locates the earliest error step, identifies the respon-
+981    sible agent, and articulates the error reason—information that drives the subsequent generation of
+982    interventions.
+983
+       The Intervention Recommender then generates the minimal executable fix under the combined con-
+984
+       straints of task description, ground-truth answer, and localized failure context (previous two steps +
+985
+       failure step). Its output is unified in JSON format, specifying both the intervention category and the
+986    proposed replacement text.
+987
+988    In parallel, the Ground-Truth Milestone Extractor abstracts each problem and its answer into at most
+989
+       five tool-agnostic milestones, each containing order, title, action, and result, to serve as a process-
+       oriented progress standard. The Milestone Evaluator then aligns the real execution trace with these
+990
+       milestones, classifying each as achieved, partial, or missed, and detecting whether a “new path”
+991
+       was explored along with its feasibility and contribution—thus providing a quantitative measure of
+992    whether substantial progress was made.
+993
+994    Finally, the module mislocalization or insufficient fix proposer is applied after re-running the sys-
+995
+       tem with the intervention, distinguishing between “success after intervention,” “instruction not exe-
+       cuted,” and “applied but mislocalized/insufficient fix,” and providing alignment evidence to support
+996
+       hypothesis validation and close-loop feedback.
+997
+998
+999    C    E NABLING D OV ER ON AUTO G EN 2
+1000
+1001   To assess whether DoVer can be applied beyond Magentic-One, we integrated it with a MathChat
+1002
+       multi-agent system built on the AutoGen2 (AG2) framework for the GSMPlus experiments. This
+       appendix summarizes how we added checkpoint and re-execution functions to AG2 and how DoVer
+1003
+       reuses this mechanism with minimal changes.
+1004
+1005
+       Overview of MathChat in AG2. MathChat in AG2 follows a group-chat pattern rather than an
+1006   explicit planner–executor loop as in M1. A manager agent coordinates several specialized workers
+1007   (e.g., a problem solver, a code executor, and a verifier). At each turn, the manager selects the
+1008   next speaker based on the conversation state. There is no dedicated “planner” agent; instead, new
+1009   reasoning attempts or verification cycles emerge when different specialists are invoked.
+1010
+1011   Enhancing AG2 with Checkpointing and Replay. Since AG2 does not natively support check-
+1012   pointing and replay functions, we implemented a lightweight checkpointing layer around the AG2
+1013   conversation manager. Specifically, after each agent turn, we serialize the full logical state needed
+1014   to resume the run, including:
+1015   • the conversation history up to that step (messages, speaker identities, and any tool outputs);
+1016
+       • the configuration of all agents in the chat (roles, prompts, tool bindings);
+1017
+1018
+       • the underlying LLM configuration (model name, temperature, decoding parameters).
+1019   For MathChat, there is no persistent external environment beyond these components, so we do not
+1020   need to snapshot additional tool state. Each checkpoint is stored as a structured object keyed by
+1021   the step index, enabling us to load the system state at any past turn. We have released this AG2
+1022   enhancement with checkpointing and replay functions in our anonymous repository linked in this
+1023   paper.
+1024
+1025   Enabling DoVer on MathChat in AG2. To run DoVer interventions, we load the checkpoint
+       corresponding to the target step, reconstruct the manager and agents from the serialized state, and
+
+
+                                                           19
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1026
+       then apply the intervention by editing the message at the target step (for example, replacing the
+1027   manager’s instruction with the text proposed by DoVer). We then resume the conversation from
+1028   the target step onward using the original AG2 run loop. Because interventions operate only at
+1029   the message-passing layer over restored state, this integration does not require changes to AG2’s
+1030   core scheduling or tool interfaces; the DoVer pipeline, including trial segmentation and intervention
+1031   generation, can be reused unchanged after adapting prompts to the MathChat setting.
+1032
+1033   Implementation Effort. The AG2 integration required adding a checkpoint-aware wrapper
+1034   around the conversation manager and a small amount of glue code to bridge checkpoints with
+1035   DoVer’s intervention executor. In practice, this amounted to on the order of one thousand lines
+1036   of code and a few days of work by a single engineer, aided by LLM-based coding assistance. Once
+1037
+       this infrastructure is in place, plugging DoVer into a new AG2-based multi-agent application mainly
+       requires registering checkpoint capture, exposing a replay entry point from a given step index, and
+1038
+       mapping DoVer’s intervention categories to concrete message edits at that step.
+1039
+1040
+       Guidelines for Enabling DoVer in Other Agent Frameworks. We highlight several design prin-
+1041   ciples from the above integration experience:
+1042
+1043   1. Minimal-invasive Design: By wrapping core components (e.g., chat manager in AG2) with
+1044      checkpoint-aware versions, we preserved existing architecture while enabling checkpointing.
+1045   2. Capture Full System State: We used LLM-assisted tooling to identify all relevant state variables
+1046      (e.g., agent configs, LLM settings, conversation history), ensuring accurate restoration.
+1047   3. Intervention via Checkpoint Manipulation: Interventions operate directly on structured check-
+1048      point data, enabling seamless reuse of restoration and replay logic.
+1049
+1050   We hope these guidelines make it easier to integrate DoVer into a wide range of agent systems.
+1051
+1052   D    S AMPLE “VALIDATED ” AND “PARTIALLY VALIDATED ” C ASES
+1053
+1054   (1) Validated: Case 3 (Trial 1) in WW-GAIA
+1055
+1056
+       - Task: Identify the architectural firm associated with a Chicago landmark referred to indirectly via
+       a NASA APOD entry from Aug. 1–7, 2015, as shown in Figure 1.
+1057
+1058   - Diagnosis: The WebSurfer agent engaged in prolonged, aimless scrolling of the APOD archive
+1059   and repeatedly missed the required date-bounded entries, despite receiving explicit guidance.
+1060   - Intervention: We replaced unstructured scrolling with an in-archive, date-bounded keyword strat-
+1061   egy: “Search the APOD archive directly, restrict to August 1–7, 2015, and scan for ‘city lights’ /
+1062   ‘horizon’; report the entry title, date, and a brief summary”.
+1063
+       - Effect: The system revised its plan to prioritize date/keyword filters, issued a targeted query, and
+1064
+       quickly converged along the reasoning chain Marquette (city) → Jacques Marquette (namesake)
+1065
+       → Marquette Building (Chicago) → Holabird & Roche (architects), yielding the correct first name
+1066   “Holabird.” The failed trial flipped to success, validating both the hypothesis (strategy error) and
+1067   the remedy (focused retrieval).
+1068
+1069
+       (2) Partially Validated: Case 56 (Trial 3) in WW-GAIA
+1070   - Task: According to Google Finance, when was the first year the Apple stock went above $50
+1071   (without adjusting for stock split)?
+1072
+       - Diagnosis: Execution stalled while probing Alpha Vantage as a source for unadjusted historical
+1073   prices; the agent failed to complete source verification.
+1074
+1075   - Intervention: We redirected exploration away from generic search results and toward Alpha Van-
+1076
+       tage’s homepage, instructing the agent to verify data availability and note access requirements.
+1077   - Effect: The trajectory moved onto the correct information source, but repeated script errors and
+1078   API key frictions blocked completion. The outcome was clear forward progress without a final
+1079   result and the hypothesis was partially validated since the re-planning was correct but execution was
+       constrained by environment and tooling.
+
+
+                                                        20
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1080
+       LLM U SAGE
+1081
+1082
+       In accordance with the ICLR 2026 policy, we disclose the use of LLMs during the preparation
+1083   of this work. We used GPT-5 (via ChatGPT) to aid in polishing the writing style and improving
+1084   the readability of the manuscript. In addition, we occasionally used LLMs to assist with literature
+1085   discovery and brainstorming possible experiment variations. All research design decisions, analyses,
+1086   and reported results were conceived, implemented, and validated by the authors.
+1087
+1088
+1089
+1090
+1091
+1092
+1093
+1094
+1095
+1096
+1097
+1098
+1099
+1100
+1101
+1102
+1103
+1104
+1105
+1106
+1107
+1108
+1109
+1110
+1111
+1112
+1113
+1114
+1115
+1116
+1117
+1118
+1119
+1120
+1121
+1122
+1123
+1124
+1125
+1126
+1127
+1128
+1129
+1130
+1131
+1132
+1133
+
+
+
+                                                       21
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1134
+1135                                                              Trial Segmenter Prompt
+1136          - You are an experienced system log analyzer and decomposer, who can effectively decompose and organize complex session
+              logs into meaningful components.
+1137          - Your task is to analyze a session log from a Large Language Model (LLM) based agent system, and decompose the session
+              log into a series of trials that the system had made to solve a given task.
+1138          - Refer to Section `On the LLM-based Agent System` for details about the LLM-based agent system.
+              - Refer to Section `On the Input Data Structure` for details on the data structure of the input logs.
+1139          - Refer to Section `Guidance for Log Decomposition` for details on how to perform the log decomposition.
+              - Refer to Section `On the Output Format` for details on the output data structure.
+1140
+              # On the LLM-based Agent System
+1141          - The LLM-based agent system can be a single or multi-agent system.
+              - The system is often tasked with a problem, and agents in the system work collectively to solve the task.
+1142          - Agents in the system can have different roles and responsibilities, and they may need to communicate and collaborate
+              with others to achieve the overall goal.
+1143          - Agents work in the SEQUENTIAL manner, namely, agents are invoked one by one and no agents are executing in parallel.
+              - There often exists an agent playing the role of Orchestrator, who devises and updates a plan for solving the task and
+1144          coordinates with the agents to solve the task.
+              - The general flow of the system follows the cycle of "make a plan", "execute plan", "update plan", and so on.
+1145
+              # On the Input Data Structure
+1146          - The input data are collected from a session in the LLM-based agent system.
+              - The session contains a series of interactions among agents in the system. The interaction often starts with a specific
+1147          task and the goal of the system is to finish task successfully.
+              - The input data are in the following Json format:
+1148          {
+                  'problem': <problem>,
+1149              'ground_truth_answer': <ground_truth_answer>,
+                  'session_logs': <session_logs>
+1150          }
+              - `problem` denotes the specific task that the agent system needs to solve.
+1151          - `ground_truth_answer` is the corresponding ground truth answer for the problem.
+              - `session_logs` provides the details of the session trace, and is a string object with the following format:
+              '''
+1152              [Step 0] "agent a": "xx",
+                  [Step 1] "agent b": "xxxx",
+1153              [Step 2] "agent c": "xxxxx",
+                  [Step 3] "agent a": "xxxxxxx"
+1154          '''
+              Each entry in the above represents a `Step` where an agent provides input. The 'x' symbolizes the speech/message of each
+1155          agent.
+
+1156          # Guidance for Log Decomposition
+              - The goal is to decompose the session logs into a series of `Trial`s that had been made by the system.
+1157          - Each `Trial` is defined as an attempt to solve the problem, consisting of a `Planning` step and its corresponding
+              `Execution` steps.
+1158          - Both `Planning` and its `Execution` are manifested by `Step`s in the log.
+              - The `Planning` steps outline the strategy for solving the problem, while the `Execution` steps are the actual attempts
+1159          made by the agents to implement the plan.
+              - `Planning` steps include both the initial planning and any subsequent updates to the plan.
+1160          - If `Planning` is updated in the log (e.g., due to no progress made after executing current plan), NEW `Trial` should be
+              considered.
+1161          - The key of log decomposition is to categorize all `Step`s in the log into Four categories, `Initial_Planning`,
+              `Update_Planning`, `Execution`, and `Others`. Refer to the following guidance for the categorization:
+1162          - `Initial_Planning` step are the step taken to create a plan for solving the problem. These steps typically involve
+              brainstorming, outlining step-by-step strategies, and setting goals. Only ONE step in the log should be classified as
+1163          `Initial_Planning`.
+              - `Update_Planning` steps are those that modify or refine the existing plan based on new information or feedback. These
+1164          steps may involve re-evaluating the strategy, adjusting goals, or incorporating lessons learned from previous attempts.
+              Note that the `Update_Planning` step refers to the major update of the whole task plan. The small changes of in the
+1165          execution of a plan (e.g., clicking another links in the search result page when the previous link click returns no useful
+              result) do NOT count as the `Update_Planning` step, as it is still part of a plan execution but just a different execution
+1166          detail.
+              - Both `Initial_Planning` and `Update_Planning` steps are often carried out by the agent of the Orchestrator role. But not
+              all `Step`s from the Orchestrator agent are `Planning` steps, as the Orchestrator agent can have responsibilities other
+1167          than planning. For example, when executing a plan, the Orchestrator agent may provide instructions and guidance to other
+              agents for better plan execution or coordination among agents.
+1168          - Not every `Initial_Planning` or `Update_Planning` step is required to be followed by `Execution` steps. This can occur
+              if the plan is not executed or if the execution details are not captured in the log. Thus, it is acceptable to have
+1169          several consective steps are labelled as `Planning` steps.
+              - `Others` steps are auxiliary steps that do not directly contribute to the planning or execution of the task. These may
+1170          include acknowledgments of the task receival, final result collection and report result to the user, or other non-
+              essential messages related to the core task-solving process. They often appear at the begining and end of the session
+1171          logs.
+              - Follow the below steps to decompose the session logs into `Trial`s:
+1172          - 1. Read through the `session_logs` to understand the overall context. Specifically,
+                  - Understand the task and identify the set of agents has been assembled to solve the task.
+1173              - Identify the specific roles and responsibilities of each agent in the context of the task. Identify the Orchestrator
+              agent and how it coordinate other agents.
+1174          - 2. Categorize each `Step` in the log into `Initial_Planning`, `Update_Planning`, `Execution` and `Others` categories
+              based on the guidance provided above.
+1175          - 3. Only output the step indices of the `Initial_Planning` and `Update_Planning` steps and the reasons for their
+              categorization.
+1176
+              # On the Output Format
+1177          - The output should be a Json object with the following structure:
+              {
+1178              'initial_planning_step': {
+                  'step_index': <the original step index of the initial planning step, e.g., 0>,
+1179              'reason': <the reason why this Step 0 is identified as an initial planning step>
+                  },
+1180              'plan_update_steps': [
+                  ...,
+1181              {
+                       'plan_update_step_index': <the original step index of the plan update step, e.g., 5>,
+                       'reason': <the reason why this Step 5 is identified as a plan update step>
+1182              },
+                  ...
+1183              ]
+              }
+1184
+1185
+1186
+1187
+       Figure 4: Trial segmenter prompt: log decomposition of full session into planning–execution trials.
+
+
+
+                                                                          22
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1188
+1189
+1190
+1191
+                                                             Failure Proposer Prompt 1
+1192
+       - You are an experienced system log analyzer and summarizer, who can effectively analyze and summarize complex session logs into
+1193   concise insights.
+       - Your task is to analyze a partial session log related to a trial to solve a given task in a Large Language Model (LLM) based agent
+1194   system, and summarize the key process of the trial as well as perform root cause analysis of the trial if it is a failed trial.
+       - Refer to Section `On the LLM-based Agent System` for the background knowledge about the LLM-based agent system.
+1195   - Refer to Section `On the Trial and Session Log Decomposition` for the background knowledge about log of a session and how the
+       prior process of decomposing the whole session log into different trials.
+1196   - Refer to Section `On the Input Data Structure` for details on the input data for the current trial summarization task.
+       - Refer to Section `Guidance for Trial Summarization` for details on how to perform the log analysis and trial summarization.
+1197   - Refer to Section `On the Output Format` for details on the output data structure.
+1198
+       # On the LLM-based Agent System
+1199   - The LLM-based agent system can be a single or multi-agent system.
+       - The system is often tasked with a problem, and agents in the system work collectively to solve the task.
+1200   - Agents in the system can have different roles and responsibilities, and they may need to communicate and collaborate with others
+       to achieve the overall goal.
+1201   - Agents work in the SEQUENTIAL manner, namely, agents are invoked one by one and no agents are executing in parallel.
+       - There often exists an agent playing the role of Orchestrator, who devises and updates a plan for solving the task and coordinates
+1202   with the agents to solve the task.
+       - The general flow of the system follows the cycle of "make a plan", "execute plan", "update plan", and so on.
+1203
+       # On the Trial and Session Log Decomposition
+1204   - The input trial log data are part of a session in the LLM-based agent system.
+1205   - The session contains a series of interactions among agents in the system. The interaction often starts with a specific task and
+       the goal of the system is to finish task successfully.
+1206   - The whole log of the session (`session_logs`) is structured as the step-by-step messages from agents, namely,
+       '''
+1207   [Step 0] "agent a": "xx",
+       [Step 1] "agent b": "xxxx",
+1208   [Step 2] "agent c": "xxxxx",
+       [Step 3] "agent a": "xxxxxxx"
+1209   '''
+       Each entry in the above represents a `Step` where an agent provides input. The 'x' symbolizes the speech/message of each agent.
+1210   - The whole session log had been decomposed into different `Trial`s with the following requirements:
+1211   - Each `Trial` is defined as an attempt to solve the problem, consisting of a `Planning` step and its corresponding `Execution`
+       steps.
+1212   - Both `Planning` and its `Execution` are manifested by `Step`s in the log.
+       - The `Planning` steps outline the strategy for solving the problem, while the `Execution` steps are the actual attempts made by the
+1213   agents to implement the plan.
+       - `Planning` steps include both the initial planning and any subsequent updates to the plan.
+1214   - Going through the session log, if there is a step related to plan update (e.g., due to no progress made after executing the
+       existing plan), the existing `Trial` would terminate and a new `Trial` would be considered to start.
+1215   - The decomposition of the session log into `Trial`s allows for a more granular analysis of the agent system's behavior and
+       performance.
+1216
+1217   # On the Input Data Structure
+       - The input data are in the following Json format:
+1218   {
+           'problem': <problem>,
+1219       'ground_truth_answer': <ground_truth_answer>,
+           'previous_trial_summary': [
+1220       ...,
+           {
+1221           'trial_index': <trial_index>,
+               'trial_plan': <trial_plan>,
+1222           'trial_execution': <trial_execution>,
+               'is_succeed': <is_succeed>,
+1223           'trial_summary': <trial_summary>
+1224       },
+           ...
+1225       ],
+           'trial_logs_to_summarize': <trial_logs_to_summarize>,
+1226       }
+       }
+1227   - `problem` denotes the specific task that the agent system needs to solve.
+       - `ground_truth_answer` is the corresponding ground truth answer for the problem.
+1228   - `previous_trial_summary` provides the history of all previous trials in the session. Each element corresponds to each historical
+       trial, including their `trial_index`, `trial_plan` (i.e., step by step plan for the trial), `trial_execution` (i.e., execution
+1229   details for the trial), `trial_summary` and the indicator of 'is_succeed' to denote whether the trial successfully solves the task
+1230   or not. Empty list for the first trial.
+       - `trial_logs_to_summarize` provides the log details related to the trial intended to be summarized. It still follows the above
+1231   step-by-step style of `session_logs` but only contains the steps related to the specific trial.
+       '''
+1232       [Step n] "agent a": "xx",
+           [Step n+1] "agent b": "xxxx",
+1233       ...
+           [Step m] "agent c": "xxxxxxx"
+1234   '''
+       The initial step of the trial, (i.e., `Step n`) often refers to the above `Planning` step, involving an initial plan creation or
+1235   update, and the following steps belong to the execution of the plan of this trial.
+1236
+1237   Figure 5: Trial summarizer + failure proposer prompt: per-trial summary and root-cause localiza-
+1238   tion, part 1.
+1239
+1240
+1241
+
+
+
+                                                                       23
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1242
+1243
+1244
+1245
+1246
+1247
+1248
+1249
+                                                           Failure Proposer Prompt 2
+1250   # Guidance for Trial Summarization
+       - The goal is to summarize the provided `trial_logs_to_summarize` based on the overall context including the task and previous
+1251   trial history.
+1252   - Follow the below steps for trial summarization:
+       - 1. Read through the `problem` and `ground_truth_answer` to understand the task and its ground truth answer.
+1253   - 2. Read through the `previous_trial_summary` to understand how agents try to solve the task in previous trials.
+       - 3. Examine the `trial_logs_to_summarize` to understand the specific steps taken in the current trial. Specifically,
+1254       - Understand the first planning step of the current trial. If it involves a plan update, you need to derive the reasoning
+       behind the update by considering the `trial_plan` and `trial_summary` of the last trial.
+1255       - Closely track the execution steps after the planning step of the current trial and examine how they carry out the plan
+1256   and solve the task. Note that there can be NO execution steps after the planning step, e.g., due to no execution in reality.
+           - Pay high attention to the final outcome of the trial, especially whether it successfully solve the task or not. If
+1257   succeed, please reflect how and why this trial solves the task successfully, and compare its success with the prior failed
+       trials. If not, please reflect why it fails and which mistake agents and steps are responsible for the failure.
+1258   - 4. Output the trial summary with the following key components:
+           - `trial_context`: the context in which the trial was conducted, including relevant information from previous trials and
+1259   the current task.
+           - `trial_plan`: a detailed plan for the current trial. The plan should be self-contained, namely, if the original log at
+1260   the plan step only contains the plan update part, you should derive the missing context from the previous trial's plan and
+1261   summary. Output the plan in the step-by-step format and number them for the progress tracking, e.g., ["1. xxx", "2. xxx", ...].
+           - `trial_execution`: a detailed description of the execution process during the CURRENT trial, NOT the whole session. Only
+1262   extract execution details from the logs given in the current trial logs (`trial_logs_to_summarize`). NEVER quote execution
+       details from prior trials. If no execution details can be found after the planning step in the current trial (e.g., due to no
+1263   execution in reality), directly output "No execution details found".
+           - `plan_fulfillment_status`: summarize the plan fulfillment status based on `trial_execution` and `trial_plan`. You need to
+1264   map the progress from execution to the numbered planned steps in `trial_plan`. Namely, output the plan fulfillment status as a
+1265   json object:
+           {
+1266           "fully_fulfilled_plan_steps": [<plan_step_index>],
+               "partially_fulfilled_plan_steps": [<plan_step_index>],
+1267           "unfulfilled_plan_steps": [<plan_step_index>]
+           }
+1268       Note that `<plan_step_index>` refers to the plan step index in `trial_plan`, not the step index in the original session
+       logs.
+1269       - `is_succeed`: whether the current trial successfully solves the task or not.
+1270       - `trial_reflection`: a reflection on the trial's outcomes, including what worked well, what didn't, and any insights
+       gained for future trials.
+1271       - `mistake_agent`: only required for failed trials. Identify which agent is mainly responsible for the trial failure. If
+       multiple agents are responsible, only choose the most relevant one.
+1272       - `mistake_step_index`: only required for failed trials. Identify the specific step in the trial where the mistake
+       occurred.
+1273       - `mistake_reason`: only required for failed trials. Explain why you choose the mistake agent and step.
+           - 'trial_overall_summary': a summary of the trial's overall performance, including key process, successes and failures.
+1274
+1275   # On the Output Format
+       - The output should be a Json object with the following structure:
+1276   {
+           'trial_context': <the context in which the trial was conducted. Object Type: string>,
+1277       'trial_plan': <a detailed plan for the current trial. Object Type: list of string>,
+           'trial_execution': <a detailed description of the execution process and progress made during the trial. Output "No
+1278   execution details found" if no execution steps after the planning step. Object Type: string>,
+1279       'trial_progress': {
+           "fully_fulfilled_plan_steps": [<plan_step_index, Object Type: int>],
+1280       "partially_fulfilled_plan_steps": [<plan_step_index, Object Type: int>],
+           "unfulfilled_plan_steps": [<plan_step_index, Object Type: int>]
+1281       },
+           'is_succeed': <whether the current trial successfully solves the task or not. Object Type: boolean>,
+1282       'trial_reflection': <a reflection on the trial's outcomes. Object Type: string>,
+           'mistake_agent': <the agent mainly responsible for the trial failure, if applicable. Object Type: string>,
+1283       'mistake_step_index': <the specific step in the trial where the mistake occurred, if applicable. Object Type: int>,
+1284       'mistake_reason': <an explanation of why the identified agent and step are considered mistakes, if applicable. Object Type:
+       string>,
+1285       'trial_overall_summary': <a summary of the trial's overall performance, including key process, successes and failures.
+       Object Type: string>
+1286   }
+1287
+1288
+              Figure 6: Trial summarizer + failure proposer prompt: continuation of Figure 5, part 2.
+1289
+1290
+1291
+1292
+1293
+1294
+1295
+
+
+
+                                                                     24
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1296
+1297
+1298
+1299
+1300
+1301
+1302
+1303
+1304
+1305
+1306
+1307
+1308
+1309
+1310
+1311
+1312
+                                                        Intervention Recommender Prompt
+1313
+        You are an expert in debugging multi-agent systems. A failure proposer has analyzed a Magentic-One execution and identified a
+1314    problematic step.
+        Use this as guidance to design a precise, minimal intervention that fixes the root cause.
+1315
+        ## Task Context
+1316    Here is the original task: {problem}
+        And here is the ground truth for guidance: {ground truth}
+1317    ## Failure Analysis
+        Failed step index: {step index}
+1318    Failed agent: {agent}
+1319    Diagnosed reason: {reason}
+        ## Execution Context
+1320    Here are the two steps immediately before the failure and the failed step itself:
+        {Two steps context}
+1321
+        ## System specifics and intervention policy:
+1322    - If failure is in Orchestrator: Task Full Ledger issues -> provide ONLY the minimal replacement snippet(s) for the affected
+        section(s): Facts and/or Plan. Use tags [FACTS_REPLACEMENT]: ... and/or [PLAN_REPLACEMENT]: ...; do not output the entire Task
+1323    Full Ledger. Use this only when the failed content is the Task Full Ledger content (starts with 'We are working to address the
+        following user request:' and includes the Facts/Plan sections).
+1324    - If Orchestrator instruction is wrong/ambiguous -> provide the exact corrected instruction as a single atomic next step. If the
+        message is not the Task Full Ledger scaffold, or when unsure, treat it as orchestrator_instruction.
+1325    - If a subagent failed -> infer, from the provided context, how that subagent or tool should have acted; rewrite the
+1326    Orchestrator's instruction to that subagent/tool so that it leads to the correct behavior.
+        - Keep changes minimal and targeted. Avoid global resets.
+1327    - Do not give any ground truth in the intervention message.
+        Return STRICT JSON with the following schema:
+1328    {
+          "category": one of ["orchestrator_ledger", "orchestrator_instruction", "subagent_instruction"],
+1329      "replacement_text": "exact text that should replace the problematic content"
+        }
+1330    Respond with JSON only, no extra commentary.
+1331
+1332
+       Figure 7: Intervention recommender prompt: minimal, executable fix classification; JSON category
+1333
+       and replacement text.
+1334
+1335
+1336
+1337
+1338
+1339
+1340
+1341
+1342
+1343
+1344
+1345
+1346
+1347
+1348
+1349
+
+
+
+                                                                      25
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1350
+1351
+1352
+1353
+1354                                                        Milestone extractor Prompt
+
+1355      ## Role & Task Introduction
+          You are **Milestone Extractor**, a precise formatter that converts a research QA task into a compact set of high -level
+1356      milestones. Given a **question**, its **ground-truth answer**, and **human annotation steps** (which may include tool
+1357      usage), produce a short, ordered list of the *key individual milestones* needed to achieve the answer. Focus on
+          abstraction and outcome, not tool-specific clicks.
+1358
+          Your goal: **summarize the path to the answer in ≤5 milestones** that capture the essential reasoning and actions,
+1359      suitable for audit or scripting.
+
+1360      ## Inputs
+
+1361      You will receive a single JSON object with the following fields:
+
+1362      - `question` *(string, required)* — The task question.
+          - `ground_truth_answer` *(string, required)* — The validated answer.
+1363      - `human_annotation_steps` *(string or object, optional)* — Notes describing how a human solved it (may include step
+          lists, links, or tool mentions).
+1364
+1365      ### Input Assumptions
+          - `human_annotation_steps` may be verbose or noisy; assume it’s trustworthy but not necessarily well-structured.
+1366      - If `human_annotation_steps` is missing or incomplete, infer reasonable milestones from the `question` and the nature of
+          the task.
+1367
+          ### Example Input Format
+1368      **Minimal (string steps):**
+          ```json
+1369      {
+            "question": "…",
+1370        "ground_truth_answer": "…",
+            "human_annotation_steps": "Searched X → Identified Y → Opened Z → Extracted answer."
+1371      }
+1372      ```
+
+1373      ## Guidance
+
+1374      1. **Abstract, don’t recount.**
+            Convert granular browsing/clicking into conceptual milestones (e.g., “Resolve riddle of journal identity” rather than
+1375      “Open Wikipedia page X”).
+
+1376      2. **Preserve causal order.**
+            Maintain the minimal sequence from problem framing → locating the source → isolating evidence → confirming the answer.
+1377
+          3. **Cap at five milestones.**
+1378        If more than five logical steps exist, merge adjacent ones by theme (e.g., “Locate issue & open target article”).
+1379
+          4. **Use consistent fields.**
+1380        Each milestone must include:
+            - `order` *(1-based integer)*
+1381        - `title` *(short noun phrase)*
+            - `action` *(what to do; imperative, concise)*
+1382        - `result` *(what this step yields toward the answer)*
+
+1383      5. **Be tool-agnostic.**
+            Avoid naming specific search engines, sites, clicks, or UI elements unless essential for understanding.
+1384
+          6. **Echo the answer.**
+1385        Ensure the final milestone logically confirms or extracts the `ground_truth_answer`.
+1386      7. **Clarity over completeness.**
+1387        Prefer short, crisp phrasing. No extraneous commentary, citations, or links.
+
+1388      ## Output Format
+
+1389      Produce **only** a JSON object with the following structure:
+
+1390      ```json
+          {
+1391        "question": "<string>",
+            "ground_truth_answer": "<string>",
+1392        "milestones": [
+              {
+1393            "order": 1,
+1394            "title": "<short title>",
+                "action": "<imperative action>",
+1395            "result": "<concise outcome>"
+              }
+1396          // up to 5 total milestones
+            ]
+1397      }
+
+1398
+1399
+1400             Figure 8: Ground-truth milestone extractor prompt: ≤ 5 tool-agnostic milestones.
+1401
+1402
+1403
+
+
+
+                                                                      26
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1404
+1405                                                            Milestone Evaluator Prompt
+1406          ## Role & Task Introduction
+              You are **SessionLog Milestone Evaluator**, a precise formatter that analyzes an LLM-agent session log against a
+1407          predefined set of milestones and outputs a compact progress report plus an assessment of any alternate (“new”) exploration
+              paths taken.
+1408
+              Your goal: **produce a single JSON object** containing:
+1409          - `milestone_progress`: status for each milestone (≤5 milestones total)
+              - `new_path_assessment`: a unified evaluation of alternate paths explored in the log
+1410
+              ## Inputs
+1411          You will receive a single JSON object with the following fields:
+              - `question` *(string, optional)* — The task question (for context).
+1412          - `ground_truth_answer` *(string, optional)* — The validated answer (for context).
+              - `milestones` *(array, required)* — The authoritative list of milestones to evaluate. Each item includes:
+1413            - `order` *(int, 1-based)*,
+                - `title` *(string)*,
+1414            - `action` *(string)*,
+                - `result` *(string)*.
+1415            - **Note:** If more than 5 milestones are provided, evaluate only the first five.
+              - `session_log` *(array, required)* — The actual agent trace. Entries may include fields like `name`, `content`,
+              `timestamp`, `step_idx` (values may vary).
+1416
+              ### Input Assumptions
+1417          - The `milestones` list is authoritative; **do not invent, merge, or reorder milestones**.
+              - The `session_log` may be verbose, noisy, or partially redundant.
+1418          - Evidence should be grounded **only** in the provided `session_log` (no external browsing or assumptions).
+
+1419          ### Example Input Format
+              **Minimal (string steps):**
+1420          ```json
+              {
+1421            "question": "…",
+                "ground_truth_answer": "…",
+1422            "milestones": "[...]",
+                "session_log": "[...]"
+1423          }
+              ```
+1424
+              ## Evaluation Rules
+1425
+              ### 1) Milestone Progress
+1426          For each milestone:
+              - Determine `status` as one of:
+1427            - `achieved` — clear evidence the milestone’s intended **result** occurred.
+                - `partial` — meaningful progress toward the result, but incomplete.
+                - `missed` — no sufficient evidence of progress toward the result.
+1428          - Provide `evidence`:
+                - Be concise (1–2 sentences).
+1429            - Quote short phrases from the log **or** reference `step_idx` values where available (e.g., “step_idx 16–18”).
+                - Explain *why* the status is assigned (what the log shows or fails to show).
+1430
+              ### 2) New Path Assessment
+1431          Identify whether the session explored **alternate paths** not implied by the milestones’ normal route (e.g., detours to
+              secondary indexes, different tools, or file-download attempts not required by the milestones).
+1432          - `is_new_path_explored` *(boolean)* — true if such deviations exist.
+              - `evidence` *(string)* — brief proof from the log (e.g., tool/site names, failed downloads, HTTP errors), ideally with
+1433          `step_idx` references.
+              - `is_viable` *(boolean)* — whether the alternate path is **in principle** a reasonable way to solve the task (even if it
+1434          failed here).
+              - `viability_evidence` *(string)* — justification for `is_viable` grounded in the log (e.g., “issue page offered a PDF
+1435          link; using full-issue PDFs is a common route”).
+              - `is_successful` *(boolean)* — whether the alternate path **actually yielded** the required progress or answer in this
+1436          session.
+              - `success_evidence` *(string)* — concise support for `is_successful` (e.g., “FileNotFoundError persisted; no quotation
+1437          extracted”).
+
+1438          ### Classification Hints
+              - Prefer `achieved` only when the milestone’s **result** is explicitly met (not just attempted).
+1439          - Use `partial` when the agent reached the correct resource or intermediate state but didn’t complete the intended
+              extraction/verification.
+              - Use `missed` when there’s no concrete evidence the agent moved toward the intended outcome.
+1440          - A “new path” is about **method divergence**, not minor navigation within the same path.
+1441          ## Output Format
+              Produce **only** a JSON object with the following structure (no extra text, comments, or markdown fences):
+1442
+              ```json
+1443          {
+                "milestone_progress": [
+1444               {
+                     "order": 1,
+1445                 "milestone": "<title from milestones[i].title>",
+                     "status": "achieved | partial | missed",
+1446                 "evidence": "<brief, log-grounded justification (may include step_idx refs)>"
+                   }
+1447               // ... up to 5 items total
+                ],
+1448            "new_path_assessment": {
+                   "is_new_path_explored": true,
+1449               "evidence": "<brief proof from session_log>",
+                   "is_viable": true,
+1450               "viability_evidence": "<why this method is generally reasonable, grounded in the log>",
+                   "is_successful": false,
+1451               "success_evidence": "<why it did or did not work in this session>"
+                }
+              }
+1452
+              ## Style & Constraints
+1453          - Be concise and neutral; no speculation beyond the log.
+              - Do not include URLs, citations, or external sources outside what’s quoted from session_log.
+1454          - Do not exceed two sentences per evidence field.
+              - Do not add fields or commentary outside the specified schema.
+1455
+1456
+1457        Figure 9: Milestone evaluator prompt: progress vs milestones and new-path assessment.
+
+
+                                                                           27
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1458
+1459
+1460
+1461
+1462
+1463
+1464
+1465
+1466
+1467
+1468
+1469
+1470
+1471
+1472
+1473
+1474
+1475
+                                                    Mislocalization or Insufficient Fix Proposer Prompt
+1476
+        You are an expert judge analyzing post-intervention runs.
+1477
+        Input is a usr_msg JSON object with keys: problem, ground_truth_answer, initial_session_log, initial_failure_analysis,
+1478    intervention_details, post_intervention_runs (a single run: list with one {session_log}).
+
+1479    Use all content as-is without truncation.
+1480    Classify the single run and the overall outcome into exactly one of:
+1481    - success_after_intervention: the subagent explicitly follows the new intervention instruction and the final outcome is correct.
+1482
+        - execution_issue_intervention_not_applied: the subagent does not follow the new intervention instruction; the outcome remains
+1483    incorrect.
+
+1484    - proposer_mislocalization_or_insufficient_fix: the intervention is observed/applied but the injection point/fix is wrong; the
+        outcome remains incorrect.
+1485
+        For each run, write a concise reason that includes these parts: before_intervention: <what the system/subagent did that led to
+1486    failure>, after_intervention: <what changed in this run after the injection>, system_action: <whether/how the subagent followed
+        the new instruction>, final_outcome: <correct/incorrect vs ground_truth>.
+1487
+        Strictly output JSON:
+1488    {
+1489       "overall":
+               {
+1490              "label","reason","evidence":{"quotes_or_tokens":[],"ground_truth_match":bool,"intervention_applied":bool}
+               }
+1491    }.
+
+1492    Evidence should include 1-3 verbatim quotes from the logs.
+1493
+1494
+       Figure 10: Post-intervention outcome classifier prompt: mislocalization or insufficient fix proposer.
+1495
+1496
+1497
+1498
+1499
+1500
+1501
+1502
+1503
+1504
+1505
+1506
+1507
+1508
+1509
+1510
+1511
+
+
+
+                                                                           28
+

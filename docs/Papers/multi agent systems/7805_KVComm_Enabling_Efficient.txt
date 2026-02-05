@@ -1,0 +1,2409 @@
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+000
+001
+      KVC OMM : E NABLING E FFICIENT LLM C OMMUNICA -
+002   TION THROUGH S ELECTIVE KV S HARING
+003
+004
+005    Anonymous authors
+006    Paper under double-blind review
+007
+008
+009                                              A BSTRACT
+010
+011
+               Large Language Models (LLMs) are increasingly deployed in multi-agent sys-
+012            tems, where effective inter-model communication is crucial. Existing communi-
+013            cation protocols either rely on natural language, incurring high inference costs
+014            and information loss, or on hidden states, which suffer from information concen-
+015            tration bias and inefficiency. To address these limitations, we propose KVComm,
+016            a novel communication framework that enables efficient communication between
+017            LLMs through selective sharing of KV pairs. KVComm leverages the rich infor-
+018            mation encoded in the KV pairs while avoiding the pitfalls of hidden states. We
+019            introduce a KV layer-wise selection strategy based on attention importance scores
+020
+               with a Gaussian prior to identify the most informative KV pairs for communica-
+               tion. Extensive experiments across diverse tasks and model pairs demonstrate that
+021
+               KVComm achieves comparable performance to the upper-bound method, which
+022
+               directly merges inputs to one model without any communication, while transmit-
+023            ting as few as 30% of layers’ KV pairs. Our study highlights the potential of KV
+024            pairs as an effective medium for inter-LLM communication, paving the way for
+025            scalable and efficient multi-agent systems.
+026
+027
+028
+029
+      1   I NTRODUCTION
+030
+031   Large Language Models (LLMs) have catalyzed a paradigm shift from isolated model capabilities
+032   towards collaborative multi-agent systems (Guo et al., 2024; Tran et al., 2025). CAMEL (Li et al.,
+033
+      2023), AutoGen (Wu et al., 2024), and ChatDev (Qian et al., 2023) have demonstrated the potential
+      of LLMs to collaborate effectively in multi-agent systems, achieving impressive results in various
+034
+      tasks. These systems leverage the strengths of individual LLMs and enable them to work together
+035
+      to solve complex problems that are beyond the capabilities of a single model (Yang et al., 2024a).
+036
+037   While multi-agent systems have shown great promise, they also introduce new challenges, particu-
+038   larly in the area of inter-agent communication. Effective communication between LLMs is crucial
+039
+      for the success of multi-agent systems. Explicit communication through natural language has been
+      explored in several works, enabling the models to share information (Du et al., 2023), coordinate
+040
+      their actions (Sun et al., 2025), and make collective decisions (Yang et al., 2024b).
+041
+042   However, natural language communication leads to high inference costs due to the need for multi-
+043   ple decoding steps, and may not fully capture the rich information that needs to be shared between
+044   LLMs as information is lost in the sampling process (Pham et al., 2023; Ramesh & Li, 2025) that
+045
+      occurs as each new token is produced. To address this limitation, recent works have explored alter-
+      native communication protocols that leverage the internal representations of LLMs. CIPHER (Pham
+046
+      et al., 2023) proposed to use the embedding space as the medium of communication between LLMs.
+047
+      Namely, they pass the weighted average of the token embeddings from one LLM to another, facilitat-
+048   ing more efficient information exchange. Rather than using the embedding space, AC (Ramesh & Li,
+049   2025) transmits the intermediate activations, specifically the last token’s hidden state. They replace
+050   the last token’s hidden state of the receiver’s model (Mr ) with that of the sender’s model (Ms ),
+051   allowing a more direct transfer of information. While these methods have shown promising results,
+052   they still face challenges in terms of communication efficiency and effectiveness. CIPHER (Pham
+053   et al., 2023) still requires multiple decoding steps, which can be costly, and AC (Ramesh & Li, 2025)
+      may lead to information loss as only limited activation information is transmitted.
+
+
+                                                        1
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+054                                                                          Calibration Inference                       Output
+055                                                                                                      Selected
+                                                                                                           KV
+056
+057
+                                         Extract                         Compute
+058
+                                        attention                         score
+059
+060
+061    Layer
+062
+               Model Input/Output              KV pairs of                         KV pairs with score   Decoding activation
+063
+                Prefill activation of        Prefill activation of                 Selected KV pairs
+                                                                                                         Attention within    /
+064                                                                                                      Attention across models
+065
+066   Figure 1: KVComm framework for efficient LLM communication through selective KV shar-
+067   ing.R3-Q5
+068
+069
+      We start with the question: What is the most effective way to communicate between LLMs? We
+      argue that an ideal communication protocol should satisfy the following criteria: ① Effectiveness: It
+070
+      should enable Mr to effectively utilize the information from Ms . ② Efficiency: It should minimize
+071
+      the computation needed by Ms and the amount of data transmitted between models. ③ Generality:
+072   It should be applicable to a wide range of tasks and model architectures, ensuring its versatility in
+073   different scenarios. We choose to use activation information as the medium of communication, as
+074   no decoding steps are needed for Ms , and Mr can directly utilize the rich information encoded in
+075   the activations. We study different types of activation information (i.e., hidden states and KV pairs),
+076   and in Section 2.2, we show that hidden states suffer from information concentration bias, where
+077   the last token’s hidden state contains most of the information needed for the model’s output. This
+078   makes it challenging to design an effective communication protocol using the last token’s hidden
+079   state. Furthermore, we find that using all tokens’ hidden states from a single layer of the sender Ms
+080
+      does not guarantee effective communication.R4-Q3 A dilemma arises: if the hidden states are taken
+      from the early layers of Ms , the computation benefit is limited since the computation cost is similar
+081
+      to concatenating the two inputs; if the hidden states are prepended to the later layers of Mr , the
+082
+      performance drops significantly.
+083
+084   Based on these observations, we propose KVComm, a novel communication protocol that enables
+085   efficient communication between LLMs through selective sharing of KV pairs. KV pairs are the
+086
+      most representative activation information in each layer, and sharing them does not interact with
+      the hidden states of Mr directly, while Mr can decide how to utilize the information through the
+087
+      attention mechanism. To further improve the efficiency of communication, we propose a selection
+088
+      strategy to choose which (potentially non-contiguous) layers’ KV pairs to share. We formulate
+089   hypotheses that (H1) KV pairs from intermediate layers encode transferable semantic knowledge,
+090   and (H2) KV pairs from layers exhibiting stronger attention distributions are more effective for
+091   communication. These hypotheses are validated by our experiments in Sections 4.3 and 4.5. Based
+092   on these hypotheses, we define attention importance scores for each layer based on the average
+093   attention weights assigned to the context tokens. We also apply a Gaussian distribution centered
+094   at a certain layer as a prior on the attention importance scores. The intuition is that the Gaussian
+095   distribution encourages selecting layers around a certain depth, which aligns with hypothesis H1.
+096   The general framework is illustrated in Figure 1.
+097   We evaluate KVComm on a diverse set of tasks with eight model pairs (see Section 4.1), showing
+098   that it consistently outperforms existing communication protocols while significantly reducing the
+099   data transmitted between models. In summary, our work makes three key contributions:
+100
+101     • We evaluate different types of activation information for communication between LLMs, and
+102       identify the limitations of using hidden states as the medium of communication. We show
+103
+          that the last token’s hidden state suffers from information concentration bias, and point out a
+          dilemma that arises when using all tokens’ hidden states.
+104
+105     • We propose KVComm, a novel communication protocol that enables efficient communication
+106       between LLMs through selective sharing of KV pairs. We design a selection strategy based on
+107       attention importance scores and a Gaussian prior to choose which layers’ KV pairs to share.
+          This is the first approach that makes it possible to choose non-contiguous layers of KV. More-
+
+
+                                                                     2
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+108
+            over, we show the feasibility of using a single context/question pair for guiding the selection
+109         for a given pair of models, prior to deployment.
+110
+111
+          • We conduct extensive experiments on a diverse set of tasks and model pairs, demonstrating
+            that KVComm enables effective and efficient communication between LLMs, achieving com-
+112
+            parable performance to the Skyline method, which is the upper-bound and directly merges the
+113
+            inputs without any communication, while reducing the computation costs by 2.5x to 6x. In
+114         particular, KVComm enables up to a 3x reduction in communication relative to approaches
+115         that transmit the entire set of KV pairs. Moreover, we demonstrate the performance benefits of
+116         non-contiguous selection of KV layers. Finally, we demonstrate the increase in performance
+117         that KVComm brings even over Skyline on two datasets, further illustrating the need to com-
+118         municate in a non-strictly textual manner.
+119
+120
+      2     P ROBLEM AND M OTIVATION
+121
+122
+      2.1     P ROBLEM F ORMULATION
+123
+124   We formally define the problem of solving a contextual task through the communication of two
+125   LLMs: Ms and Mr . Ms takes as input a context C, and generates the required information IC to
+126   be communicated. Mr takes as input the query Q and the information IC from Ms , and produces
+127   the final output. In this work, we limit the choices of the two LLMs to (1) two instances of the
+128   same LLM, and (2) two models that are fine-tuned versions of the same base LLM. The objective
+129   is to design a communication protocol which jointly optimizes the communication, computation
+130   efficiency, and the information fidelity between Ms and Mr R3-Q1 .
+131
+132   2.2     W HY H IDDEN S TATES FALL S HORT
+133
+134   When Decoder-Only LLMs infer, the input information flows through the model in the form of
+135
+      activation values, which refer to the intermediate results output by each decoder layer during the
+      forward pass. We refer to the intermediate activation values that are passed between adjacent layers
+136
+      as hidden states. We also consider the KV pairs used in the attention mechanism within each layer
+137
+      as another type of activation information. In this section, we investigate the effectiveness of using
+138   hidden states as the medium of communication by studying two questions: How important are
+139   hidden states of tokens at different positions in the sequence? (Section 2.2.1) Are hidden states of
+140   all tokens effective for communication? (Section 2.2.2)
+141
+142   2.2.1    T OKEN I MPORTANCE AT D IFFERENT P OSITIONS
+143
+144   We begin with a simple experiment examining how token positions affect performance. Using
+145   Llama-3.1-8B on MMLU Social Science, we remove or retain the hidden state of only specific
+146
+      tokens at a given layer and measure the performance change. As shown in Figure 2, different to-
+      kens vary in importance across layers, with the last token becoming most critical in later layers.
+147
+      This aligns with the intuition that the last token is often the most relevant to the current prediction.
+148
+      Thus, the last token’s hidden state carries the most influential information for both model output and
+149   inter-LLM communication. Results on additional datasets and models are provided in Appendix C.
+150
+151   To ensure efficient communication with hidden states built on this observation, two conditions must
+152
+      hold: (1) Ms must send at least the last token’s hidden state, and (2) the communication protocol
+      should preserve Mr ’s last token state as much as possible. The protocol in Ramesh & Li (2025)
+153
+      either replaces Mr ’s last token state with that of Ms or averages the two, but both cause information
+154
+      loss in Mr ’s last token state, harming its performance.
+155
+156
+      2.2.2    U TILIZING A LL T OKENS
+157
+158   Another straightforward approach to ensure the last token’s hidden state is preserved is to prepend
+159   all tokens’ hidden states from Ms to Mr . The experiments on HotpotQA with Llama-3.1-8B,
+160   presented in Figure 3, demonstrate that prepending all tokens’ hidden states from Ms to Mr is
+161   effective if the hidden states are taken from the early layers of Ms and prepended to the early layers
+      of Mr . Appendix D shows experimental results on other datasets. We find that this method is caught
+
+
+                                                         3
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+162                             Retain the token                        Remove the token                            F1 Score of Prepending Hidden States
+163                                                                                                                 30                                      0.7
+
+
+
+
+                                                                                                s layer index (k)
+164              0.6                                      0.6                                                       25                                      0.6
+165                                                                                                                 20                                      0.5
+                 0.5                               Last
+
+
+
+
+                                                                                                                                                              F1 Score
+166                                                       0.5                                                                                               0.4
+                                                   None
+      Accuracy
+
+                                                                                                                    15
+167                                                Random                                                                                                   0.3
+                 0.4                               First  0.4                                                       10
+168                                                                                                                                                         0.2
+
+
+
+
+                                                                                                Sender
+                                                                                                                     5                                      0.1
+169              0.3                                      0.3
+                                                                                                                     0                                      0.0
+170                                                                                                                      0        10       20       30
+                 0.2                                      0.2                                                                Receiver   r layer index (j)
+171                     0   5      10   15    20     25         0   5      10   15   20    25
+172                                                   Layer
+                                                                                                    Figure 3: Prepending helps only
+173
+        Figure 2: Compared to other token positions, the last token’s                               when using early-layer hidden
+174                                                                                                 states.R3-Q2, R3-Q5
+        hidden state is the most critical, especially in later layers.
+175
+176    in a dilemma: (1) if the hidden states are taken from the early layers of Ms , the computation benefit
+177    is limited since it is similar to concatenating the two inputs; (2) if the hidden states are prepended to
+178    the later layers of Mr , the performance drops significantly.
+179
+       These findings suggest that while utilizing all tokens’ hidden states can preserve the last token’s
+180
+       information, it does not guarantee effective communication between LLMs.
+181
+182
+183     3              E FFICIENT LLM C OMMUNICATION THROUGH S ELECTIVE KV S HARING
+184
+185    We propose a simple yet effective communication protocol that enables efficient communication
+186    between LLMs by selectively sharing KV pairs. This approach addresses the limitations observed in
+187    previous methods by ensuring that the most critical information is preserved. Our design satisfies the
+188    three criteria outlined below: it enhances effectiveness by allowing Mr to utilize essential context
+189
+       (①), improves efficiency by reducing unnecessary computation and transmission overhead (②), and
+       ensures generality by being applicable across diverse tasks and architectures (③).
+190
+191
+192     3.1            C OMMUNICATION F RAMEWORK
+193
+       For a given context C and query Q, Ms processes the context C and runs one forward pass (prefill
+194
+       stage) to generate the KV pairs {(kls , vsl )} at each layer l, where l = 1, 2, . . . , L and L is the total
+195    number of layers in Ms . We apply a selection strategy to choose a subset of KV pairs {(klsi , vsli )},
+196    where i = 1, 2, . . . , M and M is the number of selected layers. The selected KV pairs are then
+197    transmitted to Mr .
+198
+       Mr processes the query Q and incorporates the received KV pairs during its forward passes (prefill
+199
+       and decoding stages). Specifically, at each layer l of Mr , if l corresponds to a selected layer li 1 ,
+200
+       the KV pairs from Ms are integrated into the attention mechanism. We simply concatenate the KV
+201    pairs from Ms with those of Mr : klr ← [klsi ; klr ], and vrl ← [vsli ; vrl ]. This integration allows Mr
+202    to attend to both its own context and the information provided by Ms . After processing the query
+203    Q with the integrated KV pairs, Mr generates the final output.
+204
+205
+        3.2            KV S ELECTION S TRATEGIES
+206
+207    The communication protocol critically depends on the selection strategy for choosing which KV
+208    pairs to transmit from Ms to Mr . Not all layers or attention heads contribute equally to encoding
+209    task-relevant knowledge. A fundamental question when designing selection strategies is: Which
+210    parts of the KV pairs encode the most relevant knowledge for communication?
+211    Formally, given the set of candidate KV pairs {(kls , vsl )}L
+                                                                   l=1 , our goal is to select a subset S ⊆
+212    {1, . . . , L} such that the receiver’s output retains maximal information from the sender, given a
+213    constraint on the number of selected layers |S| = M , which is determined by the desired communi-
+214
+         1
+215        The layer indices are 1-to-1 matched between Ms and Mr since we only consider the case where the two
+       models are the same or fine-tuned versions of the same base LLM.
+
+
+                                                                                4
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+216
+      cation efficiency. This can be formulated as the following optimization problem:
+217
+218                                           max              f (Mr (Q, {(kls , vsl )}l∈S )),
+                                    S⊆{1,...,L},|S|=M
+219
+220   where f (·) is a performance metric (e.g., accuracy, F1 score), and Mr (Q, {(kls , vsl )}l∈S ) denotes
+221   the output of the receiver model given the query Q and the selected KV pairs. Since direct compu-
+222   tation of this objective is intractable, we instead propose two hypotheses H1 and H2 that serve as
+223   priors for designing practical heuristics.
+224   The first hypothesis H1 is that KV pairs from intermediate layers contain the most readily trans-
+225   ferable semantic knowledge. Prior analyses (Jawahar et al., 2019; Geva et al., 2020) suggest a hi-
+226   erarchy: early layers capture surface patterns, middle layers encode semantic abstractions, and late
+227   layers specialize in task predictions. Thus, intermediate KV pairs should carry the richest generaliz-
+228   able information, making them most effective for communication. Experiment results in Section 4.3
+229   support this hypothesis.
+230   Another hypothesis H2 is that KV pairs from layers exhibiting stronger attention distributions are
+231   more effective for communication. We quantify this notion of attention distribution using the at-
+232   tention importance score Sal , defined in Equation (1) below. We deem layer li to exhibit stronger
+233                                               l
+      attention distribution than lj , if Sali > Saj .R3-Q2 Intuitively, if a head consistently allocates high at-
+234   tention mass to the given tokens, its KV cache encodes salient contextual relations that are critical
+235   for the model’s reasoning. Attention concentration thus serves as a proxy for the communication
+236   value of a KV subset, suggesting that such heads should be prioritized for selection. This hypothesis
+237   is also validated by our experiments in Section 4.5.
+238
+      Our selection strategy is based on these two hypotheses. We first define attention importance scores
+239   for each layer, which are calculated as the average attention weights that have been assigned to the
+240   context tokens by all heads in that layer during the prefill stage. We then take a Gaussian distribution
+241   centered at a certain layer as a prior to select layers with high attention importance scores. The
+242   intuition is that the Gaussian prior encourages selecting layers around a certain depth, which aligns
+243   with hypothesis H1 that intermediate layers are more likely to contain transferable knowledge.
+244
+      Mathematically, the attention importance score for each layer l is computed as:
+245
+                                                                 H       T   |C|
+246                                                           1 XXX l
+247                                           Ŝal =                     ah,t,c ,                             (1)
+                                                             HT  t=1 c=1
+248                                                              h=1
+
+249   where H is the number of attention heads, T is the number of tokens in the query, |C| is the number
+250   of context tokens, and alh,t,c is the attention weight assigned by head h at layer l from token t to
+251   context token c. Ŝal is then normalized to the range [0, 1] across all layers to obtain the final attention
+252                                                  ′
+                                    Ŝ l −min Ŝ l
+253   importance score Sal = max a Ŝ l′ −min
+                                          l′ a
+                                               Ŝ l′
+                                                     .
+                                     l′   a      l′      a
+254                                                                                                 2
+                                                                                                       
+255   We define a Gaussian prior centered at layer µ with standard deviation σ as P l = exp − (l−µ)
+                                                                                                2σ 2     .
+256   The final selection score for each layer l is computed as a weighted combination of the attention
+257   importance score and the Gaussian prior:
+258
+                                                 S l = αSal + (1 − α)P l ,
+259
+260   where α ∈ [0, 1] is a hyperparameter that balances the two components. We then select the top M
+261   layers with the highest selection scores S l to form the subset S for communication.
+262   For each model pair and dataset, the top M layers are selected based on the selection scores com-
+263   puted from a calibration set. The selected layers are then fixed and used for all samples in the test set.
+264   We found that a calibration set as small as a single sample is sufficient to obtain a robust selection
+265   that generalizes well to the entire test set, as shown in the experiments in Appendix H.
+266
+267   3.3   C OMPLEXITY A NALYSIS
+268
+269   We analyze the computational complexity of our KVComm framework compared to baseline meth-
+      ods. Compared to the NLD (Du et al., 2023) method, our method does not require multiple decoding
+
+
+                                                                     5
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+270
+      steps for Ms , which significantly reduces the computation cost. When the number of tokens gen-
+271   erated during debate (Du et al., 2023) is large, the computation margin of our method over NLD is
+272   on the order of O(L(Ts + Tr + |Q|)2 d), where Ts and Tr are the number of tokens generated by
+273   Ms and Mr in the debate, respectively, and |Q| and d are the number of tokens in the query and the
+274   hidden dimension of the model, respectively. Compared to the Skyline (Section 4.1) method, our
+275   method also reduces the computation cost, especially when M is small. The computation margin of
+276   our method over Skyline is on the order of O(|C|d(L(2|Q| + T ) − M (|Q| + T ))), where |C| is the
+277   number of tokens in the context, and |T | is the number of tokens generated by Mr .
+278
+279
+      4     E XPERIMENTS
+280
+281
+282
+      4.1   E XPERIMENTAL S ETUP
+283
+      Datasets We evaluate KVComm on a diverse set of contextual reasoning tasks. Following Ramesh
+284   & Li (2025), we synthetically generate two datasets, Countries, which asks questions about coun-
+285   tries based on landmark information, and Tipsheets, which requires investment decisions from fi-
+286   nancial tips. Examples of these two datasets are shown in Table 3 in Appendix B.1. Moreover,
+287   we select six benchmarks, including HotpotQA (Yang et al., 2018), QASPER (Dasigi et al., 2021),
+288   MuSiQuest (Trivedi et al., 2022), two subsets of LongBench (Bai et al., 2024)(MultiFieldQA-en
+289   and 2WikiMQA), and TMATH (Qi et al., 2025). The last dataset is a mathematical problem-solving
+290   dataset that contains hints as context. We use ROUGE-L Recall as the evaluation metric for the last
+291   dataset, and F1 score for all other datasets. Statistics are summarized in Table 4 in Appendix B.1.
+292
+293   Models We conduct experiments on eight different model pairs, shown in Table 5 in Appendix B.3.
+294   The model pairs include two instances of the same LLM and two models that are fine-tuned versions
+295   of the same base LLM. These models cover different families, including LLaMA (Dubey et al.,
+296   2024), Qwen (Qwen et al., 2024), and Falcon (Almazrouei et al., 2023).
+297
+298   Compared Methods We compare KVComm with several representative approaches: Baseline
+299   (no communication between Mr and Ms ), Skyline (concatenating context C and query Q as an up-
+300   per bound), Natural Language Debate (NLD) (Du et al., 2023), CIPHER (Pham et al., 2023), and
+301   AC (Ramesh & Li, 2025). Detailed descriptions for these methods are provided in Appendix B.4.
+302
+      Implementation details are provided in Appendix B.2.
+303
+304   4.2   C OMMUNICATION R ESULTS
+305
+306   Table 1 reports results on three model pairs fine-tuned from the same base LLM. The results on other
+307   model pairs are provided in Table 8 in Appendix F, which show similar trends. We observe that
+308
+      KVComm consistently outperforms all baseline communication methods across datasets and model
+      pairs. AC can outperform the Baseline method on some datasets, but they are still significantly
+309
+      worse than KVComm and Skyline, as hidden states of Mr are corrupted during communication.
+310
+311   NLD and CIPHER can achieve performance close to that of KVComm or Skyline on Countries
+312   and Tipsheets datasets, which is because these datasets require only a very small and highly salient
+313   amount of information to be transferred. For all other datasets, the sender has access to the entire
+314
+      context but not the question, and natural-language communication cannot reliably extract and trans-
+      mit the task-relevant subset of information. As a result, NLD and CIPHER perform substantially
+315
+      below KVComm on complex, long-context reasoning tasks. We conduct further experiments in
+316
+      Appendix I to eliminate the influence of hyperparameters.R3-Q3
+317
+318   KVComm can achieve comparable performance to Skyline when selecting 70% of layers’ KV pairs
+319   for communication, demonstrating the effectiveness of our selection strategy. Even when selecting
+320
+      only 30% of layers’ KV pairs, KVComm can still outperform most baseline communication methods
+      on many datasets, showing its potential for efficient communication with minimal overhead.
+321
+322   Note that KVComm can outperform Skyline on some datasets. We attribute this to two factors: (1)
+323   Ms may complement Mr with stronger capabilities in certain aspects, and (2) selective KV sharing
+      provides a regularization effect, which helps Mr to focus on the most relevant information and
+
+
+                                                       6
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+324   Table 1: Communication results of different methods. Best results are bolded, second best
+325   underlined (excluding Baseline and Skyline). We report the results with Mr for Baseline and Sky-
+326   line for fairness. KVComm (0.3/0.5/0.7) denotes selecting 30%/50%/70% of layers’ KV pairs for
+327   communication, i.e., M = ⌈0.3L⌉, M = ⌈0.5L⌉, M = ⌈0.7L⌉.R3-Q3
+328
+329                                                                                  MultiField   2WikiM
+       Method            Countries   Tipsheets   HotpotQA       QASPER   MuSiQuest   -QA-en       -QA      TMATH
+330
+        Ms : huihui-ai/Llama-3.2-3B-Instruct-abliterated; Mr : suayptalha/DeepSeek-R1-Distill-Llama-3B
+331
+       Baseline            0.05       0.32        0.23           0.05      0.02        0.11        0.27    0.34
+332    Skyline             0.57       0.91        0.73           0.25      0.51        0.47        0.40    0.36
+333    NLD                 0.43       0.72        0.43           0.10      0.18        0.09        0.30    0.33
+334    CIPHER              0.42       0.69        0.50           0.10      0.18        0.13        0.32    0.32
+       AC (mean)           0.03       0.45        0.25           0.05      0.02        0.13        0.23    0.35
+335    AC (replace)        0.00       0.49        0.05           0.01      0.01        0.12        0.03    0.34
+336    AC (sum)            0.02       0.46        0.23           0.05      0.01        0.13        0.24    0.34
+       KVComm (0.3)        0.46       0.45        0.46           0.09      0.28        0.15        0.28    0.35
+337    KVComm (0.5)        0.57       0.81        0.57           0.27      0.32        0.51        0.36    0.35
+338    KVComm (0.7)        0.57       0.81        0.65           0.29      0.36        0.47        0.37    0.35
+339         Ms : Orion-zhen/Qwen2.5-7B-Instruct-Uncensored; Mr : bespokelabs/Bespoke-Stratos-7B
+340
+       Baseline            0.01       0.36        0.13           0.05      0.03        0.08        0.09    0.35
+341    Skyline             0.51       0.97        0.53           0.10      0.25        0.40        0.09    0.35
+342    NLD                 0.21       0.80        0.16           0.02      0.04        0.11        0.02    0.35
+       CIPHER              0.04       0.60        0.03           0.01      0.03        0.07        0.03    0.34
+343    AC (mean)           0.00       0.00        0.03           0.00      0.00        0.08        0.01    0.01
+344    AC (replace)        0.00       0.00        0.00           0.00      0.00        0.00        0.00    0.00
+345    AC (sum)            0.00       0.00        0.02           0.00      0.00        0.07        0.04    0.03
+       KVComm (0.3)        0.04       0.26        0.02           0.01      0.01        0.09        0.08    0.31
+346    KVComm (0.5)        0.19       0.88        0.28           0.07      0.12        0.26        0.10    0.33
+347    KVComm (0.7)        0.41       0.89        0.41           0.21      0.25        0.29        0.15    0.34
+348              Ms : ehristoforu/falcon3-ultraset; Mr : huihui-ai/Falcon3-7B-Instruct-abliterated
+349    Baseline            0.08       0.36        0.21           0.06      0.04        0.09        0.23    0.31
+350    Skyline             0.56       0.95        0.76           0.32      0.56        0.51        0.45    0.37
+351    NLD                 0.46       0.80        0.52           0.19      0.25        0.11        0.24    0.15
+       CIPHER              0.30       0.19        0.27           0.02      0.07        0.06        0.25    0.17
+352    AC (mean)           0.01       0.46        0.25           0.06      0.04        0.09        0.23    0.31
+353    AC (replace)        0.00       0.49        0.12           0.00      0.01        0.13        0.17    0.31
+       AC (sum)            0.01       0.46        0.25           0.06      0.03        0.10        0.24    0.31
+354
+       KVComm (0.3)        0.46       0.69        0.59           0.19      0.40        0.35        0.29    0.32
+355    KVComm (0.5)        0.40       0.92        0.63           0.25      0.44        0.45        0.34    0.35
+356    KVComm (0.7)        0.19       0.96        0.55           0.26      0.42        0.51        0.31    0.36
+357
+358
+359   avoid wasting its capacity on less important signals. This also explains why using fewer layers can
+360   sometimes yield better performance than using more.
+361   Also note that the performance gain of KVComm is not substantial on TMATH. We attribute this
+362   to that pretraining gives LLMs solid capabilities in mathematical reasoning, which may not dra-
+363   matically benefit from additional context or hints. Moreover, AC performs relatively well on this
+364   dataset, which we consider is because the hints contain information about questions, so even if the
+365   last token’s hidden states are corrupted, it can still generate some useful information.
+366
+367   4.3   B ENEFIT OF S ELECTIVE KV OVER O NE C ONTIGUOUS C HUNK
+368
+369   DroidSpeak (Liu et al., 2024b) chooses to use one contiguous chunk of context for communication
+370   between LLMs. Despite different problem settings, we evaluate KVComm by replacing the selec-
+371   tion strategy with two hyperparameters, which are two layer indices layerfrom and layerto , then all
+372   layers between layerfrom and layerto are selected for communication. This is equivalent to using one
+373   contiguous chunk of context for communication. We vary them to select different chunks of layers.
+374   Figure 4 shows that using a single contiguous chunk for communication yields good performance
+375   only in a small region of the hyperparameter space, making it tricky to find the right hyperparam-
+376   eters. In contrast, the scatter and curve plots in Figure 5 demonstrate that KVComm consistently
+377   achieves the best or even outperforms the best contiguous chunk setting for the same number of
+      layers. Line plots in Figure 6 show that contiguous chunks are most effective when taken from in-
+
+
+                                                            7
+        Under review as a conference paper at ICLR 2026
+
+
+
+
+378
+        termediate layers, consistent with hypothesis H1 in Section 3.2. All results are on HotpotQA with
+379     the Llama-3.1-8B pair, with more in Appendix O.
+380
+381
+        4.4                A BLATION S TUDY ON S ELECTION S TRATEGY
+382
+383     Table 2 compares KVComm with random selection. We find that KVComm consistently outper-
+384     forms random selection across different datasets and selection ratios. When the ratio is high (i.e.,
+385     0.7), the performance gap between our selection strategy and random selection becomes smaller, as
+386     more layers are selected and the impact of the selection strategy is reduced. However, when the ratio
+387     is low (i.e., 0.3), our selection strategy significantly outperforms random selection, demonstrating
+388     its effectiveness in selecting the most informative layers for communication. Comparison results on
+389     other model pairs are provided in Table 9 in Appendix G, which show similar trends.
+390
+391
+                   Table 2: Comparison with random selection. Best results for each selection ratio are bolded.
+392
+                                                                                                                                              MultiField        2WikiM
+393          Method                           Countries     Tipsheets               HotpotQA            QASPER        MuSiQuest               -QA-en            -QA           TMATH
+
+394               Ms : huihui-ai/Llama-3.2-3B-Instruct-abliterated; Mr : suayptalha/DeepSeek-R1-Distill-Llama-3B
+395          Random (0.3)                      0.05              0.32                   0.18             0.07             0.01                    0.06           0.17           0.33
+396          KVComm (0.3)                      0.46              0.45                   0.46             0.09             0.28                    0.15           0.28           0.35
+397          Random (0.5)                      0.26              0.44                   0.37             0.08             0.10                    0.09           0.21           0.34
+             KVComm (0.5)                      0.57              0.81                   0.57             0.27             0.32                    0.51           0.36           0.35
+398          Random (0.7)                      0.57              0.82                   0.62             0.20             0.34                    0.30           0.28           0.35
+399          KVComm (0.7)                      0.57              0.81                   0.65             0.29             0.36                    0.47           0.37           0.35
+400
+401           F1 Score with One Contig. Chunk of Context                                   F1 Score w.r.t. #Layers                           Impact of Chunk Position under Fixed #Layers
+402               30                                                          0.8                                                           0.6                             #layers=10
+                                                           0.6                                                                                                              #layers=16
+403                                                                           0.6                                    Contig.
+                  20                                                                                                                        0.4
+                                                                                                                                 F1 Score
+                                                                                                                      =1.0
+                                                                   F1 Score
+
+
+
+
+404
+      layerfrom
+
+
+
+
+                                                           0.4                0.4                                     =0.9
+405                                                                                                                   =0.8
+                  10                                                          0.2                                     =0.7                  0.2
+406                                                        0.2                                                        =0.6
+407                                                                                                                   =0.5
+                   0                                                          0.0
+408                    0       10         20        30                              0          10         20            30                        0      5       10      15       20
+409                                 layerto                                                         #Layers                                                    layerfrom
+410
+        Figure 4: Effective commu-                                   Figure 5: KVComm achieves                                     Figure 6: Chunks in intermedi-
+411     nication with limited hyperpa-                               nearly the best or even outper-                               ate layers achieve the most ef-
+412     rameters.                                                    forms contig. chunks.                                         fective communication.
+413
+414
+415     4.5                ATTENTION D ISTRIBUTION A NALYSIS
+416
+417     We validate hypothesis H2 in Section 3.2 by selecting layers with different attention importance
+418     scores for communication. We select 9 layers with different levels of attention importance scores,
+419
+        and test the communication performance with Llama-3.2-3B model. The results are shown in Fig-
+        ure 7. We can find that selecting layers with higher scores can achieve better performance, while
+420
+        selecting layers with lower scores can diminish the performance. This validates hypothesis H2 that
+421
+        layers with higher attention importance scores are more effective for communication.
+422
+423
+424
+        4.6                S YSTEM E FFICIENCY
+425
+        Mathematically, we have shown in Section 3.3 that KVComm can reduce the computation cost
+426     compared to Skyline. We validate this through experiments on the Llama-3.2-3B model pair with
+427     Tipsheets and MultiFieldQA-en datasets. We report the relative FLOPs of KVComm and Skyline
+428     over AC in Figure 8. NLD and CIPHER are not included since they require multiple decoding steps
+429     for Ms , which makes the computation cost significantly higher than AC. We can find that KVComm
+430     has a significant computation advantage over Skyline, especially when selecting fewer layers for
+431     communication. This demonstrates the efficiency of our KVComm framework in enabling effective
+        communication with reduced computational overhead by 2.5x to 6x.
+
+
+                                                                                                    8
+        Under review as a conference paper at ICLR 2026
+
+
+
+
+432
+        In addition to FLOPs, we also report the memory consumption among methods. KVComm similarly
+433     shows a substantial memory advantage over Skyline, as the reduced number of communicated layers
+434     not only lowers computation but also alleviates memory pressure. On Tipsheets, KVComm uses
+435     23% to 73% less memory than Skyline. KVComm This further highlights the efficiency of our
+436     KVComm framework in achieving lightweight inter-model communication.R2-Q5
+437
+                                                                      Relative FLOPs and Memory Cost Over AC with Llama-3.2-3B (per Query)
+438       F1 Score Over Attention Level with Llama-3.2-3B                         Tipsheets                        MultiFieldQA-en
+439                                            HotpotQA              2.5                                 0.015 200
+                                                                                                                                                   0.4
+                                               Tipsheets             2.0                                       150
+
+
+
+
+                                                                                                                                                     Memory (GB)
+440
+                 0.4                           Countries                                                 0.010                                     0.3
+
+
+
+
+                                                            GFLOPs
+                                                                     1.5
+      F1 Score
+
+
+
+
+441                                                                                                            100
+                                                                     1.0                                                                           0.2
+442                                                                                                      0.005 50
+443
+                 0.2                                                 0.5                                                                           0.1
+
+444                                                                  0.0                                 0.000   0                                 0.0
+                                                                           AC kyline (0.3) (0.5) (0.7)               AC kyline (0.3) (0.5) (0.7)
+445              0.0                                                         S mm mm mm
+                                                                                 o     o     o
+                                                                                                                       S mm mm mm
+                                                                                                                           o     o     o
+                       Attention Level (high low)                            KVC KVC KVC                               KVC KVC KVC
+446
+447     Figure 7: Better communication per- Figure 8: KVComm requires less computation and mem-
+448     formance with higher attention level. ory compared to Skyline.R2-Q5
+449
+450
+451     5          R ELATED W ORK
+452
+453     LLM Inference Acceleration Lots of work has focused on accelerating LLM inference.
+454     Computation-level methods such as FlashAttention (Dao et al., 2022) and Memory-Efficient At-
+455     tention (Rabe & Staats, 2021) reduce memory and speed up attention; system-level methods such
+456     as vLLM (Kwon et al., 2023) and DeepSpeed-Inference (Aminabadi et al., 2022) improve overall
+457
+        throughput and latency; and model-level methods such as quantization (Lin et al., 2024) and prun-
+        ing (Ma et al., 2023) reduce model size and complexity. These works mainly focus on working with
+458
+        only one model processing a single long input with the aim of minimizing computation cost.R3-Q1
+459
+        These approaches are orthogonal to ours and can be combined with KVComm to further improve
+460     efficiency.
+461
+462     Closest to our work are methods that reuse computation across decoding steps or requests. Gao
+463
+        et al. (2024) introduces a hierarchical KV caching system for all requests; Gim et al. (2024) reuses
+        prompt KV caches across queries by decomposing inputs; Liu et al. (2024c) compresses KV caches
+464
+        into compact bitstreams; and Yao et al. (2025) combines multiple chunks’ KV caches by selectively
+465
+        recomputing a few tokens. In contrast, our work targets communication across different LLMs,
+466     which is more challenging due to parameter differences. Moreover, while prior methods reuse KV
+467     caches uniformly across layers, we enable selective sharing of KV caches from different layers,
+468     further improving efficiency. We do not compare with these works since they are orthogonal to ours.
+469
+        DroidSpeak (Liu et al., 2024b) aims to accelerate inference for queries with shared prefixes. It
+470
+        reuses the partial KV cache of these prefixes among different queries. Specifically, it empirically
+471
+        selects a single contiguous chunk of layers and recomputes the rest with large calibration overhead,
+472     whereas our strategy flexibly selects non-contiguous layers with low overhead, without needing to
+473     recompute the remaining layers. Despite different problem settings, we compare their contiguous-
+474     chunk strategy with ours in Section 4.3, showing the advantages of our approach.R1-Q2
+475
+        Ye et al. (2025) adjusts KV cache for shared content by referencing a pool of cached examples-
+476
+        termed anchors that store observed cache deviations under varying prefixes. Our work goes beyond
+477
+        this related work by: 1) enabling a different type of communication, where the receiver does not
+478     have access to the context, 2) making it possible to efficiently and selectively choose layers of KV
+479     pairs that will be transmitted, and 3) being able to work effectively across different models that are
+480     fine-tuned from one model.R4-Q7
+481
+482     Inter-LLM Communication Communication between multiple LLMs has been explored in sev-
+483     eral recent works. Most works focus on using natural language as the medium of communication.
+484     For example, Du et al. (2023) proposed a natural language debate framework where LLMs itera-
+485     tively critique each other’s answers in natural language to improve the final answer. Liang et al.
+        (2023) followed a similar idea but introduced a judge model to manage the debate process.
+
+
+                                                                               9
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+486
+      CIPHER (Pham et al., 2023) proposed using embedding space as the medium of communication.
+487   They pass the weighted average of the token embeddings from one LLM to another. Moreover,
+488   AC (Ramesh & Li, 2025) proposed to use the last token’s hidden state as the medium of commu-
+489   nication. They replace the last token’s hidden state of the receiver model with that of the sender
+490   model. Instead, we propose to use the KV pairs as the medium, which can preserve more informa-
+491   tion than just using the last token’s hidden state. We also propose a more effective selection strategy
+492   for choosing which KV pairs to share, which can further improve efficiency.
+493
+494   KV Cache Optimization Several works have explored optimizing KV caches for a single LLM
+495   by (1) compressing the KV caches to reduce memory usage (Ge et al., 2023; Liu et al., 2024a) or (2)
+496   managing the KV caches (offloading) to improve the inference speed (Lee et al., 2024; Xiong et al.,
+497
+      2024). As our work focuses on layer-wise selection of KV caches for communication between two
+      LLMs, these methods are orthogonal and can be combined with our method.
+498
+499
+500   6   D ISCUSSION
+501
+502   In this section, we discuss the limitations, clarify the scope of current design choices, and outline
+503   promising directions for future research. Additional discussions can be found in Appendix K.
+504
+505   Heterogeneous Model Architectures Our current KVComm framework assumes that both LLMs
+506   share the same base architecture, i.e., identical models or fine-tuned versions of the same base LLM.
+507
+      This is because KV pair structures differ substantially across model families, making direct KV ex-
+      change undefined. This architecture dependency is a practical limitation but not a fundamental one.
+508
+      Future work could explore learning latent projections, adapters, or other transformation functions to
+509
+      enable KV exchange across heterogeneous architectures.R1-Q1, R2-Q1, R3-Q4, R4-Q1
+510
+511   Multiple Sender/Receiver Extensions While we focus on a single sender-receiver pair in this
+512   work, KVComm can be naturally extended to multiple senders and/or receivers. KVComm can
+513   integrate information from multiple senders by concatenating KV caches, and multiple receivers
+514   can independently select layers based on their own attention patterns. As shown in Appendix J, we
+515   mathematically extend our framework to multiple senders, and perform a preliminary experiment
+516   with two senders and one receiver, showing that multiple senders can improve performance due to
+517   diversified information sources. However, a systematic study of scaling behaviors in larger multi-
+518   agent networks remains future work.R4-Q1
+519
+520   Context-adaptive Online Calibration KVComm currently adopts a fixed layer-selection strat-
+521
+      egy after calibration for simplicity and computational efficiency, while context-adaptive selection is
+      a promising extension. KVComm can naturally support online and dynamic selection. A demon-
+522
+      stration and analysis of this mechanism is provided in Appendix L.R2-Q2
+523
+524
+      Layer Selection Priors Given our goal of keeping the method simple, efficient, and broadly repro-
+525   ducible, we opt for the Gaussian prior. Other alternatives, such as entropy-weighted or data-driven,
+526   are promising but introduce significantly higher complexity, e.g., larger calibration sets, training a
+527   selector, or risking overfitting to a particular task distribution. Exploring more sophisticated priors
+528   is an interesting direction for future work.R2-Q3
+529
+530
+      7   C ONCLUSION
+531
+532
+      In this work, we identified the potential of using KV pairs as an effective medium for communication
+533
+      between two LLMs. We proposed a novel KVComm framework that enables efficient communica-
+534   tion by selectively sharing KV pairs between LLM models. We designed a selection strategy based
+535   on attention importance scores and a Gaussian prior to select the most relevant layers. Extensive
+536   experiments on diverse datasets and model pairs demonstrated that KVComm can achieve compa-
+537   rable or even superior performance to the Skyline upper bound and other methods, while reducing
+538   communication costs by up to 3x. We highlight the generalization ability of our selection strategy,
+539   which can be effectively calibrated with only a single sample. Our work opens up new possibilities
+      for efficient inter-LLM communication and paves the way for future research in this direction.
+
+
+                                                        10
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+540
+      R EPRODUCIBILITY S TATEMENT
+541
+542   We provide detailed descriptions of the datasets, model pairs, and implementation details in Ap-
+543   pendix B. The code and synthetic datasets, Countries and Tipsheets, are uploaded to the supplemen-
+544   tary materials for review and to facilitate reproducibility upon the publication of this work.
+545
+546   R EFERENCES
+547
+548   Ebtesam Almazrouei, Hamza Alobeidli, Abdulaziz Alshamsi, Alessandro Cappelli, Ruxandra Co-
+549     jocaru, Mérouane Debbah, Étienne Goffinet, Daniel Hesslow, Julien Launay, Quentin Malartic,
+550
+        et al. The falcon series of open language models. arXiv preprint arXiv:2311.16867, 2023.
+551   Reza Yazdani Aminabadi, Samyam Rajbhandari, Ammar Ahmad Awan, Cheng Li, Du Li, Elton
+552     Zheng, Olatunji Ruwase, Shaden Smith, Minjia Zhang, Jeff Rasley, et al. Deepspeed-inference:
+553     enabling efficient inference of transformer models at unprecedented scale. In SC22: International
+554     Conference for High Performance Computing, Networking, Storage and Analysis, pp. 1–15. IEEE,
+555     2022.
+556
+      Yushi Bai, Xin Lv, Jiajie Zhang, Hongchang Lyu, Jiankai Tang, Zhidian Huang, Zhengxiao Du,
+557
+        Xiao Liu, Aohan Zeng, Lei Hou, Yuxiao Dong, Jie Tang, and Juanzi Li. LongBench: A bilingual,
+558
+        multitask benchmark for long context understanding. In Proceedings of the 62nd Annual Meet-
+559     ing of the Association for Computational Linguistics (Volume 1: Long Papers), pp. 3119–3137,
+560     Bangkok, Thailand, August 2024. Association for Computational Linguistics. doi: 10.18653/v1/
+561     2024.acl-long.172. URL https://aclanthology.org/2024.acl-long.172.
+562
+563   Tri Dao, Dan Fu, Stefano Ermon, Atri Rudra, and Christopher Ré. Flashattention: Fast and memory-
+564
+        efficient exact attention with io-awareness. Advances in neural information processing systems,
+        35:16344–16359, 2022.
+565
+566   Pradeep Dasigi, Kyle Lo, Iz Beltagy, Arman Cohan, Noah A Smith, and Matt Gardner. A dataset
+567     of information-seeking questions and answers anchored in research papers. arXiv preprint
+568     arXiv:2105.03011, 2021.
+569
+      Yilun Du, Shuang Li, Antonio Torralba, Joshua B Tenenbaum, and Igor Mordatch. Improving fac-
+570
+        tuality and reasoning in language models through multiagent debate. In Forty-first International
+571
+        Conference on Machine Learning, 2023.
+572
+573   Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian, Ahmad Al-Dahle, Aiesha
+574     Letman, Akhil Mathur, Alan Schelten, Amy Yang, Angela Fan, et al. The llama 3 herd of models.
+575     arXiv e-prints, pp. arXiv–2407, 2024.
+576
+      Bin Gao, Zhuomin He, Puru Sharma, Qingxuan Kang, Djordje Jevdjic, Junbo Deng, Xingkun Yang,
+577     Zhou Yu, and Pengfei Zuo. {Cost-Efficient} large language model serving for multi-turn conver-
+578     sations with {CachedAttention}. In 2024 USENIX Annual Technical Conference (USENIX ATC
+579     24), pp. 111–126, 2024.
+580
+581   Suyu Ge, Yunan Zhang, Liyuan Liu, Minjia Zhang, Jiawei Han, and Jianfeng Gao. Model tells
+582
+        you what to discard: Adaptive kv cache compression for llms. arXiv preprint arXiv:2310.01801,
+        2023.
+583
+584   Mor Geva, Roei Schuster, Jonathan Berant, and Omer Levy. Transformer feed-forward layers are
+585    key-value memories. arXiv preprint arXiv:2012.14913, 2020.
+586
+587
+      In Gim, Guojun Chen, Seung-seob Lee, Nikhil Sarda, Anurag Khandelwal, and Lin Zhong. Prompt
+         cache: Modular attention reuse for low-latency inference. Proceedings of Machine Learning and
+588
+         Systems, 6:325–338, 2024.
+589
+590   Bogdan Gliwa, Iwona Mochol, Maciej Biesek, and Aleksander Wawer. SAMSum corpus: A human-
+591     annotated dialogue dataset for abstractive summarization. In Proceedings of the 2nd Workshop
+592     on New Frontiers in Summarization, pp. 70–79, Hong Kong, China, November 2019. Association
+593     for Computational Linguistics. doi: 10.18653/v1/D19-5409. URL https://www.aclweb.
+        org/anthology/D19-5409.
+
+
+                                                      11
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+594
+      Taicheng Guo, Xiuying Chen, Yaqi Wang, Ruidi Chang, Shichao Pei, Nitesh V. Chawla, Olaf Wiest,
+595     and Xiangliang Zhang. Large language model based multi-agents: A survey of progress and
+596     challenges, 2024. URL https://arxiv.org/abs/2402.01680.
+597
+598   Ganesh Jawahar, Benoı̂t Sagot, and Djamé Seddah. What does bert learn about the structure of
+599     language? In ACL 2019-57th Annual Meeting of the Association for Computational Linguistics,
+600
+        2019.
+601   Shuowei Jin, Xueshen Liu, Qingzhao Zhang, and Z Morley Mao. Compute or load kv cache? why
+602     not both? arXiv preprint arXiv:2410.03065, 2024.
+603
+604
+      Woosuk Kwon, Zhuohan Li, Siyuan Zhuang, Ying Sheng, Lianmin Zheng, Cody Hao Yu, Joseph
+       Gonzalez, Hao Zhang, and Ion Stoica. Efficient memory management for large language model
+605
+       serving with pagedattention. In Proceedings of the 29th symposium on operating systems princi-
+606
+       ples, pp. 611–626, 2023.
+607
+608   Wonbeom Lee, Jungi Lee, Junghwan Seo, and Jaewoong Sim. {InfiniGen}: Efficient generative
+609    inference of large language models with dynamic {KV} cache management. In 18th USENIX
+610    Symposium on Operating Systems Design and Implementation (OSDI 24), pp. 155–172, 2024.
+611   Guohao Li, Hasan Hammoud, Hani Itani, Dmitrii Khizbullin, and Bernard Ghanem. Camel: Com-
+612     municative agents for” mind” exploration of large language model society. Advances in Neural
+613     Information Processing Systems, 36:51991–52008, 2023.
+614
+615
+      Tian Liang, Zhiwei He, Wenxiang Jiao, Xing Wang, Yan Wang, Rui Wang, Yujiu Yang, Shuming
+        Shi, and Zhaopeng Tu. Encouraging divergent thinking in large language models through multi-
+616
+        agent debate. arXiv preprint arXiv:2305.19118, 2023.
+617
+618   Ji Lin, Jiaming Tang, Haotian Tang, Shang Yang, Wei-Ming Chen, Wei-Chen Wang, Guangxuan
+619      Xiao, Xingyu Dang, Chuang Gan, and Song Han. Awq: Activation-aware weight quantization
+620      for on-device llm compression and acceleration. Proceedings of machine learning and systems,
+621      6:87–100, 2024.
+622   Akide Liu, Jing Liu, Zizheng Pan, Yefei He, Gholamreza Haffari, and Bohan Zhuang. Minicache:
+623     Kv cache compression in depth dimension for large language models. Advances in Neural Infor-
+624     mation Processing Systems, 37:139997–140031, 2024a.
+625
+626   Yuhan Liu, Yuyang Huang, Jiayi Yao, Shaoting Feng, Zhuohan Gu, Kuntai Du, Hanchen Li, Yihua
+627
+        Cheng, Junchen Jiang, Shan Lu, et al. Droidspeak: Kv cache sharing for cross-llm communication
+        and multi-llm serving. arXiv preprint arXiv:2411.02820, 2024b.
+628
+629   Yuhan Liu, Hanchen Li, Yihua Cheng, Siddhant Ray, Yuyang Huang, Qizheng Zhang, Kuntai Du,
+630     Jiayi Yao, Shan Lu, Ganesh Ananthanarayanan, et al. Cachegen: Kv cache compression and
+631     streaming for fast large language model serving. In Proceedings of the ACM SIGCOMM 2024
+632     Conference, pp. 38–56, 2024c.
+633
+      Xinyin Ma, Gongfan Fang, and Xinchao Wang. Llm-pruner: On the structural pruning of large
+634     language models. Advances in neural information processing systems, 36:21702–21720, 2023.
+635
+636   Chau Pham, Boyi Liu, Yingxiang Yang, Zhengyu Chen, Tianyi Liu, Jianbo Yuan, Bryan A Plum-
+637     mer, Zhaoran Wang, and Hongxia Yang. Let models speak ciphers: Multiagent debate through
+638
+        embeddings. arXiv preprint arXiv:2310.06272, 2023.
+639   Changyong Qi, Yu’ang Wei, Haoxin Xu, Longwei Zheng, Peiji Chen, and Xiaoqing Gu. Tmath
+640     a dataset for evaluating large language models in generating educational hints for math word
+641     problems. In Proceedings of the 31st International Conference on Computational Linguistics, pp.
+642     5082–5093, 2025.
+643
+      Chen Qian, Xin Cong, Cheng Yang, Weize Chen, Yusheng Su, Juyuan Xu, Zhiyuan Liu,
+644
+        and Maosong Sun.       Communicative agents for software development. arXiv preprint
+645     arXiv:2307.07924, 6(3):1, 2023.
+646
+647   A Yang Qwen, Baosong Yang, B Zhang, B Hui, B Zheng, B Yu, Chengpeng Li, D Liu, F Huang,
+        H Wei, et al. Qwen2. 5 technical report. arXiv preprint, 2024.
+
+                                                     12
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+648
+      Markus N Rabe and Charles Staats. Self-attention does not need o (n2) memory. arXiv preprint
+649    arXiv:2112.05682, 2021.
+650
+651   Vignav Ramesh and Kenneth Li. Communicating activations between language model agents. arXiv
+652     preprint arXiv:2501.14082, 2025.
+653
+      Lijun Sun, Yijun Yang, Qiqi Duan, Yuhui Shi, Chao Lyu, Yu-Cheng Chang, Chin-Teng Lin, and
+654     Yang Shen. Multi-agent coordination across diverse applications: A survey, 2025.
+655
+656   Khanh-Tung Tran, Dung Dao, Minh-Duong Nguyen, Quoc-Viet Pham, Barry O’Sullivan, and
+657     Hoang D. Nguyen. Multi-agent collaboration mechanisms: A survey of llms, 2025.
+658
+      Harsh Trivedi, Niranjan Balasubramanian, Tushar Khot, and Ashish Sabharwal. Musique: Multihop
+659     questions via single-hop question composition. Transactions of the Association for Computational
+660     Linguistics, 10:539–554, 2022.
+661
+662   Thomas Wolf, Lysandre Debut, Victor Sanh, Julien Chaumond, Clement Delangue, Anthony Moi,
+663     Pierric Cistac, Tim Rault, Rémi Louf, Morgan Funtowicz, Joe Davison, Sam Shleifer, Patrick
+664
+        von Platen, Clara Ma, Yacine Jernite, Julien Plu, Canwen Xu, Teven Le Scao, Sylvain Gug-
+        ger, Mariama Drame, Quentin Lhoest, and Alexander M. Rush. Transformers: State-of-the-art
+665
+        natural language processing. In Proceedings of the 2020 Conference on Empirical Methods in
+666
+        Natural Language Processing: System Demonstrations, pp. 38–45, Online, October 2020. As-
+667     sociation for Computational Linguistics. URL https://www.aclweb.org/anthology/
+668     2020.emnlp-demos.6.
+669
+670   Qingyun Wu, Gagan Bansal, Jieyu Zhang, Yiran Wu, Beibin Li, Erkang Zhu, Li Jiang, Xiaoyun
+671     Zhang, Shaokun Zhang, Jiale Liu, et al. Autogen: Enabling next-gen llm applications via multi-
+672
+        agent conversations. In First Conference on Language Modeling, 2024.
+673   Yi Xiong, Hao Wu, Changxu Shao, Ziqing Wang, Rui Zhang, Yuhong Guo, Junping Zhao,
+674     Ke Zhang, and Zhenxuan Pan. Layerkv: Optimizing large language model serving with layer-
+675     wise kv cache management. arXiv preprint arXiv:2410.00428, 2024.
+676
+677
+      Jingfeng Yang, Hongye Jin, Ruixiang Tang, Xiaotian Han, Qizhang Feng, Haoming Jiang, Shaochen
+         Zhong, Bing Yin, and Xia Hu. Harnessing the power of llms in practice: A survey on chatgpt
+678
+         and beyond. ACM Trans. Knowl. Discov. Data, 18(6), 2024a. ISSN 1556-4681. doi: 10.1145/
+679
+         3649506. URL https://doi.org/10.1145/3649506.
+680
+681   Joshua C Yang, Damian Dalisan, Marcin Korecki, Carina I Hausladen, and Dirk Helbing. Llm
+682     voting: Human choices and ai collective decision-making. In Proceedings of the AAAI/ACM
+683     Conference on AI, Ethics, and Society, volume 7, pp. 1696–1708, 2024b.
+684
+      Zhilin Yang, Peng Qi, Saizheng Zhang, Yoshua Bengio, William W. Cohen, Ruslan Salakhutdinov,
+685     and Christopher D. Manning. HotpotQA: A dataset for diverse, explainable multi-hop question
+686     answering. In Conference on Empirical Methods in Natural Language Processing (EMNLP),
+687     2018.
+688
+689   Jiayi Yao, Hanchen Li, Yuhan Liu, Siddhant Ray, Yihua Cheng, Qizheng Zhang, Kuntai Du, Shan
+690
+         Lu, and Junchen Jiang. Cacheblend: Fast large language model serving for rag with cached
+         knowledge fusion. In Proceedings of the Twentieth European Conference on Computer Systems,
+691
+         pp. 94–109, 2025.
+692
+693   Hancheng Ye, Zhengqi Gao, Mingyuan Ma, Qinsi Wang, Yuzhe Fu, Ming-Yu Chung, Yueqian Lin,
+694     Zhijian Liu, Jianyi Zhang, Danyang Zhuo, et al. Kvcomm: Online cross-context kv-cache com-
+695     munication for efficient llm-based multi-agent systems. arXiv preprint arXiv:2510.12872, 2025.
+696
+697
+698
+699
+700
+701
+
+
+
+                                                     13
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+702
+      A     T HE U SE OF L ARGE L ANGUAGE M ODELS (LLM S )
+703
+704
+      Large language models, including ChatGPT, were employed to provide assistance in improving
+705
+      the clarity, coherence, and fluency of the manuscript. These tools were used solely for language
+706   refinement, and all scientific content and interpretations remain the responsibility of the authors.
+707
+708
+709   B     E XPERIMENTAL S ETUP
+710
+711   In this appendix, we provide more details about the experimental setup, including dataset details,
+712   implementation details, fine-tuned model pairs, and descriptions of compared methods.
+713
+714   B.1   DATASET
+715
+716   We provide sample prompts and expected answers for the Countries and Tipsheets datasets in Ta-
+717   ble 3, which are inspired by Ramesh & Li (2025). We also provide the statistics of all datasets
+718   used in our experiments in Table 4. HotpotQA, QASPER, MuSiQuest, and TMATH datasets are
+719   randomly sampled from their original datasets to reduce the evaluation cost. Extended results on the
+720
+      full datasets are provided in Appendix E.R2-S3
+721
+      Table 3: Sample prompts and expected answers for Countries and Tipsheets datasets inspired by
+722
+      Ramesh & Li (2025).
+723
+724
+       Dataset      Role       Content
+725
+726                 C          Uma is at the Mahaffie House.
+       Countries    Q          Which country is Uma located in?
+727                 Answer     United States
+728
+                    C          Atlas LLC is under pressure amid softer trends; EPS -17%; won a sizable
+729    Tipsheets               customer contract but faces a lawsuit. Sable LLC shows clear momentum
+730                            and improving execution; authorized a buyback but reported a cyber in-
+731                            cident. Trace LLC looks balanced with a mixed near-term setup.
+732                 Q          You must invest in exactly one company from Atlas LLC, Sable LLC, Trace
+733                            LLC. Which do you choose?
+734                 Answer     Sable LLC
+735
+736
+737
+                             Table 4: Statistics of the datasets in our experiments.
+738
+                                  Dataset                                 Size
+739
+740                               Countries                               200
+                                  Tipsheets                               500
+741
+                                  HotpotQA (Yang et al., 2018)            500
+742                               QASPER (Dasigi et al., 2021)            500
+743                               MuSiQuest (Trivedi et al., 2022)        500
+744                               MultiFieldQA-en (Bai et al., 2024)      150
+                                  2WikiMQA (Bai et al., 2024)             200
+745                               TMATH (Qi et al., 2025)                 300
+746
+747
+748
+      B.2   I MPLEMENTATION D ETAILS
+749
+750   We implement our KVComm framework based on the Hugging Face Transformers library (Wolf
+751   et al., 2020), and models are loaded in bfloat16 precision. We set the hyperparameters of our selec-
+752   tion strategy as µ = L/2, and σ = 10, where L is the total number of layers in the model. For NLD
+753   and CIPHER methods, we set the number of debate rounds to 2, and the maximum generation length
+754   to 256 in the debate process. For KVComm, α is set to 1 for Llama family models, and 0.8 for Qwen
+755   and Falcon family models. These values are obtained by validating on a left-out set. All experiments
+      are conducted on a cluster of nodes, each equipped with an Intel®Xeon®Platinum 8358 Processor
+
+
+                                                       14
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+756
+      @ 2.60 GHz and 4 NVIDIA A100 GPUs with 64 GB memory. We obtain the FLOPs with PyTorch
+757   Profiler2 .
+758
+759
+      B.3       M ODEL PAIRS
+760
+761   We conduct experiments on eight different model pairs, shown in Table 5. The first four pairs consist
+762   of the same LLMs, while the last four pairs consist of models that are fine-tuned on the same base
+763   LLM.
+764
+765       Table 5: Model pairs in the evaluation. Ms is the sender model, and Mr is the receiver model.
+766
+       Index      Ms                                            Mr                                              Note
+767
+       1          meta-llama/Llama-3.1-8B-Instruct              meta-llama/Llama-3.1-8B-Instruct                Same model
+768    2          meta-llama/Llama-3.2-3B-Instruct              meta-llama/Llama-3.2-3B-Instruct                Same model
+       3          Qwen/Qwen2.5-7B-Instruct                      Qwen/Qwen2.5-7B-Instruct                        Same model
+769    4          tiiuae/Falcon3-7B-Instruct                    tiiuae/Falcon3-7B-Instruct                      Same model
+770    5          yuvraj17/EvolCodeLlama-3.1-8B-Instruct        Team-ACE/ToolACE-2-Llama-3.1-8B                 Fine-tuned on 1
+       6          huihui-ai/Llama-3.2-3B-Instruct-abliterated   suayptalha/DeepSeek-R1-Distill-Llama-3B         Fine-tuned on 2
+771    7          Orion-zhen/Qwen2.5-7B-Instruct-Uncensored     bespokelabs/Bespoke-Stratos-7B                  Fine-tuned on 3
+       8          ehristoforu/falcon3-ultraset                  huihui-ai/Falcon3-7B-Instruct-abliterated       Fine-tuned on 4
+772
+       9          arcee-ai/Llama-3.1-SuperNova-LiteR4-Q6        deepseek-ai/DeepSeek-R1-Distill-Llama-8BR4-Q6   Fine-tuned on 1
+773
+774
+775
+776   B.4       C OMPARED M ETHOD D ESCRIPTIONS
+777
+778
+      We compare our proposed KVComm framework with the following methods:
+779
+                 • Baseline: Mr processes the query Q without any communication from Ms .
+780
+781              • Skyline: Mr directly processes the concatenation of the context C and query Q. This
+782
+                   serves as an upper bound for performance.
+783              • Natural Language Debate (NLD) (Du et al., 2023): Each model generates an initial an-
+784                swer, and then they iteratively critique each other’s answers in natural language for a fixed
+785                number of rounds. Finally, one model produces the final answer based on the entire debate
+786                history. Compared to the original debate style setting, we use an information-transfer style,
+787
+                   which explicitly prompts Ms that it has to summarize the context C in its initial answer.
+                   We set the number of debate rounds to 2.R3-Q3
+788
+789              • CIPHER (Pham et al., 2023): Similar to NLD, but instead of communicating in natural
+790                language, the models communicate by passing the weighted average of the token embed-
+791
+                   dings from one LLM to another. We use the same prompt as NLD, and set the number of
+                   debate rounds to 2.
+792
+793              • AC (Ramesh & Li, 2025): Communicate with the last token’s hidden state. Replace the last
+794                token’s hidden state of Mr with that of Ms . We also test with mean and sum operations.
+795
+796   C        T OKEN I MPORTANCE AT D IFFERENT P OSITIONS
+797
+798   We add more details and experiments related to Section 2.2.1 in this appendix.
+799
+800
+      C.1       D ETAILED E XPERIMENT P ROCEDURE R3-Q2
+801
+802   We provide a detailed description of the experiment procedure in Section 2.2.1. Considering a model
+803   M with L layers, given an input X with N tokens, we run a partial forward pass until layer l to
+804   obtain the hidden states {hli }N
+                                     i=1 . Then, given a specific token position k, if we perform the Retain
+805   operation, we create a modified set of hidden states {h̃li }N
+                                                                  i=1 as follows:
+806                                                   l
+807                                                   hi , if i = k
+                                              h̃li =
+808                                                   0, otherwise
+809
+           2
+               https://docs.pytorch.org/docs/stable/profiler.html
+
+
+                                                                  15
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+810
+      If we perform the Remove operation, we create the modified set of hidden states {h̃li }N
+                                                                                             i=1 as follows:
+811                                              
+                                                   0, if i = k
+812                                       h̃li =
+813                                                hli , otherwise
+814   We then continue the forward pass from layer l + 1 to layer L using the modified hidden states
+815   {h̃li }N
+             i=1 as input, and obtain the final output of the model. We evaluate the model’s performance on
+816   the task with different token positions k and layer l.
+817
+818   C.2              M ORE E XPERIMENTS ON T OKEN I MPORTANCE
+819
+820   We conduct the same experiment as in Section 2.2.1 on other datasets and models to investigate the
+821   effect of tokens at different positions in the sequence on the model’s output. We report the results on
+822
+      MMLU Social Science, MMLU STEM, and MMLU Humanities using Llama-3.1-8B and Llama-
+      3.2-3B models in Figure 9. We can see that the last token’s hidden state plays the most critical role
+823
+      in the latter layers, which is consistent with the observation in Section 2.2.1.
+824
+825                                    Retain the token                   0.8
+                                                                                                Remove the token                                                     Retain the token                       Remove the token
+                       0.8                                                                                                                        0.60                                       0.60
+826                    0.7                                                0.7                                                                     0.55                                       0.55
+                                                                                                                                                  0.50                                       0.50
+827                    0.6                                          0.6
+                                                             Last                                                                                 0.45                                Last   0.45
+                                                             None                                                                                                                     None
+            Accuracy
+
+
+
+
+                                                                                                                                       Accuracy
+828                    0.5                                   Random 0.5                                                                           0.40                                Random 0.40
+                       0.4                                   First                                                                                0.35                                First  0.35
+829                                                                 0.4
+                                                                                                                                                  0.30                                       0.30
+830                    0.3                                                0.3                                                                     0.25                                       0.25
+831                    0.2                                                0.2                                                                     0.20
+                              0         10             20         30               0                10               20          30                          0        10        20           30         0     10       20      30
+832                                                               Layer                                                                                                                      Layer
+833                     (a) Llama-3.2-3B on MMLU Social Science                                                                                                  (b) Llama-3.1-8B on MMLU STEM
+834                                    Retain the token                                         Remove the token                                                     Retain the token                       Remove the token
+                       0.50                                               0.50                                                                    0.65
+835                                                                                                                                               0.60                                            0.6
+                       0.45                                               0.45                                                                    0.55
+836                    0.40                                  Last   0.40                                                                          0.50                                  Last   0.5
+                                                             None                                                                                                                       None
+            Accuracy
+
+
+
+
+                                                                                                                                       Accuracy
+
+
+
+
+837                                                                                                                                               0.45
+                       0.35                                  Random 0.35                                                                                                                Random
+                                                             First                                                                                0.40                                  First  0.4
+838                    0.30                                         0.30                                                                          0.35
+839                    0.25                                               0.25                                                                    0.30                                            0.3
+                                                                                                                                                  0.25
+840                    0.20
+                              0    5         10   15        20   25                     0       5        10     15        20    25                           0        10        20           30         0     10      20       30
+                                                                  Layer                                                                                                                      Layer
+841
+842                               (c) Llama-3.2-3B on MMLU STEM                                                                                      (d) Llama-3.1-8B on MMLU Humanities
+                                                                                                        Retain the token                                          Remove the token
+843                                                                              0.60                                                      0.60
+844                                                                              0.55                                                      0.55
+                                                                                 0.50                                                 0.50
+845                                                                              0.45                                          Last
+                                                                                                                               None   0.45
+                                                                      Accuracy
+
+
+
+
+846                                                                              0.40                                          Random 0.40
+                                                                                                                               First
+847                                                                              0.35                                                 0.35
+                                                                                 0.30                                                      0.30
+848                                                                              0.25                                                      0.25
+849                                                                                         0       5      10    15        20     25                     0       5    10   15    20     25
+                                                                                                                                     Layer
+850
+851                                                                                     (e) Llama-3.2-3B on MMLU Humanities
+852
+      Figure 9: Effect of removing or retaining a token’s hidden state across different positions on MMLU
+853
+      Social Science, MMLU STEM, and MMLU Humanities accuracy using Llama-3.1-8B and Llama-
+854
+      3.2-3B models.
+855
+856
+857   D          U TILIZING A LL T OKENS
+858
+859   We add more details and experiments related to Section 2.2.2 in this appendix.
+860
+861   D.1              D ETAILED E XPERIMENT P ROCEDURE R3-Q2, R4-Q3
+862
+863   We provide a detailed description of the experiment procedure in Section 2.2.2. Considering two
+      models Ms and Mr , each with L layers, given C and Q as input, we run a partial forward pass
+
+
+                                                                                                                                      16
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+864
+      of Ms until layer k to obtain the hidden state Hsk ∈ R|C|×d for all tokens in C, where |C| is the
+865   number of tokens in C, and d is the hidden dimension. Another partial forward pass of Mr is run
+866   until layer j to obtain the hidden state Hrj ∈ R|Q|×d for all tokens in Q, where |Q| is the number
+867   of tokens in Q. We then modify the hidden states of Mr at layer j by prepending the hidden states
+868   from Ms at layer k as follows:
+869
+                                                          s
+                                                          H
+870                                                H̃rj = Hkr
+                                                            j
+871
+872   We continue the forward pass from layer j + 1 to layer L using the modified hidden states H̃rj as
+873   input, and obtain the final output of the model. We evaluate the model’s performance on the task
+874   with different layers k and j.
+875
+876   D.2               M ORE E XPERIMENTS ON U TILIZING A LL T OKENS
+877
+878
+      We conduct the same experiment as in Section 2.2.2 on Countries, Tipsheets, and HotpotQA datasets
+      using Llama-3.1-8B, Llama-3.2-3B, and Qwen2.5-7B models. The results are shown in Figure 10.
+879
+      We can see the results are consistent with the observation in Section 2.2.2.
+880
+881                                      Llama-3.1-8B          Llama-3.2-3B                Qwen2.5-7B
+882                                                                                                     0.6
+            s layer index (k)
+
+
+
+
+                                25
+883                                                                                                     0.5
+                                20
+884                                                                                                     0.4
+
+
+
+
+                                                                                                          F1 Score
+885                             15                                                                      0.3
+886                             10                                                                      0.2
+887
+                                 5                                                                      0.1
+            Sender
+
+
+
+
+888
+889                              0                                                                      0.0
+                                     0    10      20    0        10         20       0      10     20
+890                                                         Receiver   r layer index (j)
+891
+                                                                  (a) Countries
+892
+                                         Llama-3.1-8B          Llama-3.2-3B                Qwen2.5-7B
+893
+            s layer index (k)
+
+
+
+
+894                             25
+                                                                                                        0.8
+895                             20
+                                                                                                        0.6
+                                                                                                          F1 Score
+896                             15
+897
+                                10                                                                      0.4
+898
+899                              5                                                                      0.2
+            Sender
+
+
+
+
+900                              0                                                                      0.0
+901                                  0    10      20    0        10         20       0      10     20
+902
+                                                            Receiver   r layer index (j)
+903                                                               (b) Tipsheets
+904                                      Llama-3.1-8B          Llama-3.2-3B                Qwen2.5-7B
+            s layer index (k)
+
+
+
+
+905                             25
+906                                                                                                     0.6
+                                20
+907
+                                                                                                          F1 Score
+
+
+
+
+908                             15                                                                      0.4
+909                             10
+                                                                                                        0.2
+910                              5
+            Sender
+
+
+
+
+911
+                                 0                                                                      0.0
+912                                  0    10      20    0        10         20       0      10     20
+913                                                         Receiver   r layer index (j)
+914                                                               (c) HotpotQA
+915
+916   Figure 10: Performance heatmap of prepending the hidden states from certain layers of Ms to
+917   certain layers of Mr on Countries, Tipsheets, and HotpotQA.
+
+
+
+                                                                       17
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+918
+      E    E XPERIMENT RESULTS WITH EXTENDED DATASETS
+919
+920
+      To further validate the effectiveness of our KVComm framework, we conduct experiments on the full
+921   datasets of HotpotQA, QASPER, MuSiQuest, mainly HotpotQA-E, QASPER-E, and MuSiQuest-E.
+922   Moreover, we include a new human-created summarization dataset, SAMSum, which represents a
+923   different task type. The statistics of these datasets are shown in Table 7. We report the results on
+924   these extended datasets in Table 6. The results show similar trends as in Section 4.2, demonstrating
+925   the robustness of our KVComm framework across different datasets and tasks.R2-S3
+926
+      Table 6: Communication results on extended communication tasks. The best results in each block
+927
+      are in bold, and the second best results are underlined.R2-S3
+928
+929
+                   Method            HotpotQA-E      QASPER-E       MuSiQuest-E    SAMSum
+930
+                               Ms : huihui-ai/Llama-3.2-3B-Instruct-abliterated;
+931                            Mr : suayptalha/DeepSeek-R1-Distill-Llama-3B
+932
+                   Baseline              0.22            0.03            0.06        0.26
+933                Skyline               0.77            0.52            0.25        0.33
+934                NLD                   0.45            0.10            0.18        0.28
+                   CIPHER                0.51            0.10            0.20        0.28
+935                AC (mean)             0.24            0.03            0.06        0.26
+936                AC (replace)          0.06            0.00            0.01        0.26
+937
+                   AC (sum)              0.23            0.03            0.06        0.26
+                   KVComm (0.3)          0.44            0.25            0.11        0.25
+938                KVComm (0.5)          0.61            0.36            0.25        0.28
+939                KVComm (0.7)          0.71            0.38            0.30        0.29
+940                           Ms : Orion-zhen/Qwen2.5-7B-Instruct-Uncensored;
+941
+                                    Mr : bespokelabs/Bespoke-Stratos-7B
+942                Baseline              0.15            0.04            0.06        0.25
+                   Skyline               0.58            0.27            0.10        0.35
+943                NLD                   0.24            0.02            0.07        0.28
+944                CIPHER                0.04            0.01            0.02        0.37
+945
+                   AC (mean)             0.03            0.00            0.00        0.01
+                   AC (replace)          0.00            0.00            0.00        0.00
+946                AC (sum)              0.03            0.00            0.00        0.04
+947                KVComm (0.3)          0.02            0.00            0.01        0.18
+                   KVComm (0.5)          0.21            0.14            0.08        0.30
+948                KVComm (0.7)          0.40            0.34            0.21        0.35
+949                                Ms : Orion-ehristoforu/falcon3-ultraset;
+950                              Mr : huihui-ai/Falcon3-7B-Instruct-abliterated
+951                Baseline              0.21            0.06            0.06        0.27
+952                Skyline               0.78            0.60            0.33        0.36
+                   NLD                   0.52            0.10            0.28        0.28
+953                CIPHER                0.28            0.03            0.09        0.17
+954                AC (mean)             0.24            0.06            0.07        0.26
+955                AC (replace)          0.12            0.02            0.01        0.26
+                   AC (sum)              0.23            0.05            0.06        0.26
+956                KVComm (0.3)          0.59            0.15            0.40        0.28
+957                KVComm (0.5)          0.59            0.22            0.46        0.31
+                   KVComm (0.7)          0.59            0.26            0.36        0.32
+958
+959
+960                               Table 7: Statistics of extended datasets.R2-S3
+961
+962                               Dataset                                 Size
+963                               HotpotQA-E (Yang et al., 2018)          7,405
+964                               QASPER-E (Dasigi et al., 2021)          1,726
+965                               MuSiQuest-E (Trivedi et al., 2022)      2,417
+966
+                                  SAMSum (Gliwa et al., 2019)             819
+967
+968
+969   F   M ORE C OMMUNICATION R ESULTS
+970
+971   We provide more communication results on different model pairs in Table 8, which show similar
+      trends as in Section 4.2.
+
+
+                                                       18
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+972    Table 8: More communication results of different methods. Best results are bolded, second best
+973    underlined (excluding Baseline and Skyline). We report Mr for Baseline and Skyline for fairness.
+974    KVComm (0.3/0.5/0.7) denotes selecting 30%/50%/70% of layers’ KV pairs for communication,
+975    i.e., M = ⌈0.3L⌉, M = ⌈0.5L⌉, M = ⌈0.7L⌉.R3-Q3, R4-Q6
+976
+                                                                                     MultiField   2WikiM
+977     Method            Countries   Tipsheets   HotpotQA    QASPER     MuSiQuest   -QA-en       -QA      TMATH
+978                Ms : meta-llama/Llama-3.1-8B-Instruct; Mr : meta-llama/Llama-3.1-8B-Instruct
+979
+        Baseline            0.00       0.05        0.19           0.02     0.01        0.07        0.06    0.35
+980     Skyline             0.62       0.92        0.74           0.35     0.54        0.56        0.52    0.36
+981     NLD                 0.58       0.87        0.52           0.13     0.25        0.17        0.10    0.36
+        CIPHER              0.57       0.84        0.57           0.13     0.25        0.15        0.10    0.36
+982     AC (mean)           0.00       0.12        0.19           0.02     0.01        0.08        0.03    0.35
+983     AC (replace)        0.00       0.36        0.15           0.02     0.01        0.07        0.05    0.35
+984     AC (sum)            0.00       0.09        0.20           0.02     0.01        0.09        0.04    0.35
+        KVComm (0.3)        0.51       0.93        0.33           0.07     0.11        0.21        0.29    0.37
+985     KVComm (0.5)        0.62       0.95        0.60           0.29     0.34        0.50        0.37    0.37
+986     KVComm (0.7)        0.62       0.96        0.69           0.29     0.39        0.53        0.38    0.38
+987                Ms : meta-llama/Llama-3.2-3B-Instruct; Mr : meta-llama/Llama-3.2-3B-Instruct
+988     Baseline            0.02       0.01        0.16           0.00     0.02        0.10        0.09    0.35
+989     Skyline             0.56       0.87        0.72           0.23     0.45        0.45        0.37    0.38
+990     NLD                 0.51       0.71        0.49           0.09     0.18        0.11        0.07    0.34
+        CIPHER              0.45       0.73        0.46           0.08     0.17        0.09        0.07    0.33
+991     AC (mean)           0.00       0.07        0.18           0.01     0.02        0.09        0.06    0.35
+992     AC (replace)        0.01       0.37        0.13           0.01     0.02        0.06        0.03    0.34
+        AC (sum)            0.00       0.34        0.20           0.02     0.02        0.10        0.07    0.34
+993     KVComm (0.3)        0.51       0.48        0.47           0.10     0.20        0.17        0.28    0.35
+994     KVComm (0.5)        0.55       0.79        0.58           0.24     0.27        0.47        0.35    0.36
+995     KVComm (0.7)        0.57       0.80        0.65           0.27     0.29        0.48        0.31    0.37
+996                      Ms : Qwen/Qwen2.5-7B-Instruct; Mr : Qwen/Qwen2.5-7B-Instruct
+997     Baseline            0.00       0.32        0.19           0.05     0.03        0.06        0.17    0.32
+998     Skyline             0.54       0.97        0.68           0.30     0.48        0.49        0.45    0.33
+        NLD                 0.18       0.86        0.37           0.09     0.11        0.11        0.19    0.30
+999     CIPHER              0.18       0.87        0.34           0.07     0.10        0.11        0.16    0.31
+1000    AC (mean)           0.00       0.37        0.15           0.01     0.02        0.10        0.20    0.33
+1001    AC (replace)        0.00       0.35        0.02           0.00     0.00        0.10        0.09    0.32
+        AC (sum)            0.00       0.41        0.14           0.02     0.02        0.08        0.17    0.32
+1002    KVComm (0.3)        0.04       0.31        0.06           0.02     0.01        0.19        0.19    0.32
+1003    KVComm (0.5)        0.57       0.92        0.49           0.18     0.20        0.40        0.25    0.32
+        KVComm (0.7)        0.56       0.98        0.72           0.29     0.48        0.45        0.35    0.33
+1004
+1005                      Ms : tiiuae/Falcon3-7B-Instruct; Mr : tiiuae/Falcon3-7B-Instruct
+1006    Baseline            0.06       0.33        0.19           0.04     0.04        0.09        0.21    0.31
+1007    Skyline             0.57       0.95        0.70           0.24     0.50        0.49        0.48    0.35
+        NLD                 0.38       0.71        0.44           0.07     0.19        0.13        0.24    0.20
+1008    CIPHER              0.47       0.63        0.41           0.03     0.19        0.09        0.21    0.21
+1009    AC (mean)           0.03       0.51        0.22           0.04     0.04        0.09        0.22    0.32
+        AC (replace)        0.00       0.57        0.09           0.00     0.02        0.12        0.14    0.31
+1010    AC (sum)            0.04       0.51        0.22           0.04     0.03        0.09        0.22    0.32
+1011    KVComm (0.3)        0.06       0.67        0.41           0.12     0.22        0.41        0.23    0.32
+1012    KVComm (0.5)        0.16       0.94        0.52           0.22     0.33        0.47        0.33    0.32
+        KVComm (0.7)        0.23       0.96        0.54           0.22     0.32        0.47        0.29    0.32
+1013
+1014        Ms : yuvraj17/EvolCodeLlama-3.1-8B-Instruct; Mr : Team-ACE/ToolACE-2-Llama-3.1-8B
+1015    Baseline            0.00       0.07        0.04           0.00     0.01        0.08        0.01    0.34
+1016
+        Skyline             0.24       0.95        0.37           0.17     0.15        0.51        0.25    0.39
+        NLD                 0.29       0.82        0.17           0.04     0.05        0.13        0.02    0.34
+1017    CIPHER              0.21       0.86        0.19           0.03     0.06        0.15        0.03    0.33
+1018    AC (mean)           0.00       0.31        0.03           0.00     0.01        0.11        0.01    0.34
+        AC (replace)        0.00       0.30        0.05           0.00     0.01        0.10        0.02    0.33
+1019    AC (sum)            0.00       0.27        0.04           0.00     0.01        0.09        0.01    0.34
+1020    KVComm (0.3)        0.12       0.95        0.12           0.05     0.04        0.26        0.19    0.36
+1021
+        KVComm (0.5)        0.55       0.98        0.38           0.15     0.14        0.43        0.28    0.38
+        KVComm (0.7)        0.53       0.97        0.51           0.22     0.25        0.49        0.33    0.38
+1022
+1023
+             Ms : arcee-ai/Llama-3.1-SuperNova-Lite; Mr : deepseek-ai/DeepSeek-R1-Distill-Llama-8B
+1024    Baseline            0.07       0.30        0.11           0.01     0.03        0.09        0.16    0.23
+        Skyline             0.55       0.80        0.52           0.17     0.40        0.41        0.16    0.29
+1025
+                                                                                           Continued on next page
+
+
+                                                             19
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1026                                      Table 8 – continued from previous page
+1027    Method             Countries   Tipsheets   HotpotQA    QASPER     MuSiQuest
+                                                                                      MultiField   2WikiM
+                                                                                                            TMATH
+                                                                                      -QA-en       -QA
+1028
+1029
+        NLD                  0.30       0.39        0.20           0.02     0.06        0.08        0.19    0.22
+        CIPHER               0.47       0.71        0.27           0.03     0.11        0.14        0.14    0.18
+1030    AC (mean)            0.00       0.31        0.08           0.02     0.02        0.09        0.14    0.25
+1031    AC (replace)         0.00       0.39        0.04           0.01     0.00        0.16        0.16    0.28
+        AC (sum)             0.02       0.34        0.07           0.02     0.02        0.08        0.16    0.24
+1032    KVComm (0.3)         0.09       0.52        0.10           0.01     0.03        0.09        0.08    0.28
+1033    KVComm (0.5)         0.41       0.76        0.33           0.05     0.21        0.23        0.09    0.29
+1034    KVComm (0.7)         0.53       0.76        0.47           0.12     0.28        0.31        0.14    0.29
+1035
+1036
+1037   G    A BLATION S TUDY ON S ELECTION S TRATEGY
+1038
+       We conduct more ablation studies on the selection strategy by comparing with random selection and selection
+1039
+       based on only attention importance scores. The results are shown in Table 9, which show similar trends as in
+1040   Section 4.4.
+1041
+1042   Table 9: More comparison results with random selection. Best results for each selection ratio are
+1043
+       bolded.
+1044
+                                                                                      MultiField   2WikiM
+1045    Method             Countries   Tipsheets   HotpotQA    QASPER     MuSiQuest   -QA-en       -QA      TMATH
+
+1046               Ms : meta-llama/Llama-3.1-8B-Instruct; Mr : meta-llama/Llama-3.1-8B-Instruct
+1047    Random (0.3)         0.02       0.35        0.24           0.07     0.04        0.07        0.12    0.35
+1048    KVComm (0.3)         0.51       0.93        0.33           0.07     0.11        0.21        0.29    0.37
+1049    Random (0.5)         0.49       0.76        0.58           0.15     0.29        0.29        0.27    0.36
+        KVComm (0.5)         0.62       0.95        0.60           0.29     0.34        0.50        0.37    0.37
+1050    Random (0.7)         0.63       0.88        0.76           0.32     0.49        0.52        0.34    0.37
+1051    KVComm (0.7)         0.62       0.96        0.69           0.29     0.39        0.53        0.38    0.38
+1052          Ms : Orion-zhen/Qwen2.5-7B-Instruct-Uncensored; Mr : bespokelabs/Bespoke-Stratos-7B
+1053    Random (0.3)         0.00       0.09        0.00           0.00     0.00        0.06        0.01    0.31
+1054    KVComm (0.3)         0.04       0.26        0.02           0.01     0.01        0.09        0.08    0.31
+1055    Random (0.5)         0.12       0.32        0.06           0.00     0.03        0.15        0.04    0.33
+        KVComm (0.5)         0.19       0.88        0.28           0.07     0.12        0.26        0.10    0.33
+1056    Random (0.7)         0.16       0.76        0.14           0.03     0.02        0.20        0.04    0.34
+1057    KVComm (0.7)         0.41       0.89        0.41           0.21     0.25        0.29        0.15    0.34
+1058              Ms : ehristoforu/falcon3-ultraset; Mr : huihui-ai/Falcon3-7B-Instruct-abliterated
+1059    Random (0.3)         0.35       0.36        0.23           0.06     0.07        0.14        0.24    0.31
+1060    KVComm (0.3)         0.46       0.69        0.59           0.19     0.40        0.35        0.29    0.32
+1061    Random (0.5)         0.23       0.42        0.27           0.09     0.08        0.15        0.28    0.31
+        KVComm (0.5)         0.40       0.92        0.63           0.25     0.44        0.45        0.34    0.35
+1062    Random (0.7)         0.18       0.94        0.51           0.23     0.35        0.47        0.30    0.34
+1063    KVComm (0.7)         0.19       0.96        0.55           0.26     0.42        0.51        0.31    0.36
+1064               Ms : meta-llama/Llama-3.2-3B-Instruct; Mr : meta-llama/Llama-3.2-3B-Instruct
+1065    Random (0.3)         0.02       0.29        0.11           0.06     0.02        0.07        0.16    0.34
+1066    KVComm (0.3)         0.51       0.48        0.47           0.10     0.20        0.17        0.28    0.35
+1067    Random (0.5)         0.28       0.44        0.30           0.06     0.06        0.06        0.19    0.35
+        KVComm (0.5)         0.55       0.79        0.58           0.24     0.27        0.47        0.35    0.36
+1068    Random (0.7)         0.54       0.81        0.62           0.21     0.30        0.30        0.26    0.36
+1069    KVComm (0.7)         0.57       0.80        0.65           0.27     0.29        0.48        0.31    0.37
+1070                      Ms : Qwen/Qwen2.5-7B-Instruct; Mr : Qwen/Qwen2.5-7B-Instruct
+1071
+        Random (0.3)         0.00       0.34        0.05           0.00     0.00        0.08        0.10    0.30
+1072    KVComm (0.3)         0.04       0.31        0.06           0.02     0.01        0.19        0.19    0.32
+1073    Random (0.5)         0.00       0.32        0.10           0.02     0.02        0.10        0.16    0.32
+        KVComm (0.5)         0.57       0.92        0.49           0.18     0.20        0.40        0.25    0.32
+1074    Random (0.7)         0.41       0.71        0.28           0.04     0.04        0.21        0.17    0.32
+1075    KVComm (0.7)         0.56       0.98        0.72           0.29     0.48        0.45        0.35    0.33
+1076                       Ms : tiiuae/Falcon3-7B-Instruct; Mr : tiiuae/Falcon3-7B-Instruct
+1077
+        Random (0.3)         0.01       0.35        0.18           0.04     0.03        0.12        0.21    0.30
+1078    KVComm (0.3)         0.06       0.67        0.41           0.12     0.22        0.41        0.23    0.32
+1079    Random (0.5)         0.04       0.41        0.24           0.03     0.05        0.16        0.24    0.31
+        KVComm (0.5)         0.16       0.94        0.52           0.22     0.33        0.47        0.33    0.32
+                                                                                            Continued on next page
+
+                                                              20
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1080                                                 Table 9 – continued from previous page
+1081       Method            Countries        Tipsheets        HotpotQA    QASPER     MuSiQuest
+                                                                                                  MultiField   2WikiM
+                                                                                                                        TMATH
+                                                                                                  -QA-en       -QA
+1082
+1083
+           Random (0.7)        0.19                 0.95        0.51           0.20     0.29        0.42        0.26    0.32
+           KVComm (0.7)        0.23                 0.96        0.54           0.22     0.32        0.47        0.29    0.32
+1084
+1085          Ms : yuvraj17/EvolCodeLlama-3.1-8B-Instruct; Mr : Team-ACE/ToolACE-2-Llama-3.1-8B
+1086       Random (0.3)        0.00                 0.34        0.06           0.00     0.01        0.13        0.03    0.34
+           KVComm (0.3)        0.12                 0.95        0.12           0.05     0.04        0.26        0.19    0.36
+1087       Random (0.5)        0.03                 0.79        0.29           0.06     0.09        0.32        0.16    0.35
+1088       KVComm (0.5)        0.55                 0.98        0.38           0.15     0.14        0.43        0.28    0.38
+1089       Random (0.7)        0.37                 0.85        0.59           0.21     0.27        0.47        0.33    0.36
+           KVComm (0.7)        0.53                 0.97        0.51           0.22     0.25        0.49        0.33    0.38
+1090
+1091
+1092
+1093   H      C ALIBRATION S ET S IZE
+1094
+1095                                                0.8
+1096
+1097
+                                                    0.7                               Countries
+                                         F1 Score
+
+
+
+
+1098                                                                                  HotpotQA
+1099                                                                                  Tipsheets
+1100                                                0.6
+1101
+1102
+                                                           0    25       50 75 100          125
+1103                                                                   Calibration size
+1104
+1105   Figure 11: Effect of calibration set size. Calibration set size does not significantly affect the test
+1106   performance.
+1107
+1108   We investigate how many samples are needed in the calibration set so that the selection strategy can generalize
+1109   well to the test set. If a smaller calibration set can achieve good performance on the test set, it would be more
+1110   practical since it would require less cost to obtain the selected layers. We conduct the experiment on Countries,
+       Tipsheets, and HotpotQA datasets using the Llama-3.2-3B model. As the results in Figure 11 show, we can
+1111
+       see that using only one sample in the calibration set can already achieve the same performance as using more
+1112   samples (up to 128 samples). This suggests that our selection strategy can generalize well to the test set even
+1113   with a very small calibration set. In all other experiments in the paper, we use one sample in the calibration set.
+1114
+1115
+1116
+       I     I MPACT OF T RANSMITTED T OKEN L ENGTH ON NLD
+1117
+       Transmitted token length is an important factor affecting the performance of natural language-based commu-
+1118   nication methods like NLD, which refers to the maximum number of tokens generated by the sender model to
+1119   communicate with the receiver model. To investigate the impact of transmitted token length on NLD, we con-
+1120   duct experiments on HotpotQA, MultiFieldQA-en, and 2WikiMQA datasets with different transmitted token
+1121   lengths ranging from 64 to 1024 tokens. The results are shown in Figure 12. We can see that as the transmitted
+       token length increases from 64 to 128, the performance of NLD improves. However, as the transmitted token
+1122
+       length continues to increase beyond 128 tokens, the performance gains become marginal. This suggests that
+1123   there is a moderate transmitted token length (e.g., 128 tokens) is sufficient without incurring excessive com-
+1124   munication overhead. In our main experiments, we set the transmitted token length to 256 tokens for NLD to
+1125   ensure a fair comparison with other methods.R3-Q3
+1126
+1127
+       J     M ULTI -S OURCE KVC OMM
+1128
+1129
+       J.1    E XTENDING KVC OMM TO M ULTIPLE S OURCES
+1130
+1131   KVComm can be naturally extended to multiple sources by integrating the KV pairs from different sender
+1132   models. Mathematically, if we have Ns sender models Ms1 , Ms2 , . . . , MsNs and one receiver model Mr ,
+1133   each sender Msi processes the context Ci and generates its own KV pairs {(klsi , vsl i )} at each layer l. The
+       receiver Mr can then receive the KV pairs from all senders and use them to compute the attention scores. The
+
+
+                                                                          21
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1134
+                                            NLD Result with Different Trans. Token Lengths
+1135
+                                                            0.25
+
+
+
+
+                                          Mean NLD Result
+1136
+                                                                                                 Model Pair Index 6
+1137                                                        0.20                                 Model Pair Index 7
+1138                                                        0.15                                 Model Pair Index 8
+1139
+                                                            0.10
+1140                                                                  200        400      600     800          1000
+1141                                                                         Transmitted Token Length
+1142
+1143   Figure 12: Effect of transmitted token length on NLD. A moderate length is sufficient for NLD.R3-Q3
+1144
+1145
+1146   attention scores can be computed as follows:R4-Q1
+1147                                                                          H        T    Ns |Ci |
+                                                                      1 XXXX l
+1148                                                        Ŝal =                   ah,t,i,c ,
+                                                                     HT  t=1 i=1 c=1
+1149                                                                         h=1
+
+1150   where |Ci | is the number of tokens in the context Ci , and alh,t,i,c is the attention weight assigned by head h at
+1151   layer l from token t to the context token c of sender Msi . The attention scores Ŝal are then integrated with the
+1152   Gaussian prior to compute the selection scores.R4-Q1
+1153                                                                                   l     l
+1154
+       Given the selection scores, a subset of KV pairs {(ksji , vsji )} can be selected from each sender model Msi
+       at each layer lj . The selected KV pairs are concatenated to form the final KV pairs for the receiver model
+1155
+       Mr :R4-Q1
+1156
+                                                                         l         l               l
+1157                                                          klr ← [ksj1 ; ksj2 ; . . . ; ksjNs ; klr ],
+1158                                                                     l         l               l
+                                                              vrl ← [vsj1 ; vsj2 ; . . . ; vsjNs ; vrl ].
+1159
+1160   where l corresponds to a selected layer lj .R4-Q1
+1161
+1162   J.2   E XPERIMENT WITH T WO S ENDERS AND O NE R ECEIVER
+1163
+       We experiment with the scenario of two senders and one receiver to demonstrate the feasibility of extending
+1164   KVComm to multiple sources. As shown in Table 10, we find that two senders can outperform one sender, for
+1165   17 out of 27 cases. We argue this is because of the diversification of information sources and agent thought.
+1166   Owing to the usage of KV pairs, we can naturally integrate multiple sources, while NLD and CIPHER cannot,
+1167   suffering performance degradation.R4-Q1
+1168
+1169   K     A DDITIONAL D ISCUSSION
+1170
+1171   We have additional discussions on the details and choices of our method.
+1172
+1173
+       Positional Embedding Coherence KVComm is designed to preserve positional coherence across all
+       layers. For the receiver model, in each layer, we shift all its positions by |C|, where |C| is the length of the
+1174   context. For selected layers, we concatenate the KV pairs of the sender at positions [0, |C|), and the KV pairs
+1175   of the receiver follow at positions [|C|, |C| + |Q|). For non-selected layers, positions [0, |C|) are left empty
+1176   (unattended), but the KV of the receiver still starts at position |C|. This approach ensures that all layers share a
+1177   consistent positional frame, so the attention mechanism sees the same offsets at every depth, avoiding positional
+1178
+       drift across layers. We perform an ablation study to validate this design in Appendix M.R2-Q4
+1179
+       Communication Cost Under the scenario where agents are connected with high-bandwidth links, the com-
+1180   munication cost is relatively low compared to recomputation cost (Jin et al., 2024; Liu et al., 2024c). KVComm
+1181   is more preferred when the information exchange volume is large (e.g., long contexts) and the communication
+1182   bandwidth is sufficient. In scenarios with limited bandwidth, further compression of KV pairs or more aggres-
+1183   sive layer selection may be necessary, which we leave for future work.R3-Q1
+1184
+1185   L     C ONTEXT- ADAPTIVE O NLINE C ALIBRATION
+1186
+1187   A simple yet effective dynamic selection mechanism is to recompute the selected layers every T queries, where
+       T is a hyperparameter that can be dynamically determined by server workload. We make two fully mixed
+
+
+                                                                                       22
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1188   Table 10: Communication results for one sender and two senders scenarios. We bold the better
+1189   result comparing one sender and two senders for each method. KVComm (0.3/0.5/0.7) denotes
+1190   selecting 30%/50%/70% of layers’ KV pairs for communication, i.e., M = ⌈0.3L⌉, M = ⌈0.5L⌉,
+1191   M = ⌈0.7L⌉.R4-Q1
+1192
+1193                  Method                   Sender         HotpotQA       MuSiQuest        2WikiMQA
+1194                                  Ms1 : arcee-ai/Llama-3.1-SuperNova-Lite;
+1195                                 Ms2 : yuvraj17/EvolCodeLlama-3.1-8B-Instruct;
+                                      Mr : Team-ACE/ToolACE-2-Llama-3.1-8B
+1196
+                      Baseline                NA                  0.04           0.01             0.01
+1197                  Skyline                                     0.37           0.15             0.25
+1198
+                      NLD                    Ms2                  0.17           0.05             0.02
+1199                                      Ms1 and Ms2             0.14           0.04             0.03
+                      CIPHER                 Ms2                  0.19           0.06             0.03
+1200                                      Ms1 and Ms2             0.16           0.05             0.03
+1201
+                      KVComm (0.3)           Ms2                  0.12           0.04             0.19
+1202                                      Ms1 and Ms2             0.16           0.06             0.23
+                      KVComm (0.5)           Ms2                  0.38           0.14             0.28
+1203                                      Ms1 and Ms2             0.39           0.20             0.21
+1204                  KVComm (0.7)           Ms2                  0.51           0.25             0.33
+1205
+                                          Ms1 and Ms2             0.53           0.29             0.34
+1206                              Ms1 : cooperleong00/Qwen2.5-7B-Instruct-Jailbroken;
+1207
+                                  Ms2 : Orion-zhen/Qwen2.5-7B-Instruct-Uncensored;
+                                          Mr : bespokelabs/Bespoke-Stratos-7B
+1208
+                      Baseline                NA                  0.13           0.03             0.09
+1209                  Skyline                                     0.53           0.25             0.09
+1210
+                      NLD                    Ms2                  0.16           0.04             0.02
+1211                                      Ms1 and Ms2             0.18           0.06             0.02
+                      CIPHER                 Ms2                  0.03           0.03             0.03
+1212                                      Ms1 and Ms2             0.02           0.01             0.01
+1213                  KVComm (0.3)           Ms2                  0.02           0.01             0.08
+                                          Ms1 and Ms2             0.02           0.00             0.05
+1214
+                      KVComm (0.5)           Ms2                  0.28           0.12             0.10
+1215                                      Ms1 and Ms2             0.32           0.18             0.08
+1216                  KVComm (0.7)           Ms2                  0.41           0.25             0.15
+                                          Ms1 and Ms2             0.50           0.24             0.24
+1217
+1218                               Ms1 : RedaAlami/Falcon3-7B-Instruct-Distill-DS-v1;
+                                           Ms2 : ehristoforu/falcon3-ultraset;
+1219                                Mr : huihui-ai/Falcon3-7B-Instruct-abliterated
+1220
+                      Baseline                NA                  0.21           0.04             0.23
+1221                  Skyline                                     0.76           0.56             0.45
+1222                  NLD                    Ms2                  0.52           0.25             0.24
+                                          Ms1 and Ms2             0.22           0.13             0.20
+1223
+                      CIPHER                 Ms2                  0.27           0.07             0.25
+1224                                      Ms1 and Ms2             0.15           0.04             0.14
+1225                  KVComm (0.3)           Ms2                  0.59           0.40             0.29
+                                          Ms1 and Ms2             0.51           0.30             0.27
+1226                                         Ms2                  0.63           0.44             0.34
+1227
+                      KVComm (0.5)        Ms1 and Ms2             0.49           0.43             0.35
+1228                  KVComm (0.7)           Ms2                  0.55           0.42             0.31
+                                          Ms1 and Ms2             0.60           0.46             0.31
+1229
+1230
+1231
+1232
+       datasets, i.e., mixing all the samples from two datasets: Countries and Tipsheets; Countries and MultiFieldQA-
+       en. We then perform online calibration and evaluate with different calibration intervals T . As shown in Fig-
+1233   ure 13, we find the performance drops when T increases, which is consistent with intuition.R2-Q2
+1234
+1235
+       Beyond periodic recomputation, more sophisticated adaptive mechanisms are also feasible. For example, the
+       receiver model could leverage lightweight signals, such as token-level entropy, attention sparsity patterns, to
+1236   trigger on-demand re-selection of informative layers. This is an exciting direction for future work, and KV-
+1237   Comm provides a clean foundation for such extensions.R2-Q2
+1238
+       Additionally, to illustrate how different the selected layers are for different datasets, we calculate the Kendall’s
+1239   Tau similarity of layer rankings for each pair of datasets across all models. As shown in Figure 14, some
+1240   tasks share quite a similar layer ranking for a given model pair, e.g., model pair index 6 shares a similar layer
+1241   ranking for HotpotQA and MuSiQuest datasets. This phenomenon could guide the design of dynamic selection
+       mechanisms in future work.R2-Q2
+
+
+                                                               23
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1242
+1243                                       KVComm (0.3) Results on Mixed tasks with Online Calibration
+1244
+                                             Countries_MultiFieldQA_en            Countries_TipSheets
+                                   0.6                             Model Pair Index 6
+1245                                                               Model Pair Index 7
+1246                                                               Model Pair Index 8
+
+
+
+
+                        F1 Score
+                                   0.4
+1247
+1248                               0.2
+1249
+1250                                     100       101      102      103          104 100        101      102      103       104
+1251                                               Calibration Interval T                        Calibration Interval T
+1252
+1253       Figure 13: Online calibration performance drops when the calibration interval increases.R2-Q2
+1254
+1255                                                         Layer Ranking Similarity Across Dataset
+1256
+                                               Model Pair Index 6     Model Pair Index 7        Model Pair Index 8
+                           Tipsheets                                                                                               1.0
+
+
+
+
+                                                                                                                                     Kendall's Tau Similarity
+1257                       Countries
+                           HotpotQA                                                                                                0.9
+1258                         QASPER
+1259                      MuSiQuest
+                     MultiFieldQA-en                                                                                               0.8
+1260                       2WikiMQA
+1261                          TMATH                                                                                                0.7
+                                                2WikQiMA-en
+
+
+
+
+                                                                             2WikQiMA-en
+
+
+
+
+                                                                                                       2WikQiMA-en
+                                                Countrets
+                                                Hotpot ies
+                                                  QASPQA
+                                               MuSiQ ER
+                                          MultiFie uest
+
+
+
+
+                                                                               QASPQA
+                                                                            MuSiQ ER
+                                                                       MultiFie uest
+                                                   TMATHA
+
+
+                                                                             Countrets
+                                                                             Hotpot ies
+
+
+
+                                                                                TMATHA
+
+
+                                                                                                       Countrets
+                                                                                                       Hotpot ies
+                                                                                                         QASPQA
+                                                                                                      MuSiQ ER
+                                                                                                 MultiFie uest
+
+                                                                                                          TMATHA
+1262
+                                                        Q
+
+
+
+
+                                                                                     Q
+
+
+
+
+                                                                                                               Q
+                                                Tipshe
+
+
+
+
+                                                                             Tipshe
+
+
+
+
+                                                                                                       Tipshe
+1263
+                                                  ld
+
+
+
+
+                                                                               ld
+
+
+
+
+                                                                                                         ld
+1264
+1265
+1266
+               Figure 14: Kendall’s Tau similarity of layer rankings between different datasets.R2-Q2
+1267
+1268
+1269   M     P OSITIONAL E MBEDDING C OHERENCE
+1270
+1271   Table 11: Comparison of KVComm and KVComm-S. KVComm-S denotes shifting back the token
+1272   positions of non-selected layers to 0. We bold the best results between KVComm and KVComm-S
+1273   under the same settings.R2-Q4
+1274
+                                                                                                                    MultiField                 2WikiM
+1275    Method                           Countries     Tipsheets       HotpotQA         QASPER      MuSiQuest       -QA-en                     -QA              TMATH
+1276
+           Ms : huihui-ai/Llama-3.2-3B-Instruct-abliterated; Mr : suayptalha/DeepSeek-R1-Distill-Llama-3B
+1277
+        KVComm-S (0.3)                    0.26           0.65             0.40           0.10          0.14               0.19                           0.21   0.36
+1278    KVComm (0.3)                      0.46           0.45             0.46           0.09          0.28               0.15                           0.28   0.35
+1279    KVComm-S (0.5)                    0.49           0.74             0.57           0.28          0.32               0.45                           0.30   0.35
+1280
+        KVComm (0.5)                      0.57           0.81             0.57           0.27          0.32               0.51                           0.36   0.35
+        KVComm-S (0.7)                    0.52           0.76             0.65           0.30          0.39               0.46                           0.32   0.35
+1281    KVComm (0.7)                      0.57           0.81             0.65           0.29          0.36               0.47                           0.37   0.35
+1282           Ms : Orion-zhen/Qwen2.5-7B-Instruct-Uncensored; Mr : bespokelabs/Bespoke-Stratos-7B
+1283
+        KVComm-S (0.3)                    0.00           0.20             0.02           0.02          0.01               0.09                           0.05   0.34
+1284    KVComm (0.3)                      0.04           0.26             0.02           0.01          0.01               0.09                           0.08   0.31
+1285    KVComm-S (0.5)                    0.04           0.90             0.33           0.13          0.18               0.35                           0.16   0.35
+        KVComm (0.5)                      0.19           0.88             0.28           0.07          0.12               0.26                           0.10   0.33
+1286    KVComm-S (0.7)                    0.36           0.94             0.42           0.19          0.24               0.35                           0.16   0.34
+1287    KVComm (0.7)                      0.41           0.89             0.41           0.21          0.25               0.29                           0.15   0.34
+1288                Ms : ehristoforu/falcon3-ultraset; Mr : huihui-ai/Falcon3-7B-Instruct-abliterated
+1289    KVComm-S (0.3)                    0.47           0.71             0.54           0.10          0.36               0.19                           0.26   0.32
+1290    KVComm (0.3)                      0.46           0.69             0.59           0.19          0.40               0.35                           0.29   0.32
+1291
+        KVComm-S (0.5)                    0.36           0.97             0.67           0.27          0.46               0.34                           0.36   0.34
+        KVComm (0.5)                      0.40           0.92             0.63           0.25          0.44               0.45                           0.34   0.35
+1292    KVComm-S (0.7)                    0.21           0.95             0.59           0.26          0.52               0.46                           0.37   0.36
+1293    KVComm (0.7)                      0.19           0.96             0.55           0.26          0.42               0.51                           0.31   0.36
+1294
+1295   We quantify the importance of positional embedding coherence between the sender and receiver models. We
+       performed an ablation experiment where, for non-selected layers, instead of shifting the receiver’s tokens to
+
+
+                                                                                  24
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1296
+       position |C|, we place them back to position 0, creating a positional inconsistency with selected layers. As
+1297   shown in Table 11, positional inconsistency does not have a detrimental effect on performance, but overall, our
+1298   approach has merit.R2-Q4
+1299
+1300
+       N     C OMPLEXITY A NALYSIS D ETAILS
+1301
+1302   We compare the computational complexity of our KVComm framework with the Skyline method and the NLD
+1303   method. Recall that L is the total number of layers in the model, M is the number of selected layers for
+1304   communication. We use d to denote the hidden dimension of the model, and |Q| and |C| to denote the number
+1305
+       of tokens in the query and context, respectively. Suppose Mr would generate T tokens in total, and the number
+       of generated tokens is the same across different methods. For NLD, Ms and Mr would each generate Ts and
+1306   Tr tokens for the initial answer, respectively.
+1307
+1308
+       Ignoring the embedding, output layers, and other minor components, the computational complexity of prefilling
+       a sequence of length N with a single decoder layer is O(N d2 + N 2 d), while the complexity of decoding a
+1309   single token is O(d2 +(N +i)d), where i is the index of the generated token. Therefore, the total computational
+1310   complexity of Ms to process the context C is O(L(|C|d2 + |C|2 d)).
+1311
+       The total computational complexity of KVComm consists of three parts: (1) the complexity of Ms to process
+1312   the context C, which is O(L(|C|d2 + |C|2 d)), (2) the complexity of Mr to process the query Q with the
+1313   selected M KV pairs from Ms , which is O(L|Q|d2 + M (|C| + |Q|)|Q|d + (L − M )|Q|2 d), and (3) the
+1314   complexity of Mr to generate T tokens with the selected M KV pairs from Ms , which is O(T (Ld2 +
+1315   M (|C| + |Q| + T )d + (L − M )(|Q| + T )d)). Therefore, the total computational complexity of KVComm is:
+                                                             
+1316                  T (KVComm) = O L (|C| + |Q| + T ) d2
+1317                                                                                          
+                                      + O L |C|2 + |Q|2 + T 2 + T |Q| + CM (|Q| + T ) d
+                                                                           
+1318
+1319
+       The computational complexity of Skyline method consists of two parts: (1) the complexity of prefilling the
+1320
+       concatenation of the context C and query Q, which is O(L(|C| + |Q|)d2 + L(|C| + |Q|)2 d), and (2) the
+1321   complexity of decoding T tokens, which is O(T L(d2 + (|C| + |Q| + T )d)). Therefore, the total computational
+1322   complexity of the Skyline method is:
+1323
+                                                               
+                              T (Skyline) = O L |C| + |Q| + T d2
+1324                                                                                
+1325                                        + O L (|C| + |Q|)2 + T |C| + |Q| + T d
+1326
+1327   The margin of KVComm over Skyline is:
+                                                                                   
+1328                   T (Skyline) − T (KVComm) = O |C|d L(2|Q| + T ) − M (|Q| + T )
+1329
+1330   For NLD, the total computational complexity consists of three parts: (1) the complexity of Ms to process the
+1331   context C and generate Ts tokens, which is O(L(|C|d2 +|C|2 d)+Ts L(d2 +(|C|+Ts )d)), (2) the complexity
+       of Mr to process the query Q and generate Tr tokens, which is O(L(|Q|d2 + |Q|2 d) + Tr L(d2 + (|Q| +
+1332
+       Tr )d)), and (3) the complexity of Mr to process the entire debate history and generate T tokens, which is
+1333   O(L((Ts + Tr + |Q|)d2 + (Ts + Tr + |Q|)2 d) + T L(d2 + (Ts + Tr + |Q| + T )d)). Therefore, the total
+1334   computational complexity of NLD is:
+1335
+                                                                                   !
+                                                                            
+                                                                                 2
+1336                         T (NLD) = O L |C| + 2|Q| + 2Ts + 2Tr + T d
+1337
+1338
+                                                                                     2
+                                        + O L |C|2 + Ts2 + |Q|2 + Tr2 + Ts + Tr + |Q|
+1339
+1340                                                                                
+                                                                                             !
+                                                                       
+1341                                         + T Ts + Tr + T + |Q| + Ts |C| + Tr |Q| d
+1342
+1343   The margin of KVComm over NLD is:
+1344                                                       
+                 T (NLD) − T (KVComm) = O L 2Ts + 2Tr + |Q| d2
+1345
+1346                                                                               2
+1347                                           +O       L Ts2 + Tr2 + Ts + Tr + |Q|
+1348                                                                                         ! !
+                                                                               
+1349                                                                                        
+                                               + Ts |C| + Tr |Q| + T (Ts + Tr ) − CM |Q| + T d
+
+
+
+                                                             25
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1350
+       O       U SING O NE C HUNK OF L AYERS
+1351
+1352   We conduct the same experiment as in Section 4.3 on the HotpotQA dataset using other model pairs in Table 5.
+1353   The results are shown in Figure 15. We can see that the results are consistent with the observation in Section 4.3.
+1354
+                   F1 Score with One Contig. Chunk of Context                                F1 Score w.r.t. #Layers                         Impact of Chunk Position under Fixed #Layers
+1355
+                       25                                                                                                                   0.6
+1356
+                       20                                       0.6              0.6                                                        0.5
+1357                                                                                                                   Contig.
+
+
+
+
+                                                                                                                                 F1 Score
+                                                                                                                        =1.0
+
+
+
+
+                                                                      F1 Score
+           layerfrom
+
+
+
+
+                       15                                                                                               =0.9                0.4
+1358                                                            0.4              0.4
+                       10                                                                                               =0.8                0.3
+1359                                                                                                                    =0.7
+                        5                                       0.2              0.2                                    =0.6                0.2                  #layers=10
+1360                                                                                                                    =0.5                                     #layers=16
+                        0
+1361                        0      10       20                                         0         10       20                                       0       5         10        15
+                                    layerto                                                       #Layers                                                       layerfrom
+1362
+1363                                                   (a) Llama-3.2-3B-Instruct as both Ms and Mr
+                   F1 Score with One Contig. Chunk of Context                                F1 Score w.r.t. #Layers                         Impact of Chunk Position under Fixed #Layers
+1364                                                                                                                                        0.5
+                       25                                                                                                                              #layers=10
+1365                                                            0.6              0.6                                                        0.4        #layers=16
+                       20                                                                                              Contig.
+1366                                                                                                                                        0.3
+
+
+
+
+                                                                                                                                 F1 Score
+                                                                                                                        =1.0
+                                                                      F1 Score
+           layerfrom
+
+
+
+
+                       15                                       0.4              0.4                                    =0.9
+1367
+                       10                                                                                               =0.8                0.2
+1368                                                            0.2              0.2                                    =0.7
+                        5                                                                                               =0.6                0.1
+1369                                                                                                                    =0.5
+                        0                                                        0.0                                                        0.0
+1370                        0      10       20                                         0         10       20                                       0       5         10        15
+                                    layerto                                                       #Layers                                                       layerfrom
+1371
+1372                                                   (b) Qwen2.5-7B-Instruct as both Ms and Mr
+                   F1 Score with One Contig. Chunk of Context           F1 Score w.r.t. #Layers  Impact of Chunk Position under Fixed #Layers
+1373                                                           0.6
+                       25                                  0.5        Contig.                   0.3        #layers=10
+1374                                                                   =1.0                                #layers=16
+                       20                                  0.4 0.4     =0.9
+1375                                                                   =0.8                     0.2
+                                                                                                                                 F1 Score
+                                                                      F1 Score
+           layerfrom
+
+
+
+
+                       15                                  0.3         =0.7
+1376                                                                   =0.6
+                       10                                  0.2 0.2     =0.5                     0.1
+1377
+                        5                                  0.1
+1378
+                        0                                  0.0 0.0                              0.0
+1379                        0      10       20                     0         10            20        0         5          10        15
+                                    layerto                                   #Layers                              layerfrom
+1380
+1381                              (c) Qwen2.5-7B-Instruct-Uncensored as Ms and Bespoke-Stratos-7B as Mr
+                   F1 Score with One Contig. Chunk of Context                                F1 Score w.r.t. #Layers                          Impact of Chunk Position under Fixed #Layers
+1382                   30                                       0.6              0.6       Contig.                                          0.25                            #layers=10
+1383                                                                                        =1.0                                                                            #layers=16
+                                                                                            =0.9                                            0.20
+1384                   20                                       0.4              0.4        =0.8
+                                                                                                                                 F1 Score
+                                                                      F1 Score
+           layerfrom
+
+
+
+
+                                                                                            =0.7                                            0.15
+1385                                                                                        =0.6
+1386                   10                                       0.2              0.2        =0.5                                            0.10
+1387                                                                                                                                        0.05
+                        0                                                        0.0
+1388                        0     10          20     30                                0        10         20             30                       0       5      10 15             20
+                                       layerto                                                       #Layers                                                    layerfrom
+1389
+1390                            (d) EvolCodeLlama-3.1-8B-Instruct as Ms and ToolACE-2-Llama-3.1-8B as Mr
+                   F1 Score with One Contig. Chunk of Context                                F1 Score w.r.t. #Layers                         Impact of Chunk Position under Fixed #Layers
+1391                                                            0.7
+                       25                                                                                                                   0.6
+1392
+                       20                                       0.6              0.6                                                        0.5
+                                                                                                                       Contig.
+1393                                                            0.5
+                                                                                                                                 F1 Score
+
+
+
+
+                                                                                                                        =1.0
+                                                                      F1 Score
+           layerfrom
+
+
+
+
+                       15                                                                                               =0.9                0.4
+1394
+                       10                                       0.4              0.4                                    =0.8
+1395                                                            0.3                                                     =0.7                0.3
+                        5                                                                                               =0.6                                                #layers=10
+1396                                                            0.2              0.2                                    =0.5                0.2                             #layers=16
+                        0
+1397                        0      10       20                                         0         10       20                                       0       5         10        15
+                                    layerto                                                       #Layers                                                       layerfrom
+1398
+1399                        (e) Llama-3.2-3B-Instruct-abliterated as Ms and DeepSeek-R1-Distill-Llama-3B as Mr
+1400
+       Figure 15: Experiment results of using one chunk of layers for communication on HotpotQA dataset
+1401
+       using different model pairs.
+1402
+1403
+
+
+
+                                                                                                  26
+

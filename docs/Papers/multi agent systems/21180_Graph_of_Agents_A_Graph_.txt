@@ -1,0 +1,1825 @@
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+000
+001
+      G RAPH - OF -AGENTS : A G RAPH - BASED F RAMEWORK
+002   FOR M ULTI -AGENT LLM C OLLABORATION
+003
+004
+005    Anonymous authors
+006    Paper under double-blind review
+007
+008
+009                                              A BSTRACT
+010
+011            With an ever-growing zoo of LLMs and benchmarks, the need to orchestrate mul-
+012            tiple models for improved task performance has never been more pressing. While
+013            frameworks like Mixture-of-Agents (MoA) attempt to coordinate LLMs, they of-
+014            ten fall short in terms of (1) selecting relevant agents, (2) facilitating effective
+015            intra-agent communication, and (3) integrating responses efficiently. In this work,
+016            we propose Graph-of-Agents (GoA), a new graph-based framework for model-
+017
+               ing multi-agent LLM communication. Our approach begins with node sampling,
+               selecting only the most relevant agents by leveraging model cards that summa-
+018
+               rize each model’s domain, task specialization, and other characteristics. Next, we
+019
+               construct edges between the selected agents by evaluating their responses against
+020            one another to determine relevance ordering. Directed message passing is then
+021            performed from highly relevant agents to less relevant ones to enhance their re-
+022            sponses, followed by reverse message passing to refine the original responses
+023            of the more relevant agents. Finally, the updated responses are aggregated via
+024            graph-based pooling (e.g., max or mean pooling) to produce a single, unified an-
+025            swer. We evaluate GoA on diverse multi-domain benchmarks (MMLU, MMLU-
+026            Pro, GPQA) and domain-specific benchmarks (MATH, HumanEval, MedM-
+027            CQA), with an agent pool of 6 LLMs spanning multiple domains. Surpris-
+028
+               ingly, GoA achieves superior performance using only 3 selected agents, outper-
+               forming recent multi-agent LLM baselines that utilize all 6 agents simultane-
+029
+               ously. By adopting a graph structure, GoA offers both scalability and effectiveness
+030
+               through structured message passing—positioning it as a strong candidate for nav-
+031            igating the challenges of the ever-growing LLM zoo. The source code of GoA can
+032            be found at https://anonymous.4open.science/r/goa-F23C.
+033
+034
+      1    I NTRODUCTION
+035
+036
+      Too many LLMs, too many benchmarks. As the ecosystem of Large Language Models (LLMs) (Wei
+037   et al., 2022a) rapidly diversifies, researchers are increasingly overwhelmed—not just by the sheer
+038   number of models available, but also by the complexity of evaluating and combining them effectively
+039   at test time to solve complex tasks. In this era of abundant LLMs, a central challenge emerges:
+040
+041       (Q) Given the diversity of available LLMs, how can we design an effective playground where
+042
+          agents interact synergistically—leveraging strengths, compensating for weaknesses, and im-
+          proving decision-making through efficient collaboration?
+043
+044   As an early attempt to address this challenge, Mixture-of-Agents (MoA) (Wang et al., 2024a; Li
+045   et al., 2025) has recently been introduced as a pioneering approach that explores how leveraging mul-
+046   tiple LLMs can enhance overall model performance through the Mixture-of-Experts (MoE) (Shazeer
+047   et al., 2017) framework. As illustrated in Figure 1 (c), MoA aggregates responses from multiple
+048   LLM agents, appends them to the original query and feeds the enriched input to the next layer. This
+049   facilitates multi-agent synergy, enabling models to complement each other and refine predictions
+050
+      collaboratively. While MoA has shown that integrating multiple LLMs can be advantageous over a
+      single model, it still faces several limitations that hinder its scalability and effectiveness:
+051
+052   Which agents? As shown in Figure 1 (b), following the scaling law of diverse LLM agents, se-
+053   lecting a relevant subset from a large pool of agents handling complex and diverse queries (Figure 1
+      (a)) is a crucial challenge. The current MoA approach lacks an effective agent selection mecha-
+
+
+                                                        1
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+054      𝑄: A patient’s blood glucose level                                                                      • Node: {       ,    ,     }
+            𝐺(𝑡) fluctuates due to insulin                                                                       • Edge: (   ,       ), (       ,   ), …
+055       injections and natural metabolic
+          responses. The glucose dynamics                                                                        • Graph:
+056           follow the nonlinear ODE:
+                                                                                                            •
+                                                                                                            •
+057      𝑑𝐺 𝑡
+           𝑑𝑡
+                 + 𝐺 𝑡 2 = sin 𝑡 + 𝑒 −𝐺(𝑡)                                             .
+                                                                                                 ∥     .
+                                                                                                            •
+
+                                                                                       .               .
+058      A neural network 𝑓𝜃 (𝑡) is used to                                            .               .
+         predict 𝐺(𝑡), and the loss function
+059                 is defined as:
+                                                                                       .               .
+                     𝑇
+           𝐿 𝜃 = ‫׬‬0 𝑓𝜃 𝑡 − 𝐺 𝑡
+                                      2
+                                          𝑑𝑡                        …                  .               .
+060                                                                                    .               .
+
+            Write a code to train nerual       General Math Biomedical Code
+061          network to predict 𝐺 𝑡
+                                                     Finance Legal …
+062                (a) Query                       (b) Pool of Agents             (c) Mixture-of-Agents (MoA)   (d)   Graph-of-Agents (GoA)
+063
+      Figure 1: Current multi-agent LLM pipeline and our proposed approach.(a) Given a query that spans diverse
+064   domains (e.g., biomedical + math + code), (b) selecting and organizing agents from a large pool of LLMs
+065   to form an effective multi-agent system remains a significant challenge. (c) The current Mixture-of -Agents
+066   (MoA) approach integrates all available agents, aggregates their responses, and forwards the combined output
+067   to the next layer. However, it lacks generalizability to larger agent pools (e.g., 10 or 100) and suffers from
+      heavy intra-layer communication overhead. (d) In contrast, our proposed Graph-of Agents (GoA) addresses
+068
+      this challenge through a graph-based structure. In GoA, only a subset of relevant agents is selected to form the
+069   graph’s nodes, with intra-layer communication facilitated via directed message passing—flowing from more
+070   relevant agents to less relevant ones. By leveraging this graph structure, GoA achieves greater scalability and
+071   enables more efficient communication between agents, resulting in a more powerful and adaptive framework.
+072
+073   nism, instead forwarding queries to all available agents, leading to excessive computational costs.
+074   This not only risks multi-agent system explosion but also introduces noise from irrelevant agents,
+075   highlighting the need for a more efficient and practical agent selection strategy.
+076
+      How do they communicate? Once agents are selected, facilitating effective communication among
+077
+      them becomes a pivotal challenge. MoA adopts a many-to-one aggregation scheme, but this ap-
+078   proach has notable drawbacks: it requires collecting responses from all available agents and treating
+079   them as a single chunk, which fails to capture fine-grained interactions—such as one-to-one commu-
+080   nication between individual agent pairs. Moreover, since different agents have varying strengths and
+081   relevance depending on the query, treating all agent messages equally can hinder consensus. Instead,
+082   adaptively weighting responses based on their relevance is crucial for improving decision-making.
+083
+      How to integrate? Finally, when making the final decision, MoA aggregates responses by con-
+084   catenating tokens from all agents. However, this approach incurs a huge computational cost, with
+085   a complexity of O(LN d), where L is the number of communication layers, N is the number of
+086   agents, and d is the token length per agent. Given that token usage is directly tied to cost, this
+087   method becomes prohibitively expensive. Moreover, not all agents contribute equally valuable re-
+088   sponses—some domain-specialized agents produce significantly higher-quality outputs than others.
+089   A scalable integration mechanism that prioritizes more reliable agents while reducing the impact of
+090   less relevant ones is essential for cost-efficient and effective decision-making.
+091   ⋆ Our Approach. To address these challenges, we propose a graph-based multi-agent framework,
+092   Graph-of-Agents (GoA), as a novel remedy to enhance multi-agent communication. GoAfunda-
+093   mentally rethinks multi-agent collaboration by modeling agents as nodes and their relevance-based
+094   relationships as edges, enabling structured message passing. This graph-based design allows for the
+095   selective activation of only relevant agents (as a subgraph of entire pool) while capturing inter-agent
+096   interactions through message passing and finalizing decisions via graph-based pooling. GoA follows
+097   a structured process, as shown in Figure 1 (d):
+098   ❶ Which agents? → Node Sampling: GoA begins by selecting relevant agents based on available
+099   metadata (e.g., domain, task) from model cards. This information is provided to a meta-LLM, simply
+100   a general-domain LLM, which identifies the most relevant agents given the query.
+101
+      ❷ How do they communicate? → Edge Sampling & Message Passing: Once nodes (agents) are
+102   selected, we obtain their initial responses and ask each agent to rank others, capturing the signifi-
+103   cance of each agent’s output. Based on these rankings, we construct directed edges in two perspec-
+104   tives: (i) Source-to-Target: Higher-ranked agents (i.e., highly influential nodes with more relevant
+105   responses) propagate their information to lower-ranked agents, allowing them to refine their re-
+106   sponses based on more confident initial answers. (ii) Target-to-Source: After lower-ranked agents
+107   update their responses, the refined information is passed back to the higher-ranked agents, enabling
+      them to further adjust their outputs based on the improved responses from their neighborhood agents.
+
+
+                                                                              2
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+108
+      ❸ How to integrate? → Graph Pooling: With refined responses, GoA applies max or mean pool-
+109   ing, akin to graph pooling, to adaptively aggregate the outputs of multiple agents. GoA is extensively
+110   evaluated on diverse multi-domain benchmarks (MMLU, MMLU-Pro, GPQA) and domain-specific
+111   benchmarks (MATH, HumanEval, MedMCQA), demonstrating its generalizability and adaptabil-
+112   ity across a wide range of tasks. These results highlight the effectiveness of viewing multi-agent
+113   collaboration through the lens of graph structures.
+114
+      It is important to note that, unlike traditional multi-agent learning method that require model fine-
+115   tuning or additional training, our proposed GoA framework, as like MoA, operates purely through
+116   the prompt interface. This design ensures compatibility with black-box LLM APIs while maintain-
+117   ing high adaptability across diverse domains during test-time inference.
+118
+      Our contributions are three-fold:
+119
+120   • We identify key challenges in current multi-agent LLM systems: selecting which agents to sample,
+
+121     facilitating effective communication, and integrating responses efficiently.
+122   •   We formulate multi-agent collaboration as a graph-based framework and introduce GoA, which
+123       incorporates node sampling, edge sampling, message passing, and graph pooling. This enables
+124       not only the construction of a scalable multi-agent LLM ecosystem, but also enhances inter-agent
+125       communication.
+126   •   We demonstrate the effectiveness of GoA across diverse benchmarks, including MMLU, MMLU-
+127       Pro, GPQA, MATH, HumanEval, and MedMCQA. Notably, using only 3 agents, GoA outper-
+128       forms recent multi-agent baselines that rely on pools of 6 agents, highlighting how graph-based
+129       structures improve both the scalability and effectiveness of multi-agent collaboration.
+130
+131
+132
+      2     R ELATED W ORK
+133
+134   LLM Reasoning and Test-Time Inference. Test-time reasoning with LLMs has seen rapid ad-
+135   vances through prompt engineering techniques such as Chain-of-Thought (CoT) (Wei et al., 2022b),
+136
+      Tree-of-Thought (Yao et al., 2023), and Graph-of-Thought (Besta et al., 2024; Yao et al., 2024),
+      which enable models to decompose complex problems into structured sub-tasks. While most prior
+137
+      work focuses on improving a single LLM’s reasoning via internal prompting strategies (Zhou et al.,
+138
+      2023; Xu et al., 2024; Feng et al., 2024), a parallel direction has emerged around collaborative rea-
+139   soning at inference time using multiple LLMs (Du et al., 2023a; Chan et al., 2023). In these multi-
+140   agent setups, multiple LLMs interact in test-time without additional finetuning, often aiming to
+141   boost factual accuracy or reasoning diversity. However, these approaches typically rely on simplis-
+142   tic communication protocols such as symmetric debate or sequential refinement, lacking structured
+143   mechanisms for message routing or adaptive collaboration. Our work builds on this foundation
+144   by proposing a graph-based test-time collaboration framework that formalizes agent interactions
+145   through directional message passing, enabling richer and more scalable multi-agent reasoning.
+146   LLM Ensembles and Multi-Agent LLM Collaboration. Another approach to leveraging mul-
+147   tiple LLMs is ensemble-based inference, where outputs from several models are aggregated or se-
+148   lected (Fang et al., 2024; Yuan et al., 2023). Recent works introduce router mechanisms (Wang et al.,
+149   2023c; Hari & Thomson, 2023; Wang et al., 2024b; Yue et al., 2025) to reduce computational cost by
+150   selectively querying a subset of models. However, many of these ensemble strategies treat LLMs as
+151   interchangeable units without modeling their relationships. Meanwhile, graph-based structures have
+152   begun to emerge to coordinate multi-agent systems, notably in frameworks like MacNet (Qian et al.,
+153
+      2024) and GPTSwarm (Zhuge et al., 2024), which model agents as nodes in static DAGs. Also
+      DyLAN (Liu et al., 2024b) performs dynamic agent activation using an Agent Importance Score
+154
+      computed via forward–backward peer-rating propagation and coordinates agents through a tempo-
+155
+      ral feed-forward communication network. Yet, these approaches often rely on predefined topologies
+156   or assume a single agent role-playing multiple personas, limiting flexibility and expressiveness, and
+157   sometimes even requiring additional optimization.. In contrast, our proposed framework, Graph-
+158   of-Agents (GoA), constructs dynamic graphs based on task relevance, enabling one-to-one com-
+159   munication across a diverse pool of specialized LLMs. Through node sampling, directional edge
+160   construction, and graph pooling, GoA supports efficient and adaptive collaboration—addressing the
+161   underexplored challenge of coordinating heterogeneous agents for domain-diverse reasoning at test
+      time.
+
+
+                                                        3
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+162                     (a) Overview                              (b) Node Sampling
+163   𝒬:                   A patient’s blood glucose level
+                            𝐺(𝑡) fluctuates due to insulin
+                          injections and natural metabolic
+                                                                                                                         …
+                         responses. The glucose dynamics
+                                                                                                                                                                      (Top-k | 𝓠, Model Cards)
+164                      𝑑𝐺 𝑡
+                           𝑑𝑡
+                              follow the nonlinear ODE:
+
+                                 + 𝐺 𝑡 2 = sin 𝑡 + 𝑒 −𝐺(𝑡)
+                                                                  Model Card
+                                                                   Domain: ---,
+                                                                                    Model Card
+                                                                                    Domain: ---,
+                                                                                                    Model Card
+                                                                                                        Domain: ---,
+                                                                                                                                  Model Card
+                                                                                                                                  Domain: ---,
+                         A neural network 𝑓𝜃 (𝑡) is used to
+                                                                    Task: ---,       Task: ---,          Task: ---,                Task: ---,
+165                      predict 𝐺(𝑡), and the loss function
+                                   is defined as :
+                                     𝑇                2
+                                                                     Size: ---        Size: ---           Size: ---                 Size: ---
+                           𝐿 𝜃 = ‫׬‬0 𝑓𝜃 𝑡 − 𝐺 𝑡            𝑑𝑡
+
+166                         Write a code to train nerual
+                             network to predict 𝐺 𝑡
+                                                                  (c) Edge Sampling                                                                                                          ∑      (1) Source → Target
+167
+                        (b) Node Sampling                                                                                                                                 -   0.6 0.3 0.1 1
+
+
+
+
+                                                                                                                                                       Score Matrix
+168
+      Graph-of-Agents
+
+
+
+
+                                                               Initial Response: Initial Response: Initial Response: Initial Response:
+                                                               “This equation       “Blood glucose          “Here is an           “Glucose                                0.5 - 0.5 0.0 1
+169                     (c) Edge Sampling
+                                                               represents a         levels are              implementation in     metabolism                                                            2        1        0.8        0.2
+                                                                                                                                                                                                                                         ≤𝜏
+                                                               nonlinear first-
+                                                               order ODE. A
+                                                                                    influenced by
+                                                                                    metabolic
+                                                                                                            Python using
+                                                                                                            PyTorch for
+                                                                                                                                  involves
+                                                                                                                                  regulatory
+                                                                                                                                                                          0.4 0.5 - 0.1 1               4        4         4          4
+170                                   x                        numerical method     regulation and
+                                                                                    insulin response.
+                                                                                                            approximating         pathways
+                                                                                                                                                                          0.1 0.9 0.0 - 1                                       𝜏: Threshold
+                                                               such as Euler’s or                           G(t): import torch,   affecting
+                        (d) Message Passing                    Runge-Kutta … ”      Predicting these        nn...”                homeostasis …”
+171                                                                                 dynamics … ”                                                                      ∑   1.0 2.0 0.8 0.2 4         (2) Target → Source
+172                     (e) Graph Pooling
+                                                                  (d) Message Passing                                                                                 (e) Graph Pooling
+173                                                                                                                                                                             # of Source Edges
+174   𝒜:                                                                                                                                                                               2
+                                                                                                                                                                                                     ( Mean |                            )
+175                                                                                                                                                                                    1
+176                                                                                                                                                                                    0
+177                                                            (1) Source → Target                                     (2) Target → Source                                    Max Pooling                   Mean Pooling
+178
+179   Figure 2: Overall pipeline of GoA. (a) Overview: Given a query (Q) spanning diverse domains, GoA ap-
+180
+      proaches multi-agent LLMs through the lens of a graph framework and produces an answer (A). (b) Node
+      Sampling: Each agent is mapped to a model card containing domain and task information. The Meta-LLM, a
+181   general-purpose LLM, takes Q and the model cards as input and selects the most relevant agents, forming an
+182   adaptive multi-agent framework. (c) Edge Sampling: After collecting initial responses from selected agents,
+183   each agent evaluates the relevance of others (excluding itself) to generate a normalized score matrix. Edges are
+184   established in Source-to-Target and Target-to-Source directions, while low-relevance nodes are pruned using
+185
+      a threshold τ =0.05. (d) Message Passing: GoA first passes messages from source to target nodes, allowing
+      lower-ranked agents to refine responses, then reverses the flow to update source nodes. (e) Graph Pooling:
+186   With updated responses structured as a graph, GoA outputs the final prediction via max or mean pooling.
+187
+188   3                     M ETHODOLOGY
+189
+190   3.1                        P RELIMINARIES AND N OTATIONS
+191
+192   Multi-agent LLMs. We define a system of N LLM agents, where each agent i ∈ 1, . . . , N special-
+193   izes in a particular domain or task. The agents collaboratively process a given query Q to generate
+194   an optimized response A.
+195   As a graph. We represent the multi-agent system as a directed graph, G = (V, E), where V =
+196   v1 , . . . , vN denotes the set of agent nodes and E ⊆ V × V is the directed edges. Once a subset of S
+197   relevant agents are selected from the multi-agent pool of size N , the adjacency matrix A ∈ RS×S
+198   is constructed. The matrix is defined such that Aij > 0 if (vi , vj ) ∈ E and Aij = 0 otherwise.
+199
+200   3.2                        O UR APPORACH : G OA
+201
+      In this section, we present GoA, a novel approach specifically designed to enhance multi-agent
+202
+      communication through a graph-based framework, as shown in Figure 2.
+203
+204   Overview. GoA begins with node sampling, where a meta-LLM (a general-purpose LLM) selects
+205   the most relevant agents from a given pool based on the query and a model card dictionary. Each
+206   model card summarizes information extracted from the Hugging Face README file, including the
+207
+      LLM’s domain and specialized tasks (Sec. 3.2.1). After collecting initial responses from the selected
+      agents, we rank each agent based on scores assigned by other agents. Agents are then sorted by
+208
+      these scores to define two node types: source nodes (highly relevant and influential) and target
+209
+      nodes (less influential). This establishes bidirectional relationships: source-to-target and target-to-
+210   source (Sec. 3.2.2). In the message-passing, we first propagate messages from source to target,
+211   allowing target nodes to refine their responses based on input from more relevant agents. We then
+212   reverse the flow—target to source—so that source nodes can further refine their outputs using the
+213   updated responses. This two-step process ensures that each agent’s contribution is weighted by its
+214   relevance to the query (Sec. 3.2.3). Finally, we apply graph pooling: either max pooling based on the
+215   most connected source node or mean pooling guided by the meta-LLM to generate the final answer
+      (Sec. 3.2.4).
+
+
+                                                                                                                                                   4
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+216
+      3.2.1   N ODE S AMPLING
+217
+218   Given a query Q, our goal is to select a subset of agents most relevant to the task. To achieve
+219   this, we leverage publicly available model cards from Hugging Face (Jain, 2022), which contain
+220   useful metadata such as the dataset the LLM was trained on, its specialized domain, model size.
+221   Using this information, we summarize each agent’s model card into three key categories: (1) The
+222   domain of the LLM, (2) The specialized task, and (3) The model size and special features. Once
+223
+      the summarized model card is obtained, we prompt the Meta-LLM1 to determine which agents are
+      most likely to generate the most effective response given the query. Formally, the selected subset of
+224
+      agents, Vs ⊆ V, is obtained as:
+225
+226                               Vs = Meta-LLM(Top-k|Q, Model Cards),                                  (1)
+227
+      where Top-k selects the k most relevant agents based on their alignment with the query and model
+228
+      card information. For example, as illustrated in Figure 2 (b), if the query pertains to biomedical,
+229
+      mathematics, and code-related domains, the selected agents would primarily belong to these special-
+230   ized areas to maximize multi-agent synergy. This approach effectively filters out unnecessary agents
+231   (e.g., law-related models), preventing agent explosion (i.e., involving an unmanageable number of
+232   agents) while maintaining relevance agents for handling the query, answering “Which agents?”.
+233
+234   3.2.2   E DGE S AMPLING
+235
+236   Once the subset of selected agents Vs is obtained, we prompt each agent to generate its initial
+237   response to the query Q, forming a response set R = {v1 (Q), . . . , vS (Q)}, where S = |Vs |. To
+238
+      model inter-agent relevance, we construct a score matrix in which each agent scores the responses of
+      all other agents (excluding its own to reduce self-bias) based on alignment with Q. These scores are
+239
+      normalized such that each agent distributes a total score of 1.0 across the remaining S −1 agents. We
+240
+      then compute a relevance score Sj for each agent j by summing the scores it receives from others:
+241
+242
+                                                     S
+243                                                  X
+                                              Sj =          Scorei→j .                                  (2)
+244
+                                                     i=1
+245                                                  i̸=j
+246
+247   The relevance scores S are then used to rank agents and determine their communication roles (e.g.,
+248   source vs. target). To avoid including weak or noisy responders—particularly in cases where model
+249
+      cards may lack detailed information—we introduce a threshold hyperparameter τ . Agents with
+      Sj < τ are pruned from the communication graph, ensuring scalability and better task-fit in the
+250
+      constructed structure.
+251
+252   Using the remaining high-relevance agents, we define a weighted directed adjacency matrix A ∈
+253   RS×S to govern message passing. Each entry Aji represents how much influence agent i exerts
+254   on agent j when passing messages. It is computed by normalizing the total relevance scores of all
+255
+      neighbors of agent j:
+256
+257                                     Si
+                            Aji = P              ,   where Nj = {i | (i → j) ∈ E}.                      (3)
+258                                    k∈Nj Sk
+259
+260   This scoring formulation ensures that more relevant agents have proportionally greater influence, and
+261   it enables fine-grained 1-to-1 communication tailored to task-specific needs. Figure 2(c) illustrates
+262   how the score matrix and pruning mechanism dynamically shape the communication graph.
+263
+264   3.2.3   M ESSAGE PASSING
+265
+      Now, given the edge information and weighted adjacency matrix, we proceed with message passing,
+266   a key advantage of the graph structure. To incorporate the significance of each agent, GoA performs
+267   message passing in two steps: Source-to-Target followed by Target-to-Source.
+268
+         1
+269        Any general-purpose LLM. In our experiments, we used Qwen2.5-7B-Instruct (Team, 2024) from 7–8B
+      agent pool.
+
+
+                                                            5
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+270
+      Source-to-Target. For highly influential nodes, it is crucial to maintain their initial strength rather
+271   than being influenced by less significant or noisy nodes. Conversely, less significant nodes benefit
+272   from receiving messages (i.e., more relevant responses to the query) from stronger nodes. Thus, we
+273   first propagate information from source nodes (higher-ranked agents) to target nodes (lower-ranked
+274   agents), allowing the latter to refine their responses based on more confident initial answers:
+275                               ′
+                                          
+                                             S
+                                                              
+276                            Rj = vj j=i+1 Aij Rsorted i      , where i < j ≤ S,                        (4)
+277             ′
+278   where Rj represents the updated response for target node j after receiving messages from source
+279   node i. Here, vj (·) denotes the forward pass of LLM j, represents the concatenation of neighboring
+280   responses, and Rsorted
+                         i    represents the sorted responses, ranked from highly relevant to less relevant
+281   based on the relevance scores S obtained in Equation 2. With these updated responses, we now
+282   proceed with the Target-to-Source step.
+283   Target-to-Source. Since the previous step only updates target nodes, we also allow source nodes
+                                                                                        ′
+284   to refine their responses based on the improved outputs of their neighbors (Rj ), rather than the
+285   initial responses from target nodes. This enables source nodes to incorporate the consensus of their
+286   neighboring agents, indirectly influenced by the original source node, leading to further refinement:
+287                                ′′
+                                                        ′
+                                                           
+                                            S
+288                              Ri = vi j=i+1 Aji Rj , where i < j ≤ S,                                (5)
+289             ′′
+290   where Ri represents the refined response for source nodes. With both source and target nodes refin-
+291   ing their responses collaboratively through the graph structure, we effectively address the question
+292   of “How do they communicate?”. We now move on to the final step: response integration.
+293
+294
+      3.2.4    G RAPH P OOLING
+295   To address the question of “How to integrate?” while minimizing the computational cost associated
+296   with token stacking, we formalize response integration through graph pooling, a common approach
+297   in graph-based tasks that requires aggregating node representations into a single graph representa-
+298   tion. Motivated by this, we propose two pooling strategies: ❶ Max-Pooling, which relies on the
+299   most influential node (i.e., the agent with the highest number of incoming edges, indicating a higher
+300   relevance score). ❷ Mean-Pooling, which balances contributions by considering responses from all
+301   selected agents but on a reduced scale, unlike MoA, which involves all available agents. Formally,
+302   this can be expressed as:
+                                    ( ′′
+303
+                                      Rmax-source if max-pooling
+304                          A=                               ′′                                        (6)
+                                      Meta-LLM(Average|R ) if mean-pooling,
+305
+306             ′′
+      where Rmax-source denotes the refined response of the agent with the highest number of source edges
+307
+      (i.e., the most relevant agent). In summary, max-pooling prioritizes the response of the most sig-
+308   nificant agent, while mean-pooling incorporates responses from all selected agents, requiring an
+309   additional forward pass through the Meta-LLM. We introduce these two variants as GoAmax and
+310   GoAmean , which will be analyzed in the experiment sections. The averaging is performed in a
+311   weighted manner using the relevance scores assigned during edge sampling.
+312
+313   3.3     G OA GENERALIZES M OA
+314
+315   Lastly, we demonstrate that GoA generalizes the existing MoA framework. Specifically, as illus-
+316   trated in Figure 1 (c), the message-passing and response-updating procedure of MoA (Wang et al.,
+317
+      2024a) can be formulated as:
+                                              ′       N
+318                                         Ri = vi ( j=1 Rj + Q).                                (7)
+319   Comparing this to Equation 4, we establish the following:
+320
+321   Proposition 1 Graph-of-Agents (GoA) reduces to MoA when the node sampling parameter k equals
+322   the total number of agents N , the adjacency matrix is fully connected with all edge weights set to 1,
+323   i.e., A ∈ RN ×N = 1, and a self-loop is included with the initial query (Q) at each layer, ultimately
+      aggregated via mean pooling.
+
+
+                                                        6
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+324   Table 1: Benchmark performance across multi-domain and domain-specific benchmarks. Single-
+325   agent baselines: General: Qwen2.5-7B-Instruct (Team, 2024), Code: Qwen2.5-Coder-7B-
+326   Instruct (Hui et al., 2024), Math: Mathstral-7B-v0.1 (AI, 2024), Biomedical: Bio-Medical-Llama-
+327   3-8B (Con, 2024), Finance: finance-Llama3-8B (Cheng et al., 2024), Legal: Saul-7B-Instruct-
+328   v1 (Colombo et al., 2024). Multi-agent baselines: Debate (Du et al., 2023b), Self-Consistency
+329   (SC) (Wang et al., 2023a), Refine (Madaan et al., 2023), ReConcile (Chen et al., 2023), MoA (Wang
+330   et al., 2024a), and Self-MoA (Li et al., 2025). Our proposed framework, GoA (Graph-of-Agents),
+331
+      despite using only 3 agents (i.e., top-k=3), outperforms both multi-agent baselines with 6 agents and
+      single-agent models, demonstrating strong collaborative synergy and capability across both multi-
+332
+      domain and domain-specific tasks. All performance is measured using zero-shot CoT in test-time.
+333
+334
+                                              Multi-Domain                     Domain-Specific
+335
+                                      MMLU     MMLU-Pro       GPQA    MATH    Human Eval     MedMCQA
+336
+337                      General      77.61       53.90       32.83   69.00       81.50          55.22
+                         Code         68.04       42.33       33.84   59.60       85.37          45.57
+338
+                         Math         63.47       37.19       30.81   48.60       57.93          45.25
+339       Single-Agent
+                         Biomedical   46.60       27.90       25.25   18.80       20.73          47.00
+340                      Finance      54.11       25.52       28.28   13.80       27.44          42.08
+341                      Legal        55.86       27.57       30.30   12.40       36.59          41.50
+342                      Debate       72.53       47.05       29.29   69.60       40.24          53.05
+343                      SC           77.97       54.12       36.36   69.80       82.57          55.70
+          Multi-Agent
+                         Refine       77.40       54.71       38.92   71.60       80.49          54.94
+344        (6 Agents)
+                         ReConcile    69.61       44.19       34.34   45.60       50.20          54.60
+345                      MoA          75.71       53.33       32.83   65.80       76.22          54.94
+346                      Self-MoA     78.14       54.19       33.84   68.20       79.27          55.56
+347       Multi-Agent    GoAMax       79.18       54.78       39.98   69.83       84.67          60.04
+348        (3 Agents)    GoAMean      78.52       54.27       40.54   73.12       84.98          57.92
+349
+350   Thus, GoA serves as a more flexible and extensible generalization of multi-agent communication
+351   frameworks. By introducing structured message passing, adaptive agent selection, and weighted
+352   aggregation, GoA can scale to large agent pools while maintaining efficiency and robustness. As
+353   our work focuses on test-time inference, the prompts used in this study are provided in Appendix B.
+354
+355
+356
+      4     E XPERIMENTS
+357
+      4.1     I MPLEMENTATION D ETAILS
+358
+359   Benchmarks. We evaluate performance on two multi-domain (MMLU (Hendrycks et al., 2020),
+360   MMLU-Pro (Wang et al., 2024c), GPQA (Rein et al., 2023)) and three domain-specific benchmarks
+361   (MATH (Lightman et al., 2023), HumanEval (Chen et al., 2021), MedMCQA (Pal et al., 2022)).
+362   For MMLU and MMLU-Pro, due to their large sizes, we used stratified sampling: 50 samples per
+363   category across 57 categories for MMLU, and 150 samples per category across 14 categories for
+364   MMLU-Pro. For the agent pool, we primarily leveraged six LLMs with 7–8B parameters, covering
+365   diverse domains such as General, Code, Math, Biomedical, Finance, and Legal. The specific LLMs
+366
+      are listed in Table 1, and details on the benchmarks and baselines are provided in Appendix C.
+367
+368   4.2     M AIN R ESULTS
+369
+      Effectiveness. In Table 1, we present benchmark results across both multi-domain and domain-
+370
+      specific tasks, comparing single-agent baselines, multi-agent baselines with 6 agents, and our pro-
+371
+      posed GoA (3 agents). ❶ Among single-agent baselines, the general-purpose model achieves the
+372   highest average performance (61.15), but falls short of the best-performing multi-agent models.
+373   Specialized agents (e.g., Math, Biomedical, Finance) tend to perform well only in narrow domains
+374   and underperform in others, leading to lower overall averages. ❷ Multi-agent baselines with 6
+375   agents—especially Refine (62.15) and Self-MoA (61.63)—demonstrate improved performance over
+376   all single-agent baselines, confirming the benefits of agent collaboration. However, their effec-
+377   tiveness varies across benchmarks, with no single method dominating all tasks. ❸ Our proposed
+      GoA method outperforms all baselines across most metrics. GoAMax achieves the highest aver-
+
+
+                                                          7
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+378
+      age score, with top performance on MMLU (79.18), MMLU-Pro (54.78), and MedMCQA (60.04).
+379   GoAMean records the best scores on GPQA (40.54), MATH (73.12), and HumanEval (84.98), show-
+380   ing robust and consistent gains across both reasoning and domain-specific tasks. ❹ Notably, while
+381   other multi-agent methods rely on integrating all 6 agents, GoA achieves superior results using only
+382   3, suggesting that selective and structured agent collaboration can be more effective than full inte-
+383   gration. For detailed performance comparison plots for each category in MMLU and MMLU-Pro,
+384   please refer to Appendix D.
+385                                                             Table 2: Efficiency analysis in MMLU-Pro.
+      Efficiency. Another crucial perspective for test-
+386   time LLM collaboration is efficiency—that is, han-
+387
+                                                                           Acc. Calls Tokens (k) Time (s)
+      dling multiple LLMs in a scalable manner. Table 2
+388   presents a comparison between MoA and GoA on MoA                    53.33    19      56.05   240.26
+389   the MMLU-Pro dataset in terms of accuracy, number GoAMax 54.78 11                    19.18   100.43
+390   of LLM calls, average token usage (input + output), GoAMean 54.27 12                 22.58   118.52
+391   and latency. Unlike MoA, which employs multiple
+392   rounds of proposers (i.e., all available agents) and a final aggregator, GoA reduces LLM usage and
+393
+      latency while improving accuracy. This improvement stems from its design philosophy—node and
+      edge sampling followed by graph pooling—which selectively involves only relevant agents in the
+394
+      system, making it a more efficient and practical approach for multi-agent LLM collaboration. Ap-
+395
+      pendix J provides additional results on GPQA and HumanEval benchmarks across more datasets.
+396
+397   Scaling Up. To evaluate generalization to pro-         Table 3: Scaling up with gpt-4o model.
+398   prietary models, we tested GoA with gpt-4o
+399
+      on GPQA, MedMCQA (100 sampled), and                                     GPQA MedMCQA HumanEval
+      HumanEval. As shown in Table 3, multi- gpt-4o                            47.47    77.00        90.20
+400
+      agent setups consistently outperform the single- Debate (6 Agents)       53.03    80.00        85.98
+401
+      agent baseline. Notably, while DyLAN (Liu SC (6 Agents)                  54.27    81.00        92.07
+402   et al., 2024a) employs eight specialized agents Refine   (6 Agents)      54.98    82.00        91.92
+                                                         Reconcile (6 Agents)  53.03    75.00        91.46
+403   (e.g., ‘Python Assistant’, ‘Algorithm Devel- MoA (6 Agents)              50.51    80.00        92.07
+404   oper’), our GoA with only three agents achieves DyLAN (8 Agents)         58.89    81.00        92.07
+405   higher performance, mirroring trends seen with GoAMax (3 Agents)         55.05    82.00        93.29
+406   open-source models. This advantage stems GoAMax (6 Agents)               56.57    83.00        93.90
+
+407   from our graph-based reasoning and relevance-
+408   aware message-passing mechanism (Section 4.3), which enables targeted and noise-resilient com-
+409   munication. These results highlight that well-designed communication strategies can be more effec-
+410
+      tive than simply increasing the number of agents, underscoring both the effectiveness and scalability
+      of GoA.
+411
+412
+413   4.3   W HY G RAPH ?
+414
+415   The key aspect of GoA is its graph-based framework for multi-agent LLM collaboration. In this sec-
+416   tion, we show how the graph structure and the new message-passing benefit LLM collaboration.
+417
+      Graph-based Reasoning. Figure 3 presents a case study illustrating how a graph-based framework
+418
+      improves reasoning by comparing recent MoA with our proposed GoA when handling an anatomy-
+419
+      domain from the MMLU dataset. In MoA, all available agents are used, including those from
+420   unrelated domains such as math and code. These irrelevant agents introduce noise (e.g., ‘Answer:
+421   1’), which negatively affects the final prediction. In contrast, GoA avoids irrelevant agent usage
+422   by applying node sampling followed by edge sampling, thereby constructing a query-specific graph
+423   structure. This enables targeted message-passing among relevant agents, leading to more accurate
+424   discussions (e.g., ‘Answer: 0’) and final predictions. Overall, this comparison shows how a graph-
+425   based framework enhances reasoning in multi-agent scenarios by leveraging structured interactions
+426   and relevance-aware message passing.                  Table 4: Effectiveness of Message-Passing.
+427   Relevance-aware Message-Passing. We now                                                      HumanEval
+428   delve into GoA’s relevance-aware message-          Qwen2.5-Coder-7B-Instruct                      85.37
+429   passing framework under a stricter fixed-node      Seed-Coder-8B-Instruct                         80.49
+                                                         deepseek-coder-7b-instruct-v1.5                73.17
+430   setting, targeting the HumanEval benchmark
+431   with three code-specific models. As shown in       MoA - MoE-based (3 Agents)                     85.37
+      Table 4, the baseline models exhibit varying       Debate - Debate-based (3 Agents)               71.95
+                                                         Reconcile - Confidence-based (3 Agents)        80.61
+                                                         GoAMax - Graph-based (3 Agents)                85.98
+                                                       8
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+432
+        𝓠:                                        (a) MoA
+433          Loss of somatic sensation over                                                                'The lingual branch of the mandibular
+             the anterior two-thirds of the                           'Answer: 0'                          trigeminal nerve (0) provides general
+434          tongue indicates damage to the                                                                sensation to the anterior two-thirds of
+                                                                      'Answer: 1'                          the tongue, but it is not primarily
+435                                                                                                        responsible for taste. The chorda tympani
+             0: "lingual branch of the                                                                     branch of the facial nerve (1) is
+             mandibular trigeminal nerve.",                           'Answer: 1'
+436                                                                                                        responsible for providing general
+             1: "chorda tympani branch of                                                                  sensation to the anterior two-thirds of
+                                                                      'Answer: 0'
+437          the facial nerve.",                                                                           the tongue. … Therefore, the correct
+             2: "lingual branch of the                                                                     answer is 1: chorda tympani branch of the
+                                                                      'Answer: 1'                          facial nerve. >> Final Answer: 1’
+438          glossopharyngeal nerve.",
+             3: "hypoglossal nerve."                                  'Answer: 0'
+439
+440      (b) GoA     Node Sampling                          Edge Sampling                       Message Passing                   Graph Pooling
+441                                                                                               (1) Source-to-Target      'The lingual branch of
+442           (1)Domain is Biomedical domain,                                  ∑                                            the mandibular trigeminal
+                which is highly relevant to                                                                                 nerve provides somatic
+443             anatomy questions….                         -   0.9 0.1        1                                            sensation to the anterior
+                                                                                                                            two-thirds of the tongue.
+                                                            1.0 - 0.0          1           'Answer: 0'       'Answer: 0'    The chorda tympani branch
+444           (2) Repeated to ensure a strong               0.3 0.7 -          1                                            of the facial nerve
+              performance                                                                         (2) Target-to-Source      provides taste sensation
+445                                               ∑         1.3 1.6 0.1        3                                            to the anterior two-
+                                                                                                                            thirds of the tongue.
+446           (3) General knowledge model can                                                                               Therefore, loss of
+              handle a wide range of questions,                                                                             somatic sensation over
+447           including anatomical ones.                                                   'Answer: 0'       'Answer: 0'    damage to the …
+                                                      1.6       1.3           !.#
+                                                                                  ≤ 0.05                                    >> Final Answer: 0'
+448                                                    3         3             $
+                                                                      Target → Source
+
+449     Figure 3: Reasoning process of (a) Mixture-of-Agents (MoA) and (b) Graph-of-Agents (GoA).
+450
+451
+452   performance—Qwen2.5-Coder-7B-Instruct performs best, while the others fall behind. In the multi-
+453   agent setting, we compare our approach against existing frameworks: MoA (MoE-based) Wang
+454   et al. (2024a), Debate Du et al. (2023b), and Reconcile (confidence-based) Chen et al. (2023),
+455   with our GoA (graph-based) achieving the highest performance. This gain stems from its tailored
+456   message-passing mechanism, where edges are formed based on node relevance to the given ques-
+457   tion: information flows from highly relevant nodes (e.g., Qwen2.5-Coder-7B-Instruct) to less rele-
+458
+      vant ones (e.g., deepseek-coder-7b-instruct-v1.5), which update their internal state, followed by a
+      feedback phase that produces an aggregated response. These results demonstrate that graph-based
+459
+      approaches—especially when combined with relevance-aware message passing—offer a promising
+460
+      paradigm for LLM collaboration.
+461
+462
+463   4.4    A BLATION S TUDY
+464
+                                                         Table 5: Ablation study on modules, top-k, and τ .
+465
+      Table 5 presents an ablation analysis on
+      MMLU-Pro and GPQA. The top row shows the                                      MMLU-Pro GPQA
+466
+      original GoA setting with the best performance.       GoA (Top-k=3, τ =0.05)    54.78      39.98
+467
+      ❶ Interestingly, reversing the message-passing
+468                                                         Reverse Message Passing   52.18      34.93
+      direction causes the largest performance drop         w/o Target-to-Source      53.66      38.03
+469   (–2.60 on MMLU-Pro and –5.05 on GPQA),                w/o Source-to-Target      52.21      36.12
+470   even worse than removing only one direction           w/o Scoring (Aij = 1)     52.91      37.34
+471   (Source-to-Target or Target-to-Source). This          Top-k=2                   53.54      36.75
+472   matches our expectation: when less-influential        Top-k=5                   54.65      39.13
+473   nodes become artificially dominant, they dis-
+                                                            τ =0.1                    53.12      38.43
+474   rupt the intended flow and inject noise back into     τ =0.2                    52.78      37.12
+475   the original source nodes. This underscores a
+476
+      key design insight—preserving the correct bidirectional flow, (1) Source-to-Target and (2) Target-
+      to-Source, is essential for GoA’s effectiveness.. Removing Target-to-Source message passing leads
+477
+      to a noticeable drop (–1.12 MMLU-Pro, –1.95 GPQA), showing that feedback from target nodes
+478
+      is crucial. ❷ Removing Source-to-Target causes even larger degradation (–2.57, –3.86), highlight-
+479   ing the importance of initial information flow. Together, these results confirm the complementary
+480   role of bidirectional message passing. ❸ Disabling edge scoring (Aij = 1) consistently reduces
+481   performance, validating the benefit of relevance-based weighting. ❹ Varying the number of agents
+482   shows k = 2 limits diversity while k = 5 introduces slight degradation (likely requiring tailored τ ),
+483   with k = 3 remaining scalable and performant. ❺ Adjusting the edge threshold τ shows that overly
+484   sparse graphs (τ = 0.1, 0.2) harm performance, while τ = 0.05 balances focus and connectivity.
+485   Overall, these results demonstrate that bidirectional message passing, adaptive edge scoring, and
+      selective agent activation all contribute to GoA’s effectiveness.
+
+
+                                                                                   9
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+486
+      5   C ONCLUSION
+487
+488
+      In this study, we introduce GoA, a graph-based framework that re-designs multi-agent communi-
+489
+      cation to address key challenges: selecting relevant agents, enabling effective communication, and
+490   integrating responses efficiently. Extensive experiments demonstrate consistent gains across diverse
+491   benchmarks. We believe GoA can advance the development of large-scale collective intelligence in
+492   the emerging multi-agent LLM era.
+493
+494
+495
+      E THICS S TATEMENT
+496
+497   We propose a graph-based multi-agent LLM collaboration framework, GoA. However, the LLMs
+498
+      used in GoA may still exhibit inherent biases and undesirable traits from pretraining. Consequently,
+      its outputs carry similar risks of misuse as other test-time methods.
+499
+500
+501   R EPRODUCIBILITY S TATEMENT
+502
+503   We provide our code at the anonymous link: https://anonymous.4open.science/r/
+504   goa-F23C. All experiments were conducted on an A6000 GPU. The datasets used are publicly
+505   available.
+506
+507
+      R EFERENCES
+508
+509   Bio-medical:             A       high-performance      biomedical            language        model.
+510     https://huggingface.co/ContactDoctor/Bio-Medical-Llama-3-8B, 2024.
+511
+512   Mistral AI. MathΣtral. https://mistral.ai/news/mathstral/, July 2024.
+513
+      Maciej Besta, Nils Blach, Ales Kubicek, Robert Gerstenberger, Michal Podstawski, Lukas Giani-
+514
+       nazzi, Joanna Gajda, Tomasz Lehmann, Hubert Niewiadomski, Piotr Nyczyk, and Torsten Hoe-
+515    fler. Graph of Thoughts: Solving Elaborate Problems with Large Language Models. Proceedings
+516    of the AAAI Conference on Artificial Intelligence, 38(16):17682–17690, March 2024. ISSN 2374-
+517    3468. doi: 10.1609/aaai.v38i16.29720.
+518
+519   Chi-Min Chan, Weize Chen, Yusheng Su, Jianxuan Yu, Wei Xue, Shanghang Zhang, Jie Fu, and
+520     Zhiyuan Liu. ChatEval: Towards Better LLM-based Evaluators through Multi-Agent Debate,
+521     August 2023.
+522
+      Justin Chih-Yao Chen, Swarnadeep Saha, and Mohit Bansal. Reconcile: Round-table conference
+523
+        improves reasoning via consensus among diverse llms. arxiv preprint, 2309.07864, 2023. URL
+524
+        https://arxiv.org/abs/2309.13007.
+525
+526   Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde De Oliveira Pinto, Jared
+527    Kaplan, Harri Edwards, Yuri Burda, Nicholas Joseph, Greg Brockman, et al. Evaluating large
+528    language models trained on code. arXiv preprint arXiv:2107.03374, 2021.
+529
+530   Daixuan Cheng, Yuxian Gu, Shaohan Huang, Junyu Bi, Minlie Huang, and Furu Wei. In-
+531     struction pre-training: Language models are supervised multitask learners. arXiv preprint
+532
+        arXiv:2406.14491, 2024.
+533
+      Pierre Colombo, Telmo Pessoa Pires, Malik Boudiaf, Dominic Culver, Rui Melo, Caio Corro, Andre
+534     F. T. Martins, Fabrizio Esposito, Vera Lúcia Raposo, Sofia Morgado, and Michael Desa. Saullm-
+535     7b: A pioneering large language model for law, 2024.
+536
+537   Yilun Du, Shuang Li, Antonio Torralba, Joshua B. Tenenbaum, and Igor Mordatch. Improving
+538     factuality and reasoning in language models through multiagent debate. CoRR, abs/2305.14325,
+539     2023a. doi: 10.48550/arXiv.2305.14325. URL https://doi.org/10.48550/arXiv.
+        2305.14325.
+
+
+                                                      10
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+540
+      Yilun Du, Shuang Li, Antonio Torralba, Joshua B Tenenbaum, and Igor Mordatch. Improv-
+541     ing factuality and reasoning in language models through multiagent debate. arXiv preprint
+542     arXiv:2305.14325, 2023b.
+543
+544   Jiangnan Fang, Cheng-Tse Liu, Jieun Kim, Yash Bhedaru, Ethan Liu, Nikhil Singh, Nedim Lipka,
+545      Puneet Mathur, Nesreen K. Ahmed, Franck Dernoncourt, Ryan A. Rossi, and Hanieh Deilam-
+546
+         salehy. Multi-LLM Text Summarization, December 2024.
+547   Li Feng, Ryan Yen, Yuzhe You, Mingming Fan, Jian Zhao, and Zhicong Lu. CoPrompt: Supporting
+548     Prompt Sharing and Referring in Collaborative Natural Language Programming. In Proceedings
+549     of the 2024 CHI Conference on Human Factors in Computing Systems, CHI ’24, pp. 1–21, New
+550     York, NY, USA, May 2024. Association for Computing Machinery. ISBN 9798400703300. doi:
+551     10.1145/3613904.3642212.
+552
+      Surya Narayanan Hari and Matt Thomson. Tryage: Real-time, intelligent Routing of User Prompts
+553     to Large Language Models, August 2023.
+554
+555   Dan Hendrycks, Collin Burns, Steven Basart, Andy Zou, Mantas Mazeika, Dawn Song, and Jacob
+556     Steinhardt. Measuring Massive Multitask Language Understanding. In International Conference
+557
+        on Learning Representations, October 2020.
+558   Binyuan Hui, Jian Yang, Zeyu Cui, Jiaxi Yang, Dayiheng Liu, Lei Zhang, Tianyu Liu, Jiajun Zhang,
+559     Bowen Yu, Keming Lu, et al. Qwen2. 5-coder technical report. arXiv preprint arXiv:2409.12186,
+560     2024.
+561
+      Shashank Mohan Jain. Hugging face. In Introduction to transformers for NLP: With the hugging
+562
+        face library and models to solve problems, pp. 51–67. Springer, 2022.
+563
+564   Wenzhe Li, Yong Lin, Mengzhou Xia, and Chi Jin. Rethinking mixture-of-agents: Is mixing dif-
+565    ferent large language models beneficial?, 2025. URL https://arxiv.org/abs/2502.
+566    00674.
+567
+      Hunter Lightman, Vineet Kosaraju, Yura Burda, Harri Edwards, Bowen Baker, Teddy Lee, Jan
+568     Leike, John Schulman, Ilya Sutskever, and Karl Cobbe. Let’s verify step by step. arXiv preprint
+569     arXiv:2305.20050, 2023.
+570
+571   Zijun Liu, Yanzhe Zhang, Peng Li, Yang Liu, and Diyi Yang. A dynamic llm-powered agent net-
+572     work for task-oriented agent collaboration, 2024a. URL https://arxiv.org/abs/2310.
+573
+        02170.
+574   Zijun Liu, Yanzhe Zhang, Peng Li, Yang Liu, and Diyi Yang. A Dynamic LLM-Powered Agent
+575     Network for Task-Oriented Agent Collaboration. In First Conference on Language Modeling,
+576     August 2024b.
+577
+      Aman Madaan, Niket Tandon, Prakhar Gupta, Skyler Hallinan, Luyu Gao, Sarah Wiegreffe, Uri
+578
+       Alon, Nouha Dziri, Shrimai Prabhumoye, Yiming Yang, Sean Welleck, Bodhisattwa Prasad Ma-
+579
+       jumder, Shashank Gupta, Amir Yazdanbakhsh, and Peter Clark. Self-refine: Iterative refinement
+580    with self-feedback, 2023.
+581
+582   Ankit Pal, Logesh Kumar Umapathi, and Malaikannan Sankarasubbu. Medmcqa: A large-scale
+583     multi-subject multi-choice dataset for medical domain question answering. In Conference on
+584
+        health, inference, and learning, pp. 248–260. PMLR, 2022.
+585   Chen Qian, Zihao Xie, Yifei Wang, Wei Liu, Yufan Dang, Zhuoyun Du, Weize Chen, Cheng Yang,
+586     Zhiyuan Liu, and Maosong Sun. Scaling large-language-model-based multi-agent collaboration.
+587     arXiv preprint arXiv:2406.07155, 2024.
+588
+      David Rein, Betty Li Hou, Asa Cooper Stickland, Jackson Petty, Richard Yuanzhe Pang, Julien
+589
+        Dirani, Julian Michael, and Samuel R. Bowman. Gpqa: A graduate-level google-proof q&a
+590
+        benchmark, 2023. URL https://arxiv.org/abs/2311.12022.
+591
+592   Noam Shazeer, Azalia Mirhoseini, Krzysztof Maziarz, Andy Davis, Quoc Le, Geoffrey Hinton,
+593     and Jeff Dean. Outrageously large neural networks: The sparsely-gated mixture-of-experts layer.
+        arXiv preprint arXiv:1701.06538, 2017.
+
+
+                                                     11
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+594
+      Qwen Team. Qwen2.5: A party of foundation models, September 2024. URL https://qwenlm.
+595    github.io/blog/qwen2.5/.
+596
+597   Junlin Wang, Jue Wang, Ben Athiwaratkun, Ce Zhang, and James Zou. Mixture-of-agents enhances
+598     large language model capabilities. arXiv preprint arXiv:2406.04692, 2024a.
+599
+      Junlin Wang, Jue Wang, Ben Athiwaratkun, Ce Zhang, and James Zou. Mixture-of-Agents Enhances
+600
+        Large Language Model Capabilities, June 2024b.
+601
+602   Xuezhi Wang, Jason Wei, Dale Schuurmans, Quoc Le, Ed Chi, Sharan Narang, Aakanksha Chowdh-
+603     ery, and Denny Zhou. Self-consistency improves chain of thought reasoning in language models,
+604     2023a. URL https://arxiv.org/abs/2203.11171.
+605
+      Xuezhi Wang, Jason Wei, Dale Schuurmans, Quoc V Le, Ed H. Chi, Sharan Narang, Aakanksha
+606
+        Chowdhery, and Denny Zhou. Self-consistency improves chain of thought reasoning in language
+607
+        models. In The Eleventh International Conference on Learning Representations, 2023b. URL
+608     https://openreview.net/forum?id=1PL1NIMMrw.
+609
+610   Yiding Wang, Kai Chen, Haisheng Tan, and Kun Guo. Tabi: An Efficient Multi-Level Inference
+611     System for Large Language Models. In Proceedings of the Eighteenth European Conference on
+612     Computer Systems, EuroSys ’23, pp. 233–248, New York, NY, USA, May 2023c. Association for
+613
+        Computing Machinery. ISBN 978-1-4503-9487-1. doi: 10.1145/3552326.3587438.
+614   Yubo Wang, Xueguang Ma, Ge Zhang, Yuansheng Ni, Abhranil Chandra, Shiguang Guo, Weiming
+615     Ren, Aaran Arulraj, Xuan He, Ziyan Jiang, Tianle Li, Max Ku, Kai Wang, Alex Zhuang, Rongqi
+616     Fan, Xiang Yue, and Wenhu Chen. MMLU-Pro: A More Robust and Challenging Multi-Task
+617     Language Understanding Benchmark. In The Thirty-eight Conference on Neural Information
+618     Processing Systems Datasets and Benchmarks Track, November 2024c.
+619
+620
+      Jason Wei, Yi Tay, Rishi Bommasani, Colin Raffel, Barret Zoph, Sebastian Borgeaud, Dani Yo-
+        gatama, Maarten Bosma, Denny Zhou, Donald Metzler, Ed H. Chi, Tatsunori Hashimoto, Oriol
+621
+        Vinyals, Percy Liang, Jeff Dean, and William Fedus. Emergent abilities of large language models,
+622
+        2022a. URL https://arxiv.org/abs/2206.07682.
+623
+624   Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Brian Ichter, Fei Xia, Ed Chi, Quoc V.
+625     Le, and Denny Zhou. Chain-of-Thought Prompting Elicits Reasoning in Large Language Models.
+626     Advances in Neural Information Processing Systems, 35:24824–24837, December 2022b.
+627
+      Xiaohan Xu, Chongyang Tao, Tao Shen, Can Xu, Hongbo Xu, Guodong Long, Jian-Guang Lou, and
+628
+        Shuai Ma. Re-Reading Improves Reasoning in Large Language Models. In Yaser Al-Onaizan,
+629     Mohit Bansal, and Yun-Nung Chen (eds.), Proceedings of the 2024 Conference on Empirical
+630     Methods in Natural Language Processing, pp. 15549–15575, Miami, Florida, USA, November
+631     2024. Association for Computational Linguistics. doi: 10.18653/v1/2024.emnlp-main.871.
+632
+633   Shunyu Yao, Dian Yu, Jeffrey Zhao, Izhak Shafran, Tom Griffiths, Yuan Cao, and Karthik
+634     Narasimhan. Tree of Thoughts: Deliberate Problem Solving with Large Language Models. Ad-
+635
+        vances in Neural Information Processing Systems, 36:11809–11822, December 2023.
+636   Yao Yao, Zuchao Li, and Hai Zhao. GoT: Effective Graph-of-Thought Reasoning in Language
+637     Models. In Kevin Duh, Helena Gomez, and Steven Bethard (eds.), Findings of the Association
+638     for Computational Linguistics: NAACL 2024, pp. 2901–2921, Mexico City, Mexico, June 2024.
+639     Association for Computational Linguistics. doi: 10.18653/v1/2024.findings-naacl.183.
+640
+641
+      Xingdi Yuan, Tong Wang, Yen-Hsiang Wang, Emery Fine, Rania Abdelghani, Hélène Sauzéon,
+        and Pierre-Yves Oudeyer. Selecting Better Samples from Pre-trained LLMs: A Case Study on
+642
+        Question Generation. In Anna Rogers, Jordan Boyd-Graber, and Naoaki Okazaki (eds.), Findings
+643
+        of the Association for Computational Linguistics: ACL 2023, pp. 12952–12965, Toronto, Canada,
+644     July 2023. Association for Computational Linguistics. doi: 10.18653/v1/2023.findings-acl.820.
+645
+646   Yanwei Yue, Guibin Zhang, Boyang Liu, Guancheng Wan, Kun Wang, Dawei Cheng, and Yiyan
+647     Qi. Masrouter: Learning to route llms for multi-agent systems, 2025. URL https://arxiv.
+        org/abs/2502.11133.
+
+
+                                                     12
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+648
+      Denny Zhou, Nathanael Scharli, Le Hou, Jason Wei, Nathan Scales, Xuezhi Wang, Dale Schuur-
+649     mans, Claire Cui, Olivier Bousquet, Quoc Le, and Ed Chi. LEAST-TO-MOST PROMPTING
+650     ENABLES COMPLEX REASONING IN LARGE LANGUAGE MODELS. 2023.
+651
+652
+653
+654
+655
+656
+657   Mingchen Zhuge, Wenyi Wang, Louis Kirsch, Francesco Faccio, Dmitrii Khizbullin, and Jürgen
+658    Schmidhuber. Gptswarm: Language agents as optimizable graphs. In Forty-first International
+659    Conference on Machine Learning, 2024.
+660
+661
+662
+663
+664
+665
+666
+667   A PPENDIX
+668
+669
+670
+671   A         T HE U SE OF L ARGE L ANGUAGE M ODELS (LLM S )
+672
+673
+674
+675   We use ChatGPT2 exclusively for grammar checking and text refinement. Its role was limited to
+676
+      polishing author-written text and did not involve research ideation.
+677
+678
+679
+680   B         P ROMPTS
+681
+682
+683
+      As our proposed GoA framework operates during test-time inference, the detailed prompts for each
+684   stage are provided below:
+685
+686
+687
+688    •   Model Card Extraction (Example: Qwen2.5-Coder-7B):
+689
+690
+691
+692
+                Model Card Extraction - System Prompt
+693
+694             You are an expert in analyzing and summarizing AI model documentation.
+695
+696
+697
+698
+699
+700
+701
+           2
+               https://chatgpt.com/
+
+
+                                                            13
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+702
+             Model Card Extraction - User Prompt
+703
+704          You are given the README file of a language model:
+705
+706
+                   language:
+707
+                   - en
+708
+                   base_model:
+709                - Qwen/Qwen2.5-Coder-7B
+710                pipeline_tag: text-generation
+711                library_name: transformers
+712                tags:
+713                - code
+714                - codeqwen
+715                - chat
+716                - qwen
+717
+                   - qwen-coder
+                   ---
+718
+719
+                   # Introduction
+720                Qwen2.5-Coder is the latest series of Code-Specific ...
+721                - code generation, code reasoning and code fixing.
+722                - ...
+723
+724
+             Please extract and summarize the model’s key characteristics clearly and concisely in the
+725          following structured format:
+726
+727          1. Domain: The primary domain or application area the model is designed for (e.g.,
+728
+             general-purpose, biomedical, finance, coding, math, etc.).
+             2. Task Specialization: Describe the task types the model is designed for or excels
+729
+             at. Be as specific as possible, including the domain context of each task (e.g., biomedi-
+730
+             cal question answering, clinical decision support, financial sentiment classification, code
+731          generation). Do not include performance metrics, benchmark names, or evaluation re-
+732          sults.
+733          3. Parameter Size: The number of parameters in the model (approximate if not explic-
+734          itly stated).
+735          4. Special Features: Any distinguishing aspects such as fine-tuning datasets (if applica-
+736          ble).
+737          Your summary will later be used to compare multiple models for selection purposes.
+738          Return your answer in bullet-point format, using the exact field names shown above.
+739          Keep it concise but specific enough for model comparison.
+740
+             Answer:
+741
+742
+743
+744
+745
+746
+747
+748
+749
+750
+751
+752
+753
+754
+755
+
+
+
+                                                       14
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+756
+       •   Node Sampling:
+757
+758         Node Sampling - System Prompt
+759
+760
+            You are an AI model selection expert. Your task is to select the most relevant AI models to answer a
+            given question based on their domain, specialized capabilities, and overall performance.
+761
+762         Selection Criteria:
+763                – Domain Match (Primary Factor): Prefer models that are trained in the relevant domain for
+764                  the question.
+765                – Task Specialization: If the question requires a specific skill (e.g., reasoning, code genera-
+766                  tion, biomedical text processing), prioritize models that explicitly specialize in that area.
+767                – Generalist Models Consideration: If a generalist model is known to perform well in the
+768                  given domain or task, include at least one such model in the selection.
+769                – Size vs. Performance Balance: Do NOT rely solely on model size when selecting between
+770                  generalist and specialized models. If a generalist model is significantly larger (e.g., 13B
+771                  vs. 7B), prefer the larger model. Otherwise, choose based on task performance and known
+772                  effectiveness.
+773         If a model is highly relevant, you may select it multiple times. If a question does not specify a domain,
+774         general models should be preferred.
+775
+776
+777         Node Sampling - Use Prompt
+778
+            Given the question:     messages[0] and the following model                                descriptions:
+779
+            model descriptions, select the top top k models that best fit the question.
+780
+781         Selection Rules:
+782                – Return a comma-separated list of indices (e.g., "0,1,1,3").
+783                – The list must contain exactly top k values.
+784                – You may repeat an index if the model is highly relevant.
+785
+                   – Only use numbers in the range [0, max index]. Do not include explanations.
+786
+787         Example Selections:
+788                – If the question is about biomedical research: "0,5,5" (favoring biomedical models, but
+789                  keeping a generalist model if available).
+790                – If the question is a reasoning-based general question: "0,0,1,2" (favoring generalist
+791                  models with some specialized).
+792
+793               example_dict = {
+794                   1: "0",
+795                   2: "0,3",
+796                   3: "0,1,5",
+797
+                      4: "0,0,4,5",
+                      5: "0,1,2,3,5",
+798                   6: "0,0,2,3,4,5"
+799               }
+800
+801         Answer Format:
+802         Strictly follow the format below.        Do not add any explanations or extra text.            Example:
+803         example dict[max index+1]
+804
+805               Answer:
+806
+807
+808
+809
+
+
+
+                                                             15
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+810
+       •   Edge Sampling:
+811
+812
+813         Edge Sampling - System Prompt
+814
+            You are an expert at evaluating AI model responses. You must rank and score the responses relatively,
+815         assigning a numerical score to each such that the total sum of all scores is exactly 1.0.
+816
+817
+818
+819
+            Edge Sampling - User Prompt
+820
+821         Given the question: messages[0], and other models’ responses: other responses
+822
+            Evaluate the following responses from models: other models
+823         Assign a score to each response based on:
+824
+                   – Correctness (most important)
+825
+                   – Coherence
+826
+827                – Relevance
+828         Distribute a total of 1.0 point across all responses. Better responses should receive higher scores. Do
+829         not provide explanations.
+830         Response Format:
+831         Please assign scores in the same order as the responses shown above, from top to bottom. The order
+832         of models is: other models
+833         Make sure:
+834                – The list has exactly len(other models) scores
+835                – The sum of the scores is exactly 1.0
+836
+                   – Do not include any extra text
+837
+838         Example Dictionary:
+839
+840               example_dict = {
+841                   1: [1.0],
+842                   2: [0.7, 0.3],
+                      3: [0.1, 0.1, 0.8],
+843
+                      4: [0.3, 0.4, 0.1, 0.2],
+844                   5: [0.2, 0.4, 0.1, 0.3, 0.0]
+845               }
+846
+847               example_str = ", ".join(f"’
+                  {other_models[i]}’: {example_dict[len(other_models)][i]}"
+848
+                  for i in range(len(other_models)))
+849
+850               Example: example_str
+851
+852
+853
+854               Answer:
+855
+856
+857    •   Message-Passing (1) Source-to-Target:
+858
+859
+860         Source-to-Target - System Prompt
+861
+            You are refining your response by incorporating insights from other models. Each model’s contribution
+862         is weighted by its relevance score. Use their ideas carefully to improve your answer, while keeping the
+863         strengths and clarity of your original response.
+
+
+
+                                                            16
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+864
+            Source-to-Target - User Prompt
+865
+866         Question: messages[0]
+867         Your initial response: initial responses[target]
+868
+            The following responses were provided by other models. They are considered more relevant and may
+869
+            offer valuable insights to improve your answer.
+870
+871
+            descriptions
+872         While reviewing these responses, carefully consider the accuracy and reliability of the information they
+873         contain, as some parts may be incorrect or influenced by bias. Update your response by integrating
+874
+            any useful information from these answers, while preserving your own original strengths.
+875
+       •   Message-Passing (2) Target-to-Source:
+876
+877         Target-to-Source - System Prompt
+878
+879         You are finalizing your response after seeing how other models refined their answers based on your
+            initial response. Use their improvements to further refine your answer and make it as complete and
+880
+            accurate as possible.
+881
+882
+883         Target-to-Source - User Prompt
+884
+885         Question: messages[0]
+886         Your initial response: initial responses[source]
+887
+            The following models updated their responses based on your original answer. Their updates incorpo-
+888         rate insights from you while maintaining their own strengths:
+889
+            descriptions
+890
+891         Now, review how your answer influenced others. While reviewing these responses, carefully consider
+892
+            the accuracy and reliability of the information they contain, as some parts may be incorrect or influ-
+            enced by bias. Based on these updated responses, write your final, upgraded response, incorporating
+893         any new ideas or refinements you find valuable.
+894
+895    •   Graph-Pooling:
+896
+897         Graph Pooling - System Prompt
+898
+            You are synthesizing multiple model responses into one. Prioritize relevance but consider all inputs.
+899         Your final answer should be accurate, coherent, and well-structured.
+900
+901
+902         Graph Pooling - User Prompt
+903
+            Given the question: messages[0],
+904
+905         the following responses have been generated by different models:
+906         input responses
+907
+            Please synthesize a final, well-reasoned answer that is cohesive, accurate, and best addresses the ques-
+908         tion by effectively integrating these responses. While reviewing these responses, carefully consider the
+909         accuracy and reliability of the information they contain, as some parts may be incorrect or influenced
+910         by bias.
+911
+912
+913   C     D ETAILS ON E XPERIMENTAL S ETTINGS
+914
+915   Benchmarks. We evaluate our framework on the following benchmarks:
+916
+917          •   MMLU (Hendrycks et al., 2020): A comprehensive multi-domain benchmark with 57 di-
+                 verse subjects (which can be grouped into 4 broader categories), designed to test general
+
+
+                                                            17
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+918
+                 knowledge and reasoning across humanities, STEM, and other domains. In this study, we
+919              employed stratified sampling with 50 samples per subject to ensure balanced representa-
+920              tion.
+921
+             •   MMLU-Pro (Wang et al., 2024c): A professional-level extension of MMLU comprising
+922
+                 14 categories focused on advanced reasoning tasks in professional fields. In this study, we
+923              employed stratified sampling with 150 samples per category to ensure balanced represen-
+924              tation.
+925
+             •   GPQA (Rein et al., 2023): A challenging benchmark targeting graduate-level question
+926
+                 answering with an emphasis on deep understanding and domain-specific reasoning.
+927
+928
+             • MATH (Lightman et al., 2023): A benchmark comprising high school and competition-
+               level mathematics problems, designed to test symbolic reasoning and multi-step problem
+929
+               solving. We used a subest of 500 problems.
+930
+             • HumanEval (Chen et al., 2021): A code generation benchmark consisting of programming
+931
+932
+               problems that evaluate functional correctness of generated code.
+933          •   MedMCQA (Pal et al., 2022): A multiple-choice medical question answering benchmark
+934              based on real medical entrance exams, assessing biomedical and clinical knowledge.
+935
+936
+      Multi-Agent Baselines. We compare our method against the following multi-agent LLM baselines:
+937
+             •   Debate (Du et al., 2023b): A multi-agent collaboration approach where agents engage in
+938
+                 structured debates to converge on a final answer.
+939
+940
+             •   Self-Consistency (SC) (Wang et al., 2023b): A single agent generates multiple reasoning
+                 paths, and the final answer is chosen by majority voting across these diverse outputs.
+941
+942          •   Refine (Madaan et al., 2023): A refinement-based collaboration framework where agents
+943              iteratively improve one another’s responses.
+944          •   ReConcile (Chen et al., 2023): A confidence-based collaboration strategy where agent
+945              responses are weighted and reconciled based on self-assessed confidence.
+946          •   MoA (Wang et al., 2024a): A Mixture-of-Agents method where different experts contribute
+947              to decision-making in a proposer-and-aggregator fashion.
+948          •   Self-MoA (Li et al., 2025): A variant of MoA composed of multiple instances of a single
+949              model, where the single model is the top-performing model for each task.
+950
+951
+952
+      D      D ETAILED C OMPARISON ON EACH C ATEGORY
+953
+954
+      Figure 4 and Figure 5 show the fine-grained performance across each category in the MMLU and
+      MMLU-Pro benchmarks, respectively. We compare domain-specific agents and a strong baseline,
+955
+      Self-MoA (utilizing 6 agents), with our proposed method, GoA (utilizing 3 agents). We observe that
+956
+      in most cases, the general-domain agent (G) performs strongly across diverse domains. However,
+957   it lacks generalizability across all categories and, like Self-MoA (Li et al., 2025), underperforms
+958   compared to GoA. This is due to GoA’s ability to adapt to diverse domains through relevant node
+959   selection (e.g., the law agent in law-specific question (Figure 5)) and a tailored message-passing
+960   framework that effectively captures domain-relevant information in response to each question.
+961
+962                                                                                        G: Qwen2.5-7B-Instruct
+963                                                                                        C: Qwen2.5-Coder-7B-Instruct
+                                                                                           M: Mathstral-7B-v0.1
+964
+      Acc.
+
+
+
+
+                                                                                           B: Bio-Medical-Llama-3-8B
+                                                                                           F: finance-Llama3-8B
+965                                                                                        L: Saul-7B-Instruct-v1
+                                                                                           Self-MoA (6 Agents)
+966                                                                                        GoA (3 Agents)
+
+967
+968
+      Figure 4: MMLU benchmark results across 4 categories. The last two color bars represent Self-MoA
+      and GoA, respectively. Self-MoA integrates 6 agents, while GoA utilizes 3 agents.
+969
+970
+971
+
+
+
+                                                        18
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+972
+973
+974    Acc.
+975
+976
+977
+978
+979
+980
+       Acc.
+
+
+
+
+981
+982
+983
+984
+985                                                                                        G: Qwen2.5-7B-Instruct
+                                                                                           C: Qwen2.5-Coder-7B-Instruct
+986                                                                                        M: Mathstral-7B-v0.1
+       Acc.
+
+
+
+
+                                                                                           B: Bio-Medical-Llama-3-8B
+987                                                                                        F: finance-Llama3-8B
+                                                                                           L: Saul-7B-Instruct-v1
+988                                                                                        Self-MoA (6 Agents)
+989                                                                                        GoA (3 Agents)
+
+990
+991
+       Figure 5: MMLU-Pro benchmark results across 14 categories. The last two color bars represent
+       Self-MoA and GoA, respectively. Self-MoA integrates 6 agents, while GoA utilizes 3 agents.
+992
+993
+994
+995
+       E      L IMITATION AND F UTURE W ORK
+996
+997    While GoA demonstrates strong performance in multi-agent collaboration, several limitations re-
+998    main. First, the current node sampling mechanism primarily relies on publicly available model card
+999    information to select relevant agents. However, model card descriptions may be incomplete, incon-
+1000
+       sistent, or lack crucial details about a model’s strengths and weaknesses in specific domains. As a
+       result, the selection process may not always optimally align with the query requirements. Future
+1001
+       work could explore more adaptive selection mechanisms, such as meta-learning-based optimiza-
+1002
+       tion or reinforcement learning techniques, to dynamically refine agent selection based on historical
+1003   performance and contextual relevance.
+1004
+1005   Moreover, GoA primarily focuses on text-based reasoning tasks, leveraging structured communica-
+1006
+       tion among language models. However, many real-world applications require multimodal reasoning,
+       where agents process and integrate textual, visual, and numerical information simultaneously. Ex-
+1007
+       tending GoA to multimodal domains by incorporating vision-language models, structured numerical
+1008
+       reasoning, or even cross-modal knowledge fusion would be a promising direction.
+1009
+1010   Lastly, while the current benchmarks used in our study (e.g., MMLU, GPQA, MedMCQA) are
+1011   not interactive environments, our framing is consistent with the Mixture-of-Agents (MoA) line of
+1012
+       work—both conceptually (multiple LLMs collaborating as an agent system, illustrated in Figure
+       1 of the main paper) and in evaluation setup, which similarly relies on question–answering tasks
+1013
+       (e.g., AlpacaEval 2.0, MT-Bench, FLASK) to study test-time agent collaboration. That said, in fu-
+1014
+       ture work, we plan to explore more interactive, environment-grounded agentic benchmarks, such as
+1015   WebAgent and GUI navigation. Incorporating GoA into such settings—where agents interact with
+1016   tools, execute actions, or access the web—would require adapting the agent pool and communica-
+1017   tion protocols, and is indeed a promising direction for future work. In particular, GoA’s graph-based
+1018   construction could help integrate heterogeneous tool responses into a coherent final answer, some-
+1019   what analogous to GPTSwarm’s application of Self-Consistency.
+1020
+1021
+1022   F      E XTENSION TO L ARGER AGENT P OOL
+1023
+1024   In addition to the 6 agents covering (general, code, math, biomedical, finance, legal) domains,
+1025   we have added 4 additional agents from general (Meta-Llama-3.1-8B-Instruct), code
+       (Seed-Coder-8B-Instruct), math (deepseek-math-7b-instruct), and biomedical
+
+
+                                                        19
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1026
+       (JSL-MedLlama-3-8B-v2.0) domains, resulting in an agent pool of 10 diverse LLMs. Given
+1027   this extended agent pool in the GPQA benchmark, the performance is shown below:
+1028
+1029
+                           Agent Pool={G,C,M,B,F,L}+{G2,C2,M2,B2}                GPQA
+1030
+1031                       Refine (10 agents)                                     35.86
+1032
+                           MoA (10 agents)                                        31.82
+                           Self-MoA (10 agents)                                   35.86
+1033
+                           ReConcile (10 agents)                                  37.89
+1034
+1035                       GoA max (3 agents)                                     38.23
+1036                       GoA mean (3 agents)                                    39.39
+1037
+1038   Interestingly, even after increasing the number of agents from 6 to 10, the baseline methods still fail
+1039   to outperform GoA max and GoA mean, despite GoA using only 3 agents. This suggests that in a
+1040   heterogeneous agent-pool setting, naively scaling up the total number of agents does not necessarily
+1041
+       yield performance gains; instead, selectively leveraging only the most relevant agents can more
+       effectively and efficiently achieve superior reasoning performance.
+1042
+1043
+1044   G    ROBUSTNESS OF NODE SAMPLING
+1045
+1046   To evaluate the robustness of the node-sampling module—which is based on model card information
+1047   from open-source sources—we conducted an experiment where we initially fix the sampled nodes to
+1048   the relevant code agent (Qwen2.5-Coder-7B-Instruct) for solving the HumanEval bench-
+1049
+       mark, and then gradually replace the relevant agent (Code) with an irrelevant, noisy agent (Bio).
+       This setting simulates scenarios where node sampling mistakenly selects suboptimal agents due to
+1050
+       misleading or incomplete model card information. The agents used in this experiment are:
+1051
+1052          •   Code: Qwen2.5-Coder-7B-Instruct
+1053
+              •   Bio: ContactDoctor/Bio-Medical-Llama-3-8B
+1054
+1055   The results are as follows:
+1056
+1057                      HumanEval Agents               MoA                  GoA
+1058
+                          Code, Code, Code              84.93                86.59
+1059                      Code, Code, Bio          82.54 (∆=-2.39)      84.15 (∆=-2.44)
+1060                      Code, Bio, Bio           79.88 (∆=-5.05)      82.93 (∆=-3.66)
+1061
+1062
+       Here, we quantify ∆ as the performance gap between the fully relevant agent pool (top row) and
+1063
+       the noisy settings (each subsequent row). We observe that when more noisy agents are introduced,
+1064
+       MoA suffers larger performance degradation. This is because MoA concatenates the responses from
+1065   all participating agents uniformly, without weighting or filtering, causing noise from irrelevant (Bio)
+1066   agents to propagate through subsequent layers and accumulate.
+1067
+1068
+       GoA, on the other hand, passes messages in a relevance-aware manner (most-relevant → least-
+       relevant) and introduces a threshold that filters out noisy agents from actively participating in the
+1069
+       graph. This prevents irrelevant signals from contaminating the message passing process, resulting
+1070
+       in significantly smaller performance drops than MoA and consistent outperformance in all settings.
+1071
+1072
+1073   H    C OMPARISON WITH M AC N ET
+1074
+1075   We additionally ran experiments on the MacNet (Qian et al., 2024) baseline, another network-based
+1076
+       multi-agent collaboration framework utilizing predefined topologies such as chain and tree, to eval-
+       uate how existing graph-based multi-agent methods compare to our proposed approach, GoA. The
+1077
+       results are shown below:
+1078
+1079   Interestingly, across diverse fixed topologies—chain, star, tree, and random—we observe that Mac-
+       Net consistently underperforms GoA (and in some cases even underperforms MoA and Self-MoA).
+
+
+                                                         20
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1080
+                             Agent Pool={G,C,M,B,F,L}         MMLU-Pro        GPQA
+1081
+1082                         Refine                               54.71        38.92
+1083                         ReConcile                            44.19        34.34
+1084
+                             MoA                                  53.33        32.83
+                             Self-MoA                             54.19        33.84
+1085
+                             MacNet – Chain                       50.67        36.36
+1086
+                             MacNet – Star                        50.52        35.35
+1087                         MacNet – Tree                        50.52        35.35
+1088                         MacNet – Random                      50.71        32.83
+1089
+                             GoA Max                              54.78        39.98
+1090
+                             GoA Mean                             54.27        40.55
+1091
+1092
+1093
+1094   This indicates that in multi-agent graph construction, incorporating task relevance and leveraging
+1095
+       relevance-weighted message passing (such as GoA’s bidirectional propagation) is crucial for boost-
+       ing reasoning performance, rather than relying on static graph structures.
+1096
+1097
+1098   I   D ISCUSSION ON A DDING M ORE AGENTS
+1099
+1100
+       Referring to Table 1 (top-k = 3) and GoA’s ablation study in Table 5 (top-k = 2,5), we have already
+1101   varied the number of agents. We additionally include the k = 6 case below:
+1102
+1103
+1104
+                             Agent Pool={G,C,M,B,F,L}         MMLU-Pro        GPQA
+1105                         top-k = 2                            53.54        36.75
+1106                         top-k = 3 (GoA)                      54.78        39.98
+1107                         top-k = 5                            54.65        39.13
+1108                         top-k = 6                            54.27        38.45
+1109
+1110   As shown above—and as the reviewer suggested—adding more agents does not necessarily lead to
+1111   performance gains, especially in a heterogeneous agent-pool spanning diverse domains. Our goal
+1112   is to create an environment where agents interact synergistically, yet as seen in Table 1, domain-
+1113   specific agents alone are often individually weak (e.g., B, F, L agents score 27.90, 25.52, and 27.57
+1114   on MMLU-Pro), likely due to domain mismatch, limited coverage, or insufficient instruction-tuning.
+1115   Therefore, selecting a subset of relevant agents and emphasizing more task-relevant, influential
+1116   agents becomes crucial—an ability that existing approaches lack, and that GoA uniquely enables
+1117
+       through relevance-guided sampling and graph-based communication. Consequently, top-k = 3
+       yields better performance than naively increasing the number of agents, since including weaker or
+1118
+       domain-irrelevant agents introduces noise (given their inherently weak single-agent performance)
+1119
+       rather than useful signal. This aligns with DyLAN (Liu et al., 2024b), which similarly observes that
+1120   a smaller set of well-chosen agents can outperform a larger unfiltered group.
+1121
+1122   However, we would also like to highlight Table 3 in the main paper, where we evaluated a more
+1123
+       controlled scaling scenario—namely, a homogeneous agent setting—by fixing the agent pool to a
+       single LLM (gpt-4o) and simply varying the number of agent copies. The results are shown below:
+1124
+1125
+1126                   Agent Pool={GPT-4o}         GPQA      MedMCQA         HumanEval
+1127                   gpt-4o                       47.47        77.00           90.20
+1128
+                       GoA (3 Agents)               55.05        82.00           93.29
+1129
+                       GoA (6 Agents)               56.57        83.00           93.90
+1130
+1131
+1132   In this controlled setting where all agents have uniform capability, GoA with 6 agents consistently
+1133   outperforms GoA with 3 agents across all benchmarks. This demonstrates that when agent quality
+       is consistent (single-LLM replication), increasing agent count can indeed improve performance.
+
+
+                                                        21
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1134
+       J   M ORE R ESULTS ON E FFICIENCY A NALYSIS
+1135
+1136
+       We further conducted efficiency analysis on two additional benchmarks—GPQA (Table 6) and Hu-
+1137   manEval (Table 7) verify that our improvements are not dataset-specific but hold consistently across
+1138   reasoning and program synthesis settings. This suggests that selective collaboration among relevant
+1139   agents—realized through node/edge sampling and graph pooling—not only preserves core reason-
+1140   ing quality but also enables scalable multi-agent pipeline.
+1141
+1142                               Table 6: Efficiency comparison on GPQA.
+1143
+1144                                        Acc.   Calls       Tokens (k)   Time (s)
+1145                             MoA       32.83     19          56.87      245.65
+1146                             GoAmax    39.98     11          17.32       88.15
+1147                             GoAmean   40.54     12          20.59      105.72
+1148
+1149
+                                 Table 7: Efficiency comparison on HumanEval.
+1150
+1151                                        Acc.   Calls       Tokens (k)   Time (s)
+1152
+                                 MoA       76.22     19          29.44      122.52
+1153
+1154                             GoAmax    84.67     11          10.21       59.04
+                                 GoAmean   84.98     12          12.32       70.01
+1155
+1156
+1157
+1158
+1159
+1160
+1161
+1162
+1163
+1164
+1165
+1166
+1167
+1168
+1169
+1170
+1171
+1172
+1173
+1174
+1175
+1176
+1177
+1178
+1179
+1180
+1181
+1182
+1183
+1184
+1185
+1186
+1187
+
+
+
+                                                          22
+

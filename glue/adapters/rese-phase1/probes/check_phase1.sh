@@ -24,9 +24,11 @@ if [ -z "$PYTHON_CMD" ]; then
     exit 1
 fi
 
-# Configuration
-PHASE1_DIR="${PHASE1_DIR:-/c/Users/mmeadow/Documents/OpenEvolve/Frontend/glue/adapters/rese-phase1}"
-RESE_ROOT="${RESE_ROOT_DIR:-/c/Users/mmeadow/Documents/OpenEvolve/Frontend/rese}"
+# Configuration - MUST be run from FRONTEND_ROOT
+cd "$(dirname "$0")/../../../.." || exit 1
+FRONTEND_ROOT="$(pwd)"
+PHASE1_DIR="${PHASE1_DIR:-${FRONTEND_ROOT}/glue/adapters/rese-phase1}"
+RESE_ROOT="${RESE_ROOT_DIR:-${FRONTEND_ROOT}/rese}"
 
 # Generate correlation ID
 CORRELATION_ID=$($PYTHON_CMD -c "import uuid; print(str(uuid.uuid4()))")
@@ -74,7 +76,7 @@ perform_check() {
 # Check 1: Phase I directory exists
 perform_check "directory_exists" \
     "Phase I adapter directory exists" \
-    "[ -d \"$PHASE1_DIR\" ]"
+    "[ -d \"$PHASE1_DIR\" ] && cd \"$FRONTEND_ROOT\" "
 
 # Check 2: Executor module exists
 perform_check "executor_module_exists" \
@@ -89,12 +91,12 @@ perform_check "adapter_module_exists" \
 # Check 4: Python can import executor
 perform_check "executor_importable" \
     "Executor module can be imported" \
-    "$PYTHON_CMD -c \"import sys; sys.path.insert(0, '$PHASE1_DIR/src'); from phase1_executor import EpistemicAuditExecutor\""
+    "$PYTHON_CMD -c \"import sys; sys.path.insert(0, 'glue/adapters/rese-phase1/src'); from phase1_executor import EpistemicAuditExecutor\""
 
 # Check 5: Python can import adapter
 perform_check "adapter_importable" \
     "Adapter module can be imported" \
-    "$PYTHON_CMD -c \"import sys; sys.path.insert(0, '$PHASE1_DIR/src'); from phase1_adapter import Phase1Adapter\""
+    "$PYTHON_CMD -c \"import sys; sys.path.insert(0, 'glue/adapters/rese-phase1/src'); from phase1_adapter import Phase1Adapter\""
 
 # Check 6: Configuration can be loaded
 perform_check "config_loadable" \

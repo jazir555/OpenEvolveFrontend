@@ -1,0 +1,1958 @@
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+000
+001
+      MEM1: L EARNING TO S YNERGIZE M EMORY AND
+002   R EASONING FOR E FFICIENT L ONG -H ORIZON AGENTS
+003
+004
+005    Anonymous authors
+006    Paper under double-blind review
+007
+008
+009                                               A BSTRACT
+010
+011            Modern language agents often need to solve long-horizon tasks requiring multiple
+012            turns of interactions with the environment, where they retrieve external information,
+013            adapt to observations, and answer interdependent queries. Yet, most LLM systems
+014            rely on full-context prompting, appending all past turns regardless of their relevance.
+015            This leads to unbounded memory growth, increased computational costs, and
+016            degraded reasoning performance on out-of-distribution input lengths due to LLM
+017            forgetting the context. We introduce MEM1, an end-to-end reinforcement learning
+018
+               framework that enables agents to operate with nearly near constant context
+               size when solving long-horizon tasks. At each turn, MEM1 updates a compact
+019
+               shared internal state that jointly supports memory consolidation and reasoning.
+020
+               Leveraging reinforcement learning (RL) and rollout trajectory truncation, we train
+021            a MEM1 agent to develop internal states that integrate prior memory with new
+022            observations from the environment while strategically discarding irrelevant or
+023            redundant information. Experiments across three domains, including internal
+024            retrieval QA, open-domain web QA, and multi-turn web shopping, show that
+025            MEM1-7B improves performance by 3.5× while reducing memory usage by 3.7×
+026            compared to Qwen2.5-14B-Instruct on an augmented multi-hop QA dataset with 16
+027            objectives in each task, and generalizes beyond the training horizon. Our results
+028            demonstrate the promise of reasoning-driven memory consolidation as a scalable
+029
+               alternative to existing solutions for training long-horizon task-solving agents with
+               multiple interactions, where both efficiency and performance are optimized.
+030
+031
+032
+      1   I NTRODUCTION
+033
+034   Large language models (LLMs) have shown remarkable performance in single-turn tasks such as
+035   question answering, summarization, and code generation (Brown et al., 2020; Touvron et al., 2023).
+036   However, emerging real-world applications increasingly operate over multiple turns—searching
+037   documents, interacting with environments (Zhou et al., 2024), and making decisions based on
+038   evolving external information (Wang et al., 2024). Examples include AI search agents such as
+039   Perplexity AI (Perplexity AI, 2024) that automate complex tasks by iteratively gathering information,
+040   and web-navigation agents such as OpenManus (OpenManus, 2025) and BrowserUse (Müller &
+041   Žunič, 2024), which must complete goals across dozens of interactive turns.
+042   Unlike traditional tasks where the input is static or self-contained, long-horizon settings often
+043   involve answering a sequence of related questions, requiring the agent to continuously retrieve new
+044   information, revise beliefs, and adapt to evolving contexts over time. For instance, consider a research
+045   assistant tasked with “What’s the evidence for X?”. Subsequent queries like “Who published it?”
+046   require further information retrieval, while “Is the source credible?” calls for self-reflection and
+047   assessment. Each query builds on the previously collected and accumulated information. Similarly, a
+048   shopping assistant may be first asked “Which product is cheapest?”, then “What are its reviews?”,
+049   and “Is it compatible with my device?”. These interactions span multiple turns, featuring evolving
+050
+      contexts and compound reasoning.
+051   In long-horizon systems, a common strategy is to append all past observations, actions, and thoughts
+052   to the context at each step (Wei et al., 2022; Yao et al., 2023). This creates three challenges. (1)
+053   Growing inference cost and memory usage. Transformer-based LLMs scale with O(N 2 ) compute
+      (or O(N ) with KV caching) and O(N ) memory as context length N grows (Vaswani et al., 2017),
+
+
+                                                         1
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+054
+      forcing deployments to reserve large GPU memory and often wasting resources (Kwon et al., 2023;
+055   Zheng et al., 2024). (2) Generalization limits beyond the training horizons. Contexts longer
+056   than those seen during training push the model out-of-distribution, reducing its ability to reason
+057   reliably (Yoon et al., 2024). (3) Overloaded context and forgetting. Redundant or irrelevant
+058   content that grows with agentic interaction dilutes attention and makes the model prone to forgetting
+059   important details, even when they remain technically available in the context (An et al., 2025; Liu
+060   et al., 2024; Wu et al., 2025).
+061   Recent progress in long-context modeling largely targets static inputs (e.g., long documents) and does
+062   not address multi-turn interaction with external environments (Beltagy et al., 2020; Gu et al., 2025).
+063   Some other approaches introduce external memory modules (e.g., summarizers or retrievers) (Yoon
+064   et al., 2024; Li et al., 2023; Chhikara et al., 2025; Xu et al., 2025), but these are typically trained
+065   separately and cannot be optimized end-to-end with the agent’s policy. This also introduces additional
+066   engineering overhead, as engineers must manage and integrate two separate models. Meanwhile,
+067   existing works on tool-using agent systems trained with reinforcement learning leave memory
+068   management unsolved, letting the prompt length grow unboundedly (Jin et al., 2025; Zheng et al.,
+069
+      2025). A natural question is raised: Can a language model learn to consolidate its memory as part
+      of its reasoning process so that it retains only what is essential for solving the task?
+070
+071   Motivated by this question, we present MEM1: Memory-Efficient Mechanism via learning 1-
+072   step integrated reasoning and consolidation—a method for training LLM agents that maintain
+073   nearly constant memory usage across arbitrarily long horizons. At each turn, the model updates a
+074   consolidated state composed of prior memory and newly obtained information. This consolidated
+075
+      state becomes the agent’s only retained memory, allowing all observations obtained via external tool
+      use to be discarded after use, which prevents prompt expansion altogether (illustrated later in Sec. 4.2).
+076
+      A key insight of our method is that inference-time reasoning (Wei et al., 2022; DeepSeek-AI et al.,
+077
+      2025; Muennighoff et al., 2025; Yue et al., 2025) serves two purposes: While reasoning about the
+078   current query, the model also extracts and stores the essential information it needs for the future.
+079   By unifying reasoning and memory consolidation, MEM1 enables the agent to both reason and
+080   remember within a shared representational space, without requiring extra modules or architectural
+081   changes. We train this behavior end-to-end with reinforcement learning (RL) (Sutton & Barto, 2018;
+082   Zhu et al., 2023), optimizing for task success via verifiable rewards (Shao et al., 2024). Although
+083   not explicitly optimized for memory efficiency through reward signals, the agent learns to manage
+084   memory as part of its policy, resulting in near-constant memory usage across long horizons.
+085   We empirically evaluate MEM1 on (1) a multi-turn information retrieval task, where we augment
+086   standard single-objective QA datasets into multi-objective settings by composing N multi-hop
+087   questions, and (ii) the WebShop environment (Yao et al., 2022), which requires the agent to perform
+088   multiple steps of interaction with a textual web environment. Across these diverse settings, MEM1
+089   consistently matches or exceeds the performance of leading baselines while achieving efficiency
+090   gains of up to 3.5× in memory usage. Moreover, agents trained on our 2-objective augmented tasks
+091   generalize robustly to much harder cases with up to 16 sequential objectives. At this extreme, MEM1
+092
+      not only outperforms all baselines in accuracy but also reduces peak memory usage by 1.27× and
+      accelerates inference by 1.78× relative to the strongest uncollapsed baseline.
+093
+094
+095
+      2    R ELATED W ORK
+096
+097
+098   LLM agents in multi-turn environment. LLM-based agents have evolved from handling single-
+099
+      turn queries to serving as autonomous agents capable of multi-turn interactions such as web naviga-
+      tion (Yao et al., 2022; Zhou et al., 2024) and complex research (Zheng et al., 2025). To enable such
+100
+      capabilities, Yao et al. (Yao et al., 2023) introduced the ReAct (i.e., Reason + Act) framework, which
+101
+      enhances LLMs’ ability to interact with external environments by interleaving reasoning and action.
+102   Building on this reasoning-acting prompting paradigm, subsequent works have explored ways to
+103   improve agent performance through natural language feedback, enabling iterative refinement (Shinn
+104   et al., 2023; Madaan et al., 2023). Recently, inference-time scaling has emerged as a promising
+105   direction for enabling complex reasoning, with prior research incorporating evaluators (e.g., verifier,
+106   reward model) (Snell et al., 2024; Liu et al., 2025) or world models (Chae et al., 2024). In addition,
+107   there are two major lines of training approaches: (1) behavior cloning (BC), which involves imitating
+      expert trajectories to guide agent behavior by supervised fine-tuning (SFT) (Yin et al., 2023; Deng
+
+
+                                                          2
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+108                                               Rollout                           Reward Assignment                                    Objective Computation                                                                                            Policy Update
+109
+                                           Environment                                        Exact Match                                                                                                                                                       Token Level
+110                                     Query            Observation
+
+                                                                                                                                         Advantage              KL Penalty                       Value Function
+                                                                                                                                                                                                                                                                   Loss
+                  Task                 (Action)             (Info)
+111
+                                            Actor Model                                          F1 Score                                                                                                                                                     Traj. Tokens
+112                                                                                                                                      Actor Model                                 Critic Model
+113                                         Internal State (IS)
+
+
+
+
+                                                                                                                                                                                                 Query (t+1)
+
+                                                                                                                                                                                                               Info (t+1)
+                                                                                                                                                              Query (t)
+114
+
+
+
+
+                                                                                                                                                                                                                                       Answer
+                                                                                                                                                                                                                            IS (t+2)
+                                                                                                                                                                                      IS (t+1)
+                                                                                                                                                                          Info (t)
+                                                                                                                                        Ques
+
+
+
+
+                                                                                                                                                     IS (t)
+                                                                                                                                               ...
+          Turn
+     Ques
+115       (t-1)
+                           Internal State (t-1)   Query (t-1)     Info (t-1)    Internal State (t)   Query (t)
+                                                                                                                             Ques                                                                                                                        Ques
+                                                              Consolidated into                                                                                                                                                                 IS (1→ t-1) (1→t-1)
+                                                                                                                                 ...                                                                                                                 Query
+116                                                                                                                                                                                                                                                           Info (1→t-1)
+
+                                                                                                                             IS (t)                                                                                                                      IS (t)
+117                 Ques   Internal State (t-1)   Query (t-1)     Info (t-1)    Internal State (t)   Query (t)
+                                                                                                                         Query (t)                                                                                                                     Query (t)
+118                             Previous context removed                                                                   Info (t)                                                                                                                     Info (t)
+
+119                           Ques       Internal State (t)     Query (t)       Info (t)
+                                                                                               Get Info (t) from
+                                                                                                environment
+                                                                                                                           IS (t+1)                                                                                                                     IS (t+1)
+
+
+                                                                                                                       Query (t+1)                                                                                                                   Query (t+1)
+120
+                                                                                                                         Info (t+1)                                                                                                                    Info (t+1)
+          Turn
+
+121        (t)      Ques    Internal State (t)     Query (t)       Info (t)    Internal State (t+1) Query (t+1)           IS (t+2)                                                                                                                     IS (t+2)
+
+
+
+122                                                                                                                       Answer                                                                                                                       Answer
+                         : Context                 : Generated Tokens                       : External Tokens
+                                                                                                                                                     2D Attention Mask                                                                                                Info Mask
+123
+                                                                                                                                       For IS(t+2),     only Ques, IS(t+1), Query(t+1), Info(t+1) are NOT masked
+124
+125   Figure 1: (Top): the RL pipeline used to train MEM1. (Bottom left): The evolution of context
+126   in MEM1–old internal states (S), query/answer (A), and external information (O) are cleared as
+127   new states enter the context during rollout. (Bottom right): the 2D attention mask used during
+128   the objective computation stage. The mask is applied during the forward pass to compute action
+129   log-probabilities for the actor model and state value estimates for the critic model. During policy
+130   update, an information mask is then applied to mask out O tokens not generated by the model itself.
+131
+132
+      et al., 2023; Cheng et al., 2024), and (2) reinforcement learning (RL), which optimizes agent policies
+133
+      by incentivizing desirable outcomes through rewards (Song et al., 2024; Bai et al., 2024; Qi et al.,
+134
+      2024). These methods aim to align the agents’ behaviors with task objectives, enabling more robust
+135   and generalizable performance.
+136
+137   Memory management for LLM agents. A widely adopted approach to memory management
+138   in LLM-based agent systems involves appending all prior information, such as observations, inter-
+139   mediate thoughts, and actions, into the prompt at each interaction turn (Yao et al., 2023). While
+140   this method is straightforward and effective when the number of interactions required is small, it
+141   results in unbounded context growth, leading to linearly scaled inference memory. Moreover, long
+142   contexts often contain irrelevant or redundant information, which impairs the model’s reasoning
+143   capabilities (An et al., 2025; Liu et al., 2024; Wu et al., 2025). To mitigate these issues, recent
+144
+      studies have proposed external memory frameworks, including retrieval-augmented generation and
+      summarization modules (Yoon et al., 2024; Li et al., 2023; Chhikara et al., 2025; Xu et al., 2025) and
+145
+      hierarchical working memories (Hu et al., 2025b; Rasmussen et al., 2025; Sun & Zeng, 2025). How-
+146
+      ever, these methods are typically applied independently of the agent’s policy, creating a disconnect
+147   between memory and the reasoning process. In addition, managing and integrating such modules
+148   often incurs extra computational overhead and system complexity. Despite these advancements, many
+149   RL approaches for training LLM agents still rely on accumulating the full interaction history as mem-
+150   ory (Jin et al., 2025; Zheng et al., 2025; Qi et al., 2024), leaving memory management during training
+151   an underexplored area. In this work, we seek to bridge this gap by tightly integrating memory with
+152   the agent’s reasoning process, thereby enabling more efficient and context-aware decision-making.
+153
+154   3           MEM1
+155
+156   Complex reasoning tasks often require an iterative process of information gathering and synthesis, as
+157   seen in applications such as deep search (Perplexity AI, 2024) and web-based agents (Nakano et al.,
+158   2022; Gur et al., 2024). We consider an interactive agent operating in a multi-turn environment with
+159   vocabulary space V. The generation process of an agent is defined as a Markov Decision Process
+160   (MDP) parameterized by (S, A, π, r), where A represents the action space, S represents the state
+161   space, π : S × A × S → [0, 1] is the transition distribution (i.e., the policy), and r : S → R
+      is the reward function. A trajectory generated by a policy π is denoted with τ := {(at , st )|t ∈
+
+
+                                                                                                                   3
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+162
+      {1, 2, . . . , |τ |}}. At each step t, the agent receives an observation Ot ∈ A+ (from external tools,
+163   APIs, or the environment), maintains an internal state St ∈ A+ (reasoning history and memory), and
+164   produces an action At ∈ A+ (e.g., answering a question or issuing a query), where A+ represents
+165   the set of sequences of a ∈ A. The agent’s goal is to maximize task success across long-horizon
+166   trajectories while keeping the retained context bounded. Formally, let r : V → R be the reward
+167   function. The learning problem is a maximization over the model parameters θ
+168                                                            hP                   i
+169
+                                       argmaxθ EQ∈Q,τ ∼πθ,Q        (at ,st )∈τ r(st ,
+                                                                                   )
+170                            n−1
+      where τ = (Si , Ai , Oi )i=1 ∩ (Sn , An ) is a trajectory sampled from policy πθ,Q with n turns and Q
+171
+      refers to the set of questions. In this work, we primarily consider tasks with verifiable rewards (i.e., r
+172
+      is a rule-based mapping). A long, multi-turn reasoning task is characterized a large n, requiring the
+173   agent to iteratively perform a long series of searches and reasoning to derive the answer An .
+174
+175
+      3.1   M EMORY AS PART OF R EASONING
+176
+177   To achieve a constant memory, MEM1 is particularly trained to iteratively refine its understanding
+178   by processing new information in conjunction with a consolidation of its prior state. At each turn
+179   i, the agent produces a new Si , which summarizes past information and reasons about subsequent
+180   actions. Following this, the agent generates an action At —a subsequent query or the answer if a direct
+181   response is warranted. If the agent issues a query, the corresponding feedback from the environment
+182
+      Oi is appended to the trajectory. At the next turn, i + 1, the agent consolidates the tuple (Si , Ai , Oi )
+      into a new Si+1 , which serves as the basis for further interactions. After each turn, (Si , Ai , Oi )
+183
+      is pruned from the context, effectively compressing memory and preventing prompt bloat. Fig. 1
+184
+      (bottom left) illustrates the evolution of the model’s context over time. At each turn, the agent retains
+185   at most two S’s, two A’s, and one O, ensuring bounded and efficient memory usage. The detailed
+186   rollout algorithm is in Alg. 1 of App. B.5.
+187
+188
+      RL offers a powerful mechanism for shaping agent behavior through reward signals (Sutton et al.,
+      2000). In MEM1, we leverage this framework to incentivize effective state consolidation by designing
+189
+      environments in which the agent is rewarded only when it strategically retains and integrates useful
+190
+      information. Specifically, we construct tasks that require numerous interactions with the environment
+191   to arrive at a correct answer (see Sec. 3.3). Success depends on the agent’s ability to rely on
+192   information collected along the inference path. At each turn, we prune the agent’s context to retain
+193   only the most recent internal state S, forcing the agent to perform memory consolidation as part of
+194   its reasoning process. Without access to full historical context, the agent must learn to preserve and
+195   update relevant knowledge internally in order to reap the reward. This learning procedure mirrors
+196   how humans cultivate memorization skills through structured tasks such as Sudoku or crosswords (A
+197   Cognitive Connection, 2024), where success hinges on selectively attending to key information and
+198   building upon it. Over time, such tasks help individuals develop cognitive strategies that jointly
+199
+      support efficient memorization and reasoning, similar to our RL method for training MEM1.
+200
+201   3.2   M ASKED T RAJECTORY FOR P OLICY O PTIMIZATION
+202
+      Popular RL algorithms (Schulman et al., 2017; Hu et al., 2025a) update the policy with policy
+203
+      gradient, which requires the calculation of ∇θ πθ,Q (at , st ). For LLM, πθ,Q (at , st ) is viewed as
+204   the logit of the output at of the model, where the input is st . Existing RL frameworks typically
+205   compute the ∇θ πθ,Q (at , st )’s for all pairs (at , st ) ∈ τ by passing the entire rollout trajectory τ
+206   through the LLM once (i.e., prefilling). However, as MEM1 dynamically consolidates its context,
+207   the tokens at do not belong to one single trajectory τ . A naive solution is to break each turn
+208   into a sub-trajectory τi = (Si , Ai , Oi ), where i represents the ith interaction turn. However, this
+209   approach introduces difficulties (at least implementation-wise) in computing the temporal difference
+210   δt = r(st ) + V (st+1 ) − V (st ) for the last token in the current sub-trajectory τi , as V (st+1 ) is
+211   calculated in a separate sub-trajectory τj , j ̸= i. Here V : S → R is the value function.
+212   To overcome this challenge, we introduce a masked trajectory that compresses {τ1 , τ2 , . . . , τn }
+213   for a task with n turns into a consolidated full trajectory τf ull = (τ1 , τ2 , . . . , τn ) =
+214   (S1 , A1 , O1 , S2 , A2 , O2 , . . . , Sn , An ). The full trajectory encodes all information needed for ac-
+215   curate policy learning while respecting MEM1’s memory consolidation at each turn. Note that
+      τf ull is a “stitched“ trajectory where the Si ’s and Ai ’s do not belong to the same roll-out. As
+
+
+                                                           4
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+216
+      such, to ensure that policy gradients ∇θ πθ,Q (at , st ) are correctly computed under this consol-
+217   idated memory regime, we apply a two-dimensional attention mask (S., 2024) across τf ull .
+218   This mask restricts each token’s attention to only the tokens retained in memory at the time
+219   that token was generated. Specifically, let the attention mask for the tth token in the ith turn
+220   be Attnt = 1a∈{Si−1 ,Ai−1 ,Oi−1 ,Si ,Ai ,Oi } × 1a∈{ak |k∈{1,2,...,t}} . We can compute the policy for the
+221   ith turn πθ,Q,τi (at , st ) = πθ,Q,τf ull (at , st × Attnt ) and ∇θ πτi accordingly. Algorithmically, this can
+222   be achieved by first constructing the attention mask Mask = (Attn1 , . . . , AttnT ) and masking the
+223   attention matrix during the transformer forward. Fig. 1 (bottom right) shows the masking mechanism
+224   that enables stable and accurate policy optimization under MEM1’s memory-constrained execution.
+225
+226   3.3   M ULTI -O BJECTIVE TASK D ESIGN
+227
+228   Although MEM1 is designed to address the tasks involving multi-turn interaction with the external
+229
+      world, there are limited publicly available datasets that support training for such long-horizon
+      interactive processes. Existing benchmarks, such as HotpotQA (Yang et al., 2018), Bamboogle (Press
+230
+      et al., 2023), and 2wiki (Ho et al., 2020), are often cited as multi-turn benchmarks, yet they typically
+231
+      involve only two information-seeking steps. Moreover, these datasets are not explicitly structured to
+232   support long-horizon interactions that necessitate the agent to manage the memory state.
+233
+234   To bridge this gap, we introduce a novel task—multi-objective question answering (QA)—that
+235
+      extends the number of reasoning steps required to solve a problem. Building on existing multi-turn
+      datasets such as HotpotQA and Natural Questions (Yang et al., 2018; Kwiatkowski et al., 2019),
+236
+      we interleave multiple questions from the original QA corpus and construct a single composite
+237
+      query that requires answering all constituent sub-questions, shown in Prompt 1 of App. B.3. Unlike
+238   standard multi-turn QA, this formulation compels the agent to (i) issue multiple search queries, each
+239   targeting a distinct sub-question, and (ii) organize the sub-answers into a coherent final response.
+240   The augmented dataset inherits the multi-turn retrieval tasks presented in the original HotpotQA.
+241   Additionally, to test the agent’s long-horizon processing capability, our multi-objective QA combines
+242   multiple multi-turn questions into a grand objective and tasks the agent to answer all the questions
+243   combined. For instance, the original HotpotQA dataset contains the following two questions: “Which
+244   magazine was started first Arthur’s Magazine or First for Women?” and “The Oberoi family is part of
+245   a hotel company that has a head office in what city?”. An augmented task is then: “Answer each of
+246
+      the following questions: “Which magazine was started first Arthur’s Magazine or First for Women?”
+      and “The Oberoi family is part of a hotel company that has a head office in what city?” Organize your
+247
+      final answer in <answer> and </answer> and separate the answer to each question with semicolon.
+248
+249
+250   4     E XPERIMENTS & R ESULTS
+251
+252   We empirically demonstrate the effectiveness of our approach in training the MEM1 agent to
+253   perform multi-turn tasks while preserving a near-constant-sized memory state. We evaluate MEM1
+254   against several baselines using a comprehensive set of metrics categorized into accuracy (e.g., Exact
+255
+      Match, F1 score, Environment Reward) and efficiency (e.g., Peak Token Usage, Dependency Length,
+      Inference Time). All MEM1 variants are fine-tuned from the Qwen2.5-7B Base model (Yang et al.,
+256
+      2024). We use PPO (Schulman et al., 2017) as the RL algorithm as it computes token-level advantages,
+257
+      bringing stability to the training process. While we also experimented with instruction-tuned and
+258   supervised fine-tuned models using curated high-quality trajectories, reinforcement learning from the
+259   base model consistently yielded the best performance and generalization.
+260
+261
+      Our experiments are conducted in two standard environments, each reflecting real-world scenarios
+      that require multi-turn agent interactions. The first environment is question answering with retrieval-
+262
+      augmented generation (RAG) (Kwiatkowski et al., 2019; Yang et al., 2018), where the agent must
+263
+      answer queries by retrieving relevant information from an external knowledge store (either a database
+264   or an online search engine). We trained on RAG with a local database (i.e., Wikipedia Corpus)
+265   and evaluated on tasks involving open web browsing. For QA, following Sec. 3.3, we construct
+266   multi-objective tasks and tested the model performance on tasks with more questions than seen in
+267   the training. The second environment is WebShop navigation (Yao et al., 2022), where the agent
+268   assists users in online shopping by browsing a website and selecting items based on natural language
+269   descriptions. This task requires the agent to iteratively read page content and make navigation
+      decisions, following protocols similar to those in WebGPT (Nakano et al., 2022).
+
+
+                                                            5
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+270
+      4.1   I MPLEMENTATION D ETAILS
+271
+272   Datasets and evaluation metrics. We train two versions of MEM1 agent for both long-horizon
+273   QA and web navigation. For long-horizon QA, we augment the multi-turn QA dataset from (Jin et al.,
+274   2025) that mixes data from both HotpotQA (Yang et al., 2018) and Natural Question (Kwiatkowski
+275   et al., 2019) to form a multi-objective composite tasks. During training, we use 2-objective task only
+276   and test the agent’s performance on tasks with more objectives.
+277   For the web agent, we use the WebShop environment (Yao et al., 2022), which also produces a reward
+278   during training (Yuan et al., 2025). For all datasets, the train-test split follows the original papers.
+279   During RL training, we employ the exact match (EM) metric for QA tasks (details in App. B.4.1)
+280   and the environment reward for WebShop (Yao et al., 2022; Yuan et al., 2025). To evaluate the
+281   effectiveness of various approaches, we measure the EM and F1 score for QA tasks and final reward
+282   for the WebShop environment (Yao et al., 2022; Yuan et al., 2025). To evaluate efficiency, we consider
+283   the peak token usage, average dependency, and average inference time. The test datasets are obtained
+284   from the original papers which consist of out-of-distribution data. The former two metrics measure
+285
+      the memory efficiency, while the latter measures the time efficiency. The detailed definitions of the
+      metrics are in App. B.4.1. The prompt and format can be found in App. B.3.
+286
+287
+288   Baselines. To evaluate the accuracy and efficiency of MEM1, we compare it against two groups of
+289   baselines: (i) prior published methods, and (ii) ablations of our approach.
+290   Prior published baselines.
+291
+292
+      • QA environment: Search-R1 (Jin et al., 2025), DeepResearcher (Zheng et al., 2025), and the larger-
+        scale model Qwen2.5-14B-Instruct (Yang et al., 2024). Details of Search-R1 and DeepResearcher
+293
+        are provided in App. B.4.2.
+294
+      • WebShop environment: Agent-FLAN (Chen et al., 2024), Agent-R (Yuan et al., 2025), and
+295
+        AgentLM (Zeng et al., 2023).
+296
+      • Context compression baseline: A-MEM (Xu et al., 2025), which augments an Instruct model
+297     with a vector database for memory retrieval.
+298
+299   Ablations of our method.
+300   • Truncation baseline (prompt only): We apply MEM1’s agentic truncation prompt template and
+301     rollout to an instruct model without RL, isolating the effect of the prompt and rollout design alone.
+302     We find that training provides significant performance gains, even though prompt-only rollout
+303     already offers some efficiency benefits. Detailed results are presented in Tab. 1, Tab. 2, and Tab. 3.
+304   • SFT baseline: Train a supervised fine-tuned model on trajectories curated from GPT-4o (OpenAI,
+305     2024) based on MEM1’s rollout, enabling comparison with the RL-trained agent. We find that
+306     although supervised fine-tuning improves performance, reinforcement learning is much more
+307
+        effective at enabling generalizability. Detailed results are presented in App. F.1.
+308
+      • Memory-Reasoning Coupling: Explicitly separate memory and coupling in MEM1’s internal
+        state to investigate the effect of integrating the two in terms of performance and efficiency. We find
+309
+        that integrated memory and reasoning can benefit both performance and efficiency in our evaluated
+310
+        tasks. Detailed results are presented in App. F.2.
+311
+312
+313   4.2   MEM1 ON M ULTI -O BJECTIVE M ULTI -T URN TASKS
+314
+315
+      One key advantage of MEM1 agents lies in their efficient management of long-horizon interactions
+      with the environment. To demonstrate this, we train our MEM1 agent with a 2-objective augmentation
+316
+      of the QA dataset, and subsequently test it against other models on held-out multi-objective test sets
+317
+      similarly constructed from the original QA corpus. As elaborated in Sec. 3.3, these multi-objective
+318   tasks require substantially more reasoning turns to complete, thus serving as a more demanding
+319   benchmark for memory management. As shown in Tab. 1, MEM1 consistently outperforms other
+320   7B counterparts: when tested on 16-objective task, it achieves over 10× higher EM score, while
+321   reducing peak context length by more than 70% and cutting inference latency by about one-half. This
+322   demonstrates that MEM1 not only improves task success on more complex multi-objective settings,
+323   but also does so with markedly better efficiency in both memory and runtime. A visualization of the
+      trend in agent performance as the complexity of tasks increases is shown in Fig. 2. As the number of
+
+
+                                                         6
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+324                                                                                                                                                                                  2.00
+325                         5000
+                                                                                                                                                                                     1.75
+326
+                            4000                                                                                                                                                     1.50
+327
+
+
+
+
+                                                                                                                                                                                            Exact Match Count
+328            Peak Token                                                                                                                                                            1.25
+                            3000
+329                                                                                                                                                                                  1.00
+330                         2000                                                                                                                                                     0.75
+331                                                                                                                                                                                  0.50
+332                         1000                                                                                                                                                     0.25
+333
+                                                                                                                                                                                     0.00
+334                           0
+                                     1               2              3              4                    6                    8                                      16
+335                                                                                        Number of Objectives
+                                    Qwen2.5-7B-Instruct (A-Mem) (Exact Match)             DeepResearcher-7B (Exact Match)                     Qwen2.5-14B-Instruct (Peak Token)
+336                                 Qwen2.5-7B-Instruct (Exact Match)                     MEM1-7B (Exact Match)                               Search-R1-7B (Peak Token)
+                                    Qwen2.5-14B-Instruct (Exact Match)                    Qwen2.5-7B-Instruct (A-Mem) (Peak Token)            DeepResearcher-7B (Peak Token)
+337                                 Search-R1-7B (Exact Match)                            Qwen2.5-7B-Instruct (Peak Token)                    MEM1-7B (Peak Token)
+338
+339   Figure 2: Performance and efficiency scaling of MEM1 (trained on 2-objective QA) with the number
+340   of objectives in multi-objective tasks. MEM1 outperforms the other models and baselines while
+341   having an almost constant scaling in memory usage. Note that at 16-objective, the context of baseline
+342
+      models does not increase anymore since their model performance has degraded (some collapsed).
+343
+      Table 1: Comparison of models on multi-objective multi-turn QA tasks. Arrows indicate the desired
+344
+      directions. Numbers in red indicate collapsed model behavior (extremely low performance). (truncate)
+345   means using MEM1’s prompt and rollout pipeline. (A-MEM) means using MEM1’s prompt and
+346   rollout pipeline with A-Mem’s external memory module (Xu et al., 2025). MEM1-QA means MEM1
+347   trained on 2-objective QA task. Dependency scores are presented in due to limited space.
+348
+                                                                        2-Objective                                        8-Objective                                    16-Objective
+349   Model
+                                                     EM ↑    F1 ↑       Peak (×102 ) ↓    Time (s) ↓    EM ↑       F1 ↑    Peak (×102 ) ↓   Time (s) ↓    EM ↑    F1 ↑     Peak (×102 ) ↓                 Time (s) ↓
+350   Qwen2.5-14B-Inst                               0.732   0.902        15.6±0.19      5.49 ± 0.16    1.55       1.87     44.7 ± 0.37     16.2 ± 0.27   0.567   0.703     38.4±0.71                  29.7±0.75
+      Qwen2.5-7B-Inst                                0.268   0.366        19.6±0.33       4.60±0.08      0.87       1.10     49.5±0.40       13.9±0.18    0.165   0.213     43.3±0.62                  15.5±0.23
+351   Qwen2.5-7B-Inst (A-MEM)                        0.286   0.371        14.1±0.10       24.6±0.51      1.13       1.43     18.6±0.10       53.7±1.26    0.730   0.961     18.8±0.14                  91.2±2.44
+      Qwen2.5-7B-Inst (truncate)                     0.262   0.336        8.28±0.06       5.89±0.16      0.97       1.23     11.8±0.10       11.9±0.20    0.396   0.497     13.3±0.16                  22.1±0.60
+352   Search-R1 (original)                           0.452   0.531        13.0±0.08      4.09 ± 0.23    0.064      0.08     24.7 ± 0.19      4.25±0.16    0.009   0.011     20.9±0.03                   4.75±0.18
+      Search-R1 (trained on 2-obj task)              0.544   0.646       13.68±0.23      10.60 ± 0.32   0.471      0.575    22.48±0.47      19.60±0.50    0.520   0.647     24.8±0.57                  23.35±0.77
+353   Search-R1 (trained on 2-obj task + truncate)   0.446   0.546        6.12±0.04       17.5 ± 0.22   0.162      0.204     4.95±0.02       21.5±0.18    0.091   0.107     5.28±0.03                   24.6±0.22
+      DeepResearcher                                 0.536   0.650        22.0±0.43       4.01±0.07      0.73       0.90     51.8±0.35       11.3±0.14    0.071   0.106     48.9±0.66                  15.8±0.19
+354   MEM1-QA                                        0.709   0.838       6.40±0.02       6.49 ± 0.07        1.87   2.31     8.01±0.06       8.68±0.12     1.97    2.39      10.4±0.09                    8.70±0.12
+
+355
+356
+357   objectives increases, the Peak Token Usage of all other methods and models scales nearly linearly. In
+358   contrast, MEM1 maintains an almost constant peak token count with only a slight increase.
+359   Notably, while MEM1 initially underperforms Qwen2.5-14B-Instruct, its performance gradually
+360   catches up as the number of objectives increases, eventually surpassing the 14B model, which has
+361   double the parameter count. As shown in Fig. 2, at 1, 2, 3, 4, 6 objectives, MEM1 has close EM
+362   scores compared to the 14B model. As the number of objectives continues to increase, MEM1
+363   achieves significantly higher EM scores. In the 16-objective task, MEM1 achieves over 3× the
+364   EM score, while requiring only 27.1% of the peak tokens and 29.3% of the total inference time
+365
+      compared to Qwen2.5-14B-Instruct. This efficiency translates to significantly reduced GPU memory
+      requirements and overall computing resource demands.
+366
+367
+368
+      4.3            MEM1 ON S INGLE -O BJECTIVE M ULTI -T URN TASKS
+369
+      While MEM1 is designed to train agents for very long-horizon tasks, our training method also
+370   delivers improved capability with existing multi-turn tasks while achieving much greater efficiency at
+371   the same time, all without being explicitly trained on the single-objective versions of these tasks. Note
+372   that single-objective tasks also require multiple turns of interaction to produce the desired output.
+373
+374   Long-horizon web navigation in WebShop. Beyond QA tasks, we further evaluate the effective-
+375   ness of MEM1 in managing long-horizon interactions in the form of web navigation. We show
+376   the experimental results in Tab. 2. Trained in the WebShop environment (see App. B.6), MEM1
+377   outperforms other agent training baselines, including Agent-Flan, Agent-R, and AgentLM when
+      utilizing models of similar size. Furthermore, MEM1 achieves remarkable efficiency improvements
+
+
+                                                                                                        7
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+378   Table 2: The experimental results for WebShop. For a fair comparison, we do not report GPT’s
+379   inference time. For Agent-R, scores are taken from the original paper, as the model is closed source.
+380   MEM1-WebShop means MEM1 trained on WebShop environment.
+381
+382   Model                    Avg Final Reward ↑   Peak Token (×103 ) ↓      Dependency (×106 ) ↓     Inference Time Per Traj (s) ↓
+383   GPT-4o                         25.48                  5.30 ± 1.23            3.99 ± 1.16                      N/A
+384   GPT-4o (truncate)              13.82                  0.99 ± 0.99            0.81 ± 0.23                      N/A
+      GPT-4o (A-MEM)                 24.50                  1.84 ± 0.06            0.31 ± 0.11                      N/A
+385
+      Qwen2.5-7B-Instruct            18.42                  5.64 ± 1.34            3.38 ± 0.89                 12.31 ± 1.82
+386   Qwen2.5-14B-Instruct           12.34                  5.44 ± 0.92            3.30 ± 0.61                 18.17 ± 2.32
+387   Agent-FLAN-7B                  40.35                  3.37 ± 1.12            2.18 ± 1.62                  9.95 ± 6.19
+      Agent-R-8B                     63.91                      N/A                    N/A                          N/A
+388   AgentLM-7B                     63.60                  2.24 ± 0.40            0.28 ± 0.07                  3.91 ± 1.07
+389   AgentLM-13B                    70.80                  2.36 ± 0.46            0.30 ± 0.08                  5.23 ± 1.59
+390   MEM1-WebShop                   70.87                  0.81 ± 0.10            0.15 ± 0.16                 2.61 ± 0.48
+391
+392
+      Table 3: Transfer performance comparison across environments for out-of-distribution single-
+393   objective tasks. Arrows indicate the desired direction. (SFT) means training with SFT and applying
+394   MEM1’s prompt and rollout. Note that DeepResearcher is specifically trained on the single-objective
+395   Online Web-QA task with F1 score as the optimization objective, and Search-R1 is specifically
+396   trained on the single-objective Wiki-RAG task with EM as the objective.
+397
+398   Environment     System                        EM ↑      F1 ↑    Peak Token (×102 ) ↓   Dependency (×105 ) ↓   Inference Time ↓
+399                   Qwen2.5-7B-Inst (truncate)    0.287     0.382       6.28 ± 0.05            1.65 ± 0.04         2.26 ± 0.04
+                      Qwen2.5-7B-Inst (A-MEM)       0.246     0.373       8.47 ± 0.12            0.92 ± 0.03         11.2 ± 0.40
+400                   Qwen2.5-7B-Inst               0.269     0.390       9.32 ± 0.19            1.17 ± 0.04         2.31 ± 0.04
+      Wiki RAG
+401                   Qwen2.5-14B-Inst              0.422     0.534       8.89 ± 0.21            2.22 ± 0.10         6.73 ± 0.24
+                      Search-R1 (original)          0.445     0.516       11.0 ± 0.25            1.50 ± 0.05         2.23 ± 0.14
+402                   DeepResearcher                0.419     0.503       13.3 ± 0.34            7.04 ± 0.33         3.86 ± 0.09
+403                   MEM1-QA (SFT)                 0.302     0.358       6.54 ± 0.05            3.30 ± 0.13         4.84 ± 0.21
+                      MEM1-QA                       0.405     0.471       5.63 ± 0.03            0.76 ± 0.02         3.79 ± 0.07
+404
+                      Qwen2.5-7B-Inst               0.334     0.451        8.37 ± 0.18           1.39 ± 0.06          2.20 ± 0.04
+405   Online Web-QA   DeepResearcher                0.372     0.492       10.27 ± 0.19           2.86 ± 0.14          2.87 ± 0.06
+406                   MEM1-QA                       0.397     0.485        5.79 ± 0.06           0.44 ± 0.02          1.84 ± 0.03
+407
+408
+409   compared to the best baseline method, AgentLM, featuring a 2.8× improvement in Peak Token Usage,
+410   a 1.9× improvement in Dependency, and a 1.5× improvement in Inference Time. MEM1 even
+411   surpasses AgentLM-13B, a model with twice the parameter count of our trained model. Additionally,
+412   our results indicate that using MEM1 is significantly better than OpenAI’s GPT-4o on the WebShop
+413   tasks, even when the truncation prompt templates or A-MEM techniques are applied to GPT-4o.
+414
+415   Single-objective QA in Wikipedia. Tab. 3 presents the accuracy and efficiency metrics for evalua-
+416   tions on single-objective QA tasks on Wikipedia (Jin et al., 2025), where the agent can make retrieval
+417   requests from the Wikipedia datastore via RAG. The MEM1 used in this evaluation is the same as the
+418   one detailed in Sec. 4.2, which is trained solely on a 2-objective task. Overall, MEM1 demonstrates
+419
+      superior efficiency across all three evaluated efficiency metrics, while simultaneously achieving the
+      highest EM score and an F1 score comparable to that of Qwen2.5-14B-Instruct. This improvement
+420
+      is attributed to the MEM1 agent’s ability to consolidate memory from previous interactions into a
+421
+      compact internal state, which reduces the number of tokens used in the context. We also observe that
+422   SFT significantly underperforms RL, highlighting the necessity for RL-based training.
+423
+424
+      Transfer performance to online Web-QA. To validate the transferability and generalizability of the
+425
+      trained MEM1 agent, we test MEM1 trained on RAG-QA in an online web-QA environment (Zheng
+426   et al., 2025), which is unseen by the agent. This environment is similar to the Wiki-QA task in Sec. 4.3.
+427   However, instead of retrieving information from a local Wiki document store, the agent needs to
+428   conduct web searches through an API service (e.g., Google Search API) that returns results including
+429   titles, snippets, and URLs to answer the QA problems . As shown in Tab. 3, MEM1 consistently
+430   exhibited improved efficiency alongside comparable effectiveness in this unseen setting. The result
+431   demonstrates that MEM1 has learned actual reasoning and memory management capability rather
+      than overfitting to the RAG dataset.
+
+
+                                                                      8
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+432
+433
+434
+435
+436
+437
+438
+439
+440
+441
+442
+443
+444
+445
+446
+447
+448
+449
+450
+451
+452
+453
+      Figure 3: Snippets of internal states and actions showing MEM1’s Emergent Behaviors in 2-objective
+454
+      QA tasks. Light Blue denotes behaviors related to multi-objective tasks. Beige denotes behaviors
+455
+      related to memory in internal state. Pastel Green denotes behaviors related to general search strategies.
+456
+457
+458
+459
+460
+461
+      4.4   A NALYSIS ON E MERGENT AGENT B EHAVIORS AND FAILURE C ASES
+462
+463
+464
+465   Through analyzing MEM1’s multi-turn interaction traces trained on 2-objective QA, we observe
+466
+      a range of emergent behaviors that are critical for handling long-horizon, multi-objective tasks,
+      demonstrating capabilities well beyond simple retrieval. Additionally, we provide detailed qualitative
+467
+      and quantitative analysis of cases where MEM1 fails in App. F.2 First, MEM1 learns to manage
+468
+      multiple questions concurrently by maintaining a structured internal state. As shown in Fig. 3(a),
+469   when faced with two multi-turn questions, the agent stores and updates memory for each question
+470   separately, guiding subsequent searches based on the identified information gaps. In (b), MEM1
+471   exhibits the ability to shift focus when progress on one question stalls, recognizing difficulty and
+472   prioritizing the more tractable objective. Meanwhile, MEM1 learns to interleave reasoning and
+473   memory in its internal state S’s, weaving important information into its decision-making process
+474   to support both information retention and action selection. In Fig. 3 (c), MEM1 explicitly extracts
+475   important information from previous search results and leverages it to formulate the next query
+476   that best addresses the current information gap. In addition, (d) shows that when new, relevant
+477
+      information is retrieved, MEM1 explicitly reasons about its significance and selectively updates its
+      memory. We believe that learning these interleaved behaviors is key to achieving efficiency gains
+478
+      in memory without degrading performance. Beyond behaviors unique to our multi-objective setup
+479
+      and memory architecture, MEM1 also exhibits several general-purpose search strategies. In (e),
+480   the agent performs self-verification, correcting an earlier misconception and issuing a new query for
+481   confirmation. In (f), complex queries are decomposed into manageable subgoals before initiating
+482   the search. In (g), for questions requiring multi-turn information gathering, MEM1 extracts key
+483   information from search results and uses it to inform the next search. In (h), when overly specific
+484   queries fail, MEM1 re-scopes its query to improve retrieval. Notably, many such behaviors, like
+485   verification, making a plan, and iterative search, are also reported in recent studies on deep research
+      agents (Jin et al., 2025; Zheng et al., 2025).
+
+
+                                                         9
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+486
+      5    C ONCLUSION , L IMITATIONS , AND F UTURE W ORK
+487
+488
+      We introduced MEM1, a reinforcement learning framework that enables language agents to perform
+489   long-horizon reasoning with consolidated memory. By integrating inference-time reasoning and
+490   memory consolidation into a unified internal state, MEM1 addresses the scalability challenges of
+491   prompt growth and achieves competitive performance across QA and web navigation benchmarks,
+492   with substantially reduced memory usage and inference latency. Despite these advantages, MEM1
+493   assumes access to environments with well-defined and verifiable rewards. However, many open-ended
+494   tasks present ambiguous or noisy reward structures. Fully realizing the potential of MEM1 therefore
+495   requires advances in modeling such tasks and designing suitable reward mechanisms—challenges
+496   that lie beyond the scope of this paper. A promising future direction is to explore methods for training
+497
+      MEM1 agents in these open-ended settings where reward signals are sparse, delayed, or implicit.
+498
+499   R EFERENCES
+500
+      A Cognitive Connection.    Surprising exercises that will sharpen your short-term
+501
+       memory,     January 2024.        URL https://acognitiveconnection.com/
+502    surprising-exercises-that-will-sharpen-your-short-term-memory.
+503    Accessed: 2025-05-10.
+504
+505   Chenxin An, Jun Zhang, Ming Zhong, Lei Li, Shansan Gong, Yao Luo, Jingjing Xu, and Lingpeng
+506     Kong. Why does the effective context length of llms fall short? In Proceedings of the International
+507
+        Conference on Learning Representations (ICLR), 2025.
+508   Hao Bai, Yifei Zhou, Jiayi Pan, Mert Cemri, Alane Suhr, Sergey Levine, and Aviral Kumar. Digirl:
+509     Training in-the-wild device-control agents with autonomous reinforcement learning. Advances in
+510     Neural Information Processing Systems (NeurIPS), 37:12461–12495, 2024.
+511
+      Iz Beltagy, Matthew E. Peters, and Arman Cohan. Longformer: The long-document transformer.
+512
+         arXiv preprint arXiv:2004.05150, 2020.
+513
+514   Tom B Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared Kaplan, Prafulla Dhariwal,
+515     Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell, et al. Language models are
+516     few-shot learners. arXiv preprint arXiv:2005.14165, 2020.
+517
+      Tianle Cai, Yuhong Li, Zhengyang Geng, Hongwu Peng, Jason D. Lee, Deming Chen, and Tri
+518     Dao. Medusa: Simple LLM inference acceleration framework with multiple decoding heads. In
+519     Proceedings of the 41st International Conference on Machine Learning, volume 235 of Proceedings
+520     of Machine Learning Research, pp. 5209–5235, Vienna, Austria, 21–27 Jul 2024. PMLR. doi:
+521     10.48550/arXiv.2401.10774. URL https://proceedings.mlr.press/v235/cai24b.
+522     html.
+523
+      Hyungjoo Chae, Namyoung Kim, Kai Tzu-iunn Ong, Minju Gwak, Gwanwoo Song, Jihoon Kim,
+524
+        Sunghwan Kim, Dongha Lee, and Jinyoung Yeo. Web agents with world models: Learning and
+525     leveraging environment dynamics in web navigation. arXiv preprint arXiv:2410.13232, 2024.
+526
+527   Charlie Chen, Sebastian Borgeaud, Geoffrey Irving, Jean-Baptiste Lespiau, Laurent Sifre, and
+528     John Jumper. Accelerating large language model decoding with speculative sampling. arXiv
+529     preprint arXiv:2302.01318, February 2023. doi: 10.48550/arXiv.2302.01318. URL https:
+530
+        //arxiv.org/abs/2302.01318.
+531   Zehui Chen, Kuikun Liu, Qiuchen Wang, Wenwei Zhang, Jiangning Liu, Dahua Lin, Kai Chen, and
+532     Feng Zhao. Agent-flan: Designing data and methods of effective agent tuning for large language
+533     models. In Findings of the Association for Computational Linguistics (ACL), pp. 9354–9366, 2024.
+534
+      Kanzhi Cheng, Qiushi Sun, Yougang Chu, Fangzhi Xu, Li YanTao, Jianbing Zhang, and Zhiyong Wu.
+535
+        Seeclick: Harnessing gui grounding for advanced visual gui agents. In Proceedings of the 62nd
+536
+        Annual Meeting of the Association for Computational Linguistics (ACL), pp. 9313–9332, 2024.
+537
+538   Prateek Chhikara, Dev Khant, Saket Aryan, Taranjeet Singh, and Deshraj Yadav. Mem0: Building
+539     production-ready ai agents with scalable long-term memory. arXiv preprint arXiv:2504.19413,
+        2025.
+
+
+                                                        10
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+540
+      ModelScope Community. SWIFT: A scalable lightweight infrastructure for fine-tuning. https:
+541    //github.com/modelscope/ms-swift, 2024. Accessed: 2025-05-15.
+542
+543   DeepSeek-AI, Daya Guo, Dejian Yang, Haowei Zhang, Junxiao Song, Ruoyu Zhang, Runxin Xu,
+544     Qihao Zhu, Shirong Ma, Peiyi Wang, Xiao Bi, Xiaokang Zhang, Xingkai Yu, Yu Wu, Z. F. Wu,
+545     Zhibin Gou, Zhihong Shao, Zhuoshu Li, Ziyi Gao, Aixin Liu, and et al. Deepseek-r1: Incentivizing
+546     reasoning capability in llms via reinforcement learning. arXiv preprint arXiv:2501.12948, 2025.
+547   Xiang Deng, Yu Gu, Boyuan Zheng, Shijie Chen, Sam Stevens, Boshi Wang, Huan Sun, and Yu Su.
+548     Mind2web: Towards a generalist agent for the web. Advances in Neural Information Processing
+549     Systems (NeurIPS), 36:28091–28114, 2023.
+550
+551   Matthijs Douze, Alexandr Guzhva, Chengqi Deng, Jeff Johnson, Gergely Szilvasy, Pierre-Emmanuel
+552    Mazaré, Maria Lomeli, Lucas Hosseini, and Hervé Jégou. The faiss library. arXiv preprint
+553
+       arXiv:2401.08281, 2024.
+554   Xiangming Gu, Tianyu Pang, Chao Du, Qian Liu, Fengzhuo Zhang, Cunxiao Du, Ye Wang, and Min
+555     Lin. When attention sink emerges in language models: An empirical view. In Proceedings of the
+556     International Conference on Learning Representations (ICLR), 2025.
+557
+558   Izzeddin Gur, Hiroki Furuta, Austin Huang, Mustafa Safdari, Yutaka Matsuo, Douglas Eck, and
+559
+        Aleksandra Faust. A real-world webagent with planning, long context understanding, and program
+        synthesis. In Proceedings of the International Conference on Learning Representations (ICLR),
+560
+        2024.
+561
+562   Xanh Ho, Anh-Khoa Duong Nguyen, Saku Sugawara, and Akiko Aizawa. Constructing a multi-
+563     hop QA dataset for comprehensive evaluation of reasoning steps. In Proceedings of the 28th
+564     International Conference on Computational Linguistics (COLING), pp. 6609–6625, 2020.
+565
+566
+      Jian Hu, Jason Klein Liu, and Wei Shen. Reinforce++: An efficient rlhf algorithm with robustness to
+         both prompt and reward models. arXiv preprint arXiv:2501.03262, 2025a. Version 3, revised 6
+567
+         Apr 2025.
+568
+569   Mengkang Hu, Tianxing Chen, Qiguang Chen, Yao Mu, Wenqi Shao, and Ping Luo. HiAgent:
+570    Hierarchical working memory management for solving long-horizon agent tasks with large
+571    language model. In Proceedings of the 63rd Annual Meeting of the Association for Com-
+572    putational Linguistics (ACL 2025), pp. 32779–32798, Bangkok, Thailand, July 2025b. Asso-
+573    ciation for Computational Linguistics. doi: 10.18653/v1/2025.acl-long.1575. URL https:
+574
+       //aclanthology.org/2025.acl-long.1575/.
+575   Bowen Jin, Hansi Zeng, Zhenrui Yue, Jinsung Yoon, Sercan Arik, Dong Wang, Hamed Zamani, and
+576     Jiawei Han. Search-r1: Training llms to reason and leverage search engines with reinforcement
+577     learning. arXiv preprint arXiv:2503.09516, 2025.
+578
+579   Vladimir Karpukhin, Barlas Oguz, Sewon Min, Patrick Lewis, Ledell Wu, Sergey Edunov, Danqi
+580     Chen, and Wen-tau Yih. Dense passage retrieval for open-domain question answering. In
+581
+        Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing
+        (EMNLP), pp. 6769–6781, 2020.
+582
+583   Tom Kwiatkowski, Jennimaria Palomaki, Olivia Redfield, Michael Collins, Ankur Parikh, Chris
+584     Alberti, Danielle Epstein, Illia Polosukhin, Matthew Kelcey, Jacob Devlin, Kenton Lee, Kristina N.
+585     Toutanova, Llion Jones, Ming-Wei Chang, Andrew Dai, Jakob Uszkoreit, Quoc Le, and Slav Petrov.
+586     Natural questions: A benchmark for question answering research. Transactions of the Association
+587     for Computational Linguistics, 7:452–466, 2019.
+588
+      Woosuk Kwon, Zhuohan Li, Siyuan Zhuang, Ying Sheng, Lianmin Zheng, Cody Hao Yu, Joseph E.
+589
+       Gonzalez, Hao Zhang, and Ion Stoica. Efficient memory management for large language model
+590    serving with pagedattention. In Proceedings of the ACM SIGOPS 29th Symposium on Operating
+591    Systems Principles, 2023.
+592
+593   Yaniv Leviathan, Matan Kalman, and Yossi Matias. Fast inference from transformers via speculative
+        decoding. In Proceedings of the 40th International Conference on Machine Learning, volume 202
+
+
+                                                      11
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+594
+        of Proceedings of Machine Learning Research, pp. 19274–19286, Honolulu, Hawaii, USA, 23–
+595     29 Jul 2023. PMLR. URL https://proceedings.mlr.press/v202/leviathan23a.
+596     html.
+597
+598   Yucheng Li, Bo Dong, Frank Guerin, and Chenghua Lin. Compressing context to enhance inference
+599
+        efficiency of large language models. In Proceedings of the 2023 Conference on Empirical Methods
+        in Natural Language Processing (EMNLP), pp. 6921–6935, 2023.
+600
+601   Nelson F. Liu, Kevin Lin, John Hewitt, Ashwin Paranjape, Michele Bevilacqua, Fabio Petroni, and
+602     Percy Liang. Lost in the middle: How language models use long contexts. Transactions of the
+603    Association for Computational Linguistics, 12:157–173, 2024.
+604
+      Zijun Liu, Peiyi Wang, Runxin Xu, Shirong Ma, Chong Ruan, Peng Li, Yang Liu, and Yu Wu.
+605
+        Inference-time scaling for generalist reward modeling. arXiv preprint arXiv:2504.02495, 2025.
+606
+607   Aman Madaan, Niket Tandon, Prakhar Gupta, Skyler Hallinan, Luyu Gao, Sarah Wiegreffe, Uri Alon,
+608    Nouha Dziri, Shrimai Prabhumoye, Yiming Yang, et al. Self-refine: Iterative refinement with
+609    self-feedback. Advances in Neural Information Processing Systems (NeurIPS), 36:46534–46594,
+610
+       2023.
+611   Niklas Muennighoff, Zitong Yang, Weijia Shi, Xiang Lisa Li, Li Fei-Fei, Hannaneh Hajishirzi, Luke
+612     Zettlemoyer, Percy Liang, Emmanuel Candès, and Tatsunori Hashimoto. s1: Simple test-time
+613     scaling. arXiv preprint arXiv:2501.19393, 2025.
+614
+      Magnus Müller and Gregor Žunič. Browser use: Enable ai to control your browser. https:
+615
+       //github.com/browser-use/browser-use, 2024.
+616
+617   Reiichiro Nakano, Jacob Hilton, Suchir Balaji, Jeff Wu, Long Ouyang, Christina Kim, Christopher
+618     Hesse, Shantanu Jain, Vineet Kosaraju, William Saunders, Xu Jiang, Karl Cobbe, Tyna Eloundou,
+619     Gretchen Krueger, Kevin Button, Matthew Knight, Benjamin Chess, and John Schulman. Webgpt:
+620     Browser-assisted question-answering with human feedback. arXiv preprint arXiv:2112.09332,
+621     2022.
+622   OpenAI. Gpt-4o system card. https://openai.com/index/gpt-4o-system-card/,
+623     2024. Accessed: 2025-05-15.
+624
+625
+      OpenManus. Openmanus: Open-source ai agent framework.                   https://github.com/
+        mannaandpoem/OpenManus, 2025.
+626
+627   Perplexity AI. Perplexity. https://www.perplexity.ai, 2024. Accessed: 2025-09-23.
+628
+      Ofir Press, Muru Zhang, Sewon Min, Ludwig Schmidt, Noah A. Smith, and Mike Lewis. Measuring
+629
+        and narrowing the compositionality gap in language models. In Findings of the Association for
+630
+        Computational Linguistics (EMNLP), pp. 5687–5711, 2023.
+631
+632   Zehan Qi, Xiao Liu, Iat Long Iong, Hanyu Lai, Xueqiao Sun, Wenyi Zhao, Yu Yang, Xinyue Yang,
+633     Jiadai Sun, Shuntian Yao, et al. Webrl: Training llm web agents via self-evolving online curriculum
+634     reinforcement learning. arXiv preprint arXiv:2411.02337, 2024.
+635   Preston Rasmussen, Pavlo Paliychuk, Travis Beauvais, Jack Ryan, and Daniel Chalef. Zep: A
+636     temporal knowledge graph architecture for agent memory. arXiv preprint arXiv:2501.13956, 2025.
+637     doi: 10.48550/arXiv.2501.13956. URL https://arxiv.org/abs/2501.13956.
+638
+639
+      Ruslan S. 4d masks support in transformers. https://huggingface.co/blog/poedator/
+        4d-masks, 2024. Hugging Face Community Blog.
+640
+641   John Schulman, Filip Wolski, Prafulla Dhariwal, Alec Radford, and Oleg Klimov. Proximal policy
+642     optimization algorithms. arXiv preprint arXiv:1707.06347, 2017.
+643
+      Serper. Serper api: Fast and affordable google search api. https://serper.dev/, 2025.
+644
+        Accessed: 2025-05-15.
+645
+646   Zhihong Shao, Peiyi Wang, Qihao Zhu, Runxin Xu, Junxiao Song, Mingchuan Zhang, Y.K. Li, Y. Wu,
+647     and Daya Guo. Deepseekmath: Pushing the limits of mathematical reasoning in open language
+        models, 2024.
+
+
+                                                      12
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+648
+      Guangming Sheng, Chi Zhang, Zilingfeng Ye, Xibin Wu, Wang Zhang, Ru Zhang, Yanghua Peng,
+649     Haibin Lin, and Chuan Wu. Hybridflow: A flexible and efficient rlhf framework. arXiv preprint
+650     arXiv:2409.19256, 2024.
+651
+652   Noah Shinn, Federico Cassano, Ashwin Gopinath, Karthik Narasimhan, and Shunyu Yao. Reflexion:
+653     Language agents with verbal reinforcement learning. Advances in Neural Information Processing
+654     Systems (NeurIPS), 36:8634–8652, 2023.
+655
+      Charlie Snell, Jaehoon Lee, Kelvin Xu, and Aviral Kumar. Scaling llm test-time compute optimally
+656     can be more effective than scaling model parameters. arXiv preprint arXiv:2408.03314, 2024.
+657
+658   Yifan Song, Da Yin, Xiang Yue, Jie Huang, Sujian Li, and Bill Yuchen Lin. Trial and error:
+659     Exploration-based trajectory optimization of llm agents. In Proceedings of the 62nd Annual
+660     Meeting of the Association for Computational Linguistics (ACL), pp. 7584–7600, 2024.
+661
+      Haoran Sun and Shaoning Zeng. H-mem: Hierarchical memory for high-efficiency long-term
+662     reasoning in llm agents. arXiv preprint arXiv:2507.22925, 2025. doi: 10.48550/arXiv.2507.22925.
+663     URL https://arxiv.org/abs/2507.22925.
+664
+665   Richard S. Sutton and Andrew G. Barto. Reinforcement Learning: An Introduction. MIT Press,
+666     Cambridge, MA, second edition, 2018. URL http://incompleteideas.net/book/
+667     the-book-2nd.html.
+668
+      Richard S Sutton, David McAllester, Satinder Singh, and Yishay Mansour. Policy gradient methods
+669     for reinforcement learning with function approximation. In Advances in Neural Information
+670     Processing Systems (NeurIPS), volume 12, pp. 1057–1063, 2000.
+671
+672   Hugo Touvron, Thibaut Lavril, Gautier Izacard, Xavier Martinet, Marie-Anne Lachaux, Timothée
+673     Lacroix, Baptiste Rozière, Naman Goyal, Eric Hambro, Faisal Azhar, et al. Llama: Open and
+674     efficient foundation language models. arXiv preprint arXiv:2302.13971, 2023.
+675
+      Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez,
+676     Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. In Advances in Neural Information
+677     Processing Systems (NeurIPS), volume 30, pp. 5998–6008, 2017.
+678
+679   Lei Wang, Chen Ma, Xueyang Feng, Zeyu Zhang, Hao Yang, Jingsen Zhang, Zhiyuan Chen, Jiakai
+680     Tang, Xu Chen, Yankai Lin, Wayne Xin Zhao, Zhewei Wei, and Ji-Rong Wen. A survey on large
+681
+        language model based autonomous agents. Frontiers of Computer Science, 18(3):1–25, 2024.
+682   Liang Wang, Nan Yang, Xiaolong Huang, Binxing Jiao, Linjun Yang, Daxin Jiang, Rangan Majumder,
+683     and Furu Wei. Text embeddings by weakly-supervised contrastive pre-training. arXiv preprint
+684     arXiv:2212.03533, 2022.
+685
+686   Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Brian Ichter, Fei Xia, Ed H. Chi, Quoc V.
+687     Le, and Denny Zhou. Chain-of-thought prompting elicits reasoning in large language models. In
+688
+        Advances in Neural Information Processing Systems (NeurIPS), volume 35, pp. 24824–24837,
+        2022.
+689
+690   Di Wu, Hongwei Wang, Wenhao Yu, Yuwei Zhang, Kai-Wei Chang, and Dong Yu. Longmemeval:
+691     Benchmarking chat assistants on long-term interactive memory. In International Conference on
+692     Learning Representations (ICLR), 2025.
+693
+694   Wujiang Xu, Zujie Liang, Kai Mei, Hang Gao, Juntao Tan, and Yongfeng Zhang. A-mem: Agentic
+695
+       memory for llm agents. arXiv preprint arXiv:2502.12110, 2025.
+696   An Yang, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen Yu, Chengyuan Li,
+697     Dayiheng Liu, Fei Huang, Haoran Wei, Huan Lin, Jian Yang, Jianhong Tu, Jianwei Zhang, Jianxin
+698    Yang, Jiaxi Yang, Jingren Zhou, Junyang Lin, Kai Dang, Keming Lu, Keqin Bao, Kexin Yang,
+699     Le Yu, Mei Li, Mingfeng Xue, Pei Zhang, Qin Zhu, Rui Men, Runji Lin, Tianhao Li, Tingyu Xia,
+700    Xingzhang Ren, Xuancheng Ren, Yang Fan, Yang Su, Yichang Zhang, Yu Wan, Yuqiong Liu, Zeyu
+701     Cui, Zhenru Zhang, and Zihan Qiu. Qwen2.5 technical report. arXiv preprint arXiv:2412.15115,
+        2024.
+
+
+                                                      13
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+702
+      Zhilin Yang, Peng Qi, Saizheng Zhang, Yoshua Bengio, William Cohen, Ruslan Salakhutdinov,
+703     and Christopher D. Manning. HotpotQA: A dataset for diverse, explainable multi-hop question
+704     answering. In Proceedings of the 2018 Conference on Empirical Methods in Natural Language
+705     Processing (EMNLP), pp. 2369–2380, 2018.
+706
+707   Shunyu Yao, Howard Chen, John Yang, and Karthik Narasimhan. Webshop: Towards scalable
+708
+        real-world web interaction with grounded language agents. In Advances in Neural Information
+        Processing Systems (NeurIPS), 2022.
+709
+710   Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik Narasimhan, and Yuan Cao.
+711     ReAct: Synergizing reasoning and acting in language models. In Proceedings of the International
+712     Conference on Learning Representations (ICLR), 2023.
+713
+      Da Yin, Faeze Brahman, Abhilasha Ravichander, Khyathi Chandu, Kai-Wei Chang, Yejin Choi, and
+714
+        Bill Yuchen Lin. Lumos: Learning agents with unified data, modular design, and open-source llms.
+715
+        In ICLR 2024 Workshop on Large Language Model (LLM) Agents, 2023.
+716
+717   Chanwoong Yoon, Taewhoo Lee, Hyeon Hwang, Minbyul Jeong, and Jaewoo Kang. Compact: Com-
+718     pressing retrieved documents actively for question answering. In Proceedings of the Conference
+719     on Empirical Methods in Natural Language Processing (EMNLP), pp. 21424–21439, 2024.
+720
+      Siyu Yuan, Zehui Chen, Zhiheng Xi, Junjie Ye, Zhengyin Du, and Jiecao Chen. Agent-r: Training
+721     language model agents to reflect via iterative self-training. arXiv preprint arXiv:2501.11425, 2025.
+722
+723   Zhenrui Yue, Honglei Zhuang, Aijun Bai, Kai Hui, Rolf Jagerman, Hansi Zeng, Zhen Qin, Dong Wang,
+724     Xuanhui Wang, and Michael Bendersky. Inference scaling for long-context retrieval augmented
+725     generation. In Proceedings of the International Conference on Learning Representations (ICLR),
+726
+        2025.
+727   Aohan Zeng, Mingdao Liu, Rui Lu, Bowen Wang, Xiao Liu, Yuxiao Dong, and Jie Tang. Agenttuning:
+728     Enabling generalized agent abilities for llms. arXiv preprint arXiv:2310.12823, 2023.
+729
+730   Jintian Zhang, Yuqi Zhu, Mengshu Sun, Yujie Luo, Shuofei Qiao, Lun Du, Da Zheng, Huajun
+731
+         Chen, and Ningyu Zhang. Lightthinker: Thinking step-by-step compression. arXiv preprint
+         arXiv:2502.15589, 2025.
+732
+733   Lianmin Zheng, Liangsheng Yin, Zhiqiang Xie, Chuyue Sun, Jeff Huang, Cody Hao Yu, Shiyi Cao,
+734     Christos Kozyrakis, Ion Stoica, Joseph E. Gonzalez, Clark Barrett, and Ying Sheng. Sglang:
+735     Efficient execution of structured language model programs. In Advances in Neural Information
+736     Processing Systems (NeurIPS), 2024.
+737
+      Yuxiang Zheng, Dayuan Fu, Xiangkun Hu, Xiaojie Cai, Lyumanshan Ye, Pengrui Lu, and Pengfei
+738
+        Liu. Deepresearcher: Scaling deep research via reinforcement learning in real-world environments.
+739     arXiv preprint arXiv:2504.03160, 2025.
+740
+741   Shuyan Zhou, Frank F Xu, Hao Zhu, Xuhui Zhou, Robert Lo, Abishek Sridhar, Xianyi Cheng,
+742     Tianyue Ou, Yonatan Bisk, Daniel Fried, et al. Webarena: A realistic web environment for building
+743     autonomous agents. In Proceedings of the International Conference on Learning Representations
+744
+        (ICLR), 2024.
+745   Banghua Zhu, Michael Jordan, and Jiantao Jiao. Principled reinforcement learning with human
+746     feedback from pairwise or k-wise comparisons. In Proceedings of the International Conference on
+747     Machine Learning (ICML), pp. 43037–43067, 2023.
+748
+749
+750
+751
+752
+753
+754
+755
+
+
+
+                                                       14
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+756
+      A     L ARGE L ANGUAGE M ODEL U SAGE
+757
+758
+759
+760
+761
+762
+763   We use GPT-5 for both paper writing and literature research. Specifically, we use GPT-5 to help us
+764   with proofreading the paper, correcting grammar mistakes, and polishing the writing throughout the
+765
+      paper. We also use GPT-5 to conduct literature research in our related works section.
+766
+767
+768
+769
+770
+771
+772
+773
+774
+      B     D ETAILS OF MEM1
+775
+776
+777
+778
+779
+780
+781   B.1   C OMPUTING R ESOURCES AND T RAINING D ETAILS
+782
+783
+784
+785
+      All trainings of MEM1 are conducted on 4 H100 or H200 GPUs. We use the veRL framework (Sheng
+786
+      et al., 2024) for RL and Swift (Community, 2024) for SFT. For RL, both the data batch size and mini
+787   batch size are set to 64. Learning rate is set to 10−6 for the actor model and 10−5 for the critic model
+788   with a linear warmup of 50 steps. Temperature is set to 1 during training and 0.01 during inference.
+789
+790
+      All evaluations are conducted on a single H200 GPU, which serves the respective models as an API
+      service using the vLLM framework (Kwon et al., 2023) with automatic prefix caching enabled.
+791
+792
+793
+794
+795
+796
+797
+798
+799
+800   B.2   RAG C ONFIGURATION
+801
+802
+803
+804
+805   For RAG on local Wiki corpus, we use Faiss-GPU (Douze et al., 2024) serving an E5 Base
+806
+      model (Wang et al., 2022). The Wiki corpus is taken from a Wikipedia 2018 dump (Karpukhin et al.,
+      2020). The number of passages for each retrieval is set to 3 for a fair comparison with other methods.
+807
+808   For online web search queries, we use Serper API (Serper, 2025), which offers Google search results
+809   including titles, snippets, and URLs. For each search, we return the top 10 results to the agent as
+      external information. We do not ask the agent to retrieve the content of specific webpages.
+
+
+                                                        15
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+810
+      B.3     P ROMPTS
+811
+812
+813
+814
+815
+816
+817
+818
+819
+820
+821
+822
+823
+824
+825
+826
+827
+828
+829
+830
+831
+832
+833
+834
+            Prompt 1: Multi-Objective Task (QA)
+835
+836      You will answer multiple complex questions using iterative
+837      reasoning, summarization, and web search.
+838
+839      At each step, you will see the questions, a cumulative
+840      summary of relevant information, the current search query,
+841      and search results (except in the first step, where only the
+842      questions are provided). Your task is to:
+843
+         1. Perform reasoning and update a cumulative, concise
+844
+         summary within <think> ... </think>. This acts as
+845
+         persistent memory and must include all essential information
+846      from previous <think> and <information> tags.
+847
+848      2. Then choose one of the following actions:
+849     - If any question remains unanswered, issue a single query
+850      for one question inside <search> ... </search>. The query
+851      should consist of keywords or a short phrase. Only search
+852      one question at a time.
+853     - If all questions are answered, provide the final
+854
+         answers--separated by semicolons--within <answer> answer1;
+         answer2; ... </answer>. The answers must be concise,
+855
+         contain only essential words, and avoid any explanations.
+856
+857      Important:
+858     - Always follow this structure after <information> or
+859      the initial questions: <think> ... </think><search> ...
+860     </search> or <think> ... </think><answer> ... </answer>.
+861     - Do not search multiple queries or questions simultaneously.
+862
+863      Answer the following questions:[QUESTIONS]
+
+
+
+                                                   16
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+864
+         Prompt 2: Single-Objective Task (QA)
+865
+866      You will answer a complex question through iterative
+867      reasoning, summarization, and web searches.
+868
+869      At each step, you can see the question, previous summary
+870      in <think> ... </think>, search query in <search> ...
+871      </search>, and the returned information in <information> ...
+872      </information> (except the first step where you will be given
+873      only the question). Then, you should:
+874
+         1. Conduct reasoning, and then update a concise, cumulative
+875
+         summary with essential information inside <think> </think>.
+876
+         This is your persistent memory and should include all
+877      important information from previous <think> </think> and
+878      <information> </information> (i.e. information and answers
+879      already found for questions).
+880
+881      2. Then choose one:
+882     - Issue a query (i.e., key words / phrases for search)
+883      inside <search> </search> (you may search repeatedly until
+884      the answer is clear). This query will be used to conduct
+885
+         search and return the results in <information> results
+        </information>
+886
+        - Provide the final concise answer (no explanations) if no
+887
+         additional information is needed inside <answer> </answer>.
+888     The answer should be concise and only contain the words
+889      necessary to answer the question.
+890
+891      After <information> </information> (or question at the
+892      beginning), you should always follow the order: <think>
+893      ... </think><search> ... </search> or <think> ...
+894      </think><answer> ... </answer>.
+895
+896
+         Question:       [QUESTION]
+897
+898
+899
+900
+901
+902
+903
+904
+905
+906
+907
+908
+909
+910
+911
+912
+913
+914
+915
+916
+917
+
+
+
+                                                   17
+      Under review as a conference paper at ICLR 2026
+
+
+
+
+918
+            Prompt 3: Single-Objective Task (WebShop)
+919
+920       You are browsing an online shop. Your goal is to find
+921       a product that matches the given description. You will
+922       interact with the site step-by-step. Each step gives you
+923       a <state>...</state> representing the current webpage. You
+924       must decide what action to take next until you identify the
+925       correct product.
+926
+927      Available actions (shown in the <state> tag) depend on the
+928
+          page:
+         - On the search page: search[<keywords>]
+929
+         - On search result pages: click[<item url>] to view a
+930
+          product, or click[next >] to go to the next results page
+931      - On product pages: click[description], click[features],
+932       click[color], click[size], click[buy now]
+933      - To return to search: click[back to search]
+934
+935       Example goal: "Find a gingko light and 20x20 pillow
+936       cover that is hand painted." Example first action:
+937       <answer>search[gingko light 20x20 pillow cover hand
+938       painted]</answer> Only respond with valid actions formatted
+939
+          as: search[...], click[...], etc.
+940
+          After you navigate and find the product that best fits the
+941
+          user goal, you should click[buy now] to buy the product at
+942       the product page when the buy now button is available.
+943
+944         Product Description:            [PRODUCT DESCRIPTION]
+945
+946
+947   B.4     I MPLEMENTATION D ETAILS OF M ETRICS AND BASELINES
+948
+      B.4.1     M ETRICS
+949
+950   Exact match. In QA tasks, we use exact match (EM) as both the verifiable reward for the RL
+951   pipeline and the evaluation metric for the final output. The final response is extracted from between
+952   <answer> and </answer>. In multi-objective settings, the response should contain answers to
+953   each question separated by semicolons. If the XML tags are mismatched, or if the number of provided
+954   answers does not correspond to the number of questions, a score of 0 is assigned. Otherwise, 1 point
+955   is credited for each correct answer. During RL training, we do not provide any other intermediate
+956   rewards or format penalties, as we find that such manual interventions can interfere with the agent’s
+957
+      learning process (see more in Sec. 4.4).
+958
+      F1 score. The F1 score computes the harmonic mean between the precision p and recall r. In the
+959
+      case of string matching, we split both the predicted answer and the ground truth. For example, if the
+960
+      ground truth is “United States of America”, it is split into a list with lower-case words: “united”,
+961   “states”, “of”, “america”. The same works for the predicted answer. Then, denote the number of
+962   common words as c. Further denote the number of words in the predicted answer as l and the number
+963   of words in the ground truth as g. Then, precision is calculated as p := c/l and recall is calculated as
+964   r := c/g. The F1 score is finally computed as
+965
+                                                             p×r
+966                                             F1 := 2 ×        .
+                                                             p+r
+967
+968   If multiple ground truths are present, the maximum of all F1 scores is chosen. For multi-objective
+969   tasks, the final F1 is the sum of the F1 scores for each sub-question.
+970
+971   Peak token usage. Peak token usage is calculated as the maximum number of tokens (using
+      GPT-4o-mini tokenizer) in any single sequence throughout the agent’s entire trajectory. For fair
+
+
+                                                        18
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+972
+       comparison in our experiments, the system prompt is excluded when computing this sequence length.
+973    The peak token usage serves as a proxy for the inference-time memory requirement.
+974
+975
+976
+977
+978    Dependency length. Following (Zhang et al., 2025), the dependency metric is defined as the total
+979
+       number of historical tokens on which each generated token effectively depends. Let T denote the
+                                                                       (i)
+980    total number of interaction steps. For each step i ∈ [T ], let np be the number of prefix tokens and
+         (i)
+981    no be the number of output tokens generated. The dependency metric is then calculated as
+982
+983
+984
+                                                      X (2n(i)  (i)    (i)
+                                                           o + np ) × no
+985
+                                  Dependency :=                                   .
+986                                                                   2
+                                                      i∈[T ]
+987
+988
+989
+990    At a high level, this metric quantifies the cumulative computational cost associated with the generation
+991    of an output trajectory. It is important to note that in MEM1, prefix tokens from previous steps are
+992    consolidated into a new internal state, rather than being continuously accumulated. In our experiments,
+993    we ignore the tokens in the system prompt when calculating the dependency metric.
+994
+995
+996
+997    Inference time. Inference time for each trajectory is recorded as the total elapsed time required to
+998    generate the complete output trajectory. For all experiments, these measurements are conducted on a
+999    single H200 GPU, operating with 10 concurrent threads. The vLLM inference framework is utilized,
+1000   with its automatic prefix caching feature enabled.
+1001
+1002
+1003
+1004   B.4.2    BASELINES
+1005
+1006
+1007   Search-R1. As detailed in (Jin et al., 2025), the model is trained on the 1-objective task with the
+1008   same dataset as MEM1. Search-R1 also uses exact match as its reward function. In comparison,
+1009   MEM1 is trained exclusively on 2-objective tasks.
+1010
+1011
+1012
+1013   Deep Researcher. As detailed in (Zheng et al., 2025), the model is trained on 1-objective task with
+1014   a curated set from various QA datasets including HotPotQA and Natural Questions. Deep Researcher
+1015   adopts the F1 score as the reward function.
+1016
+1017
+1018
+1019
+       B.5     A LGORITHM
+1020
+1021
+1022   We provide an outline of the rollout of MEM1, which actively manages its context in Alg. 1. Parts of
+1023   the pseudo-code follow (Jin et al., 2025). We follow (Wei et al., 2022; DeepSeek-AI et al., 2025) and
+1024   annotate each component using XML-style tags: <IS> for internal state (reasoning St ), <query>
+1025   for environment queries At , t < T , <answer> for the agent’s responses AT , and <info> for
+       external observations or tool outputs Ot .
+
+
+                                                          19
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1026
+       Algorithm 1 MEM1 Rollout
+1027
+1028
+       Require: Task prompt x, policy model πθ , world model W, maximum turn T
+       Ensure: Final response y
+1029
+        1: Initialize rollout sequence y ← ∅
+1030
+        2: Initialize turn count t ← 0
+1031    3: while t < T do
+1032    4:    Initialize current policy rollout sequence yt ← ∅
+1033    5:    while True do
+1034    6:       Generate response token yr ∼ πθ (· | x, y + yt )
+1035    7:       Append yr to rollout sequence yt ← yt + yr
+1036    8:       if (t = T − 1) and yr ∈ [</answer>, <eos>] then
+1037    9:          break                                         // prevent the agent from searching further
+1038   10:       else if yr ∈ [</query>, </answer>, <eos>] then
+1039
+       11:          break
+       12:       end if
+1040
+       13:    end while
+1041
+       14:    y ← yt                                                         // all previous context removed.
+1042   15:    if <query> </query> detected in yt then
+1043   16:       Extract search query q ← Parse(yt , <query>, </query>)
+1044   17:       Retrieve environment feedback d ← W(q) from local storage, Search engine, HTML, · · ·
+1045   18:       HINT ← You have {T − t} turns left.
+1046   19:       Insert d into rollout y ← y + <info>HINT + d</info>
+1047   20:    else if <answer> </answer> detected in yt then
+1048   21:       return final generated response y
+1049   22:    else
+1050
+       23:       Mark the sample as invalid
+       24:    end if
+1051
+       25:    Increment turn count t ← t + 1
+1052
+       26: end while
+1053   27: return final generated response y
+1054
+1055
+1056   B.6    MEM1 ON W EBSHOP T RAINING D ETAILS
+1057
+1058   We use the same rollout pipeline and policy update mechanism for training MEM1 on WebShop.
+1059   Compared to the QA tasks, we use a tailored prompt that retains the gist of memory consolidation
+1060   with instructions specific to the WebShop environment, as shown in Prompt. 3. Another distinction
+1061   is that the WebShop environment comes with its own reward function corresponding to each state.
+1062   Therefore, we do not use exact match but the built-in reward function as the reward signal when
+1063
+       training in WebShop environment. The training and test splits also follow the original paper (Yao
+       et al., 2022), with the first 1000 samples as the test set, the 1000th to 1500th as the val set, and the
+1064
+       remaining as the train set.
+1065
+1066
+       B.7    A DDITIONAL D ISCUSSION ON THE ATTENTION M ATRIX D ESIGN .
+1067
+1068   We wish to note that our modification to the attention matrix does not fully recover the attention of
+1069   the original trajectories because of the change in position ids. Specifically, prior works (Leviathan
+1070   et al., 2023; Chen et al., 2023; Cai et al., 2024) that utilized the attention matrix to compress multiple
+1071   trajectories mainly targeted tree-exploration, i.e., generating multiple sequences with the same prefix.
+1072   For these works, on top of the attention matrix, they adjusted the position ids as well, so each trajectory
+1073   follows a consecutive increasing position ids. However, in MEM1, the prefix does not remain the
+1074   same because of memory consolidation. This results in each <IS> having two possible position
+1075   ids, one for the previous turn and one for the next turn. To completely recover the original attention,
+1076
+       we need to duplicate each <IS> and assign different position ids to the two copies. However, such
+       duplication can significantly slow down training because the training trajectories are now much
+1077
+       longer.
+1078
+1079   As such, for training efficiency, we do not duplicate the <IS> and assign the position ids for
+       the previous trajectory to each <IS>. While this modification slightly deviates from the “ideal”
+
+
+                                                          20
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1080
+       implementation, effectively, it can be viewed as simply adding white spaces in the training trajectories
+1081   and has no significant impact on the experimental results.
+1082
+1083
+1084   C    B ROADER I MPACTS
+1085
+1086   MEM1 opens up the potential to enable more scalable, efficient, and intelligent AI agents capable of
+1087   sustaining long, goal-directed interactions in dynamic environments. As AI systems are increasingly
+1088
+       deployed in complex real-world tasks—such as scientific research, legal analysis, personalized
+       education, and digital customer service—models must go beyond single-turn capabilities and manage
+1089
+       evolving contexts over many steps. MEM1’s memory-consolidation mechanism allows language
+1090
+       models to maintain high performance without the growing computational and environmental costs
+1091   typically associated with long-context processing. By reducing inference-time memory and compute
+1092   demands, MEM1 paves the way for more sustainable and scalable AI deployment, making advanced
+1093   reasoning agents accessible to a wider range of users and institutions, including those with limited
+1094   resources. Moreover, MEM1’s unified framework of reasoning and context consolidation sets
+1095   a precedent for future research on intelligence that can learn to adapt, reflect, and summarize
+1096   information autonomously, inspiring more trustworthy, interpretable, and human-aligned AI systems.
+1097
+1098
+       D     T RAINING T RAJECTORY A NALYSIS OF MEM1
+1099
+1100
+1101
+1102
+1103
+1104
+1105
+1106
+1107
+1108
+1109
+1110
+1111
+1112
+1113
+1114
+1115
+1116
+1117
+1118
+1119                       Figure 4: Metrics of training progresses for MEM1 with RL.
+1120
+1121
+       We present the training dynamics of the 2-objective QA-trained MEM1 in Fig. 4, where several
+1122   distinct phases emerge during the learning process. In the initial exploration phase (first 50 steps), the
+1123   agent demonstrates little task proficiency. The reward remains consistently low, while the entropy
+1124   loss is high, suggesting random or undirected behavior. The ratio of valid actions hovers around
+1125   0.55, indicating that the agent frequently fails to follow the expected output format. During this
+1126   period, MEM1 has not yet learned to reliably use the required structure involving <query> and
+1127   <answer> tags.
+1128   Shortly after, we observe the onset of format acquisition. The agent gradually improves its structural
+1129   consistency, reflected in the rising ratio of valid actions. This improved adherence to format correlates
+1130   with an increase in reward, suggesting that proper formatting directly contributes to the agent’s task
+1131   success. By around step 150, a notable behavioral shift occurs. The number of valid searches begins
+1132   to drop sharply, while the reward continues to increase. This implies that the agent has discovered a
+1133   shortcut: by reducing the number of searches—perhaps to avoid format violations—it can maintain
+       high format fidelity and improve its reward without fully solving the task. This short-horizon
+
+
+                                                          21
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1134
+       optimization suggests the agent is exploiting the reward structure, favoring formatting compliance
+1135   over content completeness.
+1136
+1137   Between steps 150 and 200, the agent enters a phase of refined format mastery. The ratio of valid
+1138
+       actions steadily climbs, but the number of searches remains low. During this phase, reward growth
+       slows, and entropy begins to flatten. The plateau in entropy indicates that the agent is looking for
+1139
+       new policies to boost the reward. At this stage, the agent has reached a local optimum: it’s producing
+1140
+       valid but under-informed answers.
+1141
+1142   After step 200, a second behavioral shift occurs. The number of valid searches begins to rise again,
+1143   suggesting that the agent is learning to extend its interaction horizon to gather more information. The
+1144
+       agent learns to balance formatting constraints with information acquisition. As a result, the reward
+       increases more sharply. Finally, after step 250, the agent enters a phase of policy consolidation. The
+1145
+       entropy loss drops sharply—signaling a transition from exploration to exploitation—as the agent
+1146
+       settles into a more deterministic, high-reward policy. By this stage, the agent effectively combines
+1147   format compliance, sufficient searching, and high-quality answer generation.
+1148
+1149
+1150
+       E     A DDITIONAL R ESULTS
+1151
+1152
+1153   E.1   R ESULTS ON THE D EPENDENCY M ETRIC
+1154
+1155   Due to the limited page width, we present the full dependency metric, as defined in App. B.4.1,
+1156   results for Tab. 1 in Tab. 4. From these results, we observe that MEM1 consistently achieves the
+1157   lowest dependency across all task settings. Although Search-R1 exhibits dependency close to those of
+1158
+       MEM1, its performance degrades substantially on more complex tasks, making its efficiency metric
+       less informative.
+1159
+1160
+1161   Table 4: Additional dependency score results for MEM1 (↓ lower is better). Dependency values
+1162   (mean ± standard deviation) are reported in units of ×106 . The lowest and second lowest values in
+1163   each column are shown in bold.
+1164
+1165         Model                                   2-Objective       8-Objective      16-Objective
+1166         Qwen2.5-7B-Instruct (Amem)             0.401 ± 0.280     1.440 ± 0.959     1.697 ± 1.819
+1167         Qwen2.5-7B-Instruct (truncate)         0.573 ± 0.540     1.535 ± 1.134     2.060 ± 2.509
+1168         Qwen2.5-7B-Instruct                    0.877 ± 1.028     4.135 ± 2.609     4.411 ± 3.020
+1169         Qwen2.5-14B-Instruct                   0.297 ± 0.269     1.462 ± 1.021     4.451 ± 3.676
+1170         Search-R1                              0.173 ± 0.154     0.601 ± 0.490     0.784 ± 0.902
+1171         Search-R1 (2-objective trained)        1.180 ± 0.919     5.800 ± 2.316     6.450 ± 2.909
+1172
+             Search-R1 (2-objective + truncate)     1.240 ± 0.918     5.950 ± 2.318     6.700 ± 2.910
+             DeepResearcher                         0.799 ± 0.919     3.891 ± 2.316     4.355 ± 2.909
+1173
+1174         MEM1-QA                                0.177 ± 0.104     0.486 ± 0.332     0.724 ± 0.405
+1175
+1176
+1177
+1178
+       E.2   A NALYSIS OF THE LENGTH OF THE INTERNAL STATE WITH RESPECT TO THE NUMBER OF
+1179         INTERACTION TURNS
+1180
+1181
+       To examine how the agent’s internal state evolves through reasoning, we conduct a subsample analysis
+1182   on MEM1-QA using 2-objective tasks with up to 6 turns and 8-objective tasks with up to 15 turns.
+1183   As shown in Fig. 5, although MEM1 does not explicitly regulate internal-state length, we observe no
+1184   substantial growth across turns: the agent consistently discards unhelpful information and retains only
+1185   what is necessary. Because the final answers in these QA tasks are short, the agent does not require
+1186   a continually expanding internal state to converge on correct solutions. While 8-objective tasks
+1187   naturally produce somewhat longer internal states, the overall size remains stable across interaction
+       turns.
+
+
+                                                         22
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1188
+1189
+1190
+1191
+1192
+1193
+1194
+1195
+1196
+1197
+1198
+1199
+1200   Figure 5: Average internal state length (with standard deviation) versus interaction turn for MEM1-
+1201   QA across 2-objective (right) and 8-objective (left) tasks, shown using the combined figure.
+1202
+1203
+1204   F     A NALYSIS ON I MPLEMENTATION D ETAILS
+1205
+1206   F.1   RL G ENERALIZES B ETTER T HAN SFT
+1207
+1208
+       A natural question arises: can Supervised Fine-Tuning (SFT) with high-quality trajectories match
+       the performance of reinforcement learning (RL)? To investigate this, we compare MEM1-QA
+1209
+       trained via RL against MEM1-QA (SFT), where both models are trained on the 2-objective QA task.
+1210
+       Additionally, the SFT model is further trained on 1-objective and 3-objective QA tasks to enhance
+1211   its generalization ability. As shown in Tab. 5, the SFT model consistently underperforms compared
+1212   to its RL counterpart across tasks with varying numbers of questions (objectives). Notably, when
+1213   the number of objectives exceeds six, the performance of the SFT model collapses, whereas the
+1214   RL-trained model continues to demonstrate strong robustness and scalability.
+1215
+1216   Table 5: Comparison of RL and SFT on increas-
+1217   ing number of multi-turn questions. Exact match
+1218   scores ↑ is better. Gap shows absolute difference.
+1219   Red numbers show collapsed SFT behavior.
+1220
+1221   #Q     RL ↑    SFT ↑    Gap ↑    RL Gain (%) ↑
+1222     1    0.410   0.300    0.110        +36.7%
+1223     2    0.709   0.433    0.276        +63.7%
+1224     3    0.976   0.648    0.328        +50.6%
+         4    1.120   0.626    0.494        +78.9%
+1225
+         6    1.630   0.088    1.542        +1752%
+1226     8    1.870   0.027    1.843        +6826%               Figure 6: Training curves comparing MEM1
+1227    16    1.900   0.000    1.900          —                  trained with and without format reward.
+1228
+1229
+1230   F.2   F ORMAT R EWARD ACCELERATES C ONVERGENCE BUT D EGRADES F INAL P ERFORMANCE
+1231
+1232   It is common to incorporate format reward when training reasoning models and multi-turn reasoning
+1233   agents DeepSeek-AI et al. (2025); Zheng et al. (2025); Jin et al. (2025). In our study, we experimented
+1234   with a format reward that enforces the agent to produce outputs using specific structural tags: <IS>,
+1235   <query>, and <answer>. If the agent fails to use the expected tags correctly, the turn is terminated
+1236   and a penalty of -1 is applied.
+1237   As shown in Fig. 6, using the format reward leads to faster convergence during training but results
+1238   in worse final performance. The format-constrained agent achieves an exact match score of 0.466,
+1239   compared to 0.709 for MEM1 trained with only outcome-based reward on the same testing set for
+1240   the 2-objective QA task. Additionally, the format-constrained agent generates fewer tokens, with an
+1241   average peak of 514.9 tokens, whereas the outcome-reward-trained MEM1 reaches an average peak
+       of 640 tokens.
+
+
+                                                            23
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1242
+       We hypothesize that the format reward accelerates structural learning but constrains exploration of
+1243   effective reasoning strategies. As a result, the agent learns to produce shorter responses with valid
+1244   syntax but develops less effective internal state representations, leading to degraded task performance.
+1245
+1246
+1247
+1248   F.3   C OUPLING M EMORY AND R EASONING B ENEFITS B OTH P ERFORMANCE AND E FFICIENCY
+1249
+       We explored whether separating memory and reasoning could simplify the agent design. In this
+1250
+       ablation setup, we replaced the integrated internal state with explicit <summary></summary> and
+1251   <reasoning></reasoning> tags and trained the model using the same rollout procedure and
+1252   reinforcement learning algorithm. As shown in Tab. 6, coupling memory and reasoning in a unified
+1253   internal state consistently yields higher Exact Match scores and substantially lower peak token usage
+1254   across 2-objective, 8-objective, and 16-objective tasks. These results suggest that maintaining an
+1255   integrated internal state enables more efficient reasoning and better information retention, ultimately
+1256   benefiting both performance and computation.
+1257
+1258   Table 6: Ablation study comparing integrated versus separated memory and reasoning. Peak token
+1259
+       counts are reported in units of ×102 , with standard deviations in parentheses.
+1260
+1261
+           MEM1-QA (integrated internal state)                2-Objective    8-Objective     16-Objective
+1262       Exact Match (EM)                                      0.709           1.87            1.97
+1263       Peak Tokens (×102 )                                 6.4 (0.02)     8.01 (0.06)     10.4 (0.09)
+1264
+           MEM1-QA (separate memory + reasoning)              2-Objective    8-Objective     16-Objective
+1265
+1266       Exact Match (EM)                                     0.686            1.78             1.92
+1267       Peak Tokens (×102 )                                11.8 (0.05)     9.63 (0.07)     13.37 (0.11)
+1268
+1269
+1270
+1271
+       G     FAILURE C ASE A NALYSIS
+1272
+1273
+       We analyze the failed trajectories from the two-question setting to understand the limitations of
+1274
+       the model and identify recurrent patterns that hinder reliable multi-step reasoning. After careful
+1275   examination, we identify five representative ways in which the model fails to answer all questions
+1276   correctly. Overall, three of these five failure modes are related to general limitations of the search
+1277   agent, while the remaining two arise directly from our iterative compression rollout and compositional
+1278   tasks. We name them entity ambiguity, hallucination instead of search, logical fallacies, insufficient
+1279   query refinement, and overwriting correct answers due to loss of the original reasoning path. In Tab. 7,
+1280   we provide full explanations for these failure types, an illustrative example containing original
+1281   evidence from the trajectory, and the corresponding frequency.
+1282   There are also some non-typical failures that do not fall under these five categories, and we group
+1283   them as “others.” Some failures are difficult to avoid because the Wikipedia corpus we use as the
+1284   information source may not contain answers for all questions, and some failures stem from formatting
+1285   issues. We further compute the percentage of each failure type by labeling the error category of
+1286   every trajectory. Among the 1000 trajectories we examined, where the model answered one question
+1287   correctly for 397 tasks and both questions correctly for 156 tasks, the percentages and counts for each
+1288   failure mode are also reported in Tab. 7. Note that a single failed trajectory may contain multiple
+1289
+       failure types, so the total count does not necessarily match the number of failed trajectories exactly,
+       but it provides a useful reference for understanding the distribution of failure modes.
+1290
+1291
+1292
+1293
+1294
+1295
+
+
+
+                                                         24
+       Under review as a conference paper at ICLR 2026
+
+
+
+
+1296
+1297
+1298
+1299
+1300
+1301
+1302
+1303
+1304
+1305
+1306
+1307
+1308
+1309
+1310   Failure Mode         Explanation                                          Example                                               Statistics
+1311   Entity Ambiguity     The agent chooses the wrong real-world entity The query asks for the birthplace of the performer 164 (20.1%)
+1312                        among several with the same or similar name and of “Step Into The Light (Myra Song)”. Search re-
+                            builds its answer on that mistaken identity.          sults contain two different “Myra” entities: (1) the
+1313                                                                              Mexican-American pop singer who performs the
+1314                                                                              song, and (2) Myra Taylor, an unrelated jazz singer
+                                                                                  whose biography lists a birthplace. The model se-
+1315                                                                              lects Myra Taylor and outputs “Bonner Springs,
+1316                                                                              Kansas”, which is irrelevant.
+       Hallucination In-    The agent invents facts instead of searching or ac- For Joni Jenkins and Martin Shapiro, the agent fab- 391 (47.9%)
+1317   stead of Search      knowledging uncertainty.                              ricates occupations (“interior designer”, “lawyer”)
+1318                                                                              and claims it already “recalled” them. The true
+                                                                                  occupations are politician and screenwriter.
+1319
+       Logical Fallacies    The agent uses invalid or irrelevant criteria to com- Asked which director is older, it compares film re- 31 (3.8%)
+1320                        pare entities and draw conclusions.                   lease years (2005 vs 2008) rather than birth dates,
+1321                                                                              assumes similar directing ages, and concludes the
+                                                                                  earlier film’s director is older. A snippet: “Assum-
+1322                                                                              ing both directors were of similar ages. . . the di-
+1323                                                                              rector of Flying Boys is older since it was released
+                                                                                  earlier.”
+1324   Insufficient         The agent repeats low-yield queries without adapt- For “In what country is Awe?”, it repeats the exact       35 (4.3%)
+1325   Query      Refine-   ing after irrelevant results.                         same query three times and keeps retrieving pages
+       ment                                                                       about the emotion “awe” or River/Bridge Awe in
+1326                                                                              Scotland. For “Mrákotín”, it repeatedly gets unre-
+1327                                                                              lated results (e.g., Mrkonjić Grad) without refining
+                                                                                  the search strategy.
+1328
+       Overwriting Cor-     The agent remembers the answer but not the rea- For the question pairing King Midas and Prince’s              7 (0.9%)
+1329   rect Answers Due     soning steps that justified it.                       1984 song, the agent first finds Purple Rain but
+1330   to Loss of Reason-                                                         later, lacking the full reasoning chain, focuses on
+       ing Path                                                                   genre metadata and incorrectly claims “no specific
+1331                                                                              type of rain” is mentioned, replacing the correct
+1332                                                                              answer with “power ballad.”
+       Others               Miscellaneous failures not captured by the five —                                                           188 (23.4%)
+1333                        modes.
+1334
+1335   Table 7: Summary of failure modes, explanations, examples, and statistics from the two-question
+1336   setting.
+1337
+1338
+1339
+1340
+1341
+1342
+1343
+1344
+1345
+1346
+1347
+1348
+1349
+
+
+
+                                                                           25
+

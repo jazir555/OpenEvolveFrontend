@@ -4,29 +4,43 @@
 
 set -e
 
+# Change to Frontend root directory
+cd "$(dirname "$0")/../.." || exit 1
+
 echo "=== RESE Phase II Adapter Probe ==="
 echo "Testing Phase II: Isomorphic Mapping functionality..."
 echo ""
 
+# Detect Python command
+PYTHON_CMD=""
+if [ -f "/c/Users/mmeadow/AppData/Local/Programs/Python/Python311/python.exe" ]; then
+    PYTHON_CMD="/c/Users/mmeadow/AppData/Local/Programs/Python/Python311/python.exe"
+elif command -v python3 &> /dev/null 2>&1; then
+    PYTHON_CMD="python3"
+elif command -v python &> /dev/null 2>&1; then
+    PYTHON_CMD="python"
+fi
+
 # Check if Python is available
-if ! command -v python &> /dev/null; then
+if [ -z "$PYTHON_CMD" ]; then
     echo "ERROR: Python not found"
     exit 1
 fi
 
-echo "✓ Python available"
+echo "PASS: Python available"
 
 # Check if we can import the module
 echo ""
 echo "Testing module import..."
-python -c "
+$PYTHON_CMD -c "
 import sys
-sys.path.insert(0, '../src')
+sys.path.insert(0, 'glue/adapters/rese-phase2/src')
+sys.path.insert(0, 'glue/schemas')
 try:
     from phase2_executor import IsomorphicMappingExecutor, create_executor
-    print('✓ Module import successful')
+    print('PASS: Module import successful')
 except Exception as e:
-    print(f'✗ Import failed: {e}')
+    print(f'FAIL: Import failed: {e}')
     sys.exit(1)
 "
 
@@ -38,10 +52,11 @@ fi
 # Test basic functionality
 echo ""
 echo "Testing basic Phase II execution..."
-python -c "
+$PYTHON_CMD -c "
 import sys
 import os
-sys.path.insert(0, '../src')
+sys.path.insert(0, 'glue/adapters/rese-phase2/src')
+sys.path.insert(0, 'glue/schemas')
 
 # Set required env vars
 os.environ['PHASE2_MAX_TARGET_DOMAINS'] = '10'
@@ -72,7 +87,7 @@ try:
     assert result.source_domain == 'physics', 'Source domain mismatch'
     assert len(result.target_domains) == 2, 'Target domains count mismatch'
 
-    print('✓ Phase II execution successful')
+    print('PASS: Phase II execution successful')
     print(f'  - Source domain: {result.source_domain}')
     print(f'  - Target domains: {len(result.target_domains)}')
     print(f'  - Mappings found: {len(result.mappings_found)}')
@@ -80,7 +95,7 @@ try:
     print(f'  - Execution time: {result.execution_time_ms:.2f}ms')
 
 except Exception as e:
-    print(f'✗ Phase II execution failed: {e}')
+    print(f'FAIL: Phase II execution failed: {e}')
     import traceback
     traceback.print_exc()
     sys.exit(1)
@@ -94,10 +109,10 @@ fi
 # Test adapter interface
 echo ""
 echo "Testing adapter interface..."
-python -c "
+$PYTHON_CMD -c "
 import sys
 import os
-sys.path.insert(0, '../src')
+sys.path.insert(0, 'glue/adapters/rese-phase2/src')
 
 # Set required env vars
 os.environ['PHASE2_MAX_TARGET_DOMAINS'] = '10'
@@ -130,13 +145,13 @@ try:
     assert 'mappings' in result, 'Missing mappings'
     assert 'summary' in result, 'Missing summary'
 
-    print('✓ Adapter interface successful')
+    print('PASS: Adapter interface successful')
     print(f'  - Result ID: {result[\"result_id\"]}')
     print(f'  - Mapping count: {result[\"summary\"][\"mapping_count\"]}')
     print(f'  - Best I_mech: {result[\"summary\"][\"best_imech_score\"]:.2f}')
 
 except Exception as e:
-    print(f'✗ Adapter interface failed: {e}')
+    print(f'FAIL: Adapter interface failed: {e}')
     import traceback
     traceback.print_exc()
     sys.exit(1)
@@ -148,6 +163,6 @@ if [ $? -ne 0 ]; then
 fi
 
 echo ""
-echo "=== All Probe Tests Passed ✓ ==="
+echo "=== All Probe Tests Passed ==="
 echo "Phase II adapter is ready for use"
 exit 0
