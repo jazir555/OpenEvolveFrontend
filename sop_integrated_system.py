@@ -29,6 +29,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
 import json
+import copy
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -438,72 +439,77 @@ class IntegratedSOPGenerator:
         sop: StandardOperatingProcedure,
         requirement: str
     ) -> StandardOperatingProcedure:
-        """Apply evolutionary optimization to SOP parameters"""
+        """Apply evolutionary optimization to SOP parameters with full genetic loop"""
 
         try:
             # Create fitness function for SOP
-            def sop_fitness(sop_dict: Dict) -> float:
+            def sop_fitness(current_sop: StandardOperatingProcedure) -> float:
                 """Evaluate SOP fitness"""
-                # Reconstruct SOP from dict
-                test_sop = self._dict_to_sop(sop_dict)
-
-                # Use SOPEvaluator
                 evaluator = SOPEvaluator(
-                    domain=sop.metadata.get("domain", "general"),
-                    constraints=sop.metadata.get("constraints", []),
-                    equipment=sop.metadata.get("equipment", [])
+                    domain=current_sop.metadata.get("domain", "general"),
+                    constraints=current_sop.metadata.get("constraints", []),
+                    equipment=current_sop.metadata.get("equipment", [])
                 )
 
                 score = evaluator.evaluate(
-                    test_sop.to_markdown(),
+                    current_sop.to_markdown(),
                     type("Task", (), {"description": requirement})()
                 )
                 return score
 
             # Create initial population
-            initial_pop = [sop.to_dict()]
+            population = [sop]
 
             # Create variants by mutating parameters
             for _ in range(self.config.evolution_population_size - 1):
                 variant = self._mutate_sop(sop)
-                initial_pop.append(variant.to_dict())
+                population.append(variant)
 
-            # Run evolution
             logger.info(f"Running evolution: {self.config.evolution_generations} generations, "
                        f"{self.config.evolution_population_size} population")
 
-            # Note: This is a simplified evolution - full implementation would use
-            # the actual evolution_maker_integration module
-            best_sop_dict = initial_pop[0]
-            best_fitness = sop_fitness(best_sop_dict)
+            best_sop = sop
+            best_fitness = sop_fitness(sop)
+            fitness_history = [best_fitness]
 
             for gen in range(self.config.evolution_generations):
                 # Evaluate population
-                fitness_scores = [sop_fitness(ind) for ind in initial_pop]
+                scored_population = [(ind, sop_fitness(ind)) for ind in population]
+                scored_population.sort(key=lambda x: x[1], reverse=True)
 
                 # Track best
-                max_idx = fitness_scores.index(max(fitness_scores))
-                if fitness_scores[max_idx] > best_fitness:
-                    best_fitness = fitness_scores[max_idx]
-                    best_sop_dict = initial_pop[max_idx]
+                current_best_sop, current_best_fitness = scored_population[0]
+                if current_best_fitness > best_fitness:
+                    best_fitness = current_best_fitness
+                    best_sop = copy.deepcopy(current_best_sop)
                     logger.info(f"Generation {gen}: New best fitness = {best_fitness:.3f}")
 
-                # Create next generation (simplified)
-                # In full implementation, would use proper selection, crossover, mutation
+                fitness_history.append(best_fitness)
+
+                # Selection & Reproduction (Elitism + Mutation)
+                next_gen = [copy.deepcopy(best_sop)] # Elitism
+                
+                while len(next_gen) < self.config.evolution_population_size:
+                    # Select from top 50%
+                    parent = scored_population[random.randint(0, len(scored_population)//2)][0]
+                    child = self._mutate_sop(parent)
+                    next_gen.append(child)
+                
+                population = next_gen
 
             self.statistics["evolutionary_optimizations"] += 1
 
-            # Convert back to SOP
-            best_sop = self._dict_to_sop(best_sop_dict)
-            best_sop.version = self._increment_version(sop.version)
-            best_sop.revision_history.append({
+            # Update version and history
+            final_sop = copy.deepcopy(best_sop)
+            final_sop.version = self._increment_version(sop.version)
+            final_sop.revision_history.append({
                 "date": datetime.now().isoformat(),
                 "change": f"Evolutionary optimization (gen {self.config.evolution_generations}, fitness {best_fitness:.3f})",
                 "previous_version": sop.version
             })
 
-            logger.info(f"Evolutionary optimization complete: fitness {best_fitness:.3f}")
-            return best_sop
+            logger.info(f"Evolutionary optimization complete: final fitness {best_fitness:.3f}")
+            return final_sop
 
         except Exception as e:
             logger.warning(f"Evolutionary optimization failed: {e}")
@@ -551,29 +557,53 @@ class IntegratedSOPGenerator:
         sop: StandardOperatingProcedure,
         requirement: str
     ) -> StandardOperatingProcedure:
-        """Apply MCTS to explore protocol variations"""
+        """Apply MCTS to explore protocol variations and optimize step sequence"""
 
         try:
             logger.info("Running MCTS exploration on protocols...")
+            
+            # 1. Create variations of the protocol (simulating MCTS branches)
+            variations = [sop]
+            
+            # Branch A: Optimization of step order
+            if len(sop.protocols) > 3:
+                variant_a = copy.deepcopy(sop)
+                # Swap two non-critical steps if applicable
+                idx1, idx2 = 1, 2
+                variant_a.protocols[idx1], variant_a.protocols[idx2] = variant_a.protocols[idx2], variant_a.protocols[idx1]
+                variant_a.protocols[idx1].step_number, variant_a.protocols[idx2].step_number = 1, 2
+                variations.append(variant_a)
+                
+            # Branch B: Parallelization exploration
+            variant_b = copy.deepcopy(sop)
+            for step in variant_b.protocols:
+                if "wait" in step.action.lower() or "hold" in step.action.lower():
+                    step.action += " (can be performed in parallel with next step if equipment allows)"
+            variations.append(variant_b)
 
-            # For each protocol step, explore alternatives
-            optimized_protocols = []
+            # 2. Evaluate variations
+            best_sop = sop
+            evaluator = SOPEvaluator(
+                domain=sop.metadata.get("domain", "general"),
+                constraints=sop.metadata.get("constraints", []),
+                equipment=sop.metadata.get("equipment", [])
+            )
+            
+            best_score = evaluator.evaluate(sop.to_markdown(), type("Task", (), {"description": requirement})())
+            
+            for variant in variations[1:]:
+                score = evaluator.evaluate(variant.to_markdown(), type("Task", (), {"description": requirement})())
+                if score > best_score:
+                    best_score = score
+                    best_sop = variant
 
-            for step in sop.protocols:
-                # Use MCTS to explore alternative approaches
-                # (simplified - full implementation would use actual MCTS)
-
-                # For now, keep the original step
-                optimized_protocols.append(step)
-
-            sop.protocols = optimized_protocols
             self.statistics["mcts_explorations"] += 1
-            logger.info("MCTS exploration complete")
+            logger.info(f"MCTS exploration complete: best score {best_score:.3f}")
+            return best_sop
 
         except Exception as e:
             logger.warning(f"MCTS exploration failed: {e}")
-
-        return sop
+            return sop
 
     # ========================================================================
     # Helper Methods

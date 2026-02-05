@@ -139,7 +139,7 @@ result = await service.formalize("x + 0 = x")
 | `LEANAIDE_MIGRATION_PLAN.md` | 11,870 | Detailed plan |
 | `LEANAIDE_INTEGRATION_COMPLETE.md` | This file | Summary |
 
-**Total New Code**: ~48,000 lines
+**Total New Code**: ~3,500 lines (functional)
 
 ## Next Actions
 

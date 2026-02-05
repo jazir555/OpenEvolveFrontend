@@ -735,23 +735,72 @@ Provide scaling guidance including:
         )
 
     def _parse_equipment_spec(self, solution: str, name: str) -> Dict[str, str]:
-        """Parse equipment specification from solution"""
+        """Parse equipment specification from solution using JSON or regex extraction"""
+        import re
+        import json
+
+        # Try to extract JSON
+        json_match = re.search(r'\{[^}]*"model"[^}]*\}', solution, re.DOTALL)
+        if json_match:
+            try:
+                data = json.loads(json_match.group(0))
+                return {
+                    "name": data.get("name", name),
+                    "model": data.get("model", "Standard"),
+                    "specifications": data.get("specifications", "As required"),
+                    "features": data.get("features", "Standard features"),
+                    "calibration": data.get("calibration", "Annual"),
+                    "maintenance": data.get("maintenance", "Regular")
+                }
+            except:
+                pass
+
+        # Fallback: regex extraction
+        model = re.search(r'[Mm]odel:\s*(.*)', solution)
+        specs = re.search(r'[Ss]pecifications:\s*(.*)', solution)
+        
         return {
             "name": name,
-            "model": "Standard",
-            "specifications": "As required",
+            "model": model.group(1).strip() if model else "Standard",
+            "specifications": specs.group(1).strip() if specs else "As required",
             "features": "Standard features",
             "calibration": "Annual",
             "maintenance": "Regular"
         }
 
     def _parse_material_spec(self, solution: str, name: str) -> Dict[str, Any]:
-        """Parse material specification from solution"""
+        """Parse material specification from solution using JSON or regex extraction"""
+        import re
+        import json
+
+        # Try to extract JSON
+        json_match = re.search(r'\{[^}]*"purity"[^}]*\}', solution, re.DOTALL)
+        if json_match:
+            try:
+                data = json.loads(json_match.group(0))
+                return {
+                    "name": data.get("name", name),
+                    "purity": data.get("purity", ">= 99%"),
+                    "grade": data.get("grade", "Standard"),
+                    "amount": float(data.get("amount", 100.0)),
+                    "unit": data.get("unit", "g"),
+                    "tolerance": float(data.get("tolerance", 1.0)),
+                    "storage": data.get("storage", "Room temperature"),
+                    "safety": data.get("safety", "Standard precautions"),
+                    "alternatives": data.get("alternatives", [])
+                }
+            except:
+                pass
+
+        # Fallback extraction
+        purity = re.search(r'[Pp]urity:\s*(.*)', solution)
+        amount = re.search(r'[Aa]mount:\s*([\d.]+)', solution)
+        
         return {
             "name": name,
-            "purity": ">= 99%",
+            "purity": purity.group(1).strip() if purity else ">= 99%",
             "grade": "Standard",
-            "amount": 100.0,
+            "amount": float(amount.group(1)) if amount else 100.0,
             "unit": "g",
             "tolerance": 1.0,
             "storage": "Room temperature",
@@ -760,13 +809,39 @@ Provide scaling guidance including:
         }
 
     def _parse_protocol_step(self, solution: str, step_number: int) -> SOPStep:
-        """Parse protocol step from solution"""
+        """Parse protocol step from solution using JSON or robust regex"""
+        import re
+        import json
+
+        # Try to extract JSON
+        json_match = re.search(r'\{[^}]*"action"[^}]*\}', solution, re.DOTALL)
+        if json_match:
+            try:
+                data = json.loads(json_match.group(0))
+                return SOPStep(
+                    step_number=step_number,
+                    action=data.get("action", solution.strip()[:200]),
+                    duration=float(data.get("duration", 300.0)),
+                    duration_tolerance=float(data.get("duration_tolerance", 30.0)),
+                    verification_method=data.get("verification_method", "Visual inspection"),
+                    acceptance_criteria=data.get("acceptance_criteria", "Step completed successfully"),
+                    contingency_action=data.get("contingency_action", "Repeat step if failed"),
+                    substeps=data.get("substeps", [])
+                )
+            except:
+                pass
+
+        # Fallback: robust regex
+        action = solution.strip().split('\n')[0]
+        duration = re.search(r'[Dd]uration:\s*([\d.]+)', solution)
+        verify = re.search(r'[Vv]erification:\s*(.*)', solution)
+        
         return SOPStep(
             step_number=step_number,
-            action=solution.strip()[:200],
-            duration=300.0,
+            action=action[:200],
+            duration=float(duration.group(1)) if duration else 300.0,
             duration_tolerance=30.0,
-            verification_method="Visual inspection",
+            verification_method=verify.group(1).strip() if verify else "Visual inspection",
             acceptance_criteria="Step completed successfully",
             contingency_action="Repeat step if failed",
             substeps=[]
@@ -786,10 +861,33 @@ Provide scaling guidance including:
         param: SOPParameter,
         context: Dict[str, Any]
     ) -> SOPParameter:
-        """Apply integrations to a parameter"""
-        # Evolutionary optimization can be applied
-        # Adversarial testing can check for safety
-        # Formal verification if mathematical
+        """Apply evolutionary optimization and safety testing to a parameter"""
+        
+        # 1. Evolutionary optimization (if enabled)
+        if self.config.enable_evolution:
+            param = await self.optimize_component(
+                param, 
+                SOPComponentType.ENVIRONMENTAL_CONDITION,
+                "tighten tolerance and optimize value",
+                context
+            )
+            
+        # 2. Safety testing (adversarial)
+        if self.config.enable_adversarial:
+            is_safe, issues = await self.test_component_safety(
+                param,
+                SOPComponentType.ENVIRONMENTAL_CONDITION,
+                context
+            )
+            if not is_safe:
+                logger.warning(f"Safety issues found in parameter {param.name}: {issues}")
+                # Refine if unsafe
+                param = await self.refine_environmental_condition(
+                    param,
+                    f"Fix safety issues: {', '.join(issues)}",
+                    context
+                )
+                
         return param
 
     def _mutate_component(self, component: Any, component_type: SOPComponentType) -> Any:

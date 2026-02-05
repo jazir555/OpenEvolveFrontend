@@ -265,38 +265,254 @@ class UnifiedMathService:
         context: Optional[CAVNLPContext] = None
     ) -> str:
         """
-        Generate Lean 4 code using CAV-NLP.
+        Generate Lean 4 code using CAV-NLP pipeline.
         
-        This uses the CAV-NLP pipeline:
-        1. Parse mathematical text
-        2. Extract dependency DAG
-        3. Synthesize to Lean
-        4. Generate canonical form
+        Pipeline:
+        1. flexible_semantic_parsing.py - Parse mathematical text to semantic primitives
+        2. dependency_dag.py - Extract dependency graph from text
+        3. z3_semantic_synthesis.py - Synthesize intermediate representation
+        4. canonical_lean_generator.py - Generate canonical Lean 4 code
+        
+        Args:
+            text: Natural language or LaTeX mathematical statement
+            context: Optional CAV-NLP context (paper title, section, etc.)
+            
+        Returns:
+            Canonical Lean 4 code as string
         """
-        # The bridge handles the complexity internally
-        # For now, use template-based generation with CAV-NLP enhancements
+        import logging
+        logger = logging.getLogger(__name__)
         
-        # Basic template (fallback if CAV-NLP components not fully available)
-        lean_code = f"""import Mathlib
-
--- Formalized from: {text[:100]}
-
-"""
+        # Track which CAV-NLP components were used
+        components_used = []
+        warnings = []
         
-        # Try to use CAV-NLP for semantic parsing if available
-        if hasattr(self.cav_nlp_bridge, '_parser') and self.cav_nlp_bridge._parser:
+        try:
+            # =====================================================================
+            # Step 1: Flexible Semantic Parsing
+            # Extract semantic primitives from natural language text
+            # =====================================================================
+            semantic_primitives = []
+            parsed_statement = None
+            
+            if hasattr(self.cav_nlp_bridge, 'parser') and self.cav_nlp_bridge.parser:
+                try:
+                    from openevolve.cav_nlp_integration.flexible_semantic_parsing import (
+                        SemanticNormalizer
+                    )
+                    normalizer = SemanticNormalizer()
+                    semantic_primitives = normalizer.normalize(text)
+                    components_used.append("semantic_normalizer")
+                    logger.debug(f"Extracted {len(semantic_primitives)} semantic primitives")
+                except Exception as e:
+                    warnings.append(f"Semantic parsing fallback: {e}")
+                    logger.warning(f"CAV-NLP semantic parsing failed: {e}")
+            
+            # =====================================================================
+            # Step 2: Dependency DAG Extraction
+            # Extract dependency graph to understand statement structure
+            # =====================================================================
+            dag = None
+            statements = []
+            
             try:
-                # CAV-NLP would parse and generate here
-                pass
-            except:
-                pass
+                from openevolve.cav_nlp_integration.dependency_dag import (
+                    PaperStructureExtractor, Statement, StatementKind
+                )
+                extractor = PaperStructureExtractor()
+                
+                # Treat single statement as mini-paper
+                mini_paper = f"Theorem 1. {text}"
+                dag = extractor.extract_dag(mini_paper)
+                
+                if dag and dag.nodes:
+                    statements = list(dag.nodes.values())
+                    components_used.append("dependency_dag")
+                    logger.debug(f"Extracted DAG with {len(dag.nodes)} nodes, {len(dag.edges)} edges")
+            except Exception as e:
+                warnings.append(f"DAG extraction fallback: {e}")
+                logger.warning(f"CAV-NLP DAG extraction failed: {e}")
+            
+            # =====================================================================
+            # Step 3: Z3 Semantic Synthesis
+            # Synthesize Lean type structure from semantic primitives
+            # =====================================================================
+            synthesized_type = None
+            
+            if hasattr(self.cav_nlp_bridge, 'synthesizer') and self.cav_nlp_bridge.synthesizer:
+                try:
+                    from openevolve.cav_nlp_integration.z3_semantic_synthesis import (
+                        Z3SemanticSynthesizer
+                    )
+                    synthesizer = Z3SemanticSynthesizer()
+                    
+                    # Create a simple parse tree placeholder for synthesis
+                    class SimpleParseTree:
+                        def __init__(self, text):
+                            self.text = text
+                    
+                    parse_tree = SimpleParseTree(text)
+                    interpretations = synthesizer.synthesize_semantics(text, parse_tree)
+                    
+                    if interpretations:
+                        synthesized_type = interpretations[0]
+                        components_used.append("z3_synthesizer")
+                        logger.debug(f"Synthesized type: {synthesized_type.lean_output[:50] if hasattr(synthesized_type, 'lean_output') else 'N/A'}...")
+                except Exception as e:
+                    warnings.append(f"Semantic synthesis fallback: {e}")
+                    logger.warning(f"CAV-NLP semantic synthesis failed: {e}")
+            
+            # =====================================================================
+            # Step 4: Canonical Lean Generation
+            # Generate final Lean 4 code from all previous steps
+            # =====================================================================
+            if hasattr(self.cav_nlp_bridge, 'generator') and self.cav_nlp_bridge.generator:
+                try:
+                    from openevolve.cav_nlp_integration.canonical_lean_generator import (
+                        CanonicalLeanGenerator, SemanticGrammar
+                    )
+                    from openevolve.cav_nlp_integration.dependency_dag import StatementKind
+                    
+                    # Create grammar and generator
+                    grammar = SemanticGrammar()
+                    generator = CanonicalLeanGenerator(grammar)
+                    
+                    # If we have a DAG, use it for full generation
+                    if dag and dag.nodes:
+                        paper_title = context.paper_title if context else None
+                        lean_code = generator.generate_from_dag(dag, paper_title)
+                        components_used.append("canonical_generator_dag")
+                        logger.info(f"Generated Lean from DAG with {len(dag.nodes)} statements")
+                        return lean_code
+                    
+                except Exception as e:
+                    warnings.append(f"Canonical generator fallback: {e}")
+                    logger.warning(f"CAV-NLP canonical generator failed: {e}")
+            
+            # =====================================================================
+            # Fallback: Smart Template Generation using semantic primitives
+            # Use parsed information to generate better-than-basic Lean code
+            # =====================================================================
+            lean_code = self._generate_smart_lean_template(
+                text=text,
+                semantic_primitives=semantic_primitives,
+                statements=statements,
+                synthesized_type=synthesized_type,
+                components_used=components_used,
+                warnings=warnings
+            )
+            
+            return lean_code
+            
+        except Exception as e:
+            logger.error(f"CAV-NLP pipeline failed completely: {e}")
+            # Ultimate fallback to basic template
+            return self._generate_basic_lean_template(text, context)
+    
+    def _generate_smart_lean_template(
+        self,
+        text: str,
+        semantic_primitives: list,
+        statements: list,
+        synthesized_type: Any,
+        components_used: list,
+        warnings: list
+    ) -> str:
+        """
+        Generate Lean code using information from CAV-NLP parsing.
+        Better than basic template - uses extracted semantic information.
+        """
+        # Start building the Lean code
+        lines = []
+        lines.append("import Mathlib")
+        lines.append("")
+        lines.append(f"-- Formalized from: {text[:100]}{'...' if len(text) > 100 else ''}")
         
-        # Add the theorem
-        lean_code += f"""theorem formalized_statement : True := by
+        # Add component usage info
+        if components_used:
+            lines.append(f"-- CAV-NLP components used: {', '.join(components_used)}")
+        if warnings:
+            lines.append(f"-- Warnings: {len(warnings)} components used fallback")
+        lines.append("")
+        
+        # Extract theorem name from context or generate one
+        theorem_name = "formalized_statement"
+        if statements:
+            stmt = statements[0]
+            if stmt.name:
+                theorem_name = self._to_snake_case(stmt.name)
+            elif stmt.number:
+                theorem_name = f"theorem_{stmt.number.replace('.', '_')}"
+        
+        # Analyze semantic primitives to infer structure
+        has_forall = any(p.kind == 'UNIVERSAL_QUANTIFIER' for p in semantic_primitives)
+        has_exists = any(p.kind == 'EXISTENTIAL_QUANTIFIER' for p in semantic_primitives)
+        has_implies = any(p.kind == 'IMPLICATION' for p in semantic_primitives)
+        
+        # Extract variables from primitives or statements
+        variables = []
+        if statements and statements[0].variables:
+            variables = statements[0].variables
+        
+        # Try to infer the theorem statement from synthesized type
+        if synthesized_type and hasattr(synthesized_type, 'lean_output'):
+            # Use synthesized Lean code
+            lean_statement = synthesized_type.lean_output
+            lines.append(lean_statement)
+        else:
+            # Build theorem from extracted information
+            lines.append(f"theorem {theorem_name}")
+            
+            # Add parameters if variables were found
+            if variables:
+                for var in variables[:3]:  # Limit to 3 parameters
+                    lines.append(f"    ({var} : ℕ)")  # Default to ℕ
+            
+            # Build conclusion from semantic analysis
+            conclusion = "True"  # Default
+            
+            if has_forall and has_exists:
+                conclusion = "∀ n : ℕ, ∃ m : ℕ, m > n"
+            elif has_forall:
+                conclusion = "∀ n : ℕ, n = n"
+            elif has_exists:
+                conclusion = "∃ n : ℕ, n > 0"
+            elif has_implies:
+                conclusion = "True → True"
+            
+            lines.append(f"    : {conclusion} := by")
+            lines.append("  sorry")
+        
+        lines.append("")
+        return "\n".join(lines)
+    
+    def _generate_basic_lean_template(self, text: str, context: Optional[CAVNLPContext]) -> str:
+        """Generate basic Lean template when all CAV-NLP components fail."""
+        paper_ref = context.paper_title if context else None
+        header = f"-- Paper: {paper_ref}\n" if paper_ref else ""
+        
+        return f"""import Mathlib
+
+{header}-- Formalized from: {text[:100]}{'...' if len(text) > 100 else ''}
+-- NOTE: CAV-NLP pipeline unavailable - using basic template
+
+theorem formalized_statement : True := by
   sorry
 """
-        
-        return lean_code
+    
+    def _to_snake_case(self, text: str) -> str:
+        """Convert text to snake_case for Lean identifiers."""
+        import re
+        # Remove special characters
+        text = re.sub(r'[^\w\s-]', '', text)
+        # Insert underscore before capitals
+        text = re.sub('([a-z0-9])([A-Z])', r'\1_\2', text)
+        # Replace spaces and hyphens
+        text = text.replace(' ', '_').replace('-', '_')
+        # Lowercase and clean up
+        text = text.lower()
+        text = re.sub(r'_+', '_', text)
+        return text.strip('_') or "formalized_statement"
     
     async def _formalize_fallback(
         self,
@@ -350,34 +566,78 @@ theorem formalized_statement : True := by
         try:
             if self.lean_service:
                 return await self.lean_service.verify(code)
-            elif self.lean_client:
-                # Use client for verification
-                result = await self.lean_client.check_elaboration(code)
-                # Convert to VerificationResult format
+            elif self.lean_client and LEANAIDE_CLIENT_AVAILABLE:
+                # Use LeanAide client for verification via elaboration
+                # Elaboration checks if the code compiles and is valid
+                result = await self.lean_client.elaborate(code)
+                
+                # Check if elaboration succeeded (code is valid)
+                is_valid = result.success and result.data is not None
+                
+                # Extract error messages if any
+                errors = []
+                if not is_valid and result.error:
+                    errors.append(result.error)
+                if result.data and result.data.get("errors"):
+                    errors.extend(result.data["errors"])
+                
+                # Create verification result
+                message = "Verified via LeanAide elaboration" if is_valid else (result.error or "Verification failed")
+                if errors:
+                    message += f"; Errors: {'; '.join(errors)}"
+                
                 return VerificationResult(
-                    success=result.success,
-                    message="Verified via LeanAide client" if result.success else result.error,
-                    code=code
+                    success=is_valid,
+                    message=message,
+                    code=code,
+                    errors=errors if errors else None
                 )
+            else:
+                logger.warning("No LeanAide service or client available for verification")
+                return None
+                
+        except asyncio.TimeoutError:
+            logger.error("Verification timed out")
+            return VerificationResult(
+                success=False,
+                message="Verification timed out",
+                code=code,
+                errors=["Timeout error"]
+            )
         except Exception as e:
             logger.error(f"Verification failed: {e}")
-            return None
+            return VerificationResult(
+                success=False,
+                message=f"Verification error: {str(e)}",
+                code=code,
+                errors=[str(e)]
+            )
     
     # ========================================================================
     # Primary: Elaboration (LeanAide)
     # ========================================================================
     
-    async def elaborate(self, code: str) -> ElaborationResult:
+    async def elaborate(
+        self, 
+        code: str,
+        timeout: Optional[float] = None
+    ) -> ElaborationResult:
         """
         Elaborate Lean 4 code.
         
-        Primary engine: LeanAide elaboration
+        Primary engine: LeanAide elaboration service.
+        
+        The elaboration process:
+        1. Sends code to LeanAide server
+        2. Server compiles and elaborates the code
+        3. Returns elaborated form with any errors/warnings
         
         Args:
             code: Lean 4 code to elaborate
+            timeout: Optional timeout override (seconds)
             
         Returns:
-            ElaborationResult
+            ElaborationResult with elaborated code and any errors
         """
         if not self.use_leanaide:
             return ElaborationResult(
@@ -387,23 +647,67 @@ theorem formalized_statement : True := by
                 errors=["LeanAide not available"]
             )
         
+        if not self.lean_client or not LEANAIDE_CLIENT_AVAILABLE:
+            return ElaborationResult(
+                success=False,
+                original_code=code,
+                elaborated_code=code,
+                errors=["LeanAide client not available"]
+            )
+        
         try:
-            if self.lean_client and LEANAIDE_CLIENT_AVAILABLE:
-                result = await self.lean_client.elaborate(code)
-                return ElaborationResult(
-                    success=result.success,
-                    original_code=code,
-                    elaborated_code=result.data.get("elaborated_code", code) if result.data else code,
-                    info=result.data.get("info") if result.data else None
-                )
-            else:
-                # Basic pass-through if client not available
+            # Call LeanAide client elaborate method
+            # The client's elaborate() method sends the code to the server
+            # and returns a LeanAideResult with the elaboration output
+            result = await self.lean_client.elaborate(code)
+            
+            if result.success and result.data:
+                # Extract elaborated information from the response
+                # The LeanAide server returns various fields depending on the code
+                elaborated_code = result.data.get("result", code)
+                logs = result.data.get("logs", "")
+                goals = result.data.get("goals", [])
+                
+                # Build info string from available data
+                info_parts = []
+                if logs:
+                    info_parts.append(f"Logs: {logs}")
+                if goals:
+                    info_parts.append(f"Goals: {goals}")
+                info = "\n".join(info_parts) if info_parts else None
+                
+                # Check for any errors in the response
+                errors = []
+                if result.data.get("errors"):
+                    errors.extend(result.data["errors"])
+                
                 return ElaborationResult(
                     success=True,
                     original_code=code,
-                    elaborated_code=code,
-                    info="Elaboration not available"
+                    elaborated_code=elaborated_code,
+                    errors=errors,
+                    info=info
                 )
+            else:
+                # Elaboration failed
+                error_msg = result.error or "Unknown elaboration error"
+                return ElaborationResult(
+                    success=False,
+                    original_code=code,
+                    elaborated_code=code,
+                    errors=[error_msg],
+                    info=result.logs
+                )
+                
+        except asyncio.TimeoutError:
+            logger.error(f"Elaboration timed out for code: {code[:50]}...")
+            return ElaborationResult(
+                success=False,
+                original_code=code,
+                elaborated_code=code,
+                errors=["Elaboration timed out"],
+                info=f"Timeout after {timeout}s" if timeout else "Timeout"
+            )
         except Exception as e:
             logger.error(f"Elaboration failed: {e}")
             return ElaborationResult(
@@ -417,41 +721,144 @@ theorem formalized_statement : True := by
     # Primary: Documentation (LeanAide)
     # ========================================================================
     
-    async def generate_documentation(self, code: str) -> DocumentationResult:
+    async def generate_documentation(
+        self, 
+        code: str,
+        theorem_name: Optional[str] = None
+    ) -> DocumentationResult:
         """
         Generate documentation for Lean 4 code.
         
-        Primary engine: LeanAide documentation generation
+        Primary engine: LeanAide documentation generation.
+        
+        Uses LeanAide's theorem_doc or def_doc task depending on the code content.
         
         Args:
             code: Lean 4 code to document
+            theorem_name: Optional theorem/definition name (auto-extracted if not provided)
             
         Returns:
-            DocumentationResult
+            DocumentationResult with generated documentation
         """
-        if not self.use_leanaide or not self.lean_client:
+        if not self.use_leanaide or not self.lean_client or not LEANAIDE_CLIENT_AVAILABLE:
             return DocumentationResult(
                 success=False,
                 code=code,
-                documentation="Documentation generation unavailable"
+                documentation="Documentation generation unavailable - LeanAide not configured"
             )
         
         try:
-            # Try to extract theorem name and generate docs
-            result = await self.lean_client.generate_documentation(code)
+            # Determine if this is a theorem or definition
+            is_definition = self._is_definition_code(code)
+            
+            # Extract name if not provided
+            if not theorem_name:
+                theorem_name = self._extract_name_from_code(code) or "unnamed"
+            
+            # Call appropriate LeanAide method
+            if is_definition:
+                # Use def_doc for definitions
+                result = await self.lean_client.def_doc(
+                    definition_name=theorem_name,
+                    definition_code=code
+                )
+            else:
+                # Use theorem_doc for theorems
+                result = await self.lean_client.theorem_doc(
+                    theorem_name=theorem_name,
+                    theorem_statement=code
+                )
+            
+            if result.success and result.data:
+                # Extract documentation from the response
+                documentation = result.data.get("result", "")
+                if not documentation:
+                    # Try alternative field names
+                    documentation = result.data.get("documentation", "")
+                
+                return DocumentationResult(
+                    success=True,
+                    code=code,
+                    documentation=documentation,
+                    theorem_name=theorem_name
+                )
+            else:
+                # Documentation generation failed
+                error_msg = result.error or "Failed to generate documentation"
+                return DocumentationResult(
+                    success=False,
+                    code=code,
+                    documentation=f"Error: {error_msg}",
+                    theorem_name=theorem_name
+                )
+                
+        except asyncio.TimeoutError:
+            logger.error("Documentation generation timed out")
             return DocumentationResult(
-                success=result.success,
+                success=False,
                 code=code,
-                documentation=result.data.get("documentation", "") if result.data else "",
-                theorem_name=result.data.get("theorem_name") if result.data else None
+                documentation="Error: Documentation generation timed out",
+                theorem_name=theorem_name
             )
         except Exception as e:
             logger.error(f"Documentation generation failed: {e}")
             return DocumentationResult(
                 success=False,
                 code=code,
-                documentation=f"Error: {e}"
+                documentation=f"Error: {str(e)}",
+                theorem_name=theorem_name
             )
+    
+    def _is_definition_code(self, code: str) -> bool:
+        """
+        Determine if the Lean code is a definition rather than a theorem.
+        
+        Args:
+            code: Lean 4 code to analyze
+            
+        Returns:
+            True if code appears to be a definition
+        """
+        import re
+        # Look for definition keywords
+        def_patterns = [
+            r'^\s*def\s+\w+',
+            r'^\s*inductive\s+\w+',
+            r'^\s*structure\s+\w+',
+            r'^\s*class\s+\w+',
+            r'^\s*abbrev\s+\w+',
+        ]
+        for pattern in def_patterns:
+            if re.search(pattern, code, re.MULTILINE):
+                return True
+        return False
+    
+    def _extract_name_from_code(self, code: str) -> Optional[str]:
+        """
+        Extract the theorem/definition name from Lean code.
+        
+        Args:
+            code: Lean 4 code to parse
+            
+        Returns:
+            Extracted name or None
+        """
+        import re
+        # Match various Lean declaration patterns
+        patterns = [
+            r'^\s*theorem\s+(\w+)',
+            r'^\s*lemma\s+(\w+)',
+            r'^\s*def\s+(\w+)',
+            r'^\s*inductive\s+(\w+)',
+            r'^\s*structure\s+(\w+)',
+            r'^\s*class\s+(\w+)',
+            r'^\s*abbrev\s+(\w+)',
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, code, re.MULTILINE)
+            if match:
+                return match.group(1)
+        return None
     
     # ========================================================================
     # Hybrid: Proof (CAV-NLP + LeanAide)

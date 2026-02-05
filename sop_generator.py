@@ -250,17 +250,39 @@ class StandardOperatingProcedure:
         return "".join(md)
 
     def _group_protocols(self) -> List[Tuple[str, List[SOPStep]]]:
-        """Group steps into phases"""
-        phases = {}
-        current_phase = "General Protocol"
+        """Group steps into phases intelligently based on content and sequence"""
+        phases = {
+            "Preparation Phase": [],
+            "Execution Phase": [],
+            "Cleanup & Documentation Phase": []
+        }
+        
+        total_steps = len(self.protocols)
+        if total_steps == 0:
+            return []
 
-        for step in self.protocols:
-            # Could infer phases from step numbering or step content
-            if current_phase not in phases:
-                phases[current_phase] = []
-            phases[current_phase].append(step)
+        for i, step in enumerate(self.protocols):
+            content = step.action.lower()
+            
+            # Heuristics for phase assignment
+            is_prep = any(word in content for word in ["prepare", "setup", "clean", "calibrate", "verify", "check", "initialize", "warmup"])
+            is_cleanup = any(word in content for word in ["cleanup", "dispose", "record", "shutdown", "store", "document", "finalize"])
+            
+            # Use heuristics combined with position
+            if i < total_steps * 0.2 or (is_prep and i < total_steps * 0.5):
+                phases["Preparation Phase"].append(step)
+            elif i > total_steps * 0.8 or (is_cleanup and i > total_steps * 0.5):
+                phases["Cleanup & Documentation Phase"].append(step)
+            else:
+                phases["Execution Phase"].append(step)
 
-        return list(phases.items())
+        # Return non-empty phases in order
+        result = []
+        for name in ["Preparation Phase", "Execution Phase", "Cleanup & Documentation Phase"]:
+            if phases[name]:
+                result.append((name, phases[name]))
+        
+        return result
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
