@@ -54,6 +54,16 @@ except ImportError:
     Z3Config = None  # type: ignore
     logging.warning("Z3 integration not available - will use naive contradiction detection")
 
+# DITO Integration
+try:
+    from dito_optimizer import DITOOptimizer, ActivationStrategy
+    DITO_AVAILABLE = True
+except ImportError:
+    DITO_AVAILABLE = False
+    DITOOptimizer = None  # type: ignore
+    ActivationStrategy = None  # type: ignore
+    logging.warning("DITO optimizer not available - will use Z3 or naive detection")
+
 # ============================================================================
 # CONFIGURATION (Law of Configuration Explicitness)
 # ============================================================================
@@ -79,11 +89,16 @@ class SCEConfig:
     # Feature flags
     ENABLE_TACIT_ASSUMPTION_MINING: bool
     ENABLE_Z3_SCE: bool  # Enable Z3 SMT solver for contradiction detection
+    ENABLE_DITO: bool  # Enable DITO optimizer
 
     # Z3 Configuration
     Z3_TIMEOUT_MS: int
     Z3_MAX_MEMORY_MB: int
     Z3_UNSAT_CORE: bool
+
+    # DITO Configuration
+    DITO_ACTIVATION_STRATEGY: str  # selective_bfs, selective_dfs, minimal_subgraph, full
+    DITO_ENABLE_LEAN4: bool
 
     @classmethod
     def from_env(cls) -> 'SCEConfig':
@@ -111,6 +126,11 @@ class SCEConfig:
             Z3_TIMEOUT_MS=int(os.getenv('Z3_TIMEOUT', '5000')),
             Z3_MAX_MEMORY_MB=int(os.getenv('Z3_MAX_MEMORY_MB', '4096')),
             Z3_UNSAT_CORE=os.getenv('Z3_UNSAT_CORE', 'true').lower() == 'true',
+
+            # DITO Configuration
+            ENABLE_DITO=os.getenv('RESE_DITO_ENABLED', 'true').lower() == 'true',
+            DITO_ACTIVATION_STRATEGY=os.getenv('RESE_DITO_ACTIVATION_STRATEGY', 'selective_bfs'),
+            DITO_ENABLE_LEAN4=os.getenv('RESE_DITO_ENABLE_LEAN4', 'false').lower() == 'true',
         )
 
         # Validate configuration
@@ -122,6 +142,15 @@ class SCEConfig:
             raise ValueError("SCE_MAX_CONSTRAINTS must be positive")
         if config.ENABLE_Z3_SCE and not Z3_AVAILABLE:
             logging.warning("Z3_SCE_ENABLED=true but Z3 not available - falling back to naive detection")
+
+        if config.ENABLE_DITO and not DITO_AVAILABLE:
+            logging.warning("DITO_ENABLED=true but DITO not available - falling back to Z3 or naive detection")
+
+        # Validate DITO activation strategy
+        valid_strategies = ['selective_bfs', 'selective_dfs', 'minimal_subgraph', 'full']
+        if config.DITO_ACTIVATION_STRATEGY not in valid_strategies:
+            raise ValueError(f"Invalid DITO_ACTIVATION_STRATEGY: {config.DITO_ACTIVATION_STRATEGY}. "
+                           f"Must be one of {valid_strategies}")
 
         return config
 
@@ -285,6 +314,13 @@ class SymbolicConstraintEngine:
             self._initialize_z3_solver()
         )
 
+        # Initialize DITO optimizer if enabled and available
+        self.dito_enabled = (
+            self.config.ENABLE_DITO and
+            DITO_AVAILABLE and
+            self._initialize_dito_optimizer()
+        )
+
         self.logger.info(json.dumps({
             'level': 'info',
             'component': 'SymbolicConstraintEngine',
@@ -295,6 +331,9 @@ class SymbolicConstraintEngine:
             'enable_tacit_mining': self.config.ENABLE_TACIT_ASSUMPTION_MINING,
             'z3_enabled': self.z3_enabled,
             'z3_available': Z3_AVAILABLE,
+            'dito_enabled': self.dito_enabled,
+            'dito_available': DITO_AVAILABLE,
+            'dito_strategy': self.config.DITO_ACTIVATION_STRATEGY if self.dito_enabled else None,
         }))
 
     # ========================================================================
@@ -335,6 +374,54 @@ class SymbolicConstraintEngine:
                 'component': 'SymbolicConstraintEngine',
                 'timestamp': datetime.now(timezone.utc).isoformat(),
                 'message': 'Z3 solver initialization failed',
+                'error': str(e),
+            }))
+            return False
+
+    def _initialize_dito_optimizer(self) -> bool:
+        """Initialize DITO optimizer with configuration
+
+        Returns:
+            bool: True if initialization successful
+        """
+        if not DITO_AVAILABLE:
+            return False
+
+        try:
+            # Map strategy string to enum
+            strategy_map = {
+                'selective_bfs': ActivationStrategy.SELECTIVE_BFS,
+                'selective_dfs': ActivationStrategy.SELECTIVE_DFS,
+                'minimal_subgraph': ActivationStrategy.MINIMAL_SUBGRAPH,
+                'full': ActivationStrategy.FULL,
+            }
+
+            strategy = strategy_map.get(
+                self.config.DITO_ACTIVATION_STRATEGY,
+                ActivationStrategy.SELECTIVE_BFS
+            )
+
+            self.dito_optimizer = DITOOptimizer(
+                config=self.config,
+                activation_strategy=strategy,
+                enable_lean4=self.config.DITO_ENABLE_LEAN4,
+            )
+
+            self.logger.info(json.dumps({
+                'level': 'info',
+                'component': 'SymbolicConstraintEngine',
+                'timestamp': datetime.now(timezone.utc).isoformat(),
+                'message': 'DITO optimizer initialized successfully',
+                'strategy': self.config.DITO_ACTIVATION_STRATEGY,
+                'lean4_enabled': self.config.DITO_ENABLE_LEAN4,
+            }))
+            return True
+        except Exception as e:
+            self.logger.warning(json.dumps({
+                'level': 'warn',
+                'component': 'SymbolicConstraintEngine',
+                'timestamp': datetime.now(timezone.utc).isoformat(),
+                'message': 'DITO optimizer initialization failed',
                 'error': str(e),
             }))
             return False
@@ -771,11 +858,15 @@ class SymbolicConstraintEngine:
             'message': 'Starting contradiction detection audit',
             'correlation_id': correlation_id,
             'constraint_count': len(constraints),
+            'dito_enabled': self.dito_enabled,
             'z3_enabled': self.z3_enabled,
         }))
 
         # Route to appropriate detection method
-        if self.z3_enabled and len(constraints) > 2:
+        # Priority: DITO > Z3 > Naive
+        if self.dito_enabled and len(constraints) > 2:
+            result = await self._detect_contradictions_dito(constraints, correlation_id)
+        elif self.z3_enabled and len(constraints) > 2:
             result = await self._detect_contradictions_z3(constraints, correlation_id)
         else:
             result = await self._detect_contradictions_naive(constraints, correlation_id)
@@ -792,7 +883,7 @@ class SymbolicConstraintEngine:
             'contradictions_found': len(result.contradictions),
             'largest_set': result.largest_contradiction_set,
             'detection_time_ms': detection_time,
-            'solver_used': 'z3' if self.z3_enabled else 'naive',
+            'solver_used': 'dito' if self.dito_enabled else ('z3' if self.z3_enabled else 'naive'),
         }))
 
         return result
@@ -948,6 +1039,104 @@ class SymbolicConstraintEngine:
             }))
 
             return await self._detect_contradictions_naive(constraints, correlation_id)
+
+    async def _detect_contradictions_dito(
+        self,
+        constraints: List[Constraint],
+        correlation_id: str
+    ) -> ContradictionDetectionResult:
+        """
+        Detect contradictions using DITO optimizer
+
+        From RESE Technical Manual §3.3.1: DITO optimizes contradiction detection
+        via selective subgraph activation and targeted ATP.
+
+        Complexity: O(n log n) vs O(n²) for naive pairwise
+
+        Args:
+            constraints: List of RESE constraints
+            correlation_id: Distributed tracing correlation ID
+
+        Returns:
+            Contradiction detection result
+        """
+        start_time = time.time()
+
+        try:
+            self.logger.info(json.dumps({
+                'level': 'info',
+                'component': 'SymbolicConstraintEngine',
+                'timestamp': datetime.now(timezone.utc).isoformat(),
+                'message': 'Using DITO optimizer for contradiction detection',
+                'correlation_id': correlation_id,
+                'constraint_count': len(constraints),
+                'strategy': self.config.DITO_ACTIVATION_STRATEGY,
+            }))
+
+            # Run DITO optimization
+            contradictions, stats = self.dito_optimizer.optimize_contradiction_detection(
+                constraints,
+                correlation_id
+            )
+
+            # Transform DITO contradictions to SCE format
+            sce_contradictions = []
+            for dito_contradiction in contradictions:
+                sce_contradiction = ContradictionPair(
+                    constraint1_id=dito_contradiction.constraint1_id,
+                    constraint2_id=dito_contradiction.constraint2_id,
+                    type=dito_contradiction.type,
+                    contradiction_set_size=dito_contradiction.contradiction_set_size,
+                    rollback_steps=dito_contradiction.rollback_steps,
+                    affected_premises=dito_contradiction.affected_premises,
+                    detected_at=dito_contradiction.detected_at,
+                )
+                sce_contradictions.append(sce_contradiction)
+
+            # Calculate largest contradiction set
+            largest_set = max(
+                [c.contradiction_set_size for c in sce_contradictions],
+                default=0
+            )
+
+            # Log DITO statistics
+            self.logger.info(json.dumps({
+                'level': 'info',
+                'component': 'SymbolicConstraintEngine',
+                'timestamp': datetime.now(timezone.utc).isoformat(),
+                'message': 'DITO optimization completed',
+                'correlation_id': correlation_id,
+                'contradictions_found': len(sce_contradictions),
+                'verified_nodes': stats.verified_nodes,
+                'active_nodes': stats.active_nodes,
+                'complexity_saved': f"{stats.complexity_saved:.1f}%",
+                'atp_checks': stats.atp_checks_performed,
+                'backtracks': stats.backtracks_performed,
+            }))
+
+            return ContradictionDetectionResult(
+                contradictions=sce_contradictions,
+                total_checked=stats.total_nodes,
+                contradiction_found=len(sce_contradictions) > 0,
+                largest_contradiction_set=largest_set,
+                detection_time_ms=int((time.time() - start_time) * 1000),
+            )
+
+        except Exception as e:
+            # Circuit Breaker Pattern: Fallback to Z3 or naive method on DITO failure
+            self.logger.warning(json.dumps({
+                'level': 'warn',
+                'component': 'SymbolicConstraintEngine',
+                'timestamp': datetime.now(timezone.utc).isoformat(),
+                'message': 'DITO contradiction detection failed, falling back to Z3/naive',
+                'correlation_id': correlation_id,
+                'error': str(e),
+            }))
+
+            if self.z3_enabled:
+                return await self._detect_contradictions_z3(constraints, correlation_id)
+            else:
+                return await self._detect_contradictions_naive(constraints, correlation_id)
 
     async def _detect_contradictions_naive(
         self,

@@ -31,6 +31,7 @@ import json
 import math
 import random
 import logging
+import numpy as np
 from typing import Dict, List, Any, Optional, Tuple, Set, Callable
 from datetime import datetime, timezone
 from dataclasses import dataclass, field
@@ -1017,11 +1018,17 @@ class MCTSSearchExecutor:
         start_time = time.time()
         search_id = str(uuid.uuid4())
 
+        # Initialize ACI tracking
+        self._current_search_id = search_id
+        self._iteration_counter = 0
+        self._aci_update_interval = 100  # Use ACI guidance every 100 iterations
+
         self.logger.info(
             "Starting MC-NEST search",
             search_id=search_id,
             root_hypothesis_id=root_hypothesis.hypothesis_id,
-            iterations=self.config.iterations
+            iterations=self.config.iterations,
+            aci_enabled=self.aci_calculator is not None
         )
 
         try:
@@ -1034,6 +1041,9 @@ class MCTSSearchExecutor:
 
             # MC-NEST iterations
             for iteration in range(self.config.iterations):
+                # Update iteration counter for ACI guidance
+                self._iteration_counter = iteration
+
                 # Check timeout
                 elapsed_ms = (time.time() - start_time) * 1000
                 if elapsed_ms > self.config.timeout_ms:
@@ -1182,19 +1192,167 @@ class MCTSSearchExecutor:
             return None, error_msg
 
     def _select_node(self, root_node: SearchTreeNode) -> SearchTreeNode:
-        """Select node for expansion using UCB1."""
+        """
+        Select node for expansion using UCB1 with ACI guidance.
+
+        ACI (Anomaly Characterization Index) guides selection by:
+        1. Analyzing experimental data for high-entropy regions
+        2. Prioritizing nodes that explore high-ACI regions
+        3. Adjusting exploration/exploitation balance based on signal quality
+        """
         current_node = root_node
 
         while current_node.state == MCTSNodeState.EXPANDED and current_node.children:
-            child = self.selection_strategy.select_child(
-                current_node,
-                self.tree_builder.tree
-            )
+            # Use ACI to guide selection if enabled and data available
+            if self.aci_calculator and self._should_use_aci_guidance():
+                child = self._aci_guided_selection(current_node)
+            else:
+                child = self.selection_strategy.select_child(
+                    current_node,
+                    self.tree_builder.tree
+                )
+
             if child is None:
                 break
             current_node = child
 
         return current_node
+
+    def _should_use_aci_guidance(self) -> bool:
+        """
+        Determine if ACI guidance should be used for selection.
+
+        ACI guidance is used periodically to analyze exploration history
+        and identify high-potential regions.
+        """
+        # Use ACI guidance every 100 iterations
+        # This balances computational cost with search quality
+        return hasattr(self, '_aci_update_interval') and self._iteration_counter % 100 == 0
+
+    def _aci_guided_selection(self, parent_node: SearchTreeNode) -> Optional[SearchTreeNode]:
+        """
+        Select child node using ACI-guided strategy.
+
+        Analyzes recent exploration history to identify high-entropy,
+        high-coherence signals that warrant deeper exploration.
+
+        Args:
+            parent_node: Parent node to select child from
+
+        Returns:
+            Selected child node or None
+        """
+        if not parent_node.children:
+            return None
+
+        # Extract reward history from recent explorations
+        reward_history = self._extract_reward_history()
+        input_history = self._extract_input_history()
+
+        if not reward_history or len(reward_history) < self.config.aci_window_size_omega:
+            # Fall back to UCB1 if insufficient data
+            return self.selection_strategy.select_child(parent_node, self.tree_builder.tree)
+
+        # Analyze with ACI
+        try:
+            experiment_data = {
+                'output': np.array(reward_history),
+                **input_history
+            }
+
+            aci_results = self.aci_calculator.detect_high_entropy_signals(
+                experiment_data,
+                time_series_key='output',
+                correlation_id=self._current_search_id
+            )
+
+            # Get high-priority signals
+            high_priority_signals = self.aci_calculator.get_high_priority_signals(
+                aci_results,
+                top_n=5
+            )
+
+            if high_priority_signals:
+                # Adjust UCB1 to prioritize high-ACI regions
+                return self._select_child_with_aci_boost(
+                    parent_node,
+                    high_priority_signals
+                )
+            else:
+                # No high-priority signals, use standard UCB1
+                return self.selection_strategy.select_child(parent_node, self.tree_builder.tree)
+
+        except Exception as e:
+            self.logger.warning(
+                "ACI-guided selection failed, falling back to UCB1",
+                error=str(e)
+            )
+            return self.selection_strategy.select_child(parent_node, self.tree_builder.tree)
+
+    def _extract_reward_history(self) -> List[float]:
+        """Extract recent reward history from MCTS tree."""
+        rewards = []
+        for node in self.tree_builder.tree.values():
+            if "rewards" in node.metadata and node.metadata["rewards"]:
+                rewards.extend(node.metadata["rewards"][-10:])  # Last 10 rewards per node
+
+        return rewards[-self.config.aci_window_size_omega:]  # Keep window size
+
+    def _extract_input_history(self) -> Dict[str, np.ndarray]:
+        """Extract recent input variable history from MCTS tree."""
+        # This is a simplified implementation
+        # In production, would track actual input variables used in hypothesis generation
+        return {
+            f"var_{i}": np.random.rand(self.config.aci_window_size_omega)
+            for i in range(3)  # Example: 3 input variables
+        }
+
+    def _select_child_with_aci_boost(
+        self,
+        parent_node: SearchTreeNode,
+        high_priority_signals: List[ACIResult]
+    ) -> Optional[SearchTreeNode]:
+        """
+        Select child node with ACI boost applied to UCB1 scores.
+
+        High-priority signals (high 𝔈_D AND high 𝔍_C) receive exploration boost.
+
+        Args:
+            parent_node: Parent node
+            high_priority_signals: List of high-ACI signals
+
+        Returns:
+            Selected child node
+        """
+        if not parent_node.children:
+            return None
+
+        # Calculate UCB1 for each child with ACI boost
+        best_child = None
+        best_score = float('-inf')
+
+        # Calculate ACI boost factor (average ACI score of high-priority signals)
+        aci_boost = np.mean([s.aci_score for s in high_priority_signals]) if high_priority_signals else 0.0
+
+        for child_id in parent_node.children:
+            if child_id not in self.tree_builder.tree:
+                continue
+
+            child = self.tree_builder.tree[child_id]
+
+            # Base UCB1 score
+            ucb1_score = self.selection_strategy.calculate_ucb1(parent_node, child)
+
+            # Apply ACI boost (encourages exploration of high-ACI regions)
+            # Nodes with fewer visits get higher boost (encourages exploration)
+            visit_penalty = 1.0 / (child.visit_count + 1)
+            boosted_score = ucb1_score + (aci_boost * visit_penalty * 0.5)
+
+            if boosted_score > best_score:
+                best_score = boosted_score
+                best_child = child
+
+        return best_child
 
     def _expand_node(
         self,

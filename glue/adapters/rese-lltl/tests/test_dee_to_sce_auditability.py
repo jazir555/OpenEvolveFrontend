@@ -24,7 +24,7 @@ from unittest.mock import Mock, AsyncMock, patch
 import uuid
 
 # Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../src'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../lib'))
 
 LLTL_AVAILABLE = False

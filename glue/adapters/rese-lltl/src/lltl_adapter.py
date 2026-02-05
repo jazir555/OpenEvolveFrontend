@@ -108,61 +108,84 @@ logger = AdapterLogger()
 
 
 # ============================================================================
-# FORMAL COMMITMENT (DEE → SCE)
+# IMPORT FORMAL COMMITMENTS MODULES
 # ============================================================================
 
-@dataclass
-class FormalCommitment:
-    """
-    A formal propositional commitment for SCE integration
+# Import confidence tracker and formal commitments modules
+try:
+    # Add src directory to path for imports
+    src_path = Path(__file__).parent
+    sys.path.insert(0, str(src_path))
 
-    Represents a statistical result as a formal logical proposition
-    that can be integrated into the SCE logic graph for contradiction
-    detection and auditability.
+    from confidence_tracker import (
+        ConfidenceTracker,
+        ConfidenceThreshold,
+        ConfidenceLevel
+    )
+    from formal_commitments import (
+        FormalCommitmentsHandler,
+        FormalCommitment,
+        CommitmentStatus,
+        ContradictionReport
+    )
+    CONFIDENCE_MODULES_AVAILABLE = True
+except ImportError as e:
+    CONFIDENCE_MODULES_AVAILABLE = False
+    CONFIDENCE_IMPORT_ERROR = str(e)
 
-    From RESE Technical Manual §2.2:
-    "DEE → SCE (Auditability): The DEE's statistical results are converted
-    into auditable Formal Propositional Commitments by assigning explicit
-    Confidence Thresholds that the SCE can integrate into its logic graph
-    for contradiction detection."
-    """
-    proposition_id: str
-    statement: str  # Formal logical statement
-    confidence_threshold: float  # 0-1, minimum confidence to accept
-    statistical_evidence: Dict[str, float]  # p-value, confidence interval, etc.
-    source_hypothesis: str  # ID of hypothesis
-    derivation_method: str  # How this was derived (e.g., "mcts_validation")
-    timestamp: str  # UTC ISO-8601
-    correlation_id: str
-    lean4_theorem: Optional[str] = None  # Lean 4 formalization (future)
-
-    def to_sce_constraint(self) -> Dict[str, Any]:
+    # Fallback: Define basic FormalCommitment class for backward compatibility
+    @dataclass
+    class FormalCommitment:
         """
-        Convert to SCE constraint format
+        A formal propositional commitment for SCE integration
 
-        Returns constraint dict that SCE can integrate into logic graph
+        Represents a statistical result as a formal logical proposition
+        that can be integrated into the SCE logic graph for contradiction
+        detection and auditability.
+
+        From RESE Technical Manual §2.2:
+        "DEE → SCE (Auditability): The DEE's statistical results are converted
+        into auditable Formal Propositional Commitments by assigning explicit
+        Confidence Thresholds that the SCE can integrate into its logic graph
+        for contradiction detection."
         """
-        return {
-            "constraint_id": self.proposition_id,
-            "formal_statement": self.statement,
-            "confidence": self.confidence_threshold,
-            "evidence": self.statistical_evidence,
-            "type": "statistical_commitment"
-        }
+        proposition_id: str
+        statement: str  # Formal logical statement
+        confidence_threshold: float  # 0-1, minimum confidence to accept
+        statistical_evidence: Dict[str, float]  # p-value, confidence interval, etc.
+        source_hypothesis: str  # ID of hypothesis
+        derivation_method: str  # How this was derived (e.g., "mcts_validation")
+        timestamp: str  # UTC ISO-8601
+        correlation_id: str
+        lean4_theorem: Optional[str] = None  # Lean 4 formalization (future)
 
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for serialization"""
-        return {
-            "proposition_id": self.proposition_id,
-            "statement": self.statement,
-            "confidence_threshold": self.confidence_threshold,
-            "statistical_evidence": self.statistical_evidence,
-            "source_hypothesis": self.source_hypothesis,
-            "derivation_method": self.derivation_method,
-            "timestamp": self.timestamp,
-            "correlation_id": self.correlation_id,
-            "lean4_theorem": self.lean4_theorem
-        }
+        def to_sce_constraint(self) -> Dict[str, Any]:
+            """
+            Convert to SCE constraint format
+
+            Returns constraint dict that SCE can integrate into logic graph
+            """
+            return {
+                "constraint_id": self.proposition_id,
+                "formal_statement": self.statement,
+                "confidence": self.confidence_threshold,
+                "evidence": self.statistical_evidence,
+                "type": "statistical_commitment"
+            }
+
+        def to_dict(self) -> Dict[str, Any]:
+            """Convert to dictionary for serialization"""
+            return {
+                "proposition_id": self.proposition_id,
+                "statement": self.statement,
+                "confidence_threshold": self.confidence_threshold,
+                "statistical_evidence": self.statistical_evidence,
+                "source_hypothesis": self.source_hypothesis,
+                "derivation_method": self.derivation_method,
+                "timestamp": self.timestamp,
+                "correlation_id": self.correlation_id,
+                "lean4_theorem": self.lean4_theorem
+            }
 
 
 class LLTLAdapter:
@@ -198,11 +221,35 @@ class LLTLAdapter:
         )
 
         # Initialize auditability components for DEE → SCE
-        self.committed_propositions: Dict[str, FormalCommitment] = {}
         self.auditability_enabled = os.getenv("LLTL_AUDITABILITY_ENABLED", "true").lower() == "true"
         self.default_confidence_threshold = float(os.getenv("LLTL_CONFIDENCE_THRESHOLD_DEFAULT", "0.75"))
         self.significance_level = float(os.getenv("LLTL_SIGNIFICANCE_LEVEL", "0.05"))
         self.audit_timeout_ms = int(os.getenv("LLTL_AUDIT_TIMEOUT_MS", "5000"))
+
+        # Initialize confidence tracker and formal commitments handler
+        if CONFIDENCE_MODULES_AVAILABLE:
+            try:
+                self.confidence_tracker = ConfidenceTracker(config=self.config.get("confidence", {}))
+                self.commitments_handler = FormalCommitmentsHandler(
+                    confidence_tracker=self.confidence_tracker,
+                    config=self.config.get("commitments", {})
+                )
+                logger.log("INFO", "Confidence tracker and commitments handler initialized",
+                          operation="initialize",
+                          confidence_tracker_available=True)
+            except Exception as e:
+                logger.log("WARNING", f"Failed to initialize confidence modules: {e}",
+                          operation="initialize")
+                self.confidence_tracker = None
+                self.commitments_handler = None
+        else:
+            self.confidence_tracker = None
+            self.commitments_handler = None
+            logger.log("WARNING", f"Confidence modules not available: {CONFIDENCE_IMPORT_ERROR if not CONFIDENCE_MODULES_AVAILABLE else 'Unknown'}",
+                      operation="initialize")
+
+        # Legacy: committed propositions for backward compatibility
+        self.committed_propositions: Dict[str, FormalCommitment] = {}
 
         # Initialize Z3 for contradiction detection (Priority 5 MEDIUM integration)
         self.z3_enabled = os.getenv("RESE_Z3_LLTL_ENABLED", "true").lower() == "true"
@@ -527,10 +574,41 @@ class LLTLAdapter:
                 "available": Z3_AVAILABLE,
                 "solver_initialized": self.z3_solver is not None,
                 "timeout_ms": self.z3_timeout_ms
+            },
+            "confidence_tracking": {
+                "modules_available": CONFIDENCE_MODULES_AVAILABLE,
+                "tracker_available": self.confidence_tracker is not None,
+                "handler_available": self.commitments_handler is not None
             }
         }
 
+        # Add confidence tracker stats if available
+        if self.confidence_tracker:
+            stats["confidence_tracker"] = self.confidence_tracker.get_stats()
+
+        # Add commitments handler stats if available
+        if self.commitments_handler:
+            stats["commitments_handler"] = self.commitments_handler.get_stats()
+
         return stats
+
+    def get_confidence_tracker(self) -> Optional[Any]:
+        """
+        Get the confidence tracker instance.
+
+        Returns:
+            ConfidenceTracker instance or None if not available
+        """
+        return self.confidence_tracker
+
+    def get_commitments_handler(self) -> Optional[Any]:
+        """
+        Get the formal commitments handler instance.
+
+        Returns:
+            FormalCommitmentsHandler instance or None if not available
+        """
+        return self.commitments_handler
 
     def health_check(self) -> Tuple[bool, str]:
         """
@@ -613,69 +691,43 @@ class LLTLAdapter:
         correlation_id = correlation_id or str(uuid.uuid4())
 
         try:
-            # Validate required fields
-            required_fields = ['hypothesis_statement', 'confidence']
-            missing_fields = [f for f in required_fields if f not in statistical_result]
-            if missing_fields:
-                return None, f"Missing required fields: {missing_fields}"
+            # Use new modular components if available
+            if self.commitments_handler is not None:
+                commitment, error = self.commitments_handler.create_commitment(
+                    statistical_result=statistical_result,
+                    source_hypothesis=source_hypothesis,
+                    derivation_method=derivation_method,
+                    correlation_id=correlation_id
+                )
 
-            # 1. Extract statistical evidence
-            confidence = float(statistical_result.get('confidence', 0.0))
-            p_value = float(statistical_result.get('p_value', 1.0))
-            confidence_interval = statistical_result.get('confidence_interval', (0.0, 1.0))
+                if error:
+                    logger.log("ERROR", f"Failed to create commitment via handler: {error}",
+                              correlation_id=correlation_id,
+                              operation="statistical_to_formal")
+                    return None, error
 
-            # Handle confidence_interval as tuple or list
-            if isinstance(confidence_interval, (list, tuple)) and len(confidence_interval) >= 2:
-                ci_lower, ci_upper = float(confidence_interval[0]), float(confidence_interval[1])
-            else:
-                ci_lower, ci_upper = 0.0, 1.0
+                # Store in legacy dict for backward compatibility
+                self.committed_propositions[commitment.proposition_id] = commitment
 
-            # 2. Determine confidence threshold
-            # High confidence = lower threshold (more certain)
-            # Low confidence = higher threshold (more skeptical)
-            confidence_threshold = self._calculate_confidence_threshold(confidence)
+                duration_ms = (time.time() - start_time) * 1000
+                logger.log("INFO", "Statistical result converted to formal commitment (via handler)",
+                          correlation_id=correlation_id,
+                          operation="statistical_to_formal",
+                          proposition_id=commitment.proposition_id,
+                          confidence=commitment.statistical_evidence.get('confidence'),
+                          threshold=commitment.confidence_threshold,
+                          duration_ms=duration_ms)
 
-            # 3. Construct formal logical statement
-            hypothesis_stmt = str(statistical_result['hypothesis_statement'])
+                return commitment, None
 
-            formal_statement = self._construct_formal_statement(
-                hypothesis=hypothesis_stmt,
-                confidence=confidence,
-                p_value=p_value,
-                confidence_interval=(ci_lower, ci_upper)
-            )
-
-            # 4. Create formal commitment
-            commitment = FormalCommitment(
-                proposition_id=str(uuid.uuid4()),
-                statement=formal_statement,
-                confidence_threshold=confidence_threshold,
-                statistical_evidence={
-                    'confidence': confidence,
-                    'p_value': p_value,
-                    'confidence_interval_lower': ci_lower,
-                    'confidence_interval_upper': ci_upper,
-                    'expected_value': float(statistical_result.get('expected_value', 0.0))
-                },
+            # Fallback: Legacy implementation
+            return self._statistical_to_formal_legacy(
+                statistical_result=statistical_result,
                 source_hypothesis=source_hypothesis,
                 derivation_method=derivation_method,
-                timestamp=datetime.now(timezone.utc).isoformat(),
-                correlation_id=correlation_id
+                correlation_id=correlation_id,
+                start_time=start_time
             )
-
-            # 5. Store for auditability (Law of Idempotency)
-            self.committed_propositions[commitment.proposition_id] = commitment
-
-            duration_ms = (time.time() - start_time) * 1000
-            logger.log("INFO", "Statistical result converted to formal commitment",
-                      correlation_id=correlation_id,
-                      operation="statistical_to_formal",
-                      proposition_id=commitment.proposition_id,
-                      confidence=confidence,
-                      threshold=confidence_threshold,
-                      duration_ms=duration_ms)
-
-            return commitment, None
 
         except Exception as e:
             duration_ms = (time.time() - start_time) * 1000
@@ -685,6 +737,81 @@ class LLTLAdapter:
                       operation="statistical_to_formal",
                       duration_ms=duration_ms)
             return None, error_msg
+
+    def _statistical_to_formal_legacy(
+        self,
+        statistical_result: Dict[str, Union[float, List, Dict, str]],
+        source_hypothesis: str,
+        derivation_method: str,
+        correlation_id: str,
+        start_time: float
+    ) -> Tuple[Optional[FormalCommitment], Optional[str]]:
+        """
+        Legacy implementation of statistical to formal conversion.
+
+        Used when confidence modules are not available.
+        """
+        # Validate required fields
+        required_fields = ['hypothesis_statement', 'confidence']
+        missing_fields = [f for f in required_fields if f not in statistical_result]
+        if missing_fields:
+            return None, f"Missing required fields: {missing_fields}"
+
+        # 1. Extract statistical evidence
+        confidence = float(statistical_result.get('confidence', 0.0))
+        p_value = float(statistical_result.get('p_value', 1.0))
+        confidence_interval = statistical_result.get('confidence_interval', (0.0, 1.0))
+
+        # Handle confidence_interval as tuple or list
+        if isinstance(confidence_interval, (list, tuple)) and len(confidence_interval) >= 2:
+            ci_lower, ci_upper = float(confidence_interval[0]), float(confidence_interval[1])
+        else:
+            ci_lower, ci_upper = 0.0, 1.0
+
+        # 2. Determine confidence threshold
+        confidence_threshold = self._calculate_confidence_threshold(confidence)
+
+        # 3. Construct formal logical statement
+        hypothesis_stmt = str(statistical_result['hypothesis_statement'])
+
+        formal_statement = self._construct_formal_statement(
+            hypothesis=hypothesis_stmt,
+            confidence=confidence,
+            p_value=p_value,
+            confidence_interval=(ci_lower, ci_upper)
+        )
+
+        # 4. Create formal commitment
+        commitment = FormalCommitment(
+            proposition_id=str(uuid.uuid4()),
+            statement=formal_statement,
+            confidence_threshold=confidence_threshold,
+            statistical_evidence={
+                'confidence': confidence,
+                'p_value': p_value,
+                'confidence_interval_lower': ci_lower,
+                'confidence_interval_upper': ci_upper,
+                'expected_value': float(statistical_result.get('expected_value', 0.0))
+            },
+            source_hypothesis=source_hypothesis,
+            derivation_method=derivation_method,
+            timestamp=datetime.now(timezone.utc).isoformat(),
+            correlation_id=correlation_id
+        )
+
+        # 5. Store for auditability (Law of Idempotency)
+        self.committed_propositions[commitment.proposition_id] = commitment
+
+        duration_ms = (time.time() - start_time) * 1000
+        logger.log("INFO", "Statistical result converted to formal commitment (legacy)",
+                  correlation_id=correlation_id,
+                  operation="statistical_to_formal",
+                  proposition_id=commitment.proposition_id,
+                  confidence=confidence,
+                  threshold=confidence_threshold,
+                  duration_ms=duration_ms)
+
+        return commitment, None
 
     def _calculate_confidence_threshold(self, confidence: float) -> float:
         """

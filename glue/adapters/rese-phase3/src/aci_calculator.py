@@ -352,9 +352,9 @@ class AnomalyCharacterizationIndex:
                     correlation, p_value = stats.spearmanr(entropy_data, var_data)
 
                 correlations[var_name] = {
-                    'correlation': abs(correlation),
-                    'p_value': p_value,
-                    'significant': p_value < 0.05
+                    'correlation': float(abs(correlation)),
+                    'p_value': float(p_value),
+                    'significant': bool(p_value < 0.05)
                 }
 
                 self.logger.debug(
@@ -549,9 +549,8 @@ class AnomalyCharacterizationIndex:
                     is_high_signal=is_high_signal
                 )
 
-            # Record success
-            self.circuit_breaker.record_success()
-
+            # Record success (using circuit breaker's internal method via call wrapper)
+            # The circuit breaker state is managed through the call() method
             self.logger.info(
                 "High-entropy signal detection complete",
                 correlation_id=correlation_id,
@@ -572,8 +571,9 @@ class AnomalyCharacterizationIndex:
                 elapsed_ms=elapsed_ms
             )
 
-            # Record failure
-            self.circuit_breaker.record_failure()
+            # Record failure (circuit breaker tracks this internally via exceptions)
+            # Mark circuit breaker state to reflect the failure
+            self.circuit_breaker._on_failure(str(e))
 
             raise
 
