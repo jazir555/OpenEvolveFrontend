@@ -133,106 +133,106 @@ class TestSCEConfig:
         assert sample_sce_config.MAX_CONSTRAINTS == 1000
         assert sample_sce_config.MAX_ITERATIONS == 1000
 
-    def test_config_custom_values(self):
+    def test_config_custom_values(self, monkeypatch):
         """Test custom configuration"""
-        os.environ['SCE_TIMEOUT_MS'] = '10000'
-        os.environ['SCE_MAX_CONSTRAINTS'] = '2000'
+        monkeypatch.setenv('SCE_TIMEOUT_MS', '10000')
+        monkeypatch.setenv('SCE_MAX_CONSTRAINTS', '2000')
         config = SCEConfig.from_env()
         assert config.TIMEOUT_MS == 10000
         assert config.MAX_CONSTRAINTS == 2000
 
-    def test_config_invalid_timeout(self):
+    def test_config_invalid_timeout(self, monkeypatch):
         """Test invalid timeout"""
-        os.environ['SCE_TIMEOUT_MS'] = '-100'
+        monkeypatch.setenv('SCE_TIMEOUT_MS', '-100')
         with pytest.raises(ValueError, match='must be positive'):
             SCEConfig.from_env()
 
-    def test_config_invalid_max_constraints(self):
+    def test_config_invalid_max_constraints(self, monkeypatch):
         """Test invalid max constraints"""
-        os.environ['SCE_MAX_CONSTRAINTS'] = '0'
+        monkeypatch.setenv('SCE_MAX_CONSTRAINTS', '0')
         with pytest.raises(ValueError, match='must be positive'):
             SCEConfig.from_env()
 
-    def test_config_feature_flags(self):
+    def test_config_feature_flags(self, monkeypatch):
         """Test feature flags"""
-        os.environ['SCE_ENABLE_TACIT_MINING'] = 'false'
-        os.environ['SCE_TIMEOUT_MS'] = '5000'
-        os.environ['SCE_MAX_CONSTRAINTS'] = '1000'
-        os.environ['SCE_MAX_ITERATIONS'] = '1000'
-        os.environ['RESE_Z3_SCE_ENABLED'] = 'false'
-        os.environ['RESE_DITO_ENABLED'] = 'false'
-        os.environ['RESE_DITO_ACTIVATION_STRATEGY'] = 'selective_bfs'
+        monkeypatch.setenv('SCE_ENABLE_TACIT_MINING', 'false')
+        monkeypatch.setenv('SCE_TIMEOUT_MS', '5000')
+        monkeypatch.setenv('SCE_MAX_CONSTRAINTS', '1000')
+        monkeypatch.setenv('SCE_MAX_ITERATIONS', '1000')
+        monkeypatch.setenv('RESE_Z3_SCE_ENABLED', 'false')
+        monkeypatch.setenv('RESE_DITO_ENABLED', 'false')
+        monkeypatch.setenv('RESE_DITO_ACTIVATION_STRATEGY', 'selective_bfs')
         config = SCEConfig.from_env()
         assert config.ENABLE_TACIT_ASSUMPTION_MINING is False
 
-    def test_config_z3_settings(self):
+    def test_config_z3_settings(self, monkeypatch):
         """Test Z3 configuration"""
-        os.environ['SCE_TIMEOUT_MS'] = '5000'
-        os.environ['SCE_MAX_CONSTRAINTS'] = '1000'
-        os.environ['SCE_MAX_ITERATIONS'] = '1000'
-        os.environ['SCE_ENABLE_TACIT_MINING'] = 'true'
-        os.environ['RESE_Z3_SCE_ENABLED'] = 'true'
-        os.environ['Z3_TIMEOUT'] = '10000'
-        os.environ['Z3_MAX_MEMORY_MB'] = '8192'
-        os.environ['RESE_DITO_ENABLED'] = 'false'
-        os.environ['RESE_DITO_ACTIVATION_STRATEGY'] = 'selective_bfs'
+        monkeypatch.setenv('SCE_TIMEOUT_MS', '5000')
+        monkeypatch.setenv('SCE_MAX_CONSTRAINTS', '1000')
+        monkeypatch.setenv('SCE_MAX_ITERATIONS', '1000')
+        monkeypatch.setenv('SCE_ENABLE_TACIT_MINING', 'true')
+        monkeypatch.setenv('RESE_Z3_SCE_ENABLED', 'true')
+        monkeypatch.setenv('Z3_TIMEOUT', '10000')
+        monkeypatch.setenv('Z3_MAX_MEMORY_MB', '8192')
+        monkeypatch.setenv('RESE_DITO_ENABLED', 'false')
+        monkeypatch.setenv('RESE_DITO_ACTIVATION_STRATEGY', 'selective_bfs')
         config = SCEConfig.from_env()
         assert config.ENABLE_Z3_SCE is True
         assert config.Z3_TIMEOUT_MS == 10000
         assert config.Z3_MAX_MEMORY_MB == 8192
 
-    def test_config_dito_settings(self):
+    def test_config_dito_settings(self, monkeypatch):
         """Test DITO configuration"""
-        os.environ['SCE_TIMEOUT_MS'] = '5000'
-        os.environ['SCE_MAX_CONSTRAINTS'] = '1000'
-        os.environ['SCE_MAX_ITERATIONS'] = '1000'
-        os.environ['SCE_ENABLE_TACIT_MINING'] = 'true'
-        os.environ['RESE_Z3_SCE_ENABLED'] = 'false'
-        os.environ['RESE_DITO_ENABLED'] = 'true'
-        os.environ['RESE_DITO_ACTIVATION_STRATEGY'] = 'selective_dfs'
-        os.environ['RESE_DITO_ENABLE_LEAN4'] = 'true'
+        monkeypatch.setenv('SCE_TIMEOUT_MS', '5000')
+        monkeypatch.setenv('SCE_MAX_CONSTRAINTS', '1000')
+        monkeypatch.setenv('SCE_MAX_ITERATIONS', '1000')
+        monkeypatch.setenv('SCE_ENABLE_TACIT_MINING', 'true')
+        monkeypatch.setenv('RESE_Z3_SCE_ENABLED', 'false')
+        monkeypatch.setenv('RESE_DITO_ENABLED', 'true')
+        monkeypatch.setenv('RESE_DITO_ACTIVATION_STRATEGY', 'selective_dfs')
+        monkeypatch.setenv('RESE_DITO_ENABLE_LEAN4', 'true')
         config = SCEConfig.from_env()
         assert config.ENABLE_DITO is True
         assert config.DITO_ACTIVATION_STRATEGY == 'selective_dfs'
         assert config.DITO_ENABLE_LEAN4 is True
 
-    def test_config_invalid_dito_strategy(self):
+    def test_config_invalid_dito_strategy(self, monkeypatch):
         """Test invalid DITO strategy"""
-        os.environ['SCE_TIMEOUT_MS'] = '5000'
-        os.environ['SCE_MAX_CONSTRAINTS'] = '1000'
-        os.environ['SCE_MAX_ITERATIONS'] = '1000'
-        os.environ['SCE_ENABLE_TACIT_MINING'] = 'true'
-        os.environ['RESE_Z3_SCE_ENABLED'] = 'false'
-        os.environ['RESE_DITO_ENABLED'] = 'false'
-        os.environ['RESE_DITO_ACTIVATION_STRATEGY'] = 'invalid_strategy'
+        monkeypatch.setenv('SCE_TIMEOUT_MS', '5000')
+        monkeypatch.setenv('SCE_MAX_CONSTRAINTS', '1000')
+        monkeypatch.setenv('SCE_MAX_ITERATIONS', '1000')
+        monkeypatch.setenv('SCE_ENABLE_TACIT_MINING', 'true')
+        monkeypatch.setenv('RESE_Z3_SCE_ENABLED', 'false')
+        monkeypatch.setenv('RESE_DITO_ENABLED', 'false')
+        monkeypatch.setenv('RESE_DITO_ACTIVATION_STRATEGY', 'invalid_strategy')
         with pytest.raises(ValueError, match='Invalid DITO_ACTIVATION_STRATEGY'):
             SCEConfig.from_env()
 
-    def test_config_circuit_breaker_settings(self):
+    def test_config_circuit_breaker_settings(self, monkeypatch):
         """Test circuit breaker configuration"""
-        os.environ['SCE_TIMEOUT_MS'] = '5000'
-        os.environ['SCE_MAX_CONSTRAINTS'] = '1000'
-        os.environ['SCE_MAX_ITERATIONS'] = '1000'
-        os.environ['SCE_ENABLE_TACIT_MINING'] = 'true'
-        os.environ['RESE_Z3_SCE_ENABLED'] = 'false'
-        os.environ['RESE_DITO_ENABLED'] = 'false'
-        os.environ['RESE_DITO_ACTIVATION_STRATEGY'] = 'selective_bfs'
-        os.environ['SCE_CIRCUIT_BREAKER_THRESHOLD'] = '10'
-        os.environ['SCE_CIRCUIT_BREAKER_TIMEOUT_MS'] = '120000'
+        monkeypatch.setenv('SCE_TIMEOUT_MS', '5000')
+        monkeypatch.setenv('SCE_MAX_CONSTRAINTS', '1000')
+        monkeypatch.setenv('SCE_MAX_ITERATIONS', '1000')
+        monkeypatch.setenv('SCE_ENABLE_TACIT_MINING', 'true')
+        monkeypatch.setenv('RESE_Z3_SCE_ENABLED', 'false')
+        monkeypatch.setenv('RESE_DITO_ENABLED', 'false')
+        monkeypatch.setenv('RESE_DITO_ACTIVATION_STRATEGY', 'selective_bfs')
+        monkeypatch.setenv('SCE_CIRCUIT_BREAKER_THRESHOLD', '10')
+        monkeypatch.setenv('SCE_CIRCUIT_BREAKER_TIMEOUT_MS', '120000')
         config = SCEConfig.from_env()
         assert config.CIRCUIT_BREAKER_THRESHOLD == 10
         assert config.CIRCUIT_BREAKER_TIMEOUT_MS == 120000
 
-    def test_config_max_contradiction_set_size(self):
+    def test_config_max_contradiction_set_size(self, monkeypatch):
         """Test max contradiction set size"""
-        os.environ['SCE_TIMEOUT_MS'] = '5000'
-        os.environ['SCE_MAX_CONSTRAINTS'] = '1000'
-        os.environ['SCE_MAX_ITERATIONS'] = '1000'
-        os.environ['SCE_ENABLE_TACIT_MINING'] = 'true'
-        os.environ['RESE_Z3_SCE_ENABLED'] = 'false'
-        os.environ['RESE_DITO_ENABLED'] = 'false'
-        os.environ['RESE_DITO_ACTIVATION_STRATEGY'] = 'selective_bfs'
-        os.environ['SCE_MAX_CONTRADICTION_SET_SIZE'] = '50'
+        monkeypatch.setenv('SCE_TIMEOUT_MS', '5000')
+        monkeypatch.setenv('SCE_MAX_CONSTRAINTS', '1000')
+        monkeypatch.setenv('SCE_MAX_ITERATIONS', '1000')
+        monkeypatch.setenv('SCE_ENABLE_TACIT_MINING', 'true')
+        monkeypatch.setenv('RESE_Z3_SCE_ENABLED', 'false')
+        monkeypatch.setenv('RESE_DITO_ENABLED', 'false')
+        monkeypatch.setenv('RESE_DITO_ACTIVATION_STRATEGY', 'selective_bfs')
+        monkeypatch.setenv('SCE_MAX_CONTRADICTION_SET_SIZE', '50')
         config = SCEConfig.from_env()
         assert config.MAX_CONTRADICTION_SET_SIZE == 50
 

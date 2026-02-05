@@ -97453,6 +97453,3482 @@
           "name": "run_all_tests"
         }
       }
+    },
+    "glue/adapters/rese-sce/tests/test_sce_comprehensive.py": {
+      "hash": "5833057eed46cad2059d83f5ad03fbcbc506a58185f8d5e4b82276c59b34b831",
+      "nodes": [
+        {
+          "id": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::sample_sce_config",
+          "label": "Sample Sce Config",
+          "type": "step",
+          "source": {
+            "file": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py",
+            "line": 68,
+            "function": "sample_sce_config"
+          }
+        },
+        {
+          "id": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::sample_constraints",
+          "label": "Sample Constraints",
+          "type": "step",
+          "source": {
+            "file": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py",
+            "line": 81,
+            "function": "sample_constraints"
+          }
+        },
+        {
+          "id": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::sample_failure_patterns",
+          "label": "Sample Failure Patterns",
+          "type": "step",
+          "source": {
+            "file": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py",
+            "line": 107,
+            "function": "sample_failure_patterns"
+          }
+        },
+        {
+          "id": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::test_config_from_env_defaults",
+          "label": "Test Config From Env Defaults",
+          "type": "step",
+          "source": {
+            "file": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py",
+            "line": 130,
+            "function": "test_config_from_env_defaults"
+          }
+        },
+        {
+          "id": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::test_config_custom_values",
+          "label": "Test Config Custom Values",
+          "type": "step",
+          "source": {
+            "file": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py",
+            "line": 136,
+            "function": "test_config_custom_values"
+          }
+        },
+        {
+          "id": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::ACIT_A",
+          "label": "Acit A",
+          "type": "step",
+          "source": {
+            "file": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py",
+            "line": 367,
+            "function": "ACIT_A"
+          }
+        },
+        {
+          "id": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::==========================",
+          "label": "==========================",
+          "type": "step",
+          "source": {
+            "file": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py",
+            "line": 995,
+            "function": "=========================="
+          }
+        },
+        {
+          "id": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::=10,",
+          "label": "=10,",
+          "type": "step",
+          "source": {
+            "file": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py",
+            "line": 735,
+            "function": "=10,"
+          }
+        },
+        {
+          "id": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::=====================",
+          "label": "=====================",
+          "type": "step",
+          "source": {
+            "file": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py",
+            "line": 744,
+            "function": "====================="
+          }
+        },
+        {
+          "id": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::========================",
+          "label": "========================",
+          "type": "step",
+          "source": {
+            "file": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py",
+            "line": 845,
+            "function": "========================"
+          }
+        },
+        {
+          "id": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::straintCategory.HARD_PARAMETER",
+          "label": "Straint Category.hard Parameter",
+          "type": "step",
+          "source": {
+            "file": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py",
+            "line": 911,
+            "function": "straintCategory.HARD_PARAMETER"
+          }
+        },
+        {
+          "id": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::aintCategory.HARD_PARAMETE",
+          "label": "Aint Category.hard Paramete",
+          "type": "step",
+          "source": {
+            "file": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py",
+            "line": 959,
+            "function": "aintCategory.HARD_PARAMETE"
+          }
+        },
+        {
+          "id": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::ry.HAR",
+          "label": "Ry.har",
+          "type": "step",
+          "source": {
+            "file": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py",
+            "line": 990,
+            "function": "ry.HAR"
+          }
+        }
+      ],
+      "internalEdges": [
+        {
+          "source": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::==========================",
+          "target": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::========================"
+        }
+      ],
+      "timestamp": 1770277494638,
+      "nodeWorkflows": {
+        "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::sample_sce_config": {
+          "id": "workflow_test_sce_comprehensive",
+          "name": "test_sce_comprehensive"
+        },
+        "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::sample_constraints": {
+          "id": "workflow_test_sce_comprehensive",
+          "name": "test_sce_comprehensive"
+        },
+        "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::sample_failure_patterns": {
+          "id": "workflow_test_sce_comprehensive",
+          "name": "test_sce_comprehensive"
+        },
+        "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::test_config_from_env_defaults": {
+          "id": "workflow_test_sce_comprehensive",
+          "name": "test_sce_comprehensive"
+        },
+        "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::test_config_custom_values": {
+          "id": "workflow_test_sce_comprehensive",
+          "name": "test_sce_comprehensive"
+        },
+        "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::ACIT_A": {
+          "id": "workflow_test_sce_comprehensive",
+          "name": "test_sce_comprehensive"
+        },
+        "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::==========================": {
+          "id": "workflow_test_sce_comprehensive",
+          "name": "test_sce_comprehensive"
+        },
+        "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::=10,": {
+          "id": "workflow_test_sce_comprehensive",
+          "name": "test_sce_comprehensive"
+        },
+        "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::=====================": {
+          "id": "workflow_test_sce_comprehensive",
+          "name": "test_sce_comprehensive"
+        },
+        "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::========================": {
+          "id": "workflow_test_sce_comprehensive",
+          "name": "test_sce_comprehensive"
+        },
+        "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::straintCategory.HARD_PARAMETER": {
+          "id": "workflow_test_sce_comprehensive",
+          "name": "test_sce_comprehensive"
+        },
+        "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::aintCategory.HARD_PARAMETE": {
+          "id": "workflow_test_sce_comprehensive",
+          "name": "test_sce_comprehensive"
+        },
+        "glue/adapters/rese-sce/tests/test_sce_comprehensive.py::ry.HAR": {
+          "id": "workflow_test_sce_comprehensive",
+          "name": "test_sce_comprehensive"
+        }
+      }
+    },
+    "knowledge_engine/enterprise_knowledge_engine.py": {
+      "hash": "bed25f641f964a82369f683d7f593097f2fac5b82468f28aada52a0cadc2cf16",
+      "nodes": [
+        {
+          "id": "knowledge_engine/enterprise_knowledge_engine.py::__init__",
+          "label": "  Init  ",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/enterprise_knowledge_engine.py",
+            "line": 228,
+            "function": "__init__"
+          }
+        },
+        {
+          "id": "knowledge_engine/enterprise_knowledge_engine.py::get_logger",
+          "label": "Get Logger",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/enterprise_knowledge_engine.py",
+            "line": 78,
+            "function": "get_logger"
+          }
+        },
+        {
+          "id": "knowledge_engine/enterprise_knowledge_engine.py::record_operation",
+          "label": "Record Operation",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/enterprise_knowledge_engine.py",
+            "line": 118,
+            "function": "record_operation"
+          }
+        },
+        {
+          "id": "knowledge_engine/enterprise_knowledge_engine.py::get_metrics",
+          "label": "Get Metrics",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/enterprise_knowledge_engine.py",
+            "line": 146,
+            "function": "get_metrics"
+          }
+        },
+        {
+          "id": "knowledge_engine/enterprise_knowledge_engine.py::reset_metrics",
+          "label": "Reset Metrics",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/enterprise_knowledge_engine.py",
+            "line": 166,
+            "function": "reset_metrics"
+          }
+        },
+        {
+          "id": "knowledge_engine/enterprise_knowledge_engine.py::update_health",
+          "label": "Update Health",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/enterprise_knowledge_engine.py",
+            "line": 189,
+            "function": "update_health"
+          }
+        },
+        {
+          "id": "knowledge_engine/enterprise_knowledge_engine.py::get_health_status",
+          "label": "Get Health Status",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/enterprise_knowledge_engine.py",
+            "line": 215,
+            "function": "get_health_status"
+          }
+        },
+        {
+          "id": "knowledge_engine/enterprise_knowledge_engine.py::=========================",
+          "label": "=========================",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/enterprise_knowledge_engine.py",
+            "line": 379,
+            "function": "========================="
+          }
+        },
+        {
+          "id": "knowledge_engine/enterprise_knowledge_engine.py::'production_m",
+          "label": "'production M",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/enterprise_knowledge_engine.py",
+            "line": 953,
+            "function": "'production_m"
+          }
+        },
+        {
+          "id": "knowledge_engine/enterprise_knowledge_engine.py::lity_metrics'",
+          "label": "Lity Metrics'",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/enterprise_knowledge_engine.py",
+            "line": 1055,
+            "function": "lity_metrics'"
+          }
+        }
+      ],
+      "internalEdges": [],
+      "timestamp": 1770278045716,
+      "nodeWorkflows": {
+        "knowledge_engine/enterprise_knowledge_engine.py::__init__": {
+          "id": "workflow_enterprise_knowledge_engine",
+          "name": "enterprise_knowledge_engine"
+        },
+        "knowledge_engine/enterprise_knowledge_engine.py::get_logger": {
+          "id": "workflow_enterprise_knowledge_engine",
+          "name": "enterprise_knowledge_engine"
+        },
+        "knowledge_engine/enterprise_knowledge_engine.py::record_operation": {
+          "id": "workflow_enterprise_knowledge_engine",
+          "name": "enterprise_knowledge_engine"
+        },
+        "knowledge_engine/enterprise_knowledge_engine.py::get_metrics": {
+          "id": "workflow_enterprise_knowledge_engine",
+          "name": "enterprise_knowledge_engine"
+        },
+        "knowledge_engine/enterprise_knowledge_engine.py::reset_metrics": {
+          "id": "workflow_enterprise_knowledge_engine",
+          "name": "enterprise_knowledge_engine"
+        },
+        "knowledge_engine/enterprise_knowledge_engine.py::update_health": {
+          "id": "workflow_enterprise_knowledge_engine",
+          "name": "enterprise_knowledge_engine"
+        },
+        "knowledge_engine/enterprise_knowledge_engine.py::get_health_status": {
+          "id": "workflow_enterprise_knowledge_engine",
+          "name": "enterprise_knowledge_engine"
+        },
+        "knowledge_engine/enterprise_knowledge_engine.py::=========================": {
+          "id": "workflow_enterprise_knowledge_engine",
+          "name": "enterprise_knowledge_engine"
+        },
+        "knowledge_engine/enterprise_knowledge_engine.py::'production_m": {
+          "id": "workflow_enterprise_knowledge_engine",
+          "name": "enterprise_knowledge_engine"
+        },
+        "knowledge_engine/enterprise_knowledge_engine.py::lity_metrics'": {
+          "id": "workflow_enterprise_knowledge_engine",
+          "name": "enterprise_knowledge_engine"
+        }
+      }
+    },
+    "test_ragbits_knowledge_engine_integration.py": {
+      "hash": "4db241083a88bead448794c59ecc7027f778b076b52a1f2a21eac82a84c3b5c3",
+      "nodes": [
+        {
+          "id": "test_ragbits_knowledge_engine_integration.py::\"\"\"Pe",
+          "label": "\"\"\"pe",
+          "type": "step",
+          "source": {
+            "file": "test_ragbits_knowledge_engine_integration.py",
+            "line": 183,
+            "function": "\"\"\"Pe"
+          }
+        }
+      ],
+      "internalEdges": [],
+      "timestamp": 1770277933381
+    },
+    "knowledge_engine/embedding_generator.py": {
+      "hash": "e3a10913e3e3a191be34bd219bf0d38822da2d4b6cb28d0dabab6113ba651ff2",
+      "nodes": [
+        {
+          "id": "knowledge_engine/embedding_generator.py::__init__",
+          "label": "  Init  ",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/embedding_generator.py",
+            "line": 41,
+            "function": "__init__"
+          }
+        },
+        {
+          "id": "knowledge_engine/embedding_generator.py::_get_default_config",
+          "label": " Get Default Config",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/embedding_generator.py",
+            "line": 68,
+            "function": "_get_default_config"
+          }
+        },
+        {
+          "id": "knowledge_engine/embedding_generator.py::_initialize_model",
+          "label": " Initialize Model",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/embedding_generator.py",
+            "line": 78,
+            "function": "_initialize_model"
+          }
+        },
+        {
+          "id": "knowledge_engine/embedding_generator.py::generate_embedding",
+          "label": "Generate Embedding",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/embedding_generator.py",
+            "line": 91,
+            "function": "generate_embedding"
+          }
+        },
+        {
+          "id": "knowledge_engine/embedding_generator.py::generate_batch_embeddings",
+          "label": "Generate Batch Embeddings",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/embedding_generator.py",
+            "line": 175,
+            "function": "generate_batch_embeddings"
+          }
+        },
+        {
+          "id": "knowledge_engine/embedding_generator.py::generate_knowledge_artifact_embedding",
+          "label": "Generate Knowledge Artifact Embedding",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/embedding_generator.py",
+            "line": 270,
+            "function": "generate_knowledge_artifact_embedding"
+          }
+        },
+        {
+          "id": "knowledge_engine/embedding_generator.py::compute_similarity",
+          "label": "Compute Similarity",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/embedding_generator.py",
+            "line": 358,
+            "function": "compute_similarity"
+          }
+        },
+        {
+          "id": "knowledge_engine/embedding_generator.py::find_similar_embeddings",
+          "label": "Find Similar Embeddings",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/embedding_generator.py",
+            "line": 390,
+            "function": "find_similar_embeddings"
+          }
+        },
+        {
+          "id": "knowledge_engine/embedding_generator.py::_normalize_embedding",
+          "label": " Normalize Embedding",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/embedding_generator.py",
+            "line": 419,
+            "function": "_normalize_embedding"
+          }
+        },
+        {
+          "id": "knowledge_engine/embedding_generator.py::_generate_mock_embedding",
+          "label": " Generate Mock Embedding",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/embedding_generator.py",
+            "line": 427,
+            "function": "_generate_mock_embedding"
+          }
+        },
+        {
+          "id": "knowledge_engine/embedding_generator.py::get_model_info",
+          "label": "Get Model Info",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/embedding_generator.py",
+            "line": 452,
+            "function": "get_model_info"
+          }
+        }
+      ],
+      "internalEdges": [],
+      "timestamp": 1770277871156,
+      "nodeWorkflows": {
+        "knowledge_engine/embedding_generator.py::__init__": {
+          "id": "workflow_embedding_generator",
+          "name": "embedding_generator"
+        },
+        "knowledge_engine/embedding_generator.py::_get_default_config": {
+          "id": "workflow_embedding_generator",
+          "name": "embedding_generator"
+        },
+        "knowledge_engine/embedding_generator.py::_initialize_model": {
+          "id": "workflow_embedding_generator",
+          "name": "embedding_generator"
+        },
+        "knowledge_engine/embedding_generator.py::generate_embedding": {
+          "id": "workflow_embedding_generator",
+          "name": "embedding_generator"
+        },
+        "knowledge_engine/embedding_generator.py::generate_batch_embeddings": {
+          "id": "workflow_embedding_generator",
+          "name": "embedding_generator"
+        },
+        "knowledge_engine/embedding_generator.py::generate_knowledge_artifact_embedding": {
+          "id": "workflow_embedding_generator",
+          "name": "embedding_generator"
+        },
+        "knowledge_engine/embedding_generator.py::compute_similarity": {
+          "id": "workflow_embedding_generator",
+          "name": "embedding_generator"
+        },
+        "knowledge_engine/embedding_generator.py::find_similar_embeddings": {
+          "id": "workflow_embedding_generator",
+          "name": "embedding_generator"
+        },
+        "knowledge_engine/embedding_generator.py::_normalize_embedding": {
+          "id": "workflow_embedding_generator",
+          "name": "embedding_generator"
+        },
+        "knowledge_engine/embedding_generator.py::_generate_mock_embedding": {
+          "id": "workflow_embedding_generator",
+          "name": "embedding_generator"
+        },
+        "knowledge_engine/embedding_generator.py::get_model_info": {
+          "id": "workflow_embedding_generator",
+          "name": "embedding_generator"
+        }
+      }
+    },
+    "tests/test_api_server.py": {
+      "hash": "fff80954e0fdf5f0991298e84c192e856d1094124d8b10412cb594182d558c72",
+      "nodes": [
+        {
+          "id": "tests/test_api_server.py::test_health_response_model",
+          "label": "Test Health Response Model",
+          "type": "step",
+          "source": {
+            "file": "tests/test_api_server.py",
+            "line": 31,
+            "function": "test_health_response_model"
+          }
+        },
+        {
+          "id": "tests/test_api_server.py::test_problem_request_model",
+          "label": "Test Problem Request Model",
+          "type": "step",
+          "source": {
+            "file": "tests/test_api_server.py",
+            "line": 44,
+            "function": "test_problem_request_model"
+          }
+        },
+        {
+          "id": "tests/test_api_server.py::test_workflow_request_model",
+          "label": "Test Workflow Request Model",
+          "type": "step",
+          "source": {
+            "file": "tests/test_api_server.py",
+            "line": 57,
+            "function": "test_workflow_request_model"
+          }
+        },
+        {
+          "id": "tests/test_api_server.py::mock_app",
+          "label": "Mock App",
+          "type": "step",
+          "source": {
+            "file": "tests/test_api_server.py",
+            "line": 73,
+            "function": "mock_app"
+          }
+        },
+        {
+          "id": "tests/test_api_server.py::test_cors_middleware_configured",
+          "label": "Test Cors Middleware Configured",
+          "type": "step",
+          "source": {
+            "file": "tests/test_api_server.py",
+            "line": 80,
+            "function": "test_cors_middleware_configured"
+          }
+        },
+        {
+          "id": "tests/test_api_server.py::test_api_version_endpoint_exists",
+          "label": "Test Api Version Endpoint Exists",
+          "type": "step",
+          "source": {
+            "file": "tests/test_api_server.py",
+            "line": 87,
+            "function": "test_api_version_endpoint_exists"
+          }
+        },
+        {
+          "id": "tests/test_api_server.py::test_security_framework_available",
+          "label": "Test Security Framework Available",
+          "type": "step",
+          "source": {
+            "file": "tests/test_api_server.py",
+            "line": 100,
+            "function": "test_security_framework_available"
+          }
+        },
+        {
+          "id": "tests/test_api_server.py::test_permission_enum_values",
+          "label": "Test Permission Enum Values",
+          "type": "step",
+          "source": {
+            "file": "tests/test_api_server.py",
+            "line": 107,
+            "function": "test_permission_enum_values"
+          }
+        },
+        {
+          "id": "tests/test_api_server.py::test_user_context_default_values",
+          "label": "Test User Context Default Values",
+          "type": "step",
+          "source": {
+            "file": "tests/test_api_server.py",
+            "line": 116,
+            "function": "test_user_context_default_values"
+          }
+        },
+        {
+          "id": "tests/test_api_server.py::test_user_context_has_permission",
+          "label": "Test User Context Has Permission",
+          "type": "step",
+          "source": {
+            "file": "tests/test_api_server.py",
+            "line": 125,
+            "function": "test_user_context_has_permission"
+          }
+        },
+        {
+          "id": "tests/test_api_server.py::test_validation_error_handling",
+          "label": "Test Validation Error Handling",
+          "type": "step",
+          "source": {
+            "file": "tests/test_api_server.py",
+            "line": 141,
+            "function": "test_validation_error_handling"
+          }
+        },
+        {
+          "id": "tests/test_api_server.py::test_rate_limiter_class_exists",
+          "label": "Test Rate Limiter Class Exists",
+          "type": "step",
+          "source": {
+            "file": "tests/test_api_server.py",
+            "line": 148,
+            "function": "test_rate_limiter_class_exists"
+          }
+        },
+        {
+          "id": "tests/test_api_server.py::test_audit_logger_class_exists",
+          "label": "Test Audit Logger Class Exists",
+          "type": "step",
+          "source": {
+            "file": "tests/test_api_server.py",
+            "line": 160,
+            "function": "test_audit_logger_class_exists"
+          }
+        },
+        {
+          "id": "tests/test_api_server.py::test_get_audit_logger_function",
+          "label": "Test Get Audit Logger Function",
+          "type": "step",
+          "source": {
+            "file": "tests/test_api_server.py",
+            "line": 167,
+            "function": "test_get_audit_logger_function"
+          }
+        },
+        {
+          "id": "tests/test_api_server.py::test_security_headers_middleware_exists",
+          "label": "Test Security Headers Middleware Exists",
+          "type": "step",
+          "source": {
+            "file": "tests/test_api_server.py",
+            "line": 178,
+            "function": "test_security_headers_middleware_exists"
+          }
+        },
+        {
+          "id": "tests/test_api_server.py::test_rate_limit_middleware_exists",
+          "label": "Test Rate Limit Middleware Exists",
+          "type": "step",
+          "source": {
+            "file": "tests/test_api_server.py",
+            "line": 185,
+            "function": "test_rate_limit_middleware_exists"
+          }
+        },
+        {
+          "id": "tests/test_api_server.py::test_security_config_class_exists",
+          "label": "Test Security Config Class Exists",
+          "type": "step",
+          "source": {
+            "file": "tests/test_api_server.py",
+            "line": 192,
+            "function": "test_security_config_class_exists"
+          }
+        },
+        {
+          "id": "tests/test_api_server.py::test_generate_secure_id",
+          "label": "Test Generate Secure Id",
+          "type": "step",
+          "source": {
+            "file": "tests/test_api_server.py",
+            "line": 207,
+            "function": "test_generate_secure_id"
+          }
+        },
+        {
+          "id": "tests/test_api_server.py::test_hash_sensitive_data",
+          "label": "Test Hash Sensitive Data",
+          "type": "step",
+          "source": {
+            "file": "tests/test_api_server.py",
+            "line": 217,
+            "function": "test_hash_sensitive_data"
+          }
+        },
+        {
+          "id": "tests/test_api_server.py::test_http_exception_raising",
+          "label": "Test Http Exception Raising",
+          "type": "step",
+          "source": {
+            "file": "tests/test_api_server.py",
+            "line": 234,
+            "function": "test_http_exception_raising"
+          }
+        },
+        {
+          "id": "tests/test_api_server.py::test_status_codes_available",
+          "label": "Test Status Codes Available",
+          "type": "step",
+          "source": {
+            "file": "tests/test_api_server.py",
+            "line": 242,
+            "function": "test_status_codes_available"
+          }
+        },
+        {
+          "id": "tests/test_api_server.py::test_json_response_creation",
+          "label": "Test Json Response Creation",
+          "type": "step",
+          "source": {
+            "file": "tests/test_api_server.py",
+            "line": 259,
+            "function": "test_json_response_creation"
+          }
+        }
+      ],
+      "internalEdges": [],
+      "timestamp": 1770277951452,
+      "nodeWorkflows": {
+        "tests/test_api_server.py::test_health_response_model": {
+          "id": "workflow_test_api_server",
+          "name": "test_api_server"
+        },
+        "tests/test_api_server.py::test_problem_request_model": {
+          "id": "workflow_test_api_server",
+          "name": "test_api_server"
+        },
+        "tests/test_api_server.py::test_workflow_request_model": {
+          "id": "workflow_test_api_server",
+          "name": "test_api_server"
+        },
+        "tests/test_api_server.py::mock_app": {
+          "id": "workflow_test_api_server",
+          "name": "test_api_server"
+        },
+        "tests/test_api_server.py::test_cors_middleware_configured": {
+          "id": "workflow_test_api_server",
+          "name": "test_api_server"
+        },
+        "tests/test_api_server.py::test_api_version_endpoint_exists": {
+          "id": "workflow_test_api_server",
+          "name": "test_api_server"
+        },
+        "tests/test_api_server.py::test_security_framework_available": {
+          "id": "workflow_test_api_server",
+          "name": "test_api_server"
+        },
+        "tests/test_api_server.py::test_permission_enum_values": {
+          "id": "workflow_test_api_server",
+          "name": "test_api_server"
+        },
+        "tests/test_api_server.py::test_user_context_default_values": {
+          "id": "workflow_test_api_server",
+          "name": "test_api_server"
+        },
+        "tests/test_api_server.py::test_user_context_has_permission": {
+          "id": "workflow_test_api_server",
+          "name": "test_api_server"
+        },
+        "tests/test_api_server.py::test_validation_error_handling": {
+          "id": "workflow_test_api_server",
+          "name": "test_api_server"
+        },
+        "tests/test_api_server.py::test_rate_limiter_class_exists": {
+          "id": "workflow_test_api_server",
+          "name": "test_api_server"
+        },
+        "tests/test_api_server.py::test_audit_logger_class_exists": {
+          "id": "workflow_test_api_server",
+          "name": "test_api_server"
+        },
+        "tests/test_api_server.py::test_get_audit_logger_function": {
+          "id": "workflow_test_api_server",
+          "name": "test_api_server"
+        },
+        "tests/test_api_server.py::test_security_headers_middleware_exists": {
+          "id": "workflow_test_api_server",
+          "name": "test_api_server"
+        },
+        "tests/test_api_server.py::test_rate_limit_middleware_exists": {
+          "id": "workflow_test_api_server",
+          "name": "test_api_server"
+        },
+        "tests/test_api_server.py::test_security_config_class_exists": {
+          "id": "workflow_test_api_server",
+          "name": "test_api_server"
+        },
+        "tests/test_api_server.py::test_generate_secure_id": {
+          "id": "workflow_test_api_server",
+          "name": "test_api_server"
+        },
+        "tests/test_api_server.py::test_hash_sensitive_data": {
+          "id": "workflow_test_api_server",
+          "name": "test_api_server"
+        },
+        "tests/test_api_server.py::test_http_exception_raising": {
+          "id": "workflow_test_api_server",
+          "name": "test_api_server"
+        },
+        "tests/test_api_server.py::test_status_codes_available": {
+          "id": "workflow_test_api_server",
+          "name": "test_api_server"
+        },
+        "tests/test_api_server.py::test_json_response_creation": {
+          "id": "workflow_test_api_server",
+          "name": "test_api_server"
+        }
+      }
+    },
+    "tests/test_auth_system.py": {
+      "hash": "8850427d8e9d6d2fda35c7261fb1d2254252f201088505bf8c3d295abb9e64dc",
+      "nodes": [
+        {
+          "id": "tests/test_auth_system.py::test_role_enum_values",
+          "label": "Test Role Enum Values",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 33,
+            "function": "test_role_enum_values"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_role_enum_members",
+          "label": "Test Role Enum Members",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 42,
+            "function": "test_role_enum_members"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_permission_enum_values",
+          "label": "Test Permission Enum Values",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 55,
+            "function": "test_permission_enum_values"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_permission_categories",
+          "label": "Test Permission Categories",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 66,
+            "function": "test_permission_categories"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_user_creation",
+          "label": "Test User Creation",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 91,
+            "function": "test_user_creation"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_user_default_values",
+          "label": "Test User Default Values",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 111,
+            "function": "test_user_default_values"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::jwt_manager",
+          "label": "Jwt Manager",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 133,
+            "function": "jwt_manager"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_jwt_manager_creation",
+          "label": "Test Jwt Manager Creation",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 142,
+            "function": "test_jwt_manager_creation"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_token_generation",
+          "label": "Test Token Generation",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 155,
+            "function": "test_token_generation"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_token_validation_success",
+          "label": "Test Token Validation Success",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 167,
+            "function": "test_token_validation_success"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_token_validation_invalid",
+          "label": "Test Token Validation Invalid",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 182,
+            "function": "test_token_validation_invalid"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_token_validation_expired",
+          "label": "Test Token Validation Expired",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 189,
+            "function": "test_token_validation_expired"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_password_hash_generation",
+          "label": "Test Password Hash Generation",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 212,
+            "function": "test_password_hash_generation"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_password_hash_different_salts",
+          "label": "Test Password Hash Different Salts",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 225,
+            "function": "test_password_hash_different_salts"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_password_verification_success",
+          "label": "Test Password Verification Success",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 238,
+            "function": "test_password_verification_success"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_password_verification_failure",
+          "label": "Test Password Verification Failure",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 249,
+            "function": "test_password_verification_failure"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_require_permission_decorator",
+          "label": "Test Require Permission Decorator",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 265,
+            "function": "test_require_permission_decorator"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_require_auth_decorator",
+          "label": "Test Require Auth Decorator",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 271,
+            "function": "test_require_auth_decorator"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_get_current_user_function",
+          "label": "Test Get Current User Function",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 277,
+            "function": "test_get_current_user_function"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_admin_has_all_permissions",
+          "label": "Test Admin Has All Permissions",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 289,
+            "function": "test_admin_has_all_permissions"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_analyst_role_permissions",
+          "label": "Test Analyst Role Permissions",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 310,
+            "function": "test_analyst_role_permissions"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_viewer_role_permissions",
+          "label": "Test Viewer Role Permissions",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 319,
+            "function": "test_viewer_role_permissions"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_create_session_function",
+          "label": "Test Create Session Function",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 331,
+            "function": "test_create_session_function"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_validate_session_function",
+          "label": "Test Validate Session Function",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 337,
+            "function": "test_validate_session_function"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_end_session_function",
+          "label": "Test End Session Function",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 343,
+            "function": "test_end_session_function"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_get_user_by_id_function",
+          "label": "Test Get User By Id Function",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 353,
+            "function": "test_get_user_by_id_function"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_get_user_by_username_function",
+          "label": "Test Get User By Username Function",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 359,
+            "function": "test_get_user_by_username_function"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_create_user_function",
+          "label": "Test Create User Function",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 365,
+            "function": "test_create_user_function"
+          }
+        },
+        {
+          "id": "tests/test_auth_system.py::test_update_user_function",
+          "label": "Test Update User Function",
+          "type": "step",
+          "source": {
+            "file": "tests/test_auth_system.py",
+            "line": 371,
+            "function": "test_update_user_function"
+          }
+        }
+      ],
+      "internalEdges": [],
+      "timestamp": 1770278068574,
+      "nodeWorkflows": {
+        "tests/test_auth_system.py::test_role_enum_values": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_role_enum_members": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_permission_enum_values": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_permission_categories": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_user_creation": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_user_default_values": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::jwt_manager": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_jwt_manager_creation": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_token_generation": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_token_validation_success": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_token_validation_invalid": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_token_validation_expired": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_password_hash_generation": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_password_hash_different_salts": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_password_verification_success": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_password_verification_failure": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_require_permission_decorator": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_require_auth_decorator": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_get_current_user_function": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_admin_has_all_permissions": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_analyst_role_permissions": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_viewer_role_permissions": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_create_session_function": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_validate_session_function": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_end_session_function": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_get_user_by_id_function": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_get_user_by_username_function": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_create_user_function": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        },
+        "tests/test_auth_system.py::test_update_user_function": {
+          "id": "workflow_test_auth_system",
+          "name": "test_auth_system"
+        }
+      }
+    },
+    "knowledge_engine/unified_kg_integration_hub.py": {
+      "hash": "dcfd47d0719af519142ec5a7895ccc2dc3e2c5f3bdc217a69f9b3a04fe0ecb42",
+      "nodes": [
+        {
+          "id": "knowledge_engine/unified_kg_integration_hub.py::to_dict",
+          "label": "To Dict",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/unified_kg_integration_hub.py",
+            "line": 131,
+            "function": "to_dict"
+          }
+        },
+        {
+          "id": "knowledge_engine/unified_kg_integration_hub.py::from_dict",
+          "label": "From Dict",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/unified_kg_integration_hub.py",
+            "line": 139,
+            "function": "from_dict"
+          }
+        },
+        {
+          "id": "knowledge_engine/unified_kg_integration_hub.py::elf.name",
+          "label": "Elf.name",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/unified_kg_integration_hub.py",
+            "line": 297,
+            "function": "elf.name"
+          }
+        },
+        {
+          "id": "knowledge_engine/unified_kg_integration_hub.py::tus=IntegrationStatu",
+          "label": "Tus=integration Statu",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/unified_kg_integration_hub.py",
+            "line": 526,
+            "function": "tus=IntegrationStatu"
+          }
+        },
+        {
+          "id": "knowledge_engine/unified_kg_integration_hub.py::s.causal_learn_integ",
+          "label": "S.causal Learn Integ",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/unified_kg_integration_hub.py",
+            "line": 661,
+            "function": "s.causal_learn_integ"
+          }
+        },
+        {
+          "id": "knowledge_engine/unified_kg_integration_hub.py::fig=self.config.",
+          "label": "Fig=self.config.",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/unified_kg_integration_hub.py",
+            "line": 688,
+            "function": "fig=self.config."
+          }
+        },
+        {
+          "id": "knowledge_engine/unified_kg_integration_hub.py::'multi_judge_sc",
+          "label": "'multi Judge Sc",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/unified_kg_integration_hub.py",
+            "line": 847,
+            "function": "'multi_judge_sc"
+          }
+        },
+        {
+          "id": "knowledge_engine/unified_kg_integration_hub.py::ionType.ENTIT",
+          "label": "Ion Type.entit",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/unified_kg_integration_hub.py",
+            "line": 1061,
+            "function": "ionType.ENTIT"
+          }
+        },
+        {
+          "id": "knowledge_engine/unified_kg_integration_hub.py::Type.CONVERSATION_",
+          "label": "Type.conversation ",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/unified_kg_integration_hub.py",
+            "line": 1674,
+            "function": "Type.CONVERSATION_"
+          }
+        },
+        {
+          "id": "knowledge_engine/unified_kg_integration_hub.py::ration_type=KGOperationType.S",
+          "label": "Ration Type=kgoperation Type.s",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/unified_kg_integration_hub.py",
+            "line": 1723,
+            "function": "ration_type=KGOperationType.S"
+          }
+        },
+        {
+          "id": "knowledge_engine/unified_kg_integration_hub.py::extract_knowledge",
+          "label": "Extract Knowledge",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/unified_kg_integration_hub.py",
+            "line": 2504,
+            "function": "extract_knowledge"
+          }
+        },
+        {
+          "id": "knowledge_engine/unified_kg_integration_hub.py::visualize_knowledge_graph",
+          "label": "Visualize Knowledge Graph",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/unified_kg_integration_hub.py",
+            "line": 2524,
+            "function": "visualize_knowledge_graph"
+          }
+        },
+        {
+          "id": "knowledge_engine/unified_kg_integration_hub.py::create_unified_hub",
+          "label": "Create Unified Hub",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/unified_kg_integration_hub.py",
+            "line": 2546,
+            "function": "create_unified_hub"
+          }
+        },
+        {
+          "id": "knowledge_engine/unified_kg_integration_hub.py::quick_extract",
+          "label": "Quick Extract",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/unified_kg_integration_hub.py",
+            "line": 2561,
+            "function": "quick_extract"
+          }
+        }
+      ],
+      "internalEdges": [
+        {
+          "source": "knowledge_engine/unified_kg_integration_hub.py::quick_extract",
+          "target": "knowledge_engine/unified_kg_integration_hub.py::create_unified_hub"
+        }
+      ],
+      "timestamp": 1770278261363,
+      "nodeWorkflows": {
+        "knowledge_engine/unified_kg_integration_hub.py::to_dict": {
+          "id": "workflow_unified_kg_integration_hub",
+          "name": "unified_kg_integration_hub"
+        },
+        "knowledge_engine/unified_kg_integration_hub.py::from_dict": {
+          "id": "workflow_unified_kg_integration_hub",
+          "name": "unified_kg_integration_hub"
+        },
+        "knowledge_engine/unified_kg_integration_hub.py::elf.name": {
+          "id": "workflow_unified_kg_integration_hub",
+          "name": "unified_kg_integration_hub"
+        },
+        "knowledge_engine/unified_kg_integration_hub.py::tus=IntegrationStatu": {
+          "id": "workflow_unified_kg_integration_hub",
+          "name": "unified_kg_integration_hub"
+        },
+        "knowledge_engine/unified_kg_integration_hub.py::s.causal_learn_integ": {
+          "id": "workflow_unified_kg_integration_hub",
+          "name": "unified_kg_integration_hub"
+        },
+        "knowledge_engine/unified_kg_integration_hub.py::fig=self.config.": {
+          "id": "workflow_unified_kg_integration_hub",
+          "name": "unified_kg_integration_hub"
+        },
+        "knowledge_engine/unified_kg_integration_hub.py::'multi_judge_sc": {
+          "id": "workflow_unified_kg_integration_hub",
+          "name": "unified_kg_integration_hub"
+        },
+        "knowledge_engine/unified_kg_integration_hub.py::ionType.ENTIT": {
+          "id": "workflow_unified_kg_integration_hub",
+          "name": "unified_kg_integration_hub"
+        },
+        "knowledge_engine/unified_kg_integration_hub.py::Type.CONVERSATION_": {
+          "id": "workflow_unified_kg_integration_hub",
+          "name": "unified_kg_integration_hub"
+        },
+        "knowledge_engine/unified_kg_integration_hub.py::ration_type=KGOperationType.S": {
+          "id": "workflow_unified_kg_integration_hub",
+          "name": "unified_kg_integration_hub"
+        },
+        "knowledge_engine/unified_kg_integration_hub.py::extract_knowledge": {
+          "id": "workflow_unified_kg_integration_hub",
+          "name": "unified_kg_integration_hub"
+        },
+        "knowledge_engine/unified_kg_integration_hub.py::visualize_knowledge_graph": {
+          "id": "workflow_unified_kg_integration_hub",
+          "name": "unified_kg_integration_hub"
+        },
+        "knowledge_engine/unified_kg_integration_hub.py::create_unified_hub": {
+          "id": "workflow_unified_kg_integration_hub",
+          "name": "unified_kg_integration_hub"
+        },
+        "knowledge_engine/unified_kg_integration_hub.py::quick_extract": {
+          "id": "workflow_unified_kg_integration_hub",
+          "name": "unified_kg_integration_hub"
+        }
+      }
+    },
+    "end_to_end_invention_planner.py": {
+      "hash": "64240c3546e6819c798cb9fc8ae7424b2f356baf8e5b3d31fdde1402850566c6",
+      "nodes": [
+        {
+          "id": "end_to_end_invention_planner.py::to_executable_document",
+          "label": "To Executable Document",
+          "type": "step",
+          "source": {
+            "file": "end_to_end_invention_planner.py",
+            "line": 256,
+            "function": "to_executable_document"
+          }
+        },
+        {
+          "id": "end_to_end_invention_planner.py::__init__",
+          "label": "  Init  ",
+          "type": "step",
+          "source": {
+            "file": "end_to_end_invention_planner.py",
+            "line": 347,
+            "function": "__init__"
+          }
+        },
+        {
+          "id": "end_to_end_invention_planner.py::imated_effo",
+          "label": "Imated Effo",
+          "type": "step",
+          "source": {
+            "file": "end_to_end_invention_planner.py",
+            "line": 2001,
+            "function": "imated_effo"
+          }
+        },
+        {
+          "id": "end_to_end_invention_planner.py::ificatio",
+          "label": "Ificatio",
+          "type": "step",
+          "source": {
+            "file": "end_to_end_invention_planner.py",
+            "line": 2010,
+            "function": "ificatio"
+          }
+        }
+      ],
+      "internalEdges": [],
+      "timestamp": 1770278130479,
+      "nodeWorkflows": {
+        "end_to_end_invention_planner.py::to_executable_document": {
+          "id": "workflow_end_to_end_invention_planner",
+          "name": "end_to_end_invention_planner"
+        },
+        "end_to_end_invention_planner.py::__init__": {
+          "id": "workflow_end_to_end_invention_planner",
+          "name": "end_to_end_invention_planner"
+        },
+        "end_to_end_invention_planner.py::imated_effo": {
+          "id": "workflow_end_to_end_invention_planner",
+          "name": "end_to_end_invention_planner"
+        },
+        "end_to_end_invention_planner.py::ificatio": {
+          "id": "workflow_end_to_end_invention_planner",
+          "name": "end_to_end_invention_planner"
+        }
+      }
+    },
+    "tests/test_alerting_system.py": {
+      "hash": "bcf743ac181721bc4c9c7c90043c3c75bf8663bb56630d124bc782b469db1940",
+      "nodes": [
+        {
+          "id": "tests/test_alerting_system.py::test_severity_enum_values",
+          "label": "Test Severity Enum Values",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 31,
+            "function": "test_severity_enum_values"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_severity_ordering",
+          "label": "Test Severity Ordering",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 40,
+            "function": "test_severity_ordering"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_status_enum_values",
+          "label": "Test Status Enum Values",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 55,
+            "function": "test_status_enum_values"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_status_transitions",
+          "label": "Test Status Transitions",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 64,
+            "function": "test_status_transitions"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_channel_enum_values",
+          "label": "Test Channel Enum Values",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 77,
+            "function": "test_channel_enum_values"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::sample_alert",
+          "label": "Sample Alert",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 91,
+            "function": "sample_alert"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_alert_creation",
+          "label": "Test Alert Creation",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 108,
+            "function": "test_alert_creation"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_alert_to_dict",
+          "label": "Test Alert To Dict",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 129,
+            "function": "test_alert_to_dict"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_alert_acknowledge",
+          "label": "Test Alert Acknowledge",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 138,
+            "function": "test_alert_acknowledge"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_alert_resolve",
+          "label": "Test Alert Resolve",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 146,
+            "function": "test_alert_resolve"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::alert_manager",
+          "label": "Alert Manager",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 159,
+            "function": "alert_manager"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_alert_manager_creation",
+          "label": "Test Alert Manager Creation",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 168,
+            "function": "test_alert_manager_creation"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_create_alert",
+          "label": "Test Create Alert",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 179,
+            "function": "test_create_alert"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_get_alert",
+          "label": "Test Get Alert",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 193,
+            "function": "test_get_alert"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_get_nonexistent_alert",
+          "label": "Test Get Nonexistent Alert",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 208,
+            "function": "test_get_nonexistent_alert"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_list_alerts",
+          "label": "Test List Alerts",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 213,
+            "function": "test_list_alerts"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_list_alerts_by_severity",
+          "label": "Test List Alerts By Severity",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 235,
+            "function": "test_list_alerts_by_severity"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_update_alert_status",
+          "label": "Test Update Alert Status",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 257,
+            "function": "test_update_alert_status"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_delete_alert",
+          "label": "Test Delete Alert",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 272,
+            "function": "test_delete_alert"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::notifier",
+          "label": "Notifier",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 292,
+            "function": "notifier"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_email_notification",
+          "label": "Test Email Notification",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 303,
+            "function": "test_email_notification"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_slack_notification",
+          "label": "Test Slack Notification",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 315,
+            "function": "test_slack_notification"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_webhook_notification",
+          "label": "Test Webhook Notification",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 326,
+            "function": "test_webhook_notification"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_aggregate_similar_alerts",
+          "label": "Test Aggregate Similar Alerts",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 340,
+            "function": "test_aggregate_similar_alerts"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_aggregation_time_window",
+          "label": "Test Aggregation Time Window",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 359,
+            "function": "test_aggregation_time_window"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_escalation_rules",
+          "label": "Test Escalation Rules",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 378,
+            "function": "test_escalation_rules"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_auto_escalate",
+          "label": "Test Auto Escalate",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 390,
+            "function": "test_auto_escalate"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_get_alert_statistics",
+          "label": "Test Get Alert Statistics",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 401,
+            "function": "test_get_alert_statistics"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_alert_trends",
+          "label": "Test Alert Trends",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 408,
+            "function": "test_alert_trends"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_alert_config_class",
+          "label": "Test Alert Config Class",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 419,
+            "function": "test_alert_config_class"
+          }
+        },
+        {
+          "id": "tests/test_alerting_system.py::test_channel_config",
+          "label": "Test Channel Config",
+          "type": "step",
+          "source": {
+            "file": "tests/test_alerting_system.py",
+            "line": 431,
+            "function": "test_channel_config"
+          }
+        }
+      ],
+      "internalEdges": [],
+      "timestamp": 1770278140281,
+      "nodeWorkflows": {
+        "tests/test_alerting_system.py::test_severity_enum_values": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_severity_ordering": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_status_enum_values": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_status_transitions": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_channel_enum_values": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::sample_alert": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_alert_creation": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_alert_to_dict": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_alert_acknowledge": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_alert_resolve": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::alert_manager": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_alert_manager_creation": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_create_alert": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_get_alert": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_get_nonexistent_alert": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_list_alerts": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_list_alerts_by_severity": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_update_alert_status": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_delete_alert": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::notifier": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_email_notification": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_slack_notification": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_webhook_notification": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_aggregate_similar_alerts": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_aggregation_time_window": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_escalation_rules": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_auto_escalate": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_get_alert_statistics": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_alert_trends": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_alert_config_class": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        },
+        "tests/test_alerting_system.py::test_channel_config": {
+          "id": "workflow_test_alerting_system",
+          "name": "test_alerting_system"
+        }
+      }
+    },
+    "validation_manager.py": {
+      "hash": "0823da4ae4099ba04800e9ca8cc01f47ad4032a628997eca46625da5c3e351dc",
+      "nodes": [
+        {
+          "id": "validation_manager.py::__init__",
+          "label": "  Init  ",
+          "type": "step",
+          "source": {
+            "file": "validation_manager.py",
+            "line": 38,
+            "function": "__init__"
+          }
+        },
+        {
+          "id": "validation_manager.py::add_validation_rule",
+          "label": "Add Validation Rule",
+          "type": "step",
+          "source": {
+            "file": "validation_manager.py",
+            "line": 56,
+            "function": "add_validation_rule"
+          }
+        },
+        {
+          "id": "validation_manager.py::update_validation_rule",
+          "label": "Update Validation Rule",
+          "type": "step",
+          "source": {
+            "file": "validation_manager.py",
+            "line": 74,
+            "function": "update_validation_rule"
+          }
+        },
+        {
+          "id": "validation_manager.py::remove_validation_rule",
+          "label": "Remove Validation Rule",
+          "type": "step",
+          "source": {
+            "file": "validation_manager.py",
+            "line": 96,
+            "function": "remove_validation_rule"
+          }
+        },
+        {
+          "id": "validation_manager.py::list_validation_rules",
+          "label": "List Validation Rules",
+          "type": "step",
+          "source": {
+            "file": "validation_manager.py",
+            "line": 117,
+            "function": "list_validation_rules"
+          }
+        },
+        {
+          "id": "validation_manager.py::get_validation_rule",
+          "label": "Get Validation Rule",
+          "type": "step",
+          "source": {
+            "file": "validation_manager.py",
+            "line": 126,
+            "function": "get_validation_rule"
+          }
+        },
+        {
+          "id": "validation_manager.py::validate_content_against_custom_rules",
+          "label": "Validate Content Against Custom Rules",
+          "type": "step",
+          "source": {
+            "file": "validation_manager.py",
+            "line": 138,
+            "function": "validate_content_against_custom_rules"
+          }
+        },
+        {
+          "id": "validation_manager.py::_apply_single_rule",
+          "label": " Apply Single Rule",
+          "type": "step",
+          "source": {
+            "file": "validation_manager.py",
+            "line": 190,
+            "function": "_apply_single_rule"
+          }
+        },
+        {
+          "id": "validation_manager.py::run_compliance_check",
+          "label": "Run Compliance Check",
+          "type": "step",
+          "source": {
+            "file": "validation_manager.py",
+            "line": 262,
+            "function": "run_compliance_check"
+          }
+        },
+        {
+          "id": "validation_manager.py::_trigger_validation_alerts",
+          "label": " Trigger Validation Alerts",
+          "type": "step",
+          "source": {
+            "file": "validation_manager.py",
+            "line": 292,
+            "function": "_trigger_validation_alerts"
+          }
+        },
+        {
+          "id": "validation_manager.py::_extract_validation_knowledge",
+          "label": " Extract Validation Knowledge",
+          "type": "step",
+          "source": {
+            "file": "validation_manager.py",
+            "line": 324,
+            "function": "_extract_validation_knowledge"
+          }
+        },
+        {
+          "id": "validation_manager.py::_track_validation_performance",
+          "label": " Track Validation Performance",
+          "type": "step",
+          "source": {
+            "file": "validation_manager.py",
+            "line": 363,
+            "function": "_track_validation_performance"
+          }
+        },
+        {
+          "id": "validation_manager.py::render_validation_manager",
+          "label": "Render Validation Manager",
+          "type": "step",
+          "source": {
+            "file": "validation_manager.py",
+            "line": 397,
+            "function": "render_validation_manager"
+          }
+        }
+      ],
+      "internalEdges": [],
+      "timestamp": 1770278202622,
+      "nodeWorkflows": {
+        "validation_manager.py::__init__": {
+          "id": "workflow_validation_manager",
+          "name": "validation_manager"
+        },
+        "validation_manager.py::add_validation_rule": {
+          "id": "workflow_validation_manager",
+          "name": "validation_manager"
+        },
+        "validation_manager.py::update_validation_rule": {
+          "id": "workflow_validation_manager",
+          "name": "validation_manager"
+        },
+        "validation_manager.py::remove_validation_rule": {
+          "id": "workflow_validation_manager",
+          "name": "validation_manager"
+        },
+        "validation_manager.py::list_validation_rules": {
+          "id": "workflow_validation_manager",
+          "name": "validation_manager"
+        },
+        "validation_manager.py::get_validation_rule": {
+          "id": "workflow_validation_manager",
+          "name": "validation_manager"
+        },
+        "validation_manager.py::validate_content_against_custom_rules": {
+          "id": "workflow_validation_manager",
+          "name": "validation_manager"
+        },
+        "validation_manager.py::_apply_single_rule": {
+          "id": "workflow_validation_manager",
+          "name": "validation_manager"
+        },
+        "validation_manager.py::run_compliance_check": {
+          "id": "workflow_validation_manager",
+          "name": "validation_manager"
+        },
+        "validation_manager.py::_trigger_validation_alerts": {
+          "id": "workflow_validation_manager",
+          "name": "validation_manager"
+        },
+        "validation_manager.py::_extract_validation_knowledge": {
+          "id": "workflow_validation_manager",
+          "name": "validation_manager"
+        },
+        "validation_manager.py::_track_validation_performance": {
+          "id": "workflow_validation_manager",
+          "name": "validation_manager"
+        },
+        "validation_manager.py::render_validation_manager": {
+          "id": "workflow_validation_manager",
+          "name": "validation_manager"
+        }
+      }
+    },
+    "tests/test_evolution_engine.py": {
+      "hash": "dbb6852465682e55066bd5524cf4959a1d8ef25e0a912772f56896e0c9df7149",
+      "nodes": [
+        {
+          "id": "tests/test_evolution_engine.py::population_manager",
+          "label": "Population Manager",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 33,
+            "function": "population_manager"
+          }
+        },
+        {
+          "id": "tests/test_evolution_engine.py::test_population_manager_creation",
+          "label": "Test Population Manager Creation",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 41,
+            "function": "test_population_manager_creation"
+          }
+        },
+        {
+          "id": "tests/test_evolution_engine.py::test_create_individual",
+          "label": "Test Create Individual",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 52,
+            "function": "test_create_individual"
+          }
+        },
+        {
+          "id": "tests/test_evolution_engine.py::test_add_individual",
+          "label": "Test Add Individual",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 62,
+            "function": "test_add_individual"
+          }
+        },
+        {
+          "id": "tests/test_evolution_engine.py::test_get_fittest",
+          "label": "Test Get Fittest",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 71,
+            "function": "test_get_fittest"
+          }
+        },
+        {
+          "id": "tests/test_evolution_engine.py::test_tournament_selection",
+          "label": "Test Tournament Selection",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 89,
+            "function": "test_tournament_selection"
+          }
+        },
+        {
+          "id": "tests/test_evolution_engine.py::test_roulette_wheel_selection",
+          "label": "Test Roulette Wheel Selection",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 105,
+            "function": "test_roulette_wheel_selection"
+          }
+        },
+        {
+          "id": "tests/test_evolution_engine.py::test_rank_selection",
+          "label": "Test Rank Selection",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 120,
+            "function": "test_rank_selection"
+          }
+        },
+        {
+          "id": "tests/test_evolution_engine.py::test_single_point_crossover",
+          "label": "Test Single Point Crossover",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 138,
+            "function": "test_single_point_crossover"
+          }
+        },
+        {
+          "id": "tests/test_evolution_engine.py::test_uniform_crossover",
+          "label": "Test Uniform Crossover",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 150,
+            "function": "test_uniform_crossover"
+          }
+        },
+        {
+          "id": "tests/test_evolution_engine.py::test_blend_crossover",
+          "label": "Test Blend Crossover",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 162,
+            "function": "test_blend_crossover"
+          }
+        },
+        {
+          "id": "tests/test_evolution_engine.py::test_gaussian_mutation",
+          "label": "Test Gaussian Mutation",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 179,
+            "function": "test_gaussian_mutation"
+          }
+        },
+        {
+          "id": "tests/test_evolution_engine.py::test_bit_flip_mutation",
+          "label": "Test Bit Flip Mutation",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 189,
+            "function": "test_bit_flip_mutation"
+          }
+        },
+        {
+          "id": "tests/test_evolution_engine.py::test_swap_mutation",
+          "label": "Test Swap Mutation",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 199,
+            "function": "test_swap_mutation"
+          }
+        },
+        {
+          "id": "tests/test_evolution_engine.py::test_adaptive_mutation",
+          "label": "Test Adaptive Mutation",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 209,
+            "function": "test_adaptive_mutation"
+          }
+        },
+        {
+          "id": "tests/test_evolution_engine.py::test_fitness_calculator",
+          "label": "Test Fitness Calculator",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 227,
+            "function": "test_fitness_calculator"
+          }
+        },
+        {
+          "id": "tests/test_evolution_engine.py::test_multi_objective_fitness",
+          "label": "Test Multi Objective Fitness",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 238,
+            "function": "test_multi_objective_fitness"
+          }
+        },
+        {
+          "id": "tests/test_evolution_engine.py::test_pareto_dominance",
+          "label": "Test Pareto Dominance",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 249,
+            "function": "test_pareto_dominance"
+          }
+        },
+        {
+          "id": "tests/test_evolution_engine.py::test_evolution_config",
+          "label": "Test Evolution Config",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 265,
+            "function": "test_evolution_config"
+          }
+        },
+        {
+          "id": "tests/test_evolution_engine.py::test_evolution_state",
+          "label": "Test Evolution State",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 280,
+            "function": "test_evolution_state"
+          }
+        },
+        {
+          "id": "tests/test_evolution_engine.py::test_evolution_run",
+          "label": "Test Evolution Run",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 293,
+            "function": "test_evolution_run"
+          }
+        },
+        {
+          "id": "tests/test_evolution_engine.py::test_history_recording",
+          "label": "Test History Recording",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 314,
+            "function": "test_history_recording"
+          }
+        },
+        {
+          "id": "tests/test_evolution_engine.py::test_history_summary",
+          "label": "Test History Summary",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 330,
+            "function": "test_history_summary"
+          }
+        },
+        {
+          "id": "tests/test_evolution_engine.py::test_convergence_check",
+          "label": "Test Convergence Check",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 347,
+            "function": "test_convergence_check"
+          }
+        },
+        {
+          "id": "tests/test_evolution_engine.py::test_diversity_check",
+          "label": "Test Diversity Check",
+          "type": "step",
+          "source": {
+            "file": "tests/test_evolution_engine.py",
+            "line": 363,
+            "function": "test_diversity_check"
+          }
+        }
+      ],
+      "internalEdges": [],
+      "timestamp": 1770278211193,
+      "nodeWorkflows": {
+        "tests/test_evolution_engine.py::population_manager": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        },
+        "tests/test_evolution_engine.py::test_population_manager_creation": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        },
+        "tests/test_evolution_engine.py::test_create_individual": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        },
+        "tests/test_evolution_engine.py::test_add_individual": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        },
+        "tests/test_evolution_engine.py::test_get_fittest": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        },
+        "tests/test_evolution_engine.py::test_tournament_selection": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        },
+        "tests/test_evolution_engine.py::test_roulette_wheel_selection": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        },
+        "tests/test_evolution_engine.py::test_rank_selection": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        },
+        "tests/test_evolution_engine.py::test_single_point_crossover": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        },
+        "tests/test_evolution_engine.py::test_uniform_crossover": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        },
+        "tests/test_evolution_engine.py::test_blend_crossover": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        },
+        "tests/test_evolution_engine.py::test_gaussian_mutation": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        },
+        "tests/test_evolution_engine.py::test_bit_flip_mutation": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        },
+        "tests/test_evolution_engine.py::test_swap_mutation": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        },
+        "tests/test_evolution_engine.py::test_adaptive_mutation": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        },
+        "tests/test_evolution_engine.py::test_fitness_calculator": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        },
+        "tests/test_evolution_engine.py::test_multi_objective_fitness": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        },
+        "tests/test_evolution_engine.py::test_pareto_dominance": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        },
+        "tests/test_evolution_engine.py::test_evolution_config": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        },
+        "tests/test_evolution_engine.py::test_evolution_state": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        },
+        "tests/test_evolution_engine.py::test_evolution_run": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        },
+        "tests/test_evolution_engine.py::test_history_recording": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        },
+        "tests/test_evolution_engine.py::test_history_summary": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        },
+        "tests/test_evolution_engine.py::test_convergence_check": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        },
+        "tests/test_evolution_engine.py::test_diversity_check": {
+          "id": "workflow_test_evolution_engine",
+          "name": "test_evolution_engine"
+        }
+      }
+    },
+    "tests/test_decomposition_engine.py": {
+      "hash": "fac811c2359c577791975b46197d9e551be44f40eeceaa5a56ef25d187b2e707",
+      "nodes": [
+        {
+          "id": "tests/test_decomposition_engine.py::test_problem_analyzer_creation",
+          "label": "Test Problem Analyzer Creation",
+          "type": "step",
+          "source": {
+            "file": "tests/test_decomposition_engine.py",
+            "line": 30,
+            "function": "test_problem_analyzer_creation"
+          }
+        },
+        {
+          "id": "tests/test_decomposition_engine.py::test_analyze_problem",
+          "label": "Test Analyze Problem",
+          "type": "step",
+          "source": {
+            "file": "tests/test_decomposition_engine.py",
+            "line": 37,
+            "function": "test_analyze_problem"
+          }
+        },
+        {
+          "id": "tests/test_decomposition_engine.py::test_complexity_assessment",
+          "label": "Test Complexity Assessment",
+          "type": "step",
+          "source": {
+            "file": "tests/test_decomposition_engine.py",
+            "line": 51,
+            "function": "test_complexity_assessment"
+          }
+        },
+        {
+          "id": "tests/test_decomposition_engine.py::test_sub_problem_creation",
+          "label": "Test Sub Problem Creation",
+          "type": "step",
+          "source": {
+            "file": "tests/test_decomposition_engine.py",
+            "line": 72,
+            "function": "test_sub_problem_creation"
+          }
+        },
+        {
+          "id": "tests/test_decomposition_engine.py::test_extract_sub_problems",
+          "label": "Test Extract Sub Problems",
+          "type": "step",
+          "source": {
+            "file": "tests/test_decomposition_engine.py",
+            "line": 86,
+            "function": "test_extract_sub_problems"
+          }
+        },
+        {
+          "id": "tests/test_decomposition_engine.py::test_dependency_graph_creation",
+          "label": "Test Dependency Graph Creation",
+          "type": "step",
+          "source": {
+            "file": "tests/test_decomposition_engine.py",
+            "line": 106,
+            "function": "test_dependency_graph_creation"
+          }
+        },
+        {
+          "id": "tests/test_decomposition_engine.py::test_add_dependency",
+          "label": "Test Add Dependency",
+          "type": "step",
+          "source": {
+            "file": "tests/test_decomposition_engine.py",
+            "line": 113,
+            "function": "test_add_dependency"
+          }
+        },
+        {
+          "id": "tests/test_decomposition_engine.py::test_detect_cycles",
+          "label": "Test Detect Cycles",
+          "type": "step",
+          "source": {
+            "file": "tests/test_decomposition_engine.py",
+            "line": 125,
+            "function": "test_detect_cycles"
+          }
+        },
+        {
+          "id": "tests/test_decomposition_engine.py::test_topological_sort",
+          "label": "Test Topological Sort",
+          "type": "step",
+          "source": {
+            "file": "tests/test_decomposition_engine.py",
+            "line": 144,
+            "function": "test_topological_sort"
+          }
+        },
+        {
+          "id": "tests/test_decomposition_engine.py::test_strategy_selector",
+          "label": "Test Strategy Selector",
+          "type": "step",
+          "source": {
+            "file": "tests/test_decomposition_engine.py",
+            "line": 166,
+            "function": "test_strategy_selector"
+          }
+        },
+        {
+          "id": "tests/test_decomposition_engine.py::test_semantic_decomposition",
+          "label": "Test Semantic Decomposition",
+          "type": "step",
+          "source": {
+            "file": "tests/test_decomposition_engine.py",
+            "line": 180,
+            "function": "test_semantic_decomposition"
+          }
+        },
+        {
+          "id": "tests/test_decomposition_engine.py::test_structural_decomposition",
+          "label": "Test Structural Decomposition",
+          "type": "step",
+          "source": {
+            "file": "tests/test_decomposition_engine.py",
+            "line": 192,
+            "function": "test_structural_decomposition"
+          }
+        },
+        {
+          "id": "tests/test_decomposition_engine.py::test_hierarchical_decomposition",
+          "label": "Test Hierarchical Decomposition",
+          "type": "step",
+          "source": {
+            "file": "tests/test_decomposition_engine.py",
+            "line": 204,
+            "function": "test_hierarchical_decomposition"
+          }
+        },
+        {
+          "id": "tests/test_decomposition_engine.py::test_validate_decomposition",
+          "label": "Test Validate Decomposition",
+          "type": "step",
+          "source": {
+            "file": "tests/test_decomposition_engine.py",
+            "line": 220,
+            "function": "test_validate_decomposition"
+          }
+        },
+        {
+          "id": "tests/test_decomposition_engine.py::test_check_completeness",
+          "label": "Test Check Completeness",
+          "type": "step",
+          "source": {
+            "file": "tests/test_decomposition_engine.py",
+            "line": 238,
+            "function": "test_check_completeness"
+          }
+        },
+        {
+          "id": "tests/test_decomposition_engine.py::test_decomposition_result_creation",
+          "label": "Test Decomposition Result Creation",
+          "type": "step",
+          "source": {
+            "file": "tests/test_decomposition_engine.py",
+            "line": 259,
+            "function": "test_decomposition_result_creation"
+          }
+        },
+        {
+          "id": "tests/test_decomposition_engine.py::test_result_serialization",
+          "label": "Test Result Serialization",
+          "type": "step",
+          "source": {
+            "file": "tests/test_decomposition_engine.py",
+            "line": 273,
+            "function": "test_result_serialization"
+          }
+        },
+        {
+          "id": "tests/test_decomposition_engine.py::test_config_creation",
+          "label": "Test Config Creation",
+          "type": "step",
+          "source": {
+            "file": "tests/test_decomposition_engine.py",
+            "line": 293,
+            "function": "test_config_creation"
+          }
+        }
+      ],
+      "internalEdges": [],
+      "timestamp": 1770278242421,
+      "nodeWorkflows": {
+        "tests/test_decomposition_engine.py::test_problem_analyzer_creation": {
+          "id": "workflow_test_decomposition_engine",
+          "name": "test_decomposition_engine"
+        },
+        "tests/test_decomposition_engine.py::test_analyze_problem": {
+          "id": "workflow_test_decomposition_engine",
+          "name": "test_decomposition_engine"
+        },
+        "tests/test_decomposition_engine.py::test_complexity_assessment": {
+          "id": "workflow_test_decomposition_engine",
+          "name": "test_decomposition_engine"
+        },
+        "tests/test_decomposition_engine.py::test_sub_problem_creation": {
+          "id": "workflow_test_decomposition_engine",
+          "name": "test_decomposition_engine"
+        },
+        "tests/test_decomposition_engine.py::test_extract_sub_problems": {
+          "id": "workflow_test_decomposition_engine",
+          "name": "test_decomposition_engine"
+        },
+        "tests/test_decomposition_engine.py::test_dependency_graph_creation": {
+          "id": "workflow_test_decomposition_engine",
+          "name": "test_decomposition_engine"
+        },
+        "tests/test_decomposition_engine.py::test_add_dependency": {
+          "id": "workflow_test_decomposition_engine",
+          "name": "test_decomposition_engine"
+        },
+        "tests/test_decomposition_engine.py::test_detect_cycles": {
+          "id": "workflow_test_decomposition_engine",
+          "name": "test_decomposition_engine"
+        },
+        "tests/test_decomposition_engine.py::test_topological_sort": {
+          "id": "workflow_test_decomposition_engine",
+          "name": "test_decomposition_engine"
+        },
+        "tests/test_decomposition_engine.py::test_strategy_selector": {
+          "id": "workflow_test_decomposition_engine",
+          "name": "test_decomposition_engine"
+        },
+        "tests/test_decomposition_engine.py::test_semantic_decomposition": {
+          "id": "workflow_test_decomposition_engine",
+          "name": "test_decomposition_engine"
+        },
+        "tests/test_decomposition_engine.py::test_structural_decomposition": {
+          "id": "workflow_test_decomposition_engine",
+          "name": "test_decomposition_engine"
+        },
+        "tests/test_decomposition_engine.py::test_hierarchical_decomposition": {
+          "id": "workflow_test_decomposition_engine",
+          "name": "test_decomposition_engine"
+        },
+        "tests/test_decomposition_engine.py::test_validate_decomposition": {
+          "id": "workflow_test_decomposition_engine",
+          "name": "test_decomposition_engine"
+        },
+        "tests/test_decomposition_engine.py::test_check_completeness": {
+          "id": "workflow_test_decomposition_engine",
+          "name": "test_decomposition_engine"
+        },
+        "tests/test_decomposition_engine.py::test_decomposition_result_creation": {
+          "id": "workflow_test_decomposition_engine",
+          "name": "test_decomposition_engine"
+        },
+        "tests/test_decomposition_engine.py::test_result_serialization": {
+          "id": "workflow_test_decomposition_engine",
+          "name": "test_decomposition_engine"
+        },
+        "tests/test_decomposition_engine.py::test_config_creation": {
+          "id": "workflow_test_decomposition_engine",
+          "name": "test_decomposition_engine"
+        }
+      }
+    },
+    "tests/test_analytics_manager.py": {
+      "hash": "9d19c709f3420a8b9ec04e9601b6e601652bcdee319711e59d6fab6473bf232b",
+      "nodes": [
+        {
+          "id": "tests/test_analytics_manager.py::analytics_manager",
+          "label": "Analytics Manager",
+          "type": "step",
+          "source": {
+            "file": "tests/test_analytics_manager.py",
+            "line": 31,
+            "function": "analytics_manager"
+          }
+        },
+        {
+          "id": "tests/test_analytics_manager.py::test_analytics_manager_creation",
+          "label": "Test Analytics Manager Creation",
+          "type": "step",
+          "source": {
+            "file": "tests/test_analytics_manager.py",
+            "line": 39,
+            "function": "test_analytics_manager_creation"
+          }
+        },
+        {
+          "id": "tests/test_analytics_manager.py::test_record_metric",
+          "label": "Test Record Metric",
+          "type": "step",
+          "source": {
+            "file": "tests/test_analytics_manager.py",
+            "line": 50,
+            "function": "test_record_metric"
+          }
+        },
+        {
+          "id": "tests/test_analytics_manager.py::test_get_metric",
+          "label": "Test Get Metric",
+          "type": "step",
+          "source": {
+            "file": "tests/test_analytics_manager.py",
+            "line": 60,
+            "function": "test_get_metric"
+          }
+        },
+        {
+          "id": "tests/test_analytics_manager.py::test_list_metrics",
+          "label": "Test List Metrics",
+          "type": "step",
+          "source": {
+            "file": "tests/test_analytics_manager.py",
+            "line": 69,
+            "function": "test_list_metrics"
+          }
+        },
+        {
+          "id": "tests/test_analytics_manager.py::test_counter_metric",
+          "label": "Test Counter Metric",
+          "type": "step",
+          "source": {
+            "file": "tests/test_analytics_manager.py",
+            "line": 82,
+            "function": "test_counter_metric"
+          }
+        },
+        {
+          "id": "tests/test_analytics_manager.py::test_gauge_metric",
+          "label": "Test Gauge Metric",
+          "type": "step",
+          "source": {
+            "file": "tests/test_analytics_manager.py",
+            "line": 92,
+            "function": "test_gauge_metric"
+          }
+        },
+        {
+          "id": "tests/test_analytics_manager.py::test_histogram_metric",
+          "label": "Test Histogram Metric",
+          "type": "step",
+          "source": {
+            "file": "tests/test_analytics_manager.py",
+            "line": 102,
+            "function": "test_histogram_metric"
+          }
+        },
+        {
+          "id": "tests/test_analytics_manager.py::test_timer",
+          "label": "Test Timer",
+          "type": "step",
+          "source": {
+            "file": "tests/test_analytics_manager.py",
+            "line": 117,
+            "function": "test_timer"
+          }
+        },
+        {
+          "id": "tests/test_analytics_manager.py::test_track_execution",
+          "label": "Test Track Execution",
+          "type": "step",
+          "source": {
+            "file": "tests/test_analytics_manager.py",
+            "line": 130,
+            "function": "test_track_execution"
+          }
+        },
+        {
+          "id": "tests/test_analytics_manager.py::test_func",
+          "label": "Test Func",
+          "type": "step",
+          "source": {
+            "file": "tests/test_analytics_manager.py",
+            "line": 135,
+            "function": "test_func"
+          }
+        },
+        {
+          "id": "tests/test_analytics_manager.py::test_aggregate_values",
+          "label": "Test Aggregate Values",
+          "type": "step",
+          "source": {
+            "file": "tests/test_analytics_manager.py",
+            "line": 146,
+            "function": "test_aggregate_values"
+          }
+        },
+        {
+          "id": "tests/test_analytics_manager.py::test_time_based_aggregation",
+          "label": "Test Time Based Aggregation",
+          "type": "step",
+          "source": {
+            "file": "tests/test_analytics_manager.py",
+            "line": 159,
+            "function": "test_time_based_aggregation"
+          }
+        },
+        {
+          "id": "tests/test_analytics_manager.py::test_generate_summary_report",
+          "label": "Test Generate Summary Report",
+          "type": "step",
+          "source": {
+            "file": "tests/test_analytics_manager.py",
+            "line": 180,
+            "function": "test_generate_summary_report"
+          }
+        },
+        {
+          "id": "tests/test_analytics_manager.py::test_generate_performance_report",
+          "label": "Test Generate Performance Report",
+          "type": "step",
+          "source": {
+            "file": "tests/test_analytics_manager.py",
+            "line": 193,
+            "function": "test_generate_performance_report"
+          }
+        },
+        {
+          "id": "tests/test_analytics_manager.py::test_export_report",
+          "label": "Test Export Report",
+          "type": "step",
+          "source": {
+            "file": "tests/test_analytics_manager.py",
+            "line": 206,
+            "function": "test_export_report"
+          }
+        },
+        {
+          "id": "tests/test_analytics_manager.py::test_dashboard_config",
+          "label": "Test Dashboard Config",
+          "type": "step",
+          "source": {
+            "file": "tests/test_analytics_manager.py",
+            "line": 225,
+            "function": "test_dashboard_config"
+          }
+        },
+        {
+          "id": "tests/test_analytics_manager.py::test_get_dashboard_data",
+          "label": "Test Get Dashboard Data",
+          "type": "step",
+          "source": {
+            "file": "tests/test_analytics_manager.py",
+            "line": 236,
+            "function": "test_get_dashboard_data"
+          }
+        },
+        {
+          "id": "tests/test_analytics_manager.py::test_save_to_file",
+          "label": "Test Save To File",
+          "type": "step",
+          "source": {
+            "file": "tests/test_analytics_manager.py",
+            "line": 250,
+            "function": "test_save_to_file"
+          }
+        },
+        {
+          "id": "tests/test_analytics_manager.py::test_load_from_file",
+          "label": "Test Load From File",
+          "type": "step",
+          "source": {
+            "file": "tests/test_analytics_manager.py",
+            "line": 260,
+            "function": "test_load_from_file"
+          }
+        },
+        {
+          "id": "tests/test_analytics_manager.py::test_config_creation",
+          "label": "Test Config Creation",
+          "type": "step",
+          "source": {
+            "file": "tests/test_analytics_manager.py",
+            "line": 278,
+            "function": "test_config_creation"
+          }
+        }
+      ],
+      "internalEdges": [
+        {
+          "source": "tests/test_analytics_manager.py::test_track_execution",
+          "target": "tests/test_analytics_manager.py::test_func"
+        }
+      ],
+      "timestamp": 1770278289577,
+      "nodeWorkflows": {
+        "tests/test_analytics_manager.py::analytics_manager": {
+          "id": "workflow_test_analytics_manager",
+          "name": "test_analytics_manager"
+        },
+        "tests/test_analytics_manager.py::test_analytics_manager_creation": {
+          "id": "workflow_test_analytics_manager",
+          "name": "test_analytics_manager"
+        },
+        "tests/test_analytics_manager.py::test_record_metric": {
+          "id": "workflow_test_analytics_manager",
+          "name": "test_analytics_manager"
+        },
+        "tests/test_analytics_manager.py::test_get_metric": {
+          "id": "workflow_test_analytics_manager",
+          "name": "test_analytics_manager"
+        },
+        "tests/test_analytics_manager.py::test_list_metrics": {
+          "id": "workflow_test_analytics_manager",
+          "name": "test_analytics_manager"
+        },
+        "tests/test_analytics_manager.py::test_counter_metric": {
+          "id": "workflow_test_analytics_manager",
+          "name": "test_analytics_manager"
+        },
+        "tests/test_analytics_manager.py::test_gauge_metric": {
+          "id": "workflow_test_analytics_manager",
+          "name": "test_analytics_manager"
+        },
+        "tests/test_analytics_manager.py::test_histogram_metric": {
+          "id": "workflow_test_analytics_manager",
+          "name": "test_analytics_manager"
+        },
+        "tests/test_analytics_manager.py::test_timer": {
+          "id": "workflow_test_analytics_manager",
+          "name": "test_analytics_manager"
+        },
+        "tests/test_analytics_manager.py::test_track_execution": {
+          "id": "workflow_test_analytics_manager",
+          "name": "test_analytics_manager"
+        },
+        "tests/test_analytics_manager.py::test_func": {
+          "id": "workflow_test_analytics_manager",
+          "name": "test_analytics_manager"
+        },
+        "tests/test_analytics_manager.py::test_aggregate_values": {
+          "id": "workflow_test_analytics_manager",
+          "name": "test_analytics_manager"
+        },
+        "tests/test_analytics_manager.py::test_time_based_aggregation": {
+          "id": "workflow_test_analytics_manager",
+          "name": "test_analytics_manager"
+        },
+        "tests/test_analytics_manager.py::test_generate_summary_report": {
+          "id": "workflow_test_analytics_manager",
+          "name": "test_analytics_manager"
+        },
+        "tests/test_analytics_manager.py::test_generate_performance_report": {
+          "id": "workflow_test_analytics_manager",
+          "name": "test_analytics_manager"
+        },
+        "tests/test_analytics_manager.py::test_export_report": {
+          "id": "workflow_test_analytics_manager",
+          "name": "test_analytics_manager"
+        },
+        "tests/test_analytics_manager.py::test_dashboard_config": {
+          "id": "workflow_test_analytics_manager",
+          "name": "test_analytics_manager"
+        },
+        "tests/test_analytics_manager.py::test_get_dashboard_data": {
+          "id": "workflow_test_analytics_manager",
+          "name": "test_analytics_manager"
+        },
+        "tests/test_analytics_manager.py::test_save_to_file": {
+          "id": "workflow_test_analytics_manager",
+          "name": "test_analytics_manager"
+        },
+        "tests/test_analytics_manager.py::test_load_from_file": {
+          "id": "workflow_test_analytics_manager",
+          "name": "test_analytics_manager"
+        },
+        "tests/test_analytics_manager.py::test_config_creation": {
+          "id": "workflow_test_analytics_manager",
+          "name": "test_analytics_manager"
+        }
+      }
+    },
+    "knowledge_engine/__init__.py": {
+      "hash": "29cd915e955a6e2e229b7c0251527966fe09a3a2f028af96c47eecda540854a4",
+      "nodes": [
+        {
+          "id": "knowledge_engine/__init__.py::_validate_on_import",
+          "label": " Validate On Import",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 26,
+            "function": "_validate_on_import"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::to_dict",
+          "label": "To Dict",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 579,
+            "function": "to_dict"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::__init__",
+          "label": "  Init  ",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 1563,
+            "function": "__init__"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::_get_default_config",
+          "label": " Get Default Config",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 638,
+            "function": "_get_default_config"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::_initialize_learning_components",
+          "label": " Initialize Learning Components",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 673,
+            "function": "_initialize_learning_components"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::_initialize_basic_learning_components",
+          "label": " Initialize Basic Learning Components",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 708,
+            "function": "_initialize_basic_learning_components"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::process_request",
+          "label": "Process Request",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 724,
+            "function": "process_request"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::_update_learning_memory",
+          "label": " Update Learning Memory",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 822,
+            "function": "_update_learning_memory"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::_perform_reflection",
+          "label": " Perform Reflection",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 889,
+            "function": "_perform_reflection"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::run_comprehensive_analysis",
+          "label": "Run Comprehensive Analysis",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 1396,
+            "function": "run_comprehensive_analysis"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::evolve_capabilities",
+          "label": "Evolve Capabilities",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 1046,
+            "function": "evolve_capabilities"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::_gather_evolution_insights",
+          "label": " Gather Evolution Insights",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 1130,
+            "function": "_gather_evolution_insights"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::_create_evolution_plan",
+          "label": " Create Evolution Plan",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 1151,
+            "function": "_create_evolution_plan"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::_execute_evolution_plan",
+          "label": " Execute Evolution Plan",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 1210,
+            "function": "_execute_evolution_plan"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::_apply_evolution_changes",
+          "label": " Apply Evolution Changes",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 1233,
+            "function": "_apply_evolution_changes"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::get_system_knowledge_state",
+          "label": "Get System Knowledge State",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 1254,
+            "function": "get_system_knowledge_state"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::close",
+          "label": "Close",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 1777,
+            "function": "close"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::__del__",
+          "label": "  Del  ",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 1330,
+            "function": "__del__"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::get_knowledge_engine",
+          "label": "Get Knowledge Engine",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 1349,
+            "function": "get_knowledge_engine"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::process_knowledge_request",
+          "label": "Process Knowledge Request",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 1369,
+            "function": "process_knowledge_request"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::_initialize_components",
+          "label": " Initialize Components",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 1595,
+            "function": "_initialize_components"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::query",
+          "label": "Query",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 1672,
+            "function": "query"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::extract",
+          "label": "Extract",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 1726,
+            "function": "extract"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::record_episode",
+          "label": "Record Episode",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 1737,
+            "function": "record_episode"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::execute_sandbox",
+          "label": "Execute Sandbox",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 1748,
+            "function": "execute_sandbox"
+          }
+        },
+        {
+          "id": "knowledge_engine/__init__.py::get_status",
+          "label": "Get Status",
+          "type": "step",
+          "source": {
+            "file": "knowledge_engine/__init__.py",
+            "line": 1760,
+            "function": "get_status"
+          }
+        }
+      ],
+      "internalEdges": [
+        {
+          "source": "knowledge_engine/__init__.py::run_comprehensive_analysis",
+          "target": "knowledge_engine/__init__.py::get_knowledge_engine"
+        },
+        {
+          "source": "knowledge_engine/__init__.py::process_knowledge_request",
+          "target": "knowledge_engine/__init__.py::get_knowledge_engine"
+        }
+      ],
+      "timestamp": 1770278301257,
+      "nodeWorkflows": {
+        "knowledge_engine/__init__.py::_validate_on_import": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::to_dict": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::__init__": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::_get_default_config": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::_initialize_learning_components": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::_initialize_basic_learning_components": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::process_request": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::_update_learning_memory": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::_perform_reflection": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::run_comprehensive_analysis": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::evolve_capabilities": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::_gather_evolution_insights": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::_create_evolution_plan": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::_execute_evolution_plan": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::_apply_evolution_changes": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::get_system_knowledge_state": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::close": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::__del__": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::get_knowledge_engine": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::process_knowledge_request": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::_initialize_components": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::query": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::extract": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::record_episode": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::execute_sandbox": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        },
+        "knowledge_engine/__init__.py::get_status": {
+          "id": "workflow___init__",
+          "name": "__init__"
+        }
+      }
     }
   },
   "crossFileEdges": [],
@@ -97551,7 +101027,7 @@
       "id": "workflow___init__",
       "name": "__init__",
       "description": "Workflow from __init__",
-      "primaryFile": "DeepKE_repo/src/deepke/name_entity_re/cross/seq2seq/constraint_decoder/__init__.py"
+      "primaryFile": "knowledge_engine/__init__.py"
     },
     "workflow_example": {
       "id": "workflow_example",
@@ -101020,6 +104496,84 @@
       "name": "run_all_tests",
       "description": "Workflow from run_all_tests",
       "primaryFile": "run_all_tests.py"
+    },
+    "workflow_test_sce_comprehensive": {
+      "id": "workflow_test_sce_comprehensive",
+      "name": "test_sce_comprehensive",
+      "description": "Workflow from test_sce_comprehensive",
+      "primaryFile": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py"
+    },
+    "workflow_enterprise_knowledge_engine": {
+      "id": "workflow_enterprise_knowledge_engine",
+      "name": "enterprise_knowledge_engine",
+      "description": "Workflow from enterprise_knowledge_engine",
+      "primaryFile": "knowledge_engine/enterprise_knowledge_engine.py"
+    },
+    "workflow_test_ragbits_knowledge_engine_integration": {
+      "id": "workflow_test_ragbits_knowledge_engine_integration",
+      "name": "test_ragbits_knowledge_engine_integration",
+      "description": "Workflow from test_ragbits_knowledge_engine_integration",
+      "primaryFile": "test_ragbits_knowledge_engine_integration.py"
+    },
+    "workflow_embedding_generator": {
+      "id": "workflow_embedding_generator",
+      "name": "embedding_generator",
+      "description": "Workflow from embedding_generator",
+      "primaryFile": "knowledge_engine/embedding_generator.py"
+    },
+    "workflow_test_api_server": {
+      "id": "workflow_test_api_server",
+      "name": "test_api_server",
+      "description": "Workflow from test_api_server",
+      "primaryFile": "tests/test_api_server.py"
+    },
+    "workflow_test_auth_system": {
+      "id": "workflow_test_auth_system",
+      "name": "test_auth_system",
+      "description": "Workflow from test_auth_system",
+      "primaryFile": "tests/test_auth_system.py"
+    },
+    "workflow_unified_kg_integration_hub": {
+      "id": "workflow_unified_kg_integration_hub",
+      "name": "unified_kg_integration_hub",
+      "description": "Workflow from unified_kg_integration_hub",
+      "primaryFile": "knowledge_engine/unified_kg_integration_hub.py"
+    },
+    "workflow_end_to_end_invention_planner": {
+      "id": "workflow_end_to_end_invention_planner",
+      "name": "end_to_end_invention_planner",
+      "description": "Workflow from end_to_end_invention_planner",
+      "primaryFile": "end_to_end_invention_planner.py"
+    },
+    "workflow_test_alerting_system": {
+      "id": "workflow_test_alerting_system",
+      "name": "test_alerting_system",
+      "description": "Workflow from test_alerting_system",
+      "primaryFile": "tests/test_alerting_system.py"
+    },
+    "workflow_validation_manager": {
+      "id": "workflow_validation_manager",
+      "name": "validation_manager",
+      "description": "Workflow from validation_manager",
+      "primaryFile": "validation_manager.py"
+    },
+    "workflow_test_evolution_engine": {
+      "id": "workflow_test_evolution_engine",
+      "name": "test_evolution_engine",
+      "description": "Workflow from test_evolution_engine",
+      "primaryFile": "tests/test_evolution_engine.py"
+    },
+    "workflow_test_decomposition_engine": {
+      "id": "workflow_test_decomposition_engine",
+      "name": "test_decomposition_engine",
+      "description": "Workflow from test_decomposition_engine",
+      "primaryFile": "tests/test_decomposition_engine.py"
+    },
+    "workflow_test_analytics_manager": {
+      "id": "workflow_test_analytics_manager",
+      "name": "test_analytics_manager",
+      "description": "Workflow from test_analytics_manager",
+      "primaryFile": "tests/test_analytics_manager.py"
     }
   }
 }

@@ -1,0 +1,178 @@
+{
+  "report_date": "2026-02-04",
+  "report_type": "FINAL_TEST_COVERAGE_REVIEW",
+  "executive_summary": {
+    "total_test_files": 287,
+    "total_test_functions": 4027,
+    "lines_of_test_code": 124906,
+    "average_tests_per_file": 14.0,
+    "pytest_collectable": 747,
+    "collection_errors": 302,
+    "true_100_percent_achieved": false,
+    "estimated_actual_coverage": "60-65%"
+  },
+  "system_breakdown": {
+    "security": {
+      "claimed_tests": 184,
+      "verified_tests": 174,
+      "passed": 174,
+      "pass_rate": "94.6%",
+      "status": "PARTIAL"
+    },
+    "e2e_invention": {
+      "claimed_tests": "Unknown",
+      "verified_tests": 0,
+      "passed": 0,
+      "pass_rate": "0%",
+      "status": "BLOCKED",
+      "blockers": ["Collection errors", "Missing Optional imports"]
+    },
+    "knowledge_extraction": {
+      "claimed_tests": "Unknown",
+      "verified_tests": 100,
+      "passed": 89,
+      "pass_rate": "89%",
+      "status": "PARTIAL"
+    },
+    "z3_prover": {
+      "claimed_components": 17,
+      "verified_tests": 94,
+      "passed": 68,
+      "pass_rate": "72.3%",
+      "status": "PARTIAL"
+    },
+    "gauntlets": {
+      "claimed_gauntlets": 8,
+      "verified_tests": 90,
+      "passed": 86,
+      "pass_rate": "95.6%",
+      "status": "GOOD"
+    },
+    "crewai": {
+      "claimed_features": 10,
+      "verified_tests": 87,
+      "passed": 87,
+      "pass_rate": "100%",
+      "status": "EXCELLENT"
+    },
+    "testing_framework": {
+      "claimed_tests": 251,
+      "verified_tests": 52,
+      "passed": 52,
+      "pass_rate": "100%",
+      "status": "INCOMPLETE"
+    },
+    "leanaide": {
+      "claimed_tests": "Unknown",
+      "verified_tests": 257,
+      "passed": 219,
+      "pass_rate": "85.2%",
+      "status": "PARTIAL"
+    }
+  },
+  "test_execution_results": {
+    "bubblelabs": {"total": 144, "passed": 144, "failed": 0, "errors": 0, "pass_rate": "100%"},
+    "crewai_research": {"total": 87, "passed": 87, "failed": 0, "errors": 0, "pass_rate": "100%"},
+    "evolution": {"total": 13, "passed": 13, "failed": 0, "errors": 0, "pass_rate": "100%"},
+    "hybrid_mcts_maker": {"total": 141, "passed": 141, "failed": 0, "errors": 0, "pass_rate": "100%"},
+    "knowledge_extraction": {"total": 29, "passed": 29, "failed": 0, "errors": 0, "pass_rate": "100%"},
+    "gauntlets": {"total": 72, "passed": 69, "failed": 3, "errors": 0, "pass_rate": "95.8%"},
+    "causal_learn": {"total": 15, "passed": 14, "failed": 1, "errors": 0, "pass_rate": "93.3%"},
+    "all_bugs_fixed": {"total": 136, "passed": 123, "failed": 13, "errors": 0, "pass_rate": "90.4%"},
+    "leanaide": {"total": 83, "passed": 74, "failed": 9, "errors": 0, "pass_rate": "89.2%"},
+    "sovereign": {"total": 53, "passed": 45, "failed": 8, "errors": 0, "pass_rate": "84.9%"},
+    "decomposition": {"total": 47, "passed": 40, "failed": 7, "errors": 0, "pass_rate": "85.1%"},
+    "matryoshka_memory": {"total": 126, "passed": 110, "failed": 16, "errors": 0, "pass_rate": "87.3%"},
+    "integrations": {"total": 36, "passed": 24, "failed": 12, "errors": 0, "pass_rate": "66.7%"},
+    "z3_leanaide": {"total": 72, "passed": 46, "failed": 26, "errors": 0, "pass_rate": "63.9%"},
+    "enhanced_decomp_recomp": {"total": 45, "passed": 22, "failed": 23, "errors": 0, "pass_rate": "48.9%"},
+    "openevolve": {"total": 56, "passed": 19, "failed": 37, "errors": 0, "pass_rate": "33.9%"},
+    "rese": {"total": 10, "passed": 0, "failed": 1, "errors": 9, "pass_rate": "0%"}
+  },
+  "collection_errors": {
+    "total_affected_files": 15,
+    "error_types": {
+      "NameError_Optional": {"count": 15, "severity": "HIGH"},
+      "NameError_NoNewline": {"count": 2, "severity": "HIGH"},
+      "NameError_self": {"count": 1, "severity": "HIGH"},
+      "NameError_AutoformalizationStrategy": {"count": 1, "severity": "HIGH"}
+    },
+    "affected_files": [
+      "test_security_integration.py",
+      "test_e2e_invention_real.py",
+      "test_end_to_end_invention_comprehensive.py",
+      "test_adversarial_comprehensive.py",
+      "test_quality_control.py",
+      "test_quality_gate_icr_integration.py",
+      "test_sgd_workflow_icr_integration.py",
+      "test_verification_engine.py",
+      "test_success_criteria.py"
+    ]
+  },
+  "critical_gaps": [
+    {
+      "gap": "Fix 15+ test files with NameError/Import issues",
+      "impact": "HIGH",
+      "priority": "P0"
+    },
+    {
+      "gap": "Add OPENAI_API_KEY to CI/test environment",
+      "impact": "HIGH",
+      "priority": "P0"
+    },
+    {
+      "gap": "Complete E2E Invention tests",
+      "impact": "HIGH",
+      "priority": "P0"
+    },
+    {
+      "gap": "Complete Z3 Prover component tests",
+      "impact": "MEDIUM",
+      "priority": "P1"
+    },
+    {
+      "gap": "Add coverage for decomposition engine",
+      "impact": "MEDIUM",
+      "priority": "P1"
+    },
+    {
+      "gap": "Complete RESE integration tests",
+      "impact": "MEDIUM",
+      "priority": "P1"
+    }
+  ],
+  "recommendations": {
+    "immediate": [
+      "Add missing imports (Optional, NoNewline, etc.) to affected test files",
+      "Set up test environment variables (OPENAI_API_KEY, PYTHONPATH)",
+      "Skip platform-specific tests on Windows (tmux/libtmux)"
+    ],
+    "short_term": [
+      "Add comprehensive coverage for decomposition engine",
+      "Complete Z3 prover component testing",
+      "Add E2E tests for all domain validators",
+      "Improve RESE integration test coverage"
+    ],
+    "long_term": [
+      "Achieve >90% code coverage across all systems",
+      "Implement automated CI/CD with full test suite",
+      "Add mutation testing for test quality validation",
+      "Create comprehensive integration test harness"
+    ]
+  },
+  "conclusion": {
+    "summary": "Significant progress made with 4,027 test functions across 287 files, but TRUE 100% coverage NOT achieved due to collection errors and incomplete coverage.",
+    "achievements": [
+      "4,027 test functions written",
+      "124,906 lines of test code",
+      "287 test files created",
+      "Multiple systems with 100% pass rates"
+    ],
+    "blockers": [
+      "302 test collection errors",
+      "15+ files with NameError/Import issues",
+      "Missing environment configuration",
+      "Incomplete E2E test coverage"
+    ]
+  }
+}

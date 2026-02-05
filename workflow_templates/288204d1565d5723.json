@@ -1,0 +1,33 @@
+{
+  "id": "288204d1565d5723",
+  "name": "Quality Diversity",
+  "description": "Focus on diverse, high-quality solutions using MAP-Elites",
+  "version": "1.0",
+  "config": {
+    "max_iterations": 30,
+    "population_size": 40,
+    "archive_size": 300,
+    "temperature": 0.75,
+    "elite_ratio": 0.1,
+    "exploration_ratio": 0.5,
+    "exploitation_ratio": 0.4,
+    "checkpoint_interval": 10,
+    "enable_quality_diversity": true,
+    "feature_dimensions": [
+      "complexity",
+      "novelty",
+      "readability"
+    ],
+    "feature_bins": 15,
+    "enable_artifacts": true,
+    "parallel_evaluations": 6
+  },
+  "usage_count": 0,
+  "created_at": "2026-02-04T23:48:56.957290",
+  "updated_at": "2026-02-04T23:48:56.957290",
+  "tags": [
+    "openevolve",
+    "quality-diversity",
+    "preset"
+  ]
+}

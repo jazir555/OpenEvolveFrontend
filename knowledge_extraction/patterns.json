@@ -87,8 +87,133 @@
       "ml_cluster_id": "ml_pattern_noise_4_099bea57",
       "ml_silhouette_score": 0.0,
       "ml_cluster_size": 1
+    },
+    {
+      "pattern_id": "pattern_0_293da3bf",
+      "pattern_type": "ml_clustered",
+      "description": "Neural network optimization",
+      "confidence": 0.5,
+      "occurrences": 1,
+      "first_seen": "2026-02-04T23:41:47.584725",
+      "last_seen": "2026-02-04T23:41:47.584725",
+      "examples": [
+        {
+          "text": "Neural network optimization",
+          "source": "ml_cluster"
+        }
+      ],
+      "metadata": {
+        "silhouette_score": 0.0,
+        "cluster_features": {},
+        "tags": [
+          "individual"
+        ]
+      },
+      "ml_cluster_id": "pattern_0_293da3bf",
+      "ml_silhouette_score": 0.0,
+      "ml_cluster_size": 1
+    },
+    {
+      "pattern_id": "pattern_1_3b7810d9",
+      "pattern_type": "ml_clustered",
+      "description": "Deep learning for vision",
+      "confidence": 0.5,
+      "occurrences": 1,
+      "first_seen": "2026-02-04T23:41:47.584725",
+      "last_seen": "2026-02-04T23:41:47.584725",
+      "examples": [
+        {
+          "text": "Deep learning for vision",
+          "source": "ml_cluster"
+        }
+      ],
+      "metadata": {
+        "silhouette_score": 0.0,
+        "cluster_features": {},
+        "tags": [
+          "individual"
+        ]
+      },
+      "ml_cluster_id": "pattern_1_3b7810d9",
+      "ml_silhouette_score": 0.0,
+      "ml_cluster_size": 1
+    },
+    {
+      "pattern_id": "pattern_2_09bc3b6a",
+      "pattern_type": "ml_clustered",
+      "description": "Transformer architecture tuning",
+      "confidence": 0.5,
+      "occurrences": 1,
+      "first_seen": "2026-02-04T23:41:47.584725",
+      "last_seen": "2026-02-04T23:41:47.584725",
+      "examples": [
+        {
+          "text": "Transformer architecture tuning",
+          "source": "ml_cluster"
+        }
+      ],
+      "metadata": {
+        "silhouette_score": 0.0,
+        "cluster_features": {},
+        "tags": [
+          "individual"
+        ]
+      },
+      "ml_cluster_id": "pattern_2_09bc3b6a",
+      "ml_silhouette_score": 0.0,
+      "ml_cluster_size": 1
+    },
+    {
+      "pattern_id": "pattern_3_a97bcba1",
+      "pattern_type": "ml_clustered",
+      "description": "CNN optimization",
+      "confidence": 0.5,
+      "occurrences": 1,
+      "first_seen": "2026-02-04T23:41:47.584725",
+      "last_seen": "2026-02-04T23:41:47.584725",
+      "examples": [
+        {
+          "text": "CNN optimization",
+          "source": "ml_cluster"
+        }
+      ],
+      "metadata": {
+        "silhouette_score": 0.0,
+        "cluster_features": {},
+        "tags": [
+          "individual"
+        ]
+      },
+      "ml_cluster_id": "pattern_3_a97bcba1",
+      "ml_silhouette_score": 0.0,
+      "ml_cluster_size": 1
+    },
+    {
+      "pattern_id": "pattern_4_099bea57",
+      "pattern_type": "ml_clustered",
+      "description": "BERT fine-tuning",
+      "confidence": 0.5,
+      "occurrences": 1,
+      "first_seen": "2026-02-04T23:41:47.584725",
+      "last_seen": "2026-02-04T23:41:47.584725",
+      "examples": [
+        {
+          "text": "BERT fine-tuning",
+          "source": "ml_cluster"
+        }
+      ],
+      "metadata": {
+        "silhouette_score": 0.0,
+        "cluster_features": {},
+        "tags": [
+          "individual"
+        ]
+      },
+      "ml_cluster_id": "pattern_4_099bea57",
+      "ml_silhouette_score": 0.0,
+      "ml_cluster_size": 1
     }
   ],
-  "total_count": 3,
-  "last_updated": "2026-02-04T18:41:44.440311"
+  "total_count": 8,
+  "last_updated": "2026-02-04T23:41:47.584725"
 }

@@ -1,0 +1,32 @@
+{
+  "id": "191c1dd20228560b",
+  "name": "Balanced Evolution",
+  "description": "Balanced performance and quality for general use",
+  "version": "1.0",
+  "config": {
+    "max_iterations": 20,
+    "population_size": 30,
+    "archive_size": 100,
+    "temperature": 0.7,
+    "elite_ratio": 0.15,
+    "exploration_ratio": 0.35,
+    "exploitation_ratio": 0.5,
+    "checkpoint_interval": 10,
+    "enable_artifacts": true,
+    "enable_cascade_evaluation": true,
+    "cascade_thresholds": [
+      0.5,
+      0.75,
+      0.9
+    ],
+    "parallel_evaluations": 4
+  },
+  "usage_count": 0,
+  "created_at": "2026-02-04T23:48:56.955846",
+  "updated_at": "2026-02-04T23:48:56.955846",
+  "tags": [
+    "openevolve",
+    "balanced",
+    "preset"
+  ]
+}

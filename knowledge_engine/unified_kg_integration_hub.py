@@ -90,7 +90,7 @@ limitations under the License.
 import asyncio
 import logging
 from typing import Dict, Any, List, Optional, Union, Callable, Tuple
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
 from enum import Enum, auto
 import json
@@ -99,6 +99,161 @@ from pathlib import Path
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+
+class KGSource(Enum):
+    """Sources of knowledge graph data."""
+    DEEPKE = "deepke"
+    ONEKE = "oneke"
+    KG_GEN = "kggen"
+    AIKG = "aikg"
+    GLOBAL_CHEM = "global_chem"
+    NEURALKG = "neuralkg"
+    CAUSAL_LEARN = "causal_learn"
+    GRAPHITI = "graphiti"
+    NEUROMANCER = "neuromancer"
+    COGNITIVE_HYDRAULICS = "cognitive_hydraulics"
+    USER = "user"
+    OPENEVOLVE = "openevolve"
+
+
+@dataclass
+class KnowledgeTriple:
+    """Represents a knowledge triple (subject, predicate, object)."""
+    subject: str
+    predicate: str
+    object: str
+    confidence: float = 1.0
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    source: Optional[KGSource] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert triple to dictionary."""
+        data = asdict(self)
+        if self.source:
+            data['source'] = self.source.value
+        return data
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'KnowledgeTriple':
+        """Create triple from dictionary."""
+        source = None
+        if 'source' in data and data['source']:
+            try:
+                source = KGSource(data['source'])
+            except ValueError:
+                pass
+        
+        return cls(
+            subject=data['subject'],
+            predicate=data['predicate'],
+            object=data.get('object', data.get('obj', '')),
+            confidence=data.get('confidence', 1.0),
+            timestamp=data.get('timestamp', datetime.now(timezone.utc).isoformat()),
+            source=source,
+            metadata=data.get('metadata', {})
+        )
+
+
+class IntegrationStatus(Enum):
+    """Status of an integration."""
+    AVAILABLE = "available"
+    UNAVAILABLE = "unavailable"
+    DEGRADED = "degraded"
+    ERROR = "error"
+
+
+@dataclass
+class UnifiedKGConfig:
+    """Configuration for the Unified KG Integration Hub."""
+    enable_deepke: bool = True
+    enable_oneke: bool = True
+    enable_kg_gen: bool = True
+    enable_neuralkg: bool = True
+    enable_karateclub: bool = True
+    enable_graphiti: bool = True
+    enable_global_chem: bool = True
+    enable_causal_learn: bool = True
+    enable_pygraphistry: bool = True
+    enable_outlines: bool = True
+    enable_lmql: bool = True
+    enable_neuromancer: bool = True
+    enable_cognitive_hydraulics: bool = True
+    enable_dts: bool = True
+    enable_guardrails: bool = True
+    enable_icr: bool = True
+    enable_lagrange_mapper: bool = True
+    enable_openevolve: bool = True
+    enable_z3: bool = True
+    enable_pami: bool = True
+    default_backend: str = "memory"
+    storage_config: Dict[str, Any] = field(default_factory=dict)
+    llm_config: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class ExtractionResult:
+    """Standardized result for knowledge extraction."""
+    success: bool
+    entities: List[Dict[str, Any]] = field(default_factory=list)
+    relations: List[Dict[str, Any]] = field(default_factory=list)
+    triples: List[KnowledgeTriple] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    error: Optional[str] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'success': self.success,
+            'entities': self.entities,
+            'relations': self.relations,
+            'triples': [t.to_dict() for t in self.triples],
+            'metadata': self.metadata,
+            'error': self.error
+        }
+
+
+@dataclass
+class AnalysisResult:
+    """Standardized result for knowledge analysis."""
+    success: bool
+    findings: List[Dict[str, Any]] = field(default_factory=list)
+    summary: str = ""
+    metrics: Dict[str, Any] = field(default_factory=dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    error: Optional[str] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'success': self.success,
+            'findings': self.findings,
+            'summary': self.summary,
+            'metrics': self.metrics,
+            'metadata': self.metadata,
+            'error': self.error
+        }
+
+
+class IntegrationRegistry:
+    """Registry for managing knowledge graph integrations."""
+    
+    def __init__(self):
+        self._integrations: Dict[str, Any] = {}
+        self._status: Dict[str, IntegrationStatus] = {}
+    
+    def register(self, name: str, integration: Any, status: IntegrationStatus = IntegrationStatus.AVAILABLE):
+        self._integrations[name] = integration
+        self._status[name] = status
+        logger.info(f"Registered integration: {name} (status: {status.value})")
+    
+    def get_integration(self, name: str) -> Optional[Any]:
+        return self._integrations.get(name)
+    
+    def get_status(self, name: str) -> IntegrationStatus:
+        return self._status.get(name, IntegrationStatus.UNAVAILABLE)
+    
+    def list_integrations(self) -> List[str]:
+        return list(self._integrations.keys())
 
 
 class KGOperationType(Enum):
@@ -123,14 +278,6 @@ class KGOperationType(Enum):
     SAFETY_VALIDATION = auto()        # Guardrails: AI safety checks
     ITERATIVE_REFINEMENT = auto()     # ICR: contextual refinements
     TOPOLOGICAL_ANALYSIS = auto()     # Lagrange Mapper: attractor landscapes
-
-
-class IntegrationStatus(Enum):
-    """Status of an integration."""
-    AVAILABLE = "available"
-    UNAVAILABLE = "unavailable"
-    DEGRADED = "degraded"
-    ERROR = "error"
 
 
 @dataclass
@@ -2376,32 +2523,60 @@ async def visualize_knowledge_graph(
     return result.to_dict()
 
 
-async def analyze_causal_relationships(
-    data: Any,
-    algorithm: str = 'pc'
-) -> Dict[str, Any]:
+async def create_unified_hub(config: Optional[UnifiedKGConfig] = None) -> UnifiedKGIntegrationHub:
     """
-    Quick causal discovery from data.
+    Factory function to create and initialize a UnifiedKGIntegrationHub.
     
     Args:
-        data: Data matrix
-        algorithm: Causal discovery algorithm
+        config: Optional configuration
         
     Returns:
-        Causal graph results
+        Initialized UnifiedKGIntegrationHub
     """
-    hub = UnifiedKGIntegrationHub()
+    hub = UnifiedKGIntegrationHub(config.__dict__ if config else None)
     await hub.initialize()
-    result = await hub.discover_causal_structure(data, algorithm)
-    return result.to_dict()
+    return hub
+
+
+async def quick_extract(text: str, method: Optional[str] = None) -> List[KnowledgeTriple]:
+    """
+    Quickly extract knowledge triples from text.
+    
+    Args:
+        text: Input text
+        method: Optional extraction method
+        
+    Returns:
+        List of extracted KnowledgeTriples
+    """
+    hub = await create_unified_hub()
+    result = await hub.extract_entities(text, method)
+    
+    triples = []
+    if result.success and isinstance(result.data, dict):
+        # Handle different result formats from different methods
+        extracted = result.data.get('entities', []) or result.data.get('triples', [])
+        for item in extracted:
+            if isinstance(item, dict):
+                triples.append(KnowledgeTriple.from_dict({
+                    **item,
+                    'source': result.integration_used
+                }))
+    
+    return triples
 
 
 __all__ = [
     'UnifiedKGIntegrationHub',
+    'UnifiedKGConfig',
+    'KnowledgeTriple',
+    'KGSource',
     'KGOperationType',
     'KGOperationResult',
     'IntegrationHealth',
     'IntegrationStatus',
+    'create_unified_hub',
+    'quick_extract',
     'extract_knowledge',
     'visualize_knowledge_graph',
     'analyze_causal_relationships'

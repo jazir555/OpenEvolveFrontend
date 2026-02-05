@@ -1,0 +1,325 @@
+================================================================================
+OpenEvolve - REMAINING TODO ITEMS FOR TRUE 100%
+Generated: February 4, 2026
+Priority: P0 (Critical), P1 (High), P2 (Medium), P3 (Low)
+================================================================================
+
+================================================================================
+P0 - CRITICAL (Must Fix Before Production)
+================================================================================
+
+[SECURITY-001] Fix Audit Logging Persistence
+  File: security_framework.py (lines 301-331)
+  Issue: Logs stored in memory only (self._logs = [])
+  Action: Add SQLite/file persistence
+  Est: 4 hours
+
+[SECURITY-002] Implement API Key Database Validation
+  File: security_framework.py (lines 370-383), api_server.py (lines 1425-1454)
+  Issue: Accepts ANY key starting with "sk-"
+  Action: Query database for valid keys
+  Est: 6 hours
+
+[SECURITY-003] Add HTTPS/TLS Configuration
+  File: api_server.py
+  Issue: No SSL/TLS configuration found
+  Action: Add SSL context, certificate loading
+  Est: 4 hours
+
+[LEAN-001] Install Lean 4 Theorem Prover
+  System: Windows
+  Issue: lean/lake not in PATH
+  Action: 
+    1. Install elan: curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh
+    2. elan install leanprover/lean4:v4.6.0
+    3. Verify: lean --version
+  Est: 2 hours
+
+[LEAN-002] Setup Mathlib4 Project
+  Directory: lean_workspace/
+  Issue: No mathlib4 installation
+  Action:
+    1. lake init openevolve_math
+    2. lake add Mathlib
+    3. lake update
+    4. lake build (30-60 min first time)
+  Est: 2 hours + build time
+
+[LEAN-003] Remove/Replace all `sorry` Stubs in Generated Proofs
+  Files: lean4_integration.py, leanaide_continuous_math.py
+  Issue: ~45 instances of `sorry` in templates
+  Action: Generate actual proofs or use Lean tactics
+  Est: 40 hours (requires Lean expertise)
+
+[LEAN-004] Implement Real LLM API Integration
+  Files: leanaide_autoformalization_mdap_maker.py, leanaide_continuous_math.py
+  Issue: No OpenAI/Anthropic imports or API calls
+  Action:
+    1. Add to requirements.txt: openai>=1.0.0, anthropic>=0.18.0
+    2. Implement _call_llm_for_formalization() with actual API calls
+  Est: 16 hours
+
+[E2E-001] Replace PhysicsNeMo Mock with Real Integration or Remove
+  File: physics_validator_enhanced.py (lines 46-53, 156-163)
+  Issue: PHYSICS_NEMO_AVAILABLE = False, returns mock model
+  Action: Either implement real integration or remove claims
+  Est: 8 hours (to remove) / 40 hours (to implement)
+
+[E2E-002] Implement Real FEA or Document as Simplified
+  File: physics_validator_enhanced.py (lines 379-474)
+  Issue: Just calculates F/A, not real FEA
+  Action: Integrate FEniCS/CalculiX or update documentation
+  Est: 80 hours (for real FEA)
+
+[E2E-003] Implement Real CFD or Document as Correlations
+  File: physics_validator_enhanced.py (lines 477-577)
+  Issue: Just uses empirical correlations
+  Action: Integrate OpenFOAM or update documentation
+  Est: 80 hours (for real CFD)
+
+================================================================================
+P1 - HIGH (Fix Within 2-4 Weeks)
+================================================================================
+
+[Z3-001] Implement True Incremental Solving
+  File: z3prover_advanced.py (lines 861-956)
+  Issue: Uses state tracking, NOT solver.push()/pop()
+  Action: Use Z3's native push/pop methods
+  Est: 16 hours
+
+[Z3-002] Complete Multi-Objective Optimization
+  File: z3prover_advanced.py (lines 408-508)
+  Issue: Skeleton only, no real Pareto/Lexicographic/Weighted
+  Action: Implement proper multi-objective algorithms
+  Est: 24 hours
+
+[Z3-003] Improve Proof Extraction
+  File: z3prover_advanced.py (lines 1035-1054)
+  Issue: Just regex on string, not real proof parsing
+  Action: Parse actual Z3 proof terms
+  Est: 16 hours
+
+[KE-001] Wire DeepKE into Core Knowledge Extraction
+  Files: ml_pattern_clustering.py, stage6_knowledge_extraction.py
+  Issue: DeepKE exists but not imported in core
+  Action: Add optional DeepKE import and NER pipeline
+  Est: 16 hours
+
+[KE-002] Wire OneKE into Core Knowledge Extraction
+  Issue: OneKE exists but not used
+  Action: Add OneKE integration for structured extraction
+  Est: 16 hours
+
+[TEST-001] Add Real SQL Injection Tests
+  File: test_input_validation.py (lines 42-78)
+  Issue: Tests call wrong method, don't test database
+  Action:
+    1. Create test database
+    2. Actually try SQL injection
+    3. Verify parameterized queries prevent it
+  Est: 12 hours
+
+[TEST-002] Add Real Security Headers Tests
+  File: test_security_endpoints.py (lines 21-174)
+  Issue: Middleware class defined in test, no HTTP requests
+  Action: Start test server, make real HTTP requests
+  Est: 8 hours
+
+[TEST-003] Fix Rate Limiting Tests
+  File: test_rate_limiting.py (lines 16-70)
+  Issue: Test implements its own RateLimiter
+  Action: Import and test production RateLimiter
+  Est: 4 hours
+
+[TEST-004] Remove False 100% Coverage Claim
+  File: security_test_suite.py (line 43)
+  Issue: Claims 100% based on file existence
+  Action: Change to measured coverage (~60%)
+  Est: 1 hour
+
+[CREW-001] Implement Real-Time Collaboration WebSocket Layer
+  File: crewai_research_tools.py (lines 950-1310)
+  Issue: Pure callbacks, no network layer
+  Action: Add WebSocket server/client
+  Est: 24 hours
+
+[CREW-002] Add Semantic Memory Search
+  File: crewai_research_core.py (lines 623-936)
+  Issue: Uses word overlap, not embeddings
+  Action: Add vector embeddings for semantic retrieval
+  Est: 16 hours
+
+[CREW-003] Document Research Pillar Gaps
+  Issue: 10 pillars claimed, 0 implemented
+  Action: Update documentation to reflect actual status
+  Est: 4 hours
+
+[RESE-001] Implement Φ₂: Metacognitive Reflection (Debiasing)
+  File: rese_pipeline.py (Phase I)
+  Issue: Mandatory subroutine missing per spec §3.2
+  Action: Add debiasing algorithm with confirmation bias tracking
+  Est: 40 hours
+
+[RESE-002] Complete ACI Implementation
+  Issue: Disorder Entropy, Causal Coherence incomplete
+  Action: Implement full ACI with high-entropy detection
+  Est: 24 hours
+
+================================================================================
+P2 - MEDIUM (Fix Within 1-2 Months)
+================================================================================
+
+[E2E-004] Complete Uncertainpy Integration
+  File: uncertainty_propagation_enhanced.py (lines 36-43)
+  Issue: Hardcoded UNCERTAINPY_AVAILABLE = False
+  Action: Actually import and use uncertainpy
+  Est: 16 hours
+
+[E2E-005] Implement Real Polynomial Chaos Expansion
+  File: uncertainty_propagation_enhanced.py (lines 175-240)
+  Issue: Just takes mean, not real PCE
+  Action: Implement orthogonal polynomials, quadrature rules
+  Est: 40 hours
+
+[E2E-006] Fix LLM4IAS Integration
+  File: sop_generator_enhanced.py (lines 46-54)
+  Issue: Always falls back to hardcoded templates
+  Action: Implement real LLM4IAS or remove claims
+  Est: 24 hours
+
+[KE-003] Fix Temporal Graph Persistence
+  File: ml_pattern_clustering.py
+  Issue: In-memory only
+  Action: Add save/load methods or use TemporalKnowledgeManager
+  Est: 8 hours
+
+[SECURITY-004] Add Distributed Rate Limiting
+  File: security_framework.py (lines 203-234)
+  Issue: In-memory dict, won't work across instances
+  Action: Use Redis for rate limit counters
+  Est: 12 hours
+
+[SECURITY-005] Add Session Management
+  Issue: No session cookie configuration
+  Action: Implement secure session cookies, timeout, invalidation
+  Est: 16 hours
+
+[CREW-004] Implement MAS² (Recursive Self-Generation)
+  Status: NOT IMPLEMENTED
+  Est: 80 hours
+
+[CREW-005] Implement Speculative Execution
+  Status: NOT IMPLEMENTED
+  Est: 60 hours
+
+[CREW-006] Implement KVComm (KV Cache Sharing)
+  Status: NOT IMPLEMENTED
+  Est: 60 hours
+
+================================================================================
+P3 - LOW (Nice to Have)
+================================================================================
+
+[DOC-001] Update All Documentation Claims
+  Files: Multiple *COMPLETE*.md files
+  Issue: False 100% claims throughout
+  Action: Update to actual percentages
+  Est: 8 hours
+
+[DOC-002] Add "What's Mocked vs Real" Section
+  Files: README.md, AGENTS.md
+  Action: Document all limitations honestly
+  Est: 8 hours
+
+[TEST-005] Add Property-Based Tests for Z3
+  Issue: Tests don't verify mathematical correctness
+  Action: Add hypothesis-based property testing
+  Est: 24 hours
+
+[SECURITY-006] Add Security Monitoring
+  Action: Failed auth tracking, suspicious activity detection
+  Est: 24 hours
+
+[SECURITY-007] Add API Key Rotation
+  Action: Automatic expiration, renewal, revocation
+  Est: 16 hours
+
+[SECURITY-008] Add OAuth2/OIDC Support
+  Action: Integration with identity providers
+  Est: 40 hours
+
+================================================================================
+SUMMARY BY CATEGORY
+================================================================================
+
+Category          P0   P1   P2   P3   Total Hours
+----------------- ---- ---- ---- ---- ------------
+Security          3    4    2    3    68 hours
+LeanAide          4    0    0    0    64 hours
+E2E Invention     3    1    3    0    232 hours
+Knowledge Ex.     0    2    1    1    48 hours
+Z3 Prover         0    3    0    0    56 hours
+Testing           0    4    0    1    41 hours
+CrewAI Research   0    3    3    0    220 hours
+RESE Framework    0    2    0    0    64 hours
+Documentation     0    0    0    2    16 hours
+                  ---- ---- ---- ----
+TOTAL             10   19   9    7    ~809 hours (~20 weeks)
+
+================================================================================
+CRITICAL PATH TO TRUE 100%
+================================================================================
+
+Week 1-2: Security + Lean 4 Installation
+  - SECURITY-001, 002, 003
+  - LEAN-001, 002
+  
+Week 3-4: Critical E2E + Lean LLM
+  - E2E-001, 002, 003 (or document as simplified)
+  - LEAN-003, 004
+
+Week 5-6: Z3 + Testing
+  - Z3-001, 002, 003
+  - TEST-001, 002, 003, 004
+
+Week 7-8: Knowledge Extraction + RESE
+  - KE-001, 002
+  - RESE-001, 002
+
+Week 9-12: CrewAI Research
+  - CREW-001, 002, 003, 004, 005, 006
+
+Week 13-16: Polish + Documentation
+  - All remaining P2/P3 items
+  - Final verification
+
+================================================================================
+IMMEDIATE ACTION ITEMS (This Week)
+================================================================================
+
+1. [ ] Install Lean 4 and verify lean --version works
+2. [ ] Fix audit logging to persist to file/database
+3. [ ] Fix API key validation to query database
+4. [ ] Document E2E physics limitations (FEA/CFD simplified)
+5. [ ] Update all "100% Complete" claims to actual percentages
+6. [ ] Create honest README with "What's Real vs Mocked" section
+
+================================================================================
+VERIFICATION CHECKLIST (Before Claiming TRUE 100%)
+================================================================================
+
+[ ] All P0 items complete
+[ ] lean --version returns version
+[ ] lake --version returns version
+[ ] mathlib4 lake build succeeds
+[ ] All security tests use real (not mock) implementations
+[ ] SQL injection tests actually try to inject
+[ ] Security header tests make real HTTP requests
+[ ] Audit logs persist to disk
+[ ] API keys validated against database
+[ ] All 286+ test files pass (>90%)
+[ ] Documentation accurately reflects capabilities
+[ ] No `sorry` stubs in generated Lean code
+[ ] All claimed external integrations actually work
+
+================================================================================

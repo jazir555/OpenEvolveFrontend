@@ -228,51 +228,54 @@ class EnterpriseKnowledgeEngine:
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """
         Initialize the Enterprise Knowledge Engine.
-        
+
         Args:
             config: Configuration dictionary for all components
         """
         self.config = config or {}
         self.logger = logger
-        
+
         # Initialize performance monitor
         self.performance_monitor = PerformanceMonitor()
-        
+
         # Initialize health monitor
         self.health_monitor = HealthMonitor()
-        
+
         # Initialize components with error handling
         try:
             # Import and initialize core components
             from knowledge_engine.core import KnowledgeState, EntityKnowledgeGraph
-            self.state = KnowledgeState()
+            self.state = KnowledgeState("enterprise_knowledge_engine_default_query")
             self.graph = EntityKnowledgeGraph()
-            
+
             # Import and initialize Phase 1 components
             from knowledge_engine.knowledge_extractor import KnowledgeExtractor
             self.extractor = KnowledgeExtractor(self.config)
-            
+
             # Import and initialize Phase 2 components
             from knowledge_engine.enhanced_storage import EnhancedKnowledgeStorage
             from knowledge_engine.enhanced_retriever import EnhancedKnowledgeRetriever
             from knowledge_engine.embedding_generator import EmbeddingGenerator
-            
+
             self.storage = EnhancedKnowledgeStorage(self.config)
             self.retriever = EnhancedKnowledgeRetriever(self.storage, self.config)
             self.embedding_gen = EmbeddingGenerator(self.config)
-            
+
             # Import and initialize Phase 3 components
             from knowledge_engine.real_database_integration import RealDatabaseIntegrator
             self.database_integrator = RealDatabaseIntegrator(self.config)
+
+            # Initialize Ragbits integration
+            self.ragbits_integration = self._initialize_ragbits_integration()
             
             # Check production readiness
             self.production_ready = self.database_integrator.is_production_ready()
-            
+
             # Update health status
             self._update_component_health()
-            
+
             self.logger.info("Enterprise Knowledge Engine initialized successfully")
-            
+
         except Exception as e:
             self.logger.error(f"Failed to initialize Enterprise Knowledge Engine: {str(e)}")
             self.logger.error(traceback.format_exc())
@@ -280,6 +283,33 @@ class EnterpriseKnowledgeEngine:
                 f"Initialization failed: {str(e)}",
                 "KE_INIT_001"
             ) from e
+
+    def _initialize_ragbits_integration(self):
+        """
+        Initialize Ragbits integration for enhanced search capabilities.
+        
+        Returns:
+            Ragbits integration instance or None if not available
+        """
+        try:
+            from knowledge_engine.ragbits_integration import RagbitsIntegration, RAGBITS_INTEGRATION_AVAILABLE
+            
+            if RAGBITS_INTEGRATION_AVAILABLE:
+                ragbits_config = self.config.get('ragbits', {})
+                ragbits_integration = RagbitsIntegration(ragbits_config)
+                
+                self.logger.info("Ragbits integration initialized successfully")
+                return ragbits_integration
+            else:
+                self.logger.warning("Ragbits not available, using fallback search")
+                return None
+                
+        except ImportError as e:
+            self.logger.warning(f"Could not import Ragbits integration: {e}")
+            return None
+        except Exception as e:
+            self.logger.error(f"Failed to initialize Ragbits integration: {e}")
+            return None
     
     def _update_component_health(self):
         """Update health status for all components"""
@@ -530,20 +560,20 @@ class EnterpriseKnowledgeEngine:
                         limit: int = 10, use_cache: bool = True) -> Dict[str, Any]:
         """
         Perform enterprise search with advanced features.
-        
+
         Args:
             query: Search query string
-            query_type: Type of search (hybrid, vector, keyword, semantic)
+            query_type: Type of search (hybrid, vector, keyword, semantic, ragbits)
             filters: Additional filters
             limit: Maximum number of results
             use_cache: Whether to use caching
-            
+
         Returns:
             Dictionary with search results and metadata
         """
         start_time = time.time()
         operation_type = 'search'
-        
+
         # Validate input
         if not query or not isinstance(query, str):
             error_msg = "Invalid query - must be a non-empty string"
@@ -558,39 +588,65 @@ class EnterpriseKnowledgeEngine:
                 'production_mode': self.production_ready,
                 'timestamp': datetime.now().isoformat()
             }
-        
+
         # Validate limit
         if not isinstance(limit, int) or limit <= 0:
             limit = 10  # Default limit
             self.logger.warning(f"Invalid limit {limit}, using default 10")
-        
+
         try:
-            # Perform search
-            results = self.retriever.search_knowledge(query, query_type, filters, limit, use_cache)
-            
+            # Use Ragbits if available and requested
+            if self.ragbits_integration and query_type in ['ragbits', 'semantic', 'hybrid']:
+                results = self._search_with_ragbits(query, filters, limit)
+            else:
+                # Fall back to existing retriever
+                search_result = self.retriever.search_knowledge(query, query_type, filters, limit, use_cache)
+                # Handle the case where search_knowledge returns an EnhancedRetrievalResult object
+                if hasattr(search_result, 'results'):
+                    # If it's an object with a results attribute
+                    results = search_result.results if hasattr(search_result, 'results') else search_result
+                elif isinstance(search_result, list):
+                    # If it's already a list
+                    results = search_result
+                else:
+                    # If it's neither, treat as-is
+                    results = search_result
+
             # Record successful operation
             search_time = time.time() - start_time
             self.performance_monitor.record_operation(operation_type, True, search_time)
-            
+
+            # Calculate result count based on the type of results
+            if isinstance(results, list):
+                result_count = len(results)
+            elif hasattr(results, '__len__'):
+                result_count = len(results)
+            else:
+                # If results is not a list or doesn't have __len__, set to 0 or try to access results attribute
+                if hasattr(results, 'results') and isinstance(results.results, list):
+                    result_count = len(results.results)
+                else:
+                    result_count = 0
+
             return {
                 'status': 'success',
                 'query': query,
                 'query_type': query_type,
                 'results': results,
-                'result_count': len(results),
+                'result_count': result_count,
                 'processing_time': search_time,
                 'production_mode': self.production_ready,
                 'timestamp': datetime.now().isoformat()
             }
-            
+
         except Exception as e:
             self.logger.error(f"Search failed: {str(e)}")
             self.logger.error(traceback.format_exc())
-            
+
             # Record failed operation
             search_time = time.time() - start_time
             self.performance_monitor.record_operation(operation_type, False, search_time)
-            
+
             return {
                 'status': 'error',
                 'error': str(e),
@@ -600,24 +656,70 @@ class EnterpriseKnowledgeEngine:
                 'production_mode': self.production_ready,
                 'timestamp': datetime.now().isoformat()
             }
+
+    def _search_with_ragbits(self, query: str, filters: Optional[Dict[str, Any]], limit: int) -> List[Dict[str, Any]]:
+        """
+        Perform search using Ragbits integration.
+
+        Args:
+            query: Search query
+            filters: Additional filters
+            limit: Maximum number of results
+
+        Returns:
+            List of search results
+        """
+        try:
+            # Prepare Ragbits search options
+            ragbits_filters = filters or {}
+            
+            # Perform Ragbits search
+            ragbits_result = asyncio.run(
+                self.ragbits_integration.search_documents(
+                    query=query,
+                    top_k=limit,
+                    similarity_threshold=0.5  # Default threshold
+                )
+            )
+            
+            if ragbits_result.success:
+                # Format results to match expected structure
+                formatted_results = []
+                for result in ragbits_result.results:
+                    formatted_results.append({
+                        'content': result.get('content', ''),
+                        'metadata': result.get('metadata', {}),
+                        'score': result.get('score', 0.0),
+                        'source': result.get('source', 'ragbits')
+                    })
+                return formatted_results
+            else:
+                self.logger.warning(f"Ragbits search failed: {ragbits_result.error}")
+                # Fall back to existing retriever
+                return self.retriever.search_knowledge(query, 'hybrid', filters, limit, True)
+                
+        except Exception as e:
+            self.logger.error(f"Ragbits search error: {str(e)}")
+            # Fall back to existing retriever
+            return self.retriever.search_knowledge(query, 'hybrid', filters, limit, True)
     
     def get_recommendations(self, context: Dict[str, Any],
                            user_profile: Optional[Dict[str, Any]] = None,
                            limit: int = 5) -> Dict[str, Any]:
         """
         Get enterprise-grade personalized recommendations.
-        
+
         Args:
             context: Context dictionary
             user_profile: Optional user profile for personalization
             limit: Maximum number of recommendations
-            
+
         Returns:
             Dictionary with recommendations and metadata
         """
         start_time = time.time()
         operation_type = 'recommendations'
-        
+
         # Validate input
         if not context or not isinstance(context, dict):
             error_msg = "Invalid context - must be a non-empty dictionary"
@@ -631,20 +733,20 @@ class EnterpriseKnowledgeEngine:
                 'production_mode': self.production_ready,
                 'timestamp': datetime.now().isoformat()
             }
-        
+
         # Validate limit
         if not isinstance(limit, int) or limit <= 0:
             limit = 5  # Default limit
             self.logger.warning(f"Invalid limit {limit}, using default 5")
-        
+
         try:
             # Get recommendations
             recommendations = self.retriever.get_personalized_recommendations(context, user_profile, limit)
-            
+
             # Record successful operation
             recommendation_time = time.time() - start_time
             self.performance_monitor.record_operation(operation_type, True, recommendation_time)
-            
+
             return {
                 'status': 'success',
                 'context': context,
@@ -654,15 +756,15 @@ class EnterpriseKnowledgeEngine:
                 'production_mode': self.production_ready,
                 'timestamp': datetime.now().isoformat()
             }
-            
+
         except Exception as e:
             self.logger.error(f"Recommendations failed: {str(e)}")
             self.logger.error(traceback.format_exc())
-            
+
             # Record failed operation
             recommendation_time = time.time() - start_time
             self.performance_monitor.record_operation(operation_type, False, recommendation_time)
-            
+
             return {
                 'status': 'error',
                 'error': str(e),
@@ -671,17 +773,215 @@ class EnterpriseKnowledgeEngine:
                 'production_mode': self.production_ready,
                 'timestamp': datetime.now().isoformat()
             }
+
+    def store_artifact_with_ragbits(self, content: str, metadata: Dict[str, Any], 
+                                   artifact_type: str = "general") -> Dict[str, Any]:
+        """
+        Store a knowledge artifact using Ragbits for enhanced indexing.
+
+        Args:
+            content: Artifact content
+            metadata: Artifact metadata
+            artifact_type: Type of artifact
+
+        Returns:
+            Dictionary with storage results
+        """
+        start_time = time.time()
+        operation_type = 'store_artifact_ragbits'
+
+        try:
+            # Validate inputs
+            if not content or not isinstance(content, str):
+                error_msg = "Invalid content - must be a non-empty string"
+                self.logger.error(error_msg)
+                self.performance_monitor.record_operation(operation_type, False, 0)
+                return {
+                    'status': 'error',
+                    'error': error_msg,
+                    'error_code': 'KE_INPUT_005',
+                    'production_mode': self.production_ready,
+                    'timestamp': datetime.now().isoformat()
+                }
+
+            if not metadata or not isinstance(metadata, dict):
+                metadata = {}
+
+            # Add ragbits-specific metadata
+            ragbits_metadata = {
+                **metadata,
+                'artifact_type': artifact_type,
+                'created_at': datetime.now().isoformat(),
+                'source': 'enterprise_knowledge_engine'
+            }
+
+            # Store in ragbits if available
+            if self.ragbits_integration:
+                try:
+                    # Prepare document for ragbits
+                    document = {
+                        'content': content,
+                        'metadata': ragbits_metadata
+                    }
+
+                    # Ingest into ragbits
+                    result = asyncio.run(
+                        self.ragbits_integration.ingest_documents(
+                            documents=[document]
+                        )
+                    )
+
+                    if result.success:
+                        # Also store in traditional storage
+                        artifact_id = self.storage.store_knowledge_artifact(
+                            {
+                                'type': artifact_type,
+                                'content': content,
+                                'metadata': ragbits_metadata
+                            },
+                            generate_embedding=True
+                        )
+
+                        processing_time = time.time() - start_time
+                        self.performance_monitor.record_operation(operation_type, True, processing_time)
+
+                        return {
+                            'status': 'success',
+                            'artifact_id': artifact_id,
+                            'ragbits_ingested': True,
+                            'processing_time': processing_time,
+                            'production_mode': self.production_ready,
+                            'timestamp': datetime.now().isoformat()
+                        }
+                    else:
+                        self.logger.warning(f"Ragbits ingestion failed: {result.error}")
+                        # Fall back to traditional storage only
+                        artifact_id = self.storage.store_knowledge_artifact(
+                            {
+                                'type': artifact_type,
+                                'content': content,
+                                'metadata': ragbits_metadata
+                            },
+                            generate_embedding=True
+                        )
+
+                        processing_time = time.time() - start_time
+                        self.performance_monitor.record_operation(operation_type, True, processing_time)
+
+                        return {
+                            'status': 'partial_success',
+                            'artifact_id': artifact_id,
+                            'ragbits_ingested': False,
+                            'ragbits_error': result.error,
+                            'processing_time': processing_time,
+                            'production_mode': self.production_ready,
+                            'timestamp': datetime.now().isoformat()
+                        }
+
+                except Exception as ragbits_error:
+                    self.logger.error(f"Ragbits ingestion error: {ragbits_error}")
+                    # Fall back to traditional storage
+                    artifact_id = self.storage.store_knowledge_artifact(
+                        {
+                            'type': artifact_type,
+                            'content': content,
+                            'metadata': ragbits_metadata
+                        },
+                        generate_embedding=True
+                    )
+
+                    processing_time = time.time() - start_time
+                    self.performance_monitor.record_operation(operation_type, True, processing_time)
+
+                    return {
+                        'status': 'fallback_success',
+                        'artifact_id': artifact_id,
+                        'ragbits_ingested': False,
+                        'ragbits_error': str(ragbits_error),
+                        'processing_time': processing_time,
+                        'production_mode': self.production_ready,
+                        'timestamp': datetime.now().isoformat()
+                    }
+            else:
+                # Ragbits not available, use traditional storage
+                artifact_id = self.storage.store_knowledge_artifact(
+                    {
+                        'type': artifact_type,
+                        'content': content,
+                        'metadata': ragbits_metadata
+                    },
+                    generate_embedding=True
+                )
+
+                processing_time = time.time() - start_time
+                self.performance_monitor.record_operation(operation_type, True, processing_time)
+
+                return {
+                    'status': 'traditional_only',
+                    'artifact_id': artifact_id,
+                    'ragbits_available': False,
+                    'processing_time': processing_time,
+                    'production_mode': self.production_ready,
+                    'timestamp': datetime.now().isoformat()
+                }
+
+        except Exception as e:
+            self.logger.error(f"Artifact storage failed: {str(e)}")
+            self.logger.error(traceback.format_exc())
+
+            processing_time = time.time() - start_time
+            self.performance_monitor.record_operation(operation_type, False, processing_time)
+
+            return {
+                'status': 'error',
+                'error': str(e),
+                'error_code': 'KE_STORE_001',
+                'production_mode': self.production_ready,
+                'timestamp': datetime.now().isoformat()
+            }
+
+    async def get_ragbits_statistics(self) -> Dict[str, Any]:
+        """
+        Get Ragbits-specific statistics and health information.
+
+        Returns:
+            Dictionary with Ragbits statistics
+        """
+        if not self.ragbits_integration:
+            return {
+                'ragbits_available': False,
+                'error': 'Ragbits integration not available',
+                'timestamp': datetime.now().isoformat()
+            }
+
+        try:
+            stats = await self.ragbits_integration.get_statistics()
+            health = await self.ragbits_integration.health_check()
+
+            return {
+                'ragbits_available': True,
+                'statistics': stats,
+                'health': health,
+                'timestamp': datetime.now().isoformat()
+            }
+        except Exception as e:
+            self.logger.error(f"Error getting Ragbits statistics: {str(e)}")
+            return {
+                'ragbits_available': True,
+                'error': str(e),
+                'timestamp': datetime.now().isoformat()
+            }
     
     def get_analytics(self) -> Dict[str, Any]:
         """
         Get comprehensive analytics about the knowledge base and system.
-        
+
         Returns:
             Dictionary containing detailed analytics and system information
         """
         start_time = time.time()
         operation_type = 'analytics'
-        
+
         try:
             # Get storage statistics with error handling
             try:
@@ -689,42 +989,53 @@ class EnterpriseKnowledgeEngine:
             except Exception as e:
                 self.logger.error(f"Failed to get storage statistics: {str(e)}")
                 storage_stats = {'error': str(e), 'total_artifacts': 0}
-            
+
             # Get quality metrics with error handling
             try:
                 quality_metrics = self.retriever.get_knowledge_quality_metrics()
             except Exception as e:
                 self.logger.error(f"Failed to get quality metrics: {str(e)}")
                 quality_metrics = {'error': str(e), 'overall_quality_score': 0}
-            
+
             # Get performance metrics with error handling
             try:
                 retriever_performance = self.retriever.get_performance_metrics()
             except Exception as e:
                 self.logger.error(f"Failed to get retriever performance: {str(e)}")
                 retriever_performance = {'error': str(e)}
-            
+
             # Get trend analysis with error handling
             try:
                 trends = self.retriever.get_knowledge_trends(time_range='30d', analysis_type='advanced')
             except Exception as e:
                 self.logger.error(f"Failed to get trend analysis: {str(e)}")
                 trends = {'error': str(e), 'trend_analysis': {}}
-            
+
             # Get database health with error handling
             try:
                 db_health = self.database_integrator.get_health_status()
             except Exception as e:
                 self.logger.error(f"Failed to get database health: {str(e)}")
                 db_health = {'error': str(e), 'overall_status': 'error'}
-            
+
             # Get knowledge graph with error handling
             try:
                 knowledge_graph = self.storage.create_knowledge_graph()
             except Exception as e:
                 self.logger.error(f"Failed to create knowledge graph: {str(e)}")
                 knowledge_graph = {'error': str(e), 'nodes': 0, 'relationships': 0}
-            
+
+            # Get Ragbits analytics if available
+            try:
+                if self.ragbits_integration:
+                    # Use asyncio.run to run the async method in a synchronous context
+                    ragbits_analytics = asyncio.run(self.get_ragbits_statistics())
+                else:
+                    ragbits_analytics = {'ragbits_available': False}
+            except Exception as e:
+                self.logger.error(f"Failed to get Ragbits analytics: {str(e)}")
+                ragbits_analytics = {'ragbits_available': False, 'error': str(e)}
+
             # Combine all analytics
             analytics = {
                 'system': {
@@ -739,22 +1050,23 @@ class EnterpriseKnowledgeEngine:
                 'retriever_performance': retriever_performance,
                 'database_health': db_health,
                 'knowledge_graph': knowledge_graph,
+                'ragbits': ragbits_analytics,
                 'generated_at': datetime.now().isoformat(),
                 'analysis_time': time.time() - start_time
             }
-            
+
             # Record successful operation
             self.performance_monitor.record_operation(operation_type, True, time.time() - start_time)
-            
+
             return analytics
-            
+
         except Exception as e:
             self.logger.error(f"Failed to generate analytics: {str(e)}")
             self.logger.error(traceback.format_exc())
-            
+
             # Record failed operation
             self.performance_monitor.record_operation(operation_type, False, time.time() - start_time)
-            
+
             return {
                 'status': 'error',
                 'error': str(e),

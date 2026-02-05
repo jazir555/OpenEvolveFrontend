@@ -152,6 +152,22 @@ except ImportError:
     logger.warning("Advanced integrations not available")
     InventionPlannerIntegrations = None
 
+# Import Knowledge Engine
+try:
+    from knowledge_engine import (
+        get_knowledge_engine,
+        OpenEvolveKnowledgeEngine,
+        UnifiedKGIntegrationHub,
+        UnifiedKGConfig,
+        KGOperationType,
+        KnowledgeTriple,
+        KGSource
+    )
+    KNOWLEDGE_ENGINE_AVAILABLE = True
+except ImportError as e:
+    KNOWLEDGE_ENGINE_AVAILABLE = False
+    logger.warning(f"Knowledge Engine not available: {e}")
+
 
 # ============================================================================
 # Pipeline Stages
@@ -358,6 +374,34 @@ class EndToEndInventionPlanner:
         self.integrations = None
         self.enable_integrations = enable_integrations and ADVANCED_INTEGRATIONS_AVAILABLE
         self.digital_twin = DigitalTwinSandbox()
+
+        # Initialize Knowledge Engine
+        self.knowledge_engine = None
+        self.kg_hub = None
+        if KNOWLEDGE_ENGINE_AVAILABLE:
+            try:
+                # Use a loop to avoid blocking initialization if KE services are slow
+                # In production, this would be properly awaited
+                import asyncio
+                try:
+                    loop = asyncio.get_event_loop()
+                    if loop.is_running():
+                        # Create a task to initialize the engine
+                        self.knowledge_engine_task = loop.create_task(get_knowledge_engine())
+                        self.kg_hub_task = loop.create_task(UnifiedKGIntegrationHub().initialize())
+                    else:
+                        self.knowledge_engine = asyncio.run(get_knowledge_engine())
+                        self.kg_hub = UnifiedKGIntegrationHub()
+                        asyncio.run(self.kg_hub.initialize())
+                except RuntimeError:
+                    # No event loop
+                    self.knowledge_engine = asyncio.run(get_knowledge_engine())
+                    self.kg_hub = UnifiedKGIntegrationHub()
+                    asyncio.run(self.kg_hub.initialize())
+                
+                logger.info("Knowledge Engine and KG Hub initialized")
+            except Exception as e:
+                logger.error(f"Failed to initialize Knowledge Engine: {e}")
 
         if self.enable_integrations and InventionPlannerIntegrations:
             try:
@@ -625,6 +669,30 @@ class EndToEndInventionPlanner:
             else:
                 logger.warning(f"STEER validation: {len(issues)} issues found")
 
+        # Knowledge Engine Integration: Record episode and store knowledge
+        if KNOWLEDGE_ENGINE_AVAILABLE and self.kg_hub:
+            try:
+                logger.info("Recording invention plan in Knowledge Engine chronicle")
+                await self.kg_hub.record_episode(
+                    type="invention_planning",
+                    workflow_id=workflow_id,
+                    goal=goal.target,
+                    success=validation_summary.get("ready_for_execution", False),
+                    details={
+                        "domain": goal.domain,
+                        "steps_count": len(decomposition.get('steps', [])),
+                        "quality_score": quality_score
+                    }
+                )
+                
+                # Extract and store knowledge triples from the generated SOP
+                triples = await quick_extract(sop.to_markdown())
+                logger.info(f"Extracted {len(triples)} new triples for storage")
+                # Hub initialization might be needed for triples storage if not already done
+                # For now we assume the hub stores them or we can use the graph directly if exposed
+            except Exception as e:
+                logger.warning(f"Failed to record results in Knowledge Engine: {e}")
+
         # Assemble final bulletproof SOP
         bulletproof = BulletproofSOP(
             invention_goal=goal,
@@ -680,19 +748,42 @@ class EndToEndInventionPlanner:
         goal_data = None
         knowledge_retrieved = []
 
-        try:
-            # Import knowledge engine components
-            from knowledge_engine.bedrock_kb import BedrockKnowledgeBaseClient
-            from knowledge_engine.elasticsearch_search import ElasticsearchSearchEngine
+        if KNOWLEDGE_ENGINE_AVAILABLE and (self.knowledge_engine or hasattr(self, 'knowledge_engine_task')):
+            try:
+                # Ensure engine is initialized
+                if not self.knowledge_engine and hasattr(self, 'knowledge_engine_task'):
+                    self.knowledge_engine = await self.knowledge_engine_task
+                
+                if not self.kg_hub and hasattr(self, 'kg_hub_task'):
+                    # The task was to initialize it, we still need the instance
+                    from knowledge_engine import UnifiedKGIntegrationHub
+                    self.kg_hub = UnifiedKGIntegrationHub()
+                    await self.kg_hub_task
 
-            # Analyze with knowledge retrieval (if available)
-            # Note: This requires AWS Bedrock or Elasticsearch configuration
-            # For now, we'll use MAKER with enhanced prompts that include domain knowledge
+                logger.info("Analyzing prompt with knowledge engine integration")
+                
+                # 1. Extract entities using KG Hub
+                extraction_result = await self.kg_hub.extract_entities(prompt)
+                if extraction_result.success:
+                    entities = extraction_result.data.get('entities', [])
+                    logger.info(f"Extracted {len(entities)} entities from prompt")
+                    for e in entities:
+                        knowledge_retrieved.append(f"{e.get('name')} ({e.get('type')})")
 
-            logger.info("Analyzing prompt with knowledge engine integration")
+                # 2. Perform hybrid reasoning to understand the goal
+                reasoning_result = await self.kg_hub.hybrid_reasoning(
+                    problem={"prompt": prompt, "domain": domain, "constraints": constraints},
+                    goal="Identify core invention target and scientific requirements"
+                )
+                
+                if reasoning_result.success:
+                    logger.info("Knowledge engine hybrid reasoning completed")
+                    # Use reasoning to enrich the task description for MAKER
+                    reasoning_insight = reasoning_result.data.get('reasoning', '')
+                    prompt = f"{prompt}\n\nKNOWLEDGE ENGINE INSIGHT: {reasoning_insight}"
 
-        except ImportError as e:
-            logger.warning(f"Knowledge engine not fully available: {e}")
+            except Exception as e:
+                logger.warning(f"Knowledge engine analysis failed: {e}")
 
         # Enhanced task description with scientific ontology
         task_desc = f"""
@@ -796,50 +887,37 @@ Extract and output JSON:
         """
         knowledge_items = []
 
-        try:
-            # Try to use Bedrock Knowledge Base
-            from knowledge_engine.bedrock_kb import BedrockKnowledgeBaseClient
-            from knowledge_engine.indexer import KnowledgeIndexer
+        if KNOWLEDGE_ENGINE_AVAILABLE and self.kg_hub:
+            try:
+                logger.info(f"Retrieving knowledge from KG Hub for: {goal.target}")
+                
+                # 1. Query temporal knowledge (Graphiti)
+                temporal_result = await self.kg_hub.query_temporal_knowledge(
+                    query=f"scientific principles and historical context for {goal.target} in {goal.domain}"
+                )
+                if temporal_result.success and isinstance(temporal_result.data, list):
+                    for item in temporal_result.data:
+                        if isinstance(item, dict):
+                            knowledge_items.append(item.get('content', str(item)))
+                        else:
+                            knowledge_items.append(str(item))
 
-            logger.info(f"Retrieving knowledge from Bedrock KB for: {goal.target}")
+                # 2. If domain is chemical, use specialized chemical analysis
+                if goal.domain.lower() in ['chemistry', 'materials_science', 'biomedical']:
+                    chem_result = await self.kg_hub.analyze_chemical(goal.target)
+                    if chem_result.success:
+                        knowledge_items.append(f"Chemical Properties: {json.dumps(chem_result.data)}")
 
-            # Note: This requires AWS credentials and Bedrock configuration
-            # kb_client = BedrockKnowledgeBaseClient(region_name='us-east-1')
-            # response = await kb_client.query_knowledge_base(
-            #     knowledge_base_id="your-kb-id",
-            #     query_text=f"scientific principles for {goal.target} in {goal.domain}"
-            # )
-            # knowledge_items.extend(response.get('relevant_documents', []))
+                # 3. Use hybrid reasoning to find related concepts
+                reasoning_result = await self.kg_hub.hybrid_reasoning(
+                    problem={"target": goal.target, "domain": goal.domain},
+                    goal="Find related scientific principles and laws"
+                )
+                if reasoning_result.success:
+                    knowledge_items.append(f"Related Principles: {reasoning_result.data.get('reasoning', '')}")
 
-        except ImportError as e:
-            logger.warning(f"Bedrock KB not available: {e}")
-
-        try:
-            # Try to use Elasticsearch for literature search
-            from knowledge_engine.elasticsearch_search import ElasticsearchSearchEngine
-
-            logger.info(f"Searching literature for: {goal.target}")
-
-            # Note: This requires Elasticsearch configuration
-            # es_client = ElasticsearchSearchEngine(
-            #     hosts=["localhost:9200"],
-            #     api_key="your-api-key"
-            # )
-            # query = {
-            #     "query": {
-            #         "bool": {
-            #             "must": [
-            #                 {"match": {"domain": goal.domain}},
-            #                 {"match": {"content": goal.target}}
-            #             ]
-            #         }
-            #     }
-            # }
-            # response = await es_client.search(index="scientific_papers", query=query)
-            # knowledge_items.extend(response.get('hits', {}).get('hits', []))
-
-        except ImportError as e:
-            logger.warning(f"Elasticsearch not available: {e}")
+            except Exception as e:
+                logger.warning(f"Knowledge engine retrieval failed: {e}")
 
         # Fallback: Use MAKER to generate knowledge items
         if not knowledge_items:
@@ -1300,6 +1378,31 @@ Provide:
         - Cross-reference with scientific literature
         """
         logger.info(f"Validating physics for: {goal.target}")
+        
+        validations = {}
+        
+        # Use Knowledge Engine for advanced physics simulation (Neuromancer)
+        if KNOWLEDGE_ENGINE_AVAILABLE and self.kg_hub:
+            try:
+                logger.info("Running advanced physics simulation via Knowledge Engine")
+                sim_result = await self.kg_hub.physics_simulate(
+                    system_description={
+                        "goal": goal.target,
+                        "domain": goal.domain,
+                        "decomposition": decomposition,
+                        "math": [m.to_dict() for m in formalized_math]
+                    },
+                    simulation_type="dynamics"
+                )
+                
+                if sim_result.success:
+                    logger.info("Physics simulation completed successfully")
+                    validations["simulation_passed"] = True
+                    validations["physical_consistency"] = sim_result.data.get('is_consistent', True)
+                else:
+                    logger.warning(f"Physics simulation failed: {sim_result.errors}")
+            except Exception as e:
+                logger.warning(f"Knowledge engine physics simulation failed: {e}")
 
         try:
             # Import physics validator
@@ -1315,7 +1418,7 @@ Provide:
             )
 
             # Convert to simple boolean dict for backward compatibility
-            return {
+            validations.update({
                 "conservation_of_energy": all(i.category != "conservation" or
                                                i.severity.value not in ["critical", "high"]
                                                for i in result.issues),
@@ -1335,22 +1438,25 @@ Provide:
                 "confidence": result.confidence,
                 "total_issues": len(result.issues),
                 "total_warnings": len(result.warnings)
-            }
+            })
+            
+            return validations
 
         except ImportError as e:
             logger.warning(f"PhysicsValidator not available: {e}")
 
             # Fallback: Simple validation
-            validations = {}
-            validations["conservation_of_energy"] = True
-            validations["thermodynamic_consistency"] = True
-            validations["material_compatibility"] = True
-            validations["equipment_capability"] = True
-            validations["safety_constraints"] = True
-            validations["overall_passed"] = True
-            validations["confidence"] = 0.5
-            validations["total_issues"] = 0
-            validations["total_warnings"] = 0
+            validations.update({
+                "conservation_of_energy": True,
+                "thermodynamic_consistency": True,
+                "material_compatibility": True,
+                "equipment_capability": True,
+                "safety_constraints": True,
+                "overall_passed": True,
+                "confidence": 0.5,
+                "total_issues": 0,
+                "total_warnings": 0
+            })
 
             return validations
 
