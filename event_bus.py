@@ -32,6 +32,8 @@ except ImportError:
     VALKEY_AVAILABLE = False
     logging.warning("valkey-py not installed. EventBus will use in-memory fallback.")
 
+logger = logging.getLogger(__name__)
+
 class EventPriority(Enum):
     """Event priority levels."""
     CRITICAL = 0
@@ -266,7 +268,7 @@ class EventBus:
                 
         return True
         
-    async def subscribe(
+    def subscribe(
         self,
         event_type: Optional[EventType] = None,
         handler: Optional[Callable[[Event], Any]] = None
@@ -292,7 +294,7 @@ class EventBus:
             return decorator(handler)
         return decorator
         
-    async def unsubscribe(
+    def unsubscribe(
         self,
         handler: Callable[[Event], Any],
         event_type: Optional[EventType] = None
@@ -376,14 +378,14 @@ class EventBus:
                 if predicate is None or predicate(event):
                     future.set_result(event)
                     
-        await self.subscribe(event_type, handler)
+        self.subscribe(event_type, handler)
         
         try:
             return await asyncio.wait_for(future, timeout)
         except asyncio.TimeoutError:
             return None
         finally:
-            await self.unsubscribe(handler, event_type)
+            self.unsubscribe(handler, event_type)
 
 
 class WorkflowEventTracker:

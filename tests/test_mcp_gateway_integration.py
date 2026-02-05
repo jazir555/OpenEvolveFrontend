@@ -67,6 +67,41 @@ except ImportError:
 
 
 # =============================================================================
+# HELPER FUNCTIONS
+# =============================================================================
+
+from contextlib import contextmanager
+import sys
+
+@contextmanager
+def patch_mcp_gateway():
+    """Context manager to patch MCP Gateway imports."""
+    mock_gateway_instance = AsyncMock()
+    mock_gateway_instance.is_initialized = True
+    mock_gateway_instance.is_running = True
+    mock_gateway_instance.initialize = AsyncMock(return_value=True)
+    mock_gateway_instance.tool_registry = Mock()
+    mock_gateway_instance.tool_router = Mock()
+
+    mock_gateway_class = Mock(return_value=mock_gateway_instance)
+
+    # Add to sys.modules
+    mcp_gateway = Mock()
+    mcp_gateway.unified_mcp_gateway = Mock()
+    mcp_gateway.unified_mcp_gateway.UnifiedMCPGateway = mock_gateway_class
+    sys.modules['mcp'] = Mock()
+    sys.modules['mcp.gateway'] = Mock()
+    sys.modules['mcp.gateway.unified_mcp_gateway'] = mcp_gateway.unified_mcp_gateway
+
+    yield mock_gateway_class
+
+    # Clean up
+    for mod in ['mcp', 'mcp.gateway', 'mcp.gateway.unified_mcp_gateway']:
+        if mod in sys.modules:
+            del sys.modules[mod]
+
+
+# =============================================================================
 # TEST FIXTURES
 # =============================================================================
 
@@ -139,36 +174,54 @@ def mock_tool_result():
 @pytest.fixture
 def integration(sample_config):
     """MCP Gateway integration instance with mocked gateway."""
-    with patch('knowledge_engine.integrations.mcp_gateway_integration.UnifiedMCPGateway') as mock_gateway_class:
-        mock_gateway_instance = AsyncMock()
-        mock_gateway_instance.is_initialized = True
-        mock_gateway_instance.is_running = True
-        mock_gateway_instance.initialize = AsyncMock(return_value=True)
-        mock_gateway_instance.call_tool = AsyncMock()
-        mock_gateway_instance.list_tools = AsyncMock(return_value=[])
-        mock_gateway_instance.get_health_status = AsyncMock(return_value={})
+    # Create mock gateway instance
+    mock_gateway_instance = AsyncMock()
+    mock_gateway_instance.is_initialized = True
+    mock_gateway_instance.is_running = True
+    mock_gateway_instance.initialize = AsyncMock(return_value=True)
+    mock_gateway_instance.call_tool = AsyncMock()
+    mock_gateway_instance.list_tools = AsyncMock(return_value=[])
+    mock_gateway_instance.get_health_status = AsyncMock(return_value={})
 
-        mock_registry = Mock()
-        mock_registry.tools = {}
-        mock_gateway_instance.tool_registry = mock_registry
+    mock_registry = Mock()
+    mock_registry.tools = {}
+    mock_gateway_instance.tool_registry = mock_registry
 
-        mock_router = Mock()
-        mock_gateway_instance.tool_router = mock_router
+    mock_router = Mock()
+    mock_gateway_instance.tool_router = mock_router
 
-        mock_gateway_class.return_value = mock_gateway_instance
+    # Create mock UnifiedMCPGateway class
+    mock_gateway_class = Mock(return_value=mock_gateway_instance)
 
-        # Prevent asyncio.run in __init__ by mocking it
+    # Add to sys.modules so the import will find it
+    import sys
+    mcp_gateway = Mock()
+    mcp_gateway.unified_mcp_gateway = Mock()
+    mcp_gateway.unified_mcp_gateway.UnifiedMCPGateway = mock_gateway_class
+    sys.modules['mcp'] = Mock()
+    sys.modules['mcp.gateway'] = Mock()
+    sys.modules['mcp.gateway.unified_mcp_gateway'] = mcp_gateway.unified_mcp_gateway
+
+    try:
+        # Prevent asyncio.run in __init__
         with patch('asyncio.run', return_value=None):
             integration = MCPGatewayIntegration(config=sample_config)
-            integration.unified_gateway = mock_gateway_instance
+            # Ensure the mock gateway is set
+            if not hasattr(integration, 'unified_gateway') or integration.unified_gateway is None:
+                integration.unified_gateway = mock_gateway_instance
 
         return integration
+    finally:
+        # Clean up sys.modules
+        for mod in ['mcp', 'mcp.gateway', 'mcp.gateway.unified_mcp_gateway']:
+            if mod in sys.modules:
+                del sys.modules[mod]
 
 
 @pytest.fixture
 def integration_no_gateway():
     """MCP Gateway integration instance without actual gateway (mock mode)."""
-    with patch('knowledge_engine.integrations.mcp_gateway_integration.UnifiedMCPGateway') as mock_gateway_class:
+    with patch_mcp_gateway() as mock_gateway_class:
         # Make import fail to trigger mock initialization
         mock_gateway_class.side_effect = ImportError("mcp-gateway not installed")
 
@@ -264,7 +317,7 @@ class TestMCPGatewayIntegrationInitialization:
 
     def test_default_initialization(self):
         """Test initialization with default configuration."""
-        with patch('knowledge_engine.integrations.mcp_gateway_integration.UnifiedMCPGateway') as mock_gateway_class:
+        with patch_mcp_gateway() as mock_gateway_class:
             mock_gateway_instance = AsyncMock()
             mock_gateway_instance.is_initialized = True
             mock_gateway_instance.initialize = AsyncMock(return_value=True)
@@ -283,7 +336,7 @@ class TestMCPGatewayIntegrationInitialization:
 
     def test_custom_initialization(self, sample_config):
         """Test initialization with custom configuration."""
-        with patch('knowledge_engine.integrations.mcp_gateway_integration.UnifiedMCPGateway') as mock_gateway_class:
+        with patch_mcp_gateway() as mock_gateway_class:
             mock_gateway_instance = AsyncMock()
             mock_gateway_instance.is_initialized = True
             mock_gateway_instance.initialize = AsyncMock(return_value=True)
@@ -299,7 +352,7 @@ class TestMCPGatewayIntegrationInitialization:
 
     def test_get_default_config(self):
         """Test default configuration values."""
-        with patch('knowledge_engine.integrations.mcp_gateway_integration.UnifiedMCPGateway') as mock_gateway_class:
+        with patch_mcp_gateway() as mock_gateway_class:
             mock_gateway_instance = AsyncMock()
             mock_gateway_instance.initialize = AsyncMock()
             mock_gateway_instance.tool_registry = Mock()
@@ -326,7 +379,7 @@ class TestMCPGatewayIntegrationInitialization:
 
     def test_initialize_components_success(self):
         """Test successful component initialization."""
-        with patch('knowledge_engine.integrations.mcp_gateway_integration.UnifiedMCPGateway') as mock_gateway_class:
+        with patch_mcp_gateway() as mock_gateway_class:
             mock_gateway_instance = AsyncMock()
             mock_gateway_instance.is_initialized = True
             mock_gateway_instance.initialize = AsyncMock(return_value=True)
@@ -342,7 +395,7 @@ class TestMCPGatewayIntegrationInitialization:
 
     def test_initialize_components_import_error(self):
         """Test component initialization with import error (mock mode)."""
-        with patch('knowledge_engine.integrations.mcp_gateway_integration.UnifiedMCPGateway') as mock_gateway_class:
+        with patch_mcp_gateway() as mock_gateway_class:
             mock_gateway_class.side_effect = ImportError("mcp-gateway not installed")
 
             with patch('knowledge_engine.integrations.mcp_gateway_integration.create_failing_mock') as mock_create:
@@ -424,7 +477,7 @@ class TestMCPGatewayIntegrationToolCalling:
     @pytest.mark.asyncio
     async def test_call_tool_gateway_not_initialized(self):
         """Test tool call when gateway not initialized."""
-        with patch('knowledge_engine.integrations.mcp_gateway_integration.UnifiedMCPGateway') as mock_gateway_class:
+        with patch_mcp_gateway() as mock_gateway_class:
             mock_gateway_instance = AsyncMock()
             mock_gateway_instance.initialize = AsyncMock()
             mock_gateway_instance.tool_registry = Mock()
@@ -658,7 +711,7 @@ class TestMCPGatewayIntegrationWorkflowExecution:
     @pytest.mark.asyncio
     async def test_knowledge_extraction_workflow_gateway_not_initialized(self):
         """Test workflow when gateway not initialized."""
-        with patch('knowledge_engine.integrations.mcp_gateway_integration.UnifiedMCPGateway') as mock_gateway_class:
+        with patch_mcp_gateway() as mock_gateway_class:
             mock_gateway_instance = AsyncMock()
             mock_gateway_instance.initialize = AsyncMock()
             mock_gateway_instance.tool_registry = Mock()
@@ -924,7 +977,7 @@ class TestMCPGatewayIntegrationBatchExecution:
     @pytest.mark.asyncio
     async def test_batch_execute_gateway_not_initialized(self):
         """Test batch execution when gateway not initialized."""
-        with patch('knowledge_engine.integrations.mcp_gateway_integration.UnifiedMCPGateway') as mock_gateway_class:
+        with patch_mcp_gateway() as mock_gateway_class:
             mock_gateway_instance = AsyncMock()
             mock_gateway_instance.initialize = AsyncMock()
             mock_gateway_instance.tool_registry = Mock()
@@ -972,7 +1025,7 @@ class TestMCPGatewayIntegrationStatus:
 
     def test_get_mcp_status_without_gateway(self):
         """Test getting MCP status without gateway."""
-        with patch('knowledge_engine.integrations.mcp_gateway_integration.UnifiedMCPGateway') as mock_gateway_class:
+        with patch_mcp_gateway() as mock_gateway_class:
             mock_gateway_instance = AsyncMock()
             mock_gateway_instance.initialize = AsyncMock()
             mock_gateway_instance.tool_registry = Mock()
@@ -1034,7 +1087,7 @@ class TestMCPGatewayIntegrationResourceManagement:
     @pytest.mark.asyncio
     async def test_close_without_gateway(self):
         """Test closing integration without gateway."""
-        with patch('knowledge_engine.integrations.mcp_gateway_integration.UnifiedMCPGateway') as mock_gateway_class:
+        with patch_mcp_gateway() as mock_gateway_class:
             mock_gateway_instance = AsyncMock()
             mock_gateway_instance.initialize = AsyncMock()
             mock_gateway_instance.tool_registry = Mock()

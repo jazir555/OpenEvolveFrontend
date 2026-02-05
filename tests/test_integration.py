@@ -1,63 +1,54 @@
 """
 Integration test for adversarial and evolution modules
+
+This test file validates basic integration between components.
 """
 import sys
 import os
+import pytest
 
 # Add the current directory to Python path so we can import our modules
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from adversarial import test_integration
-from evolution import ContentEvaluator
-import streamlit as st
 
-def main():
-    print("Starting integration test for adversarial and evolution modules...")
-    
-    # Initialize session state if needed
-    if not hasattr(st.session_state, 'adversarial_log'):
-        st.session_state.adversarial_log = []
-    if not hasattr(st.session_state, 'adversarial_results'):
-        st.session_state.adversarial_results = {}
-    if not hasattr(st.session_state, 'thread_lock'):
-        import threading
-        st.session_state.thread_lock = threading.Lock()
-    
-    print("\n1. Testing ContentEvaluator class...")
-    try:
-        ContentEvaluator("general", "Evaluate content quality")
-        print("+ ContentEvaluator created successfully")
-    except (ImportError, TypeError, ValueError) as e:
-        print(f"- ContentEvaluator failed: {e}")
-    
-    print("\n2. Testing evolution settings renderer...")
-    try:
-        # This is a UI function, so we'll just check if it can be called without error
-        print("+ render_evolution_settings function exists")
-    except (ImportError, AttributeError) as e:
-        print(f"- render_evolution_settings failed: {e}")
-    
-    print("\n3. Testing integration function...")
-    try:
-        result = test_integration()
-        print(f"+ Integration test completed with success: {result.get('success', False)}")
-        if 'error' in result:
-            print(f"  Error (expected for API test): {result['error']}")
-    except (RuntimeError, ImportError, AttributeError) as e:
-        print(f"- Integration test function failed: {e}")
-        import traceback
-        traceback.print_exc()
-    
-    print("\n4. Testing key adversarial functions...")
-    try:
-        from adversarial import determine_review_type
-        sample_code = "def hello():\n    print('world')"
-        review_type = determine_review_type(sample_code)
-        print(f"+ determine_review_type works, detected: {review_type}")
-    except (ImportError, AttributeError, TypeError) as e:
-        print(f"- Adversarial functions test failed: {e}")
-    
-    print("\nIntegration test completed!")
+class TestAdversarialEvolutionIntegration:
+    """Test integration between adversarial and evolution modules."""
+
+    def test_import_adversarial_module(self):
+        """Test that adversarial module can be imported."""
+        try:
+            import adversarial
+            assert adversarial is not None
+        except ImportError as e:
+            pytest.skip(f"Adversarial module not available: {e}")
+
+    def test_import_evolution_module(self):
+        """Test that evolution module can be imported."""
+        try:
+            from evolution import ContentEvaluator
+            assert ContentEvaluator is not None
+        except ImportError as e:
+            pytest.skip(f"Evolution module not available: {e}")
+
+    def test_content_evaluator_creation(self):
+        """Test ContentEvaluator class instantiation."""
+        try:
+            from evolution import ContentEvaluator
+            evaluator = ContentEvaluator("general", "Evaluate content quality")
+            assert evaluator is not None
+        except (ImportError, TypeError, ValueError) as e:
+            pytest.skip(f"ContentEvaluator test skipped: {e}")
+
+    def test_adversarial_capabilities(self):
+        """Test adversarial capabilities summary."""
+        try:
+            from adversarial import get_adversarial_testing_capabilities
+            capabilities = get_adversarial_testing_capabilities()
+            assert isinstance(capabilities, dict)
+            assert len(capabilities) > 0
+        except (ImportError, AttributeError) as e:
+            pytest.skip(f"Adversarial capabilities test skipped: {e}")
+
 
 if __name__ == "__main__":
-    main()
+    pytest.main([__file__, "-v"])

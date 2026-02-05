@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from adaptive_mdap.core.types import SubProblem as AdaptiveSubProblem, SolveStrategy
 from adaptive_mdap.classifiers.task_complexity_classifier import TaskComplexityClassifier
 from adaptive_mdap.allocators.resource_allocator import AdaptiveMDAPAllocator, AllocationContext
-# Delay import to avoid circular dependency
+# Delay import to avoid circular import - will import inside __init__
 # from adaptive_mdap.controllers.execution_controller import AdaptiveExecutionController, SolutionAttempt
 from adaptive_mdap.utils.logger import get_logger
 from adaptive_mdap.utils.metrics import get_metrics
@@ -77,18 +77,24 @@ class AdaptiveSubProblemSolver:
         """
         self.openevolve_client = openevolve_client
         self.config = config or AdaptiveSolverConfig()
-        
+
         # Initialize adaptive components
         self.classifier = classifier or TaskComplexityClassifier()
         self.allocator = allocator or AdaptiveMDAPAllocator(
             enable_learning=self.config.enable_learning,
             enable_context_aware=self.config.enable_context_aware,
         )
-        self.controller = controller or AdaptiveExecutionController(
-            classifier=self.classifier,
-            allocator=self.allocator,
-        )
-        
+
+        # Lazy import to avoid circular dependency
+        if controller is None:
+            from adaptive_mdap.controllers.execution_controller import AdaptiveExecutionController
+            self.controller = AdaptiveExecutionController(
+                classifier=self.classifier,
+                allocator=self.allocator,
+            )
+        else:
+            self.controller = controller
+
         # Statistics
         self._stats = {
             "total_solves": 0,
@@ -96,7 +102,7 @@ class AdaptiveSubProblemSolver:
             "fallback_solves": 0,
             "failed_solves": 0,
         }
-        
+
         logger.info(f"Initialized AdaptiveSubProblemSolver (enabled={self.config.enabled})")
     
     def solve(

@@ -541,8 +541,11 @@ class RealFiniteElementAnalysis:
         
         # Apply constraints
         free_dof = [i for i in range(total_dof) if i // 2 not in fixed_nodes]
-        K_reduced = K_global[free_dof][:, free_dof]
-        M_reduced = M_global[free_dof][:, free_dof]
+        # Convert to CSR format for proper subscripting
+        K_global_csr = K_global.tocsr() if hasattr(K_global, 'tocsr') else K_global
+        M_global_csr = M_global.tocsr() if hasattr(M_global, 'tocsr') else M_global
+        K_reduced = K_global_csr[free_dof][:, free_dof]
+        M_reduced = M_global_csr[free_dof][:, free_dof]
         
         # Solve eigenvalue problem
         try:
@@ -551,14 +554,17 @@ class RealFiniteElementAnalysis:
             M_dense = M_reduced.toarray()
             
             # Generalized eigenvalue: K φ = ω² M φ
-            # Solve: M^(-1) K φ = ω² φ
-            M_inv_K = np.linalg.solve(M_dense, K_dense)
-            eigenvalues, eigenvectors = eig(M_inv_K)
+            # Use scipy.linalg.eig for generalized eigenvalue problem
+            eigenvalues, eigenvectors = eig(K_dense, M_dense)
             
             # Sort by eigenvalue (ω²)
             idx = np.argsort(np.real(eigenvalues))
             eigenvalues = np.real(eigenvalues[idx])
             eigenvectors = eigenvectors[:, idx]
+            
+            # Ensure arrays are 1D/2D properly
+            eigenvalues = np.atleast_1d(eigenvalues)
+            eigenvectors = np.atleast_2d(eigenvectors)
             
             # Natural frequencies: f = ω / (2π) = sqrt(λ) / (2π)
             natural_freqs = np.sqrt(np.abs(eigenvalues)) / (2 * np.pi)

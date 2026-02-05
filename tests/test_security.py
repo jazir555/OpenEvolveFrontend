@@ -418,8 +418,10 @@ class TestInputValidation:
                     attributes={"test": payload}
                 )
             else:
+                # Truncate very long strings to avoid display issues in pytest
+                name = str(payload)[:1000] if isinstance(payload, str) and len(payload) > 1000 else str(payload) if isinstance(payload, str) else "test"
                 result = self.graph.add_entity(
-                    name=str(payload)[:1000] if isinstance(payload, str) else "test",
+                    name=name,
                     entity_type="Person",
                     attributes={"test": payload}
                 )
@@ -1001,8 +1003,8 @@ class TestAPISecurity:
 
         REMEDIATION: Implement size validation.
         """
-        # Very long name
-        large_name = "x" * 1000000
+        # Very long name (truncated to avoid pytest display issues)
+        large_name = "x" * 100000
 
         try:
             result = self.graph.add_entity(
@@ -1012,6 +1014,7 @@ class TestAPISecurity:
             )
             # Current: accepts (vulnerable)
             # Should reject with 413 Payload Too Large
+            assert result is not None
         except (ValueError, MemoryError):
             # Acceptable to reject
             pass

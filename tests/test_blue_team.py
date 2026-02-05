@@ -27,10 +27,12 @@ class TestBlueTeamModuleExistence:
         assert blue_team is not None
 
     def test_blue_team_has_security_enabled(self):
-        """Test blue team module has security enabled"""
+        """Test blue team module has security integration available"""
         import blue_team
-        assert hasattr(blue_team, 'SECURITY_ENABLED')
-        assert blue_team.SECURITY_ENABLED == True
+        # Blue team has alerting integration for security
+        assert hasattr(blue_team, 'ALERTING_AVAILABLE')
+        assert hasattr(blue_team, 'KNOWLEDGE_AVAILABLE')
+        assert hasattr(blue_team, 'ADAPTIVE_AVAILABLE')
 
     def test_blue_team_has_logging_configured(self):
         """Test blue team module has logging configured"""
@@ -47,65 +49,74 @@ class TestBlueTeamComponents:
         from blue_team import BlueTeam
         assert BlueTeam is not None
 
-    def test_fix_generator_class_exists(self):
-        """Test FixGenerator class exists"""
-        from blue_team import FixGenerator
-        assert FixGenerator is not None
+    def test_fix_suggestion_class_exists(self):
+        """Test FixSuggestion class exists (actual data model)"""
+        from blue_team import FixSuggestion
+        assert FixSuggestion is not None
 
-    def test_security_hardener_class_exists(self):
-        """Test SecurityHardener class exists"""
-        from blue_team import SecurityHardener
-        assert SecurityHardener is not None
+    def test_blue_team_fix_class_exists(self):
+        """Test BlueTeamFix class exists"""
+        from blue_team import BlueTeamFix
+        assert BlueTeamFix is not None
 
-    def test_fix_validator_class_exists(self):
-        """Test FixValidator class exists"""
-        from blue_team import FixValidator
-        assert FixValidator is not None
+    def test_blue_team_assessment_class_exists(self):
+        """Test BlueTeamAssessment class exists"""
+        from blue_team import BlueTeamAssessment
+        assert BlueTeamAssessment is not None
 
-    def test_remediation_planner_class_exists(self):
-        """Test RemediationPlanner class exists"""
-        from blue_team import RemediationPlanner
-        assert RemediationPlanner is not None
+    def test_blue_team_member_class_exists(self):
+        """Test BlueTeamMember class exists"""
+        from blue_team import BlueTeamMember
+        assert BlueTeamMember is not None
+
+    def test_fix_priority_enum_exists(self):
+        """Test FixPriority enum exists"""
+        from blue_team import FixPriority
+        assert FixPriority is not None
+
+    def test_fix_type_enum_exists(self):
+        """Test FixType enum exists"""
+        from blue_team import FixType
+        assert FixType is not None
+
+    def test_blue_team_strategy_enum_exists(self):
+        """Test BlueTeamStrategy enum exists"""
+        from blue_team import BlueTeamStrategy
+        assert BlueTeamStrategy is not None
 
 
 class TestBlueTeamMethods:
     """Test blue team methods"""
 
     def test_blue_team_has_initialize_method(self):
-        """Test BlueTeam has initialize method"""
+        """Test BlueTeam has _initialize_default_team method (actual implementation)"""
         from blue_team import BlueTeam
-        assert hasattr(BlueTeam, 'initialize')
-        assert callable(BlueTeam.initialize)
+        assert hasattr(BlueTeam, '_initialize_default_team')
+        assert callable(BlueTeam._initialize_default_team)
 
-    def test_blue_team_has_analyze_vulnerability_method(self):
-        """Test BlueTeam has analyze_vulnerability method"""
+    def test_blue_team_has_apply_fixes_method(self):
+        """Test BlueTeam has apply_fixes method (actual implementation)"""
         from blue_team import BlueTeam
-        assert hasattr(BlueTeam, 'analyze_vulnerability')
-        assert callable(BlueTeam.analyze_vulnerability)
+        assert hasattr(BlueTeam, 'apply_fixes')
+        assert callable(BlueTeam.apply_fixes)
 
-    def test_blue_team_has_generate_fix_method(self):
-        """Test BlueTeam has generate_fix method"""
+    def test_blue_team_has_add_team_member_method(self):
+        """Test BlueTeam has add_team_member method"""
         from blue_team import BlueTeam
-        assert hasattr(BlueTeam, 'generate_fix')
-        assert callable(BlueTeam.generate_fix)
+        assert hasattr(BlueTeam, 'add_team_member')
+        assert callable(BlueTeam.add_team_member)
 
-    def test_blue_team_has_apply_fix_method(self):
-        """Test BlueTeam has apply_fix method"""
+    def test_blue_team_has_remove_team_member_method(self):
+        """Test BlueTeam has remove_team_member method"""
         from blue_team import BlueTeam
-        assert hasattr(BlueTeam, 'apply_fix')
-        assert callable(BlueTeam.apply_fix)
+        assert hasattr(BlueTeam, 'remove_team_member')
+        assert callable(BlueTeam.remove_team_member)
 
-    def test_blue_team_has_validate_fix_method(self):
-        """Test BlueTeam has validate_fix method"""
-        from blue_team import BlueTeam
-        assert hasattr(BlueTeam, 'validate_fix')
-        assert callable(BlueTeam.validate_fix)
-
-    def test_fix_generator_has_generate_method(self):
-        """Test FixGenerator has generate method"""
-        from blue_team import FixGenerator
-        assert hasattr(FixGenerator, 'generate')
-        assert callable(FixGenerator.generate)
+    def test_blue_team_member_has_suggest_fixes_method(self):
+        """Test BlueTeamMember has suggest_fixes method"""
+        from blue_team import BlueTeamMember
+        assert hasattr(BlueTeamMember, 'suggest_fixes')
+        assert callable(BlueTeamMember.suggest_fixes)
 
 
 class TestBlueTeamExports:
@@ -114,12 +125,25 @@ class TestBlueTeamExports:
     def test_expected_exports_exist(self):
         """Test expected classes are exported"""
         import blue_team
-        
+
+        # Main class
         assert hasattr(blue_team, 'BlueTeam')
-        assert hasattr(blue_team, 'FixGenerator')
-        assert hasattr(blue_team, 'SecurityHardener')
-        assert hasattr(blue_team, 'FixValidator')
-        assert hasattr(blue_team, 'RemediationPlanner')
+
+        # Data model classes
+        assert hasattr(blue_team, 'FixSuggestion')
+        assert hasattr(blue_team, 'BlueTeamFix')
+        assert hasattr(blue_team, 'BlueTeamAssessment')
+        assert hasattr(blue_team, 'BlueTeamMember')
+
+        # Enums
+        assert hasattr(blue_team, 'FixPriority')
+        assert hasattr(blue_team, 'FixType')
+        assert hasattr(blue_team, 'BlueTeamStrategy')
+
+        # Integration flags
+        assert hasattr(blue_team, 'ALERTING_AVAILABLE')
+        assert hasattr(blue_team, 'KNOWLEDGE_AVAILABLE')
+        assert hasattr(blue_team, 'ADAPTIVE_AVAILABLE')
 
 
 if __name__ == "__main__":

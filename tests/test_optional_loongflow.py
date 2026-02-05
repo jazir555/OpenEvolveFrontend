@@ -210,13 +210,13 @@ class TestConvenienceMethods:
     def test_loongflow_required_with_pes_config(self):
         """Test loongflow_required with PES config"""
         config = UnifiedEvolutionConfig.loongflow_required(
-            pes=PESConfig(enabled=True),
+            pes=PESConfig(enable_planning=True),
             evolution_mode=EvolutionMode.PES
         )
 
         assert config.enable_loongflow is True
         assert config.require_loongflow is True
-        assert config.pes.enabled is True
+        assert config.pes.enable_planning is True
         assert config.evolution_mode == EvolutionMode.PES
 
 
@@ -248,13 +248,13 @@ class TestConfigurationCombinations:
         """Test PES mode with LoongFlow required"""
         config = UnifiedEvolutionConfig(
             evolution_mode=EvolutionMode.PES,
-            pes=PESConfig(enabled=True),
+            pes=PESConfig(enable_planning=True),
             enable_loongflow=True,
             require_loongflow=True
         )
 
         assert config.evolution_mode == EvolutionMode.PES
-        assert config.pes.enabled is True
+        assert config.pes.enable_planning is True
         assert config.enable_loongflow is True
         assert config.require_loongflow is True
 

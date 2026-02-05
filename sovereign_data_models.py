@@ -255,11 +255,17 @@ class SubProblem:
     assigned_team: Optional[str] = None
     estimated_effort: int = 1  # person-hours
     priority: int = 5  # 1-10
+    execution_order: int = 0  # Execution sequence order
+    dependency_outputs: Dict[str, Any] = field(default_factory=dict)  # Outputs from dependencies
     status: SubProblemStatus = SubProblemStatus.PENDING
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
     solution_attempts: List['SolutionAttempt'] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
+    
+    def set_execution_order(self, order: int) -> None:
+        """Set the execution order for this sub-problem."""
+        self.execution_order = order
     
     def to_dict(self) -> Dict[str, Any]:
         data = asdict(self)

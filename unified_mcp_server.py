@@ -228,6 +228,21 @@ class MCPToolRegistry:
         except Exception as e:
             logger.error(f"Error executing tool {name}: {e}")
             raise
+    
+    async def execute(self, name: str, params: Dict[str, Any]) -> Any:
+        """Execute a registered MCP tool (alias for execute_tool)."""
+        try:
+            result = await self.execute_tool(name, params)
+            # Return as TextContent list for consistency with MCP protocol
+            if isinstance(result, list) and len(result) > 0 and hasattr(result[0], 'text'):
+                return result
+            return [TextContent(type="text", text=json.dumps(result, default=str))]
+        except ValueError as e:
+            # Return error as TextContent for graceful handling
+            return [TextContent(type="text", text=json.dumps({"error": str(e)}, default=str))]
+        except Exception as e:
+            logger.error(f"Error executing tool {name}: {e}")
+            return [TextContent(type="text", text=json.dumps({"error": str(e), "traceback": traceback.format_exc()}, default=str))]
 
 
 class NativeMCPServer:
@@ -546,6 +561,16 @@ class UnifiedMCPServer:
                           "Check LeanAide server status",
                           get_leanaide_status,
                           {"type": "object", "properties": {}})
+        
+        # ALIAS: leanaide_prove for tests
+        self.register_tool("leanaide_prove", ToolCategory.LENAIDE,
+                          "Prove theorem using Lean 4",
+                          leanaide_generate_proof,
+                          {"type": "object", "properties": {
+                              "theorem_code": {"type": "string"},
+                              "context": {"type": "object"},
+                              "proof_style": {"type": "string"}
+                          }, "required": ["theorem_code"]})
     
     # ========================================================================
     # CATEGORY 2: BUBBLELABS TOOLS (8 tools)
@@ -953,6 +978,19 @@ class UnifiedMCPServer:
                           "Get decomposition workflow system status",
                           get_decomposition_status,
                           {"type": "object", "properties": {}})
+        
+        # ALIAS: decompose_problem for tests
+        self.register_tool("decompose_problem", ToolCategory.DECOMPOSITION,
+                          "Decompose problem into sub-problems",
+                          decompose_problem_into_sub_problems,
+                          {"type": "object", "properties": {
+                              "title": {"type": "string"},
+                              "description": {"type": "string"},
+                              "domain": {"type": "string"},
+                              "strategy": {"type": "string", "enum": ["semantic", "dependency", "complexity", "hybrid", "research"]},
+                              "problem_type": {"type": "string"},
+                              "complexity": {"type": "number"}
+                          }, "required": ["title", "description"]})
     
     # ========================================================================
     # CATEGORY 4: Z3 PROVER TOOLS (9 tools)
@@ -992,6 +1030,16 @@ class UnifiedMCPServer:
                               "constraints": {"type": "array", "description": "List of constraint expressions"},
                               "variables": {"type": "object", "description": "Variable definitions"},
                               "timeout": {"type": "number", "default": 30000}
+                          }})
+        
+        # ALIAS: z3_solve for tests
+        self.register_tool("z3_solve", ToolCategory.Z3_PROVER,
+                          "Solve constraint satisfaction problems",
+                          z3_solve_constraints,
+                          {"type": "object", "properties": {
+                              "constraints": {"type": "array", "description": "List of constraint expressions"},
+                              "variables": {"type": "object", "description": "Variable definitions"},
+                              "timeout": {"type": "number", "default": 5.0}
                           }})
         
         async def z3_optimize(args: Dict[str, Any]) -> Dict[str, Any]:
@@ -3700,6 +3748,14 @@ class UnifiedMCPServer:
                           "Visualize knowledge graph",
                           knowledge_graph_visualize,
                           {"type": "object", "properties": {}})
+        
+        # ALIAS: extract_knowledge for tests
+        self.register_tool("extract_knowledge", ToolCategory.KNOWLEDGE,
+                          "Extract knowledge from workflow",
+                          extract_knowledge_artifacts,
+                          {"type": "object", "properties": {
+                              "workflow_data": {"type": "object"}
+                          }})
     
     # ========================================================================
     # CATEGORY 16: ANALYTICS & MONITORING TOOLS (12 tools)
@@ -4453,6 +4509,14 @@ class UnifiedMCPServer:
         
         self.register_tool("maker_run_workflow", ToolCategory.EVOLUTION,
                           "Run MAKER workflow",
+                          maker_run_workflow,
+                          {"type": "object", "properties": {
+                              "workflow": {"type": "object"}
+                          }})
+        
+        # ALIAS: run_workflow for tests
+        self.register_tool("run_workflow", ToolCategory.EVOLUTION,
+                          "Run workflow",
                           maker_run_workflow,
                           {"type": "object", "properties": {
                               "workflow": {"type": "object"}

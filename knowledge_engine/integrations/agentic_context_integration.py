@@ -12,6 +12,18 @@ from typing import Dict, Any, List, Optional, Tuple, Iterable
 from dataclasses import dataclass
 import uuid
 
+# Try to import ACE classes for test patching compatibility
+try:
+    from ace import Sample, SimpleEnvironment
+    _ace_available = True
+except ImportError:
+    # Create stub classes for patching
+    class Sample:
+        pass
+    class SimpleEnvironment:
+        pass
+    _ace_available = False
+
 
 logger = logging.getLogger(__name__)
 
@@ -55,12 +67,12 @@ class AgenticContextEngine:
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """
         Initialize the ACE integration.
-        
+
         Args:
             config: Configuration for ACE components
         """
         self.config = config or self._get_default_config()
-        
+
         # Initialize ACE components
         self.skillbook = None
         self.agent = None
@@ -68,10 +80,14 @@ class AgenticContextEngine:
         self.skill_manager = None
         self.offline_ace = None
         self.online_ace = None
-        
+
+        # Store ACE classes for use in methods
+        self.Sample = None
+        self.SimpleEnvironment = None
+
         # Initialize based on configuration
         self._initialize_components()
-        
+
         logger.info({
             "msg": "AgenticContextEngineIntegration initialized",
             "config": self.config,
@@ -108,27 +124,31 @@ class AgenticContextEngine:
         try:
             # Import ACE components
             from ace import (
-                Skillbook, 
-                Agent, 
-                Reflector, 
+                Skillbook,
+                Agent,
+                Reflector,
                 SkillManager,
-                OfflineACE, 
+                OfflineACE,
                 OnlineACE,
                 SimpleEnvironment,
                 Sample
             )
             from ace.llm import LLMClient
-            
+
+            # Store ACE classes for use in methods
+            self.Sample = Sample
+            self.SimpleEnvironment = SimpleEnvironment
+
             # Initialize LLM client
             model = self.config.get("model", "gpt-4o")
             llm_client = LLMClient(model=model)
-            
+
             # Initialize components
             self.skillbook = Skillbook()
             self.agent = Agent(llm_client)
             self.reflector = Reflector(llm_client)
             self.skill_manager = SkillManager(llm_client)
-            
+
             # Initialize ACE orchestrators
             self.offline_ace = OfflineACE(
                 skillbook=self.skillbook,
@@ -139,7 +159,7 @@ class AgenticContextEngine:
                 reflection_window=self.config.get("reflection_window", 3),
                 async_learning=self.config.get("async_learning", False)
             )
-            
+
             self.online_ace = OnlineACE(
                 skillbook=self.skillbook,
                 agent=self.agent,
@@ -149,14 +169,14 @@ class AgenticContextEngine:
                 reflection_window=self.config.get("reflection_window", 3),
                 async_learning=self.config.get("async_learning", False)
             )
-            
+
             logger.info({
                 "msg": "ACE components initialized successfully",
                 "model": model,
                 "async_learning": self.config.get("async_learning", False),
                 "timestamp": datetime.now(timezone.utc).isoformat()
             })
-            
+
         except ImportError as e:
             logger.warning({
                 "msg": f"ACE not available, using mock implementation: {e}",
@@ -259,14 +279,21 @@ class AgenticContextEngine:
         try:
             if not self.agent or not self.reflector:
                 raise RuntimeError("ACE components not initialized")
-            
+
+            # Import Sample and SimpleEnvironment - they may be patched by tests
+            try:
+                # Use module-level imports (which can be patched by tests)
+                from knowledge_engine.integrations.agentic_context_integration import Sample, SimpleEnvironment
+            except ImportError:
+                raise RuntimeError("ACE Sample/SimpleEnvironment not available")
+
             # Create a sample for ACE processing
             sample = Sample(
                 question=text,
                 context=context,
                 ground_truth=ground_truth
             )
-            
+
             # Create a simple environment for evaluation
             environment = SimpleEnvironment()
             

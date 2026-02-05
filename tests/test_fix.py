@@ -5,33 +5,24 @@ Test script to verify the integrated_workflow.py fixes
 
 import sys
 import os
+from pathlib import Path
 
-# Add current directory to path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Add parent directory to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
-try:
-    print("Testing import of integrated_workflow...")
+def test_integrated_workflow_imports():
+    """Test that integrated_workflow imports correctly"""
     from integrated_workflow import run_fully_integrated_adversarial_evolution
-    print("[OK] SUCCESS: integrated_workflow imports successfully!")
-    
-    # Test if the function can be called with minimal parameters
-    print("Testing function signature...")
-    try:
-        # Just test that we can create the function object
-        func = run_fully_integrated_adversarial_evolution
-        print("[OK] SUCCESS: Function signature is valid!")
-        
-        # Test if we can import the analyze_with_model function
-        from integrated_workflow import analyze_with_model
-        print("[OK] SUCCESS: analyze_with_model imports successfully!")
-        
-    except Exception as e:
-        print(f"[FAIL] ERROR in function signature: {e}")
-        
-except ImportError as e:
-    print(f"[FAIL] IMPORT ERROR: {e}")
-    print("This indicates there are syntax errors in the file.")
-except Exception as e:
-    print(f"[FAIL] UNEXPECTED ERROR: {e}")
+    from integrated_workflow import analyze_with_model
 
-print("\nTest completed.")
+    # Test that the functions are callable
+    assert callable(run_fully_integrated_adversarial_evolution)
+    assert callable(analyze_with_model)
+
+if __name__ == "__main__":
+    try:
+        test_integrated_workflow_imports()
+        print("[OK] SUCCESS: integrated_workflow imports successfully!")
+    except Exception as e:
+        print(f"[FAIL] ERROR: {e}")
+        sys.exit(1)

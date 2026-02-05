@@ -158,10 +158,66 @@ def sample_text() -> str:
 @pytest.fixture
 def mock_crewai_classes():
     """Mock CrewAI classes for testing."""
-    with patch('knowledge_engine.integrations.crewai_integration.Agent') as mock_agent, \
-         patch('knowledge_engine.integrations.crewai_integration.Task') as mock_task, \
-         patch('knowledge_engine.integrations.crewai_integration.Crew') as mock_crew, \
-         patch('knowledge_engine.integrations.crewai_integration.ChatOpenAI') as mock_llm:
+    # Create MagicMock instances
+    mock_agent = MagicMock()
+    mock_task = MagicMock()
+    mock_crew = MagicMock()
+    mock_llm = MagicMock()
+
+    # Configure mock agent
+    mock_agent_instance = MagicMock()
+    mock_agent_instance.role = "Mock Agent"
+    mock_agent.return_value = mock_agent_instance
+
+    # Configure mock task
+    mock_task_instance = MagicMock()
+    mock_task_instance.description = "Mock task"
+    mock_task.return_value = mock_task_instance
+
+    # Configure mock crew
+    mock_crew_instance = MagicMock()
+    mock_crew_instance.agents = [mock_agent_instance, mock_agent_instance]
+    mock_crew_instance.tasks = [mock_task_instance, mock_task_instance]
+    mock_crew_instance.process = "sequential"
+    mock_crew_instance.kickoff = MagicMock(return_value="Mock crew output")
+    mock_crew_instance.token_usage = {"total_tokens": 1000}
+    mock_crew.return_value = mock_crew_instance
+
+    # Use sys.modules to inject the mocks before the crewai_integration imports them
+    import sys
+    mock_crewai_module = MagicMock()
+    mock_crewai_module.Agent = mock_agent
+    mock_crewai_module.Task = mock_task
+    mock_crewai_module.Crew = mock_crew
+
+    mock_langchain_module = MagicMock()
+    mock_langchain_module.ChatOpenAI = mock_llm
+
+    # Save original modules
+    original_crewai = sys.modules.get('crewai')
+    original_langchain_openai = sys.modules.get('langchain_openai')
+
+    # Inject mocks
+    sys.modules['crewai'] = mock_crewai_module
+    sys.modules['langchain_openai'] = mock_langchain_module
+
+    yield {
+        'Agent': mock_agent,
+        'Task': mock_task,
+        'Crew': mock_crew,
+        'ChatOpenAI': mock_llm
+    }
+
+    # Restore original modules
+    if original_crewai is None:
+        del sys.modules['crewai']
+    else:
+        sys.modules['crewai'] = original_crewai
+
+    if original_langchain_openai is None:
+        del sys.modules['langchain_openai']
+    else:
+        sys.modules['langchain_openai'] = original_langchain_openai
 
         # Configure mock agent
         mock_agent_instance = MagicMock()
@@ -191,7 +247,7 @@ def mock_crewai_classes():
 
 
 @pytest.fixture
-async def crewai_integration(sample_config) -> CrewAIIntegration:
+def crewai_integration(sample_config) -> CrewAIIntegration:
     """Create a CrewAIIntegration instance for testing."""
     return CrewAIIntegration(config=sample_config)
 
@@ -456,7 +512,7 @@ class TestCreateCrew:
         sample_tasks
     ):
         """Test crew creation when CrewAI is not available (mock mode)."""
-        with patch('knowledge_engine.integrations.crewai_integration.Agent', side_effect=ImportError):
+        with patch('crewai.Agent', side_effect=ImportError):
             crew_id = "test_crew_mock"
 
             result = await crewai_integration.create_crew(

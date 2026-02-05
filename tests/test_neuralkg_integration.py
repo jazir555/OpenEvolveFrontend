@@ -150,12 +150,13 @@ class TestNeuralKGIntegration:
         assert 'embeddings' in result
         assert isinstance(result['embeddings'], dict)
 
-    def test_predict_links_basic(self, neuralkg_integration):
+    def test_predict_links_basic(self, neuralkg_integration, sample_triples):
         """Test basic link prediction."""
         result = neuralkg_integration.predict_links(
             head='Paris',
             relation='capital_of',
-            candidates=['France', 'Germany', 'Europe']
+            candidates=['France', 'Germany', 'Europe'],
+            triples=sample_triples
         )
 
         assert 'predictions' in result
@@ -670,7 +671,7 @@ class TestEdgeCasesAndErrorHandling:
 
     def test_none_triples(self, neuralkg_embedder):
         """Test embedding generation with None input."""
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError, match="triples cannot be None"):
             neuralkg_embedder.generate_embeddings(None)
 
     def test_invalid_embedding_dim_zero(self, neuralkg_embedder, sample_triples):

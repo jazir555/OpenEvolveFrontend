@@ -149,27 +149,298 @@ class SemanticDecomposition(DecompositionStrategyBase):
     def get_strategy_name(self) -> str:
         return "semantic"
     
-    @with_error_handling(severity=ErrorSeverity.HIGH, fallback=lambda problem: [])
+    @with_error_handling(severity=ErrorSeverity.HIGH, fallback=lambda *args, **kwargs: [])
     def decompose(self, problem: ProblemDefinition) -> List[SubProblem]:
         """
         Identifies semantic clusters using LLM and creates sub-problems.
         
         Uses LLM to analyze problem semantics and identify natural conceptual boundaries.
-        Raises RuntimeError if LLM is unavailable or fails.
+        Falls back to heuristic decomposition if LLM is unavailable.
         """
         logger.info(f"Semantic decomposition for problem: {problem.id}")
         
-        if not self.openevolve_client:
-            logger.error("OpenEvolve client not available for semantic decomposition. Cannot perform LLM-powered decomposition. Returning empty list.")
-            return []
-
-        sub_problems = self._decompose_with_llm(problem)
-        if not sub_problems or len(sub_problems) < 2:
-            logger.warning("LLM decomposition returned insufficient sub-problems. Returning empty list.")
-            return []
+        # Try LLM-based decomposition first
+        if self.openevolve_client:
+            sub_problems = self._decompose_with_llm(problem)
+            if sub_problems and len(sub_problems) >= 2:
+                logger.info(f"LLM semantic decomposition created {len(sub_problems)} sub-problems")
+                return sub_problems
+            logger.warning("LLM decomposition returned insufficient sub-problems, falling back to heuristic.")
+        else:
+            logger.warning("OpenEvolve client not available, using heuristic semantic decomposition.")
         
-        logger.info(f"LLM semantic decomposition created {len(sub_problems)} sub-problems")
+        # FALLBACK: Heuristic-based decomposition
+        return self._heuristic_decompose(problem)
+    
+    def _heuristic_decompose(self, problem: ProblemDefinition) -> List[SubProblem]:
+        """
+        Heuristic-based decomposition when LLM is unavailable.
+        Creates meaningful sub-problems based on problem type and content analysis.
+        """
+        logger.info(f"Using heuristic decomposition for problem: {problem.id}")
+        
+        sub_problems = []
+        problem_type = problem.problem_type.value if hasattr(problem.problem_type, 'value') else str(problem.problem_type)
+        domain = problem.domain_context.domain if hasattr(problem, 'domain_context') else "general"
+        
+        # Create sub-problems based on problem type
+        if problem_type == "research" or "research" in problem.description.lower():
+            sub_problems = [
+                SubProblem(
+                    id=generate_id("subproblem"),
+                    parent_id=problem.id,
+                    title="Literature Review and State of the Art Analysis",
+                    description="Review existing research, identify gaps, and establish theoretical foundation. " + problem.description,
+                    type=SubProblemType.RESEARCH,
+                    complexity_score=self._estimate_complexity(problem, 0.7),
+                    dependencies=[],
+                    success_criteria=[SuccessCriterion(
+                        id=generate_id("criterion"),
+                        description="Comprehensive literature review completed",
+                        metric="coverage",
+                        threshold=0.9,
+                        validation_method="peer_review"
+                    )],
+                    validation_gauntlet="coherence",
+                    priority=8,
+                    estimated_effort=16
+                ),
+                SubProblem(
+                    id=generate_id("subproblem"),
+                    parent_id=problem.id,
+                    title="Research Methodology Design",
+                    description="Design research approach, data collection methods, and analysis framework.",
+                    type=SubProblemType.ANALYSIS,
+                    complexity_score=self._estimate_complexity(problem, 0.6),
+                    dependencies=[],
+                    success_criteria=[SuccessCriterion(
+                        id=generate_id("criterion"),
+                        description="Methodology document approved",
+                        metric="completeness",
+                        threshold=0.9,
+                        validation_method="expert_review"
+                    )],
+                    validation_gauntlet="coherence",
+                    priority=7,
+                    estimated_effort=12
+                ),
+                SubProblem(
+                    id=generate_id("subproblem"),
+                    parent_id=problem.id,
+                    title="Implementation and Data Collection",
+                    description="Execute research plan, collect data, and perform experiments.",
+                    type=SubProblemType.IMPLEMENTATION,
+                    complexity_score=self._estimate_complexity(problem, 0.8),
+                    dependencies=[],
+                    success_criteria=[SuccessCriterion(
+                        id=generate_id("criterion"),
+                        description="Data collection completed",
+                        metric="completion",
+                        threshold=0.95,
+                        validation_method="automated_testing"
+                    )],
+                    validation_gauntlet="coherence",
+                    priority=6,
+                    estimated_effort=24
+                ),
+                SubProblem(
+                    id=generate_id("subproblem"),
+                    parent_id=problem.id,
+                    title="Results Analysis and Documentation",
+                    description="Analyze findings, draw conclusions, and document results.",
+                    type=SubProblemType.VALIDATION,
+                    complexity_score=self._estimate_complexity(problem, 0.5),
+                    dependencies=[],
+                    success_criteria=[SuccessCriterion(
+                        id=generate_id("criterion"),
+                        description="Research report completed",
+                        metric="quality",
+                        threshold=0.9,
+                        validation_method="peer_review"
+                    )],
+                    validation_gauntlet="coherence",
+                    priority=5,
+                    estimated_effort=16
+                ),
+            ]
+        elif problem_type == "implementation" or "build" in problem.description.lower() or "develop" in problem.description.lower():
+            sub_problems = [
+                SubProblem(
+                    id=generate_id("subproblem"),
+                    parent_id=problem.id,
+                    title="Requirements Analysis and Specification",
+                    description="Gather and document detailed requirements. " + problem.description,
+                    type=SubProblemType.ANALYSIS,
+                    complexity_score=self._estimate_complexity(problem, 0.5),
+                    dependencies=[],
+                    success_criteria=[SuccessCriterion(
+                        id=generate_id("criterion"),
+                        description="Requirements document approved",
+                        metric="completeness",
+                        threshold=0.95,
+                        validation_method="expert_review"
+                    )],
+                    validation_gauntlet="coherence",
+                    priority=9,
+                    estimated_effort=12
+                ),
+                SubProblem(
+                    id=generate_id("subproblem"),
+                    parent_id=problem.id,
+                    title="System Architecture and Design",
+                    description="Design system architecture, data models, and component interfaces.",
+                    type=SubProblemType.ANALYSIS,
+                    complexity_score=self._estimate_complexity(problem, 0.7),
+                    dependencies=[],
+                    success_criteria=[SuccessCriterion(
+                        id=generate_id("criterion"),
+                        description="Architecture design approved",
+                        metric="completeness",
+                        threshold=0.9,
+                        validation_method="expert_review"
+                    )],
+                    validation_gauntlet="coherence",
+                    priority=8,
+                    estimated_effort=16
+                ),
+                SubProblem(
+                    id=generate_id("subproblem"),
+                    parent_id=problem.id,
+                    title="Core Implementation and Development",
+                    description="Implement core functionality and business logic.",
+                    type=SubProblemType.IMPLEMENTATION,
+                    complexity_score=self._estimate_complexity(problem, 0.9),
+                    dependencies=[],
+                    success_criteria=[SuccessCriterion(
+                        id=generate_id("criterion"),
+                        description="Core features implemented",
+                        metric="functionality",
+                        threshold=0.9,
+                        validation_method="automated_testing"
+                    )],
+                    validation_gauntlet="coherence",
+                    priority=7,
+                    estimated_effort=32
+                ),
+                SubProblem(
+                    id=generate_id("subproblem"),
+                    parent_id=problem.id,
+                    title="Testing and Quality Assurance",
+                    description="Execute comprehensive testing, fix bugs, and ensure quality.",
+                    type=SubProblemType.VALIDATION,
+                    complexity_score=self._estimate_complexity(problem, 0.6),
+                    dependencies=[],
+                    success_criteria=[SuccessCriterion(
+                        id=generate_id("criterion"),
+                        description="Test coverage and quality gates passed",
+                        metric="test_pass_rate",
+                        threshold=0.9,
+                        validation_method="test_execution"
+                    )],
+                    validation_gauntlet="coherence",
+                    priority=6,
+                    estimated_effort=16
+                ),
+            ]
+        else:
+            # Generic decomposition for analysis and other types
+            sub_problems = [
+                SubProblem(
+                    id=generate_id("subproblem"),
+                    parent_id=problem.id,
+                    title="Problem Analysis and Scoping",
+                    description="Analyze problem space, identify key challenges, and define scope. " + problem.description,
+                    type=SubProblemType.ANALYSIS,
+                    complexity_score=self._estimate_complexity(problem, 0.5),
+                    dependencies=[],
+                    success_criteria=[SuccessCriterion(
+                        id=generate_id("criterion"),
+                        description="Analysis document completed",
+                        metric="completeness",
+                        threshold=0.9,
+                        validation_method="expert_review"
+                    )],
+                    validation_gauntlet="coherence",
+                    priority=8,
+                    estimated_effort=12
+                ),
+                SubProblem(
+                    id=generate_id("subproblem"),
+                    parent_id=problem.id,
+                    title="Solution Design and Planning",
+                    description="Design solution approach and create detailed implementation plan.",
+                    type=SubProblemType.ANALYSIS,
+                    complexity_score=self._estimate_complexity(problem, 0.6),
+                    dependencies=[],
+                    success_criteria=[SuccessCriterion(
+                        id=generate_id("criterion"),
+                        description="Solution design approved",
+                        metric="completeness",
+                        threshold=0.9,
+                        validation_method="expert_review"
+                    )],
+                    validation_gauntlet="coherence",
+                    priority=7,
+                    estimated_effort=16
+                ),
+                SubProblem(
+                    id=generate_id("subproblem"),
+                    parent_id=problem.id,
+                    title="Implementation and Execution",
+                    description="Execute the solution plan and implement core components.",
+                    type=SubProblemType.IMPLEMENTATION,
+                    complexity_score=self._estimate_complexity(problem, 0.8),
+                    dependencies=[],
+                    success_criteria=[SuccessCriterion(
+                        id=generate_id("criterion"),
+                        description="Implementation completed",
+                        metric="functionality",
+                        threshold=0.9,
+                        validation_method="automated_testing"
+                    )],
+                    validation_gauntlet="coherence",
+                    priority=6,
+                    estimated_effort=24
+                ),
+                SubProblem(
+                    id=generate_id("subproblem"),
+                    parent_id=problem.id,
+                    title="Validation and Finalization",
+                    description="Validate solution against requirements and finalize deliverables.",
+                    type=SubProblemType.VALIDATION,
+                    complexity_score=self._estimate_complexity(problem, 0.4),
+                    dependencies=[],
+                    success_criteria=[SuccessCriterion(
+                        id=generate_id("criterion"),
+                        description="Validation completed successfully",
+                        metric="quality",
+                        threshold=0.95,
+                        validation_method="peer_review"
+                    )],
+                    validation_gauntlet="coherence",
+                    priority=5,
+                    estimated_effort=12
+                ),
+            ]
+        
+        # Set up sequential dependencies
+        for i in range(1, len(sub_problems)):
+            sub_problems[i].dependencies = [sub_problems[i-1].id]
+        
+        logger.info(f"Heuristic decomposition created {len(sub_problems)} sub-problems")
         return sub_problems
+    
+    def _estimate_complexity(self, problem: ProblemDefinition, factor: float) -> ComplexityScore:
+        """Estimate complexity score based on parent problem complexity."""
+        base = problem.complexity_score.overall_complexity if hasattr(problem, 'complexity_score') else 5.0
+        return ComplexityScore(
+            cognitive_complexity=base * factor,
+            computational_complexity=base * factor * 0.8,
+            domain_complexity=base * 0.7,
+            integration_complexity=base * factor * 0.6,
+            overall_complexity=min(10.0, base * factor),
+            explanation=f"Heuristic estimate with factor {factor}"
+        )
     
     def _decompose_with_llm(self, problem: ProblemDefinition) -> List[SubProblem]:
         """
@@ -183,7 +454,7 @@ class SemanticDecomposition(DecompositionStrategyBase):
         """
         # Build comprehensive context
         constraints_desc = "\n".join([
-            f"- {c.description} (Type: {c.type}, Severity: {c.severity}, Priority: {c.priority})"
+            f"- {c.description} (Type: {c.type}, Severity: {c.severity}, Priority: {getattr(c, 'priority', 'N/A')})"
             for c in problem.constraints
         ]) if problem.constraints else "None specified"
         
@@ -516,37 +787,90 @@ class DependencyDecomposition(DecompositionStrategyBase):
     def get_strategy_name(self) -> str:
         return "dependency"
     
-    @with_error_handling(severity=ErrorSeverity.HIGH, fallback=lambda problem: [])
+    @with_error_handling(severity=ErrorSeverity.HIGH, fallback=lambda *args, **kwargs: [])
     def decompose(self, problem: ProblemDefinition) -> List[SubProblem]:
         """
         Identifies dependencies and creates ordered sub-problems using LLM-based analysis.
         
         Analyzes the problem to identify prerequisite relationships and
         creates sub-problems in dependency order with parallel opportunities.
-        
-        Raises:
-            RuntimeError: If LLM analysis fails or is unavailable.
         """
         logger.info(f"Dependency decomposition for problem: {problem.id}")
         
-        # Start with semantic decomposition as base
+        # Start with semantic decomposition as base (which now has fallback)
         semantic = SemanticDecomposition(self.openevolve_client)
         sub_problems = semantic.decompose(problem)
         
         if len(sub_problems) <= 1:
             return sub_problems
         
-        if not self.openevolve_client:
-            logger.error("OpenEvolve client not available for dependency analysis. Cannot perform LLM-powered dependency analysis. Returning empty list.")
-            return []
-
-        enhanced_sub_problems = self._analyze_dependencies_with_llm(sub_problems, problem)
-        if not enhanced_sub_problems:
-            logger.warning("LLM dependency analysis returned no sub-problems. Returning empty list.")
-            return []
+        # Try LLM-based dependency enhancement
+        if self.openevolve_client:
+            enhanced_sub_problems = self._analyze_dependencies_with_llm(sub_problems, problem)
+            if enhanced_sub_problems:
+                logger.info(f"[OK] LLM dependency analysis enhanced {len(enhanced_sub_problems)} sub-problems")
+                return enhanced_sub_problems
+            logger.warning("LLM dependency analysis returned no sub-problems, using heuristic dependencies.")
+        else:
+            logger.warning("OpenEvolve client not available, using heuristic dependency analysis.")
         
-        logger.info(f"[OK] LLM dependency analysis enhanced {len(enhanced_sub_problems)} sub-problems")
-        return enhanced_sub_problems
+        # FALLBACK: Apply heuristic dependency analysis
+        return self._apply_heuristic_dependencies(sub_problems)
+    
+    def _apply_heuristic_dependencies(self, sub_problems: List[SubProblem]) -> List[SubProblem]:
+        """Apply heuristic-based dependency analysis when LLM is unavailable."""
+        logger.info("Applying heuristic dependency analysis")
+        
+        # Analyze each sub-problem for potential dependencies based on type
+        type_order = {
+            SubProblemType.RESEARCH: 1,
+            SubProblemType.ANALYSIS: 2,
+            SubProblemType.IMPLEMENTATION: 3,
+            SubProblemType.VALIDATION: 4,
+            SubProblemType.INTEGRATION: 5
+        }
+        
+        # Sort by typical execution order
+        sorted_sps = sorted(sub_problems, key=lambda sp: type_order.get(sp.type, 3))
+        
+        # Create ID mapping
+        id_map = {i+1: sp.id for i, sp in enumerate(sorted_sps)}
+        sp_by_id = {sp.id: sp for sp in sorted_sps}
+        
+        # Apply dependencies based on type sequence
+        enhanced = []
+        for i, sp in enumerate(sorted_sps, 1):
+            sp_type_order = type_order.get(sp.type, 3)
+            dependencies = []
+            
+            # Find sub-problems of earlier types
+            for j in range(1, i):
+                prev_sp = sorted_sps[j-1]
+                prev_type_order = type_order.get(prev_sp.type, 3)
+                if prev_type_order < sp_type_order:
+                    dependencies.append(prev_sp.id)
+            
+            # Limit dependencies to avoid over-linking
+            if len(dependencies) > 2:
+                dependencies = dependencies[-2:]
+            
+            enhanced_sp = SubProblem(
+                id=sp.id,
+                parent_id=sp.parent_id,
+                title=sp.title,
+                description=sp.description,
+                type=sp.type,
+                complexity_score=sp.complexity_score,
+                dependencies=dependencies,
+                success_criteria=sp.success_criteria,
+                validation_gauntlet=sp.validation_gauntlet,
+                priority=sp.priority,
+                estimated_effort=sp.estimated_effort
+            )
+            enhanced.append(enhanced_sp)
+        
+        logger.info(f"Heuristic dependency analysis applied to {len(enhanced)} sub-problems")
+        return enhanced
     
     def _analyze_dependencies_with_llm(
         self, 
@@ -692,20 +1016,17 @@ class ComplexityDecomposition(DecompositionStrategyBase):
     def get_strategy_name(self) -> str:
         return "complexity"
     
-    @with_error_handling(severity=ErrorSeverity.HIGH, fallback=lambda problem: [])
+    @with_error_handling(severity=ErrorSeverity.HIGH, fallback=lambda *args, **kwargs: [])
     def decompose(self, problem: ProblemDefinition) -> List[SubProblem]:
         """
         Creates sub-problems with balanced complexity using LLM-based analysis.
         
         Breaks down the problem to ensure each sub-problem has
         manageable complexity while maintaining semantic coherence.
-        
-        Raises:
-            RuntimeError: If LLM analysis fails or is unavailable.
         """
         logger.info(f"Complexity decomposition for problem: {problem.id}")
         
-        # Start with semantic decomposition
+        # Start with semantic decomposition (which now has fallback)
         semantic = SemanticDecomposition(self.openevolve_client)
         sub_problems = semantic.decompose(problem)
         
@@ -719,22 +1040,84 @@ class ComplexityDecomposition(DecompositionStrategyBase):
             if sp.complexity_score.overall_complexity > max_complexity:
                 logger.info(f"Splitting complex sub-problem: {sp.title} (complexity: {sp.complexity_score.overall_complexity:.1f})")
                 
-                if not self.openevolve_client:
-                    logger.error("OpenEvolve client not available for complexity-based splitting. Retaining original sub-problem.")
-                    refined_sub_problems.append(sp)
-                    continue
-
-                split_sps = self.split_with_llm(sp, problem)
-                if not split_sps or len(split_sps) < 2:
-                    logger.warning("LLM splitting returned insufficient sub-problems. Retaining original sub-problem.")
-                    refined_sub_problems.append(sp)
+                # Try LLM-based splitting first
+                if self.openevolve_client:
+                    split_sps = self.split_with_llm(sp, problem)
+                    if split_sps and len(split_sps) >= 2:
+                        refined_sub_problems.extend(split_sps)
+                        continue
+                    logger.warning("LLM splitting returned insufficient sub-problems, using heuristic split.")
                 else:
+                    logger.warning("OpenEvolve client not available, using heuristic complexity splitting.")
+                
+                # FALLBACK: Heuristic splitting
+                split_sps = self._heuristic_split(sp, problem)
+                if split_sps:
                     refined_sub_problems.extend(split_sps)
+                else:
+                    refined_sub_problems.append(sp)
             else:
                 refined_sub_problems.append(sp)
         
         logger.info(f"Created {len(refined_sub_problems)} sub-problems with balanced complexity")
         return refined_sub_problems
+    
+    def _heuristic_split(self, sub_problem: SubProblem, parent_problem: ProblemDefinition) -> List[SubProblem]:
+        """Heuristic-based splitting when LLM is unavailable."""
+        logger.info(f"Heuristic splitting for: {sub_problem.title}")
+        
+        # Create 2 simpler sub-problems by dividing the work
+        sp1_id = generate_id("subproblem")
+        sp2_id = generate_id("subproblem")
+        
+        # Reduce complexity
+        complexity_factor = 0.6
+        base_complexity = sub_problem.complexity_score
+        
+        sp1 = SubProblem(
+            id=sp1_id,
+            parent_id=sub_problem.parent_id,
+            title=f"{sub_problem.title} - Phase 1: Foundation",
+            description=f"Initial phase focusing on foundational aspects: {sub_problem.description}",
+            type=sub_problem.type,
+            complexity_score=ComplexityScore(
+                cognitive_complexity=base_complexity.cognitive_complexity * complexity_factor,
+                computational_complexity=base_complexity.computational_complexity * complexity_factor,
+                domain_complexity=base_complexity.domain_complexity * 0.8,
+                integration_complexity=base_complexity.integration_complexity * 0.5,
+                overall_complexity=base_complexity.overall_complexity * complexity_factor,
+                explanation="Heuristic split - Phase 1"
+            ),
+            dependencies=sub_problem.dependencies.copy(),
+            success_criteria=sub_problem.success_criteria[:1] if sub_problem.success_criteria else [],
+            validation_gauntlet=sub_problem.validation_gauntlet,
+            priority=sub_problem.priority,
+            estimated_effort=sub_problem.estimated_effort // 2
+        )
+        
+        sp2 = SubProblem(
+            id=sp2_id,
+            parent_id=sub_problem.parent_id,
+            title=f"{sub_problem.title} - Phase 2: Enhancement",
+            description=f"Secondary phase building on Phase 1: {sub_problem.description}",
+            type=sub_problem.type,
+            complexity_score=ComplexityScore(
+                cognitive_complexity=base_complexity.cognitive_complexity * complexity_factor,
+                computational_complexity=base_complexity.computational_complexity * complexity_factor,
+                domain_complexity=base_complexity.domain_complexity * 0.8,
+                integration_complexity=base_complexity.integration_complexity * 0.5,
+                overall_complexity=base_complexity.overall_complexity * complexity_factor,
+                explanation="Heuristic split - Phase 2"
+            ),
+            dependencies=sub_problem.dependencies.copy() + [sp1_id],
+            success_criteria=sub_problem.success_criteria[:1] if sub_problem.success_criteria else [],
+            validation_gauntlet=sub_problem.validation_gauntlet,
+            priority=sub_problem.priority,
+            estimated_effort=sub_problem.estimated_effort // 2
+        )
+        
+        logger.info(f"Heuristic split created 2 sub-problems")
+        return [sp1, sp2]
     
     def _determine_complexity_threshold(self, problem: ProblemDefinition) -> float:
         """Determine appropriate complexity threshold based on problem characteristics."""
@@ -911,11 +1294,25 @@ Provide 2-3 splits:"""
 
 class HybridDecomposition(DecompositionStrategyBase):
     """Combines multiple strategies adaptively."""
+    
+    def __init__(self, openevolve_client: Optional['OpenEvolveClient'] = None):
+        """Initialize with optional OpenEvolve client."""
+        global OpenEvolveClient, OPENEVOLVE_AVAILABLE
+        self.openevolve_client = openevolve_client
+        if not self.openevolve_client and OPENEVOLVE_AVAILABLE:
+            try:
+                self.openevolve_client = OpenEvolveClient()
+                logger.info("OpenEvolve client initialized for hybrid decomposition")
+            except Exception as e:
+                logger.warning(f"Failed to instantiate OpenEvolve client for hybrid decomposition: {e}", exc_info=True)
+                self.openevolve_client = None
+        elif not OPENEVOLVE_AVAILABLE:
+            logger.warning("OpenEvolve not available, hybrid decomposition will operate without LLM.")
 
     def get_strategy_name(self) -> str:
         return "hybrid"
 
-    @with_error_handling(severity=ErrorSeverity.HIGH, fallback=lambda problem: [])
+    @with_error_handling(severity=ErrorSeverity.HIGH, fallback=lambda *args, **kwargs: [])
     def decompose(self, problem: ProblemDefinition) -> List[SubProblem]:
         """
         Applies multiple strategies and merges results intelligently.
@@ -925,12 +1322,16 @@ class HybridDecomposition(DecompositionStrategyBase):
         """
         logger.info(f"Hybrid decomposition for problem: {problem.id}")
         
-        # Step 1: Get results from multiple strategies
-        semantic_strategy = SemanticDecomposition()
-        dependency_strategy = DependencyDecomposition()
-        complexity_strategy = ComplexityDecomposition()
+        # Step 1: Get results from multiple strategies (all now have fallbacks)
+        semantic_strategy = SemanticDecomposition(self.openevolve_client)
+        dependency_strategy = DependencyDecomposition(self.openevolve_client)
+        complexity_strategy = ComplexityDecomposition(self.openevolve_client)
         
         semantic_results = semantic_strategy.decompose(problem)
+        if not semantic_results:
+            logger.error("Semantic decomposition returned no results, cannot proceed with hybrid.")
+            return []
+        
         dependency_results = dependency_strategy.decompose(problem)
         
         # Step 2: Merge strategies intelligently
@@ -1122,16 +1523,19 @@ class ResearchDecomposition(DecompositionStrategyBase):
     def get_strategy_name(self) -> str:
         return "research"
 
-    @with_error_handling(severity=ErrorSeverity.HIGH, fallback=lambda problem: [])
+    @with_error_handling(severity=ErrorSeverity.HIGH, fallback=lambda *args, **kwargs: [])
     def decompose(self, problem: ProblemDefinition) -> List[SubProblem]:
         """
         Decomposes a research problem into sub-problems using LLM.
+        Falls back to semantic decomposition with research focus if LLM unavailable.
         """
         logger.info(f"Research decomposition for problem: {problem.id}")
 
         if not self.openevolve_client:
-            logger.error("OpenEvolve client not available for research decomposition. Cannot perform LLM-powered research decomposition. Returning empty list.")
-            return []
+            logger.warning("OpenEvolve client not available, using semantic decomposition with research focus.")
+            # FALLBACK: Use semantic decomposition which has heuristic fallback
+            semantic = SemanticDecomposition(None)
+            return semantic._heuristic_decompose(problem)
 
         prompt = f"""You are an expert research scientist and project manager. Decompose the following research problem into a set of structured sub-problems.
 
@@ -1517,7 +1921,7 @@ class DecompositionEngine:
         plan.dependency_graph = self._build_dependency_graph(plan.sub_problems)
         return plan
     
-    @with_error_handling(severity=ErrorSeverity.HIGH, fallback=lambda problem: "hybrid")
+    @with_error_handling(severity=ErrorSeverity.HIGH, fallback=lambda *args, **kwargs: "hybrid")
     def select_strategy(self, problem: ProblemDefinition) -> str:
         """
         Chooses optimal decomposition strategy using granular complexity analysis and LLM.
@@ -1756,7 +2160,7 @@ Your selection:"""
 
         # Feasibility: ensure complexity aligns with available resources and configuration richness.
         complexity_scores = [
-            sp.ai_suggested_complexity_score if sp.ai_suggested_complexity_score else 5
+            getattr(sp, 'ai_suggested_complexity_score', None) or 5
             for sp in sub_problems
         ]
         avg_complexity = sum(complexity_scores) / max(1, len(complexity_scores))
@@ -1766,7 +2170,8 @@ Your selection:"""
             feasibility_penalty += max(0.0, (avg_complexity - max_allowed) / max_allowed)
 
         missing_requirements = sum(
-            1 for sp in sub_problems if not sp.solution_requirements and not sp.acceptance_criteria
+            1 for sp in sub_problems 
+            if not getattr(sp, 'solution_requirements', None) and not getattr(sp, 'acceptance_criteria', None)
         )
         feasibility_penalty += (missing_requirements / max(1, sub_problem_count)) * 0.2
 
@@ -1777,7 +2182,8 @@ Your selection:"""
         integration = 0.5 + min(0.5, dependency_density * 2.0)
 
         missing_dependency_outputs = sum(
-            1 for sp in sub_problems if sp.dependencies and not sp.dependency_outputs
+            1 for sp in sub_problems 
+            if getattr(sp, 'dependencies', None) and not getattr(sp, 'dependency_outputs', None)
         )
         integration = _clamp(integration - (missing_dependency_outputs / max(1, sub_problem_count)) * 0.3)
 

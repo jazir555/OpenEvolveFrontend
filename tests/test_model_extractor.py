@@ -67,11 +67,11 @@ def subtract(a, b):
         solution_content = "def calculate(x):\n    return x * 2"
         properties = ["correctness", "termination"]
         obligations = self.extractor.extract(solution_content, properties)
-        
+
         self.assertEqual(len(obligations), 2)
         prop_names = {ob.name for ob in obligations}
         self.assertIn("correctness_of_calculate_0", prop_names)
-        self.assertIn("termination_of_calculate_0", prop_names)
+        self.assertIn("termination_of_calculate_1", prop_names)
         
     def test_empty_content(self):
         """

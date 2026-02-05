@@ -134,58 +134,39 @@ def mock_knowledge_graph(test_id):
     kg = EntityKnowledgeGraph(correlation_id=f"test_{test_id}")
 
     # Add some initial entities
+    # Entity constructor: Entity(entity_id, entity_type, name, properties, ...)
     entities = [
-        Entity(
-                entity_type=1,
-                name=2,
-                properties={"language": "en", "domain": "technology", "confidence": 0.95}
-        ),
-        Entity(
-                entity_type=1,
-                name=2,
-                properties={"language": "zh", "domain": "technology", "confidence": 0.95}
-        ),
-        Entity(
-                entity_type=1,
-                name=2,
-                properties={"subset_of": "AI", "confidence": 0.90}
-        ),
-        Entity(
-                entity_type=1,
-                name=2,
-                properties={"subset_of": "ML", "confidence": 0.90}
-        ),
-        Entity(
-                entity_type=1,
-                name=2,
-                properties={"uses": "AI", "confidence": 0.92}
-        )
+        {"name": "Artificial Intelligence", "entity_type": "Concept", "properties": {"language": "en", "domain": "technology", "confidence": 0.95}},
+        {"name": "人工智能", "entity_type": "Concept", "properties": {"language": "zh", "domain": "technology", "confidence": 0.95}},
+        {"name": "Machine Learning", "entity_type": "Concept", "properties": {"subset_of": "AI", "confidence": 0.90}},
+        {"name": "Deep Learning", "entity_type": "Concept", "properties": {"subset_of": "ML", "confidence": 0.90}},
+        {"name": "Natural Language Processing", "entity_type": "Concept", "properties": {"uses": "AI", "confidence": 0.92}}
     ]
 
     for entity in entities:
-        kg.add_entity(name=entity["name"], entity_type=entity["properties"].get("type", "Entity"), attributes=entity["properties"])
+        kg.add_entity(name=entity["name"], entity_type=entity["entity_type"], attributes=entity["properties"])
 
-    # Add relationships
-    kg.add_relationship(Relationship(
+    # Add relationships - Relationship(source, target, relationship_type, properties=...)
+    kg.add_relationship(
         source="Artificial Intelligence",
         target="Machine Learning",
         relationship_type="contains",
-        properties={"confidence": 0.95, "strength": "strong"}
-    ))
+        attributes={"confidence": 0.95, "strength": "strong"}
+    )
 
-    kg.add_relationship(Relationship(
+    kg.add_relationship(
         source="Machine Learning",
         target="Deep Learning",
         relationship_type="contains",
-        properties={"confidence": 0.90, "strength": "strong"}
-    ))
+        attributes={"confidence": 0.90, "strength": "strong"}
+    )
 
-    kg.add_relationship(Relationship(
+    kg.add_relationship(
         source="Artificial Intelligence",
         target="Natural Language Processing",
         relationship_type="applies_to",
-        properties={"confidence": 0.92, "strength": "moderate"}
-    ))
+        attributes={"confidence": 0.92, "strength": "moderate"}
+    )
 
     return kg
 
@@ -330,23 +311,21 @@ async def test_bilingual_extraction_with_temporal_storage(
         kg = EntityKnowledgeGraph(correlation_id=correlation_id)
 
         for entity_data in extraction_result.entities:
-            entity = Entity(
-                entity_type=entity_data.get("type", "Entity"),
+            kg.add_entity(
                 name=entity_data["name"],
-                properties=entity_data.get("attributes", {})
+                entity_type=entity_data.get("type", "Entity"),
+                attributes=entity_data.get("attributes", {})
             )
-            kg.add_entity(name=entity["name"], entity_type=entity["properties"].get("type", "Entity"), attributes=entity["properties"])
 
         # Store relationships
         if extraction_result.relations:
             for rel_data in extraction_result.relations:
-                relationship = Relationship(
+                kg.add_relationship(
                     source=rel_data["source"],
                     target=rel_data["target"],
-                    relationship_type=rel_data.get("type", "related_to"),
-                    properties=rel_data.get("attributes", {})
+                    relation_type=rel_data.get("type", "related_to"),
+                    attributes=rel_data.get("attributes", {})
                 )
-                kg.add_relationship(relationship)
         performance_tracker.end("store_knowledge_graph")
 
         assert len(kg.get_all_entities()) > 0, "No entities stored in graph"
@@ -468,35 +447,34 @@ async def test_multi_agent_knowledge_discovery(
         kg = EntityKnowledgeGraph(correlation_id=correlation_id)
 
         # Add problem entity
-        kg.add_entity(Entity(
-            entity_type="Problem",
+        kg.add_entity(
             name=sample_complex_problem["problem"][:50],
-            properties={
+            entity_type="Problem",
+            attributes={
                 "domain": sample_complex_problem["context"]["domain"],
                 "subproblems_count": len(subproblems),
                 "complexity": "high"
             }
-        ))
+        )
 
         # Add solution entities
         for subproblem in subproblems:
-            kg.add_entity(Entity(
-                entity_type="Solution",
+            kg.add_entity(
                 name=subproblem["title"],
-                properties={
+                entity_type="Solution",
+                attributes={
                     "description": subproblem["description"],
                     "complexity_score": subproblem["complexity_score"]
                 }
-            ))
+            )
 
         # Add extracted entities
         for entity_data in all_entities:
-            entity = Entity(
-                entity_type=entity_data.get("type", "Entity"),
+            kg.add_entity(
                 name=entity_data["name"],
-                properties=entity_data.get("attributes", {})
+                entity_type=entity_data.get("type", "Entity"),
+                attributes=entity_data.get("attributes", {})
             )
-            kg.add_entity(name=entity["name"], entity_type=entity["properties"].get("type", "Entity"), attributes=entity["properties"])
 
         performance_tracker.end("synthesize_knowledge")
 
@@ -583,32 +561,32 @@ async def test_temporal_knowledge_evolution_tracking(
 
         # Step 1: Add knowledge at T1
         performance_tracker.start("add_knowledge_t1")
-        kg.add_entity(Entity(
-            entity_type="Programming Language",
+        kg.add_entity(
             name="Python",
-            properties={
+            entity_type="Programming Language",
+            attributes={
                 "version": "3.8",
                 "status": "stable",
                 "features": ["async/await", "type hints", "f-strings"],
                 "timestamp": t1.isoformat(),
                 "time_point": "t1"
             }
-        ))
+        )
 
-        kg.add_relationship(Relationship(
+        kg.add_relationship(
             source="Python",
             target="Software Development",
-            relationship_type="used_for",
-            properties={"strength": 0.9, "timestamp": t1.isoformat()}
-        ))
+            relation_type="used_for",
+            attributes={"strength": 0.9, "timestamp": t1.isoformat()}
+        )
         performance_tracker.end("add_knowledge_t1")
 
         # Step 2: Update knowledge at T2 (simulate by updating attributes)
         performance_tracker.start("update_knowledge_t2")
-        kg.add_entity(Entity(
-            entity_type="Programming Language",
+        kg.add_entity(
             name="Python 3.10",
-            properties={
+            entity_type="Programming Language",
+            attributes={
                 "version": "3.10",
                 "status": "stable",
                 "features": ["async/await", "type hints", "f-strings", "match statements"],
@@ -617,32 +595,32 @@ async def test_temporal_knowledge_evolution_tracking(
                 "time_point": "t2",
                 "evolution_from": "Python 3.8"
             }
-        ))
+        )
         performance_tracker.end("update_knowledge_t2")
 
         # Step 3: Add more knowledge at T3
         performance_tracker.start("add_knowledge_t3")
-        kg.add_entity(Entity(
-                entity_type=1,
-                name=2,
-                properties={
+        kg.add_entity(
+            name="Type Hints",
+            entity_type="Feature",
+            attributes={
                 "importance": "high",
                 "usage": "widespread",
                 "timestamp": t3.isoformat(),
                 "time_point": "t3"
             }
-        ))
+        )
 
-        kg.add_entity(Entity(
-                entity_type=1,
-                name=2,
-                properties={
+        kg.add_entity(
+            name="Match Statements",
+            entity_type="Feature",
+            attributes={
                 "introduced_in": "3.10",
                 "importance": "high",
                 "timestamp": t3.isoformat(),
                 "time_point": "t3"
             }
-        ))
+        )
         performance_tracker.end("add_knowledge_t3")
 
         # Step 4: Query at different time points
@@ -774,36 +752,33 @@ async def test_cross_system_knowledge_fusion(
         for entity_data in extraction1.entities:
             entity_name = entity_data["name"]
             if entity_name not in seen_entities:
-                entity = Entity(
-                    entity_type=entity_data.get("type", "Entity"),
+                kg.add_entity(
                     name=entity_name,
-                    properties=entity_data.get("attributes", {})
+                    entity_type=entity_data.get("type", "Entity"),
+                    attributes=entity_data.get("attributes", {})
                 )
-                kg.add_entity(name=entity["name"], entity_type=entity["properties"].get("type", "Entity"), attributes=entity["properties"])
                 seen_entities.add(entity_name)
 
         # Add from extractor 2 (deduplicate)
         for entity_data in extraction2.entities:
             entity_name = entity_data["name"]
             if entity_name and entity_name not in seen_entities:
-                entity = Entity(
-                    entity_type=entity_data.get("type", "Entity"),
+                kg.add_entity(
                     name=entity_name,
-                    properties=entity_data.get("attributes", {})
+                    entity_type=entity_data.get("type", "Entity"),
+                    attributes=entity_data.get("attributes", {})
                 )
-                kg.add_entity(name=entity["name"], entity_type=entity["properties"].get("type", "Entity"), attributes=entity["properties"])
                 seen_entities.add(entity_name)
 
         # Add relationships
         if extraction1.relations:
             for rel_data in extraction1.relations:
-                relationship = Relationship(
+                kg.add_relationship(
                     source=rel_data["source"],
                     target=rel_data["target"],
-                    relationship_type=rel_data.get("type", "related_to"),
-                    properties=rel_data.get("attributes", {})
+                    relation_type=rel_data.get("type", "related_to"),
+                    attributes=rel_data.get("attributes", {})
                 )
-                kg.add_relationship(relationship)
 
         performance_tracker.end("fuse_knowledge")
 
@@ -893,55 +868,33 @@ async def test_knowledge_backup_and_recovery(
 
         # Add test entities
         test_entities = [
-            Entity(
-                entity_type=1,
-                name=2,
-                properties={"age": 30, "role": "engineer", "department": "AI"}
-            ),
-            Entity(
-                entity_type=1,
-                name=2,
-                properties={"age": 25, "role": "designer", "department": "UX"}
-            ),
-            Entity(
-                entity_type=1,
-                name=2,
-                properties={"status": "active", "version": "1.0", "priority": "high"}
-            ),
-            Entity(
-                entity_type=1,
-                name=2,
-                properties={"domain": "AI", "maturity": "production"}
-            )
+            {"name": "Alice", "entity_type": "Person", "properties": {"age": 30, "role": "engineer", "department": "AI"}},
+            {"name": "Bob", "entity_type": "Person", "properties": {"age": 25, "role": "designer", "department": "UX"}},
+            {"name": "Knowledge Engine", "entity_type": "Project", "properties": {"status": "active", "version": "1.0", "priority": "high"}},
+            {"name": "Machine Learning", "entity_type": "Domain", "properties": {"domain": "AI", "maturity": "production"}}
         ]
 
         for entity in test_entities:
-            kg_original.add_entity(entity)
+            kg_original.add_entity(
+                name=entity["name"],
+                entity_type=entity["entity_type"],
+                attributes=entity["properties"]
+            )
 
         # Add test relationships
         test_relationships = [
-            Relationship(
-                source="Alice",
-                target="Knowledge Engine",
-                relationship_type="works_on",
-                properties={"since": "2020", "role": "lead"}
-            ),
-            Relationship(
-                source="Bob",
-                target="Knowledge Engine",
-                relationship_type="contributes_to",
-                properties={"since": "2021", "role": "contributor"}
-            ),
-            Relationship(
-                source="Knowledge Engine",
-                target="Machine Learning",
-                relationship_type="uses",
-                properties={"importance": "high"}
-            )
+            {"source": "Alice", "target": "Knowledge Engine", "relation_type": "works_on", "attributes": {"since": "2020", "role": "lead"}},
+            {"source": "Bob", "target": "Knowledge Engine", "relation_type": "contributes_to", "attributes": {"since": "2021", "role": "contributor"}},
+            {"source": "Knowledge Engine", "target": "Machine Learning", "relation_type": "uses", "attributes": {"importance": "high"}}
         ]
 
         for relationship in test_relationships:
-            kg_original.add_relationship(relationship)
+            kg_original.add_relationship(
+                source=relationship["source"],
+                target=relationship["target"],
+                relation_type=relationship["relation_type"],
+                attributes=relationship["attributes"]
+            )
 
         # Store state for verification
         original_entity_count = len(kg_original.get_all_entities())
@@ -993,21 +946,19 @@ async def test_knowledge_backup_and_recovery(
         kg_restored = EntityKnowledgeGraph(correlation_id=correlation_id)
 
         for entity_dict in restored_data.get("entities", []):
-            entity = Entity(
-                entity_type=entity_dict["entity_type"],
+            kg_restored.add_entity(
                 name=entity_dict["name"],
-                properties=entity_dict["attributes"]
+                entity_type=entity_dict["entity_type"],
+                attributes=entity_dict["attributes"]
             )
-            kg_restored.add_entity(entity)
 
         for rel_dict in restored_data.get("relationships", []):
-            relationship = Relationship(
+            kg_restored.add_relationship(
                 source=rel_dict["source"],
                 target=rel_dict["target"],
-                relationship_type=rel_dict["relationship_type"],
-                properties=rel_dict.get("attributes", {})
+                relation_type=rel_dict["relationship_type"],
+                attributes=rel_dict.get("attributes", {})
             )
-            kg_restored.add_relationship(relationship)
 
         performance_tracker.end("restore_graph")
 
@@ -1043,11 +994,11 @@ async def test_knowledge_backup_and_recovery(
         performance_tracker.start("incremental_backup")
 
         # Add new entity
-        kg_restored.add_entity(Entity(
-                entity_type=1,
-                name=2,
-                properties={"age": 35, "role": "manager"}
-        ))
+        kg_restored.add_entity(
+            name="Charlie",
+            entity_type="Person",
+            attributes={"age": 35, "role": "manager"}
+        )
 
         # Create incremental backup record
         incremental_backup = {
@@ -1304,17 +1255,17 @@ async def test_concurrent_knowledge_operations(
         async def add_entity_batch(batch_id: int):
             entities = []
             for i in range(20):
-                entity = Entity(
+                entity_name = f"Entity_{batch_id}_{i}"
+                kg.add_entity(
+                    name=entity_name,
                     entity_type="TestEntity",
-                    name=f"Entity_{batch_id}_{i}",
-                    properties={
+                    attributes={
                         "batch": batch_id,
                         "index": i,
                         "value": f"value_{batch_id}_{i}"
                     }
                 )
-                kg.add_entity(name=entity["name"], entity_type=entity["properties"].get("type", "Entity"), attributes=entity["properties"])
-                entities.append(entity)
+                entities.append(entity_name)
             return entities
 
         # Run concurrent batches
@@ -1338,17 +1289,16 @@ async def test_concurrent_knowledge_operations(
             for i in range(10):
                 source = f"Entity_{batch_id}_{i}"
                 target = f"Entity_{batch_id}_{(i + 1) % 20}"
-                relationship = Relationship(
+                kg.add_relationship(
                     source=source,
                     target=target,
-                    relationship_type="connects_to",
-                    properties={
+                    relation_type="connects_to",
+                    attributes={
                         "batch": batch_id,
                         "index": i
                     }
                 )
-                kg.add_relationship(relationship)
-                relationships.append(relationship)
+                relationships.append(f"{source}->{target}")
             return relationships
 
         tasks = [add_relationship_batch(i) for i in range(10)]
@@ -1480,15 +1430,16 @@ async def test_error_recovery_and_self_healing(
         performance_tracker.start("invalid_entity_handling")
 
         # Try to add entity with minimal fields
-        invalid_entity = Entity(
-            entity_type="Test",
-            name="",  # Empty name - edge case
-            properties={}
-        )
+        # Note: Empty name might be rejected by the graph
+        invalid_name = ""  # Empty name - edge case
 
         # Should handle gracefully
         try:
-            kg.add_entity(invalid_entity)
+            kg.add_entity(
+                name=invalid_name,
+                entity_type="Test",
+                attributes={}
+            )
             # Either accepted or rejected gracefully
         except Exception as e:
             # Expected to handle gracefully
@@ -1500,15 +1451,15 @@ async def test_error_recovery_and_self_healing(
         performance_tracker.start("invalid_relationship_handling")
 
         # Try to add relationship with non-existent entities
-        invalid_rel = Relationship(
-            source="NonExistent1",
-            target="NonExistent2",
-            relationship_type="invalid_relation",
-            properties={}
-        )
+        # This should be handled gracefully by the graph
 
         try:
-            kg.add_relationship(invalid_rel)
+            kg.add_relationship(
+                source="NonExistent1",
+                target="NonExistent2",
+                relation_type="invalid_relation",
+                attributes={}
+            )
             # Should handle gracefully
         except Exception as e:
             # Expected to handle gracefully
@@ -1520,31 +1471,24 @@ async def test_error_recovery_and_self_healing(
         performance_tracker.start("verify_functionality")
 
         # Add valid entities
-        valid_entities = [
-            Entity(
-                entity_type=1,
-                name=2,
-                properties={"age": 30}
-            ),
-            Entity(
-                entity_type=1,
-                name=2,
-                properties={"age": 25}
-            )
-        ]
-
-        for entity in valid_entities:
-            kg.add_entity(name=entity["name"], entity_type=entity["properties"].get("type", "Entity"), attributes=entity["properties"])
-
-        # Add valid relationship
-        valid_rel = Relationship(
-            source="Alice",
-            target="Bob",
-            relationship_type="knows",
-            properties={"since": "2020"}
+        kg.add_entity(
+            name="Alice",
+            entity_type="Person",
+            attributes={"age": 30}
+        )
+        kg.add_entity(
+            name="Bob",
+            entity_type="Person",
+            attributes={"age": 25}
         )
 
-        kg.add_relationship(valid_rel)
+        # Add valid relationship
+        kg.add_relationship(
+            source="Alice",
+            target="Bob",
+            relation_type="knows",
+            attributes={"since": "2020"}
+        )
 
         # Verify operations worked
         alice = kg.get_entity("Alice")
@@ -1561,14 +1505,12 @@ async def test_error_recovery_and_self_healing(
         performance_tracker.start("test_idempotency")
 
         # Add same entity multiple times
-        charlie_entity = Entity(
-                entity_type=1,
-                name=2,
-                properties={"age": 35}
-        )
-
         for _ in range(5):
-            kg.add_entity(charlie_entity)
+            kg.add_entity(
+                name="Charlie",
+                entity_type="Person",
+                attributes={"age": 35}
+            )
 
         # Should have one Charlie (or gracefully handle duplicates)
         charlie_count = len([e for e in kg.get_all_entities() if e.name == "Charlie"])
@@ -1582,11 +1524,11 @@ async def test_error_recovery_and_self_healing(
 
         async def safe_add_entity(entity_name: str):
             try:
-                kg.add_entity(Entity(
-                    entity_type="Test",
+                kg.add_entity(
                     name=entity_name,
-                    properties={"safe": True}
-                ))
+                    entity_type="Test",
+                    attributes={"safe": True}
+                )
                 return {"name": entity_name, "success": True}
             except Exception as e:
                 return {"name": entity_name, "success": False, "error": str(e)}

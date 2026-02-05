@@ -52,20 +52,41 @@ class NeuralKGIntegration:
         """
         return self._embedder.generate_embeddings(triples, model)
     
-    def predict_links(self, head: str, relation: str, 
-                     candidates: List[str]) -> Dict[str, Any]:
+    def predict_links(self, head: str, relation: str,
+                     candidates: List[str],
+                     embeddings: Optional[Dict[str, Any]] = None,
+                     triples: Optional[List[Tuple[str, str, str]]] = None) -> Dict[str, Any]:
         """
         Predict likely tail entities for a given head and relation.
-        
+
         Args:
             head: Head entity
             relation: Relation
             candidates: List of candidate tail entities
-            
+            embeddings: Optional pre-computed embeddings (generated if not provided)
+            triples: Optional triples to generate embeddings from (if embeddings not provided)
+
         Returns:
             Dictionary with predictions and scores
         """
-        return self._embedder.predict_links(head, relation, candidates)
+        # If embeddings not provided, generate them from triples
+        if embeddings is None:
+            if triples is None:
+                return {
+                    'status': 'error',
+                    'message': 'Either embeddings or triples must be provided',
+                    'predictions': []
+                }
+            emb_result = self._embedder.generate_embeddings(triples, model_name='transe')
+            if emb_result.get('status') == 'error':
+                return {
+                    'status': 'error',
+                    'message': f'Failed to generate embeddings: {emb_result.get("message", "Unknown error")}',
+                    'predictions': []
+                }
+            embeddings = emb_result.get('embeddings', {})
+
+        return self._embedder.predict_links(head, relation, candidates, embeddings)
 
 
 class NeuralKGEmbedder:
@@ -198,7 +219,7 @@ class NeuralKGEmbedder:
     ) -> Dict[str, Any]:
         """
         Generate knowledge graph embeddings using specified model.
-        
+
         Args:
             triples: List of (head, relation, tail) triples
             model_name: Model to use ('transe', 'rotate', 'complex', 'rgcn', etc.)
@@ -206,15 +227,27 @@ class NeuralKGEmbedder:
             epochs: Number of training epochs
             batch_size: Batch size for training
             learning_rate: Learning rate
-            
+
         Returns:
             Dictionary containing embeddings and training info
         """
+        if triples is None:
+            raise ValueError("triples cannot be None")
+
         if not self.is_available():
             return {
                 'status': 'error',
                 'message': 'NeuralKG integration not available',
-                'embeddings': {}
+                'embeddings': {},
+                'metadata': {
+                    'model': model_name,
+                    'embedding_dim': embedding_dim,
+                    'num_entities': 0,
+                    'num_relations': 0,
+                    'epochs': epochs,
+                    'batch_size': batch_size,
+                    'learning_rate': learning_rate
+                }
             }
         
         try:

@@ -104,9 +104,9 @@ class TestAlertingClasses:
         assert AlertManager is not None
 
     def test_alert_notifier_class_exists(self):
-        """Test AlertNotifier class exists"""
-        from alerting_system import AlertNotifier
-        assert AlertNotifier is not None
+        """Test NotificationService class exists (renamed from AlertNotifier)"""
+        from alerting_system import NotificationService
+        assert NotificationService is not None
 
 
 class TestAlertingExports:
@@ -115,12 +115,13 @@ class TestAlertingExports:
     def test_expected_exports_exist(self):
         """Test expected classes are exported"""
         import alerting_system
-        
+
         assert hasattr(alerting_system, 'AlertSeverity')
         assert hasattr(alerting_system, 'AlertStatus')
         assert hasattr(alerting_system, 'NotificationChannel')
         assert hasattr(alerting_system, 'Alert')
         assert hasattr(alerting_system, 'AlertManager')
+        assert hasattr(alerting_system, 'NotificationService')
 
 
 if __name__ == "__main__":

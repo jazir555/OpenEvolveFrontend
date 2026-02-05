@@ -195,12 +195,15 @@ class TestDocumentIngestion:
             integration = RagbitsIntegration()
             integration.document_search = MagicMock()
 
-            metadata = [{"source": "test1"}, {"source": "test2"}, {"source": "test3"}]
+            # Create documents with metadata included
+            documents_with_metadata = [
+                {"content": doc, "metadata": {"source": f"test{i}"}}
+                for i, doc in enumerate(sample_documents)
+            ]
 
-            # Should handle metadata
+            # Should handle documents with metadata
             result = await integration.ingest_documents(
-                documents=sample_documents,
-                metadata=metadata
+                documents=documents_with_metadata
             )
 
             assert isinstance(result, RagbitsResult)
@@ -225,8 +228,8 @@ class TestSearch:
             mock_result = MagicMock()
             mock_result.results = mock_search_results
 
-            with patch.object(integration, 'search', return_value=mock_result):
-                result = await integration.search(
+            with patch.object(integration, 'search_documents', return_value=mock_result):
+                result = await integration.search_documents(
                     query=sample_query,
                     top_k=10
                 )
@@ -242,7 +245,7 @@ class TestSearch:
             integration = RagbitsIntegration()
             integration.document_search = MagicMock()
 
-            result = await integration.search(
+            result = await integration.search_documents(
                 query=sample_query,
                 top_k=10,
                 similarity_threshold=0.8
@@ -257,7 +260,7 @@ class TestSearch:
             integration = RagbitsIntegration()
             integration.document_search = MagicMock()
 
-            result = await integration.search(query="")
+            result = await integration.search_documents(query="")
 
             assert isinstance(result, RagbitsResult)
 
@@ -342,6 +345,6 @@ class TestConfigurationAndErrors:
             with patch('asyncio.get_event_loop') as mock_loop:
                 mock_loop.return_value.run_in_executor.side_effect = Exception("Search error")
 
-                result = await integration.search(query=sample_query)
+                result = await integration.search_documents(query=sample_query)
 
                 assert result.success is False

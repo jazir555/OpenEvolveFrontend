@@ -2,6 +2,14 @@
 Pytest configuration and fixtures for Adaptive MDAP tests.
 """
 
+import sys
+from pathlib import Path
+
+# Add core-projects to Python path to allow importing adaptive_mdap
+core_projects_path = Path(__file__).parent.parent.parent / "core-projects"
+if str(core_projects_path) not in sys.path:
+    sys.path.insert(0, str(core_projects_path))
+
 import pytest
 from adaptive_mdap.core.types import SubProblem
 from adaptive_mdap.classifiers.task_complexity_classifier import (

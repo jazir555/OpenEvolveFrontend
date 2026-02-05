@@ -236,19 +236,19 @@ def test_feature_categories():
 
 def main():
     """Run all tests"""
-    print("🧪 Testing Enhanced Adversarial Testing Tab")
+    print("[TEST] Testing Enhanced Adversarial Testing Tab")
     print("=" * 50)
-    
+
     tests = [
         ("Import Tests", test_imports),
         ("Session State Defaults", test_session_state_defaults),
         ("Configuration Parameters", test_configuration_parameters),
         ("Feature Categories", test_feature_categories)
     ]
-    
+
     results = []
     for test_name, test_func in tests:
-        print(f"\n🔍 Running {test_name}...")
+        print(f"\n[RUNNING] Running {test_name}...")
         try:
             result = test_func()
             results.append((test_name, result))
@@ -257,23 +257,23 @@ def main():
         except Exception as e:
             print(f"[FAIL] ERROR in {test_name}: {e}")
             results.append((test_name, False))
-    
+
     print("\n" + "=" * 50)
-    print("📊 Test Results Summary")
+    print("[RESULTS] Test Results Summary")
     print("=" * 50)
-    
+
     passed = sum(1 for _, result in results if result)
     total = len(results)
-    
+
     for test_name, result in results:
         status = "[OK] PASSED" if result else "[FAIL] FAILED"
         print(f"{status} {test_name}")
-    
-    print(f"\n🎯 Overall: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
-    
+
+    print(f"\n[OVERALL] {passed}/{total} tests passed ({passed/total*100:.1f}%)")
+
     if passed == total:
-        print("\n🎉 All tests passed! The enhanced adversarial testing tab is ready.")
-        print("\n🚀 Features implemented:")
+        print("\n[SUCCESS] All tests passed! The enhanced adversarial testing tab is ready.")
+        print("\n[FEATURES] Features implemented:")
         print("  * Tripartite AI Architecture (Red/Blue/Evaluator Teams)")
         print("  * Multi-Objective Optimization with Quality-Diversity")
         print("  * Advanced Model Orchestration with Load Balancing")
@@ -285,7 +285,7 @@ def main():
         print("  * Comprehensive Reporting and Visualization")
     else:
         print(f"\n[WARN] {total - passed} test(s) failed. Please review the implementation.")
-    
+
     return passed == total
 
 if __name__ == "__main__":

@@ -108,11 +108,12 @@ class TelemetryManager:
         Returns:
             True if initialized successfully
         """
+        # Always store config regardless of OpenTelemetry availability
+        self._config = config
+        
         if not OPENTELEMETRY_AVAILABLE:
             logger.warning("OpenTelemetry not available, telemetry disabled")
             return False
-            
-        self._config = config
         
         # Create resource
         resource = Resource.create({
@@ -220,6 +221,20 @@ class TelemetryManager:
 
 # Global telemetry manager
 telemetry = TelemetryManager()
+
+# Auto-initialize with default config if OpenTelemetry is available
+if OPENTELEMETRY_AVAILABLE:
+    try:
+        default_config = TelemetryConfig(
+            service_name="openevolve",
+            service_version="1.0.0",
+            console_export=False,
+            enable_metrics=True,
+            enable_tracing=True
+        )
+        telemetry.initialize(default_config)
+    except Exception as e:
+        logger.warning(f"Failed to auto-initialize telemetry: {e}")
 
 
 # =============================================================================

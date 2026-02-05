@@ -513,6 +513,53 @@ class OneKEAdapter:
                 return await self._llm_extraction(text, schema, 'Schema')
             raise ExtractionError(f"Schema-guided extraction failed: {e}")
 
+    async def _call_oneke(self, text: str, schema: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Actually call OneKE for extraction.
+        
+        This method performs the actual OneKE extraction call.
+        If OneKE is not available, it falls back to LLM extraction.
+        
+        Args:
+            text: Input text to extract from
+            schema: Schema definition for extraction
+            
+        Returns:
+            Extraction result dictionary
+        """
+        try:
+            if self.model:
+                # Real OneKE call
+                result = self.model.extract(
+                    text=text,
+                    schema=schema,
+                    task='Schema'
+                )
+                
+                logger.info(f"✓ OneKE extraction completed")
+                
+                return {
+                    'entities': result.get('entities', []),
+                    'relations': result.get('relations', []),
+                    'events': result.get('events', []),
+                    'triples': result.get('triples', []),
+                    'confidence': result.get('confidence', 0.85),
+                    'metadata': {'source': 'oneke_actual'},
+                    'raw_response': result
+                }
+            
+            # No model available - use fallback if allowed
+            if self.allow_fallback:
+                return await self._llm_extraction(text, schema, 'Schema')
+            
+            raise OneKENotInstalledError("OneKE model not available")
+            
+        except Exception as e:
+            logger.error(f"OneKE call failed: {e}")
+            if self.config['integration'].get('fallback_on_error') and self.allow_fallback:
+                return await self._llm_extraction(text, schema, 'Schema')
+            raise ExtractionError(f"OneKE extraction failed: {e}")
+
     async def _llm_extraction(self, text: str, schema: Any, task: str) -> Dict[str, Any]:
         """LLM fallback extraction (only used if allow_fallback=True)."""
         import openai

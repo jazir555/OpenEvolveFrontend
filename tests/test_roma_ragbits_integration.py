@@ -112,7 +112,7 @@ def mock_roma_integration():
 
     roma = Mock(spec=ROMAIntegration)
     roma.decompose_problem = AsyncMock()
-   roma.batch_decompose = AsyncMock()
+    roma.batch_decompose = AsyncMock()
     roma.health_check = Mock(return_value={"status": "healthy"})
     roma.close = AsyncMock()
     return roma

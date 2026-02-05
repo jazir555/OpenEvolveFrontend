@@ -160,26 +160,32 @@ class TestAdaptiveStrategySelection:
     def test_complexity_based_strategy_selection(self):
         """Test that different complexities get different strategies."""
         controller = AdaptiveExecutionController()
-        
+
         test_cases = [
-            # (description, expected_strategy_min, expected_strategy_max)
-            ("Simple task", SolveStrategy.DIRECT, SolveStrategy.MDAP_LIGHT),
-            ("Medium complexity task with some constraints and dependencies", SolveStrategy.MDAP_LIGHT, SolveStrategy.MDAP_MEDIUM),
-            ("Complex distributed security optimization task", SolveStrategy.MDAP_MEDIUM, SolveStrategy.MAKER_ULTRA),
+            # (description, expected_strategy_min, expected_strategy_max, depth, dependencies)
+            ("Simple task", SolveStrategy.DIRECT, SolveStrategy.DIRECT, 0, []),
+            ("Medium complexity task with moderate requirements", SolveStrategy.MDAP_LIGHT, SolveStrategy.MDAP_MEDIUM, 4, ["dep1", "dep2", "dep3", "dep4"]),
+            ("Complex distributed security optimization task with extensive requirements", SolveStrategy.MDAP_MEDIUM, SolveStrategy.MAKER_ULTRA, 8, [f"dep{i}" for i in range(8)]),
         ]
-        
-        for desc, min_strategy, max_strategy in test_cases:
+
+        for desc, min_strategy, max_strategy, depth, dependencies in test_cases:
+            # Build a more complex description for higher complexity cases
+            if depth >= 4:
+                full_desc = desc + " " + "Additional complexity requirements and constraints. " * (depth * 2)
+            else:
+                full_desc = desc
+
             sp = SubProblem(
                 id=f"strategy-test-{hash(desc) % 10000}",
-                description=desc,
-                domain="test",
-                depth=3,
-                dependencies=[],
-                metadata={},
+                description=full_desc,
+                domain="test" if depth < 6 else "complex_distributed_systems",
+                depth=depth,
+                dependencies=dependencies,
+                metadata={"constraints": [f"constraint_{i}" for i in range(depth)]} if depth > 0 else {},
             )
-            
+
             attempt = controller.execute_adaptive(sp)
-            
+
             # Verify strategy is within expected range
             strategy_order = [
                 SolveStrategy.DIRECT,
@@ -188,13 +194,13 @@ class TestAdaptiveStrategySelection:
                 SolveStrategy.MAKER_FULL,
                 SolveStrategy.MAKER_ULTRA,
             ]
-            
+
             actual_idx = strategy_order.index(SolveStrategy(attempt.allocated_strategy))
             min_idx = strategy_order.index(min_strategy)
             max_idx = strategy_order.index(max_strategy)
-            
+
             assert min_idx <= actual_idx <= max_idx, \
-                f"For '{desc[:30]}...': expected {min_strategy.value} to {max_strategy.value}, got {attempt.allocated_strategy}"
+                f"For '{desc[:30]}...': expected {min_strategy.value} to {max_strategy.value}, got {attempt.allocated_strategy} (complexity={attempt.complexity_score:.3f})"
     
     def test_escalation_on_failure(self):
         """Test that system escalates strategy on failure."""

@@ -556,18 +556,36 @@ class ParetoOptimizer:
     
     def __init__(self, epsilon: float = 0.001):
         self.epsilon = epsilon
-
-
-class MultiObjectiveOptimizer(ParetoOptimizer):
-    """
-    Alias for ParetoOptimizer for backward compatibility.
     
-    Provides multi-objective optimization with Pareto frontier computation.
-    """
-    pass
-
-
     def pareto_optimize(
+        self,
+        variables: List[Z3Variable],
+        constraints: List[Z3Constraint],
+        objectives: List[Tuple[str, OptimizationObjective]],
+        max_solutions: int = 100
+    ) -> OptimizationResult:
+        """
+        Main entry point for Pareto optimization.
+        
+        Find Pareto frontier for multiple objectives.
+        
+        Args:
+            variables: List of Z3 variables
+            constraints: List of constraints
+            objectives: List of (objective_expression, objective_type) tuples
+            max_solutions: Maximum number of Pareto-optimal solutions
+            
+        Returns:
+            OptimizationResult with Pareto frontier
+        """
+        return self.optimize_multi_objective(
+            variables=variables,
+            constraints=constraints,
+            objectives=objectives,
+            max_solutions=max_solutions
+        )
+    
+    def optimize_multi_objective(
         self,
         variables: List[Z3Variable],
         constraints: List[Z3Constraint],
@@ -943,6 +961,20 @@ class MultiObjectiveOptimizer(ParetoOptimizer):
             return False
         else:
             return str(value)
+
+
+# =============================================================================
+# MultiObjectiveOptimizer Alias
+# =============================================================================
+
+class MultiObjectiveOptimizer(ParetoOptimizer):
+    """
+    Multi-objective optimizer - alias for ParetoOptimizer.
+    
+    Provides multi-objective optimization with Pareto frontier computation.
+    All functionality is inherited from ParetoOptimizer.
+    """
+    pass
 
 
 # =============================================================================

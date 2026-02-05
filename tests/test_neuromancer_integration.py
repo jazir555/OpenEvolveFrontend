@@ -139,17 +139,17 @@ def sample_dynamics_function():
 @pytest.fixture
 def neuromancer_modeler(mock_torch, mock_neuromancer):
     """Create NeuromancerDynamicsModeler with mocked dependencies."""
-    with patch('knowledge_engine.integrations.neuromancer_integration.torch', mock_torch):
-        with patch('knowledge_engine.integrations.neuromancer_integration.dynamics', mock_neuromancer['dynamics']):
-            with patch('knowledge_engine.integrations.neuromancer_integration.modules', mock_neuromancer['modules']):
-                with patch('knowledge_engine.integrations.neuromancer_integration.system', mock_neuromancer['system']):
-                    modeler = NeuromancerDynamicsModeler(device='cpu')
-                    modeler._neuromancer_available = True
-                    modeler.torch = mock_torch
-                    modeler.dynamics = mock_neuromancer['dynamics']
-                    modeler.modules = mock_neuromancer['modules']
-                    modeler.system = mock_neuromancer['system']
-                    return modeler
+    # Create modeler first (it will try to import but might fail)
+    modeler = NeuromancerDynamicsModeler(device='cpu')
+
+    # Manually set the mock dependencies regardless of import success
+    modeler._neuromancer_available = True
+    modeler.torch = mock_torch
+    modeler.dynamics = mock_neuromancer['dynamics']
+    modeler.modules = mock_neuromancer['modules']
+    modeler.system = mock_neuromancer['system']
+
+    return modeler
 
 
 @pytest.fixture

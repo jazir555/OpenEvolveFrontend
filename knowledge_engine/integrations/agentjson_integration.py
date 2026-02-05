@@ -12,6 +12,18 @@ from typing import Dict, Any, List, Optional, Union
 from dataclasses import dataclass
 import uuid
 
+# Try to import AgentJSON classes for test patching compatibility
+try:
+    from agentjson import RepairOptions, parse
+    _agentjson_available = True
+except ImportError:
+    # Create stub classes for patching
+    class RepairOptions:
+        pass
+    def parse(*args, **kwargs):
+        pass
+    _agentjson_available = False
+
 
 logger = logging.getLogger(__name__)
 

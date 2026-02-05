@@ -226,7 +226,14 @@ class TestResearchQuestInitialization:
 
     def test_initialization_with_default_config(self):
         """Test initialization with default configuration."""
-        integration = ResearchQuestIntegration()
+        # When ResearchQuest is not available, we can't initialize the integration
+        # but we can still test the config structure by accessing the method on the class
+        from knowledge_engine.integrations.research_quest_integration import ResearchQuestIntegration
+
+        # Create a temporary instance with mocked _initialize_components to avoid OptionalDependencyError
+        import unittest.mock as mock
+        with mock.patch.object(ResearchQuestIntegration, '_initialize_components'):
+            integration = ResearchQuestIntegration()
 
         assert integration is not None
         assert integration.config is not None
@@ -236,7 +243,11 @@ class TestResearchQuestInitialization:
 
     def test_initialization_with_custom_config(self, sample_config):
         """Test initialization with custom configuration."""
-        integration = ResearchQuestIntegration(config=sample_config)
+        from knowledge_engine.integrations.research_quest_integration import ResearchQuestIntegration
+        import unittest.mock as mock
+
+        with mock.patch.object(ResearchQuestIntegration, '_initialize_components'):
+            integration = ResearchQuestIntegration(config=sample_config)
 
         assert integration.config == sample_config
         assert integration.config["model"] == "openai/gpt-4o"
@@ -245,7 +256,11 @@ class TestResearchQuestInitialization:
 
     def test_initialization_with_minimal_config(self, minimal_config):
         """Test initialization with minimal configuration."""
-        integration = ResearchQuestIntegration(config=minimal_config)
+        from knowledge_engine.integrations.research_quest_integration import ResearchQuestIntegration
+        import unittest.mock as mock
+
+        with mock.patch.object(ResearchQuestIntegration, '_initialize_components'):
+            integration = ResearchQuestIntegration(config=minimal_config)
 
         # Should merge with defaults
         assert integration.config["model"] == "gpt-4"
@@ -254,8 +269,12 @@ class TestResearchQuestInitialization:
 
     def test_default_config_structure(self):
         """Test default configuration has all required fields."""
-        integration = ResearchQuestIntegration()
-        config = integration._get_default_config()
+        from knowledge_engine.integrations.research_quest_integration import ResearchQuestIntegration
+        import unittest.mock as mock
+
+        with mock.patch.object(ResearchQuestIntegration, '_initialize_components'):
+            integration = ResearchQuestIntegration()
+            config = integration._get_default_config()
 
         # Check required fields
         assert "model" in config
@@ -271,8 +290,12 @@ class TestResearchQuestInitialization:
 
     def test_stage_configuration(self, sample_config):
         """Test stage configuration is properly set."""
-        integration = ResearchQuestIntegration(config=sample_config)
-        stages = integration.config["stages"]
+        from knowledge_engine.integrations.research_quest_integration import ResearchQuestIntegration
+        import unittest.mock as mock
+
+        with mock.patch.object(ResearchQuestIntegration, '_initialize_components'):
+            integration = ResearchQuestIntegration(config=sample_config)
+            stages = integration.config["stages"]
 
         # Check all stage flags
         assert "enable_initialization" in stages
@@ -282,8 +305,12 @@ class TestResearchQuestInitialization:
 
     def test_quality_thresholds_configuration(self, sample_config):
         """Test quality thresholds are properly configured."""
-        integration = ResearchQuestIntegration(config=sample_config)
-        thresholds = integration.config["quality_thresholds"]
+        from knowledge_engine.integrations.research_quest_integration import ResearchQuestIntegration
+        import unittest.mock as mock
+
+        with mock.patch.object(ResearchQuestIntegration, '_initialize_components'):
+            integration = ResearchQuestIntegration(config=sample_config)
+            thresholds = integration.config["quality_thresholds"]
 
         assert thresholds["accuracy"] == 0.7
         assert thresholds["completeness"] == 0.6
@@ -292,8 +319,12 @@ class TestResearchQuestInitialization:
 
     def test_domain_specific_configuration(self, sample_config):
         """Test domain-specific configuration."""
-        integration = ResearchQuestIntegration(config=sample_config)
-        domain_config = integration.config["domain_specific"]
+        from knowledge_engine.integrations.research_quest_integration import ResearchQuestIntegration
+        import unittest.mock as mock
+
+        with mock.patch.object(ResearchQuestIntegration, '_initialize_components'):
+            integration = ResearchQuestIntegration(config=sample_config)
+            domain_config = integration.config["domain_specific"]
 
         assert domain_config["enable_disciplinary_tags"] is True
         assert "general" in domain_config["default_tags"]
@@ -301,8 +332,12 @@ class TestResearchQuestInitialization:
 
     def test_validation_configuration(self, sample_config):
         """Test validation configuration."""
-        integration = ResearchQuestIntegration(config=sample_config)
-        validation_config = integration.config["validation"]
+        from knowledge_engine.integrations.research_quest_integration import ResearchQuestIntegration
+        import unittest.mock as mock
+
+        with mock.patch.object(ResearchQuestIntegration, '_initialize_components'):
+            integration = ResearchQuestIntegration(config=sample_config)
+            validation_config = integration.config["validation"]
 
         assert validation_config["enable_falsification_check"] is True
         assert validation_config["enable_bias_detection"] is True
@@ -320,7 +355,16 @@ class TestResearchQuestGraphManagement:
     @pytest.fixture
     def integration(self, sample_config):
         """Create integration for testing."""
-        integration = ResearchQuestIntegration(config=sample_config)
+        # Create integration but mock the graph_client to avoid OptionalDependencyError
+        from knowledge_engine.optional_imports import OptionalDependencyError
+
+        try:
+            integration = ResearchQuestIntegration(config=sample_config)
+        except OptionalDependencyError:
+            # If ResearchQuest is not available, skip these tests
+            pytest.skip("ResearchQuest not available")
+
+        # Mock the graph_client
         integration.graph_client = Mock()
         integration.graph_client.initialize = Mock(return_value={
             'success': True,
@@ -365,7 +409,13 @@ class TestResearchQuestGraphManagement:
     @pytest.mark.asyncio
     async def test_initialize_graph_not_initialized_error(self, sample_task_description):
         """Test error when integration is not initialized."""
-        integration = ResearchQuestIntegration()
+        from knowledge_engine.optional_imports import OptionalDependencyError
+
+        try:
+            integration = ResearchQuestIntegration()
+        except OptionalDependencyError:
+            pytest.skip("ResearchQuest not available")
+
         integration._initialized = False
 
         with pytest.raises(RuntimeError, match="not initialized"):
@@ -415,7 +465,13 @@ class TestResearchQuestTaskDecomposition:
     @pytest.fixture
     def integration(self, sample_config):
         """Create integration for testing."""
-        integration = ResearchQuestIntegration(config=sample_config)
+        from knowledge_engine.optional_imports import OptionalDependencyError
+
+        try:
+            integration = ResearchQuestIntegration(config=sample_config)
+        except OptionalDependencyError:
+            pytest.skip("ResearchQuest not available")
+
         integration.graph_client = Mock()
         integration.graph_client.decompose_task = Mock(return_value={
             'success': True,
@@ -508,7 +564,13 @@ class TestResearchQuestHypothesisGeneration:
     @pytest.fixture
     def integration(self, sample_config):
         """Create integration for testing."""
-        integration = ResearchQuestIntegration(config=sample_config)
+        from knowledge_engine.optional_imports import OptionalDependencyError
+
+        try:
+            integration = ResearchQuestIntegration(config=sample_config)
+        except OptionalDependencyError:
+            pytest.skip("ResearchQuest not available")
+
         integration.graph_client = Mock()
         integration.graph_client.generate_hypotheses = Mock(return_value={
             'success': True,
@@ -594,7 +656,12 @@ class TestResearchQuestKnowledgeExtraction:
     @pytest.fixture
     def integration(self, sample_config):
         """Create integration for testing."""
-        integration = ResearchQuestIntegration(config=sample_config)
+        from knowledge_engine.optional_imports import OptionalDependencyError
+
+        try:
+            integration = ResearchQuestIntegration(config=sample_config)
+        except OptionalDependencyError:
+            pytest.skip("ResearchQuest not available")
 
         # Mock all required methods
         integration.initialize_graph = AsyncMock(return_value=ResearchQuestResult(
@@ -739,7 +806,13 @@ class TestResearchQuestExportAndSummary:
     @pytest.fixture
     def integration(self, sample_config):
         """Create integration for testing."""
-        integration = ResearchQuestIntegration(config=sample_config)
+        from knowledge_engine.optional_imports import OptionalDependencyError
+
+        try:
+            integration = ResearchQuestIntegration(config=sample_config)
+        except OptionalDependencyError:
+            pytest.skip("ResearchQuest not available")
+
         integration.graph_client = Mock()
         integration.graph_client.get_graph_summary = Mock(return_value={
             'graph_state': {
@@ -845,7 +918,12 @@ class TestResearchQuestStatusAndUtilities:
     @pytest.fixture
     def integration(self, sample_config):
         """Create integration for testing."""
-        return ResearchQuestIntegration(config=sample_config)
+        from knowledge_engine.optional_imports import OptionalDependencyError
+
+        try:
+            return ResearchQuestIntegration(config=sample_config)
+        except OptionalDependencyError:
+            pytest.skip("ResearchQuest not available")
 
     def test_get_research_quest_status(self, integration):
         """Test getting ResearchQuest status."""

@@ -107,11 +107,9 @@ def mock_rdkit():
 @pytest.fixture
 def globalchem_adapter(mock_globalchem_core):
     """Create GlobalChemKnowledgeAdapter with mocked dependencies."""
-    with patch('knowledge_engine.integrations.global_chem_integration.GlobalChem') as MockGC:
-        mock_instance = MagicMock()
-        mock_instance.return_value = mock_globalchem_core
-        MockGC.return_value = mock_instance
-
+    # Patch GlobalChem at the location where it's imported (inside _initialize_global_chem method)
+    with patch('knowledge_engine.integrations.global_chem_integration.sys') as mock_sys:
+        # Don't actually patch sys, just use this to avoid real import attempts
         adapter = GlobalChemKnowledgeAdapter()
         adapter._gc = mock_globalchem_core
         adapter._global_chem_available = True

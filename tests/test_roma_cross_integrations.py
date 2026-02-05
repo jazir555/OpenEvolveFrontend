@@ -236,7 +236,8 @@ def mock_roma_integration():
             solution_id="sol_1",
             problem_id="test",
             solution="Test solution",
-            confidence=0.8
+            confidence=0.8,
+            reasoning="Test reasoning"
         )],
         verification=None,
         metadata={},
@@ -1257,7 +1258,8 @@ class TestROMARagbitsDataClasses:
             solution_id="sol_1",
             problem_id="prob_1",
             solution="Test solution",
-            confidence=0.8
+            confidence=0.8,
+            reasoning="Test reasoning"
         )
 
         indexed = IndexedSolution(

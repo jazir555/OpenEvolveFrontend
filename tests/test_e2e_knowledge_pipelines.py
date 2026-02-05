@@ -260,23 +260,21 @@ async def test_bilingual_extraction_e2e(
         kg = EntityKnowledgeGraph(correlation_id=correlation_id)
 
         for entity_data in extraction_result.entities:
-            entity = Entity(
-                entity_type=entity_data.get("type", "Entity"),
+            kg.add_entity(
                 name=entity_data["name"],
+                entity_type=entity_data.get("type", "Entity"),
                 attributes=entity_data.get("attributes", {})
             )
-            kg.add_entity(entity)
 
         # Store relationships
         if extraction_result.relations:
             for rel_data in extraction_result.relations:
-                relationship = Relationship(
+                kg.add_relationship(
                     source=rel_data["source"],
                     target=rel_data["target"],
-                    relationship_type=rel_data.get("type", "related_to"),
+                    relation_type=rel_data.get("type", "related_to"),
                     attributes=rel_data.get("attributes", {})
                 )
-                kg.add_relationship(relationship)
         performance_tracker.end("store_knowledge_graph")
 
         # Verify storage
@@ -702,23 +700,21 @@ async def test_multi_system_knowledge_fusion(
         # Step 2: Generate knowledge graph structure
         performance_tracker.start("kg_generation")
         for entity_data in oneke_result.entities:
-            entity = Entity(
-                entity_type=entity_data.get("type", "Entity"),
+            kg.add_entity(
                 name=entity_data["name"],
+                entity_type=entity_data.get("type", "Entity"),
                 attributes=entity_data.get("attributes", {})
             )
-            kg.add_entity(entity)
 
         # Add relationships
         if oneke_result.relations:
             for rel_data in oneke_result.relations:
-                relationship = Relationship(
+                kg.add_relationship(
                     source=rel_data["source"],
                     target=rel_data["target"],
-                    relationship_type=rel_data.get("type", "related_to"),
+                    relation_type=rel_data.get("type", "related_to"),
                     attributes=rel_data.get("attributes", {})
                 )
-                kg.add_relationship(relationship)
 
         assert len(kg.get_all_entities()) > 0, "No entities in knowledge graph"
         performance_tracker.end("kg_generation")
@@ -863,23 +859,21 @@ async def test_knowledge_retrieval_e2e(
 
         # Store in knowledge graph
         for entity_data in extraction_result.entities:
-            entity = Entity(
-                entity_type=entity_data.get("type", "Entity"),
+            kg.add_entity(
                 name=entity_data["name"],
+                entity_type=entity_data.get("type", "Entity"),
                 attributes=entity_data.get("attributes", {})
             )
-            kg.add_entity(entity)
 
         # Add relationships
         if extraction_result.relations:
             for rel_data in extraction_result.relations:
-                relationship = Relationship(
+                kg.add_relationship(
                     source=rel_data["source"],
                     target=rel_data["target"],
-                    relationship_type=rel_data.get("type", "related_to"),
+                    relation_type=rel_data.get("type", "related_to"),
                     attributes=rel_data.get("attributes", {})
                 )
-                kg.add_relationship(relationship)
 
         performance_tracker.end("extract_and_store")
 
@@ -1014,44 +1008,31 @@ async def test_backup_restore_e2e(
 
         # Add test entities
         test_entities = [
-            Entity(
-                entity_type="Person",
-                name="Alice",
-                attributes={"age": 30, "role": "engineer"}
-            ),
-            Entity(
-                entity_type="Person",
-                name="Bob",
-                attributes={"age": 25, "role": "designer"}
-            ),
-            Entity(
-                entity_type="Project",
-                name="Knowledge Engine",
-                attributes={"status": "active", "version": "1.0"}
-            )
+            {"name": "Alice", "entity_type": "Person", "attributes": {"age": 30, "role": "engineer"}},
+            {"name": "Bob", "entity_type": "Person", "attributes": {"age": 25, "role": "designer"}},
+            {"name": "Knowledge Engine", "entity_type": "Project", "attributes": {"status": "active", "version": "1.0"}}
         ]
 
         for entity in test_entities:
-            kg_original.add_entity(entity)
+            kg_original.add_entity(
+                name=entity["name"],
+                entity_type=entity["entity_type"],
+                attributes=entity["attributes"]
+            )
 
         # Add test relationships
         test_relationships = [
-            Relationship(
-                source="Alice",
-                target="Knowledge Engine",
-                relationship_type="works_on",
-                attributes={"since": "2020"}
-            ),
-            Relationship(
-                source="Bob",
-                target="Knowledge Engine",
-                relationship_type="contributes_to",
-                attributes={"since": "2021"}
-            )
+            {"source": "Alice", "target": "Knowledge Engine", "relation_type": "works_on", "attributes": {"since": "2020"}},
+            {"source": "Bob", "target": "Knowledge Engine", "relation_type": "contributes_to", "attributes": {"since": "2021"}}
         ]
 
         for relationship in test_relationships:
-            kg_original.add_relationship(relationship)
+            kg_original.add_relationship(
+                source=relationship["source"],
+                target=relationship["target"],
+                relation_type=relationship["relation_type"],
+                attributes=relationship["attributes"]
+            )
 
         # Store state for verification
         original_entity_count = len(kg_original.get_all_entities())
