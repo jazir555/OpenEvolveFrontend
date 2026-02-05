@@ -15,10 +15,31 @@ import uuid
 from datetime import datetime
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
+from enum import Enum
 
 from utils.entanglement_utils import normalize_entanglement_matrix, serialize_entanglement_matrix
 
 logger = logging.getLogger(__name__)
+
+
+class TicketStatus(Enum):
+    """Ticket status for CrewAI integration tasks.
+    
+    Maps to workflow states for tracking task progression.
+    """
+    TODO = "todo"
+    IN_PROGRESS = "in_progress"
+    IN_REVIEW = "in_review"
+    DONE = "done"
+    BLOCKED = "blocked"
+
+
+class TicketType(Enum):
+    """Ticket type classification for CrewAI tasks."""
+    TASK = "task"
+    BUG = "bug"
+    FEATURE = "feature"
+    EPIC = "epic"
 
 
 @dataclass
@@ -313,9 +334,9 @@ def execute_crewai_task(
 # Re-export CrewAIClient from crewai_client for backward compatibility
 try:
     from crewai_client import CrewAIClient, create_crewai_client
-    __all__ = ['CrewAIIntegrationManager', 'CrewAIConfig', 'setup_crewai_integration',
-               'execute_crewai_task', 'CrewAIClient', 'create_crewai_client']
+    __all__ = ['CrewAIIntegrationManager', 'CrewAIConfig', 'TicketStatus', 'TicketType',
+               'setup_crewai_integration', 'execute_crewai_task', 'CrewAIClient', 'create_crewai_client']
 except ImportError:
-    __all__ = ['CrewAIIntegrationManager', 'CrewAIConfig', 'setup_crewai_integration',
-               'execute_crewai_task']
+    __all__ = ['CrewAIIntegrationManager', 'CrewAIConfig', 'TicketStatus', 'TicketType',
+               'setup_crewai_integration', 'execute_crewai_task']
     CrewAIClient = None

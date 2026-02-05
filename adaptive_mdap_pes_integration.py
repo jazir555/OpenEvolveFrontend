@@ -182,7 +182,7 @@ class AdaptivePESConfig:
         """Create a configuration focused on performance."""
         config = cls()
         config.max_budget_usd = max_budget_usd
-        enable_adaptive_allocation = True
+        config.enable_adaptive_allocation = True
         config.enable_context_aware = True
         config.complexity_thresholds = [0.15, 0.35, 0.55, 0.75]  # More aggressive allocation
         return config
@@ -232,8 +232,8 @@ class ComplexityAnalysisResult:
 
 
 @dataclass
-class AllocationDecision:
-    """Combined allocation decision from both systems."""
+class PESAllocationDecision:
+    """Allocation decision specific to Adaptive PES integration."""
     complexity_score: float
     tier: AllocationTier
     n_agents: int
@@ -301,7 +301,7 @@ class AdaptivePESEvolutionResult:
     complexity_analysis: Optional[ComplexityAnalysisResult]
     
     # Allocation decision
-    allocation_decision: Optional[AllocationDecision]
+    allocation_decision: Optional[PESAllocationDecision]
     
     # Budget tracking
     total_cost_usd: float
@@ -635,7 +635,10 @@ class AdaptivePESCoordinator:
         )
     
     def _init_adaptive_mdap(self):
-        """Initialize Adaptive MDAP components."""
+        if ClassifierConfig is None or TaskComplexityClassifier is None:
+            logger.warning("Adaptive MDAP components not available for import")
+            return
+        
         try:
             classifier_config = ClassifierConfig()
             self.complexity_classifier = TaskComplexityClassifier(classifier_config)
@@ -736,6 +739,7 @@ class AdaptivePESCoordinator:
                 tests=tests,
                 language=language,
                 allocation_decision=allocation_decision,
+                complexity_analysis=complexity_analysis,
                 **kwargs
             )
             phases_completed.append(OptimizationPhase.EXECUTION)
@@ -884,7 +888,7 @@ class AdaptivePESCoordinator:
         code: Optional[str] = None,
         language: Optional[str] = None,
         budget_remaining_pct: float = 100.0
-    ) -> AllocationDecision:
+    ) -> PESAllocationDecision:
         """
         Get allocation recommendation without executing.
         
@@ -920,13 +924,10 @@ class AdaptivePESCoordinator:
         code: Optional[str],
         language: Optional[str]
     ) -> Optional[ComplexityAnalysisResult]:
-        """Analyze problem complexity using Adaptive MDAP."""
         if not self.complexity_classifier:
-            logger.debug("Complexity classifier not available, using default")
             return self._default_complexity_analysis()
         
         try:
-            # Create subproblem for analysis
             subproblem = SubProblem(
                 id=f"analysis_{int(time.time())}",
                 description=problem_description,
@@ -935,26 +936,7 @@ class AdaptivePESCoordinator:
                 dependencies=[],
                 metadata={"code": code} if code else {}
             )
-            
-            # Compute complexity
             result = self.complexity_classifier.compute_complexity(subproblem)
-            
-            # Determine recommended tier
-            tier = self.bridge.complexity_to_tier(result.overall_score)
-            
-            # Calculate confidence based on feature variance
-            feature_values = [
-                result.text_length_score,
-                result.domain_rarity_score,
-                result.depth_score,
-                result.historical_error_score,
-                result.dependency_score,
-                result.keyword_score,
-                result.constraint_score,
-            ]
-            variance = sum((v - sum(feature_values)/len(feature_values))**2 for v in feature_values) / len(feature_values)
-            confidence = 1.0 - min(1.0, variance * 4)  # Higher variance = lower confidence
-            
             return ComplexityAnalysisResult(
                 overall_score=result.overall_score,
                 text_length_score=result.text_length_score,
@@ -964,12 +946,11 @@ class AdaptivePESCoordinator:
                 dependency_score=result.dependency_score,
                 keyword_score=result.keyword_score,
                 constraint_score=result.constraint_score,
-                recommended_tier=tier,
-                confidence=confidence
+                recommended_tier=self.bridge.complexity_to_tier(result.overall_score),
+                confidence=1.0
             )
-            
         except Exception as e:
-            logger.warning(f"Complexity analysis failed: {e}")
+            logger.exception(f"Complexity analysis failed: {e}")
             return self._default_complexity_analysis()
     
     def _default_complexity_analysis(self) -> ComplexityAnalysisResult:
@@ -994,7 +975,7 @@ class AdaptivePESCoordinator:
         code: Optional[str],
         language: Optional[str],
         budget: float
-    ) -> AllocationDecision:
+    ) -> PESAllocationDecision:
         """Plan resource allocation based on complexity."""
         complexity_score = complexity_analysis.overall_score
         
@@ -1033,7 +1014,7 @@ class AdaptivePESCoordinator:
         self,
         complexity_score: float,
         budget_remaining_pct: float = 100.0
-    ) -> AllocationDecision:
+    ) -> PESAllocationDecision:
         """Allocate resources for a given complexity score."""
         tier = self.bridge.complexity_to_tier(complexity_score)
         
@@ -1080,7 +1061,7 @@ class AdaptivePESCoordinator:
             f"Estimated {estimated_evals} evaluations at ${estimated_cost:.2f}",
         ]
         
-        return AllocationDecision(
+        return PESAllocationDecision(
             complexity_score=complexity_score,
             tier=tier,
             n_agents=config["n_agents"],
@@ -1095,11 +1076,11 @@ class AdaptivePESCoordinator:
     
     def _adjust_allocation_for_budget(
         self,
-        allocation: AllocationDecision,
+        allocation: PESAllocationDecision,
         budget_status: UnifiedBudgetStatus
-    ) -> AllocationDecision:
+    ) -> PESAllocationDecision:
         """Adjust allocation based on remaining budget."""
-        adjusted = AllocationDecision(
+        adjusted = PESAllocationDecision(
             complexity_score=allocation.complexity_score,
             tier=allocation.tier,
             n_agents=allocation.n_agents,
@@ -1138,7 +1119,8 @@ class AdaptivePESCoordinator:
         code: str,
         tests: List[Dict],
         language: Optional[str],
-        allocation_decision: AllocationDecision,
+        allocation_decision: PESAllocationDecision,
+        complexity_analysis: Optional[ComplexityAnalysisResult] = None,
         **kwargs
     ) -> Any:
         """Execute evolution using PES Enhanced or fallback."""
@@ -1158,6 +1140,7 @@ class AdaptivePESCoordinator:
                         self.config.max_budget_usd
                     ),
                     max_iterations=allocation_decision.estimated_evaluations // max(1, allocation_decision.n_agents),
+                    complexity_hint=complexity_analysis.overall_score if complexity_analysis else None,
                     **kwargs
                 )
                 
@@ -1190,7 +1173,7 @@ class AdaptivePESCoordinator:
         code: str,
         tests: List[Dict],
         language: Optional[str],
-        allocation_decision: AllocationDecision,
+        allocation_decision: PESAllocationDecision,
         **kwargs
     ) -> Any:
         """Execute using OpenEvolve directly."""
@@ -1257,7 +1240,7 @@ class AdaptivePESCoordinator:
     def _generate_recommendations(
         self,
         complexity_analysis: Optional[ComplexityAnalysisResult],
-        allocation_decision: AllocationDecision,
+        allocation_decision: PESAllocationDecision,
         evolution_result: Any
     ) -> List[str]:
         """Generate recommendations based on results."""
@@ -1402,7 +1385,7 @@ __all__ = [
     # Data classes
     "AdaptivePESEvolutionResult",
     "ComplexityAnalysisResult",
-    "AllocationDecision",
+    "PESAllocationDecision",
     "UnifiedBudgetStatus",
     
     # Enums

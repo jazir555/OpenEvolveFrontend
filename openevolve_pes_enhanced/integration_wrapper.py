@@ -15,6 +15,9 @@ import time
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Any, Callable, Union, Tuple
 
+# Initialize logger before use
+logger = logging.getLogger(__name__)
+
 # Import existing OpenEvolve components (wrapped, not modified)
 try:
     from openevolve_agnostic_pes import AgnosticPESEngine, EvolutionResult
@@ -53,8 +56,6 @@ try:
 except ImportError:
     CALLBACKS_AVAILABLE = False
     logger.debug("Callback system not available - using legacy budget enforcement")
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass

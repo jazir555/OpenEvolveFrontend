@@ -1,0 +1,887 @@
+{
+  "test_info": {
+    "test_name": "RESE Complete Pipeline End-to-End Test",
+    "timestamp": "2026-02-05T00:24:34.963158+00:00",
+    "correlation_id": "54650f25-836d-43b3-9b23-7d7ff018d58a"
+  },
+  "integrations_verified": {
+    "z3_solver": false,
+    "sce_bridge": true,
+    "metacognitive_reflection": false,
+    "aci_calculator": true,
+    "lltl_adapter": true,
+    "health_endpoints": false
+  },
+  "test_results": [
+    {
+      "phase": "integration",
+      "test_name": "z3_availability",
+      "passed": false,
+      "execution_time_ms": 0,
+      "details": "No module named 'z3prover_integration'",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:22.782207+00:00"
+    },
+    {
+      "phase": "integration",
+      "test_name": "sce_bridge",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "SCE bridge initialized",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:22.786265+00:00"
+    },
+    {
+      "phase": "integration",
+      "test_name": "metacognitive_reflection",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "\u03a6\u2082 reflector initialized (debiasing=True)",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:22.790776+00:00"
+    },
+    {
+      "phase": "integration",
+      "test_name": "metacognitive_reflection",
+      "passed": false,
+      "execution_time_ms": 0,
+      "details": "'charmap' codec can't encode characters in position 4-5: character maps to <undefined>",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:22.790776+00:00"
+    },
+    {
+      "phase": "integration",
+      "test_name": "aci_calculator",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "ACI calculator initialized (window_size=100)",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:23.437520+00:00"
+    },
+    {
+      "phase": "integration",
+      "test_name": "lltl_adapter",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "LLTL adapter initialized",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.776090+00:00"
+    },
+    {
+      "phase": "integration",
+      "test_name": "health_endpoints",
+      "passed": false,
+      "execution_time_ms": 0,
+      "details": "Health endpoints available: []",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.781111+00:00"
+    },
+    {
+      "phase": "phase1",
+      "test_name": "config_loading",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "Z3 hardening=True, Red team=True",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.781111+00:00"
+    },
+    {
+      "phase": "phase1",
+      "test_name": "executor_initialization",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "MetacognitiveReflector=enabled, SCE=enabled, Z3=enabled",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.782112+00:00"
+    },
+    {
+      "phase": "phase1",
+      "test_name": "z3_constraint_hardening",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "1/1 constraints Z3-encoded",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.790633+00:00"
+    },
+    {
+      "phase": "phase1",
+      "test_name": "metacognitive_debiasing",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "4 assumptions debiased",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.790633+00:00"
+    },
+    {
+      "phase": "phase1",
+      "test_name": "contradiction_detection",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "0 contradictions detected",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.790633+00:00"
+    },
+    {
+      "phase": "phase1",
+      "test_name": "red_team_protocol",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "4 hypotheses tested",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.790633+00:00"
+    },
+    {
+      "phase": "phase1",
+      "test_name": "execution_complete",
+      "passed": true,
+      "execution_time_ms": 9,
+      "details": "Audit 4b79b06e-0ec6-4524-8f27-7ee2090f3024: 4 assumptions, 0 contradictions",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.790633+00:00"
+    },
+    {
+      "phase": "phase2",
+      "test_name": "z3_behavioral_equivalence",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "Z3 behavioral verification=enabled",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.792635+00:00"
+    },
+    {
+      "phase": "phase2",
+      "test_name": "isomorphism_detection",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "4 mappings found",
+      "metrics": {
+        "best_i_mech_score": 0.72,
+        "cross_domain_patterns": 1
+      },
+      "timestamp": "2026-02-05T00:24:34.792635+00:00"
+    },
+    {
+      "phase": "phase2",
+      "test_name": "constraint_inversion",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "1 constraints inverted",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.792635+00:00"
+    },
+    {
+      "phase": "phase2",
+      "test_name": "z3_verification_used",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "4/4 mappings Z3-verified",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.792635+00:00"
+    },
+    {
+      "phase": "phase2",
+      "test_name": "execution_complete",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "Best I_mech=0.720",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.792635+00:00"
+    },
+    {
+      "phase": "phase3",
+      "test_name": "z3_constraint_checking",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "Z3 pruning=enabled",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.795144+00:00"
+    },
+    {
+      "phase": "phase3",
+      "test_name": "aci_calculator",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "ACI calculation=enabled",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.795144+00:00"
+    },
+    {
+      "phase": "phase3",
+      "test_name": "mcts_search",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "1000 iterations, 1 nodes",
+      "metrics": {
+        "iterations": 1000,
+        "total_nodes": 1,
+        "max_depth": 0
+      },
+      "timestamp": "2026-02-05T00:24:34.957892+00:00"
+    },
+    {
+      "phase": "phase3",
+      "test_name": "convergence_detection",
+      "passed": false,
+      "execution_time_ms": 0,
+      "details": "Converged at iteration N/A",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.957892+00:00"
+    },
+    {
+      "phase": "phase3",
+      "test_name": "z3_pruning_effectiveness",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "Pruned 0 branches, rejected 0 hypotheses",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.957892+00:00"
+    },
+    {
+      "phase": "phase3",
+      "test_name": "dlq_handling",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "0 hypotheses in DLQ",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.957892+00:00"
+    },
+    {
+      "phase": "phase3",
+      "test_name": "execution_complete",
+      "passed": true,
+      "execution_time_ms": 163,
+      "details": "Best hypothesis: fbc541a1-7daf-49e4-88e6-100be8cc984d",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.957892+00:00"
+    },
+    {
+      "phase": "phase4",
+      "test_name": "execution_complete",
+      "passed": false,
+      "execution_time_ms": 0,
+      "details": "object of type 'int' has no len()",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.962640+00:00"
+    },
+    {
+      "phase": "integration",
+      "test_name": "correlation_id_consistency",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "Correlation ID 54650f25-836d-43b3-9b23-7d7ff018d58a consistent throughout",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.962640+00:00"
+    },
+    {
+      "phase": "integration",
+      "test_name": "phase1_to_phase2",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "Constraints and assumptions flowed to Phase II",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.962640+00:00"
+    },
+    {
+      "phase": "integration",
+      "test_name": "phase2_to_phase3",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "Isomorphic mappings available to Phase III",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.962640+00:00"
+    },
+    {
+      "phase": "integration",
+      "test_name": "complete_pipeline_execution",
+      "passed": false,
+      "execution_time_ms": 0,
+      "details": "All 4 phases executed successfully",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.962640+00:00"
+    },
+    {
+      "phase": "performance",
+      "test_name": "phase1_execution_time",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "phase1: 9ms",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.963158+00:00"
+    },
+    {
+      "phase": "performance",
+      "test_name": "phase2_execution_time",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "phase2: 2ms",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.963158+00:00"
+    },
+    {
+      "phase": "performance",
+      "test_name": "phase3_execution_time",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "phase3: 165ms",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.963158+00:00"
+    },
+    {
+      "phase": "performance",
+      "test_name": "phase4_execution_time",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "phase4: 4ms",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.963158+00:00"
+    },
+    {
+      "phase": "performance",
+      "test_name": "total_execution_time",
+      "passed": true,
+      "execution_time_ms": 0,
+      "details": "Total: 180ms",
+      "metrics": {},
+      "timestamp": "2026-02-05T00:24:34.963158+00:00"
+    }
+  ],
+  "phase_execution_times_ms": {
+    "phase1": 9,
+    "phase2": 2,
+    "phase3": 165,
+    "phase4": 4
+  },
+  "pipeline_results": {
+    "phase1": {
+      "phase": "phase1_epistemic_audit",
+      "audit_id": "4b79b06e-0ec6-4524-8f27-7ee2090f3024",
+      "problem_description": "\nLow-Energy Nuclear Reaction (LENR) thermal management system faces critical challenges:\n- Heat generation in nickel-hydrogen systems is unpredictable and localized\n- Current thermal control systems cannot handle hotspots exceeding 1200\u00b0C\n- Loading ratio of hydrogen to nickel is limited by lattice saturation\n- Temperature variations cause catastrophic runaway reactions\n- Traditional cooling systems are insufficient for the power density\n- Material constraints prevent efficient heat transfer at nanoscale\n\nWe need a breakthrough approach that achieves:\n1. Uniform heat distribution across the reaction chamber\n2. Passive thermal regulation without external power\n3. Loading ratios > 0.9 without lattice degradation\n4. Stable operation at 800-1000\u00b0C for extended periods\n",
+      "tacit_assumptions": [
+        {
+          "id": "fbc541a1-7daf-49e4-88e6-100be8cc984d",
+          "description": "Loading ratio is the critical factor",
+          "source_pattern": "Thermal runaway when loading ratio exceeds 0.75",
+          "confidence_score": 0.82,
+          "supporting_evidence_count": 520,
+          "formalized_in_lean4": false,
+          "lean4_proposition": null
+        },
+        {
+          "id": "d88f581e-0888-4c7b-964f-500b06ca963e",
+          "description": "Unstated assumption about Hotspot formation causes lattice degradation",
+          "source_pattern": "Hotspot formation causes lattice degradation",
+          "confidence_score": 0.91,
+          "supporting_evidence_count": 380,
+          "formalized_in_lean4": false,
+          "lean4_proposition": null
+        },
+        {
+          "id": "65c48804-d536-4647-8304-9443e0e06f3c",
+          "description": "Unstated assumption about Hydrogen loading non-uniformity creates stress points",
+          "source_pattern": "Hydrogen loading non-uniformity creates stress points",
+          "confidence_score": 0.76,
+          "supporting_evidence_count": 440,
+          "formalized_in_lean4": false,
+          "lean4_proposition": null
+        },
+        {
+          "id": "35d93452-3648-498d-a012-99c25cf5db80",
+          "description": "Unstated assumption about Heat transfer bottleneck at nanoscale lattice boundaries",
+          "source_pattern": "Heat transfer bottleneck at nanoscale lattice boundaries",
+          "confidence_score": 0.68,
+          "supporting_evidence_count": 290,
+          "formalized_in_lean4": false,
+          "lean4_proposition": null
+        }
+      ],
+      "contradictions": [],
+      "falsification_results": [
+        {
+          "hypothesis_id": "fbc541a1-7daf-49e4-88e6-100be8cc984d",
+          "falsified": false,
+          "degree_of_violation": null,
+          "hypothesis_robustness_score": 0.82,
+          "falsifying_evidence": [],
+          "counter_examples": []
+        },
+        {
+          "hypothesis_id": "d88f581e-0888-4c7b-964f-500b06ca963e",
+          "falsified": false,
+          "degree_of_violation": null,
+          "hypothesis_robustness_score": 0.91,
+          "falsifying_evidence": [],
+          "counter_examples": []
+        },
+        {
+          "hypothesis_id": "65c48804-d536-4647-8304-9443e0e06f3c",
+          "falsified": false,
+          "degree_of_violation": null,
+          "hypothesis_robustness_score": 0.76,
+          "falsifying_evidence": [],
+          "counter_examples": []
+        },
+        {
+          "hypothesis_id": "35d93452-3648-498d-a012-99c25cf5db80",
+          "falsified": false,
+          "degree_of_violation": null,
+          "hypothesis_robustness_score": 0.68,
+          "falsifying_evidence": [],
+          "counter_examples": []
+        }
+      ],
+      "hardened_constraints": [
+        {
+          "category": "hard_parameter_inequality",
+          "description": "Low-Energy Nuclear Reaction (LENR) thermal management system faces critical challenges:\n- Heat generation in nickel-hydrogen systems is unpredictable and localized\n- Current thermal control systems cannot handle hotspots exceeding 1200\u00b0C\n- Loading ratio of hydrogen to nickel is limited by lattice saturation\n- Temperature variations cause catastrophic runaway reactions\n- Traditional cooling systems are insufficient for the power density\n- Material constraints prevent efficient heat transfer at nanoscale\n\nWe need a breakthrough approach that achieves:\n1",
+          "formalized": true,
+          "z3_encoded": true,
+          "lean4_theorem": null,
+          "constraint_id": "2469caad-319c-4a62-896b-19d6179eb10c",
+          "fol_structure": {
+            "variables": [
+              "Heat",
+              "Reaction",
+              "power",
+              "Material",
+              "Current",
+              "We",
+              "Low-Energy",
+              "Loading",
+              "Temperature",
+              "Nuclear",
+              "Traditional",
+              "breakthrough"
+            ],
+            "quantifiers": [
+              "forall"
+            ],
+            "predicates": [
+              "impossible"
+            ],
+            "original": "Low-Energy Nuclear Reaction (LENR) thermal management system faces critical challenges:\n- Heat generation in nickel-hydrogen systems is unpredictable and localized\n- Current thermal control systems cannot handle hotspots exceeding 1200\u00b0C\n- Loading ratio of hydrogen to nickel is limited by lattice saturation\n- Temperature variations cause catastrophic runaway reactions\n- Traditional cooling systems are insufficient for the power density\n- Material constraints prevent efficient heat transfer at nanoscale\n\nWe need a breakthrough approach that achieves:\n1"
+          },
+          "z3_formula": "(forall ((Heat Real)) (not low))",
+          "simplified_formula": "(forall ((Heat Real)) (not low))",
+          "inverted_description": "Constraint inverted: logical negation applied",
+          "inverted_formula": "(not (forall ((Heat Real)) (not low)))",
+          "satisfiable": true,
+          "model": {
+            "x": 0.0
+          }
+        }
+      ],
+      "debiasing_results": [
+        {
+          "original_hypothesis": {
+            "id": "fbc541a1-7daf-49e4-88e6-100be8cc984d",
+            "statement": "Loading ratio is the critical factor",
+            "confidence": 0.82,
+            "assumptions": [
+              "Thermal runaway when loading ratio exceeds 0.75"
+            ],
+            "evidence": []
+          },
+          "debiased_hypothesis": {
+            "id": "fbc541a1-7daf-49e4-88e6-100be8cc984d",
+            "statement": "Loading ratio is the critical factor",
+            "confidence": 0.82,
+            "assumptions": [
+              "Thermal runaway when loading ratio exceeds 0.75"
+            ],
+            "evidence": []
+          },
+          "antithetical_outcomes": [
+            {
+              "id": "2b047107-9541-4299-b5c2-febfd1107595",
+              "statement": "Loading ratio is not the critical factor",
+              "confidence": 0.41,
+              "assumptions": [
+                "Negation of: Thermal runaway when loading ratio exceeds 0.75"
+              ],
+              "evidence": []
+            },
+            {
+              "id": "09454be2-b634-44f7-8e79-cb0f9aa9a824",
+              "statement": "The reverse causality may apply: Loading ratio is the critical factor",
+              "confidence": 0.49199999999999994,
+              "assumptions": [
+                "Reverse causality of: Thermal runaway when loading ratio exceeds 0.75"
+              ],
+              "evidence": []
+            },
+            {
+              "id": "3d9bc9e8-965c-4dff-ab34-c878adefd15c",
+              "statement": "Alternatively, loading ratio is the critical factor",
+              "confidence": 0.574,
+              "assumptions": [
+                "Alternative to: Thermal runaway when loading ratio exceeds 0.75"
+              ],
+              "evidence": []
+            }
+          ],
+          "confirmation_bias_index": 0.32799999999999996,
+          "initial_cbi": 0.32799999999999996,
+          "bias_reduction": 0.0,
+          "metacognitive_reflections_applied": 0,
+          "correlation_id": "54650f25-836d-43b3-9b23-7d7ff018d58a",
+          "timestamp": "2026-02-05T00:24:34.789634+00:00",
+          "bias_analysis": {
+            "bias_type": "neutral",
+            "confidence": 0.0,
+            "affected_assumptions": [],
+            "directional_language": [],
+            "severity": "low",
+            "analysis_details": {
+              "confirmation_count": 0,
+              "disconfirmation_count": 0,
+              "neutral_count": 0,
+              "total_directional": 0
+            }
+          },
+          "reflections_applied": []
+        },
+        {
+          "original_hypothesis": {
+            "id": "d88f581e-0888-4c7b-964f-500b06ca963e",
+            "statement": "Unstated assumption about Hotspot formation causes lattice degradation",
+            "confidence": 0.91,
+            "assumptions": [
+              "Hotspot formation causes lattice degradation"
+            ],
+            "evidence": []
+          },
+          "debiased_hypothesis": {
+            "id": "d88f581e-0888-4c7b-964f-500b06ca963e",
+            "statement": "Unstated assumption about Hotspot formation causes lattice degradation",
+            "confidence": 0.91,
+            "assumptions": [
+              "Hotspot formation causes lattice degradation"
+            ],
+            "evidence": []
+          },
+          "antithetical_outcomes": [
+            {
+              "id": "07fa32e1-5616-419a-be3a-45b43caa2194",
+              "statement": "Unstated assumption about Hotspot formation does not cause lattice degradation",
+              "confidence": 0.455,
+              "assumptions": [
+                "Negation of: Hotspot formation causes lattice degradation"
+              ],
+              "evidence": []
+            },
+            {
+              "id": "81589fd8-fc73-46ad-9cc8-c357b1637d62",
+              "statement": "lattice causes Unstated assumption about Hotspot formation degradation",
+              "confidence": 0.546,
+              "assumptions": [
+                "Reverse causality of: Hotspot formation causes lattice degradation"
+              ],
+              "evidence": []
+            },
+            {
+              "id": "764e9262-aaae-4d2a-942c-a81a06fd99da",
+              "statement": "Another possible explanation is that unstated assumption about hotspot formation causes lattice degradation",
+              "confidence": 0.637,
+              "assumptions": [
+                "Alternative to: Hotspot formation causes lattice degradation"
+              ],
+              "evidence": []
+            }
+          ],
+          "confirmation_bias_index": 0.364,
+          "initial_cbi": 0.364,
+          "bias_reduction": 0.0,
+          "metacognitive_reflections_applied": 0,
+          "correlation_id": "54650f25-836d-43b3-9b23-7d7ff018d58a",
+          "timestamp": "2026-02-05T00:24:34.789634+00:00",
+          "bias_analysis": {
+            "bias_type": "neutral",
+            "confidence": 0.0,
+            "affected_assumptions": [],
+            "directional_language": [],
+            "severity": "low",
+            "analysis_details": {
+              "confirmation_count": 0,
+              "disconfirmation_count": 0,
+              "neutral_count": 0,
+              "total_directional": 0
+            }
+          },
+          "reflections_applied": []
+        },
+        {
+          "original_hypothesis": {
+            "id": "65c48804-d536-4647-8304-9443e0e06f3c",
+            "statement": "Unstated assumption about Hydrogen loading non-uniformity creates stress points",
+            "confidence": 0.76,
+            "assumptions": [
+              "Hydrogen loading non-uniformity creates stress points"
+            ],
+            "evidence": []
+          },
+          "debiased_hypothesis": {
+            "id": "65c48804-d536-4647-8304-9443e0e06f3c",
+            "statement": "Unstated assumption about Hydrogen loading non-uniformity creates stress points",
+            "confidence": 0.76,
+            "assumptions": [
+              "Hydrogen loading non-uniformity creates stress points"
+            ],
+            "evidence": []
+          },
+          "antithetical_outcomes": [
+            {
+              "id": "8ce2473b-513a-4e92-9697-83aa2fd1791c",
+              "statement": "It is not the case that Unstated assumption about Hydrogen loading non-uniformity creates stress points",
+              "confidence": 0.38,
+              "assumptions": [
+                "Negation of: Hydrogen loading non-uniformity creates stress points"
+              ],
+              "evidence": []
+            },
+            {
+              "id": "0239292a-b57d-401a-b330-0befc400196e",
+              "statement": "The reverse causality may apply: Unstated assumption about Hydrogen loading non-uniformity creates stress points",
+              "confidence": 0.45599999999999996,
+              "assumptions": [
+                "Reverse causality of: Hydrogen loading non-uniformity creates stress points"
+              ],
+              "evidence": []
+            },
+            {
+              "id": "cd60272c-e626-4b1c-83e0-bb70bd773d0d",
+              "statement": "Another possible explanation is that unstated assumption about hydrogen loading non-uniformity creates stress points",
+              "confidence": 0.5319999999999999,
+              "assumptions": [
+                "Alternative to: Hydrogen loading non-uniformity creates stress points"
+              ],
+              "evidence": []
+            }
+          ],
+          "confirmation_bias_index": 0.30400000000000005,
+          "initial_cbi": 0.30400000000000005,
+          "bias_reduction": 0.0,
+          "metacognitive_reflections_applied": 0,
+          "correlation_id": "54650f25-836d-43b3-9b23-7d7ff018d58a",
+          "timestamp": "2026-02-05T00:24:34.789634+00:00",
+          "bias_analysis": {
+            "bias_type": "neutral",
+            "confidence": 0.0,
+            "affected_assumptions": [],
+            "directional_language": [],
+            "severity": "low",
+            "analysis_details": {
+              "confirmation_count": 0,
+              "disconfirmation_count": 0,
+              "neutral_count": 0,
+              "total_directional": 0
+            }
+          },
+          "reflections_applied": []
+        },
+        {
+          "original_hypothesis": {
+            "id": "35d93452-3648-498d-a012-99c25cf5db80",
+            "statement": "Unstated assumption about Heat transfer bottleneck at nanoscale lattice boundaries",
+            "confidence": 0.68,
+            "assumptions": [
+              "Heat transfer bottleneck at nanoscale lattice boundaries"
+            ],
+            "evidence": []
+          },
+          "debiased_hypothesis": {
+            "id": "35d93452-3648-498d-a012-99c25cf5db80",
+            "statement": "Unstated assumption about Heat transfer bottleneck at nanoscale lattice boundaries",
+            "confidence": 0.68,
+            "assumptions": [
+              "Heat transfer bottleneck at nanoscale lattice boundaries"
+            ],
+            "evidence": []
+          },
+          "antithetical_outcomes": [
+            {
+              "id": "9195bbf7-41c9-4b53-bb12-01a86b7bc584",
+              "statement": "It is not the case that Unstated assumption about Heat transfer bottleneck at nanoscale lattice boundaries",
+              "confidence": 0.34,
+              "assumptions": [
+                "Negation of: Heat transfer bottleneck at nanoscale lattice boundaries"
+              ],
+              "evidence": []
+            },
+            {
+              "id": "fdc1ec8c-7f81-47c8-999e-0de901ce4291",
+              "statement": "The reverse causality may apply: Unstated assumption about Heat transfer bottleneck at nanoscale lattice boundaries",
+              "confidence": 0.40800000000000003,
+              "assumptions": [
+                "Reverse causality of: Heat transfer bottleneck at nanoscale lattice boundaries"
+              ],
+              "evidence": []
+            },
+            {
+              "id": "fc124215-f8b6-42e4-8c48-2d84dd26c6a6",
+              "statement": "Alternatively, unstated assumption about heat transfer bottleneck at nanoscale lattice boundaries",
+              "confidence": 0.476,
+              "assumptions": [
+                "Alternative to: Heat transfer bottleneck at nanoscale lattice boundaries"
+              ],
+              "evidence": []
+            }
+          ],
+          "confirmation_bias_index": 0.2720000000000001,
+          "initial_cbi": 0.2720000000000001,
+          "bias_reduction": 0.0,
+          "metacognitive_reflections_applied": 0,
+          "correlation_id": "54650f25-836d-43b3-9b23-7d7ff018d58a",
+          "timestamp": "2026-02-05T00:24:34.790633+00:00",
+          "bias_analysis": {
+            "bias_type": "neutral",
+            "confidence": 0.0,
+            "affected_assumptions": [],
+            "directional_language": [],
+            "severity": "low",
+            "analysis_details": {
+              "confirmation_count": 0,
+              "disconfirmation_count": 0,
+              "neutral_count": 0,
+              "total_directional": 0
+            }
+          },
+          "reflections_applied": []
+        }
+      ],
+      "metrics": {
+        "total_assumptions_analyzed": 4,
+        "confirmed_contradictions": 0,
+        "hypotheses_falsified": 0,
+        "assumptions_debiased": 4,
+        "average_cbi": 0.317,
+        "average_bias_reduction": 0.0,
+        "reduction_in_failure_rate": null
+      },
+      "metadata": {
+        "execution_time_ms": 7,
+        "lean4_version": null,
+        "epoch_number": 1,
+        "debiasing_enabled": true
+      },
+      "correlation_id": "54650f25-836d-43b3-9b23-7d7ff018d58a",
+      "timestamp": "2026-02-05T00:24:34.790633+00:00"
+    },
+    "phase2": {
+      "source_domain": "lenr_thermal",
+      "target_domains": [
+        "physics",
+        "biology",
+        "materials_science",
+        "computer_science"
+      ],
+      "mappings_found": 4,
+      "cross_domain_patterns": 1,
+      "inverted_constraints": 1,
+      "best_i_mech": 0.72,
+      "z3_verified": 4,
+      "execution_time_ms": 0,
+      "confidence": 0.72
+    },
+    "phase3": {
+      "search_id": "19727752-e11e-4251-83ae-1be3de86d80b",
+      "id": "19727752-e11e-4251-83ae-1be3de86d80b",
+      "root_hypothesis": {
+        "hypothesis_id": "fbc541a1-7daf-49e4-88e6-100be8cc984d",
+        "id": "fbc541a1-7daf-49e4-88e6-100be8cc984d",
+        "statement": "Loading ratio is the critical factor",
+        "type": "causal",
+        "status": "pending",
+        "confidence": 0.82,
+        "evidence": [],
+        "counter_evidence": [],
+        "dependencies": [],
+        "source_hypotheses": [],
+        "domain": "general",
+        "tags": [],
+        "metadata": {},
+        "created_at": "2026-02-05T00:24:34.795144+00:00",
+        "updated_at": "2026-02-05T00:24:34.795144+00:00",
+        "tested_at": null
+      },
+      "best_hypothesis": {
+        "hypothesis_id": "fbc541a1-7daf-49e4-88e6-100be8cc984d",
+        "id": "fbc541a1-7daf-49e4-88e6-100be8cc984d",
+        "statement": "Loading ratio is the critical factor",
+        "type": "causal",
+        "status": "pending",
+        "confidence": 0.82,
+        "evidence": [],
+        "counter_evidence": [],
+        "dependencies": [],
+        "source_hypotheses": [],
+        "domain": "general",
+        "tags": [],
+        "metadata": {},
+        "created_at": "2026-02-05T00:24:34.795144+00:00",
+        "updated_at": "2026-02-05T00:24:34.795144+00:00",
+        "tested_at": null
+      },
+      "tree_root": {
+        "node_id": "fbc541a1-7daf-49e4-88e6-100be8cc984d",
+        "id": "fbc541a1-7daf-49e4-88e6-100be8cc984d",
+        "hypothesis": {
+          "hypothesis_id": "fbc541a1-7daf-49e4-88e6-100be8cc984d",
+          "id": "fbc541a1-7daf-49e4-88e6-100be8cc984d",
+          "statement": "Loading ratio is the critical factor",
+          "type": "causal",
+          "status": "pending",
+          "confidence": 0.82,
+          "evidence": [],
+          "counter_evidence": [],
+          "dependencies": [],
+          "source_hypotheses": [],
+          "domain": "general",
+          "tags": [],
+          "metadata": {},
+          "created_at": "2026-02-05T00:24:34.795144+00:00",
+          "updated_at": "2026-02-05T00:24:34.795144+00:00",
+          "tested_at": null
+        },
+        "state": "expanded",
+        "visit_count": 0,
+        "value": 0.0,
+        "mean_value": 0.0,
+        "children": [],
+        "parent_id": null,
+        "depth": 0,
+        "is_terminal": false,
+        "exploration_bonus": 0.0,
+        "metadata": {},
+        "created_at": "2026-02-05T00:24:34.795144+00:00"
+      },
+      "iterations": 1000,
+      "convergence_reached": false,
+      "convergence_iteration": null,
+      "total_nodes": 1,
+      "max_depth": 0,
+      "execution_time_ms": 162.74762153625488,
+      "strategy": "mcts",
+      "metadata": {
+        "dlq_size": 0,
+        "aci_final": null,
+        "z3_stats": {
+          "total_nodes_expanded": 0,
+          "nodes_pruned_unsat": 0,
+          "hypotheses_rejected": 0,
+          "constraint_check_time_ms": 0
+        },
+        "z3_enabled": true
+      },
+      "created_at": "2026-02-05T00:24:34.957892+00:00"
+    },
+    "phase4": null
+  },
+  "summary": {
+    "total_tests": 36,
+    "passed": 30,
+    "failed": 6,
+    "success_rate": "83.3%",
+    "total_execution_time_ms": 12181,
+    "correlation_id": "54650f25-836d-43b3-9b23-7d7ff018d58a"
+  }
+}

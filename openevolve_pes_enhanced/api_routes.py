@@ -11,14 +11,16 @@ Integration:
 
 import asyncio
 import logging
+import time
 import uuid
+from collections import OrderedDict
 from datetime import datetime
 from typing import Dict, List, Optional, Any, Set
 from dataclasses import dataclass, field
 
 from fastapi import APIRouter, HTTPException, Depends, WebSocket, WebSocketDisconnect, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 # Import PES Enhanced components
 try:
@@ -86,13 +88,15 @@ class PESEnhancedRunRequest(BaseModel):
     # Callback/Webhook
     webhook_url: Optional[str] = Field(None, description="Webhook URL for notifications")
     
-    @validator('code')
+    @field_validator('code')
+    @classmethod
     def validate_code(cls, v):
         if not v or not v.strip():
             raise ValueError('Code cannot be empty')
         return v.strip()
     
-    @validator('problem_description')
+    @field_validator('problem_description')
+    @classmethod
     def validate_problem(cls, v):
         if not v or not v.strip():
             raise ValueError('Problem description cannot be empty')
@@ -166,7 +170,8 @@ class CostEstimateRequest(BaseModel):
     problem_complexity: str = Field("medium", description="Problem complexity: low, medium, high, very_high")
     avg_tokens_per_eval: int = Field(500, ge=100, description="Average tokens per evaluation")
     
-    @validator('problem_complexity')
+    @field_validator('problem_complexity')
+    @classmethod
     def validate_complexity(cls, v):
         valid = ['low', 'medium', 'high', 'very_high']
         if v not in valid:
@@ -272,10 +277,72 @@ class _PERunState:
     
     # WebSocket connections
     websocket_connections: Set[WebSocket] = field(default_factory=set)
+    
+    # TTL tracking
+    created_at_ts: float = field(default_factory=time.time)
 
 
-# In-memory run storage (replace with database in production)
-_pe_runs: Dict[str, _PERunState] = {}
+class _PERunManager:
+    """Manages PES run states with TTL and size-based cleanup to prevent memory leaks."""
+    
+    def __init__(self, max_size: int = 1000, ttl_seconds: int = 3600):
+        self._runs: OrderedDict[str, _PERunState] = OrderedDict()
+        self.max_size = max_size
+        self.ttl_seconds = ttl_seconds
+    
+    def add(self, run_id: str, state: _PERunState):
+        """Add a run state with cleanup of expired entries."""
+        self._cleanup_expired()
+        if len(self._runs) >= self.max_size:
+            # Remove oldest entry (FIFO)
+            oldest_key, oldest_state = self._runs.popitem(last=False)
+            # Clean up any WebSocket connections
+            if oldest_state.websocket_connections:
+                logger.debug(f"Cleaning up {len(oldest_state.websocket_connections)} stale WebSocket connections")
+        self._runs[run_id] = state
+    
+    def get(self, run_id: str) -> Optional[_PERunState]:
+        """Get a run state, cleaning up expired entries first."""
+        self._cleanup_expired()
+        return self._runs.get(run_id)
+    
+    def items(self):
+        """Iterate over run states."""
+        self._cleanup_expired()
+        return self._runs.items()
+    
+    def values(self):
+        """Iterate over run state values."""
+        self._cleanup_expired()
+        return self._runs.values()
+    
+    def __contains__(self, run_id: str) -> bool:
+        return run_id in self._runs
+    
+    def __getitem__(self, run_id: str) -> _PERunState:
+        return self._runs[run_id]
+    
+    def __setitem__(self, run_id: str, state: _PERunState):
+        self.add(run_id, state)
+    
+    def __len__(self) -> int:
+        return len(self._runs)
+    
+    def _cleanup_expired(self):
+        """Remove expired run states based on TTL."""
+        now = time.time()
+        expired = [
+            k for k, v in self._runs.items()
+            if now - v.created_at_ts > self.ttl_seconds
+        ]
+        for k in expired:
+            state = self._runs.pop(k, None)
+            if state and state.websocket_connections:
+                logger.debug(f"Cleaning up WebSocket connections for expired run {k}")
+
+
+# In-memory run storage with TTL/size-based cleanup (replace with database in production)
+_pe_runs = _PERunManager(max_size=1000, ttl_seconds=3600)
 
 
 def _generate_run_id() -> str:

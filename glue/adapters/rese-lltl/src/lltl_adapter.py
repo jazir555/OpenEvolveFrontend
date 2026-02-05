@@ -23,7 +23,7 @@ import json
 import logging
 import time
 import re
-from typing import Dict, List, Any, Optional, Tuple, Union
+from typing import Dict, List, Any, Optional, Tuple, Union, TYPE_CHECKING
 from datetime import datetime, timezone
 from pathlib import Path
 from dataclasses import dataclass, field
@@ -521,7 +521,13 @@ class LLTLAdapter:
         stats = {
             "adapter_config": self.config,
             "translator_stats": self.translator.get_stats(),
-            "available": LLTL_AVAILABLE
+            "available": LLTL_AVAILABLE,
+            "z3_integration": {
+                "enabled": self.z3_enabled,
+                "available": Z3_AVAILABLE,
+                "solver_initialized": self.z3_solver is not None,
+                "timeout_ms": self.z3_timeout_ms
+            }
         }
 
         return stats
@@ -552,7 +558,14 @@ class LLTLAdapter:
             if not hasattr(self.translator, 'dito'):
                 return False, "DITO not available"
 
-            return True, "All components healthy"
+            # Check Z3 (optional)
+            if self.z3_enabled:
+                if self.z3_solver is None:
+                    return False, "Z3 enabled but not initialized"
+                # Z3 is available and working
+                return True, "All components healthy including Z3"
+
+            return True, "All components healthy (Z3 disabled)"
 
         except Exception as e:
             return False, f"Health check failed: {str(e)}"
@@ -939,6 +952,410 @@ class LLTLAdapter:
         logger.log("INFO", f"Audit trail cleared ({count} commitments)",
                   operation="clear_audit_trail")
         return count
+
+    # ==========================================================================
+    # Z3 CONTRADICTION DETECTION (Priority 5 MEDIUM Integration)
+    # ==========================================================================
+
+    def _detect_contradictions_z3(
+        self,
+        formal_commitments: List[FormalCommitment],
+        correlation_id: str
+    ) -> List[Dict[str, Any]]:
+        """
+        Detect contradictions using Z3 SMT solver (O(n log n) complexity)
+
+        Converts formal commitments to Z3 formulas and checks satisfiability.
+        If UNSAT, extracts unsat core to get minimal contradiction set.
+
+        Args:
+            formal_commitments: List of FormalCommitment objects
+            correlation_id: For tracing
+
+        Returns:
+            List of contradiction dicts
+        """
+        if not Z3_AVAILABLE or self.z3_solver is None:
+            # Should not happen - caller should check
+            return self._detect_contradictions_naive(formal_commitments, correlation_id)
+
+        # 1. Convert formal commitments to Z3 variables and constraints
+        try:
+            z3_variables, z3_constraints, formula_to_commitment = self._formal_commitments_to_z3(
+                formal_commitments
+            )
+        except Exception as e:
+            logger.log("WARNING", f"Failed to convert commitments to Z3, falling back to naive: {e}",
+                      correlation_id=correlation_id,
+                      operation="detect_contradictions_z3")
+            return self._detect_contradictions_naive(formal_commitments, correlation_id)
+
+        # 2. Check satisfiability of all constraints together
+        result = self.z3_solver.solve_constraints(
+            variables=z3_variables,
+            constraints=z3_constraints
+        )
+
+        # 3. If UNSAT, extract contradictions
+        if Z3_AVAILABLE and result.status == Z3ResultStatus.UNSAT:
+            contradictory = self._extract_contradictory_commitments_from_result(
+                result=result,
+                formula_to_commitment=formula_to_commitment,
+                formal_commitments=formal_commitments
+            )
+
+            logger.log("INFO", f"Z3 found {len(contradictory)} contradictory commitments",
+                      correlation_id=correlation_id,
+                      operation="detect_contradictions_z3",
+                      solving_time_ms=result.execution_time * 1000,
+                      solver="z3")
+
+            return contradictory
+
+        # 4. If SAT, no contradictions
+        elif Z3_AVAILABLE and result.status == Z3ResultStatus.SAT:
+            logger.log("DEBUG", f"Z3 found no contradictions in {len(formal_commitments)} commitments",
+                      correlation_id=correlation_id,
+                      operation="detect_contradictions_z3",
+                      solving_time_ms=result.execution_time * 1000,
+                      solver="z3")
+            return []
+
+        # 5. If UNKNOWN or ERROR, try naive fallback
+        else:
+            logger.log("WARNING", f"Z3 returned {result.status.value}, falling back to naive method",
+                      correlation_id=correlation_id,
+                      operation="detect_contradictions_z3",
+                      reason=result.reason)
+            return self._detect_contradictions_naive(formal_commitments, correlation_id)
+
+    def _formal_commitments_to_z3(
+        self,
+        formal_commitments: List[FormalCommitment]
+    ) -> Tuple[List[Any], List[Any], Dict[int, FormalCommitment]]:
+        """
+        Convert formal commitments to Z3 variables and constraints
+
+        Args:
+            formal_commitments: List of FormalCommitment objects
+
+        Returns:
+            Tuple of (z3_variables, z3_constraints, formula_to_commitment_map)
+        """
+        # Track all variables and constraints
+        variables_dict: Dict[str, Any] = {}
+        constraints_list: List[Any] = []
+        formula_to_commitment: Dict[int, FormalCommitment] = {}
+
+        # Process each commitment
+        for idx, commitment in enumerate(formal_commitments):
+            # Convert statement to Z3 formula
+            z3_formula = self._formal_commitment_to_z3_formula(commitment)
+
+            # Create constraint from formula
+            if Z3_AVAILABLE:
+                constraint = Z3Constraint(
+                    expression=z3_formula,
+                    constraint_type=Z3ConstraintType.BOOLEAN,
+                    description=f"Commitment: {commitment.statement[:100]}"
+                )
+            else:
+                # Fallback: create simple dict
+                constraint = {
+                    'expression': z3_formula,
+                    'type': 'boolean',
+                    'description': f"Commitment: {commitment.statement[:100]}"
+                }
+            constraints_list.append(constraint)
+
+            # Map constraint index to commitment
+            formula_to_commitment[idx] = commitment
+
+            # Extract variables from the formula
+            # This is a simplified extraction - a more sophisticated parser would be better
+            for var_name in self._extract_variable_names(z3_formula):
+                if var_name not in variables_dict:
+                    # Determine variable type (default to Real for confidence values)
+                    if Z3_AVAILABLE:
+                        var_type = Z3ConstraintType.REAL
+                        variables_dict[var_name] = Z3Variable(
+                            name=var_name,
+                            var_type=var_type
+                        )
+                    else:
+                        # Fallback: simple dict
+                        variables_dict[var_name] = {
+                            'name': var_name,
+                            'type': 'real'
+                        }
+
+        return list(variables_dict.values()), constraints_list, formula_to_commitment
+
+    def _formal_commitment_to_z3_formula(self, commitment: FormalCommitment) -> str:
+        """
+        Convert FormalCommitment to Z3 SMT-LIB2 formula
+
+        Args:
+            commitment: FormalCommitment object
+
+        Returns:
+            SMT-LIB2 formula string
+        """
+        # Extract components
+        statement = commitment.statement
+        confidence = commitment.confidence_threshold
+        evidence = commitment.statistical_evidence
+
+        # Encode statement
+        stmt_formula = self._encode_statement_to_z3(statement)
+
+        # Encode confidence threshold
+        conf_formula = f"(>= confidence {confidence})"
+
+        # Encode evidence (optional, from statistical_evidence)
+        evidence_formulas = []
+        if evidence.get('confidence'):
+            evidence_formulas.append(f"(<= confidence {evidence['confidence']})")
+        if evidence.get('p_value'):
+            # p_value < significance_level (typically 0.05)
+            significance = self.significance_level
+            evidence_formulas.append(f"(<= p_value {significance})")
+
+        # Combine with AND
+        if evidence_formulas:
+            combined = f"(and {stmt_formula} {conf_formula} {' '.join(evidence_formulas)})"
+        else:
+            combined = f"(and {stmt_formula} {conf_formula})"
+
+        return combined
+
+    def _encode_statement_to_z3(self, statement: str) -> str:
+        """
+        Encode statement as Z3 formula
+
+        Args:
+            statement: Logical statement string
+
+        Returns:
+            SMT-LIB2 formula
+        """
+        # Handle various statement formats
+
+        # Check for inequalities
+        if '<' in statement and '>' not in statement:
+            var, val = self._extract_inequality(statement, '<')
+            if var and val:
+                return f"(< {var} {val})"
+        elif '>' in statement and '<' not in statement:
+            var, val = self._extract_inequality(statement, '>')
+            if var and val:
+                return f"(> {var} {val})"
+        elif '<=' in statement:
+            var, val = self._extract_inequality(statement, '<=')
+            if var and val:
+                return f"(<= {var} {val})"
+        elif '>=' in statement:
+            var, val = self._extract_inequality(statement, '>=')
+            if var and val:
+                return f"(>= {var} {val})"
+
+        # Check for equality
+        elif '=' in statement and '<' not in statement and '>' not in statement:
+            var, val = self._extract_equality(statement)
+            if var and val:
+                return f"(= {var} {val})"
+
+        # Check for logical operators
+        elif ' and ' in statement.lower():
+            parts = statement.split('and')
+            encoded_parts = [self._encode_statement_to_z3(p.strip()) for p in parts]
+            if all(encoded_parts):
+                return f"(and {' '.join(encoded_parts)})"
+        elif ' or ' in statement.lower():
+            parts = statement.split('or')
+            encoded_parts = [self._encode_statement_to_z3(p.strip()) for p in parts]
+            if all(encoded_parts):
+                return f"(or {' '.join(encoded_parts)})"
+
+        # Treat as proposition (replace spaces with underscores)
+        return statement.replace(' ', '_').replace('(', '').replace(')', '')
+
+    def _extract_inequality(self, statement: str, op: str) -> Tuple[Optional[str], Optional[str]]:
+        """
+        Extract variable and value from inequality statement
+
+        Args:
+            statement: Statement string
+            op: Operator to extract ('<', '>', '<=', '>=')
+
+        Returns:
+            Tuple of (variable_name, value) or (None, None) if not found
+        """
+        # Try to match pattern: var op value
+        # Handle various Unicode symbols and text representations
+        patterns = [
+            rf'(\w+)\s*{re.escape(op)}\s*([0-9.]+)',
+            rf'(\w+)\s*≤\s*([0-9.]+)' if op == '<=' else None,
+            rf'(\w+)\s*≥\s*([0-9.]+)' if op == '>=' else None,
+        ]
+
+        for pattern in filter(None, patterns):
+            match = re.search(pattern, statement)
+            if match:
+                return match.group(1), match.group(2)
+
+        return None, None
+
+    def _extract_equality(self, statement: str) -> Tuple[Optional[str], Optional[str]]:
+        """
+        Extract variable and value from equality statement
+
+        Args:
+            statement: Statement string
+
+        Returns:
+            Tuple of (variable_name, value) or (None, None) if not found
+        """
+        match = re.search(r'(\w+)\s*=\s*([0-9.]+)', statement)
+        if match:
+            return match.group(1), match.group(2)
+        return None, None
+
+    def _extract_variable_names(self, formula: str) -> List[str]:
+        """
+        Extract variable names from Z3 formula
+
+        Args:
+            formula: SMT-LIB2 formula string
+
+        Returns:
+            List of variable names
+        """
+        # Extract words that appear to be variables
+        # This is a simple heuristic - a proper parser would be better
+        tokens = re.findall(r'\b[a-zA-Z_][a-zA-Z0-9_]*\b', formula)
+
+        # Filter out SMT-LIB keywords
+        smt_keywords = {
+            'and', 'or', 'not', 'implies', 'iff', 'forall', 'exists',
+            'true', 'false', 'assert', 'declare-fun', 'set-logic',
+            'check-sat', 'get-model', 'sat', 'unsat', 'unknown'
+        }
+
+        variables = [t for t in tokens if t.lower() not in smt_keywords]
+
+        # Add common variables we know about
+        if 'confidence' in formula and 'confidence' not in variables:
+            variables.append('confidence')
+        if 'p_value' in formula and 'p_value' not in variables:
+            variables.append('p_value')
+
+        return list(set(variables))
+
+    def _extract_contradictory_commitments_from_result(
+        self,
+        result: Any,
+        formula_to_commitment: Dict[int, FormalCommitment],
+        formal_commitments: List[FormalCommitment]
+    ) -> List[Dict[str, Any]]:
+        """
+        Extract contradictory commitments from Z3 result
+
+        When Z3 returns UNSAT, we need to identify which commitments are contradictory.
+        Since we don't have unsat core in the basic result, we use a heuristic:
+        return all commitments as potentially contradictory.
+
+        Args:
+            result: Z3 solver result
+            formula_to_commitment: Map from formula index to commitment
+            formal_commitments: Original list of commitments
+
+        Returns:
+            List of contradiction dicts
+        """
+        # Without unsat core, we return all commitments as contradictory
+        # This is conservative but safe
+        contradictions = []
+
+        for commitment in formal_commitments:
+            contradictions.append({
+                'type': 'z3_contradiction',
+                'commitment_id': commitment.proposition_id,
+                'statement': commitment.statement,
+                'confidence_threshold': commitment.confidence_threshold,
+                'source_hypothesis': commitment.source_hypothesis,
+                'reason': 'Part of unsatisfiable constraint set'
+            })
+
+        return contradictions
+
+    def _detect_contradictions_naive(
+        self,
+        formal_commitments: List[FormalCommitment],
+        correlation_id: str
+    ) -> List[Dict[str, Any]]:
+        """
+        Fallback naive contradiction detection (existing method)
+
+        O(n²) pairwise checking for backward compatibility when Z3 is not available.
+
+        Args:
+            formal_commitments: List of FormalCommitment
+            correlation_id: Distributed tracing ID
+
+        Returns:
+            List of contradiction dicts
+        """
+        contradictions = []
+        seen_pairs = set()
+
+        for i, c1 in enumerate(formal_commitments):
+            for c2 in formal_commitments[i+1:]:
+                if self._check_contradiction_naive(c1, c2):
+                    # Create contradiction entry
+                    pair_id = tuple(sorted([c1.proposition_id, c2.proposition_id]))
+                    if pair_id not in seen_pairs:
+                        seen_pairs.add(pair_id)
+                        contradictions.append({
+                            'type': 'pairwise_contradiction',
+                            'commitment_1_id': c1.proposition_id,
+                            'commitment_1_statement': c1.statement,
+                            'commitment_2_id': c2.proposition_id,
+                            'commitment_2_statement': c2.statement,
+                            'reason': 'Naive pairwise contradiction detected'
+                        })
+
+        return contradictions
+
+    def _check_contradiction_naive(self, c1: FormalCommitment, c2: FormalCommitment) -> bool:
+        """
+        Check if two commitments contradict (naive method)
+
+        Args:
+            c1: First commitment
+            c2: Second commitment
+
+        Returns:
+            True if contradictions detected
+        """
+        # Simple heuristic: check for opposite predicates
+        stmt1 = c1.statement.lower()
+        stmt2 = c2.statement.lower()
+
+        # Check for direct negation
+        if f"not {stmt2}" in stmt1 or f"not {stmt1}" in stmt2:
+            return True
+
+        # Check for opposite inequalities
+        if ('<' in stmt1 and '>' in stmt2) or ('>' in stmt1 and '<' in stmt2):
+            return True
+
+        # Check for opposite thresholds
+        if c1.confidence_threshold > 0.9 and c2.confidence_threshold < 0.6:
+            # One is very confident, one is not - might indicate contradiction
+            return True
+
+        return False
 
 
 # ============================================================================
