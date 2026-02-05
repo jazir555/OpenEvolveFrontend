@@ -43,8 +43,8 @@ class TestRagbitsKnowledgeEngineIntegration(unittest.TestCase):
         # we check both cases
         if self.engine.ragbits_integration is not None:
             # If available, it should have the expected methods
-            self.assertTrue(hasattr(self.engine.ragbits_integration, 'search_documents'))
-            self.assertTrue(hasattr(self.engine.ragbits_integration, 'ingest_documents'))
+            self.assertTrue(hasattr(self.engine.ragbits_integration, 'search_similar_solutions'))
+            self.assertTrue(hasattr(self.engine.ragbits_integration, 'ingest_artifact'))
         else:
             # If not available, it should be None (which is acceptable)
             self.assertIsNone(self.engine.ragbits_integration)

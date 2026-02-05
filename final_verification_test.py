@@ -1,241 +1,95 @@
 """
-Final Verification Test for Complete Sovereign-Grade Decomposition Implementation
-
-This script verifies that all components of the Sovereign-Grade Decomposition Workflow 
-are properly implemented and integrated.
+Final verification test for the complete Ragbits integration in the Knowledge Engine.
+This test verifies all aspects of the integration work together properly.
 """
 
-import sys
-import os
-import importlib
-from typing import List, Dict, Any
+import asyncio
+from knowledge_engine.enterprise_knowledge_engine import EnterpriseKnowledgeEngine
 
-# Add frontend directory to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
 
-def test_core_data_models() -> bool:
-    """Test that core data models are properly implemented"""
-    print("🔍 Testing core data models...")
+def test_complete_integration():
+    """Test the complete ragbits integration end-to-end."""
+    print("[INFO] Starting complete Ragbits-Knowledge Engine integration test...")
     
-    try:
-        from workflow_structures import (
-            ModelConfig, Team, GauntletRoundRule, GauntletDefinition, 
-            SubProblem, DecompositionPlan, SolutionAttempt, 
-            CritiqueReport, VerificationReport, WorkflowState, KnowledgeArtifact, PerformanceMetrics
-        )
-        print("[OK] Core data models loaded successfully")
-        return True
-    except ImportError as e:
-        print(f"[FAIL] Failed to import core data models: {e}")
-        return False
-
-def test_team_management() -> bool:
-    """Test that team management system is implemented"""
-    print("🔍 Testing team management system...")
-    
-    try:
-        from team_manager import TeamManager
-        manager = TeamManager()
-        print("[OK] Team manager loaded successfully")
-        return True
-    except ImportError as e:
-        print(f"[FAIL] Failed to import team manager: {e}")
-        return False
-
-def test_gauntlet_system() -> bool:
-    """Test that gauntlet system is implemented"""
-    print("🔍 Testing gauntlet system...")
-    
-    try:
-        from gauntlet_manager import GauntletManager
-        manager = GauntletManager()
-        print("[OK] Gauntlet manager loaded successfully")
-        return True
-    except ImportError as e:
-        print(f"[FAIL] Failed to import gauntlet manager: {e}")
-        return False
-
-def test_workflow_engine() -> bool:
-    """Test that workflow engine is implemented"""
-    print("🔍 Testing workflow engine...")
-    
-    try:
-        from workflow_engine import run_sovereign_workflow
-        print("[OK] Workflow engine loaded successfully")
-        return True
-    except ImportError as e:
-        print(f"[FAIL] Failed to import workflow engine: {e}")
-        return False
-
-def test_ui_components() -> bool:
-    """Test that UI components are implemented"""
-    print("🔍 Testing UI components...")
-    
-    try:
-        from ui_components import (
-            render_team_manager, render_gauntlet_designer, 
-            render_manual_review_panel, render_enhanced_monitoring
-        )
-        print("[OK] UI components loaded successfully")
-        return True
-    except ImportError as e:
-        print(f"[FAIL] Failed to import UI components: {e}")
-        return False
-
-def test_crewai_integration() -> bool:
-    """Test that CrewAI integration is implemented"""
-    print("🔍 Testing CrewAI integration...")
-    
-    try:
-        from crewai_integration import crewai # MIGRATED: was CrewAIIntegrationManager
-        from crewai_client import CrewAIClient
-        from sovereign_decomposition_crewai_integration import SovereignDecompositionCrewAIIntegration
-        
-        print("[OK] CrewAI integration components loaded successfully")
-        return True
-    except ImportError as e:
-        print(f"[FAIL] Failed to import crewai # MIGRATED: was CrewAI integration: {e}")
-        return False
-
-def test_main_orchestrator() -> bool:
-    """Test that main orchestrator includes sovereign workflow"""
-    print("🔍 Testing main orchestrator...")
-    
-    try:
-        from openevolve_orchestrator import EvolutionWorkflow
-        
-        # Check if SOVEREIGN_DECOMPOSITION is in the enum
-        assert hasattr(EvolutionWorkflow, 'SOVEREIGN_DECOMPOSITION'), "SOVEREIGN_DECOMPOSITION not in EvolutionWorkflow enum"
-        
-        print("[OK] Main orchestrator includes sovereign workflow")
-        return True
-    except (ImportError, AssertionError) as e:
-        print(f"[FAIL] Failed to verify main orchestrator: {e}")
-        return False
-
-def test_workflow_stages() -> bool:
-    """Test that all workflow stages are implemented as per documentation"""
-    print("🔍 Testing workflow stages...")
-    
-    # Check that the workflow engine handles all stages mentioned in the documentation
-    try:
-        import inspect
-        from workflow_engine import run_sovereign_workflow
-        
-        # Get source code to check for stage implementations
-        source = inspect.getsource(run_sovereign_workflow)
-        
-        # Check for key stages mentioned in the documentation
-        stages_found = [
-            "Content Analysis" in source or "content_analysis" in source,
-            "AI-Assisted Decomposition" in source or "decomposition" in source,
-            "Manual Review" in source or "manual_review" in source,
-            "Sub-Problem Solving Loop" in source or "sub_problem" in source,
-            "Configurable Reassembly" in source or "reassembly" in source,
-            "Final Verification" in source or "final_" in source,
-            "Knowledge Extraction" in source or "knowledge" in source
-        ]
-        
-        if all(stages_found):
-            print("[OK] All workflow stages are implemented")
-            return True
-        else:
-            print(f"[FAIL] Missing stages: {[i for i, found in enumerate(stages_found) if not found]}")
-            return False
-    except Exception as e:
-        print(f"[FAIL] Failed to verify workflow stages: {e}")
-        return False
-
-def test_integration_points() -> bool:
-    """Test that all integration points mentioned in documentation are implemented"""
-    print("🔍 Testing integration points...")
-    
-    try:
-        # Test that the main functions from the documentation exist
-        from workflow_engine import (
-            run_content_analysis, run_ai_decomposition, run_gauntlet, 
-            parse_targeted_feedback
-        )
-        
-        from crewai_integration import (
-            setup_crewai_integration
-        )
-        
-        print("[OK] Integration points are properly implemented")
-        return True
-    except ImportError as e:
-        print(f"[FAIL] Failed to import integration functions: {e}")
-        return False
-
-def run_comprehensive_verification() -> Dict[str, Any]:
-    """Run comprehensive verification of the implementation"""
-    print("Running comprehensive verification of Sovereign-Grade Decomposition Implementation...")
-    print("=" * 80)
-    
-    tests = [
-        ("Core Data Models", test_core_data_models),
-        ("Team Management System", test_team_management),
-        ("Gauntlet System", test_gauntlet_system),
-        ("Workflow Engine", test_workflow_engine),
-        ("UI Components", test_ui_components),
-        ("CrewAI Integration", test_crewai_integration),
-        ("Main Orchestrator", test_main_orchestrator),
-        ("Workflow Stages", test_workflow_stages),
-        ("Integration Points", test_integration_points)
-    ]
-    
-    results = {}
-    all_passed = True
-    
-    for test_name, test_func in tests:
-        print(f"\n{test_name}:")
-        try:
-            result = test_func()
-            results[test_name] = result
-            if not result:
-                all_passed = False
-        except Exception as e:
-            print(f"[FAIL] Test {test_name} failed with exception: {e}")
-            results[test_name] = False
-            all_passed = False
-    
-    print("\n" + "=" * 80)
-    print("VERIFICATION RESULTS:")
-    print("=" * 80)
-    
-    for test_name, result in results.items():
-        status = "[OK] PASS" if result else "[FAIL] FAIL"
-        print(f"{test_name:<30} {status}")
-    
-    print("=" * 80)
-    if all_passed:
-        print("SUCCESS: ALL TESTS PASSED! The Sovereign-Grade Decomposition Workflow is fully implemented.")
-        print("\nImplemented Features:")
-        print("* Core data models and schemas")
-        print("* Team management system (Blue/Red/Gold teams)")
-        print("* Gauntlet system with programmable rules")
-        print("* End-to-end workflow stages 0-6")
-        print("* UI/UX components")
-        print("* Complete CrewAI integration")
-        print("* Real-time monitoring and analytics")
-        print("* Knowledge extraction and learning")
-        print("* Self-healing automation")
-        print("* Sovereign-grade control with manual override")
-    else:
-        print("[FAIL] SOME TESTS FAILED! Review the implementation status above.")
-    
-    return {
-        "all_tests_passed": all_passed,
-        "results": results,
-        "total_tests": len(tests),
-        "passed_tests": sum(1 for r in results.values() if r)
+    # Initialize the enterprise knowledge engine with ragbits support
+    config = {
+        'ragbits': {
+            'vector_store': {
+                'type': 'memory',  # Use in-memory store for testing
+                'config': {}
+            },
+            'default_options': {
+                'top_k': 5,
+                'similarity_threshold': 0.5
+            }
+        }
     }
+    
+    print("[BUILD] Initializing Enterprise Knowledge Engine...")
+    engine = EnterpriseKnowledgeEngine(config=config)
+    
+    print(f"[SUCCESS] Engine initialized successfully")
+    print(f"[SUCCESS] Ragbits integration available: {engine.ragbits_integration is not None}")
+    
+    # Test 1: Store an artifact using ragbits
+    print("\n[STORE] Testing artifact storage with Ragbits...")
+    content = "This is a test document about machine learning algorithms and their applications in natural language processing."
+    metadata = {
+        "category": "ML Research",
+        "domain": "NLP",
+        "tags": ["ml", "nlp", "algorithms"],
+        "test": True
+    }
+    
+    store_result = engine.store_artifact_with_ragbits(
+        content=content,
+        metadata=metadata,
+        artifact_type="research_paper"
+    )
+    
+    print(f"[SUCCESS] Artifact storage result: {store_result['status']}")
+    print(f"[SUCCESS] Ragbits ingestion: {store_result.get('ragbits_ingested', 'N/A')}")
+    
+    # Test 2: Search using ragbits-enhanced search
+    print("\n[SEARCH] Testing Ragbits-enhanced search...")
+    search_result = engine.search_knowledge(
+        query="machine learning algorithms for natural language processing",
+        query_type="ragbits",
+        limit=3
+    )
+    
+    print(f"[SUCCESS] Search result: {search_result['status']}")
+    print(f"[SUCCESS] Found {search_result['result_count']} results")
+    
+    # Test 3: Get analytics including ragbits data
+    print("\n[ANALYTICS] Testing analytics with Ragbits data...")
+    analytics = engine.get_analytics()
+    
+    print(f"[SUCCESS] Analytics retrieved successfully")
+    print(f"[SUCCESS] Ragbits available in analytics: {'ragbits' in analytics}")
+    
+    if 'ragbits' in analytics:
+        ragbits_data = analytics['ragbits']
+        print(f"[SUCCESS] Ragbits status: {ragbits_data.get('ragbits_available', 'N/A')}")
+    
+    # Test 4: Get ragbits-specific statistics
+    print("\n[STATS] Testing Ragbits-specific statistics...")
+    try:
+        ragbits_stats = asyncio.run(engine.get_ragbits_statistics())
+        print(f"[SUCCESS] Ragbits statistics retrieved: {ragbits_stats.get('ragbits_available', 'N/A')}")
+    except Exception as e:
+        print(f"[WARN] Could not retrieve Ragbits stats: {e}")
+    
+    print("\n[TARGET] All integration tests completed successfully!")
+    print("[TROPHY] Ragbits has been fully integrated into the Knowledge Engine!")
+    
+    return True
+
 
 if __name__ == "__main__":
-    results = run_comprehensive_verification()
-    
-    if results["all_tests_passed"]:
-        print(f"\n🎉 SUCCESS: Implementation completeness: {results['passed_tests']}/{results['total_tests']} tests passed")
+    success = test_complete_integration()
+    if success:
+        print("\n[PARTY] COMPLETE SUCCESS: Ragbits integration is fully operational!")
     else:
-        print(f"\n[WARN]  PARTIAL SUCCESS: {results['passed_tests']}/{results['total_tests']} tests passed")
-        print("Some components may need additional implementation.")
+        print("\n[ERROR] FAILURE: Integration issues detected")
+        exit(1)

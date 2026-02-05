@@ -39,12 +39,14 @@ except ImportError:
     LLM4IAS_AVAILABLE = False
     logger.info("LLM4IAS not available - using full native expert system")
 
-# Check for MAKER integration
+# Check for MAKER integration (optional - not required for TRUE 100%)
 try:
     from generic_maker_integration import run_generic_maker, GenericEvaluator, TaskType, MAKERConfig
     MAKER_AVAILABLE = True
 except ImportError:
     MAKER_AVAILABLE = False
+    # Define placeholder classes for when MAKER is not available
+    TaskType = type('TaskType', (), {'OPTIMIZATION': 'optimization', 'EVALUATION': 'evaluation'})
     logger.info("MAKER not available - using expert system without optimization")
 
 

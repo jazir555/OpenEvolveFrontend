@@ -1,0 +1,22 @@
+[
+  {
+    "id": "alert-20260205000827-5f11baab",
+    "title": "Knowledge Engine Alert: test",
+    "description": "test message",
+    "severity": "info",
+    "status": "open",
+    "source": "knowledge_engine",
+    "component": "enterprise_knowledge_engine",
+    "created_at": "2026-02-05T00:08:27.668846",
+    "updated_at": "2026-02-05T00:08:27.668846",
+    "acknowledged_at": null,
+    "resolved_at": null,
+    "acknowledged_by": null,
+    "resolved_by": null,
+    "metadata": {},
+    "tags": [],
+    "occurrences": 1,
+    "first_seen": "2026-02-05T00:08:27.668846",
+    "last_seen": "2026-02-05T00:08:27.668846"
+  }
+]

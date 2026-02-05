@@ -292,14 +292,15 @@ class EnterpriseKnowledgeEngine:
             Ragbits integration instance or None if not available
         """
         try:
-            from knowledge_engine.ragbits_integration import RagbitsIntegration, RAGBITS_INTEGRATION_AVAILABLE
+            from knowledge_engine.ragbits_retriever import RAGBitsEnhancedRetriever, get_ragbits_retriever
             
-            if RAGBITS_INTEGRATION_AVAILABLE:
-                ragbits_config = self.config.get('ragbits', {})
-                ragbits_integration = RagbitsIntegration(ragbits_config)
-                
+            # Try to initialize the ragbits retriever
+            ragbits_retriever = get_ragbits_retriever()
+            
+            # Check if ragbits is available by checking its availability property
+            if hasattr(ragbits_retriever, 'ragbits_available') and ragbits_retriever.ragbits_available:
                 self.logger.info("Ragbits integration initialized successfully")
-                return ragbits_integration
+                return ragbits_retriever
             else:
                 self.logger.warning("Ragbits not available, using fallback search")
                 return None
@@ -673,29 +674,36 @@ class EnterpriseKnowledgeEngine:
             # Prepare Ragbits search options
             ragbits_filters = filters or {}
             
-            # Perform Ragbits search
-            ragbits_result = asyncio.run(
-                self.ragbits_integration.search_documents(
-                    query=query,
-                    top_k=limit,
-                    similarity_threshold=0.5  # Default threshold
-                )
-            )
-            
-            if ragbits_result.success:
-                # Format results to match expected structure
-                formatted_results = []
-                for result in ragbits_result.results:
-                    formatted_results.append({
-                        'content': result.get('content', ''),
-                        'metadata': result.get('metadata', {}),
-                        'score': result.get('score', 0.0),
-                        'source': result.get('source', 'ragbits')
-                    })
-                return formatted_results
+            # Perform Ragbits search using the enhanced retriever
+            # Since the ragbits integration might not be available, we need to handle this carefully
+            if self.ragbits_integration and hasattr(self.ragbits_integration, 'search_similar_solutions'):
+                # Use the ragbits enhanced retriever
+                try:
+                    ragbits_results = asyncio.run(
+                        self.ragbits_integration.search_similar_solutions(
+                            query=query,
+                            top_k=limit,
+                            filters=ragbits_filters,
+                            min_success_rate=0.0
+                        )
+                    )
+                    
+                    # Format results to match expected structure
+                    formatted_results = []
+                    for result in ragbits_results:
+                        formatted_results.append({
+                            'content': result.get('content', ''),
+                            'metadata': result.get('metadata', {}),
+                            'score': result.get('score', 0.0),
+                            'source': result.get('source', 'ragbits')
+                        })
+                    return formatted_results
+                except Exception as e:
+                    self.logger.warning(f"Ragbits search failed: {e}, falling back to traditional search")
+                    # Fall back to existing retriever if ragbits search fails
+                    return self.retriever.search_knowledge(query, 'hybrid', filters, limit, True)
             else:
-                self.logger.warning(f"Ragbits search failed: {ragbits_result.error}")
-                # Fall back to existing retriever
+                # Fall back to existing retriever if ragbits is not available
                 return self.retriever.search_knowledge(query, 'hybrid', filters, limit, True)
                 
         except Exception as e:
@@ -818,44 +826,66 @@ class EnterpriseKnowledgeEngine:
             # Store in ragbits if available
             if self.ragbits_integration:
                 try:
-                    # Prepare document for ragbits
-                    document = {
-                        'content': content,
-                        'metadata': ragbits_metadata
-                    }
-
-                    # Ingest into ragbits
-                    result = asyncio.run(
-                        self.ragbits_integration.ingest_documents(
-                            documents=[document]
-                        )
-                    )
-
-                    if result.success:
-                        # Also store in traditional storage
-                        artifact_id = self.storage.store_knowledge_artifact(
-                            {
-                                'type': artifact_type,
-                                'content': content,
-                                'metadata': ragbits_metadata
-                            },
-                            generate_embedding=True
+                    # Use ragbits enhanced retriever to ingest artifact
+                    if hasattr(self.ragbits_integration, 'ingest_artifact'):
+                        # Ingest into ragbits using the enhanced retriever
+                        artifact_id = asyncio.run(
+                            self.ragbits_integration.ingest_artifact(
+                                content=content,
+                                metadata=ragbits_metadata,
+                                artifact_type=artifact_type
+                            )
                         )
 
-                        processing_time = time.time() - start_time
-                        self.performance_monitor.record_operation(operation_type, True, processing_time)
+                        if artifact_id:  # If ingestion was successful (non-empty ID)
+                            # Also store in traditional storage
+                            traditional_artifact_id = self.storage.store_knowledge_artifact(
+                                {
+                                    'type': artifact_type,
+                                    'content': content,
+                                    'metadata': ragbits_metadata
+                                },
+                                generate_embedding=True
+                            )
 
-                        return {
-                            'status': 'success',
-                            'artifact_id': artifact_id,
-                            'ragbits_ingested': True,
-                            'processing_time': processing_time,
-                            'production_mode': self.production_ready,
-                            'timestamp': datetime.now().isoformat()
-                        }
+                            processing_time = time.time() - start_time
+                            self.performance_monitor.record_operation(operation_type, True, processing_time)
+
+                            return {
+                                'status': 'success',
+                                'artifact_id': traditional_artifact_id,
+                                'ragbits_ingested': True,
+                                'processing_time': processing_time,
+                                'production_mode': self.production_ready,
+                                'timestamp': datetime.now().isoformat()
+                            }
+                        else:
+                            self.logger.warning("Ragbits ingestion returned empty ID")
+                            # Fall back to traditional storage only
+                            artifact_id = self.storage.store_knowledge_artifact(
+                                {
+                                    'type': artifact_type,
+                                    'content': content,
+                                    'metadata': ragbits_metadata
+                                },
+                                generate_embedding=True
+                            )
+
+                            processing_time = time.time() - start_time
+                            self.performance_monitor.record_operation(operation_type, True, processing_time)
+
+                            return {
+                                'status': 'partial_success',
+                                'artifact_id': artifact_id,
+                                'ragbits_ingested': False,
+                                'ragbits_error': "Ragbits ingestion returned empty ID",
+                                'processing_time': processing_time,
+                                'production_mode': self.production_ready,
+                                'timestamp': datetime.now().isoformat()
+                            }
                     else:
-                        self.logger.warning(f"Ragbits ingestion failed: {result.error}")
-                        # Fall back to traditional storage only
+                        self.logger.warning("Ragbits integration does not have ingest_artifact method")
+                        # Fall back to traditional storage
                         artifact_id = self.storage.store_knowledge_artifact(
                             {
                                 'type': artifact_type,
@@ -869,10 +899,10 @@ class EnterpriseKnowledgeEngine:
                         self.performance_monitor.record_operation(operation_type, True, processing_time)
 
                         return {
-                            'status': 'partial_success',
+                            'status': 'fallback_success',
                             'artifact_id': artifact_id,
                             'ragbits_ingested': False,
-                            'ragbits_error': result.error,
+                            'ragbits_error': "Ragbits integration does not have required method",
                             'processing_time': processing_time,
                             'production_mode': self.production_ready,
                             'timestamp': datetime.now().isoformat()
@@ -956,7 +986,22 @@ class EnterpriseKnowledgeEngine:
 
         try:
             stats = await self.ragbits_integration.get_statistics()
-            health = await self.ragbits_integration.health_check()
+            
+            # Check if health_check method exists
+            if hasattr(self.ragbits_integration, 'health_check'):
+                health = await self.ragbits_integration.health_check()
+            else:
+                # Create a basic health status if health_check method doesn't exist
+                health = {
+                    'component': 'ragbits',
+                    'status': 'healthy' if self.ragbits_integration.ragbits_available else 'unhealthy',
+                    'checks': {
+                        'ragbits_available': {
+                            'status': 'passed' if self.ragbits_integration.ragbits_available else 'failed'
+                        }
+                    },
+                    'timestamp': datetime.now().isoformat()
+                }
 
             return {
                 'ragbits_available': True,
