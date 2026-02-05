@@ -23,6 +23,19 @@ from enum import Enum
 import uuid
 
 
+def utc_now() -> str:
+    """
+    Get current UTC timestamp in ISO-8601 format with 'Z' suffix.
+
+    Following CLAUDE.md Law of UTC: All timestamps in UTC.
+
+    Returns:
+        UTC timestamp string ending with 'Z'
+    """
+    # Format with microseconds and replace +00:00 with Z
+    return datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+
+
 # Configure structured logging
 class ConfidenceLogger:
     """Structured logger for confidence tracking."""
@@ -147,7 +160,10 @@ class ConfidenceTracker:
         # Threshold cache for idempotency
         self._threshold_cache: Dict[str, ConfidenceThreshold] = {}
 
-        logger.log("INFO", "Confidence tracker initialized",
+        # Logger for structured logging (exposed for testing)
+        self.logger = logger
+
+        self.logger.log("INFO", "Confidence tracker initialized",
                   operation="initialize",
                   significance_level=self.config["significance_level"])
 
@@ -237,7 +253,7 @@ class ConfidenceTracker:
 
         # Validate input
         if not (0 <= confidence <= 1):
-            logger.log("ERROR", f"Invalid confidence value: {confidence}",
+            self.logger.log("ERROR", f"Invalid confidence value: {confidence}",
                       correlation_id=correlation_id,
                       operation="calculate_threshold")
             raise ValueError(f"Confidence must be between 0 and 1, got {confidence}")
@@ -246,7 +262,7 @@ class ConfidenceTracker:
         cache_key = self._generate_cache_key(confidence, derivation_method)
         if cache_key in self._threshold_cache:
             cached = self._threshold_cache[cache_key]
-            logger.log("DEBUG", "Using cached threshold",
+            self.logger.log("DEBUG", "Using cached threshold",
                       correlation_id=correlation_id,
                       operation="calculate_threshold",
                       confidence=confidence,
@@ -261,7 +277,7 @@ class ConfidenceTracker:
         elif self.config["calculation_strategy"] == "adaptive":
             threshold, level = self._adaptive_calculation(confidence)
         else:
-            logger.log("WARNING", f"Unknown strategy: {self.config['calculation_strategy']}, using tiered",
+            self.logger.log("WARNING", f"Unknown strategy: {self.config['calculation_strategy']}, using tiered",
                       correlation_id=correlation_id,
                       operation="calculate_threshold")
             threshold, level = self._tiered_calculation(confidence)
@@ -271,7 +287,7 @@ class ConfidenceTracker:
             threshold=threshold,
             level=level,
             significance_level=self.config["significance_level"],
-            derived_at=datetime.now(timezone.utc).isoformat(),
+            derived_at=utc_now(),
             derivation_method=derivation_method,
             correlation_id=correlation_id,
             metadata=metadata or {}
@@ -280,7 +296,7 @@ class ConfidenceTracker:
         # Cache result
         self._threshold_cache[cache_key] = confidence_threshold
 
-        logger.log("INFO", f"Calculated confidence threshold: {threshold:.3f} (level: {level.value})",
+        self.logger.log("INFO", f"Calculated confidence threshold: {threshold:.3f} (level: {level.value})",
                   correlation_id=correlation_id,
                   operation="calculate_threshold",
                   confidence=confidence,
@@ -385,7 +401,7 @@ class ConfidenceTracker:
             RuntimeError: If history tracking is disabled
         """
         if not self.config["enable_history"]:
-            logger.log("WARNING", "Threshold history tracking is disabled",
+            self.logger.log("WARNING", "Threshold history tracking is disabled",
                       correlation_id=correlation_id,
                       operation="track_threshold")
             raise RuntimeError("Threshold history tracking is disabled")
@@ -398,7 +414,7 @@ class ConfidenceTracker:
             proposition_id=proposition_id,
             input_confidence=input_confidence,
             calculated_threshold=threshold,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=utc_now(),
             correlation_id=correlation_id
         )
 
@@ -410,11 +426,11 @@ class ConfidenceTracker:
             # Remove oldest entries
             excess = len(self.threshold_history) - self.config["max_history_size"]
             self.threshold_history = self.threshold_history[excess:]
-            logger.log("INFO", f"Pruned {excess} history entries",
+            self.logger.log("INFO", f"Pruned {excess} history entries",
                       correlation_id=correlation_id,
                       operation="track_threshold")
 
-        logger.log("DEBUG", f"Tracked threshold for proposition {proposition_id}",
+        self.logger.log("DEBUG", f"Tracked threshold for proposition {proposition_id}",
                   correlation_id=correlation_id,
                   operation="track_threshold",
                   proposition_id=proposition_id,
@@ -491,7 +507,7 @@ class ConfidenceTracker:
         """
         count = len(self.threshold_history)
         self.threshold_history.clear()
-        logger.log("INFO", f"Cleared {count} threshold history entries",
+        self.logger.log("INFO", f"Cleared {count} threshold history entries",
                   operation="clear_history")
         return count
 

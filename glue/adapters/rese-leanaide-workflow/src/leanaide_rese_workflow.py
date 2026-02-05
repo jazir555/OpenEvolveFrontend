@@ -69,11 +69,11 @@ except ImportError:
     )
 
 # Import autoformalization and proof search services
-from src.autoformalization_service import (
+from .autoformalization_service import (
     AutoformalizationService, AutoformalizationConfig, AutoformalizationPhase,
     AutoformalizationResult, FormalizationDomain
 )
-from src.proof_search_service import (
+from .proof_search_service import (
     ProofSearchService, ProofSearchConfig, ProofStrategy, ProofStatus,
     ProofSearchResult
 )

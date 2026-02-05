@@ -96,11 +96,16 @@ class ProblemClassifier:
                 r'\b\d+\s*[\+\-\*\/]\s*\d+',  # Arithmetic operations
                 r'\b(sums?|products?|quotients?)\b',  # Arithmetic keywords
                 r'\b(linarith|nlinarith)\b',  # Lean tactics
+                r'\b\d+\s*\+\s*\d+\s*=\s*\d+',  # Simple equations like "2 + 2 = 4"
+                r'\bprove\s+that\b',  # "Prove that" for arithmetic theorems
             ],
             ProblemDomain.ALGEBRA: [
-                r'\b(polynomial|equation|inequality)\b',
+                r'\b(polynomial|inequality)\b',  # Removed "equation" as it's too generic
                 r'\b(algebraic|factor(iz|s)ation)\b',
                 r'\b(ring|field|group)\b',
+                r'\b[a-z]\^\d+',  # Polynomials like x^2 (with exponent)
+                r'\b[a-z]\s*[\+\-\*]\s*[a-z]',  # Variable operations like x + y
+                r'\bvariables?\b',  # Variable keywords
             ],
             ProblemDomain.ANALYSIS: [
                 r'\b(limit|continuity|derivative|integral)\b',
@@ -113,7 +118,10 @@ class ProblemClassifier:
                 r'\b(homeomorph|isomorph)\b',
             ],
             ProblemDomain.LOGIC: [
-                r'\b(forall|exists|quantifier)\b',
+                r'\bforall\b.*\bexists\b',  # Nested quantifiers
+                r'\bexists\b.*\bforall\b',  # Nested quantifiers
+                r'\b(forall|exists|quantifier)\b',  # Quantifiers
+                r'\bP\(|Q\(|R\(',  # Predicate notation P(x), Q(x), etc.
                 r'\b(proposition|predicate)\b',
                 r'\b(tautology|contradiction)\b',
             ],
@@ -135,6 +143,7 @@ class ProblemClassifier:
                 r'\b(satisfiability|satisfy|constraint)\b',
                 r'\bfind\s+(a|an|all)\s+\w+',
                 r'\bexists?\s+.*?\s+such\s+that\b',
+                r'\bfind\s+\w+\s+such\s+that\b',  # "Find x such that"
             ],
             ProblemClass.THEOREM_PROVING: [
                 r'\b(prove|theorem|lemma|corollary)\b',
@@ -238,13 +247,33 @@ class ProblemClassifier:
             scores[domain] = score
 
         # Get domain with highest score
-        best_domain = max(scores, key=scores.get)
+        # In case of ties, prefer more specific domains in this order:
+        # LOGIC > ARITHMETIC > ALGEBRA > others > GENERAL
+        priority_order = [
+            ProblemDomain.LOGIC,
+            ProblemDomain.ARITHMETIC,
+            ProblemDomain.ALGEBRA,
+            ProblemDomain.ANALYSIS,
+            ProblemDomain.TOPOLOGY,
+            ProblemDomain.PHYSICS,
+            ProblemDomain.GEOMETRY,
+            ProblemDomain.GENERAL,
+        ]
 
-        # Default to general if no patterns matched
-        if scores[best_domain] == 0:
+        # Filter domains with max score
+        max_score = max(scores.values()) if scores else 0
+        if max_score == 0:
             return ProblemDomain.GENERAL
 
-        return best_domain
+        # Get domains with max score
+        best_domains = [d for d, s in scores.items() if s == max_score]
+
+        # Return highest priority domain
+        for domain in priority_order:
+            if domain in best_domains:
+                return domain
+
+        return ProblemDomain.GENERAL
 
     def _compute_complexity(
         self,

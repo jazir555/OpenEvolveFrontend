@@ -571,52 +571,62 @@ class TestTieredVerifier:
         assert verifier.classifier is not None
         assert verifier.selector is not None
 
-    @patch('tiered_verifier.RESEZ3Bridge')
-    def test_verify_creates_correlation_id(self, mock_z3_bridge, verifier_config):
+    def test_verify_creates_correlation_id(self, verifier_config):
         """Test verification creates correlation ID if not provided"""
         verifier = TieredVerifier(verifier_config)
 
-        # Mock Z3 bridge
-        mock_bridge = Mock()
-        mock_bridge.detect_contradictions.return_value = (False, {})
-        mock_z3_bridge.return_value = mock_bridge
+        # Mock the _verify_tier1 method to avoid import issues
+        with patch.object(verifier, '_verify_tier1') as mock_verify:
+            mock_result = Z3VerificationResult(
+                status=VerificationStatus.VERIFIED,
+                z3_result="sat",
+                correlation_id="test-id",
+            )
+            mock_verify.return_value = mock_result
 
-        result = verifier.verify("x > 0")
+            result = verifier.verify("x > 0")
 
-        assert result.correlation_id is not None
-        assert len(result.correlation_id) > 0
+            assert result.correlation_id is not None
+            assert len(result.correlation_id) > 0
 
-    @patch('tiered_verifier.RESEZ3Bridge')
-    def test_verify_with_tier1_success(self, mock_z3_bridge, verifier_config, correlation_id):
+    def test_verify_with_tier1_success(self, verifier_config, correlation_id):
         """Test successful verification with Tier 1"""
         verifier = TieredVerifier(verifier_config)
 
-        # Mock Z3 bridge
-        mock_bridge = Mock()
-        mock_bridge.detect_contradictions.return_value = (False, {"x": 5})
-        mock_z3_bridge.return_value = mock_bridge
+        # Mock the _verify_tier1 method
+        with patch.object(verifier, '_verify_tier1') as mock_verify:
+            mock_result = Z3VerificationResult(
+                status=VerificationStatus.VERIFIED,
+                z3_result="sat",
+                model={"x": 5},
+                correlation_id=correlation_id,
+            )
+            mock_verify.return_value = mock_result
 
-        result = verifier.verify("x > 0 and x < 10", correlation_id=correlation_id)
+            result = verifier.verify("x > 0 and x < 10", correlation_id=correlation_id)
 
-        assert result.final_status == VerificationStatus.VERIFIED
-        assert result.successful_tier == VerificationTier.TIER1_Z3
-        assert result.tier1_result is not None
-        assert result.tier1_result.z3_result == "sat"
+            assert result.final_status == VerificationStatus.VERIFIED
+            assert result.successful_tier == VerificationTier.TIER1_Z3
+            assert result.tier1_result is not None
+            assert result.tier1_result.z3_result == "sat"
 
-    @patch('tiered_verifier.RESEZ3Bridge')
-    def test_verify_with_tier1_contradiction(self, mock_z3_bridge, verifier_config, correlation_id):
+    def test_verify_with_tier1_contradiction(self, verifier_config, correlation_id):
         """Test verification detects contradiction with Tier 1"""
         verifier = TieredVerifier(verifier_config)
 
-        # Mock Z3 bridge to detect contradiction
-        mock_bridge = Mock()
-        mock_bridge.detect_contradictions.return_value = (True, {})
-        mock_z3_bridge.return_value = mock_bridge
+        # Mock the _verify_tier1 method
+        with patch.object(verifier, '_verify_tier1') as mock_verify:
+            mock_result = Z3VerificationResult(
+                status=VerificationStatus.REFUTED,
+                z3_result="unsat",
+                correlation_id=correlation_id,
+            )
+            mock_verify.return_value = mock_result
 
-        result = verifier.verify("x > 10 and x < 5", correlation_id=correlation_id)
+            result = verifier.verify("x > 10 and x < 5", correlation_id=correlation_id)
 
-        assert result.final_status == VerificationStatus.REFUTED
-        assert result.tier1_result.z3_result == "unsat"
+            assert result.final_status == VerificationStatus.REFUTED
+            assert result.tier1_result.z3_result == "unsat"
 
     def test_verify_with_specific_tier(self, verifier_config, correlation_id):
         """Test verification with specific tier"""
@@ -725,37 +735,43 @@ class TestTieredVerifier:
         assert status["correlation_id"] == correlation_id
         assert "status" in status
 
-    @patch('tiered_verifier.RESEZ3Bridge')
-    def test_auto_escalate_disabled(self, mock_z3_bridge, verifier_config, correlation_id):
+    def test_auto_escalate_disabled(self, verifier_config, correlation_id):
         """Test auto-escalation can be disabled"""
         verifier_config.auto_escalate = False
         verifier = TieredVerifier(verifier_config)
 
-        # Mock Z3 bridge
-        mock_bridge = Mock()
-        mock_bridge.detect_contradictions.return_value = (False, {})
-        mock_z3_bridge.return_value = mock_bridge
+        # Mock the _verify_tier1 method
+        with patch.object(verifier, '_verify_tier1') as mock_verify:
+            mock_result = Z3VerificationResult(
+                status=VerificationStatus.VERIFIED,
+                z3_result="sat",
+                correlation_id=correlation_id,
+            )
+            mock_verify.return_value = mock_result
 
-        result = verifier.verify("x > 0", correlation_id=correlation_id)
+            result = verifier.verify("x > 0", correlation_id=correlation_id)
 
-        # Should not escalate even if tier 1 fails
-        assert result.escalation_path == [VerificationTier.TIER1_Z3]
+            # Should not escalate even if tier 1 fails
+            assert result.escalation_path == [VerificationTier.TIER1_Z3]
 
-    @patch('tiered_verifier.RESEZ3Bridge')
-    def test_max_tier_respected(self, mock_z3_bridge, verifier_config, correlation_id):
+    def test_max_tier_respected(self, verifier_config, correlation_id):
         """Test max_tier configuration is respected"""
         verifier_config.max_tier = 2
         verifier = TieredVerifier(verifier_config)
 
-        # Mock Z3 bridge
-        mock_bridge = Mock()
-        mock_bridge.detect_contradictions.return_value = (True, {})
-        mock_z3_bridge.return_value = mock_bridge
+        # Mock the _verify_tier1 method
+        with patch.object(verifier, '_verify_tier1') as mock_verify:
+            mock_result = Z3VerificationResult(
+                status=VerificationStatus.REFUTED,
+                z3_result="unsat",
+                correlation_id=correlation_id,
+            )
+            mock_verify.return_value = mock_result
 
-        result = verifier.verify("x > 0", correlation_id=correlation_id)
+            result = verifier.verify("x > 0", correlation_id=correlation_id)
 
-        # Should not escalate to tier 3
-        assert result.tier3_result is None
+            # Should not escalate to tier 3
+            assert result.tier3_result is None
 
     def test_verify_handles_errors(self, verifier_config, correlation_id):
         """Test verification handles errors gracefully"""

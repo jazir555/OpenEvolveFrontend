@@ -488,30 +488,40 @@ class RESEZ3Bridge:
         Returns:
             CanonicalSolverResponse with solution
         """
-        correlation_id = correlation_id or str(uuid.uuid4())
         timeout_ms = timeout_ms or self.config.z3_timeout_ms
 
         metrics = self.monitor.start_operation("solve_constraints")
 
         try:
-            # Build canonical request
+            # Build canonical request (without correlation_id and timestamp for caching)
             request = CanonicalSolverRequest(
                 problem="",  # Will be generated from constraints
                 problem_type=ProblemType.CONSTRAINT_SAT,
                 variables=variables,
                 constraints=constraints,
                 timeout_ms=timeout_ms,
-                correlation_id=correlation_id,
+                correlation_id="",  # Empty for cache key generation
+                timestamp="",  # Empty for cache key generation
             )
 
-            # Check cache
+            # Check cache (using request without correlation_id and timestamp)
             if self.cache:
                 cache_key = self.cache._generate_key("solve", request.to_dict())
                 cached_response = self.cache.get(cache_key)
                 if cached_response:
                     metrics.cached = True
                     self.monitor.record_success(metrics, cached=True)
-                    return CanonicalSolverResponse.from_dict(cached_response)
+                    # Set correlation_id for the response
+                    correlation_id = correlation_id or str(uuid.uuid4())
+                    cached = CanonicalSolverResponse.from_dict(cached_response)
+                    # Update correlation_id in response
+                    cached.correlation_id = correlation_id
+                    return cached
+
+            # Generate correlation_id after cache check
+            correlation_id = correlation_id or str(uuid.uuid4())
+            request.correlation_id = correlation_id
+            request.timestamp = datetime.now(timezone.utc).isoformat()
 
             # Convert to SMT-LIB
             smtlib = canonical_to_smtlib(request)
@@ -522,7 +532,7 @@ class RESEZ3Bridge:
             # Convert to canonical response
             response = z3_to_canonical_response(z3_response, correlation_id)
 
-            # Cache result
+            # Cache result (using cache_key generated above)
             if self.cache:
                 self.cache.set(cache_key, response.to_dict())
 

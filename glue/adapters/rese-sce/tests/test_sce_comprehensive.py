@@ -73,6 +73,7 @@ def sample_sce_config():
     os.environ['SCE_ENABLE_TACIT_MINING'] = 'true'
     os.environ['RESE_Z3_SCE_ENABLED'] = 'false'  # Disable Z3 for unit tests
     os.environ['RESE_DITO_ENABLED'] = 'false'  # Disable DITO for unit tests
+    os.environ['RESE_DITO_ACTIVATION_STRATEGY'] = 'selective_bfs'  # Must be valid even when disabled
     return SCEConfig.from_env()
 
 
@@ -155,14 +156,26 @@ class TestSCEConfig:
     def test_config_feature_flags(self):
         """Test feature flags"""
         os.environ['SCE_ENABLE_TACIT_MINING'] = 'false'
+        os.environ['SCE_TIMEOUT_MS'] = '5000'
+        os.environ['SCE_MAX_CONSTRAINTS'] = '1000'
+        os.environ['SCE_MAX_ITERATIONS'] = '1000'
+        os.environ['RESE_Z3_SCE_ENABLED'] = 'false'
+        os.environ['RESE_DITO_ENABLED'] = 'false'
+        os.environ['RESE_DITO_ACTIVATION_STRATEGY'] = 'selective_bfs'
         config = SCEConfig.from_env()
         assert config.ENABLE_TACIT_ASSUMPTION_MINING is False
 
     def test_config_z3_settings(self):
         """Test Z3 configuration"""
+        os.environ['SCE_TIMEOUT_MS'] = '5000'
+        os.environ['SCE_MAX_CONSTRAINTS'] = '1000'
+        os.environ['SCE_MAX_ITERATIONS'] = '1000'
+        os.environ['SCE_ENABLE_TACIT_MINING'] = 'true'
         os.environ['RESE_Z3_SCE_ENABLED'] = 'true'
         os.environ['Z3_TIMEOUT'] = '10000'
         os.environ['Z3_MAX_MEMORY_MB'] = '8192'
+        os.environ['RESE_DITO_ENABLED'] = 'false'
+        os.environ['RESE_DITO_ACTIVATION_STRATEGY'] = 'selective_bfs'
         config = SCEConfig.from_env()
         assert config.ENABLE_Z3_SCE is True
         assert config.Z3_TIMEOUT_MS == 10000
@@ -170,6 +183,11 @@ class TestSCEConfig:
 
     def test_config_dito_settings(self):
         """Test DITO configuration"""
+        os.environ['SCE_TIMEOUT_MS'] = '5000'
+        os.environ['SCE_MAX_CONSTRAINTS'] = '1000'
+        os.environ['SCE_MAX_ITERATIONS'] = '1000'
+        os.environ['SCE_ENABLE_TACIT_MINING'] = 'true'
+        os.environ['RESE_Z3_SCE_ENABLED'] = 'false'
         os.environ['RESE_DITO_ENABLED'] = 'true'
         os.environ['RESE_DITO_ACTIVATION_STRATEGY'] = 'selective_dfs'
         os.environ['RESE_DITO_ENABLE_LEAN4'] = 'true'
@@ -180,12 +198,25 @@ class TestSCEConfig:
 
     def test_config_invalid_dito_strategy(self):
         """Test invalid DITO strategy"""
+        os.environ['SCE_TIMEOUT_MS'] = '5000'
+        os.environ['SCE_MAX_CONSTRAINTS'] = '1000'
+        os.environ['SCE_MAX_ITERATIONS'] = '1000'
+        os.environ['SCE_ENABLE_TACIT_MINING'] = 'true'
+        os.environ['RESE_Z3_SCE_ENABLED'] = 'false'
+        os.environ['RESE_DITO_ENABLED'] = 'false'
         os.environ['RESE_DITO_ACTIVATION_STRATEGY'] = 'invalid_strategy'
         with pytest.raises(ValueError, match='Invalid DITO_ACTIVATION_STRATEGY'):
             SCEConfig.from_env()
 
     def test_config_circuit_breaker_settings(self):
         """Test circuit breaker configuration"""
+        os.environ['SCE_TIMEOUT_MS'] = '5000'
+        os.environ['SCE_MAX_CONSTRAINTS'] = '1000'
+        os.environ['SCE_MAX_ITERATIONS'] = '1000'
+        os.environ['SCE_ENABLE_TACIT_MINING'] = 'true'
+        os.environ['RESE_Z3_SCE_ENABLED'] = 'false'
+        os.environ['RESE_DITO_ENABLED'] = 'false'
+        os.environ['RESE_DITO_ACTIVATION_STRATEGY'] = 'selective_bfs'
         os.environ['SCE_CIRCUIT_BREAKER_THRESHOLD'] = '10'
         os.environ['SCE_CIRCUIT_BREAKER_TIMEOUT_MS'] = '120000'
         config = SCEConfig.from_env()
@@ -194,6 +225,13 @@ class TestSCEConfig:
 
     def test_config_max_contradiction_set_size(self):
         """Test max contradiction set size"""
+        os.environ['SCE_TIMEOUT_MS'] = '5000'
+        os.environ['SCE_MAX_CONSTRAINTS'] = '1000'
+        os.environ['SCE_MAX_ITERATIONS'] = '1000'
+        os.environ['SCE_ENABLE_TACIT_MINING'] = 'true'
+        os.environ['RESE_Z3_SCE_ENABLED'] = 'false'
+        os.environ['RESE_DITO_ENABLED'] = 'false'
+        os.environ['RESE_DITO_ACTIVATION_STRATEGY'] = 'selective_bfs'
         os.environ['SCE_MAX_CONTRADICTION_SET_SIZE'] = '50'
         config = SCEConfig.from_env()
         assert config.MAX_CONTRADICTION_SET_SIZE == 50

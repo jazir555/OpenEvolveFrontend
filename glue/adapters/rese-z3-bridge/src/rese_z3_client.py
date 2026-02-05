@@ -208,6 +208,23 @@ class Z3ClientConfig:
     retry_backoff_ms: int = 1000
     circuit_breaker: CircuitBreakerConfig = field(default_factory=CircuitBreakerConfig)
 
+    @classmethod
+    def from_env(cls) -> 'Z3ClientConfig':
+        """Create configuration from environment variables"""
+        import os
+
+        base_url = os.environ.get("Z3_BASE_URL", "http://localhost:8000")
+        timeout_ms = int(os.environ.get("Z3_TIMEOUT_MS", "30000"))
+        max_retries = int(os.environ.get("Z3_MAX_RETRIES", "3"))
+        retry_backoff_ms = int(os.environ.get("Z3_RETRY_BACKOFF_MS", "1000"))
+
+        return cls(
+            base_url=base_url,
+            timeout_ms=timeout_ms,
+            max_retries=max_retries,
+            retry_backoff_ms=retry_backoff_ms,
+        )
+
 
 @dataclass
 class LeanAideClientConfig:

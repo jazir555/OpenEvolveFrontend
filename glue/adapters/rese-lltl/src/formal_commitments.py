@@ -29,6 +29,18 @@ from dataclasses import dataclass, field
 from enum import Enum
 import uuid
 
+
+def utc_now() -> str:
+    """
+    Get current UTC timestamp in ISO-8601 format with 'Z' suffix.
+
+    Following CLAUDE.md Law of UTC: All timestamps in UTC.
+
+    Returns:
+        UTC timestamp string ending with 'Z'
+    """
+    return datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+
 # Import confidence tracker
 try:
     from confidence_tracker import (
@@ -338,7 +350,7 @@ class FormalCommitmentsHandler:
                 },
                 source_hypothesis=source_hypothesis,
                 derivation_method=derivation_method,
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=utc_now(),
                 correlation_id=correlation_id,
                 metadata={
                     'confidence_level': threshold.level.value,
@@ -561,7 +573,7 @@ class FormalCommitmentsHandler:
                             contradiction_type="confidence_aware",
                             contradicted_commitments=[c1.proposition_id, c2.proposition_id],
                             reason=f"Contradiction detected between commitments with thresholds {c1.confidence_threshold:.2f} and {c2.confidence_threshold:.2f}",
-                            detected_at=datetime.now(timezone.utc).isoformat(),
+                            detected_at=utc_now(),
                             correlation_id=correlation_id,
                             metadata={
                                 "commitment_1_threshold": c1.confidence_threshold,

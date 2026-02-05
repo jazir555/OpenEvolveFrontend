@@ -29,6 +29,18 @@ from pathlib import Path
 from dataclasses import dataclass, field
 import uuid
 
+
+def utc_now() -> str:
+    """
+    Get current UTC timestamp in ISO-8601 format with 'Z' suffix.
+
+    Following CLAUDE.md Law of UTC: All timestamps in UTC.
+
+    Returns:
+        UTC timestamp string ending with 'Z'
+    """
+    return datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+
 # Add glue/lib to path for imports
 glue_lib_path = Path(__file__).parent.parent.parent.parent / "lib"
 sys.path.insert(0, str(glue_lib_path))
@@ -245,7 +257,7 @@ class LLTLAdapter:
         else:
             self.confidence_tracker = None
             self.commitments_handler = None
-            logger.log("WARNING", f"Confidence modules not available: {CONFIDENCE_IMPORT_ERROR if not CONFIDENCE_MODULES_AVAILABLE else 'Unknown'}",
+            logger.log("WARNING", "Confidence modules not available",
                       operation="initialize")
 
         # Legacy: committed propositions for backward compatibility
@@ -795,7 +807,7 @@ class LLTLAdapter:
             },
             source_hypothesis=source_hypothesis,
             derivation_method=derivation_method,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=utc_now(),
             correlation_id=correlation_id
         )
 

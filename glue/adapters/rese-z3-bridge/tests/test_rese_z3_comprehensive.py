@@ -308,11 +308,12 @@ class TestCircuitBreaker:
         stats = breaker.get_stats()
 
         assert stats["state"] == "closed"
-        assert stats["failure_count"] == 1
-        assert stats["success_count"] == 1
+        assert stats["failure_count"] == 1  # Current failure count (reset by success)
+        # success_count is only incremented in HALF_OPEN state
+        assert stats["success_count"] == 0
         assert stats["total_calls"] == 3
-        assert stats["total_failures"] == 1
-        assert stats["total_successes"] == 1
+        assert stats["total_failures"] == 2  # 2 record_failure() calls
+        assert stats["total_successes"] == 1  # 1 record_success() call
 
 
 # =============================================================================
@@ -709,7 +710,7 @@ class TestZ3Client:
 class TestRESEZ3Bridge:
     """Test main RESE-Z3 Bridge."""
 
-    @patch('glue.adapters.rese_z3_bridge.src.rese_z3_bridge.Z3Client')
+    @patch('rese_z3_bridge.Z3Client')
     def test_bridge_initialization(self, mock_z3_client_class, bridge_config):
         """Test bridge initializes correctly."""
         mock_client = Mock()
@@ -723,7 +724,7 @@ class TestRESEZ3Bridge:
         assert bridge.monitor is not None
         assert bridge.cache is not None
 
-    @patch('glue.adapters.rese_z3_bridge.src.rese_z3_bridge.Z3Client')
+    @patch('rese_z3_bridge.Z3Client')
     def test_solve_constraints_success(
         self,
         mock_z3_client_class,
@@ -754,7 +755,7 @@ class TestRESEZ3Bridge:
         assert result.model is not None
         assert result.execution_time_ms > 0
 
-    @patch('glue.adapters.rese_z3_bridge.src.rese_z3_bridge.Z3Client')
+    @patch('rese_z3_bridge.Z3Client')
     def test_solve_constraints_cache_hit(
         self,
         mock_z3_client_class,
@@ -993,7 +994,7 @@ class TestConfiguration:
 class TestErrorHandling:
     """Test error handling in Z3 client and bridge."""
 
-    @patch('glue.adapters.rese_z3_bridge.src.rese_z3_client.requests.Session.post')
+    @patch('rese_z3_client.requests.Session.post')
     def test_z3_client_timeout_error(self, mock_post):
         """Test Z3 client handles timeout."""
         mock_post.side_effect = requests.Timeout("Request timed out")
@@ -1007,7 +1008,7 @@ class TestErrorHandling:
         with pytest.raises(Z3ClientTimeoutError):
             client.solve("(check-sat)", "test-123", 5000)
 
-    @patch('glue.adapters.rese_z3_bridge.src.rese_z3_client.requests.Session.post')
+    @patch('rese_z3_client.requests.Session.post')
     def test_z3_client_connection_error(self, mock_post):
         """Test Z3 client handles connection error."""
         mock_post.side_effect = requests.ConnectionError("Connection refused")
@@ -1034,7 +1035,7 @@ class TestErrorHandling:
         # Should not allow execution
         assert breaker.can_execute() is False
 
-    @patch('glue.adapters.rese_z3_bridge.src.rese_z3_client.requests.Session.post')
+    @patch('rese_z3_client.requests.Session.post')
     def test_circuit_breaker_opens_on_timeout(self, mock_post):
         """Test circuit breaker opens after repeated timeouts."""
         config = Z3ClientConfig(
@@ -1072,7 +1073,7 @@ class TestPerformanceAndScalability:
 
     def test_cache_performance_with_many_requests(self, sample_variables, sample_constraints):
         """Test cache improves performance for repeated requests."""
-        with patch('glue.adapters.rese_z3_bridge.src.rese_z3_bridge.Z3Client') as mock_client_class:
+        with patch('rese_z3_bridge.Z3Client') as mock_client_class:
             mock_client = Mock()
             mock_client_class.return_value = mock_client
             mock_client.solve.return_value = {
@@ -1104,7 +1105,7 @@ class TestPerformanceAndScalability:
         bridge = RESEZ3Bridge(bridge_config)
 
         # Perform multiple operations
-        with patch('glue.adapters.rese_z3_bridge.src.rese_z3_bridge.Z3Client') as mock_client_class:
+        with patch('rese_z3_bridge.Z3Client') as mock_client_class:
             mock_client = Mock()
             mock_client_class.return_value = mock_client
             mock_client.solve.return_value = {
@@ -1136,7 +1137,7 @@ class TestPerformanceAndScalability:
 class TestLeanAideIntegration:
     """Test LeanAide integration methods."""
 
-    @patch('glue.adapters.rese_z3_bridge.src.rese_z3_bridge.LeanAideClient')
+    @patch('rese_z3_bridge.LeanAideClient')
     def test_autoformalize_method(
         self,
         mock_leanaide_client_class,
@@ -1144,10 +1145,12 @@ class TestLeanAideIntegration:
         correlation_id,
     ):
         """Test autoformalize method with LeanAide client."""
+        import asyncio
+
         mock_client = Mock()
         mock_leanaide_client_class.return_value = mock_client
 
-        # Mock async result
+        # Create a mock result that mimics the async response
         mock_result = Mock()
         mock_result.success = True
         mock_result.data = {
@@ -1155,28 +1158,29 @@ class TestLeanAideIntegration:
             "name": "test",
             "type": "Prop",
         }
+        mock_result.response_time = 0.1
 
-        # Run async function
-        async def run_autoformalize():
+        # Create an async function that returns the mock result
+        async def mock_translate():
             return mock_result
 
-        # Mock the async call
-        mock_client.translate_thm_detailed.return_value = asyncio.sleep(0)
+        # Make the async method return a coroutine
+        mock_client.translate_thm = Mock(return_value=mock_translate())
+        mock_client.translate_thm_detailed = Mock(return_value=mock_translate())
 
         bridge = RESEZ3Bridge(bridge_config)
         bridge.leanaide_client = mock_client
 
         # Test autoformalize
-        with patch('asyncio.new_event_loop'):
-            result = bridge._autoformalize_with_client(
-                LeanAideAutoformalizeRequest(
-                    natural_language="Prove test theorem",
-                    correlation_id=correlation_id,
-                )
+        result = bridge._autoformalize_with_client(
+            LeanAideAutoformalizeRequest(
+                natural_language="Prove test theorem",
+                correlation_id=correlation_id,
             )
+        )
 
         assert result.success is True
-        assert result.lean_code is not None
+        assert result.lean_code == "theorem test : Prop := by sorry"
 
 
 # =============================================================================

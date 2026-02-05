@@ -91,7 +91,7 @@ class Z3VerificationResult:
     constraints_checked: int = 0
     solver_version: Optional[str] = None
     correlation_id: Optional[str] = None
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
     errors: List[str] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
 
@@ -122,7 +122,7 @@ class Z3VerificationResult:
             constraints_checked=data.get("constraints_checked", 0),
             solver_version=data.get("solver_version"),
             correlation_id=data.get("correlation_id"),
-            timestamp=data.get("timestamp", datetime.now(timezone.utc).isoformat()),
+            timestamp=data.get("timestamp", datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")),
             errors=data.get("errors", []),
             metadata=data.get("metadata", {}),
         )
@@ -163,7 +163,7 @@ class LeanAideVerificationResult:
     constraints_checked: int = 0
     ai_model_version: Optional[str] = None
     correlation_id: Optional[str] = None
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
     errors: List[str] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
 
@@ -200,7 +200,7 @@ class LeanAideVerificationResult:
             constraints_checked=data.get("constraints_checked", 0),
             ai_model_version=data.get("ai_model_version"),
             correlation_id=data.get("correlation_id"),
-            timestamp=data.get("timestamp", datetime.now(timezone.utc).isoformat()),
+            timestamp=data.get("timestamp", datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")),
             errors=data.get("errors", []),
             metadata=data.get("metadata", {}),
         )
@@ -245,7 +245,7 @@ class Lean4VerificationResult:
     constraints_checked: int = 0
     lean_version: Optional[str] = None
     correlation_id: Optional[str] = None
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
     errors: List[str] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
 
@@ -284,7 +284,7 @@ class Lean4VerificationResult:
             constraints_checked=data.get("constraints_checked", 0),
             lean_version=data.get("lean_version"),
             correlation_id=data.get("correlation_id"),
-            timestamp=data.get("timestamp", datetime.now(timezone.utc).isoformat()),
+            timestamp=data.get("timestamp", datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")),
             errors=data.get("errors", []),
             metadata=data.get("metadata", {}),
         )
@@ -335,7 +335,7 @@ class UnifiedVerificationResult:
     total_constraints_checked: int = 0
 
     # Metadata
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -384,7 +384,7 @@ class UnifiedVerificationResult:
             escalation_reasons=data.get("escalation_reasons", []),
             total_execution_time_ms=data.get("total_execution_time_ms", 0.0),
             total_constraints_checked=data.get("total_constraints_checked", 0),
-            timestamp=data.get("timestamp", datetime.now(timezone.utc).isoformat()),
+            timestamp=data.get("timestamp", datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")),
             metadata=data.get("metadata", {}),
         )
 
@@ -411,11 +411,13 @@ class UnifiedVerificationResult:
         self.total_execution_time_ms += result.execution_time_ms
         self.total_constraints_checked += result.constraints_checked
 
-        # Update final status if this tier succeeded
+        # Update final status if this tier succeeded, but only set successful_tier if not already set
+        # (first successful tier wins - lower tier is better)
         if result.is_successful():
             self.final_status = VerificationStatus.VERIFIED
-            self.successful_tier = result.tier
-            self._calculate_confidence()
+            if self.successful_tier is None:
+                self.successful_tier = result.tier
+                self._calculate_confidence()
 
     def _calculate_confidence(self):
         """Calculate confidence based on successful tier"""

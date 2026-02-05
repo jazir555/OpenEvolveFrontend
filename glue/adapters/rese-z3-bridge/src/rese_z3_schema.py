@@ -75,10 +75,15 @@ class CanonicalVariable:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'CanonicalVariable':
+        bounds = data.get("bounds")
+        # Convert list to tuple if present
+        if bounds is not None and isinstance(bounds, list):
+            bounds = tuple(bounds)
+
         return cls(
             name=data["name"],
             var_type=ConstraintType(data["var_type"]),
-            bounds=data.get("bounds"),
+            bounds=bounds,
             bit_width=data.get("bit_width"),
         )
 
@@ -128,7 +133,8 @@ class CanonicalSolverRequest:
     timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def __post_init__(self):
-        if not self.correlation_id:
+        # Only auto-generate if None, not if empty string
+        if self.correlation_id is None:
             self.correlation_id = str(uuid.uuid4())
 
     def to_dict(self) -> Dict[str, Any]:
@@ -247,7 +253,8 @@ class CanonicalTheoremRequest:
     timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def __post_init__(self):
-        if not self.correlation_id:
+        # Only auto-generate if None, not if empty string
+        if self.correlation_id is None:
             self.correlation_id = str(uuid.uuid4())
 
     def to_dict(self) -> Dict[str, Any]:
@@ -563,7 +570,8 @@ class LeanAideAutoformalizeRequest:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
-        if not self.correlation_id:
+        # Only auto-generate if None, not if empty string
+        if self.correlation_id is None:
             self.correlation_id = str(uuid.uuid4())
 
     def to_dict(self) -> Dict[str, Any]:
@@ -656,7 +664,8 @@ class LeanAideProveRequest:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
-        if not self.correlation_id:
+        # Only auto-generate if None, not if empty string
+        if self.correlation_id is None:
             self.correlation_id = str(uuid.uuid4())
 
     def to_dict(self) -> Dict[str, Any]:
@@ -748,7 +757,8 @@ class Z3ToLeanTranslationRequest:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
-        if not self.correlation_id:
+        # Only auto-generate if None, not if empty string
+        if self.correlation_id is None:
             self.correlation_id = str(uuid.uuid4())
 
     def to_dict(self) -> Dict[str, Any]:
@@ -838,7 +848,8 @@ class LeanAideTacticSuggestionRequest:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
-        if not self.correlation_id:
+        # Only auto-generate if None, not if empty string
+        if self.correlation_id is None:
             self.correlation_id = str(uuid.uuid4())
 
     def to_dict(self) -> Dict[str, Any]:

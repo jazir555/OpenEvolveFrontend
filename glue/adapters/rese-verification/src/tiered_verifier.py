@@ -501,8 +501,15 @@ class TieredVerifier:
 
         try:
             # Import Z3 bridge
-            from glue.adapters.rese_z3_bridge.src.rese_z3_bridge import RESEZ3Bridge
-            from glue.adapters.rese_z3_bridge.src.rese_z3_schema import (
+            import sys
+            from pathlib import Path
+            # Add rese-z3-bridge to path
+            z3_bridge_path = Path(__file__).parent.parent.parent / "rese-z3-bridge" / "src"
+            if str(z3_bridge_path) not in sys.path:
+                sys.path.insert(0, str(z3_bridge_path))
+
+            from rese_z3_bridge import RESEZ3Bridge
+            from rese_z3_schema import (
                 CanonicalConstraint,
                 ConstraintType,
                 CanonicalVariable,

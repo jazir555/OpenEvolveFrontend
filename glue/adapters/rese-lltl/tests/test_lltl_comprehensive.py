@@ -41,6 +41,7 @@ from confidence_tracker import (
     ConfidenceThreshold,
     ConfidenceLevel,
     ConfidenceHistory,
+    utc_now,
 )
 
 
@@ -304,7 +305,7 @@ class TestConfidenceTracker:
             threshold=0.75,
             level=ConfidenceLevel.HIGH,
             significance_level=0.05,
-            derived_at=datetime.now(timezone.utc).isoformat(),
+            derived_at=utc_now(),
             derivation_method="test",
             correlation_id=correlation_id
         )
@@ -377,7 +378,7 @@ class TestConfidenceThreshold:
             threshold=0.75,
             level=ConfidenceLevel.HIGH,
             significance_level=0.05,
-            derived_at=datetime.now(timezone.utc).isoformat(),
+            derived_at=utc_now(),
             derivation_method="test_method",
             correlation_id=correlation_id
         )
@@ -392,7 +393,7 @@ class TestConfidenceThreshold:
             threshold=0.75,
             level=ConfidenceLevel.HIGH,
             significance_level=0.05,
-            derived_at=datetime.now(timezone.utc).isoformat(),
+            derived_at=utc_now(),
             derivation_method="test_method",
             correlation_id=correlation_id,
             metadata={"key": "value"}
@@ -420,7 +421,7 @@ class TestConfidenceThreshold:
             threshold=0.75,
             level=ConfidenceLevel.HIGH,
             significance_level=0.05,
-            derived_at=datetime.now(timezone.utc).isoformat(),
+            derived_at=utc_now(),
             derivation_method="test",
             correlation_id=correlation_id
         )
@@ -514,53 +515,86 @@ class TestLLTLAdapter:
         """Test constraint translation error handling"""
         from lltl_adapter import LLTLAdapter
 
+        # Create mock translator that returns error
         mock_translator = MagicMock()
-        mock_translator.translate.return_value = (
-            None,
-            "Translation failed"
-        )
+        mock_translator.translate.return_value = (None, "Translation failed")
+        mock_translator.encoder = MagicMock()
+        mock_translator.composer = MagicMock()
+        mock_translator.dito = MagicMock()
 
-        sys.modules['rese_lltl'].LogicToLossTranslator = MagicMock(return_value=mock_translator)
+        # Patch module-level imports
+        with patch('lltl_adapter.LogicToLossTranslator', return_value=mock_translator):
+            with patch('lltl_adapter.EncodingConfig'):
+                with patch('lltl_adapter.LossConfig'):
+                    with patch('lltl_adapter.DITOConfig'):
+                        with patch('lltl_adapter.Z3_AVAILABLE', False):
+                            with patch('lltl_adapter.CONFIDENCE_MODULES_AVAILABLE', False):
+                                adapter = LLTLAdapter()
+                                # Override the translator with our mock
+                                adapter.translator = mock_translator
 
-        adapter = LLTLAdapter()
-        result, error = adapter.translate_constraints([])
+                                result, error = adapter.translate_constraints([])
 
-        assert result is None
-        assert error == "Translation failed"
+                                assert result is None
+                                assert error == "Translation failed"
 
     def test_adapter_encode_single(self):
         """Test single constraint encoding"""
         from lltl_adapter import LLTLAdapter
 
+        # Create mock encoder and translator
         mock_encoder = MagicMock()
         mock_encoder.encode.return_value = ({"encoded": "data"}, None)
 
         mock_translator = MagicMock()
         mock_translator.encoder = mock_encoder
+        mock_translator.composer = MagicMock()
+        mock_translator.dito = MagicMock()
 
-        sys.modules['rese_lltl'].LogicToLossTranslator = MagicMock(return_value=mock_translator)
+        # Patch module-level imports
+        with patch('lltl_adapter.LogicToLossTranslator', return_value=mock_translator):
+            with patch('lltl_adapter.EncodingConfig'):
+                with patch('lltl_adapter.LossConfig'):
+                    with patch('lltl_adapter.DITOConfig'):
+                        with patch('lltl_adapter.Z3_AVAILABLE', False):
+                            with patch('lltl_adapter.CONFIDENCE_MODULES_AVAILABLE', False):
+                                adapter = LLTLAdapter()
+                                # Override the translator with our mock
+                                adapter.translator = mock_translator
 
-        adapter = LLTLAdapter()
-        result, error = adapter.encode_single({"constraint": "test"})
+                                result, error = adapter.encode_single({"constraint": "test"})
 
-        assert error is None
-        assert result is not None
+                                assert error is None
+                                assert result is not None
+                                assert result == {"encoded": "data"}
 
     def test_adapter_get_stats(self):
         """Test getting adapter statistics"""
         from lltl_adapter import LLTLAdapter
 
+        # Create mock translator
         mock_translator = MagicMock()
         mock_translator.get_stats.return_value = {"cache_hits": 10}
+        mock_translator.encoder = MagicMock()
+        mock_translator.composer = MagicMock()
+        mock_translator.dito = MagicMock()
 
-        sys.modules['rese_lltl'].LogicToLossTranslator = MagicMock(return_value=mock_translator)
+        # Patch module-level imports
+        with patch('lltl_adapter.LogicToLossTranslator', return_value=mock_translator):
+            with patch('lltl_adapter.EncodingConfig'):
+                with patch('lltl_adapter.LossConfig'):
+                    with patch('lltl_adapter.DITOConfig'):
+                        with patch('lltl_adapter.Z3_AVAILABLE', False):
+                            with patch('lltl_adapter.CONFIDENCE_MODULES_AVAILABLE', False):
+                                adapter = LLTLAdapter()
+                                # Override the translator with our mock
+                                adapter.translator = mock_translator
 
-        adapter = LLTLAdapter()
-        stats = adapter.get_stats()
+                                stats = adapter.get_stats()
 
-        assert "adapter_config" in stats
-        assert "translator_stats" in stats
-        assert stats["translator_stats"]["cache_hits"] == 10
+                                assert "adapter_config" in stats
+                                assert "translator_stats" in stats
+                                assert stats["translator_stats"]["cache_hits"] == 10
 
     def test_adapter_detect_contradictions_z3(self):
         """Test contradiction detection with Z3"""
@@ -584,7 +618,7 @@ class TestLLTLAdapter:
                 statistical_evidence={},
                 source_hypothesis="h1",
                 derivation_method="test",
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=utc_now(),
                 correlation_id="test"
             )
 
@@ -612,7 +646,7 @@ class TestLLTLAdapter:
                 statistical_evidence={},
                 source_hypothesis="h1",
                 derivation_method="test",
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=utc_now(),
                 correlation_id="test"
             )
 
@@ -640,7 +674,7 @@ class TestFormalCommitments:
             statistical_evidence={"confidence": 0.85, "p_value": 0.03},
             source_hypothesis="hypothesis-1",
             derivation_method="mcts_validation",
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=utc_now(),
             correlation_id=correlation_id
         )
 
@@ -659,7 +693,7 @@ class TestFormalCommitments:
             statistical_evidence={"confidence": 0.85},
             source_hypothesis="h1",
             derivation_method="test",
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=utc_now(),
             correlation_id=correlation_id
         )
 
@@ -681,7 +715,7 @@ class TestFormalCommitments:
             statistical_evidence={"p_value": 0.03},
             source_hypothesis="h1",
             derivation_method="test",
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=utc_now(),
             correlation_id=correlation_id,
             lean4_theorem="theorem test : True"
         )
@@ -704,7 +738,7 @@ class TestFormalCommitments:
             statistical_evidence={},
             source_hypothesis="h1",
             derivation_method="test",
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=utc_now(),
             correlation_id=correlation_id
         )
 
@@ -749,7 +783,7 @@ class TestCLAUDECompliance:
             threshold=0.75,
             level=ConfidenceLevel.HIGH,
             significance_level=0.05,
-            derived_at=datetime.now(timezone.utc).isoformat(),
+            derived_at=utc_now(),
             derivation_method="test",
             correlation_id=correlation_id
         )
@@ -791,7 +825,7 @@ class TestCLAUDECompliance:
                 statistical_evidence={},
                 source_hypothesis="h1",
                 derivation_method="test",
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=utc_now(),
                 correlation_id="test"
             )
 
