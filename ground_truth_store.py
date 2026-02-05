@@ -1225,7 +1225,7 @@ class GroundTruthStore:
             use_semantic_verification: Use AST-based semantic verification
 
         Returns:
-            Dict mapping sub_problem_id → (is_preserved, details)
+            Dict mapping sub_problem_id -> (is_preserved, details)
         """
         if sub_problem_ids is None:
             sub_problem_ids = list(self.store.keys())
@@ -1245,14 +1245,14 @@ class GroundTruthStore:
         self.logger.info(f"Verification: {preserved_count}/{total_count} solutions preserved")
 
         if preserved_count == total_count:
-            self.logger.info("✓ ALL solutions verified preserved")
+            self.logger.info("[OK] ALL solutions verified preserved")
         else:
-            self.logger.error(f"✗ {total_count - preserved_count} solutions NOT preserved")
+            self.logger.error(f"[FAIL] {total_count - preserved_count} solutions NOT preserved")
 
             # Log details of failures
             for sub_id, (preserved, details) in results.items():
                 if not preserved:
-                    self.logger.error(f"  ✗ {sub_id}: {details}")
+                    self.logger.error(f"  [FAIL] {sub_id}: {details}")
 
         return results
 

@@ -86,11 +86,11 @@ class VerificationReporter:
                 all_passed = all_passed and passed
                 self.log_result("syntax_checks", file, passed,
                               result.stderr if result.stderr else "Syntax OK")
-                print(f"  {'✓' if passed else '✗'} {file}")
+                print(f"  {'[OK]' if passed else '[FAIL]'} {file}")
             except Exception as e:
                 all_passed = False
                 self.log_result("syntax_checks", file, False, str(e))
-                print(f"  ✗ {file}: {e}")
+                print(f"  [FAIL] {file}: {e}")
 
         print(f"\nSyntax Verification: {'PASSED' if all_passed else 'FAILED'}")
         return all_passed
@@ -118,11 +118,11 @@ class VerificationReporter:
                 module = importlib.import_module(module_name)
                 getattr(module, import_name)
                 self.log_result("import_checks", label, True, f"Import successful")
-                print(f"  ✓ {label}")
+                print(f"  [OK] {label}")
             except Exception as e:
                 all_passed = False
                 self.log_result("import_checks", label, False, str(e))
-                print(f"  ✗ {label}: {e}")
+                print(f"  [FAIL] {label}: {e}")
 
         print(f"\nImport Verification: {'PASSED' if all_passed else 'FAILED'}")
         return all_passed
@@ -162,23 +162,23 @@ class VerificationReporter:
                         passed_count = int(match.group(1))
                         self.log_result("test_suites", test_file, True,
                                       f"{passed_count} tests passed")
-                        print(f"  ✓ {test_file}: {passed_count} tests passed")
+                        print(f"  [OK] {test_file}: {passed_count} tests passed")
                     else:
                         self.log_result("test_suites", test_file, True, "Tests passed")
-                        print(f"  ✓ {test_file}: Tests passed")
+                        print(f"  [OK] {test_file}: Tests passed")
                 else:
                     all_passed = False
                     self.log_result("test_suites", test_file, False, output[:200])
-                    print(f"  ✗ {test_file}: Tests failed")
+                    print(f"  [FAIL] {test_file}: Tests failed")
 
             except subprocess.TimeoutExpired:
                 all_passed = False
                 self.log_result("test_suites", test_file, False, "Timeout")
-                print(f"  ✗ {test_file}: Timeout")
+                print(f"  [FAIL] {test_file}: Timeout")
             except Exception as e:
                 all_passed = False
                 self.log_result("test_suites", test_file, False, str(e))
-                print(f"  ✗ {test_file}: {e}")
+                print(f"  [FAIL] {test_file}: {e}")
 
         print(f"\nTest Suite Execution: {'PASSED' if all_passed else 'FAILED'}")
         return all_passed
@@ -203,7 +203,7 @@ class VerificationReporter:
             passed = result.returncode == 0 and "leak" not in output.lower()
 
             self.log_result("memory_leak_tests", "Memory Leak Test", passed, output[:500])
-            print(f"  {'✓' if passed else '✗'} Memory Leak Test")
+            print(f"  {'[OK]' if passed else '[FAIL]'} Memory Leak Test")
             if output:
                 print(f"  Output: {output[:200]}")
 
@@ -211,7 +211,7 @@ class VerificationReporter:
 
         except Exception as e:
             self.log_result("memory_leak_tests", "Memory Leak Test", False, str(e))
-            print(f"  ✗ Memory Leak Test: {e}")
+            print(f"  [FAIL] Memory Leak Test: {e}")
             return False
 
     def run_edge_case_tests(self) -> bool:
@@ -228,11 +228,11 @@ class VerificationReporter:
             # For now, just verify the module loads
             self.log_result("edge_case_tests", "None handling", True,
                           "Module loads successfully")
-            print("    ✓ None handling module loads")
+            print("    [OK] None handling module loads")
         except Exception as e:
             all_passed = False
             self.log_result("edge_case_tests", "None handling", False, str(e))
-            print(f"    ✗ None handling: {e}")
+            print(f"    [FAIL] None handling: {e}")
 
         # Test 2: Empty string validation
         print("  Testing empty string validation...")
@@ -242,16 +242,16 @@ class VerificationReporter:
             if isinstance(result, dict) and 'error' in result:
                 self.log_result("edge_case_tests", "Empty string validation", True,
                               "Returns error dict")
-                print("    ✓ Empty string validation works")
+                print("    [OK] Empty string validation works")
             else:
                 all_passed = False
                 self.log_result("edge_case_tests", "Empty string validation", False,
                               "Should return error dict")
-                print("    ✗ Empty string validation: Should return error dict")
+                print("    [FAIL] Empty string validation: Should return error dict")
         except Exception as e:
             all_passed = False
             self.log_result("edge_case_tests", "Empty string validation", False, str(e))
-            print(f"    ✗ Empty string validation: {e}")
+            print(f"    [FAIL] Empty string validation: {e}")
 
         print(f"\nEdge Case Testing: {'PASSED' if all_passed else 'FAILED'}")
         return all_passed
@@ -276,7 +276,7 @@ class VerificationReporter:
             passed = result.returncode == 0
 
             self.log_result("data_consistency", "Data Consistency", passed, output[:500])
-            print(f"  {'✓' if passed else '✗'} Data Consistency Check")
+            print(f"  {'[OK]' if passed else '[FAIL]'} Data Consistency Check")
             if output:
                 print(f"  Output: {output[:200]}")
 
@@ -284,7 +284,7 @@ class VerificationReporter:
 
         except Exception as e:
             self.log_result("data_consistency", "Data Consistency", False, str(e))
-            print(f"  ✗ Data Consistency: {e}")
+            print(f"  [FAIL] Data Consistency: {e}")
             return False
 
     def run_foreign_key_tests(self) -> bool:
@@ -337,19 +337,19 @@ class VerificationReporter:
                     # If we get here, foreign keys are NOT enforced
                     self.log_result("foreign_key_tests", "FK Enforcement", False,
                                   "Foreign key NOT enforced (BUG!)")
-                    print("  ✗ Foreign key NOT enforced (BUG!)")
+                    print("  [FAIL] Foreign key NOT enforced (BUG!)")
                     return False
                 except sqlite3.IntegrityError as e:
                     # Expected - foreign key constraint violated
                     if "FOREIGN KEY" in str(e):
                         self.log_result("foreign_key_tests", "FK Enforcement", True,
                                       f"Foreign key properly enforced")
-                        print(f"  ✓ Foreign key properly enforced")
+                        print(f"  [OK] Foreign key properly enforced")
                         return True
                     else:
                         self.log_result("foreign_key_tests", "FK Enforcement", False,
                                       f"Wrong error: {str(e)}")
-                        print(f"  ✗ Wrong error: {str(e)}")
+                        print(f"  [FAIL] Wrong error: {str(e)}")
                         return False
 
             finally:
@@ -372,7 +372,7 @@ class VerificationReporter:
 
         except Exception as e:
             self.log_result("foreign_key_tests", "FK Enforcement", False, str(e))
-            print(f"  ✗ Foreign key test failed: {e}")
+            print(f"  [FAIL] Foreign key test failed: {e}")
             return False
 
     def run_configuration_tests(self) -> bool:
@@ -391,11 +391,11 @@ class VerificationReporter:
 
             self.log_result("configuration_tests", "env_helpers", True,
                           f"PORT={port}, TEMP={temp}")
-            print(f"    ✓ Environment helpers work (PORT={port}, TEMP={temp})")
+            print(f"    [OK] Environment helpers work (PORT={port}, TEMP={temp})")
         except Exception as e:
             all_passed = False
             self.log_result("configuration_tests", "env_helpers", False, str(e))
-            print(f"    ✗ Environment helpers: {e}")
+            print(f"    [FAIL] Environment helpers: {e}")
 
         # Test config loader
         print("  Testing config loader...")
@@ -407,11 +407,11 @@ class VerificationReporter:
             num_settings = len([attr for attr in dir(config) if not attr.startswith('_')])
             self.log_result("configuration_tests", "config_loader", True,
                           f"{num_settings} config attributes loaded")
-            print(f"    ✓ Config loaded: {num_settings} settings")
+            print(f"    [OK] Config loaded: {num_settings} settings")
         except Exception as e:
             all_passed = False
             self.log_result("configuration_tests", "config_loader", False, str(e))
-            print(f"    ✗ Config loader: {e}")
+            print(f"    [FAIL] Config loader: {e}")
 
         print(f"\nConfiguration Verification: {'PASSED' if all_passed else 'FAILED'}")
         return all_passed
@@ -448,11 +448,11 @@ class VerificationReporter:
             if passed:
                 self.log_result("concurrency_tests", "Singleton Thread-Safety", True,
                               f"1000 accesses, 1 instance")
-                print(f"  ✓ Singleton thread-safe (1000 accesses, 1 instance)")
+                print(f"  [OK] Singleton thread-safe (1000 accesses, 1 instance)")
             else:
                 self.log_result("concurrency_tests", "Singleton Thread-Safety", False,
                               f"{len(unique_ids)} instances, {len(errors)} errors")
-                print(f"  ✗ Singleton NOT thread-safe ({len(unique_ids)} instances)")
+                print(f"  [FAIL] Singleton NOT thread-safe ({len(unique_ids)} instances)")
                 if errors:
                     print(f"    Errors: {errors}")
 
@@ -460,7 +460,7 @@ class VerificationReporter:
 
         except Exception as e:
             self.log_result("concurrency_tests", "Singleton Thread-Safety", False, str(e))
-            print(f"  ✗ Concurrency test: {e}")
+            print(f"  [FAIL] Concurrency test: {e}")
             return False
 
     def run_api_contract_tests(self) -> bool:
@@ -476,7 +476,7 @@ class VerificationReporter:
 
             self.log_result("api_contract_tests", "API Documentation", passed,
                           "Complete" if passed else "Incomplete")
-            print(f"  {'✓' if passed else '✗'} API contract documentation {'complete' if passed else 'incomplete'}")
+            print(f"  {'[OK]' if passed else '[FAIL]'} API contract documentation {'complete' if passed else 'incomplete'}")
 
             if passed:
                 print(f"\n  Documentation preview:")
@@ -488,7 +488,7 @@ class VerificationReporter:
 
         except Exception as e:
             self.log_result("api_contract_tests", "API Documentation", False, str(e))
-            print(f"  ✗ API contract test: {e}")
+            print(f"  [FAIL] API contract test: {e}")
             return False
 
     def generate_report(self) -> Dict:
@@ -511,7 +511,7 @@ class VerificationReporter:
                 category_passed = sum(1 for t in tests if t['passed'])
                 category_total = len(tests)
                 category_rate = (category_passed / category_total * 100) if category_total > 0 else 0
-                status = "✓" if category_rate == 100 else "✗"
+                status = "[OK]" if category_rate == 100 else "[FAIL]"
                 print(f"   {status} {category.replace('_', ' ').title()}: {category_passed}/{category_total} ({category_rate:.0f}%)")
 
         # Determine production readiness
@@ -532,7 +532,7 @@ class VerificationReporter:
         total_criteria = len(success_criteria)
 
         for criterion, met in success_criteria.items():
-            print(f"   {'✓' if met else '✗'} {criterion}")
+            print(f"   {'[OK]' if met else '[FAIL]'} {criterion}")
 
         print(f"\n   Criteria Met: {criteria_met}/{total_criteria}")
 
@@ -544,15 +544,15 @@ class VerificationReporter:
 
         print(f"\n🏁 FINAL DETERMINATION")
         if is_production_ready:
-            print("   ✅ PRODUCTION READY")
+            print("   [OK] PRODUCTION READY")
             print("   All critical fixes verified and working correctly.")
         else:
-            print("   ❌ NOT PRODUCTION READY")
+            print("   [FAIL] NOT PRODUCTION READY")
             print("   Some issues remain that need attention.")
 
         # List remaining issues
         if self.failed_tests > 0:
-            print(f"\n⚠️  REMAINING ISSUES ({self.failed_tests})")
+            print(f"\n[WARN]  REMAINING ISSUES ({self.failed_tests})")
             for category, tests in self.results.items():
                 for test in tests:
                     if not test['passed']:

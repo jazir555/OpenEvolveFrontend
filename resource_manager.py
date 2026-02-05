@@ -524,9 +524,9 @@ def render_resource_dashboard(resource_manager: ResourceManager):
     
     # Status indicator
     if within_limits:
-        st.success("✓ All resource usage within limits")
+        st.success("[OK] All resource usage within limits")
     else:
-        st.error("⚠️ Resource limits exceeded!")
+        st.error("[WARN] Resource limits exceeded!")
         for violation in violations:
             st.write(f"- {violation}")
     

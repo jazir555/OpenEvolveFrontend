@@ -41,10 +41,10 @@ class LoongFlowMessages:
 ║  Evolution will proceed using OpenEvolve-only mode.           ║
 ║                                                              ║
 ║  OpenEvolve modes available:                                 ║
-║    • Standard - Basic evolutionary optimization              ║
-║    • QD (Quality-Diversity) - Behavioral space exploration   ║
-║    • MO (Multi-Objective) - Pareto optimization             ║
-║    • Adversarial - Robustness testing                        ║
+║    * Standard - Basic evolutionary optimization              ║
+║    * QD (Quality-Diversity) - Behavioral space exploration   ║
+║    * MO (Multi-Objective) - Pareto optimization             ║
+║    * Adversarial - Robustness testing                        ║
 ║                                                              ║
 ║  To enable LoongFlow, set enable_loongflow=True              ║
 ╚═══════════════════════════════════════════════════════════════╝
@@ -112,11 +112,11 @@ class LoongFlowMessages:
 ║  Mode: {mode:<55} ║
 ║                                                              ║
 ║  OpenEvolve provides:                                        ║
-║    • Quality-Diversity optimization (MAP-Elites)             ║
-║    • Multi-objective optimization (NSGA-II)                  ║
-║    • Adversarial co-evolution                                ║
-║    • Island model parallelism                               ║
-║    • Steady-state evolution                                   ║
+║    * Quality-Diversity optimization (MAP-Elites)             ║
+║    * Multi-objective optimization (NSGA-II)                  ║
+║    * Adversarial co-evolution                                ║
+║    * Island model parallelism                               ║
+║    * Steady-state evolution                                   ║
 ║                                                              ║
 ║  All evolutionary features are available.                    ║
 ╚═══════════════════════════════════════════════════════════════╝
@@ -137,10 +137,10 @@ class LoongFlowMessages:
 ║  LoongFlow Plan-Execute-Summarize system is active.          ║
 ║                                                              ║
 ║  Features enabled:                                           ║
-║    • Automated planning strategies                           ║
-║    • Memory-guided evolution                                ║
-║    • Execution pattern learning                             ║
-║    • Multi-iteration summarization                          ║
+║    * Automated planning strategies                           ║
+║    * Memory-guided evolution                                ║
+║    * Execution pattern learning                             ║
+║    * Multi-iteration summarization                          ║
 ║                                                              ║
 ║  Evolution will benefit from advanced PES capabilities.      ║
 ╚═══════════════════════════════════════════════════════════════╝
@@ -215,17 +215,17 @@ class LoongFlowMessages:
 
         if loongflow_available:
             summary += """
-║    ✓ Plan-Execute-Summarize workflow                        ║
-║    ✓ Memory-guided evolution                                ║
-║    ✓ Automated strategy selection                           ║
-║    ✓ Multi-step reasoning                                   ║
+║    [OK] Plan-Execute-Summarize workflow                        ║
+║    [OK] Memory-guided evolution                                ║
+║    [OK] Automated strategy selection                           ║
+║    [OK] Multi-step reasoning                                   ║
 """
         else:
             summary += """
-║    ✓ Quality-Diversity optimization                         ║
-║    ✓ Multi-objective Pareto fronts                          ║
-║    ✓ Adversarial robustness testing                         ║
-║    ✓ Island model parallelism                              ║
+║    [OK] Quality-Diversity optimization                         ║
+║    [OK] Multi-objective Pareto fronts                          ║
+║    [OK] Adversarial robustness testing                         ║
+║    [OK] Island model parallelism                              ║
 """
 
         summary += """
@@ -257,13 +257,13 @@ class LoongFlowMessages:
         ]
 
         for component, status in diagnostics['components'].items():
-            status_str = "✓" if status else "✗"
+            status_str = "[OK]" if status else "[FAIL]"
             lines.append(f"    {status_str} {component}")
 
         if diagnostics['issues']:
             lines.append("")
             lines.append("Issues:")
             for issue in diagnostics['issues']:
-                lines.append(f"    • {issue}")
+                lines.append(f"    * {issue}")
 
         return "\n".join(lines)

@@ -19,33 +19,33 @@ def test_imports():
         import time
         from typing import Dict, Any, List, Optional
         
-        print("✅ Basic imports successful")
+        print("[OK] Basic imports successful")
         
         # Test OpenEvolve integration
         try:
             from integrated_workflow import run_fully_integrated_adversarial_evolution
-            print("✅ Integrated workflow import successful")
+            print("[OK] Integrated workflow import successful")
         except ImportError as e:
-            print(f"⚠️ Integrated workflow import warning: {e}")
+            print(f"[WARN] Integrated workflow import warning: {e}")
         
         # Test adversarial testing
         try:
             from adversarial import run_adversarial_testing
-            print("✅ Adversarial testing import successful")
+            print("[OK] Adversarial testing import successful")
         except ImportError as e:
-            print(f"⚠️ Adversarial testing import warning: {e}")
+            print(f"[WARN] Adversarial testing import warning: {e}")
         
         # Test model orchestration
         try:
             from model_orchestration import ModelOrchestrator, ModelRole, ModelTeam
-            print("✅ Model orchestration import successful")
+            print("[OK] Model orchestration import successful")
         except ImportError as e:
-            print(f"⚠️ Model orchestration import warning: {e}")
+            print(f"[WARN] Model orchestration import warning: {e}")
         
         return True
         
     except Exception as e:
-        print(f"❌ Import test failed: {e}")
+        print(f"[FAIL] Import test failed: {e}")
         return False
 
 def test_session_state_defaults():
@@ -127,14 +127,14 @@ def test_session_state_defaults():
         
         for attr in required_attrs:
             if not hasattr(mock_state, attr):
-                print(f"❌ Missing session state attribute: {attr}")
+                print(f"[FAIL] Missing session state attribute: {attr}")
                 return False
         
-        print("✅ All session state defaults properly defined")
+        print("[OK] All session state defaults properly defined")
         return True
         
     except Exception as e:
-        print(f"❌ Session state test failed: {e}")
+        print(f"[FAIL] Session state test failed: {e}")
         return False
 
 def test_configuration_parameters():
@@ -157,20 +157,20 @@ def test_configuration_parameters():
         }
         
         for param, (min_val, max_val, param_type) in parameters.items():
-            print(f"✅ Parameter {param}: range {min_val}-{max_val}, type {param_type.__name__}")
+            print(f"[OK] Parameter {param}: range {min_val}-{max_val}, type {param_type.__name__}")
         
         # Test selection options
         rotation_strategies = ["Round Robin", "Random Sampling", "Performance-Based", "Staged", "Adaptive", "Focus-Category"]
         content_types = ["document_general", "document_legal", "document_medical", "document_technical", 
                         "code_python", "code_javascript", "code_java", "code_cpp", "plan", "sop"]
         
-        print(f"✅ Rotation strategies: {rotation_strategies}")
-        print(f"✅ Content types: {content_types}")
+        print(f"[OK] Rotation strategies: {rotation_strategies}")
+        print(f"[OK] Content types: {content_types}")
         
         return True
         
     except Exception as e:
-        print(f"❌ Configuration parameters test failed: {e}")
+        print(f"[FAIL] Configuration parameters test failed: {e}")
         return False
 
 def test_feature_categories():
@@ -222,7 +222,7 @@ def test_feature_categories():
         }
         
         for category, features in feature_categories.items():
-            print(f"✅ {category}: {len(features)} features")
+            print(f"[OK] {category}: {len(features)} features")
             for feature in features[:3]:  # Show first 3 features
                 print(f"   - {feature}")
             if len(features) > 3:
@@ -231,7 +231,7 @@ def test_feature_categories():
         return True
         
     except Exception as e:
-        print(f"❌ Feature categories test failed: {e}")
+        print(f"[FAIL] Feature categories test failed: {e}")
         return False
 
 def main():
@@ -252,10 +252,10 @@ def main():
         try:
             result = test_func()
             results.append((test_name, result))
-            status = "✅ PASSED" if result else "❌ FAILED"
+            status = "[OK] PASSED" if result else "[FAIL] FAILED"
             print(f"{status} {test_name}")
         except Exception as e:
-            print(f"❌ ERROR in {test_name}: {e}")
+            print(f"[FAIL] ERROR in {test_name}: {e}")
             results.append((test_name, False))
     
     print("\n" + "=" * 50)
@@ -266,7 +266,7 @@ def main():
     total = len(results)
     
     for test_name, result in results:
-        status = "✅ PASSED" if result else "❌ FAILED"
+        status = "[OK] PASSED" if result else "[FAIL] FAILED"
         print(f"{status} {test_name}")
     
     print(f"\n🎯 Overall: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
@@ -274,17 +274,17 @@ def main():
     if passed == total:
         print("\n🎉 All tests passed! The enhanced adversarial testing tab is ready.")
         print("\n🚀 Features implemented:")
-        print("  • Tripartite AI Architecture (Red/Blue/Evaluator Teams)")
-        print("  • Multi-Objective Optimization with Quality-Diversity")
-        print("  • Advanced Model Orchestration with Load Balancing")
-        print("  • Comprehensive Quality Assurance Mechanisms")
-        print("  • Real-Time Monitoring and Analytics")
-        print("  • Security and Compliance Features")
-        print("  • Human Feedback Integration")
-        print("  • Data Augmentation Capabilities")
-        print("  • Comprehensive Reporting and Visualization")
+        print("  * Tripartite AI Architecture (Red/Blue/Evaluator Teams)")
+        print("  * Multi-Objective Optimization with Quality-Diversity")
+        print("  * Advanced Model Orchestration with Load Balancing")
+        print("  * Comprehensive Quality Assurance Mechanisms")
+        print("  * Real-Time Monitoring and Analytics")
+        print("  * Security and Compliance Features")
+        print("  * Human Feedback Integration")
+        print("  * Data Augmentation Capabilities")
+        print("  * Comprehensive Reporting and Visualization")
     else:
-        print(f"\n⚠️ {total - passed} test(s) failed. Please review the implementation.")
+        print(f"\n[WARN] {total - passed} test(s) failed. Please review the implementation.")
     
     return passed == total
 

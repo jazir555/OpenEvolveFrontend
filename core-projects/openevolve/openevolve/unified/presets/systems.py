@@ -48,7 +48,7 @@ class PureOpenEvolvePreset(BasePreset):
             ),
             trade_offs={
                 "System": "OpenEvolve only",
-                "Planning": "❌ No planning phase",
+                "Planning": "[FAIL] No planning phase",
                 "Features": "Standard evolutionary operators",
                 "Speed": "⚡ Fast - direct evolution"
             },
@@ -116,9 +116,9 @@ class PureLoongFlowPreset(BasePreset):
             ),
             trade_offs={
                 "System": "LoongFlow PES only",
-                "Planning": "✅ Planning phase enabled",
-                "Memory": "✅ Long-term memory",
-                "Summarization": "✅ Evolution summarization"
+                "Planning": "[OK] Planning phase enabled",
+                "Memory": "[OK] Long-term memory",
+                "Summarization": "[OK] Evolution summarization"
             },
             related_presets=["pure_openevolve", "hybrid_auto"],
             example_usage="""
@@ -188,9 +188,9 @@ class HybridAutoPreset(BasePreset):
             ),
             trade_offs={
                 "System": "Hybrid - auto-selection",
-                "Flexibility": "✅✅ Maximum flexibility",
-                "Adaptation": "✅ Adaptive to problem",
-                "Overhead": "⚠️ Slight overhead from auto-selection"
+                "Flexibility": "[OK][OK] Maximum flexibility",
+                "Adaptation": "[OK] Adaptive to problem",
+                "Overhead": "[WARN] Slight overhead from auto-selection"
             },
             related_presets=["pure_openevolve", "pure_loongflow"],
             example_usage="""
@@ -256,9 +256,9 @@ class CustomPreset(BasePreset):
                 "none of the presets fit, need full control"
             ),
             trade_offs={
-                "Control": "✅✅✅ Full control",
-                "Complexity": "⚠️ Higher - you configure everything",
-                "Flexibility": "✅✅✅ Maximum flexibility"
+                "Control": "[OK][OK][OK] Full control",
+                "Complexity": "[WARN] Higher - you configure everything",
+                "Flexibility": "[OK][OK][OK] Maximum flexibility"
             },
             related_presets=["balanced", "pure_openevolve"],
             example_usage="""

@@ -114,9 +114,9 @@ class DetectionResult:
     def summary(self) -> str:
         """Human-readable summary"""
         if not self.is_attracted:
-            return f"✓ No attractor match (intensity={self.intensity_used:.1f}, checked {self.attractors_checked} attractors)"
+            return f"[OK] No attractor match (intensity={self.intensity_used:.1f}, checked {self.attractors_checked} attractors)"
 
-        parts = [f"⚠️ Attractor match detected (intensity={self.intensity_used:.1f})"]
+        parts = [f"[WARN] Attractor match detected (intensity={self.intensity_used:.1f})"]
         parts.append(f"  Checked {self.attractors_checked} attractors")
         parts.append(f"  Keyword score: {self.keyword_score:.1f}")
         
@@ -448,7 +448,7 @@ class DualModeAttractorSteering:
         self.neutral_steering = None
         try:
             self.neutral_steering = load_steering(model_name, config_dir)
-            print(f"✓ Loaded neutral attractors for {model_name}")
+            print(f"[OK] Loaded neutral attractors for {model_name}")
         except FileNotFoundError:
             print(f"⚠ No neutral attractors found for {model_name}")
         
@@ -459,7 +459,7 @@ class DualModeAttractorSteering:
                 f"{model_name}-controversial",
                 config_dir
             )
-            print(f"✓ Loaded controversial attractors for {model_name}")
+            print(f"[OK] Loaded controversial attractors for {model_name}")
         except FileNotFoundError:
             print(f"⚠ No controversial attractors found for {model_name}")
         
@@ -798,7 +798,7 @@ CRITICAL RULES:
     segments_text = []
     for i, seg in enumerate(segments[:5]):  # Limit to 5 segments
         keywords_str = ", ".join(seg['keywords'][:3])
-        segments_text.append(f'  {i+1}. "{seg["sentence"][:100]}..." → avoid: {keywords_str}')
+        segments_text.append(f'  {i+1}. "{seg["sentence"][:100]}..." -> avoid: {keywords_str}')
     
     user_prompt = f"""YOUR PREVIOUS RESPONSE:
 {original_response}

@@ -533,11 +533,11 @@ ARCHITECTURE = """
 ║  │     ROMA      │        │ Decomposition │        │  MDAP/MAKER   │        ║
 ║  │   + RLM       │        │   + RLM       │        │   + RLM       │        ║
 ║  │               │        │               │        │               │        ║
-║  │ • Recursive   │        │ • Blue Team   │        │ • Voting      │        ║
+║  │ * Recursive   │        │ * Blue Team   │        │ * Voting      │        ║
 ║  │   decomposition│       │   solves      │        │   consensus   │        ║
-║  │ • Aggregation │        │ • Red Team    │        │ • Error       │        ║
+║  │ * Aggregation │        │ * Red Team    │        │ * Error       │        ║
 ║  │               │        │   attacks     │        │   correction  │        ║
-║  │               │        │ • Gold Team   │        │               │        ║
+║  │               │        │ * Gold Team   │        │               │        ║
 ║  │               │        │   verifies    │        │               │        ║
 ║  └───────────────┘        └───────────────┘        └───────────────┘        ║
 ║          │                         │                         │               ║
@@ -547,11 +547,11 @@ ARCHITECTURE = """
 ║  ┌─────────────────────────────────────────────────────────────────────┐    ║
 ║  │              RLM EXECUTION ENGINE (The "Missing Piece")              │    ║
 ║  │                                                                      │    ║
-║  │  • Task-agnostic recursive execution                                 │    ║
-║  │  • Code execution in REPL (local/docker/modal/prime)                 │    ║
-║  │  • Sub-LM spawning for sub-problems                                  │    ║
-║  │  • Infinite context via environment offloading                       │    ║
-║  │  • Iterative refinement until solution                               │    ║
+║  │  * Task-agnostic recursive execution                                 │    ║
+║  │  * Code execution in REPL (local/docker/modal/prime)                 │    ║
+║  │  * Sub-LM spawning for sub-problems                                  │    ║
+║  │  * Infinite context via environment offloading                       │    ║
+║  │  * Iterative refinement until solution                               │    ║
 ║  └─────────────────────────────────────────────────────────────────────┘    ║
 ║                                    │                                         ║
 ║                                    ▼                                         ║
@@ -562,9 +562,9 @@ ARCHITECTURE = """
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 RLM is the missing puzzle piece:
-- ROMA needed recursive execution → RLM provides it
-- Decomposition needed code-executing teams → RLM provides it
-- MDAP needed error-correcting voting → RLM provides it
+- ROMA needed recursive execution -> RLM provides it
+- Decomposition needed code-executing teams -> RLM provides it
+- MDAP needed error-correcting voting -> RLM provides it
 - All systems now unified under one recursive execution framework
 """
 

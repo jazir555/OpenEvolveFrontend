@@ -1,7 +1,7 @@
 """
 Production-Ready Tripartite System for OpenEvolve
 
-MIGRATION NOTICE: CrewAI (AGPL) → CrewAI (MIT)
+MIGRATION NOTICE: CrewAI (AGPL) -> CrewAI (MIT)
 This module has been migrated from crewai # MIGRATED: was CrewAI to CrewAI orchestration.
 
 This module provides a robust, production-ready implementation of the ACE + Steer + LangChain tripartite system.
@@ -840,7 +840,7 @@ if __name__ == "__main__":
         metadata={"category": "system", "priority": "high"}
     )
     
-    print(f"✅ Knowledge added: {knowledge_result['success']}")
+    print(f"[OK] Knowledge added: {knowledge_result['success']}")
     
     # Execute production task
     task_result = system.execute_task(
@@ -849,7 +849,7 @@ if __name__ == "__main__":
         timeout=10.0
     )
     
-    print(f"✅ Task executed: {task_result['success']}")
+    print(f"[OK] Task executed: {task_result['success']}")
     print(f"📚 Knowledge used: {task_result['knowledge_used']}")
     print(f"🔍 Verification passed: {task_result['verification']['all_passed']}")
     print(f"⏱️  Execution time: {task_result['execution_time']:.3f}s")

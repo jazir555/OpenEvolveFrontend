@@ -243,10 +243,10 @@ def example_6_ci_cd_integration():
 
     # Exit with appropriate code
     if result.was_successful:
-        print("\n✓ All tests passed!")
+        print("\n[OK] All tests passed!")
         sys.exit(0)
     else:
-        print("\n✗ Some tests failed!")
+        print("\n[FAIL] Some tests failed!")
         sys.exit(1)
 
 

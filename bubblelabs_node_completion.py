@@ -183,7 +183,7 @@ class BubbleLabsNodeCompletion:
                 parameters=[
                     {"name": "timeout", "type": "number", "default": 300}
                 ],
-                icon="✓",
+                icon="[OK]",
                 color="#16a085"
             ),
         ]
@@ -346,7 +346,7 @@ class BubbleLabsNodeCompletion:
         with open(output_file, 'w') as f:
             json.dump(nodes_data, f, indent=2)
         
-        print(f"✅ Exported {len(self.nodes)} nodes to {output_file}")
+        print(f"[OK] Exported {len(self.nodes)} nodes to {output_file}")
         return output_file
     
     def export_workflows(self):
@@ -357,7 +357,7 @@ class BubbleLabsNodeCompletion:
         with open(output_file, 'w') as f:
             json.dump(workflows_data, f, indent=2)
         
-        print(f"✅ Exported {len(self.workflows)} workflows to {output_file}")
+        print(f"[OK] Exported {len(self.workflows)} workflows to {output_file}")
         return output_file
     
     def generate_documentation(self):
@@ -399,7 +399,7 @@ class BubbleLabsNodeCompletion:
         
         doc_file = self.output_dir / "NODE_DOCUMENTATION.md"
         doc_file.write_text(doc)
-        print(f"✅ Generated documentation: {doc_file}")
+        print(f"[OK] Generated documentation: {doc_file}")
         return doc_file
     
     def complete_integration(self):
@@ -409,20 +409,20 @@ class BubbleLabsNodeCompletion:
         
         # Create all nodes
         self.create_openevolve_nodes()
-        print(f"  ✓ Created {4} OpenEvolve nodes")
+        print(f"  [OK] Created {4} OpenEvolve nodes")
         
         self.create_leanaide_nodes()
-        print(f"  ✓ Created {2} LeanAide nodes")
+        print(f"  [OK] Created {2} LeanAide nodes")
         
         self.create_z3_nodes()
-        print(f"  ✓ Created {2} Z3 Prover nodes")
+        print(f"  [OK] Created {2} Z3 Prover nodes")
         
         self.create_integration_nodes()
-        print(f"  ✓ Created {2} Integration nodes")
+        print(f"  [OK] Created {2} Integration nodes")
         
         # Create workflows
         self.create_complete_workflows()
-        print(f"  ✓ Created {2} complete workflows")
+        print(f"  [OK] Created {2} complete workflows")
         
         print()
         

@@ -180,9 +180,9 @@ class BenchmarkScoringDemo:
         
         print(f"RESULT: Domain Adaptation Score = {avg_score:.1f}%")
         if avg_score >= 75:
-            print("         ✅ PASSES threshold (75%)")
+            print("         [OK] PASSES threshold (75%)")
         else:
-            print("         ❌ FAILS (<75%)")
+            print("         [FAIL] FAILS (<75%)")
         print()
         
         return avg_score
@@ -287,7 +287,7 @@ now handles 10x traffic without performance degradation.
         print(f"  TOTAL: {good_score:.0f}/100 points")
         print()
         
-        print(f"IMPROVEMENT: {bad_score:.0f} → {good_score:.0f} (+{good_score - bad_score:.0f} points)")
+        print(f"IMPROVEMENT: {bad_score:.0f} -> {good_score:.0f} (+{good_score - bad_score:.0f} points)")
         print()
         
         return bad_score, good_score
@@ -375,7 +375,7 @@ now handles 10x traffic without performance degradation.
         
         print("Classification Criteria:")
         print("  🌟 MAJOR:        >25 points - Transformational improvement")
-        print("  ✅ SIGNIFICANT:  15-25 points - Clear user-visible improvement")
+        print("  [OK] SIGNIFICANT:  15-25 points - Clear user-visible improvement")
         print("  📈 MODERATE:     8-15 points - Noticeable but incremental")
         print("  📊 MINOR:        3-8 points - Small enhancement")
         print("  ⚪ NOISE:        <3 points - Within margin of error")

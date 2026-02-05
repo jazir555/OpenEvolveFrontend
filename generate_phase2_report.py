@@ -247,7 +247,7 @@ class Phase2ReportGenerator:
 
         section.append("## Test Results")
         section.append()
-        section.append(f"- **Status:** {'✓ PASSED' if validation.get('tests_passed', False) else '✗ FAILED'}")
+        section.append(f"- **Status:** {'[OK] PASSED' if validation.get('tests_passed', False) else '[FAIL] FAILED'}")
         section.append(f"- **Tests Run:** {validation.get('tests_run', 'N/A')}")
         section.append()
 
@@ -336,7 +336,7 @@ class Phase2ReportGenerator:
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(report)
 
-        print(f"✓ Report saved to {output_path}")
+        print(f"[OK] Report saved to {output_path}")
         print()
 
 
@@ -351,7 +351,7 @@ def main():
     report = generator.generate_report()
     generator.save_report(report, output_file)
 
-    print("✓ Phase 2 report generation complete!")
+    print("[OK] Phase 2 report generation complete!")
 
 
 if __name__ == "__main__":

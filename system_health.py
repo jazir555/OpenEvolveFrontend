@@ -466,9 +466,9 @@ class SystemHealthRunner:
                 
                 if console:
                     status_emoji = {
-                        'healthy': '✅',
-                        'degraded': '⚠️',
-                        'unhealthy': '❌',
+                        'healthy': '[OK]',
+                        'degraded': '[WARN]',
+                        'unhealthy': '[FAIL]',
                         'unknown': '❓'
                     }.get(result.status, '❓')
                     console.print(f"{status_emoji} {result.status}")
@@ -482,7 +482,7 @@ class SystemHealthRunner:
                 checks.append(error_result)
                 
                 if console:
-                    console.print(f"❌ error")
+                    console.print(f"[FAIL] error")
         
         # Determine overall status
         statuses = [c.status for c in checks]

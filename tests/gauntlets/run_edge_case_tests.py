@@ -144,9 +144,9 @@ def main():
     print()
     print("="*80)
     if success:
-        print("ALL TESTS PASSED ✓")
+        print("ALL TESTS PASSED [OK]")
     else:
-        print("SOME TESTS FAILED ✗")
+        print("SOME TESTS FAILED [FAIL]")
     print("="*80)
 
     sys.exit(0 if success else 1)

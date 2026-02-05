@@ -23,9 +23,9 @@ def generate_synthetic_outcomes(n_samples: int = 200) -> List[Dict[str, Any]]:
     Generate synthetic agent outcomes with known causal structure.
 
     Causal structure:
-        exploration_rate → fitness → diversity
-        population_size → fitness
-        temperature → diversity
+        exploration_rate -> fitness -> diversity
+        population_size -> fitness
+        temperature -> diversity
     """
     np.random.seed(42)
 
@@ -98,7 +98,7 @@ async def example_basic_causal_discovery():
         indep_test="fisherz"
     )
 
-    print(f"\n✓ Built model: {model.model_id}")
+    print(f"\n[OK] Built model: {model.model_id}")
     print(f"  Domain: {model.domain}")
     print(f"  Factors: {len(model.factors)}")
     print(f"  Outcomes: {len(model.outcomes)}")
@@ -110,7 +110,7 @@ async def example_basic_causal_discovery():
     print("\nDiscovered Causal Relationships:")
     print("-" * 80)
     for i, rel in enumerate(model.relationships, 1):
-        print(f"\n{i}. {rel.cause} → {rel.effect}")
+        print(f"\n{i}. {rel.cause} -> {rel.effect}")
         print(f"   Strength: {rel.strength:.3f}")
         print(f"   Confidence: {rel.confidence:.3f}")
         print(f"   Mechanism: {rel.mechanism}")
@@ -182,7 +182,7 @@ async def example_outcome_explanation(model: CausalModel, builder: CausalModelBu
         if explanation.counterfactuals:
             print("\nCounterfactuals:")
             for cf in explanation.counterfactuals:
-                print(f"  • {cf}")
+                print(f"  * {cf}")
 
 
 async def example_model_persistence(model: CausalModel, builder: CausalModelBuilder):
@@ -194,7 +194,7 @@ async def example_model_persistence(model: CausalModel, builder: CausalModelBuil
     # Store model (will warn if no knowledge engine)
     print("\nStoring model...")
     model_id = await builder.store_model(model, version=1)
-    print(f"✓ Stored model: {model_id}")
+    print(f"[OK] Stored model: {model_id}")
 
     # Try to load it back
     print("\nLoading model...")
@@ -204,7 +204,7 @@ async def example_model_persistence(model: CausalModel, builder: CausalModelBuil
     )
 
     if loaded_model:
-        print(f"✓ Loaded model: {loaded_model.model_id}")
+        print(f"[OK] Loaded model: {loaded_model.model_id}")
         print(f"  Relationships: {len(loaded_model.relationships)}")
     else:
         print("ℹ Model not in persistent storage (expected without knowledge engine)")
@@ -224,7 +224,7 @@ async def example_cross_domain_learning(builder: CausalModelBuilder):
         outcomes=finance_outcomes,
         method="pc"
     )
-    print(f"✓ Built finance model: {len(finance_model.relationships)} relationships")
+    print(f"[OK] Built finance model: {len(finance_model.relationships)} relationships")
 
     # Build model for target domain
     print("\nBuilding target domain model (trading)...")
@@ -234,7 +234,7 @@ async def example_cross_domain_learning(builder: CausalModelBuilder):
         outcomes=trading_outcomes,
         method="pc"
     )
-    print(f"✓ Built trading model: {len(trading_model.relationships)} relationships")
+    print(f"[OK] Built trading model: {len(trading_model.relationships)} relationships")
 
     # Transfer knowledge
     print("\nTransferring causal knowledge...")
@@ -245,9 +245,9 @@ async def example_cross_domain_learning(builder: CausalModelBuilder):
     )
 
     if suggested:
-        print(f"✓ Transferred {len(suggested)} suggested relationships:")
+        print(f"[OK] Transferred {len(suggested)} suggested relationships:")
         for rel in suggested[:3]:  # Show top 3
-            print(f"\n  {rel.cause} → {rel.effect}")
+            print(f"\n  {rel.cause} -> {rel.effect}")
             print(f"    Confidence: {rel.confidence:.3f}")
             print(f"    Source: {rel.mechanism}")
     else:
@@ -282,12 +282,12 @@ async def example_algorithm_comparison():
                 "edges": model.graph_data["num_edges"]
             }
 
-            print(f"  ✓ Relationships: {len(model.relationships)}")
-            print(f"  ✓ Graph: {model.graph_data['num_nodes']} nodes, "
+            print(f"  [OK] Relationships: {len(model.relationships)}")
+            print(f"  [OK] Graph: {model.graph_data['num_nodes']} nodes, "
                   f"{model.graph_data['num_edges']} edges")
 
         except Exception as e:
-            print(f"  ✗ Failed: {e}")
+            print(f"  [FAIL] Failed: {e}")
             results[algorithm] = None
 
     # Summary
@@ -340,7 +340,7 @@ async def main():
         print("\nFor more details, see: knowledge_engine/CAUSAL_MODELING.md")
 
     except Exception as e:
-        print(f"\n✗ Error: {e}")
+        print(f"\n[FAIL] Error: {e}")
         import traceback
         traceback.print_exc()
 

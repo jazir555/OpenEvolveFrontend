@@ -213,7 +213,7 @@ class leverage:
 
         if any(v > 1 for v in fp.values()):
             denom = (self._dbLen  # user-supplied
-                     or self._count_db_lines()  # NEW  ←
+                     or self._count_db_lines()  # NEW  <-
                      or max(fp.values()))  # fallback guess
             fp = {k: v / denom for k, v in fp.items()}
 

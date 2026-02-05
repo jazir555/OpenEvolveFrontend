@@ -35,9 +35,9 @@ def run_command(cmd: list, description: str):
     result = subprocess.run(cmd, capture_output=False)
 
     if result.returncode == 0:
-        print(f"\n✓ SUCCESS: {description}")
+        print(f"\n[OK] SUCCESS: {description}")
     else:
-        print(f"\n✗ FAILED: {description}")
+        print(f"\n[FAIL] FAILED: {description}")
 
     return result.returncode == 0
 

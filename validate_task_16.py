@@ -49,10 +49,10 @@ class Task16Validator:
             path = self.project_root / doc
             if path.exists():
                 size = path.stat().st_size
-                print(f"✓ {doc} ({size:,} bytes) - {description}")
+                print(f"[OK] {doc} ({size:,} bytes) - {description}")
                 self.results.append(("Documentation", doc, True, f"{size:,} bytes"))
             else:
-                print(f"✗ {doc} - MISSING")
+                print(f"[FAIL] {doc} - MISSING")
                 self.results.append(("Documentation", doc, False, "Missing"))
                 all_present = False
         
@@ -76,10 +76,10 @@ class Task16Validator:
         for file, description in required_files.items():
             path = self.project_root / file
             if path.exists():
-                print(f"✓ {file} - {description}")
+                print(f"[OK] {file} - {description}")
                 self.results.append(("Deployment", file, True, "Present"))
             else:
-                print(f"✗ {file} - MISSING")
+                print(f"[FAIL] {file} - MISSING")
                 self.results.append(("Deployment", file, False, "Missing"))
                 all_present = False
         
@@ -87,10 +87,10 @@ class Task16Validator:
         try:
             from deploy import DeploymentManager
             manager = DeploymentManager("development")
-            print(f"✓ Deployment script is importable")
+            print(f"[OK] Deployment script is importable")
             self.results.append(("Deployment", "deploy.py import", True, "OK"))
         except Exception as e:
-            print(f"✗ Deployment script import failed: {e}")
+            print(f"[FAIL] Deployment script import failed: {e}")
             self.results.append(("Deployment", "deploy.py import", False, str(e)))
             all_present = False
         
@@ -108,22 +108,22 @@ class Task16Validator:
             
             # Test health monitoring
             monitor = get_health_monitor()
-            print(f"✓ Health monitor initialized")
+            print(f"[OK] Health monitor initialized")
             self.results.append(("Monitoring", "Health Monitor", True, "OK"))
             
             # Test error handling
             handler = get_error_handler()
-            print(f"✓ Error handler initialized")
+            print(f"[OK] Error handler initialized")
             self.results.append(("Monitoring", "Error Handler", True, "OK"))
             
             # Test performance monitoring
             stats = get_performance_stats()
-            print(f"✓ Performance monitoring available")
+            print(f"[OK] Performance monitoring available")
             self.results.append(("Monitoring", "Performance Stats", True, "OK"))
             
             return True
         except Exception as e:
-            print(f"✗ Monitoring validation failed: {e}")
+            print(f"[FAIL] Monitoring validation failed: {e}")
             self.results.append(("Monitoring", "System", False, str(e)))
             return False
     
@@ -147,7 +147,7 @@ class Task16Validator:
         }
         
         for req, status in requirements.items():
-            symbol = "✓" if status else "✗"
+            symbol = "[OK]" if status else "[FAIL]"
             print(f"{symbol} {req}")
             self.results.append(("Requirements", req, status, "Validated"))
         
@@ -260,7 +260,7 @@ class Task16Validator:
         }
         
         for criterion, (status, message) in criteria.items():
-            symbol = "✓" if status else "✗"
+            symbol = "[OK]" if status else "[FAIL]"
             print(f"{symbol} {criterion}: {message}")
             self.results.append(("Success Criteria", criterion, status, message))
         
@@ -367,20 +367,20 @@ class Task16Validator:
                 match = re.search(r'(\d+) passed', output)
                 if match:
                     passed = int(match.group(1))
-                    print(f"✓ {passed} tests passed")
+                    print(f"[OK] {passed} tests passed")
                     self.results.append(("Tests", "Test Suite", True, f"{passed} passed"))
                     return True, f"{passed} tests passed"
             
-            print(f"✗ Some tests failed")
+            print(f"[FAIL] Some tests failed")
             self.results.append(("Tests", "Test Suite", False, "Some tests failed"))
             return False, "Some tests failed"
             
         except subprocess.TimeoutExpired:
-            print(f"✗ Tests timed out")
+            print(f"[FAIL] Tests timed out")
             self.results.append(("Tests", "Test Suite", False, "Timeout"))
             return False, "Tests timed out"
         except Exception as e:
-            print(f"✗ Test execution failed: {e}")
+            print(f"[FAIL] Test execution failed: {e}")
             self.results.append(("Tests", "Test Suite", False, str(e)))
             return False, f"Test execution failed: {e}"
     
@@ -411,15 +411,15 @@ class Task16Validator:
             report.append(f"\n{category}:")
             report.append("-" * 70)
             for item, status, message in items:
-                symbol = "✓" if status else "✗"
+                symbol = "[OK]" if status else "[FAIL]"
                 report.append(f"  {symbol} {item}: {message}")
         
         report.append("\n" + "="*70)
         
         if passed == total:
-            report.append("✓ ALL VALIDATIONS PASSED - TASK 16 COMPLETE")
+            report.append("[OK] ALL VALIDATIONS PASSED - TASK 16 COMPLETE")
         else:
-            report.append(f"✗ {total - passed} VALIDATIONS FAILED")
+            report.append(f"[FAIL] {total - passed} VALIDATIONS FAILED")
         
         report.append("="*70 + "\n")
         

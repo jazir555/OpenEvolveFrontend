@@ -56,7 +56,7 @@ class TestTripartiteIntegration:
                 self.test_results.append({"test": test.__name__, "status": "PASS"})
             except Exception as e:
                 self.test_results.append({"test": test.__name__, "status": "FAIL", "error": str(e)})
-                logger.error(f"❌ Test failed: {test.__name__} - {e}")
+                logger.error(f"[FAIL] Test failed: {test.__name__} - {e}")
         
         self.print_test_summary()
     
@@ -79,7 +79,7 @@ class TestTripartiteIntegration:
             
             kb.close()
             
-        logger.info("✅ Knowledge base initialization test passed")
+        logger.info("[OK] Knowledge base initialization test passed")
     
     def test_knowledge_addition(self):
         """Test adding knowledge to the knowledge base."""
@@ -104,7 +104,7 @@ class TestTripartiteIntegration:
             
             kb.close()
             
-        logger.info("✅ Knowledge addition test passed")
+        logger.info("[OK] Knowledge addition test passed")
     
     def test_knowledge_retrieval(self):
         """Test knowledge retrieval functionality."""
@@ -132,7 +132,7 @@ class TestTripartiteIntegration:
             
             kb.close()
             
-        logger.info("✅ Knowledge retrieval test passed")
+        logger.info("[OK] Knowledge retrieval test passed")
     
     def test_ace_steer_integration(self):
         """Test ACE + Steer integration."""
@@ -156,7 +156,7 @@ class TestTripartiteIntegration:
         assert "all_passed" in verification_result, "Should return verification status"
         assert "results" in verification_result, "Should return verification results"
         
-        logger.info("✅ ACE + Steer integration test passed")
+        logger.info("[OK] ACE + Steer integration test passed")
     
     def test_complete_tripartite_execution(self):
         """Test complete tripartite system execution."""
@@ -188,7 +188,7 @@ class TestTripartiteIntegration:
             stats = result["stats"]
             assert stats["knowledge_documents_retrieved"] >= 0, "Should track knowledge retrieval"
             
-            logger.info("✅ Complete tripartite execution test passed")
+            logger.info("[OK] Complete tripartite execution test passed")
     
     def test_decorator_functionality(self):
         """Test the tripartite agent decorator."""
@@ -211,7 +211,7 @@ class TestTripartiteIntegration:
         tripartite_results = result["_tripartite_results"]
         assert "knowledge_context" in tripartite_results, "Should include knowledge context"
         
-        logger.info("✅ Decorator functionality test passed")
+        logger.info("[OK] Decorator functionality test passed")
     
     def test_learning_experience_storage(self):
         """Test storing learning experiences."""
@@ -266,7 +266,7 @@ class TestTripartiteIntegration:
             
             kb.close()
             
-        logger.info("✅ Learning experience storage test passed")
+        logger.info("[OK] Learning experience storage test passed")
     
     def test_system_status(self):
         """Test system status reporting."""
@@ -286,7 +286,7 @@ class TestTripartiteIntegration:
         kb_stats = status["knowledge_base"]
         assert "document_count" in kb_stats, "Should include document count"
         
-        logger.info("✅ System status test passed")
+        logger.info("[OK] System status test passed")
     
     def print_test_summary(self):
         """Print test results summary."""
@@ -299,8 +299,8 @@ class TestTripartiteIntegration:
         total = len(self.test_results)
         
         logger.info(f"Total Tests: {total}")
-        logger.info(f"✅ Passed: {passed}")
-        logger.info(f"❌ Failed: {failed}")
+        logger.info(f"[OK] Passed: {passed}")
+        logger.info(f"[FAIL] Failed: {failed}")
         logger.info(f"Success Rate: {(passed/total)*100:.1f}%")
         
         if failed > 0:
@@ -312,7 +312,7 @@ class TestTripartiteIntegration:
         if passed == total:
             logger.info("\n🎉 All tests passed! Tripartite system is working correctly.")
         else:
-            logger.warning("\n⚠️  Some tests failed. Please check the errors above.")
+            logger.warning("\n[WARN]  Some tests failed. Please check the errors above.")
 
 # ============================================================================
 # EXAMPLE USAGE
@@ -395,6 +395,6 @@ if __name__ == "__main__":
     logger.info("🎉 OpenEvolve Tripartite System Integration Complete!")
     logger.info("="*60)
     logger.info("Components Successfully Integrated:")
-    logger.info("  ✅ ACE (Agentic Context Engine) - Self-improving capabilities")
-    logger.info("  ✅ Steer - Reliability verification")
-    logger.info("  ✅ LangChain + ChromaDB - Knowledge retrieval and memory")
+    logger.info("  [OK] ACE (Agentic Context Engine) - Self-improving capabilities")
+    logger.info("  [OK] Steer - Reliability verification")
+    logger.info("  [OK] LangChain + ChromaDB - Knowledge retrieval and memory")

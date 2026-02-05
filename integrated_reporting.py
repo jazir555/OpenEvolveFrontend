@@ -166,7 +166,7 @@ def generate_integrated_report(integrated_results: Dict[str, Any]) -> str:
                 </div>
                 <div class="metric {'approval' if consecutive_rounds_met else 'rejection'}">
                     <div>Evaluator Success</div>
-                    <div style="font-size: 24px;">{'✅' if consecutive_rounds_met else '❌'}</div>
+                    <div style="font-size: 24px;">{'[OK]' if consecutive_rounds_met else '[FAIL]'}</div>
                 </div>
             </div>
         </div>
@@ -208,7 +208,7 @@ def generate_integrated_report(integrated_results: Dict[str, Any]) -> str:
         <div class="section">
             <h2>GitHub Sync</h2>
             <p>Use this button to approve and sync the final content to GitHub:</p>
-            <button type="button" onclick="approveAndSyncToGitHub()" style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">✅ Approve & Sync to GitHub</button>
+            <button type="button" onclick="approveAndSyncToGitHub()" style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">[OK] Approve & Sync to GitHub</button>
             <script>
                 function approveAndSyncToGitHub() {{
                     // This would need to be implemented in the actual UI

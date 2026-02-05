@@ -65,7 +65,7 @@ class FinalReportGenerator:
                 "total_files_migrated": 81,
                 "total_lines_reduced": 4092,
                 "parameter_duplication_eliminated": 544,
-                "import_consolidation": "195+ → 1",
+                "import_consolidation": "195+ -> 1",
                 "breaking_changes": 0,
                 "backward_compatibility": "100%",
             }
@@ -100,7 +100,7 @@ class FinalReportGenerator:
         roi = self.calculate_roi()
 
         report = f"""# OpenEvolve Unified Configuration Migration
-## PROJECT COMPLETE ✅
+## PROJECT COMPLETE [OK]
 
 **Completion Date:** {self.report_data['completion_date']}
 **Project Duration:** {self.report_data['duration_days']} days (Phase 1: 7 days, Phase 2: 5 days, Phase 3: 2 days)
@@ -116,7 +116,7 @@ Successfully migrated the entire OpenEvolve codebase from fragmented configurati
 - **Files Migrated:** {stats['overall']['total_files_migrated']} critical files
 - **Code Reduction:** {stats['overall']['total_lines_reduced']:,} lines (-15% overall, -35% in config code)
 - **Import Consolidation:** {stats['overall']['import_consolidation']} (-99.5%)
-- **Parameter Duplication:** {stats['overall']['parameter_duplication_eliminated']} definitions → 0 (-100%)
+- **Parameter Duplication:** {stats['overall']['parameter_duplication_eliminated']} definitions -> 0 (-100%)
 - **Breaking Changes:** {stats['overall']['breaking_changes']}
 - **Backward Compatibility:** {stats['overall']['backward_compatibility']}
 - **Success Rate:** 99.7%
@@ -126,7 +126,7 @@ Successfully migrated the entire OpenEvolve codebase from fragmented configurati
 ## Phase-by-Phase Breakdown
 
 ### Phase 1: Core Migration (Days 1-7)
-**Status:** ✅ COMPLETE
+**Status:** [OK] COMPLETE
 
 **Batches:**
 - Batch 1: Import Centralization (18 files)
@@ -142,14 +142,14 @@ Successfully migrated the entire OpenEvolve codebase from fragmented configurati
 - 100% backward compatibility
 
 **Critical Files:**
-- evolution.py ✅
-- adversarial.py ✅
-- integrated_workflow.py ✅
-- sidebar.py ✅
-- All MCP tools ✅
+- evolution.py [OK]
+- adversarial.py [OK]
+- integrated_workflow.py [OK]
+- sidebar.py [OK]
+- All MCP tools [OK]
 
 ### Phase 2: Comprehensive Migration (Days 8-12)
-**Status:** ✅ COMPLETE
+**Status:** [OK] COMPLETE
 
 **Categories:**
 - Utility files: Analysis complete
@@ -169,7 +169,7 @@ Successfully migrated the entire OpenEvolve codebase from fragmented configurati
 - All critical production code already migrated
 
 ### Phase 3: Finalization (Days 13-14)
-**Status:** ✅ COMPLETE
+**Status:** [OK] COMPLETE
 
 **Tasks:**
 - Category B integration files: Migrated
@@ -255,9 +255,9 @@ Successfully migrated the entire OpenEvolve codebase from fragmented configurati
 ### Code Quality
 - **Code Duplication:** -90%
 - **Cyclomatic Complexity:** -40%
-- **Maintainability Index:** 62 → 85 (+37%)
+- **Maintainability Index:** 62 -> 85 (+37%)
 - **Technical Debt:** -80%
-- **Test Coverage:** 65% → 85% (+31%)
+- **Test Coverage:** 65% -> 85% (+31%)
 
 ### Validation Results
 - **Completeness:** 99.1%
@@ -267,7 +267,7 @@ Successfully migrated the entire OpenEvolve codebase from fragmented configurati
 - **Compatibility:** 100%
 
 **Overall Validation Score: 99.9%**
-**Production Readiness: ✅ APPROVED**
+**Production Readiness: [OK] APPROVED**
 
 ---
 
@@ -304,7 +304,7 @@ Successfully migrated the entire OpenEvolve codebase from fragmented configurati
 
 ---
 
-## Success Criteria - All Met ✅
+## Success Criteria - All Met [OK]
 
 ### Must Have (Go/No-Go)
 - [x] All {stats['overall']['total_files_migrated']} critical files updated successfully
@@ -356,14 +356,14 @@ Successfully migrated the entire OpenEvolve codebase from fragmented configurati
 
 ## Recommendations
 
-### Immediate (Week 1) ✅ Already Complete
-1. ✅ All critical files migrated
-2. ✅ Performance optimized
-3. ✅ Documentation complete
-4. ✅ Validation passed
+### Immediate (Week 1) [OK] Already Complete
+1. [OK] All critical files migrated
+2. [OK] Performance optimized
+3. [OK] Documentation complete
+4. [OK] Validation passed
 
 ### Short-term (Month 1)
-1. Deploy to production ✅ READY
+1. Deploy to production [OK] READY
 2. Monitor usage and performance
 3. Gather developer feedback
 4. Refine based on real-world usage
@@ -378,10 +378,10 @@ Successfully migrated the entire OpenEvolve codebase from fragmented configurati
 
 ## Final Assessment
 
-**Project Status:** ✅ **COMPLETE**
+**Project Status:** [OK] **COMPLETE**
 **Overall Success Rate:** **99.7%**
 **Validation Score:** **99.9%**
-**Production Readiness:** ✅ **APPROVED**
+**Production Readiness:** [OK] **APPROVED**
 **Confidence Level:** **VERY HIGH**
 **Final Grade:** **A+ (99.9%)**
 
@@ -406,8 +406,8 @@ Successfully migrated the entire OpenEvolve codebase from fragmented configurati
 
 **Project Completion Date:** {self.report_data['completion_date']}
 **Total Duration:** {self.report_data['duration_days']} days
-**Final Status:** ✅ **PRODUCTION READY**
-**Mission:** ✅ **ACCOMPLISHED**
+**Final Status:** [OK] **PRODUCTION READY**
+**Mission:** [OK] **ACCOMPLISHED**
 
 ---
 
@@ -490,7 +490,7 @@ Successfully migrated the entire OpenEvolve codebase from fragmented configurati
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(report)
 
-        print(f"✅ Final report generated: {output_file}")
+        print(f"[OK] Final report generated: {output_file}")
         print(f"📊 Report size: {len(report):,} characters")
 
 
@@ -506,7 +506,7 @@ def main():
     generator.save_report("PROJECT_COMPLETE.md")
 
     print()
-    print("✅ Report generation complete!")
+    print("[OK] Report generation complete!")
     print("📄 View the full report at: PROJECT_COMPLETE.md")
     print()
 

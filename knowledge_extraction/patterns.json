@@ -1,5 +1,94 @@
 {
-  "patterns": [],
-  "total_count": 0,
-  "last_updated": "2026-02-02T16:55:16.357420"
+  "patterns": [
+    {
+      "pattern_id": "ml_pattern_0_a97bcba1",
+      "pattern_type": "ml_clustered",
+      "description": "CNN optimization",
+      "confidence": 0.7758851200342178,
+      "occurrences": 3,
+      "first_seen": "2026-02-04T18:41:44.438809",
+      "last_seen": "2026-02-04T18:41:44.438809",
+      "examples": [
+        {
+          "text": "Neural network optimization",
+          "source": "ml_cluster"
+        },
+        {
+          "text": "Deep learning for vision",
+          "source": "ml_cluster"
+        },
+        {
+          "text": "CNN optimization",
+          "source": "ml_cluster"
+        }
+      ],
+      "metadata": {
+        "silhouette_score": 0.25295040011405945,
+        "cluster_features": {
+          "cohesion": 0.25295040011405945,
+          "separation": 0.7470495998859406,
+          "density": 0.6
+        },
+        "tags": [
+          "ml_clustered",
+          "cluster_0"
+        ]
+      },
+      "ml_cluster_id": "ml_pattern_0_a97bcba1",
+      "ml_silhouette_score": 0.25295040011405945,
+      "ml_cluster_size": 3
+    },
+    {
+      "pattern_id": "ml_pattern_noise_2_09bc3b6a",
+      "pattern_type": "ml_clustered",
+      "description": "Transformer architecture tuning",
+      "confidence": 0.5,
+      "occurrences": 1,
+      "first_seen": "2026-02-04T18:41:44.438809",
+      "last_seen": "2026-02-04T18:41:44.438809",
+      "examples": [
+        {
+          "text": "Transformer architecture tuning",
+          "source": "ml_cluster"
+        }
+      ],
+      "metadata": {
+        "silhouette_score": 0.0,
+        "cluster_features": {},
+        "tags": [
+          "unclustered"
+        ]
+      },
+      "ml_cluster_id": "ml_pattern_noise_2_09bc3b6a",
+      "ml_silhouette_score": 0.0,
+      "ml_cluster_size": 1
+    },
+    {
+      "pattern_id": "ml_pattern_noise_4_099bea57",
+      "pattern_type": "ml_clustered",
+      "description": "BERT fine-tuning",
+      "confidence": 0.5,
+      "occurrences": 1,
+      "first_seen": "2026-02-04T18:41:44.438809",
+      "last_seen": "2026-02-04T18:41:44.438809",
+      "examples": [
+        {
+          "text": "BERT fine-tuning",
+          "source": "ml_cluster"
+        }
+      ],
+      "metadata": {
+        "silhouette_score": 0.0,
+        "cluster_features": {},
+        "tags": [
+          "unclustered"
+        ]
+      },
+      "ml_cluster_id": "ml_pattern_noise_4_099bea57",
+      "ml_silhouette_score": 0.0,
+      "ml_cluster_size": 1
+    }
+  ],
+  "total_count": 3,
+  "last_updated": "2026-02-04T18:41:44.440311"
 }

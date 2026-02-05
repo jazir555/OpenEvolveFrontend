@@ -374,7 +374,7 @@ class FeatureExtractor:
         features["has_multiple_levels"] = item_str.count('\n') > 10
         features["has_complex_expressions"] = item_str.count(':=') > 3
         features["has_quantifiers"] = any(q in item_str for q in ["forall", "exists", "∀", "∃"])
-        features["has_implications"] = any(op in item_str for op in ["→", "->", "implies"])
+        features["has_implications"] = any(op in item_str for op in ["->", "->", "implies"])
         features["has_negations"] = "¬" in item_str or "not" in item_str.lower()
         
         return features

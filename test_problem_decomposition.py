@@ -308,4 +308,4 @@ if __name__ == "__main__":
     test_history_management()
     test_all_decomposition_strategies()
     
-    print("✅ All problem decomposition tests passed!")
+    print("[OK] All problem decomposition tests passed!")

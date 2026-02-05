@@ -861,7 +861,7 @@ class MDAPAdaptiveSelector:
             'theorem_length': len(theorem),
             'word_count': len(theorem.split()),
             'has_quantifiers': any(q in theorem.lower() for q in ['forall', 'exists', '∀', '∃']),
-            'has_implications': any(s in theorem for s in ['=>', '→', 'implies']),
+            'has_implications': any(s in theorem for s in ['=>', '->', 'implies']),
             'has_conjunctions': any(s in theorem for s in ['and', '∧', '&']),
             'has_disjunctions': any(s in theorem for s in ['or', '∨', '|']),
             'nesting_depth': theorem.count('('),
@@ -2089,7 +2089,7 @@ def estimate_complexity(theorem: str) -> ProblemComplexity:
         'length': len(theorem),
         'words': len(theorem.split()),
         'quantifiers': theorem.count('∀') + theorem.count('∃') + theorem.lower().count('forall'),
-        'implications': theorem.count('→') + theorem.count('=>'),
+        'implications': theorem.count('->') + theorem.count('=>'),
         'nesting': theorem.count('(')
     }
 

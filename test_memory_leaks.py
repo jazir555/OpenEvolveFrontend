@@ -96,11 +96,11 @@ class MemoryProfiler:
         print(f"{'TOTAL GROWTH':<30} {total_growth:<15.2f} MB")
 
         if total_growth > 100:
-            print("\n⚠️  WARNING: Significant memory growth detected!")
+            print("\n[WARN]  WARNING: Significant memory growth detected!")
         elif total_growth > 50:
-            print("\n⚠️  NOTICE: Moderate memory growth detected")
+            print("\n[WARN]  NOTICE: Moderate memory growth detected")
         else:
-            print("\n✓ Memory growth within acceptable limits")
+            print("\n[OK] Memory growth within acceptable limits")
 
 
 class BubbleLabsLeakDetector:
@@ -121,7 +121,7 @@ class BubbleLabsLeakDetector:
             from bubblelabs_crewai_bridge import BubbleLabsCREWAIBridge  # MIGRATED
             from bubblelabs_integration import BubbleLabsIntegration
         except ImportError as e:
-            print(f"⚠️  Could not import: {e}")
+            print(f"[WARN]  Could not import: {e}")
             return
 
         # Baseline
@@ -152,7 +152,7 @@ class BubbleLabsLeakDetector:
         print(f"  instance_to_definition_map size: {len(bridge.instance_to_definition_map)}")
 
         if len(bridge.mappings) == 100:
-            print("  ✓ Mappings grew as expected (100 entries)")
+            print("  [OK] Mappings grew as expected (100 entries)")
         else:
             self.warnings.append(f"Unexpected mappings size: {len(bridge.mappings)}")
 
@@ -170,7 +170,7 @@ class BubbleLabsLeakDetector:
         if bridge.sync_thread and bridge.sync_thread.is_alive():
             self.errors.append("Background sync thread did not stop properly!")
         else:
-            print("  ✓ Background sync thread stopped successfully")
+            print("  [OK] Background sync thread stopped successfully")
 
         # Force cleanup
         del bridge
@@ -192,7 +192,7 @@ class BubbleLabsLeakDetector:
                 _MCP_TOOLS
             )
         except ImportError as e:
-            print(f"⚠️  Could not import: {e}")
+            print(f"[WARN]  Could not import: {e}")
             return
 
         # Baseline
@@ -204,7 +204,7 @@ class BubbleLabsLeakDetector:
         instance2 = get_shared_bubblelabs()
 
         if instance1 is instance2:
-            print("  ✓ Singleton pattern working correctly")
+            print("  [OK] Singleton pattern working correctly")
         else:
             self.errors.append("Singleton pattern broken - multiple instances created!")
 
@@ -223,7 +223,7 @@ class BubbleLabsLeakDetector:
         try:
             from bubblelabs_analytics import BubbleLabsAnalytics
         except ImportError as e:
-            print(f"⚠️  Could not import: {e}")
+            print(f"[WARN]  Could not import: {e}")
             return
 
         # Create temporary database
@@ -268,7 +268,7 @@ class BubbleLabsLeakDetector:
         # Check connection pool
         print(f"\nConnection pool size: {len(analytics._connection_pool)}")
         if len(analytics._connection_pool) <= analytics._pool_size:
-            print("  ✓ Connection pool bounded correctly")
+            print("  [OK] Connection pool bounded correctly")
         else:
             self.errors.append(f"Connection pool exceeded max size: "
                              f"{len(analytics._connection_pool)} > {analytics._pool_size}")
@@ -311,7 +311,7 @@ class BubbleLabsLeakDetector:
         try:
             from bubblelabs_integration import BubbleLabsIntegration
         except ImportError as e:
-            print(f"⚠️  Could not import: {e}")
+            print(f"[WARN]  Could not import: {e}")
             return
 
         # Baseline
@@ -340,7 +340,7 @@ class BubbleLabsLeakDetector:
 
         # Check for missing cleanup
         if len(integration.workflow_definitions) == 100:
-            print("  ✓ Workflow definitions stored correctly")
+            print("  [OK] Workflow definitions stored correctly")
         else:
             self.warnings.append(f"Unexpected definition count: "
                                f"{len(integration.workflow_definitions)}")
@@ -363,7 +363,7 @@ class BubbleLabsLeakDetector:
                 RateLimiter
             )
         except ImportError as e:
-            print(f"⚠️  Could not import: {e}")
+            print(f"[WARN]  Could not import: {e}")
             return
 
         # Baseline
@@ -414,12 +414,12 @@ class BubbleLabsLeakDetector:
 
         # Check for unbounded growth
         if len(csrf.tokens) == 100:
-            print("  ✓ CSRF tokens grew as expected")
+            print("  [OK] CSRF tokens grew as expected")
         else:
             self.warnings.append(f"Unexpected CSRF token count: {len(csrf.tokens)}")
 
         if len(rate_limiter.buckets) == 100:
-            print("  ✓ Rate limit buckets grew as expected")
+            print("  [OK] Rate limit buckets grew as expected")
         else:
             self.warnings.append(f"Unexpected rate limit bucket count: "
                                f"{len(rate_limiter.buckets)}")
@@ -440,7 +440,7 @@ class BubbleLabsLeakDetector:
         try:
             from bubblelabs_analytics import BubbleLabsAnalytics
         except ImportError as e:
-            print(f"⚠️  Could not import: {e}")
+            print(f"[WARN]  Could not import: {e}")
             return
 
         # Baseline
@@ -467,7 +467,7 @@ class BubbleLabsLeakDetector:
         print(f"Max pool size: {analytics._pool_size}")
 
         if pool_size <= analytics._pool_size:
-            print("  ✓ Connection pool within bounds")
+            print("  [OK] Connection pool within bounds")
         else:
             self.errors.append(f"Connection pool leak detected: "
                              f"{pool_size} > {analytics._pool_size}")
@@ -478,7 +478,7 @@ class BubbleLabsLeakDetector:
 
         # Verify connections closed
         if len(analytics._connection_pool) == 0:
-            print("  ✓ All connections closed")
+            print("  [OK] All connections closed")
         else:
             self.errors.append(f"Not all connections closed: "
                              f"{len(analytics._connection_pool)} remaining")
@@ -532,18 +532,18 @@ class BubbleLabsLeakDetector:
             print("ERRORS DETECTED")
             print("=" * 80)
             for error in self.errors:
-                print(f"  ❌ {error}")
+                print(f"  [FAIL] {error}")
 
         if self.warnings:
             print("\n" + "=" * 80)
             print("WARNINGS")
             print("=" * 80)
             for warning in self.warnings:
-                print(f"  ⚠️  {warning}")
+                print(f"  [WARN]  {warning}")
 
         if not self.errors and not self.warnings:
             print("\n" + "=" * 80)
-            print("✓ NO MEMORY LEAKS DETECTED")
+            print("[OK] NO MEMORY LEAKS DETECTED")
             print("=" * 80)
 
         print(f"\nCompleted at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -555,17 +555,17 @@ class BubbleLabsLeakDetector:
         print("=" * 80)
 
         if self.errors:
-            print("❌ FAIL: Memory leaks detected!")
+            print("[FAIL] FAIL: Memory leaks detected!")
             print(f"   Errors: {len(self.errors)}")
             print(f"   Memory growth: {memory_growth:.2f} MB")
         elif memory_growth > 100:
-            print("⚠️  WARNING: Significant memory growth detected")
+            print("[WARN]  WARNING: Significant memory growth detected")
             print(f"   Memory growth: {memory_growth:.2f} MB")
         elif memory_growth > 50:
-            print("⚠️  NOTICE: Moderate memory growth")
+            print("[WARN]  NOTICE: Moderate memory growth")
             print(f"   Memory growth: {memory_growth:.2f} MB")
         else:
-            print("✓ PASS: No significant memory leaks detected")
+            print("[OK] PASS: No significant memory leaks detected")
             print(f"   Memory growth: {memory_growth:.2f} MB")
 
 

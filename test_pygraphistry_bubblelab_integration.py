@@ -17,7 +17,7 @@ async def test_pygraphistry_bubblelab_integration():
     try:
         from knowledge_graph_visualizer import KnowledgeGraphVisualizer
         viz = KnowledgeGraphVisualizer(use_pygraphistry=True)
-        print("   ✓ KnowledgeGraphVisualizer with PyGraphistry initialized successfully")
+        print("   [OK] KnowledgeGraphVisualizer with PyGraphistry initialized successfully")
         
         # Test building a simple graph
         stats = viz.build_graph(max_nodes=10)
@@ -35,7 +35,7 @@ async def test_pygraphistry_bubblelab_integration():
         )
         
         if os.path.exists(temp_path):
-            print(f"   ✓ Visualization created at: {temp_path}")
+            print(f"   [OK] Visualization created at: {temp_path}")
             os.unlink(temp_path)  # Clean up
         else:
             print("   ⚠ Visualization file not created (expected if PyGraphistry not configured)")
@@ -64,9 +64,9 @@ async def test_pygraphistry_bubblelab_integration():
         
         result = await get_pygraphistry_viz(sample_nodes, sample_edges)
         if result:
-            print(f"   ✓ get_pygraphistry_viz returned: {result}")
+            print(f"   [OK] get_pygraphistry_viz returned: {result}")
             if os.path.exists(result):
-                print("   ✓ Visualization file exists")
+                print("   [OK] Visualization file exists")
                 os.unlink(result)  # Clean up
         else:
             print("   ⚠ get_pygraphistry_viz returned None (expected if PyGraphistry not configured)")

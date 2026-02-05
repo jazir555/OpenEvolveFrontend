@@ -308,11 +308,11 @@ async def example_3_enhanced_gauntlet():
         - **Total: $1,677,500** (within $2M budget)
 
         ## Validation
-        ✅ Meets span requirement
-        ✅ Exceeds load capacity with safety factor
-        ✅ Within budget constraints
-        ✅ Uses standard materials
-        ✅ Proven design methodology
+        [OK] Meets span requirement
+        [OK] Exceeds load capacity with safety factor
+        [OK] Within budget constraints
+        [OK] Uses standard materials
+        [OK] Proven design methodology
         """
     )
 
@@ -349,7 +349,7 @@ async def example_3_enhanced_gauntlet():
 
     print("\nRound-by-Round Results:")
     for i, round_result in enumerate(execution.rounds_results, 1):
-        status_symbol = "✓" if round_result.status.value == "passed" else "✗"
+        status_symbol = "[OK]" if round_result.status.value == "passed" else "[FAIL]"
         print(f"\n  Round {i}: {round_result.rule_id} {status_symbol}")
         print(f"    Status:   {round_result.status.value}")
         print(f"    Score:    {round_result.score:.3f}")
@@ -469,7 +469,7 @@ async def main():
 
     except Exception as e:
         logger.error(f"Error running examples: {e}", exc_info=True)
-        print(f"\n❌ Error: {e}")
+        print(f"\n[FAIL] Error: {e}")
 
 
 if __name__ == "__main__":

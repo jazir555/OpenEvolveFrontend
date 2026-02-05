@@ -256,7 +256,7 @@ class TestZ3LeanAideBridge:
         bridge = get_z3_leanaide_bridge_sync()
         
         lean_code = """
-        theorem simple_theorem (x : Int) : x > 0 → x + 1 > 0 := by
+        theorem simple_theorem (x : Int) : x > 0 -> x + 1 > 0 := by
           intro h
           linarith
         """

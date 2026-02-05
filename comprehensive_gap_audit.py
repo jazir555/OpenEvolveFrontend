@@ -401,7 +401,7 @@ def main():
             print(f"  Description: {gap.description}")
             print(f"  Code:\n{gap.code_snippet}")
     else:
-        print("\n✅ NO GAPS FOUND - ALL CODE IS PRODUCTION READY!")
+        print("\n[OK] NO GAPS FOUND - ALL CODE IS PRODUCTION READY!")
 
     # Save to file
     output_file = Path("GAP_AUDIT_REPORT.txt")

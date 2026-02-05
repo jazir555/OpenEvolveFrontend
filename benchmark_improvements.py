@@ -189,7 +189,7 @@ for test in domain_tests:
         if result.domain.value == test['expected_domain']:
             checks.append("domain:OK")
         else:
-            checks.append(f"domain✗({result.domain.value})")
+            checks.append(f"domain[FAIL]({result.domain.value})")
             test_passed = False
     
     if 'expected_temp_range' in test:
@@ -198,14 +198,14 @@ for test in domain_tests:
         if low <= temp <= high:
             checks.append("temp:OK")
         else:
-            checks.append(f"temp✗({temp})")
+            checks.append(f"temp[FAIL]({temp})")
             test_passed = False
     
     if 'expected_audience' in test:
         if result.audience.value == test['expected_audience']:
             checks.append("audience:OK")
         else:
-            checks.append(f"audience✗({result.audience.value})")
+            checks.append(f"audience[FAIL]({result.audience.value})")
             test_passed = False
     
     if test_passed:

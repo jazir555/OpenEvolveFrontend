@@ -669,7 +669,7 @@ class TestEndToEndWorkflows:
     @pytest.mark.e2e
     @pytest.mark.slow
     def test_full_workflow_problem_to_solution(self, basic_engine, simple_problem):
-        """Test full workflow: problem → decomposition → voting → solution."""
+        """Test full workflow: problem -> decomposition -> voting -> solution."""
         # Step 1: Problem decomposition
         decomp_result = basic_engine.decompose_with_memory(simple_problem)
         assert isinstance(decomp_result, HybridDecompositionResult)

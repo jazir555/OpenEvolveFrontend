@@ -47,9 +47,9 @@ class QuickPrototypePreset(BasePreset):
             ),
             trade_offs={
                 "Speed": "⚡⚡⚡ Very fast - seconds to minutes",
-                "Quality": "⚠️ Low - basic solutions",
-                "Validation": "❌ None - skipped",
-                "Cost": "✅ Very low - minimal API calls"
+                "Quality": "[WARN] Low - basic solutions",
+                "Validation": "[FAIL] None - skipped",
+                "Cost": "[OK] Very low - minimal API calls"
             },
             related_presets=["fast", "resource_constrained"],
             example_usage="""
@@ -102,8 +102,8 @@ class ProductionPreset(BasePreset):
             ),
             trade_offs={
                 "Speed": "🐌 Slow - hours to days",
-                "Quality": "✅✅✅ Maximum quality",
-                "Validation": "✅✅✅ Comprehensive - all checks enabled",
+                "Quality": "[OK][OK][OK] Maximum quality",
+                "Validation": "[OK][OK][OK] Comprehensive - all checks enabled",
                 "Cost": "💰💰 High - extensive API usage"
             },
             related_presets=["thorough", "quality_critical"],
@@ -179,7 +179,7 @@ class ResearchPreset(BasePreset):
                 "Focus": "🔬 Novelty and diversity",
                 "Output": "📊 Archive of diverse solutions",
                 "Time": "⏰ Long exploration phase",
-                "Quality": "✅ High quality with diversity"
+                "Quality": "[OK] High quality with diversity"
             },
             related_presets=["thorough", "science_discovery"],
             example_usage="""
@@ -254,8 +254,8 @@ class ResourceConstrainedPreset(BasePreset):
             trade_offs={
                 "Resources": "💾 Minimal - sequential execution",
                 "Speed": "⚡ Fast - minimal computation",
-                "Quality": "⚠️ Basic - limited exploration",
-                "Cost": "✅✅ Very low - few API calls"
+                "Quality": "[WARN] Basic - limited exploration",
+                "Cost": "[OK][OK] Very low - few API calls"
             },
             related_presets=["budget", "fast"],
             example_usage="""
@@ -325,8 +325,8 @@ class QualityCriticalPreset(BasePreset):
             ),
             trade_offs={
                 "Speed": "🐌🐌 Very slow - extensive validation",
-                "Quality": "✅✅✅ Maximum - formal verification",
-                "Validation": "✅✅✅✅ Comprehensive - all checks",
+                "Quality": "[OK][OK][OK] Maximum - formal verification",
+                "Validation": "[OK][OK][OK][OK] Comprehensive - all checks",
                 "Cost": "💰💰💰 Very high - extensive resources"
             },
             related_presets=["thorough", "production", "safety_critical"],

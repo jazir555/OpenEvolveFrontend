@@ -25,7 +25,7 @@ class TestEngineCoercionHelper:
     """Test suite for ensure_engine_match() helper function."""
 
     def test_no_op_when_types_match_pandas(self):
-        """Test that pandas→pandas is a no-op (no conversion)."""
+        """Test that pandas->pandas is a no-op (no conversion)."""
         # Create pandas graph
         nodes_df = pd.DataFrame({'id': [1, 2, 3], 'type': ['person', 'person', 'place']})
         edges_df = pd.DataFrame({'src': [1, 2], 'dst': [2, 3], 'relation': ['knows', 'visited']})
@@ -45,7 +45,7 @@ class TestEngineCoercionHelper:
 
     @pytest.mark.skipif(not has_cudf, reason="cuDF not available")
     def test_no_op_when_types_match_cudf(self):
-        """Test that cudf→cudf is a no-op (no conversion)."""
+        """Test that cudf->cudf is a no-op (no conversion)."""
         # Create cuDF graph
         nodes_df = cudf.DataFrame({'id': [1, 2, 3], 'type': ['person', 'person', 'place']})
         edges_df = cudf.DataFrame({'src': [1, 2], 'dst': [2, 3], 'relation': ['knows', 'visited']})
@@ -65,7 +65,7 @@ class TestEngineCoercionHelper:
 
     @pytest.mark.skipif(not has_cudf, reason="cuDF not available")
     def test_converts_pandas_to_cudf(self):
-        """Test that pandas→cudf conversion works correctly."""
+        """Test that pandas->cudf conversion works correctly."""
         # Create pandas graph
         nodes_df = pd.DataFrame({'id': [1, 2, 3], 'type': ['person', 'person', 'place']})
         edges_df = pd.DataFrame({'src': [1, 2], 'dst': [2, 3], 'relation': ['knows', 'visited']})
@@ -85,7 +85,7 @@ class TestEngineCoercionHelper:
 
     @pytest.mark.skipif(not has_cudf, reason="cuDF not available")
     def test_converts_cudf_to_pandas(self):
-        """Test that cudf→pandas conversion works correctly."""
+        """Test that cudf->pandas conversion works correctly."""
         # Create cuDF graph
         nodes_df = cudf.DataFrame({'id': [1, 2, 3], 'type': ['person', 'person', 'place']})
         edges_df = cudf.DataFrame({'src': [1, 2], 'dst': [2, 3], 'relation': ['knows', 'visited']})

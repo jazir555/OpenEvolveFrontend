@@ -87,7 +87,7 @@ class TestProcessParallelFix(unittest.TestCase):
         self.assertEqual(len(direct_sample_calls), 0,
                         "The old sample() method should not be called directly")
         
-        print("✅ _submit_iteration now uses safe sample_from_island method")
+        print("[OK] _submit_iteration now uses safe sample_from_island method")
     
     def test_concurrent_submissions_no_race_condition(self):
         """Test that concurrent submissions don't cause race conditions"""
@@ -122,7 +122,7 @@ class TestProcessParallelFix(unittest.TestCase):
         self.assertEqual(len(island_modifications), 0,
                         "current_island should not be modified during submissions")
         
-        print("✅ No race conditions detected with concurrent submissions")
+        print("[OK] No race conditions detected with concurrent submissions")
     
     def test_database_state_unchanged_after_sampling(self):
         """Test that database state is unchanged after sampling from island"""
@@ -140,7 +140,7 @@ class TestProcessParallelFix(unittest.TestCase):
             self.assertEqual(self.database.current_island, initial_island,
                            f"current_island changed after sampling from island {island_id}")
         
-        print("✅ Database state remains unchanged after sampling")
+        print("[OK] Database state remains unchanged after sampling")
 
 
 if __name__ == "__main__":

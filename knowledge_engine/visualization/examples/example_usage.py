@@ -66,7 +66,7 @@ async def example_1_basic_graph_visualization():
         )
     )
 
-    print(f"✓ Graph visualization created")
+    print(f"[OK] Graph visualization created")
     print(f"  Nodes: {result.node_count}")
     print(f"  Edges: {result.edge_count}")
     print(f"  Communities: {result.community_count}")
@@ -103,7 +103,7 @@ async def example_2_filtered_visualization():
         )
     )
 
-    print(f"✓ Filtered visualization created")
+    print(f"[OK] Filtered visualization created")
     print(f"  Nodes after filtering: {result.node_count}")
     print(f"  Edges after filtering: {result.edge_count}")
     print(f"  Output: {result.output_path}")
@@ -132,7 +132,7 @@ async def example_3_temporal_visualization():
         )
     )
 
-    print(f"✓ Temporal visualization created")
+    print(f"[OK] Temporal visualization created")
     print(f"  Snapshots: {result['snapshots']}")
     print(f"  Time span: {result['statistics'].get('time_span_hours', 0):.1f} hours")
     print(f"  Output: {result['output_path']}")
@@ -155,7 +155,7 @@ async def example_4_community_visualization():
         )
     )
 
-    print(f"✓ Community visualization created")
+    print(f"[OK] Community visualization created")
     print(f"  Communities detected: {result['num_communities']}")
     print(f"  Output: {result['output_path']}")
 
@@ -196,7 +196,7 @@ async def example_5_export_visualizations():
                 graph_data, output_path, pretty=True
             )
 
-        print(f"✓ Exported {fmt.upper()}: {result}")
+        print(f"[OK] Exported {fmt.upper()}: {result}")
 
 
 async def example_6_comparison_view():
@@ -214,7 +214,7 @@ async def example_6_comparison_view():
         triples_after=after_triples
     )
 
-    print(f"✓ Comparison view created")
+    print(f"[OK] Comparison view created")
     print(f"  Added nodes: {result['added_nodes']}")
     print(f"  Removed nodes: {result['removed_nodes']}")
     print(f"  Added edges: {result['added_edges']}")
@@ -238,7 +238,7 @@ async def example_7_subgraph_extraction():
 
     result = await extract_subgraph(request_data)
 
-    print(f"✓ Subgraph extracted")
+    print(f"[OK] Subgraph extracted")
     print(f"  Center node: {result['center_node']}")
     print(f"  Radius: {result['radius']}")
     print(f"  Nodes in subgraph: {result['node_count']}")
@@ -253,7 +253,7 @@ async def example_8_graph_statistics():
 
     result = await get_graph_statistics(SAMPLE_TRIPLES)
 
-    print(f"✓ Statistics computed")
+    print(f"[OK] Statistics computed")
     print(f"  Nodes: {result.node_count}")
     print(f"  Edges: {result.edge_count}")
     print(f"  Communities: {result.communities}")
@@ -291,7 +291,7 @@ async def example_9_generate_embedding_url():
         }
     )
 
-    print(f"✓ Embedding URL generated")
+    print(f"[OK] Embedding URL generated")
     print(f"  URL: {embed_url[:100]}...")
     print(f"  Use this URL to embed in external sites")
 
@@ -318,7 +318,7 @@ async def main():
         print("=" * 60)
 
     except Exception as e:
-        print(f"\n✗ Example failed: {e}")
+        print(f"\n[FAIL] Example failed: {e}")
         import traceback
         traceback.print_exc()
 

@@ -10,7 +10,7 @@ CrewAI Integration:
     - Maintains same MCP tool API for backward compatibility
 
 CRITICAL ARCHITECTURE:
-    CrewAI (Orchestrator) → Decomposition Workflow → CrewAI Zero-Error Engine
+    CrewAI (Orchestrator) -> Decomposition Workflow -> CrewAI Zero-Error Engine
 
 The Decomposition Workflow leverages CrewAI's zero-error workflow for:
     - Problem analysis and decomposition
@@ -19,7 +19,7 @@ The Decomposition Workflow leverages CrewAI's zero-error workflow for:
     - Multi-stage workflow (Stages 0-6)
 
 Architecture:
-    CrewAI Agent → MCP Tool → Decomposition Bridge → CrewAI Zero-Error Workflow → Result
+    CrewAI Agent -> MCP Tool -> Decomposition Bridge -> CrewAI Zero-Error Workflow -> Result
 """
 
 import logging

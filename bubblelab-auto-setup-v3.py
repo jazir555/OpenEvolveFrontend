@@ -214,17 +214,17 @@ class Logger:
     @staticmethod
     def success(text: str):
         """Print success message"""
-        print(f"{Colors.OKGREEN}✓ {text}{Colors.ENDC}")
+        print(f"{Colors.OKGREEN}[OK] {text}{Colors.ENDC}")
 
     @staticmethod
     def error(text: str):
         """Print error message"""
-        print(f"{Colors.FAIL}✗ {text}{Colors.ENDC}")
+        print(f"{Colors.FAIL}[FAIL] {text}{Colors.ENDC}")
 
     @staticmethod
     def warning(text: str):
         """Print warning message"""
-        print(f"{Colors.WARNING}⚠️  {text}{Colors.ENDC}")
+        print(f"{Colors.WARNING}[WARN]  {text}{Colors.ENDC}")
 
     @staticmethod
     def info(text: str):
@@ -648,9 +648,9 @@ class EnvironmentValidator:
         self.validate_python_environment()  # Warning only, doesn't fail
 
         if all_valid:
-            Logger.success("\n✓ Environment validation PASSED")
+            Logger.success("\n[OK] Environment validation PASSED")
         else:
-            Logger.error("\n✗ Environment validation FAILED")
+            Logger.error("\n[FAIL] Environment validation FAILED")
 
         return all_valid, self.errors, self.warnings
 
@@ -727,7 +727,7 @@ class DependencyInstaller:
 
             if current_version:
                 if required_version and current_version == required_version:
-                    Logger.detail(f"✓ {package_name} {current_version} (already installed)")
+                    Logger.detail(f"[OK] {package_name} {current_version} (already installed)")
                     self.installed.append(package)
                     if self.file_logger:
                         self.file_logger.info(f"Package already installed: {package_name} {current_version}")
@@ -747,7 +747,7 @@ class DependencyInstaller:
                 timeout=120
             )
 
-            Logger.success(f"✓ {package}")
+            Logger.success(f"[OK] {package}")
             self.installed.append(package)
 
             if self.file_logger:
@@ -757,14 +757,14 @@ class DependencyInstaller:
 
         except subprocess.TimeoutExpired:
             error = f"{package} (timeout)"
-            Logger.error(f"✗ {error}")
+            Logger.error(f"[FAIL] {error}")
             self.failed.append(package)
             if self.file_logger:
                 self.file_logger.error(f"Package installation timeout: {package}")
             return False
         except (subprocess.CalledProcessError, OSError) as e:
             error = f"{package} ({e})"
-            Logger.error(f"✗ {error}")
+            Logger.error(f"[FAIL] {error}")
             self.failed.append(package)
             if self.file_logger:
                 self.file_logger.error(f"Package installation failed: {package}", e)
@@ -780,11 +780,11 @@ class DependencyInstaller:
             all_success &= success
 
         if all_success:
-            Logger.success(f"\n✓ All {len(self.installed)} packages installed successfully")
+            Logger.success(f"\n[OK] All {len(self.installed)} packages installed successfully")
             if self.file_logger:
                 self.file_logger.info("All dependencies installed successfully")
         else:
-            Logger.warning(f"\n⚠️  {len(self.installed)} installed, {len(self.failed)} failed")
+            Logger.warning(f"\n[WARN]  {len(self.installed)} installed, {len(self.failed)} failed")
             if self.file_logger:
                 self.file_logger.warning(f"Some dependencies failed: {self.failed}")
             self._print_error_guide('DEPENDENCY_INSTALL_FAILED')
@@ -1025,7 +1025,7 @@ Thumbs.db
             config_file = base_dir / 'bubblelab-config.yaml'
             with open(config_file, 'w') as f:
                 yaml.dump(config, f, default_flow_style=False)
-            Logger.success("✓ bubblelab-config.yaml")
+            Logger.success("[OK] bubblelab-config.yaml")
             if self.file_logger:
                 self.file_logger.info(f"Configuration saved: {config_file}")
 
@@ -1033,7 +1033,7 @@ Thumbs.db
             env_file = base_dir / '.env'
             with open(env_file, 'w') as f:
                 f.write(self.generate_env_file())
-            Logger.success("✓ .env")
+            Logger.success("[OK] .env")
             if self.file_logger:
                 self.file_logger.info(f"Environment file saved: {env_file}")
 
@@ -1041,7 +1041,7 @@ Thumbs.db
             gitignore_file = base_dir / '.gitignore'
             with open(gitignore_file, 'w') as f:
                 f.write(self.generate_gitignore())
-            Logger.success("✓ .gitignore")
+            Logger.success("[OK] .gitignore")
             if self.file_logger:
                 self.file_logger.info(f"Gitignore saved: {gitignore_file}")
 
@@ -1109,7 +1109,7 @@ class SetupOrchestrator:
             self.results['validation'] = valid
 
             if not valid:
-                Logger.error("\n✗ Environment validation failed. Please fix the errors above.")
+                Logger.error("\n[FAIL] Environment validation failed. Please fix the errors above.")
                 self.print_summary()
                 return False
 
@@ -1119,7 +1119,7 @@ class SetupOrchestrator:
             self.results['dependencies'] = installer.install_all()
 
             if not self.results['dependencies']:
-                Logger.warning("\n⚠️  Some dependencies failed to install. Setup will continue but may have issues.")
+                Logger.warning("\n[WARN]  Some dependencies failed to install. Setup will continue but may have issues.")
 
             # Step 3: Create Directory Structure
             Logger.step(3, 7, "Creating Directory Structure")
@@ -1154,10 +1154,10 @@ class SetupOrchestrator:
                     Logger.detail("Testing API credentials...")
                     creds_valid, creds_msg = client.test_credentials()
                     if creds_valid:
-                        Logger.success("✓ API credentials validated")
+                        Logger.success("[OK] API credentials validated")
                         self.file_logger.info("API credentials validated")
                     else:
-                        Logger.warning(f"⚠️  Credential validation warning: {creds_msg}")
+                        Logger.warning(f"[WARN]  Credential validation warning: {creds_msg}")
                         self.file_logger.warning(f"Credential validation warning: {creds_msg}")
 
                     # Then test connectivity
@@ -1166,19 +1166,19 @@ class SetupOrchestrator:
                     self.results['connectivity'] = connected
 
                     if connected:
-                        Logger.success("✓ API connection validated")
+                        Logger.success("[OK] API connection validated")
                         self.file_logger.info("API connection successful")
 
                         # Get system info
                         status = client.get_system_status()
                         if status:
-                            Logger.success("✓ Connected to BubbleLab API")
+                            Logger.success("[OK] Connected to BubbleLab API")
                     else:
-                        Logger.error(f"✗ API connection failed: {message}")
+                        Logger.error(f"[FAIL] API connection failed: {message}")
                         Logger.warning("Setup will continue but API features won't work until fixed")
                         self.file_logger.error(f"API connection failed: {message}")
                 except (RuntimeError, ConnectionError, ValueError) as e:
-                    Logger.warning(f"⚠️  Could not validate API: {e}")
+                    Logger.warning(f"[WARN]  Could not validate API: {e}")
                     Logger.info("This is OK if BubbleLab is not running yet")
                     self.file_logger.warning(f"API validation error: {e}")
             else:
@@ -1205,18 +1205,18 @@ class SetupOrchestrator:
             )
 
             if critical_success:
-                Logger.success("\n✓ SETUP COMPLETE!")
+                Logger.success("\n[OK] SETUP COMPLETE!")
                 self.print_next_steps()
                 self.file_logger.info("Setup completed successfully")
             else:
-                Logger.error("\n✗ SETUP INCOMPLETE")
+                Logger.error("\n[FAIL] SETUP INCOMPLETE")
                 Logger.info("Please fix the errors above and run setup again")
                 self.file_logger.error("Setup incomplete")
 
             return critical_success
 
         except (OSError, RuntimeError, ValueError) as e:
-            Logger.error(f"\n\n✗ Fatal error during setup: {e}")
+            Logger.error(f"\n\n[FAIL] Fatal error during setup: {e}")
             if self.file_logger:
                 self.file_logger.error("Fatal error during setup", e)
             Logger.detail(traceback.format_exc())
@@ -1236,16 +1236,16 @@ class SetupOrchestrator:
 
                     is_valid, error = ConfigSchemaValidator.validate(config, self.file_logger)
                     if is_valid:
-                        Logger.success("✓ Configuration file valid")
+                        Logger.success("[OK] Configuration file valid")
                         self.file_logger.info("Configuration file test passed")
                     else:
-                        Logger.error(f"✗ Configuration file invalid: {error}")
+                        Logger.error(f"[FAIL] Configuration file invalid: {error}")
                         tests_passed = False
             else:
-                Logger.error("✗ Configuration file not found")
+                Logger.error("[FAIL] Configuration file not found")
                 tests_passed = False
         except (OSError, IOError, yaml.YAMLError) as e:
-            Logger.error(f"✗ Configuration test failed: {e}")
+            Logger.error(f"[FAIL] Configuration test failed: {e}")
             if self.file_logger:
                 self.file_logger.error("Configuration test failed", e)
             tests_passed = False
@@ -1256,9 +1256,9 @@ class SetupOrchestrator:
         for dir_name in required_dirs:
             dir_path = Path.cwd() / dir_name
             if dir_path.exists():
-                Logger.success(f"✓ {dir_name}/ exists")
+                Logger.success(f"[OK] {dir_name}/ exists")
             else:
-                Logger.error(f"✗ {dir_name}/ missing")
+                Logger.error(f"[FAIL] {dir_name}/ missing")
                 tests_passed = False
 
         # Test 3: Python packages importable
@@ -1266,17 +1266,17 @@ class SetupOrchestrator:
         for package in ['yaml', 'requests']:
             try:
                 __import__(package)
-                Logger.success(f"✓ {package} importable")
+                Logger.success(f"[OK] {package} importable")
             except ImportError:
-                Logger.error(f"✗ {package} not importable")
+                Logger.error(f"[FAIL] {package} not importable")
                 tests_passed = False
 
         if tests_passed:
-            Logger.success("\n✓ All tests passed")
+            Logger.success("\n[OK] All tests passed")
             if self.file_logger:
                 self.file_logger.info("All validation tests passed")
         else:
-            Logger.warning("\n⚠️  Some tests failed")
+            Logger.warning("\n[WARN]  Some tests failed")
             if self.file_logger:
                 self.file_logger.warning("Some validation tests failed")
 
@@ -1294,9 +1294,9 @@ class SetupOrchestrator:
         print("Results:")
         for step, result in self.results.items():
             if result is True:
-                Logger.success(f"  ✓ {step}")
+                Logger.success(f"  [OK] {step}")
             elif result is False:
-                Logger.error(f"  ✗ {step}")
+                Logger.error(f"  [FAIL] {step}")
             else:
                 Logger.warning(f"  ○ {step} (skipped)")
 
@@ -1359,18 +1359,18 @@ class DirectoryCreator:
         path = self.base_dir / directory
         try:
             if path.exists():
-                Logger.detail(f"✓ {directory} (already exists)")
+                Logger.detail(f"[OK] {directory} (already exists)")
                 self.existing.append(directory)
                 return True
             else:
                 path.mkdir(parents=True, exist_ok=True)
-                Logger.success(f"✓ {directory} (created)")
+                Logger.success(f"[OK] {directory} (created)")
                 self.created.append(directory)
                 if self.file_logger:
                     self.file_logger.info(f"Directory created: {directory}")
                 return True
         except (PermissionError, OSError) as e:
-            Logger.error(f"✗ {directory} ({e})")
+            Logger.error(f"[FAIL] {directory} ({e})")
             if self.file_logger:
                 self.file_logger.error(f"Failed to create directory: {directory}", e)
             return False
@@ -1385,7 +1385,7 @@ class DirectoryCreator:
             all_success &= success
 
         if all_success:
-            Logger.success(f"\n✓ Directory structure ready")
+            Logger.success(f"\n[OK] Directory structure ready")
             Logger.detail(f"  Created: {len(self.created)} directories")
             Logger.detail(f"  Existing: {len(self.existing)} directories")
             if self.file_logger:
@@ -1458,7 +1458,7 @@ Examples:
         sys.exit(0 if success else 1)
 
     except (OSError, RuntimeError, ValueError) as e:
-        Logger.error(f"\n\n✗ Fatal error: {e}")
+        Logger.error(f"\n\n[FAIL] Fatal error: {e}")
         Logger.detail(traceback.format_exc())
         sys.exit(1)
 
@@ -1466,9 +1466,9 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        Logger.warning("\n\n⚠️  Setup interrupted by user")
+        Logger.warning("\n\n[WARN]  Setup interrupted by user")
         sys.exit(130)
     except (OSError, RuntimeError, ValueError) as e:
-        Logger.error(f"\n\n✗ Fatal error: {e}")
+        Logger.error(f"\n\n[FAIL] Fatal error: {e}")
         Logger.detail(traceback.format_exc())
         sys.exit(1)

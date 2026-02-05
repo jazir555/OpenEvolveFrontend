@@ -419,7 +419,7 @@ def print_summary_report(
         print(f"\n📊 COMPARATIVE ANALYSIS:")
         for metric, data in comparison["improvements"].items():
             print(
-                f"  {metric.upper()}: {data['baseline']:.3f} → {data['ace']:.3f} ({data['relative']:+.1%})"
+                f"  {metric.upper()}: {data['baseline']:.3f} -> {data['ace']:.3f} ({data['relative']:+.1%})"
             )
 
     if insights:
@@ -446,7 +446,7 @@ def run_live_analysis(args: argparse.Namespace) -> None:
     
     # Validate required arguments
     if not args.benchmark:
-        print("❌ Error: --benchmark is required for live analysis")
+        print("[FAIL] Error: --benchmark is required for live analysis")
         print("   Example: python explain_ace_performance.py --live --benchmark finer_ord")
         sys.exit(1)
     
@@ -468,7 +468,7 @@ def run_live_analysis(args: argparse.Namespace) -> None:
         from ace.llm_providers import LiteLLMClient
         BENCHMARK_AVAILABLE = True
     except ImportError as e:
-        print(f"⚠️  Warning: Could not import ACE benchmark components: {e}")
+        print(f"[WARN]  Warning: Could not import ACE benchmark components: {e}")
         print("   Running in simulation mode")
         BENCHMARK_AVAILABLE = False
     
@@ -487,7 +487,7 @@ def run_live_analysis(args: argparse.Namespace) -> None:
     
     def signal_handler(sig, frame):
         nonlocal running
-        print("\n\n⚠️  Received interrupt signal. Stopping live analysis...")
+        print("\n\n[WARN]  Received interrupt signal. Stopping live analysis...")
         running = False
     
     signal.signal(signal.SIGINT, signal_handler)
@@ -519,7 +519,7 @@ def run_live_analysis(args: argparse.Namespace) -> None:
                 benchmark = benchmark_manager.load_benchmark(benchmark_name)
                 samples = benchmark.samples[:limit]
             except Exception as e:
-                print(f"❌ Error loading benchmark: {e}")
+                print(f"[FAIL] Error loading benchmark: {e}")
                 print("   Falling back to simulation mode")
                 BENCHMARK_AVAILABLE = False
                 samples = []
@@ -575,7 +575,7 @@ def run_live_analysis(args: argparse.Namespace) -> None:
                             })
                             
                         except Exception as e:
-                            print(f"    ⚠️  Error processing sample {i}: {e}")
+                            print(f"    [WARN]  Error processing sample {i}: {e}")
                             epoch_results.append({
                                 "sample_id": sample.metadata.get("id", f"sample_{i}"),
                                 "error": str(e),
@@ -661,7 +661,7 @@ def run_live_analysis(args: argparse.Namespace) -> None:
         with open(output_file, "w") as f:
             json.dump(analysis_results, f, indent=2)
         
-        print(f"\n✅ Live analysis results saved to: {output_file}")
+        print(f"\n[OK] Live analysis results saved to: {output_file}")
         
         # Print summary
         print("\n" + "=" * 60)
@@ -682,7 +682,7 @@ def run_live_analysis(args: argparse.Namespace) -> None:
                     print(f"Accuracy Improvement: {improvement:+.2%}")
         
     except Exception as e:
-        print(f"\n❌ Error during live analysis: {e}")
+        print(f"\n[FAIL] Error during live analysis: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)
@@ -709,7 +709,7 @@ def main():
         elif args.compare:
             # Comparative analysis mode
             comparison = perform_comparative_analysis(args.compare[0], args.compare[1])
-            print(f"✅ Comparative analysis completed")
+            print(f"[OK] Comparative analysis completed")
 
         elif args.results:
             # Analysis mode
@@ -736,7 +736,7 @@ def main():
                         output_dir / "interaction_traces.json"
                     )
 
-            print(f"✅ Analysis completed")
+            print(f"[OK] Analysis completed")
 
         # Generate insights
         insights = generate_insights(
@@ -788,7 +788,7 @@ def main():
         print(f"\n📁 All outputs saved to: {output_dir}")
 
     except Exception as e:
-        print(f"❌ Error during analysis: {e}")
+        print(f"[FAIL] Error during analysis: {e}")
         if args.verbose:
             import traceback
 

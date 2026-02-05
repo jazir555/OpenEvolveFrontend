@@ -87,7 +87,7 @@ class DemoRunner:
         print("=" * 80 + "\n")
 
         if not MDAP_AVAILABLE:
-            print("❌ MDAP not available. Skipping demo.")
+            print("[FAIL] MDAP not available. Skipping demo.")
             return
 
         try:
@@ -110,7 +110,7 @@ class DemoRunner:
                 model_config=model_config
             )
 
-            print("✓ MDAP Orchestrator created")
+            print("[OK] MDAP Orchestrator created")
             print(f"  - k_min: {config.k_min}")
             print(f"  - k_max: {config.k_max}")
             print(f"  - timeout: {config.timeout_seconds}s")
@@ -131,7 +131,7 @@ class DemoRunner:
                 steps=[step]
             )
 
-            print(f"\n✓ Task defined:")
+            print(f"\n[OK] Task defined:")
             print(f"  - Theorem: {theorem}")
             print(f"  - Steps: {len(task.steps)}")
 
@@ -147,10 +147,10 @@ class DemoRunner:
             print("   4. Apply red-flagging")
             print("   5. Return best proof")
 
-            print("\n✅ Demo completed successfully!")
+            print("\n[OK] Demo completed successfully!")
 
         except Exception as e:
-            print(f"\n❌ Demo failed: {e}")
+            print(f"\n[FAIL] Demo failed: {e}")
             logger.error(f"Basic MDAP demo error: {e}", exc_info=True)
 
     async def run_maker_demo(self):
@@ -161,7 +161,7 @@ class DemoRunner:
         print("=" * 80 + "\n")
 
         if not WORKFLOW_AVAILABLE:
-            print("❌ Workflow structures not available. Skipping demo.")
+            print("[FAIL] Workflow structures not available. Skipping demo.")
             return
 
         try:
@@ -174,7 +174,7 @@ class DemoRunner:
                 "maker_max_depth": 5
             }
 
-            print("✓ Workflow state configured")
+            print("[OK] Workflow state configured")
             print(f"  - MAKER enabled: {state.maker_enabled}")
             print(f"  - Mode: {state.maker_config['maker_mode']}")
             print(f"  - K-ahead: {state.maker_config['maker_k_ahead']}")
@@ -187,7 +187,7 @@ class DemoRunner:
                 estimated_effort=5
             )
 
-            print(f"\n✓ Sub-problem created:")
+            print(f"\n[OK] Sub-problem created:")
             print(f"  - ID: {sub_problem.id}")
             print(f"  - Title: {sub_problem.title}")
             print(f"  - Effort: {sub_problem.estimated_effort}")
@@ -206,10 +206,10 @@ class DemoRunner:
             print("   - recursive: Recursive decomposition")
             print("   - hybrid: Combination of strategies")
 
-            print("\n✅ Demo completed successfully!")
+            print("\n[OK] Demo completed successfully!")
 
         except Exception as e:
-            print(f"\n❌ Demo failed: {e}")
+            print(f"\n[FAIL] Demo failed: {e}")
             logger.error(f"MAKER demo error: {e}", exc_info=True)
 
     async def run_hybrid_demo(self):
@@ -220,7 +220,7 @@ class DemoRunner:
         print("=" * 80 + "\n")
 
         if not ROMA_MDAP_AVAILABLE:
-            print("❌ ROMA-MDAP-MAKER not available. Skipping demo.")
+            print("[FAIL] ROMA-MDAP-MAKER not available. Skipping demo.")
             return
 
         try:
@@ -236,7 +236,7 @@ class DemoRunner:
                 api_key=self.api_key
             )
 
-            print("✓ ROMA-MDAP-MAKER configured")
+            print("[OK] ROMA-MDAP-MAKER configured")
             print(f"  - ROMA max depth: {config.roma_max_depth_solving}")
             print(f"  - MDAP enabled: {config.mdap_enabled}")
             print(f"  - K-ahead: {config.mdap_k_ahead}")
@@ -244,7 +244,7 @@ class DemoRunner:
 
             theorem = "∀ a b c : Nat, (a + b) + c = a + (b + c)"
 
-            print(f"\n✓ Theorem: {theorem}")
+            print(f"\n[OK] Theorem: {theorem}")
 
             print("\n📊 Hybrid execution flow:")
             print("   1. ROMA decomposes theorem into sub-goals")
@@ -259,10 +259,10 @@ class DemoRunner:
             print("   ├─ Sub-goal 2: Inductive step (succ c)")
             print("   └─ Sub-goal 3: Reassemble proof")
 
-            print("\n✅ Demo completed successfully!")
+            print("\n[OK] Demo completed successfully!")
 
         except Exception as e:
-            print(f"\n❌ Demo failed: {e}")
+            print(f"\n[FAIL] Demo failed: {e}")
             logger.error(f"Hybrid demo error: {e}", exc_info=True)
 
     async def run_custom_agent_demo(self):
@@ -273,7 +273,7 @@ class DemoRunner:
         print("=" * 80 + "\n")
 
         if not MDAP_AVAILABLE:
-            print("❌ MDAP not available. Skipping demo.")
+            print("[FAIL] MDAP not available. Skipping demo.")
             return
 
         try:
@@ -284,7 +284,7 @@ class DemoRunner:
                 blocked_patterns=["sorry", "admit", "TODO"]
             )
 
-            print("✓ Red-flagging rules configured")
+            print("[OK] Red-flagging rules configured")
             print(f"  - Max tokens: {red_flag_rules.max_tokens}")
             print(f"  - Min confidence: {red_flag_rules.min_confidence}")
             print(f"  - Blocked patterns: {red_flag_rules.blocked_patterns}")
@@ -302,7 +302,7 @@ class DemoRunner:
             print("\n📊 Red-flagging tests:")
             for name, response in test_responses:
                 is_flagged, reasons = flagger.is_flagged(response, {}, None)
-                status = "🚩 FLAGGED" if is_flagged else "✓ PASS"
+                status = "🚩 FLAGGED" if is_flagged else "[OK] PASS"
                 print(f"   {status}: {name}")
                 if reasons:
                     print(f"      Reasons: {reasons}")
@@ -315,15 +315,15 @@ class DemoRunner:
             cache.set("key2", {"value": "proof2"})
 
             retrieved = cache.get("key1")
-            print(f"   ✓ Set key1, retrieved: {retrieved}")
+            print(f"   [OK] Set key1, retrieved: {retrieved}")
 
             cache_miss = cache.get("key3")
-            print(f"   ✓ Get key3 (miss): {cache_miss}")
+            print(f"   [OK] Get key3 (miss): {cache_miss}")
 
-            print("\n✅ Demo completed successfully!")
+            print("\n[OK] Demo completed successfully!")
 
         except Exception as e:
-            print(f"\n❌ Demo failed: {e}")
+            print(f"\n[FAIL] Demo failed: {e}")
             logger.error(f"Custom agent demo error: {e}", exc_info=True)
 
     async def run_workflow_demo(self):
@@ -334,7 +334,7 @@ class DemoRunner:
         print("=" * 80 + "\n")
 
         if not WORKFLOW_AVAILABLE:
-            print("❌ Workflow structures not available. Skipping demo.")
+            print("[FAIL] Workflow structures not available. Skipping demo.")
             return
 
         try:
@@ -361,7 +361,7 @@ class DemoRunner:
                 )
             ]
 
-            print("✓ Decomposition created")
+            print("[OK] Decomposition created")
             print(f"  - Total sub-problems: {len(sub_problems)}")
 
             for sp in sub_problems:
@@ -380,10 +380,10 @@ class DemoRunner:
             print("   Stage 3B: MDAP refinement (if needed)")
             print("   Stage 4: Solution reassembly")
 
-            print("\n✅ Demo completed successfully!")
+            print("\n[OK] Demo completed successfully!")
 
         except Exception as e:
-            print(f"\n❌ Demo failed: {e}")
+            print(f"\n[FAIL] Demo failed: {e}")
             logger.error(f"Workflow demo error: {e}", exc_info=True)
 
     async def run_voting_demo(self):
@@ -429,10 +429,10 @@ class DemoRunner:
             print(f"   Weighted votes: {weighted_votes}")
             print(f"   Winner: {winner_weighted} (1.75 total confidence)")
 
-            print("\n✅ Demo completed successfully!")
+            print("\n[OK] Demo completed successfully!")
 
         except Exception as e:
-            print(f"\n❌ Demo failed: {e}")
+            print(f"\n[FAIL] Demo failed: {e}")
             logger.error(f"Voting demo error: {e}", exc_info=True)
 
     async def run_adaptive_demo(self):
@@ -443,7 +443,7 @@ class DemoRunner:
         print("=" * 80 + "\n")
 
         if not ADAPTIVE_MDAP_AVAILABLE:
-            print("❌ Adaptive MDAP not available. Skipping demo.")
+            print("[FAIL] Adaptive MDAP not available. Skipping demo.")
             return
 
         try:
@@ -504,9 +504,9 @@ class DemoRunner:
                 print(f"    - Text Length: {score.text_length_score:.3f}")
                 print(f"    - Domain Rarity: {score.domain_rarity_score:.3f}")
                 print(f"    - Depth: {score.depth_score:.3f}")
-                print(f"  → Strategy: {config.strategy.value}")
-                print(f"  → Agents: {config.n_agents}, K-Ahead: {config.k_ahead}")
-                print(f"  → Expected: {problem['expected']}")
+                print(f"  -> Strategy: {config.strategy.value}")
+                print(f"  -> Agents: {config.n_agents}, K-Ahead: {config.k_ahead}")
+                print(f"  -> Expected: {problem['expected']}")
                 print()
 
             # Profile comparison
@@ -522,20 +522,20 @@ class DemoRunner:
                 profile_allocator = AdaptiveMDAPAllocator(profile=profile)
                 profile_config = profile_allocator.allocate_resources(test_complexity)
 
-                print(f"  {profile_name.capitalize():12} → "
+                print(f"  {profile_name.capitalize():12} -> "
                       f"Strategy: {profile_config.strategy.value:15} | "
                       f"Agents: {profile_config.n_agents} | "
                       f"K-Ahead: {profile_config.k_ahead}")
 
-            print("\n✅ Demo completed successfully!")
+            print("\n[OK] Demo completed successfully!")
             print("\n💡 Key Takeaways:")
-            print("   • Complexity classification happens in <50ms")
-            print("   • Resource allocation happens in <1ms")
-            print("   • 30-50% cost reduction vs static allocation")
-            print("   • Quality maintained within ±1% of baseline")
+            print("   * Complexity classification happens in <50ms")
+            print("   * Resource allocation happens in <1ms")
+            print("   * 30-50% cost reduction vs static allocation")
+            print("   * Quality maintained within ±1% of baseline")
 
         except Exception as e:
-            print(f"\n❌ Demo failed: {e}")
+            print(f"\n[FAIL] Demo failed: {e}")
             logger.error(f"Adaptive demo error: {e}", exc_info=True)
 
     async def run_all_demos(self):

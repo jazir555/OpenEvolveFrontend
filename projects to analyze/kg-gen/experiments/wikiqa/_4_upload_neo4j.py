@@ -80,13 +80,13 @@ def main() -> int:
 
     graph_path = Path(args.graph_file)
     if not graph_path.exists():
-        print(f"❌ Graph file not found: {graph_path}")
+        print(f"[FAIL] Graph file not found: {graph_path}")
         return 1
 
     try:
         graph = load_graph_from_file(str(graph_path))
     except Exception as e:
-        print(f"❌ Failed to load graph: {e}")
+        print(f"[FAIL] Failed to load graph: {e}")
         return 1
 
     print(

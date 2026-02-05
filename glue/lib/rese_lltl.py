@@ -804,9 +804,9 @@ class LogicToLossTranslator:
     Main Logic-to-Loss Translation Layer.
 
     Orchestrates the full translation pipeline:
-    1. Symbolic constraints → Encoder → Neural representations
-    2. Neural representations → Composer → Loss functions
-    3. DITO → Contradiction detection
+    1. Symbolic constraints -> Encoder -> Neural representations
+    2. Neural representations -> Composer -> Loss functions
+    3. DITO -> Contradiction detection
 
     Following CLAUDE.md principles:
     - Idempotent: Cache translations
@@ -836,7 +836,7 @@ class LogicToLossTranslator:
         """
         Translate symbolic constraints to loss functions.
 
-        Full pipeline: encode → compose → detect contradictions → combine
+        Full pipeline: encode -> compose -> detect contradictions -> combine
 
         Args:
             constraints: List of symbolic constraints

@@ -552,7 +552,7 @@ def install_bash_completion():
             with open(bashrc, 'a') as f:
                 f.write('\n# OpenEvolve CLI completion\n')
                 f.write(get_bash_completion())
-            print(f"✓ Installed bash completion to {bashrc}")
+            print(f"[OK] Installed bash completion to {bashrc}")
             installed = True
             break
 
@@ -573,7 +573,7 @@ def install_zsh_completion():
         with open(zshrc, 'a') as f:
             f.write('\n# OpenEvolve CLI completion\n')
             f.write(get_zsh_completion())
-        print(f"✓ Installed zsh completion to {zshrc}")
+        print(f"[OK] Installed zsh completion to {zshrc}")
     else:
         print("Could not find .zshrc")
         print("Add this to your ~/.zshrc:")

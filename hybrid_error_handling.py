@@ -260,7 +260,7 @@ if __name__ == "__main__":
     try:
         raise StrategyNotFoundError("UnknownStrategy")
     except HybridMakerError as e:
-        print(f"✓ Caught: {e.error_code} - {e.message}")
+        print(f"[OK] Caught: {e.error_code} - {e.message}")
 
     # Demo 2: Retry decorator
     print("\n2. Retry Decorator")
@@ -276,7 +276,7 @@ if __name__ == "__main__":
         if call_count[0] < 2:
             raise HybridMakerError("Temporary failure")
 
-        print("  ✓ Success!")
+        print("  [OK] Success!")
         return {"success": True}
 
     result = asyncio.run(flaky_hybrid_operation())
@@ -297,18 +297,18 @@ if __name__ == "__main__":
         try:
             await unreliable_hybrid_service()
         except HybridMakerError as e:
-            print(f"  ✓ Failure 1: {e.message}")
+            print(f"  [OK] Failure 1: {e.message}")
 
         try:
             await unreliable_hybrid_service()
         except HybridMakerError as e:
-            print(f"  ✓ Failure 2: {e.message}")
+            print(f"  [OK] Failure 2: {e.message}")
 
         # Circuit should be open
         try:
             await unreliable_hybrid_service()
         except HybridMakerError as e:
-            print(f"  ✓ Circuit breaker: {e.message}")
+            print(f"  [OK] Circuit breaker: {e.message}")
 
         print(f"  Circuit state: {circuit_breaker.state}")
 

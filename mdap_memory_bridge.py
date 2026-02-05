@@ -7,7 +7,7 @@ and the Unified Memory System, enabling:
 1. Storage of decompositions in unified memory (4-layer indexed)
 2. Retrieval of relevant past decompositions for similar problems
 3. Learning from voting patterns across sessions
-4. Building knowledge graph of problem→subproblem relationships
+4. Building knowledge graph of problem->subproblem relationships
 
 Key Features:
 - 4-layer indexing (hash, hierarchical, graph, semantic)
@@ -846,7 +846,7 @@ class MDAPMemoryBridge:
         Creates:
         - Problem node
         - Subproblem nodes
-        - PART_OF relationships (subproblem → problem)
+        - PART_OF relationships (subproblem -> problem)
         - SEQUENTIAL relationships between ordered subproblems
         
         Args:

@@ -127,12 +127,12 @@ class TestCompleteSystemIntegration(unittest.TestCase):
         
         self.assertIsNotNone(problem)
         self.assertIn("microservices", problem.domain_context.domain.lower())
-        print(f"✓ Problem analysis completed in {analysis_time:.3f}s")
+        print(f"[OK] Problem analysis completed in {analysis_time:.3f}s")
         
         # Store the problem
         problem_id = self.db.create_problem(problem)
         self.assertTrue(problem_id)
-        print(f"✓ Problem stored in database with ID: {problem_id}")
+        print(f"[OK] Problem stored in database with ID: {problem_id}")
         
         # PHASE 2: Problem Decomposition
         print("\nPhase 2: Problem Decomposition")
@@ -189,13 +189,13 @@ class TestCompleteSystemIntegration(unittest.TestCase):
         
         self.assertIsNotNone(decomposition_plan)
         self.assertGreater(len(decomposition_plan.sub_problems), 3)
-        print(f"✓ Problem decomposition completed in {decomposition_time:.3f}s")
-        print(f"✓ Generated {len(decomposition_plan.sub_problems)} sub-problems")
+        print(f"[OK] Problem decomposition completed in {decomposition_time:.3f}s")
+        print(f"[OK] Generated {len(decomposition_plan.sub_problems)} sub-problems")
         
         # Store the plan
         plan_id = self.db.create_plan(decomposition_plan)
         self.assertTrue(plan_id)
-        print(f"✓ Decomposition plan stored with ID: {plan_id}")
+        print(f"[OK] Decomposition plan stored with ID: {plan_id}")
         
         # PHASE 3: Team Coordination and Validation
         print("\nPhase 3: Team Coordination and Gauntlet Validation")
@@ -234,8 +234,8 @@ class TestCompleteSystemIntegration(unittest.TestCase):
             team_assignments.append(assignment)
         
         coordination_time = time.time() - start_time
-        print(f"✓ Team coordination completed in {coordination_time:.3f}s")
-        print(f"✓ Created {len(team_assignments)} team assignments")
+        print(f"[OK] Team coordination completed in {coordination_time:.3f}s")
+        print(f"[OK] Created {len(team_assignments)} team assignments")
         
         # PHASE 4: Solution Generation and Orchestration
         print("\nPhase 4: Solution Generation and Orchestration")
@@ -305,8 +305,8 @@ class TestCompleteSystemIntegration(unittest.TestCase):
         
         self.assertIsNotNone(final_solution)
         self.assertGreater(len(final_solution.integrated_content), 0)
-        print(f"✓ Solution orchestration completed in {orchestration_time:.3f}s")
-        print(f"✓ Generated final solution with {len(gauntlet_results)} validation results")
+        print(f"[OK] Solution orchestration completed in {orchestration_time:.3f}s")
+        print(f"[OK] Generated final solution with {len(gauntlet_results)} validation results")
         
         # PHASE 5: Storage and Validation
         print("\nPhase 5: Storage and Validation")
@@ -322,7 +322,7 @@ class TestCompleteSystemIntegration(unittest.TestCase):
         ))
         
         self.assertTrue(solution_id)
-        print(f"✓ Final solution stored with ID: {solution_id}")
+        print(f"[OK] Final solution stored with ID: {solution_id}")
         
         # Validate the complete workflow in database
         stored_problem = self.db.get_problem(problem.id)
@@ -333,7 +333,7 @@ class TestCompleteSystemIntegration(unittest.TestCase):
         self.assertIsNotNone(stored_plan)
         self.assertGreater(solution_attempts_count, 0)
         
-        print(f"✓ Database validation passed: Problem, Plan, and {solution_attempts_count} solutions stored")
+        print(f"[OK] Database validation passed: Problem, Plan, and {solution_attempts_count} solutions stored")
         
         # PHASE 6: Performance and Quality Metrics
         print("\nPhase 6: Performance and Quality Validation")
@@ -346,13 +346,13 @@ class TestCompleteSystemIntegration(unittest.TestCase):
         self.assertLess(coordination_time, 15.0, "Team coordination took too long")
         self.assertLess(total_time, 30.0, "Complete workflow took too long")
         
-        print(f"✓ Performance validation passed - Total workflow completed in {total_time:.3f}s")
+        print(f"[OK] Performance validation passed - Total workflow completed in {total_time:.3f}s")
         
         # Validate solution quality
         self.assertGreater(final_solution.overall_confidence, 0.8, "Final solution confidence too low")
         self.assertGreater(len(final_solution.integrated_content), 100, "Solution content too sparse")
         
-        print(f"✓ Quality validation passed - Confidence: {final_solution.overall_confidence:.2f}")
+        print(f"[OK] Quality validation passed - Confidence: {final_solution.overall_confidence:.2f}")
         
         # PHASE 7: Security and Validation
         print("\nPhase 7: Security and Input Validation")
@@ -379,7 +379,7 @@ class TestCompleteSystemIntegration(unittest.TestCase):
                 # It's okay if validation fails for malicious input
                 pass
         
-        print("✓ Security validation passed - Malicious inputs handled safely")
+        print("[OK] Security validation passed - Malicious inputs handled safely")
         
         # PHASE 8: Advanced Features Integration
         print("\nPhase 8: Advanced Features Integration")
@@ -406,7 +406,7 @@ class TestCompleteSystemIntegration(unittest.TestCase):
             if visual_result:
                 self.assertIsInstance(visual_result, str)
         
-        print("✓ Advanced features integration validated")
+        print("[OK] Advanced features integration validated")
         
         print("\n" + "="*80)
         print("🎉 COMPLETE END-TO-END SYSTEM INTEGRATION TEST PASSED! 🎉")
@@ -479,7 +479,7 @@ class TestCompleteSystemIntegration(unittest.TestCase):
         self.assertIsNotNone(still_there, "Valid problem should remain after invalid operation")
         self.assertEqual(still_there.title, "Valid Test Problem")
         
-        print("✓ Error recovery and resilience validation passed")
+        print("[OK] Error recovery and resilience validation passed")
     
     def test_concurrent_workflow_isolation(self):
         """Test that concurrent workflows don't interfere with each other"""
@@ -589,13 +589,13 @@ class TestCompleteSystemIntegration(unittest.TestCase):
         successful_instances = [r for r in results if r['success']]
         failed_instances = [r for r in results if not r['success']]
         
-        print(f"✓ Concurrent workflow test: {len(successful_instances)}/{num_instances} instances succeeded in {total_time:.3f}s")
+        print(f"[OK] Concurrent workflow test: {len(successful_instances)}/{num_instances} instances succeeded in {total_time:.3f}s")
         
         # Verify that all successful instances have isolated data
         all_problems = shared_db.list_problems()
         all_plans = shared_db.list_plans()
         
-        print(f"✓ Database contains {len(all_problems)} problems and {len(all_plans)} plans from all instances")
+        print(f"[OK] Database contains {len(all_problems)} problems and {len(all_plans)} plans from all instances")
         
         # All instances should succeed (if database operations are properly isolated)
         self.assertGreaterEqual(len(successful_instances), num_instances * 0.9, 
@@ -653,7 +653,7 @@ class TestCompleteSystemIntegration(unittest.TestCase):
         # Check how many objects were cleaned up
         living_after_cleanup = sum(1 for ref in weakrefs_to_dead_objects if ref() is not None)
         
-        print(f"✓ Memory cleanup: {50 - living_after_cleanup}/50 objects properly cleaned up")
+        print(f"[OK] Memory cleanup: {50 - living_after_cleanup}/50 objects properly cleaned up")
         
         # Most objects should have been cleaned up (allow a few to remain due to internal references)
         self.assertLess(living_after_cleanup, 10, "Most objects should be cleaned up after deletion")
@@ -674,7 +674,7 @@ class TestCompleteSystemIntegration(unittest.TestCase):
         self.assertGreaterEqual(counter_val, 1, "Counter should have been incremented")
         self.assertEqual(gauge_val, 1, "Gauge should have been set")
         
-        print(f"✓ Metrics collection: Counter={counter_val}, Gauge={gauge_val}")
+        print(f"[OK] Metrics collection: Counter={counter_val}, Gauge={gauge_val}")
         
         # Test that metrics collection doesn't interfere with main operations
         problem = ProblemDefinition(
@@ -697,7 +697,7 @@ class TestCompleteSystemIntegration(unittest.TestCase):
         result = self.db.create_problem(problem)
         self.assertTrue(result, "Problem creation should work with metrics collection active")
         
-        print("✓ Monitoring and metrics collection doesn't interfere with operations")
+        print("[OK] Monitoring and metrics collection doesn't interfere with operations")
     
     def test_cache_efficiency_and_correctness(self):
         """Test cache efficiency and correctness"""
@@ -717,7 +717,7 @@ class TestCompleteSystemIntegration(unittest.TestCase):
         self.assertIsNotNone(cached, "Cached response should be retrievable")
         self.assertEqual(cached["choices"][0]["message"]["content"], "Cached response")
         
-        print("✓ Cache stores and retrieves correctly")
+        print("[OK] Cache stores and retrieves correctly")
         
         # Test cache doesn't return incorrect responses for different inputs
         different_content = "Different test content"
@@ -731,7 +731,7 @@ class TestCompleteSystemIntegration(unittest.TestCase):
         self.assertIn('cache_hits', stats)
         self.assertGreaterEqual(stats['total_requests'], 1)
         
-        print(f"✓ Cache correctness: Hits={stats['cache_hits']}, Misses calculated from total={stats['total_requests']}")
+        print(f"[OK] Cache correctness: Hits={stats['cache_hits']}, Misses calculated from total={stats['total_requests']}")
 
 
 def run_final_validation_tests():
@@ -759,7 +759,7 @@ def run_final_validation_tests():
     print(f"Success rate: {(result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun * 100:.1f}%")
     
     if result.failures or result.errors:
-        print("\n❌ SOME TESTS FAILED ❌")
+        print("\n[FAIL] SOME TESTS FAILED [FAIL]")
         for test, trace in result.failures:
             print(f"\nFAILED: {test}")
             print(trace)

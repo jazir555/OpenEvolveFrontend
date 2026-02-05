@@ -229,9 +229,9 @@ if __name__ == "__main__":
         test.setUp()
         try:
             await test.test_controller_iteration_behavior()
-            print("✓ test_controller_iteration_behavior passed")
+            print("[OK] test_controller_iteration_behavior passed")
         except Exception as e:
-            print(f"✗ test_controller_iteration_behavior failed: {e}")
+            print(f"[FAIL] test_controller_iteration_behavior failed: {e}")
         finally:
             test.tearDown()
 

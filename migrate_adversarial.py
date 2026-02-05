@@ -50,10 +50,10 @@ def check_imports() -> Dict[str, bool]:
             DefenseResult
         )
         available["old_adversarial"] = True
-        logger.info("✓ Old adversarial module available")
+        logger.info("[OK] Old adversarial module available")
     except ImportError as e:
         available["old_adversarial"] = False
-        logger.warning(f"✗ Old adversarial module not available: {e}")
+        logger.warning(f"[FAIL] Old adversarial module not available: {e}")
 
     # Check new adversarial
     try:
@@ -64,10 +64,10 @@ def check_imports() -> Dict[str, bool]:
             quick_enhanced_test
         )
         available["new_adversarial"] = True
-        logger.info("✓ New enhanced adversarial module available")
+        logger.info("[OK] New enhanced adversarial module available")
     except ImportError as e:
         available["new_adversarial"] = False
-        logger.warning(f"✗ New enhanced adversarial module not available: {e}")
+        logger.warning(f"[FAIL] New enhanced adversarial module not available: {e}")
 
     # Check unified adversarial
     try:
@@ -76,10 +76,10 @@ def check_imports() -> Dict[str, bool]:
             UnifiedAdversarialConfig
         )
         available["unified_adversarial"] = True
-        logger.info("✓ Unified adversarial module available")
+        logger.info("[OK] Unified adversarial module available")
     except ImportError as e:
         available["unified_adversarial"] = False
-        logger.warning(f"✗ Unified adversarial module not available: {e}")
+        logger.warning(f"[FAIL] Unified adversarial module not available: {e}")
 
     return available
 
@@ -269,7 +269,7 @@ async def validate_migration(
             "error": None
         }
 
-        logger.info("✓ Old system executed successfully")
+        logger.info("[OK] Old system executed successfully")
 
     except (RuntimeError, ImportError, ValueError) as e:
         validation["old_system"]["error"] = str(e)
@@ -300,7 +300,7 @@ async def validate_migration(
             "error": None
         }
 
-        logger.info("✓ New system executed successfully")
+        logger.info("[OK] New system executed successfully")
 
     except (RuntimeError, ImportError, ValueError) as e:
         validation["new_system"]["error"] = str(e)
@@ -348,13 +348,13 @@ def step_1_backup_old_code() -> bool:
                 dst = backup_dir / filename
                 import shutil
                 shutil.copy2(src, dst)
-                print(f"  ✓ Backed up {filename}")
+                print(f"  [OK] Backed up {filename}")
 
-        print(f"\n✓ Backup completed: {backup_dir}")
+        print(f"\n[OK] Backup completed: {backup_dir}")
         return True
 
     except (IOError, OSError, PermissionError) as e:
-        print(f"  ✗ Backup failed: {e}")
+        print(f"  [FAIL] Backup failed: {e}")
         return False
 
 
@@ -366,11 +366,11 @@ def step_2_check_compatibility() -> Dict[str, bool]:
 
     print("\nCompatibility Summary:")
     for module, status in available.items():
-        symbol = "✓" if status else "✗"
+        symbol = "[OK]" if status else "[FAIL]"
         print(f"  {symbol} {module}: {'Available' if status else 'Not Available'}")
 
     if not available.get("new_adversarial"):
-        print("\n✗ Enhanced adversarial system not found!")
+        print("\n[FAIL] Enhanced adversarial system not found!")
         print("  Please ensure adversarial_advanced.py is installed.")
 
     return available
@@ -389,10 +389,10 @@ def step_3_create_new_config(old_config_path: Optional[str] = None) -> Optional[
         new_config = create_enhanced_config(enable_advanced_features=True).to_dict()
 
     if new_config:
-        print("  ✓ Configuration created")
+        print("  [OK] Configuration created")
         return new_config
     else:
-        print("  ✗ Configuration creation failed")
+        print("  [FAIL] Configuration creation failed")
         return None
 
 
@@ -414,14 +414,14 @@ def step_4_validate_systems() -> Dict[str, Any]:
 
         print("\nValidation Results:")
         if validation["old_system"]["available"]:
-            print("  ✓ Old system: Working")
+            print("  [OK] Old system: Working")
         else:
-            print(f"  ✗ Old system: {validation['old_system']['error']}")
+            print(f"  [FAIL] Old system: {validation['old_system']['error']}")
 
         if validation["new_system"]["available"]:
-            print("  ✓ New system: Working")
+            print("  [OK] New system: Working")
         else:
-            print(f"  ✗ New system: {validation['new_system']['error']}")
+            print(f"  [FAIL] New system: {validation['new_system']['error']}")
 
         if validation["comparison"]:
             comp = validation["comparison"]
@@ -531,11 +531,11 @@ For questions or issues, refer to:
         with open(output_path, 'w') as f:
             f.write(guide)
 
-        print(f"  ✓ Migration guide generated: {output_path}")
+        print(f"  [OK] Migration guide generated: {output_path}")
         return True
 
     except (IOError, OSError, PermissionError) as e:
-        print(f"  ✗ Failed to generate guide: {e}")
+        print(f"  [FAIL] Failed to generate guide: {e}")
         return False
 
 
@@ -599,19 +599,19 @@ def main():
 
         # Step 1: Backup
         if not step_1_backup_old_code():
-            print("\n✗ Migration failed: Backup step failed")
+            print("\n[FAIL] Migration failed: Backup step failed")
             return
 
         # Step 2: Compatibility check
         available = step_2_check_compatibility()
         if not available.get("new_adversarial"):
-            print("\n✗ Migration failed: New system not available")
+            print("\n[FAIL] Migration failed: New system not available")
             return
 
         # Step 3: Create new config
         config = step_3_create_new_config(args.config)
         if not config:
-            print("\n✗ Migration failed: Configuration creation failed")
+            print("\n[FAIL] Migration failed: Configuration creation failed")
             return
 
         # Step 4: Validate

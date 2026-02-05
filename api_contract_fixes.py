@@ -623,16 +623,16 @@ def generate_fix_report():
         "bubblelabs_ui_component.py"
     ]
     for f in files:
-        print(f"✓ {f}")
+        print(f"[OK] {f}")
 
     print("\n## API CONTRACT COMPLIANCE: 100%")
     print("-" * 80)
-    print("✓ All public methods have complete docstrings")
-    print("✓ Type hints match docstrings")
-    print("✓ Error handling fully documented")
-    print("✓ Side effects documented")
-    print("✓ Thread safety documented where relevant")
-    print("✓ Return structures documented for all code paths")
+    print("[OK] All public methods have complete docstrings")
+    print("[OK] Type hints match docstrings")
+    print("[OK] Error handling fully documented")
+    print("[OK] Side effects documented")
+    print("[OK] Thread safety documented where relevant")
+    print("[OK] Return structures documented for all code paths")
 
     print("\n" + "=" * 80)
     print("FIX REPORT COMPLETE")

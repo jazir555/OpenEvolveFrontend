@@ -251,7 +251,7 @@ def plot_all_directories_comparison(
         )
 
     plt.savefig(output_file, dpi=300, bbox_inches="tight")
-    print(f"\n✓ Comprehensive comparison plot saved to {output_file}")
+    print(f"\n[OK] Comprehensive comparison plot saved to {output_file}")
 
     # Print detailed statistics
     print("\n" + "=" * 80)
@@ -467,7 +467,7 @@ def write_summary_file(results_dict, output_file="results/summary.txt"):
         if len(valid_ranked) >= 1:
             best_model = valid_ranked[0][0]
             if "minimal" in best_model.lower():
-                f.write("3. ⚠️  UNEXPECTED FINDING:\n")
+                f.write("3. [WARN]  UNEXPECTED FINDING:\n")
                 f.write(
                     "   The 'minimal' configuration outperforms configurations with more reasoning.\n"
                 )
@@ -501,7 +501,7 @@ def write_summary_file(results_dict, output_file="results/summary.txt"):
         f.write("End of Summary\n")
         f.write("=" * 100 + "\n")
 
-    print(f"\n✓ Summary written to {output_path}")
+    print(f"\n[OK] Summary written to {output_path}")
 
 
 def compare_all_pairs(results_dict, output_dir="pairwise_comparisons"):
@@ -553,7 +553,7 @@ def compare_all_pairs(results_dict, output_dir="pairwise_comparisons"):
             str(output_file),
         )
 
-    print(f"✓ All pairwise comparisons saved to {output_dir}/")
+    print(f"[OK] All pairwise comparisons saved to {output_dir}/")
 
 
 def main():
@@ -582,7 +582,7 @@ def main():
 
     print(f"\nFound {len(directories)} directories:")
     for d in directories:
-        print(f"  ✓ {d.name}")
+        print(f"  [OK] {d.name}")
 
     # Read accuracies from all directories
     results_dict = {}
@@ -594,18 +594,18 @@ def main():
         try:
             print(f"\n{dir_name}:")
             accuracies, file_paths = read_accuracies_from_folder(directory)
-            print(f"  → Found {len(accuracies)} JSON files")
-            print(f"  → Mean accuracy: {np.mean(accuracies):.2f}%")
+            print(f"  -> Found {len(accuracies)} JSON files")
+            print(f"  -> Mean accuracy: {np.mean(accuracies):.2f}%")
             results_dict[dir_name] = {
                 "accuracies": accuracies,
                 "file_paths": file_paths,
             }
         except Exception as e:
-            print(f"  ✗ Warning: Could not read from {directory}: {e}")
+            print(f"  [FAIL] Warning: Could not read from {directory}: {e}")
 
     if len(results_dict) < 2:
         print(
-            f"\n✗ Error: Need at least 2 valid directories to compare. Found {len(results_dict)}."
+            f"\n[FAIL] Error: Need at least 2 valid directories to compare. Found {len(results_dict)}."
         )
         return 1
 
@@ -626,12 +626,12 @@ def main():
     compare_all_pairs(results_dict, str(pairwise_dir))
 
     print("\n" + "=" * 80)
-    print("✓ ANALYSIS COMPLETE!")
+    print("[OK] ANALYSIS COMPLETE!")
     print("=" * 80)
     print("Output files:")
-    print(f"  • Comprehensive comparison: {output_file}")
-    print(f"  • Summary report: {summary_file}")
-    print(f"  • Pairwise comparisons: {pairwise_dir}/")
+    print(f"  * Comprehensive comparison: {output_file}")
+    print(f"  * Summary report: {summary_file}")
+    print(f"  * Pairwise comparisons: {pairwise_dir}/")
     print("=" * 80)
 
     return 0

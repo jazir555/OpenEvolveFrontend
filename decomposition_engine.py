@@ -178,7 +178,7 @@ class SemanticDecomposition(DecompositionStrategyBase):
         PRODUCTION IMPLEMENTATION:
         - Comprehensive context building with all problem details
         - Structured prompt engineering for consistent output
-        - Multi-stage analysis: semantic concepts → sub-problems → validation
+        - Multi-stage analysis: semantic concepts -> sub-problems -> validation
         - Robust parsing with error recovery
         """
         # Build comprehensive context
@@ -545,7 +545,7 @@ class DependencyDecomposition(DecompositionStrategyBase):
             logger.warning("LLM dependency analysis returned no sub-problems. Returning empty list.")
             return []
         
-        logger.info(f"✓ LLM dependency analysis enhanced {len(enhanced_sub_problems)} sub-problems")
+        logger.info(f"[OK] LLM dependency analysis enhanced {len(enhanced_sub_problems)} sub-problems")
         return enhanced_sub_problems
     
     def _analyze_dependencies_with_llm(
@@ -1819,7 +1819,7 @@ Your selection:"""
         **ACTUAL INTEGRATION**: Extract knowledge from decomposition to KnowledgeEngine.
 
         Learns:
-        - Problem patterns → optimal strategies
+        - Problem patterns -> optimal strategies
         - Decomposition structures that work
         - Sub-problem relationships
         """
@@ -1943,7 +1943,7 @@ Your selection:"""
         **ACTUAL INTEGRATION**: Cache decomposition patterns for reuse.
 
         Caches:
-        - Similar problem → decomposition mappings
+        - Similar problem -> decomposition mappings
         - Strategy effectiveness patterns
         """
         if not CACHE_AVAILABLE:

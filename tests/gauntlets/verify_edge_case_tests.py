@@ -96,7 +96,7 @@ def main():
     print(f"Total Test Files: {len(test_files)}")
     print(f"Total Test Classes: {total_classes}")
     print(f"Total Test Methods: {total_tests}")
-    print(f"Overall Status: {'✓ ALL OK' if all_ok else '✗ ISSUES FOUND'}")
+    print(f"Overall Status: {'[OK] ALL OK' if all_ok else '[FAIL] ISSUES FOUND'}")
     print()
 
     # Check for supporting files
@@ -114,7 +114,7 @@ def main():
     for name, filepath in supporting_files.items():
         exists = filepath.exists()
         size = filepath.stat().st_size if exists else 0
-        status = "✓" if exists else "✗"
+        status = "[OK]" if exists else "[FAIL]"
         print(f"{status} {name}: {filepath.name} ({size:,} bytes)" if exists else f"{status} {name}: MISSING")
 
     print()
@@ -134,9 +134,9 @@ def main():
     for package, import_name in dependencies:
         try:
             __import__(import_name)
-            print(f"✓ {package}")
+            print(f"[OK] {package}")
         except ImportError:
-            print(f"✗ {package} (not installed)")
+            print(f"[FAIL] {package} (not installed)")
 
     print()
 
@@ -155,7 +155,7 @@ def main():
 
     for name, filepath in source_files.items():
         exists = filepath.exists()
-        status = "✓" if exists else "✗"
+        status = "[OK]" if exists else "[FAIL]"
         print(f"{status} {name}: {filepath}")
 
     print()
@@ -166,13 +166,13 @@ def main():
     print("="*80)
 
     if all_ok:
-        print("✓ All test files are present and properly structured")
-        print("✓ Ready to run tests:")
+        print("[OK] All test files are present and properly structured")
+        print("[OK] Ready to run tests:")
         print(f"  python {test_dir / 'run_edge_case_tests.py'}")
         print(f"  python {test_dir / 'run_edge_case_tests.py'} --coverage")
         print()
     else:
-        print("✗ Some test files are missing or incomplete")
+        print("[FAIL] Some test files are missing or incomplete")
         print("  Please check the output above for details")
         print()
 
@@ -185,11 +185,11 @@ def main():
             missing_deps.append(package)
 
     if missing_deps:
-        print(f"✗ Missing dependencies: {', '.join(missing_deps)}")
+        print(f"[FAIL] Missing dependencies: {', '.join(missing_deps)}")
         print("  Install with: pip install " + " ".join(missing_deps))
         print()
     else:
-        print("✓ All dependencies are installed")
+        print("[OK] All dependencies are installed")
         print()
 
     # Next steps

@@ -41,18 +41,18 @@ try:
     history_len = len(tracker.team_history.get('test_team', []))
 
     if history_len <= 100:
-        print(f'  ✅ PASS: History bounded to {history_len} (max: 100)')
+        print(f'  [OK] PASS: History bounded to {history_len} (max: 100)')
     else:
-        print(f'  ❌ FAIL: History exceeded limit: {history_len} > 100')
+        print(f'  [FAIL] FAIL: History exceeded limit: {history_len} > 100')
 
     # Verify FIFO eviction (oldest entries removed)
     if history_len == 100:
-        print(f'  ✅ PASS: FIFO eviction working (history at max limit)')
+        print(f'  [OK] PASS: FIFO eviction working (history at max limit)')
     else:
-        print(f'  ⚠️  INFO: History at {history_len} entries')
+        print(f'  [WARN]  INFO: History at {history_len} entries')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -84,12 +84,12 @@ try:
     history_len = len(analyzer.gauntlet_history.get('test_gauntlet', []))
 
     if history_len <= 100:
-        print(f'  ✅ PASS: History bounded to {history_len} (max: 100)')
+        print(f'  [OK] PASS: History bounded to {history_len} (max: 100)')
     else:
-        print(f'  ❌ FAIL: History exceeded limit: {history_len} > 100')
+        print(f'  [FAIL] FAIL: History exceeded limit: {history_len} > 100')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -108,12 +108,12 @@ try:
     # The extractor should enforce max_artifacts limit
     # This would be tested during actual extraction operations
     if hasattr(extractor, 'max_artifacts'):
-        print(f'  ✅ PASS: max_artifacts limit configured: {extractor.max_artifacts}')
+        print(f'  [OK] PASS: max_artifacts limit configured: {extractor.max_artifacts}')
     else:
-        print(f'  ❌ FAIL: max_artifacts limit not configured')
+        print(f'  [FAIL] FAIL: max_artifacts limit not configured')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -128,15 +128,15 @@ try:
 
     # Check max_skills configuration
     if hasattr(bridge, 'max_skills'):
-        print(f'  ✅ PASS: max_skills limit configured: {bridge.max_skills}')
+        print(f'  [OK] PASS: max_skills limit configured: {bridge.max_skills}')
     else:
-        print(f'  ❌ FAIL: max_skills limit not configured')
+        print(f'  [FAIL] FAIL: max_skills limit not configured')
 
     # Cleanup
     bridge.cleanup()
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -177,12 +177,12 @@ try:
 
     # With bounded history, memory should be reasonable (< 50 MB for 5k operations)
     if peak / 1024 / 1024 < 50:
-        print(f'  ✅ PASS: Memory usage bounded (peak: {peak / 1024 / 1024:.2f} MB)')
+        print(f'  [OK] PASS: Memory usage bounded (peak: {peak / 1024 / 1024:.2f} MB)')
     else:
-        print(f'  ⚠️  WARN: High memory usage detected (peak: {peak / 1024 / 1024:.2f} MB)')
+        print(f'  [WARN]  WARN: High memory usage detected (peak: {peak / 1024 / 1024:.2f} MB)')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -219,12 +219,12 @@ try:
     print(f'  Temporary files after: {open_files_after}')
 
     if open_files_after == open_files_before:
-        print(f'  ✅ PASS: No file handle leaks (temp files cleaned up)')
+        print(f'  [OK] PASS: No file handle leaks (temp files cleaned up)')
     else:
-        print(f'  ⚠️  INFO: Temporary file count changed (may be from other operations)')
+        print(f'  [WARN]  INFO: Temporary file count changed (may be from other operations)')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -255,9 +255,9 @@ try:
 
     # Perform clustering
     if miner.clf is not None:
-        print(f'  ✅ PASS: ML classifier initialized')
+        print(f'  [OK] PASS: ML classifier initialized')
     else:
-        print(f'  ⚠️  INFO: ML classifier not initialized (no patterns yet)')
+        print(f'  [WARN]  INFO: ML classifier not initialized (no patterns yet)')
 
     # Verify cleanup in finally blocks
     # This is tested by ensuring no exceptions during operations
@@ -269,12 +269,12 @@ try:
     print(f'  Peak memory during ML ops: {peak / 1024 / 1024:.2f} MB')
 
     if peak / 1024 / 1024 < 100:
-        print(f'  ✅ PASS: ML object cleanup working (memory reasonable)')
+        print(f'  [OK] PASS: ML object cleanup working (memory reasonable)')
     else:
-        print(f'  ⚠️  INFO: ML memory usage: {peak / 1024 / 1024:.2f} MB')
+        print(f'  [WARN]  INFO: ML memory usage: {peak / 1024 / 1024:.2f} MB')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -290,10 +290,10 @@ try:
         # Use the bridge
         pass
 
-    print(f'  ✅ PASS: Context manager cleanup successful')
+    print(f'  [OK] PASS: Context manager cleanup successful')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -312,12 +312,12 @@ try:
     final_size = len(_MCP_TOOLS)
 
     if final_size == initial_size:
-        print(f'  ✅ PASS: MCP tools registry stable ({final_size} tools)')
+        print(f'  [OK] PASS: MCP tools registry stable ({final_size} tools)')
     else:
-        print(f'  ⚠️  INFO: Registry size changed: {initial_size} -> {final_size}')
+        print(f'  [WARN]  INFO: Registry size changed: {initial_size} -> {final_size}')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -343,11 +343,11 @@ for module_name, class_name in classes_to_test:
 
         if has_cleanup:
             cleanup_found += 1
-            print(f'  ✅ PASS: {class_name} has cleanup method')
+            print(f'  [OK] PASS: {class_name} has cleanup method')
         else:
-            print(f'  ⚠️  INFO: {class_name} cleanup via context manager')
+            print(f'  [WARN]  INFO: {class_name} cleanup via context manager')
     except Exception as e:
-        print(f'  ❌ ERROR checking {class_name}: {e}')
+        print(f'  [FAIL] ERROR checking {class_name}: {e}')
 
 print(f'\n  Summary: {cleanup_found}/{len(classes_to_test)} classes have explicit cleanup')
 
@@ -356,14 +356,14 @@ print('\n' + '=' * 80)
 print(' RESOURCE LEAK TESTS COMPLETE')
 print('=' * 80)
 print('\nAll Resource Management Fixes Tested:')
-print('  ✅ RL-1: TeamPerformanceTracker - History bounded to 1000')
-print('  ✅ RL-2: GauntletEffectivenessAnalyzer - History bounded to 1000')
-print('  ✅ RL-4: ACECrewAIWorkflowBridge - Skillbook bounded to 1000')
-print('  ✅ RL-5: WorkflowKnowledgeExtractor - Artifacts bounded to 10000')
-print('  ✅ Memory Usage - Bounded under load (< 50 MB for 5k ops)')
-print('  ✅ File Handle Cleanup - No leaks detected')
-print('  ✅ ML Object Cleanup - Memory reasonable')
-print('  ✅ Context Manager Cleanup - Working correctly')
-print('  ✅ Bounded Growth - All collections have limits')
-print('  ✅ Cleanup Methods - Most classes have cleanup')
+print('  [OK] RL-1: TeamPerformanceTracker - History bounded to 1000')
+print('  [OK] RL-2: GauntletEffectivenessAnalyzer - History bounded to 1000')
+print('  [OK] RL-4: ACECrewAIWorkflowBridge - Skillbook bounded to 1000')
+print('  [OK] RL-5: WorkflowKnowledgeExtractor - Artifacts bounded to 10000')
+print('  [OK] Memory Usage - Bounded under load (< 50 MB for 5k ops)')
+print('  [OK] File Handle Cleanup - No leaks detected')
+print('  [OK] ML Object Cleanup - Memory reasonable')
+print('  [OK] Context Manager Cleanup - Working correctly')
+print('  [OK] Bounded Growth - All collections have limits')
+print('  [OK] Cleanup Methods - Most classes have cleanup')
 print('\n' + '=' * 80)

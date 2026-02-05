@@ -273,7 +273,7 @@ class IntegrationConfig(BaseModel):
         print("=" * 50)
         print(f"Services:")
         for name, enabled in self.services.items():
-            status = "✓" if enabled else "✗"
+            status = "[OK]" if enabled else "[FAIL]"
             print(f"  {status} {name}")
         
         print(f"\nREST API: http://{self.rest_api.host}:{self.rest_api.port}")

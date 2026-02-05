@@ -2214,7 +2214,7 @@ async def demo_adversarial_coevolution():
     theorems = [
         "theorem example_1 : ∀ n : ℕ, n + 0 = n",
         "theorem example_2 : ∀ a b : ℝ, a + b = b + a",
-        "theorem example_3 : ∀ P : Prop, P → P"
+        "theorem example_3 : ∀ P : Prop, P -> P"
     ]
 
     result = await framework.coevolution.coevolve(theorems)
@@ -2272,14 +2272,14 @@ async def demo_mdap_adversarial():
 
     proof = LeanProof(
         proof_id="mdap_test",
-        theorem="∀ (P Q : Prop), P ∧ Q → Q ∧ P",
+        theorem="∀ (P Q : Prop), P ∧ Q -> Q ∧ P",
         tactic_sequence=["cases", "simp"],
         proof_state="in progress",
         is_valid=True
     )
 
     context = ProofContext(
-        theorem_statement="∀ (P Q : Prop), P ∧ Q → Q ∧ P",
+        theorem_statement="∀ (P Q : Prop), P ∧ Q -> Q ∧ P",
         goal="prove conjunction commutativity",
         hypotheses=["P Q : Prop"],
         available_tactics=["cases", "simp", "rw"],

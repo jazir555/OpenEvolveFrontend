@@ -38,7 +38,7 @@ def test_loongflow_checker():
 
     # Check availability
     available = is_loongflow_available()
-    print(f"✅ LoongFlow Available: {available}")
+    print(f"[OK] LoongFlow Available: {available}")
 
     # Get detailed info
     info = LoongFlowChecker.get_availability_info()
@@ -64,7 +64,7 @@ async def test_evolve_default():
             store_knowledge=False
         )
 
-        print(f"✅ Evolution complete")
+        print(f"[OK] Evolution complete")
         print(f"   System used: {result.system_used}")
         print(f"   Mode used: {result.mode_used}")
         print(f"   Final score: {result.final_score:.3f}")
@@ -73,7 +73,7 @@ async def test_evolve_default():
 
         return result
     except Exception as e:
-        print(f"❌ Evolution failed: {e}")
+        print(f"[FAIL] Evolution failed: {e}")
         return None
 
 
@@ -91,18 +91,18 @@ async def test_evolve_openevolve_only():
             store_knowledge=False
         )
 
-        print(f"✅ Evolution complete")
+        print(f"[OK] Evolution complete")
         print(f"   System used: {result.system_used}")
         print(f"   Mode used: {result.mode_used}")
         print(f"   Final score: {result.final_score:.3f}")
 
         # Verify OpenEvolve was used
         assert result.system_used == "openevolve", "Should use OpenEvolve"
-        print(f"   ✅ Correctly used OpenEvolve")
+        print(f"   [OK] Correctly used OpenEvolve")
 
         return result
     except Exception as e:
-        print(f"❌ Evolution failed: {e}")
+        print(f"[FAIL] Evolution failed: {e}")
         return None
 
 
@@ -120,20 +120,20 @@ async def test_evolve_with_loongflow():
             store_knowledge=False
         )
 
-        print(f"✅ Evolution complete")
+        print(f"[OK] Evolution complete")
         print(f"   System used: {result.system_used}")
         print(f"   Mode used: {result.mode_used}")
         print(f"   Final score: {result.final_score:.3f}")
 
         # Verify LoongFlow or fallback was used
         if result.system_used == "loongflow":
-            print(f"   ✅ Correctly used LoongFlow")
+            print(f"   [OK] Correctly used LoongFlow")
         else:
             print(f"   ℹ️  LoongFlow not available, used OpenEvolve fallback")
 
         return result
     except Exception as e:
-        print(f"❌ Evolution failed: {e}")
+        print(f"[FAIL] Evolution failed: {e}")
         return None
 
 
@@ -152,18 +152,18 @@ async def test_evolve_with_override():
             use_loongflow=False  # Force OpenEvolve-only
         )
 
-        print(f"✅ Evolution complete")
+        print(f"[OK] Evolution complete")
         print(f"   System used: {result.system_used}")
         print(f"   Mode used: {result.mode_used}")
         print(f"   Final score: {result.final_score:.3f}")
 
         # Verify OpenEvolve was used despite LoongFlow availability
         assert result.system_used == "openevolve", "Should use OpenEvolve (forced)"
-        print(f"   ✅ Correctly used OpenEvolve (override worked)")
+        print(f"   [OK] Correctly used OpenEvolve (override worked)")
 
         return result
     except Exception as e:
-        print(f"❌ Evolution failed: {e}")
+        print(f"[FAIL] Evolution failed: {e}")
         return None
 
 
@@ -185,18 +185,18 @@ async def test_config_with_loongflow_disabled():
             store_knowledge=False
         )
 
-        print(f"✅ Evolution complete")
+        print(f"[OK] Evolution complete")
         print(f"   System used: {result.system_used}")
         print(f"   Mode used: {result.mode_used}")
         print(f"   Final score: {result.final_score:.3f}")
 
         # Verify OpenEvolve was used
         assert result.system_used == "openevolve", "Should use OpenEvolve (config)"
-        print(f"   ✅ Correctly used OpenEvolve (config worked)")
+        print(f"   [OK] Correctly used OpenEvolve (config worked)")
 
         return result
     except Exception as e:
-        print(f"❌ Evolution failed: {e}")
+        print(f"[FAIL] Evolution failed: {e}")
         return None
 
 
@@ -229,12 +229,12 @@ async def test_require_loongflow():
 
             # Should have failed
             if result.error:
-                print(f"✅ Correctly returned error: {result.error}")
+                print(f"[OK] Correctly returned error: {result.error}")
             else:
-                print(f"❌ Should have failed but didn't")
+                print(f"[FAIL] Should have failed but didn't")
 
         except Exception as e:
-            print(f"✅ Correctly raised exception: {e}")
+            print(f"[OK] Correctly raised exception: {e}")
     else:
         print("ℹ️  LoongFlow available, testing with require_loongflow=True...")
 
@@ -252,12 +252,12 @@ async def test_require_loongflow():
                 store_knowledge=False
             )
 
-            print(f"✅ Evolution complete")
+            print(f"[OK] Evolution complete")
             print(f"   System used: {result.system_used}")
             print(f"   Mode used: {result.mode_used}")
 
         except Exception as e:
-            print(f"❌ Unexpected failure: {e}")
+            print(f"[FAIL] Unexpected failure: {e}")
 
 
 async def run_all_tests():

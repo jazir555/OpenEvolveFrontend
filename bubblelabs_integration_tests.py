@@ -275,7 +275,7 @@ class TestOpenEvolveVisualizer(unittest.TestCase):
     def test_get_status_icon(self):
         """Test the status icon utility."""
         self.assertEqual(self.visualizer._get_status_icon("running"), "🏃")
-        self.assertEqual(self.visualizer._get_status_icon("completed"), "✅")
+        self.assertEqual(self.visualizer._get_status_icon("completed"), "[OK]")
         self.assertEqual(self.visualizer._get_status_icon("unknown"), "❓")
 
 

@@ -147,7 +147,7 @@ def _print_think(elem: ThinkElement) -> None:
 
 
 def _print_tool_call(elem: ToolCallElement) -> None:
-    title = f"🛠️  Tool Call → {elem.target}"
+    title = f"🛠️  Tool Call -> {elem.target}"
     args_json = json.dumps(elem.arguments, indent=2, ensure_ascii=False)
     (
         _console.print(Panel(args_json, title=title, border_style="blue"))
@@ -157,7 +157,7 @@ def _print_tool_call(elem: ToolCallElement) -> None:
 
 
 def _print_tool_output(elem: ToolOutputElement) -> None:
-    title = f"📦 Tool Output ← {elem.tool_name} ({elem.status})"
+    title = f"📦 Tool Output <- {elem.tool_name} ({elem.status})"
     style = {
         ToolStatus.SUCCESS: "green",
         ToolStatus.ERROR: "red",

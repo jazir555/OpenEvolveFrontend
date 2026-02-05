@@ -213,9 +213,9 @@ def run_comprehensive_tests():
     print(f"Success rate: {(result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun * 100:.1f}%")
     
     if result.wasSuccessful():
-        print("\n✅ ALL TESTS PASSED - All decomposition engine fixes are working correctly!")
+        print("\n[OK] ALL TESTS PASSED - All decomposition engine fixes are working correctly!")
     else:
-        print("\n❌ SOME TESTS FAILED - Please review the failures above.")
+        print("\n[FAIL] SOME TESTS FAILED - Please review the failures above.")
         
         if result.failures:
             print("\nFailures:")

@@ -206,7 +206,7 @@ class OpenEvolveLeanAideBridge:
                 return True
                 
         # Check for mathematical symbols
-        math_symbols = ["∀", "∃", "∈", "∉", "⊆", "⊂", "⊇", "⊃", "→", "⇒", "⇔", "∧", "∨", "¬", "∑", "∏", "∫", "∮", "∇", "∂"]
+        math_symbols = ["∀", "∃", "∈", "∉", "⊆", "⊂", "⊇", "⊃", "->", "⇒", "⇔", "∧", "∨", "¬", "∑", "∏", "∫", "∮", "∇", "∂"]
         for symbol in math_symbols:
             if symbol in problem_text:
                 return True

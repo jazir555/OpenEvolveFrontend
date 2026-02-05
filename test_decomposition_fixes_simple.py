@@ -187,16 +187,16 @@ def run_simple_tests():
     print(f"Success rate: {(result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun * 100:.1f}%")
     
     if result.wasSuccessful():
-        print("\n✅ ALL SIMPLE TESTS PASSED - Core decomposition engine fixes are working!")
+        print("\n[OK] ALL SIMPLE TESTS PASSED - Core decomposition engine fixes are working!")
         print("\nKey fixes verified:")
-        print("  ✓ TeamAssignmentEngine import handling")
-        print("  ✓ Error handling decorators")
-        print("  ✓ Custom strategy error handling")
-        print("  ✓ Strategy selection methods")
-        print("  ✓ Documentation improvements")
-        print("  ✓ Fallback mechanisms")
+        print("  [OK] TeamAssignmentEngine import handling")
+        print("  [OK] Error handling decorators")
+        print("  [OK] Custom strategy error handling")
+        print("  [OK] Strategy selection methods")
+        print("  [OK] Documentation improvements")
+        print("  [OK] Fallback mechanisms")
     else:
-        print("\n❌ SOME TESTS FAILED - Please review the failures above.")
+        print("\n[FAIL] SOME TESTS FAILED - Please review the failures above.")
         
         if result.failures:
             print("\nFailures:")

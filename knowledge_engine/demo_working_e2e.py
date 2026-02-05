@@ -8,7 +8,7 @@ All code below is TESTED and VERIFIED to work.
 
 Author: Distinguished Engineer
 Date: 2025-01-08
-Status: ✅ PRODUCTION READY
+Status: [OK] PRODUCTION READY
 """
 
 import asyncio
@@ -43,7 +43,7 @@ async def main():
 
     # Verify initialization
     assert engine._initialized is True
-    print("✅ System initialized successfully")
+    print("[OK] System initialized successfully")
 
     # Get health status
     health = await engine.health_check()
@@ -76,7 +76,7 @@ async def main():
         "description": "Inspired by biological neurons"
     })
 
-    print("✅ Added 4 entities")
+    print("[OK] Added 4 entities")
 
     # Add relationships
     await engine.entity_graph.add_relationship("ML", "subset_of", "AI")
@@ -84,7 +84,7 @@ async def main():
     await engine.entity_graph.add_relationship("Deep Learning", "uses", "Neural Networks")
     await engine.entity_graph.add_relationship("Neural Networks", "inspired_by", "Biological Neurons")
 
-    print("✅ Added 4 relationships")
+    print("[OK] Added 4 relationships")
     print()
 
     # ========== STEP 3: Query Knowledge ==========
@@ -92,19 +92,19 @@ async def main():
 
     # Search for entities
     results = await engine.entity_graph.search_entities("AI")
-    print(f"✅ Found {len(results)} entities matching 'AI'")
+    print(f"[OK] Found {len(results)} entities matching 'AI'")
 
     # Get entity details
     ai_entity = await engine.entity_graph.get_entity("AI")
-    print(f"✅ AI Entity: {ai_entity}")
+    print(f"[OK] AI Entity: {ai_entity}")
 
     # Get relationships for entity
     ml_relationships = await engine.entity_graph.get_relationships_for_entity("ML")
-    print(f"✅ ML has {len(ml_relationships)} relationships")
+    print(f"[OK] ML has {len(ml_relationships)} relationships")
 
     # Get all entities
     all_entities = engine.entity_graph.get_entities()
-    print(f"✅ Total entities in graph: {len(all_entities)}")
+    print(f"[OK] Total entities in graph: {len(all_entities)}")
 
     print()
 
@@ -113,13 +113,13 @@ async def main():
 
     viz_data = await engine.entity_graph.to_dict()
 
-    print(f"✅ Visualization data generated:")
+    print(f"[OK] Visualization data generated:")
     print(f"   - Entities: {len(viz_data['entities'])}")
     print(f"   - Relationships: {len(viz_data['relationships'])}")
 
     # Serialize to JSON
     json_output = json.dumps(viz_data, indent=2)
-    print(f"✅ Serialized to JSON ({len(json_output)} characters)")
+    print(f"[OK] Serialized to JSON ({len(json_output)} characters)")
 
     print()
 
@@ -144,12 +144,12 @@ async def main():
         )
 
         if result.success:
-            print(f"✅ Document processed successfully")
+            print(f"[OK] Document processed successfully")
             print(f"   - Entities extracted: {len(result.entities)}")
             print(f"   - Relations extracted: {len(result.relations)}")
             print(f"   - Processing time: {result.processing_time_ms:.2f}ms")
         else:
-            print(f"⚠️  Document processing degraded (expected)")
+            print(f"[WARN]  Document processing degraded (expected)")
             print(f"   - Error: {result.error}")
             print(f"   - This is OK - extraction engines are optional")
     finally:
@@ -161,10 +161,10 @@ async def main():
     print("STEP 6: Getting system statistics...")
 
     stats = await engine.get_statistics()
-    print("✅ System statistics:")
+    print("[OK] System statistics:")
     print(f"   - Components initialized:")
     for component, ready in stats['components'].items():
-        status = "✅" if ready else "⚠️ "
+        status = "[OK]" if ready else "[WARN] "
         print(f"     {status} {component}: {ready}")
     print(f"   - Knowledge state:")
     print(f"     - Entities: {stats['knowledge']['entities']}")
@@ -178,12 +178,12 @@ async def main():
     # Close once
     await engine.close()
     assert engine._closed is True
-    print("✅ Engine closed (first time)")
+    print("[OK] Engine closed (first time)")
 
     # Close again (idempotent)
     await engine.close()
     assert engine._closed is True
-    print("✅ Engine closed again (idempotent!)")
+    print("[OK] Engine closed again (idempotent!)")
 
     print()
 
@@ -193,16 +193,16 @@ async def main():
     print("=" * 80)
     print()
     print("Summary:")
-    print("  ✅ System initialization: WORKS")
-    print("  ✅ Entity graph operations: WORKS")
-    print("  ✅ Knowledge queries: WORKS")
-    print("  ✅ Visualization generation: WORKS")
-    print("  ✅ Statistics: WORKS")
-    print("  ✅ Health checks: WORKS")
-    print("  ✅ Resource cleanup: WORKS (idempotent)")
-    print("  ⚠️  Document extraction: DEGRADED (optional)")
+    print("  [OK] System initialization: WORKS")
+    print("  [OK] Entity graph operations: WORKS")
+    print("  [OK] Knowledge queries: WORKS")
+    print("  [OK] Visualization generation: WORKS")
+    print("  [OK] Statistics: WORKS")
+    print("  [OK] Health checks: WORKS")
+    print("  [OK] Resource cleanup: WORKS (idempotent)")
+    print("  [WARN]  Document extraction: DEGRADED (optional)")
     print()
-    print("Overall Status: ✅ PRODUCTION READY")
+    print("Overall Status: [OK] PRODUCTION READY")
     print()
     print("The Knowledge Engine is WORKING and ready for production use!")
     print()

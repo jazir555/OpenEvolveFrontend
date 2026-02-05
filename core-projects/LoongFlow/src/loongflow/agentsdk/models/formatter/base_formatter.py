@@ -38,7 +38,7 @@ class BaseFormatter(ABC):
         **params,
     ) -> Dict[str, Any]:
         """
-        Convert LoongFlow request → backend request parameters.
+        Convert LoongFlow request -> backend request parameters.
 
         Args:
             request: High-level LoongFlow CompletionRequest.
@@ -60,7 +60,7 @@ class BaseFormatter(ABC):
         raw_resp: Any,
     ) -> CompletionResponse:
         """
-        Parse backend response → LoongFlow CompletionResponse.
+        Parse backend response -> LoongFlow CompletionResponse.
 
         Args:
             raw_resp: Backend-specific raw response or stream chunk.

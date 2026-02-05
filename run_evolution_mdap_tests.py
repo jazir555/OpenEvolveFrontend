@@ -121,7 +121,7 @@ def print_summary(results: Dict[str, int]):
 
     for test_file, returncode in results.items():
         status = "PASSED" if returncode == 0 else "FAILED"
-        symbol = "✓" if returncode == 0 else "✗"
+        symbol = "[OK]" if returncode == 0 else "[FAIL]"
         print(f"{symbol} {test_file}: {status}")
 
     print(f"\nTotal: {total}, Passed: {passed}, Failed: {failed}")

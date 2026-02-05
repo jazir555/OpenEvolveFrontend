@@ -100,7 +100,7 @@ def demo_decomposition_strategies():
             'time': elapsed
         })
         
-        print(f"   ✅ Generated {len(plan.sub_problems)} sub-problems in {elapsed:.2f}s")
+        print(f"   [OK] Generated {len(plan.sub_problems)} sub-problems in {elapsed:.2f}s")
         print(f"   📊 Quality: {plan.overall_quality:.2f} | Coverage: {plan.coverage_score:.2f} | Balance: {plan.balance_score:.2f}")
     
     # Summary table
@@ -317,7 +317,7 @@ def demo_recomposition_capabilities():
     
     print_section("Assembly Log")
     for entry in solution.assembly_log[:5]:
-        print(f"  • {entry}")
+        print(f"  * {entry}")
 
 
 def demo_full_pipeline():
@@ -386,14 +386,14 @@ def demo_full_pipeline():
             'successful': result.is_successful()
         })
         
-        print(f"   ✅ Completed in {elapsed:.2f}s")
+        print(f"   [OK] Completed in {elapsed:.2f}s")
         print(f"   📊 Quality: {result.overall_quality:.2f} | Sub-problems: {results[-1]['sub_problems']}")
     
     print_section("Cross-Domain Results Summary")
     print(f"{'Problem':<30} {'Domain':<12} {'Quality':>8} {'Time':>8} {'Status':>10}")
     print("-" * 80)
     for r in results:
-        status = "✅ PASS" if r['successful'] else "❌ FAIL"
+        status = "[OK] PASS" if r['successful'] else "[FAIL] FAIL"
         print(f"{r['title']:<30} {r['domain']:<12} {r['overall']:>8.2f} {r['time']:>8.2f} {status:>10}")
     
     # Analytics
@@ -441,7 +441,7 @@ def demo_batch_processing():
     
     print_section("Individual Results")
     for i, result in enumerate(results, 1):
-        status = "✅" if result.is_successful() else "❌"
+        status = "[OK]" if result.is_successful() else "[FAIL]"
         print(f"  {status} Problem {i}: Quality={result.overall_quality:.2f}, Stages={len(result.stages)}")
 
 
@@ -488,12 +488,12 @@ def demo_solution_analysis():
     if analysis['recommendations']:
         print(f"\nRecommendations:")
         for rec in analysis['recommendations']:
-            print(f"  • {rec}")
+            print(f"  * {rec}")
     
     print_section("Pipeline Stages")
     for stage in result.stages:
         duration = stage.duration_seconds()
-        status_icon = "✅" if stage.status == "completed" else "❌" if stage.status == "failed" else "⏳"
+        status_icon = "[OK]" if stage.status == "completed" else "[FAIL]" if stage.status == "failed" else "⏳"
         print(f"  {status_icon} {stage.name}: {stage.status} ({duration:.2f}s)")
     
     print_section("Solution Preview")
@@ -533,22 +533,22 @@ def main():
         try:
             demo_func()
         except Exception as e:
-            print(f"\n❌ Error in demo '{name}': {e}")
+            print(f"\n[FAIL] Error in demo '{name}': {e}")
     
     total_elapsed = time.time() - total_start
     
     print_header("DEMO COMPLETE")
     print(f"\nTotal execution time: {total_elapsed:.2f}s")
-    print("\n✅ All demonstrations completed successfully!")
+    print("\n[OK] All demonstrations completed successfully!")
     print("\nKey Features Demonstrated:")
-    print("  • 9 Decomposition Strategies (Hierarchical, Functional, Semantic, Temporal, etc.)")
-    print("  • Multi-dimensional Quality Metrics (Coverage, Balance, Coherence)")
-    print("  • Advanced Conflict Detection (12+ conflict types)")
-    print("  • Automatic Conflict Resolution")
-    print("  • Full Pipeline Integration")
-    print("  • Batch Processing Capabilities")
-    print("  • Cross-Domain Problem Solving")
-    print("  • Solution Analysis & Recommendations")
+    print("  * 9 Decomposition Strategies (Hierarchical, Functional, Semantic, Temporal, etc.)")
+    print("  * Multi-dimensional Quality Metrics (Coverage, Balance, Coherence)")
+    print("  * Advanced Conflict Detection (12+ conflict types)")
+    print("  * Automatic Conflict Resolution")
+    print("  * Full Pipeline Integration")
+    print("  * Batch Processing Capabilities")
+    print("  * Cross-Domain Problem Solving")
+    print("  * Solution Analysis & Recommendations")
 
 
 if __name__ == "__main__":

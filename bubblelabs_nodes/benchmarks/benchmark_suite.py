@@ -291,4 +291,4 @@ if __name__ == '__main__':
 
     report = asyncio.run(run_all_benchmarks())
 
-    print("\n✅ Benchmarks complete!")
+    print("\n[OK] Benchmarks complete!")

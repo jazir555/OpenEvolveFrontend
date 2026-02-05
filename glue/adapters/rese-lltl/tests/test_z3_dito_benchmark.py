@@ -401,7 +401,7 @@ class TestZ3DITOBenchmark(unittest.TestCase):
             # For large datasets, Z3 should be significantly faster
             # Note: This is a soft requirement - actual performance depends on Z3 implementation
             if speedup > 1.0:
-                print(f"✓ Z3 is {speedup:.2f}x faster than naive method")
+                print(f"[OK] Z3 is {speedup:.2f}x faster than naive method")
             else:
                 print(f"⚠ Z3 is slower (speedup: {speedup:.2f}x)")
                 print(f"  This may be due to overhead or Z3 not being fully utilized")
@@ -471,7 +471,7 @@ class TestZ3DITOBenchmark(unittest.TestCase):
 
         # Both should detect at least some contradictions
         # (We added 2 contradictory commitments at the end)
-        print(f"\n✓ Both methods completed successfully")
+        print(f"\n[OK] Both methods completed successfully")
         print(f"  Z3 detected: {result_z3.num_contradictions} contradictions")
         print(f"  Naive detected: {result_naive.num_contradictions} contradictions")
 
@@ -519,7 +519,7 @@ class TestZ3DITOBenchmark(unittest.TestCase):
         self.assertFalse(adapter.z3_enabled)
         self.assertIsNone(adapter.z3_solver)
 
-        print("\n✓ Fallback to naive method works correctly")
+        print("\n[OK] Fallback to naive method works correctly")
         print("="*80)
         print("PASSED: Fallback test")
         print("="*80)

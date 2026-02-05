@@ -564,7 +564,7 @@ class ProgramDatabase:
                     "combined_score"
                 ]
                 logger.info(
-                    f"Score change: {old_score:.4f} → {new_score:.4f} ({new_score - old_score:+.4f})"
+                    f"Score change: {old_score:.4f} -> {new_score:.4f} ({new_score - old_score:+.4f})"
                 )
 
         return sorted_programs[0] if sorted_programs else None
@@ -1150,7 +1150,7 @@ class ProgramDatabase:
                 new_score = program.metrics["combined_score"]
                 score_diff = new_score - old_score
                 logger.info(
-                    f"New best program {program.id} replaces {old_id} (combined_score: {old_score:.4f} → {new_score:.4f}, +{score_diff:.4f})"
+                    f"New best program {program.id} replaces {old_id} (combined_score: {old_score:.4f} -> {new_score:.4f}, +{score_diff:.4f})"
                 )
             else:
                 logger.info(f"New best program {program.id} replaces {old_id}")
@@ -1204,7 +1204,7 @@ class ProgramDatabase:
                 score_diff = new_score - old_score
                 logger.debug(
                     f"Island {island_idx}: New best program {program.id} replaces {old_id} "
-                    f"(combined_score: {old_score:.4f} → {new_score:.4f}, +{score_diff:.4f})"
+                    f"(combined_score: {old_score:.4f} -> {new_score:.4f}, +{score_diff:.4f})"
                 )
             else:
                 logger.debug(
@@ -1661,8 +1661,8 @@ class ProgramDatabase:
                 # - IDs grow exponentially: program_migrant_2_migrant_3_migrant_4_migrant_0...
                 #
                 # This is particularly problematic for OpenEvolve's MAP-Elites + Island hybrid architecture:
-                # 1. All copies have identical code → same complexity/diversity/performance scores
-                # 2. They all map to the SAME MAP-Elites cell → only 1 survives, rest discarded
+                # 1. All copies have identical code -> same complexity/diversity/performance scores
+                # 2. They all map to the SAME MAP-Elites cell -> only 1 survives, rest discarded
                 # 3. Wastes computation evaluating hundreds of identical programs
                 # 4. Reduces actual diversity as islands fill with duplicates
                 #

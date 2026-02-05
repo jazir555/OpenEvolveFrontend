@@ -207,9 +207,9 @@ if __name__ == "__main__":
     
     print("-" * 50)
     if success:
-        print("✓ All tests passed!")
+        print("[OK] All tests passed!")
     else:
-        print("✗ Some tests failed!")
+        print("[FAIL] Some tests failed!")
     
     if not STEER_AVAILABLE:
         print("\nNote: STEER is not available in this environment.")

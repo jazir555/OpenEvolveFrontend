@@ -288,7 +288,7 @@ class Narrative:
         story += "## Timeline:\n"
         for event in self.events:
             time_str = event.timestamp.strftime("%H:%M:%S")
-            icon = "✓" if event.outcome == Outcome.SUCCESS else "✗"
+            icon = "[OK]" if event.outcome == Outcome.SUCCESS else "[FAIL]"
             story += f"- [{time_str}] {icon} {event.narrative}\n"
         
         if self.lessons_learned:
@@ -820,7 +820,7 @@ class ChronicleMemory:
             if event.lesson:
                 lessons.append(event.lesson)
         
-        summary = " → ".join(summary_parts) if summary_parts else "No actions recorded"
+        summary = " -> ".join(summary_parts) if summary_parts else "No actions recorded"
         
         # Determine overall outcome
         if events:
@@ -932,7 +932,7 @@ if __name__ == "__main__":
         chronicle = await create_chronicle()
         chronicle.set_agent("blue-team-agent-1")
         
-        print("\n✓ Chronicle Memory initialized")
+        print("\n[OK] Chronicle Memory initialized")
         print(f"  Session: {chronicle.session_id[:8]}...")
         print(f"  Agent: {chronicle._current_agent}")
         
@@ -954,8 +954,8 @@ if __name__ == "__main__":
             print(f"\nAttempt {i}: {action}")
             
             if should_prevent:
-                print(f"  ⚠️  LOOP DETECTED: {warning}")
-                print("  → Suggesting strategy pivot")
+                print(f"  [WARN]  LOOP DETECTED: {warning}")
+                print("  -> Suggesting strategy pivot")
                 break
             
             # Record the attempt
@@ -993,6 +993,6 @@ if __name__ == "__main__":
             print(f"Suggestion: {suggestion['suggestion']}")
             print(f"Reasoning: {suggestion['reasoning']}")
         
-        print("\n✓ Demo complete")
+        print("\n[OK] Demo complete")
     
     asyncio.run(demo())

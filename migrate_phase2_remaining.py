@@ -170,7 +170,7 @@ def generate_migration_script(results: dict):
         print("\n".join(commands[:20]))  # Show first 20
         print(f"... ({len(commands) - 20} more commands)" if len(commands) > 20 else "")
     else:
-        print("\n✅ All files already migrated!")
+        print("\n[OK] All files already migrated!")
 
 
 def main():

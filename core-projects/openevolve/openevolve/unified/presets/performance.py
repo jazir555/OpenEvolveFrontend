@@ -55,9 +55,9 @@ class FastPreset(BasePreset):
             ),
             trade_offs={
                 "Speed": "⚡ Very fast - completes in seconds/minutes",
-                "Quality": "⚠️ Lower quality - may miss optimal solutions",
-                "Validation": "⚠️ No validation - gauntlet skipped",
-                "Cost": "✅ Low cost - minimal API calls"
+                "Quality": "[WARN] Lower quality - may miss optimal solutions",
+                "Validation": "[WARN] No validation - gauntlet skipped",
+                "Cost": "[OK] Low cost - minimal API calls"
             },
             related_presets=["balanced", "budget"],
             example_usage="""
@@ -128,8 +128,8 @@ class BalancedPreset(BasePreset):
             ),
             trade_offs={
                 "Speed": "⚡ Moderate speed - completes in minutes/hours",
-                "Quality": "✅ Good quality - finds solid solutions",
-                "Validation": "✅ Standard validation - basic checks",
+                "Quality": "[OK] Good quality - finds solid solutions",
+                "Validation": "[OK] Standard validation - basic checks",
                 "Cost": "⚖️ Moderate cost - balanced API usage"
             },
             related_presets=["fast", "thorough"],
@@ -186,8 +186,8 @@ class ThoroughPreset(BasePreset):
             ),
             trade_offs={
                 "Speed": "🐌 Very slow - completes in hours/days",
-                "Quality": "✅ Maximum quality - finds optimal solutions",
-                "Validation": "✅ Comprehensive validation - all checks enabled",
+                "Quality": "[OK] Maximum quality - finds optimal solutions",
+                "Validation": "[OK] Comprehensive validation - all checks enabled",
                 "Cost": "💰 High cost - extensive API usage"
             },
             related_presets=["balanced", "quality_critical"],
@@ -262,9 +262,9 @@ class BudgetPreset(BasePreset):
             ),
             trade_offs={
                 "Speed": "⚡ Fast - minimal computation",
-                "Quality": "⚠️ Very limited - may not find good solutions",
-                "Validation": "❌ None - all validation disabled",
-                "Cost": "✅ Minimal cost - very few API calls"
+                "Quality": "[WARN] Very limited - may not find good solutions",
+                "Validation": "[FAIL] None - all validation disabled",
+                "Cost": "[OK] Minimal cost - very few API calls"
             },
             related_presets=["fast", "resource_constrained"],
             example_usage="""

@@ -11,7 +11,7 @@ Tests all ACI components:
 
 Following CLAUDE.md principles:
 - Law of Runtime Truth: Test against actual execution
-- Law of Idempotency: Same input → same output
+- Law of Idempotency: Same input -> same output
 - Circuit Breaker: Test failure handling
 - Timeout: Test timeout enforcement
 

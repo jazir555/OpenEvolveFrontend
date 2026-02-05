@@ -106,7 +106,7 @@ def example_health_checks():
 
     print("Health Check Results:")
     for component, result in results.items():
-        status_icon = "✓" if result.is_healthy() else "✗"
+        status_icon = "[OK]" if result.is_healthy() else "[FAIL]"
         print(f"{status_icon} {component}: {result.status.value} - {result.message}")
 
     # Get overall status

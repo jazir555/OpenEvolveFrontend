@@ -39,10 +39,10 @@ def render_component_card(
     # Status color
     if status_value == "available":
         status_color = "green"
-        status_icon = "✓"
+        status_icon = "[OK]"
     elif status_value == "unavailable":
         status_color = "red"
-        status_icon = "✗"
+        status_icon = "[FAIL]"
     elif status_value == "loading":
         status_color = "yellow"
         status_icon = "⟳"
@@ -424,7 +424,7 @@ def render_extended_ui() -> None:
         
         for name, component in status["components"].items():
             status_val = component.get("status", "unknown")
-            icon = "✓" if status_val == "available" else "✗"
+            icon = "[OK]" if status_val == "available" else "[FAIL]"
             st.sidebar.text(f"{icon} {name}")
     else:
         st.sidebar.error("Integration not available")
@@ -459,20 +459,20 @@ if __name__ == "__main__":
         print("Testing BubbleLabs Extended Integration...")
         
         if EXTENDED_INTEGRATION_AVAILABLE:
-            print("✓ Extended integration module available")
+            print("[OK] Extended integration module available")
             
             results = initialize_extended_integration()
             print(f"\nInitialized {len(results)} components:")
             
             for name, result in results.items():
-                status = "✓" if result["success"] else "✗"
+                status = "[OK]" if result["success"] else "[FAIL]"
                 print(f"  {status} {name}: {result['status']}")
             
             print("\n" + "=" * 50)
             status = get_all_integration_status()
             print(f"Available: {status['available_components']}/{status['total_components']}")
         else:
-            print("✗ Extended integration module not available")
+            print("[FAIL] Extended integration module not available")
     else:
         # Run UI
         render_extended_ui()

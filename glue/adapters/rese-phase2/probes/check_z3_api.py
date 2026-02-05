@@ -36,14 +36,14 @@ def check_python_bindings():
     try:
         import z3
         version = z3.get_version()
-        print(f"✓ Z3 Python bindings available")
+        print(f"[OK] Z3 Python bindings available")
         print(f"  Version: {version}")
         return True
     except ImportError:
-        print("✗ Z3 Python bindings NOT available")
+        print("[FAIL] Z3 Python bindings NOT available")
         return False
     except Exception as e:
-        print(f"✗ Error checking Z3: {e}")
+        print(f"[FAIL] Error checking Z3: {e}")
         return False
 
 def check_z3_cli():
@@ -59,17 +59,17 @@ def check_z3_cli():
         )
 
         if result.returncode == 0:
-            print("✓ Z3 CLI available")
+            print("[OK] Z3 CLI available")
             print(f"  {result.stdout.strip()}")
             return True
         else:
-            print("✗ Z3 CLI NOT available")
+            print("[FAIL] Z3 CLI NOT available")
             return False
     except FileNotFoundError:
-        print("✗ Z3 CLI NOT found")
+        print("[FAIL] Z3 CLI NOT found")
         return False
     except Exception as e:
-        print(f"✗ Error checking Z3 CLI: {e}")
+        print(f"[FAIL] Error checking Z3 CLI: {e}")
         return False
 
 def check_constraint_solving():
@@ -102,20 +102,20 @@ def check_constraint_solving():
             )
 
             if 'sat' in result.stdout.lower():
-                print("✓ Z3 can solve simple constraints")
+                print("[OK] Z3 can solve simple constraints")
                 print("  Output:")
                 for line in result.stdout.split('\n')[:5]:
                     print(f"    {line}")
                 return True
             else:
-                print("✗ Z3 constraint solving failed")
+                print("[FAIL] Z3 constraint solving failed")
                 return False
         finally:
             # Clean up
             os.unlink(temp_file)
 
     except Exception as e:
-        print(f"✗ Error during constraint solving: {e}")
+        print(f"[FAIL] Error during constraint solving: {e}")
         return False
 
 def check_theorem_proving():
@@ -147,18 +147,18 @@ def check_theorem_proving():
             )
 
             if 'unsat' in result.stdout.lower():
-                print("✓ Z3 can prove theorems")
-                print("  Theorem 'x > 0 → x + 1 > 0': PROVEN")
+                print("[OK] Z3 can prove theorems")
+                print("  Theorem 'x > 0 -> x + 1 > 0': PROVEN")
                 return True
             else:
-                print("✗ Z3 theorem proving failed")
+                print("[FAIL] Z3 theorem proving failed")
                 return False
         finally:
             # Clean up
             os.unlink(temp_file)
 
     except Exception as e:
-        print(f"✗ Error during theorem proving: {e}")
+        print(f"[FAIL] Error during theorem proving: {e}")
         return False
 
 def check_bridge():
@@ -167,13 +167,13 @@ def check_bridge():
 
     try:
         from z3_leanaide_bridge import Z3LeanAideBridge
-        print("✓ Z3-LeanAide bridge available")
+        print("[OK] Z3-LeanAide bridge available")
         return True
     except ImportError:
-        print("✗ Z3-LeanAide bridge NOT available (optional)")
+        print("[FAIL] Z3-LeanAide bridge NOT available (optional)")
         return False
     except Exception as e:
-        print(f"✗ Error checking bridge: {e}")
+        print(f"[FAIL] Error checking bridge: {e}")
         return False
 
 def main():
@@ -198,7 +198,7 @@ def main():
     print_section("Result")
 
     if python_available and cli_available:
-        print("✓ Z3 fully available (recommended)")
+        print("[OK] Z3 fully available (recommended)")
         print("\nRecommended configuration:")
         print("  export RESE_Z3_PHASE2_ENABLED=true")
         print("  export Z3_TIMEOUT=10000")
@@ -216,7 +216,7 @@ def main():
         print("  export Z3_TIMEOUT=10000")
         return 2
     else:
-        print("✗ Z3 not available")
+        print("[FAIL] Z3 not available")
         print("\nTo install Z3:")
         print("  pip install z3-solver")
         print("\nOr download binary from:")

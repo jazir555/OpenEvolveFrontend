@@ -173,7 +173,7 @@ def run_comprehensive_adversarial_testing(
                 }
             }
             
-            _update_adv_log_and_status(f"✅ Adversarial testing completed. Final score: {final_score:.4f}")
+            _update_adv_log_and_status(f"[OK] Adversarial testing completed. Final score: {final_score:.4f}")
             return results
         else:
             return {

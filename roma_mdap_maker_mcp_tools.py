@@ -538,7 +538,7 @@ def verify_solution_with_roma_mdap(
             confidence = verification_result.get("confidence", 0.5)
 
             # Parse pass/fail (simple keyword matching)
-            passed = "pass" in result_text.lower() or "✓" in result_text or "✓" in result_text
+            passed = "pass" in result_text.lower() or "[OK]" in result_text or "[OK]" in result_text
 
             if passed:
                 passed_checks += 1

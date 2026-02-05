@@ -166,7 +166,7 @@ class MathLibrarySearchNode(BubbleLabsNode):
             },
             {
                 "name": "Prime.not_dvd_one",
-                "statement": "∀ p : Nat, Prime p → ¬p ∣ 1",
+                "statement": "∀ p : Nat, Prime p -> ¬p ∣ 1",
                 "description": "Prime numbers don't divide 1",
                 "tags": ["number-theory", "primes", "divisibility"],
                 "module": "Mathlib.Data.Nat.Prime"

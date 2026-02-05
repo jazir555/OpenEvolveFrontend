@@ -277,9 +277,9 @@ class VotingEngine:
 
     From paper (line 1-9):
     1: Input: x, M, k
-    2: V ← {v : 0 ∀v}    # Vote counts
+    2: V <- {v : 0 ∀v}    # Vote counts
     3: while True do
-    4:   y ← get_vote(x, M)
+    4:   y <- get_vote(x, M)
     5:   V [y] = V [y] + 1
     6:   if V [y] ≥ k + maxv̸=y V [v] then
     7:     return y
@@ -427,10 +427,10 @@ class MAKEREngine:
 
     From paper (line 1-8):
     1: Input xo, M, k
-    2: Initialize A ← []   # Action list
-    3: Initialize x ← xo
+    2: Initialize A <- []   # Action list
+    3: Initialize x <- xo
     4: for s steps do
-    5:   a, x ← do_voting(x, M, k)
+    5:   a, x <- do_voting(x, M, k)
     6:   Append a to A
     7: end for
     8: return A
@@ -572,7 +572,7 @@ class RecursiveMAKERSolver:
     not just predetermined sequences like Towers of Hanoi.
 
     From paper (line 1-18):
-    1:  N ← 2k − 1                    # First-to-k voting, N candidates per step
+    1:  N <- 2k − 1                    # First-to-k voting, N candidates per step
     2:  function D ECOMPOSE(x)
     3:    sample N decompositions via D ECOMPOSER(x)
     4:    vote via S OLUTION D ISCRIMINATOR until one reaches k
@@ -589,12 +589,12 @@ class RecursiveMAKERSolver:
     13:   if d ≥ MAX_DEPTH then
     14:     return ATOMIC(x)
     15:   end if
-    16:   (P1 , P2 , C) ← D ECOMPOSE(x)
+    16:   (P1 , P2 , C) <- D ECOMPOSE(x)
     17:   if P1 = ∅ or P2 = ∅ or C = ∅ then
     18:     return ATOMIC(x)
     19:   end if
-    20:   s1 ← S OLVE(P1 , d + 1)
-    21:   s2 ← S OLVE(P2 , d + 1)
+    20:   s1 <- S OLVE(P1 , d + 1)
+    21:   s2 <- S OLVE(P2 , d + 1)
     22:   sample N composed solutions via T HINKING M ODULE("Solve C(P1 , P2 ) with P1 =s1 , P2 =s2 ")
     23:   vote via C OMPOSITION D ISCRIMINATOR until one reaches k
     24:   return winner

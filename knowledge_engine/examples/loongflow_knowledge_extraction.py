@@ -188,7 +188,7 @@ async def example_basic_extraction():
         problem_type="portfolio_optimization",
     )
 
-    print(f"\n✓ Extracted {len(artifacts)} artifacts:")
+    print(f"\n[OK] Extracted {len(artifacts)} artifacts:")
     for i, artifact in enumerate(artifacts, 1):
         print(f"\n  {i}. {artifact['artifact_type'].upper()}")
         print(f"     ID: {artifact['id']}")
@@ -208,7 +208,7 @@ async def example_basic_extraction():
 
     # Show extraction statistics
     stats = extractor.get_extraction_stats()
-    print(f"\n✓ Extraction Statistics:")
+    print(f"\n[OK] Extraction Statistics:")
     for artifact_type, count in stats.items():
         if count > 0:
             print(f"   - {artifact_type}: {count}")
@@ -231,7 +231,7 @@ async def example_with_knowledge_engine():
     try:
         ke = KnowledgeEngine()
         await ke.initialize()
-        print("✓ Knowledge Engine initialized")
+        print("[OK] Knowledge Engine initialized")
     except Exception as e:
         print(f"⚠ Failed to initialize Knowledge Engine: {e}")
         print("  Running without storage...")
@@ -251,7 +251,7 @@ async def example_with_knowledge_engine():
         problem_type="scientific",
     )
 
-    print(f"\n✓ Extracted and stored {len(artifacts)} artifacts in Knowledge Engine")
+    print(f"\n[OK] Extracted and stored {len(artifacts)} artifacts in Knowledge Engine")
 
     # Query for similar strategies
     print("\nQuerying for similar planning strategies...")
@@ -262,7 +262,7 @@ async def example_with_knowledge_engine():
     )
 
     if strategies:
-        print(f"✓ Found {len(strategies)} similar strategies")
+        print(f"[OK] Found {len(strategies)} similar strategies")
     else:
         print("  No strategies found (this is expected with mock data)")
 
@@ -271,7 +271,7 @@ async def example_with_knowledge_engine():
     metrics = await extractor.get_efficiency_metrics(problem_type="scientific")
 
     if metrics:
-        print("✓ Efficiency Metrics:")
+        print("[OK] Efficiency Metrics:")
         for key, value in metrics.items():
             print(f"   - {key}: {value}")
     else:
@@ -312,13 +312,13 @@ async def example_multiple_runs():
             problem_type=problem_type,
         )
 
-        print(f"   ✓ Extracted {len(artifacts)} artifacts")
+        print(f"   [OK] Extracted {len(artifacts)} artifacts")
 
     # Show aggregate statistics
     stats = extractor.get_extraction_stats()
     total_artifacts = sum(stats.values())
 
-    print(f"\n✓ Total artifacts extracted: {total_artifacts}")
+    print(f"\n[OK] Total artifacts extracted: {total_artifacts}")
     print("\nBreakdown by type:")
     for artifact_type, count in stats.items():
         percentage = (count / total_artifacts * 100) if total_artifacts > 0 else 0
@@ -357,7 +357,7 @@ async def example_querying_knowledge():
     )
 
     if strategies:
-        print(f"   ✓ Found {len(strategies)} strategies")
+        print(f"   [OK] Found {len(strategies)} strategies")
         for i, strategy in enumerate(strategies[:3], 1):
             print(f"\n   Strategy {i}:")
             print(f"   - Success Rate: {strategy.get('metadata', {}).get('success_rate', 'N/A')}")
@@ -371,7 +371,7 @@ async def example_querying_knowledge():
     metrics = await extractor.get_efficiency_metrics(problem_type="finance")
 
     if metrics:
-        print("   ✓ Metrics retrieved:")
+        print("   [OK] Metrics retrieved:")
         for key, value in metrics.items():
             if isinstance(value, float):
                 print(f"   - {key}: {value:.3f}")
@@ -404,7 +404,7 @@ async def example_save_to_file():
     with open(output_file, "w") as f:
         json.dump(artifacts, f, indent=2)
 
-    print(f"\n✓ Saved {len(artifacts)} artifacts to {output_file}")
+    print(f"\n[OK] Saved {len(artifacts)} artifacts to {output_file}")
 
     # Show file info
     file_size = len(open(output_file, "r").read())
@@ -432,7 +432,7 @@ async def main():
         await example_save_to_file()
 
         print("\n" + "=" * 80)
-        print("✓ All examples completed successfully!")
+        print("[OK] All examples completed successfully!")
         print("=" * 80)
 
     except Exception as e:

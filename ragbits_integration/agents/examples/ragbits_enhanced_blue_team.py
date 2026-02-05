@@ -100,7 +100,7 @@ class RAGBitsEnhancedBlueTeamAgent(BaseWorkflowAgent):
             self.tools["ragbits_indexer"] = self.ragbits_indexer
             self.tools["ragbits_analyzer"] = self.ragbits_analyzer
 
-            logger.info("✅ RAGBits tools initialized for blue team agent")
+            logger.info("[OK] RAGBits tools initialized for blue team agent")
         else:
             logger.info("ℹ️ RAGBits tools disabled")
 
@@ -132,7 +132,7 @@ class RAGBitsEnhancedBlueTeamAgent(BaseWorkflowAgent):
                 return await self._default_task(task, context, **kwargs)
 
         except Exception as e:
-            logger.error(f"❌ Blue team task failed: {e}")
+            logger.error(f"[FAIL] Blue team task failed: {e}")
             return {
                 "success": False,
                 "error": str(e),
@@ -367,7 +367,7 @@ async def demo_ragbits_blue_team():
         use_knowledge=True
     )
 
-    logger.info(f"\n✅ Solution generated: {result.get('success', False)}")
+    logger.info(f"\n[OK] Solution generated: {result.get('success', False)}")
     logger.info(f"📊 Similar solutions found: {len(result.get('knowledge_context', {}).get('similar_solutions', []))}")
 
     # Example 2: Analyze patterns
@@ -385,7 +385,7 @@ async def demo_ragbits_blue_team():
         context=analysis_context
     )
 
-    logger.info(f"\n✅ Patterns analyzed: {analysis.get('success', False)}")
+    logger.info(f"\n[OK] Patterns analyzed: {analysis.get('success', False)}")
     logger.info(f"📊 Patterns found: {len(analysis.get('analysis', {}).get('patterns', []))}")
 
     logger.info("\n🎉 Demo complete!")

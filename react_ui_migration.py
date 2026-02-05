@@ -532,7 +532,7 @@ export default {spec.name};
         # Generate package.json
         (self.output_dir / "package.json").write_text(self.generate_package_json())
         
-        print(f"✅ Generated React UI in {self.output_dir}/")
+        print(f"[OK] Generated React UI in {self.output_dir}/")
         print(f"   - {len(self.components)} components")
         print(f"   - TypeScript types")
         print(f"   - API client")

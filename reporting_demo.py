@@ -447,9 +447,9 @@ def demo_aggregated_reports():
         )
         print(f"Aggregated report generated: {output_path}")
         print("\nAggregation summary:")
-        print(f"  • Total plans: {len(plans)}")
-        print(f"  • Grouped by: date")
-        print(f"  • Average quality: {sum(p['quality_scores']['overall_score'] for p in plans) / len(plans):.1f}")
+        print(f"  * Total plans: {len(plans)}")
+        print(f"  * Grouped by: date")
+        print(f"  * Average quality: {sum(p['quality_scores']['overall_score'] for p in plans) / len(plans):.1f}")
     except (IOError, ValueError, TypeError) as e:
         print(f"Failed to generate aggregated report: {e}")
 
@@ -492,7 +492,7 @@ def main():
     print("  6. Quick convenience functions")
 
     if not REPORTING_AVAILABLE:
-        print("\n⚠️  WARNING: Reporting modules not available")
+        print("\n[WARN]  WARNING: Reporting modules not available")
         print("Please ensure all dependencies are installed:")
         print("  pip install reportlab openpyxl jinja2")
         return
@@ -520,7 +520,7 @@ def main():
 
     except (IOError, ValueError, TypeError, RuntimeError) as e:
         logger.error(f"Demo failed: {e}", exc_info=True)
-        print(f"\n❌ Error: {e}")
+        print(f"\n[FAIL] Error: {e}")
 
 
 if __name__ == '__main__':

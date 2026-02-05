@@ -11,7 +11,7 @@ def test_team_imports():
         from evaluator_team import EvaluatorTeam
         from team_manager import TeamManager
         
-        print("✅ All team imports successful!")
+        print("[OK] All team imports successful!")
         
         # Test basic initialization
         red_team = RedTeam()
@@ -19,19 +19,19 @@ def test_team_imports():
         evaluator_team = EvaluatorTeam()
         team_manager = TeamManager()
         
-        print("✅ All team classes can be instantiated!")
+        print("[OK] All team classes can be instantiated!")
         
         # Test that TEAM_SYSTEM_AVAILABLE should now be True
         TEAM_SYSTEM_AVAILABLE = True
-        print(f"✅ TEAM_SYSTEM_AVAILABLE = {TEAM_SYSTEM_AVAILABLE}")
+        print(f"[OK] TEAM_SYSTEM_AVAILABLE = {TEAM_SYSTEM_AVAILABLE}")
         
         return True
         
     except ImportError as e:
-        print(f"❌ Import error: {e}")
+        print(f"[FAIL] Import error: {e}")
         return False
     except Exception as e:
-        print(f"❌ Other error: {e}")
+        print(f"[FAIL] Other error: {e}")
         return False
 
 if __name__ == "__main__":

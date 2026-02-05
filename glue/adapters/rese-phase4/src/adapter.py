@@ -87,7 +87,7 @@ def execute_with_retry(
     """
     Execute function with exponential backoff retry.
 
-    Following CLAUDE.md §2.3: Transient Failure → Exponential Backoff Retry.
+    Following CLAUDE.md §2.3: Transient Failure -> Exponential Backoff Retry.
     """
     last_error = None
 

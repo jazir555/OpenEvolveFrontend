@@ -204,12 +204,12 @@ class ImportTester:
 
             if result.success:
                 self.successful += 1
-                print("✓ PASS")
+                print("[OK] PASS")
             else:
                 self.failed += 1
                 if result.syntax_error:
                     self.syntax_errors += 1
-                print("✗ FAIL")
+                print("[FAIL] FAIL")
                 print(f"  Error Type: {result.error_type}")
                 print(f"  Message: {result.error_message}")
 

@@ -87,7 +87,7 @@ class RAGBitsKnowledgeSearchTool(AgentTool):
         elif get_ragbits_retriever:
             self.retriever = get_ragbits_retriever()
         else:
-            logger.warning("⚠️ RAGBits retriever not available, tool will have limited functionality")
+            logger.warning("[WARN] RAGBits retriever not available, tool will have limited functionality")
             self.retriever = None
 
     async def execute(
@@ -133,7 +133,7 @@ class RAGBitsKnowledgeSearchTool(AgentTool):
         logger.info(f"🔍 RAGBits {search_type} search: {query[:100]}...")
 
         if not self.retriever:
-            logger.warning("⚠️ RAGBits retriever not available, returning empty results")
+            logger.warning("[WARN] RAGBits retriever not available, returning empty results")
             return []
 
         try:
@@ -183,7 +183,7 @@ class RAGBitsKnowledgeSearchTool(AgentTool):
                 return []
 
         except Exception as e:
-            logger.error(f"❌ RAGBits search failed: {e}")
+            logger.error(f"[FAIL] RAGBits search failed: {e}")
             return []
 
 
@@ -310,7 +310,7 @@ class RAGBitsContextGathererTool(AgentTool):
                 "gathered_at": datetime.utcnow().isoformat()
             }
 
-            logger.info(f"✅ Gathered context: {len(similar_solutions)} solutions, "
+            logger.info(f"[OK] Gathered context: {len(similar_solutions)} solutions, "
                        f"{len(decomposition_patterns)} patterns, "
                        f"{len(critique_patterns)} critiques, "
                        f"{len(verification_benchmarks)} benchmarks")
@@ -318,7 +318,7 @@ class RAGBitsContextGathererTool(AgentTool):
             return context
 
         except Exception as e:
-            logger.error(f"❌ Context gathering failed: {e}")
+            logger.error(f"[FAIL] Context gathering failed: {e}")
             return {
                 "query": query,
                 "filters": filters,
@@ -397,7 +397,7 @@ class RAGBitsArtifactIndexerTool(AgentTool):
         logger.info(f"📥 Indexing {artifact_type} artifact...")
 
         if not self.retriever:
-            logger.warning("⚠️ RAGBits retriever not available")
+            logger.warning("[WARN] RAGBits retriever not available")
             return ""
 
         try:
@@ -415,14 +415,14 @@ class RAGBitsArtifactIndexerTool(AgentTool):
             )
 
             if artifact_id:
-                logger.info(f"✅ Indexed artifact: {artifact_id}")
+                logger.info(f"[OK] Indexed artifact: {artifact_id}")
             else:
-                logger.warning("⚠️ Artifact indexing returned empty ID")
+                logger.warning("[WARN] Artifact indexing returned empty ID")
 
             return artifact_id
 
         except Exception as e:
-            logger.error(f"❌ Artifact indexing failed: {e}")
+            logger.error(f"[FAIL] Artifact indexing failed: {e}")
             return ""
 
 
@@ -548,7 +548,7 @@ class RAGBitsPatternAnalyzerTool(AgentTool):
             }
 
         except Exception as e:
-            logger.error(f"❌ Pattern analysis failed: {e}")
+            logger.error(f"[FAIL] Pattern analysis failed: {e}")
             return {
                 "analysis_type": analysis_type,
                 "query": query,

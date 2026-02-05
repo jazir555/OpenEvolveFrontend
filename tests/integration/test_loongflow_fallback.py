@@ -403,4 +403,4 @@ def test_run_diagnostics():
 if __name__ == "__main__":
     # Run diagnostics when executed directly
     test_run_diagnostics()
-    print("\n✅ All fallback systems operational!")
+    print("\n[OK] All fallback systems operational!")

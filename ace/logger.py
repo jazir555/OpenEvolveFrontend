@@ -308,4 +308,4 @@ Full Raw Curator Response:
             f.write(log_entry)
         print(f"📝 Curator failure logged to: {curator_failure_log_path}")
     except Exception as e:
-        print(f"⚠️  Failed to write curator failure log: {e}")
+        print(f"[WARN]  Failed to write curator failure log: {e}")

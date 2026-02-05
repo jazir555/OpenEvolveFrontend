@@ -21,7 +21,7 @@ def test_unified_api():
     print("\n=== Testing Unified API ===")
     from openevolve.api import run_evolution, EvolutionResult
     from openevolve.unified.config import UnifiedEvolutionConfig
-    print("✓ Unified API imports successful")
+    print("[OK] Unified API imports successful")
 
 
 def test_gauntlets():
@@ -32,7 +32,7 @@ def test_gauntlets():
         ThreeRoundGauntletOrchestrator,
         MultiRoundGauntletOrchestrator,
     )
-    print("✓ Gauntlet imports successful")
+    print("[OK] Gauntlet imports successful")
 
 
 def test_domain_optimizers():
@@ -46,7 +46,7 @@ def test_domain_optimizers():
         PharmaOptimizer,
         WebDesignOptimizer,
     )
-    print("✓ Domain optimizer imports successful")
+    print("[OK] Domain optimizer imports successful")
 
 
 def test_knowledge_engine():
@@ -56,7 +56,7 @@ def test_knowledge_engine():
         LoongFlowKnowledgeExtractor,
         UnifiedEvolutionKnowledgeExtractor,
     )
-    print("✓ Knowledge engine imports successful")
+    print("[OK] Knowledge engine imports successful")
 
 
 def test_instantiation():
@@ -71,7 +71,7 @@ def test_instantiation():
     trading = TradingOptimizer()
     science = ScienceOptimizer()
 
-    print("✓ Domain optimizers instantiated")
+    print("[OK] Domain optimizers instantiated")
 
     # Test config retrieval
     finance_config = finance.get_default_config()
@@ -82,7 +82,7 @@ def test_instantiation():
     assert trading_config is not None
     assert science_config is not None
 
-    print("✓ Configs retrieved successfully")
+    print("[OK] Configs retrieved successfully")
 
 
 def test_unified_config():
@@ -106,7 +106,7 @@ def test_unified_config():
     assert config.max_iterations == 100
     assert config.population_size == 50
 
-    print("✓ Unified config works correctly")
+    print("[OK] Unified config works correctly")
 
 
 def run_all_tests():
@@ -131,10 +131,10 @@ def run_all_tests():
         try:
             test_func()
             passed += 1
-            print(f"\n✓ {name}: PASSED")
+            print(f"\n[OK] {name}: PASSED")
         except Exception as e:
             failed += 1
-            print(f"\n✗ {name}: FAILED - {e}")
+            print(f"\n[FAIL] {name}: FAILED - {e}")
 
     print("\n" + "="*80)
     print(f"Total: {len(tests)} tests")

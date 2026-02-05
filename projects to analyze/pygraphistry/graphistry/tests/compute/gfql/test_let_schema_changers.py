@@ -6,9 +6,9 @@ while schema-changers in ASTRef chains go through recursive dispatch. These test
 both code paths work correctly.
 
 Execution paths:
-- Direct in let: DAG executor → execute_node() → execute_call() (line 345-348)
-- In ASTRef chain: execute_node() → ASTRef case → chain_impl() → recursive dispatch (line 250-256)
-- Nested let: DAG executor → execute_node() → chain_let_impl() recursion (line 236-238)
+- Direct in let: DAG executor -> execute_node() -> execute_call() (line 345-348)
+- In ASTRef chain: execute_node() -> ASTRef case -> chain_impl() -> recursive dispatch (line 250-256)
+- Nested let: DAG executor -> execute_node() -> chain_let_impl() recursion (line 236-238)
 """
 
 import pandas as pd
@@ -55,7 +55,7 @@ class TestLetDirectSchemaChangers:
     def test_umap_in_let_direct(self, graph):
         """Test UMAP directly in let binding.
 
-        Execution: DAG executor → execute_node() → execute_call()
+        Execution: DAG executor -> execute_node() -> execute_call()
         """
         query = let({
             'embedded': ASTCall('umap', {
@@ -74,7 +74,7 @@ class TestLetDirectSchemaChangers:
     def test_hypergraph_in_let_direct(self, graph):
         """Test hypergraph directly in let binding.
 
-        Execution: DAG executor → execute_node() → execute_call()
+        Execution: DAG executor -> execute_node() -> execute_call()
         """
         query = let({
             'hg': ASTCall('hypergraph', {
@@ -96,7 +96,7 @@ class TestLetRefSchemaChangers:
     def test_umap_in_ref_chain(self, graph):
         """Test UMAP within ASTRef chain.
 
-        Execution: execute_node() → ASTRef case → chain_impl() → recursive dispatch
+        Execution: execute_node() -> ASTRef case -> chain_impl() -> recursive dispatch
         """
         query = let({
             'filtered': n({'score': ge(20)}),
@@ -147,7 +147,7 @@ class TestNestedLetSchemaChangers:
     def test_nested_let_with_umap_inner(self, graph):
         """Test UMAP in inner let, referenced by outer let.
 
-        Execution: DAG executor → execute_node() → chain_let_impl() recursion
+        Execution: DAG executor -> execute_node() -> chain_let_impl() recursion
         """
         query = let({
             'outer': let({
@@ -220,7 +220,7 @@ class TestMixedLetOperations:
 
     @pytest.mark.skip(reason="Requires full Plotter with UMAPMixin/HypergraphMixin - validated via standalone tests")
     def test_filter_then_umap_then_hypergraph_in_let(self, graph):
-        """Test complex pipeline: filter → UMAP → hypergraph via let bindings."""
+        """Test complex pipeline: filter -> UMAP -> hypergraph via let bindings."""
         query = let({
             'filtered': n({'score': ge(20)}),
             'embedded': ref('filtered', [

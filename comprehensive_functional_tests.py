@@ -69,7 +69,7 @@ class TestSuite:
                 passed=True,
                 execution_time=execution_time
             )
-            logger.info(f"✓ PASSED: {test_name} ({execution_time:.2f}s)")
+            logger.info(f"[OK] PASSED: {test_name} ({execution_time:.2f}s)")
             self.test_counts["passed"] += 1
 
         except Exception as e:
@@ -82,7 +82,7 @@ class TestSuite:
                 error_message=error_message,
                 details={"traceback": traceback.format_exc()}
             )
-            logger.error(f"✗ FAILED: {test_name} - {error_message}")
+            logger.error(f"[FAIL] FAILED: {test_name} - {error_message}")
             logger.error(traceback.format_exc())
             self.test_counts["failed"] += 1
 
@@ -97,7 +97,7 @@ class TestSuite:
         print("="*80)
 
         for result in self.results:
-            status = "✓ PASSED" if result.passed else "✗ FAILED"
+            status = "[OK] PASSED" if result.passed else "[FAIL] FAILED"
             print(f"{status}: {result.test_name} ({result.execution_time:.2f}s)")
             if not result.passed and result.error_message:
                 print(f"  Error: {result.error_message}")
@@ -563,7 +563,7 @@ class TestMCPTools:
 
             for tool in expected_tools:
                 if tool in tools:
-                    logger.info(f"✓ MCP tool registered: {tool}")
+                    logger.info(f"[OK] MCP tool registered: {tool}")
 
             logger.info(f"MCP tool registration works ({len(tools)} tools)")
 
@@ -628,7 +628,7 @@ class TestIntegrationPoints:
     """Test integration points work correctly"""
 
     def test_evolution_to_openevolve_integration(self):
-        """Test evolution.py → openevolve_integration.py → openevolve.api"""
+        """Test evolution.py -> openevolve_integration.py -> openevolve.api"""
         try:
             from evolution import run_evolution_loop
             from openevolve_integration import run_unified_evolution
@@ -647,7 +647,7 @@ class TestIntegrationPoints:
             validation = client.validate_parameters(test_params)
             assert validation is not None, "Parameter validation should work"
 
-            logger.info("evolution → openevolve_integration → openevolve.api works")
+            logger.info("evolution -> openevolve_integration -> openevolve.api works")
 
         except Exception as e:
             raise AssertionError(f"Integration chain failed: {e}")

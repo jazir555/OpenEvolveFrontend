@@ -2438,11 +2438,11 @@ def create_specialized_evaluator(
                     if "error" in artifact_type.lower():
                         if "stderr" not in metrics:
                             metrics["stderr"] = ""
-                        metrics["stderr"] += f"⚠️ {artifact_type.replace('_', ' ').title()}: {artifact_data}\n"
+                        metrics["stderr"] += f"[WARN] {artifact_type.replace('_', ' ').title()}: {artifact_data}\n"
                     elif "warning" in artifact_type.lower():
                         if "warnings" not in metrics:
                             metrics["warnings"] = ""
-                        metrics["warnings"] += f"⚠️ {artifact_type.replace('_', ' ').title()}: {artifact_data}\n"
+                        metrics["warnings"] += f"[WARN] {artifact_type.replace('_', ' ').title()}: {artifact_data}\n"
 
             # Add LLM-based feedback if enabled and available
             try:

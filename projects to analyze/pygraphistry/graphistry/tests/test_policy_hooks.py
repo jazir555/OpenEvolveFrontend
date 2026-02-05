@@ -335,7 +335,7 @@ class TestPolicyHooks:
         )
 
         # Should have both handlers called at preload
-        # Order: general (pre) → specific (preload)
+        # Order: general (pre) -> specific (preload)
         preload_idx = None
         for i, call in enumerate(call_order):
             if call == 'pre':
@@ -349,7 +349,7 @@ class TestPolicyHooks:
         """Test that all hooks fire in correct order for DAG queries.
 
         Note: When using dict convenience syntax, postload fires after loading data
-        for the DAG binding, so we see: preload → prelet → postload → postlet → postload
+        for the DAG binding, so we see: preload -> prelet -> postload -> postlet -> postload
         """
         call_order = []
 
@@ -493,15 +493,15 @@ class TestPolicyHooks:
         assert 'size_check' in call_order
         assert 'rate_limit' in call_order
 
-        # Verify ordering: preload (trace_start) → prechain (trace_start + rate_limit)
-        # → postchain (trace_end) → postload (size_check + trace_end)
+        # Verify ordering: preload (trace_start) -> prechain (trace_start + rate_limit)
+        # -> postchain (trace_end) -> postload (size_check + trace_end)
 
         # trace_start should appear before rate_limit
         first_trace_start_idx = call_order.index('trace_start')
         rate_limit_idx = call_order.index('rate_limit')
         assert first_trace_start_idx < rate_limit_idx
 
-        # For postload, the composition order is: size_check (specific) → trace_end (general, reversed)
+        # For postload, the composition order is: size_check (specific) -> trace_end (general, reversed)
         # Find the last occurrence of trace_end (since trace_end appears multiple times)
         size_check_idx = call_order.index('size_check')
         trace_end_indices = [i for i, x in enumerate(call_order) if x == 'trace_end']
@@ -541,13 +541,13 @@ class TestOpenTelemetryIntegration:
                                            [e[1] for e in self.spans[:self.spans.index((action, name, parent))]
                                             if e[0] == 'end']])
                         parent_info = f" (parent: {parent})" if parent else " (root)"
-                        lines.append(f"{indent}→ {name}{parent_info}")
+                        lines.append(f"{indent}-> {name}{parent_info}")
                     else:  # end
                         indent = '  ' * (len([s for s in self.spans[:self.spans.index((action, name, parent))]
                                             if s[0] == 'start' and s[1] not in
                                             [e[1] for e in self.spans[:self.spans.index((action, name, parent))]
                                              if e[0] == 'end']]) - 1)
-                        lines.append(f"{indent}← {name}")
+                        lines.append(f"{indent}<- {name}")
                 return '\n'.join(lines)
 
         tracker = SpanTracker()
@@ -707,9 +707,9 @@ class TestOpenTelemetryIntegration:
         span_tree_lines = []
         for action, name in tracker.spans:
             if action == 'start':
-                span_tree_lines.append(f"  → {name}")
+                span_tree_lines.append(f"  -> {name}")
             else:
-                span_tree_lines.append(f"  ← {name}")
+                span_tree_lines.append(f"  <- {name}")
         span_tree = '\n'.join(span_tree_lines)
         print(f"\n=== Span Tree (Exception Case) ===\n{span_tree}\n")
 

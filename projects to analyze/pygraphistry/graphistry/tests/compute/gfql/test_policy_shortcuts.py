@@ -147,7 +147,7 @@ class TestComposition:
         assert 'precall' in expanded
         expanded['precall']({})  # Call composed function
 
-        # Should execute in order: general (pre) → scope (call)
+        # Should execute in order: general (pre) -> scope (call)
         assert call_order == ['pre', 'call']
 
     def test_three_level_composition_at_precall(self):
@@ -170,7 +170,7 @@ class TestComposition:
         assert 'precall' in expanded
         expanded['precall']({})
 
-        # Should execute: general → scope → specific
+        # Should execute: general -> scope -> specific
         assert call_order == ['pre', 'call', 'precall']
 
     def test_post_hooks_compose_in_reverse(self):
@@ -190,7 +190,7 @@ class TestComposition:
         assert 'postcall' in expanded
         expanded['postcall']({})
 
-        # Should execute in LIFO order: scope (call) → general (post)
+        # Should execute in LIFO order: scope (call) -> general (post)
         assert call_order == ['call', 'post']
 
     def test_three_level_post_composition_reversed(self):
@@ -212,7 +212,7 @@ class TestComposition:
         assert 'postcall' in expanded
         expanded['postcall']({})
 
-        # Should execute: specific → scope → general
+        # Should execute: specific -> scope -> general
         assert call_order == ['postcall', 'call', 'post']
 
     def test_no_composition_when_only_one_applies(self):
@@ -268,7 +268,7 @@ class TestEdgeCases:
         assert 'preload' in expanded
         call_order.clear()
         expanded['preload']({})
-        assert call_order == ['handler1', 'handler2']  # general → specific
+        assert call_order == ['handler1', 'handler2']  # general -> specific
 
     def test_idempotency(self):
         """Test that calling expand_policy multiple times is safe."""
@@ -320,7 +320,7 @@ class TestDebugPolicy:
         assert result['precall'] == [('auth', 'pre'), ('rate_limit', 'call')]
 
     def test_format_policy_expansion_shows_reversed_marker(self):
-        """Test that format_policy_expansion shows '← reversed' for post hooks."""
+        """Test that format_policy_expansion shows '<- reversed' for post hooks."""
         from graphistry.compute.gfql.policy import format_policy_expansion
 
         def handler1(ctx):
@@ -333,7 +333,7 @@ class TestDebugPolicy:
         output = format_policy_expansion(policy)
 
         # Should show reversed marker for postcall (has multiple handlers)
-        assert '← reversed' in output
+        assert '<- reversed' in output
         assert 'postcall' in output
 
     def test_format_policy_expansion_returns_string(self):
@@ -382,13 +382,13 @@ class TestDebugPolicy:
         }
         result = debug_policy(policy)
 
-        # precall should show all three in order: general → scope → specific
+        # precall should show all three in order: general -> scope -> specific
         assert len(result['precall']) == 3
         assert result['precall'][0] == ('pre_handler', 'pre')
         assert result['precall'][1] == ('call_handler', 'call')
         assert result['precall'][2] == ('precall_handler', 'precall')
 
-        # postcall should show reversed order: specific → scope → general
+        # postcall should show reversed order: specific -> scope -> general
         assert len(result['postcall']) == 3
         assert result['postcall'][0] == ('postcall_handler', 'postcall')  # Reversed!
         assert result['postcall'][1] == ('call_handler', 'call')
@@ -509,10 +509,10 @@ class TestRealWorldPatterns:
 
         # Test postload composition (post + postload)
         # postload is checked as specific key, so both 'post' and 'postload' apply
-        # For post hooks, they execute in reverse: specific → general
+        # For post hooks, they execute in reverse: specific -> general
         call_order.clear()
         expanded['postload']({})
-        assert call_order == ['size', 'trace_end']  # Reversed: postload → post
+        assert call_order == ['size', 'trace_end']  # Reversed: postload -> post
 
     def test_selective_override_pattern(self):
         """Test selective override of specific hooks while using shortcuts."""

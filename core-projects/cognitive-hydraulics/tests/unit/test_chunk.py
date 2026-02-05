@@ -69,7 +69,7 @@ class TestChunk:
             success_count=5,
         )
 
-        # Recent use → high activation
+        # Recent use -> high activation
         activation = chunk.activation()
         assert activation > 0.0  # Positive activation
 
@@ -85,7 +85,7 @@ class TestChunk:
             last_used=datetime.now() - timedelta(hours=2),  # Used 2 hours ago
         )
 
-        # Old use → lower activation
+        # Old use -> lower activation
         activation = chunk.activation()
 
         # Should still be positive due to frequency
@@ -217,7 +217,7 @@ class TestChunkCreation:
         chunk1 = create_chunk_from_success(state, operator, goal)
         chunk2 = create_chunk_from_success(state, operator, goal)
 
-        # Same inputs → same ID
+        # Same inputs -> same ID
         assert chunk1.id == chunk2.id
 
     def test_chunk_id_different_for_different_inputs(self):
@@ -230,7 +230,7 @@ class TestChunkCreation:
         chunk1 = create_chunk_from_success(state, operator1, goal)
         chunk2 = create_chunk_from_success(state, operator2, goal)
 
-        # Different operators → different IDs
+        # Different operators -> different IDs
         assert chunk1.id != chunk2.id
 
     def test_chunk_captures_operator_parameters(self):

@@ -24,12 +24,12 @@ try:
     
     # Check if reassemble_components is in source
     if 'reassemble_components' in source:
-        print("✅ reassemble_components found in source")
+        print("[OK] reassemble_components found in source")
         # Find its position
         pos = source.find('def reassemble_components')
         print(f"Position in source: {pos}")
     else:
-        print("❌ reassemble_components NOT found in source")
+        print("[FAIL] reassemble_components NOT found in source")
         
 except Exception as e:
     print(f"Error getting source: {e}")
@@ -37,11 +37,11 @@ except Exception as e:
 # Try to create an instance
 try:
     instance = cls()
-    print("✅ Instance created successfully")
+    print("[OK] Instance created successfully")
     
     # Check available methods on instance
     instance_methods = [attr for attr in dir(instance) if not attr.startswith('_') and callable(getattr(instance, attr))]
     print("Instance methods:", instance_methods)
     
 except Exception as e:
-    print(f"❌ Error creating instance: {e}")
+    print(f"[FAIL] Error creating instance: {e}")

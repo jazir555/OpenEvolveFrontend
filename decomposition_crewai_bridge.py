@@ -13,12 +13,12 @@ IMPORTANT: The Decomposition Workflow uses CrewAI's zero-error workflow which pr
 - Multi-stage workflow (Stages 0-6)
 
 Phase Mapping:
-- Phase 1: Problem Setup → Stage 0 (Content Analysis) + Stage 1 (Decomposition)
-- Phase 2: Solution Generation → Stage 3A (Blue Team Solving)
-- Phase 3: Adversarial Critique → Stage 3B (Red Team Gauntlet)
-- Phase 4: Verification → Stage 3C (Gold Team Gauntlet)
-- Phase 5: Reassembly → Stage 4 (Configurable Reassembly)
-- Phase 6: Final Validation → Stage 5 (Final Verification) + Stage 6 (Knowledge Extraction)
+- Phase 1: Problem Setup -> Stage 0 (Content Analysis) + Stage 1 (Decomposition)
+- Phase 2: Solution Generation -> Stage 3A (Blue Team Solving)
+- Phase 3: Adversarial Critique -> Stage 3B (Red Team Gauntlet)
+- Phase 4: Verification -> Stage 3C (Gold Team Gauntlet)
+- Phase 5: Reassembly -> Stage 4 (Configurable Reassembly)
+- Phase 6: Final Validation -> Stage 5 (Final Verification) + Stage 6 (Knowledge Extraction)
 
 License: MIT (replaces AGPL Hephaestus)
 """

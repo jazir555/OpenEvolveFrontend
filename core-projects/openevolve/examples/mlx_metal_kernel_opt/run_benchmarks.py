@@ -53,7 +53,7 @@ def run_compare_benchmarks(args):
         standard_suite = Qwen3BenchmarkSuite(args.model)
         standard_results = standard_suite.run_full_benchmark_suite()
 
-        print("\n✅ Standard benchmark complete!")
+        print("\n[OK] Standard benchmark complete!")
         print(f"📊 Standard results: {len(standard_results['results'])} benchmarks completed")
 
         # Apply optimized attention hook and run benchmark
@@ -64,10 +64,10 @@ def run_compare_benchmarks(args):
         optimized_results = run_optimized_benchmark(args, original_dir)
 
         if optimized_results is None:
-            print("❌ Failed to run optimized benchmark")
+            print("[FAIL] Failed to run optimized benchmark")
             return 1
 
-        print("\n✅ Optimized benchmark complete!")
+        print("\n[OK] Optimized benchmark complete!")
         print(f"📊 Optimized results: {len(optimized_results['results'])} benchmarks completed")
 
         # Generate comparison analysis
@@ -77,7 +77,7 @@ def run_compare_benchmarks(args):
         )
 
         if comparison_results is None:
-            print("❌ Failed to generate comparison analysis")
+            print("[FAIL] Failed to generate comparison analysis")
             return 1
 
         # Save comparison results
@@ -89,7 +89,7 @@ def run_compare_benchmarks(args):
         return 0
 
     except Exception as e:
-        print(f"❌ Error in comparison benchmark: {e}")
+        print(f"[FAIL] Error in comparison benchmark: {e}")
         import traceback
 
         traceback.print_exc()
@@ -115,7 +115,7 @@ def run_optimized_benchmark(args, original_dir):
             best_program_path = os.path.join(original_dir, "best_program.py")
 
         if not os.path.exists(best_program_path):
-            print(f"❌ Error: Optimized program not found")
+            print(f"[FAIL] Error: Optimized program not found")
             print("Searched in the following locations:")
             print(
                 f"  1. {os.path.join(original_dir, 'openevolve_output', 'best', 'best_program.py')}"
@@ -134,12 +134,12 @@ def run_optimized_benchmark(args, original_dir):
         best_program = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(best_program)
 
-        print("✅ Optimized program loaded successfully")
+        print("[OK] Optimized program loaded successfully")
 
         # Check for the hook function
         if not hasattr(best_program, "create_metal_qwen3_optimization_hook"):
             print(
-                "❌ Error: create_metal_qwen3_optimization_hook function not found in best_program.py"
+                "[FAIL] Error: create_metal_qwen3_optimization_hook function not found in best_program.py"
             )
             print(
                 "Available functions:",
@@ -154,11 +154,11 @@ def run_optimized_benchmark(args, original_dir):
         original_attention = apply_hook()
 
         if original_attention is None:
-            print("❌ Failed to apply custom Metal kernel optimization hook")
+            print("[FAIL] Failed to apply custom Metal kernel optimization hook")
             print("This may indicate MLX-LM import issues or incompatible environment")
             return None
 
-        print("✅ Custom Metal kernel optimization hook applied successfully")
+        print("[OK] Custom Metal kernel optimization hook applied successfully")
 
         try:
             # Run benchmarks with optimized attention
@@ -171,17 +171,17 @@ def run_optimized_benchmark(args, original_dir):
             optimized_suite = Qwen3BenchmarkSuite(args.model)
             optimized_results = optimized_suite.run_full_benchmark_suite()
 
-            print("✅ Custom Metal kernel benchmark suite completed successfully")
+            print("[OK] Custom Metal kernel benchmark suite completed successfully")
             return optimized_results
 
         finally:
             # Always remove the hook to restore original behavior
             print("🔄 Restoring standard attention...")
             remove_hook(original_attention)
-            print("✅ Standard attention restored")
+            print("[OK] Standard attention restored")
 
     except Exception as e:
-        print(f"❌ Error running Metal kernel optimized benchmark: {e}")
+        print(f"[FAIL] Error running Metal kernel optimized benchmark: {e}")
         import traceback
 
         traceback.print_exc()
@@ -193,7 +193,7 @@ def analyze_comparison_results(standard_results, optimized_results, model_name):
     Analyze and compare the benchmark results.
     """
     if not standard_results or not optimized_results:
-        print("❌ Cannot compare - missing results")
+        print("[FAIL] Cannot compare - missing results")
         return None
 
     print("🔍 Analyzing benchmark comparisons...")
@@ -209,7 +209,7 @@ def analyze_comparison_results(standard_results, optimized_results, model_name):
     print(f"📊 Common benchmarks for comparison: {len(common_benchmarks)}")
 
     if len(common_benchmarks) == 0:
-        print("❌ No common benchmarks found for comparison")
+        print("[FAIL] No common benchmarks found for comparison")
         return None
 
     comparisons = []
@@ -436,7 +436,7 @@ def print_comparison_summary(comparison_results):
     Print a comprehensive comparison summary.
     """
     if not comparison_results:
-        print("❌ No comparison results to display")
+        print("[FAIL] No comparison results to display")
         return
 
     print(f"\n{'='*100}")
@@ -495,9 +495,9 @@ def print_comparison_summary(comparison_results):
         elif decode_imp > 10:
             marker = "📈"
         elif decode_imp > 0:
-            marker = "✅"
+            marker = "[OK]"
         else:
-            marker = "⚠️"
+            marker = "[WARN]"
 
         print(
             f"{marker} {name:<28} {std_decode:<12.1f} {opt_decode:<12.1f} {decode_imp:+<12.1f} {mem_imp:+<12.1f} {time_imp:+<12.1f}"
@@ -529,7 +529,7 @@ def print_comparison_summary(comparison_results):
     success_rate = improved_count / total_count * 100 if total_count > 0 else 0
 
     print(f"\n📈 OPTIMIZATION ANALYSIS:")
-    print(f"  ✅ Benchmarks Improved: {improved_count}/{total_count}")
+    print(f"  [OK] Benchmarks Improved: {improved_count}/{total_count}")
     print(f"  📊 Success Rate: {success_rate:.1f}%")
 
     if summary["avg_decode_improvement_pct"] > 15:
@@ -549,19 +549,19 @@ def print_comparison_summary(comparison_results):
             f"  💭 {summary['avg_decode_improvement_pct']:.1f}% suggests room for further optimization"
         )
     else:
-        print(f"  ⚠️  No overall improvement detected")
+        print(f"  [WARN]  No overall improvement detected")
         print(f"  🔧 Consider running additional evolution cycles or different strategies")
 
     # Technical insights
     print(f"\n🔬 TECHNICAL INSIGHTS:")
     print(f"  💡 Custom Metal Kernel Strategy:")
-    print(f"     • Standard: mx.fast.scaled_dot_product_attention")
-    print(f"     • Optimized: Hand-written Metal kernel with vectorized operations")
+    print(f"     * Standard: mx.fast.scaled_dot_product_attention")
+    print(f"     * Optimized: Hand-written Metal kernel with vectorized operations")
     print(f"  🧠 Potential Reasons for Performance Gains:")
-    print(f"     • Optimized memory access patterns for Apple Silicon")
-    print(f"     • Vectorized operations using vec<T, 8> types")
-    print(f"     • Better cache locality with custom computation order")
-    print(f"     • GPU-specific optimizations for M-series processors")
+    print(f"     * Optimized memory access patterns for Apple Silicon")
+    print(f"     * Vectorized operations using vec<T, 8> types")
+    print(f"     * Better cache locality with custom computation order")
+    print(f"     * GPU-specific optimizations for M-series processors")
 
     if summary["avg_decode_improvement_pct"] > 10:
         print(f"\n🎯 NEXT STEPS:")
@@ -600,7 +600,7 @@ def main():
     if args.mode == "quick":
         print("\n🚀 Running Quick Benchmark (5 key tests)...")
         results = run_quick_test()
-        print("\n✅ Quick benchmark complete!")
+        print("\n[OK] Quick benchmark complete!")
 
     elif args.mode == "compare":
         print("\n🔬 Running Comprehensive Comparison...")
@@ -626,7 +626,7 @@ def main():
             results = benchmark_suite.run_full_benchmark_suite()
             benchmark_suite.print_summary_table()
 
-            print("\n✅ Full benchmark suite complete!")
+            print("\n[OK] Full benchmark suite complete!")
             print(f"📊 Results saved in: {args.output_dir}")
 
         finally:

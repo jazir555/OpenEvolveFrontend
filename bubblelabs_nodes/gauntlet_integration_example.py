@@ -115,7 +115,7 @@ class GauntletSystem:
         if self.cache_enabled and use_cache:
             cached = await self._check_cache(problem)
             if cached:
-                logger.info("✅ Cache HIT - returning cached solution")
+                logger.info("[OK] Cache HIT - returning cached solution")
                 return {
                     'solution': cached,
                     'source': 'cache',

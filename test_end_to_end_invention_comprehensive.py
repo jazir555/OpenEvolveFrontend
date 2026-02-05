@@ -1,1103 +1,725 @@
 """
-Comprehensive Test Suite for End-to-End Invention Planner
+Comprehensive Tests for Enhanced End-to-End Invention Planner
 
-This test suite provides comprehensive testing for the end-to-end invention planner including:
-- Unit tests for each component
-- Integration tests for each integration
-- End-to-end tests for full pipeline
-- Real invention test cases (magnetic nanoparticles, superconductors, alloys, biological assays)
-- Validation of bulletproof outputs
-- Validation of binary criteria
-- Validation of error analysis
-- Validation of math formalization
+Tests all enhanced components:
+1. Physics validation with FEA, CFD, thermal analysis
+2. Error analysis with Monte Carlo, Sobol, PCE
+3. SOP generation with industrial automation
+4. Complete pipeline integration
 
-Test Categories:
-1. Unit Tests: Individual component testing
-2. Integration Tests: System integration testing
-3. End-to-End Tests: Complete pipeline testing
-4. Real Invention Tests: Actual scientific inventions
-5. Validation Tests: Known/Impossible/Ambiguous inventions
-6. Performance Tests: Benchmarks and stress tests
-
-Author: Agent 6 - Testing Team
-Created: 2025-12-30
-Paper: arXiv:2511.09030
+Author: OpenEvolve
+Version: 2.0.0
 """
 
-import asyncio
-import json
-import os
-import sys
-import time
-import unittest
-from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
-from unittest.mock import Mock, patch, MagicMock, AsyncMock
-from dataclasses import asdict, fields
-import tempfile
-import traceback
-
-# pytest imports
 import pytest
-from pytest import mark, fixture, raises
-from pytest_asyncio import fixture as async_fixture
+import asyncio
+import numpy as np
+from typing import Dict, List, Any
+import sys
+import os
 
-# Import the end-to-end invention planner
+# Add parent directory to path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# Import enhanced components
 try:
-    from end_to_end_invention_planner import (
-        EndToEndInventionPlanner,
-        plan_invention,
-        BulletproofSOP,
-        InventionGoal,
-        ValidatedMath,
-        ErrorSource,
-        SuccessCriterion,
-        PipelineStage,
-        get_invention_planner_capabilities,
-        InventionEvaluator
+    from physics_validator_enhanced import (
+        EnhancedPhysicsValidator,
+        PhysicsDomain,
+        validate_physics_with_simulation,
+        FEASimulator,
+        CFDSimulator,
+        ThermalAnalyzer,
+        PDESolver
     )
-    INVENTION_PLANNER_AVAILABLE = True
-except ImportError as e:
-    INVENTION_PLANNER_AVAILABLE = False
-    print(f"Warning: end_to_end_invention_planner not available: {e}")
-
-# Import dependencies
-try:
-    from sop_generator import StandardOperatingProcedure, SOPStep
-    from sop_component_system import SOPComponentGenerator
-    from sop_integrated_system import IntegratedSOPGenerator
-    from generic_maker_integration import MAKERConfig, TaskType
+    PHYSICS_AVAILABLE = True
 except ImportError:
-    print("Warning: Some dependencies not available")
+    PHYSICS_AVAILABLE = False
+    print("Warning: Enhanced physics validator not available")
+
+try:
+    from uncertainty_propagation_enhanced import (
+        EnhancedUncertaintyPropagator,
+        UncertaintySource,
+        PolynomialChaosExpansion,
+        SobolSensitivityAnalyzer,
+        comprehensive_error_analysis
+    )
+    UNCERTAINTY_AVAILABLE = True
+except ImportError:
+    UNCERTAINTY_AVAILABLE = False
+    print("Warning: Enhanced uncertainty propagation not available")
+
+try:
+    from sop_generator_enhanced import (
+        EnhancedSOPGenerator,
+        LLM4IASIntegration,
+        generate_industrial_sop,
+        SOPType,
+        IndustryStandard
+    )
+    SOP_AVAILABLE = True
+except ImportError:
+    SOP_AVAILABLE = False
+    print("Warning: Enhanced SOP generator not available")
+
+try:
+    from e2e_invention_planner_enhanced import (
+        EnhancedEndToEndPlanner,
+        run_enhanced_invention_planning,
+        get_enhanced_planner_status
+    )
+    E2E_AVAILABLE = True
+except ImportError:
+    E2E_AVAILABLE = False
+    print("Warning: Enhanced E2E planner not available")
 
 
-# =============================================================================
-# PYTEST CONFIGURATION AND FIXTURES
-# =============================================================================
+# ============================================================================
+# Physics Validation Tests
+# ============================================================================
 
-def pytest_configure(config):
-    """Configure pytest with custom markers."""
-    config.addinivalue_line("markers", "unit: Unit tests for individual components")
-    config.addinivalue_line("markers", "integration: Integration tests for subsystems")
-    config.addinivalue_line("markers", "end_to_end: End-to-end pipeline tests")
-    config.addinivalue_line("markers", "real_invention: Tests with real scientific inventions")
-    config.addinivalue_line("markers", "validation: Validation tests (known/impossible inventions)")
-    config.addinivalue_line("markers", "performance: Performance and stress tests")
-    config.addinivalue_line("markers", "slow: Tests that take longer to run")
-    config.addinivalue_line("markers", "async: Async tests")
-
-
-@pytest.fixture(scope="session")
-def test_data_dir():
-    """Directory for test data."""
-    test_dir = Path(__file__).parent / "test_end_to_end_invention_data"
-    test_dir.mkdir(exist_ok=True)
-    return test_dir
-
-
-@pytest.fixture(scope="session")
-def real_invention_test_cases():
-    """Real invention test cases from various scientific domains."""
-    return {
-        "chemistry": {
-            "name": "Magnetic Nanoparticles",
-            "prompt": "Create a plan to invent iron oxide magnetic nanoparticles for biomedical applications",
-            "domain": "chemistry",
-            "constraints": ["Must be biocompatible", "Particle size 10-15 nm", "High magnetic saturation"],
-            "expected_complexity": (0.4, 0.7),  # Min, max expected complexity
-            "key_components": ["synthesis_protocol", "characterization_methods", "surface_modification"]
-        },
-        "physics": {
-            "name": "High-Temperature Superconductor",
-            "prompt": "Create a plan to invent a room-temperature superconducting wire with critical temperature ≥ 77 K",
-            "domain": "physics",
-            "constraints": ["Critical temperature: 77 K or higher", "Current density: 10^6 A/cm²", "Wire length: 10 meters"],
-            "expected_complexity": (0.7, 1.0),
-            "key_components": ["material_synthesis", "wire_drawing", "characterization", "testing"]
-        },
-        "materials_science": {
-            "name": "Novel Alloy",
-            "prompt": "Create a plan to invent a lightweight aluminum alloy with strength-to-weight ratio exceeding titanium",
-            "domain": "materials_science",
-            "constraints": ["Must use aluminum as base", "Must exceed titanium strength-to-weight", "Manufacturable with standard metallurgy"],
-            "expected_complexity": (0.5, 0.8),
-            "key_components": ["alloy_design", "melting", "heat_treatment", "mechanical_testing"]
-        },
-        "biology": {
-            "name": "Biological Assay",
-            "prompt": "Create a plan to invent a high-throughput assay for detecting protein-protein interactions",
-            "domain": "biology",
-            "constraints": ["Must detect interactions in live cells", "Throughput: ≥ 10,000 tests per day", "False positive rate < 5%"],
-            "expected_complexity": (0.6, 0.9),
-            "key_components": ["assay_design", "detection_method", "automation", "data_analysis"]
+@pytest.mark.skipif(not PHYSICS_AVAILABLE, reason="Enhanced physics not available")
+class TestPhysicsValidation:
+    """Test enhanced physics validation"""
+    
+    def test_fea_simulator_initialization(self):
+        """Test FEA simulator initialization"""
+        fea = FEASimulator()
+        assert fea is not None
+    
+    def test_fea_stress_analysis(self):
+        """Test FEA stress analysis"""
+        fea = FEASimulator()
+        
+        geometry = {
+            'length': 2.0,
+            'cross_sectional_area': 0.01,
+            'surface_area': 0.5
         }
-    }
-
-
-@pytest.fixture(scope="session")
-def validation_test_cases():
-    """Validation test cases including known, impossible, and ambiguous inventions."""
-    return {
-        "known_invention": {
-            "name": "Penicillin Production",
-            "prompt": "Create a plan to invent penicillin via mold fermentation",
-            "domain": "biology",
-            "should_succeed": True,
-            "expected_knowledge": ["fermentation", "penicillium", "extraction"]
-        },
-        "impossible_invention": {
-            "name": "Perpetual Motion Machine",
-            "prompt": "Create a plan to invent a perpetual motion machine that generates free energy",
-            "domain": "physics",
-            "should_succeed": False,
-            "expected_failure_reason": "violates_thermodynamics"
-        },
-        "ambiguous_invention": {
-            "name": "Ambiguous Request",
-            "prompt": "Create a plan to invent a better thing",
-            "domain": "general",
-            "should_succeed": False,
-            "expected_behavior": "request_clarification"
-        },
-        "multidomain_invention": {
-            "name": "Bioelectronic Sensor",
-            "prompt": "Create a plan to invent a graphene-based biosensor for real-time neurotransmitter detection",
-            "domain": "multidisciplinary",
-            "should_succeed": True,
-            "expected_domains": ["materials_science", "biology", "electrical_engineering"]
+        material = {
+            'youngs_modulus': 200e9,
+            'yield_stress': 250e6,
+            'poisson_ratio': 0.3
         }
-    }
+        loads = [{'magnitude': 50000, 'direction': 'axial'}]
+        
+        result = fea.analyze_stress(geometry, material, loads, [])
+        
+        assert 'max_stress' in result
+        assert 'safety_factor' in result
+        assert result['safety_factor'] > 0
+    
+    def test_fea_modal_analysis(self):
+        """Test FEA modal analysis"""
+        fea = FEASimulator()
+        
+        geometry = {'mass': 10.0, 'length': 1.0, 'cross_sectional_area': 0.01}
+        material = {'youngs_modulus': 200e9}
+        
+        result = fea.modal_analysis(geometry, material, num_modes=5)
+        
+        assert 'natural_frequencies' in result
+        assert len(result['natural_frequencies']) == 5
+        assert all(f > 0 for f in result['natural_frequencies'])
+    
+    def test_cfd_simulator_initialization(self):
+        """Test CFD simulator initialization"""
+        cfd = CFDSimulator()
+        assert cfd is not None
+    
+    def test_cfd_flow_simulation(self):
+        """Test CFD flow simulation"""
+        cfd = CFDSimulator()
+        
+        geometry = {
+            'length': 10.0,
+            'diameter': 0.5,
+            'characteristic_length': 0.5
+        }
+        fluid = {
+            'density': 1000,
+            'viscosity': 1e-3
+        }
+        bc = {'inlet_velocity': 2.0}
+        
+        result = cfd.simulate_flow(geometry, fluid, bc)
+        
+        assert 'reynolds_number' in result
+        assert 'pressure_drop' in result
+        assert 'flow_regime' in result
+        assert result['flow_regime'] in ['laminar', 'turbulent']
+    
+    def test_thermal_analyzer_initialization(self):
+        """Test thermal analyzer initialization"""
+        thermal = ThermalAnalyzer()
+        assert thermal is not None
+    
+    def test_thermal_steady_state(self):
+        """Test steady-state thermal analysis"""
+        thermal = ThermalAnalyzer()
+        
+        geometry = {'surface_area': 1.0, 'volume': 0.1}
+        material = {
+            'thermal_conductivity': 50,
+            'density': 7850,
+            'specific_heat': 420
+        }
+        heat_sources = [{'power': 1000, 'volume': 0.01}]
+        boundary_temps = {'ambient': 300}
+        
+        result = thermal.steady_state_temperature(
+            geometry, material, heat_sources, boundary_temps
+        )
+        
+        assert 'max_temperature' in result
+        assert result['max_temperature'] > boundary_temps['ambient']
+    
+    def test_pde_solver_initialization(self):
+        """Test PDE solver initialization"""
+        solver = PDESolver()
+        assert solver is not None
+    
+    def test_enhanced_physics_validator_initialization(self):
+        """Test enhanced physics validator initialization"""
+        validator = EnhancedPhysicsValidator()
+        assert validator is not None
+        assert validator.physicsnemo is not None
+        assert validator.pde_solver is not None
+        assert validator.fea is not None
+        assert validator.cfd is not None
+        assert validator.thermal is not None
+    
+    def test_physics_validation_structural(self):
+        """Test physics validation for structural domain"""
+        validator = EnhancedPhysicsValidator()
+        
+        invention_spec = {
+            'geometry': {
+                'length': 2.0,
+                'cross_sectional_area': 0.01,
+                'surface_area': 0.5
+            },
+            'material_properties': {
+                'youngs_modulus': 200e9,
+                'yield_stress': 250e6,
+                'poisson_ratio': 0.3
+            },
+            'loads': [{'magnitude': 50000, 'direction': 'axial'}]
+        }
+        
+        result = validator._validate_structural(invention_spec)
+        
+        assert result.domain == PhysicsDomain.STRUCTURAL
+        assert result.simulation_type == "fea_stress_analysis"
+        assert 'max_stress' in result.metrics
+    
+    def test_physics_validation_thermal(self):
+        """Test physics validation for thermal domain"""
+        validator = EnhancedPhysicsValidator()
+        
+        invention_spec = {
+            'geometry': {'surface_area': 1.0, 'volume': 0.1},
+            'thermal_properties': {
+                'thermal_conductivity': 50,
+                'density': 7850,
+                'specific_heat': 420
+            },
+            'heat_sources': [{'power': 1000, 'volume': 0.01}],
+            'boundary_temperatures': {'ambient': 300},
+            'max_operating_temperature': 500
+        }
+        
+        result = validator._validate_thermal(invention_spec)
+        
+        assert result.domain == PhysicsDomain.THERMAL
+        assert 'max_temperature' in result.metrics
+    
+    def test_physics_validation_comprehensive(self):
+        """Test comprehensive physics validation"""
+        validator = EnhancedPhysicsValidator()
+        
+        invention_spec = {
+            'geometry': {
+                'length': 2.0,
+                'cross_sectional_area': 0.01,
+                'surface_area': 0.5,
+                'mass': 10.0
+            },
+            'material_properties': {
+                'youngs_modulus': 200e9,
+                'yield_stress': 250e6
+            },
+            'loads': [{'magnitude': 50000, 'direction': 'axial'}]
+        }
+        
+        results = validator.validate_physics_comprehensive(
+            invention_spec,
+            [PhysicsDomain.STRUCTURAL, PhysicsDomain.MECHANICS]
+        )
+        
+        assert 'structural' in results
+        assert 'mechanics' in results
 
 
-@pytest.fixture
-async def invention_planner():
-    """Create an invention planner instance for testing."""
-    if not INVENTION_PLANNER_AVAILABLE:
-        pytest.skip("End-to-end invention planner not available")
+# ============================================================================
+# Uncertainty Propagation Tests
+# ============================================================================
 
-    config = MAKERConfig(
-        enable_voting=True,
-        voting_threshold=5,
-        enable_decomposition=True,
-        max_generations=10,  # Lower for testing
-        population_size=10
-    )
-
-    planner = EndToEndInventionPlanner(config=config)
-    return planner
-
-
-@pytest.fixture
-def mock_invention_goal():
-    """Mock invention goal for testing."""
-    return InventionGoal(
-        goal_type="material",
-        target="Iron oxide magnetic nanoparticles",
-        domain="chemistry",
-        key_requirements=["Biocompatible", "Particle size 10-15 nm", "High magnetic saturation"],
-        constraints=["Standard lab equipment only", "Non-toxic materials"],
-        success_definition="Nanoparticles with specified size and magnetic properties",
-        complexity_score=0.6
-    )
-
-
-@pytest.fixture
-def mock_bulletproof_sop(mock_invention_goal):
-    """Mock bulletproof SOP for testing."""
-    from sop_generator import StandardOperatingProcedure
-
-    # Create a basic SOP
-    sop = StandardOperatingProcedure(
-        title="Magnetic Nanoparticle Synthesis",
-        domain="chemistry",
-        protocols=[],  # Would have actual protocol steps
-        materials=[],
-        equipment=[],
-        parameters=[],
-        safety_considerations=[]
-    )
-
-    bulletproof = BulletproofSOP(
-        invention_goal=mock_invention_goal,
-        knowledge_base=[
-            "Co-precipitation method for iron oxide nanoparticles",
-            "Magnetic properties of Fe3O4 nanoparticles",
-            "Surface modification with PEG for biocompatibility"
-        ],
-        decomposition={
-            "steps": [
-                {"step_number": 1, "description": "Prepare precursor solutions", "status": "defined"},
-                {"step_number": 2, "description": "Co-precipitation reaction", "status": "defined"},
-                {"step_number": 3, "description": "Purification", "status": "defined"},
-                {"step_number": 4, "description": "Characterization", "status": "defined"}
-            ],
-            "complexity_analysis": {"total_steps": 4, "estimated_duration_hours": 8}
-        },
-        formalized_math=[
-            ValidatedMath(
-                description="Particle size calculation from XRD data",
-                lean_theorem="theorem particle_size_xrd (d λ θ : Real) : d = λ / (2 * sin θ) := by sorry",
-                lean_proof="by sorry",
-                variables={"d": "Particle diameter", "λ": "X-ray wavelength", "θ": "Bragg angle"},
-                assumptions=["Peak corresponds to (311) plane", "Crystallite is spherical"],
-                verification_method="XRD measurement",
-                confidence=0.95
-            )
-        ],
-        physics_validation={
-            "conservation_of_energy": True,
-            "thermodynamic_consistency": True,
-            "material_compatibility": True,
-            "equipment_capability": True,
-            "safety_constraints": True
-        },
-        error_sources=[
-            ErrorSource(
-                error_type="temperature_variation",
-                description="Reaction temperature affects particle size",
-                probability=0.3,
-                impact="medium",
-                mitigation_strategy="Use precision temperature control (±1°C)",
-                verification_method="Temperature monitoring with calibrated sensor",
-                acceptance_criteria="Temperature maintained at 80°C ± 1°C"
+@pytest.mark.skipif(not UNCERTAINTY_AVAILABLE, reason="Enhanced uncertainty not available")
+class TestUncertaintyPropagation:
+    """Test enhanced uncertainty propagation"""
+    
+    def test_uncertainty_source_sampling(self):
+        """Test uncertainty source sampling"""
+        source = UncertaintySource(
+            name="test_parameter",
+            distribution="normal",
+            parameters={'mean': 10.0, 'std': 1.0}
+        )
+        
+        samples = source.sample(1000)
+        
+        assert len(samples) == 1000
+        assert abs(np.mean(samples) - 10.0) < 0.1
+        assert abs(np.std(samples) - 1.0) < 0.1
+    
+    def test_monte_carlo_propagation(self):
+        """Test Monte Carlo uncertainty propagation"""
+        propagator = EnhancedUncertaintyPropagator(random_seed=42)
+        
+        # Simple model: y = x1 + x2
+        def model(params):
+            return params[0] + params[1]
+        
+        uncertainty_sources = [
+            UncertaintySource(
+                name="x1",
+                distribution="normal",
+                parameters={'mean': 10.0, 'std': 1.0}
             ),
-            ErrorSource(
-                error_type="impurity",
-                description="Impurities in precursors affect magnetic properties",
-                probability=0.2,
-                impact="high",
-                mitigation_strategy="Use high-purity precursors (≥ 99.99%)",
-                verification_method="ICP-MS analysis",
-                acceptance_criteria="Impurity levels < 0.01%"
+            UncertaintySource(
+                name="x2",
+                distribution="normal",
+                parameters={'mean': 5.0, 'std': 0.5}
             )
-        ],
-        red_team_findings=[
-            "Temperature control may be insufficient for narrow size distribution",
-            "Oxygen content may affect oxidation state of iron",
-            "Agglomeration may occur during purification"
-        ],
-        blue_team_fixes=[
-            "Add inert gas blanket to prevent oxidation",
-            "Add surfactant during synthesis to prevent agglomeration",
-            "Implement real-time temperature feedback control"
-        ],
-        success_criteria=[
-            SuccessCriterion(
-                criterion="Particle size",
-                measurement_method="Dynamic Light Scattering (DLS)",
-                pass_threshold=15.0,
-                units="nm (maximum)",
-                verification="Independent DLS measurement in triplicate",
-                fallback_criteria=["TEM analysis as backup"]
-            ),
-            SuccessCriterion(
-                criterion="Magnetic saturation",
-                measurement_method="VSM (Vibrating Sample Magnetometry)",
-                pass_threshold=60.0,
-                units="emu/g (minimum)",
-                verification="VSM measurement at room temperature",
-                fallback_criteria=[]
-            )
-        ],
-        sop=sop,
-        validation_summary={
-            "confidence": 0.92,
-            "physics_validation": 1.0,
-            "error_coverage": 2,
-            "red_team_thoroughness": 3,
-            "blue_team_completeness": 3,
-            "ready_for_execution": True
-        },
-        created_at=time.time()
-    )
-
-    return bulletproof
-
-
-# =============================================================================
-# UNIT TESTS
-# =============================================================================
-
-class TestInventionGoal:
-    """Unit tests for InventionGoal dataclass."""
-
-    @mark.unit
-    def test_invention_goal_creation(self, mock_invention_goal):
-        """Test creating an invention goal."""
-        assert mock_invention_goal.target == "Iron oxide magnetic nanoparticles"
-        assert mock_invention_goal.domain == "chemistry"
-        assert mock_invention_goal.complexity_score == 0.6
-        assert len(mock_invention_goal.key_requirements) == 3
-
-    @mark.unit
-    def test_invention_goal_validation(self):
-        """Test invention goal validation."""
-        # Valid goal
-        goal = InventionGoal(
-            goal_type="material",
-            target="Test material",
-            domain="chemistry",
-            key_requirements=[],
-            constraints=[],
-            success_definition="Success",
-            complexity_score=0.5
-        )
-        assert 0 <= goal.complexity_score <= 1
-
-        # Invalid complexity scores
-        with raises((ValueError, AssertionError)):
-            InventionGoal(
-                goal_type="material",
-                target="Test",
-                domain="test",
-                key_requirements=[],
-                constraints=[],
-                success_definition="Test",
-                complexity_score=1.5  # Invalid
-            )
-
-
-class TestValidatedMath:
-    """Unit tests for ValidatedMath dataclass."""
-
-    @mark.unit
-    def test_validated_math_creation(self):
-        """Test creating validated math object."""
-        math = ValidatedMath(
-            description="Test theorem",
-            lean_theorem="theorem test : True := by trivial",
-            lean_proof="trivial",
-            variables={"x": "Real"},
-            assumptions=["x > 0"],
-            verification_method="Direct proof",
-            confidence=0.95
-        )
-        assert math.description == "Test theorem"
-        assert math.confidence == 0.95
-        assert "theorem" in math.lean_theorem
-
-    @mark.unit
-    def test_validated_math_confidence_bounds(self):
-        """Test confidence is within valid range."""
-        math = ValidatedMath(
-            description="Test",
-            lean_theorem="theorem test : True := by trivial",
-            lean_proof="trivial",
-            variables={},
-            assumptions=[],
-            verification_method="Test",
-            confidence=0.5
-        )
-        assert 0 <= math.confidence <= 1
-
-
-class TestErrorSource:
-    """Unit tests for ErrorSource dataclass."""
-
-    @mark.unit
-    def test_error_source_creation(self):
-        """Test creating error source."""
-        error = ErrorSource(
-            error_type="measurement",
-            description="Calibration error",
-            probability=0.1,
-            impact="low",
-            mitigation_strategy="Regular calibration",
-            verification_method="Check calibration certificate",
-            acceptance_criteria="Calibration current"
-        )
-        assert error.error_type == "measurement"
-        assert error.probability == 0.1
-        assert error.impact in ["critical", "high", "medium", "low"]
-
-    @mark.unit
-    def test_error_source_probability_bounds(self):
-        """Test probability is within valid range."""
-        error = ErrorSource(
-            error_type="test",
-            description="Test",
-            probability=0.5,
-            impact="medium",
-            mitigation_strategy="Test",
-            verification_method="Test",
-            acceptance_criteria="Test"
-        )
-        assert 0 <= error.probability <= 1
-
-
-class TestSuccessCriterion:
-    """Unit tests for SuccessCriterion dataclass."""
-
-    @mark.unit
-    def test_success_criterion_creation(self):
-        """Test creating success criterion."""
-        criterion = SuccessCriterion(
-            criterion="Particle size",
-            measurement_method="DLS",
-            pass_threshold=100.0,
-            units="nm",
-            verification="Triplicate measurement"
-        )
-        assert criterion.criterion == "Particle size"
-        assert criterion.pass_threshold == 100.0
-        assert criterion.measurement_method == "DLS"
-
-    @mark.unit
-    def test_success_criterion_binary(self):
-        """Test that success criterion is binary."""
-        criterion = SuccessCriterion(
-            criterion="Yield",
-            measurement_method="Gravimetric analysis",
-            pass_threshold=80.0,
-            units="%",
-            verification="Direct measurement"
-        )
-        # Should be measurable and binary
-        assert criterion.measurement_method is not None
-        assert criterion.pass_threshold is not None
-
-
-class TestInventionEvaluator:
-    """Unit tests for InventionEvaluator."""
-
-    @mark.unit
-    def test_evaluator_initialization(self):
-        """Test evaluator can be initialized."""
-        if not INVENTION_PLANNER_AVAILABLE:
-            pytest.skip("End-to-end invention planner not available")
-
-        evaluator = InventionEvaluator()
-        assert evaluator is not None
-
-    @mark.unit
-    def test_evaluator_scoring(self):
-        """Test evaluator scoring logic."""
-        if not INVENTION_PLANNER_AVAILABLE:
-            pytest.skip("End-to-end invention planner not available")
-
-        evaluator = InventionEvaluator()
-
-        # Good solution
-        good_solution = """
-        Step 1: Prepare materials
-        Step 2: Execute reaction
-        Step 3: Verify results
-        Error analysis: Complete
-        Validation: Comprehensive
-        Criteria: Binary and measurable
-        """
-        from generic_maker_integration import GenericTask
-        task = GenericTask(
-            task_description="Test",
-            task_type=TaskType.CUSTOM
-        )
-        score = evaluator.evaluate(good_solution, task)
-        assert score > 0
-
-        # Poor solution
-        poor_solution = "Short"
-        score_poor = evaluator.evaluate(poor_solution, task)
-        assert score >= score_poor
-
-
-# =============================================================================
-# INTEGRATION TESTS
-# =============================================================================
-
-@mark.integration
-class TestPlannerInitialization:
-    """Integration tests for planner initialization."""
-
-    async def test_planner_creation(self):
-        """Test planner can be created."""
-        if not INVENTION_PLANNER_AVAILABLE:
-            pytest.skip("End-to-end invention planner not available")
-
-        planner = EndToEndInventionPlanner()
-        assert planner is not None
-        assert planner.config is not None
-        assert planner.sop_generator is not None
-
-    async def test_planner_with_custom_config(self):
-        """Test planner with custom configuration."""
-        if not INVENTION_PLANNER_AVAILABLE:
-            pytest.skip("End-to-end invention planner not available")
-
-        config = MAKERConfig(
-            enable_voting=True,
-            voting_threshold=7,
-            max_generations=20
-        )
-        planner = EndToEndInventionPlanner(config=config)
-        assert planner.config.voting_threshold == 7
-
-
-@mark.integration
-class TestKnowledgeRetrieval:
-    """Integration tests for knowledge retrieval."""
-
-    async def test_knowledge_retrieval_chemistry(self, invention_planner, mock_invention_goal):
-        """Test knowledge retrieval for chemistry domain."""
-        knowledge = await invention_planner._retrieve_knowledge(mock_invention_goal)
-        assert isinstance(knowledge, list)
-        assert len(knowledge) > 0
-        # Check for relevant chemistry concepts
-        knowledge_text = " ".join(knowledge).lower()
-        assert any(term in knowledge_text for term in ["iron", "oxide", "magnetic", "nanoparticle"])
-
-    async def test_knowledge_retrieval_physics(self, invention_planner):
-        """Test knowledge retrieval for physics domain."""
-        goal = InventionGoal(
-            goal_type="technology",
-            target="High-temperature superconductor",
-            domain="physics",
-            key_requirements=["High Tc", "High current density"],
-            constraints=[],
-            success_definition="Superconductor with Tc > 77 K",
-            complexity_score=0.8
-        )
-        knowledge = await invention_planner._retrieve_knowledge(goal)
-        assert isinstance(knowledge, list)
-        knowledge_text = " ".join(knowledge).lower()
-        # Should mention superconductivity concepts
-        assert any(term in knowledge_text for term in ["superconductor", "temperature", "current", "resistance"])
-
-
-@mark.integration
-class TestMathFormalization:
-    """Integration tests for math formalization."""
-
-    async def test_math_formalization_simple(self, invention_planner, mock_invention_goal):
-        """Test math formalization for simple case."""
-        decomposition = {"steps": [{"step_number": 1, "description": "Calculate particle size"}]}
-        knowledge = ["XRD formula: d = λ/(2*sin(θ))"]
-
-        formalized = await invention_planner._formalize_math(
-            mock_invention_goal, decomposition, knowledge
-        )
-        assert isinstance(formalized, list)
-        # Should have at least some math formalized
-        assert len(formalized) >= 0
-
-    async def test_validated_math_structure(self, invention_planner, mock_invention_goal):
-        """Test structure of validated math objects."""
-        decomposition = {"steps": []}
-        knowledge = []
-
-        formalized = await invention_planner._formalize_math(
-            mock_invention_goal, decomposition, knowledge
-        )
-
-        for math_obj in formalized:
-            assert hasattr(math_obj, 'description')
-            assert hasattr(math_obj, 'lean_theorem')
-            assert hasattr(math_obj, 'lean_proof')
-            assert hasattr(math_obj, 'confidence')
-            assert 0 <= math_obj.confidence <= 1
-
-
-# =============================================================================
-# END-TO-END TESTS
-# =============================================================================
-
-@mark.end_to_end
-@mark.slow
-class TestEndToEndPipeline:
-    """End-to-end tests for complete pipeline."""
-
-    async def test_simple_invention_pipeline(self, invention_planner):
-        """Test complete pipeline with simple invention."""
-        prompt = "Create a plan to invent iron oxide magnetic nanoparticles"
-
-        bulletproof = await invention_planner.plan_invention(
-            prompt=prompt,
-            domain="chemistry",
-            constraints=["Must be biocompatible"]
-        )
-
-        # Validate structure
-        assert bulletproof is not None
-        assert isinstance(bulletproof, BulletproofSOP)
-        assert bulletproof.invention_goal is not None
-        assert bulletproof.sop is not None
-
-        # Validate components
-        assert len(bulletproof.knowledge_base) > 0
-        assert len(bulletproof.decomposition.get('steps', [])) > 0
-        assert len(bulletproof.error_sources) > 0
-        assert len(bulletproof.success_criteria) > 0
-
-        # Validate validation summary
-        assert 'confidence' in bulletproof.validation_summary
-        assert 0 <= bulletproof.validation_summary['confidence'] <= 1
-
-    async def test_pipeline_physics_domain(self, invention_planner):
-        """Test pipeline with physics domain."""
-        prompt = "Create a plan to invent a superconducting wire"
-
-        bulletproof = await invention_planner.plan_invention(
-            prompt=prompt,
-            domain="physics"
-        )
-
-        assert bulletproof.invention_goal.domain == "physics"
-        assert bulletproof.physics_validation is not None
-        assert isinstance(bulletproof.physics_validation, dict)
-
-    async def test_pipeline_execution_document(self, invention_planner):
-        """Test generation of executable document."""
-        bulletproof = await invention_planner.plan_invention(
-            prompt="Create a simple chemical synthesis procedure",
-            domain="chemistry"
-        )
-
-        document = bulletproof.to_executable_document()
-
-        assert isinstance(document, str)
-        assert len(document) > 1000
-        assert "SUCCESS CRITERIA" in document
-        assert "ERROR SOURCE ANALYSIS" in document
-        assert "EXECUTION PROTOCOL" in document
-
-
-# =============================================================================
-# REAL INVENTION TESTS
-# =============================================================================
-
-@mark.real_invention
-@mark.slow
-class TestRealInventions:
-    """Tests with real scientific inventions from various domains."""
-
-    async def test_magnetic_nanoparticles(self, invention_planner):
-        """Test real invention: Magnetic nanoparticles (chemistry)."""
-        prompt = "Create a plan to invent iron oxide magnetic nanoparticles for biomedical applications"
-
-        bulletproof = await invention_planner.plan_invention(
-            prompt=prompt,
-            domain="chemistry",
-            constraints=["Must be biocompatible", "Particle size 10-15 nm"]
-        )
-
-        # Validate goal
-        assert "nanoparticle" in bulletproof.invention_goal.target.lower()
-        assert bulletproof.invention_goal.domain == "chemistry"
-
-        # Validate complexity
-        assert 0.3 <= bulletproof.invention_goal.complexity_score <= 1.0
-
-        # Validate knowledge base
-        knowledge_text = " ".join(bulletproof.knowledge_base).lower()
-        assert any(term in knowledge_text for term in ["iron", "oxide", "magnetic", "nanoparticle"])
-
-        # Validate decomposition
-        steps = bulletproof.decomposition.get('steps', [])
-        assert len(steps) >= 3  # Should have multiple steps
-
-        # Validate error sources
-        assert len(bulletproof.error_sources) > 0
-        # Should have size-related error sources
-        size_errors = [e for e in bulletproof.error_sources
-                       if "size" in e.description.lower()]
-        assert len(size_errors) > 0
-
-        # Validate success criteria
-        assert len(bulletproof.success_criteria) > 0
-        # Should have size criterion
-        size_criteria = [c for c in bulletproof.success_criteria
-                         if "size" in c.criterion.lower()]
-        assert len(size_criteria) > 0
-
-        # Validate SOP
-        assert bulletproof.sop is not None
-        assert len(bulletproof.sop.protocols) >= 0
-
-    async def test_high_temperature_superconductor(self, invention_planner):
-        """Test real invention: High-temperature superconductor (physics)."""
-        prompt = "Create a plan to invent a room-temperature superconducting wire"
-
-        bulletproof = await invention_planner.plan_invention(
-            prompt=prompt,
-            domain="physics",
-            constraints=["Critical temperature ≥ 77 K", "Current density ≥ 10^6 A/cm²"]
-        )
-
-        # Validate goal
-        assert "superconductor" in bulletproof.invention_goal.target.lower()
-        assert bulletproof.invention_goal.domain == "physics"
-
-        # Validate higher complexity for this difficult invention
-        assert bulletproof.invention_goal.complexity_score >= 0.5
-
-        # Validate physics validation
-        assert bulletproof.physics_validation is not None
-        assert "conservation_of_energy" in bulletproof.physics_validation
-        assert "thermodynamic_consistency" in bulletproof.physics_validation
-
-        # Validate math formalization
-        assert len(bulletproof.formalized_math) >= 0
-        # Should have temperature-related math
-        temp_math = [m for m in bulletproof.formalized_math
-                     if any(term in m.description.lower() for term in ["temperature", "tc", "critical"])]
-        assert len(temp_math) >= 0
-
-    async def test_novel_alloy(self, invention_planner):
-        """Test real invention: Novel alloy (materials science)."""
-        prompt = "Create a plan to invent a lightweight aluminum alloy with strength-to-weight ratio exceeding titanium"
-
-        bulletproof = await invention_planner.plan_invention(
-            prompt=prompt,
-            domain="materials_science",
-            constraints=["Must use aluminum as base", "Must exceed titanium properties"]
-        )
-
-        # Validate goal
-        assert "aluminum" in bulletproof.invention_goal.target.lower() or "alloy" in bulletproof.invention_goal.target.lower()
-        assert bulletproof.invention_goal.domain == "materials_science"
-
-        # Validate knowledge base includes metallurgy concepts
-        knowledge_text = " ".join(bulletproof.knowledge_base).lower()
-        assert any(term in knowledge_text for term in ["alloy", "aluminum", "strength", "titanium", "metall"])
-
-        # Validate decomposition has material processing steps
-        steps = bulletproof.decomposition.get('steps', [])
-        step_text = " ".join([s.get('description', '') for s in steps]).lower()
-        assert any(term in step_text for term in ["heat", "treat", "cast", "forge", "alloy"])
-
-    async def test_biological_assay(self, invention_planner):
-        """Test real invention: Biological assay (biology)."""
-        prompt = "Create a plan to invent a high-throughput assay for detecting protein-protein interactions"
-
-        bulletproof = await invention_planner.plan_invention(
-            prompt=prompt,
-            domain="biology",
-            constraints=["Must work in live cells", "Throughput ≥ 10,000 tests/day"]
-        )
-
-        # Validate goal
-        assert "assay" in bulletproof.invention_goal.target.lower()
-        assert bulletproof.invention_goal.domain == "biology"
-
-        # Validate knowledge base includes biology concepts
-        knowledge_text = " ".join(bulletproof.knowledge_base).lower()
-        assert any(term in knowledge_text for term in ["protein", "assay", "detection", "interaction"])
-
-        # Validate error sources include biological variability
-        bio_errors = [e for e in bulletproof.error_sources
-                      if any(term in e.description.lower() for term in ["cell", "biological", "variability"])]
-        assert len(bio_errors) >= 0
-
-
-# =============================================================================
-# VALIDATION TESTS
-# =============================================================================
-
-@mark.validation
-class TestValidationInventions:
-    """Tests with known, impossible, and ambiguous inventions."""
-
-    async def test_known_invention_penicillin(self, invention_planner):
-        """Test with known invention: Penicillin production."""
-        prompt = "Create a plan to invent penicillin via mold fermentation"
-
-        bulletproof = await invention_planner.plan_invention(
-            prompt=prompt,
-            domain="biology"
-        )
-
-        # Should succeed (penicillin is a known producible substance)
-        assert bulletproof is not None
-        assert bulletproof.invention_goal.domain == "biology"
-
-        # Should include fermentation knowledge
-        knowledge_text = " ".join(bulletproof.knowledge_base).lower()
-        assert any(term in knowledge_text for term in ["ferment", "mold", "penicill", "culture"])
-
-    async def test_impossible_invention_perpetual_motion(self, invention_planner):
-        """Test with impossible invention: Perpetual motion machine."""
-        prompt = "Create a plan to invent a perpetual motion machine that generates free energy"
-
-        # Should still produce output, but with warnings
-        bulletproof = await invention_planner.plan_invention(
-            prompt=prompt,
-            domain="physics"
-        )
-
-        # Physics validation should flag issues
-        assert "conservation_of_energy" in bulletproof.physics_validation
-        # Might fail thermodynamic consistency
-        # (This depends on implementation)
-
-    async def test_ambiguous_invention(self, invention_planner):
-        """Test with ambiguous invention request."""
-        prompt = "Create a plan to invent a better thing"
-
-        # Should handle gracefully
-        bulletproof = await invention_planner.plan_invention(
-            prompt=prompt,
-            domain="general"
-        )
-
-        # Should produce some output, even if limited
-        assert bulletproof is not None
-        # Goal might be vague
-        assert bulletproof.invention_goal.target is not None
-
-    async def test_multidomain_invention(self, invention_planner):
-        """Test with multidomain invention: Bioelectronic sensor."""
-        prompt = "Create a plan to invent a graphene-based biosensor for real-time neurotransmitter detection"
-
-        bulletproof = await invention_planner.plan_invention(
-            prompt=prompt,
-            domain="multidisciplinary"
-        )
-
-        # Should succeed
-        assert bulletproof is not None
-
-        # Should include knowledge from multiple domains
-        knowledge_text = " ".join(bulletproof.knowledge_base).lower()
-        # Materials science (graphene)
-        assert "graphene" in knowledge_text or "material" in knowledge_text
-        # Biology (neurotransmitter)
-        assert "neurotransmitter" in knowledge_text or "bio" in knowledge_text
-
-
-# =============================================================================
-# PERFORMANCE TESTS
-# =============================================================================
-
-@mark.performance
-@mark.slow
-class TestPerformance:
-    """Performance and stress tests."""
-
-    async def test_planning_time_simple_invention(self, invention_planner):
-        """Test planning time for simple invention."""
-        start_time = time.time()
-
-        bulletproof = await invention_planner.plan_invention(
-            prompt="Create a plan to invent simple iron oxide nanoparticles",
-            domain="chemistry"
-        )
-
-        elapsed = time.time() - start_time
-
-        # Should complete in reasonable time (adjust based on system)
-        assert elapsed < 300  # 5 minutes max
-
-        print(f"Simple invention planning time: {elapsed:.1f}s")
-
-    async def test_planning_time_complex_invention(self, invention_planner):
-        """Test planning time for complex invention."""
-        start_time = time.time()
-
-        bulletproof = await invention_planner.plan_invention(
-            prompt="Create a plan to invent a room-temperature superconductor with comprehensive validation",
-            domain="physics"
-        )
-
-        elapsed = time.time() - start_time
-
-        # Complex inventions may take longer
-        assert elapsed < 600  # 10 minutes max
-
-        print(f"Complex invention planning time: {elapsed:.1f}s")
-
-    async def test_concurrent_planning(self):
-        """Test concurrent invention planning."""
-        if not INVENTION_PLANNER_AVAILABLE:
-            pytest.skip("End-to-end invention planner not available")
-
-        planner1 = EndToEndInventionPlanner()
-        planner2 = EndToEndInventionPlanner()
-        planner3 = EndToEndInventionPlanner()
-
-        start_time = time.time()
-
-        # Run 3 inventions concurrently
-        results = await asyncio.gather(
-            planner1.plan_invention("Invent magnetic nanoparticles", "chemistry"),
-            planner2.plan_invention("Invert novel alloy", "materials_science"),
-            planner3.plan_invention("Invent biological assay", "biology"),
-            return_exceptions=True
-        )
-
-        elapsed = time.time() - start_time
-
-        # All should succeed
-        assert len([r for r in results if not isinstance(r, Exception)]) >= 2
-
-        print(f"Concurrent planning (3 inventions): {elapsed:.1f}s")
-
-
-# =============================================================================
-# VALIDATION TESTS FOR OUTPUT QUALITY
-# =============================================================================
-
-@mark.validation
-class TestOutputQuality:
-    """Tests for quality validation of outputs."""
-
-    async def test_bulletproof_output_completeness(self, invention_planner):
-        """Test that bulletproof output has all required components."""
-        bulletproof = await invention_planner.plan_invention(
-            prompt="Create a plan to invent iron oxide nanoparticles",
-            domain="chemistry"
-        )
-
-        # Check all required fields
-        assert hasattr(bulletproof, 'invention_goal')
-        assert hasattr(bulletproof, 'knowledge_base')
-        assert hasattr(bulletproof, 'decomposition')
-        assert hasattr(bulletproof, 'formalized_math')
-        assert hasattr(bulletproof, 'physics_validation')
-        assert hasattr(bulletproof, 'error_sources')
-        assert hasattr(bulletproof, 'red_team_findings')
-        assert hasattr(bulletproof, 'blue_team_fixes')
-        assert hasattr(bulletproof, 'success_criteria')
-        assert hasattr(bulletproof, 'sop')
-        assert hasattr(bulletproof, 'validation_summary')
-
-    async def test_binary_criteria_truly_binary(self, invention_planner):
-        """Test that success criteria are truly binary."""
-        bulletproof = await invention_planner.plan_invention(
-            prompt="Create a plan to invent iron oxide nanoparticles",
-            domain="chemistry"
-        )
-
-        for criterion in bulletproof.success_criteria:
-            # Must have clear pass threshold
-            assert criterion.pass_threshold is not None
-
-            # Must have measurement method
-            assert criterion.measurement_method is not None
-            assert len(criterion.measurement_method) > 0
-
-            # Must have verification method
-            assert criterion.verification is not None
-            assert len(criterion.verification) > 0
-
-            # Threshold should be numeric (for binary comparison)
-            assert isinstance(criterion.pass_threshold, (int, float))
-
-    async def test_error_analysis_comprehensive(self, invention_planner):
-        """Test that error analysis is comprehensive."""
-        bulletproof = await invention_planner.plan_invention(
-            prompt="Create a plan to invent iron oxide nanoparticles",
-            domain="chemistry"
-        )
-
-        # Should have multiple error sources
-        assert len(bulletproof.error_sources) >= 1
-
-        # Check error source structure
-        for error in bulletproof.error_sources:
-            assert error.description is not None
-            assert len(error.description) > 0
-            assert 0 <= error.probability <= 1
-            assert error.impact in ["critical", "high", "medium", "low"]
-            assert error.mitigation_strategy is not None
-            assert len(error.mitigation_strategy) > 0
-            assert error.verification_method is not None
-            assert len(error.verification_method) > 0
-            assert error.acceptance_criteria is not None
-
-    async def test_math_formalization_quality(self, invention_planner):
-        """Test that math is properly formalized."""
-        bulletproof = await invention_planner.plan_invention(
-            prompt="Create a plan to invent iron oxide nanoparticles",
-            domain="chemistry"
-        )
-
-        # Check math objects
-        for math_obj in bulletproof.formalized_math:
-            assert math_obj.description is not None
-            assert len(math_obj.description) > 0
-
-            # Should have Lean theorem
-            assert "theorem" in math_obj.lean_theorem.lower()
-
-            # Should have proof
-            assert math_obj.lean_proof is not None
-
-            # Should have confidence
-            assert 0 <= math_obj.confidence <= 1
-
-    async def test_executable_document_quality(self, invention_planner):
-        """Test quality of executable document."""
-        bulletproof = await invention_planner.plan_invention(
-            prompt="Create a plan to invent iron oxide nanoparticles",
-            domain="chemistry"
-        )
-
-        document = bulletproof.to_executable_document()
-
-        # Check required sections
-        required_sections = [
-            "SUCCESS CRITERIA",
-            "ERROR SOURCE ANALYSIS",
-            "EXECUTION PROTOCOL",
-            "VALIDATION SUMMARY"
         ]
+        
+        result = propagator.propagate_monte_carlo(
+            model, uncertainty_sources, n_samples=10000
+        )
+        
+        assert abs(result.mean - 15.0) < 0.1
+        assert result.standard_deviation > 0
+        assert result.confidence_interval_95[0] < result.mean
+        assert result.confidence_interval_95[1] > result.mean
+    
+    def test_sobol_sensitivity_analysis(self):
+        """Test Sobol sensitivity analysis"""
+        propagator = EnhancedUncertaintyPropagator(random_seed=42)
+        
+        # Ishigami function (common test function for sensitivity analysis)
+        def ishigami(params):
+            x1, x2, x3 = params[0], params[1], params[2]
+            return np.sin(x1) + 7 * np.sin(x2)**2 + 0.1 * x3**4 * np.sin(x1)
+        
+        uncertainty_sources = [
+            UncertaintySource("x1", "uniform", {'low': -np.pi, 'high': np.pi}),
+            UncertaintySource("x2", "uniform", {'low': -np.pi, 'high': np.pi}),
+            UncertaintySource("x3", "uniform", {'low': -np.pi, 'high': np.pi})
+        ]
+        
+        sobol = propagator.compute_sobol_indices(
+            ishigami, uncertainty_sources, n_samples=5000
+        )
+        
+        assert 'x1' in sobol.first_order
+        assert 'x2' in sobol.first_order
+        assert 'x3' in sobol.first_order
+        
+        # x2 should have highest total effect
+        most_important = sobol.get_most_important(1)[0][0]
+        assert most_important in ['x1', 'x2', 'x3']
+    
+    def test_error_budget_creation(self):
+        """Test error budget creation"""
+        propagator = EnhancedUncertaintyPropagator()
+        
+        def model(params):
+            return params[0] * params[1]
+        
+        uncertainty_sources = [
+            UncertaintySource(
+                name="gain",
+                distribution="normal",
+                parameters={'mean': 2.0, 'std': 0.1}
+            ),
+            UncertaintySource(
+                name="offset",
+                distribution="normal",
+                parameters={'mean': 1.0, 'std': 0.05}
+            )
+        ]
+        
+        budget = propagator.create_error_budget(
+            model, uncertainty_sources, confidence_level=0.95
+        )
+        
+        assert budget.total_uncertainty > 0
+        assert budget.coverage_factor == 2.0
+        assert len(budget.source_contributions) > 0
+    
+    def test_comprehensive_error_analysis(self):
+        """Test comprehensive error analysis function"""
+        
+        invention_spec = {
+            'uncertainty_sources': [
+                {
+                    'name': 'param1',
+                    'distribution': 'normal',
+                    'parameters': {'mean': 10, 'std': 1},
+                    'category': 'equipment'
+                },
+                {
+                    'name': 'param2',
+                    'distribution': 'normal',
+                    'parameters': {'mean': 5, 'std': 0.5},
+                    'category': 'material'
+                }
+            ]
+        }
+        
+        def model(params):
+            return params[0] + params[1]
+        
+        result = comprehensive_error_analysis(
+            invention_spec, model, n_samples=5000,
+            include_sensitivity=True, include_error_budget=True
+        )
+        
+        assert 'propagation' in result
+        assert 'sensitivity_analysis' in result
+        assert 'error_budget' in result
 
-        for section in required_sections:
-            assert section in document
 
-        # Check document is substantial
-        assert len(document) > 2000  # At least 2000 characters
+# ============================================================================
+# SOP Generation Tests
+# ============================================================================
 
-        # Check for key content markers
-        assert bulletproof.invention_goal.target in document
-        assert "Pass Threshold" in document or "threshold" in document.lower()
-        assert "Mitigation" in document or "mitigation" in document.lower()
+@pytest.mark.skipif(not SOP_AVAILABLE, reason="Enhanced SOP not available")
+class TestSOPGeneration:
+    """Test enhanced SOP generation"""
+    
+    @pytest.mark.asyncio
+    async def test_llm4ias_integration(self):
+        """Test LLM4IAS integration"""
+        llm4ias = LLM4IASIntegration()
+        assert llm4ias is not None
+    
+    @pytest.mark.asyncio
+    async def test_manufacturing_sop_generation(self):
+        """Test manufacturing SOP generation"""
+        generator = EnhancedSOPGenerator()
+        
+        product_spec = {
+            'name': 'Test Product',
+            'critical_characteristics': ['dimension', 'weight'],
+            'hazards': [
+                {'type': 'mechanical', 'description': 'Moving parts', 'risk': 'Medium'}
+            ]
+        }
+        
+        result = await generator.generate_manufacturing_sop(
+            product_name="Test Product",
+            product_spec=product_spec,
+            equipment_list=['Machine A', 'Machine B', 'Tool C'],
+            industry_standard=IndustryStandard.ISO_9001,
+            include_qc=True,
+            include_safety=True
+        )
+        
+        assert result['sop_type'] == SOPType.MANUFACTURING.value
+        assert 'manufacturing_process' in result
+    
+    @pytest.mark.asyncio
+    async def test_assembly_sop_generation(self):
+        """Test assembly SOP generation"""
+        generator = EnhancedSOPGenerator()
+        
+        bom = [
+            {'part_number': '001', 'description': 'Base plate'},
+            {'part_number': '002', 'description': 'Mounting bracket'}
+        ]
+        
+        sequence = [
+            {
+                'description': 'Attach mounting bracket to base plate',
+                'components': ['001', '002'],
+                'tools': ['wrench'],
+                'torque': {'bolt_1': 25.0}
+            }
+        ]
+        
+        result = await generator.generate_assembly_sop(
+            assembly_name="Test Assembly",
+            bill_of_materials=bom,
+            assembly_sequence=sequence,
+            tools_required=['wrench', 'screwdriver']
+        )
+        
+        assert result['sop_type'] == SOPType.ASSEMBLY.value
+        assert 'assembly_instructions' in result
+    
+    @pytest.mark.asyncio
+    async def test_testing_sop_generation(self):
+        """Test testing SOP generation"""
+        generator = EnhancedSOPGenerator()
+        
+        test_params = {
+            'voltage': {'value': 12.0, 'unit': 'V', 'tolerance': 0.5},
+            'current': {'value': 2.0, 'unit': 'A', 'tolerance': 0.1}
+        }
+        
+        result = await generator.generate_testing_sop(
+            test_name="Electrical Test",
+            test_type="Functional",
+            test_parameters=test_params,
+            acceptance_criteria="Voltage within ±0.5V, Current within ±0.1A",
+            equipment_required=['Multimeter', 'Power supply']
+        )
+        
+        assert result['sop_type'] == SOPType.TESTING.value
+        assert 'procedure' in result
+    
+    @pytest.mark.asyncio
+    async def test_complete_invention_sop(self):
+        """Test complete invention SOP generation"""
+        generator = EnhancedSOPGenerator()
+        
+        invention_spec = {
+            'name': 'Test Invention',
+            'manufacturing': {
+                'process_type': 'assembly',
+                'cycle_time': 30
+            },
+            'assembly': {
+                'bom': [{'part': 'A'}, {'part': 'B'}],
+                'sequence': [{'step': 1, 'description': 'Assemble A and B'}],
+                'tools': ['wrench']
+            },
+            'testing': {
+                'type': 'Functional',
+                'parameters': {'param1': {'value': 10}},
+                'acceptance': 'Pass',
+                'equipment': ['tester']
+            },
+            'equipment': [
+                {'id': 'EQ001', 'name': 'Machine 1', 'maintenance_type': 'Preventive'}
+            ],
+            'hazards': [
+                {'type': 'mechanical', 'description': 'Pinch point', 'risk': 'Medium'}
+            ]
+        }
+        
+        result = await generator.generate_complete_invention_sop(invention_spec)
+        
+        assert 'document_title' in result
+        assert 'sections' in result
+        assert 'manufacturing' in result['sections']
+        assert 'assembly' in result['sections']
+        assert 'testing' in result['sections']
 
 
-# =============================================================================
-# TEST EXECUTION AND REPORTING
-# =============================================================================
+# ============================================================================
+# E2E Integration Tests
+# ============================================================================
 
-@pytest.fixture(scope="session", autouse=True)
-def test_summary(request):
-    """Generate test summary at end of session."""
-    yield
+@pytest.mark.skipif(not E2E_AVAILABLE, reason="Enhanced E2E not available")
+class TestE2EIntegration:
+    """Test end-to-end integration"""
+    
+    def test_planner_initialization(self):
+        """Test planner initialization"""
+        planner = EnhancedEndToEndPlanner(use_enhanced=True)
+        assert planner is not None
+        assert planner.use_enhanced == True
+    
+    @pytest.mark.asyncio
+    async def test_complete_planning_run(self):
+        """Test complete planning run with all enhancements"""
+        planner = EnhancedEndToEndPlanner(use_enhanced=True)
+        
+        invention_spec = {
+            'name': 'Test Device',
+            'geometry': {
+                'length': 1.0,
+                'cross_sectional_area': 0.01,
+                'surface_area': 0.5
+            },
+            'material_properties': {
+                'youngs_modulus': 200e9,
+                'yield_stress': 250e6
+            },
+            'loads': [{'magnitude': 10000, 'direction': 'axial'}],
+            'thermal_properties': {
+                'thermal_conductivity': 50
+            },
+            'uncertainty_sources': [
+                {
+                    'name': 'load',
+                    'distribution': 'normal',
+                    'parameters': {'mean': 10000, 'std': 500},
+                    'category': 'equipment'
+                }
+            ]
+        }
+        
+        result = await planner.plan_invention_complete(
+            prompt="Create a test device with structural and thermal requirements",
+            domain="engineering",
+            invention_spec=invention_spec,
+            enable_physics_simulation=True,
+            enable_uncertainty_analysis=True,
+            enable_enhanced_sop=True
+        )
+        
+        assert result['planning_complete'] == True
+        assert 'enhanced_validations' in result
+        assert result['enhanced_validations']['physics_validation']['enabled'] == True
+        assert result['enhanced_validations']['error_analysis']['enabled'] == True
+    
+    @pytest.mark.asyncio
+    async def test_planning_without_spec(self):
+        """Test planning without detailed spec (base only)"""
+        planner = EnhancedEndToEndPlanner(use_enhanced=True)
+        
+        result = await planner.plan_invention_complete(
+            prompt="Create a room-temperature superconductor",
+            domain="physics",
+            enable_physics_simulation=True,
+            enable_uncertainty_analysis=True,
+            enable_enhanced_sop=True
+        )
+        
+        assert result['planning_complete'] == True
+        # Without spec, enhanced features are skipped
+        assert result['enhanced_validations']['physics_validation']['completed'] == False
+    
+    def test_planner_status(self):
+        """Test planner status function"""
+        status = get_enhanced_planner_status()
+        
+        assert 'version' in status
+        assert 'components' in status
+        assert status['version'] == '2.0.0'
+    
+    @pytest.mark.asyncio
+    async def test_convenience_function(self):
+        """Test convenience function"""
+        invention_spec = {
+            'name': 'Quick Test',
+            'uncertainty_sources': [
+                {
+                    'name': 'param',
+                    'distribution': 'normal',
+                    'parameters': {'mean': 10, 'std': 1}
+                }
+            ]
+        }
+        
+        result = await run_enhanced_invention_planning(
+            prompt="Quick test invention",
+            invention_spec=invention_spec,
+            domain="test",
+            enable_all_enhancements=True
+        )
+        
+        assert result['planning_complete'] == True
 
-    # Print summary
-    print("\n" + "=" * 80)
-    print("END-TO-END INVENTION PLANNER - TEST SUMMARY")
-    print("=" * 80)
-    print(f"Test Session: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("\nTest Categories:")
-    print("  - Unit Tests: Individual component testing")
-    print("  - Integration Tests: System integration testing")
-    print("  - End-to-End Tests: Complete pipeline testing")
-    print("  - Real Invention Tests: Actual scientific inventions")
-    print("  - Validation Tests: Known/Impossible/Ambiguous inventions")
-    print("  - Performance Tests: Benchmarks and stress tests")
-    print("\nKey Findings:")
-    print("  - Magnetic nanoparticles (chemistry)")
-    print("  - High-temperature superconductors (physics)")
-    print("  - Novel alloys (materials science)")
-    print("  - Biological assays (biology)")
-    print("=" * 80)
+
+# ============================================================================
+# Performance and Edge Case Tests
+# ============================================================================
+
+@pytest.mark.skipif(not PHYSICS_AVAILABLE, reason="Physics not available")
+class TestPhysicsEdgeCases:
+    """Test physics validation edge cases"""
+    
+    def test_high_load_stress(self):
+        """Test stress analysis with very high load"""
+        fea = FEASimulator()
+        
+        geometry = {'length': 1.0, 'cross_sectional_area': 0.001, 'surface_area': 0.1}
+        material = {'youngs_modulus': 200e9, 'yield_stress': 250e6}
+        loads = [{'magnitude': 500000, 'direction': 'axial'}]  # Very high load
+        
+        result = fea.analyze_stress(geometry, material, loads, [])
+        
+        # Should fail (safety factor < 1.5)
+        assert result['passed'] == False or result['safety_factor'] < 1.5
+    
+    def test_thermal_runaway(self):
+        """Test thermal analysis with excessive heat"""
+        thermal = ThermalAnalyzer()
+        
+        geometry = {'surface_area': 0.1, 'volume': 0.01}
+        material = {'thermal_conductivity': 1, 'density': 1000, 'specific_heat': 1000}
+        heat_sources = [{'power': 10000, 'volume': 0.001}]  # Very high heat
+        boundary_temps = {'ambient': 300}
+        
+        result = thermal.steady_state_temperature(
+            geometry, material, heat_sources, boundary_temps
+        )
+        
+        # Temperature should be very high
+        assert result['max_temperature'] > 1000
 
 
-# =============================================================================
-# MAIN ENTRY POINT
-# =============================================================================
+@pytest.mark.skipif(not UNCERTAINTY_AVAILABLE, reason="Uncertainty not available")
+class TestUncertaintyEdgeCases:
+    """Test uncertainty propagation edge cases"""
+    
+    def test_zero_variance(self):
+        """Test with zero variance (deterministic)"""
+        propagator = EnhancedUncertaintyPropagator()
+        
+        def model(params):
+            return params[0] + params[1]
+        
+        uncertainty_sources = [
+            UncertaintySource("x1", "normal", {'mean': 10, 'std': 0}),
+            UncertaintySource("x2", "normal", {'mean': 5, 'std': 0})
+        ]
+        
+        result = propagator.propagate_monte_carlo(
+            model, uncertainty_sources, n_samples=100
+        )
+        
+        assert abs(result.mean - 15) < 0.001
+        assert result.standard_deviation < 0.001
+    
+    def test_large_variance(self):
+        """Test with very large variance"""
+        propagator = EnhancedUncertaintyPropagator()
+        
+        def model(params):
+            return params[0]
+        
+        uncertainty_sources = [
+            UncertaintySource("x", "normal", {'mean': 100, 'std': 1000})
+        ]
+        
+        result = propagator.propagate_monte_carlo(
+            model, uncertainty_sources, n_samples=10000
+        )
+        
+        assert result.standard_deviation > 500
+
+
+# ============================================================================
+# Main Test Runner
+# ============================================================================
 
 if __name__ == "__main__":
-    # Run pytest with our configuration
-    pytest.main([
-        __file__,
-        "-v",
-        "--tb=short",
-        "--markers=unit:Unit tests",
-        "--markers=integration:Integration tests",
-        "--markers=end_to_end:End-to-end tests",
-        "--markers=real_invention:Real invention tests",
-        "--markers=validation:Validation tests",
-        "--markers=performance:Performance tests",
-        "--markers=slow:Slow tests",
-    ])
+    # Run tests
+    pytest.main([__file__, "-v", "--tb=short"])

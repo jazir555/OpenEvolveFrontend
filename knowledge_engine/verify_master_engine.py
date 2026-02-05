@@ -65,7 +65,7 @@ if capability_issues:
     for issue in capability_issues:
         print(f"    - {issue}")
 else:
-    print(f"  ✓ All {len(expected)} components have capabilities defined")
+    print(f"  [OK] All {len(expected)} components have capabilities defined")
 print()
 
 # Check substitution matrix coverage
@@ -81,7 +81,7 @@ if substitution_issues:
     for issue in substitution_issues:
         print(f"    - {issue}")
 else:
-    print(f"  ✓ All {len(expected)} components have substitution fallbacks")
+    print(f"  [OK] All {len(expected)} components have substitution fallbacks")
 print()
 
 # Check execute handlers in MasterKnowledgeEngine

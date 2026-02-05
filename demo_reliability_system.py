@@ -142,10 +142,10 @@ def demo_rate_limiter():
 
     for i in range(10):
         if rl.acquire():
-            print(f"  Request {i+1}: ✓ Allowed (tokens: {rl._tokens:.1f})")
+            print(f"  Request {i+1}: [OK] Allowed (tokens: {rl._tokens:.1f})")
         else:
             wait_time = rl.get_wait_time()
-            print(f"  Request {i+1}: ✗ Rate limited (wait: {wait_time:.2f}s)")
+            print(f"  Request {i+1}: [FAIL] Rate limited (wait: {wait_time:.2f}s)")
 
         # Small delay to show token refill
         if i == 4:
@@ -183,7 +183,7 @@ def demo_health_checker():
 
     for i in range(7):
         result = hc.check(check_database)
-        status = "✓ HEALTHY" if result.healthy else "✗ UNHEALTHY"
+        status = "[OK] HEALTHY" if result.healthy else "[FAIL] UNHEALTHY"
         print(f"  Check {i+1}: {status}")
         print(f"    Overall: {'Healthy' if hc.is_healthy else 'Unhealthy'}")
         print(f"    Consecutive failures: {hc._consecutive_failures}")
@@ -432,16 +432,16 @@ def main():
     print("  ALL DEMONSTRATIONS COMPLETE")
     print("=" * 70)
     print("\nThe reliability_config.py module provides:")
-    print("  ✓ Retry logic with 4 backoff strategies")
-    print("  ✓ Circuit breaker with 3 states (closed/open/half-open)")
-    print("  ✓ Token bucket rate limiting")
-    print("  ✓ Health checks with thresholds")
-    print("  ✓ Specific exception hierarchy")
-    print("  ✓ Full type hints for IDE support")
-    print("  ✓ Thread-safe operation")
-    print("  ✓ Configuration-driven behavior")
-    print("  ✓ Production-ready logging")
-    print("  ✓ Comprehensive statistics tracking")
+    print("  [OK] Retry logic with 4 backoff strategies")
+    print("  [OK] Circuit breaker with 3 states (closed/open/half-open)")
+    print("  [OK] Token bucket rate limiting")
+    print("  [OK] Health checks with thresholds")
+    print("  [OK] Specific exception hierarchy")
+    print("  [OK] Full type hints for IDE support")
+    print("  [OK] Thread-safe operation")
+    print("  [OK] Configuration-driven behavior")
+    print("  [OK] Production-ready logging")
+    print("  [OK] Comprehensive statistics tracking")
     print("\n")
 
 

@@ -1030,7 +1030,7 @@ def execute_complete_solution_workflow(
         **ACTUAL INTEGRATION**: Cache sovereign integration results.
 
         Caches:
-        - Problem → integration result mappings
+        - Problem -> integration result mappings
         - Successful integration patterns
         """
         if not CACHE_AVAILABLE:

@@ -21,12 +21,12 @@ def print_section(title):
 
 def print_success(message):
     """Print success message."""
-    print(f"✓ {message}")
+    print(f"[OK] {message}")
 
 
 def print_error(message):
     """Print error message."""
-    print(f"✗ {message}")
+    print(f"[FAIL] {message}")
 
 
 def print_info(message):
@@ -365,11 +365,11 @@ async def main():
     print(f"Failed: {failed}")
 
     if failed == 0:
-        print("\n✓ All verification tests passed!")
+        print("\n[OK] All verification tests passed!")
         print("\nThe AI-Knowledge-Graph integration is ready to use.")
         return 0
     else:
-        print(f"\n✗ {failed} test(s) failed")
+        print(f"\n[FAIL] {failed} test(s) failed")
         print("\nPlease review the errors above and fix the issues.")
         return 1
 

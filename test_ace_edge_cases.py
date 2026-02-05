@@ -35,16 +35,16 @@ try:
                 min_val=0.0, max_val=1.0,
                 allow_nan=False
             )
-            print(f'  ❌ FAIL: NaN NOT blocked for {param_name}')
+            print(f'  [FAIL] FAIL: NaN NOT blocked for {param_name}')
         except ValueError as e:
             blocked += 1
-            print(f'  ✅ PASS: NaN blocked for {param_name}')
+            print(f'  [OK] PASS: NaN blocked for {param_name}')
 
     if blocked == len(nan_attempts):
-        print(f'\n  ✅ SUCCESS: All {blocked} NaN bypass attempts blocked')
+        print(f'\n  [OK] SUCCESS: All {blocked} NaN bypass attempts blocked')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -71,16 +71,16 @@ try:
                 min_val=0.0, max_val=1.0,
                 allow_infinity=False
             )
-            print(f'  ❌ FAIL: Infinity NOT blocked for {param_name}')
+            print(f'  [FAIL] FAIL: Infinity NOT blocked for {param_name}')
         except ValueError as e:
             blocked += 1
-            print(f'  ✅ PASS: Infinity blocked for {param_name}')
+            print(f'  [OK] PASS: Infinity blocked for {param_name}')
 
     if blocked == len(infinity_attempts):
-        print(f'\n  ✅ SUCCESS: All {blocked} infinity bypass attempts blocked')
+        print(f'\n  [OK] SUCCESS: All {blocked} infinity bypass attempts blocked')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -98,9 +98,9 @@ try:
     rate = metrics.calculate_success_rate()
     print(f'  UsageMetrics.calculate_success_rate() with zero uses: {rate}')
     if rate == 0.0:
-        print(f'  ✅ PASS: Zero division prevented in UsageMetrics')
+        print(f'  [OK] PASS: Zero division prevented in UsageMetrics')
     else:
-        print(f'  ❌ FAIL: Unexpected rate: {rate}')
+        print(f'  [FAIL] FAIL: Unexpected rate: {rate}')
 
     # Test 2: TeamPerformanceData with zero tasks
     team_data = TeamPerformanceData(
@@ -113,9 +113,9 @@ try:
     )
     rate = team_data.calculate_success_rate()
     if rate == 0.0:
-        print(f'  ✅ PASS: Zero division prevented in TeamPerformanceData')
+        print(f'  [OK] PASS: Zero division prevented in TeamPerformanceData')
     else:
-        print(f'  ❌ FAIL: Unexpected rate: {rate}')
+        print(f'  [FAIL] FAIL: Unexpected rate: {rate}')
 
     # Test 3: GauntletEffectivenessData with zero runs
     gauntlet_data = GauntletEffectivenessData(
@@ -129,12 +129,12 @@ try:
     precision = gauntlet_data.calculate_precision()
 
     if rate == 0.0 and precision == 0.0:
-        print(f'  ✅ PASS: Zero division prevented in GauntletEffectivenessData')
+        print(f'  [OK] PASS: Zero division prevented in GauntletEffectivenessData')
     else:
-        print(f'  ❌ FAIL: Unexpected rates: detection={rate}, precision={precision}')
+        print(f'  [FAIL] FAIL: Unexpected rates: detection={rate}, precision={precision}')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -161,17 +161,17 @@ try:
                 min_val=0, max_val=1000000,
                 allow_nan=False, allow_infinity=False
             )
-            print(f'  ⚠️  INFO: Large int {large_int} handled for {param_name}')
+            print(f'  [WARN]  INFO: Large int {large_int} handled for {param_name}')
             handled += 1
         except (ValueError, OverflowError) as e:
             handled += 1
-            print(f'  ✅ PASS: Overflow prevented for {param_name}')
+            print(f'  [OK] PASS: Overflow prevented for {param_name}')
 
     if handled == len(large_ints):
-        print(f'\n  ✅ SUCCESS: All {handled} overflow scenarios handled')
+        print(f'\n  [OK] SUCCESS: All {handled} overflow scenarios handled')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -196,16 +196,16 @@ try:
         try:
             result = validate_list_size(collection, 'test_list', min_size=0, max_size=100)
             handled += 1
-            print(f'  ✅ PASS: Empty {type(collection).__name__} handled')
+            print(f'  [OK] PASS: Empty {type(collection).__name__} handled')
         except ValueError as e:
             # If min_size > 0, this is expected
             handled += 1
-            print(f'  ✅ PASS: Empty collection rejection handled')
+            print(f'  [OK] PASS: Empty collection rejection handled')
 
-    print(f'\n  ✅ SUCCESS: All {handled} empty collection cases handled')
+    print(f'\n  [OK] SUCCESS: All {handled} empty collection cases handled')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -227,16 +227,16 @@ try:
     for incomplete_dict, required_fields in incomplete_dicts:
         try:
             result = validate_dict_structure(incomplete_dict, required_fields)
-            print(f'  ❌ FAIL: Missing fields NOT detected')
+            print(f'  [FAIL] FAIL: Missing fields NOT detected')
         except ValueError as e:
             blocked += 1
-            print(f'  ✅ PASS: Missing fields detected: {e}')
+            print(f'  [OK] PASS: Missing fields detected: {e}')
 
     if blocked == len(incomplete_dicts):
-        print(f'\n  ✅ SUCCESS: All {blocked} missing field cases detected')
+        print(f'\n  [OK] SUCCESS: All {blocked} missing field cases detected')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -262,16 +262,16 @@ try:
                 result = validate_string_length(wrong_value, param_name, max_length=100)
             else:
                 result = validate_numeric_range(wrong_value, param_name, 0, 100)
-            print(f'  ❌ FAIL: Type mismatch NOT detected for {param_name}')
+            print(f'  [FAIL] FAIL: Type mismatch NOT detected for {param_name}')
         except (TypeError, ValueError, AttributeError) as e:
             blocked += 1
-            print(f'  ✅ PASS: Type mismatch detected for {param_name}')
+            print(f'  [OK] PASS: Type mismatch detected for {param_name}')
 
     if blocked == len(type_mismatches):
-        print(f'\n  ✅ SUCCESS: All {blocked} type mismatches detected')
+        print(f'\n  [OK] SUCCESS: All {blocked} type mismatches detected')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -297,16 +297,16 @@ try:
                 negative_val, param_name,
                 min_val=min_val, max_val=max_val
             )
-            print(f'  ❌ FAIL: Negative value NOT blocked for {param_name}')
+            print(f'  [FAIL] FAIL: Negative value NOT blocked for {param_name}')
         except ValueError as e:
             blocked += 1
-            print(f'  ✅ PASS: Negative value blocked for {param_name}')
+            print(f'  [OK] PASS: Negative value blocked for {param_name}')
 
     if blocked == len(negative_values):
-        print(f'\n  ✅ SUCCESS: All {blocked} negative value attempts blocked')
+        print(f'\n  [OK] SUCCESS: All {blocked} negative value attempts blocked')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -331,16 +331,16 @@ try:
                 long_string, param_name,
                 max_length=max_len, min_length=min_len
             )
-            print(f'  ❌ FAIL: Oversized string NOT blocked for {param_name}')
+            print(f'  [FAIL] FAIL: Oversized string NOT blocked for {param_name}')
         except ValueError as e:
             blocked += 1
-            print(f'  ✅ PASS: Oversized string blocked for {param_name} (len={len(long_string)})')
+            print(f'  [OK] PASS: Oversized string blocked for {param_name} (len={len(long_string)})')
 
     if blocked == len(long_strings):
-        print(f'\n  ✅ SUCCESS: All {blocked} oversized strings blocked')
+        print(f'\n  [OK] SUCCESS: All {blocked} oversized strings blocked')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -365,16 +365,16 @@ try:
                 large_list, param_name,
                 max_size=max_size, min_size=min_size
             )
-            print(f'  ❌ FAIL: Oversized list NOT blocked for {param_name}')
+            print(f'  [FAIL] FAIL: Oversized list NOT blocked for {param_name}')
         except ValueError as e:
             blocked += 1
-            print(f'  ✅ PASS: Oversized list blocked for {param_name} (size={len(large_list)})')
+            print(f'  [OK] PASS: Oversized list blocked for {param_name} (size={len(large_list)})')
 
     if blocked == len(large_lists):
-        print(f'\n  ✅ SUCCESS: All {blocked} oversized lists blocked')
+        print(f'\n  [OK] SUCCESS: All {blocked} oversized lists blocked')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -412,15 +412,15 @@ try:
             # Should use fallback to datetime.now()
             if isinstance(metadata.created_at, datetime):
                 parsed += 1
-                print(f'  ✅ PASS: Invalid datetime "{invalid_dt}" handled with fallback')
+                print(f'  [OK] PASS: Invalid datetime "{invalid_dt}" handled with fallback')
         except Exception as e:
             parsed += 1
-            print(f'  ✅ PASS: Invalid datetime "{invalid_dt}" handled with exception')
+            print(f'  [OK] PASS: Invalid datetime "{invalid_dt}" handled with exception')
 
-    print(f'\n  ✅ SUCCESS: All {parsed} invalid datetime cases handled')
+    print(f'\n  [OK] SUCCESS: All {parsed} invalid datetime cases handled')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -458,21 +458,21 @@ try:
 
             if should_pass:
                 passed += 1
-                print(f'  ✅ PASS: Boundary value accepted (as expected)')
+                print(f'  [OK] PASS: Boundary value accepted (as expected)')
             else:
-                print(f'  ❌ FAIL: Boundary value should have been rejected')
+                print(f'  [FAIL] FAIL: Boundary value should have been rejected')
         except ValueError as e:
             if not should_pass:
                 passed += 1
-                print(f'  ✅ PASS: Boundary value rejected (as expected)')
+                print(f'  [OK] PASS: Boundary value rejected (as expected)')
             else:
-                print(f'  ❌ FAIL: Boundary value should have been accepted')
+                print(f'  [FAIL] FAIL: Boundary value should have been accepted')
 
     if passed == len(boundary_tests):
-        print(f'\n  ✅ SUCCESS: All {passed} boundary value tests passed')
+        print(f'\n  [OK] SUCCESS: All {passed} boundary value tests passed')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -481,16 +481,16 @@ print('\n' + '=' * 80)
 print(' EDGE CASE VALIDATION TESTS COMPLETE')
 print('=' * 80)
 print('\nAll Validation Issues Tested:')
-print('  ✅ EC-1: NaN Bypass - All NaN values blocked')
-print('  ✅ EC-2: Infinity Bypass - All infinity values blocked')
-print('  ✅ EC-3: Division By Zero - All divisions protected')
-print('  ✅ EC-4: Integer Overflow - Overflow scenarios handled')
-print('  ✅ EC-6: Missing Fields - Missing fields detected')
-print('  ✅ EC-7: Empty Collections - Empty collections handled')
-print('  ✅ EC-8: Type Mismatches - Type mismatches detected')
-print('  ✅ EC-9: Negative Values - Negative values blocked')
-print('  ✅ EC-11: Unbounded Strings - String length validated')
-print('  ✅ HVE-2: Unbounded Lists - List size validated')
-print('  ✅ Datetime Parsing - Invalid formats handled')
-print('  ✅ Boundary Values - All boundaries tested')
+print('  [OK] EC-1: NaN Bypass - All NaN values blocked')
+print('  [OK] EC-2: Infinity Bypass - All infinity values blocked')
+print('  [OK] EC-3: Division By Zero - All divisions protected')
+print('  [OK] EC-4: Integer Overflow - Overflow scenarios handled')
+print('  [OK] EC-6: Missing Fields - Missing fields detected')
+print('  [OK] EC-7: Empty Collections - Empty collections handled')
+print('  [OK] EC-8: Type Mismatches - Type mismatches detected')
+print('  [OK] EC-9: Negative Values - Negative values blocked')
+print('  [OK] EC-11: Unbounded Strings - String length validated')
+print('  [OK] HVE-2: Unbounded Lists - List size validated')
+print('  [OK] Datetime Parsing - Invalid formats handled')
+print('  [OK] Boundary Values - All boundaries tested')
 print('\n' + '=' * 80)

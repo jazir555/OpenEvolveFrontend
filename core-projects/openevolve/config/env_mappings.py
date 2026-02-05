@@ -317,7 +317,7 @@ def env_name_to_config(env_var: str) -> str:
     """
     Convert environment variable name to config parameter name.
 
-    Example: EVOLVE_MAX_ITERATIONS → max_iterations
+    Example: EVOLVE_MAX_ITERATIONS -> max_iterations
 
     Args:
         env_var: Environment variable name
@@ -336,7 +336,7 @@ def config_to_env_name(param_name: str) -> str:
     """
     Convert config parameter name to environment variable name.
 
-    Example: max_iterations → EVOLVE_MAX_ITERATIONS
+    Example: max_iterations -> EVOLVE_MAX_ITERATIONS
 
     Args:
         param_name: Configuration parameter name

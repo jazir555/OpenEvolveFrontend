@@ -51,7 +51,7 @@ class KnowledgeManager:
             print(f"📂 Loading main knowledge index from {self.main_index_path}")
             self.knowledge_index = self.engine.load_index(self.main_index_path)
         else:
-            print(f"⚠️ Main knowledge index not found at {self.main_index_path}. Run reindex_knowledge_base() to create it.")
+            print(f"[WARN] Main knowledge index not found at {self.main_index_path}. Run reindex_knowledge_base() to create it.")
 
     async def reindex_knowledge_base(self):
         """(Re)Indexes the entire knowledge_base directory using the KnowledgeEngine."""
@@ -78,7 +78,7 @@ class KnowledgeManager:
                 for repo_name, index_path in output_files.items():
                     # Move the first found index to be the main index
                     os.rename(index_path, self.main_index_path)
-                    print(f"✅ New main index created at: {self.main_index_path}")
+                    print(f"[OK] New main index created at: {self.main_index_path}")
                     break # We only expect one
 
             # Clean up the temporary directory

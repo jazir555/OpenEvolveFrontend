@@ -2,7 +2,7 @@
 ROMA-Decomposition Workflow Hybrid Integration
 
 This module provides a hybrid execution mode that combines:
-- ROMA's automatic recursive decomposition (Atomizer→Planner→Executor→Aggregator)
+- ROMA's automatic recursive decomposition (Atomizer->Planner->Executor->Aggregator)
 - Decomposition Workflow's structured team-based process (Blue/Red/Gold teams)
 
 Hybrid Architecture:

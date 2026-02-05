@@ -629,7 +629,7 @@ if __name__ == "__main__":
         
         print("Plugin initialization results:")
         for name, success in results.items():
-            print(f"  {name}: {'✓' if success else '✗'}")
+            print(f"  {name}: {'[OK]' if success else '[FAIL]'}")
         
         # Print health
         print("\nPlugin health:")

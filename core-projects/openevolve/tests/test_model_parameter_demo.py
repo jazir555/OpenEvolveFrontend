@@ -47,14 +47,14 @@ def demo_model_parameter_selection():
 
     test_models = [
         # Reasoning models
-        ("o1-mini", "✅ Reasoning"),
-        ("o1-preview", "✅ Reasoning"),
-        ("o3-mini-2025-01-31", "✅ Reasoning (with date)"),
-        ("gpt-5-nano", "✅ Reasoning (GPT-5 series)"),
+        ("o1-mini", "[OK] Reasoning"),
+        ("o1-preview", "[OK] Reasoning"),
+        ("o3-mini-2025-01-31", "[OK] Reasoning (with date)"),
+        ("gpt-5-nano", "[OK] Reasoning (GPT-5 series)"),
         # Standard models
-        ("gpt-4o-mini", "❌ Standard (not reasoning)"),
-        ("gpt-4o", "❌ Standard"),
-        ("gpt-4-turbo", "❌ Standard"),
+        ("gpt-4o-mini", "[FAIL] Standard (not reasoning)"),
+        ("gpt-4o", "[FAIL] Standard"),
+        ("gpt-4-turbo", "[FAIL] Standard"),
     ]
 
     for model, description in test_models:
@@ -67,7 +67,7 @@ def demo_model_parameter_selection():
             print(f"   Excludes: {', '.join(params['excludes'])}")
 
     print("\n" + "=" * 50)
-    print("✅ Fix successful! No more false positives/negatives.")
+    print("[OK] Fix successful! No more false positives/negatives.")
 
 
 if __name__ == "__main__":

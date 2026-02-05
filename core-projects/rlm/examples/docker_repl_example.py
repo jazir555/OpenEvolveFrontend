@@ -40,10 +40,10 @@ def main():
     print("\n[1] Basic code execution")
     with DockerREPL() as repl:
         result = repl.execute_code("x = 1 + 2")
-        print(f"  x = 1 + 2 → locals: {result.locals}")
+        print(f"  x = 1 + 2 -> locals: {result.locals}")
 
         result = repl.execute_code("print(x * 2)")
-        print(f"  print(x * 2) → {result.stdout.strip()}")
+        print(f"  print(x * 2) -> {result.stdout.strip()}")
 
     # With LLM handler
     print("\n[2] With LLM handler")
@@ -52,7 +52,7 @@ def main():
 
         with DockerREPL(lm_handler_address=handler.address) as repl:
             result = repl.execute_code('r = llm_query("Hello!")')
-            print(f"  llm_query → stderr: {result.stderr or '(none)'}")
+            print(f"  llm_query -> stderr: {result.stderr or '(none)'}")
 
             result = repl.execute_code("print(r)")
             print(f"  Response: {result.stdout.strip()}")

@@ -218,7 +218,7 @@ class LeanProofState:
 
         for goal in self.goals:
             # Check for quantifiers
-            if any(q in goal for q in ["forall", "∀", "→", "->"]):
+            if any(q in goal for q in ["forall", "∀", "->", "->"]):
                 tactics.append("intros")
 
             # Check for equality
@@ -588,7 +588,7 @@ class LeanRedFlagRules(RedFlagRules if MAKER_ENGINE_AVAILABLE else object):
         # Check applicability based on tactic type
         if tactic_name == "intros":
             # Only applicable if goals have forall/implication
-            return any(any(q in g for q in ["forall", "∀", "→", "->"]) for g in state.goals)
+            return any(any(q in g for q in ["forall", "∀", "->", "->"]) for g in state.goals)
 
         elif tactic_name in ["cases", "induction"]:
             # Only applicable if we have a variable to case on
@@ -631,7 +631,7 @@ class LeanRedFlagRules(RedFlagRules if MAKER_ENGINE_AVAILABLE else object):
         tactic_lower = tactic.lower()
 
         # Check for undo patterns
-        undo_patterns = ["rw [←", "simp only"]
+        undo_patterns = ["rw [<-", "simp only"]
         if any(pattern in tactic_lower for pattern in undo_patterns):
             # Check if we're reverting a recent tactic
             recent_tactics = state.tactic_sequence[-3:]  # Last 3 tactics
@@ -778,7 +778,7 @@ class HeuristicVoter(LeanTacticVoter):
         # Goal-specific bonuses
         for goal in state.goals:
             # Intros bonus for quantifiers
-            if tactic == "intros" and any(q in goal for q in ["forall", "∀", "→", "->"]):
+            if tactic == "intros" and any(q in goal for q in ["forall", "∀", "->", "->"]):
                 score += 3.0
 
             # Simplification bonus for complex goals

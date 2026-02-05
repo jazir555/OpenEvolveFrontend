@@ -646,7 +646,7 @@ class AdvancedValidationOrchestrator:
         ]
         
         for stage_result in validation_results["stages_results"]:
-            status_emoji = "✅" if stage_result.get("is_approved", False) else "❌"
+            status_emoji = "[OK]" if stage_result.get("is_approved", False) else "[FAIL]"
             report_lines.append(
                 f"- {status_emoji} **{stage_result['stage_name']}**: "
                 f"{stage_result['approval_rate']:.2f} approval rate "

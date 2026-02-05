@@ -131,13 +131,13 @@ def start_phases(phases_to_start: List[str], base_dir: Path) -> Dict[str, subpro
         try:
             process = start_phase_process(phase, config, base_dir)
             processes[phase] = process
-            print(f"\033[92m[✓] Started {config['name']} (PID: {process.pid})\033[0m")
+            print(f"\033[92m[[OK]] Started {config['name']} (PID: {process.pid})\033[0m")
 
             # Give it time to start
             time.sleep(1)
 
         except Exception as e:
-            print(f"\033[91m[✗] Failed to start {config['name']}: {e}\033[0m")
+            print(f"\033[91m[[FAIL]] Failed to start {config['name']}: {e}\033[0m")
 
     return processes
 
@@ -174,13 +174,13 @@ def wait_for_startup(phases: List[str], timeout: int = 10):
                     async with session.get(url, timeout=aiohttp.ClientTimeout(total=2)) as response:
                         if response.status == 200:
                             config = PHASE_CONFIGS[phase]
-                            print(f"\033[92m[✓] {config['name']} is ready\033[0m")
+                            print(f"\033[92m[[OK]] {config['name']} is ready\033[0m")
                         else:
                             config = PHASE_CONFIGS[phase]
                             print(f"\033[93m[!] {config['name']} returned {response.status}\033[0m")
                 except Exception as e:
                     config = PHASE_CONFIGS[phase]
-                    print(f"\033[91m[✗] {config['name']} not ready: {e}\033[0m")
+                    print(f"\033[91m[[FAIL]] {config['name']} not ready: {e}\033[0m")
 
     try:
         asyncio.run(check_ready())
@@ -197,7 +197,7 @@ def run_tests():
     test_script = Path(__file__).parent / "test_rese_health_endpoints.py"
 
     if not test_script.exists():
-        print(f"\033[91m[✗] Test script not found: {test_script}\033[0m")
+        print(f"\033[91m[[FAIL]] Test script not found: {test_script}\033[0m")
         return False
 
     try:
@@ -210,7 +210,7 @@ def run_tests():
         return result.returncode == 0
 
     except Exception as e:
-        print(f"\033[91m[✗] Failed to run tests: {e}\033[0m")
+        print(f"\033[91m[[FAIL]] Failed to run tests: {e}\033[0m")
         return False
 
 
@@ -271,7 +271,7 @@ Examples:
     processes = start_phases(phases_to_start, base_dir)
 
     if not processes:
-        print("\033[91m[✗] No phases started\033[0m")
+        print("\033[91m[[FAIL]] No phases started\033[0m")
         sys.exit(1)
 
     # Wait for startup
@@ -311,12 +311,12 @@ Examples:
             process.terminate()
             try:
                 process.wait(timeout=5)
-                print(f"\033[92m[✓] Stopped {config['name']}\033[0m")
+                print(f"\033[92m[[OK]] Stopped {config['name']}\033[0m")
             except subprocess.TimeoutExpired:
-                print(f"\033[91m[✗] Force killing {config['name']}\033[0m")
+                print(f"\033[91m[[FAIL]] Force killing {config['name']}\033[0m")
                 process.kill()
 
-        print(f"\033[92m[✓] All APIs stopped\033[0m")
+        print(f"\033[92m[[OK]] All APIs stopped\033[0m")
 
 
 if __name__ == "__main__":

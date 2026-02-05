@@ -81,15 +81,15 @@ class LoongFlowAdapter:
             self.pes_agent = GeneralEvolveAgent(config=pes_config)
             self.available = True
 
-            logger.info("✅ LoongFlow PES agent initialized successfully")
+            logger.info("[OK] LoongFlow PES agent initialized successfully")
 
         except ImportError as e:
-            logger.warning(f"⚠️  LoongFlow not available: {e}")
+            logger.warning(f"[WARN]  LoongFlow not available: {e}")
             logger.info("   Will use fallback mode if needed")
             self.available = False
 
         except Exception as e:
-            logger.error(f"❌ Failed to initialize LoongFlow: {e}")
+            logger.error(f"[FAIL] Failed to initialize LoongFlow: {e}")
             logger.info("   Will use fallback mode if needed")
             self.available = False
 
@@ -100,13 +100,13 @@ class LoongFlowAdapter:
         Converts between OpenEvolve's configuration schema and LoongFlow's
         expected configuration format.
 
-        OpenEvolve params → LoongFlow params:
-            - max_iterations → max_iterations
-            - population_size → population_size
-            - enable_planning → enable_planning
-            - enable_memory → enable_memory
-            - llm_config → llm_config
-            - timeout → timeout
+        OpenEvolve params -> LoongFlow params:
+            - max_iterations -> max_iterations
+            - population_size -> population_size
+            - enable_planning -> enable_planning
+            - enable_memory -> enable_memory
+            - llm_config -> llm_config
+            - timeout -> timeout
 
         Args:
             oe_config: OpenEvolve configuration dictionary

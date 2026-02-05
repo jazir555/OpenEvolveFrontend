@@ -222,7 +222,7 @@ def process_data(data):
             
             if demo_mode == "Simple Analysis":
                 # Show simple analysis results
-                st.success("✅ Analysis completed successfully!")
+                st.success("[OK] Analysis completed successfully!")
                 progress_bar.progress(100)
                 
                 # Display results in tabs
@@ -279,7 +279,7 @@ def process_data(data):
                 progress_bar.progress(90)
                 
                 # Show adversarial testing results
-                st.success("✅ Adversarial testing completed successfully!")
+                st.success("[OK] Adversarial testing completed successfully!")
                 progress_bar.progress(100)
                 
                 # Display results in tabs
@@ -369,7 +369,7 @@ def process_data(data):
                 progress_bar.progress(90)
                 
                 # Show evolutionary results
-                st.success("✅ Evolutionary optimization completed successfully!")
+                st.success("[OK] Evolutionary optimization completed successfully!")
                 progress_bar.progress(100)
                 
                 # Display results in tabs
@@ -432,7 +432,7 @@ def process_data(data):
             st.info(f"Quality assurance system has {qa_gates} validation gates")
             
         except Exception as e:
-            st.error(f"❌ Error running OpenEvolve process: {e}")
+            st.error(f"[FAIL] Error running OpenEvolve process: {e}")
             import traceback
             st.code(traceback.format_exc())
             progress_bar.progress(100)

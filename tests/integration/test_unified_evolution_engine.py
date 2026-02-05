@@ -351,8 +351,8 @@ class TestUnifiedEvolutionEngine:
     Integration tests for unified evolution engine.
 
     Tests the complete pipeline:
-    Strategy Selection → Evolution Execution → Knowledge Extraction →
-    Gauntlet Evaluation → Memory Fusion → Learning Loop
+    Strategy Selection -> Evolution Execution -> Knowledge Extraction ->
+    Gauntlet Evaluation -> Memory Fusion -> Learning Loop
     """
 
     # ========================================================================

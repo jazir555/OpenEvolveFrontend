@@ -48,7 +48,7 @@ def main():
         print("=" * 70)
 
         for component, success in results.items():
-            status = "✓ SUCCESS" if success else "✗ FAILED"
+            status = "[OK] SUCCESS" if success else "[FAIL] FAILED"
             print(f"  {status}: {component}")
 
         # Summary
@@ -73,7 +73,7 @@ def main():
             return 0
         else:
             print()
-            print("⚠️  Some components failed to initialize")
+            print("[WARN]  Some components failed to initialize")
             print("   Check the logs above for details")
             print()
             return 1
@@ -82,7 +82,7 @@ def main():
         logger.error(f"Initialization failed: {e}", exc_info=True)
         print()
         print("=" * 70)
-        print(f"✗ INITIALIZATION FAILED: {e}")
+        print(f"[FAIL] INITIALIZATION FAILED: {e}")
         print("=" * 70)
         print()
         return 1

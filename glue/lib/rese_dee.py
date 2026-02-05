@@ -283,7 +283,7 @@ class HypothesisGenerator:
     Uses various strategies:
     - Abductive reasoning (inference to best explanation)
     - Analogical reasoning (cross-domain mapping)
-    - Causal inference (effect → cause)
+    - Causal inference (effect -> cause)
     - Constraint-based generation
     """
 

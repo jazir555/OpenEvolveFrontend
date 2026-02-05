@@ -163,10 +163,10 @@ def run_tests():
     print(f"Errors: {len(result.errors)}")
     
     if result.wasSuccessful():
-        print("✓ All tests passed!")
+        print("[OK] All tests passed!")
         return True
     else:
-        print("✗ Some tests failed!")
+        print("[FAIL] Some tests failed!")
         for failure in result.failures:
             print(f"FAILURE: {failure[0]}")
             print(failure[1])

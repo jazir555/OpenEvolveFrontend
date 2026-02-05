@@ -85,7 +85,7 @@ def main():
         print("\n[SUCCESS] All mathematical verification bubbles are ready!")
         return 0
     else:
-        print(f"\n⚠️  {len(MATH_BUBBLES) - success_count} bubble(s) failed verification")
+        print(f"\n[WARN]  {len(MATH_BUBBLES) - success_count} bubble(s) failed verification")
         return 1
 
 if __name__ == "__main__":

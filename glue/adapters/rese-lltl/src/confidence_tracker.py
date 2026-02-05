@@ -1,7 +1,7 @@
 """
 RESE LLTL Confidence Tracker
 
-Tracks and manages confidence thresholds for DEE → SCE translations.
+Tracks and manages confidence thresholds for DEE -> SCE translations.
 
 Following CLAUDE.md principles:
 - Law of Idempotency: Same input produces same threshold
@@ -116,10 +116,10 @@ class ConfidenceHistory:
 
 class ConfidenceTracker:
     """
-    Tracks and manages confidence thresholds for DEE → SCE translations.
+    Tracks and manages confidence thresholds for DEE -> SCE translations.
 
     From RESE Technical Manual §2.2:
-    "DEE → SCE (Auditability): The DEE's statistical results are converted
+    "DEE -> SCE (Auditability): The DEE's statistical results are converted
     into auditable Formal Propositional Commitments by assigning explicit
     Confidence Thresholds that the SCE can integrate into its logic graph
     for contradiction detection."
@@ -216,7 +216,7 @@ class ConfidenceTracker:
         """
         Calculate confidence threshold from statistical confidence.
 
-        This implements the core DEE → SCE confidence threshold assignment.
+        This implements the core DEE -> SCE confidence threshold assignment.
 
         High confidence = lower threshold (more certain)
         Low confidence = higher threshold (more skeptical)
@@ -370,7 +370,7 @@ class ConfidenceTracker:
         """
         Track threshold calculation in history.
 
-        Provides complete audit trail for DEE → SCE translations.
+        Provides complete audit trail for DEE -> SCE translations.
 
         Args:
             proposition_id: ID of proposition

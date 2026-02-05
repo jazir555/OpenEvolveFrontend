@@ -1,7 +1,7 @@
 """
 RESE LLTL Formal Commitments Handler
 
-Manages Formal Propositional Commitments for DEE → SCE auditability.
+Manages Formal Propositional Commitments for DEE -> SCE auditability.
 
 Following CLAUDE.md principles:
 - Law of Idempotency: Same input produces same commitment
@@ -10,7 +10,7 @@ Following CLAUDE.md principles:
 - Law of UTC: All timestamps in UTC
 
 From RESE Technical Manual §2.2:
-"DEE → SCE (Auditability): The DEE's statistical results are converted
+"DEE -> SCE (Auditability): The DEE's statistical results are converted
 into auditable Formal Propositional Commitments by assigning explicit
 Confidence Thresholds that the SCE can integrate into its logic graph
 for contradiction detection."
@@ -96,7 +96,7 @@ class FormalCommitment:
     detection and auditability.
 
     From RESE Technical Manual §2.2:
-    "DEE → SCE (Auditability): The DEE's statistical results are converted
+    "DEE -> SCE (Auditability): The DEE's statistical results are converted
     into auditable Formal Propositional Commitments by assigning explicit
     Confidence Thresholds that the SCE can integrate into its logic graph
     for contradiction detection."
@@ -184,10 +184,10 @@ class ContradictionReport:
 
 class FormalCommitmentsHandler:
     """
-    Manages Formal Propositional Commitments for DEE → SCE auditability.
+    Manages Formal Propositional Commitments for DEE -> SCE auditability.
 
     From RESE Technical Manual §2.2:
-    "DEE → SCE (Auditability): The DEE's statistical results are converted
+    "DEE -> SCE (Auditability): The DEE's statistical results are converted
     into auditable Formal Propositional Commitments by assigning explicit
     Confidence Thresholds that the SCE can integrate into its logic graph
     for contradiction detection."
@@ -270,7 +270,7 @@ class FormalCommitmentsHandler:
         """
         Create a formal commitment from DEE statistical result.
 
-        This is the core DEE → SCE conversion method.
+        This is the core DEE -> SCE conversion method.
 
         Args:
             statistical_result: Dict with:
@@ -389,7 +389,7 @@ class FormalCommitmentsHandler:
         """
         Construct formal logical statement from statistical evidence.
 
-        Format: "H ∧ (confidence ≥ T) ∧ (p ≤ α) → Accept(H)"
+        Format: "H ∧ (confidence ≥ T) ∧ (p ≤ α) -> Accept(H)"
 
         Args:
             hypothesis: Hypothesis statement
@@ -507,7 +507,7 @@ class FormalCommitmentsHandler:
         old_status = commitment.status
         commitment.update_status(new_status)
 
-        logger.log("INFO", f"Updated commitment status: {proposition_id} ({old_status.value} → {new_status.value})",
+        logger.log("INFO", f"Updated commitment status: {proposition_id} ({old_status.value} -> {new_status.value})",
                   correlation_id=correlation_id,
                   operation="update_commitment_status",
                   proposition_id=proposition_id,

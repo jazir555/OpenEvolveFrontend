@@ -38,54 +38,54 @@ async def test_all_method_error_handling():
         plugin = OpenEvolveBubbleLabsPlugin(config)
         
         # Test all methods handle errors gracefully
-        print("✓ Plugin instantiation successful")
+        print("[OK] Plugin instantiation successful")
         
         # Test initialization
         await plugin.initialize()
-        print(f"✓ Initialization completed, status: {plugin._status.state}")
+        print(f"[OK] Initialization completed, status: {plugin._status.state}")
         
         # Test start
         await plugin.start()
-        print(f"✓ Start completed, status: {plugin._status.state}")
+        print(f"[OK] Start completed, status: {plugin._status.state}")
         
         # Test health check
         health = await plugin.health_check()
-        print(f"✓ Health check completed, health: {health}")
+        print(f"[OK] Health check completed, health: {health}")
         
         # Test node methods
         node_result = plugin.get_node("test_node")
-        print(f"✓ get_node completed, result: {node_result}")
+        print(f"[OK] get_node completed, result: {node_result}")
         
         # Test workflow definition methods
         defs = await plugin.list_workflow_definitions()
-        print(f"✓ list_workflow_definitions completed, count: {len(defs)}")
+        print(f"[OK] list_workflow_definitions completed, count: {len(defs)}")
         
         def_result = await plugin.get_workflow_definition("test_id")
-        print(f"✓ get_workflow_definition completed, result: {def_result is None}")
+        print(f"[OK] get_workflow_definition completed, result: {def_result is None}")
         
         # Test workflow instance methods
         instances = await plugin.list_workflow_instances()
-        print(f"✓ list_workflow_instances completed, count: {len(instances)}")
+        print(f"[OK] list_workflow_instances completed, count: {len(instances)}")
         
         # Test control workflow
         control_result = await plugin.control_workflow("test_id", "start")
-        print(f"✓ control_workflow completed, result: {control_result}")
+        print(f"[OK] control_workflow completed, result: {control_result}")
         
         # Test metrics
         metrics = await plugin.get_metrics()
-        print(f"✓ get_metrics completed, keys: {list(metrics.keys())}")
+        print(f"[OK] get_metrics completed, keys: {list(metrics.keys())}")
         
         # Test reset metrics
         await plugin.reset_metrics()
-        print("✓ reset_metrics completed")
+        print("[OK] reset_metrics completed")
         
         # Test stopping
         await plugin.stop()
-        print(f"✓ Stop completed, status: {plugin._status.state}")
+        print(f"[OK] Stop completed, status: {plugin._status.state}")
         
         # Test cleanup
         await plugin.cleanup()
-        print(f"✓ Cleanup completed, status: {plugin._status.state}")
+        print(f"[OK] Cleanup completed, status: {plugin._status.state}")
 
 
 async def test_error_scenarios():
@@ -113,24 +113,24 @@ async def test_error_scenarios():
         
         # These should all handle errors gracefully now
         defs = await plugin.list_workflow_definitions()
-        print(f"✓ list_workflow_definitions handled error, returned: {defs}")
+        print(f"[OK] list_workflow_definitions handled error, returned: {defs}")
         
         instances = await plugin.list_workflow_instances()
-        print(f"✓ list_workflow_instances handled error, returned: {instances}")
+        print(f"[OK] list_workflow_instances handled error, returned: {instances}")
         
         def_result = await plugin.get_workflow_definition("test_id")
-        print(f"✓ get_workflow_definition handled error, returned: {def_result}")
+        print(f"[OK] get_workflow_definition handled error, returned: {def_result}")
         
         control_result = await plugin.control_workflow("test_id", "start")
-        print(f"✓ control_workflow handled error, returned: {control_result}")
+        print(f"[OK] control_workflow handled error, returned: {control_result}")
         
         metrics = await plugin.get_metrics()
-        print(f"✓ get_metrics handled error, returned keys: {list(metrics.keys())}")
+        print(f"[OK] get_metrics handled error, returned keys: {list(metrics.keys())}")
         
         await plugin.stop()
         await plugin.cleanup()
         
-        print("✓ All error scenarios handled gracefully")
+        print("[OK] All error scenarios handled gracefully")
 
 
 async def test_node_creation_error():
@@ -158,11 +158,11 @@ async def test_node_creation_error():
         
         # This should handle the error gracefully
         node_result = plugin.get_node("invalid_node_type")
-        print(f"✓ get_node handled error, returned: {node_result}")
+        print(f"[OK] get_node handled error, returned: {node_result}")
         
         await plugin.cleanup()
         
-        print("✓ Node creation error handled gracefully")
+        print("[OK] Node creation error handled gracefully")
 
 
 async def main():
@@ -173,7 +173,7 @@ async def main():
     await test_error_scenarios()
     await test_node_creation_error()
     
-    print("\n✓ All comprehensive tests passed! The OpenEvolve BubbleLabs plugin handles errors gracefully in all scenarios.")
+    print("\n[OK] All comprehensive tests passed! The OpenEvolve BubbleLabs plugin handles errors gracefully in all scenarios.")
 
 
 if __name__ == "__main__":

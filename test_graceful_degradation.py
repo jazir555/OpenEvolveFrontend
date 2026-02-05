@@ -41,13 +41,13 @@ def test_optional_imports_module():
             create_failing_mock
         )
 
-        print("✓ Optional imports module loaded successfully")
+        print("[OK] Optional imports module loaded successfully")
 
         # Test is_available
         print("\nTesting availability checks:")
         for module in ['os', 'sys', 'nonexistent_module_test']:
             available = is_available(module)
-            status = "✓" if available == (module in ['os', 'sys']) else "✗"
+            status = "[OK]" if available == (module in ['os', 'sys']) else "[FAIL]"
             print(f"  {status} is_available('{module}'): {available}")
 
         # Test import_optional with fail_silently=True
@@ -59,7 +59,7 @@ def test_optional_imports_module():
             'pip install nonexistent-test',
             fail_silently=True
         )
-        print(f"  ✓ Silent import returned None: {result is None}")
+        print(f"  [OK] Silent import returned None: {result is None}")
 
         # Test failing mock
         print("\nTesting failing mock creation:")
@@ -70,9 +70,9 @@ def test_optional_imports_module():
         )
         try:
             mock = MockClass()
-            print("  ✗ Mock should have raised error")
+            print("  [FAIL] Mock should have raised error")
         except OptionalDependencyError as e:
-            print(f"  ✓ Mock raised error as expected: {str(e)[:80]}...")
+            print(f"  [OK] Mock raised error as expected: {str(e)[:80]}...")
 
         # Check all optional dependencies
         print("\nChecking all optional dependencies:")
@@ -96,7 +96,7 @@ def test_main_init_graceful_degradation():
         # This import should succeed even if some integrations are unavailable
         import knowledge_engine
 
-        print("✓ knowledge_engine imported successfully")
+        print("[OK] knowledge_engine imported successfully")
 
         # Check that key components are available
         key_components = [
@@ -108,9 +108,9 @@ def test_main_init_graceful_degradation():
         print("\nChecking key components:")
         for component in key_components:
             if hasattr(knowledge_engine, component):
-                print(f"  ✓ {component} is available")
+                print(f"  [OK] {component} is available")
             else:
-                print(f"  ✗ {component} is NOT available")
+                print(f"  [FAIL] {component} is NOT available")
 
         # Check for availability flags
         print("\nChecking integration availability flags:")
@@ -125,9 +125,9 @@ def test_main_init_graceful_degradation():
             for flag in flags:
                 if hasattr(integrations_module, flag):
                     value = getattr(integrations_module, flag)
-                    print(f"  ✓ {flag}: {value}")
+                    print(f"  [OK] {flag}: {value}")
                 else:
-                    print(f"  ✗ {flag}: not defined")
+                    print(f"  [FAIL] {flag}: not defined")
 
         return True
 
@@ -231,13 +231,13 @@ def test_capability_reporting():
         print("\n  Available Capabilities:")
         if 'available' in capabilities:
             for cap in capabilities['available']:
-                print(f"    ✓ {cap}")
+                print(f"    [OK] {cap}")
 
         print("\n  Unavailable Capabilities:")
         if 'unavailable' in capabilities:
             for cap in capabilities['unavailable']:
                 reason = cap.get('reason', 'unknown')
-                print(f"    ✗ {cap['name']}: {reason}")
+                print(f"    [FAIL] {cap['name']}: {reason}")
 
         return True
 
@@ -282,13 +282,13 @@ def main():
     total = len(results)
 
     for test_name, result in results.items():
-        status = "✓ PASSED" if result else "✗ FAILED"
+        status = "[OK] PASSED" if result else "[FAIL] FAILED"
         print(f"  {status}: {test_name}")
 
     print(f"\n  Total: {passed}/{total} tests passed")
 
     if passed == total:
-        print("\n  All graceful degradation tests passed! ✓")
+        print("\n  All graceful degradation tests passed! [OK]")
         return 0
     else:
         print(f"\n  {total - passed} test(s) failed")

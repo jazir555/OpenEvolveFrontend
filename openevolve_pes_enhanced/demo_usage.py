@@ -223,11 +223,11 @@ async def main():
     print("Demo Complete!")
     print("=" * 60)
     print("\nKey Takeaways:")
-    print("  • All existing code continues to work unchanged")
-    print("  • Enhancements are purely additive")
-    print("  • Cost awareness helps control spending")
-    print("  • Early stopping saves evaluations")
-    print("  • Strategy selection optimizes for problem type")
+    print("  * All existing code continues to work unchanged")
+    print("  * Enhancements are purely additive")
+    print("  * Cost awareness helps control spending")
+    print("  * Early stopping saves evaluations")
+    print("  * Strategy selection optimizes for problem type")
 
 
 if __name__ == "__main__":

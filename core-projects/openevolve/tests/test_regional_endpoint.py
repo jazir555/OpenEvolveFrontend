@@ -50,10 +50,10 @@ def test_endpoint_detection():
         
         # Check if result matches expectation
         if is_openai_reasoning_model == expected_result:
-            status = "✅ PASS"
+            status = "[OK] PASS"
             passed += 1
         else:
-            status = "❌ FAIL"
+            status = "[FAIL] FAIL"
             failed += 1
         
         print(f"\n{status} | {description}")
@@ -70,7 +70,7 @@ def test_endpoint_detection():
         print("🎉 All tests PASSED! The fix is working correctly.")
         return True
     else:
-        print("⚠️ Some tests FAILED! Please review the logic.")
+        print("[WARN] Some tests FAILED! Please review the logic.")
         return False
 
 if __name__ == "__main__":

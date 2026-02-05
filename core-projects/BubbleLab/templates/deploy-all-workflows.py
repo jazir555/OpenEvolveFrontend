@@ -106,7 +106,7 @@ class BubbleLabWorkflowDeployer:
                     # Update workflow
                     self.update_workflow(existing_flow['id'], code)
                     results['updated'].append(full_name)
-                    print(f"  ✅ Updated")
+                    print(f"  [OK] Updated")
                 else:
                     print(f"  Creating new workflow")
 
@@ -119,7 +119,7 @@ class BubbleLabWorkflowDeployer:
                     )
 
                     results['deployed'].append(full_name)
-                    print(f"  ✅ Created (ID: {flow['id']})")
+                    print(f"  [OK] Created (ID: {flow['id']})")
 
                     # Activate if requested
                     if activate:
@@ -127,7 +127,7 @@ class BubbleLabWorkflowDeployer:
                         print(f"  ▶️ Activated")
 
             except Exception as e:
-                print(f"  ❌ Failed: {e}")
+                print(f"  [FAIL] Failed: {e}")
                 results['failed'].append({
                     'workflow': full_name,
                     'error': str(e)
@@ -177,7 +177,7 @@ def main():
     # Get API key from args or environment
     api_key = args.api_key or os.getenv('BUBBLELAB_API_KEY')
     if not api_key:
-        print("❌ Error: BUBBLELAB_API_KEY must be provided via --api-key or environment variable")
+        print("[FAIL] Error: BUBBLELAB_API_KEY must be provided via --api-key or environment variable")
         sys.exit(1)
 
     print("="*60)
@@ -199,7 +199,7 @@ def main():
             category = relative_path.parent.name
             file_name = workflow_file.stem
             workflow_name = f"{category.title()}: {file_name.replace('-', ' ').replace('_', ' ').title()}"
-            print(f"  • {workflow_name}")
+            print(f"  * {workflow_name}")
 
         print(f"\nTotal: {len(workflow_files)} workflows")
         return
@@ -215,14 +215,14 @@ def main():
     print("\n" + "="*60)
     print("Deployment Summary")
     print("="*60)
-    print(f"✅ Created: {len(results['deployed'])}")
+    print(f"[OK] Created: {len(results['deployed'])}")
     print(f"🔄 Updated: {len(results['updated'])}")
-    print(f"❌ Failed: {len(results['failed'])}")
+    print(f"[FAIL] Failed: {len(results['failed'])}")
 
     if results['deployed']:
         print(f"\nCreated Workflows:")
         for name in results['deployed']:
-            print(f"  ✅ {name}")
+            print(f"  [OK] {name}")
 
     if results['updated']:
         print(f"\nUpdated Workflows:")
@@ -232,7 +232,7 @@ def main():
     if results['failed']:
         print(f"\nFailed Workflows:")
         for failure in results['failed']:
-            print(f"  ❌ {failure['workflow']}: {failure['error']}")
+            print(f"  [FAIL] {failure['workflow']}: {failure['error']}")
 
     print("\n" + "="*60)
 

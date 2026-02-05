@@ -61,7 +61,7 @@ PROOF_STRATEGIES = [
     ),
     ProofStrategy(
         name="transitivity",
-        patterns=[r'\btrans\b', r'\b.*\s+→\s+.*\s+→\s+.*'],
+        patterns=[r'\btrans\b', r'\b.*\s+->\s+.*\s+->\s+.*'],
         tactic="trans",
         description="Use transitivity of equality"
     ),
@@ -89,7 +89,7 @@ PROOF_STRATEGIES = [
     # Induction
     ProofStrategy(
         name="nat_induction",
-        patterns=[r'\binduction\b', r'\bNat\b.*\bProp\b', r'\b∀.*\bnat\b.*\b→\b'],
+        patterns=[r'\binduction\b', r'\bNat\b.*\bProp\b', r'\b∀.*\bnat\b.*\b->\b'],
         tactic="induction' n",
         description="Induction on natural numbers"
     ),
@@ -165,13 +165,13 @@ PROOF_STRATEGIES = [
     # Logical proofs
     ProofStrategy(
         name="intro",
-        patterns=[r'\bintro\b', r'\b→\b.*\b→\b', r'\b∀\b'],
+        patterns=[r'\bintro\b', r'\b->\b.*\b->\b', r'\b∀\b'],
         tactic="intro h",
         description="Introduce hypothesis"
     ),
     ProofStrategy(
         name="apply",
-        patterns=[r'\bapply\b', r'\btheorem\b.*\b→\b'],
+        patterns=[r'\bapply\b', r'\btheorem\b.*\b->\b'],
         tactic="apply theorem_name",
         description="Apply a theorem"
     ),
@@ -384,7 +384,7 @@ class ProofStrategySelector:
         proof_tactics = []
         
         # Start with intro if we have hypotheses and the goal is an implication
-        if hypotheses and '→' in goal:
+        if hypotheses and '->' in goal:
             for hyp in hypotheses:
                 proof_tactics.append(f"intro {hyp['name']}")
         

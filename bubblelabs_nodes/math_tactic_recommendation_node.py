@@ -57,7 +57,7 @@ class MathTacticRecommendationNode(BubbleLabsNode):
     TACTIC_DATABASE = {
         "intro": {
             "description": "Introduce assumptions from implications",
-            "patterns": [r'→', r'forall', r'∀', r'assume', r'suppose'],
+            "patterns": [r'->', r'forall', r'∀', r'assume', r'suppose'],
             "domains": ["logic", "general"],
             "difficulty": "beginner",
             "success_rate": 0.95
@@ -548,7 +548,7 @@ class MathTacticRecommendationNode(BubbleLabsNode):
                 return sequence
             elif pattern_name == "equality_proof" and "=" in goal and "∀" in goal:
                 return sequence
-            elif pattern_name == "implication_chain" and "→" in goal:
+            elif pattern_name == "implication_chain" and "->" in goal:
                 return sequence
             elif pattern_name == "inequality_proof" and any(c in goal for c in "<>"):
                 return sequence
@@ -568,7 +568,7 @@ class MathTacticRecommendationNode(BubbleLabsNode):
         }
         
         parts = [explanations.get(t, f"apply {t}") for t in sequence]
-        return f"This sequence will: {' → '.join(parts)}"
+        return f"This sequence will: {' -> '.join(parts)}"
     
     def _get_tactic_examples(self, tactic: str) -> List[str]:
         """Get example usages for a tactic."""
@@ -576,7 +576,7 @@ class MathTacticRecommendationNode(BubbleLabsNode):
             "intro": ["intro h", "intros x y"],
             "apply": ["apply mul_comm", "apply and.intro"],
             "simp": ["simp", "simp [add_comm, mul_assoc]"],
-            "rw": ["rw [h]", "rw [← add_zero]"],
+            "rw": ["rw [h]", "rw [<- add_zero]"],
             "linarith": ["linarith", "linarith [h1, h2]"]
         }
         return examples.get(tactic, [f"{tactic} <args>"])
@@ -596,7 +596,7 @@ class MathTacticRecommendationNode(BubbleLabsNode):
     def _identify_connectives(self, goal: str) -> Dict[str, int]:
         """Identify logical connectives in goal."""
         return {
-            "implication": len(re.findall(r'→|implies|→', goal)),
+            "implication": len(re.findall(r'->|implies|->', goal)),
             "conjunction": len(re.findall(r'∧|and', goal)),
             "disjunction": len(re.findall(r'∨|or', goal)),
             "negation": len(re.findall(r'¬|not', goal)),
@@ -616,7 +616,7 @@ class MathTacticRecommendationNode(BubbleLabsNode):
             return "universal"
         elif "∃" in goal or "exists" in goal:
             return "existential"
-        elif "→" in goal or "implies" in goal:
+        elif "->" in goal or "implies" in goal:
             return "implicational"
         elif "∧" in goal or "and" in goal:
             return "conjunctive"

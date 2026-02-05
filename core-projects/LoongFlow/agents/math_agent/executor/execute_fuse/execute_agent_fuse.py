@@ -204,7 +204,7 @@ class EvolveExecuteAgentFuse(Worker):
             if better:
                 best = max(better, key=lambda r: r.score)
                 logger.info(
-                    f"Trace ID: {context.trace_id}: Executor Fuse: ✅ Improved candidate found in "
+                    f"Trace ID: {context.trace_id}: Executor Fuse: [OK] Improved candidate found in "
                     + f"round {round_idx}: child_score = {best.score:.6f} > {parent_ctx.parent_core:.6f} = parent_score"
                 )
                 self._write_best_results(context, best)
@@ -217,13 +217,13 @@ class EvolveExecuteAgentFuse(Worker):
                         + f"Evaluation: {result.reason}\n\n"
                     )
                 logger.info(
-                    f"Trace ID: {context.trace_id}: Executor Fuse: ❌ [Round {round_idx}] "
+                    f"Trace ID: {context.trace_id}: Executor Fuse: [FAIL] [Round {round_idx}] "
                     + f"No improved disk-sourced candidates this round."
                 )
 
         if not all_results:
             logger.warning(
-                f"Trace ID: {context.trace_id}: Executor Fuse: ⚠️ No candidates generated in any round."
+                f"Trace ID: {context.trace_id}: Executor Fuse: [WARN] No candidates generated in any round."
             )
             return self._make_result_message(
                 parent_ctx, None, total_prompt_tokens, total_completion_tokens
@@ -403,7 +403,7 @@ class EvolveExecuteAgentFuse(Worker):
             )
             if previous_attempts:
                 logger.debug(
-                    f"Trace ID: {context.trace_id}: Executor Fuse: ⚠️ Previous attempts: {previous_attempts}"
+                    f"Trace ID: {context.trace_id}: Executor Fuse: [WARN] Previous attempts: {previous_attempts}"
                 )
 
             system_message = Message.from_text(

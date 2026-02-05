@@ -290,7 +290,7 @@ class DecompositionDashboard:
                 </div>
 
                 <div class="metric-card success">
-                    <div class="metric-icon">✅</div>
+                    <div class="metric-icon">[OK]</div>
                     <div class="metric-value">{progress['completed']}</div>
                     <div class="metric-label">Completed</div>
                 </div>
@@ -302,13 +302,13 @@ class DecompositionDashboard:
                 </div>
 
                 <div class="metric-card warning">
-                    <div class="metric-icon">⚠️</div>
+                    <div class="metric-icon">[WARN]</div>
                     <div class="metric-value">{progress['blocked']}</div>
                     <div class="metric-label">Blocked</div>
                 </div>
 
                 <div class="metric-card danger">
-                    <div class="metric-icon">❌</div>
+                    <div class="metric-icon">[FAIL]</div>
                     <div class="metric-value">{progress['failed']}</div>
                     <div class="metric-label">Failed</div>
                 </div>
@@ -1412,3 +1412,744 @@ class RealTimeDashboard(DecompositionDashboard):
                 await callback(workflow_id)
 
             await asyncio.sleep(self.config.refresh_interval)
+
+
+class GauntletDashboardComponents:
+    """
+    UI Components for Gauntlet System visualization.
+    
+    Provides components for:
+    - Gauntlet progress tracking
+    - Score visualization
+    - Comparison views
+    - Historical trends
+    - Export reports
+    """
+    
+    def __init__(self, theme: str = "light"):
+        self.theme = theme
+        self.logger = logging.getLogger(__name__)
+    
+    def generate_gauntlet_section(
+        self,
+        gauntlet_results: List[Dict[str, Any]],
+        orchestration_result: Optional[Dict] = None
+    ) -> str:
+        """
+        Generate gauntlet results section for dashboard.
+        
+        Args:
+            gauntlet_results: List of gauntlet execution results
+            orchestration_result: Optional orchestration summary
+            
+        Returns:
+            HTML section for gauntlet visualization
+        """
+        if not gauntlet_results:
+            return '<section id="gauntlets" class="tab-content"><h2>Gauntlet Results</h2><p>No gauntlet results available</p></section>'
+        
+        # Calculate summary stats
+        total = len(gauntlet_results)
+        passed = sum(1 for r in gauntlet_results if r.get('passed', False))
+        avg_score = sum(r.get('score', 0) for r in gauntlet_results) / total if total > 0 else 0
+        
+        # Generate gauntlet cards
+        gauntlet_cards = ""
+        for result in gauntlet_results:
+            status_class = "passed" if result.get('passed') else "failed"
+            score_pct = result.get('score', 0) * 100
+            confidence_pct = result.get('confidence', 0) * 100
+            
+            gauntlet_cards += f"""
+                <div class="gauntlet-card {status_class}">
+                    <div class="gauntlet-header">
+                        <h4>{result.get('gauntlet_name', 'Unknown')}</h4>
+                        <span class="gauntlet-status-badge {status_class}">
+                            {'[OK] Passed' if result.get('passed') else '[FAIL] Failed'}
+                        </span>
+                    </div>
+                    <div class="gauntlet-metrics">
+                        <div class="gauntlet-metric">
+                            <span class="metric-label">Score</span>
+                            <div class="metric-bar-small">
+                                <div class="metric-fill" style="width: {score_pct}%"></div>
+                            </div>
+                            <span class="metric-value">{score_pct:.1f}%</span>
+                        </div>
+                        <div class="gauntlet-metric">
+                            <span class="metric-label">Confidence</span>
+                            <div class="metric-bar-small">
+                                <div class="metric-fill confidence" style="width: {confidence_pct}%"></div>
+                            </div>
+                            <span class="metric-value">{confidence_pct:.1f}%</span>
+                        </div>
+                    </div>
+                    <div class="gauntlet-details">
+                        <p><strong>Type:</strong> {result.get('gauntlet_type', 'Unknown')}</p>
+                        <p><strong>Execution Time:</strong> {result.get('execution_time', 0):.2f}s</p>
+                        {f"<p><strong>Feedback:</strong> {result.get('feedback', '')}</p>" if result.get('feedback') else ""}
+                    </div>
+                    {self._generate_improvements_list(result.get('improvements', []))}
+                </div>
+            """
+        
+        # Generate orchestration summary if available
+        orchestration_summary = ""
+        if orchestration_result:
+            orch_score = orchestration_result.get('overall_score', 0) * 100
+            orchestration_summary = f"""
+                <div class="orchestration-summary">
+                    <h3>Orchestration Summary</h3>
+                    <div class="summary-metrics">
+                        <div class="summary-metric">
+                            <span class="metric-label">Overall Score</span>
+                            <span class="metric-value-large">{orch_score:.1f}%</span>
+                        </div>
+                        <div class="summary-metric">
+                            <span class="metric-label">Status</span>
+                            <span class="status-badge-large {'passed' if orchestration_result.get('passed') else 'failed'}">
+                                {'PASSED' if orchestration_result.get('passed') else 'FAILED'}
+                            </span>
+                        </div>
+                        <div class="summary-metric">
+                            <span class="metric-label">Total Time</span>
+                            <span class="metric-value">{orchestration_result.get('execution_time', 0):.2f}s</span>
+                        </div>
+                    </div>
+                </div>
+            """
+        
+        return f"""
+        <section id="gauntlets" class="tab-content">
+            <h2>🛡️ Gauntlet Validation Results</h2>
+            
+            <div class="gauntlet-summary">
+                <div class="summary-cards">
+                    <div class="summary-card">
+                        <span class="summary-number">{total}</span>
+                        <span class="summary-label">Total Gauntlets</span>
+                    </div>
+                    <div class="summary-card success">
+                        <span class="summary-number">{passed}</span>
+                        <span class="summary-label">Passed</span>
+                    </div>
+                    <div class="summary-card danger">
+                        <span class="summary-number">{total - passed}</span>
+                        <span class="summary-label">Failed</span>
+                    </div>
+                    <div class="summary-card primary">
+                        <span class="summary-number">{avg_score * 100:.1f}%</span>
+                        <span class="summary-label">Avg Score</span>
+                    </div>
+                </div>
+            </div>
+            
+            {orchestration_summary}
+            
+            <div class="gauntlet-grid">
+                {gauntlet_cards}
+            </div>
+            
+            <div class="gauntlet-controls">
+                <button id="exportGauntletReport" class="btn btn-primary">
+                    📊 Export Gauntlet Report
+                </button>
+                <button id="compareGauntlets" class="btn btn-secondary">
+                    📈 Compare Results
+                </button>
+                <button id="viewGauntletTrends" class="btn btn-secondary">
+                    📉 View Trends
+                </button>
+            </div>
+        </section>
+        """
+    
+    def _generate_improvements_list(self, improvements: List[str]) -> str:
+        """Generate HTML for improvements list."""
+        if not improvements:
+            return ""
+        
+        items = "".join(f"<li>{imp}</li>" for imp in improvements[:5])
+        return f"""
+            <div class="gauntlet-improvements">
+                <h5>💡 Suggested Improvements</h5>
+                <ul>{items}</ul>
+            </div>
+        """
+    
+    def generate_gauntlet_comparison(
+        self,
+        gauntlet_results_a: List[Dict],
+        gauntlet_results_b: List[Dict],
+        labels: Tuple[str, str] = ("Current", "Previous")
+    ) -> str:
+        """
+        Generate gauntlet comparison view.
+        
+        Args:
+            gauntlet_results_a: First set of results
+            gauntlet_results_b: Second set of results
+            labels: Labels for the two sets
+            
+        Returns:
+            HTML comparison view
+        """
+        # Calculate comparison metrics
+        score_a = sum(r.get('score', 0) for r in gauntlet_results_a) / len(gauntlet_results_a) if gauntlet_results_a else 0
+        score_b = sum(r.get('score', 0) for r in gauntlet_results_b) / len(gauntlet_results_b) if gauntlet_results_b else 0
+        
+        diff = score_a - score_b
+        diff_class = "positive" if diff > 0 else "negative" if diff < 0 else "neutral"
+        
+        # Generate comparison chart data
+        chart_data = {
+            "labels": [r.get('gauntlet_name', f'G{i}') for i, r in enumerate(gauntlet_results_a)],
+            "dataset_a": [r.get('score', 0) * 100 for r in gauntlet_results_a],
+            "dataset_b": [r.get('score', 0) * 100 for r in gauntlet_results_b[:len(gauntlet_results_a)]]
+        }
+        
+        chart_json = json.dumps(chart_data)
+        
+        return f"""
+        <div class="gauntlet-comparison">
+            <h3>Gauntlet Comparison: {labels[0]} vs {labels[1]}</h3>
+            
+            <div class="comparison-summary">
+                <div class="comparison-metric">
+                    <span class="metric-label">{labels[0]} Avg Score</span>
+                    <span class="metric-value">{score_a * 100:.1f}%</span>
+                </div>
+                <div class="comparison-metric">
+                    <span class="metric-label">{labels[1]} Avg Score</span>
+                    <span class="metric-value">{score_b * 100:.1f}%</span>
+                </div>
+                <div class="comparison-metric">
+                    <span class="metric-label">Difference</span>
+                    <span class="metric-value {diff_class}">{diff * 100:+.1f}%</span>
+                </div>
+            </div>
+            
+            <div class="comparison-chart">
+                <canvas id="gauntletComparisonChart"></canvas>
+            </div>
+            
+            <script type="text/javascript">
+                const comparisonData = {chart_json};
+                document.addEventListener('DOMContentLoaded', function() {{
+                    const ctx = document.getElementById('gauntletComparisonChart').getContext('2d');
+                    new Chart(ctx, {{
+                        type: 'bar',
+                        data: {{
+                            labels: comparisonData.labels,
+                            datasets: [
+                                {{
+                                    label: '{labels[0]}',
+                                    data: comparisonData.dataset_a,
+                                    backgroundColor: 'rgba(52, 152, 219, 0.7)'
+                                }},
+                                {{
+                                    label: '{labels[1]}',
+                                    data: comparisonData.dataset_b,
+                                    backgroundColor: 'rgba(149, 165, 166, 0.7)'
+                                }}
+                            ]
+                        }},
+                        options: {{
+                            responsive: true,
+                            scales: {{
+                                y: {{
+                                    beginAtZero: true,
+                                    max: 100
+                                }}
+                            }}
+                        }}
+                    }});
+                }});
+            </script>
+        </div>
+        """
+    
+    def generate_gauntlet_trends(
+        self,
+        historical_results: List[List[Dict]],
+        timestamps: List[str]
+    ) -> str:
+        """
+        Generate gauntlet trends visualization.
+        
+        Args:
+            historical_results: List of gauntlet result sets over time
+            timestamps: List of timestamps for each result set
+            
+        Returns:
+            HTML trends visualization
+        """
+        if not historical_results:
+            return "<div class='gauntlet-trends'><p>No historical data available</p></div>"
+        
+        # Calculate trend data
+        trend_data = {
+            "timestamps": timestamps,
+            "overall_scores": [],
+            "pass_rates": []
+        }
+        
+        for results in historical_results:
+            avg_score = sum(r.get('score', 0) for r in results) / len(results) if results else 0
+            pass_rate = sum(1 for r in results if r.get('passed')) / len(results) if results else 0
+            trend_data["overall_scores"].append(avg_score * 100)
+            trend_data["pass_rates"].append(pass_rate * 100)
+        
+        trend_json = json.dumps(trend_data)
+        
+        return f"""
+        <div class="gauntlet-trends">
+            <h3>📈 Gauntlet Performance Trends</h3>
+            
+            <div class="trend-chart">
+                <canvas id="gauntletTrendChart"></canvas>
+            </div>
+            
+            <script type="text/javascript">
+                const trendData = {trend_json};
+                document.addEventListener('DOMContentLoaded', function() {{
+                    const ctx = document.getElementById('gauntletTrendChart').getContext('2d');
+                    new Chart(ctx, {{
+                        type: 'line',
+                        data: {{
+                            labels: trendData.timestamps,
+                            datasets: [
+                                {{
+                                    label: 'Overall Score',
+                                    data: trendData.overall_scores,
+                                    borderColor: 'rgba(52, 152, 219, 1)',
+                                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                                    fill: true,
+                                    tension: 0.4
+                                }},
+                                {{
+                                    label: 'Pass Rate',
+                                    data: trendData.pass_rates,
+                                    borderColor: 'rgba(39, 174, 96, 1)',
+                                    backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                                    fill: true,
+                                    tension: 0.4
+                                }}
+                            ]
+                        }},
+                        options: {{
+                            responsive: true,
+                            scales: {{
+                                y: {{
+                                    beginAtZero: true,
+                                    max: 100
+                                }}
+                            }}
+                        }}
+                    }});
+                }});
+            </script>
+        </div>
+        """
+    
+    def generate_gauntlet_report(
+        self,
+        gauntlet_results: List[Dict],
+        orchestration_result: Optional[Dict] = None,
+        format: str = "html"
+    ) -> str:
+        """
+        Generate comprehensive gauntlet report.
+        
+        Args:
+            gauntlet_results: List of gauntlet results
+            orchestration_result: Optional orchestration summary
+            format: Report format ("html" or "markdown")
+            
+        Returns:
+            Formatted report string
+        """
+        if format == "markdown":
+            return self._generate_markdown_report(gauntlet_results, orchestration_result)
+        
+        # HTML report
+        total = len(gauntlet_results)
+        passed = sum(1 for r in gauntlet_results if r.get('passed'))
+        avg_score = sum(r.get('score', 0) for r in gauntlet_results) / total if total > 0 else 0
+        
+        report_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        gauntlet_rows = ""
+        for r in gauntlet_results:
+            status = "[OK] PASSED" if r.get('passed') else "[FAIL] FAILED"
+            gauntlet_rows += f"""
+                <tr>
+                    <td>{r.get('gauntlet_name', 'Unknown')}</td>
+                    <td>{r.get('gauntlet_type', 'Unknown')}</td>
+                    <td>{status}</td>
+                    <td>{r.get('score', 0) * 100:.1f}%</td>
+                    <td>{r.get('confidence', 0) * 100:.1f}%</td>
+                    <td>{r.get('execution_time', 0):.2f}s</td>
+                </tr>
+            """
+        
+        return f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Gauntlet Validation Report</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 40px; }}
+                h1 {{ color: #2c3e50; }}
+                .summary {{ background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }}
+                table {{ width: 100%; border-collapse: collapse; margin: 20px 0; }}
+                th, td {{ padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }}
+                th {{ background: #3498db; color: white; }}
+                tr:hover {{ background: #f5f5f5; }}
+                .passed {{ color: #27ae60; font-weight: bold; }}
+                .failed {{ color: #e74c3c; font-weight: bold; }}
+            </style>
+        </head>
+        <body>
+            <h1>🛡️ Gauntlet Validation Report</h1>
+            <p><strong>Generated:</strong> {report_time}</p>
+            
+            <div class="summary">
+                <h2>Executive Summary</h2>
+                <p><strong>Total Gauntlets:</strong> {total}</p>
+                <p><strong>Passed:</strong> <span class="passed">{passed}</span></p>
+                <p><strong>Failed:</strong> <span class="failed">{total - passed}</span></p>
+                <p><strong>Average Score:</strong> {avg_score * 100:.1f}%</p>
+                <p><strong>Overall Status:</strong> {"[OK] PASSED" if passed == total else "[WARN] PARTIAL" if passed > 0 else "[FAIL] FAILED"}</p>
+            </div>
+            
+            <h2>Detailed Results</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Gauntlet Name</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Score</th>
+                        <th>Confidence</th>
+                        <th>Execution Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {gauntlet_rows}
+                </tbody>
+            </table>
+        </body>
+        </html>
+        """
+    
+    def _generate_markdown_report(
+        self,
+        gauntlet_results: List[Dict],
+        orchestration_result: Optional[Dict] = None
+    ) -> str:
+        """Generate markdown format report."""
+        total = len(gauntlet_results)
+        passed = sum(1 for r in gauntlet_results if r.get('passed'))
+        avg_score = sum(r.get('score', 0) for r in gauntlet_results) / total if total > 0 else 0
+        
+        report = f"""# Gauntlet Validation Report
+
+**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+## Executive Summary
+
+| Metric | Value |
+|--------|-------|
+| Total Gauntlets | {total} |
+| Passed | {passed} [OK] |
+| Failed | {total - passed} [FAIL] |
+| Average Score | {avg_score * 100:.1f}% |
+| Overall Status | {"[OK] PASSED" if passed == total else "[WARN] PARTIAL" if passed > 0 else "[FAIL] FAILED"} |
+
+## Detailed Results
+
+| Gauntlet | Type | Status | Score | Confidence |
+|----------|------|--------|-------|------------|
+"""
+        
+        for r in gauntlet_results:
+            status = "[OK]" if r.get('passed') else "[FAIL]"
+            report += f"| {r.get('gauntlet_name', 'Unknown')} | {r.get('gauntlet_type', 'Unknown')} | {status} | {r.get('score', 0) * 100:.1f}% | {r.get('confidence', 0) * 100:.1f}% |\n"
+        
+        report += "\n## Recommendations\n\n"
+        
+        for r in gauntlet_results:
+            if not r.get('passed') and r.get('improvements'):
+                report += f"### {r.get('gauntlet_name')}\n"
+                for imp in r.get('improvements', [])[:3]:
+                    report += f"- {imp}\n"
+                report += "\n"
+        
+        return report
+
+
+# CSS styles for gauntlet components (to be added to dashboard)
+GAUNTLET_CSS = """
+/* Gauntlet Dashboard Components */
+.gauntlet-summary {
+    margin-bottom: 30px;
+}
+
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.summary-card {
+    background: linear-gradient(135deg, var(--primary-color), #2980b9);
+    color: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.summary-card.success {
+    background: linear-gradient(135deg, var(--success-color), #229954);
+}
+
+.summary-card.danger {
+    background: linear-gradient(135deg, var(--danger-color), #c0392b);
+}
+
+.summary-number {
+    display: block;
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.summary-label {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.gauntlet-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.gauntlet-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-left: 4px solid #e74c3c;
+}
+
+.gauntlet-card.passed {
+    border-left-color: #27ae60;
+}
+
+.gauntlet-card.failed {
+    border-left-color: #e74c3c;
+}
+
+.gauntlet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.gauntlet-header h4 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.gauntlet-status-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.gauntlet-status-badge.passed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.gauntlet-status-badge.failed {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.gauntlet-metrics {
+    margin-bottom: 15px;
+}
+
+.gauntlet-metric {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.gauntlet-metric .metric-label {
+    width: 80px;
+    font-size: 12px;
+    color: #666;
+}
+
+.metric-bar-small {
+    flex: 1;
+    height: 8px;
+    background: #ecf0f1;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 0 10px;
+}
+
+.metric-bar-small .metric-fill {
+    height: 100%;
+    background: #3498db;
+    transition: width 0.3s;
+}
+
+.metric-bar-small .metric-fill.confidence {
+    background: #9b59b6;
+}
+
+.gauntlet-details {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.gauntlet-details p {
+    margin: 5px 0;
+}
+
+.gauntlet-improvements {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 13px;
+}
+
+.gauntlet-improvements h5 {
+    margin: 0 0 8px 0;
+    color: #856404;
+}
+
+.gauntlet-improvements ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.gauntlet-improvements li {
+    color: #856404;
+    margin-bottom: 3px;
+}
+
+.orchestration-summary {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.orchestration-summary h3 {
+    margin-top: 0;
+    color: #2c3e50;
+}
+
+.summary-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.summary-metric {
+    text-align: center;
+}
+
+.summary-metric .metric-label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.metric-value-large {
+    font-size: 32px;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.status-badge-large {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-weight: bold;
+}
+
+.status-badge-large.passed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge-large.failed {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.gauntlet-controls {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+}
+
+.gauntlet-controls .btn {
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.comparison-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.comparison-metric {
+    text-align: center;
+}
+
+.comparison-metric .metric-value.positive {
+    color: #27ae60;
+}
+
+.comparison-metric .metric-value.negative {
+    color: #e74c3c;
+}
+
+.comparison-chart {
+    height: 400px;
+    margin: 20px 0;
+}
+
+.trend-chart {
+    height: 400px;
+    margin: 20px 0;
+}
+"""
+
+__all__ = [
+    'DecompositionDashboard',
+    'DashboardConfig',
+    'RealTimeDashboard',
+    'GauntletDashboardComponents',
+    'GAUNTLET_CSS'
+]

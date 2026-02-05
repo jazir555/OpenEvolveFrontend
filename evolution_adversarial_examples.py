@@ -127,7 +127,7 @@ def example_2_maker_voting():
     ### Voting Visualization
     ```
     Generation 10:
-    Candidate A: ||| (3 votes) ✓
+    Candidate A: ||| (3 votes) [OK]
     Candidate B: || (2 votes)
     Candidate C: | (1 vote)
     Candidate D: ||| (3 votes) - Winner (ahead by 2)

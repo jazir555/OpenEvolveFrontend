@@ -108,7 +108,7 @@ except ImportError:
 
         self.assertIsNotNone(pluginRegistry)
         
-        print("✅ All imports successful")
+        print("[OK] All imports successful")
 
     def test_autoformalization_engine_creation(self):
         """Test creating autoformalization engine."""
@@ -118,7 +118,7 @@ except ImportError:
         )
         
         self.assertIsInstance(engine, LeanAideAutoformalizationEngine)
-        print("✅ Autoformalization engine creation successful")
+        print("[OK] Autoformalization engine creation successful")
 
     def test_redflagging_system(self):
         """Test red-flagging system functionality."""
@@ -131,7 +131,7 @@ except ImportError:
         
         self.assertTrue(is_flagged)
         self.assertGreater(len(flags), 0)
-        print("✅ Red-flagging system working")
+        print("[OK] Red-flagging system working")
 
     def test_predictive_flagging_system(self):
         """Test predictive flagging system functionality."""
@@ -144,7 +144,7 @@ except ImportError:
         
         # Predictions may or may not be generated depending on model, but shouldn't error
         self.assertIsInstance(predictions, list)
-        print("✅ Predictive flagging system working")
+        print("[OK] Predictive flagging system working")
 
     def test_plugin_registry(self):
         """Test plugin registry functionality."""
@@ -154,11 +154,11 @@ except ImportError:
         # Check that the main integration plugin is registered
         plugin = pluginRegistry.getPlugin('bubblelab-leanaide-integration')
         if plugin:
-            print("✅ Main integration plugin registered")
+            print("[OK] Main integration plugin registered")
         else:
             print("ℹ️  Main integration plugin not found (may be dynamically registered)")
         
-        print(f"✅ Plugin registry has {pluginRegistry.getPluginCount()} plugins")
+        print(f"[OK] Plugin registry has {pluginRegistry.getPluginCount()} plugins")
 
     def test_integration_with_mock_client(self):
         """Test integration with mock LeanAide client."""
@@ -175,7 +175,7 @@ except ImportError:
         self.assertTrue(hasattr(engine, 'autoformalize'))
         self.assertTrue(hasattr(engine, 'predict_quality'))
         
-        print("✅ Integration with mock client successful")
+        print("[OK] Integration with mock client successful")
 
     def test_configuration_objects(self):
         """Test configuration objects."""
@@ -193,7 +193,7 @@ except ImportError:
         )
         self.assertEqual(pred_config.prediction_confidence_threshold, 0.7)
         
-        print("✅ Configuration objects working")
+        print("[OK] Configuration objects working")
 
     def test_strategy_enums(self):
         """Test strategy enums."""
@@ -212,7 +212,7 @@ except ImportError:
         self.assertTrue(hasattr(PredictionType, 'QUALITY_LOW'))
         self.assertTrue(hasattr(PredictionType, 'PERFORMANCE_POOR'))
         
-        print("✅ Strategy enums working")
+        print("[OK] Strategy enums working")
 
     def test_system_compatibility(self):
         """Test that systems are compatible with each other."""
@@ -231,7 +231,7 @@ except ImportError:
         self.assertIsInstance(red_analysis, dict)
         self.assertIsInstance(pred_analysis, dict)
         
-        print("✅ System compatibility verified")
+        print("[OK] System compatibility verified")
 
     def test_error_handling(self):
         """Test error handling across systems."""
@@ -249,7 +249,7 @@ except ImportError:
             # If it throws an exception, it should be handled gracefully
             print(f"Expected behavior: {e}")
         
-        print("✅ Error handling working")
+        print("[OK] Error handling working")
 
     def test_performance_metrics(self):
         """Test that performance metrics are available."""
@@ -261,7 +261,7 @@ except ImportError:
         pred_metrics = self.predictive_system.analyze_predictions()
         self.assertIsInstance(pred_metrics, dict)
         
-        print("✅ Performance metrics available")
+        print("[OK] Performance metrics available")
 
     def test_plugin_activation(self):
         """Test plugin activation functionality."""
@@ -274,12 +274,12 @@ except ImportError:
         for plugin in all_plugins[:2]:  # Test first 2 plugins only
             success = pluginRegistry.activate(plugin.id)
             if success:
-                print(f"✅ Plugin {plugin.name} activated successfully")
+                print(f"[OK] Plugin {plugin.name} activated successfully")
             else:
                 print(f"ℹ️  Plugin {plugin.name} activation skipped")
         
         active_count_after = pluginRegistry.getActivePluginCount()
-        print(f"✅ Plugin activation test completed: {active_count_after - active_count_before} plugins activated")
+        print(f"[OK] Plugin activation test completed: {active_count_after - active_count_before} plugins activated")
 
 
 class TestIntegrationScenarios(unittest.TestCase):
@@ -312,10 +312,10 @@ class TestIntegrationScenarios(unittest.TestCase):
         try:
             result = asyncio.run(run_workflow())
             self.assertIsNotNone(result)
-            print("✅ Complete autoformalization workflow successful")
+            print("[OK] Complete autoformalization workflow successful")
         except Exception as e:
             # With mocks, this might not fully execute but shouldn't error in setup
-            print(f"✅ Autoformalization workflow setup successful (execution depends on real client): {e}")
+            print(f"[OK] Autoformalization workflow setup successful (execution depends on real client): {e}")
 
     def test_predictive_quality_assessment(self):
         """Test predictive quality assessment."""
@@ -334,7 +334,7 @@ class TestIntegrationScenarios(unittest.TestCase):
         )
         
         self.assertIsInstance(predictions, list)
-        print("✅ Predictive quality assessment working")
+        print("[OK] Predictive quality assessment working")
 
     def test_redflagging_integration(self):
         """Test red-flagging integration with autoformalization."""
@@ -353,7 +353,7 @@ class TestIntegrationScenarios(unittest.TestCase):
         
         self.assertTrue(is_flagged)
         self.assertGreater(len(flags), 0)
-        print("✅ Red-flagging integration working")
+        print("[OK] Red-flagging integration working")
 
     def test_multi_agent_scenario(self):
         """Test multi-agent scenario with MDAP integration."""
@@ -367,7 +367,7 @@ class TestIntegrationScenarios(unittest.TestCase):
         # Verify config is created properly
         self.assertEqual(mdap_config.expansion_agents, 2)
         self.assertEqual(len(mdap_config.available_agents), 3)
-        print("✅ Multi-agent scenario configuration working")
+        print("[OK] Multi-agent scenario configuration working")
 
     def test_analytics_dashboard_data(self):
         """Test analytics dashboard data generation."""
@@ -381,7 +381,7 @@ class TestIntegrationScenarios(unittest.TestCase):
         analysis = system.analyze_predictions()
         self.assertIsInstance(analysis, dict)
         self.assertIn("total_predictions", analysis)
-        print("✅ Analytics dashboard data generation working")
+        print("[OK] Analytics dashboard data generation working")
 
 
 def run_final_verification():
@@ -414,11 +414,11 @@ def run_final_verification():
     
     if result.wasSuccessful():
         print("\n🎉 ALL TESTS PASSED!")
-        print("✅ LeanAide Autoformalization System with Predictive Flagging is COMPLETELY INTEGRATED")
-        print("✅ All components working together successfully")
-        print("✅ Ready for production deployment")
+        print("[OK] LeanAide Autoformalization System with Predictive Flagging is COMPLETELY INTEGRATED")
+        print("[OK] All components working together successfully")
+        print("[OK] Ready for production deployment")
     else:
-        print(f"\n❌ {len(result.failures) + len(result.errors)} tests failed")
+        print(f"\n[FAIL] {len(result.failures) + len(result.errors)} tests failed")
         for failure in result.failures:
             print(f"FAILURE: {failure[0]} - {failure[1]}")
         for error in result.errors:
@@ -427,21 +427,21 @@ def run_final_verification():
     print("\n" + "=" * 80)
     print("SYSTEM COMPONENTS VERIFICATION")
     print("=" * 80)
-    print("✅ Core Autoformalization Engine: IMPLEMENTED")
-    print("✅ MCTS MDAP Integration: IMPLEMENTED") 
-    print("✅ Enhanced Red-Flagging System: IMPLEMENTED")
-    print("✅ Predictive Flagging System: IMPLEMENTED")
-    print("✅ BubbleLab UI Integration: IMPLEMENTED")
-    print("✅ Plugin System: IMPLEMENTED")
-    print("✅ Analytics Dashboard: IMPLEMENTED")
-    print("✅ Knowledge Graph Integration: IMPLEMENTED")
-    print("✅ Multi-Strategy Support: IMPLEMENTED")
-    print("✅ Domain Detection: IMPLEMENTED")
-    print("✅ Quality Assurance: IMPLEMENTED")
-    print("✅ Performance Optimization: IMPLEMENTED")
-    print("✅ Error Handling: IMPLEMENTED")
-    print("✅ Testing Framework: IMPLEMENTED")
-    print("✅ Documentation: IMPLEMENTED")
+    print("[OK] Core Autoformalization Engine: IMPLEMENTED")
+    print("[OK] MCTS MDAP Integration: IMPLEMENTED") 
+    print("[OK] Enhanced Red-Flagging System: IMPLEMENTED")
+    print("[OK] Predictive Flagging System: IMPLEMENTED")
+    print("[OK] BubbleLab UI Integration: IMPLEMENTED")
+    print("[OK] Plugin System: IMPLEMENTED")
+    print("[OK] Analytics Dashboard: IMPLEMENTED")
+    print("[OK] Knowledge Graph Integration: IMPLEMENTED")
+    print("[OK] Multi-Strategy Support: IMPLEMENTED")
+    print("[OK] Domain Detection: IMPLEMENTED")
+    print("[OK] Quality Assurance: IMPLEMENTED")
+    print("[OK] Performance Optimization: IMPLEMENTED")
+    print("[OK] Error Handling: IMPLEMENTED")
+    print("[OK] Testing Framework: IMPLEMENTED")
+    print("[OK] Documentation: IMPLEMENTED")
     print("\n🎯 IMPLEMENTATION STATUS: COMPLETE AND VERIFIED")
     
     return result.wasSuccessful()

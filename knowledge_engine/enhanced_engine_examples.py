@@ -485,7 +485,7 @@ async def example_performance_monitoring():
         print(f"   Initialized: {health['initialized_at']}")
         print("   Components:")
         for component, status in health['components'].items():
-            print(f"      {component}: {'✓' if status else '✗'}")
+            print(f"      {component}: {'[OK]' if status else '[FAIL]'}")
         
         print("\n2. Adding test data for stats...")
         for i in range(100):

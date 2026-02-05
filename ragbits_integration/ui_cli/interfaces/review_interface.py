@@ -485,7 +485,7 @@ class ReviewInterface:
             lines.append("")
 
             for comment in section_comments:
-                status = "✅ Resolved" if comment.resolved else "❌ Open"
+                status = "[OK] Resolved" if comment.resolved else "[FAIL] Open"
                 lines.append(f"**{comment.comment_type.value.title()}** [{status}]")
                 lines.append(f"- **Author:** {comment.author}")
                 lines.append(f"- **Time:** {comment.timestamp.isoformat()}")

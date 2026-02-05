@@ -5,7 +5,7 @@ Complete mathematical verification pipeline combining Lean 4 and Z3.
 Provides end-to-end verification from natural language to formal proof.
 
 Pipeline stages:
-1. Autoformalization (NL → Lean)
+1. Autoformalization (NL -> Lean)
 2. Z3 Pre-check (quick validation)
 3. Lean Verification (detailed proof)
 4. Cross-validation (Z3 ↔ Lean)

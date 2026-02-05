@@ -18,11 +18,11 @@ def test_parameter_manager_integration():
     
     # Test parameter manager initialization
     pm = get_parameter_manager()
-    print(f"✅ Parameter manager initialized with {len(pm.schema.parameters)} parameters")
+    print(f"[OK] Parameter manager initialized with {len(pm.schema.parameters)} parameters")
     
     # Test categories
     categories = pm.get_categories()
-    print(f"✅ Found {len(categories)} parameter categories:")
+    print(f"[OK] Found {len(categories)} parameter categories:")
     for cat in sorted(categories):
         params = pm.get_parameters_by_category(cat)
         print(f"   - {cat}: {len(params)} parameters")
@@ -40,7 +40,7 @@ def test_parameter_manager_integration():
     }
     
     result = pm.validate(valid_config)
-    print(f"✅ Valid config validation: {result.valid}")
+    print(f"[OK] Valid config validation: {result.valid}")
     
     # Invalid configuration
     invalid_config = {
@@ -51,13 +51,13 @@ def test_parameter_manager_integration():
     }
     
     result = pm.validate(invalid_config)
-    print(f"✅ Invalid config validation: {not result.valid} (correctly detected as invalid)")
+    print(f"[OK] Invalid config validation: {not result.valid} (correctly detected as invalid)")
     print(f"   Errors found: {len(result.errors)}")
     
     # Test presets
     print("\n📋 Testing Presets")
     presets = pm.list_presets()
-    print(f"✅ Available presets: {presets}")
+    print(f"[OK] Available presets: {presets}")
     
     for preset_name in presets:
         preset = pm.get_preset(preset_name)
@@ -76,9 +76,9 @@ def test_parameter_manager_integration():
         print(f"   - {param_type}: {count} parameters")
     
     # Test required parameters
-    print("\n⚠️ Testing Required Parameters")
+    print("\n[WARN] Testing Required Parameters")
     required_params = [p for p in pm.schema.parameters.values() if p.required]
-    print(f"✅ Found {len(required_params)} required parameters:")
+    print(f"[OK] Found {len(required_params)} required parameters:")
     for param in required_params:
         print(f"   - {param.name}: {param.description}")
     
@@ -86,11 +86,11 @@ def test_parameter_manager_integration():
     print("\n📊 Testing Parameter Ranges")
     range_params = [p for p in pm.schema.parameters.values() 
                    if p.min_value is not None or p.max_value is not None]
-    print(f"✅ Found {len(range_params)} parameters with ranges")
+    print(f"[OK] Found {len(range_params)} parameters with ranges")
     
     # Test parameter options
     option_params = [p for p in pm.schema.parameters.values() if p.options]
-    print(f"✅ Found {len(option_params)} parameters with predefined options")
+    print(f"[OK] Found {len(option_params)} parameters with predefined options")
     
     print("\n🎉 All tests completed successfully!")
     return True
@@ -104,16 +104,16 @@ def test_sidebar_functions():
         from sidebar import get_default_generation_params, get_default_evolution_params
         
         gen_params = get_default_generation_params()
-        print(f"✅ Generation parameters: {len(gen_params)} params")
+        print(f"[OK] Generation parameters: {len(gen_params)} params")
         
         evo_params = get_default_evolution_params()
-        print(f"✅ Evolution parameters: {len(evo_params)} params")
+        print(f"[OK] Evolution parameters: {len(evo_params)} params")
         
         # Test parameter validation
         pm = get_parameter_manager()
         all_params = {**gen_params, **evo_params}
         result = pm.validate(all_params)
-        print(f"✅ Default parameters validation: {result.valid}")
+        print(f"[OK] Default parameters validation: {result.valid}")
         
         if not result.valid:
             print("   Validation errors:")
@@ -123,7 +123,7 @@ def test_sidebar_functions():
         return True
         
     except Exception as e:
-        print(f"❌ Error testing sidebar functions: {e}")
+        print(f"[FAIL] Error testing sidebar functions: {e}")
         return False
 
 def main():
@@ -140,13 +140,13 @@ def main():
         
         if success1 and success2:
             print("\n🎉 ALL TESTS PASSED! Integration is working correctly.")
-            print(f"✅ Parameter Manager: {len(get_parameter_manager().schema.parameters)} parameters")
-            print("✅ Sidebar: Compatible with ParameterManager")
-            print("✅ Validation: Working correctly")
-            print("✅ Presets: Available and valid")
+            print(f"[OK] Parameter Manager: {len(get_parameter_manager().schema.parameters)} parameters")
+            print("[OK] Sidebar: Compatible with ParameterManager")
+            print("[OK] Validation: Working correctly")
+            print("[OK] Presets: Available and valid")
             return 0
         else:
-            print("\n❌ Some tests failed. Check the output above.")
+            print("\n[FAIL] Some tests failed. Check the output above.")
             return 1
             
     except Exception as e:

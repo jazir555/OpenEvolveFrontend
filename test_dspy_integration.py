@@ -242,5 +242,5 @@ if __name__ == "__main__":
     if success:
         print("\n🎉 DSPy integration test completed successfully!")
     else:
-        print("\n❌ DSPy integration test failed!")
+        print("\n[FAIL] DSPy integration test failed!")
         sys.exit(1)

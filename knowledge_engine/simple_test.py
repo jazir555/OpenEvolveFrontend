@@ -76,7 +76,7 @@ def test_knowledge_extractor():
     # Test extraction
     artifacts = extractor.extract_from_workflow(workflow_data)
     
-    print(f"✅ Extracted {len(artifacts)} knowledge artifacts")
+    print(f"[OK] Extracted {len(artifacts)} knowledge artifacts")
     for i, artifact in enumerate(artifacts, 1):
         content_summary = str(artifact.content)[:50]
         print(f"  {i}. {artifact.artifact_type}: {content_summary}...")
@@ -102,22 +102,22 @@ def test_knowledge_storage():
     
     # Test storage and retrieval
     artifact_id = storage.store_knowledge_artifact(sample_artifact)
-    print(f"✅ Stored artifact with ID: {artifact_id}")
+    print(f"[OK] Stored artifact with ID: {artifact_id}")
     
     retrieved = storage.get_artifact_by_id(artifact_id)
     if retrieved and retrieved['content'] == sample_artifact['content']:
-        print("✅ Successfully retrieved stored artifact")
+        print("[OK] Successfully retrieved stored artifact")
     else:
-        print("❌ Failed to retrieve artifact")
+        print("[FAIL] Failed to retrieve artifact")
         return False
     
     # Test search
     search_results = storage.search_similar_artifacts(sample_artifact['embeddings'])
-    print(f"✅ Found {len(search_results)} similar artifacts")
+    print(f"[OK] Found {len(search_results)} similar artifacts")
     
     # Test statistics
     stats = storage.get_statistics()
-    print(f"✅ Knowledge base statistics: {stats['total_artifacts']} total artifacts")
+    print(f"[OK] Knowledge base statistics: {stats['total_artifacts']} total artifacts")
     
     return True
 
@@ -149,16 +149,16 @@ def test_knowledge_retriever():
         query_type="hybrid",
         limit=3
     )
-    print(f"✅ Found {len(search_results)} search results")
+    print(f"[OK] Found {len(search_results)} search results")
     
     # Test recommendations
     context = {'problem_type': 'decomposition'}
     recommendations = retriever.get_recommendations(context, limit=2)
-    print(f"✅ Got {len(recommendations)} recommendations")
+    print(f"[OK] Got {len(recommendations)} recommendations")
     
     # Test quality metrics
     quality = retriever.get_knowledge_quality_metrics()
-    print(f"✅ Overall quality score: {quality['overall_quality_score']:.2f}")
+    print(f"[OK] Overall quality score: {quality['overall_quality_score']:.2f}")
     
     return True
 
@@ -191,8 +191,8 @@ def test_integrated_engine():
     
     # Test workflow processing
     processing_result = engine.process_workflow_data(workflow_data)
-    print(f"✅ Processed workflow: {processing_result['status']}")
-    print(f"✅ Extracted {processing_result['knowledge_extracted']} knowledge artifacts")
+    print(f"[OK] Processed workflow: {processing_result['status']}")
+    print(f"[OK] Extracted {processing_result['knowledge_extracted']} knowledge artifacts")
     
     # Test search
     search_results = engine.search_knowledge(
@@ -200,20 +200,20 @@ def test_integrated_engine():
         query_type="hybrid",
         limit=3
     )
-    print(f"✅ Found {len(search_results)} search results")
+    print(f"[OK] Found {len(search_results)} search results")
     
     # Test recommendations
     context = {'problem_type': 'decomposition'}
     recommendations = engine.get_recommendations(context, limit=2)
-    print(f"✅ Got {len(recommendations)} recommendations")
+    print(f"[OK] Got {len(recommendations)} recommendations")
     
     # Test statistics
     stats = engine.get_knowledge_statistics()
-    print(f"✅ Knowledge base contains {stats['total_artifacts']} artifacts")
+    print(f"[OK] Knowledge base contains {stats['total_artifacts']} artifacts")
     
     # Test quality metrics
     quality = engine.get_knowledge_quality()
-    print(f"✅ Overall quality score: {quality['overall_quality_score']:.2f}")
+    print(f"[OK] Overall quality score: {quality['overall_quality_score']:.2f}")
     
     return True
 
@@ -239,14 +239,14 @@ def test_backup_restore():
     
     try:
         storage.backup_knowledge_base(backup_path)
-        print(f"✅ Created backup at {backup_path}")
+        print(f"[OK] Created backup at {backup_path}")
         
         # New storage instance (to simulate clean state)
         new_storage = KnowledgeStorage()
         new_storage.restore_knowledge_base(backup_path)
         
         restored_count = new_storage.get_statistics()['total_artifacts']
-        print(f"✅ Restored {restored_count} artifacts")
+        print(f"[OK] Restored {restored_count} artifacts")
         
         return initial_count == restored_count
     finally:

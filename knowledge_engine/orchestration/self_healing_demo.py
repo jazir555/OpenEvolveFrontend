@@ -60,10 +60,10 @@ The Knowledge Engine is now a self-healing, learning system where:
             learning_storage_path="demo_learning.json"
         )
         
-        print(f"   ✓ Orchestrator created with {len(orchestrator.components)} components")
-        print(f"   ✓ Self-healing enabled: {orchestrator.enable_self_healing}")
-        print(f"   ✓ Max healing attempts: {orchestrator.max_healing_attempts}")
-        print(f"   ✓ Learning engine initialized with {len(orchestrator.learning_engine.experiences)} experiences")
+        print(f"   [OK] Orchestrator created with {len(orchestrator.components)} components")
+        print(f"   [OK] Self-healing enabled: {orchestrator.enable_self_healing}")
+        print(f"   [OK] Max healing attempts: {orchestrator.max_healing_attempts}")
+        print(f"   [OK] Learning engine initialized with {len(orchestrator.learning_engine.experiences)} experiences")
         
         print("\n2. Simulating execution with potential failures...")
         
@@ -157,7 +157,7 @@ The Knowledge Engine is now a self-healing, learning system where:
                 results={'quality': exp_data['quality']} if exp_data['success'] else {},
                 errors=[{'type': exp_data.get('error'), 'component': 'neuralkg'}] if not exp_data['success'] else []
             )
-            print(f"   ✓ Experience {i+1} recorded: {experience.experience_id}")
+            print(f"   [OK] Experience {i+1} recorded: {experience.experience_id}")
             print(f"     Lessons: {experience.lessons_learned}")
         
         print("\n3. Component Performance Profiles:")
@@ -282,7 +282,7 @@ The Knowledge Engine is now a self-healing, learning system where:
                 issues=entry_data['issues'],
                 suggestions=entry_data['suggestions']
             )
-            print(f"   ✓ Feedback collected: {entry.feedback_id} - {entry.feedback_type.value}")
+            print(f"   [OK] Feedback collected: {entry.feedback_id} - {entry.feedback_type.value}")
         
         print("\n2. Feedback Statistics:")
         stats = feedback.get_feedback_stats()
@@ -311,7 +311,7 @@ The Knowledge Engine is now a self-healing, learning system where:
             treatment_config={'components': ['deepke', 'karate_club']}
         )
         
-        print(f"   ✓ Experiment created: {experiment.experiment_id}")
+        print(f"   [OK] Experiment created: {experiment.experiment_id}")
         print(f"     Hypothesis: {experiment.hypothesis}")
         print(f"     Status: {experiment.status}")
         
@@ -336,42 +336,42 @@ Putting it all together - the complete self-healing, learning, adaptive system:
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  INPUT: Financial Report Text                                               │
-│     ↓                                                                       │
+│     v                                                                       │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │ 1. PRE-EXECUTION ANALYSIS                                           │ │
 │  │    - Predict potential failures based on history                    │ │
 │  │    - Check component performance for 'financial' data type          │ │
 │  │    - NeuralKG flagged as risky (previous timeouts)                  │ │
 │  └─────────────────────────────────────────────────────────────────────┘   │
-│     ↓                                                                       │
+│     v                                                                       │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │ 2. GAP ANALYSIS & COORDINATION                                      │ │
-│  │    - Pipeline: DeepKE → KG-Gen → Karate Club → PAMI                │ │
+│  │    - Pipeline: DeepKE -> KG-Gen -> Karate Club -> PAMI                │ │
 │  │    - Gap: No causal analysis capability                             │ │
 │  │    - Filler: Causal-Learn added (optional based on data)            │ │
 │  └─────────────────────────────────────────────────────────────────────┘   │
-│     ↓                                                                       │
+│     v                                                                       │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │ 3. EXECUTION WITH HEALING                                           │ │
 │  │    - DeepKE: SUCCESS (extracted 45 entities)                        │ │
 │  │    - KG-Gen: SUCCESS (built graph with 45 nodes, 78 edges)          │ │
 │  │    - Karate Club: SUCCESS (found 5 communities)                     │ │
 │  │    - PAMI: TIMEOUT (pattern mining exceeded 30s)                    │ │
-│  │       ↓ TRIGGER HEALING                                             │ │
+│  │       v TRIGGER HEALING                                             │ │
 │  │       - Retry with 120s timeout                                     │ │
 │  │       - Still failing                                               │ │
 │  │       - Skip PAMI and continue with warning                         │ │
 │  │    - Execution completes with partial results                       │ │
 │  └─────────────────────────────────────────────────────────────────────┘   │
-│     ↓                                                                       │
+│     v                                                                       │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │ 4. LEARNING & FEEDBACK                                              │ │
 │  │    - Record experience: PAMI timeout on financial data              │ │
-│  │    - Update component profile: PAMI reliability ↓                   │ │
+│  │    - Update component profile: PAMI reliability v                   │ │
 │  │    - Generate lessons: "Consider reducing min_support for PAMI"     │ │
 │  │    - Auto-collect feedback: PARTIAL_SUCCESS, rating inferred        │ │
 │  └─────────────────────────────────────────────────────────────────────┘   │
-│     ↓                                                                       │
+│     v                                                                       │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │ 5. CONTINUOUS IMPROVEMENT                                           │ │
 │  │    - Analysis: PAMI performance degradation detected                │ │
@@ -379,7 +379,7 @@ Putting it all together - the complete self-healing, learning, adaptive system:
 │  │    - A/B Test: Experiment with adjusted PAMI config created         │ │
 │  │    - Next execution will try adjusted configuration                 │ │
 │  └─────────────────────────────────────────────────────────────────────┘   │
-│     ↓                                                                       │
+│     v                                                                       │
 │  OUTPUT: Results + Learning Metadata + Feedback Request                     │
 │                                                                             │
 │  The system is now SMARTER than before!                                     │
@@ -397,39 +397,39 @@ Putting it all together - the complete self-healing, learning, adaptive system:
     
     print("""
 1. SELF-HEALING (self_healing_orchestrator.py)
-   ✓ 7 healing strategies: retry, substitution, fallback, parallel, etc.
-   ✓ Automatic failure detection and diagnosis
-   ✓ Component substitution matrix for gap coverage
-   ✓ Records healing actions and outcomes
-   ✓ Learns which strategies work best
+   [OK] 7 healing strategies: retry, substitution, fallback, parallel, etc.
+   [OK] Automatic failure detection and diagnosis
+   [OK] Component substitution matrix for gap coverage
+   [OK] Records healing actions and outcomes
+   [OK] Learns which strategies work best
 
 2. LEARNING ENGINE (learning_engine.py)
-   ✓ Records every execution as learning experience
-   ✓ Builds component performance profiles
-   ✓ Learns optimal pipeline patterns
-   ✓ Predicts failures before they happen
-   ✓ Recommends best components for each context
+   [OK] Records every execution as learning experience
+   [OK] Builds component performance profiles
+   [OK] Learns optimal pipeline patterns
+   [OK] Predicts failures before they happen
+   [OK] Recommends best components for each context
 
 3. COMPONENT COORDINATION (component_coordination.py)
-   ✓ Capability registry for all components
-   ✓ Automatic gap identification
-   ✓ Gap filler assignment
-   ✓ Optimal data routing between components
-   ✓ Cross-validation of results
-   ✓ Result fusion from multiple sources
+   [OK] Capability registry for all components
+   [OK] Automatic gap identification
+   [OK] Gap filler assignment
+   [OK] Optimal data routing between components
+   [OK] Cross-validation of results
+   [OK] Result fusion from multiple sources
 
 4. FEEDBACK LOOP (feedback_loop.py)
-   ✓ Automatic feedback collection
-   ✓ User feedback integration
-   ✓ A/B testing framework
-   ✓ Continuous improvement engine
-   ✓ Improvement recommendations
+   [OK] Automatic feedback collection
+   [OK] User feedback integration
+   [OK] A/B testing framework
+   [OK] Continuous improvement engine
+   [OK] Improvement recommendations
 
 5. MCP SERVER (mcp_server.py)
-   ✓ 26 standardized API methods
-   ✓ Expose all capabilities via Model Context Protocol
-   ✓ Health monitoring and diagnostics
-   ✓ Remote orchestrator management
+   [OK] 26 standardized API methods
+   [OK] Expose all capabilities via Model Context Protocol
+   [OK] Health monitoring and diagnostics
+   [OK] Remote orchestrator management
 """)
     
     print("=" * 80)
@@ -498,7 +498,7 @@ adaptive.submit_user_feedback(
 │  │  │   Strategy  │  │  Strategy   │  │  Strategy   │  │  Strategy  │ │   │
 │  │  └─────────────┘  └─────────────┘  └─────────────┘  └────────────┘ │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
-│                                    ↑                                        │
+│                                    ^                                        │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │                      LEARNING ENGINE                                │   │
 │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────┐ │   │
@@ -506,7 +506,7 @@ adaptive.submit_user_feedback(
 │  │  │   Database  │  │  Profiles   │  │  Patterns   │  │ Prediction │ │   │
 │  │  └─────────────┘  └─────────────┘  └─────────────┘  └────────────┘ │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
-│                                    ↑                                        │
+│                                    ^                                        │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │                  COMPONENT COORDINATION                             │   │
 │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────┐ │   │
@@ -514,7 +514,7 @@ adaptive.submit_user_feedback(
 │  │  │  Registry   │  │   Filling   │  │   Routing   │  │ Validation │ │   │
 │  │  └─────────────┘  └─────────────┘  └─────────────┘  └────────────┘ │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
-│                                    ↑                                        │
+│                                    ^                                        │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │                    FEEDBACK LOOP                                    │   │
 │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────┐ │   │
@@ -522,7 +522,7 @@ adaptive.submit_user_feedback(
 │  │  │  Collector  │  │   Engine    │  │   Tests     │  │  Tuning    │ │   │
 │  │  └─────────────┘  └─────────────┘  └─────────────┘  └────────────┘ │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
-│                                    ↑                                        │
+│                                    ^                                        │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │                        MCP SERVER                                   │   │
 │  │              (26 Methods for External Access)                       │   │

@@ -48,9 +48,9 @@ class KnowledgeEngineIntegrationConnector:
     Connector that integrates advanced analytics into Knowledge Engine workflows.
     
     This connector provides seamless integration between:
-    - Knowledge Extractor → Advanced Analytics
-    - Knowledge Graph → Graph Analytics
-    - Knowledge Artifacts → Pattern Mining
+    - Knowledge Extractor -> Advanced Analytics
+    - Knowledge Graph -> Graph Analytics
+    - Knowledge Artifacts -> Pattern Mining
     """
     
     def __init__(self, config: Optional[Dict[str, Any]] = None):
@@ -82,7 +82,7 @@ class KnowledgeEngineIntegrationConnector:
         """
         Analyze knowledge artifacts using pattern mining.
         
-        Connects: KnowledgeExtractor → PAMI
+        Connects: KnowledgeExtractor -> PAMI
         
         Args:
             artifacts: Knowledge artifacts from extraction
@@ -112,7 +112,7 @@ class KnowledgeEngineIntegrationConnector:
         """
         Comprehensive graph analysis using multiple tools.
         
-        Connects: KnowledgeGraph → Karate Club + NeuralKG + Lagrange-Mapper
+        Connects: KnowledgeGraph -> Karate Club + NeuralKG + Lagrange-Mapper
         
         Args:
             graph_data: Knowledge graph data
@@ -140,7 +140,7 @@ class KnowledgeEngineIntegrationConnector:
         """
         Detect communities in knowledge graph.
         
-        Connects: KnowledgeGraph → Karate Club
+        Connects: KnowledgeGraph -> Karate Club
         
         Args:
             graph_data: Knowledge graph
@@ -164,7 +164,7 @@ class KnowledgeEngineIntegrationConnector:
         """
         Generate embeddings for knowledge graph.
         
-        Connects: KnowledgeGraph → NeuralKG
+        Connects: KnowledgeGraph -> NeuralKG
         
         Args:
             triples: List of (head, relation, tail) triples
@@ -195,7 +195,7 @@ class KnowledgeEngineIntegrationConnector:
         """
         Discover causal relationships in data.
         
-        Connects: Knowledge Metrics → Causal-Learn
+        Connects: Knowledge Metrics -> Causal-Learn
         
         Args:
             data: Data matrix
@@ -229,7 +229,7 @@ class KnowledgeEngineIntegrationConnector:
         """
         Analyze knowledge embedding landscape.
         
-        Connects: Knowledge Embeddings → Lagrange-Mapper
+        Connects: Knowledge Embeddings -> Lagrange-Mapper
         
         Args:
             embeddings: Embedding matrix

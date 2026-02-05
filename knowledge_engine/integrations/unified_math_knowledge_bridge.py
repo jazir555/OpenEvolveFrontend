@@ -118,7 +118,7 @@ class ProblemClassifier:
             },
             ProblemClassification.THEOREM_PROVING: {
                 "keywords": ["theorem", "lemma", "proof", "forall", "exists", "implies"],
-                "patterns": [r'\b(theorem|lemma|proof)\b', r'(∀|∃|→)']
+                "patterns": [r'\b(theorem|lemma|proof)\b', r'(∀|∃|->)']
             },
             ProblemClassification.SMT_SOLVING: {
                 "keywords": ["smt", "smt-lib", "check-sat", "get-model"],

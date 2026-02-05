@@ -34,7 +34,7 @@ This is the conclusion section that wraps up the content.
         min_component_size=20
     )
     
-    print(f"✅ Decomposition completed")
+    print(f"[OK] Decomposition completed")
     print(f"   - Original content length: {len(result.original_content)}")
     print(f"   - Components created: {len(result.components)}")
     print(f"   - Quality score: {result.quality_score:.2f}")
@@ -77,7 +77,7 @@ It explains how the functions work.
             min_component_size=10
         )
         
-        print(f"✅ {strategy.value}: {len(result.components)} components, quality: {result.quality_score:.2f}")
+        print(f"[OK] {strategy.value}: {len(result.components)} components, quality: {result.quality_score:.2f}")
     
     return True
 
@@ -94,11 +94,11 @@ def test_history_management():
         decomposer.decompose_content(content)
     
     history = decomposer.get_decomposition_history()
-    print(f"✅ History contains {len(history)} entries")
+    print(f"[OK] History contains {len(history)} entries")
     
     decomposer.clear_history()
     history = decomposer.get_decomposition_history()
-    print(f"✅ History cleared, now contains {len(history)} entries")
+    print(f"[OK] History cleared, now contains {len(history)} entries")
     
     return True
 
@@ -110,6 +110,6 @@ if __name__ == "__main__":
         test_history_management()
         print("\n🎉 All tests passed! Problem decomposition system is working.")
     except Exception as e:
-        print(f"\n❌ Test failed: {e}")
+        print(f"\n[FAIL] Test failed: {e}")
         import traceback
         traceback.print_exc()

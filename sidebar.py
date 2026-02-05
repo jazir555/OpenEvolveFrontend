@@ -1411,9 +1411,9 @@ def display_sidebar() -> None:
         validation_result = param_manager.validate(current_params)
         
         if validation_result.valid:
-            st.success("✅ All parameters are valid")
+            st.success("[OK] All parameters are valid")
         else:
-            st.error(f"❌ {len(validation_result.errors)} validation errors")
+            st.error(f"[FAIL] {len(validation_result.errors)} validation errors")
             with st.expander("View Validation Issues"):
                 for error in validation_result.errors:
                     st.error(error)

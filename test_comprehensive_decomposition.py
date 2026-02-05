@@ -157,7 +157,7 @@ def complex_algorithm(data, params):
             min_component_size=20
         )
         
-        print(f"✅ {strategy.value}:")
+        print(f"[OK] {strategy.value}:")
         print(f"   - Components: {len(result.components)}")
         print(f"   - Quality: {result.quality_score:.2f}")
         print(f"   - Dependencies: {len(result.dependency_graph)}")
@@ -200,13 +200,13 @@ from sklearn import datasets
 """
     
     patterns = analyze_content_patterns(test_content)
-    print(f"✅ Content patterns detected:")
+    print(f"[OK] Content patterns detected:")
     for pattern, count in patterns.items():
         print(f"   - {pattern}: {count}")
     
     # Test strategy suggestion
     suggested = suggest_optimal_strategy(test_content)
-    print(f"✅ Suggested strategy: {suggested.value}")
+    print(f"[OK] Suggested strategy: {suggested.value}")
     
     return True
 
@@ -281,7 +281,7 @@ Model performance is evaluated using multiple metrics.
         min_component_size=50
     )
     
-    print(f"✅ Comprehensive decomposition:")
+    print(f"[OK] Comprehensive decomposition:")
     print(f"   - Strategy: {result.decomposition_strategy.value}")
     print(f"   - Components: {len(result.components)}")
     print(f"   - Quality: {result.quality_score:.2f}")
@@ -293,7 +293,7 @@ Model performance is evaluated using multiple metrics.
     
     # Generate report
     report = create_decomposition_report(result)
-    print(f"✅ Generated report: {len(report)} characters")
+    print(f"[OK] Generated report: {len(report)} characters")
     
     return True
 
@@ -329,7 +329,7 @@ def analyze_data(data):
         min_component_size=30
     )
     
-    print(f"✅ Decomposition results:")
+    print(f"[OK] Decomposition results:")
     print(f"   - Original length: {len(original_content)}")
     print(f"   - Components created: {len(result.components)}")
     print(f"   - Quality score: {result.quality_score:.2f}")
@@ -357,6 +357,6 @@ if __name__ == "__main__":
         test_reassembly_quality()
         print("\n🎉 All comprehensive tests passed! Full problem decomposition system working.")
     except Exception as e:
-        print(f"\n❌ Test failed: {e}")
+        print(f"\n[FAIL] Test failed: {e}")
         import traceback
         traceback.print_exc()

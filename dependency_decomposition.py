@@ -315,7 +315,7 @@ class DependencyDecomposition:
         # Heuristic 2: Look for bullet points with clear separation
         if len(sub_problems) < 2:
             bullet_points = re.findall(
-                r'(?:^|\n)\s*[-•*]\s+([^\n]+(?:\n(?![-•*]\s)[^\n]+)*)',
+                r'(?:^|\n)\s*[-**]\s+([^\n]+(?:\n(?![-**]\s)[^\n]+)*)',
                 content
             )
             if len(bullet_points) >= 2:

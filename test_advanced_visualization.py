@@ -38,7 +38,7 @@ def test_dependency_graph_visualizer():
     assert len(critical_path) > 0
     assert critical_path[0] == "sp1"  # Should start with sp1
     
-    print("✓ DependencyGraphVisualizer tests passed")
+    print("[OK] DependencyGraphVisualizer tests passed")
 
 
 def test_advanced_visualizer():
@@ -83,7 +83,7 @@ def test_advanced_visualizer():
     assert "refinement" in dashboard
     assert "timeline" in dashboard
     
-    print("✓ AdvancedVisualizer tests passed")
+    print("[OK] AdvancedVisualizer tests passed")
 
 
 def test_report_generator():
@@ -136,7 +136,7 @@ def test_report_generator():
     assert json_data["total_sub_problems"] == 2
     assert len(json_data["solved_sub_problems"]) == 2
     
-    print("✓ ReportGenerator tests passed")
+    print("[OK] ReportGenerator tests passed")
 
 
 def test_graph_export():
@@ -154,11 +154,11 @@ def test_graph_export():
     try:
         png_bytes = visualizer.export_graph(sub_problems, format='png')
         assert len(png_bytes) > 0
-        print("✓ PNG export successful")
+        print("[OK] PNG export successful")
     except Exception as e:
         print(f"⚠ PNG export skipped (matplotlib may not be configured): {e}")
     
-    print("✓ Graph export tests passed")
+    print("[OK] Graph export tests passed")
 
 
 if __name__ == "__main__":

@@ -321,8 +321,8 @@ class AIKGEntityStandardizer:
         Analyze entities by root words (4-char prefix).
 
         Examples:
-        - "capitalism" and "capitalist" → grouped
-        - "programming" and "programmer" → grouped
+        - "capitalism" and "capitalist" -> grouped
+        - "programming" and "programmer" -> grouped
 
         Args:
             entities: List of entities to analyze

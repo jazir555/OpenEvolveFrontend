@@ -90,7 +90,7 @@ def example_1_simple_translation():
         print(f"   ERROR: {error}")
         return
 
-    print(f"   ✓ Encoded successfully")
+    print(f"   [OK] Encoded successfully")
     print(f"   Constraint ID: {encoded['constraint_id']}")
     print(f"   Feature vector dimension: {len(encoded['feature_vector'])}")
     print(f"   Feature vector (first 10): {encoded['feature_vector'][:10]}")
@@ -165,7 +165,7 @@ def example_2_multiple_constraints():
         print(f"   ERROR: {error}")
         return
 
-    print(f"   ✓ Translation completed successfully")
+    print(f"   [OK] Translation completed successfully")
     print(f"   Input constraints: {result['input_constraints']}")
     print(f"   Encoded constraints: {result['encoded_constraints']}")
     print(f"   Loss functions: {result['loss_functions']}")
@@ -273,9 +273,9 @@ def example_4_health_and_stats():
     is_healthy, message = adapter.health_check()
 
     if is_healthy:
-        print(f"   ✓ Adapter is healthy: {message}")
+        print(f"   [OK] Adapter is healthy: {message}")
     else:
-        print(f"   ✗ Adapter is unhealthy: {message}")
+        print(f"   [FAIL] Adapter is unhealthy: {message}")
         return
 
     # Get detailed statistics
@@ -317,9 +317,9 @@ def example_5_error_handling():
     result, error = adapter.translate_constraints([])
 
     if error:
-        print(f"   ✓ Correctly handled empty list: {error}")
+        print(f"   [OK] Correctly handled empty list: {error}")
     else:
-        print(f"   ✗ Should have returned error for empty list")
+        print(f"   [FAIL] Should have returned error for empty list")
 
     # Test 2: Invalid constraint structure
     print("\n3. Test: Invalid constraint structure")
@@ -328,10 +328,10 @@ def example_5_error_handling():
     result, error = adapter.translate_constraints([invalid_constraint])
 
     if error:
-        print(f"   ✓ Correctly handled invalid constraint")
+        print(f"   [OK] Correctly handled invalid constraint")
         print(f"   Error: {error}")
     else:
-        print(f"   ✗ Should have returned error for invalid constraint")
+        print(f"   [FAIL] Should have returned error for invalid constraint")
 
     # Test 3: Timeout handling
     print("\n4. Test: Very short timeout")
@@ -351,7 +351,7 @@ def example_5_error_handling():
     result, error = adapter.translate_constraints(constraints, timeout_ms=1)
 
     if error:
-        print(f"   ✓ Timeout handling works: {error}")
+        print(f"   [OK] Timeout handling works: {error}")
     else:
         print(f"   Note: Operation completed within 1ms timeout")
 
@@ -383,7 +383,7 @@ def main():
         example_5_error_handling()
 
         print("\n" + "=" * 80)
-        print("ALL EXAMPLES COMPLETED SUCCESSFULLY ✓")
+        print("ALL EXAMPLES COMPLETED SUCCESSFULLY [OK]")
         print("=" * 80)
         print("\nThe LLTL adapter is ready for integration!")
         print("\nNext steps:")
@@ -393,7 +393,7 @@ def main():
         print("")
 
     except Exception as e:
-        print(f"\n✗ Error running examples: {e}")
+        print(f"\n[FAIL] Error running examples: {e}")
         import traceback
         traceback.print_exc()
         return 1

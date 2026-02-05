@@ -422,7 +422,7 @@ def render_evolution_insights():
             st.metric("Recent Average Score", f"{recent_avg:.3f}")
             
             if recent_std < 0.01:  # Very low standard deviation indicates convergence
-                st.info("✅ Evolution appears to have converged")
+                st.info("[OK] Evolution appears to have converged")
             elif recent_std < 0.05:
                 st.info("🔄 Evolution may be approaching convergence")
             else:

@@ -742,7 +742,7 @@ class DoclingParser(Parser):
                 parent.add_child(table_node)
                 continue
 
-            # Fallback: unknown collection → store as paragraph metadata
+            # Fallback: unknown collection -> store as paragraph metadata
             _flush_current_list(parent)
             fallback_node = Node(children=[], node_type=NodeType.PARAGRAPH, metadata={})
             fallback_node.metadata["docling_raw"] = item

@@ -401,7 +401,7 @@ async def test_complexity_optimization():
 
     # For selective activation, we expect some complexity savings
     if activation_ratio < 1.0:
-        print(f"\n  ✓ DITO achieved complexity savings!")
+        print(f"\n  [OK] DITO achieved complexity savings!")
         print(f"    Activated only {activation_ratio:.1%} of graph")
     else:
         print(f"\n  Note: All nodes activated (may be due to dependencies)")
@@ -459,17 +459,17 @@ async def test_scaling_performance():
         size_ratio_50_100 = results[2]['size'] / results[1]['size']
 
         print(f"\nScaling Analysis:")
-        print(f"  10→50 constraints: {ratio_10_50:.2f}x time for {size_ratio_10_50:.2f}x size")
-        print(f"  50→100 constraints: {ratio_50_100:.2f}x time for {size_ratio_50_100:.2f}x size")
+        print(f"  10->50 constraints: {ratio_10_50:.2f}x time for {size_ratio_10_50:.2f}x size")
+        print(f"  50->100 constraints: {ratio_50_100:.2f}x time for {size_ratio_50_100:.2f}x size")
 
         # O(n log n) would give roughly:
-        # - 5x size → 5 * log(50)/log(10) ≈ 8.5x time
-        # - 2x size → 2 * log(100)/log(50) ≈ 2.4x time
+        # - 5x size -> 5 * log(50)/log(10) ≈ 8.5x time
+        # - 2x size -> 2 * log(100)/log(50) ≈ 2.4x time
         # Allow some slack for overhead
 
         print(f"\n  Expected O(n log n) scaling:")
-        print(f"    10→50: ~8.5x (actual: {ratio_10_50:.2f}x)")
-        print(f"    50→100: ~2.4x (actual: {ratio_50_100:.2f}x)")
+        print(f"    10->50: ~8.5x (actual: {ratio_10_50:.2f}x)")
+        print(f"    50->100: ~2.4x (actual: {ratio_50_100:.2f}x)")
 
     print("[PASS] Scaling performance test completed")
 

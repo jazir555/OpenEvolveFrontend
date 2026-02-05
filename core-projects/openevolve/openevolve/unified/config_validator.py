@@ -453,16 +453,16 @@ class ConfigValidator:
         lines.append("=" * 80)
 
         if not errors and not warnings:
-            lines.append("✓ Configuration is valid! No issues found.")
+            lines.append("[OK] Configuration is valid! No issues found.")
         else:
             if errors:
-                lines.append(f"\n❌ ERRORS ({len(errors)}):")
+                lines.append(f"\n[FAIL] ERRORS ({len(errors)}):")
                 lines.append("-" * 80)
                 for i, error in enumerate(errors, 1):
                     lines.append(f"{i}. {error}")
 
             if warnings:
-                lines.append(f"\n⚠️  WARNINGS ({len(warnings)}):")
+                lines.append(f"\n[WARN]  WARNINGS ({len(warnings)}):")
                 lines.append("-" * 80)
                 for i, warning in enumerate(warnings, 1):
                     lines.append(f"{i}. {warning}")

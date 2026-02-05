@@ -22,10 +22,10 @@ def run_command(cmd: list, description: str) -> bool:
     result = subprocess.run(cmd, capture_output=False)
 
     if result.returncode == 0:
-        print(f"✅ {description} - PASSED")
+        print(f"[OK] {description} - PASSED")
         return True
     else:
-        print(f"❌ {description} - FAILED")
+        print(f"[FAIL] {description} - FAILED")
         return False
 
 
@@ -44,12 +44,12 @@ def main():
         import httpx
         response = httpx.get("http://localhost:8001/health", timeout=2.0)
         if response.status_code == 200:
-            print("✅ Service is running")
+            print("[OK] Service is running")
         else:
-            print("❌ Service is not healthy")
+            print("[FAIL] Service is not healthy")
             sys.exit(1)
     except Exception as e:
-        print(f"❌ Cannot connect to service: {e}")
+        print(f"[FAIL] Cannot connect to service: {e}")
         print("\n💡 Start the service first:")
         print("   cd BubbleLab/services && python -m uvicorn openevolve-api.main:app --host 0.0.0.0 --port 8001")
         sys.exit(1)
@@ -79,7 +79,7 @@ def main():
     total = len(results)
 
     for i, (test, result) in enumerate(zip(tests, results)):
-        status = "✅ PASS" if result else "❌ FAIL"
+        status = "[OK] PASS" if result else "[FAIL] FAIL"
         print(f"{status} - {test['desc']}")
 
     print(f"\nTotal: {passed}/{total} test suites passed")
@@ -88,7 +88,7 @@ def main():
         print("\n🎉 All tests passed!")
         sys.exit(0)
     else:
-        print(f"\n⚠️  {total - passed} test suite(s) failed")
+        print(f"\n[WARN]  {total - passed} test suite(s) failed")
         sys.exit(1)
 
 

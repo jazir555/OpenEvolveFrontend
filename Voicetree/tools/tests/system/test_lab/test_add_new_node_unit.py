@@ -119,7 +119,7 @@ Validates that node creation works in test environment""",
         passed_validations = sum(validations.values())
         
         for validation, passed in validations.items():
-            status = "✅" if passed else "❌"
+            status = "[OK]" if passed else "[FAIL]"
             print(f"{status} {validation}")
             
         success_rate = passed_validations / total_validations
@@ -208,7 +208,7 @@ This is a test source node."""
             # Basic check: ensure the title line is present
             assert 'title:' in yaml_content, f"No title field in YAML:\n{yaml_content}"
 
-            print(f"✅ Successfully created and validated node with title: {test_name}")
+            print(f"[OK] Successfully created and validated node with title: {test_name}")
 
             # Clean up for next test
             new_node.unlink()

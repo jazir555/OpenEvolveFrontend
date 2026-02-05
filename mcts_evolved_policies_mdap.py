@@ -1779,12 +1779,12 @@ class DecompositionEnhancedPolicy:
 
             return subtasks
 
-        elif " -> " in theorem or " → " in theorem:
+        elif " -> " in theorem or " -> " in theorem:
             # For implication, try to prove consequent assuming antecedent
             if " -> " in theorem:
                 parts = theorem.split(" -> ")
             else:
-                parts = theorem.split(" → ")
+                parts = theorem.split(" -> ")
 
             if len(parts) == 2:
                 # Focus on proving consequent

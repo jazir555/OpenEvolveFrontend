@@ -2,7 +2,7 @@
 Example: Finding and fixing a bug using Cognitive Hydraulics.
 
 This example demonstrates the complete Cognitive Hydraulics decision cycle:
-1. Soar Phase: Read file → Execute code → Detect IndexError
+1. Soar Phase: Read file -> Execute code -> Detect IndexError
 2. Impasse Detection: Multiple valid fix options create Tie impasse
 3. ACT-R Fallback: LLM evaluates options using utility equation (U = P×G - C)
 4. Fix Application: Apply selected fix
@@ -21,7 +21,7 @@ async def main():
     print("🐛 COGNITIVE HYDRAULICS - BUG FIX EXAMPLE")
     print("=" * 70)
     print("\nThis example demonstrates the full Cognitive Hydraulics flow:")
-    print("  Turn 1: Soar Phase - Read file → Execute code → Detect IndexError")
+    print("  Turn 1: Soar Phase - Read file -> Execute code -> Detect IndexError")
     print("  Turn 2: Tie Impasse - Multiple fix options")
     print("  Turn 2: ACT-R Fallback - Evaluating options with utility equation")
     print("  Turn 3: Applying fix - Selected fix is applied")
@@ -49,7 +49,7 @@ async def main():
         max_cycles=50,  # Override config for complex analysis
         config=app_config,  # Use loaded config
     )
-    print("✓ Agent created")
+    print("[OK] Agent created")
 
     # Create initial state (file will be opened by rules)
     print("\n📄 Creating initial state...")
@@ -57,7 +57,7 @@ async def main():
         working_directory=str(example_dir),
         open_files={},  # Start with no files open - let rules handle opening
     )
-    print(f"✓ State created (file will be opened by agent)")
+    print(f"[OK] State created (file will be opened by agent)")
 
     # Define goal to fix the bug
     print("\n🎯 Setting goal...")
@@ -66,7 +66,7 @@ async def main():
             "Fix the bug in sort.py so that it runs without errors and sorts the list correctly."
         )
     )
-    print(f"✓ Goal: {goal.description}")
+    print(f"[OK] Goal: {goal.description}")
 
     # Run agent
     print("\n🚀 Running cognitive agent to fix the bug...")
@@ -83,7 +83,7 @@ async def main():
         print("-" * 70)
 
         if success:
-            print("\n✅ SUCCESS: Bug fixed and verified!")
+            print("\n[OK] SUCCESS: Bug fixed and verified!")
 
             # Show the fixed file
             if final_state.open_files.get("sort.py"):
@@ -94,13 +94,13 @@ async def main():
             if goal.status == "success":
                 print("\n🎯 Goal achieved: Code runs without errors and sorts correctly!")
             else:
-                print(f"\n⚠️  Goal status: {goal.status}")
+                print(f"\n[WARN]  Goal status: {goal.status}")
 
             if final_state.last_output:
                 print("\n💡 Final output:")
                 print(final_state.last_output)
         else:
-            print("\n⚠️  Fix incomplete (max cycles reached or impasse)")
+            print("\n[WARN]  Fix incomplete (max cycles reached or impasse)")
 
         # Show statistics
         print(f"\n📊 Statistics:")
@@ -117,13 +117,13 @@ async def main():
                 print(f"   - Memory stats unavailable: {e}")
 
     except Exception as e:
-        print(f"\n❌ Error: {e}")
+        print(f"\n[FAIL] Error: {e}")
         import traceback
         traceback.print_exc()
         raise
 
     print("\n" + "=" * 70)
-    print("✓ Example complete")
+    print("[OK] Example complete")
     print("=" * 70)
 
 

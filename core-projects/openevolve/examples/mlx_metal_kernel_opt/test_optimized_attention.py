@@ -77,7 +77,7 @@ def load_custom_attention_class(program_path: str):
         try:
             exec_globals["mlx_lm"] = __import__("mlx_lm")
         except ImportError:
-            print("⚠️  Could not import mlx_lm, RoPE may not work")
+            print("[WARN]  Could not import mlx_lm, RoPE may not work")
 
         # Execute the program
         exec(program_text, exec_globals)
@@ -87,11 +87,11 @@ def load_custom_attention_class(program_path: str):
         if custom_class is None:
             raise ValueError("CustomGQAAttention class not found in program")
 
-        print("✅ Successfully loaded CustomGQAAttention class")
+        print("[OK] Successfully loaded CustomGQAAttention class")
         return custom_class
 
     except Exception as e:
-        print(f"❌ Failed to load custom attention: {e}")
+        print(f"[FAIL] Failed to load custom attention: {e}")
         traceback.print_exc()
         return None
 
@@ -109,15 +109,15 @@ def apply_monkey_patch(custom_attention_class):
         # Replace with custom implementation
         qwen3_module.Attention = custom_attention_class
 
-        print("✅ Successfully applied monkey patch")
+        print("[OK] Successfully applied monkey patch")
         return original_attention
 
     except ImportError as e:
-        print(f"❌ Could not import mlx_lm.models.qwen3: {e}")
+        print(f"[FAIL] Could not import mlx_lm.models.qwen3: {e}")
         print("   Make sure mlx-lm is installed: pip install mlx-lm")
         return None
     except Exception as e:
-        print(f"❌ Failed to apply monkey patch: {e}")
+        print(f"[FAIL] Failed to apply monkey patch: {e}")
         return None
 
 
@@ -130,7 +130,7 @@ def remove_monkey_patch(original_attention):
         import mlx_lm.models.qwen3 as qwen3_module
 
         qwen3_module.Attention = original_attention
-        print("✅ Removed monkey patch")
+        print("[OK] Removed monkey patch")
     except ImportError:
         pass
 
@@ -182,7 +182,7 @@ def run_mlx_lm_generation(
                 print(result.stderr[:500])
 
         if result.returncode != 0:
-            print(f"❌ Generation failed with return code {result.returncode}")
+            print(f"[FAIL] Generation failed with return code {result.returncode}")
             if result.stderr:
                 print(f"Error: {result.stderr[:200]}")
             return {"success": False, "error": result.stderr}
@@ -258,7 +258,7 @@ def run_mlx_lm_generation(
 
         # Check if we got meaningful results
         if not found_generation_stats or generation_tokens == 0:
-            print("⚠️  No generation statistics found in output")
+            print("[WARN]  No generation statistics found in output")
             if debug:
                 print(f"found_prompt_stats: {found_prompt_stats}")
                 print(f"found_generation_stats: {found_generation_stats}")
@@ -288,7 +288,7 @@ def run_mlx_lm_generation(
         print("⏰ Generation timed out after 120 seconds")
         return {"success": False, "error": "Timeout"}
     except Exception as e:
-        print(f"❌ Generation failed: {e}")
+        print(f"[FAIL] Generation failed: {e}")
         if debug:
             traceback.print_exc()
         return {"success": False, "error": str(e)}
@@ -310,17 +310,17 @@ def run_comparison_test(
     standard_result = run_mlx_lm_generation(prompt, max_tokens, debug=debug)
 
     if not standard_result.get("success", False):
-        print("❌ Standard attention test failed")
+        print("[FAIL] Standard attention test failed")
         if debug and "error" in standard_result:
             print(f"   Error: {standard_result['error']}")
         print("\n🔧 Troubleshooting tips:")
-        print("   • Check that mlx-lm is installed: pip install mlx-lm")
-        print("   • Try a shorter prompt or fewer tokens")
-        print("   • Run with --debug flag for more info")
-        print("   • Check if the model downloads successfully")
+        print("   * Check that mlx-lm is installed: pip install mlx-lm")
+        print("   * Try a shorter prompt or fewer tokens")
+        print("   * Run with --debug flag for more info")
+        print("   * Check if the model downloads successfully")
         return
 
-    print(f"✅ Standard Results:")
+    print(f"[OK] Standard Results:")
     print(f"   Decode Speed: {standard_result['generation_speed']:.1f} tokens/sec")
     print(f"   Memory Usage: {standard_result['peak_memory']:.2f} GB")
     print(f"   Total Time: {standard_result['total_time']:.2f} seconds")
@@ -328,7 +328,7 @@ def run_comparison_test(
 
     # Check if we have valid results
     if standard_result["generation_tokens"] == 0:
-        print("⚠️  Warning: Standard attention generated 0 tokens")
+        print("[WARN]  Warning: Standard attention generated 0 tokens")
         print("   This might indicate an issue with the model or prompt")
         print("   Generated text preview:")
         print(f"   '{standard_result['generated_text'][:100]}'")
@@ -346,7 +346,7 @@ def run_comparison_test(
     # Apply monkey patch
     original_attention = apply_monkey_patch(custom_attention_class)
     if original_attention is None:
-        print("❌ Failed to apply monkey patch")
+        print("[FAIL] Failed to apply monkey patch")
         return
 
     try:
@@ -355,12 +355,12 @@ def run_comparison_test(
         optimized_result = run_mlx_lm_generation(prompt, max_tokens, debug=debug)
 
         if not optimized_result.get("success", False):
-            print("❌ Optimized attention test failed")
+            print("[FAIL] Optimized attention test failed")
             if debug and "error" in optimized_result:
                 print(f"   Error: {optimized_result['error']}")
             return
 
-        print(f"✅ Optimized Results:")
+        print(f"[OK] Optimized Results:")
         print(f"   Decode Speed: {optimized_result['generation_speed']:.1f} tokens/sec")
         print(f"   Memory Usage: {optimized_result['peak_memory']:.2f} GB")
         print(f"   Total Time: {optimized_result['total_time']:.2f} seconds")
@@ -374,7 +374,7 @@ def run_comparison_test(
             ) * 100
         else:
             speed_improvement = 0.0
-            print("⚠️  Cannot calculate speed improvement (standard speed was 0)")
+            print("[WARN]  Cannot calculate speed improvement (standard speed was 0)")
 
         memory_change = optimized_result["peak_memory"] - standard_result["peak_memory"]
 
@@ -391,7 +391,7 @@ def run_comparison_test(
             print(f"   Speed Improvement: {speed_improvement:+.1f}%")
         else:
             print(
-                f"   Speed Comparison: {standard_result['generation_speed']:.1f} → {optimized_result['generation_speed']:.1f} tokens/sec"
+                f"   Speed Comparison: {standard_result['generation_speed']:.1f} -> {optimized_result['generation_speed']:.1f} tokens/sec"
             )
         print(f"   Memory Change: {memory_change:+.2f} GB")
         print(f"   Time Improvement: {time_improvement:+.1f}%")
@@ -403,7 +403,7 @@ def run_comparison_test(
         elif standard_result["generation_speed"] == 0 and optimized_result["generation_speed"] > 0:
             print("🔥 Optimized version works where standard failed!")
         else:
-            print("⚠️  No improvement or regression")
+            print("[WARN]  No improvement or regression")
 
         # Show generated text comparison
         print(f"\n📝 GENERATED TEXT COMPARISON:")
@@ -423,11 +423,11 @@ def run_comparison_test(
 
         if standard_result["generated_text"] and optimized_result["generated_text"]:
             if standard_result["generated_text"][:100] == optimized_result["generated_text"][:100]:
-                print("✅ Generated text is identical (good!)")
+                print("[OK] Generated text is identical (good!)")
             else:
-                print("⚠️  Generated text differs (check randomness/temperature)")
+                print("[WARN]  Generated text differs (check randomness/temperature)")
         elif not standard_result["generated_text"] and not optimized_result["generated_text"]:
-            print("⚠️  Both versions generated no text")
+            print("[WARN]  Both versions generated no text")
         else:
             print("ℹ️  Different text generation behavior")
 
@@ -455,7 +455,7 @@ def main():
         program_path = find_best_program()
 
     if not program_path or not os.path.exists(program_path):
-        print("❌ Could not find best_program.py")
+        print("[FAIL] Could not find best_program.py")
         print("   Please provide the path to the optimized program:")
         print("   python test_optimized_attention.py path/to/best_program.py")
         print("\n   Or make sure you have run AlphaEvolve and have results in:")
@@ -477,9 +477,9 @@ def main():
     try:
         import mlx_lm
 
-        print("✅ mlx-lm is available")
+        print("[OK] mlx-lm is available")
     except ImportError:
-        print("❌ mlx-lm is not installed")
+        print("[FAIL] mlx-lm is not installed")
         print("   Please install it: pip install mlx-lm")
         sys.exit(1)
 
@@ -487,7 +487,7 @@ def main():
     run_comparison_test(args.prompt, custom_attention_class, args.max_tokens, debug=args.debug)
 
     print(f"\n{'='*60}")
-    print("✅ Test completed!")
+    print("[OK] Test completed!")
     print("💡 To test with a different prompt:")
     print(f"   python {sys.argv[0]} --prompt 'Your custom prompt here'")
     print("💡 For debugging: add --debug flag")

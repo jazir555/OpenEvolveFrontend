@@ -45,7 +45,7 @@ def quick_start():
     health = get_health_checker()
     alerts = get_alerting_engine()
 
-    print("✓ All components initialized successfully!")
+    print("[OK] All components initialized successfully!")
 
     # 2. Record a gauntlet execution
     print_section("2. Record Gauntlet Execution")
@@ -59,7 +59,7 @@ def quick_start():
         rounds_completed=3
     )
 
-    print("✓ Execution recorded!")
+    print("[OK] Execution recorded!")
     print("  Domain: finance")
     print("  Passed: True")
     print("  Duration: 2345.67ms")
@@ -72,8 +72,8 @@ def quick_start():
     is_healthy = health.is_healthy()
     is_ready = health.is_ready()
 
-    print(f"✓ System Healthy: {is_healthy}")
-    print(f"✓ System Ready: {is_ready}")
+    print(f"[OK] System Healthy: {is_healthy}")
+    print(f"[OK] System Ready: {is_ready}")
 
     # Get health report
     report = health.get_health_report()
@@ -85,10 +85,10 @@ def quick_start():
     print("Getting metrics summary...")
 
     summary = metrics.get_metric_summary()
-    print(f"✓ Total Executions: {summary['total_executions']}")
-    print(f"✓ Total Passes: {summary['total_passes']}")
-    print(f"✓ Total Failures: {summary['total_failures']}")
-    print(f"✓ Pass Rate: {summary['global_pass_rate']:.1%}")
+    print(f"[OK] Total Executions: {summary['total_executions']}")
+    print(f"[OK] Total Passes: {summary['total_passes']}")
+    print(f"[OK] Total Failures: {summary['total_failures']}")
+    print(f"[OK] Pass Rate: {summary['global_pass_rate']:.1%}")
 
     # 5. Export metrics (Prometheus format)
     print_section("5. Export Metrics (Prometheus Format)")
@@ -108,7 +108,7 @@ def quick_start():
         for alert in triggered:
             print(f"  - [{alert.severity.value.upper()}] {alert.message}")
     else:
-        print("✓ No alerts triggered - system looking good!")
+        print("[OK] No alerts triggered - system looking good!")
 
     # 7. Next steps
     print_section("7. Next Steps")
@@ -196,7 +196,7 @@ def interactive_demo():
                 duration_ms=duration,
                 score=score
             )
-            print("\n✓ Execution recorded!")
+            print("\n[OK] Execution recorded!")
 
         elif choice == "2":
             summary = metrics.get_metric_summary()
@@ -223,7 +223,7 @@ def interactive_demo():
                 for alert in triggered:
                     print(f"  - {alert.message}")
             else:
-                print("\n✓ No alerts triggered")
+                print("\n[OK] No alerts triggered")
 
         elif choice == "5":
             prometheus = metrics.export_prometheus()

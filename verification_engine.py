@@ -1708,12 +1708,12 @@ class VerificationEngine:
 
                 # Generate function type definitions
                 for func in functions:
-                    args_str = " → ".join([f"Type" for _ in func['args']])
+                    args_str = " -> ".join([f"Type" for _ in func['args']])
                     if func['returns']:
                         return_type = self._python_type_to_lean(func['returns'])
-                        lean_code_parts.append(f"  {func['name']} : {args_str} → {return_type}\n")
+                        lean_code_parts.append(f"  {func['name']} : {args_str} -> {return_type}\n")
                     else:
-                        lean_code_parts.append(f"  {func['name']} : {args_str} → Type\n")
+                        lean_code_parts.append(f"  {func['name']} : {args_str} -> Type\n")
 
                 lean_code_parts.append("\n")
 
@@ -1835,7 +1835,7 @@ class VerificationEngine:
         """Detect if solution contains logical constraints."""
         logical_keywords = [
             'for all', 'there exists', 'implies', 'iff', 'iff',
-            '∧', '∨', '¬', '→', '↔', '∀', '∃',
+            '∧', '∨', '¬', '->', '↔', '∀', '∃',
             'assert', 'invariant', 'precondition', 'postcondition'
         ]
 
@@ -1850,19 +1850,19 @@ class VerificationEngine:
     ) -> str:
         """Generate human-readable recommendation based on verification results."""
         if verified and confidence >= 0.8:
-            return "✅ Solution formally verified with high confidence. Recommended for production deployment."
+            return "[OK] Solution formally verified with high confidence. Recommended for production deployment."
 
         elif verified and confidence >= 0.5:
-            return "⚠️ Solution formally verified with moderate confidence. Manual review recommended before production."
+            return "[WARN] Solution formally verified with moderate confidence. Manual review recommended before production."
 
         elif results.get('z3', {}).get('status') == 'unknown':
-            return "⚠️ Z3 could not determine satisfiability. Consider simplifying constraints or adding more context."
+            return "[WARN] Z3 could not determine satisfiability. Consider simplifying constraints or adding more context."
 
         elif not results.get('z3') and not results.get('leanaide'):
-            return "❌ No formal verification tools available. Enable Z3 or LeanAIDE for mathematical and logical verification."
+            return "[FAIL] No formal verification tools available. Enable Z3 or LeanAIDE for mathematical and logical verification."
 
         else:
-            return "❌ Formal verification failed. Solution requires revision before deployment."
+            return "[FAIL] Formal verification failed. Solution requires revision before deployment."
 
 
 # =============================================================================

@@ -16,15 +16,15 @@ def test_dspy_integration_availability():
     print("Testing global dspy_integration module...")
     try:
         import dspy_integration
-        print(f"✓ dspy_integration module imported successfully")
+        print(f"[OK] dspy_integration module imported successfully")
         print(f"  - DSPY_AVAILABLE: {dspy_integration.DSPY_AVAILABLE}")
         print(f"  - get_dspy_status(): {dspy_integration.get_dspy_status()}")
         return True
     except ImportError as e:
-        print(f"✗ Failed to import dspy_integration: {e}")
+        print(f"[FAIL] Failed to import dspy_integration: {e}")
         return False
     except Exception as e:
-        print(f"✗ Error testing dspy_integration: {e}")
+        print(f"[FAIL] Error testing dspy_integration: {e}")
         return False
 
 def test_z3_leanaide_bridge():
@@ -33,7 +33,7 @@ def test_z3_leanaide_bridge():
     try:
         from z3_leanaide_bridge import Z3LeanAideBridge
         bridge = Z3LeanAideBridge()
-        print(f"✓ Z3LeanAideBridge instantiated successfully")
+        print(f"[OK] Z3LeanAideBridge instantiated successfully")
         
         # Check if DSPy methods are available
         has_dspy_methods = hasattr(bridge, 'verify_with_dspy_guidance') and hasattr(bridge, 'translate_with_dspy_enhancement')
@@ -41,10 +41,10 @@ def test_z3_leanaide_bridge():
         
         return True
     except ImportError as e:
-        print(f"✗ Failed to import Z3LeanAideBridge: {e}")
+        print(f"[FAIL] Failed to import Z3LeanAideBridge: {e}")
         return False
     except Exception as e:
-        print(f"✗ Error testing Z3LeanAideBridge: {e}")
+        print(f"[FAIL] Error testing Z3LeanAideBridge: {e}")
         return False
 
 def test_robust_z3_leanaide_integration():
@@ -53,13 +53,13 @@ def test_robust_z3_leanaide_integration():
     try:
         from robust_z3_leanaide_integration import get_robust_z3_leanaide_bridge
         bridge = get_robust_z3_leanaide_bridge()
-        print(f"✓ Robust Z3LeanAideBridge instantiated successfully")
+        print(f"[OK] Robust Z3LeanAideBridge instantiated successfully")
         return True
     except ImportError as e:
-        print(f"✗ Failed to import robust Z3-LeanAide integration: {e}")
+        print(f"[FAIL] Failed to import robust Z3-LeanAide integration: {e}")
         return False
     except Exception as e:
-        print(f"✗ Error testing robust Z3-LeanAide integration: {e}")
+        print(f"[FAIL] Error testing robust Z3-LeanAide integration: {e}")
         return False
 
 def test_knowledge_engine_dspy_integration():
@@ -68,13 +68,13 @@ def test_knowledge_engine_dspy_integration():
     try:
         from knowledge_engine.integrations.dspy_integration import DSPyIntegration
         dspy_integrator = DSPyIntegration()
-        print(f"✓ DSPyIntegration instantiated successfully")
+        print(f"[OK] DSPyIntegration instantiated successfully")
         return True
     except ImportError as e:
-        print(f"✗ Failed to import knowledge engine DSPy integration: {e}")
+        print(f"[FAIL] Failed to import knowledge engine DSPy integration: {e}")
         return False
     except Exception as e:
-        print(f"✗ Error testing knowledge engine DSPy integration: {e}")
+        print(f"[FAIL] Error testing knowledge engine DSPy integration: {e}")
         return False
 
 def test_evolution_dspy_integration():
@@ -84,14 +84,14 @@ def test_evolution_dspy_integration():
         from evolution import ContentEvaluator
         evaluator = ContentEvaluator()
         has_dspy_methods = hasattr(evaluator, 'evaluate_content_with_dspy')
-        print(f"✓ ContentEvaluator instantiated successfully")
+        print(f"[OK] ContentEvaluator instantiated successfully")
         print(f"  - Has DSPy evaluation method: {has_dspy_methods}")
         return True
     except ImportError as e:
-        print(f"✗ Failed to import evolution DSPy integration: {e}")
+        print(f"[FAIL] Failed to import evolution DSPy integration: {e}")
         return False
     except Exception as e:
-        print(f"✗ Error testing evolution DSPy integration: {e}")
+        print(f"[FAIL] Error testing evolution DSPy integration: {e}")
         return False
 
 def test_evaluator_team_dspy_integration():
@@ -101,14 +101,14 @@ def test_evaluator_team_dspy_integration():
         from evaluator_team import EvaluatorTeam
         evaluator_team = EvaluatorTeam()
         has_dspy_methods = hasattr(evaluator_team, 'evaluate_content_with_dspy')
-        print(f"✓ EvaluatorTeam instantiated successfully")
+        print(f"[OK] EvaluatorTeam instantiated successfully")
         print(f"  - Has DSPy evaluation method: {has_dspy_methods}")
         return True
     except ImportError as e:
-        print(f"✗ Failed to import evaluator team DSPy integration: {e}")
+        print(f"[FAIL] Failed to import evaluator team DSPy integration: {e}")
         return False
     except Exception as e:
-        print(f"✗ Error testing evaluator team DSPy integration: {e}")
+        print(f"[FAIL] Error testing evaluator team DSPy integration: {e}")
         return False
 
 def test_solution_pattern_miner_dspy_integration():
@@ -118,14 +118,14 @@ def test_solution_pattern_miner_dspy_integration():
         from solution_pattern_miner import SolutionPatternMiner
         miner = SolutionPatternMiner()
         has_dspy_methods = hasattr(miner, 'mine_patterns_with_dspy')
-        print(f"✓ SolutionPatternMiner instantiated successfully")
+        print(f"[OK] SolutionPatternMiner instantiated successfully")
         print(f"  - Has DSPy mining method: {has_dspy_methods}")
         return True
     except ImportError as e:
-        print(f"✗ Failed to import solution pattern miner DSPy integration: {e}")
+        print(f"[FAIL] Failed to import solution pattern miner DSPy integration: {e}")
         return False
     except Exception as e:
-        print(f"✗ Error testing solution pattern miner DSPy integration: {e}")
+        print(f"[FAIL] Error testing solution pattern miner DSPy integration: {e}")
         return False
 
 def test_unified_mcp_server_dspy_tools():
@@ -135,13 +135,13 @@ def test_unified_mcp_server_dspy_tools():
         from unified_mcp_server import UnifiedMCPServer
         server = UnifiedMCPServer()
         # Check if the server has the expected DSPy tools registered
-        print(f"✓ UnifiedMCPServer instantiated successfully")
+        print(f"[OK] UnifiedMCPServer instantiated successfully")
         return True
     except ImportError as e:
-        print(f"✗ Failed to import unified MCP server: {e}")
+        print(f"[FAIL] Failed to import unified MCP server: {e}")
         return False
     except Exception as e:
-        print(f"✗ Error testing unified MCP server: {e}")
+        print(f"[FAIL] Error testing unified MCP server: {e}")
         return False
 
 def main():
@@ -186,7 +186,7 @@ def main():
         print("- Unified MCP server with 13 DSPy-enhanced tools")
         print("- Full backward compatibility with fallbacks")
     else:
-        print(f"⚠️  {total - passed} integration points need attention")
+        print(f"[WARN]  {total - passed} integration points need attention")
     
     print("="*60)
     return passed == total

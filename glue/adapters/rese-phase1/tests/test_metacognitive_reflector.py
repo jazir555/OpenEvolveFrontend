@@ -77,7 +77,7 @@ def test_debiasing_config_from_env():
     assert config.ANTITHETICAL_COUNT == 5, f"ANTITHETICAL_COUNT should be 5, got {config.ANTITHETICAL_COUNT}"
     assert config.TIMEOUT_MS == 8000, f"TIMEOUT_MS should be 8000, got {config.TIMEOUT_MS}"
 
-    print("✓ Configuration loaded correctly")
+    print("[OK] Configuration loaded correctly")
     print(f"  - ENABLE_DEBIASING: {config.ENABLE_DEBIASING}")
     print(f"  - CBI_THRESHOLD: {config.CBI_THRESHOLD}")
     print(f"  - ANTITHETICAL_COUNT: {config.ANTITHETICAL_COUNT}")
@@ -116,7 +116,7 @@ def test_identify_confirmation_bias():
     assert len(bias_analysis.directional_language) >= 2, \
         f"Expected at least 2 directional phrases, got {len(bias_analysis.directional_language)}"
 
-    print("✓ Confirmation bias identified correctly")
+    print("[OK] Confirmation bias identified correctly")
     print(f"  - Bias Type: {bias_analysis.bias_type.value}")
     print(f"  - Confidence: {bias_analysis.confidence:.2f}")
     print(f"  - Severity: {bias_analysis.severity.value}")
@@ -153,7 +153,7 @@ def test_identify_neutral_hypothesis():
     assert bias_analysis.severity == Severity.LOW, \
         f"Expected LOW severity, got {bias_analysis.severity}"
 
-    print("✓ Neutral hypothesis identified correctly")
+    print("[OK] Neutral hypothesis identified correctly")
     print(f"  - Bias Type: {bias_analysis.bias_type.value}")
     print(f"  - Severity: {bias_analysis.severity.value}")
 
@@ -198,7 +198,7 @@ def test_generate_antithetical_outcomes():
         assert h.confidence < hypothesis.confidence, \
             f"Antithetical outcome should have lower confidence: {h.confidence} >= {hypothesis.confidence}"
 
-    print("✓ Antithetical outcomes generated correctly")
+    print("[OK] Antithetical outcomes generated correctly")
     print(f"  - Count: {len(antithetical)}")
     for i, h in enumerate(antithetical):
         print(f"  - Outcome {i+1}: {h.statement[:60]}... (confidence: {h.confidence:.2f})")
@@ -244,7 +244,7 @@ def test_calculate_cbi():
     assert cbi > 0.4, f"Expected high CBI (>0.4), got {cbi}"
     assert 0.0 <= cbi <= 1.0, f"CBI should be in [0,1], got {cbi}"
 
-    print("✓ CBI calculated correctly")
+    print("[OK] CBI calculated correctly")
     print(f"  - CBI: {cbi:.4f}")
     print(f"  - Interpretation: {'High bias' if cbi > 0.5 else 'Low bias'}")
 
@@ -294,7 +294,7 @@ def test_apply_metacognitive_reflection():
     assert "obviously" not in debiased.statement.lower(), \
         "Directional language 'obviously' should be removed"
 
-    print("✓ Metacognitive reflection applied correctly")
+    print("[OK] Metacognitive reflection applied correctly")
     print(f"  - Original confidence: {hypothesis.confidence:.2f}")
     print(f"  - Debiasing confidence: {debiased.confidence:.2f}")
     print(f"  - Original statement: {hypothesis.statement}")
@@ -352,7 +352,7 @@ def test_perform_debiasing_end_to_end():
     except ValueError:
         assert False, f"Timestamp should be ISO-8601: {result.timestamp}"
 
-    print("✓ End-to-end debiasing completed successfully")
+    print("[OK] End-to-end debiasing completed successfully")
     print(f"  - Initial CBI: {result.initial_cbi:.4f}")
     print(f"  - Final CBI: {result.confirmation_bias_index:.4f}")
     print(f"  - Bias Reduction: {result.bias_reduction:.2f}%")
@@ -399,7 +399,7 @@ def test_idempotency():
     assert abs(result1.confirmation_bias_index - result2.confirmation_bias_index) < 0.01, \
         "CBI should be consistent across runs"
 
-    print("✓ Idempotency verified")
+    print("[OK] Idempotency verified")
     print(f"  - Run 1 CBI: {result1.confirmation_bias_index:.4f}")
     print(f"  - Run 2 CBI: {result2.confirmation_bias_index:.4f}")
 
@@ -433,12 +433,12 @@ def test_timeout_enforcement():
             correlation_id=str(uuid.uuid4()),
         )
         # If it completes, verify it was fast
-        print("✓ Debiasing completed within timeout")
+        print("[OK] Debiasing completed within timeout")
     except TimeoutError as e:
-        print(f"✓ Timeout enforced correctly: {e}")
+        print(f"[OK] Timeout enforced correctly: {e}")
     except Exception as e:
         # Other exceptions are acceptable for this test
-        print(f"✓ Processing handled (may have hit timeout): {type(e).__name__}")
+        print(f"[OK] Processing handled (may have hit timeout): {type(e).__name__}")
 
 
 def test_cbi_threshold_validation():
@@ -451,13 +451,13 @@ def test_cbi_threshold_validation():
         config = DebiasingConfig.from_env()
         assert False, "Should have raised ValueError for invalid CBI_THRESHOLD"
     except ValueError as e:
-        print(f"✓ Invalid CBI threshold rejected: {e}")
+        print(f"[OK] Invalid CBI threshold rejected: {e}")
 
     # Test valid CBI threshold
     os.environ['PHASE1_CBI_THRESHOLD'] = '0.7'
     config = DebiasingConfig.from_env()
     assert config.CBI_THRESHOLD == 0.7, "Valid CBI threshold should be accepted"
-    print(f"✓ Valid CBI threshold accepted: {config.CBI_THRESHOLD}")
+    print(f"[OK] Valid CBI threshold accepted: {config.CBI_THRESHOLD}")
 
 
 # ============================================================================
@@ -491,10 +491,10 @@ def run_all_tests():
             test()
             passed += 1
         except AssertionError as e:
-            print(f"\n✗ FAILED: {e}")
+            print(f"\n[FAIL] FAILED: {e}")
             failed += 1
         except Exception as e:
-            print(f"\n✗ ERROR: {e}")
+            print(f"\n[FAIL] ERROR: {e}")
             failed += 1
 
     print("\n" + "=" * 70)

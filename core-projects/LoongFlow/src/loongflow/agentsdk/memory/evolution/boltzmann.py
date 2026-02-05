@@ -156,8 +156,8 @@ def _boltzmann_selection_with_weights(
     """
     Boltzmann selection with optional sampling weight integration and exploration.
     Features:
-    - Same weights: higher score → higher probability
-    - Same scores: higher weight → higher probability
+    - Same weights: higher score -> higher probability
+    - Same scores: higher weight -> higher probability
     - exploration_rate: chance to select a random solution (0-1)
 
     Args:
@@ -263,8 +263,8 @@ def _boltzmann_selection_with_weights(
 
         # Combine Boltzmann probabilities with sampling weights using proper normalization
         # This ensures the mathematical properties are preserved:
-        # 1. Same weights: higher score → higher probability
-        # 2. Same scores: higher weight → higher probability
+        # 1. Same weights: higher score -> higher probability
+        # 2. Same scores: higher weight -> higher probability
         combined_probs = boltzmann_probs * sampling_weights
 
         # Validate and normalize probabilities

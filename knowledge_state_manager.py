@@ -278,7 +278,7 @@ class StateSnapshot:
                     priority_marker = " [CRITICAL]"
                 elif fact.priority == FactPriority.HIGH:
                     priority_marker = " [HIGH]"
-                lines.append(f"  • {fact.key}: {fact.value}{priority_marker}")
+                lines.append(f"  * {fact.key}: {fact.value}{priority_marker}")
             lines.append("")
         
         # Active decisions
@@ -288,7 +288,7 @@ class StateSnapshot:
         if active:
             lines.append("ACTIVE DECISIONS:")
             for decision in active:
-                lines.append(f"  • {decision.description}")
+                lines.append(f"  * {decision.description}")
                 if decision.rationale:
                     lines.append(f"    (Rationale: {decision.rationale})")
             lines.append("")
@@ -298,7 +298,7 @@ class StateSnapshot:
         if hard_constraints:
             lines.append("CONSTRAINTS:")
             for constraint in hard_constraints:
-                lines.append(f"  • {constraint.description}")
+                lines.append(f"  * {constraint.description}")
             lines.append("")
         
         # Current context
@@ -356,7 +356,7 @@ class StateUpdate:
         if self.new_decisions:
             parts.append(f"+{len(self.new_decisions)} decisions")
         if self.resolved_decision_ids:
-            parts.append(f"✓{len(self.resolved_decision_ids)} resolved")
+            parts.append(f"[OK]{len(self.resolved_decision_ids)} resolved")
         if self.new_constraints:
             parts.append(f"+{len(self.new_constraints)} constraints")
         return ", ".join(parts) if parts else "no changes"
@@ -1291,4 +1291,4 @@ if __name__ == "__main__":
     if diff:
         print(f"\nChanges from turn 1 to 3: {diff.summary()}")
     
-    print("\n✓ Knowledge State Manager demo complete!")
+    print("\n[OK] Knowledge State Manager demo complete!")

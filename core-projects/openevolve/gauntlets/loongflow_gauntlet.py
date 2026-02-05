@@ -264,12 +264,12 @@ class LoongFlowGauntletEvaluator:
 
             # Log initialization status
             if self.loongflow_adapter.is_available():
-                logger.info("✅ LoongFlow Gauntlet Evaluator initialized successfully")
+                logger.info("[OK] LoongFlow Gauntlet Evaluator initialized successfully")
             else:
-                logger.warning("⚠️  LoongFlow unavailable, using fallback evaluation mode")
+                logger.warning("[WARN]  LoongFlow unavailable, using fallback evaluation mode")
         else:
             self.loongflow_adapter = None
-            logger.warning("⚠️  LoongFlow adapter not available, using mock evaluation mode")
+            logger.warning("[WARN]  LoongFlow adapter not available, using mock evaluation mode")
 
         # Initialize Adaptive MDAP components if available
         self.adaptive_mdap_available = ADAPTIVE_MDAP_AVAILABLE
@@ -280,9 +280,9 @@ class LoongFlowGauntletEvaluator:
             try:
                 self.task_classifier = TaskComplexityClassifier()
                 self.mdap_allocator = AdaptiveMDAPAllocator()
-                logger.info("✅ Adaptive MDAP components initialized successfully")
+                logger.info("[OK] Adaptive MDAP components initialized successfully")
             except Exception as e:
-                logger.warning(f"⚠️  Adaptive MDAP initialization failed: {e}")
+                logger.warning(f"[WARN]  Adaptive MDAP initialization failed: {e}")
                 self.adaptive_mdap_available = False
         else:
             logger.info("ℹ️  Adaptive MDAP not available (optional dependency)")
@@ -850,13 +850,13 @@ class LoongFlowGauntletEvaluator:
         if strengths:
             feedback_parts.append("**Strengths:**")
             for strength in strengths:
-                feedback_parts.append(f"✓ {strength}")
+                feedback_parts.append(f"[OK] {strength}")
             feedback_parts.append("")
 
         if weaknesses:
             feedback_parts.append("**Weaknesses:**")
             for weakness in weaknesses:
-                feedback_parts.append(f"✗ {weakness}")
+                feedback_parts.append(f"[FAIL] {weakness}")
             feedback_parts.append("")
 
         if suggestions and self.config.enable_detailed_feedback:
@@ -867,9 +867,9 @@ class LoongFlowGauntletEvaluator:
 
         # Final recommendation
         if passed:
-            feedback_parts.append("**Recommendation:** ✅ PASS - Proceed to Round 2 (Red Team)")
+            feedback_parts.append("**Recommendation:** [OK] PASS - Proceed to Round 2 (Red Team)")
         else:
-            feedback_parts.append("**Recommendation:** ❌ FAIL - Do not proceed to further rounds")
+            feedback_parts.append("**Recommendation:** [FAIL] FAIL - Do not proceed to further rounds")
 
         feedback = "\n".join(feedback_parts)
 

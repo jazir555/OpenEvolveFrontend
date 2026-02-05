@@ -42,12 +42,12 @@ class ArtifactLifecycleManager:
     Provides validation for status changes and maintains audit trails.
 
     Valid transitions:
-    - draft → pending
-    - pending → verified
-    - pending → rejected
-    - verified → final
-    - verified → rejected
-    - any → superseded
+    - draft -> pending
+    - pending -> verified
+    - pending -> rejected
+    - verified -> final
+    - verified -> rejected
+    - any -> superseded
 
     Usage:
         lifecycle = ArtifactLifecycleManager(storage_manager)
@@ -292,7 +292,7 @@ class ArtifactLifecycleManager:
         if current_status and to_status not in self.VALID_TRANSITIONS.get(current_status, []):
             logger.warning(
                 f"Invalid transition for {artifact_id}: "
-                f"{current_status.value} → {to_status.value}"
+                f"{current_status.value} -> {to_status.value}"
             )
             return False
 
@@ -319,7 +319,7 @@ class ArtifactLifecycleManager:
 
             logger.info(
                 f"Transitioned {artifact_id}: "
-                f"{current_status.value if current_status else 'None'} → {to_status.value}"
+                f"{current_status.value if current_status else 'None'} -> {to_status.value}"
             )
 
         return success

@@ -25,15 +25,15 @@ def test_evolution_configuration():
     # Initialize parameter manager
     param_manager = ParameterManager()
     total_params = len(param_manager.schema.parameters)
-    print(f"✅ Parameter Manager: {total_params} parameters available")
+    print(f"[OK] Parameter Manager: {total_params} parameters available")
     
     # Create default configuration
     config = EvolutionConfiguration()
     config_dict = asdict(config)
     config_params = len([k for k, v in config_dict.items() if v is not None])
     
-    print(f"✅ Evolution Configuration: {len(config_dict)} fields defined")
-    print(f"✅ Non-null parameters: {config_params}")
+    print(f"[OK] Evolution Configuration: {len(config_dict)} fields defined")
+    print(f"[OK] Non-null parameters: {config_params}")
     
     # Test parameter coverage
     param_names = set(param_manager.schema.parameters.keys())
@@ -43,10 +43,10 @@ def test_evolution_configuration():
     missing_params = param_names - config_names
     extra_params = config_names - param_names
     
-    print(f"✅ Parameter coverage: {len(covered_params)}/{total_params} ({len(covered_params)/total_params*100:.1f}%)")
+    print(f"[OK] Parameter coverage: {len(covered_params)}/{total_params} ({len(covered_params)/total_params*100:.1f}%)")
     
     if missing_params:
-        print(f"⚠️ Missing parameters ({len(missing_params)}):")
+        print(f"[WARN] Missing parameters ({len(missing_params)}):")
         for param in sorted(list(missing_params)[:10]):  # Show first 10
             print(f"   - {param}")
         if len(missing_params) > 10:
@@ -71,7 +71,7 @@ def test_parameter_validation():
     config.api_key = "test_key"  # Required parameter
     
     validation_result = config.validate(param_manager)
-    print(f"✅ Valid config validation: {validation_result.valid}")
+    print(f"[OK] Valid config validation: {validation_result.valid}")
     
     # Test invalid configuration
     invalid_config = EvolutionConfiguration()
@@ -79,7 +79,7 @@ def test_parameter_validation():
     invalid_config.temperature = 5.0  # Out of range
     
     validation_result = invalid_config.validate(param_manager)
-    print(f"✅ Invalid config validation: {not validation_result.valid} (correctly detected as invalid)")
+    print(f"[OK] Invalid config validation: {not validation_result.valid} (correctly detected as invalid)")
     print(f"   Errors found: {len(validation_result.errors)}")
     
     return True
@@ -92,7 +92,7 @@ def test_evolution_modes():
     capabilities = get_evolution_capabilities_summary()
     evolution_modes = capabilities["evolution_modes"]
     
-    print(f"✅ Supported evolution modes: {len(evolution_modes)}")
+    print(f"[OK] Supported evolution modes: {len(evolution_modes)}")
     for mode in evolution_modes:
         print(f"   - {mode}")
     
@@ -113,7 +113,7 @@ def test_evolution_modes():
             config.attack_model_config = {"name": "gpt-4", "weight": 1.0}
             config.defense_model_config = {"name": "claude-3", "weight": 1.0}
         
-        print(f"   ✅ {mode} configuration created successfully")
+        print(f"   [OK] {mode} configuration created successfully")
     
     return True
 
@@ -125,7 +125,7 @@ def test_advanced_features():
     capabilities = get_evolution_capabilities_summary()
     advanced_features = capabilities["advanced_features"]
     
-    print(f"✅ Advanced features available: {len(advanced_features)}")
+    print(f"[OK] Advanced features available: {len(advanced_features)}")
     
     # Test configuration with multiple advanced features
     config = EvolutionConfiguration()
@@ -143,10 +143,10 @@ def test_advanced_features():
     config.quantum_computing = True
     config.edge_computing = True
     
-    print("✅ Advanced features configuration:")
+    print("[OK] Advanced features configuration:")
     for feature, description in advanced_features.items():
         enabled = getattr(config, feature, False)
-        status = "✅" if enabled else "⚪"
+        status = "[OK]" if enabled else "⚪"
         print(f"   {status} {feature}: {description[:50]}...")
     
     return True
@@ -159,13 +159,13 @@ def test_parameter_categories():
     capabilities = get_evolution_capabilities_summary()
     categories = capabilities["parameter_categories"]
     
-    print(f"✅ Parameter categories: {len(categories)}")
+    print(f"[OK] Parameter categories: {len(categories)}")
     total_categorized = sum(categories.values())
     
     for category, count in sorted(categories.items()):
         print(f"   - {category}: {count} parameters")
     
-    print(f"✅ Total categorized parameters: {total_categorized}")
+    print(f"[OK] Total categorized parameters: {total_categorized}")
     
     return total_categorized >= 250  # Should have most parameters categorized
 
@@ -188,7 +188,7 @@ def test_configuration_serialization():
     try:
         config_dict = config.to_openevolve_config()
         config_json = json.dumps(config_dict, indent=2, default=str)
-        print(f"✅ Configuration serialized: {len(config_json)} characters")
+        print(f"[OK] Configuration serialized: {len(config_json)} characters")
         
         # Test that all fields are serializable
         non_serializable = []
@@ -199,14 +199,14 @@ def test_configuration_serialization():
                 non_serializable.append(key)
         
         if non_serializable:
-            print(f"⚠️ Non-serializable fields: {non_serializable}")
+            print(f"[WARN] Non-serializable fields: {non_serializable}")
         else:
-            print("✅ All configuration fields are serializable")
+            print("[OK] All configuration fields are serializable")
         
         return len(non_serializable) == 0
         
     except Exception as e:
-        print(f"❌ Serialization failed: {e}")
+        print(f"[FAIL] Serialization failed: {e}")
         return False
 
 def test_parameter_utilization():
@@ -228,7 +228,7 @@ def test_parameter_utilization():
         config.feature_dimensions = ["complexity"]  # List
         config.attack_model_config = {"name": "gpt-4"}  # Dict
         
-        print("✅ Configuration with all parameter types created")
+        print("[OK] Configuration with all parameter types created")
         print(f"   - Integer parameters: max_iterations = {config.max_iterations}")
         print(f"   - Float parameters: temperature = {config.temperature}")
         print(f"   - String parameters: evolution_mode = {config.evolution_mode}")
@@ -239,7 +239,7 @@ def test_parameter_utilization():
         return True
         
     except Exception as e:
-        print(f"❌ Parameter utilization test failed: {e}")
+        print(f"[FAIL] Parameter utilization test failed: {e}")
         return False
 
 def main():
@@ -263,7 +263,7 @@ def main():
             result = test_func()
             results.append((test_name, result))
         except Exception as e:
-            print(f"\n❌ {test_name} failed with error: {e}")
+            print(f"\n[FAIL] {test_name} failed with error: {e}")
             results.append((test_name, False))
     
     # Summary
@@ -275,20 +275,20 @@ def main():
     total = len(results)
     
     for test_name, result in results:
-        status = "✅ PASS" if result else "❌ FAIL"
+        status = "[OK] PASS" if result else "[FAIL] FAIL"
         print(f"{status} {test_name}")
     
     print(f"\n🎯 Overall: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
     
     if passed == total:
         print("\n🎉 ALL TESTS PASSED! Evolution.py fully utilizes OpenEvolve capabilities!")
-        print("✅ 272 parameters supported across 19 categories")
-        print("✅ 5 evolution modes available")
-        print("✅ Advanced features integrated")
-        print("✅ Comprehensive validation implemented")
+        print("[OK] 272 parameters supported across 19 categories")
+        print("[OK] 5 evolution modes available")
+        print("[OK] Advanced features integrated")
+        print("[OK] Comprehensive validation implemented")
         return 0
     else:
-        print(f"\n⚠️ {total - passed} tests failed. Review the output above.")
+        print(f"\n[WARN] {total - passed} tests failed. Review the output above.")
         return 1
 
 if __name__ == "__main__":

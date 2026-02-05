@@ -38,23 +38,23 @@ async def test_basic_functionality():
         
         # Test initialization
         await plugin.initialize()
-        print(f"✓ Initialization completed, status: {plugin._status.state}")
+        print(f"[OK] Initialization completed, status: {plugin._status.state}")
         
         # Test start
         await plugin.start()
-        print(f"✓ Start completed, status: {plugin._status.state}")
+        print(f"[OK] Start completed, status: {plugin._status.state}")
         
         # Test health check
         health = await plugin.health_check()
-        print(f"✓ Health check completed, health: {health}")
+        print(f"[OK] Health check completed, health: {health}")
         
         # Test stopping
         await plugin.stop()
-        print(f"✓ Stop completed, status: {plugin._status.state}")
+        print(f"[OK] Stop completed, status: {plugin._status.state}")
         
         # Test cleanup
         await plugin.cleanup()
-        print(f"✓ Cleanup completed, status: {plugin._status.state}")
+        print(f"[OK] Cleanup completed, status: {plugin._status.state}")
 
 
 async def test_error_handling():
@@ -80,7 +80,7 @@ async def test_error_handling():
         await plugin.initialize()
         
         # Check that the plugin is in an error state but didn't crash
-        print(f"✓ Initialization handled error gracefully, status: {plugin._status.state}")
+        print(f"[OK] Initialization handled error gracefully, status: {plugin._status.state}")
         print(f"  Health: {plugin._status.health}")
         print(f"  Message: {plugin._status.message}")
 
@@ -92,7 +92,7 @@ async def main():
     await test_basic_functionality()
     await test_error_handling()
     
-    print("\n✓ Tests completed! The OpenEvolve BubbleLabs plugin has enhanced error handling.")
+    print("\n[OK] Tests completed! The OpenEvolve BubbleLabs plugin has enhanced error handling.")
 
 
 if __name__ == "__main__":

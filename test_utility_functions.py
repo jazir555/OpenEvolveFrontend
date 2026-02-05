@@ -32,11 +32,11 @@ from sklearn import datasets
     
     # Test analyze_content_patterns
     patterns = analyze_content_patterns(test_content)
-    print(f"✅ Content patterns: {patterns}")
+    print(f"[OK] Content patterns: {patterns}")
     
     # Test suggest_optimal_strategy
     strategy = suggest_optimal_strategy(test_content)
-    print(f"✅ Suggested strategy: {strategy.value}")
+    print(f"[OK] Suggested strategy: {strategy.value}")
     
     # Test with decomposer
     decomposer = ProblemDecomposer()
@@ -44,7 +44,7 @@ from sklearn import datasets
     
     # Test create_decomposition_report
     report = create_decomposition_report(result)
-    print(f"✅ Report generated: {len(report)} characters")
+    print(f"[OK] Report generated: {len(report)} characters")
     print("First 200 chars of report:")
     print(report[:200] + "...")
     
@@ -55,6 +55,6 @@ if __name__ == "__main__":
         test_utility_functions()
         print("\n🎉 All utility function tests passed!")
     except Exception as e:
-        print(f"\n❌ Test failed: {e}")
+        print(f"\n[FAIL] Test failed: {e}")
         import traceback
         traceback.print_exc()

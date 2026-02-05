@@ -445,7 +445,7 @@ class DspyAdapter(GEPAAdapter[Example, TraceData, Prediction]):
 
     # TODO: Generic tool module optimization - pending DSPy trace lineage improvements
     # Currently only ReAct modules are supported for tool optimization.
-    # Re-enable _update_candidate_tools when DSPy provides better tool→trace lineage.
+    # Re-enable _update_candidate_tools when DSPy provides better tool->trace lineage.
     #
     # def _update_candidate_tools(self, candidate, program, trajectories) -> None:
     #     """Extract dspy.Tool objects from traces for tool modules and update candidate["tools"]."""

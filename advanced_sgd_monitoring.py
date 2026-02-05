@@ -685,13 +685,13 @@ def render_integration_monitoring():
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric("crewai API", "✅ Connected", "Ready")
+        st.metric("crewai API", "[OK] Connected", "Ready")
     with col2:
-        st.metric("OpenEvolve API", "✅ Connected", "Ready")
+        st.metric("OpenEvolve API", "[OK] Connected", "Ready")
     with col3:
-        st.metric("Gauntlet Server", "✅ Available", "Ready")
+        st.metric("Gauntlet Server", "[OK] Available", "Ready")
     with col4:
-        st.metric("Connection Status", "✅ Active", "All systems connected")
+        st.metric("Connection Status", "[OK] Active", "All systems connected")
     
     # Integration workflow visualization
     st.subheader("Integration Workflow")
@@ -728,18 +728,18 @@ def render_integration_monitoring():
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("### OpenEvolve → crewai")
-        st.info("✅ Ticket Creation API: Active")
-        st.info("✅ Dependency Management API: Active")
-        st.info("✅ Status Check API: Active")
-        st.info("✅ Workflow Initiation: Active")
+        st.markdown("### OpenEvolve -> crewai")
+        st.info("[OK] Ticket Creation API: Active")
+        st.info("[OK] Dependency Management API: Active")
+        st.info("[OK] Status Check API: Active")
+        st.info("[OK] Workflow Initiation: Active")
     
     with col2:
-        st.markdown("### crewai → OpenEvolve")
-        st.info("✅ Gauntlet Execution API: Active")
-        st.info("✅ Report Submission API: Active")
-        st.info("✅ Validation Results API: Active")
-        st.info("✅ Self-Healing Trigger API: Active")
+        st.markdown("### crewai -> OpenEvolve")
+        st.info("[OK] Gauntlet Execution API: Active")
+        st.info("[OK] Report Submission API: Active")
+        st.info("[OK] Validation Results API: Active")
+        st.info("[OK] Self-Healing Trigger API: Active")
     
     # Integration metrics
     st.subheader("Integration Metrics")
@@ -787,9 +787,9 @@ def render_comprehensive_integration_monitoring():
                 # Show all events in a scrollable container
                 for event in reversed(events[-50:]):  # Show last 50 events
                     status_emoji = {
-                        "success": "✅",
-                        "failure": "❌", 
-                        "warning": "⚠️",
+                        "success": "[OK]",
+                        "failure": "[FAIL]", 
+                        "warning": "[WARN]",
                         "info": "ℹ️"
                     }.get(event.get('status', 'info'), 'ℹ️')
                     

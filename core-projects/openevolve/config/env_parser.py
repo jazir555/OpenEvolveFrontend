@@ -4,8 +4,8 @@ Environment Variable Configuration Parser
 Parses environment variables into configuration parameters.
 
 All environment variables use the EVOLVE_ prefix:
-- EVOLVE_MAX_ITERATIONS=100 → config.max_iterations=100
-- EVOLVE_ENABLE_PLANNING=true → config.enable_planning=True
+- EVOLVE_MAX_ITERATIONS=100 -> config.max_iterations=100
+- EVOLVE_ENABLE_PLANNING=true -> config.enable_planning=True
 """
 
 import os
@@ -95,7 +95,7 @@ class EnvConfigParser:
 
         for env_var, value in os.environ.items():
             if env_var.startswith(prefix):
-                # Convert EVOLVE_MAX_ITERATIONS → max_iterations
+                # Convert EVOLVE_MAX_ITERATIONS -> max_iterations
                 param_name = self._env_to_param_name(env_var[prefix_len:])
 
                 # Try to convert value to appropriate type
@@ -185,7 +185,7 @@ class EnvConfigParser:
         """
         Convert environment variable suffix to parameter name.
 
-        Example: MAX_ITERATIONS → max_iterations
+        Example: MAX_ITERATIONS -> max_iterations
 
         Args:
             env_suffix: Environment variable name after prefix
@@ -244,7 +244,7 @@ class EnvConfigParser:
         """
         Convert parameter name to environment variable name.
 
-        Example: max_iterations → EVOLVE_MAX_ITERATIONS
+        Example: max_iterations -> EVOLVE_MAX_ITERATIONS
 
         Args:
             param_name: Parameter name in snake_case

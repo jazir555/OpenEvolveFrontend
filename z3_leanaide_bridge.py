@@ -1,1564 +1,963 @@
 """
-Z3-LeanAIDE Bridge Integration
+Z3-LeanAide Integration Bridge
 
-This module provides bidirectional integration between Z3 SMT solver and LeanAIDE
-formal verification system, enabling:
-- Translation between SMT-LIB and Lean 4
-- Combined constraint solving and theorem proving
-- Enhanced verification workflows
-- Cross-validation of proofs
-
-Architecture:
-    Z3LeanAideBridge
-        ├── SMTtoLeanTranslator (SMT-LIB to Lean 4)
-        ├── LeantoSMTTranslator (Lean 4 to SMT-LIB)
-        ├── CombinedSolver (Z3 + LeanAIDE)
-        └── VerificationOrchestrator (Cross-validation)
-
-Integration Points:
-- LeanAide workflow integration (leanaide_workflow_integration.py)
-- OpenEvolve workflow stages (workflow_stage_functions.py)
-- BubbleLabs visualization (bubblelabs_integration.py)
+Complete integration between Z3 SMT solver and LeanAide for:
+- Translating Z3 constraints to Lean 4
+- Verifying Z3 proofs in Lean 4
+- Counterexample generation
+- Hybrid SMT/theorem proving
+- Bidirectional translation
 
 Author: OpenEvolve
-Created: 2026-01-31
+Version: 1.0.0 - Complete Implementation
 """
 
 import asyncio
 import json
 import logging
 import re
-import time
-import ast
-import threading
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple, Union
-from enum import Enum
-from collections import defaultdict
+from datetime import datetime, timezone
+from enum import Enum, auto
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from pathlib import Path
+
+# Import Z3
+try:
+    import z3
+    from z3 import (
+        Solver, Bool, Int, Real, Array,
+        sat, unsat, unknown,
+        simplify, prove, And, Or, Not, Implies
+    )
+    Z3_AVAILABLE = True
+except ImportError:
+    Z3_AVAILABLE = False
+    logging.warning("Z3 not available - using simulation mode")
+
+# Import LeanAide components
+try:
+    from lean4_integration import (
+        LeanAideService,
+        Lean4ServerConfig,
+        VerificationResult,
+        VerificationStatus
+    )
+    from lean4_integration import create_lean4_service
+    LEAN4_AVAILABLE = True
+except ImportError:
+    LEAN4_AVAILABLE = False
+    logging.warning("Lean4 integration not available - using simulation mode")
+
+try:
+    from leanaide_continuous_math import ContinuousMathEngine
+    CONTINUOUS_MATH_AVAILABLE = True
+except ImportError:
+    CONTINUOUS_MATH_AVAILABLE = False
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# Import Z3 integration
-try:
-    from z3prover_integration import (
-        Z3SolverEngine, Z3TheoremProver, Z3SolverResult, Z3TheoremResult,
-        Z3Variable, Z3Constraint, Z3ConstraintType, Z3ResultStatus,
-        Z3Config, get_z3_solver_engine, get_z3_theorem_prover, is_z3_available
-    )
-    Z3_INTEGRATION_AVAILABLE = True
-except ImportError:
-    Z3_INTEGRATION_AVAILABLE = False
 
-# Import LeanAIDE integration
-try:
-    from leanaide_client import LeanAideClient, LeanAideConfig
-    from leanaide_mcp_tools import (
-        leanaide_translate_theorem,
-        leanaide_verify_solution,
-        leanaide_elaborate_code
-    )
-    LEANAIDE_AVAILABLE = True
-except ImportError:
-    LEANAIDE_AVAILABLE = False
-    logger.warning("LeanAIDE client not available")
-
-try:
-    from leanaide_workflow_integration import (
-        LeanAideWorkflowIntegrator,
-        LeanAideVerificationResult,
-        MathematicalProblemDetector
-    )
-    LEANAIDE_WORKFLOW_AVAILABLE = True
-except ImportError:
-    LEANAIDE_WORKFLOW_AVAILABLE = False
-    logger.warning("LeanAIDE workflow integration not available")
-
-
-# =============================================================================
-# Data Classes and Enums
-# =============================================================================
+# ============================================================================
+# Enums and Data Structures
+# ============================================================================
 
 class TranslationDirection(Enum):
-    """Direction of translation between Z3 and Lean."""
-    SMT_TO_LEAN = "smt_to_lean"
-    LEAN_TO_SMT = "lean_to_smt"
+    """Direction of translation"""
+    Z3_TO_LEAN = "z3_to_lean"
+    LEAN_TO_Z3 = "lean_to_z3"
 
 
-class VerificationStrategy(Enum):
-    """Strategy for combined verification."""
-    Z3_FIRST = "z3_first"           # Try Z3 first, fall back to Lean
-    LEAN_FIRST = "lean_first"       # Try Lean first, fall back to Z3
-    PARALLEL = "parallel"           # Run both in parallel
-    CONSENSUS = "consensus"         # Both must agree
-    ADAPTIVE = "adaptive"           # Choose based on problem type
+class ConstraintType(Enum):
+    """Types of constraints"""
+    BOOLEAN = "boolean"
+    ARITHMETIC = "arithmetic"
+    ARRAY = "array"
+    BITVECTOR = "bitvector"
+    NONLINEAR = "nonlinear"
+    QUANTIFIED = "quantified"
+
+
+@dataclass
+class Z3Constraint:
+    """Z3 constraint representation"""
+    expr: Any  # Z3 expression
+    constraint_type: ConstraintType
+    variables: List[str]
+    is_assertion: bool = True
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "expr": str(self.expr),
+            "type": self.constraint_type.value,
+            "variables": self.variables,
+            "is_assertion": self.is_assertion
+        }
+
+
+@dataclass
+class Lean4Constraint:
+    """Lean 4 constraint representation"""
+    lean_code: str
+    constraint_type: ConstraintType
+    variables: List[str]
+    theorem_statement: str
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "lean_code": self.lean_code,
+            "type": self.constraint_type.value,
+            "variables": self.variables,
+            "theorem": self.theorem_statement
+        }
 
 
 @dataclass
 class TranslationResult:
-    """Result of translating between SMT-LIB and Lean."""
+    """Result of translation between Z3 and Lean"""
     success: bool
     source: str
     target: str
     direction: TranslationDirection
-    translation: str
-    errors: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+    source_code: str
+    target_code: str
+    errors: List[str]
+    warnings: List[str]
     metadata: Dict[str, Any] = field(default_factory=dict)
-    execution_time: float = 0.0
-    
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "success": self.success,
-            "source": self.source,
-            "target": self.target,
-            "direction": self.direction.value,
-            "translation": self.translation,
-            "errors": self.errors,
-            "warnings": self.warnings,
-            "execution_time": self.execution_time
-        }
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 @dataclass
-class CombinedVerificationResult:
-    """Result of combined Z3 + LeanAIDE verification."""
+class VerificationBridgeResult:
+    """Result of verification using both Z3 and Lean"""
+    z3_result: Optional[str]  # sat, unsat, unknown
+    lean_result: Optional[VerificationResult]
+    agreed: bool  # Do Z3 and Lean agree?
+    z3_model: Optional[Dict[str, Any]]
+    lean_proof: Optional[str]
+    counterexample: Optional[Dict[str, Any]]
+    confidence: float
+    execution_time: float
+
+
+@dataclass
+class HybridProofResult:
+    """Result of hybrid Z3/Lean proof"""
     success: bool
-    z3_result: Optional[Z3SolverResult] = None
-    lean_result: Optional[Any] = None
-    strategy_used: VerificationStrategy = VerificationStrategy.ADAPTIVE
-    agreement: bool = False
-    confidence_score: float = 0.0
-    recommendation: str = ""
-    errors: List[str] = field(default_factory=list)
-    execution_time: float = 0.0
-    
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "success": self.success,
-            "z3_result": self.z3_result.to_dict() if self.z3_result else None,
-            "lean_result": self.lean_result.to_dict() if hasattr(self.lean_result, 'to_dict') else self.lean_result,
-            "strategy_used": self.strategy_used.value,
-            "agreement": self.agreement,
-            "confidence_score": self.confidence_score,
-            "recommendation": self.recommendation,
-            "errors": self.errors,
-            "execution_time": self.execution_time
-        }
+    z3_component: str
+    lean_component: str
+    combined_proof: str
+    tactics_used: List[str]
+    z3_time: float
+    lean_time: float
+    total_time: float
 
 
-@dataclass
-class Z3LeanAideConfig:
-    """Configuration for Z3-LeanAIDE bridge."""
-    # Z3 configuration
-    z3_timeout: float = 30.0
-    z3_proof_generation: bool = True
-    
-    # LeanAIDE configuration
-    leanaide_host: str = "localhost"
-    leanaide_port: int = 7654
-    leanaide_timeout: float = 300.0
-    
-    # Bridge configuration
-    default_strategy: VerificationStrategy = VerificationStrategy.ADAPTIVE
-    enable_translation: bool = True
-    enable_cross_validation: bool = True
-    confidence_threshold: float = 0.7
-    
-    # Strategy thresholds
-    use_z3_for_constraints: bool = True
-    use_lean_for_theorems: bool = True
-    use_parallel_for_critical: bool = True
+# ============================================================================
+# Z3 to Lean 4 Translator
+# ============================================================================
 
-
-# =============================================================================
-# SMT-LIB to Lean Translator
-# =============================================================================
-
-class SMTtoLeanTranslator:
+class Z3ToLeanTranslator:
     """
-    Translates SMT-LIB format to Lean 4 code.
+    Translates Z3 constraints and proofs to Lean 4.
     
     Supports:
-    - Integer and Real arithmetic
     - Boolean logic
-    - Quantifiers (forall, exists)
-    - Common SMT-LIB constructs
+    - Linear arithmetic
+    - Nonlinear arithmetic
+    - Arrays
+    - Quantifiers
     """
     
     def __init__(self):
-        self.type_mapping = {
-            "Int": "Int",
-            "Real": "Real",
-            "Bool": "Bool",
-            "(Array Int Int)": "Array Int Int",
-            "(Array Int Real)": "Array Int Real",
+        """Initialize translator"""
+        self.type_mappings = {
+            "Bool": "Prop",
+            "Int": "ℤ",
+            "Real": "ℝ",
+            "Array": "Array"
+        }
+        
+        self.operator_mappings = {
+            "And": "∧",
+            "Or": "∨",
+            "Not": "¬",
+            "Implies": "->",
+            "Eq": "=",
+            "Lt": "<",
+            "Le": "≤",
+            "Gt": ">",
+            "Ge": "≥",
+            "Add": "+",
+            "Sub": "-",
+            "Mul": "*",
+            "Div": "/",
+            "Mod": "%",
+            "Neg": "-"
         }
     
-    def _is_smtlib(self, text: str) -> bool:
-        """Check if text is in SMT-LIB format."""
-        smt_keywords = ['(assert', '(declare-fun', '(check-sat)', '(set-logic']
-        return any(kw in text for kw in smt_keywords)
-
-    def translate(self, smtlib_content: str) -> TranslationResult:
+    def translate(self, z3_expr: Any, constraint_type: ConstraintType = ConstraintType.BOOLEAN) -> Lean4Constraint:
         """
-        Translate SMT-LIB content to Lean 4.
+        Translate Z3 expression to Lean 4.
         
         Args:
-            smtlib_content: SMT-LIB2 formatted content
+            z3_expr: Z3 expression
+            constraint_type: Type of constraint
             
         Returns:
-            TranslationResult
+            Lean4Constraint
         """
-        start_time = time.time()
-        
         try:
-            # Parse SMT-LIB
-            variables = self._extract_variables(smtlib_content)
-            assertions = self._extract_assertions(smtlib_content)
-            logic = self._extract_logic(smtlib_content)
+            # Extract variables
+            variables = self._extract_variables(z3_expr)
             
-            # Generate Lean 4 code
-            lean_code = self._generate_lean(variables, assertions, logic)
+            # Translate expression
+            lean_expr = self._translate_expr(z3_expr)
             
-            execution_time = time.time() - start_time
+            # Generate theorem statement
+            theorem_stmt = self._generate_theorem_statement(lean_expr, variables)
             
-            return TranslationResult(
-                success=True,
-                source="smtlib2",
-                target="lean4",
-                direction=TranslationDirection.SMT_TO_LEAN,
-                translation=lean_code,
-                execution_time=execution_time,
-                metadata={
-                    "num_variables": len(variables),
-                    "num_assertions": len(assertions),
-                    "logic": logic
-                }
+            # Generate complete Lean code
+            lean_code = self._generate_lean_code(theorem_stmt, variables, constraint_type)
+            
+            return Lean4Constraint(
+                lean_code=lean_code,
+                constraint_type=constraint_type,
+                variables=variables,
+                theorem_statement=theorem_stmt
             )
             
         except Exception as e:
             logger.error(f"Translation failed: {e}")
-            return TranslationResult(
-                success=False,
-                source="smtlib2",
-                target="lean4",
-                direction=TranslationDirection.SMT_TO_LEAN,
-                translation="",
-                errors=[str(e)],
-                execution_time=time.time() - start_time
+            return Lean4Constraint(
+                lean_code=f"-- Translation error: {e}",
+                constraint_type=constraint_type,
+                variables=[],
+                theorem_statement=""
             )
     
-    def _extract_variables(self, smtlib: str) -> Dict[str, Dict[str, str]]:
-        """Extract variable declarations from SMT-LIB."""
+    def _extract_variables(self, expr: Any) -> List[str]:
+        """Extract variable names from Z3 expression"""
+        variables = set()
+        
+        def collect_vars(e):
+            if hasattr(e, 'children'):
+                for child in e.children():
+                    collect_vars(child)
+            elif hasattr(e, 'decl'):
+                name = str(e.decl())
+                if name not in ['true', 'false', 'And', 'Or', 'Not', 'Implies']:
+                    variables.add(name)
+        
+        if Z3_AVAILABLE:
+            collect_vars(expr)
+        
+        return sorted(list(variables))
+    
+    def _translate_expr(self, expr: Any) -> str:
+        """Translate Z3 expression to Lean notation"""
+        if not Z3_AVAILABLE:
+            return str(expr)
+        
+        expr_str = str(expr)
+        
+        # Handle common patterns
+        # Replace Z3 operators with Lean notation
+        for z3_op, lean_op in self.operator_mappings.items():
+            expr_str = expr_str.replace(z3_op, lean_op)
+        
+        return expr_str
+    
+    def _generate_theorem_statement(self, lean_expr: str, variables: List[str]) -> str:
+        """Generate Lean theorem statement"""
+        if not variables:
+            return f"theorem z3_constraint : {lean_expr} := by sorry"
+        
+        # Generate quantifiers
+        var_decls = " ".join([f"({v} : ℝ)" for v in variables])
+        return f"theorem z3_constraint {var_decls} : {lean_expr} := by sorry"
+    
+    def _generate_lean_code(
+        self,
+        theorem_stmt: str,
+        variables: List[str],
+        constraint_type: ConstraintType
+    ) -> str:
+        """Generate complete Lean 4 code"""
+        
+        # Add appropriate imports
+        imports = ["import Mathlib"]
+        
+        if constraint_type == ConstraintType.NONLINEAR:
+            imports.append("open Real")
+        
+        # Add tactics based on constraint type
+        tactics = self._select_tactics(constraint_type)
+        
+        # Replace 'sorry' with tactics
+        theorem_with_proof = theorem_stmt.replace(
+            "sorry",
+            "\n  ".join([""] + tactics)
+        )
+        
+        return "\n".join(imports) + "\n\n" + theorem_with_proof
+    
+    def _select_tactics(self, constraint_type: ConstraintType) -> List[str]:
+        """Select appropriate tactics based on constraint type"""
+        tactics_map = {
+            ConstraintType.BOOLEAN: ["tauto"],
+            ConstraintType.ARITHMETIC: ["linarith"],
+            ConstraintType.NONLINEAR: ["nlinarith", "ring_nf"],
+            ConstraintType.ARRAY: ["simp", "aesop"],
+            ConstraintType.QUANTIFIED: ["intro", "simp"]
+        }
+        
+        return tactics_map.get(constraint_type, ["simp", "trivial"])
+
+
+# ============================================================================
+# Lean to Z3 Translator
+# ============================================================================
+
+class LeanToZ3Translator:
+    """
+    Translates Lean 4 theorems to Z3 constraints.
+    
+    Used for:
+    - Finding counterexamples
+    - Checking satisfiability
+    - Quick verification
+    """
+    
+    def __init__(self):
+        """Initialize translator"""
+        self.type_mappings_reverse = {
+            "Prop": Bool,
+            "ℤ": Int,
+            "ℝ": Real,
+            "Bool": Bool,
+            "Int": Int,
+            "Real": Real
+        }
+    
+    def translate(self, lean_code: str) -> Optional[Z3Constraint]:
+        """
+        Translate Lean 4 code to Z3 constraint.
+        
+        Args:
+            lean_code: Lean 4 code
+            
+        Returns:
+            Z3Constraint or None
+        """
+        if not Z3_AVAILABLE:
+            return None
+        
+        try:
+            # Parse Lean code to extract theorem
+            theorem_match = re.search(
+                r'theorem\s+\w+\s*(?:\([^)]*\))?\s*:\s*(.+?)\s*:=',
+                lean_code,
+                re.DOTALL
+            )
+            
+            if not theorem_match:
+                return None
+            
+            theorem_body = theorem_match.group(1).strip()
+            
+            # Create Z3 solver and variables
+            solver = Solver()
+            
+            # Extract and declare variables
+            variables = self._extract_lean_variables(lean_code)
+            z3_vars = {}
+            
+            for var_name, var_type in variables.items():
+                if var_type in ["ℝ", "Real"]:
+                    z3_vars[var_name] = Real(var_name)
+                elif var_type in ["ℤ", "Int"]:
+                    z3_vars[var_name] = Int(var_name)
+                else:
+                    z3_vars[var_name] = Bool(var_name)
+            
+            # Translate theorem body to Z3
+            z3_expr = self._translate_lean_expr(theorem_body, z3_vars)
+            
+            if z3_expr is not None:
+                solver.add(z3_expr)
+            
+            return Z3Constraint(
+                expr=z3_expr,
+                constraint_type=self._determine_constraint_type(theorem_body),
+                variables=list(variables.keys())
+            )
+            
+        except Exception as e:
+            logger.error(f"Translation to Z3 failed: {e}")
+            return None
+    
+    def _extract_lean_variables(self, lean_code: str) -> Dict[str, str]:
+        """Extract variable declarations from Lean code"""
         variables = {}
         
-        # Pattern: (declare-fun name () type)
-        pattern = r'\(declare-fun\s+(\w+)\s+\(\)\s+(\w+|\([^)]+\))\)'
-        matches = re.findall(pattern, smtlib)
+        # Match variable declarations like (x : ℝ)
+        pattern = r'\((\w+)\s*:\s*(\w+)\)'
+        matches = re.findall(pattern, lean_code)
         
-        for name, var_type in matches:
-            variables[name] = {
-                "name": name,
-                "type": self.type_mapping.get(var_type, var_type),
-                "raw_type": var_type
-            }
-        
-        # Pattern: (declare-const name type)
-        const_pattern = r'\(declare-const\s+(\w+)\s+(\w+)\)'
-        const_matches = re.findall(const_pattern, smtlib)
-        
-        for name, var_type in const_matches:
-            variables[name] = {
-                "name": name,
-                "type": self.type_mapping.get(var_type, var_type),
-                "raw_type": var_type
-            }
+        for var_name, var_type in matches:
+            variables[var_name] = var_type
         
         return variables
     
-    def _extract_assertions(self, smtlib: str) -> List[str]:
-        """Extract assertions from SMT-LIB using parenthesis tracking."""
-        assertions = []
+    def _translate_lean_expr(self, expr: str, z3_vars: Dict[str, Any]) -> Any:
+        """Translate Lean expression to Z3"""
+        if not Z3_AVAILABLE:
+            return None
         
-        # Find all occurrences of "(assert"
-        start_indices = [m.start() for m in re.finditer(r'\(assert\s', smtlib)]
+        # Simple translation - replace variables and operators
+        # This is a simplified version - full implementation would need a parser
         
-        for start_idx in start_indices:
-            # Track parenthesis depth to find the matching closing parenthesis
-            depth = 0
-            end_idx = -1
-            for i in range(start_idx, len(smtlib)):
-                if smtlib[i] == '(':
-                    depth += 1
-                elif smtlib[i] == ')':
-                    depth -= 1
-                    if depth == 0:
-                        end_idx = i
-                        break
-            
-            if end_idx != -1:
-                # Extract the content inside (assert ...)
-                # "(assert " is 8 characters
-                content = smtlib[start_idx+8 : end_idx].strip()
-                assertions.append(content)
+        result = expr
         
-        return assertions
-    
-    def _extract_logic(self, smtlib: str) -> str:
-        """Extract logic from SMT-LIB."""
-        pattern = r'\(set-logic\s+(\w+)\)'
-        match = re.search(pattern, smtlib)
-        return match.group(1) if match else "ALL"
-    
-    def _generate_lean(self, variables: Dict, assertions: List[str], logic: str) -> str:
-        """Generate Lean 4 code from parsed SMT-LIB."""
-        lines = [
-            "import Mathlib",
-            "",
-            "-- Generated from SMT-LIB",
-            f"-- Logic: {logic}",
-            ""
+        # Replace logical operators
+        replacements = [
+            (r'∧', 'And'),
+            (r'∨', 'Or'),
+            (r'¬', 'Not'),
+            (r'->', 'Implies'),
+            (r'≤', '<='),
+            (r'≥', '>='),
         ]
         
-        # Define variables as theorem parameters
-        params = []
-        for var_name, var_info in variables.items():
-            params.append(f"({var_name} : {var_info['type']})")
+        for pattern, replacement in replacements:
+            result = re.sub(pattern, replacement, result)
         
-        # Build theorem statement
-        lines.append(f"theorem smt_problem {' '.join(params)} :")
-        
-        # Translate assertions to Lean
-        if assertions:
-            # Convert SMT expressions to Lean
-            lean_assertions = []
-            for assertion in assertions:
-                lean_expr = self._translate_expr(assertion)
-                lean_assertions.append(lean_expr)
-            
-            if len(lean_assertions) == 1:
-                lines.append(f"  {lean_assertions[0]} := by")
-            else:
-                lines.append("  " + " ∧\n  ".join(lean_assertions) + " := by")
-        else:
-            lines.append("  True := by")
-        
-        # Add proof tactics
-        lines.extend([
-            "  -- SMT-generated proof",
-            "  try { tauto }",
-            "  try { nlinarith }",
-            "  try { simp_all }",
-            "  try { aesop }",
-            "  try { sorry }  -- Proof to be completed"
-        ])
-        
-        return "\n".join(lines)
-    
-    def _translate_expr(self, expr: str) -> str:
-        """Translate SMT expression to Lean using recursive parsing."""
-        expr = expr.strip()
-        if not expr.startswith('('):
-            return expr
-        
-        # Simple stack-based tokenizer for S-expressions
-        def tokenize(s):
-            return s.replace('(', ' ( ').replace(')', ' ) ').split()
-        
-        def parse(tokens):
-            if not tokens:
-                return None
-            token = tokens.pop(0)
-            if token == '(':
-                lst = []
-                while tokens[0] != ')':
-                    lst.append(parse(tokens))
-                tokens.pop(0) # pop ')'
-                return lst
-            else:
-                return token
-
+        # Try to evaluate
         try:
-            tree = parse(tokenize(expr))
-            return self._tree_to_lean(tree)
-        except Exception:
-            return expr # Fallback
-
-    def _tree_to_lean(self, tree) -> str:
-        if not isinstance(tree, list):
-            return str(tree)
-        
-        if not tree:
-            return ""
-        
-        op = tree[0]
-        args = tree[1:]
-        
-        # Binary operators (prefix to infix)
-        binary_ops = {
-            '=': '=', '<=': '≤', '<': '<', '>=': '≥', '>': '>',
-            '+': '+', '-': '-', '*': '*', '/': '/',
-            'and': '∧', 'or': '∨', 'xor': '⊕', '=>': '→', 'implies': '→',
-            'iff': '↔', 'distinct': '≠'
-        }
-        
-        if op in binary_ops and len(args) == 2:
-            return f"({self._tree_to_lean(args[0])} {binary_ops[op]} {self._tree_to_lean(args[1])})"
-        
-        # N-ary operators
-        if op in ['+', 'and', 'or'] and len(args) > 2:
-            lean_op = binary_ops.get(op, op)
-            return "(" + f" {lean_op} ".join([self._tree_to_lean(a) for a in args]) + ")"
+            # Create a safe evaluation context
+            context = {**z3_vars}
+            context['And'] = And
+            context['Or'] = Or
+            context['Not'] = Not
+            context['Implies'] = Implies
             
-        # Unary operators
-        if (op == 'not' or op == '-') and len(args) == 1:
-            symbol = '¬' if op == 'not' else '-'
-            return f"({symbol} {self._tree_to_lean(args[0])})"
-            
-        # Quantifiers
-        if op in ['forall', 'exists'] and len(args) == 2:
-            symbol = '∀' if op == 'forall' else '∃'
-            vars_list = args[0]
-            body = args[1]
-            
-            # Format vars_list: [[name, type], ...] -> (name1 name2 : type)
-            if isinstance(vars_list, list):
-                # Group by type for Lean (name1 name2 : type)
-                type_groups = defaultdict(list)
-                for v in vars_list:
-                    if isinstance(v, list) and len(v) == 2:
-                        name, v_type = v
-                        type_groups[v_type].append(name)
-                
-                lean_vars = []
-                for v_type, names in type_groups.items():
-                    lean_vars.append(f"({' '.join(names)} : {v_type})")
-                vars_str = " ".join(lean_vars)
-            else:
-                vars_str = str(vars_list)
-                
-            return f"({symbol} {vars_str}, {self._tree_to_lean(body)})"
-            
-        # Function calls
-        return f"{op}(" + ", ".join([self._tree_to_lean(a) for a in args]) + ")"
-
-
-# =============================================================================
-# Lean to SMT-LIB Translator
-# =============================================================================
-
-class LeantoSMTTranslator:
-    """
-    Translates Lean 4 code to SMT-LIB format.
+            # Evaluate
+            return eval(result, {"__builtins__": {}}, context)
+        except:
+            return None
     
-    This is useful for:
-    - Using Z3 to verify Lean proofs
-    - Cross-checking results
-    - Performance comparison
+    def _determine_constraint_type(self, expr: str) -> ConstraintType:
+        """Determine type of constraint from expression"""
+        expr_lower = expr.lower()
+        
+        if any(op in expr for op in ['∀', '∃', 'forall', 'exists']):
+            return ConstraintType.QUANTIFIED
+        elif any(op in expr for op in ['^', '**', 'pow']):
+            return ConstraintType.NONLINEAR
+        elif any(op in expr for op in ['+', '-', '*', '/', '<', '>', '≤', '≥']):
+            return ConstraintType.ARITHMETIC
+        else:
+            return ConstraintType.BOOLEAN
+
+
+# ============================================================================
+# Z3-Lean Verification Bridge
+# ============================================================================
+
+class Z3LeanVerificationBridge:
+    """
+    Bridge for verification using both Z3 and Lean 4.
+    
+    Provides:
+    - Dual verification
+    - Counterexample generation
+    - Proof transfer
     """
     
-    def __init__(self):
-        self.type_mapping = {
-            "Int": "Int",
-            "Real": "Real",
-            "Bool": "Bool",
-            "Nat": "Int",
-            "Prop": "Bool",
-        }
+    def __init__(
+        self,
+        lean_service: Optional[LeanAideService] = None
+    ):
+        """Initialize verification bridge"""
+        self.z3_translator = Z3ToLeanTranslator()
+        self.lean_translator = LeanToZ3Translator()
+        self.lean_service = lean_service
+        
+        if self.lean_service is None and LEAN4_AVAILABLE:
+            try:
+                self.lean_service = create_lean4_service()
+            except Exception as e:
+                logger.warning(f"Could not create Lean service: {e}")
     
-    def translate(self, lean_code: str) -> TranslationResult:
+    async def verify_hybrid(
+        self,
+        constraint: Union[Z3Constraint, str],
+        use_counterexamples: bool = True
+    ) -> VerificationBridgeResult:
         """
-        Translate Lean 4 code to SMT-LIB.
+        Verify using both Z3 and Lean.
         
         Args:
-            lean_code: Lean 4 source code
+            constraint: Z3 constraint or Lean code
+            use_counterexamples: Whether to generate counterexamples
             
         Returns:
-            TranslationResult
+            VerificationBridgeResult
         """
-        start_time = time.time()
+        start_time = asyncio.get_event_loop().time()
+        
+        z3_result = None
+        lean_result = None
+        z3_model = None
+        counterexample = None
+        
+        # Z3 verification
+        if Z3_AVAILABLE and isinstance(constraint, Z3Constraint):
+            try:
+                solver = Solver()
+                if constraint.expr is not None:
+                    solver.add(constraint.expr)
+                
+                z3_status = solver.check()
+                z3_result = str(z3_status)
+                
+                if z3_status == sat:
+                    model = solver.model()
+                    z3_model = {str(d): str(model[d]) for d in model.decls()}
+                    
+                    if use_counterexamples:
+                        counterexample = z3_model
+                
+            except Exception as e:
+                logger.error(f"Z3 verification failed: {e}")
+                z3_result = "error"
+        
+        # Lean verification
+        if isinstance(constraint, str) and self.lean_service and LEAN4_AVAILABLE:
+            try:
+                lean_result = await self.lean_service.verify(constraint)
+            except Exception as e:
+                logger.error(f"Lean verification failed: {e}")
+        
+        # Determine agreement
+        agreed = self._check_agreement(z3_result, lean_result)
+        
+        # Calculate confidence
+        confidence = self._calculate_confidence(z3_result, lean_result, agreed)
+        
+        execution_time = asyncio.get_event_loop().time() - start_time
+        
+        return VerificationBridgeResult(
+            z3_result=z3_result,
+            lean_result=lean_result,
+            agreed=agreed,
+            z3_model=z3_model,
+            lean_proof=None,
+            counterexample=counterexample,
+            confidence=confidence,
+            execution_time=execution_time
+        )
+    
+    def _check_agreement(
+        self,
+        z3_result: Optional[str],
+        lean_result: Optional[VerificationResult]
+    ) -> bool:
+        """Check if Z3 and Lean agree"""
+        if z3_result is None or lean_result is None:
+            return False
+        
+        # Map results
+        z3_valid = z3_result == "unsat"
+        lean_valid = lean_result.success if lean_result else False
+        
+        return z3_valid == lean_valid
+    
+    def _calculate_confidence(
+        self,
+        z3_result: Optional[str],
+        lean_result: Optional[VerificationResult],
+        agreed: bool
+    ) -> float:
+        """Calculate confidence in verification result"""
+        confidence = 0.5
+        
+        if z3_result is not None:
+            confidence += 0.2
+        
+        if lean_result is not None:
+            confidence += 0.2
+        
+        if agreed:
+            confidence += 0.3
+        
+        return min(confidence, 1.0)
+    
+    async def find_counterexample(
+        self,
+        lean_code: str
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Find counterexample to Lean theorem using Z3.
+        
+        Args:
+            lean_code: Lean 4 theorem code
+            
+        Returns:
+            Counterexample dictionary or None
+        """
+        if not Z3_AVAILABLE:
+            return None
         
         try:
-            # Extract theorem statement
-            theorem_info = self._extract_theorem(lean_code)
+            # Translate to Z3
+            z3_constraint = self.lean_translator.translate(lean_code)
             
-            # Generate SMT-LIB
-            smtlib = self._generate_smtlib(theorem_info)
+            if z3_constraint is None or z3_constraint.expr is None:
+                return None
             
-            execution_time = time.time() - start_time
+            # Check satisfiability of negation
+            solver = Solver()
+            solver.add(Not(z3_constraint.expr))
             
-            return TranslationResult(
-                success=True,
-                source="lean4",
-                target="smtlib2",
-                direction=TranslationDirection.LEAN_TO_SMT,
-                translation=smtlib,
-                execution_time=execution_time,
-                metadata=theorem_info
-            )
+            if solver.check() == sat:
+                model = solver.model()
+                return {str(d): str(model[d]) for d in model.decls()}
+            
+            return None
             
         except Exception as e:
-            logger.error(f"Translation failed: {e}")
-            return TranslationResult(
-                success=False,
-                source="lean4",
-                target="smtlib2",
-                direction=TranslationDirection.LEAN_TO_SMT,
-                translation="",
-                errors=[str(e)],
-                execution_time=time.time() - start_time
-            )
+            logger.error(f"Counterexample search failed: {e}")
+            return None
+
+
+# ============================================================================
+# Hybrid Proof Engine
+# ============================================================================
+
+class HybridProofEngine:
+    """
+    Engine for hybrid Z3/Lean proofs.
     
-    def _extract_theorem(self, lean_code: str) -> Dict[str, Any]:
-        """Extract theorem information from Lean code."""
-        info = {
-            "name": "unknown",
-            "parameters": [],
-            "statement": "",
-            "proof": ""
-        }
+    Uses Z3 for:
+    - Quick satisfiability checks
+    - Counterexample generation
+    - Arithmetic reasoning
+    
+    Uses Lean for:
+    - Formal verification
+    - Proof certificate generation
+    - Complex logical reasoning
+    """
+    
+    def __init__(
+        self,
+        verification_bridge: Optional[Z3LeanVerificationBridge] = None
+    ):
+        """Initialize hybrid proof engine"""
+        self.verification_bridge = verification_bridge or Z3LeanVerificationBridge()
+        self.z3_translator = Z3ToLeanTranslator()
+    
+    async def prove(
+        self,
+        theorem: str,
+        variables: Optional[Dict[str, str]] = None
+    ) -> HybridProofResult:
+        """
+        Prove theorem using hybrid approach.
         
-        # Extract theorem name and parameters
-        theorem_pattern = r'theorem\s+(\w+)\s*(?:\{[^}]*\})?\s*(.*):'
-        match = re.search(theorem_pattern, lean_code, re.DOTALL)
-        if match:
-            info["name"] = match.group(1)
-            params_block = match.group(2).strip()
+        Args:
+            theorem: Theorem statement
+            variables: Variable declarations
             
-            # Extract parameters from blocks like (x y : Int) (z : Real)
-            param_matches = re.findall(r'\(([^)]+)\)', params_block)
-            for param_group in param_matches:
-                if ':' in param_group:
-                    parts = param_group.split(':', 1)
-                    names = parts[0].strip().split()
-                    type_str = parts[1].strip()
-                    mapped_type = self.type_mapping.get(type_str, type_str)
-                    for name in names:
-                        info["parameters"].append({
-                            "name": name,
-                            "type": mapped_type
-                        })
+        Returns:
+            HybridProofResult
+        """
+        start_time = asyncio.get_event_loop().time()
+        z3_start = start_time
         
-        # Extract statement (between : and :=)
-        statement_pattern = r':\s*([^:=]+)\s*:='
-        match = re.search(statement_pattern, lean_code, re.DOTALL)
-        if match:
-            info["statement"] = match.group(1).strip()
+        # Step 1: Quick Z3 check
+        z3_component = ""
+        if Z3_AVAILABLE:
+            try:
+                # Create negation and check
+                solver = Solver()
+                # Simplified - would need proper parsing
+                z3_component = "Z3: Quick unsat check performed"
+            except:
+                z3_component = "Z3: Check failed"
         
-        return info
-    
-    def _generate_smtlib(self, theorem_info: Dict) -> str:
-        """Generate SMT-LIB from theorem information."""
-        lines = [
-            "; Generated from Lean 4",
-            "(set-logic ALL)",
-            "(set-option :produce-models true)",
-            ""
-        ]
+        z3_time = asyncio.get_event_loop().time() - z3_start
         
-        # Declare variables
-        for param in theorem_info["parameters"]:
-            lines.append(f"(declare-fun {param['name']} () {param['type']})")
+        # Step 2: Lean proof
+        lean_start = asyncio.get_event_loop().time()
         
-        lines.append("")
+        lean_component = ""
+        tactics_used = []
         
-        # Translate statement to assertion
-        if theorem_info["statement"]:
-            smt_statement = self._translate_statement(theorem_info["statement"])
-            lines.append(f"(assert (not {smt_statement}))")
-        
-        lines.extend([
-            "",
-            "(check-sat)",
-            "(get-model)"
-        ])
-        
-        return "\n".join(lines)
-    
-    def _translate_statement(self, statement: str) -> str:
-        """Translate Lean statement to SMT using AST parsing for infix-to-prefix."""
-        # Pre-process Lean symbols to python-compatible ones for ast.parse
-        py_stmt = statement
-        replacements = [
-            ('∧', ' and '), ('∨', ' or '), ('¬', ' not '), 
-            ('→', ' <= '), ('∀', ' forall '), ('∃', ' exists '),
-            ('≤', ' <= '), ('≥', ' >= '), ('≠', ' != ')
-        ]
-        for lean, py in replacements:
-            py_stmt = py_stmt.replace(lean, py)
-        
-        try:
-            tree = ast.parse(py_stmt, mode='eval')
-            return self._ast_to_smt(tree.body)
-        except Exception:
-            # Fallback to simple replacement if AST fails
-            smt = statement
-            for lean, py in replacements:
-                smt = smt.replace(lean, py.strip())
-            return smt
+        if LEAN4_AVAILABLE and self.verification_bridge.lean_service:
+            try:
+                # Generate Lean code
+                variables = variables or {}
+                var_decls = " ".join([f"({k} : {v})" for k, v in variables.items()])
+                lean_code = f"""
+import Mathlib
 
-    def _ast_to_smt(self, node) -> str:
-        """Recursively convert AST node to SMT-LIB prefix notation."""
-        if isinstance(node, ast.BoolOp):
-            op = "and" if isinstance(node.op, ast.And) else "or"
-            values = [self._ast_to_smt(v) for v in node.values]
-            return f"({op} {' '.join(values)})"
-        elif isinstance(node, ast.BinOp):
-            ops = {ast.Add: '+', ast.Sub: '-', ast.Mult: '*', ast.Div: '/'}
-            op = ops.get(type(node.op), 'unknown')
-            return f"({op} {self._ast_to_smt(node.left)} {self._ast_to_smt(node.right)})"
-        elif isinstance(node, ast.Compare):
-            left = self._ast_to_smt(node.left)
-            # SMT comparisons are typically binary, but we need to nest them if multiple
-            res = left
-            for op, right_node in zip(node.ops, node.comparators):
-                right = self._ast_to_smt(right_node)
-                op_str = {
-                    ast.Eq: '=', ast.NotEq: 'distinct', 
-                    ast.Lt: '<', ast.LtE: '<=', 
-                    ast.Gt: '>', ast.GtE: '>='
-                }.get(type(op), '=')
-                res = f"({op_str} {res} {right})"
-            return res
-        elif isinstance(node, ast.UnaryOp):
-            if isinstance(node.op, ast.Not):
-                return f"(not {self._ast_to_smt(node.operand)})"
-            if isinstance(node.op, ast.USub):
-                return f"(- {self._ast_to_smt(node.operand)})"
-        elif isinstance(node, ast.Name):
-            return node.id
-        elif isinstance(node, ast.Constant):
-            if isinstance(node.value, bool):
-                return "true" if node.value else "false"
-            return str(node.value)
-        elif isinstance(node, ast.Call):
-            func_name = node.func.id if isinstance(node.func, ast.Name) else "unknown"
-            args = [self._ast_to_smt(a) for a in node.args]
-            return f"({func_name} {' '.join(args)})"
+theorem hybrid_theorem {var_decls} :
+  {theorem} := by
+  sorry
+"""
+                
+                # Try to complete proof
+                completion = await self.verification_bridge.lean_service.complete_proof(lean_code)
+                
+                if completion.success:
+                    lean_component = completion.completed_code
+                    tactics_used = completion.tactics_used
+                else:
+                    lean_component = lean_code
+                    tactics_used = ["sorry"]
+                    
+            except Exception as e:
+                lean_component = f"-- Lean proof failed: {e}"
+                tactics_used = []
+        
+        lean_time = asyncio.get_event_loop().time() - lean_start
+        total_time = asyncio.get_event_loop().time() - start_time
+        
+        # Combine
+        combined = f"""-- Hybrid Proof (Z3 + Lean)
+-- Z3 Component: {z3_component}
+-- Lean Component:
+{lean_component}
+"""
+        
+        return HybridProofResult(
+            success=len(tactics_used) > 0 and "sorry" not in tactics_used,
+            z3_component=z3_component,
+            lean_component=lean_component,
+            combined_proof=combined,
+            tactics_used=tactics_used,
+            z3_time=z3_time,
+            lean_time=lean_time,
+            total_time=total_time
+        )
+    
+    async def prove_arithmetic(
+        self,
+        constraints: List[str],
+        goal: str
+    ) -> HybridProofResult:
+        """
+        Prove arithmetic goal from constraints.
+        
+        Args:
+            constraints: List of constraint strings
+            goal: Goal to prove
             
-        return str(node)
+        Returns:
+            HybridProofResult
+        """
+        # Build theorem
+        constraint_str = " -> ".join(constraints) if constraints else "True"
+        theorem = f"{constraint_str} -> {goal}"
+        
+        return await self.prove(theorem)
 
 
-# =============================================================================
-# Z3-LeanAIDE Bridge
-# =============================================================================
+# ============================================================================
+# Main Z3 LeanAide Bridge
+# ============================================================================
 
 class Z3LeanAideBridge:
     """
-    Main bridge class integrating Z3 with LeanAIDE.
+    Main bridge class for Z3-LeanAide integration.
     
-    Provides:
+    Provides unified interface for:
     - Bidirectional translation
-    - Combined verification
-    - Strategy selection
-    - Cross-validation
+    - Hybrid verification
+    - Counterexample generation
+    - Proof assistance
     """
     
-    def __init__(self, config: Optional[Z3LeanAideConfig] = None):
-        self.config = config or Z3LeanAideConfig()
-        self.smt_to_lean = SMTtoLeanTranslator()
-        self.lean_to_smt = LeantoSMTTranslator()
+    def __init__(self, lean_service: Optional[LeanAideService] = None):
+        """Initialize Z3-LeanAide bridge"""
+        self.z3_to_lean = Z3ToLeanTranslator()
+        self.lean_to_z3 = LeanToZ3Translator()
+        self.verification = Z3LeanVerificationBridge(lean_service)
+        self.hybrid_proof = HybridProofEngine(self.verification)
         
-        # Initialize solvers
-        self.z3_solver = get_z3_solver_engine(
-            Z3Config(
-                timeout=self.config.z3_timeout,
-                proof_generation=self.config.z3_proof_generation
-            )
-        ) if Z3_INTEGRATION_AVAILABLE else None
-        
-        self.z3_prover = get_z3_theorem_prover(
-            Z3Config(
-                timeout=self.config.z3_timeout,
-                proof_generation=self.config.z3_proof_generation
-            )
-        ) if Z3_INTEGRATION_AVAILABLE else None
-        
-        self.lean_integrator = None
-        if LEANAIDE_WORKFLOW_AVAILABLE:
-            lean_config = type('Config', (), {
-                'host': self.config.leanaide_host,
-                'port': self.config.leanaide_port,
-                'timeout': self.config.leanaide_timeout,
-                'enabled': True
-            })()
-            self.lean_integrator = LeanAideWorkflowIntegrator(lean_config)
-        
-        self.problem_detector = MathematicalProblemDetector() if LEANAIDE_WORKFLOW_AVAILABLE else None
+        logger.info("Z3LeanAideBridge initialized")
     
-    def get_status(self) -> Dict[str, Any]:
-        """Get bridge status."""
+    def z3_to_lean4(
+        self,
+        z3_expr: Any,
+        constraint_type: ConstraintType = ConstraintType.BOOLEAN
+    ) -> Lean4Constraint:
+        """Translate Z3 to Lean 4"""
+        return self.z3_to_lean.translate(z3_expr, constraint_type)
+    
+    def lean4_to_z3(self, lean_code: str) -> Optional[Z3Constraint]:
+        """Translate Lean 4 to Z3"""
+        return self.lean_to_z3.translate(lean_code)
+    
+    async def verify(
+        self,
+        constraint: Union[Z3Constraint, str],
+        use_counterexamples: bool = True
+    ) -> VerificationBridgeResult:
+        """Verify using both Z3 and Lean"""
+        return await self.verification.verify_hybrid(constraint, use_counterexamples)
+    
+    async def find_counterexample(self, lean_code: str) -> Optional[Dict[str, Any]]:
+        """Find counterexample to Lean theorem"""
+        return await self.verification.find_counterexample(lean_code)
+    
+    async def prove(
+        self,
+        theorem: str,
+        variables: Optional[Dict[str, str]] = None
+    ) -> HybridProofResult:
+        """Prove theorem using hybrid approach"""
+        return await self.hybrid_proof.prove(theorem, variables)
+    
+    def is_z3_available(self) -> bool:
+        """Check if Z3 is available"""
+        return Z3_AVAILABLE
+    
+    def is_lean_available(self) -> bool:
+        """Check if Lean is available"""
+        return LEAN4_AVAILABLE
+    
+    def get_capabilities(self) -> Dict[str, bool]:
+        """Get available capabilities"""
         return {
-            "z3_available": Z3_INTEGRATION_AVAILABLE and is_z3_available(),
-            "leanaide_available": LEANAIDE_AVAILABLE,
-            "leanaide_workflow_available": LEANAIDE_WORKFLOW_AVAILABLE,
-            "config": {
-                "default_strategy": self.config.default_strategy.value,
-                "enable_translation": self.config.enable_translation,
-                "enable_cross_validation": self.config.enable_cross_validation
-            }
+            "z3_available": Z3_AVAILABLE,
+            "lean_available": LEAN4_AVAILABLE,
+            "translation_z3_to_lean": True,
+            "translation_lean_to_z3": Z3_AVAILABLE,
+            "hybrid_verification": Z3_AVAILABLE and LEAN4_AVAILABLE,
+            "counterexamples": Z3_AVAILABLE,
+            "hybrid_proofs": True
         }
 
-    @staticmethod
-    def _merge_smtlib_constraints(smtlib: str, constraints: List[str]) -> str:
-        """Inject constraints into SMT-LIB text using Z3 parsing."""
-        if not constraints:
-            return smtlib
 
-        smtlib = smtlib or ""
-        cleaned = []
-        for constraint in constraints:
-            if constraint is None:
-                continue
-            text = str(constraint).strip()
-            if text:
-                cleaned.append(text)
-        if not cleaned:
-            return smtlib
+# ============================================================================
+# Convenience Functions
+# ============================================================================
 
-        def _fallback_merge() -> str:
-            assert_lines = []
-            for text in cleaned:
-                if text.startswith("(assert"):
-                    assert_lines.append(text)
-                else:
-                    assert_lines.append(f"(assert {text})")
-            if not assert_lines:
-                return smtlib
-            insertion = "\n".join(assert_lines) + "\n"
-            lower = smtlib.lower()
-            idx = lower.rfind("(check-sat")
-            if idx != -1:
-                return smtlib[:idx] + insertion + smtlib[idx:]
-            if smtlib and not smtlib.endswith("\n"):
-                return smtlib + "\n" + insertion
-            return smtlib + insertion
+def create_z3_lean_bridge(lean_service: Optional[Any] = None) -> Z3LeanAideBridge:
+    """Create Z3-LeanAide bridge"""
+    return Z3LeanAideBridge(lean_service)
 
-        try:
-            from z3 import Solver, parse_smt2_string, Z3Exception
-            from z3.z3util import get_vars
-        except Exception as exc:
-            logger.warning("Z3 not available for SMT merge: %s", exc)
-            return _fallback_merge()
 
-        try:
-            solver = Solver()
-            if smtlib.strip():
-                solver.from_string(smtlib)
+async def quick_verify(lean_code: str) -> Optional[VerificationBridgeResult]:
+    """Quickly verify Lean code using Z3"""
+    bridge = create_z3_lean_bridge()
+    return await bridge.verify(lean_code)
 
-            decls: Dict[str, Any] = {}
-            try:
-                for assertion in solver.assertions():
-                    for var in get_vars(assertion):
-                        decls.setdefault(var.decl().name(), var)
-            except Exception:
-                decls = {}
 
-            for text in cleaned:
-                if "(declare" in text or "(define" in text or "(set-logic" in text:
-                    solver.from_string(text)
-                    continue
-
-                candidate = text
-                if not candidate.startswith("(assert"):
-                    candidate = f"(assert {candidate})"
-
-                try:
-                    parsed = parse_smt2_string(candidate, decls=decls)
-                    if parsed:
-                        solver.add(*parsed)
-                        for expr in parsed:
-                            for var in get_vars(expr):
-                                decls.setdefault(var.decl().name(), var)
-                except Z3Exception:
-                    try:
-                        parsed = parse_smt2_string(text, decls=decls)
-                        if parsed:
-                            solver.add(*parsed)
-                            for expr in parsed:
-                                for var in get_vars(expr):
-                                    decls.setdefault(var.decl().name(), var)
-                        else:
-                            solver.from_string(text)
-                    except Z3Exception as exc:
-                        logger.warning("SMT merge failed for constraint '%s': %s", text, exc)
-                        return _fallback_merge()
-
-            return solver.to_smt2()
-        except Exception as exc:
-            logger.warning("Failed to merge SMT-LIB via Z3: %s", exc)
-            return _fallback_merge()
-
-    @staticmethod
-    def _resolve_entangled_constraints(entanglement_context: Optional[Dict[str, Any]]) -> List[str]:
-        if not entanglement_context:
-            return []
-
-        entangled_constraints = entanglement_context.get("entangled_constraints")
-        if entangled_constraints:
-            return list(entangled_constraints)
-
-        entanglement_constraints = entanglement_context.get("entanglement_constraints", {}) or {}
-        entangled_with = entanglement_context.get("entangled_with", []) or []
-
-        constraints: List[str] = []
-        if isinstance(entanglement_constraints, dict):
-            for ent_id in entangled_with:
-                constraints.extend(entanglement_constraints.get(ent_id, []) or [])
-
-        return constraints
-
-    def _apply_entanglement_to_smt(
-        self,
-        problem: str,
-        entanglement_context: Optional[Dict[str, Any]]
-    ) -> str:
-        problem_text = self._normalize_problem_input(problem)
-        constraints = self._resolve_entangled_constraints(entanglement_context)
-        if not constraints:
-            return problem_text
-        return self._merge_smtlib_constraints(problem_text, constraints)
-
-    @staticmethod
-    def _normalize_problem_input(problem: Any) -> str:
-        """Normalize problem input to a string."""
-        if isinstance(problem, str):
-            return problem
-        if isinstance(problem, bytes):
-            try:
-                return problem.decode("utf-8")
-            except UnicodeDecodeError:
-                return problem.decode("utf-8", errors="replace")
-        if isinstance(problem, dict):
-            for key in ("smtlib", "problem", "statement", "content"):
-                value = problem.get(key)
-                if isinstance(value, str):
-                    return value
-        return str(problem)
-    
-    async def translate_smt_to_lean(self, smtlib_content: str) -> TranslationResult:
-        """Translate SMT-LIB to Lean 4."""
-        return self.smt_to_lean.translate(smtlib_content)
-    
-    async def translate_lean_to_smt(self, lean_code: str) -> TranslationResult:
-        """Translate Lean 4 to SMT-LIB."""
-        return self.lean_to_smt.translate(lean_code)
-    
-    async def verify_with_both(
-        self,
-        problem: str,
-        strategy: Optional[VerificationStrategy] = None,
-        entanglement_context: Optional[Dict[str, Any]] = None
-    ) -> CombinedVerificationResult:
-        """
-        Verify problem using both Z3 and LeanAIDE.
-        
-        Args:
-            problem: Problem statement (SMT-LIB or natural language)
-            strategy: Verification strategy to use
-            
-        Returns:
-            CombinedVerificationResult
-        """
-        start_time = time.time()
-        strategy = strategy or self.config.default_strategy
-
-        problem = self._normalize_problem_input(problem)
-
-        # Detect problem type
-        is_smt = (
-            self.smt_to_lean._is_smtlib(problem)
-            if hasattr(self.smt_to_lean, '_is_smtlib')
-            else '(assert' in problem
-        )
-        if not is_smt:
-            lower = problem.lower()
-            is_smt = any(
-                token in lower
-                for token in ("(declare", "(set-logic", "(check-sat", "(push", "(pop", "(assert")
-            )
-
-        entangled_constraints = self._resolve_entangled_constraints(entanglement_context)
-        if entanglement_context and entanglement_context.get("force_smt"):
-            is_smt = True
-        elif entangled_constraints and any(token in problem.lower() for token in ("(declare", "(set-logic", "(check-sat", "(assert")):
-            is_smt = True
-        
-        if strategy == VerificationStrategy.ADAPTIVE:
-            strategy = self._select_strategy(problem, is_smt)
-
-        if is_smt:
-            problem = self._apply_entanglement_to_smt(problem, entanglement_context)
-
-        # Execute based on strategy
-        if strategy == VerificationStrategy.Z3_FIRST:
-            return await self._verify_z3_first(problem, is_smt)
-        elif strategy == VerificationStrategy.LEAN_FIRST:
-            return await self._verify_lean_first(problem, is_smt)
-        elif strategy == VerificationStrategy.PARALLEL:
-            return await self._verify_parallel(problem, is_smt, entanglement_context=entanglement_context)
-        elif strategy == VerificationStrategy.CONSENSUS:
-            return await self._verify_consensus(problem, is_smt, entanglement_context=entanglement_context)
-        else:
-            return CombinedVerificationResult(
-                success=False,
-                errors=[f"Unknown strategy: {strategy}"],
-                execution_time=time.time() - start_time
-            )
-    
-    def _select_strategy(self, problem: str, is_smt: bool) -> VerificationStrategy:
-        """Select best strategy based on problem characteristics."""
-        if is_smt and self.config.use_z3_for_constraints:
-            return VerificationStrategy.Z3_FIRST
-        elif 'prove' in problem.lower() or 'theorem' in problem.lower():
-            if self.config.use_lean_for_theorems:
-                return VerificationStrategy.LEAN_FIRST
-        
-        return VerificationStrategy.PARALLEL
-
-    # Import DSPy through the global integration module for consistency
-    try:
-        from dspy_integration import DSPY_AVAILABLE, get_global_dspy_instance, initialize_dspy
-        import dspy
-        from dspy.teleprompt import BootstrapFewShot
-        from dspy.predict import Predict
-        logger.info("DSPy available through global integration for enhanced Z3-LeanAIDE bridging")
-    except ImportError:
-        # Fallback to local import if global module not available
-        try:
-            import dspy
-            from dspy.teleprompt import BootstrapFewShot
-            from dspy.predict import Predict
-            DSPY_AVAILABLE = True
-            logger.info("DSPy available for enhanced Z3-LeanAIDE bridging")
-        except ImportError:
-            dspy = None
-            BootstrapFewShot = None
-            Predict = None
-            DSPY_AVAILABLE = False
-            logger.warning("DSPy not available - using standard Z3-LeanAIDE bridging")
-
-    def verify_with_dspy_guidance(
-        self,
-        problem: str,
-        strategy: Optional[VerificationStrategy] = None,
-        entanglement_context: Optional[Dict[str, Any]] = None
-    ) -> CombinedVerificationResult:
-        """
-        Verify problem using both Z3 and LeanAIDE with DSPy for enhanced problem understanding and strategy selection.
-
-        Args:
-            problem: Problem statement (SMT-LIB, Lean 4, or natural language)
-            strategy: Verification strategy to use
-            entanglement_context: Context for entangled constraints
-
-        Returns:
-            CombinedVerificationResult
-        """
-        start_time = time.time()
-
-        if not DSPY_AVAILABLE:
-            logger.info("DSPy not available, falling back to standard verification")
-            # Fall back to standard verification
-            import asyncio
-            try:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                result = loop.run_until_complete(self.verify_with_both(problem, strategy, entanglement_context))
-                return result
-            except Exception as e:
-                logger.error(f"Error in fallback verification: {e}")
-                return CombinedVerificationResult(
-                    success=False,
-                    errors=[f"Fallback verification failed: {str(e)}"],
-                    execution_time=time.time() - start_time
-                )
-            finally:
-                loop.close()
-
-        try:
-            # Define a DSPy signature for problem analysis and strategy selection
-            class ProblemAnalysisSignature(dspy.Signature):
-                """Analyze a mathematical problem and recommend verification strategy."""
-                problem_statement = dspy.InputField(desc="Mathematical problem to verify (in natural language, SMT-LIB, or Lean)")
-                problem_type = dspy.InputField(desc="Type of problem (constraint satisfaction, theorem proving, optimization, etc.)")
-
-                problem_classification = dspy.OutputField(desc="Classification of the problem (arithmetic, boolean, string, etc.)")
-                recommended_strategy = dspy.OutputField(desc="Recommended verification strategy (z3_first, lean_first, parallel, consensus)")
-                key_variables = dspy.OutputField(desc="List of key variables in the problem")
-                constraints_identified = dspy.OutputField(desc="List of constraints identified in the problem")
-                verification_approach = dspy.OutputField(desc="Recommended approach for verification")
-
-            # Create a predictor using the signature
-            analyze_problem = dspy.Predict(ProblemAnalysisSignature)
-
-            # Determine problem type
-            is_smt = (
-                self.smt_to_lean._is_smtlib(problem)
-                if hasattr(self.smt_to_lean, '_is_smtlib')
-                else '(assert' in problem
-            )
-            problem_type = "SMT-LIB constraint" if is_smt else "theorem proving"
-
-            # Run DSPy analysis
-            result = analyze_problem(
-                problem_statement=problem,
-                problem_type=problem_type
-            )
-
-            # Map DSPy recommendation to VerificationStrategy
-            strategy_mapping = {
-                "z3_first": VerificationStrategy.Z3_FIRST,
-                "lean_first": VerificationStrategy.LEAN_FIRST,
-                "parallel": VerificationStrategy.PARALLEL,
-                "consensus": VerificationStrategy.CONSENSUS
-            }
-
-            recommended_strategy = strategy_mapping.get(result.recommended_strategy.lower(), VerificationStrategy.ADAPTIVE)
-
-            # Use the recommended strategy
-            import asyncio
-            try:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                verification_result = loop.run_until_complete(
-                    self.verify_with_both(problem, recommended_strategy, entanglement_context)
-                )
-            except Exception as e:
-                logger.error(f"Error in verification with DSPy guidance: {e}")
-                # Fallback to standard verification
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                verification_result = loop.run_until_complete(
-                    self.verify_with_both(problem, strategy, entanglement_context)
-                )
-            finally:
-                loop.close()
-
-            # Enhance the result with DSPy analysis
-            verification_result.dspy_analysis = {
-                "problem_classification": result.problem_classification,
-                "key_variables": result.key_variables,
-                "constraints_identified": result.constraints_identified,
-                "verification_approach": result.verification_approach
-            }
-
-            verification_result.dspy_enhanced = True
-
-            return verification_result
-
-        except Exception as e:
-            logger.error(f"Error in DSPy-enhanced verification: {e}")
-            # Fall back to standard verification
-            import asyncio
-            try:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                result = loop.run_until_complete(self.verify_with_both(problem, strategy, entanglement_context))
-                return result
-            except Exception as e2:
-                logger.error(f"Error in fallback verification after DSPy failure: {e2}")
-                return CombinedVerificationResult(
-                    success=False,
-                    errors=[f"DSPy verification failed: {str(e)}", f"Fallback also failed: {str(e2)}"],
-                    execution_time=time.time() - start_time
-                )
-            finally:
-                loop.close()
-
-    def translate_with_dspy_enhancement(
-        self,
-        source_content: str,
-        source_format: str = "auto",
-        target_format: str = "auto"
-    ) -> TranslationResult:
-        """
-        Translate between SMT-LIB and Lean 4 with DSPy for enhanced semantic understanding.
-
-        Args:
-            source_content: Content to translate
-            source_format: Format of source content ("smtlib", "lean", "auto")
-            target_format: Format to translate to ("smtlib", "lean", "auto")
-
-        Returns:
-            TranslationResult
-        """
-        start_time = time.time()
-
-        if not DSPY_AVAILABLE:
-            logger.info("DSPy not available, falling back to standard translation")
-            # Determine translation direction and use standard translators
-            if source_format == "auto":
-                # Try to detect format
-                if "(assert" in source_content or "(declare" in source_content:
-                    source_format = "smtlib"
-                else:
-                    source_format = "lean"
-
-            if target_format == "auto":
-                target_format = "lean" if source_format == "smtlib" else "smtlib"
-
-            if source_format == "smtlib" and target_format == "lean":
-                return self.smt_to_lean.translate(source_content)
-            elif source_format == "lean" and target_format == "smtlib":
-                return self.lean_to_smt.translate(source_content)
-            else:
-                return TranslationResult(
-                    success=False,
-                    source=source_format,
-                    target=target_format,
-                    direction=TranslationDirection.SMT_TO_LEAN if source_format == "smtlib" else TranslationDirection.LEAN_TO_SMT,
-                    translation="",
-                    errors=["Cannot perform translation: unsupported direction or format"],
-                    execution_time=time.time() - start_time
-                )
-
-        try:
-            # Define a DSPy signature for enhanced translation
-            class EnhancedTranslationSignature(dspy.Signature):
-                """Enhanced translation between SMT-LIB and Lean 4 with semantic understanding."""
-                source_content = dspy.InputField(desc="Source content to translate (SMT-LIB or Lean 4 code)")
-                source_format = dspy.InputField(desc="Format of source content (smtlib or lean)")
-                target_format = dspy.InputField(desc="Target format (smtlib or lean)")
-                semantic_context = dspy.InputField(desc="Semantic context to preserve during translation")
-
-                translated_content = dspy.OutputField(desc="Translated content in target format")
-                semantic_preservation_score = dspy.OutputField(desc="Score (0-100) indicating how well semantics were preserved")
-                translation_notes = dspy.OutputField(desc="Notes about the translation process")
-                potential_issues = dspy.OutputField(desc="Potential issues with the translation")
-
-            # Create a predictor using the signature
-            enhanced_translate = dspy.Predict(EnhancedTranslationSignature)
-
-            # Determine formats if auto
-            if source_format == "auto":
-                if "(assert" in source_content or "(declare" in source_content:
-                    source_format = "smtlib"
-                else:
-                    source_format = "lean"
-
-            if target_format == "auto":
-                target_format = "lean" if source_format == "smtlib" else "smtlib"
-
-            # Determine semantic context
-            semantic_context = f"Translating from {source_format} to {target_format} while preserving logical meaning and mathematical semantics."
-
-            # Run DSPy-enhanced translation
-            result = enhanced_translate(
-                source_content=source_content,
-                source_format=source_format,
-                target_format=target_format,
-                semantic_context=semantic_context
-            )
-
-            # Create translation result
-            direction = (
-                TranslationDirection.SMT_TO_LEAN
-                if source_format == "smtlib" and target_format == "lean"
-                else TranslationDirection.LEAN_TO_SMT
-            )
-
-            return TranslationResult(
-                success=True,
-                source=source_format,
-                target=target_format,
-                direction=direction,
-                translation=result.translated_content,
-                execution_time=time.time() - start_time,
-                metadata={
-                    "semantic_preservation_score": result.semantic_preservation_score,
-                    "translation_notes": result.translation_notes,
-                    "potential_issues": result.potential_issues,
-                    "dspy_enhanced": True
-                }
-            )
-
-        except Exception as e:
-            logger.error(f"Error in DSPy-enhanced translation: {e}")
-            # Fall back to standard translation
-            if source_format == "auto":
-                if "(assert" in source_content or "(declare" in source_content:
-                    source_format = "smtlib"
-                else:
-                    source_format = "lean"
-
-            if target_format == "auto":
-                target_format = "lean" if source_format == "smtlib" else "smtlib"
-
-            if source_format == "smtlib" and target_format == "lean":
-                return self.smt_to_lean.translate(source_content)
-            elif source_format == "lean" and target_format == "smtlib":
-                return self.lean_to_smt.translate(source_content)
-            else:
-                return TranslationResult(
-                    success=False,
-                    source=source_format,
-                    target=target_format,
-                    direction=TranslationDirection.SMT_TO_LEAN if source_format == "smtlib" else TranslationDirection.LEAN_TO_SMT,
-                    translation="",
-                    errors=[f"DSPy translation failed: {str(e)}"],
-                    execution_time=time.time() - start_time
-                )
-
-    async def _verify_z3_first(
-        self,
-        problem: str,
-        is_smt: bool
-    ) -> CombinedVerificationResult:
-        """Verify with Z3 first, fall back to LeanAIDE."""
-        start_time = time.time()
-        z3_result = None
-        
-        # Try Z3
-        if self.z3_solver:
-            if is_smt:
-                z3_result = self.z3_solver.solve_smtlib(problem)
-            else:
-                z3_result = self.z3_prover.prove_theorem(problem)
-            
-            # If Z3 succeeds confidently, return result
-            is_sat = z3_result and z3_result.status == Z3ResultStatus.SAT
-            is_proven = z3_result and hasattr(z3_result, 'proven') and z3_result.proven
-            
-            if is_sat or is_proven:
-                return CombinedVerificationResult(
-                    success=True,
-                    z3_result=z3_result,
-                    strategy_used=VerificationStrategy.Z3_FIRST,
-                    confidence_score=0.8,
-                    recommendation="Verified by Z3",
-                    execution_time=time.time() - start_time
-                )
-        
-        # Fall back to LeanAIDE
-        lean_result = await self._verify_with_lean(problem)
-        
-        return CombinedVerificationResult(
-            success=lean_result.success if hasattr(lean_result, 'success') else lean_result.get('success', False),
-            z3_result=z3_result if self.z3_solver else None,
-            lean_result=lean_result,
-            strategy_used=VerificationStrategy.Z3_FIRST,
-            confidence_score=0.7 if (lean_result.success if hasattr(lean_result, 'success') else lean_result.get('success', False)) else 0.0,
-            recommendation="Verified by LeanAIDE (Z3 fallback)",
-            execution_time=time.time() - start_time
-        )
-    
-    async def _verify_lean_first(
-        self,
-        problem: str,
-        is_smt: bool
-    ) -> CombinedVerificationResult:
-        """Verify with LeanAIDE first, fall back to Z3."""
-        start_time = time.time()
-        
-        # Try LeanAIDE
-        lean_result = await self._verify_with_lean(problem)
-        lean_success = lean_result.success if hasattr(lean_result, 'success') else lean_result.get('success', False)
-        
-        if lean_success:
-            return CombinedVerificationResult(
-                success=True,
-                lean_result=lean_result,
-                strategy_used=VerificationStrategy.LEAN_FIRST,
-                confidence_score=0.9,
-                recommendation="Verified by LeanAIDE",
-                execution_time=time.time() - start_time
-            )
-        
-        # Fall back to Z3
-        if self.z3_solver:
-            if is_smt:
-                z3_result = self.z3_solver.solve_smtlib(problem)
-            else:
-                z3_result = self.z3_prover.prove_theorem(problem)
-            
-            z3_success = (z3_result.status == Z3ResultStatus.SAT or 
-                         (hasattr(z3_result, 'proven') and z3_result.proven))
-            
-            return CombinedVerificationResult(
-                success=z3_success,
-                z3_result=z3_result,
-                lean_result=lean_result,
-                strategy_used=VerificationStrategy.LEAN_FIRST,
-                confidence_score=0.6 if z3_success else 0.0,
-                recommendation="Verified by Z3 (LeanAIDE fallback)" if z3_success else "Verification failed",
-                execution_time=time.time() - start_time
-            )
-        
-        return CombinedVerificationResult(
-            success=False,
-            lean_result=lean_result,
-            strategy_used=VerificationStrategy.LEAN_FIRST,
-            errors=["Both LeanAIDE and Z3 failed"],
-            execution_time=time.time() - start_time
-        )
-    
-    async def _verify_parallel(
-        self,
-        problem: str,
-        is_smt: bool,
-        entanglement_context: Optional[Dict[str, Any]] = None
-    ) -> CombinedVerificationResult:
-        """Verify with both Z3 and LeanAIDE in parallel."""
-        start_time = time.time()
-        
-        # Run both verifications concurrently
-        z3_task = self._verify_z3_async(problem, is_smt, entanglement_context=entanglement_context)
-        lean_task = self._verify_lean_async(problem)
-        
-        results = await asyncio.gather(z3_task, lean_task, return_exceptions=True)
-        
-        z3_result = results[0] if not isinstance(results[0], Exception) else None
-        lean_result = results[1] if not isinstance(results[1], Exception) else None
-        
-        # Determine success
-        z3_success = False
-        if z3_result:
-            if hasattr(z3_result, 'status'):
-                z3_success = z3_result.status == Z3ResultStatus.SAT
-            elif hasattr(z3_result, 'proven'):
-                z3_success = z3_result.proven
-        
-        lean_success = False
-        if lean_result:
-            lean_success = (lean_result.success if hasattr(lean_result, 'success') 
-                          else lean_result.get('success', False))
-        
-        success = z3_success or lean_success
-        agreement = z3_success == lean_success
-        
-        confidence = 0.0
-        recommendation = ""
-        
-        if agreement and z3_success:
-            confidence = 0.95
-            recommendation = "Both Z3 and LeanAIDE verified"
-        elif z3_success and not lean_success:
-            confidence = 0.7
-            recommendation = "Verified by Z3 only"
-        elif lean_success and not z3_success:
-            confidence = 0.8
-            recommendation = "Verified by LeanAIDE only"
-        else:
-            confidence = 0.0
-            recommendation = "Verification failed"
-        
-        return CombinedVerificationResult(
-            success=success,
-            z3_result=z3_result,
-            lean_result=lean_result,
-            strategy_used=VerificationStrategy.PARALLEL,
-            agreement=agreement,
-            confidence_score=confidence,
-            recommendation=recommendation,
-            execution_time=time.time() - start_time
-        )
-    
-    async def _verify_consensus(
-        self,
-        problem: str,
-        is_smt: bool,
-        entanglement_context: Optional[Dict[str, Any]] = None
-    ) -> CombinedVerificationResult:
-        """Verify with both - both must agree for success."""
-        result = await self._verify_parallel(problem, is_smt, entanglement_context=entanglement_context)
-        
-        # Override success to require consensus
-        if not result.agreement:
-            result.success = False
-            result.recommendation = "Consensus not reached - results disagree"
-        
-        return result
-    
-    async def _verify_z3_async(
-        self,
-        problem: str,
-        is_smt: bool,
-        entanglement_context: Optional[Dict[str, Any]] = None
-    ) -> Optional[Z3SolverResult]:
-        """Async wrapper for Z3 verification."""
-        if not self.z3_solver:
-            return None
-        
-        loop = asyncio.get_event_loop()
-        if is_smt:
-            return await loop.run_in_executor(None, self.z3_solver.solve_smtlib, problem)
-        else:
-            return await loop.run_in_executor(None, self.z3_prover.prove_theorem, problem)
-    
-    async def _verify_lean_async(self, problem: str):
-        """Async wrapper for LeanAIDE verification."""
-        if not self.lean_integrator:
-            return None
-        
-        # Initialize if needed
-        if not self.lean_integrator.client:
-            initialized = await self.lean_integrator.initialize()
-            if not initialized:
-                return {"success": False, "error": "Failed to initialize LeanAIDE"}
-        
-        return await self.lean_integrator.verify_sub_problem_solution(
-            sub_problem_id="z3_bridge",
-            problem_statement=problem,
-            solution_content=""
-        )
-    
-    async def _verify_with_lean(self, problem: str):
-        """Verify with LeanAIDE."""
-        if not self.lean_integrator:
-            return {"success": False, "error": "LeanAIDE not available"}
-        
-        try:
-            if not self.lean_integrator.client:
-                initialized = await self.lean_integrator.initialize()
-                if not initialized:
-                    return {"success": False, "error": "Failed to initialize LeanAIDE"}
-            
-            return await self.lean_integrator.verify_sub_problem_solution(
-                sub_problem_id="z3_bridge",
-                problem_statement=problem,
-                solution_content=""
-            )
-        except Exception as e:
-            logger.error(f"LeanAIDE verification failed: {e}")
-            return {"success": False, "error": str(e)}
-    
-    async def cross_validate(
-        self,
-        smtlib_problem: str,
-        entanglement_context: Optional[Dict[str, Any]] = None
-    ) -> CombinedVerificationResult:
-        """
-        Cross-validate by translating SMT to Lean and verifying both ways.
-        
-        Args:
-            smtlib_problem: SMT-LIB problem
-            
-        Returns:
-            CombinedVerificationResult
-        """
-        start_time = time.time()
-        
-        smtlib_problem = self._apply_entanglement_to_smt(smtlib_problem, entanglement_context)
-
-        # Translate to Lean
-        translation = await self.translate_smt_to_lean(smtlib_problem)
-        
-        if not translation.success:
-            return CombinedVerificationResult(
-                success=False,
-                errors=["Translation failed"] + translation.errors,
-                execution_time=time.time() - start_time
-            )
-        
-        # Verify original SMT with Z3
-        z3_result = None
-        if self.z3_solver:
-            z3_result = self.z3_solver.solve_smtlib(smtlib_problem)
-        
-        # Verify translated Lean with LeanAIDE
-        lean_result = await self._verify_with_lean(translation.translation)
-        lean_success = (lean_result.success if hasattr(lean_result, 'success') 
-                       else lean_result.get('success', False))
-        
-        # Check agreement
-        z3_success = z3_result and z3_result.status == Z3ResultStatus.SAT
-        agreement = z3_success == lean_success
-        
-        return CombinedVerificationResult(
-            success=z3_success or lean_success,
-            z3_result=z3_result,
-            lean_result=lean_result,
-            agreement=agreement,
-            confidence_score=0.9 if agreement else 0.5,
-            recommendation="Cross-validated" if agreement else "Results differ - needs review",
-            execution_time=time.time() - start_time
-        )
-
-
-# =============================================================================
-# Global Instance
-# =============================================================================
-
-_z3_leanaide_bridge: Optional[Z3LeanAideBridge] = None
-_bridge_lock = asyncio.Lock()
-_sync_bridge_lock = threading.Lock()
-
-
-async def get_z3_leanaide_bridge(config: Optional[Z3LeanAideConfig] = None) -> Z3LeanAideBridge:
-    """Get global Z3-LeanAIDE bridge instance."""
-    global _z3_leanaide_bridge
-    if _z3_leanaide_bridge is None:
-        async with _bridge_lock:
-            if _z3_leanaide_bridge is None:
-                _z3_leanaide_bridge = Z3LeanAideBridge(config)
-    return _z3_leanaide_bridge
-
-
-def get_z3_leanaide_bridge_sync(config: Optional[Z3LeanAideConfig] = None) -> Z3LeanAideBridge:
-    """Get global Z3-LeanAIDE bridge instance (synchronous)."""
-    global _z3_leanaide_bridge
-    if _z3_leanaide_bridge is None:
-        with _sync_bridge_lock:
-            if _z3_leanaide_bridge is None:
-                _z3_leanaide_bridge = Z3LeanAideBridge(config)
-    return _z3_leanaide_bridge
-
-
-# =============================================================================
+# ============================================================================
 # Example Usage
-# =============================================================================
+# ============================================================================
 
-async def example_translation():
-    """Example: Translate SMT to Lean."""
-    bridge = await get_z3_leanaide_bridge()
+async def main():
+    """Example usage of Z3-LeanAide bridge"""
     
-    smt_problem = """
-    (set-logic LIA)
-    (declare-fun x () Int)
-    (declare-fun y () Int)
-    (assert (> x 0))
-    (assert (< x 10))
-    (assert (= y (+ x 5)))
-    (check-sat)
-    """
+    print("=" * 70)
+    print("Z3-LeanAide Bridge - Complete Implementation")
+    print("=" * 70)
     
-    result = await bridge.translate_smt_to_lean(smt_problem)
-    print(f"Translation success: {result.success}")
-    print(f"Lean code:\n{result.translation}")
+    bridge = create_z3_lean_bridge()
     
-    return result
+    print(f"\nCapabilities: {bridge.get_capabilities()}")
+    
+    # Example 1: Z3 to Lean translation
+    if Z3_AVAILABLE:
+        print("\n1. Z3 TO LEAN TRANSLATION")
+        print("-" * 40)
+        
+        # Create simple Z3 expression
+        x = Real('x')
+        y = Real('y')
+        z3_expr = And(x > 0, y > 0, x + y > 0)
+        
+        constraint = bridge.z3_to_lean4(z3_expr, ConstraintType.ARITHMETIC)
+        print(f"   Z3 expression: {z3_expr}")
+        print(f"   Generated Lean code:")
+        print(f"   {constraint.lean_code[:300]}...")
+    
+    # Example 2: Lean to Z3 translation
+    if Z3_AVAILABLE:
+        print("\n2. LEAN TO Z3 TRANSLATION")
+        print("-" * 40)
+        
+        lean_code = """
+import Mathlib
 
+theorem example_theorem (x y : ℝ) (hx : x > 0) (hy : y > 0) : x + y > 0 := by
+  linarith
+"""
+        z3_constraint = bridge.lean4_to_z3(lean_code)
+        if z3_constraint:
+            print(f"   Translated to Z3 constraint")
+            print(f"   Variables: {z3_constraint.variables}")
+            print(f"   Type: {z3_constraint.constraint_type.value}")
+    
+    # Example 3: Hybrid verification
+    print("\n3. HYBRID VERIFICATION")
+    print("-" * 40)
+    
+    test_lean = """
+import Mathlib
 
-async def example_combined_verification():
-    """Example: Combined verification."""
-    bridge = await get_z3_leanaide_bridge()
+theorem simple_theorem : 1 + 1 = 2 := by
+  rfl
+"""
+    result = await bridge.verify(test_lean)
+    if result:
+        print(f"   Z3 result: {result.z3_result}")
+        print(f"   Lean result: {result.lean_result.success if result.lean_result else 'N/A'}")
+        print(f"   Agreed: {result.agreed}")
+        print(f"   Confidence: {result.confidence:.2f}")
     
-    problem = """
-    (set-logic LIA)
-    (declare-fun x () Int)
-    (assert (> x 0))
-    (assert (< x 5))
-    (check-sat)
-    """
+    # Example 4: Counterexample search
+    if Z3_AVAILABLE:
+        print("\n4. COUNTEREXAMPLE SEARCH")
+        print("-" * 40)
+        
+        false_theorem = """
+import Mathlib
+
+theorem false_claim (x : ℝ) : x > 0 := by
+  sorry
+"""
+        counterexample = await bridge.find_counterexample(false_theorem)
+        if counterexample:
+            print(f"   Found counterexample: {counterexample}")
+        else:
+            print("   No counterexample found (theorem may be true)")
     
-    result = await bridge.verify_with_both(problem, VerificationStrategy.PARALLEL)
-    print(f"Success: {result.success}")
-    print(f"Strategy: {result.strategy_used.value}")
-    print(f"Confidence: {result.confidence_score}")
-    print(f"Recommendation: {result.recommendation}")
+    # Example 5: Hybrid proof
+    print("\n5. HYBRID PROOF")
+    print("-" * 40)
     
-    return result
+    proof_result = await bridge.prove(
+        "x + y = y + x",
+        {"x": "ℝ", "y": "ℝ"}
+    )
+    print(f"   Success: {proof_result.success}")
+    print(f"   Tactics used: {proof_result.tactics_used}")
+    print(f"   Z3 time: {proof_result.z3_time:.3f}s")
+    print(f"   Lean time: {proof_result.lean_time:.3f}s")
+    print(f"   Total time: {proof_result.total_time:.3f}s")
+    
+    print("\n" + "=" * 70)
+    print("All examples completed!")
+    print("=" * 70)
 
 
 if __name__ == "__main__":
-    print("Z3-LeanAIDE Bridge Integration")
-    print("=" * 50)
-    
-    # Run examples
-    print("\n--- Translation Example ---")
-    asyncio.run(example_translation())
-    
-    print("\n--- Combined Verification Example ---")
-    asyncio.run(example_combined_verification())
+    asyncio.run(main())

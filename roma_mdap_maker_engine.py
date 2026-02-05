@@ -7,9 +7,9 @@ zero-error execution mechanisms.
 
 Architecture:
     Layer 1: ROMA Hierarchical Decomposition
-        ↓
+        v
     Layer 2: MAKER Error Correction (voting + red-flagging)
-        ↓
+        v
     Layer 3: Confidence-Weighted Aggregation
 
 Result: Zero-error execution at scale through hierarchical recursion + voting.

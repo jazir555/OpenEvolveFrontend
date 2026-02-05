@@ -121,19 +121,19 @@ def verify_phase(phase: str):
             with urllib.request.urlopen(url, timeout=5) as response:
                 if response.status == 200:
                     data = json.loads(response.read().decode())
-                    print(f"  ✓ Status 200 OK")
+                    print(f"  [OK] Status 200 OK")
                     print(f"  Response keys: {list(data.keys())}")
                 else:
-                    print(f"  ✗ Status {response.status}")
+                    print(f"  [FAIL] Status {response.status}")
                     all_passed = False
         except urllib.error.HTTPError as e:
-            print(f"  ✗ HTTP Error: {e.code}")
+            print(f"  [FAIL] HTTP Error: {e.code}")
             all_passed = False
         except urllib.error.URLError as e:
-            print(f"  ✗ URL Error: {e.reason}")
+            print(f"  [FAIL] URL Error: {e.reason}")
             all_passed = False
         except Exception as e:
-            print(f"  ✗ Error: {e}")
+            print(f"  [FAIL] Error: {e}")
             all_passed = False
 
         print()
@@ -145,18 +145,18 @@ def verify_phase(phase: str):
 
     try:
         process.wait(timeout=5)
-        print("✓ Stopped cleanly")
+        print("[OK] Stopped cleanly")
     except subprocess.TimeoutExpired:
-        print("✗ Force killing")
+        print("[FAIL] Force killing")
         process.kill()
 
     print("=" * 80)
 
     if all_passed:
-        print("✓ All tests passed!")
+        print("[OK] All tests passed!")
         return True
     else:
-        print("✗ Some tests failed")
+        print("[FAIL] Some tests failed")
         return False
 
 

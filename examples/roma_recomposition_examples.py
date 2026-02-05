@@ -96,7 +96,7 @@ Implement role-based access control with:
         assembly_strategy="roma",
     )
 
-    print(f"\n✓ ROMA Recomposition Complete")
+    print(f"\n[OK] ROMA Recomposition Complete")
     print(f"  Strategy: {result.assembly_strategy}")
     print(f"  Length: {len(result.assembled_content)} chars")
     print(f"  Quality: {result.quality_metrics.overall_score:.2f}")
@@ -200,7 +200,7 @@ def example_3_recommended_config():
         for error in errors:
             print(f"  - {error}")
     else:
-        print(f"\n✓ Configuration is valid!")
+        print(f"\n[OK] Configuration is valid!")
 
         kwargs = config.to_kwargs()
         print(f"\nGenerated Kwargs ({len(kwargs)} parameters):")
@@ -265,7 +265,7 @@ Key Constraints:
         roma_extra_context="Focus on API consistency and performance.",
     )
 
-    print(f"\n✓ Recomposition with Custom Context")
+    print(f"\n[OK] Recomposition with Custom Context")
     print(f"  Length: {len(result.assembled_content)} chars")
     print(f"  Quality: {result.quality_metrics.overall_score:.2f}")
 
@@ -386,7 +386,7 @@ def example_6_conflict_rich_scenario():
         **config.to_kwargs()
     )
 
-    print(f"\n✓ Conflict-Aware Recomposition")
+    print(f"\n[OK] Conflict-Aware Recomposition")
     print(f"  Conflicts Detected: {result.metadata.get('num_conflicts', 0)}")
     print(f"  Conflicts Resolved: {result.metadata.get('num_resolved', 0)}")
     print(f"  Overall Quality: {result.quality_metrics.overall_score:.2f}")
@@ -465,7 +465,7 @@ class UserProfile:
         **config_deterministic.to_kwargs()
     )
 
-    print(f"\n✓ Deterministic Assembly Complete")
+    print(f"\n[OK] Deterministic Assembly Complete")
     print(f"  Mode: Sub-solutions inserted VERBATIM")
     print(f"  Length: {len(result_deterministic.assembled_content)} chars")
     print(f"  Original code preserved: YES")
@@ -494,7 +494,7 @@ class UserProfile:
         **config_creative.to_kwargs()
     )
 
-    print(f"\n✓ Creative Assembly Complete")
+    print(f"\n[OK] Creative Assembly Complete")
     print(f"  Mode: ROMA may rewrite sub-solutions")
     print(f"  Length: {len(result_creative.assembled_content)} chars")
     print(f"  Original code preserved: MAYBE")

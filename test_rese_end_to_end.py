@@ -447,7 +447,7 @@ def test_integration(logger: TestLogger, phase1_result: Dict[str, Any], phase2_r
         assert correlation_id in str(phase1_result), "Correlation ID missing in Phase I"
         logger.record_result("integration", "correlation_id_consistency", True)
 
-        # Verify Phase I → Phase II data flow
+        # Verify Phase I -> Phase II data flow
         if phase2_result:
             logger.record_result("integration", "phase1_to_phase2", True,
                                "Constraints flowed from Phase I to Phase II")
@@ -455,7 +455,7 @@ def test_integration(logger: TestLogger, phase1_result: Dict[str, Any], phase2_r
             logger.record_result("integration", "phase1_to_phase2", False,
                                "Phase II failed to process Phase I output")
 
-        # Verify Phase II → Phase III data flow
+        # Verify Phase II -> Phase III data flow
         if phase3_result:
             logger.record_result("integration", "phase2_to_phase3", True,
                                "Isomorphic mappings flowed to Phase III")
@@ -463,7 +463,7 @@ def test_integration(logger: TestLogger, phase1_result: Dict[str, Any], phase2_r
             logger.record_result("integration", "phase2_to_phase3", False,
                                "Phase III failed to process Phase II output")
 
-        # Verify Phase III → Phase IV data flow
+        # Verify Phase III -> Phase IV data flow
         if phase4_result:
             logger.record_result("integration", "phase3_to_phase4", True,
                                "Validated hypotheses flowed to Phase IV")

@@ -106,7 +106,7 @@ class SOPEvolver:
             print("Phase 1: Red Team Vulnerability Analysis...")
             red_team_result = self._run_red_team_analysis(current_sop)
             vulnerabilities_found = len(red_team_result.vulnerabilities)
-            print(f"  ✓ Found {vulnerabilities_found} vulnerabilities")
+            print(f"  [OK] Found {vulnerabilities_found} vulnerabilities")
 
             if vulnerabilities_found == 0:
                 print("  No vulnerabilities found - SOP is robust!")
@@ -119,14 +119,14 @@ class SOPEvolver:
                 red_team_result
             )
             fixes_applied = len(blue_team_result.applied_fixes)
-            print(f"  ✓ Applied {fixes_applied} fixes")
+            print(f"  [OK] Applied {fixes_applied} fixes")
             current_sop = blue_team_result.fixed_content
 
             # Phase 3: Evaluator Assessment
             print("\nPhase 3: Evaluator Team Quality Assessment...")
             eval_result = self._run_evaluation(current_sop)
             quality_score = eval_result.consensus_score
-            print(f"  ✓ Quality score: {quality_score:.3f}")
+            print(f"  [OK] Quality score: {quality_score:.3f}")
 
             # Record iteration results
             iteration_record = {
@@ -147,7 +147,7 @@ class SOPEvolver:
 
             # Check if threshold met
             if quality_score >= quality_threshold:
-                print(f"\n✓ QUALITY THRESHOLD MET ({quality_score:.3f} >= {quality_threshold})")
+                print(f"\n[OK] QUALITY THRESHOLD MET ({quality_score:.3f} >= {quality_threshold})")
                 break
 
             print(f"  Quality score {quality_score:.3f} below threshold {quality_threshold}")
@@ -162,7 +162,7 @@ class SOPEvolver:
         print("EVOLUTION COMPLETE")
         print(f"{'='*70}\n")
 
-        print(f"Original → Final:")
+        print(f"Original -> Final:")
         print(f"  Input:  {input_sop_path}")
         print(f"  Output: {output_sop_path}")
         print(f"\nIterations: {len(evolution_history['iterations'])}")
@@ -327,11 +327,11 @@ def main():
             save_intermediate=args.save_intermediate
         )
 
-        print("\n✓ Evolution completed successfully!")
+        print("\n[OK] Evolution completed successfully!")
         sys.exit(0)
 
     except Exception as e:  # TODO: Catch specific exception instead of Exception
-        print(f"\n✗ Evolution failed: {e}")
+        print(f"\n[FAIL] Evolution failed: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

@@ -537,13 +537,13 @@ class SuccessPredictionSystem:
             lines.append("")
             lines.append("Risk Factors:")
             for risk in prediction.risk_factors:
-                lines.append(f"  ⚠️ {risk}")
+                lines.append(f"  [WARN] {risk}")
 
         if prediction.recommendations:
             lines.append("")
             lines.append("Recommendations:")
             for rec in prediction.recommendations:
-                lines.append(f"  → {rec}")
+                lines.append(f"  -> {rec}")
 
         return "\n".join(lines)
 

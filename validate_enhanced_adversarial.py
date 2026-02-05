@@ -15,15 +15,15 @@ def validate_python_syntax(file_path):
         
         # Parse the AST to check for syntax errors
         ast.parse(source_code)
-        print(f"✅ Syntax validation passed for {file_path}")
+        print(f"[OK] Syntax validation passed for {file_path}")
         return True
         
     except SyntaxError as e:
-        print(f"❌ Syntax error in {file_path}:")
+        print(f"[FAIL] Syntax error in {file_path}:")
         print(f"   Line {e.lineno}: {e.msg}")
         return False
     except Exception as e:
-        print(f"❌ Error reading {file_path}: {e}")
+        print(f"[FAIL] Error reading {file_path}: {e}")
         return False
 
 def check_function_exists(file_path, function_name):
@@ -39,15 +39,15 @@ def check_function_exists(file_path, function_name):
         functions = [node.name for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)]
         
         if function_name in functions:
-            print(f"✅ Function '{function_name}' found in {file_path}")
+            print(f"[OK] Function '{function_name}' found in {file_path}")
             return True
         else:
-            print(f"❌ Function '{function_name}' not found in {file_path}")
+            print(f"[FAIL] Function '{function_name}' not found in {file_path}")
             print(f"   Available functions: {functions[:10]}...")  # Show first 10
             return False
             
     except Exception as e:
-        print(f"❌ Error checking function in {file_path}: {e}")
+        print(f"[FAIL] Error checking function in {file_path}: {e}")
         return False
 
 def check_imports(file_path):
@@ -71,14 +71,14 @@ def check_imports(file_path):
                 missing_imports.append(imp)
         
         if not missing_imports:
-            print(f"✅ All required imports found in {file_path}")
+            print(f"[OK] All required imports found in {file_path}")
             return True
         else:
-            print(f"❌ Missing imports in {file_path}: {missing_imports}")
+            print(f"[FAIL] Missing imports in {file_path}: {missing_imports}")
             return False
             
     except Exception as e:
-        print(f"❌ Error checking imports in {file_path}: {e}")
+        print(f"[FAIL] Error checking imports in {file_path}: {e}")
         return False
 
 def check_session_state_variables(file_path):
@@ -120,14 +120,14 @@ def check_session_state_variables(file_path):
                 missing_variables.append(var)
         
         if not missing_variables:
-            print(f"✅ All new session state variables found in {file_path}")
+            print(f"[OK] All new session state variables found in {file_path}")
             return True
         else:
-            print(f"⚠️ Missing session state variables in {file_path}: {missing_variables}")
+            print(f"[WARN] Missing session state variables in {file_path}: {missing_variables}")
             return len(missing_variables) < 5  # Allow some missing if they're optional
             
     except Exception as e:
-        print(f"❌ Error checking session state variables in {file_path}: {e}")
+        print(f"[FAIL] Error checking session state variables in {file_path}: {e}")
         return False
 
 def check_ui_elements(file_path):
@@ -156,14 +156,14 @@ def check_ui_elements(file_path):
                 missing_elements.append(element)
         
         if not missing_elements:
-            print(f"✅ All key UI elements found in {file_path}")
+            print(f"[OK] All key UI elements found in {file_path}")
             return True
         else:
-            print(f"⚠️ Missing UI elements in {file_path}: {missing_elements}")
+            print(f"[WARN] Missing UI elements in {file_path}: {missing_elements}")
             return len(missing_elements) < 3  # Allow some missing
             
     except Exception as e:
-        print(f"❌ Error checking UI elements in {file_path}: {e}")
+        print(f"[FAIL] Error checking UI elements in {file_path}: {e}")
         return False
 
 def main():
@@ -174,7 +174,7 @@ def main():
     file_path = "mainlayout.py"
     
     if not os.path.exists(file_path):
-        print(f"❌ File {file_path} not found")
+        print(f"[FAIL] File {file_path} not found")
         return False
     
     tests = [
@@ -191,10 +191,10 @@ def main():
         try:
             result = test_func()
             results.append((test_name, result))
-            status = "✅ PASSED" if result else "❌ FAILED"
+            status = "[OK] PASSED" if result else "[FAIL] FAILED"
             print(f"{status} {test_name}")
         except Exception as e:
-            print(f"❌ ERROR in {test_name}: {e}")
+            print(f"[FAIL] ERROR in {test_name}: {e}")
             results.append((test_name, False))
     
     print("\n" + "=" * 60)
@@ -205,7 +205,7 @@ def main():
     total = len(results)
     
     for test_name, result in results:
-        status = "✅ PASSED" if result else "❌ FAILED"
+        status = "[OK] PASSED" if result else "[FAIL] FAILED"
         print(f"{status} {test_name}")
     
     print(f"\n🎯 Overall: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
@@ -213,17 +213,17 @@ def main():
     if passed == total:
         print("\n🎉 All validations passed! The enhanced adversarial testing tab is properly implemented.")
         print("\n🚀 Key Features Verified:")
-        print("  • Tripartite AI Architecture (Red/Blue/Evaluator Teams)")
-        print("  • Multi-Objective Optimization with Quality-Diversity")
-        print("  • Advanced Model Orchestration with Load Balancing")
-        print("  • Comprehensive Quality Assurance Mechanisms")
-        print("  • Real-Time Monitoring and Analytics")
-        print("  • Security and Compliance Features")
-        print("  • Human Feedback Integration")
-        print("  • Data Augmentation Capabilities")
-        print("  • Comprehensive Reporting and Visualization")
+        print("  * Tripartite AI Architecture (Red/Blue/Evaluator Teams)")
+        print("  * Multi-Objective Optimization with Quality-Diversity")
+        print("  * Advanced Model Orchestration with Load Balancing")
+        print("  * Comprehensive Quality Assurance Mechanisms")
+        print("  * Real-Time Monitoring and Analytics")
+        print("  * Security and Compliance Features")
+        print("  * Human Feedback Integration")
+        print("  * Data Augmentation Capabilities")
+        print("  * Comprehensive Reporting and Visualization")
     else:
-        print(f"\n⚠️ {total - passed} validation(s) failed. Please review the implementation.")
+        print(f"\n[WARN] {total - passed} validation(s) failed. Please review the implementation.")
     
     return passed == total
 

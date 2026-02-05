@@ -40,7 +40,7 @@ async def run_test():
     # The indexer's mock mode should prevent it from needing real keys.
     secrets_file = "mcp_agent.secrets.yaml"
     if not Path(secrets_file).exists():
-        print(f"⚠️ {secrets_file} not found. Creating a dummy file.")
+        print(f"[WARN] {secrets_file} not found. Creating a dummy file.")
         with open(secrets_file, "w") as f:
             f.write("# Dummy file for testing. Fill with real keys for live mode.\n")
 
@@ -77,7 +77,7 @@ async def run_test():
     )
 
     if not output_files:
-        print("❌ Test Failed: Indexing returned no output files.")
+        print("[FAIL] Test Failed: Indexing returned no output files.")
         return
 
     # --- Step 3: Load the created index ---
@@ -88,7 +88,7 @@ async def run_test():
     print(f"\n📂 Checking for index file at: {expected_index_file}")
     
     if not expected_index_file.exists():
-        print(f"❌ Test Failed: Expected index file was not created.")
+        print(f"[FAIL] Test Failed: Expected index file was not created.")
         # Let's see what was created
         print("Contents of output directory:")
         for path in Path(output_directory).rglob('*'):
@@ -98,10 +98,10 @@ async def run_test():
     knowledge_data = engine.load_index(str(expected_index_file))
 
     if not knowledge_data:
-        print("❌ Test Failed: Could not load data from the created index file.")
+        print("[FAIL] Test Failed: Could not load data from the created index file.")
         return
         
-    print("✅ Index loaded successfully.")
+    print("[OK] Index loaded successfully.")
 
     # --- Step 4: Query the index ---
     print("\n🔍 Performing queries...")
@@ -110,19 +110,19 @@ async def run_test():
     query1 = "LLM"
     results1 = engine.query_index_by_keyword(knowledge_data, query1)
     assert len(results1) > 0, f"Query for '{query1}' should have returned results."
-    print(f"✅ Query 1 for '{query1}' returned {len(results1)} results as expected.")
+    print(f"[OK] Query 1 for '{query1}' returned {len(results1)} results as expected.")
 
     # Query 2: A more specific term
     query2 = "CodeIndexer"
     results2 = engine.query_index_by_keyword(knowledge_data, query2)
     assert len(results2) > 0, f"Query for '{query2}' should have returned results."
-    print(f"✅ Query 2 for '{query2}' returned {len(results2)} results as expected.")
+    print(f"[OK] Query 2 for '{query2}' returned {len(results2)} results as expected.")
     
     # --- Teardown ---
     print("\n🧹 Cleaning up test files...")
     os.remove(test_config_path)
     shutil.rmtree(output_directory)
-    print("✅ Test finished successfully!")
+    print("[OK] Test finished successfully!")
 
 
 if __name__ == "__main__":

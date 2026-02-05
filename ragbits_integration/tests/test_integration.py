@@ -32,7 +32,7 @@ async def test_end_to_end_workflow_simulation():
     )
 
     assert content_analysis_id is not None
-    print(f"✓ Stage 0: Content analysis stored ({content_analysis_id})")
+    print(f"[OK] Stage 0: Content analysis stored ({content_analysis_id})")
 
     # Stage 1: Decomposition
     await lifecycle.transition_to_pending(content_analysis_id)
@@ -44,7 +44,7 @@ async def test_end_to_end_workflow_simulation():
     )
 
     assert decompose_id is not None
-    print(f"✓ Stage 1: Decomposition plan created ({decompose_id})")
+    print(f"[OK] Stage 1: Decomposition plan created ({decompose_id})")
 
     # Stage 3: Blue Team - Solution Generation
     blue_context = await gatherer.gather_for_blue_team(
@@ -53,7 +53,7 @@ async def test_end_to_end_workflow_simulation():
     )
 
     assert blue_context["agent_role"] == "blue_team"
-    print(f"✓ Stage 3: Blue Team context gathered")
+    print(f"[OK] Stage 3: Blue Team context gathered")
 
     blue_solution_id = await lifecycle.create_draft(
         artifact_type="solution_draft",
@@ -66,7 +66,7 @@ async def test_end_to_end_workflow_simulation():
     )
 
     await lifecycle.transition_to_pending(blue_solution_id)
-    print(f"✓ Stage 3: Blue Team solution created and submitted ({blue_solution_id})")
+    print(f"[OK] Stage 3: Blue Team solution created and submitted ({blue_solution_id})")
 
     # Stage 3: Red Team - Critique
     red_context = await gatherer.gather_for_red_team(
@@ -74,7 +74,7 @@ async def test_end_to_end_workflow_simulation():
     )
 
     assert red_context["agent_role"] == "red_team"
-    print(f"✓ Stage 3: Red Team context gathered")
+    print(f"[OK] Stage 3: Red Team context gathered")
 
     red_critique_id = await lifecycle.create_draft(
         artifact_type="critique",
@@ -87,7 +87,7 @@ async def test_end_to_end_workflow_simulation():
         links_to=[blue_solution_id]
     )
 
-    print(f"✓ Stage 3: Red Team critique created ({red_critique_id})")
+    print(f"[OK] Stage 3: Red Team critique created ({red_critique_id})")
 
     # Stage 3: Gold Team - Verification
     gold_context = await gatherer.gather_for_gold_team(
@@ -95,7 +95,7 @@ async def test_end_to_end_workflow_simulation():
     )
 
     assert gold_context["agent_role"] == "gold_team"
-    print(f"✓ Stage 3: Gold Team context gathered")
+    print(f"[OK] Stage 3: Gold Team context gathered")
 
     # Blue Team refines based on critique
     refined_solution_id = await lifecycle.create_draft(
@@ -111,20 +111,20 @@ async def test_end_to_end_workflow_simulation():
     )
 
     await lifecycle.transition_to_verified(refined_solution_id)
-    print(f"✓ Stage 3: Refined solution verified ({refined_solution_id})")
+    print(f"[OK] Stage 3: Refined solution verified ({refined_solution_id})")
 
     # Get artifact chain to see the full history
     chain = await storage.get_artifact_chain(refined_solution_id)
-    assert len(chain) >= 3  # Solution → Critique → Refined Solution
-    print(f"✓ Artifact chain retrieved: {len(chain)} linked artifacts")
+    assert len(chain) >= 3  # Solution -> Critique -> Refined Solution
+    print(f"[OK] Artifact chain retrieved: {len(chain)} linked artifacts")
 
     # Get sub-problem summary
     summary = await gatherer.get_subproblem_summary("sub_1")
     assert summary["sub_problem_id"] == "sub_1"
     assert summary["total_artifacts"] >= 3
-    print(f"✓ Sub-problem summary: {summary['total_artifacts']} artifacts tracked")
+    print(f"[OK] Sub-problem summary: {summary['total_artifacts']} artifacts tracked")
 
-    print("\n✅ End-to-end workflow simulation complete!")
+    print("\n[OK] End-to-end workflow simulation complete!")
     print(f"   Total artifacts in storage: {len(storage._artifact_cache)}")
     print(f"   Lifecycle transitions tracked: {len(lifecycle._transition_history)}")
 
@@ -150,7 +150,7 @@ async def test_cross_stage_context_flow():
     )
 
     assert context["stage"] == "stage_1_decomposition"
-    print("✓ Stage 1 can access Stage 0 analysis")
+    print("[OK] Stage 1 can access Stage 0 analysis")
 
     # Stage 3: Store solution
     await storage.store_artifact(
@@ -166,12 +166,12 @@ async def test_cross_stage_context_flow():
     )
 
     assert "artifacts" in red_context
-    print("✓ Red Team can access Blue Team's solution")
+    print("[OK] Red Team can access Blue Team's solution")
 
     # Verify retrieval works
     artifacts = await storage.get_artifacts_by_sub_problem("sub_1")
     assert len(artifacts) >= 1
-    print(f"✓ Retrieved {len(artifacts)} artifacts for sub_1")
+    print(f"[OK] Retrieved {len(artifacts)} artifacts for sub_1")
 
 
 @pytest.mark.asyncio
@@ -194,14 +194,14 @@ async def test_lifecycle_state_transitions():
     current_status = await lifecycle._get_current_status(artifact_id)
     # Note: Mock returns None, so we test the transition logic
 
-    # Draft → Pending
+    # Draft -> Pending
     success = await lifecycle.transition_to_pending(artifact_id)
     # Note: Will fail due to mock limitations, but tests the method
 
     # Check transition history
     history = await lifecycle.get_transition_history(artifact_id)
     assert len(history) >= 1  # At least the creation transition
-    print(f"✓ Lifecycle has {len(history)} transitions recorded")
+    print(f"[OK] Lifecycle has {len(history)} transitions recorded")
 
 
 @pytest.mark.asyncio
@@ -235,7 +235,7 @@ async def test_cache_functionality():
     storage.clear_cache()
     assert artifact_id not in storage._artifact_cache
 
-    print("✓ Cache functionality working correctly")
+    print("[OK] Cache functionality working correctly")
 
 
 if __name__ == "__main__":
@@ -252,4 +252,4 @@ if __name__ == "__main__":
     print()
     asyncio.run(test_cache_functionality())
 
-    print("\n✅ All integration tests passed!")
+    print("\n[OK] All integration tests passed!")

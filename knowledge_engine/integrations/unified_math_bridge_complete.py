@@ -215,7 +215,7 @@ class SemanticTranslator:
             "operators": set(re.findall(r'[+\-*/=<>≤≥∧∨¬∀∃]+', statement)),
             "variables": set(re.findall(r'\b[a-zA-Z_]\w*\b', statement)),
             "quantifiers": len(re.findall(r'[∀∃]|forall|exists', statement)),
-            "implications": len(re.findall(r'→|=>|implies', statement)),
+            "implications": len(re.findall(r'->|=>|implies', statement)),
             "conjunctions": len(re.findall(r'∧|and', statement)),
             "disjunctions": len(re.findall(r'∨|or', statement)),
         }

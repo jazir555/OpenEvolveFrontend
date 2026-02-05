@@ -1098,7 +1098,7 @@ class TestAdvancedWorkflowScenarios(unittest.TestCase):
         
         coordinator = TeamCoordinator()
         
-        # Create a solution that goes through Red → Blue → Gold validation chain
+        # Create a solution that goes through Red -> Blue -> Gold validation chain
         sub_problem = SubProblem(
             id=generate_id("cross_team_test"),
             parent_id=generate_id("cross_team_parent"),
@@ -1377,7 +1377,7 @@ def run_edge_case_tests():
             print(f"\nERROR: {test}")
             print(trace)
     else:
-        print("\n✅ All edge case tests passed!")
+        print("\n[OK] All edge case tests passed!")
     
     print("="*80)
     return result

@@ -118,7 +118,7 @@ def test_ascii_renderer():
     assert 'subproblem_1' in output, "Should contain child problem ID"
     assert 'subproblem_1_1' in output, "Should contain grandchild problem ID"
     # Status may be in different format
-    has_status = 'COMPLETE' in output or 'complete' in output or '✓' in output
+    has_status = 'COMPLETE' in output or 'complete' in output or '[OK]' in output
     assert has_status, "Should show status"
     # Score may be in different format
     has_score = '95' in output or '95.0' in output

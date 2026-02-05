@@ -368,7 +368,7 @@ class TestEvaluationResult(unittest.TestCase):
             skill_ids_used=["geo-00001"],
         )
         repr_str = repr(result_correct)
-        self.assertIn("✓", repr_str)
+        self.assertIn("[OK]", repr_str)
         self.assertIn("index=0", repr_str)
 
         result_incorrect = EvaluationResult(
@@ -379,7 +379,7 @@ class TestEvaluationResult(unittest.TestCase):
             skill_ids_used=[],
         )
         repr_str = repr(result_incorrect)
-        self.assertIn("✗", repr_str)
+        self.assertIn("[FAIL]", repr_str)
         self.assertIn("index=1", repr_str)
 
     def test_evaluation_result_defaults(self):

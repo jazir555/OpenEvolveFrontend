@@ -559,7 +559,7 @@ class ComprehensiveWorkflowAuditor:
 
                 for report in reports:
                     status = report.test_status
-                    has_test = "✅" if status.has_test else "❌"
+                    has_test = "[OK]" if status.has_test else "[FAIL]"
                     test_file = status.test_file_path.split("/")[-1] if status.test_file_path else "N/A"
                     coverage = f"{status.test_coverage:.1f}%" if status.has_test else "N/A"
                     missing = ", ".join(status.missing_tests) if status.missing_tests else "-"

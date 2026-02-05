@@ -229,7 +229,7 @@ class ContentManagement:
 
         html = f"""
         <div style="background-color: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-            <h2 style="color: #4a6fa5; margin-top: 0; text-align: center;">✅ Protocol Validation Results</h2>
+            <h2 style="color: #4a6fa5; margin-top: 0; text-align: center;">[OK] Protocol Validation Results</h2>
 
             <!-- Overall Score -->
             <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 20px;">
@@ -256,7 +256,7 @@ class ContentManagement:
         if results["errors"]:
             html += """
             <div style="background-color: #ffebee; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #f44336;">
-                <h3 style="color: #c62828; margin-top: 0;">❌ Errors</h3>
+                <h3 style="color: #c62828; margin-top: 0;">[FAIL] Errors</h3>
                 <ul style="padding-left: 20px;">
             """
             for error in results["errors"]:
@@ -270,7 +270,7 @@ class ContentManagement:
         if results["warnings"]:
             html += """
             <div style="background-color: #fff8e1; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ff9800;">
-                <h3 style="color: #f57f17; margin-top: 0;">⚠️ Warnings</h3>
+                <h3 style="color: #f57f17; margin-top: 0;">[WARN] Warnings</h3>
                 <ul style="padding-left: 20px;">
             """
             for warning in results["warnings"]:
@@ -693,6 +693,6 @@ def render_content_manager():
             for protocol_id in reversed(recent_protocols):
                 details = cm.get_protocol_details(protocol_id)
                 if details:
-                    st.caption(f"• {details.get('name')} - {details.get('timestamp', '')[:19].replace('T', ' ')}")
+                    st.caption(f"* {details.get('name')} - {details.get('timestamp', '')[:19].replace('T', ' ')}")
     
     st.info("💡 Pro Tip: Use the content manager to organize, save, and reuse your protocols and templates efficiently.")

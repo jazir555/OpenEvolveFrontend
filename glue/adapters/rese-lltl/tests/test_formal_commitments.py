@@ -45,7 +45,7 @@ class TestFormalCommitment(unittest.TestCase):
         """Test creating a FormalCommitment."""
         commitment = FormalCommitment(
             proposition_id="test-prop-1",
-            statement="(H) ∧ (confidence ≥ 0.950) → Accept(H)",
+            statement="(H) ∧ (confidence ≥ 0.950) -> Accept(H)",
             confidence_threshold=0.90,
             statistical_evidence={
                 'confidence': 0.95,
@@ -67,7 +67,7 @@ class TestFormalCommitment(unittest.TestCase):
         """Test converting FormalCommitment to SCE constraint format."""
         commitment = FormalCommitment(
             proposition_id="test-prop-1",
-            statement="(H) ∧ (confidence ≥ 0.950) → Accept(H)",
+            statement="(H) ∧ (confidence ≥ 0.950) -> Accept(H)",
             confidence_threshold=0.90,
             statistical_evidence={'confidence': 0.95},
             source_hypothesis="hypothesis-1",
@@ -87,7 +87,7 @@ class TestFormalCommitment(unittest.TestCase):
         """Test converting FormalCommitment to dictionary."""
         commitment = FormalCommitment(
             proposition_id="test-prop-1",
-            statement="(H) ∧ (confidence ≥ 0.950) → Accept(H)",
+            statement="(H) ∧ (confidence ≥ 0.950) -> Accept(H)",
             confidence_threshold=0.90,
             statistical_evidence={'confidence': 0.95},
             source_hypothesis="hypothesis-1",
@@ -106,7 +106,7 @@ class TestFormalCommitment(unittest.TestCase):
         """Test updating commitment status."""
         commitment = FormalCommitment(
             proposition_id="test-prop-1",
-            statement="(H) ∧ (confidence ≥ 0.950) → Accept(H)",
+            statement="(H) ∧ (confidence ≥ 0.950) -> Accept(H)",
             confidence_threshold=0.90,
             statistical_evidence={'confidence': 0.95},
             source_hypothesis="hypothesis-1",

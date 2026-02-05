@@ -135,14 +135,14 @@ def evolve_sop_with_facets(
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(results["evolved_sop"])
 
-        print(f"\n✓ Evolved SOP saved: {output_path}")
+        print(f"\n[OK] Evolved SOP saved: {output_path}")
 
         # Save metadata if requested
         if save_metadata:
             metadata_path = output_path + ".facet_metadata.json"
             with open(metadata_path, 'w', encoding='utf-8') as f:
                 json.dump(results, f, indent=2, default=str)
-            print(f"✓ Metadata saved: {metadata_path}")
+            print(f"[OK] Metadata saved: {metadata_path}")
 
         # Print summary
         print(f"\n{'='*70}")
@@ -165,7 +165,7 @@ def evolve_sop_with_facets(
                 print(f"    Fixes: {fixes}")
                 print(f"    Quality Score: {score:.3f}")
             elif status == "NO_VULNERABILITIES":
-                print(f"  {facet_name}: No vulnerabilities found ✓")
+                print(f"  {facet_name}: No vulnerabilities found [OK]")
             elif status == "ERROR":
                 error = facet_result.get("error", "Unknown error")
                 print(f"  {facet_name}: ERROR - {error}")
@@ -173,7 +173,7 @@ def evolve_sop_with_facets(
         return results
 
     except Exception as e:  # TODO: Catch specific exception instead of Exception
-        print(f"\n✗ Evolution failed: {e}")
+        print(f"\n[FAIL] Evolution failed: {e}")
         import traceback
         traceback.print_exc()
         return None
@@ -226,13 +226,13 @@ def evolve_single_facet(
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(result["evolved_content"])
 
-        print(f"\n✓ Evolved facet saved: {output_path}")
+        print(f"\n[OK] Evolved facet saved: {output_path}")
 
         # Save metadata
         metadata_path = output_path + ".metadata.json"
         with open(metadata_path, 'w', encoding='utf-8') as f:
             json.dump(result, f, indent=2, default=str)
-        print(f"✓ Metadata saved: {metadata_path}")
+        print(f"[OK] Metadata saved: {metadata_path}")
 
         # Print summary
         print(f"\n{'='*70}")
@@ -249,13 +249,13 @@ def evolve_single_facet(
 
         print(f"\nValidation Results:")
         for vr in result["validation_results"]:
-            status = "✓" if vr["passed"] else "✗"
+            status = "[OK]" if vr["passed"] else "[FAIL]"
             print(f"  {status} {vr['validator']}")
 
         return result
 
     except Exception as e:  # TODO: Catch specific exception instead of Exception
-        print(f"\n✗ Facet evolution failed: {e}")
+        print(f"\n[FAIL] Facet evolution failed: {e}")
         import traceback
         traceback.print_exc()
         return None

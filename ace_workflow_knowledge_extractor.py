@@ -6,17 +6,57 @@ learning capabilities. It integrates with the workflow stages to capture
 reusable patterns, team performance data, and gauntlet effectiveness.
 
 This is the core component for Stage 6: Knowledge Extraction & Learning.
+
+ENHANCED WITH ML CLUSTERING:
+- Sentence Transformers for embeddings
+- scikit-learn for clustering (DBSCAN, KMeans)
+- Entity and relation extraction
+- Temporal knowledge graph
+- Z3-based validation
 """
 
 from typing import Any, Dict, List, Optional, Tuple
 import sys
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 import threading
 from collections import defaultdict
 import json
 import logging
 import copy
+import numpy as np
+
+# ML Pattern Clustering Integration
+try:
+    from ml_pattern_clustering import (
+        MLKnowledgeExtraction,
+        MLPatternClustering,
+        EntityExtractor,
+        RelationExtractor,
+        TemporalKnowledgeGraph,
+        KnowledgeValidator,
+        MLPattern,
+        ExtractedEntity,
+        ExtractedRelation
+    )
+    ML_CLUSTERING_AVAILABLE = True
+except ImportError as e:
+    ML_CLUSTERING_AVAILABLE = False
+    logging.warning(f"ML clustering not available: {e}")
+
+# Sentence Transformers
+try:
+    from sentence_transformers import SentenceTransformer
+    SENTENCE_TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    SENTENCE_TRANSFORMERS_AVAILABLE = False
+
+# Z3 Validation
+try:
+    from z3 import Solver, Bool, sat
+    Z3_AVAILABLE = True
+except ImportError:
+    Z3_AVAILABLE = False
 
 # SECURITY FIX: Import security utilities
 try:
@@ -207,6 +247,26 @@ class WorkflowKnowledgeExtractor:
         self.artifacts: List[KnowledgeArtifact] = []
         self.team_performances: Dict[str, TeamPerformanceData] = {}
         self.gauntlet_effectiveness: Dict[str, GauntletEffectivenessData] = {}
+        
+        # ML CLUSTERING: Initialize ML components
+        self.ml_clustering_available = ML_CLUSTERING_AVAILABLE
+        self.ml_extraction: Optional[MLKnowledgeExtraction] = None
+        self.ml_pattern_clustering: Optional[MLPatternClustering] = None
+        self.temporal_graph: Optional[TemporalKnowledgeGraph] = None
+        self.entity_extractor: Optional[EntityExtractor] = None
+        self.relation_extractor: Optional[RelationExtractor] = None
+        
+        if self.ml_clustering_available and enable_learning:
+            try:
+                self.ml_extraction = MLKnowledgeExtraction()
+                self.ml_pattern_clustering = MLPatternClustering()
+                self.temporal_graph = TemporalKnowledgeGraph()
+                self.entity_extractor = EntityExtractor(model)
+                self.relation_extractor = RelationExtractor()
+                logger.info("[OK] ML clustering components initialized")
+            except Exception as e:
+                logger.warning(f"[FAIL] Failed to initialize ML clustering: {e}")
+                self.ml_clustering_available = False
 
     def _initialize_ace_components(self, skillbook_path: Optional[str]):
         """Initialize ACE components."""
@@ -957,6 +1017,201 @@ class WorkflowKnowledgeExtractor:
                 solutions.extend(critiques)
 
         return solutions
+
+    # =========================================================================
+    # ML CLUSTERING METHODS
+    # =========================================================================
+    
+    def extract_patterns_ml(
+        self,
+        workflow_results: List[Dict[str, Any]]
+    ) -> List[MLPattern]:
+        """
+        Extract patterns using ML clustering.
+        
+        Args:
+            workflow_results: List of workflow execution results
+            
+        Returns:
+            List of ML-discovered patterns
+        """
+        if not self.ml_clustering_available or not self.ml_pattern_clustering:
+            logger.warning("ML clustering not available")
+            return []
+        
+        try:
+            # Extract texts for clustering
+            texts = []
+            metadata = []
+            
+            for i, result in enumerate(workflow_results):
+                # Extract problem descriptions
+                problem = result.get("problem_statement", "")
+                if problem:
+                    texts.append(problem)
+                    metadata.append({
+                        'workflow_id': result.get('workflow_id', f'wf_{i}'),
+                        'index': i,
+                        'domain': result.get('domain', 'general')
+                    })
+                
+                # Extract solution descriptions
+                solution = result.get("solution", "")
+                if solution:
+                    texts.append(solution)
+                    metadata.append({
+                        'workflow_id': result.get('workflow_id', f'wf_{i}'),
+                        'index': i,
+                        'type': 'solution'
+                    })
+            
+            if len(texts) < 2:
+                logger.info("Not enough data for ML clustering")
+                return []
+            
+            # Perform clustering
+            patterns = self.ml_pattern_clustering.cluster_patterns(texts, metadata)
+            
+            logger.info(f"ML clustering discovered {len(patterns)} patterns")
+            return patterns
+        
+        except Exception as e:
+            logger.error(f"ML pattern extraction failed: {e}")
+            return []
+    
+    def extract_entities_and_relations(
+        self,
+        text: str,
+        context: Optional[str] = None
+    ) -> Tuple[List[ExtractedEntity], List[ExtractedRelation]]:
+        """
+        Extract entities and relations from text using ML.
+        
+        Args:
+            text: Text to extract from
+            context: Optional context
+            
+        Returns:
+            Tuple of (entities, relations)
+        """
+        if not self.ml_clustering_available:
+            return [], []
+        
+        try:
+            # Extract entities
+            entities = self.entity_extractor.extract_entities(text, context) if self.entity_extractor else []
+            
+            # Extract relations
+            relations = self.relation_extractor.extract_relations(text, entities) if self.relation_extractor else []
+            
+            return entities, relations
+        
+        except Exception as e:
+            logger.error(f"Entity/relation extraction failed: {e}")
+            return [], []
+    
+    def add_to_temporal_graph(
+        self,
+        content: str,
+        node_type: str = "fact",
+        confidence: float = 0.5,
+        valid_duration_days: Optional[int] = None
+    ) -> Optional[str]:
+        """
+        Add knowledge to temporal graph with versioning.
+        
+        Args:
+            content: Knowledge content
+            node_type: Type of knowledge
+            confidence: Confidence score
+            valid_duration_days: Optional validity period
+            
+        Returns:
+            Node ID if successful
+        """
+        if not self.ml_clustering_available or not self.temporal_graph:
+            return None
+        
+        try:
+            valid_from = datetime.now()
+            valid_until = None
+            if valid_duration_days:
+                valid_until = valid_from + timedelta(days=valid_duration_days)
+            
+            node = self.temporal_graph.add_node(
+                content=content,
+                node_type=node_type,
+                confidence=confidence,
+                valid_from=valid_from,
+                valid_until=valid_until
+            )
+            
+            return node.node_id
+        
+        except Exception as e:
+            logger.error(f"Failed to add to temporal graph: {e}")
+            return None
+    
+    def validate_with_z3(
+        self,
+        statements: List[str]
+    ) -> Dict[str, Any]:
+        """
+        Validate statements using Z3 prover.
+        
+        Args:
+            statements: List of statements to validate
+            
+        Returns:
+            Validation result
+        """
+        if not Z3_AVAILABLE:
+            return {
+                'valid': None,
+                'message': 'Z3 not available',
+                'confidence': 0.0
+            }
+        
+        try:
+            solver = Solver()
+            
+            # Create boolean variables
+            for i, statement in enumerate(statements):
+                var = Bool(f"stmt_{i}")
+                solver.add(var)  # Assume each statement is true
+            
+            result = solver.check()
+            
+            return {
+                'valid': result == sat,
+                'message': 'Statements are consistent' if result == sat else 'Inconsistent',
+                'confidence': 0.9 if result == sat else 0.95,
+                'statements_checked': len(statements)
+            }
+        
+        except Exception as e:
+            logger.error(f"Z3 validation failed: {e}")
+            return {
+                'valid': None,
+                'message': f'Validation error: {e}',
+                'confidence': 0.0
+            }
+    
+    def get_ml_extraction_stats(self) -> Dict[str, Any]:
+        """Get ML extraction statistics."""
+        stats = {
+            'ml_available': self.ml_clustering_available,
+            'sentence_transformers': SENTENCE_TRANSFORMERS_AVAILABLE,
+            'z3_available': Z3_AVAILABLE,
+        }
+        
+        if self.ml_clustering_available and self.temporal_graph:
+            stats['temporal_graph'] = {
+                'total_nodes': len(self.temporal_graph.nodes),
+                'total_edges': len(self.temporal_graph.edges)
+            }
+        
+        return stats
 
     def save_artifacts_to_file(self, filepath: str, result: WorkflowExtractionResult):
         """

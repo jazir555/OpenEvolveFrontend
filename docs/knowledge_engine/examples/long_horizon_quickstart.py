@@ -306,7 +306,7 @@ async def demo_causal_modeling():
 
     print("\n3. Identified causal relationships:")
     for rel in model.relationships:
-        print(f"  {rel.cause} → {rel.effect}")
+        print(f"  {rel.cause} -> {rel.effect}")
         print(f"    Strength: {rel.strength:.3f}")
         print(f"    Confidence: {rel.confidence:.1%}")
         if rel.mechanism:
@@ -532,7 +532,7 @@ async def demo_integration():
     print(f"  Causal relationships: {len(causal_model.relationships)}")
 
     if causal_model.relationships:
-        print(f"  Top relationship: {causal_model.relationships[0].cause} → {causal_model.relationships[0].effect}")
+        print(f"  Top relationship: {causal_model.relationships[0].cause} -> {causal_model.relationships[0].effect}")
 
     print("\n4. Extracting meta-patterns...")
 

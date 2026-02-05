@@ -23,16 +23,16 @@ def send_discord_notification(webhook_url: str, message: str) -> bool:
         response = requests.post(webhook_url, json=payload, timeout=10)
 
         if response.status_code == 204:
-            st.success("✅ Sent notification to Discord")
+            st.success("[OK] Sent notification to Discord")
             return True
         else:
             st.error(
-                f"❌ Failed to send Discord notification: {response.status_code} - {response.text}"
+                f"[FAIL] Failed to send Discord notification: {response.status_code} - {response.text}"
             )
             return False
 
     except Exception as e:
-        st.error(f"❌ Error sending Discord notification: {e}")
+        st.error(f"[FAIL] Error sending Discord notification: {e}")
         return False
 
 
@@ -51,16 +51,16 @@ def send_msteams_notification(webhook_url: str, message: str) -> bool:
         response = requests.post(webhook_url, json=payload, timeout=10)
 
         if response.status_code == 200:
-            st.success("✅ Sent notification to Microsoft Teams")
+            st.success("[OK] Sent notification to Microsoft Teams")
             return True
         else:
             st.error(
-                f"❌ Failed to send Microsoft Teams notification: {response.status_code} - {response.text}"
+                f"[FAIL] Failed to send Microsoft Teams notification: {response.status_code} - {response.text}"
             )
             return False
 
     except Exception as e:
-        st.error(f"❌ Error sending Microsoft Teams notification: {e}")
+        st.error(f"[FAIL] Error sending Microsoft Teams notification: {e}")
         return False
 
 
@@ -78,16 +78,16 @@ def send_generic_webhook(webhook_url: str, payload: dict) -> bool:
         response = requests.post(webhook_url, json=payload, timeout=10)
 
         if response.status_code >= 200 and response.status_code < 300:
-            st.success("✅ Sent webhook notification")
+            st.success("[OK] Sent webhook notification")
             return True
         else:
             st.error(
-                f"❌ Failed to send webhook notification: {response.status_code} - {response.text}"
+                f"[FAIL] Failed to send webhook notification: {response.status_code} - {response.text}"
             )
             return False
 
     except Exception as e:
-        st.error(f"❌ Error sending webhook notification: {e}")
+        st.error(f"[FAIL] Error sending webhook notification: {e}")
         return False
 
 
@@ -115,16 +115,16 @@ def authenticate_github(token: str) -> bool:
             user_data = response.json()
             st.session_state.github_user = user_data
             st.session_state.github_token = token
-            st.success(f"✅ Successfully authenticated as {user_data['login']}")
+            st.success(f"[OK] Successfully authenticated as {user_data['login']}")
             return True
         else:
             st.error(
-                f"❌ GitHub authentication failed: {response.status_code} - {response.text}"
+                f"[FAIL] GitHub authentication failed: {response.status_code} - {response.text}"
             )
             return False
 
     except Exception as e:
-        st.error(f"❌ Error authenticating with GitHub: {e}")
+        st.error(f"[FAIL] Error authenticating with GitHub: {e}")
         return False
 
 
@@ -158,11 +158,11 @@ def list_github_repositories(token: str) -> List[Dict]:
                 for repo in repos
             ]
         else:
-            st.error(f"❌ Failed to fetch repositories: {response.status_code}")
+            st.error(f"[FAIL] Failed to fetch repositories: {response.status_code}")
             return []
 
     except Exception as e:
-        st.error(f"❌ Error fetching repositories: {e}")
+        st.error(f"[FAIL] Error fetching repositories: {e}")
         return []
 
 
@@ -195,7 +195,7 @@ def create_github_branch(
 
         if base_response.status_code != 200:
             st.error(
-                f"❌ Failed to get base branch '{base_branch}': {base_response.status_code}"
+                f"[FAIL] Failed to get base branch '{base_branch}': {base_response.status_code}"
             )
             return None
 
@@ -211,16 +211,16 @@ def create_github_branch(
 
         if create_response.status_code == 201:
             new_branch_sha = create_response.json()["object"]["sha"]
-            st.success(f"✅ Created branch '{branch_name}' in {repository}")
+            st.success(f"[OK] Created branch '{branch_name}' in {repository}")
             return new_branch_sha
         else:
             st.error(
-                f"❌ Failed to create branch '{branch_name}': {create_response.status_code} - {create_response.text}"
+                f"[FAIL] Failed to create branch '{branch_name}': {create_response.status_code} - {create_response.text}"
             )
             return None
 
     except Exception as e:
-        st.error(f"❌ Error creating branch: {e}")
+        st.error(f"[FAIL] Error creating branch: {e}")
         return None
 
 
@@ -287,16 +287,16 @@ def commit_to_github(
         )
 
         if commit_response.status_code in [200, 201]:
-            st.success(f"✅ Committed to {repository}/{file_path} on branch '{branch}'")
+            st.success(f"[OK] Committed to {repository}/{file_path} on branch '{branch}'")
             return True
         else:
             st.error(
-                f"❌ Failed to commit: {commit_response.status_code} - {commit_response.text}"
+                f"[FAIL] Failed to commit: {commit_response.status_code} - {commit_response.text}"
             )
             return False
 
     except Exception as e:
-        st.error(f"❌ Error committing to GitHub: {e}")
+        st.error(f"[FAIL] Error committing to GitHub: {e}")
         return False
 
 
@@ -340,11 +340,11 @@ def get_github_commit_history(
                 for commit in commits
             ]
         else:
-            st.error(f"❌ Failed to fetch commit history: {response.status_code}")
+            st.error(f"[FAIL] Failed to fetch commit history: {response.status_code}")
             return []
 
     except Exception as e:
-        st.error(f"❌ Error fetching commit history: {e}")
+        st.error(f"[FAIL] Error fetching commit history: {e}")
         return []
 
 
@@ -400,14 +400,14 @@ def link_github_repository(token: str, repo_name: str) -> bool:
                 st.session_state.github_repos = {}
             st.session_state.github_repos[repo_name] = GITHUB_REPOS[repo_name]
 
-            st.success(f"✅ Linked GitHub repository: {repo_name}")
+            st.success(f"[OK] Linked GitHub repository: {repo_name}")
             return True
         else:
-            st.error(f"❌ Failed to link repository: {response.status_code}")
+            st.error(f"[FAIL] Failed to link repository: {response.status_code}")
             return False
 
     except Exception as e:
-        st.error(f"❌ Error linking repository: {e}")
+        st.error(f"[FAIL] Error linking repository: {e}")
         return False
 
 
@@ -430,10 +430,10 @@ def unlink_github_repository(repo_name: str) -> bool:
         ):
             del st.session_state.github_repos[repo_name]
 
-        st.success(f"✅ Unlinked GitHub repository: {repo_name}")
+        st.success(f"[OK] Unlinked GitHub repository: {repo_name}")
         return True
     except Exception as e:
-        st.error(f"❌ Error unlinking repository: {e}")
+        st.error(f"[FAIL] Error unlinking repository: {e}")
         return False
 
 
@@ -542,14 +542,14 @@ def save_protocol_generation_to_github(
             )
 
             st.success(
-                f"✅ Saved protocol generation to {repo_name}/{file_path} on branch '{target_branch}'"
+                f"[OK] Saved protocol generation to {repo_name}/{file_path} on branch '{target_branch}'"
             )
             return True
         else:
             return False
 
     except Exception as e:
-        st.error(f"❌ Error saving protocol generation: {e}")
+        st.error(f"[FAIL] Error saving protocol generation: {e}")
         return False
 
 

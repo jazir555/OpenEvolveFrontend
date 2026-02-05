@@ -172,7 +172,7 @@ class EnhancedKnowledgeEngine:
     Enhanced knowledge engine integrating all 4 indexing layers.
     
     This engine demonstrates how the 4-layer system works together:
-    - Hierarchical: Organizes by importance (CORE → GRANULAR)
+    - Hierarchical: Organizes by importance (CORE -> GRANULAR)
     - Graph: Preserves logical relationships between memories
     - Semantic: Enables meaning-based retrieval
     - Hash: Deduplicates redundant information

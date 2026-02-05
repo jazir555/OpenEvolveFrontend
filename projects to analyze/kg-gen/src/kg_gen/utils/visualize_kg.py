@@ -132,7 +132,7 @@ def _build_view_model(graph: Graph) -> dict[str, Any]:
                 "predicate": predicate,
                 "cluster": edge_member_to_cluster.get(predicate),
                 "color": color,
-                "tooltip": f"{subject} —{predicate}→ {obj}",
+                "tooltip": f"{subject} —{predicate}-> {obj}",
             }
         )
 

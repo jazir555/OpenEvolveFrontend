@@ -89,7 +89,7 @@ def example_input_validation():
 
     print("Validation errors for empty inputs:")
     for error in errors:
-        print(f"  ❌ {error}")
+        print(f"  [FAIL] {error}")
 
     # Test valid inputs
     valid_inputs = {
@@ -100,11 +100,11 @@ def example_input_validation():
 
     print(f"\nValidation errors for valid inputs: {len(errors)}")
     if len(errors) == 0:
-        print("  ✅ Inputs are valid!")
+        print("  [OK] Inputs are valid!")
     print()
 
 
-# Example 5: Simple Workflow (Decomposition → Solution)
+# Example 5: Simple Workflow (Decomposition -> Solution)
 def example_simple_workflow():
     """Execute a simple 2-node workflow"""
     print("=" * 60)
@@ -143,12 +143,12 @@ def example_simple_workflow():
             'problem_statement': 'Design a sustainable house'
         }, context)
 
-        print(f"  ✅ Decomposition complete!")
+        print(f"  [OK] Decomposition complete!")
         print(f"  Sub-problems: {decomp_result.get('total_sub_problems', 'N/A')}")
         print()
 
     except NodeExecutionError as e:
-        print(f"  ❌ Error: {e.message}")
+        print(f"  [FAIL] Error: {e.message}")
         print(f"  (This is expected if decomposition engine is not installed)")
         print()
 
@@ -177,7 +177,7 @@ def example_error_handling():
     try:
         result = node.execute_safe({}, context)
     except NodeExecutionError as e:
-        print(f"✅ Error caught successfully!")
+        print(f"[OK] Error caught successfully!")
         print(f"  Node: {e.node_name}")
         print(f"  Message: {e.message}")
         print(f"  Details: {e.details}")
@@ -261,7 +261,7 @@ def main():
     example_custom_config()
 
     print("=" * 60)
-    print("✅ All examples completed!")
+    print("[OK] All examples completed!")
     print("=" * 60)
     print()
     print("Next steps:")

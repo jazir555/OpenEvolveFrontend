@@ -132,7 +132,7 @@ class ACTRResolver:
 
             if not evaluation:
                 if should_print(verbose_level, VerbosityLevel.BASIC):
-                    print(f"   ✗ LLM query failed")
+                    print(f"   [FAIL] LLM query failed")
                 return None
 
             # Calculate utilities with history penalty (Tabu Search)
@@ -176,14 +176,14 @@ class ACTRResolver:
                 print(format_thinking("Utility Calculation Result", "\n".join(thinking_lines)))
 
             if should_print(verbose_level, VerbosityLevel.BASIC):
-                print(f"   ✓ Selected: {best_op.name} (U={best_U:.2f})")
+                print(f"   [OK] Selected: {best_op.name} (U={best_U:.2f})")
                 print(f"   Recommendation: {evaluation.recommendation}")
 
             return (best_op, best_U)
 
         except Exception as e:
             if should_print(verbose_level, VerbosityLevel.BASIC):
-                print(f"   ✗ Error during LLM query: {e}")
+                print(f"   [FAIL] Error during LLM query: {e}")
             return None
 
     async def generate_operators(
@@ -297,7 +297,7 @@ class ACTRResolver:
         except Exception as e:
             verbose_level = normalize_verbose(verbose)
             if should_print(verbose_level, VerbosityLevel.BASIC):
-                print(f"   ✗ Error generating operators: {e}")
+                print(f"   [FAIL] Error generating operators: {e}")
             return None
 
     def _create_operator_from_suggestion(

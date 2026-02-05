@@ -1292,7 +1292,7 @@ def render_model_dashboard_tab():
 
 def render_tasks_tab():
     """Renders the UI for the Tasks tab."""
-    st.header("✅ Tasks")
+    st.header("[OK] Tasks")
     st.write("Manage your tasks and to-dos.")
 
     st.subheader("Create New Task")

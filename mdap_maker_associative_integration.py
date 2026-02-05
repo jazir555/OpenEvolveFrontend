@@ -3,7 +3,7 @@ MDAP/MAKER + Associative Recomposition Integration
 
 Complete system integrating:
 - MDAP (Multi-Agent Debate Protocol) - Multi-agent solution validation
-- MAKER (Multi-step orchestration) - Structured decomposition→recomposition workflow
+- MAKER (Multi-step orchestration) - Structured decomposition->recomposition workflow
 - Associative Recomposition - Domain-agnostic LLM + algorithmic verification
 - Ground Truth Store - Persistent verification layer
 
@@ -389,7 +389,7 @@ OUTPUT ONLY THE JSON."""
 
 class MakerRecomposerWorkflow:
     """
-    MAKER-based workflow for decomposition → recomposition.
+    MAKER-based workflow for decomposition -> recomposition.
 
     Orchestrates the full problem-solving pipeline.
     """
@@ -595,9 +595,9 @@ class MakerRecomposerWorkflow:
         )
 
         if results['success']:
-            logger.info("✓ WORKFLOW SUCCESSFUL")
+            logger.info("[OK] WORKFLOW SUCCESSFUL")
         else:
-            logger.error("✗ WORKFLOW FAILED")
+            logger.error("[FAIL] WORKFLOW FAILED")
 
         return results
 

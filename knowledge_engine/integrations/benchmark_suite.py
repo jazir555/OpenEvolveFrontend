@@ -207,7 +207,7 @@ class MathKnowledgeBenchmarks:
             )
         
         self.results.append(result)
-        print(f"✓ ({result.avg_time*1000:.1f}ms avg)")
+        print(f"[OK] ({result.avg_time*1000:.1f}ms avg)")
         return result
     
     # ==================================================================
@@ -330,7 +330,7 @@ class MathKnowledgeBenchmarks:
             failure_count=0
         )
         self.results.append(result)
-        print(f"  Semantic Translation... ✓ ({result.avg_time*1000:.1f}ms avg)")
+        print(f"  Semantic Translation... [OK] ({result.avg_time*1000:.1f}ms avg)")
     
     # ==================================================================
     # Stress Benchmarks
@@ -431,8 +431,8 @@ def compare_results(current: BenchmarkSuite, previous_file: str):
             curr_avg = result.avg_time
             change = ((curr_avg - prev_avg) / prev_avg) * 100 if prev_avg > 0 else 0
             
-            symbol = "↑" if change > 0 else "↓" if change < 0 else "="
-            print(f"{result.name}: {prev_avg*1000:.2f}ms → {curr_avg*1000:.2f}ms ({symbol}{abs(change):.1f}%)")
+            symbol = "^" if change > 0 else "v" if change < 0 else "="
+            print(f"{result.name}: {prev_avg*1000:.2f}ms -> {curr_avg*1000:.2f}ms ({symbol}{abs(change):.1f}%)")
 
 
 async def main():

@@ -684,7 +684,7 @@ if __name__ == "__main__":
     print("\n🔧 Processing workflow through comprehensive pipeline...")
     processing_results = engine.process_workflow_comprehensive(example_workflow)
     
-    print(f"\n✅ Processing Results:")
+    print(f"\n[OK] Processing Results:")
     print(f"  - Status: {processing_results['status']}")
     print(f"  - Total processing time: {processing_results['statistics']['total_processing_time']:.3f}s")
     print(f"  - Artifacts processed: {processing_results['statistics']['artifacts_processed']}")
@@ -693,7 +693,7 @@ if __name__ == "__main__":
     # Show stage details
     print(f"\n📊 Stage Details:")
     for stage_name, stage_data in processing_results['stages'].items():
-        status_icon = "✅" if stage_data['status'] == 'completed' else "⚠️"
+        status_icon = "[OK]" if stage_data['status'] == 'completed' else "[WARN]"
         print(f"  {status_icon} {stage_name}: {stage_data['status']} ({stage_data['processing_time']:.3f}s)")
         if stage_data['status'] == 'completed':
             for key, value in stage_data.items():
@@ -745,10 +745,10 @@ if __name__ == "__main__":
     
     print(f"\n🎉 Comprehensive Knowledge Engine demonstration completed successfully!")
     print(f"\nThis represents a 5x enhancement over the original knowledge engine with:")
-    print(f"  ✅ Advanced NLP and ML capabilities")
-    print(f"  ✅ Comprehensive knowledge processing pipeline")
-    print(f"  ✅ Knowledge graph integration and reasoning")
-    print(f"  ✅ Validation and quality assurance")
-    print(f"  ✅ Monitoring and observability")
-    print(f"  ✅ Unified API and integration layer")
-    print(f"  ✅ Production-ready architecture")
+    print(f"  [OK] Advanced NLP and ML capabilities")
+    print(f"  [OK] Comprehensive knowledge processing pipeline")
+    print(f"  [OK] Knowledge graph integration and reasoning")
+    print(f"  [OK] Validation and quality assurance")
+    print(f"  [OK] Monitoring and observability")
+    print(f"  [OK] Unified API and integration layer")
+    print(f"  [OK] Production-ready architecture")

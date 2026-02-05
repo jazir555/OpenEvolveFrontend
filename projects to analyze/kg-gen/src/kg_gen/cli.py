@@ -38,12 +38,12 @@ def check_and_install_mcp_dependencies():
                 text=True,
             )
 
-            print("✅ MCP dependencies installed successfully!")
+            print("[OK] MCP dependencies installed successfully!")
             print()
             return True
 
         except subprocess.CalledProcessError as e:
-            print("❌ Failed to install MCP dependencies:")
+            print("[FAIL] Failed to install MCP dependencies:")
             print(f"Error: {e.stderr}")
             print()
             print("Please install manually:")
@@ -52,7 +52,7 @@ def check_and_install_mcp_dependencies():
             print("  pip install 'kg-gen[mcp]'")
             return False
         except Exception as e:
-            print(f"❌ Unexpected error during installation: {e}")
+            print(f"[FAIL] Unexpected error during installation: {e}")
             print()
             print("Please install manually:")
             print("  pip install fastmcp>=2.10.6 mcp>=1.12.1")

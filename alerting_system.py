@@ -396,8 +396,8 @@ Tags: {', '.join(alert.tags)}
         """Log alert to console."""
         severity_emoji = {
             'info': 'ℹ️',
-            'warning': '⚠️',
-            'error': '❌',
+            'warning': '[WARN]',
+            'error': '[FAIL]',
             'critical': '🚨'
         }
         emoji = severity_emoji.get(alert.severity, '📢')

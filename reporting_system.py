@@ -601,7 +601,7 @@ def render_detailed_report(report: EvolutionReport):
     st.header(f"📊 Detailed Report: {report.run_id}")
     
     # Navigation
-    if st.button("← Back to Reports"):
+    if st.button("<- Back to Reports"):
         if "selected_report" in st.session_state:
             del st.session_state.selected_report
         st.rerun()

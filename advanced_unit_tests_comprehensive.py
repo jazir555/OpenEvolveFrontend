@@ -1421,7 +1421,7 @@ def run_advanced_unit_tests():
             print(f"\nERROR: {test}")
             print(trace)
     else:
-        print("\n✅ All advanced unit tests passed!")
+        print("\n[OK] All advanced unit tests passed!")
     
     print("="*80)
     return result

@@ -155,7 +155,7 @@ class FinalHealthCheck:
         imports = self.get_imports(tree)
         lines_of_code = len([line for line in content.split('\n') if line.strip() and not line.strip().startswith('#')])
 
-        print(f"  ✅ Syntax: Valid")
+        print(f"  [OK] Syntax: Valid")
         print(f"  📊 LOC: {lines_of_code}")
         print(f"  🔧 ParameterManager: {pm_total} instances")
         print(f"  ⚙️  UnifiedConfiguration: {uc_total} instances")
@@ -185,7 +185,7 @@ class FinalHealthCheck:
         for filename in self.critical_files:
             filepath = os.path.join(self.root_dir, filename)
             if not os.path.exists(filepath):
-                print(f"⚠️  {filename}: File not found")
+                print(f"[WARN]  {filename}: File not found")
                 continue
 
             result = self.validate_file(filepath)
@@ -194,9 +194,9 @@ class FinalHealthCheck:
             if result.parameter_manager_count > 0:
                 all_valid = False
                 total_pm += result.parameter_manager_count
-                print(f"  ❌ FAILED: {result.parameter_manager_count} ParameterManager instances found")
+                print(f"  [FAIL] FAILED: {result.parameter_manager_count} ParameterManager instances found")
             else:
-                print(f"  ✅ PASSED: No ParameterManager instances")
+                print(f"  [OK] PASSED: No ParameterManager instances")
 
         print(f"\n📊 Total ParameterManager instances: {total_pm}")
         return all_valid and total_pm == 0
@@ -215,9 +215,9 @@ class FinalHealthCheck:
         # Check for specific patterns
         for filename, result in self.results.items():
             if result.has_threading_locks:
-                print(f"  ✅ {filename}: Has thread safety locks")
+                print(f"  [OK] {filename}: Has thread safety locks")
             else:
-                print(f"  ⚠️  {filename}: No thread safety locks detected")
+                print(f"  [WARN]  {filename}: No thread safety locks detected")
 
         # This is a partial check - we'd need more detailed analysis
         return True  # Cannot fully verify without manual review
@@ -243,9 +243,9 @@ class FinalHealthCheck:
 
             if has_lru_cache or has_cache:
                 files_with_caching += 1
-                print(f"  ✅ {filename}: Has caching")
+                print(f"  [OK] {filename}: Has caching")
             else:
-                print(f"  ⚠️  {filename}: No caching detected")
+                print(f"  [WARN]  {filename}: No caching detected")
 
         print(f"\n📊 Files with caching: {files_with_caching}/{len(self.critical_files)}")
         return True  # Partial check
@@ -262,7 +262,7 @@ class FinalHealthCheck:
         for filename, result in self.results.items():
             total_coverage += result.docstring_coverage
             file_count += 1
-            status = "✅" if result.docstring_coverage >= 80 else "⚠️"
+            status = "[OK]" if result.docstring_coverage >= 80 else "[WARN]"
             print(f"  {status} {filename}: {result.docstring_coverage:.1f}% coverage")
 
         avg_coverage = total_coverage / file_count if file_count > 0 else 0
@@ -278,7 +278,7 @@ class FinalHealthCheck:
 
         try:
             import pytest
-            print(f"  ✅ pytest installed (version {pytest.__version__})")
+            print(f"  [OK] pytest installed (version {pytest.__version__})")
 
             # Count test files
             test_files = []
@@ -291,11 +291,11 @@ class FinalHealthCheck:
                         test_files.append(os.path.join(root, file))
 
             print(f"  📊 Test files found: {len(test_files)}")
-            print(f"  ⚠️  Tests NOT executed (run: pytest)")
+            print(f"  [WARN]  Tests NOT executed (run: pytest)")
             return True
 
         except ImportError:
-            print("  ❌ pytest not installed")
+            print("  [FAIL] pytest not installed")
             return False
 
     def check_syntax_valid(self) -> bool:
@@ -327,11 +327,11 @@ class FinalHealthCheck:
 
             if problematic:
                 has_issues = True
-                print(f"  ❌ {filename}: Has ParameterManager imports")
+                print(f"  [FAIL] {filename}: Has ParameterManager imports")
                 for imp in problematic:
                     print(f"     - {imp}")
             else:
-                print(f"  ✅ {filename}: Imports clean")
+                print(f"  [OK] {filename}: Imports clean")
 
         return not has_issues
 
@@ -365,7 +365,7 @@ class FinalHealthCheck:
         total = len(checks)
 
         for check_name, result in checks.items():
-            status = "✅ PASSED" if result else "❌ FAILED"
+            status = "[OK] PASSED" if result else "[FAIL] FAILED"
             print(f"{status}: {check_name}")
 
         print(f"\n📈 Overall: {passed}/{total} checks passed ({passed/total*100:.0f}%)")
@@ -376,7 +376,7 @@ class FinalHealthCheck:
 
         print(f"\n🎯 Final Score: {score:.0f}/100")
         print(f"📝 Grade: {grade}")
-        print(f"🚀 Production Ready: {'✅ YES' if score >= 90 else '❌ NO'}")
+        print(f"🚀 Production Ready: {'[OK] YES' if score >= 90 else '[FAIL] NO'}")
 
         return score
 

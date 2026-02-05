@@ -360,7 +360,7 @@ class Stage1Integration:
         text = extraction.text.lower()
 
         if "must" in text:
-            return f"∀x, {text.replace('must', '→')}"
+            return f"∀x, {text.replace('must', '->')}"
         elif "should" in text:
             return f"∃x, {text.replace('should', '⇒')}"
         else:

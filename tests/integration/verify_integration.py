@@ -31,13 +31,13 @@ def test_gauntlets():
             ThreeRoundGauntletOrchestrator,
             MultiRoundGauntletOrchestrator,
         )
-        print("✓ LoongFlowGauntletEvaluator")
-        print("✓ ThreeRoundGauntletOrchestrator")
-        print("✓ MultiRoundGauntletOrchestrator")
-        print("\nSTATUS: PASSED ✓")
+        print("[OK] LoongFlowGauntletEvaluator")
+        print("[OK] ThreeRoundGauntletOrchestrator")
+        print("[OK] MultiRoundGauntletOrchestrator")
+        print("\nSTATUS: PASSED [OK]")
         return True
     except Exception as e:
-        print(f"\nSTATUS: FAILED ✗\nError: {e}")
+        print(f"\nSTATUS: FAILED [FAIL]\nError: {e}")
         return False
 
 
@@ -52,16 +52,16 @@ def test_domain_optimizers():
 
         # Test instantiation
         finance = FinanceOptimizer()
-        print("✓ FinanceOptimizer instantiated")
+        print("[OK] FinanceOptimizer instantiated")
 
         # Test config retrieval
         config = finance.get_default_config()
-        print(f"✓ Config retrieved: {type(config).__name__}")
+        print(f"[OK] Config retrieved: {type(config).__name__}")
 
-        print("\nSTATUS: PASSED ✓")
+        print("\nSTATUS: PASSED [OK]")
         return True
     except Exception as e:
-        print(f"\nSTATUS: FAILED ✗\nError: {e}")
+        print(f"\nSTATUS: FAILED [FAIL]\nError: {e}")
         return False
 
 
@@ -75,13 +75,13 @@ def test_unified_config():
         from openevolve.unified.config import UnifiedEvolutionConfig
 
         config = UnifiedEvolutionConfig()
-        print(f"✓ UnifiedEvolutionConfig created")
+        print(f"[OK] UnifiedEvolutionConfig created")
         print(f"  - Type: {type(config).__name__}")
 
-        print("\nSTATUS: PASSED ✓")
+        print("\nSTATUS: PASSED [OK]")
         return True
     except Exception as e:
-        print(f"\nSTATUS: FAILED ✗\nError: {e}")
+        print(f"\nSTATUS: FAILED [FAIL]\nError: {e}")
         return False
 
 
@@ -93,12 +93,12 @@ def test_knowledge_engine():
 
     try:
         from openevolve.knowledge_engine.integrations import LoongFlowKnowledgeExtractor
-        print("✓ LoongFlowKnowledgeExtractor imported")
+        print("[OK] LoongFlowKnowledgeExtractor imported")
 
-        print("\nSTATUS: PASSED ✓")
+        print("\nSTATUS: PASSED [OK]")
         return True
     except Exception as e:
-        print(f"\nSTATUS: FAILED ✗\nError: {e}")
+        print(f"\nSTATUS: FAILED [FAIL]\nError: {e}")
         return False
 
 
@@ -130,17 +130,17 @@ def main():
     total = len(results)
 
     for name, result in results:
-        status = "✓ PASS" if result else "✗ FAIL"
+        status = "[OK] PASS" if result else "[FAIL] FAIL"
         print(f"{status}: {name}")
 
     print(f"\nTotal: {passed}/{total} tests passed ({passed/total*100:.0f}%)")
     print("="*80)
 
     if passed == total:
-        print("\n✓ ALL TESTS PASSED - Integration is working correctly!")
+        print("\n[OK] ALL TESTS PASSED - Integration is working correctly!")
         return 0
     else:
-        print(f"\n✗ {total - passed} test(s) failed - Please check the errors above")
+        print(f"\n[FAIL] {total - passed} test(s) failed - Please check the errors above")
         return 1
 
 

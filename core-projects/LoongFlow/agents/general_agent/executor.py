@@ -399,7 +399,7 @@ class GeneralExecuteAgent(Worker):
             self._write_best_results(context, chosen)
 
         logger.info(
-            f"[{context.trace_id}] Executor: ✅ Iteration completed - final_score={chosen.score:.4f}, tokens={total_prompt_tokens + total_completion_tokens}, candidates={len(all_results)}"
+            f"[{context.trace_id}] Executor: [OK] Iteration completed - final_score={chosen.score:.4f}, tokens={total_prompt_tokens + total_completion_tokens}, candidates={len(all_results)}"
         )
         return self._make_result_message(
             parent_ctx, chosen, total_prompt_tokens, total_completion_tokens
@@ -550,7 +550,7 @@ class GeneralExecuteAgent(Worker):
         # Check if Claude wrote the candidate solution file (primary path)
         if os.path.exists(candidate_solution_path_for_claude):
             logger.info(
-                f"[{context.trace_id}] Executor: ✅ Candidate {round_idx}_{candidate_idx} generated"
+                f"[{context.trace_id}] Executor: [OK] Candidate {round_idx}_{candidate_idx} generated"
             )
         else:
             # Fallback: extract candidate from Claude's response and save it manually

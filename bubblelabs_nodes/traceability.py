@@ -1,7 +1,7 @@
 """
 Traceability Matrix for OpenEvolve Gauntlet System
 
-Tracks all changes made to solutions throughout the Blue→Red→Gold
+Tracks all changes made to solutions throughout the Blue->Red->Gold
 workflow, providing a complete audit trail and debugging capabilities.
 
 Key Features:

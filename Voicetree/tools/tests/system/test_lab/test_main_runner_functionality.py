@@ -34,11 +34,11 @@ def test_test_lab_components():
                 scenarios = json.load(f)
                 if 'test_scenarios' in scenarios and len(scenarios['test_scenarios']) > 0:
                     results['scenario_loading'] = True
-                    print("✅ Scenario loading works")
+                    print("[OK] Scenario loading works")
                 else:
-                    print("❌ Invalid scenario structure")
+                    print("[FAIL] Invalid scenario structure")
         else:
-            print("❌ Scenarios file not found")
+            print("[FAIL] Scenarios file not found")
     
     # Test 2: Environment Setup
     try:
@@ -47,12 +47,12 @@ def test_test_lab_components():
         test_dir = lab.setup_test_environment()
         if test_dir.exists():
             results['environment_setup'] = True
-            print("✅ Environment setup works")
+            print("[OK] Environment setup works")
             lab.cleanup_test_environment()
         else:
-            print("❌ Environment setup failed")
+            print("[FAIL] Environment setup failed")
     except Exception as e:
-        print(f"❌ Environment setup error: {e}")
+        print(f"[FAIL] Environment setup error: {e}")
     
     # Test 3: Add New Node Functionality (Core Integration)
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -86,9 +86,9 @@ Test node""")
         result = subprocess.run(cmd, env=env, capture_output=True, text=True)
         if result.returncode == 0 and "Success!" in result.stdout:
             results['add_new_node_functionality'] = True
-            print("✅ add_new_node.py functionality works")
+            print("[OK] add_new_node.py functionality works")
         else:
-            print(f"❌ add_new_node.py failed: {result.stderr}")
+            print(f"[FAIL] add_new_node.py failed: {result.stderr}")
     
     # Test 4: Validation Logic
     try:
@@ -126,13 +126,13 @@ Parent:
         print(f"Debug validation results: {validations}")
         if validations.get('new_nodes_created') and validations.get('color_consistency'):
             results['validation_logic'] = True
-            print("✅ Validation logic works")
+            print("[OK] Validation logic works")
         else:
-            print(f"❌ Validation logic failed: {validations}")
+            print(f"[FAIL] Validation logic failed: {validations}")
             
         lab.cleanup_test_environment()
     except Exception as e:
-        print(f"❌ Validation logic error: {e}")
+        print(f"[FAIL] Validation logic error: {e}")
     
     # Test 5: Report Generation
     try:
@@ -141,12 +141,12 @@ Parent:
         report_file = lab.generate_test_report()
         if report_file.exists():
             results['report_generation'] = True
-            print("✅ Report generation works")
+            print("[OK] Report generation works")
             report_file.unlink()  # Clean up
         else:
-            print("❌ Report generation failed")
+            print("[FAIL] Report generation failed")
     except Exception as e:
-        print(f"❌ Report generation error: {e}")
+        print(f"[FAIL] Report generation error: {e}")
     
     # Overall Results
     passed_tests = sum(results.values())
@@ -157,7 +157,7 @@ Parent:
     print(f"Passed: {passed_tests}/{total_tests} ({success_rate:.1%})")
     
     for test_name, passed in results.items():
-        status = "✅" if passed else "❌"
+        status = "[OK]" if passed else "[FAIL]"
         print(f"{status} {test_name}")
     
     assert success_rate >= 0.8, f"Test failed with success rate {success_rate:.1%} (required: 80%)"

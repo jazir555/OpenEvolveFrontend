@@ -38,7 +38,7 @@ class AsciiGraphRenderer:
             'related_to': '─',
             'part_of': '═',
             'instance_of': '─',
-            'causes': '→',
+            'causes': '->',
             'derives_from': '⇢',
         }
         logger.info("AsciiGraphRenderer initialized")
@@ -61,10 +61,10 @@ class AsciiGraphRenderer:
             ASCII art representation of the graph
 
         Example:
-              A ──→ B
+              A ──-> B
               │  ↗  │
-              ↓ ↗   ↓
-              C ←── D
+              v ↗   v
+              C <-── D
         """
         logger.debug(f"Rendering graph with {len(graph_data.get('nodes', []))} nodes")
 

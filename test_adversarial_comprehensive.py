@@ -26,13 +26,13 @@ def test_adversarial_configuration():
     param_manager = ParameterManager()
     adversarial_params = param_manager.get_parameters_by_category("adversarial")
     total_adversarial_params = len(adversarial_params)
-    print(f"✅ Adversarial Parameters Available: {total_adversarial_params}")
+    print(f"[OK] Adversarial Parameters Available: {total_adversarial_params}")
     
     # Create default configuration
     config = AdversarialConfiguration()
     config_dict = asdict(config)
     
-    print(f"✅ Adversarial Configuration: {len(config_dict)} fields defined")
+    print(f"[OK] Adversarial Configuration: {len(config_dict)} fields defined")
     
     # Test adversarial parameter coverage
     adversarial_param_names = set(p.name for p in adversarial_params)
@@ -41,10 +41,10 @@ def test_adversarial_configuration():
     covered_adversarial = adversarial_param_names.intersection(config_names)
     missing_adversarial = adversarial_param_names - config_names
     
-    print(f"✅ Adversarial parameter coverage: {len(covered_adversarial)}/{total_adversarial_params} ({len(covered_adversarial)/total_adversarial_params*100:.1f}%)")
+    print(f"[OK] Adversarial parameter coverage: {len(covered_adversarial)}/{total_adversarial_params} ({len(covered_adversarial)/total_adversarial_params*100:.1f}%)")
     
     if missing_adversarial:
-        print(f"⚠️ Missing adversarial parameters ({len(missing_adversarial)}):")
+        print(f"[WARN] Missing adversarial parameters ({len(missing_adversarial)}):")
         for param in sorted(list(missing_adversarial)):
             print(f"   - {param}")
     
@@ -60,7 +60,7 @@ def test_adversarial_configuration():
     ]
     
     present_params = [p for p in expected_adversarial_params if p in config_names]
-    print(f"✅ Core adversarial parameters present: {len(present_params)}/{len(expected_adversarial_params)}")
+    print(f"[OK] Core adversarial parameters present: {len(present_params)}/{len(expected_adversarial_params)}")
     
     return len(covered_adversarial) >= total_adversarial_params * 0.9  # 90% coverage threshold
 
@@ -78,7 +78,7 @@ def test_adversarial_parameter_validation():
     config.blue_team_models = ["gpt-3.5-turbo", "gemini-pro"]
     
     validation_result = config.validate(param_manager)
-    print(f"✅ Valid adversarial config validation: {validation_result.valid}")
+    print(f"[OK] Valid adversarial config validation: {validation_result.valid}")
     
     # Test invalid adversarial configuration
     invalid_config = AdversarialConfiguration()
@@ -87,7 +87,7 @@ def test_adversarial_parameter_validation():
     invalid_config.perturbation_bound = 2.0  # Out of range
     
     validation_result = invalid_config.validate(param_manager)
-    print(f"✅ Invalid adversarial config validation: {not validation_result.valid} (correctly detected as invalid)")
+    print(f"[OK] Invalid adversarial config validation: {not validation_result.valid} (correctly detected as invalid)")
     print(f"   Errors found: {len(validation_result.errors)}")
     
     return True
@@ -102,15 +102,15 @@ def test_adversarial_modes():
     attack_strategies = capabilities["attack_strategies"]
     defense_mechanisms = capabilities["defense_mechanisms"]
     
-    print(f"✅ Adversarial modes: {len(adversarial_modes)}")
+    print(f"[OK] Adversarial modes: {len(adversarial_modes)}")
     for mode in adversarial_modes:
         print(f"   - {mode}")
     
-    print(f"✅ Attack strategies: {len(attack_strategies)}")
+    print(f"[OK] Attack strategies: {len(attack_strategies)}")
     for strategy in attack_strategies:
         print(f"   - {strategy}")
     
-    print(f"✅ Defense mechanisms: {len(defense_mechanisms)}")
+    print(f"[OK] Defense mechanisms: {len(defense_mechanisms)}")
     for mechanism in defense_mechanisms:
         print(f"   - {mechanism}")
     
@@ -124,12 +124,12 @@ def test_adversarial_modes():
     config.coevolutionary_approach = True
     config.attack_diversity = True
     config.ensemble_defense = True
-    print("   ✅ Coevolutionary configuration created successfully")
+    print("   [OK] Coevolutionary configuration created successfully")
     
     # Test gradient masking
     config.gradient_masking = True
     config.perturbation_bound = 0.1
-    print("   ✅ Gradient masking configuration created successfully")
+    print("   [OK] Gradient masking configuration created successfully")
     
     return True
 
@@ -141,7 +141,7 @@ def test_adversarial_advanced_features():
     capabilities = get_adversarial_capabilities_summary()
     advanced_features = capabilities["advanced_features"]
     
-    print(f"✅ Advanced adversarial features: {len(advanced_features)}")
+    print(f"[OK] Advanced adversarial features: {len(advanced_features)}")
     
     # Test configuration with multiple advanced features
     config = AdversarialConfiguration()
@@ -159,10 +159,10 @@ def test_adversarial_advanced_features():
     config.explainable_ai = True
     config.differential_privacy = True
     
-    print("✅ Advanced adversarial features configuration:")
+    print("[OK] Advanced adversarial features configuration:")
     for feature, description in advanced_features.items():
         enabled = getattr(config, feature, False)
-        status = "✅" if enabled else "⚪"
+        status = "[OK]" if enabled else "⚪"
         print(f"   {status} {feature}: {description[:50]}...")
     
     return True
@@ -185,7 +185,7 @@ def test_adversarial_configuration_conversion():
     # Test conversion to evolution configuration
     try:
         evolution_config = adversarial_config.to_evolution_config()
-        print("✅ Adversarial to Evolution config conversion successful")
+        print("[OK] Adversarial to Evolution config conversion successful")
         print(f"   Evolution mode: {evolution_config.evolution_mode}")
         print(f"   Adversarial rounds: {evolution_config.adversarial_rounds}")
         print(f"   Attack strength: {evolution_config.attack_strength}")
@@ -194,7 +194,7 @@ def test_adversarial_configuration_conversion():
         return True
         
     except Exception as e:
-        print(f"❌ Configuration conversion failed: {e}")
+        print(f"[FAIL] Configuration conversion failed: {e}")
         return False
 
 def test_adversarial_serialization():
@@ -218,7 +218,7 @@ def test_adversarial_serialization():
     try:
         config_dict = asdict(config)
         config_json = json.dumps(config_dict, indent=2, default=str)
-        print(f"✅ Adversarial configuration serialized: {len(config_json)} characters")
+        print(f"[OK] Adversarial configuration serialized: {len(config_json)} characters")
         
         # Test that all fields are serializable
         non_serializable = []
@@ -229,14 +229,14 @@ def test_adversarial_serialization():
                 non_serializable.append(key)
         
         if non_serializable:
-            print(f"⚠️ Non-serializable fields: {non_serializable}")
+            print(f"[WARN] Non-serializable fields: {non_serializable}")
         else:
-            print("✅ All adversarial configuration fields are serializable")
+            print("[OK] All adversarial configuration fields are serializable")
         
         return len(non_serializable) == 0
         
     except Exception as e:
-        print(f"❌ Adversarial serialization failed: {e}")
+        print(f"[FAIL] Adversarial serialization failed: {e}")
         return False
 
 def test_adversarial_parameter_utilization():
@@ -257,7 +257,7 @@ def test_adversarial_parameter_utilization():
         config.red_team_models = ["gpt-4", "claude-3"]  # List
         config.attack_model_config = {"name": "gpt-4", "temp": 0.9}  # Dict
         
-        print("✅ Adversarial configuration with all parameter types created")
+        print("[OK] Adversarial configuration with all parameter types created")
         print(f"   - Integer parameters: adversarial_rounds = {config.adversarial_rounds}")
         print(f"   - Float parameters: attack_strength = {config.attack_strength}")
         print(f"   - String parameters: defense_strategy = {config.defense_strategy}")
@@ -268,7 +268,7 @@ def test_adversarial_parameter_utilization():
         return True
         
     except Exception as e:
-        print(f"❌ Adversarial parameter utilization test failed: {e}")
+        print(f"[FAIL] Adversarial parameter utilization test failed: {e}")
         return False
 
 def main():
@@ -292,7 +292,7 @@ def main():
             result = test_func()
             results.append((test_name, result))
         except Exception as e:
-            print(f"\n❌ {test_name} failed with error: {e}")
+            print(f"\n[FAIL] {test_name} failed with error: {e}")
             results.append((test_name, False))
     
     # Summary
@@ -304,22 +304,22 @@ def main():
     total = len(results)
     
     for test_name, result in results:
-        status = "✅ PASS" if result else "❌ FAIL"
+        status = "[OK] PASS" if result else "[FAIL] FAIL"
         print(f"{status} {test_name}")
     
     print(f"\n🎯 Overall: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
     
     if passed == total:
         print("\n🎉 ALL TESTS PASSED! Adversarial.py fully utilizes OpenEvolve adversarial capabilities!")
-        print("✅ 20+ adversarial parameters supported")
-        print("✅ 5 adversarial modes available")
-        print("✅ 5 attack strategies implemented")
-        print("✅ 5 defense mechanisms integrated")
-        print("✅ Advanced features enabled")
-        print("✅ Comprehensive validation implemented")
+        print("[OK] 20+ adversarial parameters supported")
+        print("[OK] 5 adversarial modes available")
+        print("[OK] 5 attack strategies implemented")
+        print("[OK] 5 defense mechanisms integrated")
+        print("[OK] Advanced features enabled")
+        print("[OK] Comprehensive validation implemented")
         return 0
     else:
-        print(f"\n⚠️ {total - passed} tests failed. Review the output above.")
+        print(f"\n[WARN] {total - passed} tests failed. Review the output above.")
         return 1
 
 if __name__ == "__main__":

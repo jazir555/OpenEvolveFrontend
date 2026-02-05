@@ -109,9 +109,9 @@ def example_multi_objective():
     # Validate
     validator = ConfigValidator(config)
     if validator.is_valid():
-        print("✓ Configuration is valid!")
+        print("[OK] Configuration is valid!")
     else:
-        print("✗ Configuration has errors:")
+        print("[FAIL] Configuration has errors:")
         print(validator.get_validation_report())
     print()
 
@@ -415,7 +415,7 @@ def example_validation():
     # Validate again
     validator = ConfigValidator(config)
     if validator.is_valid():
-        print("✓ Fixed configuration is now valid!")
+        print("[OK] Fixed configuration is now valid!")
     print()
 
 

@@ -104,7 +104,7 @@ class SafetyMiddleware:
 
             if approval_result.decision == ApprovalDecision.REJECTED:
                 if verbose:
-                    print(f"   ✗ {operator.name} rejected by user")
+                    print(f"   [FAIL] {operator.name} rejected by user")
                 return OperatorResult(
                     success=False,
                     new_state=state,
@@ -126,9 +126,9 @@ class SafetyMiddleware:
 
         if verbose:
             if result.success:
-                print(f"   ✓ {operator.name} succeeded")
+                print(f"   [OK] {operator.name} succeeded")
             else:
-                print(f"   ✗ {operator.name} failed: {result.message}")
+                print(f"   [FAIL] {operator.name} failed: {result.message}")
 
         return result
 

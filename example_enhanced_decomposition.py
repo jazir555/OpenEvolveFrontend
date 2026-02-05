@@ -988,12 +988,12 @@ def main():
     print("ENHANCED DECOMPOSITION WORKFLOW - USAGE EXAMPLES")
     print("="*80)
     print("\nThis guide demonstrates all enhanced features from Phases 1-3:")
-    print("  • 21-field SubProblem model (Phase 1)")
-    print("  • 10 decomposition strategies (Phase 2)")
-    print("  • Intelligent strategy selection (Phase 2)")
-    print("  • Enhanced quality assessment (Phase 2)")
-    print("  • Team assignment engine (Phase 3)")
-    print("  • MDAP integration (Phase 3)")
+    print("  * 21-field SubProblem model (Phase 1)")
+    print("  * 10 decomposition strategies (Phase 2)")
+    print("  * Intelligent strategy selection (Phase 2)")
+    print("  * Enhanced quality assessment (Phase 2)")
+    print("  * Team assignment engine (Phase 3)")
+    print("  * MDAP integration (Phase 3)")
 
     examples = [
         ("Basic Decomposition", example_1_basic_decomposition),
@@ -1025,9 +1025,9 @@ def main():
     print("ALL EXAMPLES COMPLETE")
     print("="*80)
     print("\nFor more information, see:")
-    print("  • DECOMPOSITION_ENGINE_PHASE1_COMPLETE.md")
-    print("  • DECOMPOSITION_ENGINE_PHASE2_COMPLETE.md")
-    print("  • DECOMPOSITION_ENGINE_PHASE3_COMPLETE.md")
+    print("  * DECOMPOSITION_ENGINE_PHASE1_COMPLETE.md")
+    print("  * DECOMPOSITION_ENGINE_PHASE2_COMPLETE.md")
+    print("  * DECOMPOSITION_ENGINE_PHASE3_COMPLETE.md")
     print("\nStatus: Production Ready")
 
 

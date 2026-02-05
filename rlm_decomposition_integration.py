@@ -250,7 +250,7 @@ class RLMGauntletRunner:
         max_attempts: int = 3
     ) -> 'GauntletResult':
         """
-        Run full gauntlet (Blue → Red → Gold).
+        Run full gauntlet (Blue -> Red -> Gold).
         
         If Red finds issues, Blue retries with feedback.
         """

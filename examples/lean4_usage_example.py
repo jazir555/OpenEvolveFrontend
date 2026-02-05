@@ -41,7 +41,7 @@ async def main():
         config=verification_config
     )
 
-    print("   ✓ Engine created")
+    print("   [OK] Engine created")
     print(f"   Server: http://localhost:7654")
     print(f"   Fallback enabled: {server_config.enable_simulation_fallback}")
     print(f"   Caching enabled: {verification_config.enable_caching}")
@@ -62,8 +62,8 @@ async def main():
         name="add_zero"
     )
 
-    print(f"\nSuccess: {'✓' if result.success else '✗'}")
-    print(f"Server Available: {'✓' if result.server_available else '✗'}")
+    print(f"\nSuccess: {'[OK]' if result.success else '[FAIL]'}")
+    print(f"Server Available: {'[OK]' if result.server_available else '[FAIL]'}")
 
     if result.success:
         print("\nGenerated Lean Code:")
@@ -84,10 +84,10 @@ theorem mul_one (n : Nat) : n * 1 = n := by
 
     verification_result = await engine.verify_mathematical_solution(lean_code)
 
-    print(f"\nSuccess: {'✓' if verification_result.success else '✗'}")
+    print(f"\nSuccess: {'[OK]' if verification_result.success else '[FAIL]'}")
     print(f"Verification Time: {verification_result.verification_time:.2f}s")
-    print(f"Server Available: {'✓' if verification_result.server_available else '✗'}")
-    print(f"Used Fallback: {'✓' if verification_result.used_fallback else '✗'}")
+    print(f"Server Available: {'[OK]' if verification_result.server_available else '[FAIL]'}")
+    print(f"Used Fallback: {'[OK]' if verification_result.used_fallback else '[FAIL]'}")
 
     if verification_result.errors:
         print(f"Errors: {verification_result.errors}")
@@ -133,7 +133,7 @@ theorem mul_one (n : Nat) : n * 1 = n := by
 
     print("\nResults:")
     for i, (code, result) in enumerate(zip(theorems, batch_results), 1):
-        status = "✓" if result.success else "✗"
+        status = "[OK]" if result.success else "[FAIL]"
         fallback = " (fallback)" if result.used_fallback else ""
         print(f"{i}. {status}{fallback} - {code[:50]}...")
 
@@ -162,7 +162,7 @@ theorem mul_one (n : Nat) : n * 1 = n := by
     # Cleanup
     print("\n7. Cleaning up...")
     await engine.close()
-    print("   ✓ Connection closed")
+    print("   [OK] Connection closed")
 
     print("\n" + "="*80)
     print("Example completed successfully!")

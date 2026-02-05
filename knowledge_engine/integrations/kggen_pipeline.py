@@ -1,8 +1,8 @@
 """
 KG-Gen Graph Generation Pipeline Integration
 
-This module integrates kg-gen's advanced 3-stage pipeline (Entity Extraction →
-Relation Extraction → Deduplication) with the Knowledge Engine, including parallel
+This module integrates kg-gen's advanced 3-stage pipeline (Entity Extraction ->
+Relation Extraction -> Deduplication) with the Knowledge Engine, including parallel
 chunk processing and Neo4j auto-upload.
 """
 
@@ -566,7 +566,7 @@ class KGGenPipelineIntegration:
         upload_to_neo4j: bool = True
     ) -> KnowledgeGraph:
         """
-        Complete pipeline: extract → dedup → upload.
+        Complete pipeline: extract -> dedup -> upload.
 
         Args:
             text: Input text

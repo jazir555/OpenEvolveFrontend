@@ -60,7 +60,7 @@ BENCHMARK_PROOFS = [
     {
         "name": "Equality Symmetry",
         "description": "If a = b then b = a",
-        "code": "theorem eq_symm {α : Type} (a b : α) : a = b → b = a := by sorry",
+        "code": "theorem eq_symm {α : Type} (a b : α) : a = b -> b = a := by sorry",
         "expected_tactic": "symm",
         "difficulty": "medium",
     },
@@ -74,14 +74,14 @@ BENCHMARK_PROOFS = [
     {
         "name": "Forall Implication",
         "description": "If P implies Q for all x, then if P holds, Q holds for all x",
-        "code": "theorem forall_imp {α : Type} (P Q : α → Prop) (h : ∀ x : α, P x → Q x) (ha : P a) : Q a := by sorry",
+        "code": "theorem forall_imp {α : Type} (P Q : α -> Prop) (h : ∀ x : α, P x -> Q x) (ha : P a) : Q a := by sorry",
         "expected_tactic": "apply h",
         "difficulty": "hard",
     },
     {
         "name": "Natural Number Induction",
         "description": "Induction on natural numbers",
-        "code": "theorem nat_ind (P : Nat → Prop) (h0 : P 0) (h : ∀ n, P n → P n.succ) : ∀ n, P n := by sorry",
+        "code": "theorem nat_ind (P : Nat -> Prop) (h0 : P 0) (h : ∀ n, P n -> P n.succ) : ∀ n, P n := by sorry",
         "expected_tactic": "induction",
         "difficulty": "hard",
     },
@@ -254,8 +254,8 @@ def demonstrate_improvement():
         {
             "category": "Structure Preservation",
             "description": "Maintains theorem structure while completing proofs",
-            "before": "theorem eq_symm {α : Type} (a b : α) : a = b → b = a := by sorry",
-            "after": "theorem eq_symm {α : Type} (a b : α) : a = b → b = a := by symm",
+            "before": "theorem eq_symm {α : Type} (a b : α) : a = b -> b = a := by sorry",
+            "after": "theorem eq_symm {α : Type} (a b : α) : a = b -> b = a := by symm",
             "explanation": "The system identifies symmetry properties and applies 'symm' tactic",
         },
         {

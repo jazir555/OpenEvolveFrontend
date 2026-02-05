@@ -153,12 +153,12 @@ class GeneralPlanAgent(Worker):
         # Check if Claude wrote the plan file (primary path)
         if os.path.exists(best_plan_full_path):
             logger.info(
-                f"[{context.trace_id}] Planner: ✅ Plan generated successfully at {best_plan_full_path}"
+                f"[{context.trace_id}] Planner: [OK] Plan generated successfully at {best_plan_full_path}"
             )
         else:
             # Fallback: extract plan from Claude's response and save it manually
             logger.warning(
-                f"[{context.trace_id}] Planner: ⚠️ Plan file not found, extracting from response"
+                f"[{context.trace_id}] Planner: [WARN] Plan file not found, extracting from response"
             )
             # Extract the plan content from Claude's response
             if result.content and len(result.content) > 0 and isinstance(result.content[0], ContentElement):
@@ -169,7 +169,7 @@ class GeneralPlanAgent(Worker):
             # Save the extracted plan
             Workspace.write_planner_best_plan(context, plan_content, BEST_PLAN_FILE)
             logger.info(
-                f"[{context.trace_id}] Planner: ✅ Plan extracted and saved to {best_plan_full_path}"
+                f"[{context.trace_id}] Planner: [OK] Plan extracted and saved to {best_plan_full_path}"
             )
 
         # Save metadata to JSON file

@@ -1030,7 +1030,7 @@ class MDAPMCTSSimulation(MCTSSimulation if MCTS_AVAILABLE else object):
         goal = state.goals[0]
 
         # Check for quantifiers
-        if any(q in goal for q in ["forall", "∀", "→", "->"]):
+        if any(q in goal for q in ["forall", "∀", "->", "->"]):
             return "intros"
 
         # Check for equality

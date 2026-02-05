@@ -971,38 +971,38 @@ async def main():
         
         # Process workflow
         processing_result = engine.process_workflow(workflow_data)
-        print(f"\n✅ Processed workflow: {processing_result['status']}")
-        print(f"✅ Extracted {processing_result['knowledge_extracted']} knowledge artifacts")
-        print(f"✅ Processing time: {processing_result['processing_time']:.4f}s")
+        print(f"\n[OK] Processed workflow: {processing_result['status']}")
+        print(f"[OK] Extracted {processing_result['knowledge_extracted']} knowledge artifacts")
+        print(f"[OK] Processing time: {processing_result['processing_time']:.4f}s")
         
         # Test search
         search_results = engine.search_knowledge("complex decomposition strategies")
-        print(f"\n✅ Search status: {search_results['status']}")
-        print(f"✅ Found {search_results['result_count']} results")
+        print(f"\n[OK] Search status: {search_results['status']}")
+        print(f"[OK] Found {search_results['result_count']} results")
         
         # Test recommendations
         context = {'problem_type': 'decomposition', 'complexity': 'high'}
         recommendations = engine.get_recommendations(context)
-        print(f"\n✅ Recommendations status: {recommendations['status']}")
-        print(f"✅ Got {recommendations['recommendation_count']} recommendations")
+        print(f"\n[OK] Recommendations status: {recommendations['status']}")
+        print(f"[OK] Got {recommendations['recommendation_count']} recommendations")
         
         # Test analytics
         analytics = engine.get_analytics()
-        print(f"\n✅ Analytics generated successfully")
-        print(f"✅ Knowledge base contains {analytics['storage'].get('total_artifacts', 0)} artifacts")
-        print(f"✅ Overall quality score: {analytics['overall_quality_score']:.2f}")
+        print(f"\n[OK] Analytics generated successfully")
+        print(f"[OK] Knowledge base contains {analytics['storage'].get('total_artifacts', 0)} artifacts")
+        print(f"[OK] Overall quality score: {analytics['overall_quality_score']:.2f}")
         
         # Test system health
         health_report = engine.get_system_health()
-        print(f"\n✅ System health: {health_report['status']}")
-        print(f"✅ Health score: {health_report['health_score']}")
+        print(f"\n[OK] System health: {health_report['status']}")
+        print(f"[OK] Health score: {health_report['health_score']}")
         
         print("\n" + "=" * 60)
         print("🎉 Enterprise Knowledge Engine example completed successfully!")
         print("📊 System is ready for enterprise deployment!")
         
     except Exception as e:
-        print(f"\n❌ Enterprise Knowledge Engine example failed: {str(e)}")
+        print(f"\n[FAIL] Enterprise Knowledge Engine example failed: {str(e)}")
         import traceback
         traceback.print_exc()
 

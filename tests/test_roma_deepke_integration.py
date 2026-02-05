@@ -288,10 +288,10 @@ Test Coverage Summary:
 - Edge Cases: 3 tests
 
 Coverage Areas:
-✓ Basic initialization
-✓ Entity extraction
-✓ ROMA decomposition enhancement
-✓ Batch processing
-✓ Data formatting
-✓ Edge case handling
+[OK] Basic initialization
+[OK] Entity extraction
+[OK] ROMA decomposition enhancement
+[OK] Batch processing
+[OK] Data formatting
+[OK] Edge case handling
 """

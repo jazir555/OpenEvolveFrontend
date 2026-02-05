@@ -2,18 +2,18 @@
 End-to-End Integration Tests for Knowledge Engine Pipelines
 
 This module provides comprehensive E2E tests for the complete knowledge processing pipelines:
-- Bilingual extraction (OneKE) → Knowledge Graph → Temporal evolution (Graphiti)
+- Bilingual extraction (OneKE) -> Knowledge Graph -> Temporal evolution (Graphiti)
 - ROMA meta-agent orchestration with DSPy, DeepKE, RAGbits
 - Multi-system knowledge fusion
 - Backup and restore workflows
 - Knowledge retrieval pipelines
 
 Test Categories:
-1. Complete Extraction Pipelines - Document → Graph → Temporal
+1. Complete Extraction Pipelines - Document -> Graph -> Temporal
 2. Meta-Agent Orchestration - ROMA coordinating multiple systems
 3. Temporal Knowledge Evolution - Knowledge changes over time
 4. Multi-System Fusion - Multiple systems contributing to unified knowledge
-5. Retrieval Pipelines - Store → Query → Retrieve end-to-end
+5. Retrieval Pipelines - Store -> Query -> Retrieve end-to-end
 6. Backup/Restore - Cloud backup and disaster recovery
 
 Testing Best Practices:
@@ -215,7 +215,7 @@ async def test_bilingual_extraction_e2e(
     mock_knowledge_graph
 ):
     """
-    Test complete pipeline: Document → OneKE (bilingual) → Knowledge Graph
+    Test complete pipeline: Document -> OneKE (bilingual) -> Knowledge Graph
 
     Steps:
     1. Input bilingual document (English/Chinese)
@@ -829,8 +829,8 @@ async def test_knowledge_retrieval_e2e(
     Test complete retrieval pipeline
 
     Steps:
-    1. Store: Extract entities → Build graph → Index with RAGbits
-    2. Retrieve: Query → RAGbits search → Enrich with graph entities
+    1. Store: Extract entities -> Build graph -> Index with RAGbits
+    2. Retrieve: Query -> RAGbits search -> Enrich with graph entities
     3. Verify: End-to-end retrieval returns relevant results
 
     Performance target: < 10 seconds

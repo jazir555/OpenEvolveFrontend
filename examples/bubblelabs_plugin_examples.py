@@ -55,10 +55,10 @@ async def example_1_basic_usage():
     })
 
     if not plugin:
-        print("❌ Failed to load plugin")
+        print("[FAIL] Failed to load plugin")
         return
 
-    print(f"✓ Plugin loaded: {plugin.get_metadata().name}")
+    print(f"[OK] Plugin loaded: {plugin.get_metadata().name}")
     print(f"  Version: {plugin.get_metadata().version}")
     print(f"  Author: {plugin.get_metadata().author}")
     print(f"  Description: {plugin.get_metadata().description}")
@@ -66,7 +66,7 @@ async def example_1_basic_usage():
     # Start the plugin
     print("\nStarting plugin...")
     success = await registry.start_plugin("openevolve")
-    print(f"✓ Plugin started: {success}")
+    print(f"[OK] Plugin started: {success}")
 
     # Check status
     status = plugin.get_status()
@@ -77,7 +77,7 @@ async def example_1_basic_usage():
 
     # Health check
     is_healthy = await plugin.health_check()
-    print(f"\n✓ Health check: {'PASS' if is_healthy else 'FAIL'}")
+    print(f"\n[OK] Health check: {'PASS' if is_healthy else 'FAIL'}")
 
     # Create a workflow definition
     print("\nCreating workflow definition...")
@@ -95,7 +95,7 @@ async def example_1_basic_usage():
         }
     )
 
-    print(f"✓ Workflow definition created:")
+    print(f"[OK] Workflow definition created:")
     print(f"  ID: {definition.id}")
     print(f"  Name: {definition.name}")
     print(f"  Description: {definition.description}")
@@ -111,7 +111,7 @@ async def example_1_basic_usage():
     # Cleanup
     print("\nUnloading plugin...")
     await registry.unload_plugin("openevolve")
-    print("✓ Plugin unloaded")
+    print("[OK] Plugin unloaded")
 
 
 # ============================================================================
@@ -253,7 +253,7 @@ async def example_2_custom_plugin():
     analytics = await registry.load_plugin("workflow_analytics")
     await registry.start_plugin("workflow_analytics")
 
-    print(f"✓ Analytics plugin loaded: {analytics.get_metadata().name}")
+    print(f"[OK] Analytics plugin loaded: {analytics.get_metadata().name}")
 
     # Create some workflows to trigger events
     print("\nCreating workflows...")
@@ -266,7 +266,7 @@ async def example_2_custom_plugin():
             gauntlet_config={"sub_problem_red_gauntlet": "PhysicsGauntlet"}
         )
 
-    print("✓ Created 3 workflows")
+    print("[OK] Created 3 workflows")
 
     # Get analytics report
     report = analytics.generate_report()
@@ -277,7 +277,7 @@ async def example_2_custom_plugin():
     # Cleanup
     print("\nCleaning up...")
     await registry.shutdown_all()
-    print("✓ All plugins unloaded")
+    print("[OK] All plugins unloaded")
 
 
 # ============================================================================
@@ -330,7 +330,7 @@ async def example_3_plugin_management():
     for name, is_healthy in health_status.items():
         status = registry.get_plugin_status(name)
         print(f"{name}:")
-        print(f"  Healthy: {'✓' if is_healthy else '✗'}")
+        print(f"  Healthy: {'[OK]' if is_healthy else '[FAIL]'}")
         print(f"  State: {status.state.value if status else 'N/A'}")
         print(f"  Health: {status.health if status else 'N/A'}")
         print()
@@ -366,7 +366,7 @@ async def example_3_plugin_management():
     print("\nShutting down all plugins...")
     shutdown_status = await registry.shutdown_all()
     for name, success in shutdown_status.items():
-        print(f"  {name}: {'✓' if success else '✗'}")
+        print(f"  {name}: {'[OK]' if success else '[FAIL]'}")
 
 
 # ============================================================================
@@ -386,13 +386,13 @@ async def example_4_error_handling():
     print("Attempting to load non-existent plugin...")
     plugin = await registry.load_plugin("nonexistent")
     print(f"Result: {plugin}")  # Should be None
-    print("✓ Gracefully handled missing plugin\n")
+    print("[OK] Gracefully handled missing plugin\n")
 
     # Load OpenEvolve successfully
     print("Loading OpenEvolve plugin...")
     plugin = await registry.load_plugin("openevolve")
     await registry.start_plugin("openevolve")
-    print(f"✓ Plugin loaded: {plugin.get_metadata().name}\n")
+    print(f"[OK] Plugin loaded: {plugin.get_metadata().name}\n")
 
     # Simulate error condition
     print("Simulating error condition...")
@@ -418,11 +418,11 @@ async def example_4_error_handling():
     await registry.unload_plugin("openevolve")
     plugin = await registry.load_plugin("openevolve")
     await registry.start_plugin("openevolve")
-    print(f"✓ Plugin recovered: {plugin is not None}")
+    print(f"[OK] Plugin recovered: {plugin is not None}")
 
     # Cleanup
     await registry.shutdown_all()
-    print("\n✓ All plugins unloaded")
+    print("\n[OK] All plugins unloaded")
 
 
 # ============================================================================
@@ -453,12 +453,12 @@ async def example_5_backward_compatibility():
         }
     )
 
-    print(f"✓ Created workflow definition: {definition.id}")
+    print(f"[OK] Created workflow definition: {definition.id}")
     print(f"  Name: {definition.name}")
     print(f"  Nodes: {len(definition.nodes)}")
     print(f"  Edges: {len(definition.edges)}")
 
-    print("\n✓ Backward compatibility maintained!")
+    print("\n[OK] Backward compatibility maintained!")
 
 
 # ============================================================================

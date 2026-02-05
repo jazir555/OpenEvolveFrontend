@@ -42,7 +42,7 @@ async def test_config_validation():
         plugin = OpenEvolveBubbleLabsPlugin(valid_config)
         
         # Check that config was validated and stored properly
-        print(f"✓ Valid config accepted: {plugin._auto_cleanup_enabled}")
+        print(f"[OK] Valid config accepted: {plugin._auto_cleanup_enabled}")
         print(f"  Max instance age: {plugin._integration._MAX_INSTANCE_AGE_SECONDS}")
         print(f"  Max instances: {plugin._integration._MAX_INSTANCES}")
         print(f"  Cleanup interval: {plugin._cleanup_interval}")
@@ -69,7 +69,7 @@ async def test_config_validation():
         plugin = OpenEvolveBubbleLabsPlugin(invalid_config)
         
         # Check that invalid values were replaced with defaults
-        print(f"✓ Invalid config handled gracefully")
+        print(f"[OK] Invalid config handled gracefully")
         print(f"  Max instance age: {plugin._integration._MAX_INSTANCE_AGE_SECONDS} (should be default)")
         print(f"  Max instances: {plugin._integration._MAX_INSTANCES} (should be default)")
         print(f"  Cleanup interval: {plugin._cleanup_interval} (should be default)")
@@ -91,13 +91,13 @@ async def test_config_validation():
         plugin = OpenEvolveBubbleLabsPlugin(empty_config)
         
         # Check that defaults were used
-        print(f"✓ Empty config handled with defaults")
+        print(f"[OK] Empty config handled with defaults")
         print(f"  Max instance age: {plugin._integration._MAX_INSTANCE_AGE_SECONDS}")
         print(f"  Max instances: {plugin._integration._MAX_INSTANCES}")
         print(f"  Auto cleanup enabled: {plugin._auto_cleanup_enabled}")
         print(f"  Cleanup interval: {plugin._cleanup_interval}")
     
-    print("✓ Configuration validation works correctly")
+    print("[OK] Configuration validation works correctly")
 
 
 async def test_config_validation_edge_cases():
@@ -129,12 +129,12 @@ async def test_config_validation_edge_cases():
             
             try:
                 plugin = OpenEvolveBubbleLabsPlugin(config)
-                print(f"✓ Config {i+1} handled gracefully: {config}")
+                print(f"[OK] Config {i+1} handled gracefully: {config}")
             except (RuntimeError, ValueError, TypeError) as e:
-                print(f"✗ Config {i+1} caused error: {e}")
+                print(f"[FAIL] Config {i+1} caused error: {e}")
                 raise
     
-    print("✓ All edge cases handled gracefully")
+    print("[OK] All edge cases handled gracefully")
 
 
 async def main():
@@ -144,7 +144,7 @@ async def main():
     await test_config_validation()
     await test_config_validation_edge_cases()
     
-    print("\n✓ All configuration validation tests passed! The OpenEvolve BubbleLabs plugin handles configuration validation gracefully.")
+    print("\n[OK] All configuration validation tests passed! The OpenEvolve BubbleLabs plugin handles configuration validation gracefully.")
 
 
 if __name__ == "__main__":

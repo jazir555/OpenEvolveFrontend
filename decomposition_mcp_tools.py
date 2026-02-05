@@ -5,14 +5,14 @@ This module provides Model Context Protocol (MCP) tools that CREWAI agents
 can use to execute the Sovereign-Grade Decomposition Workflow.
 
 CRITICAL ARCHITECTURE:
-    CREWAI (Orchestrator) → Decomposition Workflow → OpenEvolve (Evolutionary Engine)
+    CREWAI (Orchestrator) -> Decomposition Workflow -> OpenEvolve (Evolutionary Engine)
 
 The Decomposition Workflow leverages OpenEvolve for evolutionary permutations
 in ALL stages - problem analysis, solution generation, critique, verification,
 and reassembly all use OpenEvolve's evolutionary iteration capabilities.
 
 Architecture:
-    CREWAI Agent → MCP Tool → Decomposition Engine → OpenEvolve (Evolution) → Result
+    CREWAI Agent -> MCP Tool -> Decomposition Engine -> OpenEvolve (Evolution) -> Result
 """
 
 import ast
@@ -25,6 +25,19 @@ from typing import Dict, Any, List, Optional
 from dataclasses import asdict
 
 logger = logging.getLogger(__name__)
+
+# SECURITY: Import security framework
+try:
+    from security_framework import (
+        Permission, UserContext, InputValidator, ValidationError,
+        get_audit_logger, authenticated, authorized
+    )
+    from input_validation import get_validator, get_sanitizer
+    SECURITY_AVAILABLE = True
+    logger.info("SECURITY: Decomposition MCP tools security enabled")
+except ImportError as e:
+    SECURITY_AVAILABLE = False
+    logger.warning(f"SECURITY: Decomposition MCP tools security not available: {e}")
 
 # Try to import decomposition components
 try:

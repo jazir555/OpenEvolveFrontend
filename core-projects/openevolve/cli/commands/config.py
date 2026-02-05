@@ -95,14 +95,14 @@ def init_config(format, output, profile, preset, interactive):
             from ...unified.config import PresetManager
             preset_mgr = PresetManager()
             config_obj = preset_mgr.apply_preset(preset, UnifiedEvolutionConfig())
-            click.echo(f"✓ Applied preset '{preset}'")
+            click.echo(f"[OK] Applied preset '{preset}'")
 
         elif profile:
             # Initialize from profile
             from ...unified.config import ProfileManager
             profile_mgr = ProfileManager()
             config_obj = profile_mgr.load_profile(profile)
-            click.echo(f"✓ Loaded profile '{profile}'")
+            click.echo(f"[OK] Loaded profile '{profile}'")
 
         else:
             # Default initialization
@@ -112,12 +112,12 @@ def init_config(format, output, profile, preset, interactive):
         manager = ConfigManager()
         manager.save_config(config_obj, output, format)
 
-        click.echo(f"✓ Configuration initialized: {output}")
+        click.echo(f"[OK] Configuration initialized: {output}")
         click.echo(f"  Format: {format}")
         click.echo(f"  Edit this file to customize settings")
 
     except Exception as e:
-        click.echo(f"✗ Error initializing configuration: {e}", err=True)
+        click.echo(f"[FAIL] Error initializing configuration: {e}", err=True)
         raise click.Abort()
 
 
@@ -161,7 +161,7 @@ def validate_config(config_file, verbose, format):
                 click.echo(yaml.dump(output, default_flow_style=False))
 
             else:  # text
-                click.echo("✓ Configuration is valid")
+                click.echo("[OK] Configuration is valid")
                 if output.get('warnings'):
                     click.echo("\nWarnings:")
                     for warning in output['warnings']:
@@ -183,14 +183,14 @@ def validate_config(config_file, verbose, format):
                 click.echo(yaml.dump(output, default_flow_style=False))
 
             else:  # text
-                click.echo(f"✗ Configuration has {len(result.errors)} error(s):", err=True)
+                click.echo(f"[FAIL] Configuration has {len(result.errors)} error(s):", err=True)
                 for error in result.errors:
                     click.echo(f"  - {error}", err=True)
 
             return 1
 
     except Exception as e:
-        click.echo(f"✗ Error validating configuration: {e}", err=True)
+        click.echo(f"[FAIL] Error validating configuration: {e}", err=True)
         return 1
 
 
@@ -255,7 +255,7 @@ def list_params(format, filter, category):
             click.echo(yaml.dump(params, default_flow_style=False))
 
     except Exception as e:
-        click.echo(f"✗ Error listing parameters: {e}", err=True)
+        click.echo(f"[FAIL] Error listing parameters: {e}", err=True)
         raise click.Abort()
 
 
@@ -298,11 +298,11 @@ def get_param(param_name, config, format):
                 click.echo(f"{param_name}: {value}")
 
         else:
-            click.echo(f"✗ Parameter '{param_name}' not found", err=True)
+            click.echo(f"[FAIL] Parameter '{param_name}' not found", err=True)
             return 1
 
     except Exception as e:
-        click.echo(f"✗ Error getting parameter: {e}", err=True)
+        click.echo(f"[FAIL] Error getting parameter: {e}", err=True)
         return 1
 
 
@@ -337,7 +337,7 @@ def set_param(param_name, value, config, value_type):
         if Path(config_file).exists():
             cfg = manager.load_config(config_file=config_file)
         else:
-            click.echo(f"✗ Config file '{config_file}' not found. Use 'evolve config init' first.", err=True)
+            click.echo(f"[FAIL] Config file '{config_file}' not found. Use 'evolve config init' first.", err=True)
             return 1
 
         # Parse value
@@ -349,10 +349,10 @@ def set_param(param_name, value, config, value_type):
         # Save
         manager.save_config(cfg, config_file)
 
-        click.echo(f"✓ Set {param_name} = {parsed_value}")
+        click.echo(f"[OK] Set {param_name} = {parsed_value}")
 
     except Exception as e:
-        click.echo(f"✗ Error setting parameter: {e}", err=True)
+        click.echo(f"[FAIL] Error setting parameter: {e}", err=True)
         return 1
 
 
@@ -436,7 +436,7 @@ def diff_configs(config1, config2, format, context):
                 click.echo("tabulate not installed")
 
     except Exception as e:
-        click.echo(f"✗ Error comparing configs: {e}", err=True)
+        click.echo(f"[FAIL] Error comparing configs: {e}", err=True)
         return 1
 
 
@@ -462,7 +462,7 @@ def merge_configs(configs, output, strategy, format):
 
     try:
         if len(configs) < 2:
-            click.echo("✗ At least 2 config files required for merge", err=True)
+            click.echo("[FAIL] At least 2 config files required for merge", err=True)
             return 1
 
         manager = ConfigManager()
@@ -483,11 +483,11 @@ def merge_configs(configs, output, strategy, format):
 
         manager.save_config(merged, output, format)
 
-        click.echo(f"✓ Merged {len(configs)} configs → {output}")
+        click.echo(f"[OK] Merged {len(configs)} configs -> {output}")
         click.echo(f"  Strategy: {strategy}")
 
     except Exception as e:
-        click.echo(f"✗ Error merging configs: {e}", err=True)
+        click.echo(f"[FAIL] Error merging configs: {e}", err=True)
         return 1
 
 
@@ -513,10 +513,10 @@ def export_config(config_file, output, format):
         config = manager.load_config(config_file=config_file)
         manager.save_config(config, output, format)
 
-        click.echo(f"✓ Exported {config_file} → {output} (format: {format})")
+        click.echo(f"[OK] Exported {config_file} -> {output} (format: {format})")
 
     except Exception as e:
-        click.echo(f"✗ Error exporting config: {e}", err=True)
+        click.echo(f"[FAIL] Error exporting config: {e}", err=True)
         return 1
 
 
@@ -546,17 +546,17 @@ def import_config(config_file, output, validate):
             result = validator.validate(config)
 
             if not result.is_valid:
-                click.echo("✗ Configuration validation failed:", err=True)
+                click.echo("[FAIL] Configuration validation failed:", err=True)
                 for error in result.errors:
                     click.echo(f"  - {error}", err=True)
                 return 1
 
         manager.save_config(config, output)
 
-        click.echo(f"✓ Imported {config_file} → {output}")
+        click.echo(f"[OK] Imported {config_file} -> {output}")
 
     except Exception as e:
-        click.echo(f"✗ Error importing config: {e}", err=True)
+        click.echo(f"[FAIL] Error importing config: {e}", err=True)
         return 1
 
 

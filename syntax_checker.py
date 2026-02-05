@@ -20,16 +20,16 @@ def check_file_syntax(filename):
         
         # Parse the code to check for syntax errors without executing it
         ast.parse(source_code, filename=filename)
-        print(f"✓ {filename} - Syntax OK")
+        print(f"[OK] {filename} - Syntax OK")
         return True
     except SyntaxError as e:
-        print(f"✗ {filename} - Syntax Error at line {e.lineno}: {e.msg}")
+        print(f"[FAIL] {filename} - Syntax Error at line {e.lineno}: {e.msg}")
         return False
     except UnicodeDecodeError as e:
-        print(f"✗ {filename} - Encoding Error: {e}")
+        print(f"[FAIL] {filename} - Encoding Error: {e}")
         return False
     except IOError as e:
-        print(f"✗ {filename} - File Error: {e}")
+        print(f"[FAIL] {filename} - File Error: {e}")
         return False
     except Exception as e:
         print(f"? {filename} - Other Error: {e}")

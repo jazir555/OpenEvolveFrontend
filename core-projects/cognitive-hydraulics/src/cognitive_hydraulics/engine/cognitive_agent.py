@@ -199,7 +199,7 @@ class CognitiveAgent:
             # Check if goal was achieved during this cycle (e.g., after fix verification)
             if self._goal_achieved():
                 if should_print(verbose_level, VerbosityLevel.BASIC):
-                    print(f"\n✅ Goal achieved in {cycles} cycles!")
+                    print(f"\n[OK] Goal achieved in {cycles} cycles!")
                     if should_print(verbose_level, VerbosityLevel.THINKING):
                         print(f"\nTrace:\n{self.working_memory.get_trace()}")
                 return True, self.working_memory.current_state
@@ -207,13 +207,13 @@ class CognitiveAgent:
             if not success:
                 # Stuck - goal failed
                 if should_print(verbose_level, VerbosityLevel.BASIC):
-                    print("\n❌ Goal failed - no progress possible")
+                    print("\n[FAIL] Goal failed - no progress possible")
                 return False, self.working_memory.current_state
 
         # Check final status
         if self._goal_achieved():
             if should_print(verbose_level, VerbosityLevel.BASIC):
-                print(f"\n✅ Goal achieved in {cycles} cycles!")
+                print(f"\n[OK] Goal achieved in {cycles} cycles!")
                 if should_print(verbose_level, VerbosityLevel.THINKING):
                     print(f"\nTrace:\n{self.working_memory.get_trace()}")
             return True, self.working_memory.current_state
@@ -279,7 +279,7 @@ class CognitiveAgent:
             # Clear winner - apply operator
             operator, priority = proposed_ops[0]
             if should_print(verbose, VerbosityLevel.BASIC):
-                print(f"✓ Selected: {operator.name}")
+                print(f"[OK] Selected: {operator.name}")
 
             if should_print(verbose, VerbosityLevel.THINKING):
                 thinking_lines = [
@@ -296,7 +296,7 @@ class CognitiveAgent:
         else:
             # IMPASSE - need to handle
             if should_print(verbose, VerbosityLevel.BASIC):
-                print(f"⚠️  IMPASSE: {impasse.type.value}")
+                print(f"[WARN]  IMPASSE: {impasse.type.value}")
                 print(f"   {impasse.description}")
 
             if should_print(verbose, VerbosityLevel.THINKING):
@@ -479,7 +479,7 @@ class CognitiveAgent:
                             return await self._try_evolutionary_fallback(verbose)
                         else:
                             if should_print(verbose, VerbosityLevel.BASIC):
-                                print(f"   ⚠️  ACT-R failed to evaluate generated operators")
+                                print(f"   [WARN]  ACT-R failed to evaluate generated operators")
                                 print(f"   ℹ️  LLM may be unavailable. Symbolic reasoning only mode.")
                             return False
                 else:
@@ -488,7 +488,7 @@ class CognitiveAgent:
                         return await self._try_evolutionary_fallback(verbose)
                     else:
                         if should_print(verbose, VerbosityLevel.BASIC):
-                            print(f"   ⚠️  ACT-R failed to generate operators")
+                            print(f"   [WARN]  ACT-R failed to generate operators")
                             print(f"   ℹ️  LLM unavailable. Cannot proceed without rules or LLM.")
                             print(f"   💡 Tip: Start Ollama with 'ollama serve' for LLM support")
                         return False
@@ -541,7 +541,7 @@ class CognitiveAgent:
                         return False
                 else:
                     if should_print(verbose, VerbosityLevel.BASIC):
-                        print(f"   ⚠️  ACT-R failed to generate operators")
+                        print(f"   [WARN]  ACT-R failed to generate operators")
                         print(f"   ℹ️  LLM unavailable. Cannot proceed without rules or LLM.")
                         print(f"   💡 Tip: Start Ollama with 'ollama serve' for LLM support")
                     return False
@@ -607,7 +607,7 @@ class CognitiveAgent:
 
         if result.success:
             if should_print(verbose, VerbosityLevel.BASIC):
-                print(f"   ✓ {result.output}")
+                print(f"   [OK] {result.output}")
 
             # Update working memory
             new_state = result.new_state or current_state
@@ -650,7 +650,7 @@ class CognitiveAgent:
                         else:
                             # Tests exist but didn't pass or weren't run
                             if should_print(verbose, VerbosityLevel.BASIC):
-                                print(f"   ⚠️  Tests did not pass or were not executed - goal not achieved")
+                                print(f"   [WARN]  Tests did not pass or were not executed - goal not achieved")
                             # Don't set goal to success
                     else:
                         # No test functions - just check that code runs without errors
@@ -693,12 +693,12 @@ class CognitiveAgent:
                         if "All tests passed" in stdout_text:
                             verification_passed = True
                             if should_print(verbose, VerbosityLevel.BASIC):
-                                print(f"   ✅ Verification passed: Code runs without errors and tests pass")
+                                print(f"   [OK] Verification passed: Code runs without errors and tests pass")
                         else:
                             # Tests exist but didn't pass or weren't executed
                             verification_passed = False
                             if should_print(verbose, VerbosityLevel.BASIC):
-                                print(f"   ⚠️  Verification failed: Tests did not pass or were not executed")
+                                print(f"   [WARN]  Verification failed: Tests did not pass or were not executed")
                                 if stdout_text:
                                     print(f"      Output: {stdout_text[:200]}")
                                 # Check if there's an error in the result
@@ -711,12 +711,12 @@ class CognitiveAgent:
                         # No test functions - just check that code runs without errors
                         verification_passed = True
                         if should_print(verbose, VerbosityLevel.BASIC):
-                            print(f"   ✅ Verification passed: Code runs without errors (no tests to verify)")
+                            print(f"   [OK] Verification passed: Code runs without errors (no tests to verify)")
                 else:
                     # Code failed to run or had errors (including AssertionError from test failures)
                     verification_passed = False
                     if should_print(verbose, VerbosityLevel.BASIC):
-                        print(f"   ⚠️  Verification failed: Code execution failed or tests failed")
+                        print(f"   [WARN]  Verification failed: Code execution failed or tests failed")
                         if verify_result.error:
                             print(f"      Error: {verify_result.error}")
                         # Check error_log for AssertionError or other errors
@@ -726,7 +726,7 @@ class CognitiveAgent:
                             # If AssertionError, tests failed - goal not achieved
                             if "AssertionError" in last_error:
                                 if should_print(verbose, VerbosityLevel.BASIC):
-                                    print(f"      ❌ Tests failed - fix did not work correctly")
+                                    print(f"      [FAIL] Tests failed - fix did not work correctly")
 
                 if verification_passed:
                     # Update goal status to success if goal mentions fixing/running
@@ -739,11 +739,11 @@ class CognitiveAgent:
                             print(f"   🎯 Goal achieved: {self.current_goal.description[:50]}...")
                 else:
                     if should_print(verbose, VerbosityLevel.BASIC):
-                        print(f"   ⚠️  Verification failed: {verify_result.error or 'Code still has errors or tests failed'}")
+                        print(f"   [WARN]  Verification failed: {verify_result.error or 'Code still has errors or tests failed'}")
 
         else:
             if should_print(verbose, VerbosityLevel.BASIC):
-                print(f"   ✗ {result.error}")
+                print(f"   [FAIL] {result.error}")
 
             # Record failure - but use new_state if available (it may contain error_log updates)
             new_state = result.new_state or current_state
@@ -926,7 +926,7 @@ class CognitiveAgent:
 
         if not target_file or not original_code:
             if should_print(verbose, VerbosityLevel.BASIC):
-                print(f"   ⚠️  No Python file found for evolutionary solver")
+                print(f"   [WARN]  No Python file found for evolutionary solver")
             return False
 
         # Run evolutionary solver
@@ -940,7 +940,7 @@ class CognitiveAgent:
 
         if not best_candidate:
             if should_print(verbose, VerbosityLevel.BASIC):
-                print(f"   ⚠️  Evolutionary solver did not find a solution")
+                print(f"   [WARN]  Evolutionary solver did not find a solution")
             return False
 
         # Apply the fix using OpApplyFix
@@ -953,7 +953,7 @@ class CognitiveAgent:
         )
 
         if should_print(verbose, VerbosityLevel.BASIC):
-            print(f"   ✅ Applying evolutionary fix: {best_candidate.hypothesis}")
+            print(f"   [OK] Applying evolutionary fix: {best_candidate.hypothesis}")
 
         await self._apply_operator(fix_op, verbose)
 

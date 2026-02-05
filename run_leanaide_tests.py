@@ -185,14 +185,14 @@ def check_dependencies():
             missing_optional.append(package)
 
     if missing_required:
-        print("❌ Missing required packages:")
+        print("[FAIL] Missing required packages:")
         for pkg in missing_required:
             print(f"  - {pkg}")
         print("\nInstall with: pip install " + " ".join(missing_required))
         return False
 
     if missing_optional:
-        print("⚠️  Missing optional packages:")
+        print("[WARN]  Missing optional packages:")
         for pkg in missing_optional:
             print(f"  - {pkg}")
         print("\nInstall with: pip install " + " ".join(missing_optional))
@@ -238,10 +238,10 @@ def run_tests(cmd):
     print()
 
     if result.returncode == 0:
-        print("✅ All tests passed!")
+        print("[OK] All tests passed!")
         return 0
     else:
-        print("❌ Some tests failed.")
+        print("[FAIL] Some tests failed.")
         return result.returncode
 
 

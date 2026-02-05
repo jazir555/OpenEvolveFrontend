@@ -353,7 +353,7 @@ async def comparison_example():
             for con in strategy.cons[:2]:
                 print(f"     - {con}")
 
-    print(f"\n✅ SELECTED: {recommendation.recommended_system} - {recommendation.recommended_mode}")
+    print(f"\n[OK] SELECTED: {recommendation.recommended_system} - {recommendation.recommended_mode}")
 
 
 # ============================================================================

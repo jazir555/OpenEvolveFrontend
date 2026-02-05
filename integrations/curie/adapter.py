@@ -6,7 +6,7 @@ scientific experimentation framework with OpenEvolve's Knowledge Engine.
 
 Curie fills GAP-4 (Experimental Data Integration) and GAP-12 (Scientific
 Experimentation Automation) by providing:
-- Hypothesis → experiment → result pipeline
+- Hypothesis -> experiment -> result pipeline
 - Integration with SOP Generator for protocols
 - Statistical validation framework
 - Reflection-based refinement
@@ -73,7 +73,7 @@ class CurieAdapter(ExperimentationInterface):
     Adapter for Curie automated scientific experimentation framework.
 
     This adapter implements the ExperimentationInterface to integrate Curie's
-    hypothesis → experiment → result pipeline with OpenEvolve's Knowledge Engine.
+    hypothesis -> experiment -> result pipeline with OpenEvolve's Knowledge Engine.
 
     Key Features:
     - Automated experiment design from hypotheses

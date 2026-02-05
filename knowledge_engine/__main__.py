@@ -614,18 +614,18 @@ async def main():
     # Process workflow
     print("\n1. Processing workflow execution...")
     result = await engine.process_workflow_execution(workflow_data)
-    print(f"✅ Processing result: {result.success}")
-    print(f"✅ Data keys: {list(result.data.keys())}")
+    print(f"[OK] Processing result: {result.success}")
+    print(f"[OK] Data keys: {list(result.data.keys())}")
     
     # Query knowledge
     print("\n2. Querying knowledge...")
     query_result = await engine.query_knowledge("modular decomposition")
-    print(f"✅ Query result: {query_result.success}")
-    print(f"✅ Query data keys: {list(query_result.data.keys())}")
+    print(f"[OK] Query result: {query_result.success}")
+    print(f"[OK] Query data keys: {list(query_result.data.keys())}")
     
     # Close engine
     await engine.close()
-    print("\n✅ Final Knowledge Engine closed successfully!")
+    print("\n[OK] Final Knowledge Engine closed successfully!")
 
 
 if __name__ == "__main__":

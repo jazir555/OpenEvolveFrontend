@@ -27,8 +27,8 @@ Composition Example:
     ...     'precall': validate_op   # Just precall
     ... }
     >>>
-    >>> # precall will run: auth_check → rate_limit → validate_op
-    >>> # postcall will run: rate_limit → auth_check (reversed, LIFO)
+    >>> # precall will run: auth_check -> rate_limit -> validate_op
+    >>> # postcall will run: rate_limit -> auth_check (reversed, LIFO)
 """
 
 from typing import Dict, List, Tuple, cast
@@ -40,7 +40,7 @@ __all__ = ['expand_policy', 'debug_policy', 'format_policy_expansion', 'HandlerI
 HandlerInfo = Tuple[str, ShortcutKey]  # (handler_name, source_key) e.g., ('auth', 'pre')
 HookExpansionMap = Dict[Phase, List[HandlerInfo]]  # hook_name -> list of handlers with sources
 
-# Expansion mapping: hook_name → (general_key, scope_key, specific_key)
+# Expansion mapping: hook_name -> (general_key, scope_key, specific_key)
 # Keys are Phase literals, values are tuples of ShortcutKey literals
 _EXPANSION_MAP: Dict[Phase, Tuple[GeneralShortcut, ScopeShortcut, Phase]] = {
     'preload': ('pre', 'load', 'preload'),
@@ -74,8 +74,8 @@ def expand_policy(policy: Dict[str, PolicyFunction]) -> PolicyDict:
 
     Composition Rules:
         When multiple shortcuts map to the same hook, their handlers compose:
-        - Pre hooks: Execute in order from general → scope → specific
-        - Post hooks: Execute in reverse order (specific → scope → general) for LIFO cleanup
+        - Pre hooks: Execute in order from general -> scope -> specific
+        - Post hooks: Execute in reverse order (specific -> scope -> general) for LIFO cleanup
 
     Override Behavior:
         Full hook names (like 'preload') always override shortcuts. This allows selective
@@ -90,8 +90,8 @@ def expand_policy(policy: Dict[str, PolicyFunction]) -> PolicyDict:
     Example:
         >>> policy = {'pre': auth, 'call': rate_limit, 'precall': validate}
         >>> expanded = expand_policy(policy)
-        >>> # precall will run: auth → rate_limit → validate (composed)
-        >>> # postcall will run: rate_limit → auth (reversed for LIFO)
+        >>> # precall will run: auth -> rate_limit -> validate (composed)
+        >>> # postcall will run: rate_limit -> auth (reversed for LIFO)
 
     Note:
         This function is idempotent - calling it multiple times on the same
@@ -218,14 +218,14 @@ def format_policy_expansion(policy: Dict[str, PolicyFunction]) -> str:
         prechain        [auth (from 'pre')]
         preletbinding   [auth (from 'pre')]
         precall         [auth (from 'pre'), rate_limit (from 'call')]
-        postcall        [rate_limit (from 'call'), auth (from 'pre')] ← reversed
+        postcall        [rate_limit (from 'call'), auth (from 'pre')] <- reversed
         postload        [auth (from 'pre')]
         postlet         [auth (from 'pre')]
         postchain       [auth (from 'pre')]
         postletbinding  [auth (from 'pre')]
 
     Note:
-        The "← reversed" marker indicates that post hooks execute in LIFO order
+        The "<- reversed" marker indicates that post hooks execute in LIFO order
         (like try/finally blocks) for proper cleanup semantics.
     """
     debug_info = debug_policy(policy)
@@ -236,7 +236,7 @@ def format_policy_expansion(policy: Dict[str, PolicyFunction]) -> str:
     lines = []
     for hook_name, handlers in debug_info.items():
         handlers_str = ', '.join([f"{fn_name} (from '{key}')" for fn_name, key in handlers])
-        reverse_marker = " ← reversed" if hook_name.startswith('post') and len(handlers) > 1 else ""
+        reverse_marker = " <- reversed" if hook_name.startswith('post') and len(handlers) > 1 else ""
         lines.append(f"{hook_name:15} [{handlers_str}]{reverse_marker}")
 
     return '\n'.join(lines)

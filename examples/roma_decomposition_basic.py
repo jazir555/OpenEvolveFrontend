@@ -59,7 +59,7 @@ def example_1_basic_roma_decomposition():
     if decomposer.last_roma_error:
         print(f"\nNote: ROMA had an error, fallback used: {decomposer.last_roma_error}")
     else:
-        print("\n✓ ROMA decomposition successful!")
+        print("\n[OK] ROMA decomposition successful!")
 
 
 def example_2_roma_with_config():

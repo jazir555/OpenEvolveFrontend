@@ -1606,4 +1606,4 @@ if __name__ == "__main__":
     index.clear()
     index.close()
     
-    print("\n✅ Demo completed")
+    print("\n[OK] Demo completed")

@@ -683,7 +683,7 @@ class SOPTemplateRegistry:
         )
 
         vulnerabilities_found = len(red_result.vulnerabilities)
-        print(f"  ✓ Found {vulnerabilities_found} vulnerabilities")
+        print(f"  [OK] Found {vulnerabilities_found} vulnerabilities")
 
         if vulnerabilities_found == 0:
             return {
@@ -728,7 +728,7 @@ class SOPTemplateRegistry:
         )
 
         fixes_applied = len(blue_result.applied_fixes)
-        print(f"  ✓ Applied {fixes_applied} fixes")
+        print(f"  [OK] Applied {fixes_applied} fixes")
 
         evolved_facet = blue_result.fixed_content
 
@@ -762,7 +762,7 @@ class SOPTemplateRegistry:
         )
 
         quality_score = eval_result.consensus_score
-        print(f"  ✓ Quality score: {quality_score:.3f}")
+        print(f"  [OK] Quality score: {quality_score:.3f}")
 
         return {
             "facet": facet.value,
@@ -833,7 +833,7 @@ class SOPTemplateRegistry:
                     total_fixes += result["fixes_applied"]
 
             except Exception as e:  # TODO: Catch specific exception instead of Exception
-                print(f"\n✗ Error evolving {facet.value}: {e}")
+                print(f"\n[FAIL] Error evolving {facet.value}: {e}")
                 evolution_results["facets"][facet.value] = {
                     "status": "ERROR",
                     "error": str(e)

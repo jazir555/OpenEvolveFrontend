@@ -170,10 +170,10 @@ def run_comprehensive_tests():
     print(f"Errors: {len(result.errors)}")
     
     if result.wasSuccessful():
-        print("✓ All anti-corruption layer tests passed!")
+        print("[OK] All anti-corruption layer tests passed!")
         return True
     else:
-        print("✗ Some anti-corruption layer tests failed!")
+        print("[FAIL] Some anti-corruption layer tests failed!")
         for failure in result.failures:
             print(f"FAILURE: {failure[0]}")
             print(failure[1])

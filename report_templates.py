@@ -187,7 +187,7 @@ No critical issues identified.
 
 ## Completed Sub-Problems
 {% for sp in completed_sub_problems %}
-- ✅ {{ sp.id }}: {{ sp.title }}
+- [OK] {{ sp.id }}: {{ sp.title }}
 {% endfor %}
 
 ## In Progress
@@ -272,14 +272,14 @@ No critical issues identified.
 ## Critical Issues
 {% if quality_scores.critical_issues %}
 {% for issue in quality_scores.critical_issues %}
-### ❌ {{ issue.title }}
+### [FAIL] {{ issue.title }}
 - **Severity**: {{ issue.severity }}
 - **Description**: {{ issue.description }}
 - **Impact**: {{ issue.impact }}
 - **Recommendation**: {{ issue.recommendation }}
 {% endfor %}
 {% else %}
-✅ No critical issues identified!
+[OK] No critical issues identified!
 {% endif %}
 
 ## Improvement Recommendations

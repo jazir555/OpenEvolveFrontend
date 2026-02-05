@@ -79,11 +79,11 @@ class FocusedAITester:
                 if results['status'] == 'success':
                     items = len(results['extracted_knowledge'])
                     self.results['deepke']['extracted_items'] = items
-                    print(f"   ✅ DeepKE: Available and functional ({items} items extracted)")
+                    print(f"   [OK] DeepKE: Available and functional ({items} items extracted)")
                 else:
-                    print(f"   ⚠️  DeepKE: Available but extraction failed: {results['message']}")
+                    print(f"   [WARN]  DeepKE: Available but extraction failed: {results['message']}")
             else:
-                print("   ⚠️  DeepKE: Integration available but DeepKE modules not found")
+                print("   [WARN]  DeepKE: Integration available but DeepKE modules not found")
                 
         except Exception as e:
             self.results['deepke'] = {
@@ -91,7 +91,7 @@ class FocusedAITester:
                 'error': str(e),
                 'message': 'DeepKE integration test failed'
             }
-            print(f"   ❌ DeepKE: Test failed - {e}")
+            print(f"   [FAIL] DeepKE: Test failed - {e}")
     
     def _test_karateclub(self):
         """Test Karate Club integration."""
@@ -124,11 +124,11 @@ class FocusedAITester:
                 if results['status'] == 'success':
                     has_metrics = 'metrics' in results['analysis_results']
                     self.results['karateclub']['has_metrics'] = has_metrics
-                    print(f"   ✅ Karate Club: Available and functional (metrics: {has_metrics})")
+                    print(f"   [OK] Karate Club: Available and functional (metrics: {has_metrics})")
                 else:
-                    print(f"   ⚠️  Karate Club: Available but analysis failed: {results['message']}")
+                    print(f"   [WARN]  Karate Club: Available but analysis failed: {results['message']}")
             else:
-                print("   ⚠️  Karate Club: Integration available but Karate Club modules not found")
+                print("   [WARN]  Karate Club: Integration available but Karate Club modules not found")
                 
         except Exception as e:
             self.results['karateclub'] = {
@@ -136,7 +136,7 @@ class FocusedAITester:
                 'error': str(e),
                 'message': 'Karate Club integration test failed'
             }
-            print(f"   ❌ Karate Club: Test failed - {e}")
+            print(f"   [FAIL] Karate Club: Test failed - {e}")
     
     def _test_kg_gen(self):
         """Test kg-gen and OneKE integration."""
@@ -172,11 +172,11 @@ class FocusedAITester:
                 if results['status'] == 'success':
                     graph_created = results['results']['knowledge_graph'] is not None
                     self.results['kg_gen']['graph_created'] = graph_created
-                    print(f"   ✅ kg-gen/OneKE: Available and functional (graph: {graph_created})")
+                    print(f"   [OK] kg-gen/OneKE: Available and functional (graph: {graph_created})")
                 else:
-                    print(f"   ⚠️  kg-gen/OneKE: Available but processing failed: {results['message']}")
+                    print(f"   [WARN]  kg-gen/OneKE: Available but processing failed: {results['message']}")
             else:
-                print("   ⚠️  kg-gen/OneKE: Integration available but modules not found")
+                print("   [WARN]  kg-gen/OneKE: Integration available but modules not found")
                 
         except Exception as e:
             self.results['kg_gen'] = {
@@ -184,7 +184,7 @@ class FocusedAITester:
                 'error': str(e),
                 'message': 'kg-gen/OneKE integration test failed'
             }
-            print(f"   ❌ kg-gen/OneKE: Test failed - {e}")
+            print(f"   [FAIL] kg-gen/OneKE: Test failed - {e}")
     
     def _test_ai_integrator(self):
         """Test the main AI integrator."""
@@ -210,11 +210,11 @@ class FocusedAITester:
             
             # Count available integrations
             available_count = sum([deepke_available, karateclub_available, kg_gen_available, oneke_available])
-            print(f"   ✅ AI Integrator: {available_count}/4 integrations available")
-            print(f"      DeepKE: {'✅' if deepke_available else '❌'}")
-            print(f"      Karate Club: {'✅' if karateclub_available else '❌'}")
-            print(f"      kg-gen: {'✅' if kg_gen_available else '❌'}")
-            print(f"      OneKE: {'✅' if oneke_available else '❌'}")
+            print(f"   [OK] AI Integrator: {available_count}/4 integrations available")
+            print(f"      DeepKE: {'[OK]' if deepke_available else '[FAIL]'}")
+            print(f"      Karate Club: {'[OK]' if karateclub_available else '[FAIL]'}")
+            print(f"      kg-gen: {'[OK]' if kg_gen_available else '[FAIL]'}")
+            print(f"      OneKE: {'[OK]' if oneke_available else '[FAIL]'}")
             
         except Exception as e:
             self.results['ai_integrator'] = {
@@ -222,7 +222,7 @@ class FocusedAITester:
                 'error': str(e),
                 'message': 'AI integrator test failed'
             }
-            print(f"   ❌ AI Integrator: Test failed - {e}")
+            print(f"   [FAIL] AI Integrator: Test failed - {e}")
     
     def _get_current_timestamp(self) -> str:
         """Get current timestamp."""
@@ -261,7 +261,7 @@ if __name__ == "__main__":
     for name, result in test_results.items():
         if isinstance(result, dict):
             status = result.get('status', 'unknown')
-            symbol = "✅" if status == 'success' else "❌"
+            symbol = "[OK]" if status == 'success' else "[FAIL]"
             print(f"   {symbol} {name}: {status}")
     
     print(f"\n🎯 OVERALL STATUS: {test_results['overall']['status']}")

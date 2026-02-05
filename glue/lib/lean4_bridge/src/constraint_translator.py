@@ -1,5 +1,5 @@
 """
-Constraint Translator: RESE → Lean 4
+Constraint Translator: RESE -> Lean 4
 
 Translates RESE constraints, theorems, and Functional Dependency Graphs (FDGs)
 into Lean 4 formal verification syntax.
@@ -53,20 +53,20 @@ class ConstraintTranslator:
         self.logger = logger or structlog.get_logger()
         self.logger = self.logger.bind(component="constraint_translator")
 
-        # Common RESE → Lean 4 mappings
+        # Common RESE -> Lean 4 mappings
         self.operator_map = {
             "and": "∧",
             "or": "∨",
             "not": "¬",
-            "implies": "→",
+            "implies": "->",
             "iff": "↔",
             "forall": "∀",
             "exists": "∃",
             "for all": "∀",
             "there exists": "∃",
             "such that": ", ",
-            "=>": "→",
-            "->": "→",
+            "=>": "->",
+            "->": "->",
             "<=>": "↔",
             "<->": "↔",
             "/\\": "∧",
@@ -244,7 +244,7 @@ class ConstraintTranslator:
 
     def _is_lean4_syntax(self, constraint: str) -> bool:
         """Check if constraint is already in Lean 4 syntax."""
-        lean4_indicators = ["∀", "∃", "→", "∧", "∨", "¬", "theorem", "axiom", "def"]
+        lean4_indicators = ["∀", "∃", "->", "∧", "∨", "¬", "theorem", "axiom", "def"]
         return any(indicator in constraint for indicator in lean4_indicators)
 
     def _format_lean4_code(self, code: str, constraint_type: str) -> str:

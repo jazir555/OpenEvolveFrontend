@@ -110,7 +110,7 @@ class ICREngine:
     """ICR Engine - Main orchestrator for iterative refinement.
     
     The ICR Engine coordinates the full refinement loop:
-    Generate → Critique → Refine → Judge → Iterate
+    Generate -> Critique -> Refine -> Judge -> Iterate
     
     It manages convergence detection, early stopping, and tracks
     the history of improvements.

@@ -192,7 +192,7 @@ class OpenEvolveCrewAIDelegator:
         # CrewAI doesn't require external services like Hephaestus
         # Just mark as running
         self.running = True
-        logger.info("[OpenEvolve] ✓ CrewAI services ready")
+        logger.info("[OpenEvolve] [OK] CrewAI services ready")
         logger.info(f"[OpenEvolve] Working directory: {self.working_directory}")
 
         return True
@@ -255,7 +255,7 @@ class OpenEvolveCrewAIDelegator:
             status="active",
         )
 
-        logger.info(f"[OpenEvolve] ✓ Workflow started: {workflow_id}")
+        logger.info(f"[OpenEvolve] [OK] Workflow started: {workflow_id}")
         return workflow_id
 
     async def get_workflow_status(self, workflow_id: str) -> Any:
@@ -482,7 +482,7 @@ class OpenEvolveCrewAIDelegator:
             self.state_manager.save_all_states()
 
         self.running = False
-        logger.info("[OpenEvolve] ✓ Shutdown complete")
+        logger.info("[OpenEvolve] [OK] Shutdown complete")
 
     def __enter__(self):
         """Context manager entry"""

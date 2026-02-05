@@ -51,22 +51,22 @@ async def probe_model_adapter():
             quantization=QuantizationMode.NONE,
             temperature=0.1
         )
-        logger.info("✓ Configuration created successfully")
+        logger.info("[OK] Configuration created successfully")
 
         # Test 2: Invalid configuration detection
         logger.info("Test 2: Invalid configuration detection")
         try:
             invalid_config = ModelConfig(temperature=3.0)
-            logger.error("✗ Should have rejected invalid temperature")
+            logger.error("[FAIL] Should have rejected invalid temperature")
             return False
         except ValueError as e:
-            logger.info(f"✓ Correctly rejected invalid config: {e}")
+            logger.info(f"[OK] Correctly rejected invalid config: {e}")
 
         # Test 3: Language enum
         logger.info("Test 3: Language enumeration")
         assert Language.ENGLISH.value == "en"
         assert Language.CHINESE.value == "zh"
-        logger.info("✓ Language enums working")
+        logger.info("[OK] Language enums working")
 
         # Test 4: ExtractionResult creation
         logger.info("Test 4: ExtractionResult structure")
@@ -83,7 +83,7 @@ async def probe_model_adapter():
         assert len(result.relations) == 1
         assert result.confidence == 0.85
         assert result.timestamp.tzinfo is not None  # UTC
-        logger.info("✓ ExtractionResult structure valid")
+        logger.info("[OK] ExtractionResult structure valid")
 
         # Test 5: Environment variable configuration
         logger.info("Test 5: Environment variable configuration")
@@ -96,7 +96,7 @@ async def probe_model_adapter():
         assert env_config.model_name == "test/model"
         assert env_config.device == "cpu"
         assert env_config.temperature == 0.5
-        logger.info("✓ Environment variable configuration working")
+        logger.info("[OK] Environment variable configuration working")
 
         logger.info({
             "msg": "Model adapter probe complete",

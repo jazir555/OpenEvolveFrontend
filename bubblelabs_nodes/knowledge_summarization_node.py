@@ -903,7 +903,7 @@ class KnowledgeSummarizationNode(BubbleLabsNode):
                     if isinstance(rel, dict):
                         pred = rel.get('predicate', 'related_to')
                         target = rel.get('target', 'unknown')
-                        lines.append(f"- {pred} → {target}")
+                        lines.append(f"- {pred} -> {target}")
                     else:
                         lines.append(f"- {str(rel)}")
                 if len(relationships) > 20:
@@ -1008,7 +1008,7 @@ class KnowledgeSummarizationNode(BubbleLabsNode):
                 summary = f"No paths found from '{source}' to '{target}'."
 
         elif level == 'detailed':
-            lines = [f"## Path Summary: {source} → {target}"]
+            lines = [f"## Path Summary: {source} -> {target}"]
 
             if paths:
                 lines.append(f"**Total Paths:** {len(paths)}")
@@ -1033,7 +1033,7 @@ class KnowledgeSummarizationNode(BubbleLabsNode):
             summary = '\n'.join(lines)
 
         else:  # comprehensive
-            lines = [f"# Path Analysis: {source} → {target}"]
+            lines = [f"# Path Analysis: {source} -> {target}"]
 
             if paths:
                 lines.append(f"**Total Paths Discovered:** {len(paths)}")
@@ -1047,10 +1047,10 @@ class KnowledgeSummarizationNode(BubbleLabsNode):
                 lines.append("\n## Paths")
                 for i, path in enumerate(paths[:5], 1):  # Show first 5 paths
                     if isinstance(path, list):
-                        path_str = ' → '.join(str(node) for node in path)
+                        path_str = ' -> '.join(str(node) for node in path)
                     else:
                         nodes = path.get('nodes', [])
-                        path_str = ' → '.join(str(n.get('name', n.get('id', str(n)))) for n in nodes)
+                        path_str = ' -> '.join(str(n.get('name', n.get('id', str(n)))) for n in nodes)
                     lines.append(f"\n### Path {i}")
                     lines.append(path_str)
 

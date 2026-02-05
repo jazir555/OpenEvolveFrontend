@@ -170,16 +170,16 @@ class SecureLogger:
     def success(self, text: str):
         """Print success message"""
         sanitized = self._sanitize(text)
-        print(f"{self._color('OKGREEN', f'✅ {sanitized}')}")
+        print(f"{self._color('OKGREEN', f'[OK] {sanitized}')}")
 
     def error(self, text: str):
         """Print error message"""
         # Don't redact errors - they might need debugging
-        print(f"{self._color('FAIL', f'❌ {text}')}", file=sys.stderr)
+        print(f"{self._color('FAIL', f'[FAIL] {text}')}", file=sys.stderr)
 
     def warning(self, text: str):
         """Print warning message"""
-        print(f"{self._color('WARNING', f'⚠️  {text}')}")
+        print(f"{self._color('WARNING', f'[WARN]  {text}')}")
 
     def info(self, text: str):
         """Print info message"""
@@ -582,16 +582,16 @@ class DependencyInstaller:
                 timeout=120,
                 shell=False  # Explicitly disable shell
             )
-            Logger.success(f"✓ {package}")
+            Logger.success(f"[OK] {package}")
             self.installed.append(package)
             Logger.audit('PACKAGE_INSTALL', f'Successfully installed: {package}')
             return True
         except subprocess.TimeoutExpired:
-            Logger.error(f"✗ {package} (timeout)")
+            Logger.error(f"[FAIL] {package} (timeout)")
             self.failed.append(package)
             return False
         except (subprocess.SubprocessError, TimeoutError, PermissionError, OSError) as e:
-            Logger.error(f"✗ {package} ({e})")
+            Logger.error(f"[FAIL] {package} ({e})")
             self.failed.append(package)
             return False
 
@@ -607,7 +607,7 @@ class DependencyInstaller:
         if all_success:
             Logger.success(f"\n✨ All {len(self.installed)} packages installed successfully")
         else:
-            Logger.warning(f"\n⚠️  {len(self.installed)} installed, {len(self.failed)} failed")
+            Logger.warning(f"\n[WARN]  {len(self.installed)} installed, {len(self.failed)} failed")
 
         return all_success
 
@@ -645,10 +645,10 @@ class DirectoryCreator:
         try:
             if safe_path.exists():
                 if not safe_path.is_dir():
-                    Logger.error(f"✗ {directory} (exists but is not a directory)")
+                    Logger.error(f"[FAIL] {directory} (exists but is not a directory)")
                     return False
 
-                Logger.detail(f"✓ {directory} (already exists)")
+                Logger.detail(f"[OK] {directory} (already exists)")
                 self.existing.append(directory)
 
                 # Ensure proper permissions
@@ -657,12 +657,12 @@ class DirectoryCreator:
             else:
                 safe_path.mkdir(parents=True, exist_ok=True)
                 safe_path.chmod(DIR_PERMISSIONS)
-                Logger.success(f"✓ {directory} (created)")
+                Logger.success(f"[OK] {directory} (created)")
                 self.created.append(directory)
                 Logger.audit('DIR_CREATE', f'Created directory: {safe_path}')
                 return True
         except (PermissionError, OSError, ValueError) as e:
-            Logger.error(f"✗ {directory} ({e})")
+            Logger.error(f"[FAIL] {directory} ({e})")
             return False
 
     def create_all(self) -> bool:
@@ -947,7 +947,7 @@ export class HealthCheckWorkflow extends BubbleFlow<'schedule/cron'> {
     if (count > 100) {
       const slack = new SlackBubble({
         channel: '#alerts',
-        text: `⚠️  High user registration rate: ${count} users in last hour`
+        text: `[WARN]  High user registration rate: ${count} users in last hour`
       });
 
       await slack.action();
@@ -974,9 +974,9 @@ export class HealthCheckWorkflow extends BubbleFlow<'schedule/cron'> {
                 yaml.dump(self.generate_yaml_config(), default_flow_style=False)
             )
             if success:
-                Logger.success("✓ bubblelab-config.yaml (secured)")
+                Logger.success("[OK] bubblelab-config.yaml (secured)")
             else:
-                Logger.error(f"✗ bubblelab-config.yaml: {msg}")
+                Logger.error(f"[FAIL] bubblelab-config.yaml: {msg}")
                 return False
 
             # Save .env
@@ -986,9 +986,9 @@ export class HealthCheckWorkflow extends BubbleFlow<'schedule/cron'> {
                 self.generate_env_file()
             )
             if success:
-                Logger.success("✓ .env (secured)")
+                Logger.success("[OK] .env (secured)")
             else:
-                Logger.error(f"✗ .env: {msg}")
+                Logger.error(f"[FAIL] .env: {msg}")
                 return False
 
             # Save .gitignore
@@ -998,9 +998,9 @@ export class HealthCheckWorkflow extends BubbleFlow<'schedule/cron'> {
                 self.generate_gitignore()
             )
             if success:
-                Logger.success("✓ .gitignore (secured)")
+                Logger.success("[OK] .gitignore (secured)")
             else:
-                Logger.error(f"✗ .gitignore: {msg}")
+                Logger.error(f"[FAIL] .gitignore: {msg}")
                 return False
 
             # Save example workflow
@@ -1010,7 +1010,7 @@ export class HealthCheckWorkflow extends BubbleFlow<'schedule/cron'> {
                 'health-check.ts'
             )
             if not valid:
-                Logger.error(f"✗ workflow path validation failed: {msg}")
+                Logger.error(f"[FAIL] workflow path validation failed: {msg}")
                 return False
 
             success, msg = SecureFileOps.write_file_securely(
@@ -1019,9 +1019,9 @@ export class HealthCheckWorkflow extends BubbleFlow<'schedule/cron'> {
                 permissions=0o644  # Readable files for workflows
             )
             if success:
-                Logger.success("✓ bubblelab-workflows/health-check.ts (example)")
+                Logger.success("[OK] bubblelab-workflows/health-check.ts (example)")
             else:
-                Logger.error(f"✗ workflow: {msg}")
+                Logger.error(f"[FAIL] workflow: {msg}")
                 return False
 
             Logger.audit('CONFIG_GENERATION', 'All configuration files generated securely')
@@ -1081,7 +1081,7 @@ class SetupOrchestrator:
         self.results['validation'] = valid
 
         if not valid:
-            Logger.error("\n❌ Environment validation failed. Please fix the errors above.")
+            Logger.error("\n[FAIL] Environment validation failed. Please fix the errors above.")
             self.print_summary()
             return False
 
@@ -1091,7 +1091,7 @@ class SetupOrchestrator:
         self.results['dependencies'] = installer.install_all()
 
         if not self.results['dependencies']:
-            Logger.warning("\n⚠️  Some dependencies failed to install. Setup will continue but may have issues.")
+            Logger.warning("\n[WARN]  Some dependencies failed to install. Setup will continue but may have issues.")
 
         # Step 3: Create Directory Structure
         Logger.step(3, 7, "Creating Directory Structure")
@@ -1138,18 +1138,18 @@ class SetupOrchestrator:
                 self.results['connectivity'] = connected
 
                 if connected:
-                    Logger.success("✓ API connection validated")
+                    Logger.success("[OK] API connection validated")
 
                     # Get system info
                     status = client.get_system_status()
                     if status:
-                        Logger.success("✓ Connected to BubbleLab API")
+                        Logger.success("[OK] Connected to BubbleLab API")
                 else:
-                    Logger.error(f"✗ API connection failed: {message}")
+                    Logger.error(f"[FAIL] API connection failed: {message}")
                     Logger.warning("Setup will continue but API features won't work until fixed")
 
             except (ConnectionError, TimeoutError, ValueError, requests.RequestException) as e:
-                Logger.warning(f"⚠️  Could not validate API: {e}")
+                Logger.warning(f"[WARN]  Could not validate API: {e}")
                 Logger.info("This is OK if BubbleLab is not running yet")
         else:
             Logger.info("Skipping API validation (no API key provided)")
@@ -1203,15 +1203,15 @@ class SetupOrchestrator:
                 with open(config_file, 'r') as f:
                     config = yaml.safe_load(f)
                     if 'base_url' in config and ('api_key' in config or 'api_key_encrypted' in config):
-                        Logger.success("✓ Configuration file valid")
+                        Logger.success("[OK] Configuration file valid")
                     else:
-                        Logger.error("✗ Configuration file missing required fields")
+                        Logger.error("[FAIL] Configuration file missing required fields")
                         tests_passed = False
             else:
-                Logger.error("✗ Configuration file not found")
+                Logger.error("[FAIL] Configuration file not found")
                 tests_passed = False
         except (IOError, OSError, json.JSONDecodeError, KeyError, AttributeError) as e:
-            Logger.error(f"✗ Configuration test failed: {e}")
+            Logger.error(f"[FAIL] Configuration test failed: {e}")
             tests_passed = False
 
         # Test 2: Directories exist with proper permissions
@@ -1220,9 +1220,9 @@ class SetupOrchestrator:
         for dir_name in required_dirs:
             dir_path = Path.cwd() / dir_name
             if dir_path.exists() and dir_path.is_dir():
-                Logger.success(f"✓ {dir_name}/ exists")
+                Logger.success(f"[OK] {dir_name}/ exists")
             else:
-                Logger.error(f"✗ {dir_name}/ missing or not a directory")
+                Logger.error(f"[FAIL] {dir_name}/ missing or not a directory")
                 tests_passed = False
 
         # Test 3: Python packages importable
@@ -1230,15 +1230,15 @@ class SetupOrchestrator:
         for package in ['yaml', 'requests']:
             try:
                 __import__(package)
-                Logger.success(f"✓ {package} importable")
+                Logger.success(f"[OK] {package} importable")
             except ImportError:
-                Logger.error(f"✗ {package} not importable")
+                Logger.error(f"[FAIL] {package} not importable")
                 tests_passed = False
 
         if tests_passed:
-            Logger.success("\n✓ All tests passed")
+            Logger.success("\n[OK] All tests passed")
         else:
-            Logger.warning("\n⚠️  Some tests failed")
+            Logger.warning("\n[WARN]  Some tests failed")
 
         return tests_passed
 
@@ -1253,9 +1253,9 @@ class SetupOrchestrator:
         print("Results:")
         for step, result in self.results.items():
             if result is True:
-                Logger.success(f"  ✓ {step}")
+                Logger.success(f"  [OK] {step}")
             elif result is False:
-                Logger.error(f"  ✗ {step}")
+                Logger.error(f"  [FAIL] {step}")
             else:
                 Logger.warning(f"  ○ {step} (skipped)")
 
@@ -1411,7 +1411,7 @@ SECURITY WARNING:
         sys.exit(0 if success else 1)
 
     except KeyboardInterrupt:
-        Logger.warning("\n\n⚠️  Setup interrupted by user")
+        Logger.warning("\n\n[WARN]  Setup interrupted by user")
         Logger.audit('SETUP_INTERRUPT', 'Setup interrupted by user')
         sys.exit(130)
 

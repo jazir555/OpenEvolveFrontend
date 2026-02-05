@@ -26,10 +26,10 @@ class Colors:
     RESET = '\033[0m'
 
 def print_success(msg: str):
-    print(f"{Colors.GREEN}✓{Colors.RESET} {msg}")
+    print(f"{Colors.GREEN}[OK]{Colors.RESET} {msg}")
 
 def print_error(msg: str):
-    print(f"{Colors.RED}✗{Colors.RESET} {msg}")
+    print(f"{Colors.RED}[FAIL]{Colors.RESET} {msg}")
 
 def print_warning(msg: str):
     print(f"{Colors.YELLOW}⚠{Colors.RESET} {msg}")

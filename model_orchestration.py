@@ -1247,7 +1247,7 @@ def render_model_orchestration_ui():
                         model_info = orchestrator.models[model_name]
                         col1, col2, col3 = st.columns([3, 1, 1])
                         with col1:
-                            st.text(f"• {model_name}")
+                            st.text(f"* {model_name}")
                         with col2:
                             st.text(f"Weight: {model_info['weight']}")
                         with col3:

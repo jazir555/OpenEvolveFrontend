@@ -964,7 +964,7 @@ def render_manual_review_panel(decomposition_plan: DecompositionPlan) -> tuple[s
         should_auto_approve, reasons = auto_approve_plan(decomposition_plan, criteria)
         
         if should_auto_approve:
-            st.success("✅ Plan automatically approved based on criteria!")
+            st.success("[OK] Plan automatically approved based on criteria!")
             with st.expander("Auto-Approval Reasons"):
                 for reason in reasons:
                     st.write(f"- {reason}")
@@ -972,7 +972,7 @@ def render_manual_review_panel(decomposition_plan: DecompositionPlan) -> tuple[s
             # Return approved plan immediately
             return "approved", decomposition_plan
         else:
-            st.warning("⚠️ Plan did not meet auto-approval criteria. Manual review required.")
+            st.warning("[WARN] Plan did not meet auto-approval criteria. Manual review required.")
             with st.expander("Auto-Approval Check Results"):
                 for reason in reasons:
                     st.write(f"- {reason}")
@@ -1174,17 +1174,17 @@ def render_manual_review_panel(decomposition_plan: DecompositionPlan) -> tuple[s
     is_valid, validation_issues = validate_decomposition_plan(temp_plan_for_validation)
     
     if not is_valid:
-        st.warning("⚠️ Plan has validation issues:")
+        st.warning("[WARN] Plan has validation issues:")
         for issue in validation_issues:
             st.write(f"- {issue}")
     else:
-        st.success("✓ Plan validation passed")
+        st.success("[OK] Plan validation passed")
     
     st.markdown("---")
     col1, col2 = st.columns(2)
     with col1:
         # Button to approve the entire decomposition plan.
-        if st.button("✅ Approve Plan", key="approve_plan_button", type="primary", disabled=not is_valid):
+        if st.button("[OK] Approve Plan", key="approve_plan_button", type="primary", disabled=not is_valid):
             # Reconstruct the DecompositionPlan from the edited sub-problems in session state.
             final_sub_problems = list(st.session_state.edited_sub_problems.values())
             
@@ -1213,7 +1213,7 @@ def render_manual_review_panel(decomposition_plan: DecompositionPlan) -> tuple[s
 
     with col2:
         # Button to reject the entire decomposition plan.
-        if st.button("❌ Reject Plan", key="reject_plan_button"):
+        if st.button("[FAIL] Reject Plan", key="reject_plan_button"):
             st.error("Plan rejected. Please modify the initial problem or AI settings and try again.")
             collaboration_manager.record_audit_event(
                 st.session_state.get("manual_review_session_id"),
@@ -1290,10 +1290,10 @@ def render_dependency_graph(
                 cycles = list(nx.simple_cycles(G))
                 circular_deps = cycles
                 if cycles:
-                    st.error(f"⚠️ {len(cycles)} circular dependencies detected!")
+                    st.error(f"[WARN] {len(cycles)} circular dependencies detected!")
                     with st.expander("View Circular Dependencies"):
                         for i, cycle in enumerate(cycles, 1):
-                            st.write(f"**Cycle {i}:** {' → '.join(cycle)}")
+                            st.write(f"**Cycle {i}:** {' -> '.join(cycle)}")
             except Exception as e:
                 logger.debug("Failed to detect circular dependencies: %s", e)
         
@@ -2607,9 +2607,9 @@ def render_rule_testing() -> None:
                 matches = evaluate_rule(rule, test_plan)
                 
                 if matches:
-                    st.success(f"✅ Rule {i + 1} ({rule['name']}): MATCH - Action: {rule['action']}")
+                    st.success(f"[OK] Rule {i + 1} ({rule['name']}): MATCH - Action: {rule['action']}")
                 else:
-                    st.info(f"❌ Rule {i + 1} ({rule['name']}): NO MATCH")
+                    st.info(f"[FAIL] Rule {i + 1} ({rule['name']}): NO MATCH")
 
 
 def evaluate_rule(rule: Dict, plan: Dict) -> bool:
@@ -3582,7 +3582,7 @@ def render_openevolve_config_panel(session_key: str = "openevolve_config") -> Di
         
         params = OPENEVOLVE_PARAMS["selection"]
         
-        st.info("⚠️ Elite + Exploration + Exploitation ratios must sum to 1.0")
+        st.info("[WARN] Elite + Exploration + Exploitation ratios must sum to 1.0")
         
         col1, col2, col3 = st.columns(3)
         with col1:
@@ -3615,9 +3615,9 @@ def render_openevolve_config_panel(session_key: str = "openevolve_config") -> Di
         # Validate ratio sum
         ratio_sum = config['elite_ratio'] + config['exploration_ratio'] + config['exploitation_ratio']
         if abs(ratio_sum - 1.0) > 0.01:
-            st.error(f"⚠️ Ratios sum to {ratio_sum:.2f}, must equal 1.0")
+            st.error(f"[WARN] Ratios sum to {ratio_sum:.2f}, must equal 1.0")
         else:
-            st.success(f"✅ Ratios sum to {ratio_sum:.2f}")
+            st.success(f"[OK] Ratios sum to {ratio_sum:.2f}")
         
         col1, col2 = st.columns(2)
         with col1:
@@ -4018,8 +4018,8 @@ def render_openevolve_progress_monitor(operation_id: str, metrics_collector, aut
     status_colors = {
         "running": "🟢",
         "paused": "🟡",
-        "completed": "✅",
-        "failed": "❌"
+        "completed": "[OK]",
+        "failed": "[FAIL]"
     }
     st.markdown(f"**Status:** {status_colors.get(current_op.status, '⚪')} {current_op.status.upper()}")
     
@@ -4848,13 +4848,13 @@ def render_realtime_monitoring(
         if alerts:
             for alert in alerts:
                 if alert["level"] == "error":
-                    st.error(f"❌ {alert['message']}")
+                    st.error(f"[FAIL] {alert['message']}")
                 elif alert["level"] == "warning":
-                    st.warning(f"⚠️ {alert['message']}")
+                    st.warning(f"[WARN] {alert['message']}")
                 else:
                     st.info(f"ℹ️ {alert['message']}")
         else:
-            st.success("✅ No alerts - Workflow running smoothly")
+            st.success("[OK] No alerts - Workflow running smoothly")
 
     # Log viewer section
     with st.expander("📜 Log Viewer"):
@@ -4875,8 +4875,8 @@ def render_realtime_monitoring(
                 status_emoji = {
                     "pending": "⏳",
                     "in_progress": "🔄",
-                    "solved": "✅",
-                    "failed": "❌",
+                    "solved": "[OK]",
+                    "failed": "[FAIL]",
                     "requires_rework": "🔧"
                 }.get(sp.status, "❓")
 

@@ -243,7 +243,7 @@ class ASCIITreeRenderer:
 
         # Add teams
         if self.show_teams and node.teams:
-            parts.append(f"Teams: {'→'.join(node.teams)}")
+            parts.append(f"Teams: {'->'.join(node.teams)}")
 
         # Add attempt count
         if node.attempt_count > 0:
@@ -256,8 +256,8 @@ class ASCIITreeRenderer:
         symbols = {
             ProblemStatus.PENDING: "⏳",
             ProblemStatus.IN_PROGRESS: "🔄",
-            ProblemStatus.COMPLETE: "✅",
-            ProblemStatus.FAILED: "❌",
+            ProblemStatus.COMPLETE: "[OK]",
+            ProblemStatus.FAILED: "[FAIL]",
         }
         return symbols.get(status, "?")
 
@@ -452,7 +452,7 @@ class HTMLTreeRenderer:
 
         # Teams
         if self.show_teams and node.teams:
-            html += f'    <span class="node-teams">👥 {" → ".join(node.teams)}</span>\n'
+            html += f'    <span class="node-teams">👥 {" -> ".join(node.teams)}</span>\n'
 
         # Attempt count
         if node.attempt_count > 0:
@@ -586,7 +586,7 @@ class GraphvizTreeRenderer:
 
         # Teams
         if self.show_teams and node.teams:
-            label_parts.append(f"\\nTeams: {' → '.join(node.teams)}")
+            label_parts.append(f"\\nTeams: {' -> '.join(node.teams)}")
 
         label = '"'.join(label_parts) + '"'
 

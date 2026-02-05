@@ -11,7 +11,7 @@ Tests cover:
 
 Following CLAUDE.md principles:
 - Law of Runtime Truth: Test against real Z3 API
-- Law of Idempotency: Same inputs → same outputs
+- Law of Idempotency: Same inputs -> same outputs
 - Circuit Breaker: Timeout handling tested
 - Structured Logging: Verify JSON logs
 

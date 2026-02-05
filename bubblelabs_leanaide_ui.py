@@ -88,17 +88,17 @@ class LeanAideUIComponent:
         # Show status
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric("MCTS Available", "✅" if MCTS_AVAILABLE else "❌")
+            st.metric("MCTS Available", "[OK]" if MCTS_AVAILABLE else "[FAIL]")
         with col2:
-            st.metric("MDAP Available", "✅" if MDAP_AVAILABLE else "❌")
+            st.metric("MDAP Available", "[OK]" if MDAP_AVAILABLE else "[FAIL]")
         with col3:
-            st.metric("Lean4 Available", "✅" if LEAN4_AVAILABLE else "❌")
+            st.metric("Lean4 Available", "[OK]" if LEAN4_AVAILABLE else "[FAIL]")
 
         # Create tabs for different LeanAide functions
         tabs = st.tabs([
             "🔬 Theorem Proving",
             "🌳 MCTS Visualization",
-            "✅ Lean4 Verification",
+            "[OK] Lean4 Verification",
             "🧮 Math Queries",
             "⚙️ Settings"
         ])
@@ -147,7 +147,7 @@ class LeanAideUIComponent:
             prove_btn = st.button("📐 Generate Proof", key="generate_proof")
 
         with col3:
-            verify_btn = st.button("✅ Verify Code", key="verify_lean_code")
+            verify_btn = st.button("[OK] Verify Code", key="verify_lean_code")
 
         with col4:
             mcts_btn = st.button("🌳 MCTS Search", key="mcts_search")
@@ -256,7 +256,7 @@ class LeanAideUIComponent:
 
     def _render_lean4_verification(self):
         """Render Lean4 verification panel."""
-        st.subheader("✅ Lean4 Code Verification")
+        st.subheader("[OK] Lean4 Code Verification")
 
         # Code input
         lean_code = st.text_area(
@@ -268,7 +268,7 @@ class LeanAideUIComponent:
 
         col1, col2 = st.columns(2)
         with col1:
-            verify_btn = st.button("✅ Verify Code", key="verify_code_btn")
+            verify_btn = st.button("[OK] Verify Code", key="verify_code_btn")
         with col2:
             elaborate_btn = st.button("🔍 Elaborate", key="elaborate_code_btn")
 
@@ -297,9 +297,9 @@ class LeanAideUIComponent:
                     # Proof metadata
                     col1, col2, col3, col4 = st.columns(4)
                     with col1:
-                        st.metric("Complete", "✅" if proof.is_complete else "❌")
+                        st.metric("Complete", "[OK]" if proof.is_complete else "[FAIL]")
                     with col2:
-                        st.metric("Verified", "✅" if proof.is_verified else "❌")
+                        st.metric("Verified", "[OK]" if proof.is_verified else "[FAIL]")
                     with col3:
                         st.metric("Steps", len(proof.steps))
                     with col4:
@@ -315,7 +315,7 @@ class LeanAideUIComponent:
                                 if step.error_message:
                                     st.error(f"Error: {step.error_message}")
                                 else:
-                                    st.success("✓ Valid")
+                                    st.success("[OK] Valid")
 
                     # Lean code
                     if proof.lean_code:
@@ -550,7 +550,7 @@ class LeanAideUIComponent:
 
         col1, col2 = st.columns(2)
         with col1:
-            st.metric("Success", "✅" if result.success else "❌")
+            st.metric("Success", "[OK]" if result.success else "[FAIL]")
         with col2:
             st.metric("Execution Time", f"{result.execution_time:.2f}s")
 
@@ -580,7 +580,7 @@ class LeanAideUIComponent:
             elif result.task_type == LeanAideTaskType.VERIFY_SOLUTION:
                 if result.data.get("is_valid") is not None:
                     is_valid = result.data["is_valid"]
-                    st.metric("Valid", "✅ Yes" if is_valid else "❌ No")
+                    st.metric("Valid", "[OK] Yes" if is_valid else "[FAIL] No")
 
                 if result.data.get("unproven_count") is not None:
                     st.metric("Unproven Obligations", result.data["unproven_count"])

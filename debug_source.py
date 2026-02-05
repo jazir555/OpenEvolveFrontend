@@ -19,6 +19,6 @@ print(f"\nTotal lines in parsed source: {len(lines)}")
 
 # Check if the source ends abruptly
 if not source.strip().endswith('"""') and not source.strip().endswith('pass'):
-    print("⚠️  Source appears to end abruptly")
+    print("[WARN]  Source appears to end abruptly")
 else:
-    print("✅ Source appears to end properly")
+    print("[OK] Source appears to end properly")

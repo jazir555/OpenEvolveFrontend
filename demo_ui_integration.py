@@ -32,7 +32,7 @@ def main():
     try:
         from openevolve_bubblelabs_ui import render_openevolve_bubblelabs_ui
     except ImportError as e:
-        st.error(f"❌ Failed to import: {e}")
+        st.error(f"[FAIL] Failed to import: {e}")
         st.error("Make sure openevolve_workflow_manager_integrated.py and openevolve_bubblelabs_ui.py are in the current directory.")
         st.stop()
 
@@ -83,19 +83,19 @@ def main():
 
         ### Features
 
-        ✅ **Uses Actual Workflow Files:**
+        [OK] **Uses Actual Workflow Files:**
         - workflow_structures.py (WorkflowState)
         - workflow_engine.py (run_content_analysis, run_ai_decomposition, etc.)
         - team_manager.py (TeamManager)
         - gauntlet_manager.py (GauntletManager)
 
-        ✅ **Full Workflow Lifecycle:**
+        [OK] **Full Workflow Lifecycle:**
         - Create workflows from actual teams
         - Execute using actual workflow functions
         - Monitor with real-time progress
         - Control with pause/resume/cancel
 
-        ✅ **Visual Interface:**
+        [OK] **Visual Interface:**
         - Streamlit-based UI
         - Team and gauntlet selection
         - Progress tracking

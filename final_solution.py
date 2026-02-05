@@ -429,7 +429,7 @@ class FinalSolutionManager:
         ]
 
         for vr in solution.validation_results:
-            status = "✅ PASS" if vr.passed else "❌ FAIL"
+            status = "[OK] PASS" if vr.passed else "[FAIL] FAIL"
             lines.append(f"- **{vr.validator.capitalize()}**: {status} (score: {vr.score:.2f})")
             lines.append(f"  - {vr.feedback}")
             if vr.improvements:
@@ -440,7 +440,7 @@ class FinalSolutionManager:
             f"## Assembly Details",
             f"- **Sub-solutions**: {len(solution.sub_solutions)}",
             f"- **Conflicts Resolved**: {len(solution.conflicts_resolved)}",
-            f"- **Integration Order**: {' → '.join(solution.integration_order[:5])}{'...' if len(solution.integration_order) > 5 else ''}",
+            f"- **Integration Order**: {' -> '.join(solution.integration_order[:5])}{'...' if len(solution.integration_order) > 5 else ''}",
             f"",
             f"## Solution Content",
             f"",
@@ -526,7 +526,7 @@ class FinalSolutionManager:
     <ul>
         <li><strong>Sub-solutions:</strong> {len(solution.sub_solutions)}</li>
         <li><strong>Conflicts Resolved:</strong> {len(solution.conflicts_resolved)}</li>
-        <li><strong>Integration Order:</strong> {' → '.join(solution.integration_order[:5])}{'...' if len(solution.integration_order) > 5 else ''}</li>
+        <li><strong>Integration Order:</strong> {' -> '.join(solution.integration_order[:5])}{'...' if len(solution.integration_order) > 5 else ''}</li>
     </ul>
 
     <h2>Solution Content</h2>

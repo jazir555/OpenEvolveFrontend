@@ -195,9 +195,9 @@ async def example_6_error_handling():
 
         try:
             adapter = LoongFlowAdapter(config)
-            print("  ✗ Should have failed but didn't!")
+            print("  [FAIL] Should have failed but didn't!")
         except RuntimeError as e:
-            print(f"  ✓ Correctly failed with: {e}")
+            print(f"  [OK] Correctly failed with: {e}")
 
     # Show proper configuration with fallback
     print("\nUsing proper fallback configuration...")
@@ -208,7 +208,7 @@ async def example_6_error_handling():
     }
 
     adapter = LoongFlowAdapter(config)
-    print(f"  ✓ Successfully initialized in {adapter.mode} mode")
+    print(f"  [OK] Successfully initialized in {adapter.mode} mode")
 
 
 async def main():
@@ -237,7 +237,7 @@ async def main():
     print("  4. All OpenEvolve modes are available in fallback mode")
     print("  5. Production-ready configuration handles all scenarios")
     print("  6. Error handling is robust and user-friendly")
-    print("\n✅ OpenEvolve is ready for production use!")
+    print("\n[OK] OpenEvolve is ready for production use!")
 
 
 if __name__ == "__main__":

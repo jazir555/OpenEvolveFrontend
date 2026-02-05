@@ -51,7 +51,7 @@ def main():
         # Create the OpenEvolve files
         print(f"\nCreating OpenEvolve files for task: {task_name}")
         output_dir = adapter.create_task_files(task_name)
-        print(f"✅ Created files in: {output_dir}")
+        print(f"[OK] Created files in: {output_dir}")
         
         # List the created files
         output_path = Path(output_dir)
@@ -60,7 +60,7 @@ def main():
         for file in created_files:
             print(f"  - {file.name}")
         
-        print(f"\n✅ Successfully created OpenEvolve files for '{task_name}'")
+        print(f"\n[OK] Successfully created OpenEvolve files for '{task_name}'")
         return 0
     
     except Exception as e:

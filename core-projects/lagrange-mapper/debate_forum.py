@@ -681,7 +681,7 @@ def generate_with_steering(
                              intensity=intensity, use_embeddings=USE_EMBEDDINGS)
     
     if verbose:
-        status = "⚠️ ATTRACTOR MATCH" if result.is_attracted else "✓"
+        status = "[WARN] ATTRACTOR MATCH" if result.is_attracted else "[OK]"
         print(f"  [Initial] {status} (score: {result.keyword_score:.1f}, intensity: {intensity})")
     
     # ADAPTIVE THRESHOLD: Skip ALL filtering if baseline is already clean
@@ -717,7 +717,7 @@ def generate_with_steering(
         
         if improved:
             if verbose:
-                print(f"  [Two-Phase] Success: {result.keyword_score:.1f} → {new_result.keyword_score:.1f}")
+                print(f"  [Two-Phase] Success: {result.keyword_score:.1f} -> {new_result.keyword_score:.1f}")
             
             # Accept if good enough after rephrasing
             if new_result.keyword_score < MIN_RETRY_SCORE or not new_result.is_attracted:
@@ -753,7 +753,7 @@ def generate_with_steering(
         attempts.append((response, result, attempt + 1))
         
         if verbose:
-            status = "⚠️ ATTRACTOR MATCH" if result.is_attracted else "✓"
+            status = "[WARN] ATTRACTOR MATCH" if result.is_attracted else "[OK]"
             print(f"  [Regen {attempt + 1}] {status} (score: {result.keyword_score:.1f})")
         
         # Accept if good enough
@@ -969,7 +969,7 @@ class DebateForum:
                         trend = " ↘️ (decreasing)"
                         trend_direction = "decreasing"
                     else:
-                        trend = " → (stable)"
+                        trend = " -> (stable)"
                         trend_direction = "stable"
                 
                 # Track convergence trend
@@ -1011,7 +1011,7 @@ class DebateForum:
                         is_converging = check_convergence_trend(self.convergence_trend, min_rounds=3)
                         if not is_converging:
                             print(f"\n{'='*70}")
-                            print(f"⚠️ NO CONVERGENCE TREND DETECTED AFTER {self.round_count} ROUNDS")
+                            print(f"[WARN] NO CONVERGENCE TREND DETECTED AFTER {self.round_count} ROUNDS")
                             print(f"  Using cluster-based analysis instead of full integration")
                             print(f"{'='*70}")
                             self._generate_cluster_integration(all_sentence_data)
@@ -1243,7 +1243,7 @@ Write a concise integration (150-200 words) in first person. Present your unifie
                                                      intensity=intensity, use_embeddings=USE_EMBEDDINGS)
                     attempts = attempt + 1
                     
-                    status = "⚠️ ATTRACTOR MATCH" if new_result.is_attracted else "✓"
+                    status = "[WARN] ATTRACTOR MATCH" if new_result.is_attracted else "[OK]"
                     print(f"  [Integrator Regen {attempts}] {status} (score: {new_result.keyword_score:.1f})")
                     
                     if not new_result.is_attracted or new_result.keyword_score < MIN_RETRY_SCORE:
@@ -1395,7 +1395,7 @@ Integrate these perspectives into a single coherent position. State your conclus
                                                      intensity=intensity, use_embeddings=USE_EMBEDDINGS)
                     attempts = attempt + 1
                     
-                    status = "⚠️ ATTRACTOR MATCH" if new_result.is_attracted else "✓"
+                    status = "[WARN] ATTRACTOR MATCH" if new_result.is_attracted else "[OK]"
                     print(f"  [Integrator Regen {attempts}] {status} (score: {new_result.keyword_score:.1f})")
                     
                     if not new_result.is_attracted or new_result.keyword_score < MIN_RETRY_SCORE:
@@ -1640,7 +1640,7 @@ def main():
                     elif curr_avg < prev_avg - 0.05:
                         trend = " ↘️ (decreasing)"
                     else:
-                        trend = " → (stable)"
+                        trend = " -> (stable)"
                     print(f"Trend: {trend}")
                 
                 if metrics['max_pair']:

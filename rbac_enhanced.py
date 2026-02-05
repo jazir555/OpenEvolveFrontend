@@ -1831,7 +1831,7 @@ class StreamlitRBAC:
 
                     st.write("Permissions:")
                     for perm in role.permissions:
-                        st.caption(f"  • {perm}")
+                        st.caption(f"  * {perm}")
 
                     # Allow editing non-system roles
                     if not role.is_system_role:
@@ -1871,9 +1871,9 @@ class StreamlitRBAC:
 
                     with col2:
                         if log.success:
-                            st.success("✓ Success")
+                            st.success("[OK] Success")
                         else:
-                            st.error("✗ Failed")
+                            st.error("[FAIL] Failed")
 
                     if log.details:
                         with st.expander("Details"):

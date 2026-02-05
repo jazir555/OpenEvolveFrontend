@@ -552,7 +552,7 @@ class TestIntegration:
         print(f"  Credit Line: ${result.strategy.credit_line_total:,.0f}")
         print(f"\nStress Test Results:")
         for scenario_name, scenario_result in result.stress_test_results.items():
-            status = "✓ Survived" if scenario_result.success else "✗ Failed"
+            status = "[OK] Survived" if scenario_result.success else "[FAIL] Failed"
             print(f"  {scenario_name}: {status}")
             if scenario_result.success:
                 print(f"    Min liquidity: {scenario_result.min_liquidity_days:.1f} days")

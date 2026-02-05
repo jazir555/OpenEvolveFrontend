@@ -506,7 +506,7 @@ async def run_comprehensive_integration_tests():
     # Determine if integration is successful
     integration_successful = overall_success_rate >= 0.8  # 80% success rate threshold
     
-    print(f"\nIntegration Status: {'✅ SUCCESS' if integration_successful else '❌ FAILED'}")
+    print(f"\nIntegration Status: {'[OK] SUCCESS' if integration_successful else '[FAIL] FAILED'}")
     
     if not integration_successful:
         print("\nCritical Issues Found:")
@@ -532,7 +532,7 @@ def create_integration_test_report(results: Dict[str, Any]) -> str:
         "# CREWAI Integration Test Report",
         "",
         f"**Test Run Date**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-        f"**Integration Status**: {'✅ PASSED' if results['overall_success'] else '❌ FAILED'}",
+        f"**Integration Status**: {'[OK] PASSED' if results['overall_success'] else '[FAIL] FAILED'}",
         f"**Overall Success Rate**: {results['overall_success_rate']:.2%}",
         f"**Total Tests**: {results['total_tests']}",
         f"**Failures**: {results['total_failures']}",
@@ -554,21 +554,21 @@ def create_integration_test_report(results: Dict[str, Any]) -> str:
         report.extend([
             "## Integration Summary",
             "",
-            "✅ The CREWAI integration with OpenEvolve is functioning correctly.",
-            "✅ All core components are working as expected.",
-            "✅ End-to-end workflows are operational.",
-            "✅ Performance optimization features are implemented.",
-            "✅ Monitoring and reporting capabilities are functional.",
-            "✅ Self-healing loop is operational.",
-            "✅ Advanced validation workflows are available.",
+            "[OK] The CREWAI integration with OpenEvolve is functioning correctly.",
+            "[OK] All core components are working as expected.",
+            "[OK] End-to-end workflows are operational.",
+            "[OK] Performance optimization features are implemented.",
+            "[OK] Monitoring and reporting capabilities are functional.",
+            "[OK] Self-healing loop is operational.",
+            "[OK] Advanced validation workflows are available.",
             ""
         ])
     else:
         report.extend([
             "## Integration Issues",
             "",
-            "❌ The CREWAI integration has critical issues that need to be addressed:",
-            "❌ See detailed results above for specific failures and errors.",
+            "[FAIL] The CREWAI integration has critical issues that need to be addressed:",
+            "[FAIL] See detailed results above for specific failures and errors.",
             ""
         ])
     
@@ -667,12 +667,12 @@ def validate_integration_components():
     
     all_valid = True
     for component, status in components.items():
-        status_icon = "✅" if status["functional"] and status["tested"] else "❌"
+        status_icon = "[OK]" if status["functional"] and status["tested"] else "[FAIL]"
         print(f"{status_icon} {component}")
         if not (status["functional"] and status["tested"]):
             all_valid = False
     
-    print(f"\nAll Components Valid: {'✅ YES' if all_valid else '❌ NO'}")
+    print(f"\nAll Components Valid: {'[OK] YES' if all_valid else '[FAIL] NO'}")
     return all_valid
 
 
@@ -686,6 +686,6 @@ if __name__ == "__main__":
         if success:
             print("\n🎉 All integration tests completed successfully!")
         else:
-            print("\n⚠️  Some integration tests failed. Check the report for details.")
+            print("\n[WARN]  Some integration tests failed. Check the report for details.")
     else:
-        print("\n❌ Component validation failed. Please ensure all integration components are implemented.")
+        print("\n[FAIL] Component validation failed. Please ensure all integration components are implemented.")

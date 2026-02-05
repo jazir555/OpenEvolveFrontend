@@ -31,9 +31,9 @@ def test_imports():
             FunctionalDependencyGraph,
             FunctionalDependency
         )
-        print("✓ rese_schemas imported")
+        print("[OK] rese_schemas imported")
     except ImportError as e:
-        print(f"✗ Failed to import rese_schemas: {e}")
+        print(f"[FAIL] Failed to import rese_schemas: {e}")
         return False
 
     try:
@@ -42,12 +42,12 @@ def test_imports():
             Phase2Logger,
             EquivalenceResult
         )
-        print("✓ phase2_executor imported")
+        print("[OK] phase2_executor imported")
     except ImportError as e:
-        print(f"✗ Failed to import phase2_executor: {e}")
+        print(f"[FAIL] Failed to import phase2_executor: {e}")
         return False
 
-    print("\n✓ All imports successful\n")
+    print("\n[OK] All imports successful\n")
     return True
 
 def test_equivalence_result():
@@ -68,7 +68,7 @@ def test_equivalence_result():
             execution_time=100.0
         )
 
-        print(f"✓ Created EquivalenceResult")
+        print(f"[OK] Created EquivalenceResult")
         print(f"  verified: {result.verified}")
         print(f"  confidence: {result.confidence}")
         print(f"  solver: {result.solver}")
@@ -76,13 +76,13 @@ def test_equivalence_result():
 
         # Test to_dict
         result_dict = result.to_dict()
-        print(f"✓ Converted to dict: {len(result_dict)} fields")
+        print(f"[OK] Converted to dict: {len(result_dict)} fields")
 
-        print("\n✓ EquivalenceResult works\n")
+        print("\n[OK] EquivalenceResult works\n")
         return True
 
     except Exception as e:
-        print(f"\n✗ EquivalenceResult test failed: {e}\n")
+        print(f"\n[FAIL] EquivalenceResult test failed: {e}\n")
         return False
 
 def test_mapper_creation():
@@ -107,16 +107,16 @@ def test_mapper_creation():
 
         mapper = CrossDomainMapper(config, logger)
 
-        print(f"✓ Created CrossDomainMapper")
+        print(f"[OK] Created CrossDomainMapper")
         print(f"  z3_enabled: {mapper.z3_enabled}")
         print(f"  z3_prover: {mapper.z3_prover}")
         print(f"  bridge: {mapper.bridge}")
 
-        print("\n✓ CrossDomainMapper creation works\n")
+        print("\n[OK] CrossDomainMapper creation works\n")
         return True
 
     except Exception as e:
-        print(f"\n✗ CrossDomainMapper creation failed: {e}\n")
+        print(f"\n[FAIL] CrossDomainMapper creation failed: {e}\n")
         return False
 
     finally:
@@ -151,20 +151,20 @@ def test_fdg_sanitization():
         for input_name, expected in test_cases:
             result = mapper._sanitize_z3_name(input_name)
             if result == expected:
-                print(f"✓ '{input_name}' → '{result}'")
+                print(f"[OK] '{input_name}' -> '{result}'")
             else:
-                print(f"✗ '{input_name}' → '{result}' (expected '{expected}')")
+                print(f"[FAIL] '{input_name}' -> '{result}' (expected '{expected}')")
                 all_passed = False
 
         if all_passed:
-            print("\n✓ Name sanitization works\n")
+            print("\n[OK] Name sanitization works\n")
         else:
-            print("\n✗ Some sanitization tests failed\n")
+            print("\n[FAIL] Some sanitization tests failed\n")
 
         return all_passed
 
     except Exception as e:
-        print(f"\n✗ Name sanitization test failed: {e}\n")
+        print(f"\n[FAIL] Name sanitization test failed: {e}\n")
         return False
 
     finally:
@@ -225,21 +225,21 @@ def test_simple_imech_calculation():
         # Calculate I_mech
         score = mapper.compute_imech_score(fdg1, fdg2, correlation_id="smoke-test-003")
 
-        print(f"✓ Computed I_mech score")
+        print(f"[OK] Computed I_mech score")
         print(f"  FDG 1: {fdg1.domain} ({len(fdg1.nodes)} nodes)")
         print(f"  FDG 2: {fdg2.domain} ({len(fdg2.nodes)} nodes)")
         print(f"  I_mech: {score:.3f}")
 
         # Score should be high (identical structure)
         if score > 0.8:
-            print("\n✓ I_mech calculation works correctly\n")
+            print("\n[OK] I_mech calculation works correctly\n")
             return True
         else:
             print(f"\n⚠ I_mech score lower than expected: {score}\n")
             return True  # Still pass, just warning
 
     except Exception as e:
-        print(f"\n✗ I_mech calculation failed: {e}\n")
+        print(f"\n[FAIL] I_mech calculation failed: {e}\n")
         import traceback
         traceback.print_exc()
         return False
@@ -268,7 +268,7 @@ def main():
             passed = test_func()
             results.append((name, passed))
         except Exception as e:
-            print(f"✗ Test '{name}' crashed: {e}\n")
+            print(f"[FAIL] Test '{name}' crashed: {e}\n")
             results.append((name, False))
 
     # Summary
@@ -280,18 +280,18 @@ def main():
     total = len(results)
 
     for name, p in results:
-        status = "✓ PASS" if p else "✗ FAIL"
+        status = "[OK] PASS" if p else "[FAIL] FAIL"
         print(f"{status}: {name}")
 
     print(f"\n{passed}/{total} tests passed")
 
     if passed == total:
-        print("\n✓ All smoke tests passed!")
-        print("✓ Implementation is working correctly")
+        print("\n[OK] All smoke tests passed!")
+        print("[OK] Implementation is working correctly")
         return 0
     else:
-        print(f"\n✗ {total - passed} test(s) failed")
-        print("✗ Please check the implementation")
+        print(f"\n[FAIL] {total - passed} test(s) failed")
+        print("[FAIL] Please check the implementation")
         return 1
 
 if __name__ == "__main__":

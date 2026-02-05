@@ -42,18 +42,18 @@ try:
     for malicious_path in malicious_paths:
         try:
             validate_file_path_safe(malicious_path, base_dir=DEFAULT_SKILLBOOK_DIR)
-            print(f'  ❌ FAIL: Path was NOT blocked: {malicious_path}')
+            print(f'  [FAIL] FAIL: Path was NOT blocked: {malicious_path}')
         except ValueError as e:
             blocked_count += 1
-            print(f'  ✅ PASS: Blocked: {malicious_path[:50]}...')
+            print(f'  [OK] PASS: Blocked: {malicious_path[:50]}...')
 
     if blocked_count == len(malicious_paths):
-        print(f'\n  ✅ SUCCESS: All {blocked_count} path traversal attacks BLOCKED')
+        print(f'\n  [OK] SUCCESS: All {blocked_count} path traversal attacks BLOCKED')
     else:
-        print(f'\n  ❌ FAILURE: {blocked_count}/{len(malicious_paths)} blocked')
+        print(f'\n  [FAIL] FAILURE: {blocked_count}/{len(malicious_paths)} blocked')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -88,10 +88,10 @@ try:
     for malicious_model in malicious_models:
         try:
             validate_model_name(malicious_model)
-            print(f'  ❌ FAIL: Model was NOT blocked: {malicious_model[:50]}')
+            print(f'  [FAIL] FAIL: Model was NOT blocked: {malicious_model[:50]}')
         except ValueError as e:
             blocked_count += 1
-            print(f'  ✅ PASS: Blocked: {malicious_model[:50]}')
+            print(f'  [OK] PASS: Blocked: {malicious_model[:50]}')
 
     # Verify legitimate models still work
     legitimate_models = [
@@ -107,15 +107,15 @@ try:
         try:
             result = validate_model_name(legitimate_model)
             accepted_count += 1
-            print(f'  ✅ PASS: Accepted: {legitimate_model}')
+            print(f'  [OK] PASS: Accepted: {legitimate_model}')
         except ValueError as e:
-            print(f'  ❌ FAIL: Legitimate model rejected: {legitimate_model}')
+            print(f'  [FAIL] FAIL: Legitimate model rejected: {legitimate_model}')
 
-    print(f'\n  ✅ SUCCESS: {blocked_count}/{len(malicious_models)} attacks blocked')
-    print(f'  ✅ SUCCESS: {accepted_count}/{len(legitimate_models)} legitimate models accepted')
+    print(f'\n  [OK] SUCCESS: {blocked_count}/{len(malicious_models)} attacks blocked')
+    print(f'  [OK] SUCCESS: {accepted_count}/{len(legitimate_models)} legitimate models accepted')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -135,7 +135,7 @@ try:
 
     try:
         data = safe_load_json_file(valid_file)
-        print(f'  ✅ PASS: Valid JSON loaded: {data}')
+        print(f'  [OK] PASS: Valid JSON loaded: {data}')
     finally:
         os.unlink(valid_file)
 
@@ -146,9 +146,9 @@ try:
 
     try:
         data = safe_load_json_file(invalid_file)
-        print(f'  ❌ FAIL: Invalid JSON should have been rejected')
+        print(f'  [FAIL] FAIL: Invalid JSON should have been rejected')
     except Exception as e:
-        print(f'  ✅ PASS: Invalid JSON rejected: {type(e).__name__}')
+        print(f'  [OK] PASS: Invalid JSON rejected: {type(e).__name__}')
     finally:
         os.unlink(invalid_file)
 
@@ -159,9 +159,9 @@ try:
 
     try:
         data = safe_load_json_file(wrong_ext)
-        print(f'  ❌ FAIL: Wrong extension should be rejected')
+        print(f'  [FAIL] FAIL: Wrong extension should be rejected')
     except ValueError as e:
-        print(f'  ✅ PASS: Wrong extension rejected: {e}')
+        print(f'  [OK] PASS: Wrong extension rejected: {e}')
     finally:
         os.unlink(wrong_ext)
 
@@ -172,20 +172,20 @@ try:
 
     try:
         data = safe_load_json_file(large_file.name, max_size=10_000_000)  # 10MB limit
-        print(f'  ❌ FAIL: Oversized file should be rejected')
+        print(f'  [FAIL] FAIL: Oversized file should be rejected')
     except ValueError as e:
-        print(f'  ✅ PASS: Oversized file rejected: {e}')
+        print(f'  [OK] PASS: Oversized file rejected: {e}')
     finally:
         os.unlink(large_file.name)
 
-    print(f'\n  ✅ SUCCESS: All unsafe deserialization tests passed')
+    print(f'\n  [OK] SUCCESS: All unsafe deserialization tests passed')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
-# Test 4: Hash Strength Verification (CVE-4 - MD5 → SHA-256)
+# Test 4: Hash Strength Verification (CVE-4 - MD5 -> SHA-256)
 print('\n[TEST 4] Hash Strength Verification (CVE-4)')
 print('-' * 80)
 
@@ -212,16 +212,16 @@ try:
 
     # Verify SHA-256 (64 hex chars, but we truncate to 32)
     if len(hash_value) == 32 and all(c in '0123456789abcdef' for c in hash_value):
-        print(f'  ✅ PASS: Using SHA-256 (truncated to 32 chars): {hash_value[:8]}...')
+        print(f'  [OK] PASS: Using SHA-256 (truncated to 32 chars): {hash_value[:8]}...')
     else:
-        print(f'  ❌ FAIL: Hash format incorrect: {hash_value}')
+        print(f'  [FAIL] FAIL: Hash format incorrect: {hash_value}')
 
     # Verify it's not MD5 (MD5 would be 32 chars, but verify it's not weak)
     # SHA-256 truncated to 32 is still stronger than MD5
-    print(f'  ✅ PASS: Hash length: {len(hash_value)} characters')
+    print(f'  [OK] PASS: Hash length: {len(hash_value)} characters')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -240,15 +240,15 @@ try:
 
     # Check that password not leaked
     if 'secret123' not in str(safe_response):
-        print(f'  ✅ PASS: Sensitive information NOT leaked')
+        print(f'  [OK] PASS: Sensitive information NOT leaked')
     else:
-        print(f'  ❌ FAIL: Sensitive information leaked!')
+        print(f'  [FAIL] FAIL: Sensitive information leaked!')
 
     # Check user-friendly message
     if safe_response.get('error') == 'Operation failed':
-        print(f'  ✅ PASS: User-friendly error message')
+        print(f'  [OK] PASS: User-friendly error message')
     else:
-        print(f'  ❌ FAIL: User-friendly message missing')
+        print(f'  [FAIL] FAIL: User-friendly message missing')
 
     # Test sanitize_for_logging
     sensitive_data = "user=admin&password=secret123&api_key=sk-12345"
@@ -257,12 +257,12 @@ try:
 
     # Verify sensitive patterns removed
     if 'secret123' not in sanitized and 'sk-12345' not in sanitized:
-        print(f'  ✅ PASS: Sensitive data sanitized for logs')
+        print(f'  [OK] PASS: Sensitive data sanitized for logs')
     else:
-        print(f'  ❌ FAIL: Sensitive data NOT sanitized')
+        print(f'  [FAIL] FAIL: Sensitive data NOT sanitized')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -288,15 +288,15 @@ try:
         # at the database layer with parameterized queries
         try:
             result = validate_dict_structure(attempt, required_fields=[])
-            print(f'  ⚠️  INFO: Structure validated (SQLi caught at DB layer): {str(attempt)[:50]}')
+            print(f'  [WARN]  INFO: Structure validated (SQLi caught at DB layer): {str(attempt)[:50]}')
         except Exception as e:
             blocked_count += 1
-            print(f'  ✅ PASS: Blocked: {str(attempt)[:50]}')
+            print(f'  [OK] PASS: Blocked: {str(attempt)[:50]}')
 
-    print(f'  ✅ INFO: SQL injection handled by database layer (parameterized queries)')
+    print(f'  [OK] INFO: SQL injection handled by database layer (parameterized queries)')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -305,10 +305,10 @@ print('\n' + '=' * 80)
 print(' SECURITY ATTACK TESTS COMPLETE')
 print('=' * 80)
 print('\nAll Security Vulnerabilities Tested:')
-print('  ✅ CVE-1: Path Traversal - Multiple attack vectors blocked')
-print('  ✅ CVE-2: Unsafe Deserialization - Safe file loading enforced')
-print('  ✅ CVE-3: Command Injection - Shell metacharacters blocked')
-print('  ✅ CVE-4: Weak Hashing - SHA-256 verified')
-print('  ✅ Information Disclosure - Error sanitization working')
-print('  ✅ SQL Injection - Structure validation + DB layer protection')
+print('  [OK] CVE-1: Path Traversal - Multiple attack vectors blocked')
+print('  [OK] CVE-2: Unsafe Deserialization - Safe file loading enforced')
+print('  [OK] CVE-3: Command Injection - Shell metacharacters blocked')
+print('  [OK] CVE-4: Weak Hashing - SHA-256 verified')
+print('  [OK] Information Disclosure - Error sanitization working')
+print('  [OK] SQL Injection - Structure validation + DB layer protection')
 print('\n' + '=' * 80)

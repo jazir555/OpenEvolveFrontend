@@ -33,10 +33,10 @@ Configuration:
     - ARBOR_DEBUG: Enable debug logging (default: false)
 
 Phases:
-    Phase 1 (Foundation): Client, config, health checks ✓
-    Phase 2 (Graph Bridge): Adapter, import, sync ✓
-    Phase 3 (Intelligence): Query, context, impact ✓
-    Phase 4 (MCP): Tools for AI agents ✓
+    Phase 1 (Foundation): Client, config, health checks [OK]
+    Phase 2 (Graph Bridge): Adapter, import, sync [OK]
+    Phase 3 (Intelligence): Query, context, impact [OK]
+    Phase 4 (MCP): Tools for AI agents [OK]
     Phase 5 (Viz): Visualizer integration (future)
 """
 

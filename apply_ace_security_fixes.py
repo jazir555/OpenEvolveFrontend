@@ -161,7 +161,7 @@ def apply_all_fixes(filepath):
         # Write to file with security comment
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(content)
-        print(f"  ✓ Applied fixes to {filepath}")
+        print(f"  [OK] Applied fixes to {filepath}")
         return True
     else:
         print(f"  - No changes needed for {filepath}")
@@ -184,7 +184,7 @@ def main():
             if apply_all_fixes(filepath):
                 fixed_count += 1
         else:
-            print(f"  ✗ File not found: {filename}")
+            print(f"  [FAIL] File not found: {filename}")
 
     print()
     print("=" * 70)

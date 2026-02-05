@@ -323,7 +323,7 @@ def generate_missing_probes(existing_info: dict, target_n_probes: int, controver
             
             # Save intermediate every 10 probes
             if (i + 1) % 10 == 0:
-                print(f"\n  → Generated {i + 1}/{need_controversial} controversial probes")
+                print(f"\n  -> Generated {i + 1}/{need_controversial} controversial probes")
     
     # Generate missing neutral probes
     if need_neutral > 0:
@@ -343,7 +343,7 @@ def generate_missing_probes(existing_info: dict, target_n_probes: int, controver
             
             # Save intermediate every 10 probes
             if (i + 1) % 10 == 0:
-                print(f"\n  → Generated {i + 1}/{need_neutral} neutral probes")
+                print(f"\n  -> Generated {i + 1}/{need_neutral} neutral probes")
     
     # Merge probes
     all_probes = existing_probes + new_probes
@@ -745,16 +745,16 @@ def run_pipeline():
         n_neutral = N_PROBES - n_controversial
         print(f"  Controversial Probes: {n_controversial} ({CONTROVERSIAL_PROBE_RATIO*100:.0f}%)")
         print(f"  Neutral Probes: {n_neutral} ({(1-CONTROVERSIAL_PROBE_RATIO)*100:.0f}%)")
-        print(f"  Separate Analysis: {'✓ Enabled' if SEPARATE_CONTROVERSIAL_ANALYSIS else '✗ Disabled'}")
+        print(f"  Separate Analysis: {'[OK] Enabled' if SEPARATE_CONTROVERSIAL_ANALYSIS else '[FAIL] Disabled'}")
     print(f"  Results Directory: {RESULTS_DIR}")
     print(f"  Filter Config Directory: {FILTER_CONFIG_DIR}")
     print(f"  Timestamp: {TIMESTAMP}")
     
     print(f"\nPipeline Steps:")
-    print(f"  1. Mapper:         {'✓ Enabled' if RUN_MAPPER else '✗ Skipped'}")
-    print(f"  2. Analysis:       {'✓ Enabled' if RUN_ANALYSIS else '✗ Skipped'}")
-    print(f"  3. Extract Filters:{'✓ Enabled' if RUN_EXTRACT_FILTERS else '✗ Skipped'}")
-    print(f"  4. Steering Test:  {'✓ Enabled' if RUN_STEERING_TEST else '✗ Skipped'}")
+    print(f"  1. Mapper:         {'[OK] Enabled' if RUN_MAPPER else '[FAIL] Skipped'}")
+    print(f"  2. Analysis:       {'[OK] Enabled' if RUN_ANALYSIS else '[FAIL] Skipped'}")
+    print(f"  3. Extract Filters:{'[OK] Enabled' if RUN_EXTRACT_FILTERS else '[FAIL] Skipped'}")
+    print(f"  4. Steering Test:  {'[OK] Enabled' if RUN_STEERING_TEST else '[FAIL] Skipped'}")
     
     # Track outputs between steps
     results_file = None

@@ -40,7 +40,7 @@ def test_knowledge_cache_basic():
     assert stats["miss_count"] == 1
     assert stats["size"] == 1
     
-    print("✓ Basic cache operations passed")
+    print("[OK] Basic cache operations passed")
 
 
 def test_knowledge_cache_expiry():
@@ -61,7 +61,7 @@ def test_knowledge_cache_expiry():
     # Should be expired
     assert cache.get("key1") is None
     
-    print("✓ Cache expiry tests passed")
+    print("[OK] Cache expiry tests passed")
 
 
 def test_knowledge_cache_eviction():
@@ -85,7 +85,7 @@ def test_knowledge_cache_eviction():
     assert cache.get_stats()["size"] == 3
     assert cache.get_stats()["eviction_count"] == 1
     
-    print("✓ Cache eviction tests passed")
+    print("[OK] Cache eviction tests passed")
 
 
 def test_knowledge_cache_invalidation():
@@ -110,7 +110,7 @@ def test_knowledge_cache_invalidation():
     cache.clear()
     assert cache.get_stats()["size"] == 0
     
-    print("✓ Cache invalidation tests passed")
+    print("[OK] Cache invalidation tests passed")
 
 
 def test_knowledge_cache_hit_rate():
@@ -135,7 +135,7 @@ def test_knowledge_cache_hit_rate():
     assert stats["miss_count"] == 2
     assert stats["hit_rate"] == 0.6  # 3/5
     
-    print("✓ Cache hit rate tests passed")
+    print("[OK] Cache hit rate tests passed")
 
 
 def test_integration_manager_with_cache():
@@ -166,7 +166,7 @@ def test_integration_manager_with_cache():
     stats = manager.get_cache_stats()
     assert stats["size"] == 0
     
-    print("✓ Integration manager cache tests passed")
+    print("[OK] Integration manager cache tests passed")
 
 
 if __name__ == "__main__":

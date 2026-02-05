@@ -37,5 +37,5 @@ for lesson, count in list(summary['most_common_lessons'].items())[:5]:
     print(f"  {count}x: {lesson}")
 
 print("\n" + "=" * 80)
-print("✓ All tests passed!")
+print("[OK] All tests passed!")
 print("=" * 80)

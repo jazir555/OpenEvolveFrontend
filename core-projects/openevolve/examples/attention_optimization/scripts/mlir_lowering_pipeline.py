@@ -20,7 +20,7 @@ class MLIRLoweringPipeline:
         for tool in required_tools:
             if not shutil.which(tool):
                 raise RuntimeError(f"Required tool not found: {tool}")
-        print("✅ MLIR tools verified: mlir-opt, mlir-translate")
+        print("[OK] MLIR tools verified: mlir-opt, mlir-translate")
 
     def find_available_passes(self):
         """Find what lowering passes are available"""
@@ -44,7 +44,7 @@ class MLIRLoweringPipeline:
             relevant_passes = []
             for pass_name in sorted(conversion_passes):
                 if any(keyword in pass_name for keyword in ['arith', 'func', 'llvm', 'std', 'scf']):
-                    print(f"   ✅ {pass_name}")
+                    print(f"   [OK] {pass_name}")
                     relevant_passes.append(pass_name)
                 else:
                     print(f"   ❓ {pass_name}")
@@ -52,7 +52,7 @@ class MLIRLoweringPipeline:
             return relevant_passes
             
         except Exception as e:
-            print(f"❌ Error finding passes: {e}")
+            print(f"[FAIL] Error finding passes: {e}")
             return []
 
     def test_lowering_passes(self, input_file):
@@ -90,14 +90,14 @@ class MLIRLoweringPipeline:
         successful_sequences = []
         
         for i, passes in enumerate(pass_sequences):
-            print(f"\n📋 Testing sequence {i+1}: {' → '.join(passes)}")
+            print(f"\n📋 Testing sequence {i+1}: {' -> '.join(passes)}")
             
             success = self.test_pass_sequence(input_file, passes)
             if success:
                 successful_sequences.append(passes)
-                print(f"   ✅ Sequence {i+1} works!")
+                print(f"   [OK] Sequence {i+1} works!")
             else:
-                print(f"   ❌ Sequence {i+1} failed")
+                print(f"   [FAIL] Sequence {i+1} failed")
         
         return successful_sequences
 
@@ -130,7 +130,7 @@ class MLIRLoweringPipeline:
                 return success
                 
         except Exception as e:
-            print(f"      ❌ Error: {e}")
+            print(f"      [FAIL] Error: {e}")
             return False
         finally:
             try:
@@ -140,8 +140,8 @@ class MLIRLoweringPipeline:
 
     def create_lowered_file(self, input_file, output_file, pass_sequence):
         """Create a fully lowered MLIR file"""
-        print(f"\n🚀 Creating lowered file: {input_file} → {output_file}")
-        print(f"📋 Using passes: {' → '.join(pass_sequence)}")
+        print(f"\n🚀 Creating lowered file: {input_file} -> {output_file}")
+        print(f"📋 Using passes: {' -> '.join(pass_sequence)}")
         
         try:
             # Build pipeline
@@ -153,10 +153,10 @@ class MLIRLoweringPipeline:
             elapsed = time.time() - start_time
             
             if result.returncode != 0:
-                print(f"❌ Lowering failed: {result.stderr}")
+                print(f"[FAIL] Lowering failed: {result.stderr}")
                 return False
             
-            print(f"✅ Lowering completed in {elapsed:.3f}s")
+            print(f"[OK] Lowering completed in {elapsed:.3f}s")
             
             # Verify the output
             output_path = Path(output_file)
@@ -170,7 +170,7 @@ class MLIRLoweringPipeline:
                 
                 if translate_result.returncode == 0:
                     llvm_size = len(translate_result.stdout)
-                    print(f"✅ LLVM translation successful! LLVM IR size: {llvm_size} chars")
+                    print(f"[OK] LLVM translation successful! LLVM IR size: {llvm_size} chars")
                     
                     # Save LLVM IR too
                     llvm_file = output_file.replace('.mlir', '.ll')
@@ -180,20 +180,20 @@ class MLIRLoweringPipeline:
                     
                     return True
                 else:
-                    print(f"❌ LLVM translation failed: {translate_result.stderr[:200]}...")
+                    print(f"[FAIL] LLVM translation failed: {translate_result.stderr[:200]}...")
                     return False
             
             return False
             
         except Exception as e:
-            print(f"❌ Error creating lowered file: {e}")
+            print(f"[FAIL] Error creating lowered file: {e}")
             return False
 
     def process_file(self, input_file):
         """Complete pipeline to lower an MLIR file"""
         input_path = Path(input_file)
         if not input_path.exists():
-            print(f"❌ Input file not found: {input_file}")
+            print(f"[FAIL] Input file not found: {input_file}")
             return None
         
         print(f"🎯 Processing {input_file}")
@@ -206,12 +206,12 @@ class MLIRLoweringPipeline:
         successful_sequences = self.test_lowering_passes(str(input_path))
         
         if not successful_sequences:
-            print("❌ No working lowering sequences found!")
+            print("[FAIL] No working lowering sequences found!")
             return None
         
         # Use the first successful sequence
         best_sequence = successful_sequences[0]
-        print(f"\n🎯 Using best sequence: {' → '.join(best_sequence)}")
+        print(f"\n🎯 Using best sequence: {' -> '.join(best_sequence)}")
         
         # Create output filename
         output_file = str(input_path.parent / f"{input_path.stem}_lowered{input_path.suffix}")
@@ -221,7 +221,7 @@ class MLIRLoweringPipeline:
             print(f"🎉 Success! Lowered file created: {output_file}")
             return output_file
         else:
-            print("❌ Failed to create lowered file")
+            print("[FAIL] Failed to create lowered file")
             return None
 
 def main():
@@ -235,7 +235,7 @@ def main():
     # input_file = "mlir/export_mlir.mlir"
     
     if not Path(input_file).exists():
-        print(f"❌ Input file not found: {input_file}")
+        print(f"[FAIL] Input file not found: {input_file}")
         print("Please specify the correct path to your MLIR file.")
         return
     
@@ -249,7 +249,7 @@ def main():
         print(f"\n📋 Quick test:")
         print(f"   mlir-translate --mlir-to-llvmir {lowered_file}")
     else:
-        print("\n⚠️ Lowering failed. You may need to:")
+        print("\n[WARN] Lowering failed. You may need to:")
         print("1. Check which conversion passes are available in your MLIR build")
         print("2. Manually inspect the MLIR file for unsupported constructs")
         print("3. Use alternative approaches like the dialect converter")

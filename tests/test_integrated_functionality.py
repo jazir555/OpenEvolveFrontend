@@ -83,7 +83,7 @@ Basic compliance required.
         # This will fail due to invalid API key, but we can test the structure
         results = run_fully_integrated_adversarial_evolution(**test_params)
         
-        print("\n✅ Test completed with results:")
+        print("\n[OK] Test completed with results:")
         print(f"Success: {results.get('success', False)}")
         print(f"Final content length: {len(results.get('final_content', ''))} characters")
         print(f"Integrated score: {results.get('integrated_score', 0.0)}")
@@ -107,7 +107,7 @@ Basic compliance required.
         return True, results
         
     except Exception as e:
-        print(f"\n❌ Test failed with error: {e}")
+        print(f"\n[FAIL] Test failed with error: {e}")
         print("This is expected if API key is invalid, but the function structure is correct.")
         return False, {"error": str(e)}
 
@@ -148,9 +148,9 @@ def test_different_content_types():
                 "final_length": len(sample_content),  # Would be different after processing
             }
             results[content_type] = result
-            print(f"    ✅ {description} test structure OK")
+            print(f"    [OK] {description} test structure OK")
         except Exception as e:
-            print(f"    ❌ {description} test failed: {e}")
+            print(f"    [FAIL] {description} test failed: {e}")
             results[content_type] = {"success": False, "error": str(e)}
     
     print(f"\n📊 Content type tests completed: {len([r for r in results.values() if r.get('success')])}/{len(results)} successful")

@@ -146,11 +146,11 @@ class DatabaseMigration:
                 cursor.execute(sql)
             
             conn.commit()
-            print(f"✓ Database initialized (version {self.CURRENT_VERSION})")
+            print(f"[OK] Database initialized (version {self.CURRENT_VERSION})")
             
         except Exception as e:
             conn.rollback()
-            print(f"✗ Error initializing database: {e}")
+            print(f"[FAIL] Error initializing database: {e}")
             raise
         finally:
             conn.close()
@@ -198,13 +198,13 @@ class DatabaseMigration:
                     for sql in self.migrations[version]:
                         cursor.execute(sql)
                     conn.commit()
-                    print(f"✓ Migrated to version {version}")
+                    print(f"[OK] Migrated to version {version}")
                 else:
-                    print(f"✗ No migration found for version {version}")
+                    print(f"[FAIL] No migration found for version {version}")
             
         except Exception as e:
             conn.rollback()
-            print(f"✗ Migration failed: {e}")
+            print(f"[FAIL] Migration failed: {e}")
             raise
         finally:
             conn.close()
@@ -220,7 +220,7 @@ class DatabaseMigration:
         # For SQLite, we can just copy the file
         if self.db_url.startswith("sqlite:///"):
             shutil.copy2(self.db_path, backup_path)
-            print(f"✓ Backup created: {backup_path}")
+            print(f"[OK] Backup created: {backup_path}")
         else:
             print("Backup only supported for SQLite databases")
     
@@ -241,14 +241,14 @@ class DatabaseMigration:
         
         # Restore
         shutil.copy2(backup_path, self.db_path)
-        print(f"✓ Database restored from {backup_path}")
+        print(f"[OK] Database restored from {backup_path}")
     
     async def validate(self) -> bool:
         """Validate database integrity."""
         print("Validating database...")
         
         if not Path(self.db_path).exists():
-            print(f"✗ Database not found at {self.db_path}")
+            print(f"[FAIL] Database not found at {self.db_path}")
             return False
         
         conn = sqlite3.connect(self.db_path)
@@ -260,7 +260,7 @@ class DatabaseMigration:
             result = cursor.fetchone()
             
             if result[0] != "ok":
-                print(f"✗ Integrity check failed: {result[0]}")
+                print(f"[FAIL] Integrity check failed: {result[0]}")
                 return False
             
             # Check required tables exist
@@ -276,7 +276,7 @@ class DatabaseMigration:
             
             missing = set(required_tables) - existing_tables
             if missing:
-                print(f"✗ Missing tables: {missing}")
+                print(f"[FAIL] Missing tables: {missing}")
                 return False
             
             # Get statistics
@@ -285,7 +285,7 @@ class DatabaseMigration:
                 cursor.execute(f"SELECT COUNT(*) FROM {table}")
                 stats[table] = cursor.fetchone()[0]
             
-            print("✓ Database validation passed")
+            print("[OK] Database validation passed")
             print("\nStatistics:")
             for table, count in stats.items():
                 print(f"  {table}: {count} rows")
@@ -293,7 +293,7 @@ class DatabaseMigration:
             return True
             
         except Exception as e:
-            print(f"✗ Validation error: {e}")
+            print(f"[FAIL] Validation error: {e}")
             return False
         finally:
             conn.close()
@@ -312,7 +312,7 @@ class DatabaseMigration:
             Path(self.db_path).unlink()
         
         await self.init_database()
-        print("✓ Database reset complete")
+        print("[OK] Database reset complete")
     
     async def export(self, export_path: str):
         """Export database to JSON."""
@@ -345,10 +345,10 @@ class DatabaseMigration:
             with open(export_path, 'w') as f:
                 json.dump(export_data, f, indent=2, default=str)
             
-            print(f"✓ Exported to {export_path}")
+            print(f"[OK] Exported to {export_path}")
             
         except Exception as e:
-            print(f"✗ Export failed: {e}")
+            print(f"[FAIL] Export failed: {e}")
             raise
         finally:
             conn.close()
@@ -386,11 +386,11 @@ class DatabaseMigration:
                     cursor.execute(sql, values)
             
             conn.commit()
-            print(f"✓ Imported from {import_path}")
+            print(f"[OK] Imported from {import_path}")
             
         except Exception as e:
             conn.rollback()
-            print(f"✗ Import failed: {e}")
+            print(f"[FAIL] Import failed: {e}")
             raise
         finally:
             conn.close()

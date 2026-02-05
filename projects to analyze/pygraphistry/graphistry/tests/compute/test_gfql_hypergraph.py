@@ -160,7 +160,7 @@ class TestGFQLHypergraph:
         g = CGFull().nodes(events_df, 'user').edges(edges_df, 'src', 'dst')
 
         # Mixing hypergraph with other operations should now work via recursive dispatch
-        # The chain will be split: before → hypergraph → rest
+        # The chain will be split: before -> hypergraph -> rest
         result = g.gfql([
             n({'type': 'person'}),  # Filter operation (before)
             call('hypergraph', {    # Schema-changer (will be dispatched separately)

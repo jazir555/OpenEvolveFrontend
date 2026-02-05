@@ -62,7 +62,7 @@ async def main():
 
     agent = FinancialEvolutionAgent(config=config)
 
-    logger.info("✓ Agent initialized")
+    logger.info("[OK] Agent initialized")
 
     # ========================================================================
     # Step 2: Define Evolution Objective
@@ -83,7 +83,7 @@ async def main():
         }
     )
 
-    logger.info(f"✓ Objective defined:")
+    logger.info(f"[OK] Objective defined:")
     logger.info(f"  - Crisis periods: {len(objective.crisis_periods)}")
     logger.info(f"  - Max drawdown: {objective.survival_constraints.max_drawdown:.1%}")
     logger.info(f"  - Min final wealth: {objective.survival_constraints.min_equity_final:.1%}")
@@ -100,7 +100,7 @@ async def main():
         strategies_per_iteration=10
     )
 
-    logger.info(f"✓ Budget defined:")
+    logger.info(f"[OK] Budget defined:")
     logger.info(f"  - Max iterations: {budget.iterations}")
     logger.info(f"  - Cost cap: ${budget.cost_cap}")
     logger.info(f"  - Strategies per iteration: {budget.strategies_per_iteration}")
@@ -121,7 +121,7 @@ async def main():
 
     elapsed = (datetime.now() - start_time).total_seconds()
 
-    logger.info("✓ Evolution complete!")
+    logger.info("[OK] Evolution complete!")
 
     # ========================================================================
     # Step 5: Analyze Results
@@ -183,7 +183,7 @@ async def main():
             period="2000-01-01:2026-12-31"
         )
 
-        logger.info(f"✓ Strategy evaluation complete:")
+        logger.info(f"[OK] Strategy evaluation complete:")
         logger.info(f"  Sharpe ratio: {result_detail.sharpe_ratio:.2f}")
         logger.info(f"  Max drawdown: {result_detail.max_drawdown:.1%}")
         logger.info(f"  Final wealth: {result_detail.final_wealth:.2f}x")
@@ -218,7 +218,7 @@ async def main():
     # ========================================================================
 
     logger.info("\n" + "=" * 60)
-    logger.info("✓ Example complete!")
+    logger.info("[OK] Example complete!")
     logger.info("=" * 60)
 
     # Save results (optional)

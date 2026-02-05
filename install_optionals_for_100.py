@@ -14,10 +14,10 @@ def install_package(package, version=None):
     print(f"Installing {spec}...")
     try:
         subprocess.check_call([sys.executable, "-m", "pip", "install", spec])
-        print(f"  ✓ {package} installed successfully")
+        print(f"  [OK] {package} installed successfully")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"  ✗ Failed to install {package}: {e}")
+        print(f"  [FAIL] Failed to install {package}: {e}")
         return False
 
 def main():
@@ -50,11 +50,11 @@ def main():
     print("=" * 70)
     
     if failed == 0:
-        print("\n✅ All optional dependencies installed!")
+        print("\n[OK] All optional dependencies installed!")
         print("Run TRUE_100_INTEGRATION.py to verify TRUE 100% completion")
         return 0
     else:
-        print(f"\n⚠️ {failed} packages failed to install")
+        print(f"\n[WARN] {failed} packages failed to install")
         return 1
 
 if __name__ == "__main__":

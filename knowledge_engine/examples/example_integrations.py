@@ -465,7 +465,7 @@ def example_integrator_combined():
     status = integrator.get_integration_status()
     for module, available in status.items():
         if module != 'timestamp':
-            print(f"   {module}: {'✓' if available else '✗'}")
+            print(f"   {module}: {'[OK]' if available else '[FAIL]'}")
     
     # Mine patterns
     print("\n2. Pattern Mining:")

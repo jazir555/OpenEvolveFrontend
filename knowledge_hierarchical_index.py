@@ -5,7 +5,7 @@ Implements a hierarchical indexing system for organizing memories by importance/
 High-level principles and core facts stay at the top, granular details at the leaves.
 
 Key Features:
-- Hierarchical organization (CORE → IMPORTANT → CONTEXTUAL → GRANULAR)
+- Hierarchical organization (CORE -> IMPORTANT -> CONTEXTUAL -> GRANULAR)
 - Dynamic importance scoring with multiple factors
 - Automatic promotion/demotion based on memory usage patterns
 - Thread-safe operations

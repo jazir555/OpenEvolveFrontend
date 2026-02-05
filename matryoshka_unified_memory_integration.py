@@ -26,13 +26,13 @@ Key Integration Points:
 
 Architecture:
 -------------
-    Matryoshka RLM ←→ MatryoshkaMemoryBridge ←→ UnifiedMemorySystem
-           ↓                                    ↓
+    Matryoshka RLM <--> MatryoshkaMemoryBridge <--> UnifiedMemorySystem
+           v                                    v
     ExplorationSession                    4-Layer Index
-           ↓                                    ↓
-    Stateful Turns                    Hash→Hierarchical→
-           ↓                                    Graph→Semantic
-    SynthesisResult                        ↓
+           v                                    v
+    Stateful Turns                    Hash->Hierarchical->
+           v                                    Graph->Semantic
+    SynthesisResult                        v
                                     Always-True State
 
 Author: OpenEvolve AI
@@ -120,7 +120,7 @@ class ExplorationStep:
     A single step in the Matryoshka exploration process.
     
     Each step represents one iteration of the exploration loop:
-    - Query → Code → Execute → Observe → Insight
+    - Query -> Code -> Execute -> Observe -> Insight
     """
     step_id: str
     session_id: str
@@ -373,7 +373,7 @@ class ExplorationContext:
             for step in self.step_chain[-3:]:  # Last 3 steps
                 sections.append(f"Turn {step.turn_number}: {step.step_type.value}")
                 if step.insight:
-                    sections.append(f"  → Insight: {step.insight[:100]}...")
+                    sections.append(f"  -> Insight: {step.insight[:100]}...")
             sections.append("")
         
         context = "\n".join(sections)

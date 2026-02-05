@@ -196,7 +196,7 @@ class OpenEvolveBubbleLabsUI:
 
             if submitted:
                 if not workflow_name or not problem_statement:
-                    st.error("❌ Workflow name and problem statement are required!")
+                    st.error("[FAIL] Workflow name and problem statement are required!")
                 else:
                     self._create_workflow(
                         workflow_name=workflow_name,
@@ -246,7 +246,7 @@ class OpenEvolveBubbleLabsUI:
                     maker_enabled=maker_enabled
                 )
 
-                st.success(f"✅ Workflow created successfully! ID: `{workflow_id[:8]}...`")
+                st.success(f"[OK] Workflow created successfully! ID: `{workflow_id[:8]}...`")
                 st.info(f"💡 You can now execute this workflow in the 'Execute Workflow' tab.")
                 st.session_state.selected_workflow_id = workflow_id
 
@@ -275,9 +275,9 @@ class OpenEvolveBubbleLabsUI:
                     })
 
         except ValueError as e:
-            st.error(f"❌ Error creating workflow: {e}")
+            st.error(f"[FAIL] Error creating workflow: {e}")
         except (TypeError, RuntimeError) as e:
-            st.error(f"❌ Unexpected error: {e}")
+            st.error(f"[FAIL] Unexpected error: {e}")
 
     # =========================================================================
     # WORKFLOW EXECUTION TAB
@@ -372,7 +372,7 @@ class OpenEvolveBubbleLabsUI:
 
                 # Update UI based on result
                 if result.success:
-                    st.success(f"✅ Workflow completed successfully!")
+                    st.success(f"[OK] Workflow completed successfully!")
                     st.info(f"⏱️ Execution time: {result.execution_time:.2f} seconds")
 
                     # Show results
@@ -409,14 +409,14 @@ class OpenEvolveBubbleLabsUI:
                     st.session_state.workflow_execution_results[workflow_id] = result
 
                 else:
-                    st.error(f"❌ Workflow failed: {result.error}")
+                    st.error(f"[FAIL] Workflow failed: {result.error}")
 
                     if result.error:
                         with st.expander("Error Details"):
                             st.code(result.error)
 
         except (RuntimeError, ValueError, TypeError) as e:
-            st.error(f"❌ Error executing workflow: {e}")
+            st.error(f"[FAIL] Error executing workflow: {e}")
             st.exception(e)
 
     # =========================================================================
@@ -483,7 +483,7 @@ class OpenEvolveBubbleLabsUI:
         st.markdown("View workflow execution metrics and performance data.")
 
         if not self.workflow_manager.analytics:
-            st.warning("⚠️ Analytics is not enabled. Initialize the workflow manager with analytics_db_path to enable analytics.")
+            st.warning("[WARN] Analytics is not enabled. Initialize the workflow manager with analytics_db_path to enable analytics.")
             return
 
         analytics = self.workflow_manager.analytics

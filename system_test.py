@@ -808,10 +808,10 @@ class SystemTester:
                 
                 if result["status"] == "PASSED":
                     passed_count += 1
-                    logger.info(f"✓ {result['component']}: {result['status']}")
+                    logger.info(f"[OK] {result['component']}: {result['status']}")
                 else:
                     failed_count += 1
-                    logger.error(f"✗ {result['component']}: {result['status']} - {result.get('error', 'Unknown error')}")
+                    logger.error(f"[FAIL] {result['component']}: {result['status']} - {result.get('error', 'Unknown error')}")
                     
             except Exception as e:
                 failed_count += 1
@@ -822,7 +822,7 @@ class SystemTester:
                     "error": str(e)
                 }
                 results.append(error_result)
-                logger.error(f"✗ {test_func.__name__}: ERROR - {e}")
+                logger.error(f"[FAIL] {test_func.__name__}: ERROR - {e}")
         
         # Calculate overall statistics
         total_time = time.time() - self.start_time
@@ -862,7 +862,7 @@ class SystemTester:
         ]
         
         for result in summary["test_results"]:
-            status_icon = "✓" if result["status"] == "PASSED" else "✗" if result["status"] == "FAILED" else "!"
+            status_icon = "[OK]" if result["status"] == "PASSED" else "[FAIL]" if result["status"] == "FAILED" else "!"
             report_lines.append(f"{status_icon} {result['component']:<25} {result['status']:<10} {result['execution_time']:>8.2f}s")
             
             if result["status"] == "PASSED" and "details" in result:
@@ -913,7 +913,7 @@ def main():
     if summary['overall_status'] == 'PASSED':
         print("\n🎉 All tests passed! The system is functioning correctly.")
     else:
-        print(f"\n⚠️  {summary['failed_tests']} tests failed. Please review the report above.")
+        print(f"\n[WARN]  {summary['failed_tests']} tests failed. Please review the report above.")
     
     return summary['overall_status'] == 'PASSED'
 

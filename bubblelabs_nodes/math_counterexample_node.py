@@ -417,7 +417,7 @@ class MathCounterexampleNode(BubbleLabsNode):
             return "universal"
         elif "∃" in statement or "exists" in statement:
             return "existential"
-        elif "→" in statement or "implies" in statement:
+        elif "->" in statement or "implies" in statement:
             return "implication"
         else:
             return "atomic"

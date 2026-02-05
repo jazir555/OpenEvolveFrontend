@@ -3,7 +3,7 @@
 # Generates a Sorted Pattern Frequency graph
 # showing how often each mined frequent pattern occurs in the dataset.
 #
-# X-axis: Patterns sorted by frequency (most frequent → least frequent)
+# X-axis: Patterns sorted by frequency (most frequent -> least frequent)
 # Y-axis: Support count of each pattern
 #
 # The graph visualizes the "long tail" distribution among discovered patterns.

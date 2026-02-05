@@ -10,12 +10,12 @@ IMPORTANT: DataPizza provides multi-agent coordination with Blue/Red/Gold teams,
 tool use (FileSystem, Web Search, SQL), and OpenTelemetry tracing.
 
 Phase Mapping:
-- Phase 1: Problem Setup → Multi-agent analysis
-- Phase 2: Solution Generation → Blue Agent (with planning and tools)
-- Phase 3: Adversarial Critique → Red Agent (critical review)
-- Phase 4: Verification → Gold Agent (quality assurance)
-- Phase 5: Reassembly → Multi-agent coordination
-- Phase 6: Final Validation → Full blue-red-gold workflow
+- Phase 1: Problem Setup -> Multi-agent analysis
+- Phase 2: Solution Generation -> Blue Agent (with planning and tools)
+- Phase 3: Adversarial Critique -> Red Agent (critical review)
+- Phase 4: Verification -> Gold Agent (quality assurance)
+- Phase 5: Reassembly -> Multi-agent coordination
+- Phase 6: Final Validation -> Full blue-red-gold workflow
 
 License: MIT (replaces AGPL Hephaestus)
 Author: OpenEvolve Team

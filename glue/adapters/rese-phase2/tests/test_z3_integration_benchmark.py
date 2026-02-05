@@ -14,7 +14,7 @@ Following CLAUDE.md principles:
 - Law of Runtime Truth: Test against real Z3 solver
 - Circuit Breaker: Verify timeout handling
 - Structured Logging: Verify JSON output
-- Idempotency: Same inputs → same scores
+- Idempotency: Same inputs -> same scores
 
 Author: RESE Team
 Created: 2026-02-04

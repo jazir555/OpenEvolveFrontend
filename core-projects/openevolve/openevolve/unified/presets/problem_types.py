@@ -48,7 +48,7 @@ class SingleObjectivePreset(BasePreset):
                 "Objectives": "1 - single objective",
                 "Method": "Standard evolution",
                 "Output": "Best solution found",
-                "Complexity": "✅ Simple - straightforward optimization"
+                "Complexity": "[OK] Simple - straightforward optimization"
             },
             related_presets=["multi_objective", "balanced"],
             example_usage="""
@@ -111,7 +111,7 @@ class MultiObjectivePreset(BasePreset):
                 "Objectives": "2+ - multiple objectives",
                 "Method": "NSGA-II / NSGA-III",
                 "Output": "Pareto front of solutions",
-                "Complexity": "⚠️ Higher - multi-objective optimization"
+                "Complexity": "[WARN] Higher - multi-objective optimization"
             },
             related_presets=["single_objective", "finance_portfolio"],
             example_usage="""
@@ -256,7 +256,7 @@ class FastEvaluationPreset(BasePreset):
                 "Evaluations": "⚡⚡⚡ Very fast - maximize exploration",
                 "Method": "QD - explore entire space",
                 "Parallelism": "High - leverage speed",
-                "Time": "✅ Efficient - fast evaluations"
+                "Time": "[OK] Efficient - fast evaluations"
             },
             related_presets=["expensive_evaluation", "thorough"],
             example_usage="""
@@ -324,8 +324,8 @@ class SafetyCriticalPreset(BasePreset):
                 "any application where failures are unacceptable"
             ),
             trade_offs={
-                "Safety": "✅✅✅ Maximum - adversarial testing",
-                "Validation": "✅✅✅ Comprehensive - all checks",
+                "Safety": "[OK][OK][OK] Maximum - adversarial testing",
+                "Validation": "[OK][OK][OK] Comprehensive - all checks",
                 "Method": "Adversarial - robust solutions",
                 "Cost": "💰💰💰 Very high - extensive validation"
             },

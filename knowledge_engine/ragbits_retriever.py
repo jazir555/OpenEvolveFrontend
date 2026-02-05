@@ -102,11 +102,11 @@ class RAGBitsEnhancedRetriever:
                 config = RagbitsIntegrationConfig(**(ragbits_config or {}))
                 self.ragbits_retriever = RagbitsKnowledgeRetriever(config)
                 self.ragbits_available = True
-                logger.info("✅ RAGBits retriever initialized successfully")
+                logger.info("[OK] RAGBits retriever initialized successfully")
             except Exception as e:
-                logger.warning(f"⚠️ Could not initialize RAGBits: {e}")
+                logger.warning(f"[WARN] Could not initialize RAGBits: {e}")
         else:
-            logger.warning("⚠️ RAGBits dependencies not available")
+            logger.warning("[WARN] RAGBits dependencies not available")
 
         logger.info(f"RAGBitsEnhancedRetriever initialized (RAGBits available: {self.ragbits_available})")
 
@@ -134,7 +134,7 @@ class RAGBitsEnhancedRetriever:
         """
         # Validate and normalize inputs
         if not validate_query(query):
-            logger.warning("⚠️ Invalid query provided")
+            logger.warning("[WARN] Invalid query provided")
             return []
 
         top_k = validate_top_k(top_k)
@@ -162,14 +162,14 @@ class RAGBitsEnhancedRetriever:
             if self.enable_cache:
                 self._cache[cache_key] = filtered_results
 
-            logger.info(f"✅ Found {len(filtered_results)} similar solutions")
+            logger.info(f"[OK] Found {len(filtered_results)} similar solutions")
             return filtered_results
 
         except asyncio.CancelledError:
-            logger.warning("⚠️ Search operation was cancelled")
+            logger.warning("[WARN] Search operation was cancelled")
             return []
         except Exception as e:
-            logger.error(f"❌ Error searching similar solutions: {e}", exc_info=True)
+            logger.error(f"[FAIL] Error searching similar solutions: {e}", exc_info=True)
             return []
 
     async def search_decomposition_patterns(
@@ -209,11 +209,11 @@ class RAGBitsEnhancedRetriever:
                 if min_depth <= r.get("depth", 0) <= max_depth
             ]
 
-            logger.info(f"✅ Found {len(filtered)} decomposition patterns")
+            logger.info(f"[OK] Found {len(filtered)} decomposition patterns")
             return filtered
 
         except Exception as e:
-            logger.error(f"❌ Error searching decomposition patterns: {e}")
+            logger.error(f"[FAIL] Error searching decomposition patterns: {e}")
             return []
 
     async def search_critique_patterns(
@@ -252,11 +252,11 @@ class RAGBitsEnhancedRetriever:
                     if r.get("critique_type") == critique_type
                 ]
 
-            logger.info(f"✅ Found {len(results)} critique patterns")
+            logger.info(f"[OK] Found {len(results)} critique patterns")
             return results
 
         except Exception as e:
-            logger.error(f"❌ Error searching critique patterns: {e}")
+            logger.error(f"[FAIL] Error searching critique patterns: {e}")
             return []
 
     async def search_verification_benchmarks(
@@ -294,11 +294,11 @@ class RAGBitsEnhancedRetriever:
                 if r.get("coverage", 0.0) >= min_coverage
             ]
 
-            logger.info(f"✅ Found {len(filtered)} verification benchmarks")
+            logger.info(f"[OK] Found {len(filtered)} verification benchmarks")
             return filtered
 
         except Exception as e:
-            logger.error(f"❌ Error searching verification benchmarks: {e}")
+            logger.error(f"[FAIL] Error searching verification benchmarks: {e}")
             return []
 
     async def search_contextual_knowledge(
@@ -356,15 +356,15 @@ class RAGBitsEnhancedRetriever:
         """
         # Validate inputs
         if not content or not isinstance(content, str):
-            logger.warning("⚠️ Invalid content provided for ingestion")
+            logger.warning("[WARN] Invalid content provided for ingestion")
             return ""
 
         if not metadata or not isinstance(metadata, dict):
-            logger.warning("⚠️ Invalid metadata provided, using empty dict")
+            logger.warning("[WARN] Invalid metadata provided, using empty dict")
             metadata = {}
 
         if not artifact_type or not isinstance(artifact_type, str):
-            logger.warning("⚠️ Invalid artifact_type, defaulting to 'general'")
+            logger.warning("[WARN] Invalid artifact_type, defaulting to 'general'")
             artifact_type = "general"
 
         logger.info(f"📥 Ingesting {artifact_type} artifact...")
@@ -375,7 +375,7 @@ class RAGBitsEnhancedRetriever:
                 doc_id = await self._ragbits_ingest(content, metadata, artifact_type)
                 if not doc_id:
                     # Fallback if RAGBits returns empty ID
-                    logger.warning("⚠️ RAGBits returned empty ID, using fallback")
+                    logger.warning("[WARN] RAGBits returned empty ID, using fallback")
                     doc_id = f"artifact_{datetime.utcnow().timestamp()}"
             else:
                 # Mock ingestion
@@ -386,16 +386,16 @@ class RAGBitsEnhancedRetriever:
             try:
                 self._clear_cache_for_type(artifact_type)
             except Exception as cache_error:
-                logger.warning(f"⚠️ Could not clear cache: {cache_error}")
+                logger.warning(f"[WARN] Could not clear cache: {cache_error}")
 
-            logger.info(f"✅ Ingested artifact: {doc_id}")
+            logger.info(f"[OK] Ingested artifact: {doc_id}")
             return doc_id
 
         except asyncio.CancelledError:
-            logger.warning("⚠️ Artifact ingestion was cancelled")
+            logger.warning("[WARN] Artifact ingestion was cancelled")
             return ""
         except Exception as e:
-            logger.error(f"❌ Error ingesting artifact: {e}", exc_info=True)
+            logger.error(f"[FAIL] Error ingesting artifact: {e}", exc_info=True)
             return ""
 
     async def _ragbits_search_solutions(
@@ -506,7 +506,7 @@ class RAGBitsEnhancedRetriever:
     async def clear_cache(self):
         """Clear the cache"""
         self._cache.clear()
-        logger.info("✅ Cache cleared")
+        logger.info("[OK] Cache cleared")
 
 
 # Singleton instance

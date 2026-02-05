@@ -104,7 +104,7 @@ try:
         print(f"  [ERROR] Problem validation failed: {validation_errors}")
         
 except Exception as e:
-    print(f"  ❌ Core data models import failed: {e}")
+    print(f"  [FAIL] Core data models import failed: {e}")
 
 print()
 
@@ -141,11 +141,11 @@ for test_file in test_files:
             # Try to compile the test file
             with open(test_file, 'r', encoding='utf-8') as f:
                 compile(f.read(), test_file, 'exec')
-            print(f"  ✅ {test_file} compiles successfully")
+            print(f"  [OK] {test_file} compiles successfully")
         except Exception as e:
-            print(f"  ⚠️ {test_file} compiles with warnings: {e}")
+            print(f"  [WARN] {test_file} compiles with warnings: {e}")
     else:
-        print(f"  ❌ {test_file} - MISSING")
+        print(f"  [FAIL] {test_file} - MISSING")
 
 print()
 
@@ -157,36 +157,36 @@ print("="*80)
 all_files_exist = len(missing_files) == 0
 core_imports_work = True  # We assume if we got this far without exception
 
-print(f"All required files exist: {'✅ YES' if all_files_exist else '❌ NO'}")  
-print(f"Core functionality imports: {'✅ YES' if core_imports_work else '❌ NO'}")
-print(f"Testing framework present: {'✅ YES' if len(test_files) - len([f for f in test_files if not os.path.exists(f)]) == len(test_files) else '❌ NO'}")
+print(f"All required files exist: {'[OK] YES' if all_files_exist else '[FAIL] NO'}")  
+print(f"Core functionality imports: {'[OK] YES' if core_imports_work else '[FAIL] NO'}")
+print(f"Testing framework present: {'[OK] YES' if len(test_files) - len([f for f in test_files if not os.path.exists(f)]) == len(test_files) else '[FAIL] NO'}")
 
 overall_status = all_files_exist and core_imports_work
-print(f"Overall implementation status: {'✅ COMPLETE' if overall_status else '❌ INCOMPLETE'}")
+print(f"Overall implementation status: {'[OK] COMPLETE' if overall_status else '[FAIL] INCOMPLETE'}")
 
 print()
 if overall_status:
     print("🎉 ALL MASTER TASKLIST ITEMS HAVE BEEN SUCCESSFULLY IMPLEMENTED! 🎉")
     print()
     print("The Sovereign-Grade Problem Decomposition System is now COMPLETE with:")
-    print("✅ Full data model implementation")
-    print("✅ Complete analyzer and decomposition engine")
-    print("✅ Multi-team coordination (Red/Blue/Gold)")
-    print("✅ Solution orchestration and integration") 
-    print("✅ Persistence layer with full CRUD operations")
-    print("✅ Authentication and authorization system")
-    print("✅ Input validation and security measures")
-    print("✅ Performance optimization and caching")
-    print("✅ Scalability and distributed processing")
-    print("✅ Monitoring and observability")
-    print("✅ Comprehensive testing framework")
-    print("✅ Advanced features (multi-modal, collaboration, templates)")
-    print("✅ Gauntlet validation system")
-    print("✅ Production-ready architecture")
+    print("[OK] Full data model implementation")
+    print("[OK] Complete analyzer and decomposition engine")
+    print("[OK] Multi-team coordination (Red/Blue/Gold)")
+    print("[OK] Solution orchestration and integration") 
+    print("[OK] Persistence layer with full CRUD operations")
+    print("[OK] Authentication and authorization system")
+    print("[OK] Input validation and security measures")
+    print("[OK] Performance optimization and caching")
+    print("[OK] Scalability and distributed processing")
+    print("[OK] Monitoring and observability")
+    print("[OK] Comprehensive testing framework")
+    print("[OK] Advanced features (multi-modal, collaboration, templates)")
+    print("[OK] Gauntlet validation system")
+    print("[OK] Production-ready architecture")
     print()
     print("System is ready for production deployment!")
 else:
-    print("⚠️  Some components still need to be implemented.")
+    print("[WARN]  Some components still need to be implemented.")
 
 print("="*80)
 print(f"Final verification completed at: {datetime.now().isoformat()}")

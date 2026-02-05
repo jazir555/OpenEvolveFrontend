@@ -335,7 +335,7 @@ def load_controversial_cache() -> List[str]:
                 data = json.load(f)
                 questions = data.get('questions', [])
                 if questions:
-                    print(f"  ✓ Loaded {len(questions)} controversial questions from cache")
+                    print(f"  [OK] Loaded {len(questions)} controversial questions from cache")
                     return questions
         except Exception as e:
             print(f"  Warning: Failed to load controversial cache: {e}")
@@ -353,7 +353,7 @@ def save_controversial_cache(questions: List[str]):
                 'count': len(questions),
                 'generated_at': datetime.now().isoformat()
             }, f, indent=2)
-        print(f"  ✓ Saved {len(questions)} controversial questions to cache")
+        print(f"  [OK] Saved {len(questions)} controversial questions to cache")
     except Exception as e:
         print(f"  Warning: Failed to save controversial cache: {e}")
 
@@ -463,7 +463,7 @@ Defend the claim: Censorship is sometimes necessary.
             print(f"    Batch {batch_num + 1} error: {e}")
             continue
     
-    print(f"  ✓ Claude generated {len(all_questions)} unique controversial questions")
+    print(f"  [OK] Claude generated {len(all_questions)} unique controversial questions")
     
     return all_questions
 
@@ -644,7 +644,7 @@ def load_concept_pairs_cache() -> List[Tuple[str, str]]:
                 # Convert lists back to tuples
                 pairs = [tuple(pair) for pair in data.get('pairs', [])]
                 if pairs:
-                    print(f"  ✓ Loaded {len(pairs)} concept pairs from cache")
+                    print(f"  [OK] Loaded {len(pairs)} concept pairs from cache")
                     return pairs
         except Exception as e:
             print(f"  Warning: Failed to load cache: {e}")
@@ -661,7 +661,7 @@ def save_concept_pairs_cache(pairs: List[Tuple[str, str]]):
                 'count': len(pairs),
                 'generated_at': datetime.now().isoformat()
             }, f, indent=2)
-        print(f"  ✓ Saved {len(pairs)} concept pairs to cache")
+        print(f"  [OK] Saved {len(pairs)} concept pairs to cache")
     except Exception as e:
         print(f"  Warning: Failed to save cache: {e}")
 
@@ -793,7 +793,7 @@ Generate exactly the requested number of pairs."""
         # Trim if we got too many
         pairs = pairs[:n_probes]
         
-        print(f"  ✓ Generated {len(pairs)} concept pairs")
+        print(f"  [OK] Generated {len(pairs)} concept pairs")
         print(f"\n  Examples:")
         for i, (a, b) in enumerate(pairs[:3]):
             print(f"    {i+1}. '{a}' vs '{b}'")
@@ -805,7 +805,7 @@ Generate exactly the requested number of pairs."""
         return pairs
         
     except Exception as e:
-        print(f"  ✗ Error: {e}")
+        print(f"  [FAIL] Error: {e}")
         print(f"  Falling back to random concept pool")
         import random
         return [tuple(random.sample(CONCEPT_POOL, 2)) for _ in range(n_probes)]
@@ -1187,7 +1187,7 @@ def run_experiment():
             print(f"  Completed probes: {num_completed}/{N_PROBES}")
             
             if num_completed >= N_PROBES:
-                print(f"  ✓ All {N_PROBES} probes already completed!")
+                print(f"  [OK] All {N_PROBES} probes already completed!")
                 all_probes = previous_probes[:N_PROBES]
                 start_index = N_PROBES  # Skip the probe loop entirely
             else:
@@ -1240,7 +1240,7 @@ def run_experiment():
                         ]
                     save_data.append(p_copy)
                 json.dump(save_data, f, indent=2)
-            print(f"\n  → Saved intermediate results ({i+1} probes)")
+            print(f"\n  -> Saved intermediate results ({i+1} probes)")
     
     # Extract final embeddings and texts
     final_embeddings = []
@@ -1291,7 +1291,7 @@ def run_experiment():
             if hedge_results and hedge_results.get("hedge_centroid") is not None:
                 hedge_centroid_path = f"{RESULTS_DIR}/hedge_centroid_{TIMESTAMP}.npy"
                 np.save(hedge_centroid_path, hedge_results["hedge_centroid"])
-                print(f"\n  ✓ Saved hedge centroid to: {hedge_centroid_path}")
+                print(f"\n  [OK] Saved hedge centroid to: {hedge_centroid_path}")
                 
                 # Also save hedge sentences for reference
                 hedge_sentences_path = f"{RESULTS_DIR}/hedge_sentences_{TIMESTAMP}.json"
@@ -1308,7 +1308,7 @@ def run_experiment():
                             for k, v in hedge_results.get("cluster_info", {}).items()
                         }
                     }, f, indent=2)
-                print(f"  ✓ Saved hedge sentences to: {hedge_sentences_path}")
+                print(f"  [OK] Saved hedge sentences to: {hedge_sentences_path}")
         else:
             print(f"  Not enough sentences for hedge detection (need 10+, got {len(all_sentence_embeddings)})")
     

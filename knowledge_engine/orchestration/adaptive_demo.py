@@ -249,11 +249,11 @@ def demo_adaptive_orchestrator():
     print("""
 The AdaptiveOrchestrator is the ULTIMATE knowledge engine:
 
-✓ NO DOMAIN PRESETS - Automatically classifies ANY input
-✓ DYNAMIC ADAPTATION - Adjusts strategy based on content
-✓ GLOBAL LEARNING - Learns from ALL users, improves for EVERYONE
-✓ CONTINUOUS VALIDATION - Gauntlet ensures quality
-✓ SELF-IMPROVING - Gets more accurate over time
+[OK] NO DOMAIN PRESETS - Automatically classifies ANY input
+[OK] DYNAMIC ADAPTATION - Adjusts strategy based on content
+[OK] GLOBAL LEARNING - Learns from ALL users, improves for EVERYONE
+[OK] CONTINUOUS VALIDATION - Gauntlet ensures quality
+[OK] SELF-IMPROVING - Gets more accurate over time
 
 Usage:
     from knowledge_engine import create_adaptive_orchestrator
@@ -276,12 +276,12 @@ How it works:
 8. Future executions benefit
 
 Example scenarios:
-- Financial report → Finance domain → Causal analysis enabled
-- Chemistry paper → Chemistry domain → GlobalChem enabled
-- Medical record → Healthcare domain → Drug entity extraction
-- Legal contract → Legal domain → Clause extraction
-- News article → News domain → Fast processing
-- Research paper → Research domain → Comprehensive analysis
+- Financial report -> Finance domain -> Causal analysis enabled
+- Chemistry paper -> Chemistry domain -> GlobalChem enabled
+- Medical record -> Healthcare domain -> Drug entity extraction
+- Legal contract -> Legal domain -> Clause extraction
+- News article -> News domain -> Fast processing
+- Research paper -> Research domain -> Comprehensive analysis
 
 All handled AUTOMATICALLY by the adaptive system!
 """)
@@ -298,10 +298,10 @@ All handled AUTOMATICALLY by the adaptive system!
             enable_gauntlet=True
         )
         
-        print(f"  ✓ AdaptiveOrchestrator created")
-        print(f"  ✓ Auto-classification: {orchestrator.adaptive_config.enable_auto_classification}")
-        print(f"  ✓ Global learning: {orchestrator.adaptive_config.enable_global_learning}")
-        print(f"  ✓ Gauntlet validation: {orchestrator.adaptive_config.enable_gauntlet}")
+        print(f"  [OK] AdaptiveOrchestrator created")
+        print(f"  [OK] Auto-classification: {orchestrator.adaptive_config.enable_auto_classification}")
+        print(f"  [OK] Global learning: {orchestrator.adaptive_config.enable_global_learning}")
+        print(f"  [OK] Gauntlet validation: {orchestrator.adaptive_config.enable_gauntlet}")
         
         # Get adaptive stats
         stats = orchestrator.get_adaptive_stats()
@@ -327,7 +327,7 @@ def demo_system_architecture():
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  INPUT: Any text content (any domain, any type)                             │
-│     ↓                                                                       │
+│     v                                                                       │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │ 1. DOMAIN CLASSIFICATION                                            │   │
 │  │    - Pattern matching (regex keywords)                              │   │
@@ -335,7 +335,7 @@ def demo_system_architecture():
 │  │    - Historical pattern matching                                    │   │
 │  │    - Output: Domain + Confidence + Recommended Components           │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
-│     ↓                                                                       │
+│     v                                                                       │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │ 2. DYNAMIC CONFIGURATION                                            │   │
 │  │    - Select optimal components based on domain                      │   │
@@ -343,14 +343,14 @@ def demo_system_architecture():
 │  │    - Enable domain-specific features                                │   │
 │  │    - NO hardcoded presets - pure adaptation!                        │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
-│     ↓                                                                       │
+│     v                                                                       │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │ 3. GLOBAL LEARNING PATTERNS                                         │   │
 │  │    - Apply patterns learned from all users                          │   │
 │  │    - Use successful component configurations                        │   │
 │  │    - Apply proven healing strategies                                │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
-│     ↓                                                                       │
+│     v                                                                       │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │ 4. EXECUTION (with full self-healing)                               │   │
 │  │    - Circuit breaker protection                                     │   │
@@ -358,7 +358,7 @@ def demo_system_architecture():
 │  │    - 7 healing strategies if failures occur                         │   │
 │  │    - Cross-validation between components                            │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
-│     ↓                                                                       │
+│     v                                                                       │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │ 5. GAUNTLET VALIDATION                                              │   │
 │  │    - Accuracy validation (vs expected output)                       │   │
@@ -367,7 +367,7 @@ def demo_system_architecture():
 │  │    - Performance benchmarking                                       │   │
 │  │    - Quality gate check                                             │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
-│     ↓                                                                       │
+│     v                                                                       │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │ 6. GLOBAL LEARNING CONTRIBUTION                                     │   │
 │  │    - Share anonymized experience with global pool                   │   │
@@ -375,21 +375,21 @@ def demo_system_architecture():
 │  │    - Contribute to knowledge base                                   │   │
 │  │    - ALL users benefit from YOUR execution!                         │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
-│     ↓                                                                       │
+│     v                                                                       │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │ 7. CONTINUOUS ADAPTATION                                            │   │
 │  │    - Track domain-specific performance                              │   │
 │  │    - Adjust strategy based on success rates                         │   │
 │  │    - Learn optimal configurations                                   │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
-│     ↓                                                                       │
+│     v                                                                       │
 │  OUTPUT: Results + Adaptive Metadata + Feedback Request                     │
 │                                                                             │
 │  THE SYSTEM IS NOW SMARTER THAN BEFORE!                                     │
-│  ✓ Your execution contributed to global learning                            │
-│  ✓ Future users will benefit from your patterns                             │
-│  ✓ The system learned what works for your domain                            │
-│  ✓ Quality validated through gauntlet                                       │
+│  [OK] Your execution contributed to global learning                            │
+│  [OK] Future users will benefit from your patterns                             │
+│  [OK] The system learned what works for your domain                            │
+│  [OK] Quality validated through gauntlet                                       │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 
@@ -417,12 +417,12 @@ def run_all_demos():
     print("""
 The Adaptive Knowledge Engine is a TRUE knowledge engine:
 
-✓ Universal - handles ANY domain automatically
-✓ Adaptive - dynamically adjusts to content
-✓ Learning - improves from every execution  
-✓ Global - benefits all users collectively
-✓ Validated - continuous quality assurance
-✓ Self-Improving - accuracy increases over time
+[OK] Universal - handles ANY domain automatically
+[OK] Adaptive - dynamically adjusts to content
+[OK] Learning - improves from every execution  
+[OK] Global - benefits all users collectively
+[OK] Validated - continuous quality assurance
+[OK] Self-Improving - accuracy increases over time
 
 This is not just an orchestrator - it's a living, learning system
 that gets smarter the more it's used!

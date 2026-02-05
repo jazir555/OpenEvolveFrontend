@@ -1789,7 +1789,7 @@ class QualityAssessmentEngine:
         
         report.append(f"Recommendations: {len(assessment_result.recommendations)}")
         for rec in assessment_result.recommendations[:5]:  # Show first 5 recommendations
-            report.append(f"  • {rec}")
+            report.append(f"  * {rec}")
         if len(assessment_result.recommendations) > 5:
             report.append(f"  ... and {len(assessment_result.recommendations) - 5} more recommendations")
         

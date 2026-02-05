@@ -105,38 +105,38 @@ def run_tests():
         total_tests += 1
         valid, error = test_python_syntax(program_path)
         if not valid:
-            print(f"  {RED}✗{RESET} Program syntax error: {error}")
+            print(f"  {RED}[FAIL]{RESET} Program syntax error: {error}")
             all_passed = False
         else:
-            print(f"  {GREEN}✓{RESET} Program syntax valid")
+            print(f"  {GREEN}[OK]{RESET} Program syntax valid")
 
             # Test structure
             total_tests += 1
             valid, error = test_program_structure(program_path)
             if not valid:
-                print(f"  {RED}✗{RESET} Program structure error: {error}")
+                print(f"  {RED}[FAIL]{RESET} Program structure error: {error}")
                 all_passed = False
             else:
-                print(f"  {GREEN}✓{RESET} Program structure valid")
+                print(f"  {GREEN}[OK]{RESET} Program structure valid")
                 passed_tests += 1
 
         # Test evaluator file
         total_tests += 1
         valid, error = test_python_syntax(evaluator_path)
         if not valid:
-            print(f"  {RED}✗{RESET} Evaluator syntax error: {error}")
+            print(f"  {RED}[FAIL]{RESET} Evaluator syntax error: {error}")
             all_passed = False
         else:
-            print(f"  {GREEN}✓{RESET} Evaluator syntax valid")
+            print(f"  {GREEN}[OK]{RESET} Evaluator syntax valid")
 
             # Test structure
             total_tests += 1
             valid, error = test_evaluator_structure(evaluator_path)
             if not valid:
-                print(f"  {RED}✗{RESET} Evaluator structure error: {error}")
+                print(f"  {RED}[FAIL]{RESET} Evaluator structure error: {error}")
                 all_passed = False
             else:
-                print(f"  {GREEN}✓{RESET} Evaluator structure valid")
+                print(f"  {GREEN}[OK]{RESET} Evaluator structure valid")
                 passed_tests += 1
 
     # Test documentation files
@@ -155,10 +155,10 @@ def run_tests():
         total_tests += 1
 
         if doc_path.exists():
-            print(f"  {GREEN}✓{RESET} {doc_file} exists")
+            print(f"  {GREEN}[OK]{RESET} {doc_file} exists")
             passed_tests += 1
         else:
-            print(f"  {RED}✗{RESET} {doc_file} missing")
+            print(f"  {RED}[FAIL]{RESET} {doc_file} missing")
             all_passed = False
 
     # Summary

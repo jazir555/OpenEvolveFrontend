@@ -6,12 +6,12 @@ working in parallel to validate sub-problem solutions.
 Now integrated with OpenEvolve's ensemble functionality for efficient coordination.
 
 Architecture:
-    DecompositionEngine → EvaluatorTeamCoordinator → Ensemble-based Parallel Execution
-                         ↓                         ↓
+    DecompositionEngine -> EvaluatorTeamCoordinator -> Ensemble-based Parallel Execution
+                         v                         v
                     Evaluation Task Queue     Load Balancing & Aggregation
-                         ↓                         ↓
-                    Consensus Building ← Ensemble Aggregation (6 algorithms)
-                         ↓
+                         v                         v
+                    Consensus Building <- Ensemble Aggregation (6 algorithms)
+                         v
                     Quality-Gated Solutions
 
 Key Changes:

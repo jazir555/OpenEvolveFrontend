@@ -65,6 +65,36 @@ try:
 except ImportError:
     LEANAIDE_AVAILABLE = False
     logging.warning("LeanAide integration not available - using simulation mode")
+    
+    # Define fallback classes for type hints
+    from dataclasses import dataclass, field
+    from typing import List, Dict, Any, Optional
+    
+    @dataclass
+    class Tactic:
+        """Fallback Tactic class"""
+        name: str
+        arguments: List[str] = field(default_factory=list)
+    
+    @dataclass
+    class LeanProof:
+        """Fallback LeanProof class"""
+        theorem_name: str = ""
+        theorem_statement: str = ""
+        lean_code: str = ""
+        tactics: List['Tactic'] = field(default_factory=list)
+    
+    @dataclass
+    class LeanProofStrategy:
+        """Fallback LeanProofStrategy class"""
+        proof: LeanProof = field(default_factory=lambda: LeanProof())
+        fitness: float = 0.0
+        generation: int = 0
+    
+    # Fallback for AsyncLeanAideClient
+    class AsyncLeanAideClient:
+        """Fallback AsyncLeanAideClient"""
+        pass
 
 logger = logging.getLogger(__name__)
 
@@ -900,7 +930,7 @@ class MCTSExpansion:
         for goal in state.goals:
             # Simplification tactics
             actions.append(f"simp at *")
-            actions.append(f"rw [←]")
+            actions.append(f"rw [<-]")
 
             # If goal has equality, consider relevant tactics
             if "=" in goal:

@@ -57,7 +57,7 @@ async def probe_entity_linking():
             await linker.add_entity(entity)
 
         clusters = await linker.deduplicate_entities(entities, MatchStrategy.HYBRID)
-        logger.info(f"✓ Found {len(clusters)} duplicate clusters")
+        logger.info(f"[OK] Found {len(clusters)} duplicate clusters")
 
         # Test 2: Cross-lingual relation alignment
         logger.info("Test 2: Cross-lingual relation alignment")
@@ -71,7 +71,7 @@ async def probe_entity_linking():
         ]
 
         alignments = await linker.align_relations(relations1, relations2)
-        logger.info(f"✓ Found {len(alignments)} relation alignments")
+        logger.info(f"[OK] Found {len(alignments)} relation alignments")
 
         # Test 3: Semantic matching
         logger.info("Test 3: Semantic matching")
@@ -88,12 +88,12 @@ async def probe_entity_linking():
         )
 
         semantic_result = await linker.match_entities(entity_a, entity_b, MatchStrategy.SEMANTIC)
-        logger.info(f"✓ Semantic match: confidence={semantic_result.confidence}")
+        logger.info(f"[OK] Semantic match: confidence={semantic_result.confidence}")
 
         # Test 4: Hybrid strategy
         logger.info("Test 4: Hybrid matching strategy")
         hybrid_result = await linker.match_entities(entity_a, entity_b, MatchStrategy.HYBRID)
-        logger.info(f"✓ Hybrid match: matched={hybrid_result.matched}, strategy={hybrid_result.strategy.value}")
+        logger.info(f"[OK] Hybrid match: matched={hybrid_result.matched}, strategy={hybrid_result.strategy.value}")
 
         # Test 5: Multiple candidates
         logger.info("Test 5: Find multiple candidates")
@@ -101,7 +101,7 @@ async def probe_entity_linking():
         await linker.add_entity(entity_b)
 
         candidates = await linker.find_candidates(entity_a, limit=10)
-        logger.info(f"✓ Found {len(candidates)} candidates for entity")
+        logger.info(f"[OK] Found {len(candidates)} candidates for entity")
 
         # Test 6: Entity with aliases
         logger.info("Test 6: Entity with aliases")
@@ -116,7 +116,7 @@ async def probe_entity_linking():
 
         await linker.add_entity(entity_aliases)
         all_names = entity_aliases.get_all_names()
-        logger.info(f"✓ Entity has {len(all_names['en'])} English names and {len(all_names['zh'])} Chinese names")
+        logger.info(f"[OK] Entity has {len(all_names['en'])} English names and {len(all_names['zh'])} Chinese names")
 
         # Test 7: Match result serialization
         logger.info("Test 7: Match result serialization")
@@ -126,7 +126,7 @@ async def probe_entity_linking():
         assert "matched" in match_result_dict
         assert "confidence" in match_result_dict
         assert "cross_lingual" in match_result_dict
-        logger.info("✓ Match result serialization working")
+        logger.info("[OK] Match result serialization working")
 
         logger.info({
             "msg": "Entity linking probe complete",

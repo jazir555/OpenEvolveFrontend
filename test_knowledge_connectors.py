@@ -32,7 +32,7 @@ def test_knowledge_item():
     assert item_dict["source"] == "test_source"
     assert item_dict["relevance_score"] == 0.85
     
-    print("✓ KnowledgeItem tests passed")
+    print("[OK] KnowledgeItem tests passed")
 
 
 def test_knowledge_source_config():
@@ -53,7 +53,7 @@ def test_knowledge_source_config():
     assert config.timeout == 30
     assert config.max_retries == 3
     
-    print("✓ KnowledgeSourceConfig tests passed")
+    print("[OK] KnowledgeSourceConfig tests passed")
 
 
 def test_database_connector():
@@ -84,7 +84,7 @@ def test_database_connector():
     results = connector.query(context)
     assert isinstance(results, list)
     
-    print("✓ DatabaseConnector tests passed")
+    print("[OK] DatabaseConnector tests passed")
 
 
 def test_api_connector():
@@ -109,7 +109,7 @@ def test_api_connector():
     assert metadata["name"] == "test_api"
     assert metadata["type"] == "api"
     
-    print("✓ APIConnector tests passed")
+    print("[OK] APIConnector tests passed")
 
 
 def test_document_connector():
@@ -143,7 +143,7 @@ def test_document_connector():
     doc_count = connector.index_documents(["/doc1.pdf", "/doc2.pdf"])
     assert doc_count == 2
     
-    print("✓ DocumentConnector tests passed")
+    print("[OK] DocumentConnector tests passed")
 
 
 def test_knowledge_integration_manager():
@@ -195,7 +195,7 @@ def test_knowledge_integration_manager():
     manager.clear_cache()
     assert len(manager.cache) == 0
     
-    print("✓ KnowledgeIntegrationManager tests passed")
+    print("[OK] KnowledgeIntegrationManager tests passed")
 
 
 def test_connector_error_handling():
@@ -220,7 +220,7 @@ def test_connector_error_handling():
     assert len(results) == 0
     assert connector.last_error is not None
     
-    print("✓ Connector error handling tests passed")
+    print("[OK] Connector error handling tests passed")
 
 
 if __name__ == "__main__":

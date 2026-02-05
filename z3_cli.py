@@ -146,13 +146,13 @@ if CLICK_AVAILABLE:
             _output_result(output_data, output, output_format)
             
             if result.is_sat():
-                echo(style(f"✓ SATISFIABLE", fg='green'))
+                echo(style(f"[OK] SATISFIABLE", fg='green'))
                 if result.model:
                     echo("Solution:")
                     for var, val in result.model.assignments.items():
                         echo(f"  {var} = {val}")
             else:
-                echo(style(f"✗ {result.status.value.upper()}", fg='red'))
+                echo(style(f"[FAIL] {result.status.value.upper()}", fg='red'))
         
         except Exception as e:
             echo(style(f"Error: {e}", fg='red'), err=True)
@@ -190,13 +190,13 @@ if CLICK_AVAILABLE:
             result = solver.optimize(z3_vars, z3_constraints, [(objective, obj_type)])
             
             if result.success:
-                echo(style(f"✓ Optimal value: {result.optimal_value}", fg='green'))
+                echo(style(f"[OK] Optimal value: {result.optimal_value}", fg='green'))
                 if result.optimal_model:
                     echo("Optimal solution:")
                     for var, val in result.optimal_model.assignments.items():
                         echo(f"  {var} = {val}")
             else:
-                echo(style("✗ Optimization failed", fg='red'))
+                echo(style("[FAIL] Optimization failed", fg='red'))
             
             if output:
                 with open(output, 'w') as f:
@@ -228,13 +228,13 @@ if CLICK_AVAILABLE:
             result = prover.prove_theorem(theorem)
             
             if result.proven:
-                echo(style("✓ Theorem PROVEN", fg='green'))
+                echo(style("[OK] Theorem PROVEN", fg='green'))
                 echo(f"Tactic used: {result.tactic_used}")
                 if result.proof and extract_proof:
                     echo("\nProof:")
                     echo(result.proof[:500] + "..." if len(result.proof) > 500 else result.proof)
             else:
-                echo(style("✗ Could not prove theorem", fg='red'))
+                echo(style("[FAIL] Could not prove theorem", fg='red'))
                 if result.counterexample:
                     echo("Counterexample found:")
                     echo(json.dumps(result.counterexample, indent=2))
@@ -360,7 +360,7 @@ if CLICK_AVAILABLE:
                     echo(f"  - {error}")
                 sys.exit(1)
             else:
-                echo(style("✓ Configuration is valid", fg='green'))
+                echo(style("[OK] Configuration is valid", fg='green'))
         
         except Exception as e:
             echo(style(f"Error: {e}", fg='red'), err=True)

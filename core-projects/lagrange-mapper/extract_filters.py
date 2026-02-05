@@ -124,11 +124,11 @@ def load_hedge_centroid(centroid_path: Path) -> Optional[np.ndarray]:
         norm = np.linalg.norm(centroid)
         if norm > 0:
             centroid = centroid / norm
-        print(f"  ✓ Loaded hedge centroid from: {centroid_path.name}")
+        print(f"  [OK] Loaded hedge centroid from: {centroid_path.name}")
         print(f"    Dimensions: {len(centroid)}")
         return centroid
     except Exception as e:
-        print(f"  ✗ Failed to load hedge centroid: {e}")
+        print(f"  [FAIL] Failed to load hedge centroid: {e}")
         return None
 
 
@@ -148,12 +148,12 @@ def load_hedge_sentences(sentences_path: Path) -> Tuple[List[str], List[str]]:
         # Extract keywords from hedge sentences
         keywords = extract_keywords_from_texts(sentences, top_n=30)
         
-        print(f"  ✓ Loaded {len(sentences)} hedge sentences from: {sentences_path.name}")
+        print(f"  [OK] Loaded {len(sentences)} hedge sentences from: {sentences_path.name}")
         print(f"    Sample: \"{sentences[0][:60]}...\"" if sentences else "")
         
         return sentences, keywords
     except Exception as e:
-        print(f"  ✗ Failed to load hedge sentences: {e}")
+        print(f"  [FAIL] Failed to load hedge sentences: {e}")
         return [], []
 
 
@@ -289,7 +289,7 @@ def save_filter_config(config: Dict, output_dir: str) -> Path:
     config_path = base_path / "filter_config.json"
     with open(config_path, 'w') as f:
         json.dump(config, f, indent=2)
-    print(f"✓ Saved filter config to: {config_path}")
+    print(f"[OK] Saved filter config to: {config_path}")
     
     # Save centroids separately (for fast loading)
     centroids = {}
@@ -301,7 +301,7 @@ def save_filter_config(config: Dict, output_dir: str) -> Path:
         centroid_path = base_path / "attractor_centroids.json"
         with open(centroid_path, 'w') as f:
             json.dump(centroids, f, indent=2)
-        print(f"✓ Saved centroids to: {centroid_path}")
+        print(f"[OK] Saved centroids to: {centroid_path}")
     
     # Save keywords separately (for fast keyword matching)
     keywords = {
@@ -311,7 +311,7 @@ def save_filter_config(config: Dict, output_dir: str) -> Path:
     keywords_path = base_path / "attractor_keywords.json"
     with open(keywords_path, 'w') as f:
         json.dump(keywords, f, indent=2)
-    print(f"✓ Saved keywords to: {keywords_path}")
+    print(f"[OK] Saved keywords to: {keywords_path}")
     
     return config_path
 
@@ -534,10 +534,10 @@ def main():
                 
                 # Create hedge attractor entry
                 hedge_attractor = create_hedge_attractor(centroid, sentences, keywords)
-                print(f"  ✓ Created hedge attractor with {len(keywords)} keywords")
+                print(f"  [OK] Created hedge attractor with {len(keywords)} keywords")
         else:
             if include_hedge:
-                print(f"  ✗ No hedge centroid found in {hedge_dir}/")
+                print(f"  [FAIL] No hedge centroid found in {hedge_dir}/")
                 print(f"    Run attractor_mapper.py with controversial probes first.")
             else:
                 print(f"  No hedge centroid found (use --with-hedge to require)")
@@ -584,7 +584,7 @@ def main():
     print(f"\nFilter config saved to: {config_path.parent}/")
     
     if hedge_attractor:
-        print(f"\n✓ Includes hedge centroid for empirical hedging detection")
+        print(f"\n[OK] Includes hedge centroid for empirical hedging detection")
         print(f"  The hedge attractor uses embedding similarity to detect hedging")
         print(f"  phrases the model naturally uses, not just keyword matching.")
     

@@ -41,7 +41,7 @@ def verify_integration_files():
                     'status': 'missing',
                     'error': 'File not found'
                 }
-                print(f"❌ {file_path}: File not found")
+                print(f"[FAIL] {file_path}: File not found")
                 continue
             
             # Check if file is valid Python

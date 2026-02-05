@@ -47,8 +47,8 @@ def verify_global_dspy_usage():
             results.append((file, status, fallback_status, uses_global))
             print(f"{file:<40} {status} {fallback_status}")
         else:
-            results.append((file, "❌ MISSING", "❌ MISSING", False))
-            print(f"{file:<40} ❌ MISSING")
+            results.append((file, "[FAIL] MISSING", "[FAIL] MISSING", False))
+            print(f"{file:<40} [FAIL] MISSING")
     
     print("\n" + "="*50)
     global_count = sum(1 for _, status, _, _ in results if "GLOBAL" in status)

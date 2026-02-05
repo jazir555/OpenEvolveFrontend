@@ -111,7 +111,7 @@ class CodeIndexer:
                 }
 
         except Exception as e:
-            print(f"❌Error reading config file {config_path}: {e}")
+            print(f"[FAIL]Error reading config file {config_path}: {e}")
             return {
                 "anthropic": "claude-sonnet-4-20250514",
                 "openai": "o3-mini",
@@ -1582,7 +1582,7 @@ async def main():
         output_files = await indexer.build_all_indexes()
 
         # Display results
-        print("\n✅ Indexing completed successfully!")
+        print("\n[OK] Indexing completed successfully!")
         print(f"📊 Processed {len(output_files)} repositories")
         print("📁 Output files:")
         for repo_name, file_path in output_files.items():
@@ -1606,13 +1606,13 @@ async def main():
         print("\n🎉 Code indexing process completed successfully!")
 
     except FileNotFoundError as e:
-        print(f"❌ File not found error: {e}")
+        print(f"[FAIL] File not found error: {e}")
         print("💡 Please check your configuration file paths")
     except ValueError as e:
-        print(f"❌ Configuration error: {e}")
+        print(f"[FAIL] Configuration error: {e}")
         print("💡 Please check your configuration file settings")
     except Exception as e:
-        print(f"❌ Indexing failed: {e}")
+        print(f"[FAIL] Indexing failed: {e}")
         print("💡 Check the logs for more details")
 
         # Print debug information if available

@@ -91,7 +91,7 @@ Extract the following information and return as JSON:
    - enum_values: Array of possible values if field_type is enum or list[enum]
 
 IMPORTANT RULES:
-- Convert all field names to snake_case (e.g., "Company Name" → "company_name")
+- Convert all field names to snake_case (e.g., "Company Name" -> "company_name")
 - Use 'str' for text fields, 'int' for whole numbers, 'float' for decimals
 - Use 'bool' for true/false fields
 - Use 'list[str]' for arrays of text
@@ -225,7 +225,7 @@ Extract the following information and return as JSON:
    - enum_values: Array of possible values if field_type is enum or list[enum]
 
 IMPORTANT RULES:
-- Convert all field names to snake_case (e.g., "Company Name" → "company_name")
+- Convert all field names to snake_case (e.g., "Company Name" -> "company_name")
 - Use 'str' for text fields, 'int' for whole numbers, 'float' for decimals
 - Use 'bool' for true/false fields
 - Use 'list[str]' for arrays of text

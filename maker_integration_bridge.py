@@ -8,9 +8,9 @@ OpenEvolve decomposition infrastructure.
 Based on the paper: "Solving a Million-Step LLM Task with Zero Errors" (arXiv:2511.09030)
 
 Integration Points:
-1. MAKER ←→ MDAP Engine
-2. MAKER ←→ ROMA Decomposition
-3. MAKER ←→ Sovereign Decomposition Engine
+1. MAKER <--> MDAP Engine
+2. MAKER <--> ROMA Decomposition
+3. MAKER <--> Sovereign Decomposition Engine
 4. Unified API for all MAKER modes
 
 Usage:
@@ -720,7 +720,7 @@ Rules:
 - A larger disk may not be placed on top of a smaller disk
 
 Strategy for even number of disks:
-- If the previous move did NOT move disk 1, move disk 1 clockwise (0→1→2→0)
+- If the previous move did NOT move disk 1, move disk 1 clockwise (0->1->2->0)
 - If the previous move DID move disk 1, make the only legal move that does NOT involve disk 1
 
 Respond with the next move in format:

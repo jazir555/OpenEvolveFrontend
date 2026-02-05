@@ -64,7 +64,7 @@ def _create_context() -> Context:
         current_iteration=1,
         base_path=str(OUTPUT_DIR),
         task=""""Task Name: Second autocorrelation inequality Problem
-Task Description: Let  𝐶2  be the smallest constant for which one has ‖𝑓∗𝑓‖22≤𝐶2‖𝑓∗𝑓‖1‖𝑓∗𝑓‖∞ for all non-negative  𝑓:ℝ→ℝ . 
+Task Description: Let  𝐶2  be the smallest constant for which one has ‖𝑓∗𝑓‖22≤𝐶2‖𝑓∗𝑓‖1‖𝑓∗𝑓‖∞ for all non-negative  𝑓:ℝ->ℝ . 
 It is known that 0.88922 ≤ 𝐶2 ≤ 1, with the lower bound coming from a step function construction by Matolcsi and Vinuesa (2010).
                 
 Task Goal: Find a step function with 50 equally-spaced intervals on  [−1/4,1/4]  that gives a slightly better lower bound 0.8962 ≤ 𝐶2.

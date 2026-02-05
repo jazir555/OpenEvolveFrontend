@@ -37,26 +37,26 @@ def info():
 
 A hybrid reasoning system combining:
 
-[bold green]• Soar (System 2)[/bold green] - Slow, deliberate, symbolic reasoning
+[bold green]* Soar (System 2)[/bold green] - Slow, deliberate, symbolic reasoning
   - Rule-based pattern matching
   - Sub-goal creation
   - Impasse detection
 
-[bold yellow]• ACT-R (System 1)[/bold yellow] - Fast, heuristic reasoning
+[bold yellow]* ACT-R (System 1)[/bold yellow] - Fast, heuristic reasoning
   - Utility-based selection (U = P*G - C)
   - LLM for probability/cost estimation
   - Automatic fallback on cognitive overload
 
-[bold magenta]• Meta-Cognitive Monitor[/bold magenta]
+[bold magenta]* Meta-Cognitive Monitor[/bold magenta]
   - Tracks reasoning depth, time, loops
   - Triggers fallback when pressure ≥ 0.7
 
-[bold blue]• Learning System[/bold blue]
+[bold blue]* Learning System[/bold blue]
   - Chunks successful ACT-R resolutions
   - ChromaDB for semantic memory
   - 10x speedup on repeated patterns
 
-[bold red]• Safety Layer[/bold red]
+[bold red]* Safety Layer[/bold red]
   - Human approval for destructive ops
   - Utility-based safety checks
   - Dry-run simulation mode
@@ -178,9 +178,9 @@ def solve(
             )
 
             if success:
-                console.print("\n[bold green]✓ Goal achieved![/bold green]")
+                console.print("\n[bold green][OK] Goal achieved![/bold green]")
             else:
-                console.print("\n[bold red]✗ Goal not achieved[/bold red]")
+                console.print("\n[bold red][FAIL] Goal not achieved[/bold red]")
 
             # Show statistics
             if enable_learning and agent.memory:
@@ -224,7 +224,7 @@ def chunks(
     if clear:
         if typer.confirm("Clear all chunks?"):
             store.clear()
-            console.print("[green]✓ Chunks cleared[/green]")
+            console.print("[green][OK] Chunks cleared[/green]")
         return
 
     # Show stats
@@ -261,7 +261,7 @@ def example(
         console.print(f"[red]Unknown example: {name}[/red]")
         console.print("\n[cyan]Available examples:[/cyan]")
         for ex_name, description in examples.items():
-            console.print(f"  • {ex_name}: {description}")
+            console.print(f"  * {ex_name}: {description}")
         return
 
     console.print(Panel(

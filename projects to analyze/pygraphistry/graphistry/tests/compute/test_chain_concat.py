@@ -73,7 +73,7 @@ class TestChainCombineSteps:
         # Use graphistry.Plotter (not CGFull) since UMAP requires UMAPMixin
         g = graphistry.nodes(nodes_df, 'id').edges(edges_df, 'src', 'dst')
 
-        # Chain: Node filter → UMAP → Node filter
+        # Chain: Node filter -> UMAP -> Node filter
         # This is the pattern from issue #777
         result = g.chain([
             n({}),  # Identity node filter
@@ -153,7 +153,7 @@ class TestChainCombineSteps:
         assert isinstance(g._nodes, cudf.DataFrame)
         assert isinstance(g._edges, cudf.DataFrame)
 
-        # Chain: Node filter → UMAP → Node filter
+        # Chain: Node filter -> UMAP -> Node filter
         # This is the exact pattern from issue #777
         result = g.chain([
             n({}),  # Identity node filter
@@ -351,7 +351,7 @@ class TestChainCombineSteps:
     @skip_gpu
     @pytest.mark.skipif(not has_umap, reason="requires umap feature dependencies")
     def test_umap_auto_coerces_pandas_to_cudf(self):
-        """UMAP(engine='auto') with pandas input → chain(engine='cudf') → cuDF output"""
+        """UMAP(engine='auto') with pandas input -> chain(engine='cudf') -> cuDF output"""
         import cudf
 
         nodes_df = pd.DataFrame({
@@ -388,7 +388,7 @@ class TestChainCombineSteps:
     @skip_gpu
     @pytest.mark.skipif(not has_umap, reason="requires umap feature dependencies")
     def test_umap_cuml_preserves_cudf_with_cudf_request(self):
-        """UMAP(engine='cuml') with pandas input → cuDF → chain(engine='cudf') → cuDF (preservation, no coercion)"""
+        """UMAP(engine='cuml') with pandas input -> cuDF -> chain(engine='cudf') -> cuDF (preservation, no coercion)"""
         import cudf
 
         nodes_df = pd.DataFrame({
@@ -424,7 +424,7 @@ class TestChainCombineSteps:
     @skip_gpu
     @pytest.mark.skipif(not has_umap, reason="requires umap feature dependencies")
     def test_umap_cuml_with_pandas_input_coerces_cudf_to_pandas(self):
-        """UMAP(engine='cuml') with pandas input → cuDF → chain(engine='pandas') → pandas (cuDF→pandas coercion)"""
+        """UMAP(engine='cuml') with pandas input -> cuDF -> chain(engine='pandas') -> pandas (cuDF->pandas coercion)"""
         import cudf
 
         nodes_df = pd.DataFrame({
@@ -460,7 +460,7 @@ class TestChainCombineSteps:
     @skip_gpu
     @pytest.mark.skipif(not has_umap, reason="requires umap feature dependencies")
     def test_umap_umap_learn_coerces_pandas_to_cudf(self):
-        """UMAP(engine='umap_learn') with pandas input → chain(engine='cudf') → cuDF output"""
+        """UMAP(engine='umap_learn') with pandas input -> chain(engine='cudf') -> cuDF output"""
         import cudf
 
         nodes_df = pd.DataFrame({
@@ -496,7 +496,7 @@ class TestChainCombineSteps:
     @skip_gpu
     @pytest.mark.skipif(not has_umap, reason="requires umap feature dependencies")
     def test_umap_auto_coerces_cudf_to_pandas(self):
-        """UMAP(engine='auto') with cuDF input → chain(engine='pandas') → pandas output"""
+        """UMAP(engine='auto') with cuDF input -> chain(engine='pandas') -> pandas output"""
         import cudf
 
         nodes_df = cudf.DataFrame({
@@ -533,7 +533,7 @@ class TestChainCombineSteps:
     @skip_gpu
     @pytest.mark.skipif(not has_umap, reason="requires umap feature dependencies")
     def test_umap_cuml_coerces_cudf_to_pandas(self):
-        """UMAP(engine='cuml') with cuDF input → chain(engine='pandas') → pandas output"""
+        """UMAP(engine='cuml') with cuDF input -> chain(engine='pandas') -> pandas output"""
         import cudf
 
         nodes_df = cudf.DataFrame({
@@ -569,7 +569,7 @@ class TestChainCombineSteps:
     @skip_gpu
     @pytest.mark.skipif(not has_umap, reason="requires umap feature dependencies")
     def test_umap_umap_learn_preserves_pandas_with_pandas_request(self):
-        """UMAP(engine='umap_learn') with cuDF input → pandas → chain(engine='pandas') → pandas (preservation, no coercion)"""
+        """UMAP(engine='umap_learn') with cuDF input -> pandas -> chain(engine='pandas') -> pandas (preservation, no coercion)"""
         import cudf
 
         nodes_df = cudf.DataFrame({
@@ -605,7 +605,7 @@ class TestChainCombineSteps:
     @skip_gpu
     @pytest.mark.skipif(not has_umap, reason="requires umap feature dependencies")
     def test_umap_umap_learn_with_cudf_input_coerces_pandas_to_cudf(self):
-        """UMAP(engine='umap_learn') with cuDF input → pandas → chain(engine='cudf') → cuDF (pandas→cuDF coercion)"""
+        """UMAP(engine='umap_learn') with cuDF input -> pandas -> chain(engine='cudf') -> cuDF (pandas->cuDF coercion)"""
         import cudf
 
         nodes_df = cudf.DataFrame({

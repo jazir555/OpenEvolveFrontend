@@ -47,42 +47,42 @@ async def test_comprehensive_enhancements():
         # Test initialization
         await plugin.initialize()
         assert plugin._status.state == PluginState.INITIALIZED
-        print("   ✓ Initialization successful")
+        print("   [OK] Initialization successful")
         
         # Test start
         await plugin.start()
         assert plugin._status.state == PluginState.STARTED
-        print("   ✓ Start successful")
+        print("   [OK] Start successful")
         
         # Test various operations
         defs = await plugin.list_workflow_definitions()
         assert len(defs) == 1
-        print("   ✓ List definitions successful")
+        print("   [OK] List definitions successful")
         
         instances = await plugin.list_workflow_instances()
         assert len(instances) == 1
-        print("   ✓ List instances successful")
+        print("   [OK] List instances successful")
         
         def_result = await plugin.get_workflow_definition("test_def")
         assert def_result is not None
-        print("   ✓ Get definition successful")
+        print("   [OK] Get definition successful")
         
         control_result = await plugin.control_workflow("test_inst", "start")
         assert "status" in control_result
-        print("   ✓ Control workflow successful")
+        print("   [OK] Control workflow successful")
         
         health = await plugin.health_check()
         assert health is True
-        print("   ✓ Health check successful")
+        print("   [OK] Health check successful")
         
         metrics = await plugin.get_metrics()
         assert isinstance(metrics, dict)
-        print("   ✓ Get metrics successful")
+        print("   [OK] Get metrics successful")
         
         # Test stop and cleanup
         await plugin.stop()
         await plugin.cleanup()
-        print("   ✓ Stop and cleanup successful")
+        print("   [OK] Stop and cleanup successful")
     
     # Test 2: Fallback mechanism when integration fails
     print("\n2. Testing fallback mechanism when integration fails...")
@@ -94,20 +94,20 @@ async def test_comprehensive_enhancements():
         # Should be in error state but still functional
         assert plugin._status.state == PluginState.ERROR
         assert plugin._status.health == "degraded"
-        print("   ✓ Fallback integration created")
+        print("   [OK] Fallback integration created")
         
         # Operations should still work with fallback
         defs = await plugin.list_workflow_definitions()
         assert defs == []
-        print("   ✓ List definitions works with fallback")
+        print("   [OK] List definitions works with fallback")
         
         instances = await plugin.list_workflow_instances()
         assert instances == []
-        print("   ✓ List instances works with fallback")
+        print("   [OK] List instances works with fallback")
         
         control_result = await plugin.control_workflow("test", "start")
         assert "error" in control_result
-        print("   ✓ Control workflow works with fallback")
+        print("   [OK] Control workflow works with fallback")
     
     # Test 3: Configuration validation
     print("\n3. Testing configuration validation...")
@@ -131,7 +131,7 @@ async def test_comprehensive_enhancements():
         plugin = OpenEvolveBubbleLabsPlugin(invalid_config)
         
         # Should use defaults for invalid values
-        print(f"   ✓ Invalid config handled, using defaults")
+        print(f"   [OK] Invalid config handled, using defaults")
         print(f"     Max instance age: {plugin._integration._MAX_INSTANCE_AGE_SECONDS}")
         print(f"     Max instances: {plugin._integration._MAX_INSTANCES}")
         print(f"     Cleanup interval: {plugin._cleanup_interval}")
@@ -156,16 +156,16 @@ async def test_comprehensive_enhancements():
         # This should handle the error gracefully
         defs = await plugin.list_workflow_definitions()
         assert defs == []  # Should return empty list on error
-        print("   ✓ Error in list_workflow_definitions handled gracefully")
+        print("   [OK] Error in list_workflow_definitions handled gracefully")
         
         # Test other operations still work
         instances = await plugin.list_workflow_instances()
-        print("   ✓ Other operations still work after error")
+        print("   [OK] Other operations still work after error")
         
         await plugin.stop()
         await plugin.cleanup()
     
-    print("\n✓ All comprehensive tests passed!")
+    print("\n[OK] All comprehensive tests passed!")
 
 
 async def main():

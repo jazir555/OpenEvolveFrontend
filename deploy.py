@@ -59,9 +59,9 @@ class DeploymentManager:
         required_major, required_minor = map(int, required_version.split('.'))
         
         if python_version < (required_major, required_minor):
-            print(f"❌ Python {required_version}+ required, found {python_version[0]}.{python_version[1]}")
+            print(f"[FAIL] Python {required_version}+ required, found {python_version[0]}.{python_version[1]}")
             return False
-        print(f"✓ Python {python_version[0]}.{python_version[1]}")
+        print(f"[OK] Python {python_version[0]}.{python_version[1]}")
         
         # Check required files
         required_files = [
@@ -74,9 +74,9 @@ class DeploymentManager:
         
         for file in required_files:
             if not (self.project_root / file).exists():
-                print(f"❌ Required file missing: {file}")
+                print(f"[FAIL] Required file missing: {file}")
                 return False
-        print(f"✓ All required files present")
+        print(f"[OK] All required files present")
         
         return True
     
@@ -93,7 +93,7 @@ class DeploymentManager:
                     check=True,
                     capture_output=True
                 )
-                print("✓ Dependencies installed from requirements.txt")
+                print("[OK] Dependencies installed from requirements.txt")
             else:
                 # Install individual packages
                 for package in self.config["required_packages"]:
@@ -102,11 +102,11 @@ class DeploymentManager:
                         check=True,
                         capture_output=True
                     )
-                print(f"✓ Installed {len(self.config['required_packages'])} packages")
+                print(f"[OK] Installed {len(self.config['required_packages'])} packages")
             
             return True
         except subprocess.CalledProcessError as e:
-            print(f"❌ Failed to install dependencies: {e}")
+            print(f"[FAIL] Failed to install dependencies: {e}")
             return False
     
     def initialize_database(self) -> bool:
@@ -119,10 +119,10 @@ class DeploymentManager:
             db = SovereignDatabase()
             db.init_database()
             
-            print(f"✓ Database initialized at {self.config['database_path']}")
+            print(f"[OK] Database initialized at {self.config['database_path']}")
             return True
         except (OSError, IOError, RuntimeError, ValueError) as e:
-            print(f"❌ Failed to initialize database: {e}")
+            print(f"[FAIL] Failed to initialize database: {e}")
             return False
     
     def run_tests(self) -> bool:
@@ -140,14 +140,14 @@ class DeploymentManager:
                 # Count passed tests
                 output = result.stdout
                 if "passed" in output:
-                    print(f"✓ All tests passed")
+                    print(f"[OK] All tests passed")
                     return True
             
-            print(f"❌ Some tests failed")
+            print(f"[FAIL] Some tests failed")
             print(result.stdout[-500:])  # Print last 500 chars
             return False
         except (OSError, IOError, subprocess.SubprocessError) as e:
-            print(f"❌ Failed to run tests: {e}")
+            print(f"[FAIL] Failed to run tests: {e}")
             return False
     
     def create_config_files(self) -> bool:
@@ -162,7 +162,7 @@ class DeploymentManager:
                     f.write(f"ENVIRONMENT={self.environment}\n")
                     f.write(f"LOG_LEVEL={self.config['log_level']}\n")
                     f.write(f"DATABASE_PATH={self.config['database_path']}\n")
-                print("✓ Created .env file")
+                print("[OK] Created .env file")
             
             # Create logging configuration
             log_config = {
@@ -193,11 +193,11 @@ class DeploymentManager:
             log_config_file = self.project_root / "logging_config.json"
             with open(log_config_file, 'w') as f:
                 json.dump(log_config, f, indent=2)
-            print("✓ Created logging configuration")
+            print("[OK] Created logging configuration")
             
             return True
         except (OSError, IOError, TypeError) as e:
-            print(f"❌ Failed to create config files: {e}")
+            print(f"[FAIL] Failed to create config files: {e}")
             return False
     
     def setup_health_monitoring(self) -> bool:
@@ -233,13 +233,13 @@ class DeploymentManager:
             results = monitor.run_health_checks()
             
             if results['overall_healthy']:
-                print("✓ Health monitoring configured and system healthy")
+                print("[OK] Health monitoring configured and system healthy")
                 return True
             else:
                 print("⚠ Health monitoring configured but system unhealthy")
                 return False
         except (OSError, IOError, RuntimeError, ImportError) as e:
-            print(f"❌ Failed to setup health monitoring: {e}")
+            print(f"[FAIL] Failed to setup health monitoring: {e}")
             return False
     
     def create_startup_script(self) -> bool:
@@ -269,10 +269,10 @@ python -m streamlit run api_server.py --server.port {self.config['api_port']}
             if os.name != 'nt':
                 os.chmod(script_path, 0o755)
             
-            print(f"✓ Created startup script: {script_name}")
+            print(f"[OK] Created startup script: {script_name}")
             return True
         except (OSError, IOError) as e:
-            print(f"❌ Failed to create startup script: {e}")
+            print(f"[FAIL] Failed to create startup script: {e}")
             return False
     
     def deploy(self, skip_tests: bool = False) -> bool:
@@ -303,11 +303,11 @@ python -m streamlit run api_server.py --server.port {self.config['api_port']}
         
         for step_name, step_func in steps:
             if not step_func():
-                print(f"\n❌ Deployment failed at step: {step_name}")
+                print(f"\n[FAIL] Deployment failed at step: {step_name}")
                 return False
         
         print(f"\n{'='*60}")
-        print("✓ DEPLOYMENT SUCCESSFUL")
+        print("[OK] DEPLOYMENT SUCCESSFUL")
         print(f"{'='*60}\n")
         print(f"Environment: {self.environment}")
         print(f"API Port: {self.config['api_port']}")
@@ -339,12 +339,12 @@ python -m streamlit run api_server.py --server.port {self.config['api_port']}
                 file_path = self.project_root / file
                 if file_path.exists():
                     file_path.unlink()
-                    print(f"✓ Removed {file}")
+                    print(f"[OK] Removed {file}")
             
-            print("✓ Rollback complete")
+            print("[OK] Rollback complete")
             return True
         except (OSError, IOError) as e:
-            print(f"❌ Rollback failed: {e}")
+            print(f"[FAIL] Rollback failed: {e}")
             return False
 
 

@@ -48,7 +48,7 @@ class TestEndToEndWorkflows(unittest.TestCase):
         self.mock_orchestration_client = Mock()
     
     def test_complete_workflow_from_problem_to_solution(self):
-        """Test complete workflow: problem definition → analysis → decomposition → orchestration → solution"""
+        """Test complete workflow: problem definition -> analysis -> decomposition -> orchestration -> solution"""
         print("Running complete end-to-end workflow test...")
         
         # 1. Create a problem
@@ -105,18 +105,18 @@ class TestEndToEndWorkflows(unittest.TestCase):
         # 2. Verify problem validation
         validation_errors = complex_problem.validate()
         self.assertEqual(len(validation_errors), 0, f"Initial problem should be valid: {validation_errors}")
-        print("✅ Problem definition validated successfully")
+        print("[OK] Problem definition validated successfully")
         
         # 3. Store problem in database
         problem_created = self.db.create_problem(complex_problem)
         self.assertTrue(problem_created, "Problem should be created successfully")
-        print("✅ Problem stored in database")
+        print("[OK] Problem stored in database")
         
         # 4. Retrieve problem from database
         retrieved_problem = self.db.get_problem(complex_problem.id)
         self.assertIsNotNone(retrieved_problem)
         self.assertEqual(retrieved_problem.title, complex_problem.title)
-        print("✅ Problem retrieved from database")
+        print("[OK] Problem retrieved from database")
         
         # 5. Analyze problem (mocked)
         with patch('problem_analyzer.OpenEvolveClient', return_value=self.mock_analyzer_client):
@@ -141,7 +141,7 @@ class TestEndToEndWorkflows(unittest.TestCase):
                 title="End-to-End Workflow Validation"
             )
             
-            print("✅ Problem analysis completed")
+            print("[OK] Problem analysis completed")
         
         # 6. Decompose the problem (mocked)
         with patch('decomposition_engine.OpenEvolveClient', return_value=self.mock_decomposer_client):
@@ -185,12 +185,12 @@ class TestEndToEndWorkflows(unittest.TestCase):
             
             self.assertIsNotNone(decomposition_plan)
             self.assertGreater(len(decomposition_plan.sub_problems), 3)
-            print("✅ Problem decomposition completed")
+            print("[OK] Problem decomposition completed")
         
         # 7. Store decomposition plan
         plan_created = self.db.create_plan(decomposition_plan)
         self.assertTrue(plan_created)
-        print("✅ Decomposition plan stored in database")
+        print("[OK] Decomposition plan stored in database")
         
         # 8. Coordinate team assignments (mocked)
         with patch('sovereign_team_coordination.OpenEvolveClient', return_value=self.mock_coordination_client):
@@ -211,12 +211,12 @@ class TestEndToEndWorkflows(unittest.TestCase):
             try:
                 assignment_results = coordinator.assign_decomposition_review(decomposition_plan)
                 if assignment_results:
-                    print("✅ Team coordination completed successfully")
+                    print("[OK] Team coordination completed successfully")
                 else:
-                    print("⚠️ Team coordination may not have returned expected results (may be implementation-dependent)")
+                    print("[WARN] Team coordination may not have returned expected results (may be implementation-dependent)")
             except Exception as e:
                 # Some implementation details may vary, which is ok
-                print(f"⚠️ Team coordination encountered expected variation: {e}")
+                print(f"[WARN] Team coordination encountered expected variation: {e}")
         
         # 9. Solution orchestration (mocked)
         with patch('sovereign_solution_orchestration.OpenEvolveClient', return_value=self.mock_orchestration_client):
@@ -250,11 +250,11 @@ class TestEndToEndWorkflows(unittest.TestCase):
             try:
                 final_solution = orchestrator.integrate_solutions(decomposition_plan, solution_attempts)
                 if final_solution:
-                    print("✅ Solution orchestration completed successfully")
+                    print("[OK] Solution orchestration completed successfully")
                 else:
-                    print("⚠️ Solution orchestration may not be fully implemented yet")
+                    print("[WARN] Solution orchestration may not be fully implemented yet")
             except Exception as e:
-                print(f"⚠️ Solution orchestration encountered expected variation: {e}")
+                print(f"[WARN] Solution orchestration encountered expected variation: {e}")
         
         print(f"🎉 Complete end-to-end workflow test finished! Problem ID: {complex_problem.id[:12]}...")
     
@@ -331,7 +331,7 @@ class TestEndToEndWorkflows(unittest.TestCase):
                               f"At least 90% of operations should succeed: {len(successful_operations)}/{num_problems}")
         self.assertLess(total_time, 30.0, f"All operations should complete in reasonable time: {total_time:.2f}s")
         
-        print("✅ High-throughput workflow test completed successfully")
+        print("[OK] High-throughput workflow test completed successfully")
     
     def test_complex_problem_decomposition(self):
         """Test decomposition of a very complex problem"""
@@ -412,7 +412,7 @@ class TestEndToEndWorkflows(unittest.TestCase):
             
             self.assertIsNotNone(complex_plan)
             self.assertGreater(len(complex_plan.sub_problems), 10)  # Should have many sub-problems for complex problem
-            print(f"✅ Complex problem with {len(complex_plan.sub_problems)} sub-problems decomposed in {decomposition_time:.3f}s")
+            print(f"[OK] Complex problem with {len(complex_plan.sub_problems)} sub-problems decomposed in {decomposition_time:.3f}s")
             
             # Verify dependencies were properly set up
             total_deps = sum(len(sp.dependencies) for sp in complex_plan.sub_problems)
@@ -486,7 +486,7 @@ class TestDatabaseIntegrity(unittest.TestCase):
         # Verify all were created
         stored_subproblems = self.db.list_subproblems(problem.id)
         self.assertEqual(len(stored_subproblems), len(sub_problems))
-        print(f"✅ Transaction integrity maintained: {len(stored_subproblems)} sub-problems stored atomically")
+        print(f"[OK] Transaction integrity maintained: {len(stored_subproblems)} sub-problems stored atomically")
     
     def test_concurrent_database_operations(self):
         """Test concurrent database operations safety"""
@@ -568,7 +568,7 @@ class TestDatabaseIntegrity(unittest.TestCase):
         self.assertGreaterEqual(len(successful_retrieves) / len(retrieves), 0.90,
                               f"Retrieve operations should have high success rate: {len(successful_retrieves)}/{len(retrieves)}")
         
-        print("✅ Concurrent database operations handled safely")
+        print("[OK] Concurrent database operations handled safely")
     
     def test_database_consistency_across_sessions(self):
         """Test database consistency across different connection sessions"""
@@ -613,7 +613,7 @@ class TestDatabaseIntegrity(unittest.TestCase):
         self.assertIsNotNone(updated_original)
         self.assertEqual(updated_original.title, "Updated Title from New Session")
         
-        print("✅ Database consistency maintained across sessions")
+        print("[OK] Database consistency maintained across sessions")
 
 
 class TestAdvancedSecurityScenarios(unittest.TestCase):
@@ -655,9 +655,9 @@ class TestAdvancedSecurityScenarios(unittest.TestCase):
                 
             except (ValueError, TypeError, RuntimeError):
                 # Exception for inputs exceeding limits is acceptable
-                print(f"  ✅ {field_name}: Input properly rejected for exceeding limits")
+                print(f"  [OK] {field_name}: Input properly rejected for exceeding limits")
         
-        print("✅ Extreme length inputs handled properly")
+        print("[OK] Extreme length inputs handled properly")
     
     def test_authentication_session_security(self):
         """Test authentication session security"""
@@ -702,7 +702,7 @@ class TestAdvancedSecurityScenarios(unittest.TestCase):
         
         self.assertGreaterEqual(len(admin_perms), len(regular_perms))
         
-        print("✅ Authentication session security validated")
+        print("[OK] Authentication session security validated")
     
     def test_injection_attack_prevention(self):
         """Test prevention of various injection attacks"""
@@ -773,7 +773,7 @@ class TestAdvancedSecurityScenarios(unittest.TestCase):
                 # Exception for malicious input is acceptable (input rejected)
                 pass
         
-        print(f"✅ {len(injection_attempts)} injection attempts handled successfully")
+        print(f"[OK] {len(injection_attempts)} injection attempts handled successfully")
 
 
 def run_comprehensive_validation_tests():
@@ -813,7 +813,7 @@ def run_comprehensive_validation_tests():
         else:
             print("\n🎉 All comprehensive validation tests passed!")
     else:
-        print("⚠️ No tests were run")
+        print("[WARN] No tests were run")
     
     print("="*80)
     return result

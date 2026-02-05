@@ -53,7 +53,7 @@ def check_capabilities():
     print("=" * 70)
 
     if not EVOLUTION_MAKER_AVAILABLE:
-        print("❌ Evolution-MAKER integration not available")
+        print("[FAIL] Evolution-MAKER integration not available")
         print("   Please ensure evolution_maker_integration.py is installed")
         return False
 
@@ -61,15 +61,15 @@ def check_capabilities():
 
     print("\nComponent Availability:")
     for component, available in caps.items():
-        status = "✓" if available else "✗"
+        status = "[OK]" if available else "[FAIL]"
         print(f"  {status} {component}")
 
     if not caps.get("full_integration", False):
-        print("\n⚠️  Full integration not available")
+        print("\n[WARN]  Full integration not available")
         print("   Some demos may not work correctly")
         return False
 
-    print("\n✓ All components available")
+    print("\n[OK] All components available")
     return True
 
 
@@ -394,7 +394,7 @@ def main():
     # Check capabilities
     if not args.skip_capabilities_check:
         if not check_capabilities():
-            print("\n⚠️  Cannot run demos without required components")
+            print("\n[WARN]  Cannot run demos without required components")
             sys.exit(1)
 
     # Run demos

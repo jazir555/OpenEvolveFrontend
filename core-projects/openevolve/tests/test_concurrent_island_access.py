@@ -117,9 +117,9 @@ class TestConcurrentIslandAccess(unittest.TestCase):
         # This test EXPECTS to find race conditions with the current implementation
         # After the fix, this should be changed to assertFalse
         if race_conditions_found:
-            print("✅ Successfully reproduced the race condition from issue #246")
+            print("[OK] Successfully reproduced the race condition from issue #246")
         else:
-            print("⚠️ Race condition not reproduced - may need more iterations or different timing")
+            print("[WARN] Race condition not reproduced - may need more iterations or different timing")
     
     def test_sequential_island_access_works_correctly(self):
         """Test that sequential access works without issues using safe sampling"""
@@ -148,7 +148,7 @@ class TestConcurrentIslandAccess(unittest.TestCase):
                 f"Sequential access failed: requested {result['requested']}, got {result['actual']}"
             )
         
-        print("✅ Sequential island access works correctly")
+        print("[OK] Sequential island access works correctly")
     
     def test_proposed_fix_with_island_specific_sampling(self):
         """
@@ -229,10 +229,10 @@ class TestConcurrentIslandAccess(unittest.TestCase):
         all_correct = all(r["correct"] for r in results)
         
         if all_correct and not errors:
-            print("✅ Proposed fix eliminates the race condition!")
+            print("[OK] Proposed fix eliminates the race condition!")
         else:
             incorrect = [r for r in results if not r["correct"]]
-            print(f"❌ Issues found with proposed fix: {incorrect}, errors: {errors}")
+            print(f"[FAIL] Issues found with proposed fix: {incorrect}, errors: {errors}")
         
         self.assertTrue(all_correct, "Proposed fix should eliminate race conditions")
         self.assertEqual(len(errors), 0, "No errors should occur with safe sampling")

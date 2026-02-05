@@ -88,7 +88,7 @@ async def demo_2_simple_generation():
         equipment_available=["Magnetic stirrer", "Thermometer", "Beakers", "Safety glasses"]
     )
 
-    print(f"\n✓ SOP Generated: {sop.title}")
+    print(f"\n[OK] SOP Generated: {sop.title}")
     print(f"  Version: {sop.version}")
     print(f"  Status: {sop.status}")
     print(f"  Classification: {sop.classification}")
@@ -160,7 +160,7 @@ async def demo_3_detailed_chemistry_sop():
         ]
     )
 
-    print(f"\n✓ SOP Generated: {sop.title}")
+    print(f"\n[OK] SOP Generated: {sop.title}")
     print(f"  Version: {sop.version}")
 
     # Show structured content
@@ -258,7 +258,7 @@ async def demo_4_refinement():
         ]
     )
 
-    print(f"\n✓ Refined SOP: {refined_sop.title}")
+    print(f"\n[OK] Refined SOP: {refined_sop.title}")
     print(f"  Version: {refined_sop.version} (updated from {sop.version})")
     print(f"  Revisions: {len(refined_sop.revision_history)}")
 
@@ -398,7 +398,7 @@ async def demo_5_markdown_export():
     if len(lines) > 100:
         print(f"\n... ({len(lines) - 100} more lines)")
 
-    print(f"\n✓ Full Markdown export: {len(markdown)} characters")
+    print(f"\n[OK] Full Markdown export: {len(markdown)} characters")
 
     return sop
 
@@ -456,7 +456,7 @@ async def main():
 
         print_section("DEMO COMPLETE")
 
-        print("✓ All demos completed successfully!")
+        print("[OK] All demos completed successfully!")
         print("\nNext Steps:")
         print("1. Run validation: python validate_sop_generator.py")
         print("2. Read guide: SOP_GENERATOR_GUIDE.md")
@@ -471,7 +471,7 @@ async def main():
 
     except Exception as e:
         logger.error(f"Demo failed: {e}", exc_info=True)
-        print(f"\n✗ Demo failed: {e}")
+        print(f"\n[FAIL] Demo failed: {e}")
         return 1
 
     return 0

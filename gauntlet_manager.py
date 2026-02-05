@@ -2,9 +2,22 @@ import json
 import os
 import time
 import logging
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Callable
 from datetime import datetime
 from openevolve_structures import GauntletDefinition, GauntletRoundRule
+
+# SECURITY: Import security framework
+try:
+    from security_framework import (
+        Permission, UserContext, authenticated, authorized,
+        InputValidator, get_audit_logger, ValidationError
+    )
+    from input_validation import get_validator
+    SECURITY_AVAILABLE = True
+    logging.info("SECURITY: Gauntlet manager security enabled")
+except ImportError as e:
+    SECURITY_AVAILABLE = False
+    logging.warning(f"SECURITY: Gauntlet manager security not available: {e}")
 
 # **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for gauntlet operations
 try:
@@ -877,3 +890,505 @@ Suggest improvements to make the gauntlet more effective. Return JSON with sugge
         except Exception as e:
             logging.warning(f"Failed to compute gauntlet complexity: {e}")
             return None
+    
+    # =========================================================================
+    # ADVANCED GAUNTLET TYPES - All 8+ gauntlet implementations
+    # =========================================================================
+    
+    def create_adversarial_gauntlet(
+        self,
+        name: str,
+        solution: Any,
+        attack_modes: Optional[List[str]] = None,
+        use_blue_team: bool = True
+    ) -> Dict[str, Any]:
+        """
+        Create and execute an adversarial gauntlet.
+        
+        Uses red team attacks and robustness testing to validate solution.
+        
+        Args:
+            name: Gauntlet name
+            solution: Solution to test
+            attack_modes: List of attack modes (e.g., ["systematic", "focused_attack"])
+            use_blue_team: Whether to use blue team for defense validation
+            
+        Returns:
+            Dict with robustness score and findings
+        """
+        try:
+            from gauntlet_types import AdversarialGauntlet
+            
+            config = {
+                "attack_modes": attack_modes or ["systematic", "adversarial"],
+                "use_blue_team": use_blue_team
+            }
+            
+            gauntlet = AdversarialGauntlet(name, config)
+            
+            context = {
+                "content": str(solution),
+                "content_type": getattr(solution, 'content_type', 'general')
+            }
+            
+            result = gauntlet.execute(solution, context)
+            
+            return {
+                "passed": result.passed,
+                "score": result.score,
+                "robustness_score": result.score,
+                "confidence": result.confidence,
+                "feedback": result.feedback,
+                "improvements": result.improvements,
+                "details": result.details,
+                "execution_time": result.execution_time
+            }
+            
+        except Exception as e:
+            logger.error(f"Adversarial gauntlet failed: {e}")
+            return {
+                "passed": False,
+                "score": 0.0,
+                "error": str(e)
+            }
+    
+    def create_formal_gauntlet(
+        self,
+        name: str,
+        solution: Any,
+        properties: List[Dict[str, Any]],
+        constraints: Optional[List[Dict]] = None,
+        timeout: int = 30
+    ) -> Dict[str, Any]:
+        """
+        Create and execute a formal verification gauntlet.
+        
+        Uses Z3-based formal proofs for property verification.
+        
+        Args:
+            name: Gauntlet name
+            solution: Solution to verify
+            properties: List of property specifications to verify
+            constraints: Optional constraints for verification
+            timeout: Z3 solver timeout in seconds
+            
+        Returns:
+            Dict with proof score and verification results
+        """
+        try:
+            from gauntlet_types import FormalVerificationGauntlet
+            
+            config = {"timeout": timeout}
+            gauntlet = FormalVerificationGauntlet(name, config)
+            
+            context = {
+                "properties": properties,
+                "constraints": constraints or [],
+                "code": str(solution)
+            }
+            
+            result = gauntlet.execute(solution, context)
+            
+            return {
+                "passed": result.passed,
+                "score": result.score,
+                "proof_score": result.score,
+                "confidence": result.confidence,
+                "verified_count": result.details.get("verified_count", 0),
+                "failed_count": result.details.get("failed_count", 0),
+                "total_properties": result.details.get("total_properties", 0),
+                "verification_results": result.details.get("verification_results", []),
+                "feedback": result.feedback,
+                "execution_time": result.execution_time
+            }
+            
+        except Exception as e:
+            logger.error(f"Formal gauntlet failed: {e}")
+            return {
+                "passed": False,
+                "score": 0.0,
+                "error": str(e)
+            }
+    
+    def create_statistical_gauntlet(
+        self,
+        name: str,
+        solution: Any,
+        test_data: Optional[List[float]] = None,
+        expected_distribution: Optional[Dict] = None,
+        num_samples: int = 1000,
+        tests: Optional[List[str]] = None
+    ) -> Dict[str, Any]:
+        """
+        Create and execute a statistical gauntlet.
+        
+        Uses Monte Carlo validation and hypothesis testing.
+        
+        Args:
+            name: Gauntlet name
+            solution: Solution to validate
+            test_data: Optional test data (will be generated if not provided)
+            expected_distribution: Expected distribution parameters
+            num_samples: Number of Monte Carlo samples
+            tests: List of tests to run ("mean", "variance", "distribution")
+            
+        Returns:
+            Dict with statistical validation score
+        """
+        try:
+            from gauntlet_types import StatisticalGauntlet
+            
+            config = {
+                "num_samples": num_samples,
+                "tests": tests or ["mean", "variance", "distribution"]
+            }
+            
+            gauntlet = StatisticalGauntlet(name, config)
+            
+            context = {
+                "test_data": test_data or [],
+                "expected_distribution": expected_distribution or {},
+                "expected_mean": expected_distribution.get("mean", 0.0) if expected_distribution else 0.0,
+                "expected_std": expected_distribution.get("std", 1.0) if expected_distribution else 1.0
+            }
+            
+            result = gauntlet.execute(solution, context)
+            
+            return {
+                "passed": result.passed,
+                "score": result.score,
+                "confidence": result.confidence,
+                "p_value": result.details.get("p_value", 1.0),
+                "test_results": result.details.get("test_results", {}),
+                "num_samples": result.details.get("num_samples", 0),
+                "feedback": result.feedback,
+                "execution_time": result.execution_time
+            }
+            
+        except Exception as e:
+            logger.error(f"Statistical gauntlet failed: {e}")
+            return {
+                "passed": False,
+                "score": 0.0,
+                "error": str(e)
+            }
+    
+    def create_domain_gauntlet(
+        self,
+        name: str,
+        solution: Any,
+        domain: str,
+        domain_context: Optional[Dict] = None
+    ) -> Dict[str, Any]:
+        """
+        Create and execute a domain-specific gauntlet.
+        
+        Available domains: physics, finance, chemistry, engineering
+        
+        Args:
+            name: Gauntlet name
+            solution: Solution to validate
+            domain: Domain name (physics, finance, chemistry, engineering)
+            domain_context: Domain-specific context/parameters
+            
+        Returns:
+            Dict with domain validation score
+        """
+        try:
+            from gauntlet_types import DomainSpecificGauntlet
+            
+            gauntlet = DomainSpecificGauntlet(domain, name)
+            
+            context = domain_context or {}
+            
+            result = gauntlet.execute(solution, context)
+            
+            return {
+                "passed": result.passed,
+                "score": result.score,
+                "domain": domain,
+                "confidence": result.confidence,
+                "check_results": result.details.get("check_results", []),
+                "passed_checks": result.details.get("passed_checks", 0),
+                "total_checks": result.details.get("total_checks", 0),
+                "feedback": result.feedback,
+                "execution_time": result.execution_time
+            }
+            
+        except Exception as e:
+            logger.error(f"Domain gauntlet failed: {e}")
+            return {
+                "passed": False,
+                "score": 0.0,
+                "error": str(e)
+            }
+    
+    def create_multi_objective_gauntlet(
+        self,
+        name: str,
+        solution: Any,
+        objectives: List[str],
+        objective_values: Dict[str, float],
+        weights: Optional[List[float]] = None,
+        reference_front: Optional[List[List[float]]] = None
+    ) -> Dict[str, Any]:
+        """
+        Create and execute a multi-objective gauntlet.
+        
+        Validates Pareto optimality across multiple objectives.
+        
+        Args:
+            name: Gauntlet name
+            solution: Solution to validate
+            objectives: List of objective names
+            objective_values: Dict mapping objective names to values
+            weights: Optional weights for each objective
+            reference_front: Optional Pareto front for comparison
+            
+        Returns:
+            Dict with Pareto validation score
+        """
+        try:
+            from gauntlet_types import MultiObjectiveGauntlet
+            
+            config = {
+                "objectives": objectives,
+                "weights": weights or [1.0/len(objectives)] * len(objectives)
+            }
+            
+            gauntlet = MultiObjectiveGauntlet(name, config)
+            
+            context = {
+                "objective_values": objective_values,
+                "reference_front": reference_front or []
+            }
+            
+            result = gauntlet.execute(solution, context)
+            
+            return {
+                "passed": result.passed,
+                "score": result.score,
+                "confidence": result.confidence,
+                "is_pareto_optimal": result.details.get("is_pareto_optimal", False),
+                "weighted_score": result.details.get("weighted_score", 0.0),
+                "dominated_by": result.details.get("dominated_by", 0),
+                "objectives": objectives,
+                "feedback": result.feedback,
+                "execution_time": result.execution_time
+            }
+            
+        except Exception as e:
+            logger.error(f"Multi-objective gauntlet failed: {e}")
+            return {
+                "passed": False,
+                "score": 0.0,
+                "error": str(e)
+            }
+    
+    def create_evolutionary_gauntlet(
+        self,
+        name: str,
+        solution: Any,
+        fitness_function: Optional[Callable] = None,
+        population_size: int = 50,
+        generations: int = 10
+    ) -> Dict[str, Any]:
+        """
+        Create and execute an evolutionary gauntlet.
+        
+        Uses fitness-based evaluation with evolutionary algorithms.
+        
+        Args:
+            name: Gauntlet name
+            solution: Solution to evaluate
+            fitness_function: Optional custom fitness function
+            population_size: Size of competing population
+            generations: Number of generations to simulate
+            
+        Returns:
+            Dict with fitness evaluation results
+        """
+        try:
+            from gauntlet_types import EvolutionaryGauntlet
+            
+            config = {
+                "population_size": population_size,
+                "generations": generations
+            }
+            
+            gauntlet = EvolutionaryGauntlet(name, config)
+            
+            context = {
+                "fitness_function": fitness_function,
+                "solution_space": "discrete"
+            }
+            
+            result = gauntlet.execute(solution, context)
+            
+            return {
+                "passed": result.passed,
+                "score": result.score,
+                "confidence": result.confidence,
+                "raw_fitness": result.details.get("raw_fitness", 0.0),
+                "relative_fitness": result.details.get("relative_fitness", 0.0),
+                "population_rank": result.details.get("population_rank"),
+                "population_size": result.details.get("population_size", 0),
+                "feedback": result.feedback,
+                "execution_time": result.execution_time
+            }
+            
+        except Exception as e:
+            logger.error(f"Evolutionary gauntlet failed: {e}")
+            return {
+                "passed": False,
+                "score": 0.0,
+                "error": str(e)
+            }
+    
+    def create_temporal_gauntlet(
+        self,
+        name: str,
+        solution: Any,
+        time_series_data: Optional[List[float]] = None,
+        simulation_function: Optional[Callable] = None,
+        time_steps: int = 100
+    ) -> Dict[str, Any]:
+        """
+        Create and execute a temporal gauntlet.
+        
+        Validates solutions over time for stability and convergence.
+        
+        Args:
+            name: Gauntlet name
+            solution: Solution to validate
+            time_series_data: Optional time series data
+            simulation_function: Optional function to simulate over time
+            time_steps: Number of time steps to simulate
+            
+        Returns:
+            Dict with temporal validation results
+        """
+        try:
+            from gauntlet_types import TemporalGauntlet
+            
+            config = {
+                "time_steps": time_steps,
+                "stability_threshold": 0.1,
+                "convergence_threshold": 0.01
+            }
+            
+            gauntlet = TemporalGauntlet(name, config)
+            
+            context = {
+                "time_series_data": time_series_data or [],
+                "simulation_function": simulation_function
+            }
+            
+            result = gauntlet.execute(solution, context)
+            
+            return {
+                "passed": result.passed,
+                "score": result.score,
+                "confidence": result.confidence,
+                "stability": result.details.get("stability", {}),
+                "convergence": result.details.get("convergence", {}),
+                "trend": result.details.get("trend", {}),
+                "is_stable": result.details.get("stability", {}).get("stable", False),
+                "has_converged": result.details.get("convergence", {}).get("converged", False),
+                "feedback": result.feedback,
+                "execution_time": result.execution_time
+            }
+            
+        except Exception as e:
+            logger.error(f"Temporal gauntlet failed: {e}")
+            return {
+                "passed": False,
+                "score": 0.0,
+                "error": str(e)
+            }
+    
+    def create_cross_validation_gauntlet(
+        self,
+        name: str,
+        solution: Any,
+        data: List[Any],
+        evaluation_function: Optional[Callable] = None,
+        k_folds: int = 5
+    ) -> Dict[str, Any]:
+        """
+        Create and execute a cross-validation gauntlet.
+        
+        Uses K-fold style validation for robustness testing.
+        
+        Args:
+            name: Gauntlet name
+            solution: Solution to validate
+            data: Dataset for cross-validation
+            evaluation_function: Function to evaluate solution on data
+            k_folds: Number of folds for cross-validation
+            
+        Returns:
+            Dict with cross-validation results
+        """
+        try:
+            from gauntlet_types import CrossValidationGauntlet
+            
+            config = {
+                "k_folds": k_folds,
+                "shuffle": True
+            }
+            
+            gauntlet = CrossValidationGauntlet(name, config)
+            
+            context = {
+                "data": data,
+                "evaluation_function": evaluation_function
+            }
+            
+            result = gauntlet.execute(solution, context)
+            
+            return {
+                "passed": result.passed,
+                "score": result.score,
+                "confidence": result.confidence,
+                "mean_score": result.details.get("mean_score", 0.0),
+                "std_score": result.details.get("std_score", 0.0),
+                "min_score": result.details.get("min_score", 0.0),
+                "max_score": result.details.get("max_score", 0.0),
+                "confidence_interval": result.details.get("confidence_interval", [0, 0]),
+                "fold_results": result.details.get("fold_results", []),
+                "k_folds": k_folds,
+                "feedback": result.feedback,
+                "execution_time": result.execution_time
+            }
+            
+        except Exception as e:
+            logger.error(f"Cross-validation gauntlet failed: {e}")
+            return {
+                "passed": False,
+                "score": 0.0,
+                "error": str(e)
+            }
+    
+    def list_advanced_gauntlet_types(self) -> Dict[str, str]:
+        """
+        List all available advanced gauntlet types.
+        
+        Returns:
+            Dict mapping gauntlet type names to descriptions
+        """
+        try:
+            from gauntlet_types import list_available_gauntlets
+            return list_available_gauntlets()
+        except Exception as e:
+            logger.warning(f"Failed to list gauntlet types: {e}")
+            return {
+                "adversarial": "Red team attacks and robustness testing",
+                "formal_verification": "Z3-based formal proofs",
+                "statistical": "Monte Carlo validation and hypothesis testing",
+                "domain": "Domain-specific validation (physics, finance, etc.)",
+                "multi_objective": "Pareto frontier validation",
+                "evolutionary": "Fitness-based evaluation",
+                "temporal": "Time-series validation",
+                "cross_validation": "K-fold style validation"
+            }

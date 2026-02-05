@@ -33,7 +33,7 @@ class ArtifactMetadata:
         self.stage = stage
         self.team = team
         self.sub_problem_id = sub_problem_id
-        self.status = status  # draft → pending → verified → final
+        self.status = status  # draft -> pending -> verified -> final
         self.links_to = links_to or []
         self.timestamp = datetime.utcnow().timestamp()
         self.extra_metadata = extra_metadata
@@ -468,7 +468,7 @@ class IntermediaryStorageManager:
         """
         Update artifact lifecycle status.
 
-        Status flow: draft → pending → verified → final
+        Status flow: draft -> pending -> verified -> final
 
         Args:
             artifact_id: Artifact to update
@@ -516,7 +516,7 @@ class IntermediaryStorageManager:
 
         Follows links to trace relationships between artifacts.
 
-        Example: solution → critique → verification → refined_solution
+        Example: solution -> critique -> verification -> refined_solution
 
         Args:
             artifact_id: Starting artifact ID

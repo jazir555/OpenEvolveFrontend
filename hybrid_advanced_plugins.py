@@ -347,7 +347,7 @@ class LogicTacticGenerator(TacticGeneratorPlugin):
         # Detect logical structure
         has_forall = "forall" in theorem or "∀" in theorem
         has_exists = "exists" in theorem or "∃" in theorem
-        has_implies = "->" in theorem or "→" in theorem or "implies" in theorem.lower()
+        has_implies = "->" in theorem or "->" in theorem or "implies" in theorem.lower()
         has_and = "∧" in theorem or "/\\" in theorem
         has_or = "∨" in theorem or "\\/" in theorem
 
@@ -682,7 +682,7 @@ class QuantifierDecomposition(DecompositionPlugin):
                     subtasks.append(f"Case {var} = succ n")
 
         # Handle implication
-        if "->" in theorem or "→" in theorem or "implies" in theorem.lower():
+        if "->" in theorem or "->" in theorem or "implies" in theorem.lower():
             subtasks.append("Prove antecedent")
             subtasks.append("Use antecedent to prove consequent")
 

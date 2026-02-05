@@ -35,7 +35,7 @@ async def probe_graphiti_connection() -> bool:
         print("[1/4] Loading configuration from environment...")
         config = GraphitiConfig()
         config.validate()
-        print("✓ Configuration loaded and validated")
+        print("[OK] Configuration loaded and validated")
         print(f"  Provider: {config.graphiti_provider}")
         print(f"  URI: {config.graphiti_uri[:20]}...")
         print(f"  Database: {config.graphiti_database}")
@@ -43,17 +43,17 @@ async def probe_graphiti_connection() -> bool:
         # Import temporal bridge
         print("\n[2/4] Importing temporal bridge...")
         from knowledge_engine.integrations.graphiti.temporal_bridge import GraphitiTemporalBridge
-        print("✓ Temporal bridge imported")
+        print("[OK] Temporal bridge imported")
 
         # Create bridge instance
         print("\n[3/4] Creating bridge instance...")
         bridge = GraphitiTemporalBridge(config=config)
-        print("✓ Bridge instance created")
+        print("[OK] Bridge instance created")
 
         # Initialize and test connection
         print("\n[4/4] Testing database connection...")
         await bridge.initialize()
-        print("✓ Connection successful")
+        print("[OK] Connection successful")
 
         # Test basic search
         print("\n[Bonus] Testing basic search operation...")
@@ -61,16 +61,16 @@ async def probe_graphiti_connection() -> bool:
             query="CONNECTION_TEST",
             max_results=1,
         )
-        print(f"✓ Search executed successfully (returned {len(results.get('edges', []))} edges)")
+        print(f"[OK] Search executed successfully (returned {len(results.get('edges', []))} edges)")
 
         # Cleanup
         await bridge.close()
-        print("\n✓ Probe completed successfully")
+        print("\n[OK] Probe completed successfully")
 
         return True
 
     except Exception as e:
-        print(f"\n✗ Probe failed: {e}")
+        print(f"\n[FAIL] Probe failed: {e}")
         print(f"  Error type: {type(e).__name__}")
 
         # Print detailed error info

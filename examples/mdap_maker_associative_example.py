@@ -140,7 +140,7 @@ def mock_mdap_agent_2(prompt: str) -> str:
     "issues_found": ["Consider adding database integration examples", "Add input validation for profile updates"],
     "strengths_found": ["Good modular design", "Clear component boundaries", "Proper dependency ordering"],
     "red_flags": [],
-    "reasoning": "The solution follows good architectural principles with clear separation between authentication, profile management, and authorization. The ordering of components makes sense (auth → profile → authz). The code is production-ready with minor enhancements needed."
+    "reasoning": "The solution follows good architectural principles with clear separation between authentication, profile management, and authorization. The ordering of components makes sense (auth -> profile -> authz). The code is production-ready with minor enhancements needed."
 }"""
 
 

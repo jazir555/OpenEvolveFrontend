@@ -28,10 +28,10 @@ def run_command(cmd, description):
     result = subprocess.run(cmd, capture_output=False)
 
     if result.returncode == 0:
-        print(f"\n✓ {description} - SUCCESS\n")
+        print(f"\n[OK] {description} - SUCCESS\n")
         return True
     else:
-        print(f"\n✗ {description} - FAILED\n")
+        print(f"\n[FAIL] {description} - FAILED\n")
         return False
 
 
@@ -54,9 +54,9 @@ def main():
     print_header("Step 2: Checking Dependencies")
     try:
         import pytest
-        print(f"✓ pytest installed (version {pytest.__version__})\n")
+        print(f"[OK] pytest installed (version {pytest.__version__})\n")
     except ImportError:
-        print("✗ pytest not installed")
+        print("[FAIL] pytest not installed")
         print("Installing test dependencies...")
         install_cmd = [
             sys.executable, "-m", "pip", "install",

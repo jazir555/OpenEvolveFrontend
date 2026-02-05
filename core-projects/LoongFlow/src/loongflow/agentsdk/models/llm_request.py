@@ -21,7 +21,7 @@ class CompletionRequest(BaseModel):
 
     # Optional generation controls
     temperature: Optional[float] = None
-    """Sampling temperature (0.0 → deterministic)."""
+    """Sampling temperature (0.0 -> deterministic)."""
 
     top_p: Optional[float] = None
     """Nucleus sampling probability threshold."""

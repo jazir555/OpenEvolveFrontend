@@ -13,7 +13,7 @@ Signal Flagging:
 High-potential signal = High 𝔈_D AND High 𝔍_C
 
 Following CLAUDE.md principles:
-- Law of Idempotency: Same input → same output
+- Law of Idempotency: Same input -> same output
 - Law of Configuration Explicitness: All config via environment
 - Law of UTC: All timestamps in UTC ISO-8601
 - Circuit Breaker: Detect and handle failures
@@ -175,7 +175,7 @@ class AnomalyCharacterizationIndex:
     - High-potential: High 𝔈_D AND High 𝔍_C
 
     Following CLAUDE.md principles:
-    - Law of Idempotency: Same input → same output
+    - Law of Idempotency: Same input -> same output
     - Law of Configuration Explicitness: All config via env vars
     - Circuit Breaker: Handle calculation failures
     - Structured Logging: JSON with correlation_id

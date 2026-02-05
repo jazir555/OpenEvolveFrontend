@@ -10,7 +10,7 @@ import uuid
 import threading
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 # **ACTUAL INTEGRATION**: Alerting and knowledge for Collaboration Manager
 try:
@@ -480,7 +480,7 @@ class CollaborationManager:
         
         <!-- Conflict Resolution Panel -->
         <div id="conflictPanel" style="background-color: #fff3e0; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: none;">
-            <h3 style="color: #ef6c00; margin-top: 0;">⚠️ Conflict Detected</h3>
+            <h3 style="color: #ef6c00; margin-top: 0;">[WARN] Conflict Detected</h3>
             <p id="conflictMessage">Resolving edit conflicts...</p>
             <div style="display: flex; gap: 10px; margin-top: 10px;">
                 <button onclick="acceptNew()" style="background-color: #4caf50; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">
@@ -779,7 +779,7 @@ class CollaborationManager:
                 if updated:
                     # Add notification
                     self.add_notification(
-                        f"Role updated for {user_email}: {old_role} → {new_role}",
+                        f"Role updated for {user_email}: {old_role} -> {new_role}",
                         "System",
                         "info",
                     )
@@ -1084,6 +1084,6 @@ def render_collaboration_section():
     # Current collaborators info
     st.subheader("Currently Online")
     current_user = st.session_state.get("username", "Current User")
-    st.write(f"✅ {current_user} (You)")
+    st.write(f"[OK] {current_user} (You)")
     
     st.info("Real-time collaboration features are active. Changes made by team members will appear instantly.")

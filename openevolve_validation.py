@@ -91,8 +91,8 @@ class ValidationResult:
     def _get_status_icon(self) -> str:
         """Get icon for status"""
         icons = {
-            ValidationStatus.PASSED: "✓",
-            ValidationStatus.FAILED: "✗",
+            ValidationStatus.PASSED: "[OK]",
+            ValidationStatus.FAILED: "[FAIL]",
             ValidationStatus.SKIPPED: "○",
             ValidationStatus.WARNING: "⚠"
         }
@@ -680,4 +680,4 @@ if __name__ == "__main__":
     suite = StandardValidationTests(components=['logging', 'sys'])
     report = run_validation_suite(suite)
 
-    print(f"\n✓ Validation framework testing complete!")
+    print(f"\n[OK] Validation framework testing complete!")

@@ -61,10 +61,10 @@ def run_final_system_validation():
             from input_validation import InputValidator
             from performance_optimization import LLMResponseCache
             
-            print("   ✅ Core modules imported successfully")
+            print("   [OK] Core modules imported successfully")
             validation_results['modules_imported'] = True
         except ImportError as e:
-            print(f"   ❌ Module import failed: {e}")
+            print(f"   [FAIL] Module import failed: {e}")
             return False
     
         # Test 2: Basic functionality
@@ -73,7 +73,7 @@ def run_final_system_validation():
             # Test ID generation
             test_id = generate_id("validation")
             assert test_id.startswith("validation_"), f"ID generation failed: {test_id}"
-            print("   ✅ ID generation works")
+            print("   [OK] ID generation works")
             
             # Test data model creation
             test_problem = ProblemDefinition(
@@ -94,15 +94,15 @@ def run_final_system_validation():
             
             errors = test_problem.validate()
             if len(errors) == 0:
-                print("   ✅ Problem validation works")
+                print("   [OK] Problem validation works")
                 validation_results['data_models'] = True
             else:
-                print(f"   ❌ Problem validation failed: {errors}")
+                print(f"   [FAIL] Problem validation failed: {errors}")
                 validation_results['data_models'] = False
                 return False
                 
         except Exception as e:
-            print(f"   ❌ Basic functionality test failed: {e}")
+            print(f"   [FAIL] Basic functionality test failed: {e}")
             return False
         
         # Test 3: Database operations
@@ -113,17 +113,17 @@ def run_final_system_validation():
             # Create and store problem
             problem_id = db.create_problem(test_problem)
             if problem_id:
-                print("   ✅ Problem creation works")
+                print("   [OK] Problem creation works")
             else:
-                print("   ❌ Problem creation failed")
+                print("   [FAIL] Problem creation failed")
                 return False
             
             # Retrieve problem
             retrieved = db.get_problem(test_problem.id)
             if retrieved and retrieved.title == "System Validation Problem":
-                print("   ✅ Problem retrieval works")
+                print("   [OK] Problem retrieval works")
             else:
-                print("   ❌ Problem retrieval failed")
+                print("   [FAIL] Problem retrieval failed")
                 return False
             
             # Create sub-problems
@@ -142,14 +142,14 @@ def run_final_system_validation():
             
             sub_created = db.create_subproblem(test_sub)
             if sub_created:
-                print("   ✅ Sub-problem CRUD operations work")
+                print("   [OK] Sub-problem CRUD operations work")
                 validation_results['database_operations'] = True
             else:
-                print("   ❌ Sub-problem CRUD operations failed")
+                print("   [FAIL] Sub-problem CRUD operations failed")
                 return False
                 
         except Exception as e:
-            print(f"   ❌ Database operations test failed: {e}")
+            print(f"   [FAIL] Database operations test failed: {e}")
             return False
         
         # Test 4: Security measures
@@ -172,17 +172,17 @@ def run_final_system_validation():
             )
             
             if user:
-                print("   ✅ User creation works")
+                print("   [OK] User creation works")
             else:
-                print("   ❌ User creation failed")
+                print("   [FAIL] User creation failed")
                 return False
             
             # Authentication test
             authenticated = auth_system.authenticate("validation_user", test_password)
             if authenticated:
-                print("   ✅ Authentication works")
+                print("   [OK] Authentication works")
             else:
-                print("   ❌ Authentication failed")
+                print("   [FAIL] Authentication failed")
                 return False
             
             # Input validation test
@@ -194,14 +194,14 @@ def run_final_system_validation():
             )
             
             if validated_input == "Safe input for validation":
-                print("   ✅ Input validation works")
+                print("   [OK] Input validation works")
                 validation_results['security_measures'] = True
             else:
-                print("   ❌ Input validation failed")
+                print("   [FAIL] Input validation failed")
                 return False
                 
         except Exception as e:
-            print(f"   ❌ Security measures test failed: {e}")
+            print(f"   [FAIL] Security measures test failed: {e}")
             return False
         
         # Test 5: Performance optimization
@@ -216,27 +216,27 @@ def run_final_system_validation():
             
             # Cache response
             cache.cache_response(test_content, test_params, test_response)
-            print("   ✅ Response caching works")
+            print("   [OK] Response caching works")
             
             # Retrieve from cache
             from_cache = cache.get_response(test_content, test_params)
             if from_cache:
-                print("   ✅ Cache retrieval works")
+                print("   [OK] Cache retrieval works")
             else:
-                print("   ❌ Cache retrieval failed")
+                print("   [FAIL] Cache retrieval failed")
                 return False
             
             # Check cache stats
             stats = cache.get_stats()
             if 'current_size' in stats and 'total_hits' in stats:
-                print("   ✅ Cache statistics tracking works")
+                print("   [OK] Cache statistics tracking works")
                 validation_results['performance_optimization'] = True
             else:
-                print("   ❌ Cache statistics failed")
+                print("   [FAIL] Cache statistics failed")
                 return False
                 
         except Exception as e:
-            print(f"   ❌ Performance optimization test failed: {e}")
+            print(f"   [FAIL] Performance optimization test failed: {e}")
             return False
         
         # Test 6: Full system integration
@@ -259,15 +259,15 @@ def run_final_system_validation():
             # Store in database
             stored = db.create_problem(integration_problem)
             if not stored:
-                print("   ❌ Integration test problem creation failed")
+                print("   [FAIL] Integration test problem creation failed")
                 return False
             
             # Retrieve and verify
             retrieved_integration = db.get_problem(integration_problem.id)
             if retrieved_integration:
-                print("   ✅ Cross-component data flow works")
+                print("   [OK] Cross-component data flow works")
             else:
-                print("   ❌ Cross-component data flow failed")
+                print("   [FAIL] Cross-component data flow failed")
                 return False
             
             # Verify all system components work together
@@ -280,14 +280,14 @@ def run_final_system_validation():
             ])
             
             if all_components_working:
-                print("   ✅ All system components integrated successfully")
+                print("   [OK] All system components integrated successfully")
                 validation_results['all_systems_integrated'] = True
             else:
-                print("   ❌ Component integration failed")
+                print("   [FAIL] Component integration failed")
                 return False
                 
         except Exception as e:
-            print(f"   ❌ Full system integration test failed: {e}")
+            print(f"   [FAIL] Full system integration test failed: {e}")
             import traceback
             traceback.print_exc()
             return False
@@ -300,11 +300,11 @@ def run_final_system_validation():
         
         print("\n📋 VALIDATION SUMMARY:")
         for check, passed in validation_results.items():
-            status = "✅ PASS" if passed else "❌ FAIL"
+            status = "[OK] PASS" if passed else "[FAIL] FAIL"
             print(f"   {status}: {check.replace('_', ' ').title()}")
         
         all_passed = all(validation_results.values())
-        overall_status = "✅ ALL SYSTEMS VALIDATED" if all_passed else "❌ SYSTEM VALIDATION FAILED"
+        overall_status = "[OK] ALL SYSTEMS VALIDATED" if all_passed else "[FAIL] SYSTEM VALIDATION FAILED"
         
         print(f"\n🏆 FINAL STATUS: {overall_status}")
         
@@ -336,30 +336,30 @@ def run_all_tests():
     if success:
         print("🎉 COMPLETION CERTIFICATION: ALL TASKS SUCCESSFULLY IMPLEMENTED! 🎉")
         print("="*80)
-        print("✅ Problem Analyzer with LLM-powered semantic analysis - COMPLETE")
-        print("✅ Content Analyzer with domain extraction - COMPLETE") 
-        print("✅ Decomposition Engine with 5+ strategies - COMPLETE")
-        print("✅ Dependency Manager with validation - COMPLETE")
-        print("✅ Multi-Team Coordination (Red/Blue/Gold) - COMPLETE")
-        print("✅ Gauntlet System with 5+ types - COMPLETE")
-        print("✅ Solution Orchestration with integration - COMPLETE")
-        print("✅ Complete Persistence Layer - COMPLETE")
-        print("✅ Authentication & Authorization - COMPLETE")
-        print("✅ Input Validation & Security - COMPLETE")
-        print("✅ Performance Optimization & Caching - COMPLETE")
-        print("✅ Scalability & Distributed Processing - COMPLETE")
-        print("✅ Monitoring & Observability - COMPLETE")
-        print("✅ Advanced Features (multi-modal, collaboration) - COMPLETE")
-        print("✅ Comprehensive Testing Framework - COMPLETE")
-        print("✅ Documentation & Operational Tasks - COMPLETE")
-        print("✅ Known Issues Fixed - COMPLETE")
-        print("✅ Future Enhancements (ML, RL, etc.) - COMPLETE")
+        print("[OK] Problem Analyzer with LLM-powered semantic analysis - COMPLETE")
+        print("[OK] Content Analyzer with domain extraction - COMPLETE") 
+        print("[OK] Decomposition Engine with 5+ strategies - COMPLETE")
+        print("[OK] Dependency Manager with validation - COMPLETE")
+        print("[OK] Multi-Team Coordination (Red/Blue/Gold) - COMPLETE")
+        print("[OK] Gauntlet System with 5+ types - COMPLETE")
+        print("[OK] Solution Orchestration with integration - COMPLETE")
+        print("[OK] Complete Persistence Layer - COMPLETE")
+        print("[OK] Authentication & Authorization - COMPLETE")
+        print("[OK] Input Validation & Security - COMPLETE")
+        print("[OK] Performance Optimization & Caching - COMPLETE")
+        print("[OK] Scalability & Distributed Processing - COMPLETE")
+        print("[OK] Monitoring & Observability - COMPLETE")
+        print("[OK] Advanced Features (multi-modal, collaboration) - COMPLETE")
+        print("[OK] Comprehensive Testing Framework - COMPLETE")
+        print("[OK] Documentation & Operational Tasks - COMPLETE")
+        print("[OK] Known Issues Fixed - COMPLETE")
+        print("[OK] Future Enhancements (ML, RL, etc.) - COMPLETE")
         print("="*80)
         print("🌟 THE SOVEREIGN-GRADE PROBLEM DECOMPOSITION SYSTEM IS NOW COMPLETE! 🌟")
         print("✨ READY FOR PRODUCTION DEPLOYMENT WITH CONFIDENCE! ✨")
         print("="*80)
     else:
-        print("❌ SYSTEM VALIDATION FAILED - NEEDS ADDITIONAL WORK")
+        print("[FAIL] SYSTEM VALIDATION FAILED - NEEDS ADDITIONAL WORK")
         print("="*80)
     
     return success

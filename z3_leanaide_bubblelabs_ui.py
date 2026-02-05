@@ -650,7 +650,7 @@ class Z3BubbleLabsUIManager:
                 "description": "Verifies using both Z3 and LeanAIDE",
                 "inputs": ["problem_text", "strategy"],
                 "outputs": ["verified", "agreement", "confidence", "recommendation"],
-                "icon": "✓✓",
+                "icon": "[OK][OK]",
                 "color": "#ec4899"
             },
             {

@@ -50,19 +50,19 @@ def _render_leanaide_integration(self):
         )
 
         with col1:
-            st.metric("LeanAide", "✅" if LEANAIDE_AVAILABLE else "❌")
+            st.metric("LeanAide", "[OK]" if LEANAIDE_AVAILABLE else "[FAIL]")
         with col2:
-            st.metric("MCTS", "✅" if MCTS_AVAILABLE else "❌")
+            st.metric("MCTS", "[OK]" if MCTS_AVAILABLE else "[FAIL]")
         with col3:
-            st.metric("Lean4", "✅" if LEAN4_AVAILABLE else "❌")
+            st.metric("Lean4", "[OK]" if LEAN4_AVAILABLE else "[FAIL]")
 
     except ImportError:
         with col1:
-            st.metric("LeanAide", "❌")
+            st.metric("LeanAide", "[FAIL]")
         with col2:
-            st.metric("MCTS", "❌")
+            st.metric("MCTS", "[FAIL]")
         with col3:
-            st.metric("Lean4", "❌")
+            st.metric("Lean4", "[FAIL]")
 
     st.markdown("---")
 
@@ -121,7 +121,7 @@ def _render_leanaide_quick_actions(self, leanaide_ui):
                     st.error(f"Translation failed: {result.error}")
 
     # Quick proof verification
-    with st.expander("✅ Quick Code Verification", expanded=False):
+    with st.expander("[OK] Quick Code Verification", expanded=False):
         quick_code = st.text_area(
             "Lean Code",
             placeholder="Enter Lean code to verify...",
@@ -143,9 +143,9 @@ def _render_leanaide_quick_actions(self, leanaide_ui):
                     unproven = result.data.get("unproven_count", 0)
 
                     if is_valid:
-                        st.success(f"✅ Code is valid! No unproven obligations.")
+                        st.success(f"[OK] Code is valid! No unproven obligations.")
                     else:
-                        st.warning(f"⚠️ {unproven} unproven obligation(s)")
+                        st.warning(f"[WARN] {unproven} unproven obligation(s)")
 
                     # Show errors if any
                     if result.data.get("sorries_after_purge"):
@@ -191,7 +191,7 @@ def _render_leanaide_quick_actions(self, leanaide_ui):
                     with col2:
                         st.metric("Steps", len(proof.steps))
                     with col3:
-                        st.metric("Verified", "✅" if proof.is_verified else "❌")
+                        st.metric("Verified", "[OK]" if proof.is_verified else "[FAIL]")
         else:
             st.info("No active proofs")
 
@@ -591,9 +591,9 @@ def example_integrated_workflow():
             if result.success:
                 is_valid = result.data.get("is_valid", False)
                 if is_valid:
-                    st.success("✅ Proof is valid!")
+                    st.success("[OK] Proof is valid!")
                 else:
-                    st.warning(f"⚠️ Proof has {result.data.get('unproven_count', 0)} unproven obligations")
+                    st.warning(f"[WARN] Proof has {result.data.get('unproven_count', 0)} unproven obligations")
             else:
                 st.error(f"Verification failed: {result.error}")
 

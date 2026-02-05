@@ -21,7 +21,7 @@ def pdf_to_images_for_ai(pdf_data, pages=None, max_pages=50):
         
         # Safety check to prevent server crashes
         if total_pages > 100:
-            print(f"❌ PDF too large ({total_pages} pages). Maximum allowed: 100 pages", file=sys.stderr)
+            print(f"[FAIL] PDF too large ({total_pages} pages). Maximum allowed: 100 pages", file=sys.stderr)
             pdf_document.close()
             return []
         
@@ -37,7 +37,7 @@ def pdf_to_images_for_ai(pdf_data, pages=None, max_pages=50):
         
         for page_num in page_numbers:
             if page_num >= total_pages:
-                print(f"⚠️ Page {page_num + 1} does not exist, skipping", file=sys.stderr)
+                print(f"[WARN] Page {page_num + 1} does not exist, skipping", file=sys.stderr)
                 continue
                 
             page = pdf_document[page_num]
@@ -61,7 +61,7 @@ def pdf_to_images_for_ai(pdf_data, pages=None, max_pages=50):
                 "size_kb": len(img_data) // 1024
             })
             
-            print(f"✅ Page {page_num + 1}: {pix.width}x{pix.height} ({len(img_data)//1024}KB JPEG)", file=sys.stderr)
+            print(f"[OK] Page {page_num + 1}: {pix.width}x{pix.height} ({len(img_data)//1024}KB JPEG)", file=sys.stderr)
             
             pix = None  # Clean up immediately
         
@@ -73,8 +73,8 @@ def pdf_to_images_for_ai(pdf_data, pages=None, max_pages=50):
         
     except Exception as e:
         import traceback
-        print(f"❌ Error converting PDF to images: {e}", file=sys.stderr)
-        print(f"❌ Traceback: {traceback.format_exc()}", file=sys.stderr)
+        print(f"[FAIL] Error converting PDF to images: {e}", file=sys.stderr)
+        print(f"[FAIL] Traceback: {traceback.format_exc()}", file=sys.stderr)
         return []
 
 if __name__ == "__main__":
@@ -105,7 +105,7 @@ if __name__ == "__main__":
                     if page_num > 0:
                         pages = [page_num - 1]  # Convert to 0-indexed
             except (ValueError, json.JSONDecodeError) as e:
-                print(f"⚠️ Invalid pages argument: {e}", file=sys.stderr)
+                print(f"[WARN] Invalid pages argument: {e}", file=sys.stderr)
     
     print(f"📊 Received {len(pdf_data)} bytes of PDF data", file=sys.stderr)
     if pages:

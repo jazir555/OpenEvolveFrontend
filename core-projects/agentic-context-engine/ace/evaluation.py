@@ -38,7 +38,7 @@ class EvaluationResult:
 
     def __repr__(self) -> str:
         """Concise representation showing correctness status."""
-        status = "✓" if self.is_correct else "✗"
+        status = "[OK]" if self.is_correct else "[FAIL]"
         return f"EvaluationResult(index={self.index}, status={status})"
 
 

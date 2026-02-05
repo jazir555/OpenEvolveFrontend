@@ -116,7 +116,7 @@ async def test_integration_pipeline():
         assert "servers" in status, "Should have server information in status"
         assert "tools" in status, "Should have tool information in status"
         
-        logger.info("✓ All integration tests passed!")
+        logger.info("[OK] All integration tests passed!")
         
     finally:
         await orchestrator.close()
@@ -149,7 +149,7 @@ async def test_error_handling():
         
         assert result2.success, "Should succeed with all components"
         
-        logger.info("✓ Error handling tests passed!")
+        logger.info("[OK] Error handling tests passed!")
         
     finally:
         await orchestrator.close()
@@ -183,7 +183,7 @@ async def test_performance_under_load():
         
         assert success_count >= len(results) * 0.8, f"Should have at least 80% success rate under load, got {success_count}/{len(results)}"
         
-        logger.info(f"✓ Performance test passed: {success_count}/{len(results)} successful operations")
+        logger.info(f"[OK] Performance test passed: {success_count}/{len(results)} successful operations")
         
     finally:
         await orchestrator.close()
@@ -202,14 +202,14 @@ async def run_all_tests():
         
         total_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
         
-        logger.info(f"✓ All tests passed successfully! Total time: {total_time_ms:.2f}ms")
+        logger.info(f"[OK] All tests passed successfully! Total time: {total_time_ms:.2f}ms")
         
         return True
         
     except Exception as e:
         total_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
         
-        logger.error(f"✗ Test suite failed after {total_time_ms:.2f}ms: {e}")
+        logger.error(f"[FAIL] Test suite failed after {total_time_ms:.2f}ms: {e}")
         raise
 
 
@@ -227,29 +227,29 @@ if __name__ == "__main__":
     if success:
         print("\n🎉 All tests passed! The OpenEvolve Knowledge Engine is functioning correctly.")
         print("\nThe integrated system successfully combines all 18 components:")
-        print("  ✓ Graphiti temporal knowledge graphs")
-        print("  ✓ KG-Gen knowledge extraction")
-        print("  ✓ OneKE bilingual extraction")
-        print("  ✓ AI-Knowledge-Graph processing")
-        print("  ✓ Ragbits retrieval-augmented generation")
-        print("  ✓ CrewAI multi-agent framework")
-        print("  ✓ DeepKE knowledge extraction")
-        print("  ✓ Research-Quest research automation")
-        print("  ✓ Agentic Context Engine")
-        print("  ✓ AgentJSON structured data")
-        print("  ✓ DSPy program-of-thought prompting")
-        print("  ✓ LeanAide formal verification")
-        print("  ✓ OpenEvolve Integration Library")
-        print("  ✓ MCP Gateway tool orchestration")
+        print("  [OK] Graphiti temporal knowledge graphs")
+        print("  [OK] KG-Gen knowledge extraction")
+        print("  [OK] OneKE bilingual extraction")
+        print("  [OK] AI-Knowledge-Graph processing")
+        print("  [OK] Ragbits retrieval-augmented generation")
+        print("  [OK] CrewAI multi-agent framework")
+        print("  [OK] DeepKE knowledge extraction")
+        print("  [OK] Research-Quest research automation")
+        print("  [OK] Agentic Context Engine")
+        print("  [OK] AgentJSON structured data")
+        print("  [OK] DSPy program-of-thought prompting")
+        print("  [OK] LeanAide formal verification")
+        print("  [OK] OpenEvolve Integration Library")
+        print("  [OK] MCP Gateway tool orchestration")
         print("\nThe system demonstrates:")
-        print("  ✓ Unified knowledge processing across all components")
-        print("  ✓ Self-learning and adaptation capabilities")
-        print("  ✓ Robust error handling and resilience")
-        print("  ✓ Performance under load")
-        print("  ✓ Cross-component coordination")
-        print("  ✓ Formal verification capabilities")
-        print("  ✓ Evolution based on experience")
+        print("  [OK] Unified knowledge processing across all components")
+        print("  [OK] Self-learning and adaptation capabilities")
+        print("  [OK] Robust error handling and resilience")
+        print("  [OK] Performance under load")
+        print("  [OK] Cross-component coordination")
+        print("  [OK] Formal verification capabilities")
+        print("  [OK] Evolution based on experience")
         sys.exit(0)
     else:
-        print("\n❌ Some tests failed. Please check the logs above.")
+        print("\n[FAIL] Some tests failed. Please check the logs above.")
         sys.exit(1)

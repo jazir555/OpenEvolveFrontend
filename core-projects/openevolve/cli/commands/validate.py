@@ -63,14 +63,14 @@ def all(config, verbose, strict):
                 cfg = manager.load_config()
                 config_file = "default config"
             except:
-                click.echo("✗ No configuration file found. Use 'evolve config init' first.", err=True)
+                click.echo("[FAIL] No configuration file found. Use 'evolve config init' first.", err=True)
                 return 1
 
         validator = ConfigValidator()
         result = validator.validate(cfg)
 
         if result.is_valid:
-            click.echo(f"✓ Configuration is valid ({config_file})")
+            click.echo(f"[OK] Configuration is valid ({config_file})")
 
             if verbose and hasattr(result, 'warnings') and result.warnings:
                 click.echo("\nWarnings:")
@@ -79,7 +79,7 @@ def all(config, verbose, strict):
 
             return 0
         else:
-            click.echo(f"✗ Configuration has {len(result.errors)} error(s):", err=True)
+            click.echo(f"[FAIL] Configuration has {len(result.errors)} error(s):", err=True)
             for error in result.errors:
                 click.echo(f"  - {error}", err=True)
 
@@ -91,7 +91,7 @@ def all(config, verbose, strict):
             return 1
 
     except Exception as e:
-        click.echo(f"✗ Error validating configuration: {e}", err=True)
+        click.echo(f"[FAIL] Error validating configuration: {e}", err=True)
         return 1
 
 
@@ -139,20 +139,20 @@ def validate_config_file(config_file, verbose, format):
 
         else:  # text
             if result.is_valid:
-                click.echo(f"✓ Configuration is valid ({config_file})")
+                click.echo(f"[OK] Configuration is valid ({config_file})")
                 if verbose and hasattr(result, 'warnings') and result.warnings:
                     click.echo("\nWarnings:")
                     for warning in result.warnings:
                         click.echo(f"  ⚠ {warning}")
             else:
-                click.echo(f"✗ Configuration has {len(result.errors)} error(s):", err=True)
+                click.echo(f"[FAIL] Configuration has {len(result.errors)} error(s):", err=True)
                 for error in result.errors:
                     click.echo(f"  - {error}", err=True)
 
         return 0 if result.is_valid else 1
 
     except Exception as e:
-        click.echo(f"✗ Error validating config: {e}", err=True)
+        click.echo(f"[FAIL] Error validating config: {e}", err=True)
         return 1
 
 
@@ -180,7 +180,7 @@ def check_profile(profile_name, verbose):
         result = validator.validate(profile_config)
 
         if result.is_valid:
-            click.echo(f"✓ Profile '{profile_name}' is valid")
+            click.echo(f"[OK] Profile '{profile_name}' is valid")
 
             if verbose and hasattr(result, 'warnings') and result.warnings:
                 click.echo("\nWarnings:")
@@ -189,13 +189,13 @@ def check_profile(profile_name, verbose):
 
             return 0
         else:
-            click.echo(f"✗ Profile '{profile_name}' has {len(result.errors)} error(s):", err=True)
+            click.echo(f"[FAIL] Profile '{profile_name}' has {len(result.errors)} error(s):", err=True)
             for error in result.errors:
                 click.echo(f"  - {error}", err=True)
             return 1
 
     except Exception as e:
-        click.echo(f"✗ Error validating profile: {e}", err=True)
+        click.echo(f"[FAIL] Error validating profile: {e}", err=True)
         return 1
 
 
@@ -224,7 +224,7 @@ def check_preset(preset_name, verbose):
         result = validator.validate(config)
 
         if result.is_valid:
-            click.echo(f"✓ Preset '{preset_name}' is valid")
+            click.echo(f"[OK] Preset '{preset_name}' is valid")
 
             if verbose and hasattr(result, 'warnings') and result.warnings:
                 click.echo("\nWarnings:")
@@ -233,13 +233,13 @@ def check_preset(preset_name, verbose):
 
             return 0
         else:
-            click.echo(f"✗ Preset '{preset_name}' has {len(result.errors)} error(s):", err=True)
+            click.echo(f"[FAIL] Preset '{preset_name}' has {len(result.errors)} error(s):", err=True)
             for error in result.errors:
                 click.echo(f"  - {error}", err=True)
             return 1
 
     except Exception as e:
-        click.echo(f"✗ Error validating preset: {e}", err=True)
+        click.echo(f"[FAIL] Error validating preset: {e}", err=True)
         return 1
 
 
@@ -263,16 +263,16 @@ def check_env(verbose):
         errors = parser.validate_env_vars()
 
         if not errors:
-            click.echo("✓ All environment variables are valid")
+            click.echo("[OK] All environment variables are valid")
             return 0
         else:
-            click.echo(f"✗ Found {len(errors)} environment variable error(s):", err=True)
+            click.echo(f"[FAIL] Found {len(errors)} environment variable error(s):", err=True)
             for error in errors:
                 click.echo(f"  - {error}", err=True)
             return 1
 
     except Exception as e:
-        click.echo(f"✗ Error validating environment: {e}", err=True)
+        click.echo(f"[FAIL] Error validating environment: {e}", err=True)
         return 1
 
 
@@ -309,16 +309,16 @@ def check_all(config, verbose):
         results['config'] = 'valid' if result.is_valid else 'invalid'
 
         if result.is_valid:
-            click.echo("✓ Configuration: valid")
+            click.echo("[OK] Configuration: valid")
         else:
-            click.echo(f"✗ Configuration: invalid ({len(result.errors)} errors)", err=True)
+            click.echo(f"[FAIL] Configuration: invalid ({len(result.errors)} errors)", err=True)
             if verbose:
                 for error in result.errors:
                     click.echo(f"  - {error}", err=True)
             exit_code = 1
 
     except Exception as e:
-        click.echo(f"✗ Configuration: error - {e}", err=True)
+        click.echo(f"[FAIL] Configuration: error - {e}", err=True)
         results['config'] = 'error'
         exit_code = 1
 
@@ -329,16 +329,16 @@ def check_all(config, verbose):
         results['env'] = 'valid' if not errors else 'invalid'
 
         if not errors:
-            click.echo("✓ Environment: valid")
+            click.echo("[OK] Environment: valid")
         else:
-            click.echo(f"✗ Environment: invalid ({len(errors)} errors)", err=True)
+            click.echo(f"[FAIL] Environment: invalid ({len(errors)} errors)", err=True)
             if verbose:
                 for error in errors:
                     click.echo(f"  - {error}", err=True)
             exit_code = 1
 
     except Exception as e:
-        click.echo(f"✗ Environment: error - {e}", err=True)
+        click.echo(f"[FAIL] Environment: error - {e}", err=True)
         results['env'] = 'error'
         exit_code = 1
 
@@ -392,16 +392,16 @@ def quick_check(config_file):
                     errors.append(f"LLM model {i}: missing model name")
 
         if errors:
-            click.echo(f"✗ Quick check failed ({len(errors)} error(s)):", err=True)
+            click.echo(f"[FAIL] Quick check failed ({len(errors)} error(s)):", err=True)
             for error in errors:
                 click.echo(f"  - {error}", err=True)
             return 1
         else:
-            click.echo("✓ Quick check passed")
+            click.echo("[OK] Quick check passed")
             return 0
 
     except Exception as e:
-        click.echo(f"✗ Quick check error: {e}", err=True)
+        click.echo(f"[FAIL] Quick check error: {e}", err=True)
         return 1
 
 
@@ -432,5 +432,5 @@ def show_schema(format):
             click.echo(yaml.dump(schema, default_flow_style=False))
 
     except Exception as e:
-        click.echo(f"✗ Error showing schema: {e}", err=True)
+        click.echo(f"[FAIL] Error showing schema: {e}", err=True)
         return 1

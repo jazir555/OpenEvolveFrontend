@@ -213,14 +213,14 @@ class LoongFlowChecker:
 
         print("\nComponents:")
         for component, status in diagnostics['components'].items():
-            status_str = "✓" if status else "✗"
+            status_str = "[OK]" if status else "[FAIL]"
             print(f"  {status_str} {component}")
 
         if diagnostics['issues']:
             print("\nIssues:")
             for issue in diagnostics['issues']:
-                print(f"  • {issue}")
+                print(f"  * {issue}")
         else:
-            print("\n✓ All requirements met")
+            print("\n[OK] All requirements met")
 
         print("=" * 60 + "\n")

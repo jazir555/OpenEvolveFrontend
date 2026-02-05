@@ -16,7 +16,7 @@ class Chunk(BaseModel):
 
     Chunks are created when ACT-R successfully resolves an impasse.
     They represent "compiled knowledge" - moving from slow deliberation
-    to fast, automatic execution (declarative → procedural memory).
+    to fast, automatic execution (declarative -> procedural memory).
     """
 
     model_config = {"arbitrary_types_allowed": True}

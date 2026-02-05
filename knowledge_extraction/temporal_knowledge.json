@@ -1,0 +1,245 @@
+{
+  "nodes": [
+    {
+      "node_id": "tk_10e1d9c9adf8",
+      "content": "Optimize neural network for image classification",
+      "type": "workflow_trace",
+      "created_at": "2026-02-04T18:37:10.311319",
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.8,
+      "metadata": {
+        "trace_id": "trace_000",
+        "workflow_id": "wf_000",
+        "execution_time": 5000.0
+      },
+      "version": 1
+    },
+    {
+      "node_id": "tk_ffeb2fe9a011",
+      "content": "Improve CNN architecture for computer vision",
+      "type": "workflow_trace",
+      "created_at": "2026-02-04T18:37:10.358937",
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.8,
+      "metadata": {
+        "trace_id": "trace_001",
+        "workflow_id": "wf_001",
+        "execution_time": 5100.0
+      },
+      "version": 1
+    },
+    {
+      "node_id": "tk_0603536c51f0",
+      "content": "Tune transformer model for NLP tasks",
+      "type": "workflow_trace",
+      "created_at": "2026-02-04T18:37:10.390877",
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.8,
+      "metadata": {
+        "trace_id": "trace_002",
+        "workflow_id": "wf_002",
+        "execution_time": 5200.0
+      },
+      "version": 1
+    },
+    {
+      "node_id": "tk_d18483bd093b",
+      "content": "Neural network optimization",
+      "type": "workflow_trace",
+      "created_at": "2026-02-04T18:37:34.290917",
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.8,
+      "metadata": {
+        "trace_id": "trace_0",
+        "workflow_id": "wf_0",
+        "execution_time": 1000.0
+      },
+      "version": 1
+    },
+    {
+      "node_id": "tk_f6195a83f3fa",
+      "content": "Deep learning for vision",
+      "type": "workflow_trace",
+      "created_at": "2026-02-04T18:37:34.292922",
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.8,
+      "metadata": {
+        "trace_id": "trace_1",
+        "workflow_id": "wf_1",
+        "execution_time": 1000.0
+      },
+      "version": 1
+    },
+    {
+      "node_id": "tk_707b7ec025ba",
+      "content": "Transformer architecture tuning",
+      "type": "workflow_trace",
+      "created_at": "2026-02-04T18:37:34.294427",
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.8,
+      "metadata": {
+        "trace_id": "trace_2",
+        "workflow_id": "wf_2",
+        "execution_time": 1000.0
+      },
+      "version": 1
+    },
+    {
+      "node_id": "tk_3ae543dadc44",
+      "content": "CNN optimization",
+      "type": "workflow_trace",
+      "created_at": "2026-02-04T18:37:34.295434",
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.8,
+      "metadata": {
+        "trace_id": "trace_3",
+        "workflow_id": "wf_3",
+        "execution_time": 1000.0
+      },
+      "version": 1
+    },
+    {
+      "node_id": "tk_39be64edd770",
+      "content": "BERT fine-tuning",
+      "type": "workflow_trace",
+      "created_at": "2026-02-04T18:37:34.296433",
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.8,
+      "metadata": {
+        "trace_id": "trace_4",
+        "workflow_id": "wf_4",
+        "execution_time": 1000.0
+      },
+      "version": 1
+    },
+    {
+      "node_id": "tk_d196e4bef068",
+      "content": "Optimize neural network for image classification",
+      "type": "workflow_trace",
+      "created_at": "2026-02-04T18:41:20.284823",
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.8,
+      "metadata": {
+        "trace_id": "trace_000",
+        "workflow_id": "wf_000",
+        "execution_time": 5000.0
+      },
+      "version": 1
+    },
+    {
+      "node_id": "tk_86e0651fd3a0",
+      "content": "Improve CNN architecture for computer vision",
+      "type": "workflow_trace",
+      "created_at": "2026-02-04T18:41:20.329977",
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.8,
+      "metadata": {
+        "trace_id": "trace_001",
+        "workflow_id": "wf_001",
+        "execution_time": 5100.0
+      },
+      "version": 1
+    },
+    {
+      "node_id": "tk_ee99b41ae1d6",
+      "content": "Tune transformer model for NLP tasks",
+      "type": "workflow_trace",
+      "created_at": "2026-02-04T18:41:20.357039",
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.8,
+      "metadata": {
+        "trace_id": "trace_002",
+        "workflow_id": "wf_002",
+        "execution_time": 5200.0
+      },
+      "version": 1
+    },
+    {
+      "node_id": "tk_3cff5cb2a076",
+      "content": "Neural network optimization",
+      "type": "workflow_trace",
+      "created_at": "2026-02-04T18:41:44.389392",
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.8,
+      "metadata": {
+        "trace_id": "trace_0",
+        "workflow_id": "wf_0",
+        "execution_time": 1000.0
+      },
+      "version": 1
+    },
+    {
+      "node_id": "tk_7b47663e9c14",
+      "content": "Deep learning for vision",
+      "type": "workflow_trace",
+      "created_at": "2026-02-04T18:41:44.391915",
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.8,
+      "metadata": {
+        "trace_id": "trace_1",
+        "workflow_id": "wf_1",
+        "execution_time": 1000.0
+      },
+      "version": 1
+    },
+    {
+      "node_id": "tk_024d26506cd8",
+      "content": "Transformer architecture tuning",
+      "type": "workflow_trace",
+      "created_at": "2026-02-04T18:41:44.393921",
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.8,
+      "metadata": {
+        "trace_id": "trace_2",
+        "workflow_id": "wf_2",
+        "execution_time": 1000.0
+      },
+      "version": 1
+    },
+    {
+      "node_id": "tk_0c3c31c72db5",
+      "content": "CNN optimization",
+      "type": "workflow_trace",
+      "created_at": "2026-02-04T18:41:44.395920",
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.8,
+      "metadata": {
+        "trace_id": "trace_3",
+        "workflow_id": "wf_3",
+        "execution_time": 1000.0
+      },
+      "version": 1
+    },
+    {
+      "node_id": "tk_d5e582f19c7a",
+      "content": "BERT fine-tuning",
+      "type": "workflow_trace",
+      "created_at": "2026-02-04T18:41:44.397940",
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.8,
+      "metadata": {
+        "trace_id": "trace_4",
+        "workflow_id": "wf_4",
+        "execution_time": 1000.0
+      },
+      "version": 1
+    }
+  ],
+  "saved_at": "2026-02-04T18:41:44.397940"
+}

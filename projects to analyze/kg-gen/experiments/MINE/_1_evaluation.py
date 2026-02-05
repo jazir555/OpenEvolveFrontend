@@ -213,7 +213,7 @@ def main(
         for future in as_completed(futures):
             completed += 1
             i, success, message = future.result()
-            status = "✓" if success else "✗"
+            status = "[OK]" if success else "[FAIL]"
             print(f"[{completed}/{len(valid_pairs)}] {status} {message}")
 
     print(f"\nCompleted all {len(valid_pairs)} evaluations!")

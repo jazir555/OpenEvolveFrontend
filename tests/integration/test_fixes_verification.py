@@ -26,21 +26,21 @@ def test_unified_api_imports():
     # Test main API imports - use the actual API structure
     try:
         from openevolve.api import run_evolution, EvolutionResult
-        print("✓ Successfully imported run_evolution and EvolutionResult")
+        print("[OK] Successfully imported run_evolution and EvolutionResult")
     except ImportError as e:
         pytest.fail(f"Failed to import unified API: {e}")
 
     # Test unified evolution config
     try:
         from openevolve.unified.config import UnifiedEvolutionConfig
-        print("✓ Successfully imported UnifiedEvolutionConfig")
+        print("[OK] Successfully imported UnifiedEvolutionConfig")
     except ImportError as e:
         pytest.fail(f"Failed to import UnifiedEvolutionConfig: {e}")
 
     # Test that run_evolution is callable
     from openevolve.api import run_evolution
     assert callable(run_evolution), "run_evolution function should be callable"
-    print("✓ run_evolution function is callable")
+    print("[OK] run_evolution function is callable")
 
 
 def test_gauntlet_imports():
@@ -59,7 +59,7 @@ def test_gauntlet_imports():
             ThreeRoundGauntletOrchestrator,
             MultiRoundGauntletOrchestrator,
         )
-        print("✓ Successfully imported all gauntlet classes")
+        print("[OK] Successfully imported all gauntlet classes")
     except ImportError as e:
         pytest.fail(f"Failed to import gauntlets: {e}")
 
@@ -67,7 +67,7 @@ def test_gauntlet_imports():
     assert LoongFlowGauntletEvaluator is not None
     assert ThreeRoundGauntletOrchestrator is not None
     assert MultiRoundGauntletOrchestrator is not None
-    print("✓ All gauntlet classes are available")
+    print("[OK] All gauntlet classes are available")
 
 
 def test_domain_optimizer_imports():
@@ -86,7 +86,7 @@ def test_domain_optimizer_imports():
             PharmaOptimizer,
             WebDesignOptimizer,
         )
-        print("✓ Successfully imported all domain optimizers")
+        print("[OK] Successfully imported all domain optimizers")
     except ImportError as e:
         pytest.fail(f"Failed to import domain optimizers: {e}")
 
@@ -97,7 +97,7 @@ def test_domain_optimizer_imports():
     assert EngineeringOptimizer is not None
     assert PharmaOptimizer is not None
     assert WebDesignOptimizer is not None
-    print("✓ All domain optimizer classes are available")
+    print("[OK] All domain optimizer classes are available")
 
 
 def test_knowledge_engine_imports():
@@ -109,14 +109,14 @@ def test_knowledge_engine_imports():
             LoongFlowKnowledgeExtractor,
             UnifiedEvolutionKnowledgeExtractor,
         )
-        print("✓ Successfully imported knowledge engine integrations")
+        print("[OK] Successfully imported knowledge engine integrations")
     except ImportError as e:
         pytest.fail(f"Failed to import knowledge engine: {e}")
 
     # Verify extractors exist
     assert LoongFlowKnowledgeExtractor is not None
     assert UnifiedEvolutionKnowledgeExtractor is not None
-    print("✓ All knowledge extractor classes are available")
+    print("[OK] All knowledge extractor classes are available")
 
 
 # =============================================================================
@@ -149,7 +149,7 @@ def test_domain_optimizers_instantiation():
 
     for name, optimizer in optimizers.items():
         assert optimizer is not None, f"{name} optimizer should be instantiated"
-        print(f"✓ {name} optimizer instantiated successfully")
+        print(f"[OK] {name} optimizer instantiated successfully")
 
 
 def test_domain_optimizer_configs():
@@ -168,17 +168,17 @@ def test_domain_optimizer_configs():
     finance = FinanceOptimizer()
     finance_config = finance.get_default_config()
     assert finance_config is not None, "Finance config should not be None"
-    print("✓ Finance optimizer config retrieved")
+    print("[OK] Finance optimizer config retrieved")
 
     trading = TradingOptimizer()
     trading_config = trading.get_default_config()
     assert trading_config is not None, "Trading config should not be None"
-    print("✓ Trading optimizer config retrieved")
+    print("[OK] Trading optimizer config retrieved")
 
     science = ScienceOptimizer()
     science_config = science.get_default_config()
     assert science_config is not None, "Science config should not be None"
-    print("✓ Science optimizer config retrieved")
+    print("[OK] Science optimizer config retrieved")
 
 
 def test_gauntlet_evaluator_imports():
@@ -191,7 +191,7 @@ def test_gauntlet_evaluator_imports():
 
     # Just verify the class can be imported (instantiation may need config)
     assert LoongFlowGauntletEvaluator is not None
-    print("✓ LoongFlowGauntletEvaluator class exists and can be imported")
+    print("[OK] LoongFlowGauntletEvaluator class exists and can be imported")
 
 
 # =============================================================================
@@ -217,7 +217,7 @@ def test_unified_config_structure():
     assert config.mutation_rate == 0.15
     assert config.crossover_rate == 0.75
 
-    print("✓ UnifiedEvolutionConfig structure verified")
+    print("[OK] UnifiedEvolutionConfig structure verified")
 
 
 def test_evolution_result_structure():
@@ -240,7 +240,7 @@ def test_evolution_result_structure():
     assert result.best_code == "test code"
     assert result.metrics["iterations"] == 10
 
-    print("✓ EvolutionResult structure verified")
+    print("[OK] EvolutionResult structure verified")
 
 
 def test_unified_config_defaults():
@@ -252,17 +252,17 @@ def test_unified_config_defaults():
     # Test finance config
     finance_config = get_finance_config()
     assert finance_config is not None
-    print("✓ Finance config default retrieved")
+    print("[OK] Finance config default retrieved")
 
     # Test trading config
     trading_config = get_trading_config()
     assert trading_config is not None
-    print("✓ Trading config default retrieved")
+    print("[OK] Trading config default retrieved")
 
     # Test scientific config
     scientific_config = get_scientific_config()
     assert scientific_config is not None
-    print("✓ Scientific config default retrieved")
+    print("[OK] Scientific config default retrieved")
 
 
 # =============================================================================
@@ -276,9 +276,9 @@ def test_import_error_handling():
     # Test that we can catch import errors
     try:
         from openevolve.api import run_evolution
-        print("✓ No import errors detected")
+        print("[OK] No import errors detected")
     except ImportError as e:
-        print(f"✗ Import error detected: {e}")
+        print(f"[FAIL] Import error detected: {e}")
         raise
 
 
@@ -296,7 +296,7 @@ def test_domain_optimizer_error_handling():
     try:
         config = optimizer.get_default_config()
         assert config is not None
-        print("✓ FinanceOptimizer handles default config correctly")
+        print("[OK] FinanceOptimizer handles default config correctly")
     except Exception as e:
         pytest.fail(f"FinanceOptimizer failed to provide default config: {e}")
 
@@ -313,29 +313,29 @@ def test_full_import_chain():
     try:
         # 1. Import the main API
         from openevolve.api import run_evolution, EvolutionResult
-        print("✓ Step 1: Main API imported")
+        print("[OK] Step 1: Main API imported")
 
         # 2. Import config
         from openevolve.unified.config import UnifiedEvolutionConfig
-        print("✓ Step 2: Config imported")
+        print("[OK] Step 2: Config imported")
 
         # 3. Import domain optimizers
         import sys
         sys.path.insert(0, '/c/Users/mmeadow/Documents/OpenEvolve/Frontend/openevolve')
         from domain import FinanceOptimizer, TradingOptimizer
-        print("✓ Step 3: Domain optimizers imported")
+        print("[OK] Step 3: Domain optimizers imported")
 
         # 4. Import gauntlets
         import sys
         sys.path.insert(0, '/c/Users/mmeadow/Documents/OpenEvolve/Frontend/openevolve')
         from gauntlets import LoongFlowGauntletEvaluator
-        print("✓ Step 4: Gauntlets imported")
+        print("[OK] Step 4: Gauntlets imported")
 
         # 5. Import knowledge engine
         from knowledge_engine.integrations import LoongFlowKnowledgeExtractor
-        print("✓ Step 5: Knowledge engine imported")
+        print("[OK] Step 5: Knowledge engine imported")
 
-        print("✓ Full import chain successful")
+        print("[OK] Full import chain successful")
 
     except ImportError as e:
         pytest.fail(f"Full import chain failed: {e}")
@@ -356,7 +356,7 @@ def test_domain_optimizer_methods():
     assert hasattr(optimizer, 'validate_config'), "Should have validate_config method"
     assert hasattr(optimizer, 'optimize'), "Should have optimize method"
 
-    print("✓ Domain optimizer has all required methods")
+    print("[OK] Domain optimizer has all required methods")
 
 
 def test_gauntlet_orchestrator_methods():
@@ -371,7 +371,7 @@ def test_gauntlet_orchestrator_methods():
     assert hasattr(ThreeRoundGauntletOrchestrator, 'run_gauntlet'), "Should have run_gauntlet method"
     assert hasattr(ThreeRoundGauntletOrchestrator, 'evaluate'), "Should have evaluate method"
 
-    print("✓ Gauntlet orchestrator has all required methods")
+    print("[OK] Gauntlet orchestrator has all required methods")
 
 
 # =============================================================================
@@ -422,7 +422,7 @@ def run_all_tests():
                 results.append((test_func.__name__, "PASSED"))
             except Exception as e:
                 results.append((test_func.__name__, f"FAILED: {str(e)}"))
-                print(f"\n✗ {test_func.__name__} FAILED: {e}")
+                print(f"\n[FAIL] {test_func.__name__} FAILED: {e}")
 
     # Print summary
     print("\n" + "="*80)
@@ -433,7 +433,7 @@ def run_all_tests():
     failed = sum(1 for _, result in results if result != "PASSED")
 
     for test_name, result in results:
-        status = "✓" if result == "PASSED" else "✗"
+        status = "[OK]" if result == "PASSED" else "[FAIL]"
         print(f"{status} {test_name}: {result}")
 
     print(f"\n{'='*80}")

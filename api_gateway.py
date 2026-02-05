@@ -25,6 +25,17 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
+# SECURITY: Import security framework
+try:
+    from security_framework import (
+        Permission, UserContext, JWTManager, get_jwt_manager,
+        RateLimiter, get_rate_limiter, InputValidator,
+        SecurityHeadersMiddleware, get_current_user, require_auth
+    )
+    SECURITY_AVAILABLE = True
+except ImportError:
+    SECURITY_AVAILABLE = False
+
 # Pydantic - MIT
 from pydantic import BaseModel
 

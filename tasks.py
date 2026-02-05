@@ -74,7 +74,7 @@ def render_tasks():
     Renders the tasks section in the Streamlit UI.
     Displays a list of tasks, allows creation, updates, and management.
     """
-    st.header("✅ Task Management")
+    st.header("[OK] Task Management")
     
     # Task creation form
     with st.expander("➕ Create New Task", expanded=False):

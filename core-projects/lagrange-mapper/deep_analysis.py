@@ -345,7 +345,7 @@ def print_hedge_summary(hedge_data: Dict):
             sample_sentences = info.get('sentences', [])[:2]
             for sent in sample_sentences:
                 display = sent[:60] + "..." if len(sent) > 60 else sent
-                print(f"      → \"{display}\"")
+                print(f"      -> \"{display}\"")
 
 
 # ============================================================================
@@ -619,7 +619,7 @@ def create_analysis_figure(embeddings, texts, concepts, output_path, n_clusters_
     # ========================================================================
     analysis_type = "Controversial" if is_controversial else "Neutral"
     fig.suptitle(
-        f'LLM Output Analysis ({analysis_type}): {len(embeddings)} Probes → {n_clusters} Clusters',
+        f'LLM Output Analysis ({analysis_type}): {len(embeddings)} Probes -> {n_clusters} Clusters',
         fontsize=16, fontweight='bold', y=0.99
     )
     

@@ -20,13 +20,13 @@ def test_all_critical_blockers():
         from evolution import TEAM_SYSTEM_AVAILABLE
         
         if TEAM_SYSTEM_AVAILABLE:
-            print("✅ RESOLVED: Team system imports work and TEAM_SYSTEM_AVAILABLE = True")
+            print("[OK] RESOLVED: Team system imports work and TEAM_SYSTEM_AVAILABLE = True")
             results["task_0_1"] = True
         else:
-            print("❌ FAILED: TEAM_SYSTEM_AVAILABLE is still False")
+            print("[FAIL] FAILED: TEAM_SYSTEM_AVAILABLE is still False")
             results["task_0_1"] = False
     except Exception as e:
-        print(f"❌ FAILED: Team system import error: {e}")
+        print(f"[FAIL] FAILED: Team system import error: {e}")
         results["task_0_1"] = False
     
     # Task 0.2: Fix OpenEvolve Backend Configuration
@@ -42,13 +42,13 @@ def test_all_critical_blockers():
         )
         
         if config and config.llm.models:
-            print("✅ RESOLVED: OpenEvolve configuration works with proper validation")
+            print("[OK] RESOLVED: OpenEvolve configuration works with proper validation")
             results["task_0_2"] = True
         else:
-            print("❌ FAILED: OpenEvolve configuration still has issues")
+            print("[FAIL] FAILED: OpenEvolve configuration still has issues")
             results["task_0_2"] = False
     except Exception as e:
-        print(f"❌ FAILED: OpenEvolve configuration error: {e}")
+        print(f"[FAIL] FAILED: OpenEvolve configuration error: {e}")
         results["task_0_2"] = False
     
     # Task 0.3: Remove Session State Dependencies
@@ -67,13 +67,13 @@ def test_all_critical_blockers():
         )
         
         if evolution_config and adversarial_config:
-            print("✅ RESOLVED: Configuration functions work without session state")
+            print("[OK] RESOLVED: Configuration functions work without session state")
             results["task_0_3"] = True
         else:
-            print("❌ FAILED: Configuration functions still depend on session state")
+            print("[FAIL] FAILED: Configuration functions still depend on session state")
             results["task_0_3"] = False
     except Exception as e:
-        print(f"❌ FAILED: Session state dependency error: {e}")
+        print(f"[FAIL] FAILED: Session state dependency error: {e}")
         results["task_0_3"] = False
     
     # Task 0.4: Fix Missing Dependencies and Imports
@@ -89,13 +89,13 @@ def test_all_critical_blockers():
         _update_adv_log_and_status("Test message")
         
         if review_type and prompts and len(APPROVAL_PROMPT) > 0:
-            print("✅ RESOLVED: All missing dependencies are now available")
+            print("[OK] RESOLVED: All missing dependencies are now available")
             results["task_0_4"] = True
         else:
-            print("❌ FAILED: Some dependencies still missing")
+            print("[FAIL] FAILED: Some dependencies still missing")
             results["task_0_4"] = False
     except Exception as e:
-        print(f"❌ FAILED: Missing dependency error: {e}")
+        print(f"[FAIL] FAILED: Missing dependency error: {e}")
         results["task_0_4"] = False
     
     # Task 0.5: Implement Proper Error Handling
@@ -111,13 +111,13 @@ def test_all_critical_blockers():
         error_info = error_handler.handle_error(test_error)
         
         if error_info and error_info.recovery_suggestions:
-            print("✅ RESOLVED: Comprehensive error handling system implemented")
+            print("[OK] RESOLVED: Comprehensive error handling system implemented")
             results["task_0_5"] = True
         else:
-            print("❌ FAILED: Error handling system incomplete")
+            print("[FAIL] FAILED: Error handling system incomplete")
             results["task_0_5"] = False
     except Exception as e:
-        print(f"❌ FAILED: Error handling system error: {e}")
+        print(f"[FAIL] FAILED: Error handling system error: {e}")
         results["task_0_5"] = False
     
     # Task 0.6: Fix Ultimate Function Implementations (Basic Test)
@@ -136,13 +136,13 @@ def test_all_critical_blockers():
         )
         
         if result1 and result2:
-            print("✅ RESOLVED: Ultimate functions exist and execute (with proper error handling)")
+            print("[OK] RESOLVED: Ultimate functions exist and execute (with proper error handling)")
             results["task_0_6"] = True
         else:
-            print("❌ FAILED: Ultimate functions still non-functional")
+            print("[FAIL] FAILED: Ultimate functions still non-functional")
             results["task_0_6"] = False
     except Exception as e:
-        print(f"⚠️ PARTIAL: Ultimate functions exist but need more work: {e}")
+        print(f"[WARN] PARTIAL: Ultimate functions exist but need more work: {e}")
         results["task_0_6"] = False
     
     # Task 0.7: Create Proper Testing Infrastructure
@@ -170,13 +170,13 @@ def test_all_critical_blockers():
             test_count += 1
         
         if test_count >= 3:
-            print("✅ RESOLVED: Basic testing infrastructure works")
+            print("[OK] RESOLVED: Basic testing infrastructure works")
             results["task_0_7"] = True
         else:
-            print("❌ FAILED: Testing infrastructure inadequate")
+            print("[FAIL] FAILED: Testing infrastructure inadequate")
             results["task_0_7"] = False
     except Exception as e:
-        print(f"❌ FAILED: Testing infrastructure error: {e}")
+        print(f"[FAIL] FAILED: Testing infrastructure error: {e}")
         results["task_0_7"] = False
     
     # Task 0.8: Fix Documentation Accuracy (Basic Check)
@@ -193,13 +193,13 @@ def test_all_critical_blockers():
         adv_caps = get_adversarial_capabilities_summary()
         
         if evo_caps and adv_caps:
-            print("✅ RESOLVED: Basic capability reporting works (documentation can be accurate)")
+            print("[OK] RESOLVED: Basic capability reporting works (documentation can be accurate)")
             results["task_0_8"] = True
         else:
-            print("❌ FAILED: Capability reporting doesn't work")
+            print("[FAIL] FAILED: Capability reporting doesn't work")
             results["task_0_8"] = False
     except Exception as e:
-        print(f"❌ FAILED: Documentation accuracy check error: {e}")
+        print(f"[FAIL] FAILED: Documentation accuracy check error: {e}")
         results["task_0_8"] = False
     
     # Summary
@@ -211,7 +211,7 @@ def test_all_critical_blockers():
     total_count = len(results)
     
     for task, resolved in results.items():
-        status = "✅ RESOLVED" if resolved else "❌ FAILED"
+        status = "[OK] RESOLVED" if resolved else "[FAIL] FAILED"
         print(f"{task.replace('_', '.')}: {status}")
     
     print(f"\n🎯 OVERALL PROGRESS: {resolved_count}/{total_count} critical blockers resolved ({resolved_count/total_count*100:.1f}%)")
@@ -221,7 +221,7 @@ def test_all_critical_blockers():
         print("   The system is now in a much more functional state.")
         return True
     else:
-        print("\n⚠️ MORE WORK NEEDED: Several critical blockers still need attention.")
+        print("\n[WARN] MORE WORK NEEDED: Several critical blockers still need attention.")
         return False
 
 if __name__ == "__main__":

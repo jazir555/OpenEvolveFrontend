@@ -10,12 +10,12 @@ IMPORTANT: OpenEvolve is an evolutionary coding agent. The bridge maps Hephaestu
 phases to appropriate evolutionary tasks using CrewAI's zero-error workflow.
 
 Phase Mapping:
-- Phase 1: Problem Setup → Generate initial algorithm
-- Phase 2: Optimization → Evolve for performance
-- Phase 3: Diversity → Evolve for code variety
-- Phase 4: Correctness → Evolve for correctness
-- Phase 5: Multi-objective → Evolve for multiple goals
-- Phase 6: Final Selection → Select best evolved program
+- Phase 1: Problem Setup -> Generate initial algorithm
+- Phase 2: Optimization -> Evolve for performance
+- Phase 3: Diversity -> Evolve for code variety
+- Phase 4: Correctness -> Evolve for correctness
+- Phase 5: Multi-objective -> Evolve for multiple goals
+- Phase 6: Final Selection -> Select best evolved program
 
 License: MIT (replaces AGPL Hephaestus)
 """

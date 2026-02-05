@@ -40,10 +40,10 @@ def install_package(package_spec: str) -> bool:
     print(f"Installing {package_spec}...")
     success, output = run_command([sys.executable, "-m", "pip", "install", package_spec])
     if success:
-        print(f"  ✓ Successfully installed {package_spec}")
+        print(f"  [OK] Successfully installed {package_spec}")
         return True
     else:
-        print(f"  ✗ Failed to install {package_spec}")
+        print(f"  [FAIL] Failed to install {package_spec}")
         print(f"  Error: {output}")
         return False
 
@@ -70,15 +70,15 @@ def main():
     missing_deps = []
     for module_name, package_spec in dependencies:
         if check_package(module_name):
-            print(f"  ✓ {module_name} is installed")
+            print(f"  [OK] {module_name} is installed")
         else:
-            print(f"  ✗ {module_name} is missing")
+            print(f"  [FAIL] {module_name} is missing")
             missing_deps.append(package_spec)
 
     print()
 
     if not missing_deps:
-        print("✓ All ACE dependencies are already installed!")
+        print("[OK] All ACE dependencies are already installed!")
         print()
         print("You can now use the ACE CrewAI Bridge:")
         print("  from ace_crewai_bridge import ACECrewAIWorkflowBridge")
@@ -96,7 +96,7 @@ def main():
     print()
 
     if failed_installs:
-        print(f"✗ Failed to install {len(failed_installs)} packages:")
+        print(f"[FAIL] Failed to install {len(failed_installs)} packages:")
         for pkg in failed_installs:
             print(f"  - {pkg}")
         print()
@@ -105,7 +105,7 @@ def main():
         return 1
 
     print("=" * 70)
-    print("✓ ACE dependency setup complete!")
+    print("[OK] ACE dependency setup complete!")
     print("=" * 70)
     print()
     print("You can now use the ACE CrewAI Bridge:")

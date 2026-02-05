@@ -166,7 +166,7 @@ class VerifiedRecomposer:
     3. LLM returns structured AssemblyPlan (JSON)
     4. Algorithmically assemble according to plan
     5. Verify all content preserved (algorithmic check)
-    6. If verification fails → retry with feedback
+    6. If verification fails -> retry with feedback
     """
 
     def __init__(
@@ -574,10 +574,10 @@ OUTPUT ONLY THE JSON. No additional text."""
             }
 
             if all_preserved:
-                logger.info("✓ Verification PASSED - all content preserved")
+                logger.info("[OK] Verification PASSED - all content preserved")
                 return assembled, metadata
             else:
-                logger.error(f"✗ Verification FAILED - attempt {attempt + 1}")
+                logger.error(f"[FAIL] Verification FAILED - attempt {attempt + 1}")
 
                 # Add feedback for next attempt
                 failed_ids = [

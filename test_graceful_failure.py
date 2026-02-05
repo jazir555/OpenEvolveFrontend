@@ -45,7 +45,7 @@ async def test_plugin_initialization_error():
         assert plugin._status.health == "unhealthy"
         assert "initialization failure" in plugin._status.message.lower()
         
-        print("✓ Initialization error handled gracefully")
+        print("[OK] Initialization error handled gracefully")
         print(f"  Status: {plugin._status.state}")
         print(f"  Health: {plugin._status.health}")
         print(f"  Message: {plugin._status.message}")
@@ -83,7 +83,7 @@ async def test_plugin_start_error():
             assert plugin._status.health == "unhealthy"
             assert "start failed" in plugin._status.message.lower()
             
-            print("✓ Start error handled gracefully")
+            print("[OK] Start error handled gracefully")
             print(f"  Status: {plugin._status.state}")
             print(f"  Health: {plugin._status.health}")
             print(f"  Message: {plugin._status.message}")
@@ -121,7 +121,7 @@ async def test_plugin_stop_error():
             assert plugin._status.health == "unhealthy"
             assert "stop failed" in plugin._status.message.lower()
             
-            print("✓ Stop error handled gracefully")
+            print("[OK] Stop error handled gracefully")
             print(f"  Status: {plugin._status.state}")
             print(f"  Health: {plugin._status.health}")
             print(f"  Message: {plugin._status.message}")
@@ -157,7 +157,7 @@ async def test_plugin_cleanup_error():
         assert plugin._status.health == "unhealthy"
         assert "cleanup failed" in plugin._status.message.lower()
         
-        print("✓ Cleanup error handled gracefully")
+        print("[OK] Cleanup error handled gracefully")
         print(f"  Status: {plugin._status.state}")
         print(f"  Health: {plugin._status.health}")
         print(f"  Message: {plugin._status.message}")
@@ -193,7 +193,7 @@ async def test_workflow_control_error():
         assert "control workflow" in result["error"].lower()
         assert result["status"] == "error"
         
-        print("✓ Workflow control error handled gracefully")
+        print("[OK] Workflow control error handled gracefully")
         print(f"  Result: {result}")
 
 
@@ -207,7 +207,7 @@ async def main():
     await test_plugin_cleanup_error()
     await test_workflow_control_error()
     
-    print("\n✓ All tests passed! The OpenEvolve BubbleLabs plugin handles errors gracefully.")
+    print("\n[OK] All tests passed! The OpenEvolve BubbleLabs plugin handles errors gracefully.")
 
 
 if __name__ == "__main__":

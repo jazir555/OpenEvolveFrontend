@@ -81,12 +81,12 @@ def traverse_all_relevant_nodes(query: str, tree: MarkdownTree, markdown_dir: Op
                     markdown_dir = node_path.parent
 
     if not relevant_nodes:
-        print("⚠️ No relevant nodes found via vector search")
+        print("[WARN] No relevant nodes found via vector search")
         return {}
 
     # Ensure we have a markdown directory
     if markdown_dir is None:
-        print("⚠️ Could not determine markdown directory from tree")
+        print("[WARN] Could not determine markdown directory from tree")
         return {}
 
     # Collect all traversed nodes with their content

@@ -1181,7 +1181,7 @@ async def main():
         # Generate visualization
         # viz = await engine.visualize_graph("explorer", data={"triples": result.triples})
 
-    print("✅ Example complete")
+    print("[OK] Example complete")
 
 
 if __name__ == "__main__":

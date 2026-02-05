@@ -51,7 +51,7 @@ async def example_1_basic_monitoring():
     print(f"  Total Rules: {report['metrics'].get('total_rules', 0)}")
     print(f"  Active Alerts: {report['metrics'].get('active_alerts', 0)}")
 
-    print("\n✓ Example 1 complete\n")
+    print("\n[OK] Example 1 complete\n")
 
 
 async def example_2_regulatory_update():
@@ -94,10 +94,10 @@ async def example_2_regulatory_update():
 
     # Check results
     if monitor.state.last_update_time:
-        print(f"✓ Rules updated at {monitor.state.last_update_time}")
+        print(f"[OK] Rules updated at {monitor.state.last_update_time}")
         print(f"  Current rules: {len(monitor.state.current_rules)}")
 
-    print("\n✓ Example 2 complete\n")
+    print("\n[OK] Example 2 complete\n")
 
 
 async def example_3_alert_generation():
@@ -146,7 +146,7 @@ async def example_3_alert_generation():
         alert = await alerter.generate_alert(violation)
         if alert:
             alerts_generated.append(alert)
-            print(f"✓ Alert Generated: {alert.alert_id}")
+            print(f"[OK] Alert Generated: {alert.alert_id}")
             print(f"  Severity: {alert.severity.value}")
             print(f"  Title: {alert.title}")
             print(f"  Status: {alert.status.value}\n")
@@ -158,7 +158,7 @@ async def example_3_alert_generation():
     print(f"  By Severity: {stats['by_severity']}")
     print(f"  False Positive Rate: {stats['false_positive_rate']:.1%}")
 
-    print("\n✓ Example 3 complete\n")
+    print("\n[OK] Example 3 complete\n")
 
 
 async def example_4_edge_case_discovery():
@@ -219,7 +219,7 @@ async def example_4_edge_case_discovery():
 
     discovery.edge_cases.extend(edge_cases)
 
-    print(f"✓ Discovered {len(edge_cases)} edge cases:")
+    print(f"[OK] Discovered {len(edge_cases)} edge cases:")
     for case in edge_cases:
         print(f"  - {case.case_id}: {case.description}")
         print(f"    Type: {case.case_type.value}")
@@ -232,7 +232,7 @@ async def example_4_edge_case_discovery():
     print(f"  Coverage: {report.coverage_percentage:.1f}%")
     print(f"  Edge Cases Found: {report.edge_cases_found}")
 
-    print("\n✓ Example 4 complete\n")
+    print("\n[OK] Example 4 complete\n")
 
 
 async def example_5_compliance_verification():
@@ -268,7 +268,7 @@ async def example_5_compliance_verification():
 
     print(f"Verification Results:")
     for result in results:
-        status = "✓ PASSED" if result.success else "✗ FAILED"
+        status = "[OK] PASSED" if result.success else "[FAIL] FAILED"
         print(f"  {result.proof_type.value.upper()}: {status}")
         print(f"    Method: {result.method.value}")
         print(f"    Confidence: {result.confidence:.1%}")
@@ -276,7 +276,7 @@ async def example_5_compliance_verification():
             print(f"    Proof: {result.proof[:100]}...")
         print()
 
-    print("\n✓ Example 5 complete\n")
+    print("\n[OK] Example 5 complete\n")
 
 
 async def main():
@@ -309,7 +309,7 @@ async def main():
         print("\nFor more information, see: docs/agents/compliance_monitor.md\n")
 
     except Exception as e:
-        print(f"\n✗ Error running examples: {e}")
+        print(f"\n[FAIL] Error running examples: {e}")
         import traceback
         traceback.print_exc()
 

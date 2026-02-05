@@ -13,6 +13,46 @@ from datetime import datetime
 import asyncio
 import logging
 
+# SECURITY: Import security framework
+try:
+    from security_framework import (
+        Permission, Role, UserContext, JWTManager, get_jwt_manager,
+        RateLimiter, get_rate_limiter, InputValidator, ValidationError,
+        AuditLogger, get_audit_logger, authenticated, authorized
+    )
+    SECURITY_FRAMEWORK_AVAILABLE = True
+except ImportError:
+    SECURITY_FRAMEWORK_AVAILABLE = False
+    # Define stub classes for when security framework is not available
+    class Permission:
+        WORKFLOW_CREATE = "workflow:create"
+        WORKFLOW_READ = "workflow:read"
+        WORKFLOW_UPDATE = "workflow:update"
+        WORKFLOW_DELETE = "workflow:delete"
+        WORKFLOW_EXECUTE = "workflow:execute"
+    
+    class UserContext:
+        def __init__(self, user_id="anonymous", username="anonymous", email="", roles=None, permissions=None):
+            self.user_id = user_id
+            self.username = username
+            self.email = email
+            self.roles = roles or []
+            self.permissions = permissions or []
+            self.is_superuser = False
+        
+        def has_permission(self, permission):
+            return True  # Allow all when security framework unavailable
+    
+    def authenticated(required=True):
+        def decorator(func):
+            return func
+        return decorator
+    
+    def authorized(permission):
+        def decorator(func):
+            return func
+        return decorator
+
 # **ACTUAL INTEGRATION**: Import systems that Workflow Engine talks to
 try:
     from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
@@ -4508,7 +4548,7 @@ def _cache_workflow_results(
 
     Caches:
     - Successful workflow patterns
-    - Problem → solution mappings
+    - Problem -> solution mappings
     """
     if not CACHE_AVAILABLE or not success:
         return False
@@ -6172,13 +6212,13 @@ workflow_state = WorkflowState(
 
 ## When to Use MAKER
 
-✓ Use MAKER when:
+[OK] Use MAKER when:
 - Task has >100 sequential steps
 - Zero errors required
 - Task can be decomposed
 - High reliability critical
 
-✗ Don't use MAKER when:
+[FAIL] Don't use MAKER when:
 - Simple single-step tasks
 - Quick prototyping needed
 - Cost constraints severe

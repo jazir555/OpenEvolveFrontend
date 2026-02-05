@@ -168,7 +168,7 @@ def demo_1_basic_enhanced_testing():
         theorem="Authentication function"
     )
 
-    print("\n✅ Testing completed!")
+    print("\n[OK] Testing completed!")
     print(f"  Duration: {result['duration']:.2f}s")
     print(f"  Iterations: {result['iterations_completed']}")
     print(f"  Final Robustness: {result['final_robustness']:.2%}")
@@ -182,7 +182,7 @@ def demo_1_basic_enhanced_testing():
     if result['attacks']:
         print(f"\n  Sample Attacks:")
         for attack in result['attacks'][:3]:
-            status = "✓" if attack['success'] else "✗"
+            status = "[OK]" if attack['success'] else "[FAIL]"
             print(f"    {status} {attack['description'][:60]}...")
 
     return result
@@ -252,7 +252,7 @@ def demo_2_custom_configuration():
             )
         )
 
-        print(f"\n✅ Testing completed!")
+        print(f"\n[OK] Testing completed!")
         print(f"  Final Robustness: {result['final_robustness']:.2%}")
 
         # Show adaptations
@@ -322,7 +322,7 @@ def demo_3_explainability():
         finally:
             loop.close()
 
-    print("\n✅ Explainability demo completed!")
+    print("\n[OK] Explainability demo completed!")
     return True
 
 
@@ -380,7 +380,7 @@ def demo_4_continuous_learning():
     finally:
         loop.close()
 
-    print("\n✅ Learning demo completed!")
+    print("\n[OK] Learning demo completed!")
     return True
 
 
@@ -457,7 +457,7 @@ def demo_5_ensemble_attacks():
     finally:
         loop.close()
 
-    print("\n✅ Ensemble demo completed!")
+    print("\n[OK] Ensemble demo completed!")
     return True
 
 
@@ -533,7 +533,7 @@ def demo_6_performance_comparison():
     for name, metrics in results.items():
         print(f"{name:<12} {metrics['duration']:>6.2f}s   {metrics['robustness']:>10.2%}   {metrics['attacks']:>8}")
 
-    print("\n✅ Performance comparison completed!")
+    print("\n[OK] Performance comparison completed!")
     return results
 
 
@@ -569,7 +569,7 @@ def demo_7_adaptive_defense():
             )
         )
 
-        print(f"\n✅ Testing completed!")
+        print(f"\n[OK] Testing completed!")
         print(f"  Final Robustness: {result['final_robustness']:.2%}")
 
         # Show adaptations
@@ -599,7 +599,7 @@ def demo_7_adaptive_defense():
 def main():
     """Main demo menu"""
     if not ENHANCED_ADVERSARIAL_AVAILABLE:
-        print("❌ Enhanced adversarial system not available!")
+        print("[FAIL] Enhanced adversarial system not available!")
         print("Please ensure adversarial_advanced.py is in the Python path.")
         return
 
@@ -647,7 +647,7 @@ def main():
                         logger.info(f"Demo {name} was skipped")
                 except Exception as e:  # TODO: Catch specific exception instead of Exception
                     logger.error(f"Demo {name} failed: {e}", exc_info=True)
-                    print(f"\n❌ Demo failed: {e}")
+                    print(f"\n[FAIL] Demo failed: {e}")
 
         elif 1 <= choice_num <= len(demos):
             # Run selected demo
@@ -658,7 +658,7 @@ def main():
                     print("\nDemo was skipped")
             except Exception as e:  # TODO: Catch specific exception instead of Exception
                 logger.error(f"Demo {name} failed: {e}", exc_info=True)
-                print(f"\n❌ Demo failed: {e}")
+                print(f"\n[FAIL] Demo failed: {e}")
         else:
             print("Invalid choice")
 
@@ -668,7 +668,7 @@ def main():
         print("\n\nDemo interrupted by user")
     except Exception as e:  # TODO: Catch specific exception instead of Exception
         logger.error(f"Unexpected error: {e}", exc_info=True)
-        print(f"\n❌ Unexpected error: {e}")
+        print(f"\n[FAIL] Unexpected error: {e}")
 
     print("\n" + "=" * 80)
     print("  DEMO COMPLETED")

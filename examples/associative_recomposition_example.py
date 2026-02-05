@@ -274,10 +274,10 @@ def require_roles(allowed_roles: List[str]):
     def llm_call_fn(prompt: str) -> str:
         call_count[0] += 1
         if "JUDGE" in prompt:
-            print(f"→ LLM Call #{call_count[0]}: Judgment")
+            print(f"-> LLM Call #{call_count[0]}: Judgment")
             return mock_llm_judgment(prompt)
         else:
-            print(f"→ LLM Call #{call_count[0]}: Assembly Plan")
+            print(f"-> LLM Call #{call_count[0]}: Assembly Plan")
             return mock_llm_call(prompt)
 
     # Run recomposition
@@ -298,7 +298,7 @@ def require_roles(allowed_roles: List[str]):
     print("="*80 + "\n")
 
     if assembled:
-        print("✓ RECOMPOSITION SUCCESSFUL\n")
+        print("[OK] RECOMPOSITION SUCCESSFUL\n")
 
         # Display classification
         if metadata.get('classification'):
@@ -339,7 +339,7 @@ def require_roles(allowed_roles: List[str]):
         if metadata.get('verification_results'):
             print("ALGORITHMIC VERIFICATION:")
             for sub_id, (preserved, details) in metadata['verification_results'].items():
-                status = "✓" if preserved else "✗"
+                status = "[OK]" if preserved else "[FAIL]"
                 print(f"  {status} {sub_id}: {details}")
             print()
 
@@ -350,7 +350,7 @@ def require_roles(allowed_roles: List[str]):
         print(assembled[:800] + "..." if len(assembled) > 800 else assembled)
 
     else:
-        print("✗ RECOMPOSITION FAILED\n")
+        print("[FAIL] RECOMPOSITION FAILED\n")
         print(f"Metadata: {metadata}")
 
     print("\n" + "="*80)

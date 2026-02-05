@@ -131,7 +131,7 @@ class EndToEndIntegrationTester:
                     'timestamp': self._get_current_timestamp()
                 }
                 
-                status_text = "✅" if available else "⚠️"
+                status_text = "[OK]" if available else "[WARN]"
                 print(f"   {status_text} {name}: {'Available' if available else 'Not Available'}")
                 
             except Exception as e:
@@ -140,7 +140,7 @@ class EndToEndIntegrationTester:
                     'error': str(e),
                     'timestamp': self._get_current_timestamp()
                 }
-                print(f"   ❌ {name}: Failed - {e}")
+                print(f"   [FAIL] {name}: Failed - {e}")
     
     def _test_deepke_extraction(self):
         """Test DeepKE extraction capabilities."""
@@ -168,7 +168,7 @@ class EndToEndIntegrationTester:
                     'timestamp': self._get_current_timestamp()
                 }
                 
-                print(f"   ✅ DeepKE Extraction: {extracted_items} items extracted (avg confidence: {avg_confidence:.2f})")
+                print(f"   [OK] DeepKE Extraction: {extracted_items} items extracted (avg confidence: {avg_confidence:.2f})")
                 
                 # Show some extracted items
                 for i, item in enumerate(results['extracted_knowledge'][:3]):
@@ -180,7 +180,7 @@ class EndToEndIntegrationTester:
                     'error': results['message'],
                     'timestamp': self._get_current_timestamp()
                 }
-                print(f"   ❌ DeepKE Extraction Failed: {results['message']}")
+                print(f"   [FAIL] DeepKE Extraction Failed: {results['message']}")
                 
         except Exception as e:
             self.test_results['integration_pipeline']['deepke_extraction'] = {
@@ -188,7 +188,7 @@ class EndToEndIntegrationTester:
                 'error': str(e),
                 'timestamp': self._get_current_timestamp()
             }
-            print(f"   ❌ DeepKE Extraction Failed: {e}")
+            print(f"   [FAIL] DeepKE Extraction Failed: {e}")
     
     def _test_artifact_conversion(self):
         """Test knowledge artifact conversion."""
@@ -231,7 +231,7 @@ class EndToEndIntegrationTester:
                 'timestamp': self._get_current_timestamp()
             }
             
-            print(f"   ✅ Artifact Conversion: {len(artifacts)} artifacts converted")
+            print(f"   [OK] Artifact Conversion: {len(artifacts)} artifacts converted")
             for artifact in artifacts:
                 print(f"      - {artifact['knowledge_type']}: {artifact.get('subject', artifact.get('entity', 'N/A'))}")
                 
@@ -241,7 +241,7 @@ class EndToEndIntegrationTester:
                 'error': str(e),
                 'timestamp': self._get_current_timestamp()
             }
-            print(f"   ❌ Artifact Conversion Failed: {e}")
+            print(f"   [FAIL] Artifact Conversion Failed: {e}")
     
     def _test_karateclub_analysis(self):
         """Test Karate Club graph analysis."""
@@ -279,7 +279,7 @@ class EndToEndIntegrationTester:
                     'timestamp': self._get_current_timestamp()
                 }
                 
-                print(f"   ✅ Karate Club Analysis: {communities} community detection methods")
+                print(f"   [OK] Karate Club Analysis: {communities} community detection methods")
                 if metrics_available:
                     metrics = analysis['metrics']['basic_metrics']
                     print(f"      Graph: {metrics['num_nodes']} nodes, {metrics['num_edges']} edges")
@@ -291,7 +291,7 @@ class EndToEndIntegrationTester:
                     'error': results['message'],
                     'timestamp': self._get_current_timestamp()
                 }
-                print(f"   ❌ Karate Club Analysis Failed: {results['message']}")
+                print(f"   [FAIL] Karate Club Analysis Failed: {results['message']}")
                 
         except Exception as e:
             self.test_results['integration_pipeline']['karateclub_analysis'] = {
@@ -299,7 +299,7 @@ class EndToEndIntegrationTester:
                 'error': str(e),
                 'timestamp': self._get_current_timestamp()
             }
-            print(f"   ❌ Karate Club Analysis Failed: {e}")
+            print(f"   [FAIL] Karate Club Analysis Failed: {e}")
     
     def _test_kg_gen_management(self):
         """Test kg-gen knowledge graph management."""
@@ -341,7 +341,7 @@ class EndToEndIntegrationTester:
                     'timestamp': self._get_current_timestamp()
                 }
                 
-                print(f"   ✅ kg-gen Management: Graph {'generated' if graph_generated else 'not generated'}")
+                print(f"   [OK] kg-gen Management: Graph {'generated' if graph_generated else 'not generated'}")
                 print(f"      Formats converted: {formats_converted}")
                 for format_name in results['results']['converted_formats'].keys():
                     print(f"        - {format_name}")
@@ -352,7 +352,7 @@ class EndToEndIntegrationTester:
                     'error': results['message'],
                     'timestamp': self._get_current_timestamp()
                 }
-                print(f"   ❌ kg-gen Management Failed: {results['message']}")
+                print(f"   [FAIL] kg-gen Management Failed: {results['message']}")
                 
         except Exception as e:
             self.test_results['integration_pipeline']['kg_gen_management'] = {
@@ -360,7 +360,7 @@ class EndToEndIntegrationTester:
                 'error': str(e),
                 'timestamp': self._get_current_timestamp()
             }
-            print(f"   ❌ kg-gen Management Failed: {e}")
+            print(f"   [FAIL] kg-gen Management Failed: {e}")
     
     def _test_complete_ai_pipeline(self):
         """Test the complete AI pipeline."""
@@ -400,7 +400,7 @@ class EndToEndIntegrationTester:
                     'timestamp': self._get_current_timestamp()
                 }
                 
-                print(f"   ✅ Complete AI Pipeline: {extraction_items} items extracted, {graph_nodes} nodes in graph")
+                print(f"   [OK] Complete AI Pipeline: {extraction_items} items extracted, {graph_nodes} nodes in graph")
                 print(f"      Processing time: {pipeline_time:.3f} seconds")
                 print(f"      AI Enhancement Factor: {results['performance']['ai_enhancement_factor']}")
                 
@@ -410,7 +410,7 @@ class EndToEndIntegrationTester:
                     'error': results['message'],
                     'timestamp': self._get_current_timestamp()
                 }
-                print(f"   ❌ Complete AI Pipeline Failed: {results['message']}")
+                print(f"   [FAIL] Complete AI Pipeline Failed: {results['message']}")
                 
         except Exception as e:
             self.test_results['integration_pipeline']['complete_ai_pipeline'] = {
@@ -418,7 +418,7 @@ class EndToEndIntegrationTester:
                 'error': str(e),
                 'timestamp': self._get_current_timestamp()
             }
-            print(f"   ❌ Complete AI Pipeline Failed: {e}")
+            print(f"   [FAIL] Complete AI Pipeline Failed: {e}")
     
     def _test_error_handling(self):
         """Test error handling and fallback mechanisms."""
@@ -447,10 +447,10 @@ class EndToEndIntegrationTester:
                 'timestamp': self._get_current_timestamp()
             }
             
-            print(f"   ✅ Error Handling: All test cases handled properly")
-            print(f"      Empty input: {'✅' if empty_handled else '❌'}")
-            print(f"      Invalid graph: {'✅' if invalid_handled else '❌'}")
-            print(f"      Empty artifacts: {'✅' if empty_kg_handled else '❌'}")
+            print(f"   [OK] Error Handling: All test cases handled properly")
+            print(f"      Empty input: {'[OK]' if empty_handled else '[FAIL]'}")
+            print(f"      Invalid graph: {'[OK]' if invalid_handled else '[FAIL]'}")
+            print(f"      Empty artifacts: {'[OK]' if empty_kg_handled else '[FAIL]'}")
             
         except Exception as e:
             self.test_results['integration_pipeline']['error_handling'] = {
@@ -458,7 +458,7 @@ class EndToEndIntegrationTester:
                 'error': str(e),
                 'timestamp': self._get_current_timestamp()
             }
-            print(f"   ❌ Error Handling Test Failed: {e}")
+            print(f"   [FAIL] Error Handling Test Failed: {e}")
     
     def _test_performance_benchmarking(self):
         """Test performance benchmarking."""
@@ -485,13 +485,13 @@ class EndToEndIntegrationTester:
                 'timestamp': self._get_current_timestamp()
             }
             
-            print(f"   ✅ Performance Benchmarking: Average {avg_time:.3f} seconds")
+            print(f"   [OK] Performance Benchmarking: Average {avg_time:.3f} seconds")
             print(f"      Runs: {[f'{t:.3f}s' for t in run_times]}")
             print(f"      Range: {min(run_times):.3f}s - {max(run_times):.3f}s")
             
         except Exception as e:
             self.test_results['performance_metrics']['error'] = str(e)
-            print(f"   ❌ Performance Benchmarking Failed: {e}")
+            print(f"   [FAIL] Performance Benchmarking Failed: {e}")
     
     def _generate_test_report(self) -> Dict[str, Any]:
         """Generate a comprehensive test report."""
@@ -557,19 +557,19 @@ class EndToEndIntegrationTester:
         recommendations = []
         
         if success_rate >= 90:
-            recommendations.append("✅ System is ready for production deployment")
-            recommendations.append("✅ All major components are working correctly")
+            recommendations.append("[OK] System is ready for production deployment")
+            recommendations.append("[OK] All major components are working correctly")
             recommendations.append("📊 Consider running performance optimization tests")
         elif success_rate >= 70:
-            recommendations.append("⚠️ System is mostly functional with some minor issues")
+            recommendations.append("[WARN] System is mostly functional with some minor issues")
             recommendations.append("🔧 Review failed tests and address specific issues")
             recommendations.append("📊 Check error handling and fallback mechanisms")
         elif success_rate >= 50:
-            recommendations.append("⚠️ System has significant issues that need attention")
+            recommendations.append("[WARN] System has significant issues that need attention")
             recommendations.append("🔧 Review integration configuration and dependencies")
             recommendations.append("📊 Check individual component availability")
         else:
-            recommendations.append("❌ System has critical failures")
+            recommendations.append("[FAIL] System has critical failures")
             recommendations.append("🔧 Review all test results and error messages")
             recommendations.append("📊 Check system dependencies and environment setup")
         

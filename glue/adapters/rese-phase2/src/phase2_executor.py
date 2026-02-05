@@ -3,7 +3,7 @@ RESE Phase II: Isomorphic Mapping Executor
 
 This module implements Phase II of RESE (Recursive Epistemic Solvability Engine):
 - Ψ₂: Cross-Domain Ontology/Structure Mapping
-- Ψ₃: Constraint Inversion (C → ¬C)
+- Ψ₃: Constraint Inversion (C -> ¬C)
 - I_mech: Mechanistic Isomorphism Validator
 
 Following CLAUDE.md principles:
@@ -1038,8 +1038,8 @@ class ConstraintInverter:
     """
     Inverts constraints to define solution space (Ψ₃).
 
-    Original: C → must satisfy C
-    Inverted: ¬C → defines allowed solution space
+    Original: C -> must satisfy C
+    Inverted: ¬C -> defines allowed solution space
     """
 
     def __init__(self, config: Phase2Config, logger: Phase2Logger):

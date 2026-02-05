@@ -29,14 +29,14 @@ def test_uncertainty_propagation():
             ProbabilityDistribution,
             ErrorSource
         )
-        print("✓ Imports successful")
+        print("[OK] Imports successful")
     except ImportError as e:
-        print(f"✗ Import failed: {e}")
+        print(f"[FAIL] Import failed: {e}")
         return False
 
     # Initialize propagator
     propagator = UncertaintyPropagator(random_seed=42)
-    print("✓ Propagator initialized")
+    print("[OK] Propagator initialized")
 
     # Test equipment error enumeration
     equipment_specs = [
@@ -50,7 +50,7 @@ def test_uncertainty_propagation():
     ]
 
     equipment_errors = propagator.enumerate_equipment_errors(equipment_specs)
-    print(f"✓ Equipment errors enumerated: {len(equipment_errors)} errors found")
+    print(f"[OK] Equipment errors enumerated: {len(equipment_errors)} errors found")
     for error in equipment_errors:
         print(f"  - {error.name}: {error.category.value}, probability={error.probability_of_occurrence:.4f}")
 
@@ -68,7 +68,7 @@ def test_uncertainty_propagation():
     ]
 
     material_errors = propagator.enumerate_material_errors(material_specs)
-    print(f"✓ Material errors enumerated: {len(material_errors)} errors found")
+    print(f"[OK] Material errors enumerated: {len(material_errors)} errors found")
 
     # Test measurement error enumeration
     measurement_specs = [
@@ -81,7 +81,7 @@ def test_uncertainty_propagation():
     ]
 
     measurement_errors = propagator.enumerate_measurement_errors(measurement_specs)
-    print(f"✓ Measurement errors enumerated: {len(measurement_errors)} errors found")
+    print(f"[OK] Measurement errors enumerated: {len(measurement_errors)} errors found")
 
     # Test Monte Carlo propagation
     all_errors = equipment_errors + material_errors + measurement_errors
@@ -98,7 +98,7 @@ def test_uncertainty_propagation():
         n_samples=1000
     )
 
-    print(f"✓ Monte Carlo propagation complete")
+    print(f"[OK] Monte Carlo propagation complete")
     print(f"  Mean: {result.mean:.6f}")
     print(f"  Std Dev: {result.std:.6f}")
     print(f"  95% CI: ({result.confidence_interval_95[0]:.6f}, {result.confidence_interval_95[1]:.6f})")
@@ -107,7 +107,7 @@ def test_uncertainty_propagation():
     for name, sensitivity in result.critical_error_sources[:3]:
         print(f"    - {name}: {sensitivity:.4f}")
 
-    print("\n✅ All uncertainty propagation tests PASSED\n")
+    print("\n[OK] All uncertainty propagation tests PASSED\n")
     return True
 
 
@@ -120,10 +120,10 @@ def test_red_blue_team():
     # Test Red Team
     try:
         from red_team import RedTeam, IssueFinding, IssueCategory, SeverityLevel
-        print("✓ RedTeam import successful")
+        print("[OK] RedTeam import successful")
 
         red_team = RedTeam()
-        print("✓ RedTeam initialized")
+        print("[OK] RedTeam initialized")
 
         # Simple test content
         test_plan = """
@@ -138,27 +138,27 @@ def test_red_blue_team():
         """
 
         # This would normally do a full assessment, but we'll just verify it's callable
-        print(f"✓ RedTeam ready for assessment")
+        print(f"[OK] RedTeam ready for assessment")
         print(f"  Team members: {len(red_team.team_members)}")
 
     except ImportError as e:
-        print(f"✗ RedTeam import failed: {e}")
+        print(f"[FAIL] RedTeam import failed: {e}")
         return False
 
     # Test Blue Team
     try:
         from blue_team import BlueTeam
-        print("✓ BlueTeam import successful")
+        print("[OK] BlueTeam import successful")
 
         blue_team = BlueTeam()
-        print("✓ BlueTeam initialized")
+        print("[OK] BlueTeam initialized")
         print(f"  Team members: {len(blue_team.team_members)}")
 
     except ImportError as e:
-        print(f"✗ BlueTeam import failed: {e}")
+        print(f"[FAIL] BlueTeam import failed: {e}")
         return False
 
-    print("\n✅ All red/blue team tests PASSED\n")
+    print("\n[OK] All red/blue team tests PASSED\n")
     return True
 
 
@@ -173,39 +173,39 @@ def test_agent2_integration():
             InventionPlannerAgent2,
             InventionEvaluator
         )
-        print("✓ Agent 2 imports successful")
+        print("[OK] Agent 2 imports successful")
     except ImportError as e:
-        print(f"✗ Agent 2 import failed: {e}")
+        print(f"[FAIL] Agent 2 import failed: {e}")
         return False
 
     # Initialize Agent 2
     try:
         agent2 = InventionPlannerAgent2()
-        print("✓ Agent 2 initialized")
+        print("[OK] Agent 2 initialized")
 
         # Check components
         if agent2.uncertainty_propagator:
-            print("✓ Uncertainty propagator available")
+            print("[OK] Uncertainty propagator available")
         else:
             print("⚠ Uncertainty propagator not available (will use fallback)")
 
         if agent2.problem_analyzer:
-            print("✓ Problem analyzer available")
+            print("[OK] Problem analyzer available")
         else:
             print("⚠ Problem analyzer not available (will use fallback)")
 
         if agent2.red_team:
-            print("✓ Red team available")
+            print("[OK] Red team available")
         else:
             print("⚠ Red team not available (will use fallback)")
 
         if agent2.blue_team:
-            print("✓ Blue team available")
+            print("[OK] Blue team available")
         else:
             print("⚠ Blue team not available (will use fallback)")
 
     except Exception as e:
-        print(f"✗ Agent 2 initialization failed: {e}")
+        print(f"[FAIL] Agent 2 initialization failed: {e}")
         return False
 
     # Test helper methods
@@ -220,19 +220,19 @@ def test_agent2_integration():
         }
 
         equipment_specs = agent2._extract_equipment_specs(test_decomposition)
-        print(f"✓ Equipment spec extraction: {len(equipment_specs)} specs")
+        print(f"[OK] Equipment spec extraction: {len(equipment_specs)} specs")
 
         material_specs = agent2._extract_material_specs(test_decomposition)
-        print(f"✓ Material spec extraction: {len(material_specs)} specs")
+        print(f"[OK] Material spec extraction: {len(material_specs)} specs")
 
         measurement_specs = agent2._extract_measurement_specs(test_decomposition)
-        print(f"✓ Measurement spec extraction: {len(measurement_specs)} specs")
+        print(f"[OK] Measurement spec extraction: {len(measurement_specs)} specs")
 
     except Exception as e:
-        print(f"✗ Helper methods failed: {e}")
+        print(f"[FAIL] Helper methods failed: {e}")
         return False
 
-    print("\n✅ All Agent 2 integration tests PASSED\n")
+    print("\n[OK] All Agent 2 integration tests PASSED\n")
     return True
 
 
@@ -259,7 +259,7 @@ def main():
     total = len(results)
 
     for name, result in results:
-        status = "✅ PASSED" if result else "❌ FAILED"
+        status = "[OK] PASSED" if result else "[FAIL] FAILED"
         print(f"{name}: {status}")
 
     print(f"\nTotal: {passed}/{total} tests passed")
@@ -268,7 +268,7 @@ def main():
         print("\n🎉 All tests PASSED! Agent 2 implementation is working correctly.")
         return 0
     else:
-        print(f"\n⚠️  {total - passed} test(s) failed. Please review the implementation.")
+        print(f"\n[WARN]  {total - passed} test(s) failed. Please review the implementation.")
         return 1
 
 

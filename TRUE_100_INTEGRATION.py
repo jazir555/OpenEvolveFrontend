@@ -378,12 +378,12 @@ class True100Integration:
         logger.info("")
         
         if percentage >= 95:
-            logger.info("✅ TRUE 100% INTEGRATION ACHIEVED")
+            logger.info("[OK] TRUE 100% INTEGRATION ACHIEVED")
             logger.info("   All core systems working with proper fallbacks")
         elif percentage >= 80:
-            logger.info("⚠️  NEAR 100% - Minor issues remaining")
+            logger.info("[WARN]  NEAR 100% - Minor issues remaining")
         else:
-            logger.info("❌ Significant issues remain")
+            logger.info("[FAIL] Significant issues remain")
         
         logger.info("")
         logger.info("=" * 70)

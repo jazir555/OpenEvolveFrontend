@@ -182,7 +182,7 @@ class EvolutionAdapter:
             )
 
             self._update_status(
-                f"✅ Evolution completed! "
+                f"[OK] Evolution completed! "
                 f"Fitness: {result.best_fitness:.4f}, "
                 f"Iterations: {result.iterations_completed}, "
                 f"Duration: {duration:.2f}s"

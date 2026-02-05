@@ -14,7 +14,7 @@ def optimize_lower_bound():
 
     Let  𝐶2  be the smallest constant for which one has
         ‖𝑓∗𝑓‖22≤𝐶2‖𝑓∗𝑓‖1‖𝑓∗𝑓‖∞
-    for all non-negative  𝑓:ℝ→ℝ . It is known that
+    for all non-negative  𝑓:ℝ->ℝ . It is known that
         0.88922≤𝐶2≤1,
     with the lower bound coming from a step function construction by Matolcsi and Vinuesa (2010).
 

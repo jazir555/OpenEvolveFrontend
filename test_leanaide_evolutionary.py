@@ -183,7 +183,7 @@ def sample_theorems():
         },
         "complex": {
             "statement": "Every natural number has a unique prime factorization",
-            "lean_code": "theorem prime_factorization_unique (n : Nat) (h : n > 0) : ∀ f1 f2 : List Nat, (∀ p ∈ f1, Nat.Prime p) → (∀ p ∈ f2, Nat.Prime p) → f1.prod = n → f2.prod = n → f1.perm f2 := by sorry",
+            "lean_code": "theorem prime_factorization_unique (n : Nat) (h : n > 0) : ∀ f1 f2 : List Nat, (∀ p ∈ f1, Nat.Prime p) -> (∀ p ∈ f2, Nat.Prime p) -> f1.prod = n -> f2.prod = n -> f1.perm f2 := by sorry",
             "difficulty": "complex"
         },
         "algebraic": {

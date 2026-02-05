@@ -2,7 +2,7 @@
 """
 Before/After Comparison Script
 
-MIGRATION NOTICE: crewai (AGPL) → CrewAI (MIT)
+MIGRATION NOTICE: crewai (AGPL) -> CrewAI (MIT)
 This module has been migrated from crewai to CrewAI orchestration.
 
 This script compares the codebase before and after the migration to
@@ -303,7 +303,7 @@ def calculate_total_metrics(batch1: Dict, batch2: Dict, batch3: Dict, batch4: Di
     print(f"\nTotal files migrated: {total_files}")
     print(f"Total code reduction: ~{total_code_reduction} lines")
     print(f"Parameter duplication eliminated: {total_duplication_eliminated} parameters")
-    print(f"Import patterns centralized: {batch1['imports_before']} → {batch1['imports_after']}")
+    print(f"Import patterns centralized: {batch1['imports_before']} -> {batch1['imports_after']}")
     print(f"ParameterManager instances replaced: {batch3['pm_instances_replaced']}")
 
     return {
@@ -417,7 +417,7 @@ def generate_lessons_learned():
     ]
 
     for lesson in lessons:
-        print(f"  • {lesson}")
+        print(f"  * {lesson}")
 
 
 def main():

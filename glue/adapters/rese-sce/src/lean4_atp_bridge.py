@@ -229,8 +229,8 @@ class Lean4ATPBridge:
         Convert constraint description to Lean 4 proposition
 
         Examples:
-        - "Temperature must be less than 1000" → "T < 1000"
-        - "Energy cannot be created or destroyed" → "conservation E"
+        - "Temperature must be less than 1000" -> "T < 1000"
+        - "Energy cannot be created or destroyed" -> "conservation E"
         """
         desc_lower = description.lower()
 

@@ -209,11 +209,11 @@ async def demo_custom_callback():
         async def on_evolution_end(self, context: EvolutionContext, 
                                    final_metrics: IterationMetrics, result):
             if final_metrics:
-                print(f"\n✅ Evolution complete: "
+                print(f"\n[OK] Evolution complete: "
                       f"fitness={final_metrics.best_fitness:.1%}, "
                       f"iterations={final_metrics.iteration + 1}")
             else:
-                print(f"\n✅ Evolution complete")
+                print(f"\n[OK] Evolution complete")
     
     # Create engine with custom callback
     engine = MonitoredAgnosticPES(

@@ -587,9 +587,9 @@ class TestASCIITreeRenderer:
         """Test status icon rendering"""
         renderer = ASCIITreeRenderer()
 
-        assert renderer._get_status_icon('complete') == '✅'
+        assert renderer._get_status_icon('complete') == '[OK]'
         assert renderer._get_status_icon('in_progress') == '🔄'
-        assert renderer._get_status_icon('failed') == '❌'
+        assert renderer._get_status_icon('failed') == '[FAIL]'
 
 
 class TestVisualizeProblem:

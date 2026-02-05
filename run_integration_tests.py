@@ -274,7 +274,7 @@ class IntegrationTestRunner:
         table.add_column("Status")
         
         for suite in self.results:
-            status = "✓" if suite.failed == 0 else "✗"
+            status = "[OK]" if suite.failed == 0 else "[FAIL]"
             status_style = "green" if suite.failed == 0 else "red"
             
             table.add_row(
@@ -299,7 +299,7 @@ class IntegrationTestRunner:
         if failed_tests:
             console.print("\n[red bold]Failed Tests:[/red bold]")
             for test in failed_tests[:10]:  # Show first 10
-                console.print(f"  [red]✗[/red] {test.name}")
+                console.print(f"  [red][FAIL][/red] {test.name}")
                 if test.message:
                     console.print(f"    {test.message[:100]}")
     
@@ -402,7 +402,7 @@ class IntegrationTestRunner:
         
         for suite in self.results:
             status_class = 'status-pass' if suite.failed == 0 else 'status-fail'
-            status_text = '✓ Pass' if suite.failed == 0 else '✗ Fail'
+            status_text = '[OK] Pass' if suite.failed == 0 else '[FAIL] Fail'
             
             html += f"""
                 <tr>

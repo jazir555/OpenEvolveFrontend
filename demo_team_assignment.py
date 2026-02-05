@@ -25,9 +25,9 @@ try:
     )
     from openevolve_structures import Team, ModelConfig
     from team_manager import TeamManager
-    print("✓ All imports successful")
+    print("[OK] All imports successful")
 except ImportError as e:
-    print(f"✗ Import error: {e}")
+    print(f"[FAIL] Import error: {e}")
     print("\nPlease ensure all required modules are available:")
     print("  - team_assignment_engine.py")
     print("  - sovereign_data_models.py")
@@ -215,7 +215,7 @@ def demo_performance_tracking():
                 time_taken=100.0 + (i * 10.0)
             )
 
-        print("✓ Recorded 5 assignments and outcomes")
+        print("[OK] Recorded 5 assignments and outcomes")
 
         # Get stats
         stats = tracker.get_team_performance_stats("Blue-Security")
@@ -315,11 +315,11 @@ def main():
         for team in teams:
             team_manager.create_team(team)
 
-        print(f"✓ Created {len(teams)} sample teams")
+        print(f"[OK] Created {len(teams)} sample teams")
 
         # Create sample sub-problem
         sub_problem = create_sample_sub_problem()
-        print(f"✓ Created sample sub-problem: {sub_problem.title}")
+        print(f"[OK] Created sample sub-problem: {sub_problem.title}")
 
         # Run demonstrations
         demo_capability_assessment(team_manager, sub_problem)
@@ -338,7 +338,7 @@ def main():
         print()
 
     except Exception as e:  # TODO: Catch specific exception instead of Exception
-        print(f"\n✗ Error during demonstration: {e}")
+        print(f"\n[FAIL] Error during demonstration: {e}")
         import traceback
         traceback.print_exc()
         return 1

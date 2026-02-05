@@ -47,21 +47,21 @@ try:
 
     # Verify all registrations succeeded
     if len(registration_errors) == 0:
-        print(f'  ✅ PASS: All {len(successful_registrations)} concurrent registrations succeeded')
+        print(f'  [OK] PASS: All {len(successful_registrations)} concurrent registrations succeeded')
     else:
-        print(f'  ❌ FAIL: {len(registration_errors)} registration errors:')
+        print(f'  [FAIL] FAIL: {len(registration_errors)} registration errors:')
         for tool_id, error in registration_errors[:5]:
             print(f'    - Tool {tool_id}: {error}')
 
     # Verify registry integrity
     expected_tools = 100 + len(_MCP_TOOLS) - 100  # Original tools + new
     if len(_MCP_TOOLS) >= len(successful_registrations):
-        print(f'  ✅ PASS: Registry integrity maintained ({len(_MCP_TOOLS)} tools)')
+        print(f'  [OK] PASS: Registry integrity maintained ({len(_MCP_TOOLS)} tools)')
     else:
-        print(f'  ❌ FAIL: Registry corrupted: {len(_MCP_TOOLS)} < {len(successful_registrations)}')
+        print(f'  [FAIL] FAIL: Registry corrupted: {len(_MCP_TOOLS)} < {len(successful_registrations)}')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -93,12 +93,12 @@ try:
     actual = metrics.times_used
 
     if actual == expected:
-        print(f'  ✅ PASS: No lost updates (expected={expected}, actual={actual})')
+        print(f'  [OK] PASS: No lost updates (expected={expected}, actual={actual})')
     elif actual > expected:
-        print(f'  ⚠️  WARN: Over-counting detected (expected={expected}, actual={actual})')
+        print(f'  [WARN]  WARN: Over-counting detected (expected={expected}, actual={actual})')
     else:
         lost_updates = expected - actual
-        print(f'  ❌ FAIL: Lost updates detected: {lost_updates} lost (expected={expected}, actual={actual})')
+        print(f'  [FAIL] FAIL: Lost updates detected: {lost_updates} lost (expected={expected}, actual={actual})')
 
     # Test 2: Concurrent calculate_success_rate
     metrics2 = UsageMetrics()
@@ -116,10 +116,10 @@ try:
     for t in threads:
         t.join()
 
-    print(f'  ✅ PASS: Concurrent calculate_success_rate completed without crash')
+    print(f'  [OK] PASS: Concurrent calculate_success_rate completed without crash')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -169,17 +169,17 @@ try:
     print(f'  Total records: {total_records} (expected: {expected_records})')
 
     if total_records > 0:
-        print(f'  ✅ PASS: No data corruption under concurrent load')
+        print(f'  [OK] PASS: No data corruption under concurrent load')
 
     # Verify history limits enforced
     for team_id, history in tracker.team_history.items():
         if len(history) <= tracker.max_history_per_team:
-            print(f'  ✅ PASS: Team {team_id} history within bounds ({len(history)} <= {tracker.max_history_per_team})')
+            print(f'  [OK] PASS: Team {team_id} history within bounds ({len(history)} <= {tracker.max_history_per_team})')
         else:
-            print(f'  ❌ FAIL: Team {team_id} history exceeds limit ({len(history)} > {tracker.max_history_per_team})')
+            print(f'  [FAIL] FAIL: Team {team_id} history exceeds limit ({len(history)} > {tracker.max_history_per_team})')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -219,20 +219,20 @@ try:
                 workflow_id, success = future.result()
                 completed += 1
             except Exception as e:
-                print(f'  ❌ Exception during concurrent execution: {e}')
+                print(f'  [FAIL] Exception during concurrent execution: {e}')
 
     elapsed = time.time() - start_time
 
     if completed == 10:
-        print(f'  ✅ PASS: No deadlock (10 concurrent workflows completed in {elapsed:.2f}s)')
+        print(f'  [OK] PASS: No deadlock (10 concurrent workflows completed in {elapsed:.2f}s)')
     else:
-        print(f'  ❌ FAIL: Deadlock detected (only {completed}/10 completed)')
+        print(f'  [FAIL] FAIL: Deadlock detected (only {completed}/10 completed)')
 
     # Cleanup
     bridge.cleanup()
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -276,10 +276,10 @@ try:
     for t in threads:
         t.join()
 
-    print(f'  ✅ PASS: Concurrent dictionary operations completed without race conditions')
+    print(f'  [OK] PASS: Concurrent dictionary operations completed without race conditions')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -321,12 +321,12 @@ try:
 
     # With 50k operations, expect reasonable performance
     if avg_time < 10.0:  # Less than 10 seconds per thread
-        print(f'  ✅ PASS: Lock contention acceptable under high load')
+        print(f'  [OK] PASS: Lock contention acceptable under high load')
     else:
-        print(f'  ⚠️  WARN: High lock contention detected')
+        print(f'  [WARN]  WARN: High lock contention detected')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -378,12 +378,12 @@ try:
     print(f'  Errors: {save_count["error"]}')
 
     if save_count['error'] == 0:
-        print(f'  ✅ PASS: No TOCTOU races (all atomic operations successful)')
+        print(f'  [OK] PASS: No TOCTOU races (all atomic operations successful)')
     else:
-        print(f'  ❌ FAIL: TOCTOU races detected')
+        print(f'  [FAIL] FAIL: TOCTOU races detected')
 
 except Exception as e:
-    print(f'  ❌ ERROR: {e}')
+    print(f'  [FAIL] ERROR: {e}')
     import traceback
     traceback.print_exc()
 
@@ -392,11 +392,11 @@ print('\n' + '=' * 80)
 print(' THREAD SAFETY STRESS TESTS COMPLETE')
 print('=' * 80)
 print('\nAll Thread Safety Fixes Tested:')
-print('  ✅ TS-1: MCP Tools Registry - Concurrent registration safe')
-print('  ✅ TS-3: UsageMetrics Counters - Atomic updates verified')
-print('  ✅ TS-5: Team Performance Aggregation - No data races')
-print('  ✅ TS-9: Deadlock Prevention - No deadlocks under load')
-print('  ✅ TS-10: Dictionary Updates - Thread-safe operations')
-print('  ✅ Lock Contention - Performance acceptable under load')
-print('  ✅ TS-6: TOCTOU Prevention - Atomic operations verified')
+print('  [OK] TS-1: MCP Tools Registry - Concurrent registration safe')
+print('  [OK] TS-3: UsageMetrics Counters - Atomic updates verified')
+print('  [OK] TS-5: Team Performance Aggregation - No data races')
+print('  [OK] TS-9: Deadlock Prevention - No deadlocks under load')
+print('  [OK] TS-10: Dictionary Updates - Thread-safe operations')
+print('  [OK] Lock Contention - Performance acceptable under load')
+print('  [OK] TS-6: TOCTOU Prevention - Atomic operations verified')
 print('\n' + '=' * 80)

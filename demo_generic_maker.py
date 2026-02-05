@@ -95,7 +95,7 @@ class DocumentSummarizerEvaluator(GenericEvaluator):
             score += 0.2
 
         # Check for bullet points or structured output
-        if "-" in solution or "*" in solution or "•" in solution:
+        if "-" in solution or "*" in solution or "*" in solution:
             score += 0.2
 
         # Check for reasonable length

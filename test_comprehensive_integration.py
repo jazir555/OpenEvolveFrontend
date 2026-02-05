@@ -34,9 +34,9 @@ async def test_comprehensive_integration():
             missing_files.append(file)
     
     if missing_files:
-        print(f"   ✗ Missing files: {missing_files}")
+        print(f"   [FAIL] Missing files: {missing_files}")
     else:
-        print("   ✓ All required files present")
+        print("   [OK] All required files present")
     
     # Test 2: Test Integration Factory access
     print("\n2. Testing Integration Factory access...")
@@ -47,17 +47,17 @@ async def test_comprehensive_integration():
         # Test getting pygraphistry visualization
         viz = await factory.get_visualization("pygraphistry")
         if viz:
-            print("   ✓ Integration Factory can access PyGraphistry")
+            print("   [OK] Integration Factory can access PyGraphistry")
         else:
             print("   ⚠ Integration Factory returned None for PyGraphistry (may be expected if not installed)")
             
         # Test validation
         validation = await factory.validate_all()
         pygraphistry_valid = validation.get('pygraphistry', {}).get('valid', False)
-        print(f"   ✓ PyGraphistry validation: {pygraphistry_valid}")
+        print(f"   [OK] PyGraphistry validation: {pygraphistry_valid}")
         
     except (ImportError, ValueError, AttributeError) as e:
-        print(f"   ✗ Integration Factory test failed: {e}")
+        print(f"   [FAIL] Integration Factory test failed: {e}")
     
     # Test 3: Test KnowledgeGraphVisualizer with PyGraphistry
     print("\n3. Testing KnowledgeGraphVisualizer with PyGraphistry...")
@@ -70,16 +70,16 @@ async def test_comprehensive_integration():
         
         # Check if pygraphistry bridge was created
         if hasattr(visualizer, 'pygraphistry_bridge') and visualizer.pygraphistry_bridge:
-            print("   ✓ PyGraphistry bridge created successfully")
+            print("   [OK] PyGraphistry bridge created successfully")
         else:
             print("   ⚠ PyGraphistry bridge not created (expected if pygraphistry not installed)")
         
         # Try to build a simple graph
         stats = visualizer.build_graph(max_nodes=10)  # Small test
-        print(f"   ✓ Graph built successfully: {stats}")
+        print(f"   [OK] Graph built successfully: {stats}")
         
     except (ImportError, ValueError, AttributeError) as e:
-        print(f"   ✗ KnowledgeGraphVisualizer test failed: {e}")
+        print(f"   [FAIL] KnowledgeGraphVisualizer test failed: {e}")
     
     # Test 4: Test API endpoint function directly
     print("\n4. Testing API endpoint function...")
@@ -97,10 +97,10 @@ async def test_comprehensive_integration():
         
         # This should work even if pygraphistry is not installed (will return None gracefully)
         result = await get_pygraphistry_viz(test_nodes, test_edges)
-        print(f"   ✓ API function callable, result: {result is not None}")
+        print(f"   [OK] API function callable, result: {result is not None}")
         
     except (ImportError, ValueError, AttributeError) as e:
-        print(f"   ✗ API endpoint function test failed: {e}")
+        print(f"   [FAIL] API endpoint function test failed: {e}")
     
     # Test 5: Test the enhanced visualizer methods
     print("\n5. Testing enhanced visualizer methods...")
@@ -114,12 +114,12 @@ async def test_comprehensive_integration():
         )
         
         if has_pygraphistry_methods:
-            print("   ✓ Enhanced visualizer methods present")
+            print("   [OK] Enhanced visualizer methods present")
         else:
-            print("   ✗ Enhanced visualizer methods missing")
+            print("   [FAIL] Enhanced visualizer methods missing")
             
     except (ImportError, ValueError, AttributeError) as e:
-        print(f"   ✗ Enhanced visualizer test failed: {e}")
+        print(f"   [FAIL] Enhanced visualizer test failed: {e}")
     
     # Test 6: Test convenience functions
     print("\n6. Testing convenience functions...")
@@ -133,16 +133,16 @@ async def test_comprehensive_integration():
         has_pygraphistry_param = 'use_pygraphistry' in viz_sig.parameters
         
         if has_pygraphistry_param:
-            print("   ✓ visualize_knowledge_graph has use_pygraphistry parameter")
+            print("   [OK] visualize_knowledge_graph has use_pygraphistry parameter")
         else:
-            print("   ✗ visualize_knowledge_graph missing use_pygraphistry parameter")
+            print("   [FAIL] visualize_knowledge_graph missing use_pygraphistry parameter")
             
         # Test analyze_knowledge_patterns is async
         analyze_sig = inspect.signature(analyze_knowledge_patterns)
-        print("   ✓ analyze_knowledge_patterns function exists")
+        print("   [OK] analyze_knowledge_patterns function exists")
         
     except (ImportError, ValueError, AttributeError) as e:
-        print(f"   ✗ Convenience functions test failed: {e}")
+        print(f"   [FAIL] Convenience functions test failed: {e}")
     
     # Test 7: Check TypeScript plugin structure
     print("\n7. Checking TypeScript plugin structure...")
@@ -155,18 +155,18 @@ async def test_comprehensive_integration():
         has_expected_fields = all(field in pkg for field in expected_fields)
         
         if has_expected_fields:
-            print(f"   ✓ TypeScript plugin package.json valid: {pkg['name']}")
+            print(f"   [OK] TypeScript plugin package.json valid: {pkg['name']}")
         else:
-            print("   ✗ TypeScript plugin package.json missing expected fields")
+            print("   [FAIL] TypeScript plugin package.json missing expected fields")
             
         # Check for main plugin file
         if os.path.exists("openevolve-pygraphistry-plugin/src/utils/createPyGraphistryPlugin.ts"):
-            print("   ✓ TypeScript plugin main file exists")
+            print("   [OK] TypeScript plugin main file exists")
         else:
-            print("   ✗ TypeScript plugin main file missing")
+            print("   [FAIL] TypeScript plugin main file missing")
             
     except (OSError, json.JSONDecodeError, KeyError) as e:
-        print(f"   ✗ TypeScript plugin check failed: {e}")
+        print(f"   [FAIL] TypeScript plugin check failed: {e}")
     
     # Test 8: Check for API endpoint registration
     print("\n8. Checking API endpoint registration...")
@@ -178,12 +178,12 @@ async def test_comprehensive_integration():
         has_pygraphistry_import = "get_pygraphistry_viz" in api_content
         
         if has_pygraphistry_endpoint and has_pygraphistry_import:
-            print("   ✓ API endpoint properly registered")
+            print("   [OK] API endpoint properly registered")
         else:
-            print(f"   ✗ API endpoint missing (endpoint: {has_pygraphistry_endpoint}, import: {has_pygraphistry_import})")
+            print(f"   [FAIL] API endpoint missing (endpoint: {has_pygraphistry_endpoint}, import: {has_pygraphistry_import})")
             
     except (OSError, IOError) as e:
-        print(f"   ✗ API endpoint check failed: {e}")
+        print(f"   [FAIL] API endpoint check failed: {e}")
     
     print("\n" + "="*70)
     print("INTEGRATION TEST COMPLETE")

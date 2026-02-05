@@ -451,7 +451,7 @@ async def demo_circuit_breakers():
             0,
             successful_operation if i < 2 else failing_operation
         )
-        print(f"  Attempt {i+1}: {'✅' if success else '❌'}")
+        print(f"  Attempt {i+1}: {'[OK]' if success else '[FAIL]'}")
 
     # Level 1 - Subproblems
     print("\nLevel 1 (Subproblems):")
@@ -460,7 +460,7 @@ async def demo_circuit_breakers():
             1,
             successful_operation if i < 3 else failing_operation
         )
-        print(f"  Attempt {i+1}: {'✅' if success else '❌'}")
+        print(f"  Attempt {i+1}: {'[OK]' if success else '[FAIL]'}")
 
     # Level 2 - Atomic
     print("\nLevel 2 (Atomic):")
@@ -469,7 +469,7 @@ async def demo_circuit_breakers():
             2,
             successful_operation
         )
-        print(f"  Attempt {i+1}: {'✅' if success else '❌'}")
+        print(f"  Attempt {i+1}: {'[OK]' if success else '[FAIL]'}")
 
     # Show dashboard
     print("\n" + dashboard.format_text_report())

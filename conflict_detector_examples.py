@@ -113,7 +113,7 @@ list = [1, 2, 3]  # Shadows builtin
     for conflict in conflicts:
         print(f"\n{conflict.severity.value} - {conflict.description}")
         if 'builtin' in conflict.description.lower():
-            print("  ⚠️  Warning: Builtin shadowing detected!")
+            print("  [WARN]  Warning: Builtin shadowing detected!")
 
 
 def example_3_logic_conflicts():
@@ -602,7 +602,7 @@ class APIClient:
     print("=" * 80)
 
     if categories['Dependency']:
-        print("\n⚠️  Dependency Conflicts Detected:")
+        print("\n[WARN]  Dependency Conflicts Detected:")
         print("   The solutions use incompatible HTTP libraries (requests, aiohttp, httpx).")
         print("\n   Recommended Actions:")
         print("   1. Choose one library to standardize on")
@@ -610,7 +610,7 @@ class APIClient:
         print("   3. If using aiohttp, separate sync and async code paths")
 
     if categories['Naming']:
-        print("\n⚠️  Naming Conflicts Detected:")
+        print("\n[WARN]  Naming Conflicts Detected:")
         print("   All solutions define classes with the same name 'APIClient'.")
         print("\n   Recommended Actions:")
         print("   1. Use descriptive names: RequestsAPIClient, AsyncAPIClient, HybridAPIClient")
@@ -656,9 +656,9 @@ import collections
         print(f"\nTesting: {name}")
         try:
             conflicts = detector.detect_conflicts([code], [{'id': name}])
-            print(f"  ✓ Handled successfully, found {len(conflicts)} conflicts")
+            print(f"  [OK] Handled successfully, found {len(conflicts)} conflicts")
         except (ValueError, TypeError, RuntimeError) as e:
-            print(f"  ✗ Error: {type(e).__name__}: {e}")
+            print(f"  [FAIL] Error: {type(e).__name__}: {e}")
 
 
 def main():
@@ -685,11 +685,11 @@ def main():
     print("=" * 80)
     print("\nFor more information, see the module documentation and unit tests.")
     print("\nKey takeaways:")
-    print("  • Use detect_conflicts() for quick analysis")
-    print("  • Use ConflictDetector class for detailed control")
-    print("  • Use ConflictReporter to generate formatted reports")
-    print("  • Filter conflicts by severity to prioritize fixes")
-    print("  • Use propose_resolution() to get actionable recommendations")
+    print("  * Use detect_conflicts() for quick analysis")
+    print("  * Use ConflictDetector class for detailed control")
+    print("  * Use ConflictReporter to generate formatted reports")
+    print("  * Filter conflicts by severity to prioritize fixes")
+    print("  * Use propose_resolution() to get actionable recommendations")
     print("\n")
 
 

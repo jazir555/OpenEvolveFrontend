@@ -302,9 +302,9 @@ Format your response as follows: "The correct answer is (insert answer here)".""
 
         # Check if context made it into prompt
         if context[:100] not in prompt:
-            print("   ⚠️ WARNING: Context doesn't appear to be in prompt!")
+            print("   [WARN] WARNING: Context doesn't appear to be in prompt!")
         else:
-            print("   ✅ Context confirmed in prompt")
+            print("   [OK] Context confirmed in prompt")
 
         # Use pred.py's query_llm function with our Gemini client
         # We need a dummy tokenizer for compatibility
@@ -490,7 +490,7 @@ Format your response as follows: "The correct answer is (insert answer here)".""
             pruned_correct = sum(1 for r in pruned_runs if r[judge_key])
             unpruned_correct = sum(1 for r in unpruned_runs if r[judge_key])
 
-            print(f"\n✅ {question_id} Results:")
+            print(f"\n[OK] {question_id} Results:")
             print(f"  Pruned:   {pruned_correct}/{num_runs} correct ({pruned_correct*100/num_runs:.1f}%)")
             print(f"  Unpruned: {unpruned_correct}/{num_runs} correct ({unpruned_correct*100/num_runs:.1f}%)")
 
@@ -565,9 +565,9 @@ Format your response as follows: "The correct answer is (insert answer here)".""
         unpruned_accuracy = sum(1 for r in results[unpruned_key] if r.get(judge_key, False)) / len(results[unpruned_key]) * 100
 
         if pruned_accuracy > unpruned_accuracy:
-            report.append(f"✅ PRUNED method performs BETTER by {pruned_accuracy - unpruned_accuracy:.1f}%")
+            report.append(f"[OK] PRUNED method performs BETTER by {pruned_accuracy - unpruned_accuracy:.1f}%")
         elif unpruned_accuracy > pruned_accuracy:
-            report.append(f"❌ UNPRUNED method performs BETTER by {unpruned_accuracy - pruned_accuracy:.1f}%")
+            report.append(f"[FAIL] UNPRUNED method performs BETTER by {unpruned_accuracy - pruned_accuracy:.1f}%")
         else:
             report.append("🔄 Both methods perform EQUALLY")
 

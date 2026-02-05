@@ -138,7 +138,7 @@ def start(ctx, start_all, rest, graphql, mcp, event_bus):
     table.add_column("Details", style="dim")
     
     for name, success in results.items():
-        status = "✓ Started" if success else "✗ Failed"
+        status = "[OK] Started" if success else "[FAIL] Failed"
         style = "green" if success else "red"
         
         service = orchestrator.get_service(name)
@@ -177,7 +177,7 @@ def stop(ctx):
     table.add_column("Status", style="green")
     
     for name, success in results.items():
-        status = "✓ Stopped" if success else "✗ Error"
+        status = "[OK] Stopped" if success else "[FAIL] Error"
         style = "green" if success else "red"
         table.add_row(name, f"[{style}]{status}[/{style}]")
     
@@ -241,9 +241,9 @@ def restart(ctx, service_name):
         success = asyncio.run(service.start())
     
     if success:
-        console.print(f"[green]✓ {service_name} restarted successfully[/green]")
+        console.print(f"[green][OK] {service_name} restarted successfully[/green]")
     else:
-        console.print(f"[red]✗ Failed to restart {service_name}[/red]")
+        console.print(f"[red][FAIL] Failed to restart {service_name}[/red]")
 
 
 @services.command()
@@ -342,9 +342,9 @@ def load(path):
             success = asyncio.run(registry.load_from_module(path))
     
     if success:
-        console.print(f"[green]✓ Plugin loaded successfully[/green]")
+        console.print(f"[green][OK] Plugin loaded successfully[/green]")
     else:
-        console.print(f"[red]✗ Failed to load plugin[/red]")
+        console.print(f"[red][FAIL] Failed to load plugin[/red]")
 
 
 @plugins.command()
@@ -360,9 +360,9 @@ def load_dir(directory, recursive):
         loaded = asyncio.run(registry.load_from_directory(directory, recursive))
     
     if loaded:
-        console.print(f"[green]✓ Loaded {len(loaded)} plugins:[/green]")
+        console.print(f"[green][OK] Loaded {len(loaded)} plugins:[/green]")
         for name in loaded:
-            console.print(f"  • {name}")
+            console.print(f"  * {name}")
     else:
         console.print("[yellow]No plugins found[/yellow]")
 
@@ -379,9 +379,9 @@ def init(name):
         success = asyncio.run(registry.initialize_plugin(name))
     
     if success:
-        console.print(f"[green]✓ Plugin {name} initialized[/green]")
+        console.print(f"[green][OK] Plugin {name} initialized[/green]")
     else:
-        console.print(f"[red]✗ Failed to initialize plugin {name}[/red]")
+        console.print(f"[red][FAIL] Failed to initialize plugin {name}[/red]")
 
 
 @plugins.command()
@@ -396,9 +396,9 @@ def unload(name):
         success = asyncio.run(registry.unload_plugin(name))
     
     if success:
-        console.print(f"[green]✓ Plugin {name} unloaded[/green]")
+        console.print(f"[green][OK] Plugin {name} unloaded[/green]")
     else:
-        console.print(f"[red]✗ Failed to unload plugin {name}[/red]")
+        console.print(f"[red][FAIL] Failed to unload plugin {name}[/red]")
 
 
 @plugins.command()
@@ -459,7 +459,7 @@ class MyPlugin(MCPToolPlugin):
     
     output_path = Path("example_plugin.py")
     output_path.write_text(example_code)
-    console.print(f"[green]✓ Example plugin created: {output_path}[/green]")
+    console.print(f"[green][OK] Example plugin created: {output_path}[/green]")
 
 
 # =============================================================================
@@ -485,7 +485,7 @@ def show(ctx):
         f"Log Level: {config.log_level}\n"
         f"Orchestrator Port: {config.orchestrator_port}\n\n"
         f"[bold]Services:[/bold]\n"
-        + "\n".join([f"  {'✓' if enabled else '✗'} {name}" 
+        + "\n".join([f"  {'[OK]' if enabled else '[FAIL]'} {name}" 
                     for name, enabled in config.services.items()]),
         title="Configuration"
     ))
@@ -513,7 +513,7 @@ def generate(ctx, output, fmt):
         config = IntegrationConfig()
         output_path.write_text(json.dumps(config.dict(), indent=2))
     
-    console.print(f"[green]✓ Configuration written to {output}[/green]")
+    console.print(f"[green][OK] Configuration written to {output}[/green]")
 
 
 @config.command()
@@ -524,14 +524,14 @@ def validate(ctx):
     
     try:
         config = get_config(ctx.obj.get('config_path'))
-        console.print("[green]✓ Configuration is valid[/green]")
+        console.print("[green][OK] Configuration is valid[/green]")
         
         # Show validation details
         tree = Tree("[bold]Configuration Structure[/bold]")
         
         services = tree.add("Services")
         for name, enabled in config.services.items():
-            services.add(f"{'✓' if enabled else '✗'} {name}")
+            services.add(f"{'[OK]' if enabled else '[FAIL]'} {name}")
         
         tree.add(f"REST API: port {config.rest_api.port}")
         tree.add(f"GraphQL: port {config.graphql.port}")
@@ -540,7 +540,7 @@ def validate(ctx):
         console.print(tree)
         
     except Exception as e:
-        console.print(f"[red]✗ Configuration error: {e}[/red]")
+        console.print(f"[red][FAIL] Configuration error: {e}[/red]")
         sys.exit(1)
 
 
@@ -679,9 +679,9 @@ CMD ["python", "-m", "openevolve_cli", "services", "start", "--all"]
     Path('docker-compose.yml').write_text(docker_compose)
     Path('Dockerfile').write_text(dockerfile)
     
-    console.print("[green]✓ Docker files generated:[/green]")
-    console.print("  • docker-compose.yml")
-    console.print("  • Dockerfile")
+    console.print("[green][OK] Docker files generated:[/green]")
+    console.print("  * docker-compose.yml")
+    console.print("  * Dockerfile")
     console.print("\n[yellow]To start:[/yellow]")
     console.print("  docker-compose up -d")
 
@@ -815,7 +815,7 @@ def status():
         table.add_column("Details", style="dim")
         
         for component, info in health.items():
-            status_icon = "✓" if info.get('healthy', False) else "✗"
+            status_icon = "[OK]" if info.get('healthy', False) else "[FAIL]"
             status_color = "green" if info.get('healthy', False) else "red"
             table.add_row(
                 component,

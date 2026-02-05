@@ -106,10 +106,10 @@ print(f"Simple proof: {score1.overall_score:.2f}")
 print(f"Elegant proof: {score2.overall_score:.2f}")
 
 if score2.elegance > score1.elegance:
-    print("✓ Elegant proof has better elegance")
+    print("[OK] Elegant proof has better elegance")
 
 if score2.clarity > score1.clarity:
-    print("✓ Elegant proof has better clarity")
+    print("[OK] Elegant proof has better clarity")
 
 print("\n" + "=" * 80)
 print("Demo Complete!")

@@ -22,24 +22,24 @@ async def quick_start():
     print(f"   Community Detection: {counts['community']} algorithms")
     print(f"   Node Embeddings: {counts['node_embedding']} algorithms")
     print(f"   Graph Embeddings: {counts['graph_embedding']} algorithms")
-    print(f"   Total: {counts['total']} algorithms ✅")
+    print(f"   Total: {counts['total']} algorithms [OK]")
 
     # Initialize analytics
     print(f"\n🚀 Initializing KarateClub Analytics...")
     analytics = KarateClubAnalytics()
-    print("   ✓ Analytics engine ready")
+    print("   [OK] Analytics engine ready")
 
     # Create sample graph
     print(f"\n📈 Creating sample graph...")
     graph = nx.karate_club_graph()
-    print(f"   ✓ Graph created: {graph.number_of_nodes()} nodes, {graph.number_of_edges()} edges")
+    print(f"   [OK] Graph created: {graph.number_of_nodes()} nodes, {graph.number_of_edges()} edges")
 
     # Example 1: Community Detection
     print(f"\n🔍 Community Detection (Label Propagation)...")
     communities = await analytics.detect_communities(graph, algorithm='label_propagation')
-    print(f"   ✓ Found {communities.num_communities} communities")
-    print(f"   ✓ Modularity: {communities.modularity:.3f}")
-    print(f"   ✓ Time: {communities.execution_time_ms:.2f}ms")
+    print(f"   [OK] Found {communities.num_communities} communities")
+    print(f"   [OK] Modularity: {communities.modularity:.3f}")
+    print(f"   [OK] Time: {communities.execution_time_ms:.2f}ms")
 
     # Example 2: Node Embeddings
     print(f"\n🎯 Node Embeddings (Node2Vec)...")
@@ -48,27 +48,27 @@ async def quick_start():
         algorithm='node2vec',
         dimensions=128
     )
-    print(f"   ✓ Embedded {embeddings.num_nodes} nodes")
-    print(f"   ✓ Dimensions: {embeddings.embedding_dim}")
-    print(f"   ✓ Time: {embeddings.execution_time_ms:.2f}ms")
+    print(f"   [OK] Embedded {embeddings.num_nodes} nodes")
+    print(f"   [OK] Dimensions: {embeddings.embedding_dim}")
+    print(f"   [OK] Time: {embeddings.execution_time_ms:.2f}ms")
 
     # Example 3: Graph Metrics
     print(f"\n📊 Graph Metrics...")
     metrics = await analytics.compute_graph_metrics(graph)
-    print(f"   ✓ Nodes: {metrics.num_nodes}")
-    print(f"   ✓ Edges: {metrics.num_edges}")
-    print(f"   ✓ Density: {metrics.density:.3f}")
-    print(f"   ✓ Clustering: {metrics.avg_clustering:.3f}")
-    print(f"   ✓ Connected: {metrics.is_connected}")
-    print(f"   ✓ Time: {metrics.execution_time_ms:.2f}ms")
+    print(f"   [OK] Nodes: {metrics.num_nodes}")
+    print(f"   [OK] Edges: {metrics.num_edges}")
+    print(f"   [OK] Density: {metrics.density:.3f}")
+    print(f"   [OK] Clustering: {metrics.avg_clustering:.3f}")
+    print(f"   [OK] Connected: {metrics.is_connected}")
+    print(f"   [OK] Time: {metrics.execution_time_ms:.2f}ms")
 
     # Example 4: Complete Structure Analysis
     print(f"\n🔬 Complete Structure Analysis...")
     structure = await analytics.analyze_graph_structure(graph)
-    print(f"   ✓ Communities: {structure.communities.num_communities}")
-    print(f"   ✓ Modularity: {structure.communities.modularity:.3f}")
-    print(f"   ✓ Density: {structure.metrics.density:.3f}")
-    print(f"   ✓ Time: {structure.execution_time_ms:.2f}ms")
+    print(f"   [OK] Communities: {structure.communities.num_communities}")
+    print(f"   [OK] Modularity: {structure.communities.modularity:.3f}")
+    print(f"   [OK] Density: {structure.metrics.density:.3f}")
+    print(f"   [OK] Time: {structure.execution_time_ms:.2f}ms")
 
     # Show available algorithms
     print(f"\n📚 Available Algorithms:")
@@ -92,7 +92,7 @@ async def quick_start():
 
     # Success!
     print(f"\n" + "=" * 80)
-    print("✅ SUCCESS! KarateClub Analytics is working correctly!")
+    print("[OK] SUCCESS! KarateClub Analytics is working correctly!")
     print("=" * 80)
 
     print(f"\n📖 Next Steps:")
@@ -109,6 +109,6 @@ if __name__ == '__main__':
     try:
         asyncio.run(quick_start())
     except Exception as e:
-        print(f"\n❌ Error: {e}")
+        print(f"\n[FAIL] Error: {e}")
         print(f"\n💡 Make sure KarateClub is installed:")
         print(f"   pip install karateclub networkx numpy scipy")

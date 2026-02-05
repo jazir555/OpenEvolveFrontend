@@ -1227,9 +1227,9 @@ def render_analytics_settings():
         
         col1, col2 = st.columns(2)
         with col1:
-            st.write(f"**Usage Data Collection:** {'✅ Enabled' if collect_usage_data else '❌ Disabled'}")
-            st.write(f"**Performance Data Collection:** {'✅ Enabled' if collect_performance_data else '❌ Disabled'}")
-            st.write(f"**Error Reporting:** {'✅ Enabled' if collect_error_data else '❌ Disabled'}")
+            st.write(f"**Usage Data Collection:** {'[OK] Enabled' if collect_usage_data else '[FAIL] Disabled'}")
+            st.write(f"**Performance Data Collection:** {'[OK] Enabled' if collect_performance_data else '[FAIL] Disabled'}")
+            st.write(f"**Error Reporting:** {'[OK] Enabled' if collect_error_data else '[FAIL] Disabled'}")
         with col2:
             st.write(f"**Default Report Format:** {st.session_state.get('default_report_format', 'Markdown')}")
             st.write(f"**Data Retention:** {st.session_state.get('data_retention_days', 90)} days")

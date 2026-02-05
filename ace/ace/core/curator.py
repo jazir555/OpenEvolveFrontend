@@ -117,7 +117,7 @@ class Curator:
             operations_info = self._extract_and_validate_operations(response)
             
             operations = operations_info["operations"]
-            print(f"✅ Curator JSON schema validated successfully: {len(operations)} operations")
+            print(f"[OK] Curator JSON schema validated successfully: {len(operations)} operations")
             
             # Log detailed diff for each operation before applying
             for op in operations:
@@ -143,7 +143,7 @@ class Curator:
             return updated_playbook, next_global_id, operations, call_info
             
         except (ValueError, KeyError, TypeError, json.JSONDecodeError) as e:
-            print(f"❌ Curator JSON parsing failed: {e}")
+            print(f"[FAIL] Curator JSON parsing failed: {e}")
             print(f"📄 Raw curator response preview: {response[:300]}...")
             
             log_curator_failure(log_dir, current_step, "json_parse_error", 
@@ -153,7 +153,7 @@ class Curator:
             return current_playbook, next_global_id, [], call_info
             
         except Exception as e:
-            print(f"❌ Curator operation failed: {e}")
+            print(f"[FAIL] Curator operation failed: {e}")
             print(f"📄 Raw curator response preview: {response[:300]}...")
             
             log_curator_failure(log_dir, current_step, "operation_error", 

@@ -293,7 +293,7 @@ if __name__ == "__main__":
         print(f"Error: {final_results['error']}")
         sys.exit(1)
 
-    print("\n--- ✅ Final Test Results (Aggregate) ---")
+    print("\n--- [OK] Final Test Results (Aggregate) ---")
     print(f"  Normalized MSE (NMSE): {final_results.get('nmse', 'N/A'):.6f}")
     print(f"  Normalized MAE (NMAE): {final_results.get('nmae', 'N/A'):.6f}")
     print(f"  R-squared (R²):        {final_results.get('r2', 'N/A'):.6f}")

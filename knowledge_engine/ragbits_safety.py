@@ -49,7 +49,7 @@ def safe_execute(
             except Exception as e:
                 if log_errors:
                     logger.error(
-                        f"❌ Error in {func.__name__}: {e}",
+                        f"[FAIL] Error in {func.__name__}: {e}",
                         exc_info=True
                     )
                 if reraise:
@@ -63,7 +63,7 @@ def safe_execute(
             except Exception as e:
                 if log_errors:
                     logger.error(
-                        f"❌ Error in {func.__name__}: {e}",
+                        f"[FAIL] Error in {func.__name__}: {e}",
                         exc_info=True
                     )
                 if reraise:
@@ -97,7 +97,7 @@ def validate_query(query: Any) -> bool:
     if len(query.strip()) == 0:
         return False
     if len(query) > 10000:  # Prevent excessively long queries
-        logger.warning("⚠️ Query too long, truncating to 10000 chars")
+        logger.warning("[WARN] Query too long, truncating to 10000 chars")
         return False
     return True
 
@@ -114,26 +114,26 @@ def validate_top_k(top_k: Any) -> int:
     """
     # Handle None or non-numeric types first
     if top_k is None:
-        logger.warning("⚠️ top_k is None, using default 5")
+        logger.warning("[WARN] top_k is None, using default 5")
         return 5
 
     if not isinstance(top_k, (int, float, str)):
-        logger.warning(f"⚠️ Invalid top_k type {type(top_k)}, using default 5")
+        logger.warning(f"[WARN] Invalid top_k type {type(top_k)}, using default 5")
         return 5
 
     # Try to convert to int
     try:
         top_k_int = int(top_k)
     except (ValueError, TypeError):
-        logger.warning("⚠️ Could not convert top_k to int, using default 5")
+        logger.warning("[WARN] Could not convert top_k to int, using default 5")
         return 5
 
     # Validate range
     if top_k_int < 1:
-        logger.warning("⚠️ top_k too small, using minimum 1")
+        logger.warning("[WARN] top_k too small, using minimum 1")
         return 1
     if top_k_int > 100:
-        logger.warning("⚠️ top_k too large, capping at 100")
+        logger.warning("[WARN] top_k too large, capping at 100")
         return 100
 
     return top_k_int
@@ -152,7 +152,7 @@ def validate_filters(filters: Any) -> dict:
     if filters is None:
         return {}
     if not isinstance(filters, dict):
-        logger.warning("⚠️ Invalid filters type, using empty dict")
+        logger.warning("[WARN] Invalid filters type, using empty dict")
         return {}
 
     # Sanitize filter values
@@ -165,7 +165,7 @@ def validate_filters(filters: Any) -> dict:
         elif isinstance(value, dict):
             validated[key] = validate_filters(value)
         else:
-            logger.warning(f"⚠️ Invalid filter value for {key}, skipping")
+            logger.warning(f"[WARN] Invalid filter value for {key}, skipping")
 
     return validated
 
@@ -236,12 +236,12 @@ class RAGBitsSafetyManager:
         # Check circuit breaker
         if service in self._circuit_breaker_until:
             if datetime.utcnow().timestamp() < self._circuit_breaker_until[service]:
-                logger.info(f"⚠️ Service '{service}' is in circuit breaker until "
+                logger.info(f"[WARN] Service '{service}' is in circuit breaker until "
                           f"{datetime.fromtimestamp(self._circuit_breaker_until[service])}")
                 return False
             else:
                 # Circuit breaker timeout expired
-                logger.info(f"✅ Circuit breaker reset for '{service}'")
+                logger.info(f"[OK] Circuit breaker reset for '{service}'")
                 del self._circuit_breaker_until[service]
 
         return True
@@ -261,7 +261,7 @@ class RAGBitsSafetyManager:
         if self._error_counts[service] >= 3:
             timeout = datetime.utcnow().timestamp() + self._circuit_breaker_timeout
             self._circuit_breaker_until[service] = timeout
-            logger.warning(f"⚠️ Circuit breaker triggered for '{service}' for "
+            logger.warning(f"[WARN] Circuit breaker triggered for '{service}' for "
                           f"{self._circuit_breaker_timeout} seconds")
 
     def reset_errors(self, service: str):
@@ -272,7 +272,7 @@ class RAGBitsSafetyManager:
             service: Service name
         """
         self._error_counts[service] = 0
-        logger.info(f"✅ Error count reset for '{service}'")
+        logger.info(f"[OK] Error count reset for '{service}'")
 
     def get_error_count(self, service: str) -> int:
         """
@@ -336,7 +336,7 @@ class SafeRAGBitsWrapper:
         """
         # Validate inputs
         if not validate_query(query):
-            self.logger.warning("⚠️ Invalid query, returning empty results")
+            self.logger.warning("[WARN] Invalid query, returning empty results")
             return []
 
         top_k = validate_top_k(top_k)
@@ -384,7 +384,7 @@ class SafeRAGBitsWrapper:
         """
         # Validate inputs
         if not content or not isinstance(content, str):
-            self.logger.warning("⚠️ Invalid content, returning empty ID")
+            self.logger.warning("[WARN] Invalid content, returning empty ID")
             return ""
 
         if not metadata or not isinstance(metadata, dict):

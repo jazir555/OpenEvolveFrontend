@@ -8,15 +8,15 @@ This module combines:
 4. Associative Recomposition - Domain-agnostic LLM + algorithmic verification
 
 Complete pipeline:
-    Problem → ROMA Decomposition → Associative Recomposition → MDAP Validation → Solution
+    Problem -> ROMA Decomposition -> Associative Recomposition -> MDAP Validation -> Solution
 
 Architecture:
     Layer 1: ROMA Hierarchical Decomposition
-        ↓
+        v
     Layer 2: Associative Recomposition (LLM + Algorithmic)
-        ↓
+        v
     Layer 3: MDAP Multi-Agent Validation
-        ↓
+        v
     Layer 4: Ground Truth Verification
 
 Author: OpenEvolve
@@ -318,11 +318,11 @@ class ROMAMDAPMakerAssociativeEngine:
                 best_result = result
                 
             if is_approved or score >= self.config.min_acceptance_score:
-                logger.info(f"✓ Solution ACCEPTED with score {score:.1f}")
+                logger.info(f"[OK] Solution ACCEPTED with score {score:.1f}")
                 best_result["final_attempt"] = attempt + 1
                 return best_result
             
-            logger.warning(f"✗ Solution REJECTED with score {score:.1f}. Refactoring...")
+            logger.warning(f"[FAIL] Solution REJECTED with score {score:.1f}. Refactoring...")
             
         logger.warning(f"Maximum refinement attempts reached ({self.config.max_refinement_attempts}). Returning best result.")
         if best_result:
@@ -371,7 +371,7 @@ class ROMAMDAPMakerAssociativeEngine:
             roma_result = self._roma_decompose(problem, context, config_overrides)
 
             phase1_time = time.time() - phase1_start
-            logger.info(f"✓ ROMA decomposition completed in {phase1_time:.2f}s")
+            logger.info(f"[OK] ROMA decomposition completed in {phase1_time:.2f}s")
 
             if roma_result.get("error"):
                 return {
@@ -392,7 +392,7 @@ class ROMAMDAPMakerAssociativeEngine:
             )
 
             phase2_time = time.time() - phase2_start
-            logger.info(f"✓ Associative recomposition completed in {phase2_time:.2f}s")
+            logger.info(f"[OK] Associative recomposition completed in {phase2_time:.2f}s")
 
             if recomposition_result.get("error"):
                 self.metrics["failed_recompositions"] += 1
@@ -416,7 +416,7 @@ class ROMAMDAPMakerAssociativeEngine:
             )
 
             phase3_time = time.time() - phase3_start
-            logger.info(f"✓ Evaluation completed in {phase3_time:.2f}s")
+            logger.info(f"[OK] Evaluation completed in {phase3_time:.2f}s")
 
             # Compile final result
             total_time = time.time() - start_time

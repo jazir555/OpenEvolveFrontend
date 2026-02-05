@@ -311,7 +311,7 @@ def ensure_use_cases_folder():
     use_cases_dir = "templates"
     if not os.path.exists(use_cases_dir):
         os.makedirs(use_cases_dir)
-        st.success(f"✅ Created {use_cases_dir} folder")
+        st.success(f"[OK] Created {use_cases_dir} folder")
     return use_cases_dir
 
 def parse_text_description():
@@ -360,7 +360,7 @@ def parse_text_description():
         if not st.session_state.main_model_name:
             st.session_state.main_model_name = config['extraction_config']['main_model_name']
         
-        status_text.text("✅ Description parsed successfully!")
+        status_text.text("[OK] Description parsed successfully!")
         progress_bar.progress(100)
         
         # Clear progress indicators
@@ -1006,20 +1006,20 @@ def configuration_section():
                         # Build combined instructions for backward compatibility
                         st.session_state.additional_instructions = build_additional_instructions()
                         
-                        st.success(f"✅ Loaded model: {selected_model['use_case']}")
+                        st.success(f"[OK] Loaded model: {selected_model['use_case']}")
                         st.rerun()
                     except Exception as e:
-                        st.error(f"❌ Error loading model: {str(e)}")
+                        st.error(f"[FAIL] Error loading model: {str(e)}")
             with col2:
                 if st.button("🗑️ Delete Model"):
                     try:
                         folder_path = f"templates/{selected_model['folder']}"
                         import shutil
                         shutil.rmtree(folder_path)
-                        st.success(f"✅ Deleted model: {selected_model['use_case']}")
+                        st.success(f"[OK] Deleted model: {selected_model['use_case']}")
                         st.rerun()
                     except Exception as e:
-                        st.error(f"❌ Error deleting model: {str(e)}")
+                        st.error(f"[FAIL] Error deleting model: {str(e)}")
         
         st.markdown("---")
     else:
@@ -1135,16 +1135,16 @@ def configuration_section():
             with st.expander("💡 Relationship Examples"):
                 st.markdown("""
                 **Order Processing:**
-                - Orders → Product Specs (via product_id) → Pricing (via product_id)
+                - Orders -> Product Specs (via product_id) -> Pricing (via product_id)
                 
                 **Customer Management:**
-                - Customer Info → Orders (via customer_id) → Payments (via order_id)
+                - Customer Info -> Orders (via customer_id) -> Payments (via order_id)
                 
                 **Project Management:**
-                - Projects → Tasks (via project_id) → Resources (via task_id)
+                - Projects -> Tasks (via project_id) -> Resources (via task_id)
                 
                 **Supply Chain:**
-                - Purchase Orders → Shipments (via po_id) → Invoices (via shipment_id)
+                - Purchase Orders -> Shipments (via po_id) -> Invoices (via shipment_id)
                 """)
         else:
             st.markdown("**📝 Text Description Interface**")
@@ -1210,16 +1210,16 @@ def configuration_section():
         with col1:
             if char_count > 0:
                 if char_count < 20:
-                    st.warning("⚠️ Description should be at least 20 characters")
+                    st.warning("[WARN] Description should be at least 20 characters")
                 elif char_count > 2000:
-                    st.error("❌ Description should be less than 2000 characters")
+                    st.error("[FAIL] Description should be less than 2000 characters")
                 else:
-                    st.success(f"✅ {char_count} characters")
+                    st.success(f"[OK] {char_count} characters")
         
         with col2:
             if st.button("🔍 Parse Description", disabled=st.session_state.parsing_in_progress):
                 if parse_text_description():
-                    st.success("✅ Description parsed successfully!")
+                    st.success("[OK] Description parsed successfully!")
                     st.rerun()
         
         with col3:
@@ -1233,7 +1233,7 @@ def configuration_section():
         with st.expander("💡 Tips for writing effective descriptions"):
             tips = get_parsing_tips()
             for tip in tips:
-                st.markdown(f"• {tip}")
+                st.markdown(f"* {tip}")
         
         # Show parsed fields preview
         if st.session_state.parsed_fields:
@@ -1243,9 +1243,9 @@ def configuration_section():
             
             col1, col2 = st.columns(2)
             with col1:
-                if st.button("✅ Use Parsed Fields"):
+                if st.button("[OK] Use Parsed Fields"):
                     st.session_state.fields = st.session_state.parsed_fields
-                    st.success("✅ Fields updated successfully!")
+                    st.success("[OK] Fields updated successfully!")
                     st.rerun()
             
             with col2:
@@ -1253,7 +1253,7 @@ def configuration_section():
                     # Switch to field-by-field mode and populate fields with parsed data
                     st.session_state.configuration_mode = "fields"
                     st.session_state.fields = st.session_state.parsed_fields.copy()
-                    st.success("✅ Switched to field-by-field mode. You can now edit individual fields below.")
+                    st.success("[OK] Switched to field-by-field mode. You can now edit individual fields below.")
                     st.rerun()
         
         st.markdown("---")
@@ -1306,7 +1306,7 @@ def configuration_section():
 
         # Show disabled message if Azure is enabled and Claude was selected
         if azure_enabled and st.session_state.extraction_model and 'claude' in st.session_state.extraction_model.lower():
-            st.warning("⚠️ This application uses only OpenAI model with Azure endpoint for extraction task")
+            st.warning("[WARN] This application uses only OpenAI model with Azure endpoint for extraction task")
 
     with col3:
         st.session_state.use_azure = st.checkbox(
@@ -1362,13 +1362,13 @@ def configuration_section():
 
     if errors:
         st.markdown('<div class="warning-box">', unsafe_allow_html=True)
-        st.markdown("**⚠️ Configuration Issues:**")
+        st.markdown("**[WARN] Configuration Issues:**")
         for error in errors:
-            st.markdown(f"• {error}")
+            st.markdown(f"* {error}")
         st.markdown('</div>', unsafe_allow_html=True)
 
     if is_valid:
-        st.markdown('<div class="success-box">✅ Configuration is ready!</div>', unsafe_allow_html=True)
+        st.markdown('<div class="success-box">[OK] Configuration is ready!</div>', unsafe_allow_html=True)
 
         col1, col2, col3 = st.columns(3)
 
@@ -1378,9 +1378,9 @@ def configuration_section():
                     config = export_configuration()
                     config_path = save_model_config(config, st.session_state.use_case)
                     use_case_folder = os.path.dirname(config_path)
-                    st.success(f"✅ Model saved to: {use_case_folder}")
+                    st.success(f"[OK] Model saved to: {use_case_folder}")
                 except Exception as e:
-                    st.error(f"❌ Error saving: {str(e)}")
+                    st.error(f"[FAIL] Error saving: {str(e)}")
 
         with col2:
             config = export_configuration()
@@ -1407,10 +1407,10 @@ def extraction_section():
     
     if not is_valid:
         st.markdown('<div class="warning-box">', unsafe_allow_html=True)
-        st.markdown("**⚠️ Please complete model configuration first**")
+        st.markdown("**[WARN] Please complete model configuration first**")
         st.markdown('</div>', unsafe_allow_html=True)
         
-        if st.button("← Back to Configuration"):
+        if st.button("<- Back to Configuration"):
             st.session_state.current_tab = "Configuration"
             st.rerun()
         return
@@ -1507,9 +1507,9 @@ def extraction_section():
                             st.session_state.selected_folder_path = selected_folder
                             st.rerun()
                     except ImportError:
-                        st.error("❌ Folder dialog not available. Please enter path manually.")
+                        st.error("[FAIL] Folder dialog not available. Please enter path manually.")
                     except Exception as e:
-                        st.error(f"❌ Error opening folder dialog: {str(e)}")
+                        st.error(f"[FAIL] Error opening folder dialog: {str(e)}")
             
             # Use the session state value for folder processing
             folder_path = st.session_state.selected_folder_path
@@ -1520,7 +1520,7 @@ def extraction_section():
                     supported_files.extend(glob.glob(os.path.join(folder_path, f"*{ext}")))
                 
                 if supported_files:
-                    st.success(f"✅ Found {len(supported_files)} supported documents")
+                    st.success(f"[OK] Found {len(supported_files)} supported documents")
                     st.session_state.selected_files = supported_files
                     
                     # Show preview of found files
@@ -1532,7 +1532,7 @@ def extraction_section():
                 else:
                     st.warning("No supported documents (.pdf, .docx, .doc) found in folder")
             elif folder_path:
-                st.error("❌ Folder path does not exist")
+                st.error("[FAIL] Folder path does not exist")
         else:
             uploaded_files = st.file_uploader(
                 "Upload Documents",
@@ -1555,13 +1555,13 @@ def extraction_section():
                 st.session_state.uploaded_file_data = file_data
                 st.session_state.selected_files = [f"memory_{f['name']}" for f in file_data]  # Placeholder paths
                 st.session_state.files_processed = True  # Mark files as processed
-                st.success(f"✅ Selected {len(file_data)} documents (stored in memory)")
+                st.success(f"[OK] Selected {len(file_data)} documents (stored in memory)")
     
     # Clear files button
     if st.session_state.selected_files:
         if st.button("🗑️ Clear Files", help="Clear selected files and clean up temporary files"):
             _cleanup_temp_files()
-            st.success("✅ Files cleared and temporary files cleaned up")
+            st.success("[OK] Files cleared and temporary files cleaned up")
             st.rerun()
     
     # Extraction execution
@@ -1625,7 +1625,7 @@ def extraction_section():
             elif parsing_method_display == "Docling parsing (slow without GPU)":
                 st.session_state.parsing_method = "docling"
             elif parsing_method_display == "Docling parsing (not installed)":
-                st.warning("⚠️ **Docling parsing is not installed.** To use Docling parsing, install it with: `pip install docling`")
+                st.warning("[WARN] **Docling parsing is not installed.** To use Docling parsing, install it with: `pip install docling`")
                 st.session_state.parsing_method = "fast"  # Force fast parsing
         
         with col_parse2:
@@ -1677,7 +1677,7 @@ def extraction_section():
             else:
                 st.info("⚡ **Fast parsing** - Uses PyMuPDF/docx libraries for all file types")
                 if not DOCLING_AVAILABLE:
-                    st.warning("⚠️ Docling not available")
+                    st.warning("[WARN] Docling not available")
         
         # Rebuild models checkbox
         st.session_state.rebuild_models = st.checkbox(
@@ -1693,7 +1693,7 @@ def extraction_section():
             if azure_valid:
                 run_extraction()
             else:
-                st.error("❌ Cannot start extraction due to invalid Azure configuration. Please check your model settings.")
+                st.error("[FAIL] Cannot start extraction due to invalid Azure configuration. Please check your model settings.")
     
     # Display results
     if st.session_state.extraction_results is not None:
@@ -1757,7 +1757,7 @@ def run_extraction():
             document_parser = DocumentParser()
             # Force fast parsing if docling is not available
             if parsing_method == 'docling' and not DOCLING_AVAILABLE:
-                st.warning("⚠️ Docling parsing not available. Falling back to Fast parsing.")
+                st.warning("[WARN] Docling parsing not available. Falling back to Fast parsing.")
                 st.session_state.parsing_method = 'fast'
         
         # Initialize extractor based on extraction model selection
@@ -1813,11 +1813,11 @@ def run_extraction():
                 model_generator.save_extraction_prompt(prompt_path)
                 progress_bar.progress(30)
                 
-                status_text.text("✅ Models generated and saved successfully")
+                status_text.text("[OK] Models generated and saved successfully")
             except Exception as model_error:
                 progress_bar.progress(0)
-                status_text.text("❌ Model generation failed")
-                st.error(f"❌ Model generation failed: {str(model_error)}")
+                status_text.text("[FAIL] Model generation failed")
+                st.error(f"[FAIL] Model generation failed: {str(model_error)}")
                 # Show the problematic configuration for debugging
                 with st.expander("🔍 Debug Information"):
                     st.json(config)
@@ -1830,19 +1830,19 @@ def run_extraction():
             try:
                 if not os.path.exists(model_path) or not os.path.exists(prompt_path):
                     progress_bar.progress(0)
-                    status_text.text("❌ Models not found")
-                    st.error(f"❌ Models not found for use case '{use_case_name}'. Please check 'Build/Rebuild models' to generate them first.")
+                    status_text.text("[FAIL] Models not found")
+                    st.error(f"[FAIL] Models not found for use case '{use_case_name}'. Please check 'Build/Rebuild models' to generate them first.")
                     return
                 
                 # Load existing models and prompt
                 pydantic_model_class, extraction_prompt = model_generator.load_models_and_prompt(model_path, prompt_path)
                 progress_bar.progress(30)
                 
-                status_text.text("✅ Existing models loaded successfully")
+                status_text.text("[OK] Existing models loaded successfully")
             except Exception as load_error:
                 progress_bar.progress(0)
-                status_text.text("❌ Failed to load existing models")
-                st.error(f"❌ Failed to load existing models: {str(load_error)}")
+                status_text.text("[FAIL] Failed to load existing models")
+                st.error(f"[FAIL] Failed to load existing models: {str(load_error)}")
                 st.info("💡 Try checking 'Rebuild models' to generate new models")
                 return
         
@@ -1875,7 +1875,7 @@ def run_extraction():
                     file_data = next((f for f in uploaded_file_data if f['name'] == file_name), None)
                     
                     if not file_data:
-                        st.warning(f"⚠️ Could not find file data for {file_name}")
+                        st.warning(f"[WARN] Could not find file data for {file_name}")
                         continue
                     
                     # Create temporary file only for parsing
@@ -1908,7 +1908,7 @@ def run_extraction():
                     else:
                         # For unsupported files, fall back to fast parsing
                         file_extension = os.path.splitext(actual_file_path)[1].lower()
-                        st.warning(f"⚠️ Docling parsing doesn't support {file_extension} files. Using Fast parsing for {file_basename}")
+                        st.warning(f"[WARN] Docling parsing doesn't support {file_extension} files. Using Fast parsing for {file_basename}")
                         # Use the same format as selected for fast parsing
                         use_markdown = st.session_state.get('fast_format', 'markdown') == 'markdown'
                         # Show parsing method indication
@@ -1936,7 +1936,7 @@ def run_extraction():
                 
             except Exception as e:
                 logger.error(f"Document parsing: Failed to parse file {i+1}/{total_files}: {file_ref} - {str(e)}")
-                st.warning(f"⚠️ Could not parse {file_ref}: {str(e)}")
+                st.warning(f"[WARN] Could not parse {file_ref}: {str(e)}")
             finally:
                 # Always clean up temporary file if created
                 if temp_path_created and os.path.exists(temp_path_created):
@@ -1947,8 +1947,8 @@ def run_extraction():
         
         if not parsed_documents:
             progress_bar.progress(0)
-            status_text.text("❌ No documents could be parsed")
-            st.error("❌ No documents could be parsed")
+            status_text.text("[FAIL] No documents could be parsed")
+            st.error("[FAIL] No documents could be parsed")
             return
         
         messenger.complete_operation(True, f"{len(parsed_documents)} documents parsed successfully")
@@ -1966,8 +1966,8 @@ def run_extraction():
             logger.info(f"Using Case 1 multi-type extraction for {len(parsed_documents)} documents")
             if not CASE1_AVAILABLE:
                 progress_bar.progress(0)
-                status_text.text("❌ Multi-type extraction not available")
-                st.error("❌ Multi-type document extraction is not available. Please ensure case1_classifier.py is present.")
+                status_text.text("[FAIL] Multi-type extraction not available")
+                st.error("[FAIL] Multi-type document extraction is not available. Please ensure case1_classifier.py is present.")
                 return
             status_text.text(f"🔍 Multi-type document extraction: Classifying and routing {len(parsed_documents)} documents using {extraction_display_name}{azure_text}...")
             progress_bar.progress(70)
@@ -2023,8 +2023,8 @@ def run_extraction():
                     
             except Exception as case1_error:
                 progress_bar.progress(0)
-                status_text.text("❌ Multi-type extraction failed")
-                st.error(f"❌ Multi-type extraction failed: {str(case1_error)}")
+                status_text.text("[FAIL] Multi-type extraction failed")
+                st.error(f"[FAIL] Multi-type extraction failed: {str(case1_error)}")
                 return
         
         elif st.session_state.extraction_type == "multi_type_with_relationships":
@@ -2041,8 +2041,8 @@ def run_extraction():
             
             if not CASE2_AVAILABLE:
                 progress_bar.progress(0)
-                status_text.text("❌ Hierarchical extraction not available")
-                st.error("❌ Hierarchical document extraction is not available.")
+                status_text.text("[FAIL] Hierarchical extraction not available")
+                st.error("[FAIL] Hierarchical document extraction is not available.")
                 st.error("**Missing dependency**: This appears to be a missing `pydantic` package.")
                 st.info("**Solution**: Please install required dependencies with: `pip install -r requirements.txt`")
                 return
@@ -2092,8 +2092,8 @@ def run_extraction():
                     _cleanup_temp_files()
                     
                     progress_bar.progress(0)
-                    status_text.text("❌ Data extraction failed")
-                    st.error(f"❌ Extraction failed: {str(extraction_error)}")
+                    status_text.text("[FAIL] Data extraction failed")
+                    st.error(f"[FAIL] Extraction failed: {str(extraction_error)}")
                     return
                 
                 # Debug information
@@ -2103,7 +2103,7 @@ def run_extraction():
                     logger.warning("Single-type extraction returned no results")
                 
                 progress_bar.progress(100)
-                status_text.text("✅ Data extraction completed")
+                status_text.text("[OK] Data extraction completed")
                 
                 # Clean up temporary files after fallback single-type extraction
                 _cleanup_temp_files()
@@ -2268,7 +2268,7 @@ def run_extraction():
                             logger.warning(f"Could not save hierarchical results to file: {e}")
                     
                     progress_bar.progress(100)
-                    status_text.text("✅ Hierarchical extraction completed")
+                    status_text.text("[OK] Hierarchical extraction completed")
                     
                     # Clean up temporary files after hierarchical extraction
                     _cleanup_temp_files()
@@ -2276,8 +2276,8 @@ def run_extraction():
                 except Exception as case2_error:
                     logger.error(f"Error in hierarchical extraction: {case2_error}")
                     progress_bar.progress(0)
-                    status_text.text("❌ Hierarchical extraction failed")
-                    st.error(f"❌ Hierarchical extraction failed: {str(case2_error)}")
+                    status_text.text("[FAIL] Hierarchical extraction failed")
+                    st.error(f"[FAIL] Hierarchical extraction failed: {str(case2_error)}")
                     return
         else:
             # Standard single-type extraction
@@ -2300,8 +2300,8 @@ def run_extraction():
                 messenger.complete_operation(True, f"Extracted {len(results)} records")
             except Exception as extraction_error:
                 progress_bar.progress(0)
-                status_text.text("❌ Data extraction failed")
-                st.error(f"❌ Extraction failed: {str(extraction_error)}")
+                status_text.text("[FAIL] Data extraction failed")
+                st.error(f"[FAIL] Extraction failed: {str(extraction_error)}")
             
             # Debug information
             with st.expander("🔍 Debug Information", expanded=True):
@@ -2323,7 +2323,7 @@ def run_extraction():
                 st.write(f"DoclingParser available: {DOCLING_AVAILABLE}")
         
         progress_bar.progress(90)
-        status_text.text("✅ Data extraction completed")
+        status_text.text("[OK] Data extraction completed")
         
         # Save results 
         status_text.text("💾 Saving extraction results...")
@@ -2352,7 +2352,7 @@ def run_extraction():
                 
                 st.info(f"📁 Results also saved to: {results_path}")
             except Exception as save_error:
-                st.warning(f"⚠️ Could not save results to use-case folder: {str(save_error)}")
+                st.warning(f"[WARN] Could not save results to use-case folder: {str(save_error)}")
         
         # Clean up temporary files
         _cleanup_temp_files()
@@ -2369,14 +2369,14 @@ def run_extraction():
         progress_bar.empty()
         status_text.empty()
         
-        st.success(f"✅ Extraction completed! Processed {len(results)} documents")
+        st.success(f"[OK] Extraction completed! Processed {len(results)} documents")
         st.rerun()
         
     except Exception as e:
         # Clean up temporary files even if extraction fails
         _cleanup_temp_files()
         
-        st.error(f"❌ Extraction failed: {str(e)}")
+        st.error(f"[FAIL] Extraction failed: {str(e)}")
         
         # Show debug information
         with st.expander("🔍 Debug Information"):
@@ -2463,11 +2463,11 @@ def display_results():
         if is_hierarchical and isinstance(results, dict):
             # Case 2: Count consolidated results
             consolidated_count = len(results.get('extraction_results', []))
-            st.metric("✅ Consolidated Records", consolidated_count)
+            st.metric("[OK] Consolidated Records", consolidated_count)
         else:
             # Case 1 or single-type: Count successful extractions
             successful_extractions = len([r for r in results if not r.get('_document_metadata', {}).get('extraction_error')]) if isinstance(results, list) else 0
-            st.metric("✅ Successful", successful_extractions)
+            st.metric("[OK] Successful", successful_extractions)
     
     with col3:
         if is_hierarchical and isinstance(results, dict):
@@ -2479,7 +2479,7 @@ def display_results():
             successful_extractions = len([r for r in results if not r.get('_document_metadata', {}).get('extraction_error')]) if isinstance(results, list) else 0
             docs_count = len(results) if isinstance(results, list) else 0
             failed_extractions = docs_count - successful_extractions
-            st.metric("❌ Failed", failed_extractions)
+            st.metric("[FAIL] Failed", failed_extractions)
     
     with col4:
         if is_hierarchical and isinstance(results, dict):
@@ -2518,7 +2518,7 @@ def display_hierarchical_results(results):
     
     # Handle case where results might be a list instead of dict
     if isinstance(results, list):
-        st.error("❌ Invalid results format: Expected hierarchical results but got list format.")
+        st.error("[FAIL] Invalid results format: Expected hierarchical results but got list format.")
         st.info("💡 This usually happens when loading a use case that was created with a different extraction type.")
         return
     
@@ -2563,7 +2563,7 @@ def display_hierarchical_results(results):
         
         for stage_name, rel_data in relationships.items():
             if rel_data:
-                st.markdown(f"**{stage_name}** →")
+                st.markdown(f"**{stage_name}** ->")
                 for target_stage, rel_info in rel_data.items():
                     st.markdown(f"  - **{target_stage}**: via `{rel_info['key_field']}` ({rel_info['relationship_type']})")
     
@@ -2598,7 +2598,7 @@ def display_multi_type_results(results):
     
     # Handle case where results might be a dict instead of list
     if isinstance(results, dict):
-        st.error("❌ Invalid results format: Expected multi-type results but got dictionary format.")
+        st.error("[FAIL] Invalid results format: Expected multi-type results but got dictionary format.")
         st.info("💡 This usually happens when loading a use case that was created with a different extraction type.")
         return
     
@@ -2723,7 +2723,7 @@ def display_single_type_results(results):
     """Display single-type extraction results in the original format"""
     # Handle case where results might be a dict instead of list
     if isinstance(results, dict):
-        st.error("❌ Invalid results format: Expected single-type results but got dictionary format.")
+        st.error("[FAIL] Invalid results format: Expected single-type results but got dictionary format.")
         st.info("💡 This usually happens when loading a use case that was created with a different extraction type.")
         return
     

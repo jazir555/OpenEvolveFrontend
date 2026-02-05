@@ -174,9 +174,9 @@ def run_openevolve_task(
         }
         
         if result.returncode == 0:
-            print(f"✅ {task_name} completed successfully in {runtime_seconds:.1f}s")
+            print(f"[OK] {task_name} completed successfully in {runtime_seconds:.1f}s")
         else:
-            print(f"❌ {task_name} failed with return code {result.returncode}")
+            print(f"[FAIL] {task_name} failed with return code {result.returncode}")
             task_results["status"] = "failed"
             task_results["error"] = f"Process failed with return code {result.returncode}"
             
@@ -351,7 +351,7 @@ def main():
         tasks_to_run = [t for t in requested_tasks if t in all_tasks]
         missing_tasks = [t for t in requested_tasks if t not in all_tasks]
         if missing_tasks:
-            print(f"⚠️  Warning: Tasks not found: {missing_tasks}")
+            print(f"[WARN]  Warning: Tasks not found: {missing_tasks}")
     else:
         tasks_to_run = all_tasks
     

@@ -26,28 +26,28 @@ def test_base64_encoding():
 
     # Verify they're different
     assert old_encoding != new_encoding, "Hex and base64 should produce different results"
-    logger.info("✓ Confirmed: hex and base64 produce different results")
+    logger.info("[OK] Confirmed: hex and base64 produce different results")
 
     # Verify base64 can be decoded back
     decoded = base64.b64decode(new_encoding).decode("utf-8")
     assert decoded == test_content, "Base64 decoding should return original content"
-    logger.info("✓ Confirmed: base64 can be decoded back to original content")
+    logger.info("[OK] Confirmed: base64 can be decoded back to original content")
 
     # Test with unicode content
     unicode_content = "Hello 世界! 🌍 Test with emoji and unicode characters."
     unicode_encoded = base64.b64encode(unicode_content.encode("utf-8")).decode("utf-8")
     unicode_decoded = base64.b64decode(unicode_encoded).decode("utf-8")
     assert unicode_decoded == unicode_content, "Unicode should round-trip correctly"
-    logger.info("✓ Confirmed: Unicode content round-trips correctly")
+    logger.info("[OK] Confirmed: Unicode content round-trips correctly")
 
     # Test with binary-like content
     binary_content = "\x00\x01\x02\x03 Binary data \xFF\xFE\xFD"
     binary_encoded = base64.b64encode(binary_content.encode("utf-8", errors="surrogateescape")).decode("utf-8")
     binary_decoded = base64.b64decode(binary_encoded).decode("utf-8", errors="surrogateescape")
     assert binary_decoded == binary_content, "Binary content should round-trip correctly"
-    logger.info("✓ Confirmed: Binary-like content round-trips correctly")
+    logger.info("[OK] Confirmed: Binary-like content round-trips correctly")
 
-    logger.info("\n✓✓✓ All base64 encoding tests passed! ✓✓✓")
+    logger.info("\n[OK][OK][OK] All base64 encoding tests passed! [OK][OK][OK]")
     return True
 
 
@@ -60,18 +60,18 @@ def test_github_api_format():
 
     # Should be ASCII-safe
     assert encoded.isascii(), "Base64 should be ASCII-safe"
-    logger.info("✓ Confirmed: Base64 is ASCII-safe")
+    logger.info("[OK] Confirmed: Base64 is ASCII-safe")
 
     # Should only contain valid base64 characters
     valid_b64_chars = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=")
     assert all(c in valid_b64_chars for c in encoded), "Should only contain valid base64 characters"
-    logger.info("✓ Confirmed: Only contains valid base64 characters")
+    logger.info("[OK] Confirmed: Only contains valid base64 characters")
 
     # Should have padding to multiple of 4
     assert len(encoded) % 4 == 0, "Base64 length should be multiple of 4"
-    logger.info("✓ Confirmed: Length is multiple of 4 (properly padded)")
+    logger.info("[OK] Confirmed: Length is multiple of 4 (properly padded)")
 
-    logger.info("\n✓✓✓ All GitHub API format tests passed! ✓✓✓")
+    logger.info("\n[OK][OK][OK] All GitHub API format tests passed! [OK][OK][OK]")
     return True
 
 
@@ -88,17 +88,17 @@ def main():
         test_github_api_format()
         logger.info("")
         logger.info("=" * 60)
-        logger.info("✓✓✓ ALL TESTS PASSED ✓✓✓")
+        logger.info("[OK][OK][OK] ALL TESTS PASSED [OK][OK][OK]")
         logger.info("=" * 60)
         logger.info("")
         logger.info("The fix correctly implements base64 encoding for GitHub API.")
         logger.info("The old .hex() method has been replaced with base64.b64encode().")
         return True
     except AssertionError as e:
-        logger.error(f"✗ Test failed: {e}")
+        logger.error(f"[FAIL] Test failed: {e}")
         return False
     except Exception as e:
-        logger.error(f"✗ Unexpected error: {e}")
+        logger.error(f"[FAIL] Unexpected error: {e}")
         return False
 
 

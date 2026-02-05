@@ -1004,7 +1004,7 @@ class InMemory(EvolveMemory):
             if solution.score is not None and current_best.score is not None:
                 logger.debug(
                     f"New {solution_type} solution {solution.solution_id} replaces {old_id} "
-                    f"(score: {current_best.score:.4f} → {solution.score:.4f})"
+                    f"(score: {current_best.score:.4f} -> {solution.score:.4f})"
                 )
 
     def _update_best_solution(self, solution: Solution) -> None:
@@ -1035,7 +1035,7 @@ class InMemory(EvolveMemory):
             if solution.score is not None and current_best.score is not None:
                 logger.debug(
                     f"New best solution {solution.solution_id} replaces {old_id} "
-                    f"(score: {current_best.score:.4f} → {solution.score:.4f})"
+                    f"(score: {current_best.score:.4f} -> {solution.score:.4f})"
                 )
 
     def _update_island_best_solution(self, solution: Solution, island_id: int) -> None:

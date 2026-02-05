@@ -191,7 +191,7 @@ except Exception as e:
     sys.exit(1)
 
 print("\n" + "=" * 60)
-print("✓ ALL Z3 API PROBES PASSED")
+print("[OK] ALL Z3 API PROBES PASSED")
 print("=" * 60)
 print("\nConclusion: Z3 integration is ready for Phase I constraint hardening")
 print(f"  - Base integration: Working")

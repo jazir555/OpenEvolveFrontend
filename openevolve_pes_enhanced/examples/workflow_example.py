@@ -364,7 +364,7 @@ def example_4_stage_tracking():
         
         # Check budget
         should_continue, stop_reason = adapter.check_and_enforce_budget()
-        status = "[OK]" if should_continue else "✗ STOPPED"
+        status = "[OK]" if should_continue else "[FAIL] STOPPED"
         
         print(f"  {status} {stage_name:30s} ${cost:6.2f}")
         

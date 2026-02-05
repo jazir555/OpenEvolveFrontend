@@ -97,9 +97,9 @@ def main():
 
         if results:
             baseline_results["benchmarks"][phase] = results
-            print(f"✓ {phase} benchmarks completed")
+            print(f"[OK] {phase} benchmarks completed")
         else:
-            print(f"✗ {phase} benchmarks failed")
+            print(f"[FAIL] {phase} benchmarks failed")
 
     # Save baseline
     print("\n" + "=" * 70)
@@ -107,7 +107,7 @@ def main():
     with open(BASELINE_FILE, 'w') as f:
         json.dump(baseline_results, f, indent=2)
 
-    print(f"✓ Baseline saved to: {BASELINE_FILE}")
+    print(f"[OK] Baseline saved to: {BASELINE_FILE}")
     print("\nBaseline initialization complete!")
     print("You can now use --compare-baseline to compare future runs.")
 

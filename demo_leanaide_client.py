@@ -44,7 +44,7 @@ async def demo_basic_translation():
     async with LeanAideClient() as client:
         # Check server health
         is_healthy = await client.health_check()
-        print(f"\nServer Health: {'✓ Healthy' if is_healthy else '✗ Unhealthy'}")
+        print(f"\nServer Health: {'[OK] Healthy' if is_healthy else '[FAIL] Unhealthy'}")
 
         if not is_healthy:
             print("\n⚠ Server is not responding. Please start the LeanAide server:")
@@ -134,7 +134,7 @@ async def demo_batch_operations():
 
         print(f"\nResults:")
         for i, result in enumerate(results, 1):
-            status = "✓" if result.success else "✗"
+            status = "[OK]" if result.success else "[FAIL]"
             print(f"  {status} Theorem {i}: {result.response_time:.2f}s")
             if not result.success:
                 print(f"      Error: {result.error}")
@@ -167,7 +167,7 @@ async def demo_parallel_different_tasks():
         print(f"\nResults:")
         task_names = ["Theorem Translation", "Definition Translation", "Math Query"]
         for i, (name, result) in enumerate(zip(task_names, results), 1):
-            status = "✓" if result.success else "✗"
+            status = "[OK]" if result.success else "[FAIL]"
             print(f"  {status} {name}: {result.response_time:.2f}s")
 
 
@@ -236,7 +236,7 @@ async def run_all_demos():
             await demo_func()
             await asyncio.sleep(0.5)  # Brief pause between demos
         except Exception as e:
-            print(f"\n✗ Demo failed: {e}")
+            print(f"\n[FAIL] Demo failed: {e}")
 
     print_section("Demo Complete")
     print("\nAll demonstrations finished!")
@@ -257,7 +257,7 @@ async def run_interactive_demo():
             print("\n⚠ Server is not responding. Please start the LeanAide server.")
             return
 
-        print("\n✓ Server is healthy!")
+        print("\n[OK] Server is healthy!")
 
         while True:
             print("\n" + "-" * 60)
@@ -313,7 +313,7 @@ async def run_interactive_demo():
                     theorems.append(theorem)
                 results = await client.batch_translate_theorems(theorems)
                 for i, result in enumerate(results, 1):
-                    status = "✓" if result.success else "✗"
+                    status = "[OK]" if result.success else "[FAIL]"
                     print(f"{status} Theorem {i}: {result.response_time:.2f}s")
             else:
                 print("Invalid choice. Please try again.")

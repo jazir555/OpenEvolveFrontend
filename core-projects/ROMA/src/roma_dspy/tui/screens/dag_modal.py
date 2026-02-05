@@ -55,7 +55,7 @@ class DAGLegend(Static):
         legend_text.append("● Complete ", style="green")
         legend_text.append("◐ Running ", style="yellow")
         legend_text.append("○ Pending ", style="dim")
-        legend_text.append("✗ Failed ", style="red")
+        legend_text.append("[FAIL] Failed ", style="red")
         legend_text.append("⊗ Blocked ", style="magenta")
 
         yield Static(legend_text, id="legend-content")
@@ -225,7 +225,7 @@ class DAGFilterBar(Horizontal):
             EdgeType.PARENT_CHILD,
         ]:
             enabled = edge_type in self.enabled_edges
-            symbol = "[✓]" if enabled else "[ ]"
+            symbol = "[[OK]]" if enabled else "[ ]"
             style = "green" if enabled else "dim"
             filter_text.append(f"{symbol} {edge_type.description}  ", style=style)
 
@@ -295,7 +295,7 @@ class DAGMinimap(Static):
                 elif task.status in ("running", "in_progress"):
                     grid[map_y][map_x] = "◐"
                 elif task.status in ("failed", "error"):
-                    grid[map_y][map_x] = "✗"
+                    grid[map_y][map_x] = "[FAIL]"
                 else:
                     grid[map_y][map_x] = "○"
 

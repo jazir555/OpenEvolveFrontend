@@ -33,7 +33,7 @@ def test_sync_manager():
     assert len(sync_mgr.get_all_state()) == 0
     assert sync_mgr.version_counter == 0
     
-    print("✓ SyncManager tests passed")
+    print("[OK] SyncManager tests passed")
 
 
 def test_worker_node():
@@ -53,7 +53,7 @@ def test_worker_node():
     worker.shutdown()
     assert worker.info.status == WorkerStatus.SHUTDOWN
     
-    print("✓ WorkerNode tests passed")
+    print("[OK] WorkerNode tests passed")
 
 
 def test_distributed_coordinator():
@@ -85,7 +85,7 @@ def test_distributed_coordinator():
     # Test shutdown
     coordinator.shutdown()
     
-    print("✓ DistributedCoordinator tests passed")
+    print("[OK] DistributedCoordinator tests passed")
 
 
 def test_worker_failure_handling():
@@ -120,7 +120,7 @@ def test_worker_failure_handling():
     assert coordinator.tasks["task_1"].retry_count == 1
     
     coordinator.shutdown()
-    print("✓ Worker failure handling tests passed")
+    print("[OK] Worker failure handling tests passed")
 
 
 def test_distributed_executor_stats():
@@ -140,7 +140,7 @@ def test_distributed_executor_stats():
     assert len(worker_status) == 2
     
     executor.shutdown()
-    print("✓ DistributedWorkflowExecutor statistics tests passed")
+    print("[OK] DistributedWorkflowExecutor statistics tests passed")
 
 
 if __name__ == "__main__":

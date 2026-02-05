@@ -403,9 +403,9 @@ class CoverageEnforcer:
         }
         
         if meets_threshold:
-            self.logger.info(f"✓ Coverage requirement met: {analysis_result['total_coverage']:.2f}% >= {self.required_coverage}%")
+            self.logger.info(f"[OK] Coverage requirement met: {analysis_result['total_coverage']:.2f}% >= {self.required_coverage}%")
         else:
-            self.logger.error(f"✗ Coverage requirement not met: {analysis_result['total_coverage']:.2f}% < {self.required_coverage}%")
+            self.logger.error(f"[FAIL] Coverage requirement not met: {analysis_result['total_coverage']:.2f}% < {self.required_coverage}%")
         
         return result
     
@@ -526,29 +526,29 @@ def run_coverage_report():
     )
     
     if result['success']:
-        print(f"✓ Coverage analysis completed: {result['total_coverage']:.2f}%")
+        print(f"[OK] Coverage analysis completed: {result['total_coverage']:.2f}%")
         
         # Check threshold
         meets_threshold = reporter.check_coverage_threshold(80.0)
-        print(f"✓ Meets 80% threshold: {meets_threshold}")
+        print(f"[OK] Meets 80% threshold: {meets_threshold}")
         
         # Generate badge
         badge_success = reporter.generate_coverage_badge("docs/coverage_badge.svg")
-        print(f"✓ Badge generated: {badge_success}")
+        print(f"[OK] Badge generated: {badge_success}")
         
         # Create enforcer and get gaps
         enforcer = CoverageEnforcer(reporter)
         gaps = enforcer.get_coverage_gaps()
         
         if gaps:
-            print(f"\n⚠️  Files with low coverage (<50%):")
+            print(f"\n[WARN]  Files with low coverage (<50%):")
             for gap in gaps[:5]:  # Show top 5 gaps
                 print(f"  - {gap['filename']}: {gap['coverage_percent']:.1f}% "
                       f"({gap['covered_lines']}/{gap['total_lines']} lines)")
         else:
-            print("\n✓ All files meet minimum coverage requirements!")
+            print("\n[OK] All files meet minimum coverage requirements!")
     else:
-        print(f"✗ Coverage analysis failed: {result.get('error', 'Unknown error')}")
+        print(f"[FAIL] Coverage analysis failed: {result.get('error', 'Unknown error')}")
     
     return result
 

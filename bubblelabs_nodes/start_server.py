@@ -26,18 +26,18 @@ def check_dependencies():
     for package, display_name in required_packages:
         try:
             __import__(package)
-            print(f"  ✓ {display_name}")
+            print(f"  [OK] {display_name}")
         except ImportError:
-            print(f"  ✗ {display_name} - NOT FOUND")
+            print(f"  [FAIL] {display_name} - NOT FOUND")
             missing.append(package)
 
     if missing:
-        print(f"\n❌ Missing dependencies: {', '.join(missing)}")
+        print(f"\n[FAIL] Missing dependencies: {', '.join(missing)}")
         print("\nInstall them with:")
         print("  pip install -r requirements.txt")
         return False
 
-    print("✓ All dependencies satisfied\n")
+    print("[OK] All dependencies satisfied\n")
     return True
 
 
@@ -48,8 +48,8 @@ def check_openevolve_integration():
     try:
         from bubblelabs_nodes import NodeRegistry, list_nodes
         nodes = list_nodes()
-        print(f"  ✓ NodeRegistry loaded")
-        print(f"  ✓ Found {len(nodes)} registered nodes")
+        print(f"  [OK] NodeRegistry loaded")
+        print(f"  [OK] Found {len(nodes)} registered nodes")
         return True
     except ImportError as e:
         print(f"  ⚠ NodeRegistry not available: {e}")
@@ -114,13 +114,13 @@ def main():
     # Import FastAPI app
     try:
         from api_server import app
-        print("✓ FastAPI application loaded\n")
+        print("[OK] FastAPI application loaded\n")
     except ImportError as e:
-        print(f"❌ Failed to import FastAPI app: {e}")
+        print(f"[FAIL] Failed to import FastAPI app: {e}")
         print("\nMake sure api_server.py exists in the current directory")
         sys.exit(1)
     except Exception as e:
-        print(f"❌ Error loading FastAPI app: {e}")
+        print(f"[FAIL] Error loading FastAPI app: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)
@@ -154,13 +154,13 @@ def main():
         print("\n\n" + "=" * 60)
         print("SERVER SHUTTING DOWN")
         print("=" * 60)
-        print("\n✓ Server stopped gracefully")
+        print("\n[OK] Server stopped gracefully")
     except SystemExit:
         print("\n\n" + "=" * 60)
         print("SERVER EXITING")
         print("=" * 60)
     except Exception as e:
-        print(f"\n❌ Server error: {e}")
+        print(f"\n[FAIL] Server error: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

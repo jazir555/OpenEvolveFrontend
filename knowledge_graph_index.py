@@ -71,7 +71,7 @@ class RelationshipType(Enum):
     TEMPORAL = "temporal"       # Time-based (then, after, before, during)
     SEMANTIC = "semantic"       # Meaning similarity (similar, related to)
     REFERENTIAL = "referential" # Reference/link (refers to, about, regarding)
-    SEQUENTIAL = "sequential"   # Order-based (step 1 → step 2, next)
+    SEQUENTIAL = "sequential"   # Order-based (step 1 -> step 2, next)
     CONTRADICTORY = "contradictory"  # Opposition (however, but, unlike)
     SUPPORTING = "supporting"   # Evidence/support (for example, evidence)
     PART_OF = "part_of"         # Composition (component of, subset)
@@ -1513,7 +1513,7 @@ class GraphIndex:
         algorithm: str = "shortest"
     ) -> Optional[PathResult]:
         """
-        Find paths between distant memories (message 5 → message 500).
+        Find paths between distant memories (message 5 -> message 500).
         
         Args:
             start_node_id: Starting node ID

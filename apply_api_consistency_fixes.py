@@ -30,14 +30,14 @@ class APIConsistencyFixer:
         """Add ace_api_utils imports to file."""
         path = self.base_dir / file_path
         if not path.exists():
-            print(f"❌ File not found: {file_path}")
+            print(f"[FAIL] File not found: {file_path}")
             return False
 
         content = path.read_text()
 
         # Check if already imported
         if "from ace_api_utils import" in content:
-            print(f"✓ {file_path}: Already has ace_api_utils imports")
+            print(f"[OK] {file_path}: Already has ace_api_utils imports")
             return True
 
         # Find the imports section
@@ -84,7 +84,7 @@ Parameter Naming Conventions:
         content = content.replace(old_docstring_end, new_docstring_end)
 
         path.write_text(content)
-        print(f"✓ {file_path}: Added ace_api_utils imports")
+        print(f"[OK] {file_path}: Added ace_api_utils imports")
         return True
 
     def replace_default_values(self, file_path: str) -> bool:
@@ -142,10 +142,10 @@ Parameter Naming Conventions:
 
         if changes_made > 0:
             path.write_text(content)
-            print(f"✓ {file_path}: Replaced {changes_made} hardcoded defaults with constants")
+            print(f"[OK] {file_path}: Replaced {changes_made} hardcoded defaults with constants")
             return True
         else:
-            print(f"✓ {file_path}: No hardcoded defaults to replace")
+            print(f"[OK] {file_path}: No hardcoded defaults to replace")
             return True
 
     def standardize_error_returns(self, file_path: str) -> bool:
@@ -179,10 +179,10 @@ Parameter Naming Conventions:
 
         if changes_made > 0:
             path.write_text(content)
-            print(f"✓ {file_path}: Standardized {changes_made} error returns")
+            print(f"[OK] {file_path}: Standardized {changes_made} error returns")
             return True
         else:
-            print(f"✓ {file_path}: No error returns to standardize")
+            print(f"[OK] {file_path}: No error returns to standardize")
             return True
 
     def add_type_hints(self, file_path: str) -> bool:
@@ -197,7 +197,7 @@ Parameter Naming Conventions:
         # For now, just ensure public functions have return type hints
         # This would require AST parsing for a complete solution
 
-        print(f"✓ {file_path}: Type hint analysis complete (manual review recommended)")
+        print(f"[OK] {file_path}: Type hint analysis complete (manual review recommended)")
         return True
 
     def fix_parameter_order(self, file_path: str) -> bool:
@@ -213,7 +213,7 @@ Parameter Naming Conventions:
 
         # Check for the execute_full_workflow method
         if "def execute_full_workflow(" not in content:
-            print(f"✓ {file_path}: No execute_full_workflow found")
+            print(f"[OK] {file_path}: No execute_full_workflow found")
             return True
 
         # Look for the problematic phase calls
@@ -235,9 +235,9 @@ Parameter Naming Conventions:
         if re.search(old_phase3, content):
             content = re.sub(old_phase3, new_phase3, content)
             path.write_text(content)
-            print(f"✓ {file_path}: Fixed Phase 3 parameter order in execute_full_workflow")
+            print(f"[OK] {file_path}: Fixed Phase 3 parameter order in execute_full_workflow")
         else:
-            print(f"✓ {file_path}: Phase 3 parameter order already correct")
+            print(f"[OK] {file_path}: Phase 3 parameter order already correct")
 
         # Phase 4 verify call
         old_phase4 = r"""phase4_result = self\.execute_phase_4_verify\(
@@ -258,9 +258,9 @@ Parameter Naming Conventions:
         if re.search(old_phase4, content):
             content = re.sub(old_phase4, new_phase4, content)
             path.write_text(content)
-            print(f"✓ {file_path}: Fixed Phase 4 parameter order in execute_full_workflow")
+            print(f"[OK] {file_path}: Fixed Phase 4 parameter order in execute_full_workflow")
         else:
-            print(f"✓ {file_path}: Phase 4 parameter order already correct")
+            print(f"[OK] {file_path}: Phase 4 parameter order already correct")
 
         return True
 
@@ -276,9 +276,9 @@ Parameter Naming Conventions:
         success &= self.fix_parameter_order(file_path)
 
         if success:
-            print(f"✅ All fixes applied to {file_path}")
+            print(f"[OK] All fixes applied to {file_path}")
         else:
-            print(f"⚠️  Some fixes failed for {file_path}")
+            print(f"[WARN]  Some fixes failed for {file_path}")
 
         return success
 
@@ -308,14 +308,14 @@ def main():
             success = fixer.apply_all_fixes(file_path)
             all_success &= success
         except Exception as e:
-            print(f"❌ Error fixing {file_path}: {e}")
+            print(f"[FAIL] Error fixing {file_path}: {e}")
             all_success = False
 
     print("\n" + "=" * 60)
     if all_success:
-        print("✅ All API consistency fixes applied successfully!")
+        print("[OK] All API consistency fixes applied successfully!")
     else:
-        print("⚠️  Some fixes had issues - please review")
+        print("[WARN]  Some fixes had issues - please review")
     print("=" * 60)
 
     return 0 if all_success else 1

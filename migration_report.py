@@ -250,14 +250,14 @@ def generate_report() -> str:
 
         for detail in result['file_details']:
             status_icon = {
-                'COMPLETE': '✓',
+                'COMPLETE': '[OK]',
                 'PARTIAL': '⚠',
                 'IN_PROGRESS': '🔄',
-                'NOT_STARTED': '✗',
-                'MISSING': '❌',
+                'NOT_STARTED': '[FAIL]',
+                'MISSING': '[FAIL]',
             }.get(detail.get('status', 'NOT_STARTED'), '?')
 
-            uses_import = '✓' if detail.get('uses_openevolve_imports') else '✗'
+            uses_import = '[OK]' if detail.get('uses_openevolve_imports') else '[FAIL]'
             report_lines.append(
                 f"| {detail['file']} | {status_icon} {detail.get('status', 'UNKNOWN')} | {detail['line_count']} | {uses_import} |"
             )
@@ -321,7 +321,7 @@ def main():
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(report_content)
 
-        print(f"\n✓ Report saved to: {output_path.absolute()}")
+        print(f"\n[OK] Report saved to: {output_path.absolute()}")
         print(f"  Size: {len(report_content):,} characters")
 
         # Print summary
@@ -345,7 +345,7 @@ def main():
         return 0
 
     except Exception as e:  # TODO: Catch specific exception instead of Exception
-        print(f"\n✗ Error saving report: {e}")
+        print(f"\n[FAIL] Error saving report: {e}")
         return 1
 
 

@@ -160,7 +160,7 @@ def test_security_patterns():
 
 
 def test_json_replacement():
-    """Verify pickle→JSON replacements are syntactically correct"""
+    """Verify pickle->JSON replacements are syntactically correct"""
     print("\n" + "="*80)
     print("TEST 4: JSON Replacement Validation")
     print("="*80)
@@ -218,7 +218,7 @@ def test_json_replacement():
 
 
 def test_tempfile_replacement():
-    """Verify /tmp→tempfile.mkdtemp() replacements"""
+    """Verify /tmp->tempfile.mkdtemp() replacements"""
     print("\n" + "="*80)
     print("TEST 5: Tempfile Replacement Validation")
     print("="*80)

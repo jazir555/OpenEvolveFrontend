@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Unit Tests for LLTL DEE → SCE Auditability Component
+Unit Tests for LLTL DEE -> SCE Auditability Component
 
-Tests the FormalCommitment class and DEE → SCE conversion methods
+Tests the FormalCommitment class and DEE -> SCE conversion methods
 
 Following CLAUDE.md principles:
 - Law of Runtime Truth: Test against actual behavior
@@ -57,7 +57,7 @@ class TestFormalCommitment(unittest.TestCase):
         """Test creating a FormalCommitment"""
         commitment = FormalCommitment(
             proposition_id="test-prop-1",
-            statement="(H) ∧ (confidence ≥ 0.950) → Accept(H)",
+            statement="(H) ∧ (confidence ≥ 0.950) -> Accept(H)",
             confidence_threshold=0.90,
             statistical_evidence={
                 'confidence': 0.95,
@@ -82,7 +82,7 @@ class TestFormalCommitment(unittest.TestCase):
         """Test converting FormalCommitment to SCE constraint format"""
         commitment = FormalCommitment(
             proposition_id="test-prop-1",
-            statement="(H) ∧ (confidence ≥ 0.950) → Accept(H)",
+            statement="(H) ∧ (confidence ≥ 0.950) -> Accept(H)",
             confidence_threshold=0.90,
             statistical_evidence={'confidence': 0.95},
             source_hypothesis="hypothesis-1",
@@ -103,7 +103,7 @@ class TestFormalCommitment(unittest.TestCase):
         """Test converting FormalCommitment to dictionary"""
         commitment = FormalCommitment(
             proposition_id="test-prop-1",
-            statement="(H) ∧ (confidence ≥ 0.950) → Accept(H)",
+            statement="(H) ∧ (confidence ≥ 0.950) -> Accept(H)",
             confidence_threshold=0.90,
             statistical_evidence={'confidence': 0.95},
             source_hypothesis="hypothesis-1",
@@ -220,7 +220,7 @@ class TestStatisticalToFormal(unittest.TestCase):
         self.assertIn('confidence ≥', commitment.statement)
         self.assertIn('p_value ≤', commitment.statement)
         self.assertIn('CI ∈', commitment.statement)
-        self.assertIn('→ Accept(', commitment.statement)
+        self.assertIn('-> Accept(', commitment.statement)
 
     def test_statistical_evidence_extraction(self):
         """Test statistical evidence is extracted correctly"""
@@ -331,7 +331,7 @@ class TestSCEIntegration(unittest.TestCase):
         # Create a commitment
         commitment = FormalCommitment(
             proposition_id="test-prop-1",
-            statement="(H) ∧ (confidence ≥ 0.950) → Accept(H)",
+            statement="(H) ∧ (confidence ≥ 0.950) -> Accept(H)",
             confidence_threshold=0.90,
             statistical_evidence={'confidence': 0.95},
             source_hypothesis="hypothesis-1",
@@ -356,7 +356,7 @@ class TestSCEIntegration(unittest.TestCase):
         # Create a commitment
         commitment = FormalCommitment(
             proposition_id="test-prop-1",
-            statement="(H) ∧ (confidence ≥ 0.950) → Accept(H)",
+            statement="(H) ∧ (confidence ≥ 0.950) -> Accept(H)",
             confidence_threshold=0.90,
             statistical_evidence={'confidence': 0.95},
             source_hypothesis="hypothesis-1",
@@ -391,7 +391,7 @@ class TestSCEIntegration(unittest.TestCase):
 
         commitment = FormalCommitment(
             proposition_id="test-prop-1",
-            statement="(H) ∧ (confidence ≥ 0.950) → Accept(H)",
+            statement="(H) ∧ (confidence ≥ 0.950) -> Accept(H)",
             confidence_threshold=0.90,
             statistical_evidence={'confidence': 0.95},
             source_hypothesis="hypothesis-1",

@@ -77,10 +77,10 @@ class MCTSTestRunner:
             elapsed = time.time() - start_time
             self.results[category] = result
 
-            print(f"\n✓ {category.upper()} tests completed in {elapsed:.2f}s")
+            print(f"\n[OK] {category.upper()} tests completed in {elapsed:.2f}s")
 
         except Exception as e:
-            print(f"\n✗ {category.upper()} tests failed: {e}")
+            print(f"\n[FAIL] {category.upper()} tests failed: {e}")
             self.results[category] = {"status": "failed", "error": str(e)}
 
     def run_unit_tests(self) -> Dict[str, Any]:
@@ -221,12 +221,12 @@ class MCTSTestRunner:
             print(result.stdout)
 
             if result.returncode == 0:
-                print("\n✓ Coverage report generated in htmlcov/index.html")
+                print("\n[OK] Coverage report generated in htmlcov/index.html")
             else:
-                print("\n✗ Coverage generation failed")
+                print("\n[FAIL] Coverage generation failed")
 
         except FileNotFoundError:
-            print("\n✗ pytest-cov not installed. Install with: pip install pytest-cov")
+            print("\n[FAIL] pytest-cov not installed. Install with: pip install pytest-cov")
 
     def run_benchmark(self):
         """Run performance benchmarks"""
@@ -253,12 +253,12 @@ class MCTSTestRunner:
                     test_func()
                     elapsed = time.time() - start
                     results[name] = {"time": elapsed, "status": "passed"}
-                    print(f"  ✓ Passed in {elapsed:.2f}s")
+                    print(f"  [OK] Passed in {elapsed:.2f}s")
 
                 except Exception as e:
                     elapsed = time.time() - start
                     results[name] = {"time": elapsed, "status": "failed", "error": str(e)}
-                    print(f"  ✗ Failed: {e}")
+                    print(f"  [FAIL] Failed: {e}")
 
             # Print summary
             print("\n" + "-" * 80)
@@ -269,7 +269,7 @@ class MCTSTestRunner:
                 print(f"  {name:30s} {status:10s} {time_str}")
 
         except ImportError as e:
-            print(f"✗ Failed to import test module: {e}")
+            print(f"[FAIL] Failed to import test module: {e}")
 
     def print_summary(self):
         """Print test summary"""
@@ -295,7 +295,7 @@ class MCTSTestRunner:
                     total_failed += failed
                     total_time += time_taken
 
-                    status = "✓ PASSED" if results["status"] == "passed" else "✗ FAILED"
+                    status = "[OK] PASSED" if results["status"] == "passed" else "[FAIL] FAILED"
                     print(f"\n{category.upper():20s}: {status}")
                     print(f"  Passed: {passed}, Failed: {failed}, Time: {time_taken:.2f}s")
 
@@ -359,7 +359,7 @@ Examples:
     # Check if test file exists
     test_file = Path("test_leanaide_mcts.py")
     if not test_file.exists():
-        print(f"✗ Test file not found: {test_file}")
+        print(f"[FAIL] Test file not found: {test_file}")
         sys.exit(1)
 
     # Run tests

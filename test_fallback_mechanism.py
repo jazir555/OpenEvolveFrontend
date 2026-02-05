@@ -32,7 +32,7 @@ async def test_fallback_integration():
         plugin = OpenEvolveBubbleLabsPlugin(config)
         
         # Check that fallback integration was created
-        print(f"✓ Plugin created successfully despite integration failure")
+        print(f"[OK] Plugin created successfully despite integration failure")
         print(f"  Status: {plugin._status.state}")
         print(f"  Health: {plugin._status.health}")
         print(f"  Message: {plugin._status.message}")
@@ -44,22 +44,22 @@ async def test_fallback_integration():
         # Test that basic operations work with fallback integration
         try:
             defs = await plugin.list_workflow_definitions()
-            print(f"✓ list_workflow_definitions worked with fallback: {len(defs)} definitions")
+            print(f"[OK] list_workflow_definitions worked with fallback: {len(defs)} definitions")
             
             instances = await plugin.list_workflow_instances()
-            print(f"✓ list_workflow_instances worked with fallback: {len(instances)} instances")
+            print(f"[OK] list_workflow_instances worked with fallback: {len(instances)} instances")
             
             result = await plugin.control_workflow("test", "start")
-            print(f"✓ control_workflow worked with fallback: {result}")
+            print(f"[OK] control_workflow worked with fallback: {result}")
             
             def_result = await plugin.get_workflow_definition("test")
-            print(f"✓ get_workflow_definition worked with fallback: {def_result}")
+            print(f"[OK] get_workflow_definition worked with fallback: {def_result}")
             
         except (RuntimeError, AttributeError, TypeError) as e:
-            print(f"✗ Error during fallback operations: {e}")
+            print(f"[FAIL] Error during fallback operations: {e}")
             raise
     
-    print("✓ Fallback integration mechanism works correctly")
+    print("[OK] Fallback integration mechanism works correctly")
 
 
 async def test_normal_integration():
@@ -83,7 +83,7 @@ async def test_normal_integration():
         plugin = OpenEvolveBubbleLabsPlugin(config)
         
         # Check that normal integration was created
-        print(f"✓ Normal plugin created successfully")
+        print(f"[OK] Normal plugin created successfully")
         print(f"  Status: {plugin._status.state}")
         
         # Verify the plugin is in loaded state
@@ -92,19 +92,19 @@ async def test_normal_integration():
         # Test that basic operations work
         try:
             defs = await plugin.list_workflow_definitions()
-            print(f"✓ list_workflow_definitions worked: {len(defs)} definitions")
+            print(f"[OK] list_workflow_definitions worked: {len(defs)} definitions")
             
             instances = await plugin.list_workflow_instances()
-            print(f"✓ list_workflow_instances worked: {len(instances)} instances")
+            print(f"[OK] list_workflow_instances worked: {len(instances)} instances")
             
             result = await plugin.control_workflow("test", "start")
-            print(f"✓ control_workflow worked: {result}")
+            print(f"[OK] control_workflow worked: {result}")
             
         except (RuntimeError, AttributeError, TypeError) as e:
-            print(f"✗ Error during normal operations: {e}")
+            print(f"[FAIL] Error during normal operations: {e}")
             raise
     
-    print("✓ Normal integration operation works correctly")
+    print("[OK] Normal integration operation works correctly")
 
 
 async def main():
@@ -114,7 +114,7 @@ async def main():
     await test_fallback_integration()
     await test_normal_integration()
     
-    print("\n✓ All fallback mechanism tests passed! The OpenEvolve BubbleLabs plugin handles both normal and fallback scenarios gracefully.")
+    print("\n[OK] All fallback mechanism tests passed! The OpenEvolve BubbleLabs plugin handles both normal and fallback scenarios gracefully.")
 
 
 if __name__ == "__main__":

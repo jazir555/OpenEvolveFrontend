@@ -64,7 +64,7 @@ class TestProblemAnalyzerComprehensive(unittest.TestCase):
         
         self.assertIsNotNone(result)
         self.assertEqual(result.domain_context.domain, "domain")
-        print(f"✅ Successfully analyzed problem with {len(long_problem_text)} characters")
+        print(f"[OK] Successfully analyzed problem with {len(long_problem_text)} characters")
         
         # Extremely short problem text
         short_result = self._mock_analysis_response("analysis", ["brief"], ["concept"], 5.0)
@@ -76,7 +76,7 @@ class TestProblemAnalyzerComprehensive(unittest.TestCase):
         )
         
         self.assertIsNotNone(short_result_actual)
-        print("✅ Successfully analyzed extremely brief problem")
+        print("[OK] Successfully analyzed extremely brief problem")
         
         # Empty problem text (should handle gracefully)
         empty_result = self._mock_analysis_response("research", ["general"], ["concept"], 5.0)
@@ -86,14 +86,14 @@ class TestProblemAnalyzerComprehensive(unittest.TestCase):
         try:
             empty_analysis = self.analyzer.analyze_problem("", "Empty Test")
             if empty_analysis is not None:
-                print("✅ Handled empty problem text gracefully")
+                print("[OK] Handled empty problem text gracefully")
             else:
-                print("✅ Correctly returned None for empty problem text")
+                print("[OK] Correctly returned None for empty problem text")
         except Exception as e:
             # Log the specific error for debugging
             import logging
             logging.exception(f"Error in advanced_system_unit_tests: {e}")
-            print("✅ Handled empty problem text with exception (acceptable)")
+            print("[OK] Handled empty problem text with exception (acceptable)")
     
     def test_analyze_problem_multilingual(self):
         """Test multilingual problem analysis"""
@@ -117,10 +117,10 @@ class TestProblemAnalyzerComprehensive(unittest.TestCase):
                 
                 if result:
                     self.assertIn(expected_domain, result.domain_context.domain)
-                    print(f"✅ Successfully analyzed {lang} problem")
+                    print(f"[OK] Successfully analyzed {lang} problem")
                 else:
                     # Acceptable if multilingual support isn't implemented
-                    print(f"⚠️  {lang} analysis returned None (may be expected)")
+                    print(f"[WARN]  {lang} analysis returned None (may be expected)")
     
     def test_analyze_problem_special_characters(self):
         """Test problem analysis with special characters"""
@@ -142,7 +142,7 @@ class TestProblemAnalyzerComprehensive(unittest.TestCase):
                 )
                 
                 self.assertIsNotNone(result, f"Should handle special characters in case {i}")
-                print(f"✅ Successfully processed special character problem {i+1}")
+                print(f"[OK] Successfully processed special character problem {i+1}")
     
     def _mock_analysis_response(self, problem_type, domains, concepts, complexity):
         """Create a mock analysis response"""
@@ -222,7 +222,7 @@ class TestDecompositionEngineAdvanced(unittest.TestCase):
         
         self.assertIsNotNone(plan)
         self.assertGreater(len(plan.sub_problems), 0)
-        print(f"✅ Decomposed extremely complex problem in {complex_decomp_time:.3f}s")
+        print(f"[OK] Decomposed extremely complex problem in {complex_decomp_time:.3f}s")
         print(f"  - Created {len(plan.sub_problems)} sub-problems")
         print(f"  - Highest complexity score: {max(sp.complexity_score.overall_complexity for sp in plan.sub_problems):.1f}")
     
@@ -298,9 +298,9 @@ class TestDecompositionEngineAdvanced(unittest.TestCase):
         
         # This is expected behavior - circular dependencies should be detected
         if circular_errors:
-            print(f"✅ Correctly detected circular dependencies: {len(circular_errors)} errors found")
+            print(f"[OK] Correctly detected circular dependencies: {len(circular_errors)} errors found")
         else:
-            print("⚠️  No circular dependency errors detected (may be implementation-dependent)")
+            print("[WARN]  No circular dependency errors detected (may be implementation-dependent)")
         
         print(f"  - Created {len(plan.sub_problems)} interdependent sub-problems")
     
@@ -347,7 +347,7 @@ class TestDecompositionEngineAdvanced(unittest.TestCase):
                 self.assertEqual(plan.strategy, strategy)
                 self.assertGreater(len(plan.sub_problems), 0)
                 
-                print(f"✅ Strategy '{strategy}' produced valid decomposition")
+                print(f"[OK] Strategy '{strategy}' produced valid decomposition")
 
 
 class TestTeamCoordinationAdvanced(unittest.TestCase):
@@ -434,12 +434,12 @@ class TestTeamCoordinationAdvanced(unittest.TestCase):
         # Test conflict detection and resolution
         try:
             conflict_resolution = self.coordinator.coordinator._perform_red_team_analysis(plan)
-            print("✅ Conflict detection implemented")
+            print("[OK] Conflict detection implemented")
         except Exception as e:
             # Log the specific error for debugging
             import logging
             logging.exception(f"Error in conflict detection test: {e}")
-            print("⚠️  Conflict detection may not be implemented in current coordinator")
+            print("[WARN]  Conflict detection may not be implemented in current coordinator")
         
         # Mock the overall workflow to simulate conflict resolution
         with patch.object(self.coordinator, 'run_validation_workflow') as mock_workflow:
@@ -452,7 +452,7 @@ class TestTeamCoordinationAdvanced(unittest.TestCase):
             workflow_result = self.coordinator.run_validation_workflow(plan)
             
             self.assertIsNotNone(workflow_result)
-            print("✅ Team workflow executed successfully")
+            print("[OK] Team workflow executed successfully")
     
     def test_team_load_balancing(self):
         """Test team load balancing functionality"""
@@ -471,13 +471,13 @@ class TestTeamCoordinationAdvanced(unittest.TestCase):
         
         # Check that assignments were created
         self.assertEqual(len(assignments), 20)
-        print(f"✅ Created {len(assignments)} team assignments")
+        print(f"[OK] Created {len(assignments)} team assignments")
         
         # Check final balance
         final_balance = self.coordinator.balance_workload()
         
         # Verify that teams are appropriately balanced
-        print(f"✅ Load balancing computed: {json.dumps(final_balance, indent=2)[:200]}...")
+        print(f"[OK] Load balancing computed: {json.dumps(final_balance, indent=2)[:200]}...")
 
 
 class TestSolutionOrchestrationAdvanced(unittest.TestCase):
@@ -557,7 +557,7 @@ class TestSolutionOrchestrationAdvanced(unittest.TestCase):
         integration_time = time.time() - start_time
         
         self.assertIsNotNone(integrated_solution)
-        print(f"✅ Integrated {len(solution_attempts)} solutions in {integration_time:.3f}s")
+        print(f"[OK] Integrated {len(solution_attempts)} solutions in {integration_time:.3f}s")
         print(f"  - Integration quality score: {getattr(integrated_solution, 'integration_quality_score', 'N/A')}")
     
     def test_orchestration_with_failed_solutions(self):
@@ -665,10 +665,10 @@ class TestSolutionOrchestrationAdvanced(unittest.TestCase):
         try:
             integrated_solution = self.orchestrator.integrate_solutions(plan, solution_attempts)
             self.assertIsNotNone(integrated_solution)
-            print("✅ Orchestrator handled partial failures gracefully")
+            print("[OK] Orchestrator handled partial failures gracefully")
         except Exception as e:
             # If it fails, that's also informative
-            print(f"⚠️  Integration with partial failures resulted in: {e}")
+            print(f"[WARN]  Integration with partial failures resulted in: {e}")
             # This might be expected depending on implementation
     
 
@@ -852,20 +852,20 @@ class TestPerformanceOptimizationAdvanced(unittest.TestCase):
         completed_metric = collector.get_counter_value("completed_workflows")
         self.assertEqual(completed_metric, 128)
         
-        print("✅ All metrics collected and retrievable")
+        print("[OK] All metrics collected and retrievable")
         
         # Test metrics aggregation
         aggregated = collector.get_aggregated_metrics()
         self.assertIn("system_cpu_percent", aggregated)
         self.assertIn("active_workflows", aggregated)
-        print("✅ Metrics aggregation working")
+        print("[OK] Metrics aggregation working")
         
         # Test metrics export
         metrics_json = collector.export_metrics()
         self.assertIsInstance(metrics_json, str)
         parsed_metrics = json.loads(metrics_json)
         self.assertIn("metrics", parsed_metrics)
-        print("✅ Metrics export working")
+        print("[OK] Metrics export working")
 
 
 class TestAdvancedSecurityScenarios(unittest.TestCase):
@@ -948,7 +948,7 @@ class TestAdvancedSecurityScenarios(unittest.TestCase):
         
         # Security validation: ideally, all malicious inputs should be rejected
         if accepted_attacks:
-            print(f"  ⚠️  The following malicious inputs were accepted: {[a[0] for a in accepted_attacks]}")
+            print(f"  [WARN]  The following malicious inputs were accepted: {[a[0] for a in accepted_attacks]}")
         
         # All normal inputs should be accepted
         self.assertEqual(len(accepted_normals), 3, "All normal inputs should be accepted")
@@ -983,7 +983,7 @@ class TestAdvancedSecurityScenarios(unittest.TestCase):
         
         time_for_attempts = time.time() - start_time
         
-        print(f"  ✅ Executed {len(failed_attempts)} failed authentication attempts in {time_for_attempts:.3f}s")
+        print(f"  [OK] Executed {len(failed_attempts)} failed authentication attempts in {time_for_attempts:.3f}s")
         
         # Now try to log in with correct credentials
         # This should work even after failed attempts (no lockout in basic implementation)
@@ -991,7 +991,7 @@ class TestAdvancedSecurityScenarios(unittest.TestCase):
         
         # In a basic implementation, authentication still works after failed attempts
         # (More sophisticated rate limiting would be in a production system)
-        print("  ✅ Authentication system handles brute force attempts gracefully")
+        print("  [OK] Authentication system handles brute force attempts gracefully")
     
     def test_password_strength_validation(self):
         """Test comprehensive password strength validation"""
@@ -1030,10 +1030,10 @@ class TestAdvancedSecurityScenarios(unittest.TestCase):
                     # In a real system, this might be caught during creation
                     strength_ok = auth_system.validate_password_strength(weak_password)
                     if not strength_ok:
-                        print(f"  ✅ Weak password correctly rejected: {weak_password[:10]}...")
+                        print(f"  [OK] Weak password correctly rejected: {weak_password[:10]}...")
                 except (ValueError, TypeError):
                     # Exception for weak password is also acceptable
-                    print(f"  ✅ Weak password correctly rejected: {weak_password[:10]}...")
+                    print(f"  [OK] Weak password correctly rejected: {weak_password[:10]}...")
         
         for strong_password in strong_passwords:
             with self.subTest(password=strong_password[:15]):
@@ -1041,11 +1041,11 @@ class TestAdvancedSecurityScenarios(unittest.TestCase):
                     # Strong passwords should be accepted
                     strength_ok = auth_system.validate_password_strength(strong_password)
                     if strength_ok:
-                        print(f"  ✅ Strong password accepted: {strong_password[:15]}...")
+                        print(f"  [OK] Strong password accepted: {strong_password[:15]}...")
                     else:
-                        print(f"  ⚠️  Strong password not recognized as strong: {strong_password[:15]}...")
+                        print(f"  [WARN]  Strong password not recognized as strong: {strong_password[:15]}...")
                 except Exception as e:
-                    print(f"  ⚠️  Exception processing strong password: {e}")
+                    print(f"  [WARN]  Exception processing strong password: {e}")
 
 
 class TestAdvancedOrchestration(unittest.TestCase):
@@ -1108,11 +1108,11 @@ class TestAdvancedOrchestration(unittest.TestCase):
                     self.assertIn(resolution_result['selected_solution_id'], [s.id for s in conflicting_solutions])
                 else:
                     # Result might be different depending on implementation
-                    print("⚠️  Conflict resolution result format differs from expected")
+                    print("[WARN]  Conflict resolution result format differs from expected")
                 
-                print("✅ Conflict resolution strategy executed successfully")
+                print("[OK] Conflict resolution strategy executed successfully")
             except Exception as e:
-                print(f"⚠️  Conflict resolution may not be implemented yet: {e}")
+                print(f"[WARN]  Conflict resolution may not be implemented yet: {e}")
     
     def test_orchestration_with_circular_dependencies(self):
         """Test orchestration handles circular dependencies appropriately"""
@@ -1166,14 +1166,14 @@ class TestAdvancedOrchestration(unittest.TestCase):
                 plan_with_circular_deps,
                 []  # No solutions yet, just testing dependency handling
             )
-            print("✅ Orchestration handled circular dependency gracefully")
+            print("[OK] Orchestration handled circular dependency gracefully")
         except Exception as e:
             # Circular dependency detection is also acceptable behavior
             error_msg = str(e).lower()
             if any(keyword in error_msg for keyword in ['circular', 'dependency', 'cycle', 'circular dependency']):
-                print("✅ Orchestration correctly detected circular dependency")
+                print("[OK] Orchestration correctly detected circular dependency")
             else:
-                print(f"⚠️  Orchestration failed with circular dependency: {e}")
+                print(f"[WARN]  Orchestration failed with circular dependency: {e}")
     
     def test_escalation_and_fallback_paths(self):
         """Test orchestration escalation and fallback paths"""
@@ -1217,11 +1217,11 @@ class TestAdvancedOrchestration(unittest.TestCase):
         with patch.object(orchestrator, '_request_openevolve_integration', return_value=fallback_response):
             try:
                 escalation_result = orchestrator.handle_solution_fallback(low_confidence_solution, sub_problem)
-                print("✅ Escalation and fallback path executed successfully")
+                print("[OK] Escalation and fallback path executed successfully")
             except Exception as e:
-                print(f"⚠️  Fallback mechanism may not be implemented: {e}")
+                print(f"[WARN]  Fallback mechanism may not be implemented: {e}")
         
-        print("✅ All orchestration escalation scenarios tested")
+        print("[OK] All orchestration escalation scenarios tested")
 
 
 class TestPerformanceUnderExtremeConditions(unittest.TestCase):
@@ -1306,7 +1306,7 @@ class TestPerformanceUnderExtremeConditions(unittest.TestCase):
         retrieved = db.get_problem(test_problem.id)
         self.assertIsNotNone(retrieved, "Problem should be retrievable after stress")
         
-        print("✅ System handles resource exhaustion gracefully")
+        print("[OK] System handles resource exhaustion gracefully")
     
     def test_concurrent_transaction_integrity(self):
         """Test database transaction integrity under high concurrency"""
@@ -1475,7 +1475,7 @@ def run_advanced_system_tests():
         else:
             print("\n🎉 All advanced system tests passed!")
     else:
-        print("⚠️ No tests were run - check test suite configuration")
+        print("[WARN] No tests were run - check test suite configuration")
     
     print("="*80)
     return result

@@ -40,13 +40,13 @@ async def probe_episode_ingestion() -> bool:
         print("[1/6] Loading configuration...")
         config = GraphitiConfig()
         config.validate()
-        print("✓ Configuration loaded")
+        print("[OK] Configuration loaded")
 
         # Create bridge
         print("\n[2/6] Creating temporal bridge...")
         bridge = GraphitiTemporalBridge(config=config)
         await bridge.initialize()
-        print("✓ Bridge initialized")
+        print("[OK] Bridge initialized")
 
         # Create test workflow artifact
         print("\n[3/6] Creating test workflow artifact...")
@@ -58,7 +58,7 @@ async def probe_episode_ingestion() -> bool:
             metadata={"probe": True, "test": True},
         )
         test_episode_id = artifact.artifact_id
-        print(f"✓ Artifact created: {test_episode_id}")
+        print(f"[OK] Artifact created: {test_episode_id}")
 
         # Add test episode
         print("\n[4/6] Adding test episode...")
@@ -68,7 +68,7 @@ async def probe_episode_ingestion() -> bool:
             source="probe_script",
             metadata={"test": True},
         )
-        print(f"✓ Episode added: {episode_uuid}")
+        print(f"[OK] Episode added: {episode_uuid}")
 
         # Search for the episode
         print("\n[5/6] Searching for test episode...")
@@ -77,7 +77,7 @@ async def probe_episode_ingestion() -> bool:
             max_results=5,
         )
         found = len(results.get("edges", [])) + len(results.get("nodes", []))
-        print(f"✓ Search returned {found} results")
+        print(f"[OK] Search returned {found} results")
 
         # Query workflow state
         print("\n[6/6] Querying workflow state...")
@@ -86,15 +86,15 @@ async def probe_episode_ingestion() -> bool:
             timestamp=datetime.utcnow(),
         )
         if workflow_state:
-            print(f"✓ Workflow state retrieved: {workflow_state.state.value}")
+            print(f"[OK] Workflow state retrieved: {workflow_state.state.value}")
         else:
             print("⚠ Workflow state not found (may be expected)")
 
-        print("\n✓ All probe checks passed")
+        print("\n[OK] All probe checks passed")
         return True
 
     except Exception as e:
-        print(f"\n✗ Probe failed: {e}")
+        print(f"\n[FAIL] Probe failed: {e}")
         return False
 
     finally:
@@ -102,7 +102,7 @@ async def probe_episode_ingestion() -> bool:
         if bridge:
             try:
                 await bridge.close()
-                print("\n✓ Cleanup completed")
+                print("\n[OK] Cleanup completed")
             except Exception as e:
                 print(f"\n⚠ Cleanup warning: {e}")
 

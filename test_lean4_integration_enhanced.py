@@ -69,11 +69,11 @@ class Lean4IntegrationTester:
 
         try:
             is_available = await client.check_server_health()
-            print(f"Server Status: {'✓ Available' if is_available else '✗ Unavailable'}")
+            print(f"Server Status: {'[OK] Available' if is_available else '[FAIL] Unavailable'}")
 
             if is_available:
                 print(f"Server URL: {self.server_url}")
-                print("✓ Test passed: Server is reachable")
+                print("[OK] Test passed: Server is reachable")
             else:
                 print("⚠ Test warning: Server not available, will use fallback mode")
 
@@ -81,14 +81,14 @@ class Lean4IntegrationTester:
             return is_available
 
         except Exception as e:
-            print(f"✗ Test failed: {e}")
+            print(f"[FAIL] Test failed: {e}")
             await client.close()
             return False
 
     async def test_autoformalization(self):
         """Test 2: Autoformalization - Natural Language to Lean Code"""
         print("\n" + "="*80)
-        print("TEST 2: Autoformalization (Natural Language → Lean Code)")
+        print("TEST 2: Autoformalization (Natural Language -> Lean Code)")
         print("="*80)
 
         client = LeanAideClient(self.server_url, self.server_config)
@@ -135,8 +135,8 @@ class Lean4IntegrationTester:
                     f"test_{test_case['name'].lower().replace(' ', '_')}"
                 )
 
-                print(f"Success: {'✓' if result.success else '✗'}")
-                print(f"Server Available: {'✓' if result.server_available else '✗'}")
+                print(f"Success: {'[OK]' if result.success else '[FAIL]'}")
+                print(f"Server Available: {'[OK]' if result.server_available else '[FAIL]'}")
 
                 if result.success:
                     print(f"Generated Lean Code:")
@@ -149,14 +149,14 @@ class Lean4IntegrationTester:
                         kw.lower() in result.lean_code.lower()
                         for kw in test_case['expected_lean_keywords']
                     )
-                    print(f"Expected keywords found: {'✓' if has_keywords else '✗'}")
+                    print(f"Expected keywords found: {'[OK]' if has_keywords else '[FAIL]'}")
                 else:
                     print(f"Errors: {result.errors}")
 
                 results.append(result)
 
             except Exception as e:
-                print(f"✗ Test case failed: {e}")
+                print(f"[FAIL] Test case failed: {e}")
                 results.append(None)
 
         await engine.close()
@@ -207,7 +207,7 @@ class Lean4IntegrationTester:
                         print(f"   Documentation: {preview}")
 
             except Exception as e:
-                print(f"✗ Search failed: {e}")
+                print(f"[FAIL] Search failed: {e}")
 
         await engine.close()
 
@@ -255,9 +255,9 @@ lemma test_mul_one (n : Nat) : n * 1 = n := by
             try:
                 result = await engine.verify_mathematical_solution(test_case['code'])
 
-                print(f"Verification Result: {'✓ Success' if result.success else '✗ Failed'}")
-                print(f"Server Available: {'✓' if result.server_available else '✗'}")
-                print(f"Used Fallback: {'✓' if result.used_fallback else '✗'}")
+                print(f"Verification Result: {'[OK] Success' if result.success else '[FAIL] Failed'}")
+                print(f"Server Available: {'[OK]' if result.server_available else '[FAIL]'}")
+                print(f"Used Fallback: {'[OK]' if result.used_fallback else '[FAIL]'}")
                 print(f"Verification Time: {result.verification_time:.2f}s")
 
                 if result.errors:
@@ -271,7 +271,7 @@ lemma test_mul_one (n : Nat) : n * 1 = n := by
                         print(f"  - {step}")
 
             except Exception as e:
-                print(f"✗ Verification failed: {e}")
+                print(f"[FAIL] Verification failed: {e}")
 
         await engine.close()
 
@@ -292,7 +292,7 @@ lemma test_mul_one (n : Nat) : n * 1 = n := by
             "theorem batch1 (n : Nat) : n + 0 = n := by sorry",
             "theorem batch2 (n m : Nat) : n + m = m + n := by sorry",
             "theorem batch3 (n : Nat) : n * 1 = n := by sorry",
-            "theorem batch4 (a b : Nat) : a ≤ b → a + 1 ≤ b + 1 := by sorry",
+            "theorem batch4 (a b : Nat) : a ≤ b -> a + 1 ≤ b + 1 := by sorry",
             "theorem batch5 : ∀ n, Nat.succ n > 0 := by sorry"
         ]
 
@@ -303,7 +303,7 @@ lemma test_mul_one (n : Nat) : n * 1 = n := by
             results = await engine.batch_verify(batch_code)
 
             for i, result in enumerate(results, 1):
-                status = "✓ Success" if result.success else "✗ Failed"
+                status = "[OK] Success" if result.success else "[FAIL] Failed"
                 fallback = " (fallback)" if result.used_fallback else ""
                 print(f"{i}. {status}{fallback} - {batch_code[i-1][:50]}...")
 
@@ -311,7 +311,7 @@ lemma test_mul_one (n : Nat) : n * 1 = n := by
             print(f"\nBatch Summary: {success_count}/{len(results)} successful")
 
         except Exception as e:
-            print(f"✗ Batch verification failed: {e}")
+            print(f"[FAIL] Batch verification failed: {e}")
 
         await engine.close()
 
@@ -362,7 +362,7 @@ lemma test_mul_one (n : Nat) : n * 1 = n := by
             )
 
             print("\nProcessing Results:")
-            print(f"Mathematical Content Detected: {'✓' if result['has_mathematical_content'] else '✗'}")
+            print(f"Mathematical Content Detected: {'[OK]' if result['has_mathematical_content'] else '[FAIL]'}")
             print(f"Components Extracted: {result['components_extracted']}")
 
             if result['components_extracted'] > 0:
@@ -374,14 +374,14 @@ lemma test_mul_one (n : Nat) : n * 1 = n := by
             if result.get('autoformalization_results'):
                 print("\nAutoformalization Results:")
                 for i, af_result in enumerate(result['autoformalization_results'], 1):
-                    print(f"  {i}. Success: {'✓' if af_result['success'] else '✗'}")
+                    print(f"  {i}. Success: {'[OK]' if af_result['success'] else '[FAIL]'}")
                     if af_result['success']:
-                        print(f"     Server Available: {'✓' if af_result['server_available'] else '✗'}")
+                        print(f"     Server Available: {'[OK]' if af_result['server_available'] else '[FAIL]'}")
 
             print("\nVerification Result:")
             vr = result['verification_result']
-            print(f"  Success: {'✓' if vr['success'] else '✗'}")
-            print(f"  Server Available: {'✓' if vr['server_available'] else '✗'}")
+            print(f"  Success: {'[OK]' if vr['success'] else '[FAIL]'}")
+            print(f"  Server Available: {'[OK]' if vr['server_available'] else '[FAIL]'}")
             print(f"  Verification Time: {vr['verification_time']:.2f}s")
 
             if result.get('proof_search_results'):
@@ -399,7 +399,7 @@ lemma test_mul_one (n : Nat) : n * 1 = n := by
                     print(f"  Imports: {', '.join(deps['imports'])}")
 
         except Exception as e:
-            print(f"✗ Pipeline processing failed: {e}")
+            print(f"[FAIL] Pipeline processing failed: {e}")
             import traceback
             traceback.print_exc()
 
@@ -429,7 +429,7 @@ lemma test_mul_one (n : Nat) : n * 1 = n := by
         result1 = await engine.verify_mathematical_solution(test_code)
         time1 = time.time() - start
         print(f"  Time: {time1:.2f}s")
-        print(f"  Success: {'✓' if result1.success else '✗'}")
+        print(f"  Success: {'[OK]' if result1.success else '[FAIL]'}")
 
         # Second call - should hit cache
         print("\nSecond verification (should hit cache):")
@@ -437,13 +437,13 @@ lemma test_mul_one (n : Nat) : n * 1 = n := by
         result2 = await engine.verify_mathematical_solution(test_code)
         time2 = time.time() - start
         print(f"  Time: {time2:.2f}s")
-        print(f"  Success: {'✓' if result2.success else '✗'}")
+        print(f"  Success: {'[OK]' if result2.success else '[FAIL]'}")
 
         speedup = time1 / time2 if time2 > 0 else 0
         print(f"\nCache speedup: {speedup:.1f}x")
 
         if speedup > 2:
-            print("✓ Cache is working effectively!")
+            print("[OK] Cache is working effectively!")
         else:
             print("⚠ Cache may not be optimally configured")
 
@@ -470,10 +470,10 @@ lemma test_mul_one (n : Nat) : n * 1 = n := by
         for test_name, test_func in tests:
             try:
                 await test_func()
-                results[test_name] = "✓ Completed"
+                results[test_name] = "[OK] Completed"
             except Exception as e:
                 logger.error(f"Test '{test_name}' crashed: {e}")
-                results[test_name] = f"✗ Failed: {e}"
+                results[test_name] = f"[FAIL] Failed: {e}"
 
         # Print summary
         print("\n" + "=" * 80)

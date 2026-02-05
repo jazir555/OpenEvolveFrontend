@@ -559,7 +559,7 @@ class MLBasedGauntletOptimizer:
                     change = f"{'enabled' if state_dict[key] else 'disabled'} {key}"
                 else:
                     delta = state_dict[key] - initial_dict[key]
-                    change = f"{key}: {initial_dict[key]:.2f} → {state_dict[key]:.2f} ({delta:+.2f})"
+                    change = f"{key}: {initial_dict[key]:.2f} -> {state_dict[key]:.2f} ({delta:+.2f})"
                 changes.append(change)
 
         if not changes:

@@ -5,7 +5,7 @@ This module provides the unified flow for CrewAI that replaces the crewai
 service-based architecture with local event-driven workflow execution.
 
 Architecture:
-    User → CrewAI Flow → Execution Method (Traditional/ROMA/ROMA-MDAP-MAKER/Claudiomiro/DataPizza/Hybrid)
+    User -> CrewAI Flow -> Execution Method (Traditional/ROMA/ROMA-MDAP-MAKER/Claudiomiro/DataPizza/Hybrid)
 
 Execution Methods:
 1. Traditional - AI-assisted decomposition with OpenEvolve

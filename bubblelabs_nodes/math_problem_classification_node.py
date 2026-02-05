@@ -543,9 +543,9 @@ class MathProblemClassificationNode(BubbleLabsNode):
     
     def _get_approach_recommendation(self, domain: MathDomain, difficulty: DifficultyLevel) -> Dict[str, Any]:
         """Recommend verification approach based on classification."""
-        # Logic/Arithmetic → Z3 first
-        # Complex pure math → Lean first
-        # Mixed → Hybrid
+        # Logic/Arithmetic -> Z3 first
+        # Complex pure math -> Lean first
+        # Mixed -> Hybrid
         
         if domain in [MathDomain.LOGIC, MathDomain.NUMBER_THEORY] and difficulty.value <= 2:
             return {

@@ -1909,17 +1909,17 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
     with start_col:
         if st.button("🚀 Start Workflow", type="primary", use_container_width=True):
             if not content.strip():
-                st.error("❌ Please enter content to evolve")
+                st.error("[FAIL] Please enter content to evolve")
                 return
                 
             if not st.session_state.get("api_key"):
-                st.error("❌ Please configure your API key in the sidebar")
+                st.error("[FAIL] Please configure your API key in the sidebar")
                 return
             
             if workflow_type == "sovereign_decomposition":
                 sg_config = st.session_state.get("sg_config")
                 if not sg_config:
-                    st.error("❌ Please configure the Sovereign-Grade Workflow settings.")
+                    st.error("[FAIL] Please configure the Sovereign-Grade Workflow settings.")
                     return
                 
                 # Retrieve Teams and Gauntlets
@@ -1951,7 +1951,7 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
                 if not final_gold_gauntlet: invalid_configs.append("Final Gold Team Gauntlet")
 
                 if invalid_configs:
-                    st.error(f"❌ The following configurations are invalid or missing: {', '.join(invalid_configs)}. Please check your configuration.")
+                    st.error(f"[FAIL] The following configurations are invalid or missing: {', '.join(invalid_configs)}. Please check your configuration.")
                     return
 
                 # Create a new WorkflowState for the Sovereign-Grade workflow
@@ -2058,7 +2058,7 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
                 st.session_state.active_sovereign_workflow = workflow_state
                 st.session_state.current_workflow_id = workflow_id # For monitoring
                 
-                st.success(f"✅ Sovereign-Grade Workflow '{workflow_id}' initialized. Starting execution...")
+                st.success(f"[OK] Sovereign-Grade Workflow '{workflow_id}' initialized. Starting execution...")
                 # The actual execution will be triggered by Streamlit's rerun mechanism
                 # when the UI renders the monitoring tab.
                 st.rerun() # Trigger rerun to start execution in monitoring tab
@@ -2177,10 +2177,10 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
                 )
                 
                 if orchestrator.start_workflow(workflow_id):
-                    st.success(f"✅ Workflow started: {workflow_id}")
+                    st.success(f"[OK] Workflow started: {workflow_id}")
                     st.session_state.current_workflow = workflow_id
                 else:
-                    st.error("❌ Failed to start workflow")
+                    st.error("[FAIL] Failed to start workflow")
     
     with info_col:
         st.info("""
@@ -2415,7 +2415,7 @@ def render_monitoring_tab(orchestrator: OpenEvolveOrchestrator):
             elif workflow_status['current_stage'] == 'reporting':
                 st.info(f"📝 Generating report...")
             elif workflow_status['current_stage'] == 'completion':
-                st.info(f"✅ Finalizing workflow...")
+                st.info(f"[OK] Finalizing workflow...")
             
             # Add additional metrics if available
             if 'metrics' in workflow_status and workflow_status['metrics']:
@@ -2471,7 +2471,7 @@ def render_history_tab(orchestrator: OpenEvolveOrchestrator):
                 st.caption(f"Type: {workflow_state.workflow_type.value.replace('_', ' ').title()}")
             
             with col2:
-                status_emoji = "✅" if workflow_state.status == 'completed' else "❌" if workflow_state.status == 'failed' else "🛑"
+                status_emoji = "[OK]" if workflow_state.status == 'completed' else "[FAIL]" if workflow_state.status == 'failed' else "🛑"
                 st.metric("Status", f"{status_emoji} {workflow_state.status.title()}")
             
             with col3:
@@ -2708,7 +2708,7 @@ def render_configuration_tab(orchestrator: OpenEvolveOrchestrator):
                         st.success(f"Applied template '{template.name}' parameters!")
                         st.rerun()
                     
-                    if st.button(f"❌ Delete: {template.name}", key=f"del_template_{template.name}"):
+                    if st.button(f"[FAIL] Delete: {template.name}", key=f"del_template_{template.name}"):
                         template_manager.delete_template(template.name)
                         st.success(f"Template '{template.name}' deleted successfully!")
                         st.rerun()

@@ -45,13 +45,13 @@ async def demo_find_definition(mcp):
         
         if result.success:
             data = result.data
-            print(f"  ✓ Found {data['kind']} '{data['name']}'")
+            print(f"  [OK] Found {data['kind']} '{data['name']}'")
             print(f"    File: {data['file']}")
             print(f"    Lines: {data['location']['line_start']}-{data['location']['line_end']}")
             if data.get('signature'):
                 print(f"    Signature: {data['signature']}")
         else:
-            print(f"  ✗ {result.message}")
+            print(f"  [FAIL] {result.message}")
 
 
 async def demo_call_graph(mcp):
@@ -69,11 +69,11 @@ async def demo_call_graph(mcp):
     
     if result.success:
         callers = result.data["callers"]
-        print(f"  ✓ Found {result.data['total_count']} callers")
+        print(f"  [OK] Found {result.data['total_count']} callers")
         for caller in callers[:3]:  # Show first 3
             print(f"    - {caller['name']} ({caller['kind']}) at {caller.get('file', '?')}:{caller.get('line', '?')}")
     else:
-        print(f"  ✗ {result.message}")
+        print(f"  [FAIL] {result.message}")
     
     # Get callees (what does this function call?)
     print("\nFinding functions called by 'main'...")
@@ -84,11 +84,11 @@ async def demo_call_graph(mcp):
     
     if result.success:
         callees = result.data["callees"]
-        print(f"  ✓ Found {result.data['total_count']} callees")
+        print(f"  [OK] Found {result.data['total_count']} callees")
         for callee in callees[:3]:  # Show first 3
             print(f"    - {callee['name']} ({callee['kind']})")
     else:
-        print(f"  ✗ {result.message}")
+        print(f"  [FAIL] {result.message}")
 
 
 async def demo_find_path(mcp):
@@ -105,11 +105,11 @@ async def demo_find_path(mcp):
     
     if result.success:
         path = result.data["path"]
-        print(f"  ✓ Found path ({len(path)} steps):")
+        print(f"  [OK] Found path ({len(path)} steps):")
         path_str = " -> ".join(p["name"] for p in path)
         print(f"    {path_str}")
     else:
-        print(f"  ✗ {result.message}")
+        print(f"  [FAIL] {result.message}")
 
 
 async def demo_impact_analysis(mcp):
@@ -129,7 +129,7 @@ async def demo_impact_analysis(mcp):
         
         if result.success:
             data = result.data
-            print(f"  ✓ Analysis complete:")
+            print(f"  [OK] Analysis complete:")
             print(f"    Direct impacts: {len(data['direct_impacts'])}")
             print(f"    Transitive impacts: {data['transitive_impacts_count']}")
             print(f"    Files affected: {len(data['files_to_modify'])}")
@@ -138,7 +138,7 @@ async def demo_impact_analysis(mcp):
                 for impact in data['direct_impacts'][:3]:
                     print(f"      - {impact['name']} ({impact['kind']})")
         else:
-            print(f"  ✗ {result.message}")
+            print(f"  [FAIL] {result.message}")
 
 
 async def demo_get_context(mcp):
@@ -155,7 +155,7 @@ async def demo_get_context(mcp):
     
     if result.success:
         data = result.data
-        print(f"  ✓ Context for '{data['symbol']}' ({data['kind']}):")
+        print(f"  [OK] Context for '{data['symbol']}' ({data['kind']}):")
         if data.get('signature'):
             print(f"    Signature: {data['signature']}")
         print(f"    Related components: {data['total_related']}")
@@ -164,7 +164,7 @@ async def demo_get_context(mcp):
             for rel in data['related_components'][:5]:
                 print(f"      - {rel['name']} ({rel['kind']})")
     else:
-        print(f"  ✗ {result.message}")
+        print(f"  [FAIL] {result.message}")
 
 
 async def demo_search(mcp):
@@ -185,13 +185,13 @@ async def demo_search(mcp):
         
         if result.success:
             matches = result.data["matches"]
-            print(f"  ✓ Found {result.data['total_count']} matches")
+            print(f"  [OK] Found {result.data['total_count']} matches")
             for match in matches[:3]:
                 print(f"    - {match['name']} ({match['kind']})")
                 if match.get('file'):
                     print(f"      at {match['file']}:{match.get('line', '?')}")
         else:
-            print(f"  ✗ {result.message}")
+            print(f"  [FAIL] {result.message}")
 
 
 async def main():
@@ -208,7 +208,7 @@ async def main():
     try:
         from knowledge_engine.integrations.arbor import ArborClient, ArborConfig, ArborMCPBridge
     except ImportError as e:
-        print(f"✗ Import error: {e}")
+        print(f"[FAIL] Import error: {e}")
         print("\nMake sure you're running from the project root.")
         return 1
     
@@ -227,18 +227,18 @@ async def main():
             await asyncio.sleep(1)
     
     if not connected:
-        print("\n✗ Could not connect to Arbor server.")
+        print("\n[FAIL] Could not connect to Arbor server.")
         print("\nPlease start Arbor server first:")
         print("  cd arbor/ && cargo run --release")
         print("\nOr update ARBOR_WS_URL to point to your Arbor server.")
         return 1
     
-    print("✓ Connected to Arbor server")
+    print("[OK] Connected to Arbor server")
     
     try:
         # Create MCP bridge
         mcp = ArborMCPBridge(client, config.mcp)
-        print(f"✓ MCP Bridge initialized with {len(mcp._tools)} tools")
+        print(f"[OK] MCP Bridge initialized with {len(mcp._tools)} tools")
         print(f"  Available tools: {', '.join(mcp._tools.keys())}")
         
         # Run demos
@@ -253,14 +253,14 @@ async def main():
         print("Demo Complete!")
         print("="*60)
         print("\nThe MCP tools above can be integrated into AI agents to provide:")
-        print("  • Precise code navigation")
-        print("  • Automated refactoring analysis")
-        print("  • Context-aware code understanding")
-        print("  • Impact assessment for changes")
+        print("  * Precise code navigation")
+        print("  * Automated refactoring analysis")
+        print("  * Context-aware code understanding")
+        print("  * Impact assessment for changes")
         
     finally:
         await client.disconnect()
-        print("\n✓ Disconnected from Arbor server")
+        print("\n[OK] Disconnected from Arbor server")
     
     return 0
 

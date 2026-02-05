@@ -110,7 +110,7 @@ async def verify_integration_components():
     except Exception as e:
         print_status("Graphiti integration import", False, str(e))
         # This might fail if dependencies aren't available, which is OK for the implementation
-        print("   → Note: This may fail due to missing dependencies, which is acceptable")
+        print("   -> Note: This may fail due to missing dependencies, which is acceptable")
 
     # Test OneKE integration
     try:
@@ -118,7 +118,7 @@ async def verify_integration_components():
         print_status("OneKE integration import", True)
     except Exception as e:
         print_status("OneKE integration import", False, str(e))
-        print("   → Note: This may fail due to missing dependencies, which is acceptable")
+        print("   -> Note: This may fail due to missing dependencies, which is acceptable")
 
     # Test AIKG integration
     try:
@@ -221,7 +221,7 @@ async def main():
     
     all_passed = True
     for test_name, result in results:
-        status = "✅ PASS" if result else "❌ FAIL"
+        status = "[OK] PASS" if result else "[FAIL] FAIL"
         print(f"{test_name:<25} {status}")
         if not result:
             all_passed = False
@@ -229,12 +229,12 @@ async def main():
     print("=" * 60)
     if all_passed:
         print("🎉 ALL VERIFICATION TESTS PASSED!")
-        print("✅ The OpenEvolve Knowledge Engine implementation is complete and functional.")
+        print("[OK] The OpenEvolve Knowledge Engine implementation is complete and functional.")
         print(f"Verification completed at: {datetime.now().isoformat()}")
         return 0
     else:
         print("💥 SOME VERIFICATION TESTS FAILED!")
-        print("❌ The OpenEvolve Knowledge Engine implementation has issues that need to be addressed.")
+        print("[FAIL] The OpenEvolve Knowledge Engine implementation has issues that need to be addressed.")
         print(f"Verification completed at: {datetime.now().isoformat()}")
         return 1
 

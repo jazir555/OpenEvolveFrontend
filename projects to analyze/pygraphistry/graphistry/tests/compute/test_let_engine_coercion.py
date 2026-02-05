@@ -72,7 +72,7 @@ class TestLetEngineCoercion:
     """Test suite for chain_let() engine coercion."""
 
     def test_basic_let_pandas_to_pandas(self):
-        """Test pandas→pandas let with no schema-changing operations."""
+        """Test pandas->pandas let with no schema-changing operations."""
         g = make_test_graph_pandas()
 
         # Simple let with node filter
@@ -91,7 +91,7 @@ class TestLetEngineCoercion:
 
     @skip_gpu
     def test_basic_let_cudf_to_cudf(self):
-        """Test cuDF→cuDF let with no schema-changing operations."""
+        """Test cuDF->cuDF let with no schema-changing operations."""
         g = make_test_graph_cudf()
 
         # Simple let with node filter
@@ -110,7 +110,7 @@ class TestLetEngineCoercion:
 
     @skip_gpu
     def test_basic_let_pandas_to_cudf(self):
-        """Test pandas→cuDF coercion in let()."""
+        """Test pandas->cuDF coercion in let()."""
         g = make_test_graph_pandas()
 
         # Simple let with node filter
@@ -129,7 +129,7 @@ class TestLetEngineCoercion:
 
     @skip_gpu
     def test_basic_let_cudf_to_pandas(self):
-        """Test cuDF→pandas coercion in let()."""
+        """Test cuDF->pandas coercion in let()."""
         g = make_test_graph_cudf()
 
         # Simple let with node filter
@@ -156,7 +156,7 @@ class TestLetEngineCoercion:
     def test_let_umap_pandas_auto_request_pandas(self):
         """Test: pandas input, UMAP engine='auto', request pandas output.
 
-        UMAP with engine='auto' picks umap-learn on CPU → returns pandas.
+        UMAP with engine='auto' picks umap-learn on CPU -> returns pandas.
         Let engine='pandas' should preserve pandas (no conversion needed).
         """
         g = make_test_graph_pandas()
@@ -180,8 +180,8 @@ class TestLetEngineCoercion:
     def test_let_umap_pandas_auto_request_cudf(self):
         """Test: pandas input, UMAP engine='auto', request cuDF output (COERCION).
 
-        UMAP with engine='auto' picks umap-learn on CPU → returns pandas.
-        Let engine='cudf' should convert pandas→cuDF.
+        UMAP with engine='auto' picks umap-learn on CPU -> returns pandas.
+        Let engine='cudf' should convert pandas->cuDF.
         """
         g = make_test_graph_pandas()
 
@@ -205,8 +205,8 @@ class TestLetEngineCoercion:
     def test_let_umap_cudf_auto_request_pandas(self):
         """Test: cuDF input, UMAP engine='auto', request pandas output (COERCION).
 
-        UMAP with engine='auto' on GPU picks cuML → returns cuDF.
-        Let engine='pandas' should convert cuDF→pandas.
+        UMAP with engine='auto' on GPU picks cuML -> returns cuDF.
+        Let engine='pandas' should convert cuDF->pandas.
         """
         g = make_test_graph_cudf()
 
@@ -229,7 +229,7 @@ class TestLetEngineCoercion:
     def test_let_umap_cudf_auto_request_cudf(self):
         """Test: cuDF input, UMAP engine='auto', request cuDF output.
 
-        UMAP with engine='auto' on GPU picks cuML → returns cuDF.
+        UMAP with engine='auto' on GPU picks cuML -> returns cuDF.
         Let engine='cudf' should preserve cuDF (no conversion needed).
         """
         g = make_test_graph_cudf()
@@ -254,8 +254,8 @@ class TestLetEngineCoercion:
     def test_let_umap_pandas_cuml_request_pandas(self):
         """Test: pandas input, UMAP engine='cuml' (explicit GPU), request pandas (COERCION).
 
-        UMAP with engine='cuml' converts to cuDF internally, computes on GPU → returns cuDF.
-        Let engine='pandas' should convert cuDF→pandas.
+        UMAP with engine='cuml' converts to cuDF internally, computes on GPU -> returns cuDF.
+        Let engine='pandas' should convert cuDF->pandas.
         """
         g = make_test_graph_pandas()
 
@@ -278,7 +278,7 @@ class TestLetEngineCoercion:
     def test_let_umap_pandas_cuml_request_cudf(self):
         """Test: pandas input, UMAP engine='cuml' (explicit GPU), request cuDF.
 
-        UMAP with engine='cuml' converts to cuDF internally, computes on GPU → returns cuDF.
+        UMAP with engine='cuml' converts to cuDF internally, computes on GPU -> returns cuDF.
         Let engine='cudf' should preserve cuDF (no conversion needed).
         """
         g = make_test_graph_pandas()
@@ -303,8 +303,8 @@ class TestLetEngineCoercion:
     def test_let_umap_cudf_cuml_request_pandas(self):
         """Test: cuDF input, UMAP engine='cuml' (explicit GPU), request pandas (COERCION).
 
-        UMAP with engine='cuml' on cuDF input → returns cuDF.
-        Let engine='pandas' should convert cuDF→pandas.
+        UMAP with engine='cuml' on cuDF input -> returns cuDF.
+        Let engine='pandas' should convert cuDF->pandas.
         """
         g = make_test_graph_cudf()
 
@@ -327,7 +327,7 @@ class TestLetEngineCoercion:
     def test_let_umap_cudf_cuml_request_cudf(self):
         """Test: cuDF input, UMAP engine='cuml' (explicit GPU), request cuDF.
 
-        UMAP with engine='cuml' on cuDF input → returns cuDF.
+        UMAP with engine='cuml' on cuDF input -> returns cuDF.
         Let engine='cudf' should preserve cuDF (no conversion needed).
         """
         g = make_test_graph_cudf()
@@ -351,7 +351,7 @@ class TestLetEngineCoercion:
     def test_let_umap_pandas_umap_learn_request_pandas(self):
         """Test: pandas input, UMAP engine='umap_learn' (explicit CPU), request pandas.
 
-        UMAP with engine='umap_learn' → returns pandas.
+        UMAP with engine='umap_learn' -> returns pandas.
         Let engine='pandas' should preserve pandas (no conversion needed).
         """
         g = make_test_graph_pandas()
@@ -375,8 +375,8 @@ class TestLetEngineCoercion:
     def test_let_umap_pandas_umap_learn_request_cudf(self):
         """Test: pandas input, UMAP engine='umap_learn' (explicit CPU), request cuDF (COERCION).
 
-        UMAP with engine='umap_learn' → returns pandas.
-        Let engine='cudf' should convert pandas→cuDF.
+        UMAP with engine='umap_learn' -> returns pandas.
+        Let engine='cudf' should convert pandas->cuDF.
         """
         g = make_test_graph_pandas()
 
@@ -400,7 +400,7 @@ class TestLetEngineCoercion:
     def test_let_umap_cudf_umap_learn_request_pandas(self):
         """Test: cuDF input, UMAP engine='umap_learn' (explicit CPU), request pandas.
 
-        UMAP with engine='umap_learn' converts cuDF→pandas internally → returns pandas.
+        UMAP with engine='umap_learn' converts cuDF->pandas internally -> returns pandas.
         Let engine='pandas' should preserve pandas (no conversion needed).
         """
         g = make_test_graph_cudf()
@@ -424,8 +424,8 @@ class TestLetEngineCoercion:
     def test_let_umap_cudf_umap_learn_request_cudf(self):
         """Test: cuDF input, UMAP engine='umap_learn' (explicit CPU), request cuDF (COERCION).
 
-        UMAP with engine='umap_learn' converts cuDF→pandas internally → returns pandas.
-        Let engine='cudf' should convert pandas→cuDF.
+        UMAP with engine='umap_learn' converts cuDF->pandas internally -> returns pandas.
+        Let engine='cudf' should convert pandas->cuDF.
         """
         g = make_test_graph_cudf()
 

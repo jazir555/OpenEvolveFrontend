@@ -26,10 +26,10 @@ class OpenEvolveFallbackAdapter:
     PES (Plan-Execute-Summarize) approach.
 
     The adapter performs the following mappings:
-        - OpenEvolve's program evolution → LoongFlow's solution evolution
-        - OpenEvolve's metrics → LoongFlow's fitness scores
-        - OpenEvolve's iterations → LoongFlow's PES iterations
-        - OpenEvolve's modes → LoongFlow's execution modes
+        - OpenEvolve's program evolution -> LoongFlow's solution evolution
+        - OpenEvolve's metrics -> LoongFlow's fitness scores
+        - OpenEvolve's iterations -> LoongFlow's PES iterations
+        - OpenEvolve's modes -> LoongFlow's execution modes
 
     Attributes:
         openevolve_config: Configuration for OpenEvolve evolution

@@ -2,8 +2,8 @@
 Adversarial Circular Import Resolver Adapter
 
 Fixes circular import issue between:
-- adversarial_maker_integration.py → adversarial.py → red_team.py
-- adversarial_maker_integration.py → openevolve_imports.py → adversarial.py
+- adversarial_maker_integration.py -> adversarial.py -> red_team.py
+- adversarial_maker_integration.py -> openevolve_imports.py -> adversarial.py
 
 Bug Fixed:
 - Line 244 in adversarial_maker_integration.py:

@@ -264,7 +264,7 @@ class RefinementCoordinator:
             time_spent=time_spent
         )
         
-        self.logger.info(f"Refinement complete: quality {quality_before:.2f} → {quality_after:.2f}")
+        self.logger.info(f"Refinement complete: quality {quality_before:.2f} -> {quality_after:.2f}")
         
         return refined_plan, metrics
     

@@ -255,7 +255,7 @@ def collect_all_data(results_dir: Path) -> pd.DataFrame:
         if stats:
             all_stats.extend(stats)
             all_accuracies.extend(accuracies)
-            print(f"  → Collected {len(stats)} data points")
+            print(f"  -> Collected {len(stats)} data points")
     
     # Create DataFrame
     df = pd.DataFrame(all_stats)
@@ -312,7 +312,7 @@ def plot_correlation_heatmap(df: pd.DataFrame, output_file: Path):
     plt.title("Correlation Matrix: Graph Metrics vs Accuracy", fontsize=16, fontweight="bold")
     plt.tight_layout()
     plt.savefig(output_file, dpi=300, bbox_inches="tight")
-    print(f"✓ Correlation heatmap saved to {output_file}")
+    print(f"[OK] Correlation heatmap saved to {output_file}")
 
 
 def plot_top_correlations(corr_df: pd.DataFrame, df: pd.DataFrame, output_file: Path, top_n=9):
@@ -352,7 +352,7 @@ def plot_top_correlations(corr_df: pd.DataFrame, df: pd.DataFrame, output_file: 
                 fontsize=16, fontweight="bold", y=0.995)
     plt.tight_layout()
     plt.savefig(output_file, dpi=300, bbox_inches="tight")
-    print(f"✓ Top correlations plot saved to {output_file}")
+    print(f"[OK] Top correlations plot saved to {output_file}")
 
 
 def plot_model_comparison(df: pd.DataFrame, output_file: Path):
@@ -399,7 +399,7 @@ def plot_model_comparison(df: pd.DataFrame, output_file: Path):
                 fontsize=16, fontweight="bold")
     plt.tight_layout()
     plt.savefig(output_file, dpi=300, bbox_inches="tight")
-    print(f"✓ Model comparison plot saved to {output_file}")
+    print(f"[OK] Model comparison plot saved to {output_file}")
 
 
 def analyze_per_model_correlations(df: pd.DataFrame, output_file: Path):
@@ -444,7 +444,7 @@ def analyze_per_model_correlations(df: pd.DataFrame, output_file: Path):
             f.write(f"  Top Correlated Metrics: {row['top_correlated_metrics']}\n")
             f.write(f"  Correlations: {row['top_correlations']}\n\n")
     
-    print(f"✓ Per-model analysis saved to {output_file}")
+    print(f"[OK] Per-model analysis saved to {output_file}")
 
 
 def write_comprehensive_report(df: pd.DataFrame, corr_df: pd.DataFrame, output_file: Path):
@@ -490,7 +490,7 @@ def write_comprehensive_report(df: pd.DataFrame, corr_df: pd.DataFrame, output_f
             if len(positive) > 0:
                 f.write("1. POSITIVE CORRELATIONS (metrics that increase with better accuracy):\n")
                 for _, row in positive.iterrows():
-                    f.write(f"   • {row['metric']}: r={row['spearman_r']:.4f} (p={row['spearman_p']:.6f})\n")
+                    f.write(f"   * {row['metric']}: r={row['spearman_r']:.4f} (p={row['spearman_p']:.6f})\n")
                 f.write("\n")
             
             # Negative correlations
@@ -498,7 +498,7 @@ def write_comprehensive_report(df: pd.DataFrame, corr_df: pd.DataFrame, output_f
             if len(negative) > 0:
                 f.write("2. NEGATIVE CORRELATIONS (metrics that decrease with better accuracy):\n")
                 for _, row in negative.iterrows():
-                    f.write(f"   • {row['metric']}: r={row['spearman_r']:.4f} (p={row['spearman_p']:.6f})\n")
+                    f.write(f"   * {row['metric']}: r={row['spearman_r']:.4f} (p={row['spearman_p']:.6f})\n")
                 f.write("\n")
         else:
             f.write("No statistically significant correlations found (p < 0.05)\n\n")
@@ -559,7 +559,7 @@ def write_comprehensive_report(df: pd.DataFrame, corr_df: pd.DataFrame, output_f
         f.write("End of Analysis\n")
         f.write("=" * 100 + "\n")
     
-    print(f"✓ Comprehensive report saved to {output_file}")
+    print(f"[OK] Comprehensive report saved to {output_file}")
 
 
 def main():
@@ -578,12 +578,12 @@ def main():
     # Step 1: Collect data
     print("Step 1: Collecting graph statistics and accuracy data...")
     df = collect_all_data(results_dir)
-    print(f"✓ Collected {len(df)} data points from {df['model'].nunique()} models\n")
+    print(f"[OK] Collected {len(df)} data points from {df['model'].nunique()} models\n")
     
     # Save raw data
     data_file = output_dir / "graph_statistics_data.csv"
     df.to_csv(data_file, index=False)
-    print(f"✓ Raw data saved to {data_file}\n")
+    print(f"[OK] Raw data saved to {data_file}\n")
     
     # Step 2: Compute correlations
     print("Step 2: Computing correlations...")
@@ -592,7 +592,7 @@ def main():
     # Save correlation data
     corr_file = output_dir / "correlations.csv"
     corr_df.to_csv(corr_file, index=False)
-    print(f"✓ Correlations saved to {corr_file}\n")
+    print(f"[OK] Correlations saved to {corr_file}\n")
     
     # Step 3: Generate visualizations
     print("Step 3: Generating visualizations...")
@@ -630,13 +630,13 @@ def main():
     
     print("\n" + "=" * 100)
     print("Output files saved to:", output_dir)
-    print("  • graph_statistics_data.csv - Raw data")
-    print("  • correlations.csv - Correlation coefficients")
-    print("  • correlation_heatmap.png - Full correlation matrix")
-    print("  • top_correlations.png - Top correlated metrics")
-    print("  • model_comparison.png - Cross-model comparison")
-    print("  • per_model_analysis.txt - Per-model insights")
-    print("  • analysis_report.txt - Comprehensive report")
+    print("  * graph_statistics_data.csv - Raw data")
+    print("  * correlations.csv - Correlation coefficients")
+    print("  * correlation_heatmap.png - Full correlation matrix")
+    print("  * top_correlations.png - Top correlated metrics")
+    print("  * model_comparison.png - Cross-model comparison")
+    print("  * per_model_analysis.txt - Per-model insights")
+    print("  * analysis_report.txt - Comprehensive report")
     print("=" * 100)
 
 

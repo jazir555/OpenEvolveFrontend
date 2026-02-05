@@ -19,7 +19,7 @@ class TestGetIndegreesAfterUMAP:
         This verifies the fix for the bug where:
         1. UMAP in GPU mode creates cuDF edges
         2. Nodes remain pandas
-        3. get_indegrees() tries to merge cuDF with pandas → fails
+        3. get_indegrees() tries to merge cuDF with pandas -> fails
         
         Our engine coercion ensures both nodes AND edges are pandas,
         preventing the merge error in get_indegrees().
@@ -46,7 +46,7 @@ class TestGetIndegreesAfterUMAP:
                 'n_components': 2, 
                 'n_neighbors': 3, 
                 'umap_kwargs': {'random_state': 42, 'n_epochs': 3}, 
-                'engine': 'auto'  # On CPU picks umap-learn → pandas
+                'engine': 'auto'  # On CPU picks umap-learn -> pandas
             })])
         })
         

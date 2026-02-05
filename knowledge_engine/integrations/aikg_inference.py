@@ -52,7 +52,7 @@ class AIKGRelationshipInference:
     Infers new relationships using multiple strategies.
 
     Strategies:
-    1. Transitive inference (A→B, B→C → A→C)
+    1. Transitive inference (A->B, B->C -> A->C)
     2. LLM-based inter-community inference
     3. Within-community inference
     4. Lexical similarity inference
@@ -165,12 +165,12 @@ class AIKGRelationshipInference:
         Perform transitive inference.
 
         Logic:
-        If A→B and B→C exist, infer A→C
+        If A->B and B->C exist, infer A->C
 
         Example:
         - (Python, used_for, WebDev)
         - (WebDev, used_for, Django)
-        → Infer: (Python, used_for, Django)
+        -> Infer: (Python, used_for, Django)
 
         Args:
             triples: List of existing triples
@@ -462,7 +462,7 @@ Only include high-confidence relationships. Use predicates like: related_to, sim
         Process:
         1. Calculate word overlap between entity names
         2. If overlap > threshold, infer relationship
-        3. Example: "machine learning" and "learning algorithm" → similar
+        3. Example: "machine learning" and "learning algorithm" -> similar
 
         Args:
             entities: List of entities

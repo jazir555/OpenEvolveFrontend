@@ -32,7 +32,7 @@ def test_json_logging():
     log_data = {"msg": "Test", "level": "INFO"}
     log_json = json.dumps(log_data)
     assert log_json is not None
-    print("✓ JSON logging works")
+    print("[OK] JSON logging works")
 
 def test_string_operations():
     """Test string operations."""
@@ -41,7 +41,7 @@ def test_string_operations():
     entities = [w for w in words if len(w) > 1]
     # "AI", "and", "ML" - but "and" is only 3 chars, should have 2 entities
     assert len(entities) >= 2  # AI and ML pass the length check
-    print("✓ String operations work")
+    print("[OK] String operations work")
 
 def test_data_structures():
     """Test data structures."""
@@ -49,7 +49,7 @@ def test_data_structures():
     relationships = [{"source": "ML", "target": "AI"}]
     assert len(entities) == 1
     assert len(relationships) == 1
-    print("✓ Data structures work")
+    print("[OK] Data structures work")
 
 def test_pii_detection():
     """Test PII detection."""
@@ -57,14 +57,14 @@ def test_pii_detection():
     text = "Contact test@example.com"
     emails = re.findall(r'[\w.]+@[\w.]+', text)
     assert len(emails) == 1
-    print("✓ PII detection works")
+    print("[OK] PII detection works")
 
 def test_deduplication():
     """Test deduplication."""
     items = ["AI", "ML", "AI", "DL"]
     unique = list(set(items))
     assert len(unique) == 3
-    print("✓ Deduplication works")
+    print("[OK] Deduplication works")
 
 def test_rate_limiting():
     """Test rate limiting."""
@@ -88,7 +88,7 @@ def test_rate_limiting():
     assert limiter.check() is True
     assert limiter.check() is True
     assert limiter.check() is False
-    print("✓ Rate limiting works")
+    print("[OK] Rate limiting works")
 
 def test_temporal_data():
     """Test temporal data."""
@@ -97,7 +97,7 @@ def test_temporal_data():
     past = now - timedelta(days=1)
     assert past < now
     assert "T" in now.isoformat()
-    print("✓ Temporal data works")
+    print("[OK] Temporal data works")
 
 def test_sanitization():
     """Test input sanitization."""
@@ -106,7 +106,7 @@ def test_sanitization():
     safe = re.sub(r"DROP\s+TABLE", "", malicious, flags=re.IGNORECASE)
     safe = safe.replace(";", "").replace("--", "")
     assert "DROP" not in safe
-    print("✓ Input sanitization works")
+    print("[OK] Input sanitization works")
 
 def test_quality_metrics():
     """Test quality metrics."""
@@ -120,7 +120,7 @@ def test_quality_metrics():
     assert completeness == 2/3
     avg_conf = sum(e["confidence"] for e in entities) / len(entities)
     assert avg_conf == (0.9 + 0.8 + 0.7) / 3
-    print("✓ Quality metrics work")
+    print("[OK] Quality metrics work")
 
 def test_performance_tracking():
     """Test performance tracking."""
@@ -151,7 +151,7 @@ def test_performance_tracking():
     stats = tracker.get_stats()
     assert stats["count"] == 3
     assert stats["avg"] == 75
-    print("✓ Performance tracking works")
+    print("[OK] Performance tracking works")
 
 # Run all tests
 tests = [
@@ -177,7 +177,7 @@ for test in tests:
         test()
         passed += 1
     except Exception as e:
-        print(f"✗ {test.__name__} failed: {e}")
+        print(f"[FAIL] {test.__name__} failed: {e}")
         failed += 1
 
 print(f"\n{'='*50}")
@@ -187,5 +187,5 @@ print(f"{'='*50}")
 if failed > 0:
     sys.exit(1)
 else:
-    print("\n✓ All tests passed!")
+    print("\n[OK] All tests passed!")
     sys.exit(0)

@@ -6,7 +6,7 @@ Key features:
 - Comprehensive install script handles all setup (system deps, goofys, ROMA)
 - Multi-container architecture with postgres, mlflow, minio
 - E2B+Goofys file sync via S3
-- Flat storage structure: /app → /opt/sentient
+- Flat storage structure: /app -> /opt/sentient
 """
 
 # **ACTUAL INTEGRATION**: Adaptive MDAP for Roma Harbor Agent

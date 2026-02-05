@@ -361,8 +361,8 @@ Your generated code will be executed in two stages with different data scales:
 - Ensure all parameters satisfy the constraints required by the libraries you use.
 
 **When errors occur**: 
-- If caused by data scale limitations → make the parameter data-adaptive
-- If caused by code logic issues → fix the logic itself
+- If caused by data scale limitations -> make the parameter data-adaptive
+- If caused by code logic issues -> fix the logic itself
 
 ## Guidelines
 {% if gpu_available %}
@@ -502,8 +502,8 @@ Your generated code will be executed in two stages with different data scales:
 - Ensure all parameters satisfy the constraints required by the libraries you use.
 
 **When errors occur**: 
-- If caused by data scale limitations → make the parameter data-adaptive
-- If caused by code logic issues → fix the logic itself
+- If caused by data scale limitations -> make the parameter data-adaptive
+- If caused by code logic issues -> fix the logic itself
 
 ## Guidelines
 {% if gpu_available %}
@@ -671,8 +671,8 @@ Your generated code will be executed in two stages with different data scales:
 - Ensure all parameters satisfy the constraints required by the libraries you use.
 
 **When errors occur**: 
-- If caused by data scale limitations → make the parameter data-adaptive
-- If caused by code logic issues → fix the logic itself
+- If caused by data scale limitations -> make the parameter data-adaptive
+- If caused by code logic issues -> fix the logic itself
 
 ## Guidelines
 {% if gpu_available %}
@@ -815,13 +815,13 @@ def train_your_model_name(
 # Value: The training function reference
 {% if assemble_models %}
 PREDICTION_ENGINES: Dict[str, PredictionFunction] = {
-    "<your_model_name>": train_<your_model_name>,  # ← Replace with your Step 1 function name
+    "<your_model_name>": train_<your_model_name>,  # <- Replace with your Step 1 function name
     # Add legacy models from Step 2 here (only if they don't conflict):
     # "legacy_model_1": train_legacy_model_1,
 }
 {% else %}
 PREDICTION_ENGINES: Dict[str, PredictionFunction] = {
-    "<your_model_name>": train_<your_model_name>,  # ← Replace with your Step 1 function name
+    "<your_model_name>": train_<your_model_name>,  # <- Replace with your Step 1 function name
 }
 {% endif %}
 </python_code>
@@ -902,8 +902,8 @@ Your generated code will be executed in two stages with different data scales:
 - Ensure all parameters satisfy the constraints required by the libraries you use.
 
 **When errors occur**: 
-- If caused by data scale limitations → make the parameter data-adaptive
-- If caused by code logic issues → fix the logic itself
+- If caused by data scale limitations -> make the parameter data-adaptive
+- If caused by code logic issues -> fix the logic itself
 
 ## Guidelines
 {% if gpu_available %}

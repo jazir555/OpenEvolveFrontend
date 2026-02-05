@@ -38,7 +38,7 @@ async def main():
         max_cycles=10,  # Override config for demo
         config=app_config,  # Use loaded config
     )
-    print("✓ Agent created")
+    print("[OK] Agent created")
 
     # 2. Create initial state with a file
     print("\n📄 Creating initial state...")
@@ -53,12 +53,12 @@ async def main():
             )
         },
     )
-    print(f"✓ State created with {len(initial_state.open_files)} file(s)")
+    print(f"[OK] State created with {len(initial_state.open_files)} file(s)")
 
     # 3. Define goal
     print("\n🎯 Setting goal...")
     goal = Goal(description="Understand the code structure")
-    print(f"✓ Goal: {goal.description}")
+    print(f"[OK] Goal: {goal.description}")
 
     # 4. Run agent
     print("\n🚀 Running cognitive agent...")
@@ -74,9 +74,9 @@ async def main():
 
         print("-" * 70)
         if success:
-            print("\n✅ SUCCESS: Goal achieved!")
+            print("\n[OK] SUCCESS: Goal achieved!")
         else:
-            print("\n⚠️  Goal not fully achieved (max cycles reached or impasse)")
+            print("\n[WARN]  Goal not fully achieved (max cycles reached or impasse)")
 
         # Show final state
         print(f"\n📊 Final State:")
@@ -86,11 +86,11 @@ async def main():
             print(f"   - Last output: {final_state.last_output[:100]}...")
 
     except Exception as e:
-        print(f"\n❌ Error: {e}")
+        print(f"\n[FAIL] Error: {e}")
         raise
 
     print("\n" + "=" * 70)
-    print("✓ Example complete")
+    print("[OK] Example complete")
     print("=" * 70)
 
 

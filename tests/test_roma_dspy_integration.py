@@ -333,9 +333,9 @@ Test Coverage Summary:
 - Edge Cases: 3 tests
 
 Coverage Areas:
-✓ Basic initialization
-✓ Subproblem management
-✓ Reasoning trace tracking
-✓ DSPy program integration
-✓ Edge case handling
+[OK] Basic initialization
+[OK] Subproblem management
+[OK] Reasoning trace tracking
+[OK] DSPy program integration
+[OK] Edge case handling
 """

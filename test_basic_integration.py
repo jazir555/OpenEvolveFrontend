@@ -8,56 +8,56 @@ def test_basic_integration():
     # Test 1: Check if knowledge_graph_visualizer has pygraphistry support
     try:
         from knowledge_graph_visualizer import KnowledgeGraphVisualizer
-        print("✓ KnowledgeGraphVisualizer import successful")
+        print("[OK] KnowledgeGraphVisualizer import successful")
         
         # Create instance with pygraphistry parameter
         viz = KnowledgeGraphVisualizer(use_pygraphistry=True)
-        print("✓ KnowledgeGraphVisualizer with use_pygraphistry parameter works")
+        print("[OK] KnowledgeGraphVisualizer with use_pygraphistry parameter works")
         
         # Check if pygraphistry bridge attribute exists
         if hasattr(viz, 'pygraphistry_bridge'):
-            print("✓ pygraphistry_bridge attribute exists")
+            print("[OK] pygraphistry_bridge attribute exists")
         else:
-            print("✗ pygraphistry_bridge attribute missing")
+            print("[FAIL] pygraphistry_bridge attribute missing")
             
         # Check if new methods exist
         if hasattr(viz, 'analyze_patterns_with_pygraphistry'):
-            print("✓ analyze_patterns_with_pygraphistry method exists")
+            print("[OK] analyze_patterns_with_pygraphistry method exists")
         else:
-            print("✗ analyze_patterns_with_pygraphistry method missing")
+            print("[FAIL] analyze_patterns_with_pygraphistry method missing")
             
         if hasattr(viz, 'connect_pygraphistry'):
-            print("✓ connect_pygraphistry method exists")
+            print("[OK] connect_pygraphistry method exists")
         else:
-            print("✗ connect_pygraphistry method missing")
+            print("[FAIL] connect_pygraphistry method missing")
             
     except (ImportError, ValueError, AttributeError, TypeError) as e:
-        print(f"✗ KnowledgeGraphVisualizer test failed: {e}")
+        print(f"[FAIL] KnowledgeGraphVisualizer test failed: {e}")
     
     # Test 2: Check if visualization function exists
     try:
         from openevolve_visualization import get_pygraphistry_viz
-        print("✓ get_pygraphistry_viz function import successful")
+        print("[OK] get_pygraphistry_viz function import successful")
     except (ImportError, AttributeError) as e:
-        print(f"✗ get_pygraphistry_viz import failed: {e}")
+        print(f"[FAIL] get_pygraphistry_viz import failed: {e}")
     
     # Test 3: Check if integration factory works
     try:
         from integrations import IntegrationFactory
-        print("✓ IntegrationFactory import successful")
+        print("[OK] IntegrationFactory import successful")
     except (ImportError, AttributeError) as e:
-        print(f"✗ IntegrationFactory import failed: {e}")
+        print(f"[FAIL] IntegrationFactory import failed: {e}")
     
     # Test 4: Check if API endpoint exists
     try:
         with open("openevolve_api.py", 'r') as f:
             content = f.read()
             if "/api/openevolve/visualize/pygraphistry" in content:
-                print("✓ PyGraphistry API endpoint exists")
+                print("[OK] PyGraphistry API endpoint exists")
             else:
-                print("✗ PyGraphistry API endpoint missing")
+                print("[FAIL] PyGraphistry API endpoint missing")
     except (OSError, IOError) as e:
-        print(f"✗ API endpoint check failed: {e}")
+        print(f"[FAIL] API endpoint check failed: {e}")
     
     # Test 5: Check if pygraphistry files exist
     import os
@@ -70,13 +70,13 @@ def test_basic_integration():
     all_exist = True
     for file in pygraphistry_files:
         if os.path.exists(file):
-            print(f"✓ {file} exists")
+            print(f"[OK] {file} exists")
         else:
-            print(f"✗ {file} missing")
+            print(f"[FAIL] {file} missing")
             all_exist = False
     
     if all_exist:
-        print("✓ All PyGraphistry integration files present")
+        print("[OK] All PyGraphistry integration files present")
     
     print("\nBasic integration test complete!")
 

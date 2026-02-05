@@ -7,17 +7,17 @@ ROMA's (Recursive Open Meta-Agents) framework.
 This replaces roma_hephaestus_bridge.py with local CrewAI execution.
 
 ROMA Architecture:
-    Atomizer → Planner → Executor → Aggregator
-    ↓
+    Atomizer -> Planner -> Executor -> Aggregator
+    v
     Recursive decomposition with depth constraints
 
 Phase Mapping:
-- Phase 1: Problem Setup → ROMA analysis (max_depth=3)
-- Phase 2: Solution Generation → ROMA recursive solve (max_depth=2)
-- Phase 3: Adversarial Critique → ROMA critique (max_depth=1)
-- Phase 4: Verification → ROMA verification (max_depth=1)
-- Phase 5: Reassembly → ROMA aggregation (automatic)
-- Phase 6: Final Validation → ROMA full solve with verification
+- Phase 1: Problem Setup -> ROMA analysis (max_depth=3)
+- Phase 2: Solution Generation -> ROMA recursive solve (max_depth=2)
+- Phase 3: Adversarial Critique -> ROMA critique (max_depth=1)
+- Phase 4: Verification -> ROMA verification (max_depth=1)
+- Phase 5: Reassembly -> ROMA aggregation (automatic)
+- Phase 6: Final Validation -> ROMA full solve with verification
 
 License: MIT (replaces AGPL Hephaestus)
 """
@@ -247,8 +247,8 @@ def _extract_critique_findings(critique_text: str) -> List[Dict[str, Any]]:
             })
             continue
 
-        # Match bullet points (-, *, •)
-        match = re.match(r'^[-*•]\s+(.+)', line)
+        # Match bullet points (-, *, *)
+        match = re.match(r'^[-**]\s+(.+)', line)
         if match:
             finding_text = match.group(1)
             findings.append({

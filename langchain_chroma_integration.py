@@ -630,7 +630,7 @@ if __name__ == "__main__":
         "How does the ACE system work with Steer?"
     )
     
-    print(f"✅ Task completed: {result['success']}")
+    print(f"[OK] Task completed: {result['success']}")
     print(f"📚 Knowledge used: {result['stats']['knowledge_documents_retrieved']} documents")
     print(f"🔍 Verification passed: {result['stats']['verification_passed']}")
     print(f"💬 Response: {result['response'][:100]}...")

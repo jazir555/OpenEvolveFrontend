@@ -30,7 +30,7 @@ async def test_memory_backend():
 
     # Check health
     is_healthy = await backend.health_check()
-    print(f"✓ Backend healthy: {is_healthy}")
+    print(f"[OK] Backend healthy: {is_healthy}")
 
     # Create entry
     entry = KnowledgeEntry(
@@ -42,11 +42,11 @@ async def test_memory_backend():
 
     # Add knowledge
     entry_id = await backend.add_knowledge(entry)
-    print(f"✓ Added entry: {entry_id}")
+    print(f"[OK] Added entry: {entry_id}")
 
     # Search
     results = await backend.search(query="Machine Learning", limit=10)
-    print(f"✓ Search results: {results.total_count} found")
+    print(f"[OK] Search results: {results.total_count} found")
     print(f"  - Backend: {results.backend_used}")
     print(f"  - Time: {results.search_time_ms:.2f}ms")
 
@@ -55,7 +55,7 @@ async def test_memory_backend():
 
     # Get statistics
     stats = await backend.get_statistics()
-    print(f"✓ Statistics:")
+    print(f"[OK] Statistics:")
     print(f"  - Nodes: {stats.node_count}")
     print(f"  - Edges: {stats.edge_count}")
     print(f"  - Knowledge entries: {stats.metadata['knowledge_entries']}")
@@ -63,24 +63,24 @@ async def test_memory_backend():
 
     # Analyze
     analysis = await backend.analyze(analysis_type="entity_analysis")
-    print(f"✓ Entity analysis:")
+    print(f"[OK] Entity analysis:")
     print(f"  - Total entities: {analysis.results['total_entities']}")
     if analysis.results['top_entities']:
         print(f"  - Top entity: {analysis.results['top_entities'][0]}")
 
     # Update
     updated = await backend.update_knowledge(entry_id, {"content": "Updated content"})
-    print(f"✓ Updated entry: {updated}")
+    print(f"[OK] Updated entry: {updated}")
 
     # Delete
     deleted = await backend.delete_knowledge(entry_id)
-    print(f"✓ Deleted entry: {deleted}")
+    print(f"[OK] Deleted entry: {deleted}")
 
     # Cleanup
     await backend.disconnect()
-    print("✓ Disconnected")
+    print("[OK] Disconnected")
 
-    print("\n✅ All Memory Backend tests passed!")
+    print("\n[OK] All Memory Backend tests passed!")
 
 
 async def test_all_backends():
@@ -107,9 +107,9 @@ async def test_all_backends():
         })
 
         await backend.connect()
-        print("✓ Neo4j backend connected")
+        print("[OK] Neo4j backend connected")
         await backend.disconnect()
-        print("✓ Neo4j backend test passed\n")
+        print("[OK] Neo4j backend test passed\n")
 
     except Exception as e:
         print(f"⊘ Neo4j backend skipped: {e}\n")
@@ -125,9 +125,9 @@ async def test_all_backends():
         })
 
         await backend.connect()
-        print("✓ Qdrant backend connected")
+        print("[OK] Qdrant backend connected")
         await backend.disconnect()
-        print("✓ Qdrant backend test passed\n")
+        print("[OK] Qdrant backend test passed\n")
 
     except Exception as e:
         print(f"⊘ Qdrant backend skipped: {e}\n")
@@ -142,9 +142,9 @@ async def test_all_backends():
         })
 
         await backend.connect()
-        print("✓ MongoDB backend connected")
+        print("[OK] MongoDB backend connected")
         await backend.disconnect()
-        print("✓ MongoDB backend test passed\n")
+        print("[OK] MongoDB backend test passed\n")
 
     except Exception as e:
         print(f"⊘ MongoDB backend skipped: {e}\n")
@@ -159,9 +159,9 @@ async def test_all_backends():
         })
 
         await backend.connect()
-        print("✓ KarateClub backend connected")
+        print("[OK] KarateClub backend connected")
         await backend.disconnect()
-        print("✓ KarateClub backend test passed\n")
+        print("[OK] KarateClub backend test passed\n")
 
     except Exception as e:
         print(f"⊘ KarateClub backend skipped: {e}\n")

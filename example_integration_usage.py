@@ -200,7 +200,7 @@ def example_6_dependency_analysis():
         print(f"\nCritical Path:")
         for node_id in plan.dependency_graph.critical_path:
             node = plan.dependency_graph.nodes[node_id]
-            print(f"  → {node.title} ({node.estimated_effort}h)")
+            print(f"  -> {node.title} ({node.estimated_effort}h)")
         
         print(f"\nParallel Opportunities:")
         for i, group in enumerate(plan.dependency_graph.parallel_groups, 1):

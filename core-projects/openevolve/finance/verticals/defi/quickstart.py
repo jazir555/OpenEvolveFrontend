@@ -54,10 +54,10 @@ async def quickstart():
 
     # Key metrics
     print(f"\nKey Metrics:")
-    print(f"  ✓ Capital Efficiency: {result.capital_efficiency:.2%}")
-    print(f"  ✓ Risk Score: {result.validation.risk_score:.1f}/100 (lower is better)")
-    print(f"  ✓ Attack Survival: {sum(result.attack_survival.values())}/{len(result.attack_survival)} scenarios")
-    print(f"  ✓ Historical Events: Survived {result.historical_performance.total_events} events")
+    print(f"  [OK] Capital Efficiency: {result.capital_efficiency:.2%}")
+    print(f"  [OK] Risk Score: {result.validation.risk_score:.1f}/100 (lower is better)")
+    print(f"  [OK] Attack Survival: {sum(result.attack_survival.values())}/{len(result.attack_survival)} scenarios")
+    print(f"  [OK] Historical Events: Survived {result.historical_performance.total_events} events")
 
     # Optimal parameters
     print(f"\nOptimal Parameters:")
@@ -73,14 +73,14 @@ async def quickstart():
     # Recommendations
     print(f"\nRecommendations:")
     if result.validation.risk_score < 30:
-        print(f"  ✓ Excellent security profile - parameters are conservative")
+        print(f"  [OK] Excellent security profile - parameters are conservative")
     elif result.validation.risk_score < 50:
         print(f"  ! Good security profile - monitor in production")
     else:
         print(f"  ⚠ Moderate risk - consider tightening parameters")
 
     if result.capital_efficiency > 0.75:
-        print(f"  ✓ High capital efficiency - good utilization")
+        print(f"  [OK] High capital efficiency - good utilization")
     elif result.capital_efficiency > 0.60:
         print(f"  ! Moderate capital efficiency - acceptable")
     else:

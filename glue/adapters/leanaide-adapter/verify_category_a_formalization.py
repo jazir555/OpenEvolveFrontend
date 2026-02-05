@@ -36,18 +36,18 @@ def verify_autoformalization_pipeline():
     pipeline_path = Path(__file__).parent / 'src' / 'autoformalization_pipeline.py'
 
     if not pipeline_path.exists():
-        print(f"   ❌ Autoformalization pipeline not found: {pipeline_path}")
+        print(f"   [FAIL] Autoformalization pipeline not found: {pipeline_path}")
         return False
 
-    print(f"   ✅ Autoformalization pipeline found: {pipeline_path}")
+    print(f"   [OK] Autoformalization pipeline found: {pipeline_path}")
 
     # Try to import
     try:
         from autoformalization_pipeline import AutoformalizationPipeline, AutoformalizationConfig
-        print("   ✅ Autoformalization pipeline imports successfully")
+        print("   [OK] Autoformalization pipeline imports successfully")
         return True
     except Exception as e:
-        print(f"   ❌ Failed to import autoformalization pipeline: {e}")
+        print(f"   [FAIL] Failed to import autoformalization pipeline: {e}")
         return False
 
 def verify_lean4_file():
@@ -57,20 +57,20 @@ def verify_lean4_file():
     lean4_file = Path(__file__).parent.parent.parent / 'lib' / 'lean4_bridge' / 'lean4' / 'CategoryAConstraints.lean'
 
     if not lean4_file.exists():
-        print(f"   ❌ Lean 4 file not found: {lean4_file}")
+        print(f"   [FAIL] Lean 4 file not found: {lean4_file}")
         return False
 
-    print(f"   ✅ Lean 4 file found: {lean4_file}")
+    print(f"   [OK] Lean 4 file found: {lean4_file}")
 
     # Check content
     with open(lean4_file, 'r', encoding='utf-8') as f:
         content = f.read()
 
     if len(content) == 0:
-        print("   ❌ Lean 4 file is empty")
+        print("   [FAIL] Lean 4 file is empty")
         return False
 
-    print(f"   ✅ Lean 4 file has content ({len(content)} bytes)")
+    print(f"   [OK] Lean 4 file has content ({len(content)} bytes)")
 
     # Check for required elements
     required_elements = [
@@ -81,9 +81,9 @@ def verify_lean4_file():
 
     for element, name in required_elements:
         if element in content:
-            print(f"   ✅ Contains {name}")
+            print(f"   [OK] Contains {name}")
         else:
-            print(f"   ❌ Missing {name}")
+            print(f"   [FAIL] Missing {name}")
             return False
 
     return True
@@ -100,7 +100,7 @@ def count_theorems():
     # Count theorem declarations
     theorem_count = content.count("theorem ")
 
-    print(f"   ✅ Found {theorem_count} theorem declarations")
+    print(f"   [OK] Found {theorem_count} theorem declarations")
 
     return theorem_count
 
@@ -116,22 +116,22 @@ def run_pipeline_test():
 
         result = pipeline.run(correlation_id="verification-test")
 
-        print(f"   ✅ Pipeline executed successfully")
+        print(f"   [OK] Pipeline executed successfully")
         print(f"   Total constraints: {result.total_constraints}")
         print(f"   Formalized: {result.formalized_count}")
         print(f"   Proofs complete: {result.proof_complete_count}")
         print(f"   Coverage: {result.coverage_percentage}%")
 
         if result.coverage_percentage < 100.0:
-            print(f"   ⚠️  Coverage below 100%: {result.coverage_percentage}%")
+            print(f"   [WARN]  Coverage below 100%: {result.coverage_percentage}%")
             return False
 
-        print(f"   ✅ 100% coverage achieved")
+        print(f"   [OK] 100% coverage achieved")
 
         return True
 
     except Exception as e:
-        print(f"   ❌ Pipeline test failed: {e}")
+        print(f"   [FAIL] Pipeline test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -143,7 +143,7 @@ def verify_phase1_integration():
     phase1_file = Path(__file__).parent.parent / 'adapters' / 'rese-phase1' / 'src' / 'phase1_executor.py'
 
     if not phase1_file.exists():
-        print(f"   ⚠️  Phase I executor not found: {phase1_file}")
+        print(f"   [WARN]  Phase I executor not found: {phase1_file}")
         return True  # Not critical for verification
 
     with open(phase1_file, 'r') as f:
@@ -151,15 +151,15 @@ def verify_phase1_integration():
 
     # Check for Lean 4 integration
     if "lean4_formalizer" in content:
-        print(f"   ✅ Phase I executor has Lean 4 integration")
+        print(f"   [OK] Phase I executor has Lean 4 integration")
     else:
-        print(f"   ⚠️  Phase I executor missing Lean 4 integration")
+        print(f"   [WARN]  Phase I executor missing Lean 4 integration")
         return True  # Not critical
 
     if "AutoformalizationPipeline" in content:
-        print(f"   ✅ Phase I executor imports AutoformalizationPipeline")
+        print(f"   [OK] Phase I executor imports AutoformalizationPipeline")
     else:
-        print(f"   ⚠️  Phase I executor missing AutoformalizationPipeline import")
+        print(f"   [WARN]  Phase I executor missing AutoformalizationPipeline import")
 
     return True
 
@@ -169,24 +169,24 @@ def generate_summary():
     print("CATEGORY A CONSTRAINT FORMALIZATION SUMMARY")
     print("="*60)
 
-    print("\n✅ Implementation Status: COMPLETE")
+    print("\n[OK] Implementation Status: COMPLETE")
 
     print("\nDeliverables:")
-    print("  ✅ Automated formalization pipeline")
+    print("  [OK] Automated formalization pipeline")
     print("     - Location: glue/adapters/leanaide-adapter/src/autoformalization_pipeline.py")
-    print("  ✅ Category A constraints in Lean 4")
+    print("  [OK] Category A constraints in Lean 4")
     print("     - Location: glue/lib/lean4_bridge/lean4/CategoryAConstraints.lean")
-    print("  ✅ Verification suite")
+    print("  [OK] Verification suite")
     print("     - Location: glue/adapters/leanaide-adapter/tests/test_formalization_coverage.py")
-    print("  ✅ Integration with Phase I")
+    print("  [OK] Integration with Phase I")
     print("     - Location: glue/adapters/rese-phase1/src/phase1_executor.py")
-    print("  ✅ Comprehensive documentation")
+    print("  [OK] Comprehensive documentation")
     print("     - Location: glue/adapters/leanaide-adapter/ADR_CATEGORY_A_FORMALIZATION.md")
 
     print("\nCoverage:")
-    print("  ✅ 100% of Category A constraints formalized")
-    print("  ✅ All constraints have machine-verified proofs")
-    print("  ✅ Automated pipeline functional")
+    print("  [OK] 100% of Category A constraints formalized")
+    print("  [OK] All constraints have machine-verified proofs")
+    print("  [OK] Automated pipeline functional")
 
     print("\nConstraints Formalized:")
     constraints = [
@@ -201,17 +201,17 @@ def generate_summary():
     ]
 
     for constraint_id, description in constraints:
-        print(f"  ✅ {constraint_id:25} : {description}")
+        print(f"  [OK] {constraint_id:25} : {description}")
 
     print("\nAcceptance Criteria:")
-    print("  ✅ 100% of Category A constraints formalized in Lean 4")
-    print("  ✅ All constraints have machine-verified proofs")
-    print("  ✅ Automated pipeline functional")
-    print("  ✅ Coverage report shows 100%")
-    print("  ✅ Integration with Phase I working")
+    print("  [OK] 100% of Category A constraints formalized in Lean 4")
+    print("  [OK] All constraints have machine-verified proofs")
+    print("  [OK] Automated pipeline functional")
+    print("  [OK] Coverage report shows 100%")
+    print("  [OK] Integration with Phase I working")
 
     print("\n" + "="*60)
-    print("✅ ALL ACCEPTANCE CRITERIA MET")
+    print("[OK] ALL ACCEPTANCE CRITERIA MET")
     print("="*60)
 
 def main():
@@ -234,10 +234,10 @@ def main():
 
     # Exit with status code
     if all(checks):
-        print("\n✅ VERIFICATION SUCCESSFUL\n")
+        print("\n[OK] VERIFICATION SUCCESSFUL\n")
         return 0
     else:
-        print("\n❌ VERIFICATION FAILED\n")
+        print("\n[FAIL] VERIFICATION FAILED\n")
         return 1
 
 if __name__ == '__main__':

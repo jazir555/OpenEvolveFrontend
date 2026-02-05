@@ -211,8 +211,8 @@ class ODEPDETranslator:
 
             # Function types
             "function": "fun",
-            "real_function": "Real → Real",
-            "real_vector": "Fin n → Real",
+            "real_function": "Real -> Real",
+            "real_vector": "Fin n -> Real",
 
             # Mathematical objects
             "derivative": "deriv",
@@ -485,25 +485,25 @@ class ODEPDETranslator:
             code = f'''variable {{R : Type}} [Real R]
 
 /-- The ODE: {eq_structure.equation} -/
-def {def_name} (f : R → R) : Prop :=
+def {def_name} (f : R -> R) : Prop :=
   ∀ x, deriv f x + f x = 0
 
 /-- The ODE solution space -/
-def {def_name}_solution_set : Set (R → R) :=
+def {def_name}_solution_set : Set (R -> R) :=
   {{ f | {def_name} f }}
 '''
         else:
             code = f'''variable {{R : Type}} [Real R]
 
 /-- The ODE: {eq_structure.equation} -/
-def {def_name} (f : R → R) : Prop :=
-  ∃ (F : R → R → R),
+def {def_name} (f : R -> R) : Prop :=
+  ∃ (F : R -> R -> R),
     (∀ x, deriv f x = F x (f x)) ∧
     Continuous F ∧
     ∀ x, Continuous fun y => F x y
 
 /-- Solutions to the ODE -/
-def {def_name}_solution (f : R → R) : Prop :=
+def {def_name}_solution (f : R -> R) : Prop :=
   {def_name} f ∧
   ∃ x₀, deriv f x₀ = {eq_structure.equation.split('=')[1].strip() if '=' in eq_structure.equation else '0'}
 '''
@@ -528,7 +528,7 @@ def {def_name}_solution (f : R → R) : Prop :=
         if solution_type == SolutionType.EXISTENCE:
             code = f'''/-- Existence of solution to the IVP -/
 theorem {thm_name}_exists
-    (f : R → R)
+    (f : R -> R)
     (x₀ y₀ : R)
     (hf : Continuous f)
     : ∃ y, {var_name}_ode y ∧ y x₀ = y₀ :=
@@ -540,7 +540,7 @@ theorem {thm_name}_exists
         elif solution_type == SolutionType.UNIQUENESS:
             code = f'''/-- Uniqueness of solution to the IVP -/
 theorem {thm_name}_unique
-    (y₁ y₂ : R → R)
+    (y₁ y₂ : R -> R)
     (x₀ y₀ : R)
     (h₁ : {var_name}_ode y₁ ∧ y₁ x₀ = y₀)
     (h₂ : {var_name}_ode y₂ ∧ y₂ x₀ = y₀)
@@ -553,10 +553,10 @@ theorem {thm_name}_unique
         else:  # EXISTENCE_UNIQUENESS
             code = f'''/-- Existence and uniqueness of solution to the IVP -/
 theorem {thm_name}_exists_unique
-    (f : R → R)
+    (f : R -> R)
     (x₀ y₀ : R)
     (hf : Continuous f ∧ Lipschitz f)
-    : ∃! y : R → R, {var_name}_ode y ∧ y x₀ = y₀ :=
+    : ∃! y : R -> R, {var_name}_ode y ∧ y x₀ = y₀ :=
   by
     -- Apply Picard-Lindelöf theorem for existence and uniqueness
     have h_exists := picard_lindelof f x₀ y₀ hf.1
@@ -661,9 +661,9 @@ Tactics to use:
 theorem {thm_name}_exists
     (a b : R)
     (α β : R)
-    (f : R → R → R)
+    (f : R -> R -> R)
     (hf : Continuous fun xy => f xy.1 xy.2)
-    : ∃ y : R → R,
+    : ∃ y : R -> R,
         {var_name}_ode y ∧
         y a = α ∧
         y b = β :=
@@ -842,12 +842,12 @@ Tactics to use:
         code = f'''variable {{R : Type}} [Real R]
 
 /-- The PDE: {eq_structure.equation} -/
-def {def_name} (u : Fin 2 → R → R) : Prop :=
+def {def_name} (u : Fin 2 -> R -> R) : Prop :=
   ∀ (i : Fin 2) (x : R),
     fderiv R (fun t => u i t) x = ...  -- Formal definition of PDE
 
 /-- The PDE as a differential operator -/
-def {def_name}_operator (u : Fin 2 → R → R) : Fin 2 → R → R :=
+def {def_name}_operator (u : Fin 2 -> R -> R) : Fin 2 -> R -> R :=
   fun i x =>
     fderiv R (fun t => u i t) x - ...  -- L[u] = 0 form
 '''
@@ -887,9 +887,9 @@ def {def_name}_operator (u : Fin 2 → R → R) : Fin 2 → R → R :=
         code = f'''/-- Solution to the heat equation -/
 theorem heat_equation_solution
     (α : R) [hα : 0 < α]
-    (f : R → R)
+    (f : R -> R)
     (hf : Continuous f)
-    : ∃ u : R → R → R,
+    : ∃ u : R -> R -> R,
         (∀ x t, ∂u/∂t = α · ∂²u/∂x²) ∧
         (∀ x, u x 0 = f x) ∧
         Continuous u :=
@@ -914,10 +914,10 @@ theorem heat_equation_solution
         code = f'''/-- Solution to the wave equation -/
 theorem wave_equation_solution
     (c : R) [hc : 0 < c]
-    (f g : R → R)
+    (f g : R -> R)
     (hf : Continuous f)
     (hg : Continuous g)
-    : ∃ u : R → R → R,
+    : ∃ u : R -> R -> R,
         (∀ x t, ∂²u/∂t² = c² · ∂²u/∂x²) ∧
         (∀ x, u x 0 = f x) ∧
         (∀ x, ∂u/∂t x 0 = g x) ∧
@@ -942,10 +942,10 @@ theorem wave_equation_solution
 
         code = f'''/-- Solution to Laplace equation -/
 theorem laplace_equation_solution
-    (Ω : Set (Fin 2 → R))
-    (g : ∂Ω → R)
+    (Ω : Set (Fin 2 -> R))
+    (g : ∂Ω -> R)
     (hg : Continuous g)
-    : ∃ u : Fin 2 → R → R,
+    : ∃ u : Fin 2 -> R -> R,
         (∀ x ∈ Ω, ∇²u x = 0) ∧
         (∀ x ∈ ∂Ω, u x = g x) ∧
         Continuous u :=
@@ -972,10 +972,10 @@ theorem laplace_equation_solution
 
         code = f'''/-- Existence of solution to the PDE -/
 theorem {thm_name}_exists
-    (f : Fin 2 → R → R)
-    (g : ∂Ω → R)
+    (f : Fin 2 -> R -> R)
+    (g : ∂Ω -> R)
     (hg : Continuous g)
-    : ∃ u : Fin 2 → R → R,
+    : ∃ u : Fin 2 -> R -> R,
         {var_name}_pde u ∧
         (∀ x ∈ ∂Ω, u x = g x) ∧
         Continuous u :=
@@ -1046,14 +1046,14 @@ Tactics to use:
         """Translate a DAE to Lean 4"""
 
         code = f'''/-- Differential-Algebraic Equation -/
-def dae_system (x y : R → R) : Prop :=
-  ∃ (F G : R → R → R),
+def dae_system (x y : R -> R) : Prop :=
+  ∃ (F G : R -> R -> R),
     (∀ t, deriv x t = F t (x t) (y t)) ∧  -- Differential equation
     (∀ t, G t (x t) (y t) = 0) ∧           -- Algebraic constraint
     Continuous F ∧ Continuous G
 
 theorem dae_solution_exists
-    (F G : R → R → R)
+    (F G : R -> R -> R)
     (hF : Continuous F)
     (hG : Continuous G)
     (h_index : index_1_dae G)
@@ -1089,12 +1089,12 @@ theorem dae_solution_exists
 
         code = f'''/-- Stochastic Differential Equation -/
 structure SDE where
-  drift : R → R → R        -- μ(x, t)
-  diffusion : R → R → R    -- σ(x, t)
+  drift : R -> R -> R        -- μ(x, t)
+  diffusion : R -> R -> R    -- σ(x, t)
   initial_condition : R
 
 /-- Solution to SDE: dX = μ(X,t)dt + σ(X,t)dW -/
-def sde_solution (sde : SDE) (X : R → R) : Prop :=
+def sde_solution (sde : SDE) (X : R -> R) : Prop :=
   ∃ (W : BrownianMotion),
     ∀ t,
       X t = sde.initial_condition +

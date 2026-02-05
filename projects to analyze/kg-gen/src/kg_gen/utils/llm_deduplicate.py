@@ -231,10 +231,10 @@ class LLMDeduplicate:
 
             if len(duplicates) > 0:
                 self.logger.debug(
-                    "  ✓ Found %s duplicates for '%s'", len(duplicates), item
+                    "  [OK] Found %s duplicates for '%s'", len(duplicates), item
                 )
                 self.logger.info(
-                    "  → Using alias '%s' to represent: '%s' and %s",
+                    "  -> Using alias '%s' to represent: '%s' and %s",
                     result.alias,
                     item,
                     duplicates,
@@ -245,7 +245,7 @@ class LLMDeduplicate:
                     item_clusters[result.alias].add(duplicate)
             else:
                 self.logger.debug(
-                    "  ✗ No duplicates found for '%s', keeping as is", item
+                    "  [FAIL] No duplicates found for '%s', keeping as is", item
                 )
                 item_clusters[item] = {item}
 

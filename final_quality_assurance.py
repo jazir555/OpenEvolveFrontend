@@ -68,12 +68,12 @@ class QualityAssuranceSuite:
                 if spec and spec.loader:
                     module = importlib.util.module_from_spec(spec)
                     spec.loader.exec_module(module)
-                    print(f"✅ {module_name}: Import successful")
+                    print(f"[OK] {module_name}: Import successful")
                     self.results["import_tests"]["passed"] += 1
                 else:
                     raise ImportError(f"Could not create spec for {module_name}")
             except (ImportError, SyntaxError, OSError) as e:
-                print(f"❌ {module_name}: Import failed - {e}")
+                print(f"[FAIL] {module_name}: Import failed - {e}")
                 self.results["import_tests"]["failed"] += 1
                 self.results["import_tests"]["errors"].append({
                     "module": module_name,
@@ -99,9 +99,9 @@ class QualityAssuranceSuite:
                 ast.parse(source)
                 checked += 1
                 if checked <= 10:  # Show first 10
-                    print(f"✅ {filepath.name}: Valid syntax")
+                    print(f"[OK] {filepath.name}: Valid syntax")
             except SyntaxError as e:
-                print(f"❌ {filepath.name}: Syntax error at line {e.lineno}")
+                print(f"[FAIL] {filepath.name}: Syntax error at line {e.lineno}")
                 self.results["syntax_tests"]["failed"] += 1
                 self.results["syntax_tests"]["errors"].append({
                     "file": str(filepath),
@@ -109,7 +109,7 @@ class QualityAssuranceSuite:
                     "line": e.lineno
                 })
             except (OSError, IOError, UnicodeDecodeError) as e:
-                print(f"⚠️  {filepath.name}: Read error - {e}")
+                print(f"[WARN]  {filepath.name}: Read error - {e}")
                 self.results["syntax_tests"]["failed"] += 1
 
         self.results["syntax_tests"]["passed"] = checked
@@ -128,48 +128,48 @@ class QualityAssuranceSuite:
 
             # Test basic access
             config = get_config()
-            print("✅ get_config(): Works")
+            print("[OK] get_config(): Works")
 
             # Test parameter access
             try:
                 value = config.get("evolution.population_size")
-                print(f"✅ Parameter access: evolution.population_size = {value}")
+                print(f"[OK] Parameter access: evolution.population_size = {value}")
                 self.results["compatibility_tests"]["passed"] += 1
             except (AttributeError, KeyError, TypeError) as e:
-                print(f"❌ Parameter access failed: {e}")
+                print(f"[FAIL] Parameter access failed: {e}")
                 self.results["compatibility_tests"]["failed"] += 1
 
             # Test fallback
             try:
                 value = config.get("nonexistent.parameter", default=42)
-                print(f"✅ Fallback value: nonexistent.parameter = {value}")
+                print(f"[OK] Fallback value: nonexistent.parameter = {value}")
                 self.results["compatibility_tests"]["passed"] += 1
             except (AttributeError, KeyError, TypeError) as e:
-                print(f"❌ Fallback failed: {e}")
+                print(f"[FAIL] Fallback failed: {e}")
                 self.results["compatibility_tests"]["failed"] += 1
 
             # Test evolution adapter
             try:
                 from evolution_adapter import EvolutionConfig
                 evo_config = EvolutionConfig()
-                print("✅ EvolutionConfig: Works")
+                print("[OK] EvolutionConfig: Works")
                 self.results["compatibility_tests"]["passed"] += 1
             except (AttributeError, ImportError, TypeError) as e:
-                print(f"❌ EvolutionConfig failed: {e}")
+                print(f"[FAIL] EvolutionConfig failed: {e}")
                 self.results["compatibility_tests"]["failed"] += 1
 
             # Test adversarial adapter
             try:
                 from adversarial_adapter import AdversarialConfig
                 adv_config = AdversarialConfig()
-                print("✅ AdversarialConfig: Works")
+                print("[OK] AdversarialConfig: Works")
                 self.results["compatibility_tests"]["passed"] += 1
             except (AttributeError, ImportError, TypeError) as e:
-                print(f"❌ AdversarialConfig failed: {e}")
+                print(f"[FAIL] AdversarialConfig failed: {e}")
                 self.results["compatibility_tests"]["failed"] += 1
 
         except ImportError as e:
-            print(f"❌ Import failed: {e}")
+            print(f"[FAIL] Import failed: {e}")
             self.results["compatibility_tests"]["failed"] += 1
             self.results["compatibility_tests"]["errors"].append({
                 "test": "import",
@@ -229,21 +229,21 @@ class QualityAssuranceSuite:
 
             # Performance verdict
             if avg_load_time < 100:
-                print(f"✅ Load time: EXCELLENT ({avg_load_time:.2f}ms < 100ms)")
+                print(f"[OK] Load time: EXCELLENT ({avg_load_time:.2f}ms < 100ms)")
             elif avg_load_time < 200:
-                print(f"✅ Load time: GOOD ({avg_load_time:.2f}ms < 200ms)")
+                print(f"[OK] Load time: GOOD ({avg_load_time:.2f}ms < 200ms)")
             else:
-                print(f"⚠️  Load time: ACCEPTABLE ({avg_load_time:.2f}ms)")
+                print(f"[WARN]  Load time: ACCEPTABLE ({avg_load_time:.2f}ms)")
 
             if avg_access_time < 2:
-                print(f"✅ Access time: EXCELLENT ({avg_access_time:.2f}μs < 2μs)")
+                print(f"[OK] Access time: EXCELLENT ({avg_access_time:.2f}μs < 2μs)")
             elif avg_access_time < 5:
-                print(f"✅ Access time: GOOD ({avg_access_time:.2f}μs < 5μs)")
+                print(f"[OK] Access time: GOOD ({avg_access_time:.2f}μs < 5μs)")
             else:
-                print(f"⚠️  Access time: ACCEPTABLE ({avg_access_time:.2f}μs)")
+                print(f"[WARN]  Access time: ACCEPTABLE ({avg_access_time:.2f}μs)")
 
         except (RuntimeError, OSError, ValueError) as e:
-            print(f"❌ Performance testing failed: {e}")
+            print(f"[FAIL] Performance testing failed: {e}")
             self.results["performance_tests"]["errors"] = str(e)
 
         print()
@@ -262,10 +262,10 @@ class QualityAssuranceSuite:
                     AdversarialConfig,
                     get_config
                 )
-                print("✅ Unified imports: Working")
+                print("[OK] Unified imports: Working")
                 self.results["integration_tests"]["passed"] += 1
             except (ImportError, AttributeError, TypeError) as e:
-                print(f"❌ Unified imports failed: {e}")
+                print(f"[FAIL] Unified imports failed: {e}")
                 self.results["integration_tests"]["failed"] += 1
 
             # Test cross-adapter compatibility
@@ -275,10 +275,10 @@ class QualityAssuranceSuite:
                 adv_config = AdversarialConfig()
 
                 # All should share the same underlying data
-                print("✅ Cross-adapter compatibility: Working")
+                print("[OK] Cross-adapter compatibility: Working")
                 self.results["integration_tests"]["passed"] += 1
             except (AttributeError, TypeError, RuntimeError) as e:
-                print(f"❌ Cross-adapter compatibility failed: {e}")
+                print(f"[FAIL] Cross-adapter compatibility failed: {e}")
                 self.results["integration_tests"]["failed"] += 1
 
             # Test validation
@@ -287,20 +287,20 @@ class QualityAssuranceSuite:
 
                 # Validate evolution config
                 evolution_valid, evo_errors = validate_schema("evolution")
-                print(f"✅ Evolution schema validation: {'VALID' if evolution_valid else 'INVALID'}")
+                print(f"[OK] Evolution schema validation: {'VALID' if evolution_valid else 'INVALID'}")
                 self.results["integration_tests"]["passed"] += 1
 
                 # Validate adversarial config
                 adversarial_valid, adv_errors = validate_schema("adversarial")
-                print(f"✅ Adversarial schema validation: {'VALID' if adversarial_valid else 'INVALID'}")
+                print(f"[OK] Adversarial schema validation: {'VALID' if adversarial_valid else 'INVALID'}")
                 self.results["integration_tests"]["passed"] += 1
 
             except (ValueError, TypeError, AttributeError) as e:
-                print(f"❌ Validation failed: {e}")
+                print(f"[FAIL] Validation failed: {e}")
                 self.results["integration_tests"]["failed"] += 1
 
         except (RuntimeError, ImportError, AttributeError) as e:
-            print(f"❌ Integration testing failed: {e}")
+            print(f"[FAIL] Integration testing failed: {e}")
             self.results["integration_tests"]["errors"].append({
                 "test": "integration",
                 "error": str(e)
@@ -385,19 +385,19 @@ class QualityAssuranceSuite:
             print()
 
             if pass_rate >= 99:
-                print("✅ QUALITY ASSURANCE: EXCELLENT")
-                print("✅ Ready for production deployment")
+                print("[OK] QUALITY ASSURANCE: EXCELLENT")
+                print("[OK] Ready for production deployment")
             elif pass_rate >= 95:
-                print("✅ QUALITY ASSURANCE: VERY GOOD")
-                print("✅ Ready for production deployment with monitoring")
+                print("[OK] QUALITY ASSURANCE: VERY GOOD")
+                print("[OK] Ready for production deployment with monitoring")
             elif pass_rate >= 90:
-                print("⚠️  QUALITY ASSURANCE: GOOD")
-                print("⚠️  Minor issues should be addressed before production")
+                print("[WARN]  QUALITY ASSURANCE: GOOD")
+                print("[WARN]  Minor issues should be addressed before production")
             else:
-                print("❌ QUALITY ASSURANCE: NEEDS IMPROVEMENT")
-                print("❌ Significant issues must be resolved")
+                print("[FAIL] QUALITY ASSURANCE: NEEDS IMPROVEMENT")
+                print("[FAIL] Significant issues must be resolved")
         else:
-            print("⚠️  No tests were run")
+            print("[WARN]  No tests were run")
 
         print("=" * 80)
 

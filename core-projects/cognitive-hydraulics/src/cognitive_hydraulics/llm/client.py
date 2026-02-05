@@ -165,19 +165,19 @@ class LLMClient:
             except asyncio.TimeoutError:
                 if attempt < max_retries:
                     if verbose:
-                        print(f"   ⚠️  Attempt {attempt + 1} timed out, retrying...")
+                        print(f"   [WARN]  Attempt {attempt + 1} timed out, retrying...")
                     continue
                 if verbose:
-                    print(f"   ✗ LLM query timed out after {max_retries + 1} attempts")
+                    print(f"   [FAIL] LLM query timed out after {max_retries + 1} attempts")
                 return None
             except Exception as e:
                 if attempt < max_retries:
                     if verbose:
-                        print(f"   ⚠️  Attempt {attempt + 1} failed: {e}, retrying...")
+                        print(f"   [WARN]  Attempt {attempt + 1} failed: {e}, retrying...")
                     continue
                 # Return None on final failure rather than crashing
                 if verbose:
-                    print(f"   ✗ LLM query failed after {max_retries + 1} attempts: {e}")
+                    print(f"   [FAIL] LLM query failed after {max_retries + 1} attempts: {e}")
                 return None
 
         return None

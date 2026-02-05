@@ -162,23 +162,23 @@ class TestSystemIntegration:
 
     def test_phase_completion_markers(self):
         """Test that all implemented phases are accessible."""
-        # Phase 0: Bootstrap ✓
+        # Phase 0: Bootstrap [OK]
         from cognitive_hydraulics import __version__
 
-        # Phase 1: Core Models ✓
+        # Phase 1: Core Models [OK]
         from cognitive_hydraulics.core import EditorState, Goal, WorkingMemory
 
-        # Phase 2: Tree-sitter Integration ✓
+        # Phase 2: Tree-sitter Integration [OK]
         from cognitive_hydraulics.utils import CodeAnalyzer, ContextWindowManager
 
-        # Phase 3: Soar Decision Engine ✓
+        # Phase 3: Soar Decision Engine [OK]
         from cognitive_hydraulics.engine import (
             RuleEngine,
             MetaCognitiveMonitor,
             ImpasseDetector,
         )
 
-        # Phase 4: LLM Integration ✓
+        # Phase 4: LLM Integration [OK]
         from cognitive_hydraulics.llm import LLMClient, UtilityEvaluation
         from cognitive_hydraulics.engine import ACTRResolver
 

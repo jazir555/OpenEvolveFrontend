@@ -70,10 +70,10 @@ class TestCallEngineCoercionInChain:
 
     @pytest.mark.skipif(not has_umap, reason="requires umap feature dependencies")
     def test_call_in_chain_pandas_to_pandas(self):
-        """Test call(umap) in chain with pandas→pandas (no coercion needed)."""
+        """Test call(umap) in chain with pandas->pandas (no coercion needed)."""
         g = make_test_graph_pandas()
 
-        # Chain with UMAP call - UMAP picks umap-learn on CPU → pandas
+        # Chain with UMAP call - UMAP picks umap-learn on CPU -> pandas
         result = g.chain([
             n({}),
             call('umap', {'n_components': 2, 'n_neighbors': 3, 'umap_kwargs': {'random_state': 42, 'n_epochs': 3}, 'engine': 'auto'}),
@@ -87,10 +87,10 @@ class TestCallEngineCoercionInChain:
     @skip_gpu
     @pytest.mark.skipif(not has_umap, reason="requires umap feature dependencies")
     def test_call_in_chain_pandas_to_cudf(self):
-        """Test call(umap) in chain with pandas→cuDF coercion."""
+        """Test call(umap) in chain with pandas->cuDF coercion."""
         g = make_test_graph_pandas()
 
-        # Chain with UMAP call - UMAP picks umap-learn → pandas, but chain wants cuDF
+        # Chain with UMAP call - UMAP picks umap-learn -> pandas, but chain wants cuDF
         result = g.chain([
             n({}),
             call('umap', {'n_components': 2, 'n_neighbors': 3, 'umap_kwargs': {'random_state': 42, 'n_epochs': 3}, 'engine': 'auto'}),
@@ -104,10 +104,10 @@ class TestCallEngineCoercionInChain:
     @skip_gpu
     @pytest.mark.skipif(not has_umap, reason="requires umap feature dependencies")
     def test_call_in_chain_cudf_to_pandas(self):
-        """Test call(umap) in chain with cuDF→pandas coercion."""
+        """Test call(umap) in chain with cuDF->pandas coercion."""
         g = make_test_graph_cudf()
 
-        # Chain with UMAP call - UMAP picks cuML → cuDF, but chain wants pandas
+        # Chain with UMAP call - UMAP picks cuML -> cuDF, but chain wants pandas
         result = g.chain([
             n({}),
             call('umap', {'n_components': 2, 'n_neighbors': 3, 'umap_kwargs': {'random_state': 42, 'n_epochs': 3}, 'engine': 'auto'}),
@@ -121,10 +121,10 @@ class TestCallEngineCoercionInChain:
     @skip_gpu
     @pytest.mark.skipif(not has_umap, reason="requires umap feature dependencies")
     def test_call_in_chain_cudf_to_cudf(self):
-        """Test call(umap) in chain with cuDF→cuDF (no coercion needed)."""
+        """Test call(umap) in chain with cuDF->cuDF (no coercion needed)."""
         g = make_test_graph_cudf()
 
-        # Chain with UMAP call - UMAP picks cuML → cuDF
+        # Chain with UMAP call - UMAP picks cuML -> cuDF
         result = g.chain([
             n({}),
             call('umap', {'n_components': 2, 'n_neighbors': 3, 'umap_kwargs': {'random_state': 42, 'n_epochs': 3}, 'engine': 'auto'}),
@@ -141,7 +141,7 @@ class TestCallEngineCoercionInLet:
 
     @pytest.mark.skipif(not has_umap, reason="requires umap feature dependencies")
     def test_call_in_let_pandas_to_pandas(self):
-        """Test call(umap) in let with pandas→pandas (no coercion needed)."""
+        """Test call(umap) in let with pandas->pandas (no coercion needed)."""
         g = make_test_graph_pandas()
 
         dag = ASTLet({
@@ -158,7 +158,7 @@ class TestCallEngineCoercionInLet:
     @skip_gpu
     @pytest.mark.skipif(not has_umap, reason="requires umap feature dependencies")
     def test_call_in_let_pandas_to_cudf(self):
-        """Test call(umap) in let with pandas→cuDF coercion."""
+        """Test call(umap) in let with pandas->cuDF coercion."""
         g = make_test_graph_pandas()
 
         dag = ASTLet({
@@ -175,7 +175,7 @@ class TestCallEngineCoercionInLet:
     @skip_gpu
     @pytest.mark.skipif(not has_umap, reason="requires umap feature dependencies")
     def test_call_in_let_cudf_to_pandas(self):
-        """Test call(umap) in let with cuDF→pandas coercion."""
+        """Test call(umap) in let with cuDF->pandas coercion."""
         g = make_test_graph_cudf()
 
         dag = ASTLet({
@@ -192,7 +192,7 @@ class TestCallEngineCoercionInLet:
     @skip_gpu
     @pytest.mark.skipif(not has_umap, reason="requires umap feature dependencies")
     def test_call_in_let_cudf_to_cudf(self):
-        """Test call(umap) in let with cuDF→cuDF (no coercion needed)."""
+        """Test call(umap) in let with cuDF->cuDF (no coercion needed)."""
         g = make_test_graph_cudf()
 
         dag = ASTLet({
@@ -216,7 +216,7 @@ class TestCallEngineCoercionExplicitEngines:
         """Test call(umap, engine='cuml') with pandas chain request (coercion)."""
         g = make_test_graph_pandas()
 
-        # UMAP with engine='cuml' → cuDF, but chain wants pandas
+        # UMAP with engine='cuml' -> cuDF, but chain wants pandas
         result = g.chain([
             n({}),
             call('umap', {'n_components': 2, 'n_neighbors': 3, 'umap_kwargs': {'random_state': 42, 'n_epochs': 3}, 'engine': 'cuml'}),
@@ -233,7 +233,7 @@ class TestCallEngineCoercionExplicitEngines:
         """Test call(umap, engine='cuml') with cuDF chain request (no coercion)."""
         g = make_test_graph_pandas()
 
-        # UMAP with engine='cuml' → cuDF, chain wants cuDF
+        # UMAP with engine='cuml' -> cuDF, chain wants cuDF
         result = g.chain([
             n({}),
             call('umap', {'n_components': 2, 'n_neighbors': 3, 'umap_kwargs': {'random_state': 42, 'n_epochs': 3}, 'engine': 'cuml'}),
@@ -249,7 +249,7 @@ class TestCallEngineCoercionExplicitEngines:
         """Test call(umap, engine='umap_learn') with pandas chain request (no coercion)."""
         g = make_test_graph_pandas()
 
-        # UMAP with engine='umap_learn' → pandas
+        # UMAP with engine='umap_learn' -> pandas
         result = g.chain([
             n({}),
             call('umap', {'n_components': 2, 'n_neighbors': 3, 'umap_kwargs': {'random_state': 42, 'n_epochs': 3}, 'engine': 'umap_learn'}),
@@ -266,7 +266,7 @@ class TestCallEngineCoercionExplicitEngines:
         """Test call(umap, engine='umap_learn') with cuDF chain request (coercion)."""
         g = make_test_graph_pandas()
 
-        # UMAP with engine='umap_learn' → pandas, but chain wants cuDF
+        # UMAP with engine='umap_learn' -> pandas, but chain wants cuDF
         result = g.chain([
             n({}),
             call('umap', {'n_components': 2, 'n_neighbors': 3, 'umap_kwargs': {'random_state': 42, 'n_epochs': 3}, 'engine': 'umap_learn'}),

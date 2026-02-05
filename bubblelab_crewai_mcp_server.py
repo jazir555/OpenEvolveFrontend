@@ -35,10 +35,10 @@ try:
     from crewai import Agent, Task, Crew
     from langchain_openai import ChatOpenAI
     CREWAI_AVAILABLE = True
-    logger.info("✅ CrewAI components loaded successfully")
+    logger.info("[OK] CrewAI components loaded successfully")
 except ImportError:
     CREWAI_AVAILABLE = False
-    logger.warning("⚠️ CrewAI not available - using mock implementation")
+    logger.warning("[WARN] CrewAI not available - using mock implementation")
 
 # Import our integration layer
 from crewai_integration_layer import get_crewai_service, CrewAIService

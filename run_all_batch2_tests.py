@@ -87,7 +87,7 @@ def main():
 
     print("\nIndividual Results:")
     for description, success, duration in results:
-        status = "✅ PASS" if success else "❌ FAIL"
+        status = "[OK] PASS" if success else "[FAIL] FAIL"
         print(f"  {description:30} {status} ({duration:.2f}s)")
 
         if success:

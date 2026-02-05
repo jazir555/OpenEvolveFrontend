@@ -60,7 +60,7 @@ def example_basic_theorem_proving():
     print("=" * 80)
 
     if not LEANAIDE_INTEGRATION_AVAILABLE:
-        print("❌ LeanAide integration not available")
+        print("[FAIL] LeanAide integration not available")
         return
 
     # Initialize bridge
@@ -82,11 +82,11 @@ def example_basic_theorem_proving():
     )
 
     if translation_result.success:
-        print(f"✅ Translation successful ({translation_result.execution_time:.2f}s)")
+        print(f"[OK] Translation successful ({translation_result.execution_time:.2f}s)")
         print(f"\nGenerated Lean code:")
         print(translation_result.data.get("lean_code", "N/A"))
     else:
-        print(f"❌ Translation failed: {translation_result.error}")
+        print(f"[FAIL] Translation failed: {translation_result.error}")
         return
 
     # Step 2: Generate proof
@@ -97,7 +97,7 @@ def example_basic_theorem_proving():
     )
 
     if proof_result.success:
-        print(f"✅ Proof generated ({proof_result.execution_time:.2f}s)")
+        print(f"[OK] Proof generated ({proof_result.execution_time:.2f}s)")
         print(f"\nProof sketch:")
         proof_doc = proof_result.data.get("proof_document", "")
         print(proof_doc[:500] + "..." if len(proof_doc) > 500 else proof_doc)
@@ -106,11 +106,11 @@ def example_basic_theorem_proving():
             print(f"\nLean proof code:")
             print(proof_result.data["lean_proof"][:500] + "..." if len(proof_result.data["lean_proof"]) > 500 else proof_result.data["lean_proof"])
     else:
-        print(f"❌ Proof generation failed: {proof_result.error}")
+        print(f"[FAIL] Proof generation failed: {proof_result.error}")
 
     # Step 3: Verify if proof code exists
     if proof_result.success and proof_result.data.get("lean_proof"):
-        print("\n✅ Step 3: Verifying proof...")
+        print("\n[OK] Step 3: Verifying proof...")
         verify_result = bridge.execute_task(
             LeanAideTaskType.VERIFY_SOLUTION,
             code=proof_result.data["lean_proof"]
@@ -119,11 +119,11 @@ def example_basic_theorem_proving():
         if verify_result.success:
             is_valid = verify_result.data.get("is_valid", False)
             unproven = verify_result.data.get("unproven_count", 0)
-            print(f"✅ Verification complete ({verify_result.execution_time:.2f}s)")
+            print(f"[OK] Verification complete ({verify_result.execution_time:.2f}s)")
             print(f"   Valid: {is_valid}")
             print(f"   Unproven obligations: {unproven}")
         else:
-            print(f"❌ Verification failed: {verify_result.error}")
+            print(f"[FAIL] Verification failed: {verify_result.error}")
 
     print("\n" + "=" * 80)
 
@@ -149,7 +149,7 @@ def example_mcts_search():
     print("=" * 80)
 
     if not LEANAIDE_INTEGRATION_AVAILABLE or not MCTS_AVAILABLE:
-        print("❌ MCTS not available")
+        print("[FAIL] MCTS not available")
         return
 
     bridge = get_leanaide_bridge()
@@ -181,7 +181,7 @@ def example_mcts_search():
     )
 
     if result.success and result.visualization_data:
-        print(f"✅ MCTS search complete ({result.execution_time:.2f}s)")
+        print(f"[OK] MCTS search complete ({result.execution_time:.2f}s)")
 
         # Get tree visualization
         tree_id = result.visualization_data["tree_id"]
@@ -229,7 +229,7 @@ def example_mcts_search():
         print(f"   Access with: bridge.get_tree('{tree_id}')")
 
     else:
-        print(f"❌ MCTS search failed: {result.error}")
+        print(f"[FAIL] MCTS search failed: {result.error}")
 
     print("\n" + "=" * 80)
 
@@ -255,7 +255,7 @@ def example_interactive_verification():
     print("=" * 80)
 
     if not LEANAIDE_INTEGRATION_AVAILABLE:
-        print("❌ LeanAide integration not available")
+        print("[FAIL] LeanAide integration not available")
         return
 
     bridge = get_leanaide_bridge()
@@ -283,7 +283,7 @@ theorem add_assoc (a b c : Nat) : (a + b) + c = a + (b + c) := by
     )
 
     if elaborate_result.success:
-        print(f"✅ Elaboration successful ({elaborate_result.execution_time:.2f}s)")
+        print(f"[OK] Elaboration successful ({elaborate_result.execution_time:.2f}s)")
 
         declarations = elaborate_result.data.get("declarations", [])
         logs = elaborate_result.data.get("logs", [])
@@ -294,18 +294,18 @@ theorem add_assoc (a b c : Nat) : (a + b) + c = a + (b + c) := by
             print(f"   - {decl}")
 
         if sorries:
-            print(f"\n⚠️  Unsolved goals: {len(sorries)}")
+            print(f"\n[WARN]  Unsolved goals: {len(sorries)}")
             for sorry in sorries[:3]:  # Show first 3
                 print(f"   - {sorry}")
         else:
-            print(f"\n✅ All goals solved!")
+            print(f"\n[OK] All goals solved!")
 
     else:
-        print(f"❌ Elaboration failed: {elaborate_result.error}")
+        print(f"[FAIL] Elaboration failed: {elaborate_result.error}")
         return
 
     # Step 2: Full verification
-    print("\n✅ Step 2: Verifying correctness...")
+    print("\n[OK] Step 2: Verifying correctness...")
     verify_result = bridge.execute_task(
         LeanAideTaskType.VERIFY_SOLUTION,
         code=lean_code
@@ -315,17 +315,17 @@ theorem add_assoc (a b c : Nat) : (a + b) + c = a + (b + c) := by
         is_valid = verify_result.data.get("is_valid", False)
         unproven = verify_result.data.get("unproven_count", 0)
 
-        print(f"✅ Verification complete ({verify_result.execution_time:.2f}s)")
+        print(f"[OK] Verification complete ({verify_result.execution_time:.2f}s)")
         print(f"   Valid: {is_valid}")
         print(f"   Unproven obligations: {unproven}")
 
         if verify_result.data.get("errors"):
-            print(f"\n❌ Errors:")
+            print(f"\n[FAIL] Errors:")
             for error in verify_result.data["errors"][:3]:
                 print(f"   - {error}")
 
     else:
-        print(f"❌ Verification failed: {verify_result.error}")
+        print(f"[FAIL] Verification failed: {verify_result.error}")
 
     print("\n" + "=" * 80)
 
@@ -351,7 +351,7 @@ def example_math_queries():
     print("=" * 80)
 
     if not LEANAIDE_INTEGRATION_AVAILABLE:
-        print("❌ LeanAide integration not available")
+        print("[FAIL] LeanAide integration not available")
         return
 
     bridge = get_leanaide_bridge()
@@ -378,7 +378,7 @@ def example_math_queries():
         )
 
         if result.success:
-            print(f"✅ Received {result.data.get('num_answers', 0)} answers ({result.execution_time:.2f}s)")
+            print(f"[OK] Received {result.data.get('num_answers', 0)} answers ({result.execution_time:.2f}s)")
 
             answers = result.data.get("answers", [])
             for j, answer in enumerate(answers, 1):
@@ -394,7 +394,7 @@ def example_math_queries():
                 "execution_time": result.execution_time
             })
         else:
-            print(f"❌ Query failed: {result.error}")
+            print(f"[FAIL] Query failed: {result.error}")
             results.append({
                 "question": question,
                 "success": False,
@@ -439,7 +439,7 @@ def example_batch_processing():
     print("=" * 80)
 
     if not LEANAIDE_INTEGRATION_AVAILABLE:
-        print("❌ LeanAide integration not available")
+        print("[FAIL] LeanAide integration not available")
         return
 
     bridge = get_leanaide_bridge()
@@ -466,7 +466,7 @@ def example_batch_processing():
             theorem_name=name
         )
 
-        status = "✅" if result.success else "❌"
+        status = "[OK]" if result.success else "[FAIL]"
         print(f"   {status} {result.execution_time:.2f}s")
 
         if result.success:
@@ -499,7 +499,7 @@ def example_batch_processing():
 
     print(f"\n📋 Detailed Results:")
     for result in results:
-        status = "✅" if result["success"] else "❌"
+        status = "[OK]" if result["success"] else "[FAIL]"
         print(f"\n{status} {result['name']}")
         print(f"   Theorem: {result['theorem']}")
         print(f"   Time: {result['execution_time']:.2f}s")
@@ -531,7 +531,7 @@ def example_complete_workflow():
     print("=" * 80)
 
     if not LEANAIDE_INTEGRATION_AVAILABLE or not MCTS_AVAILABLE:
-        print("❌ Required components not available")
+        print("[FAIL] Required components not available")
         return
 
     bridge = get_leanaide_bridge()
@@ -552,10 +552,10 @@ def example_complete_workflow():
     )
 
     if translation.success:
-        print(f"✅ Translation complete ({translation.execution_time:.2f}s)")
+        print(f"[OK] Translation complete ({translation.execution_time:.2f}s)")
         print(f"   Code: {translation.data.get('lean_code', '')[:100]}...")
     else:
-        print(f"❌ Translation failed: {translation.error}")
+        print(f"[FAIL] Translation failed: {translation.error}")
         return
 
     # Step 2: MCTS Search
@@ -571,10 +571,10 @@ def example_complete_workflow():
     )
 
     if not mcts_result.success:
-        print(f"❌ MCTS search failed: {mcts_result.error}")
+        print(f"[FAIL] MCTS search failed: {mcts_result.error}")
         return
 
-    print(f"✅ MCTS search complete ({mcts_result.execution_time:.2f}s)")
+    print(f"[OK] MCTS search complete ({mcts_result.execution_time:.2f}s)")
 
     # Step 3: Analyze results
     tree_id = mcts_result.visualization_data["tree_id"]
@@ -617,8 +617,8 @@ def example_complete_workflow():
     # Step 6: Generate report
     print(f"\n📋 Final Report:")
     print(f"   Theorem: {theorem}")
-    print(f"   Translation: ✅ Success")
-    print(f"   MCTS Search: ✅ Success")
+    print(f"   Translation: [OK] Success")
+    print(f"   MCTS Search: [OK] Success")
     print(f"   Search iterations: {tree.iterations}")
     print(f"   Best win rate: {tree.statistics['win_rate']:.3f}")
     print(f"   Tree ID: {tree_id}")
@@ -645,17 +645,17 @@ def run_all_examples():
     print("BubbleLabs-LeanAide Integration Examples")
     print("=" * 80)
     print(f"\nAvailable components:")
-    print(f"   LeanAide Client: {'✅' if LEANAIDE_AVAILABLE else '❌'}")
-    print(f"   MCTS-MDAP: {'✅' if MCTS_AVAILABLE else '❌'}")
-    print(f"   MCP Tools: {'✅' if MDAP_AVAILABLE else '❌'}")
+    print(f"   LeanAide Client: {'[OK]' if LEANAIDE_AVAILABLE else '[FAIL]'}")
+    print(f"   MCTS-MDAP: {'[OK]' if MCTS_AVAILABLE else '[FAIL]'}")
+    print(f"   MCP Tools: {'[OK]' if MDAP_AVAILABLE else '[FAIL]'}")
 
     # Initialize
     if LEANAIDE_INTEGRATION_AVAILABLE:
         print("\n🔧 Initializing LeanAide integration...")
         status = initialize_leanaide_integration()
-        print(f"✅ Initialization complete")
+        print(f"[OK] Initialization complete")
     else:
-        print("\n❌ Cannot run examples - integration not available")
+        print("\n[FAIL] Cannot run examples - integration not available")
         return
 
     # Run examples
@@ -663,7 +663,7 @@ def run_all_examples():
         try:
             example_func()
         except Exception as e:  # TODO: Catch specific exception instead of Exception
-            print(f"\n❌ Example '{name}' failed with error: {e}")
+            print(f"\n[FAIL] Example '{name}' failed with error: {e}")
             logger.error(f"Example failed", exc_info=True)
 
     print("\n" + "=" * 80)

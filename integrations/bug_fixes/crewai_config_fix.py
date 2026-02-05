@@ -5,10 +5,10 @@ Fixes invalid paths in CrewAI config without modifying core files.
 Uses YAML override pattern to provide corrected configuration.
 
 Bug Fixed:
-- phases_folder: ./example_workflows/crackme_solving → ./example_workflows/prd_to_software
-- worktree_base: /tmp/crewai_worktrees → ./crewai_worktrees
-- project_root: /tmp/test_3gaur34 → .
-- main_repo_path: /tmp/test_3gaur34 → .
+- phases_folder: ./example_workflows/crackme_solving -> ./example_workflows/prd_to_software
+- worktree_base: /tmp/crewai_worktrees -> ./crewai_worktrees
+- project_root: /tmp/test_3gaur34 -> .
+- main_repo_path: /tmp/test_3gaur34 -> .
 
 Usage:
     from integrations.bug_fixes import CrewAIConfigOverride
@@ -38,7 +38,7 @@ class CrewAIConfigOverride:
     Uses override pattern to fix path issues in crewai_config.yaml.
     """
 
-    # Path corrections (core paths → fixed paths)
+    # Path corrections (core paths -> fixed paths)
     PATH_FIXES = {
         'phases_folder': './example_workflows/prd_to_software',
         'worktree_base': './crewai_worktrees',
@@ -119,7 +119,7 @@ class CrewAIConfigOverride:
                 if key in paths:
                     old_value = paths[key]
                     paths[key] = new_value
-                    logger.debug(f"Fixed path: paths.{key}: {old_value} → {new_value}")
+                    logger.debug(f"Fixed path: paths.{key}: {old_value} -> {new_value}")
 
         # Fix git section
         if 'git' in fixed_config:
@@ -128,7 +128,7 @@ class CrewAIConfigOverride:
                 if key in git:
                     old_value = git[key]
                     git[key] = new_value
-                    logger.debug(f"Fixed path: git.{key}: {old_value} → {new_value}")
+                    logger.debug(f"Fixed path: git.{key}: {old_value} -> {new_value}")
 
         # Ensure directories exist
         self._ensure_directories(fixed_config)

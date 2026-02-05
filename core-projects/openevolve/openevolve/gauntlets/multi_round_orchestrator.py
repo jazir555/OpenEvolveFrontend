@@ -1195,7 +1195,7 @@ Started: {state.started_at.strftime('%Y-%m-%d %H:%M:%S')} UTC
 {'-'*70}
 ROUND 1: LoongFlow AI Evaluation
 {'-'*70}
-✓ Completed
+[OK] Completed
 Score: {state.round1_normalized_score:.2%}
 Confidence: {state.round1_result.confidence:.2%}
 Time: {state.round_times.get(1, 0):.1f}s
@@ -1213,7 +1213,7 @@ Weaknesses ({len(state.round1_result.weaknesses)}):
 {'-'*70}
 ROUND 2: Red Team Adversarial Attack
 {'-'*70}
-✓ Completed
+[OK] Completed
 Score: {state.round2_normalized_score:.2%}
 Attacks: {state.round2_result.attacks_successful}/{state.round2_result.attacks_attempted} successful
 Robustness: {state.round2_result.robustness_score:.2%}
@@ -1229,10 +1229,10 @@ Vulnerabilities Found:
 {'-'*70}
 ROUND 3: Gold Team Consensus Verification
 {'-'*70}
-✓ Completed
+[OK] Completed
 Score: {state.round3_normalized_score:.2%}
 Consensus: {state.round3_result.consensus_score:.2%}
-Formal Verification: {'✓ PASSED' if state.round3_result.formal_verification_passed else '✗ FAILED'}
+Formal Verification: {'[OK] PASSED' if state.round3_result.formal_verification_passed else '[FAIL] FAILED'}
 Time: {state.round_times.get(3, 0):.1f}s
 Decision: {state.round3_decision.upper()}
 
@@ -1246,7 +1246,7 @@ Judge Scores: {[f'{s:.1f}' for s in state.round3_result.judge_scores]}
 FINAL RESULT
 {'='*70}
 Overall Score: {final_score:.2%}
-Status: {'✓ PASSED' if state.round3_decision == 'continue' else '✗ FAILED'}
+Status: {'[OK] PASSED' if state.round3_decision == 'continue' else '[FAIL] FAILED'}
 """
 
             # Get fused artifacts
@@ -1285,7 +1285,7 @@ Last Round: {state.current_round}
         """Format a list for pretty printing."""
         if not items:
             return f"{indent}(none)"
-        return '\n'.join(f"{indent}• {item}" for item in items)
+        return '\n'.join(f"{indent}* {item}" for item in items)
 
     def get_performance_metrics(self, state: GauntletState) -> PerformanceMetrics:
         """

@@ -36,10 +36,10 @@ def run_integration_tests():
         try:
             asyncio.run(test_func())
             passed += 1
-            print(f"✅ PASSED: {name}")
+            print(f"[OK] PASSED: {name}")
         except Exception as e:
             failed += 1
-            print(f"❌ FAILED: {name}")
+            print(f"[FAIL] FAILED: {name}")
             print(f"   Error: {e}")
 
     print("\n" + "=" * 70)

@@ -64,7 +64,7 @@ class SetupManager:
         
         version = sys.version_info
         if version.major >= 3 and version.minor >= 11:
-            self._print_success(f"Python {version.major}.{version.minor}.{version.micro} ✓")
+            self._print_success(f"Python {version.major}.{version.minor}.{version.micro} [OK]")
             return True
         elif version.major >= 3 and version.minor >= 10:
             self._print_warning(f"Python {version.major}.{version.minor}.{version.micro} (recommended: 3.11+)")
@@ -83,7 +83,7 @@ class SetupManager:
                 check=True,
                 capture_output=True
             )
-            self._print_success("pip available ✓")
+            self._print_success("pip available [OK]")
             return True
         except subprocess.CalledProcessError:
             self._print_error("pip not found")
@@ -113,7 +113,7 @@ class SetupManager:
                     capture_output=True,
                     text=True
                 )
-                self._print_success(f"Installed {req_file} ✓")
+                self._print_success(f"Installed {req_file} [OK]")
             except subprocess.CalledProcessError as e:
                 self._print_error(f"Failed to install {req_file}: {e}")
                 return False
@@ -131,7 +131,7 @@ class SetupManager:
             dir_path.mkdir(exist_ok=True)
             self._print_info(f"Created {dir_name}/")
         
-        self._print_success("Directories created ✓")
+        self._print_success("Directories created [OK]")
         return True
     
     def setup_environment_file(self) -> bool:
@@ -156,7 +156,7 @@ class SetupManager:
         env_content = self._generate_env_content()
         env_file.write_text(env_content)
         
-        self._print_success("Created .env file ✓")
+        self._print_success("Created .env file [OK]")
         return True
     
     def _generate_env_content(self) -> str:
@@ -253,7 +253,7 @@ telemetry:
 """
         
         config_file.write_text(config_content)
-        self._print_success("Created integration_config.yaml ✓")
+        self._print_success("Created integration_config.yaml [OK]")
         return True
     
     def check_docker(self) -> bool:
@@ -266,7 +266,7 @@ telemetry:
                 check=True,
                 capture_output=True
             )
-            self._print_success("Docker available ✓")
+            self._print_success("Docker available [OK]")
             return True
         except (subprocess.CalledProcessError, FileNotFoundError):
             self._print_warning("Docker not found (optional)")
@@ -285,7 +285,7 @@ telemetry:
             )
             
             if result.returncode == 0:
-                self._print_success("Health check passed ✓")
+                self._print_success("Health check passed [OK]")
                 return True
             else:
                 self._print_warning("Health check found issues (see details above)")
@@ -302,10 +302,10 @@ telemetry:
             table.add_column("Item", style="cyan")
             table.add_column("Status", style="bold")
             
-            table.add_row("Python Version", "✓ OK")
-            table.add_row("Dependencies", "✓ Installed")
-            table.add_row("Directories", "✓ Created")
-            table.add_row("Configuration", "✓ Ready")
+            table.add_row("Python Version", "[OK] OK")
+            table.add_row("Dependencies", "[OK] Installed")
+            table.add_row("Directories", "[OK] Created")
+            table.add_row("Configuration", "[OK] Ready")
             
             if self.errors:
                 table.add_row("Errors", f"[red]{len(self.errors)}[/red]")
@@ -343,22 +343,22 @@ telemetry:
         if console:
             console.print(f"[blue]›[/blue] {message}")
         else:
-            print(f"→ {message}")
+            print(f"-> {message}")
     
     def _print_success(self, message: str):
         """Print success message."""
         if console:
-            console.print(f"  [green]✓[/green] {message}")
+            console.print(f"  [green][OK][/green] {message}")
         else:
-            print(f"  ✓ {message}")
+            print(f"  [OK] {message}")
     
     def _print_error(self, message: str):
         """Print error message."""
         self.errors.append(message)
         if console:
-            console.print(f"  [red]✗[/red] {message}")
+            console.print(f"  [red][FAIL][/red] {message}")
         else:
-            print(f"  ✗ {message}")
+            print(f"  [FAIL] {message}")
     
     def _print_warning(self, message: str):
         """Print warning message."""

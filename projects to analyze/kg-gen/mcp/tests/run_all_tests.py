@@ -38,9 +38,9 @@ def main():
     exit_code = pytest.main(args)
 
     if exit_code == 0:
-        print("\n✅ All MCP server tests passed!")
+        print("\n[OK] All MCP server tests passed!")
     else:
-        print(f"\n❌ Tests failed with exit code: {exit_code}")
+        print(f"\n[FAIL] Tests failed with exit code: {exit_code}")
 
     return exit_code
 

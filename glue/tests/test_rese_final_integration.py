@@ -274,37 +274,37 @@ class RESEFinalIntegrationTest:
         valid = True
 
         # Validate Phase I -> Phase II
-        print("Checking Phase I → Phase II transition...")
+        print("Checking Phase I -> Phase II transition...")
         if self.results[0].status == "SUCCESS" and self.results[1].status == "FAILED":
             if "research_summary" not in self.results[0].output:
                 print("[X] Phase I missing research_summary for Phase II")
                 valid = False
             else:
-                print("[OK] Phase I → Phase II: Valid")
+                print("[OK] Phase I -> Phase II: Valid")
         elif self.results[1].status == "SUCCESS":
-            print("[OK] Phase I → Phase II: Valid (Phase II succeeded)")
+            print("[OK] Phase I -> Phase II: Valid (Phase II succeeded)")
 
         # Validate Phase II -> Phase III
-        print("Checking Phase II → Phase III transition...")
+        print("Checking Phase II -> Phase III transition...")
         if self.results[1].status == "SUCCESS" and self.results[2].status == "FAILED":
             if "hypotheses" not in self.results[1].output:
                 print("[X] Phase II missing hypotheses for Phase III")
                 valid = False
             else:
-                print("[OK] Phase II → Phase III: Valid")
+                print("[OK] Phase II -> Phase III: Valid")
         elif self.results[2].status == "SUCCESS":
-            print("[OK] Phase II → Phase III: Valid (Phase III succeeded)")
+            print("[OK] Phase II -> Phase III: Valid (Phase III succeeded)")
 
         # Validate Phase III -> Phase IV
-        print("Checking Phase III → Phase IV transition...")
+        print("Checking Phase III -> Phase IV transition...")
         if self.results[2].status == "SUCCESS" and self.results[3].status == "FAILED":
             if "evaluation_results" not in self.results[2].output:
                 print("[X] Phase III missing evaluation_results for Phase IV")
                 valid = False
             else:
-                print("[OK] Phase III → Phase IV: Valid")
+                print("[OK] Phase III -> Phase IV: Valid")
         elif self.results[3].status == "SUCCESS":
-            print("[OK] Phase III → Phase IV: Valid (Phase IV succeeded)")
+            print("[OK] Phase III -> Phase IV: Valid (Phase IV succeeded)")
 
         # Validate final architecture
         print("\nChecking final architecture...")
@@ -618,9 +618,9 @@ class RESEFinalIntegrationTest:
         trans_3_4 = "[OK] Valid" if len(self.results) > 2 and self.results[2].status == 'SUCCESS' else "[X] Failed (Phase III failed)"
         final_arch = "[OK] Present" if len(self.results) > 3 and self.results[3].status == 'SUCCESS' else "[X] Not generated (Phase IV failed)"
 
-        lines.append(f"- **Phase I → Phase II:** {trans_1_2}")
-        lines.append(f"- **Phase II → Phase III:** {trans_2_3}")
-        lines.append(f"- **Phase III → Phase IV:** {trans_3_4}")
+        lines.append(f"- **Phase I -> Phase II:** {trans_1_2}")
+        lines.append(f"- **Phase II -> Phase III:** {trans_2_3}")
+        lines.append(f"- **Phase III -> Phase IV:** {trans_3_4}")
         lines.append(f"- **Final Architecture:** {final_arch}\n")
         lines.append("---\n")
 

@@ -98,7 +98,7 @@ def example_2_initialize_ensemble():
     print("="*70)
 
     if not C2C_AVAILABLE:
-        print("\n⚠ C2C not available. This example requires C2C installation.")
+        print("\n[WARN] C2C not available. This example requires C2C installation.")
         print("See installation guide in Example 1 output.")
         return None
 
@@ -115,7 +115,7 @@ def example_2_initialize_ensemble():
         )
 
         if result['success']:
-            print(f"\n✓ Ensemble initialized successfully!")
+            print(f"\n[OK] Ensemble initialized successfully!")
             print(f"  Ensemble ID: {result['ensemble_id']}")
             print(f"  Number of Models: {result['num_models']}")
             print(f"  Base Model: {result['base_model']}")
@@ -124,18 +124,18 @@ def example_2_initialize_ensemble():
             print(f"  Num Layers: {result['num_layers']}")
             print(f"  Cached: {result['cached']}")
         else:
-            print(f"\n✗ Failed to initialize ensemble: {result.get('error')}")
+            print(f"\n[FAIL] Failed to initialize ensemble: {result.get('error')}")
 
         return result
 
     except C2CNotAvailableError as e:
-        print(f"\n✗ C2C not available: {e}")
+        print(f"\n[FAIL] C2C not available: {e}")
         return None
     except C2CConfigurationError as e:
-        print(f"\n✗ Configuration error: {e}")
+        print(f"\n[FAIL] Configuration error: {e}")
         return None
     except C2CError as e:
-        print(f"\n✗ C2C error: {e}")
+        print(f"\n[FAIL] C2C error: {e}")
         return None
 
 
@@ -150,7 +150,7 @@ def example_3_run_inference(ensemble_id: str = "demo-ensemble-1"):
     print("="*70)
 
     if not C2C_AVAILABLE:
-        print("\n⚠ C2C not available. This example requires C2C installation.")
+        print("\n[WARN] C2C not available. This example requires C2C installation.")
         return None
 
     try:
@@ -165,26 +165,26 @@ def example_3_run_inference(ensemble_id: str = "demo-ensemble-1"):
         )
 
         if result['success']:
-            print(f"\n✓ Inference completed successfully!")
+            print(f"\n[OK] Inference completed successfully!")
             print(f"  Generated Text: {result['generated_text'][:200]}...")
             print(f"  Tokens Generated: {result['tokens_generated']}")
             print(f"  Inference Time: {result['inference_time']}s")
             print(f"  Tokens/Second: {result['tokens_per_second']}")
             print(f"  C2C Applied: {result['c2c_applied']}")
         else:
-            print(f"\n✗ Inference failed: {result.get('error')}")
+            print(f"\n[FAIL] Inference failed: {result.get('error')}")
 
         return result
 
     except C2CCacheError as e:
-        print(f"\n✗ Ensemble not found in cache: {e}")
+        print(f"\n[FAIL] Ensemble not found in cache: {e}")
         print("Hint: Initialize ensemble first using Example 2")
         return None
     except C2CInferenceError as e:
-        print(f"\n✗ Inference error: {e}")
+        print(f"\n[FAIL] Inference error: {e}")
         return None
     except C2CError as e:
-        print(f"\n✗ C2C error: {e}")
+        print(f"\n[FAIL] C2C error: {e}")
         return None
 
 
@@ -199,7 +199,7 @@ def example_4_team_consensus(ensemble_id: str = "demo-ensemble-1"):
     print("="*70)
 
     if not C2C_AVAILABLE:
-        print("\n⚠ C2C not available. This example requires C2C installation.")
+        print("\n[WARN] C2C not available. This example requires C2C installation.")
         return None
 
     try:
@@ -214,21 +214,21 @@ def example_4_team_consensus(ensemble_id: str = "demo-ensemble-1"):
         )
 
         if result['success']:
-            print(f"\n✓ Team consensus completed!")
+            print(f"\n[OK] Team consensus completed!")
             print(f"  Team: {result['team_name']}")
             print(f"  Consensus Mode: {result['consensus_mode']}")
             print(f"  Team Members: {result['num_team_members']}")
             print(f"  Consensus Text: {result['consensus_text'][:300]}...")
         else:
-            print(f"\n✗ Consensus failed: {result.get('error')}")
+            print(f"\n[FAIL] Consensus failed: {result.get('error')}")
 
         return result
 
     except C2CConfigurationError as e:
-        print(f"\n✗ Configuration error: {e}")
+        print(f"\n[FAIL] Configuration error: {e}")
         return None
     except C2CError as e:
-        print(f"\n✗ C2C error: {e}")
+        print(f"\n[FAIL] C2C error: {e}")
         return None
 
 
@@ -243,7 +243,7 @@ def example_5_CREWAI_configuration():
     print("="*70)
 
     if not C2C_AVAILABLE:
-        print("\n⚠ C2C not available. Showing recommendations only.")
+        print("\n[WARN] C2C not available. Showing recommendations only.")
 
     # Configure for different phases
     phases = ["setup", "solution", "critique", "verify", "reassemble", "final"]
@@ -306,12 +306,12 @@ def example_6_cache_management():
             persistent_path="./c2c_cache_metadata"
         )
         if result['success']:
-            print(f"   ✓ Persistent storage: {result['persistent_path']}")
+            print(f"   [OK] Persistent storage: {result['persistent_path']}")
 
         return result
 
     except C2CCacheError as e:
-        print(f"\n✗ Cache error: {e}")
+        print(f"\n[FAIL] Cache error: {e}")
         return None
 
 
@@ -326,7 +326,7 @@ def example_7_compare_baseline(ensemble_id: str = "demo-ensemble-1"):
     print("="*70)
 
     if not C2C_AVAILABLE:
-        print("\n⚠ C2C not available. Showing expected improvements based on research.")
+        print("\n[WARN] C2C not available. Showing expected improvements based on research.")
 
     try:
         result = compare_c2c_vs_baseline(
@@ -342,7 +342,7 @@ def example_7_compare_baseline(ensemble_id: str = "demo-ensemble-1"):
         )
 
         if result['success']:
-            print(f"\n✓ Comparison analysis ready!")
+            print(f"\n[OK] Comparison analysis ready!")
             print(f"  Ensemble ID: {result['ensemble_id']}")
             print(f"  Number of Prompts: {result['num_prompts']}")
             print(f"  Ensemble Loaded: {result['ensemble_loaded']}")
@@ -353,12 +353,12 @@ def example_7_compare_baseline(ensemble_id: str = "demo-ensemble-1"):
             if 'source' in result['expected_improvements']:
                 print(f"\n  Source: {result['expected_improvements']['source']}")
         else:
-            print(f"\n✗ Comparison failed: {result.get('error')}")
+            print(f"\n[FAIL] Comparison failed: {result.get('error')}")
 
         return result
 
     except C2CError as e:
-        print(f"\n✗ C2C error: {e}")
+        print(f"\n[FAIL] C2C error: {e}")
         return None
 
 
@@ -381,9 +381,9 @@ def example_8_error_handling():
         )
         print(f"   Result: {result}")
     except C2CCacheError as e:
-        print(f"   ✓ Caught C2CCacheError: {e}")
+        print(f"   [OK] Caught C2CCacheError: {e}")
     except C2CError as e:
-        print(f"   ✓ Caught C2CError: {e}")
+        print(f"   [OK] Caught C2CError: {e}")
 
     # Example 2: Handle invalid device
     print("\n2. Attempt initialization with invalid device:")
@@ -397,16 +397,16 @@ def example_8_error_handling():
             )
             print(f"   Result: {result}")
     except C2CConfigurationError as e:
-        print(f"   ✓ Caught C2CConfigurationError: {e}")
+        print(f"   [OK] Caught C2CConfigurationError: {e}")
     except C2CError as e:
-        print(f"   ✓ Caught C2CError: {e}")
+        print(f"   [OK] Caught C2CError: {e}")
 
     # Example 3: Check if C2C is available with graceful fallback
     print("\n3. Check C2C availability with fallback:")
     if C2C_AVAILABLE:
-        print("   ✓ C2C is available - using C2C ensemble inference")
+        print("   [OK] C2C is available - using C2C ensemble inference")
     else:
-        print("   ⚠ C2C not available - falling back to single model inference")
+        print("   [WARN] C2C not available - falling back to single model inference")
         print("   Installation guide:")
         print(get_c2c_installation_guide())
 
@@ -484,7 +484,7 @@ def example_10_complete_workflow():
         print("\n1. Checking C2C status...")
         status = get_c2c_status()
         if not status['available']:
-            print("   ⚠ C2C not available. Please install C2C first.")
+            print("   [WARN] C2C not available. Please install C2C first.")
             return
 
         # Step 2: Initialize ensemble
@@ -498,10 +498,10 @@ def example_10_complete_workflow():
         )
 
         if not init_result['success']:
-            print(f"   ✗ Failed to initialize: {init_result.get('error')}")
+            print(f"   [FAIL] Failed to initialize: {init_result.get('error')}")
             return
 
-        print(f"   ✓ Ensemble initialized with {init_result['num_models']} models")
+        print(f"   [OK] Ensemble initialized with {init_result['num_models']} models")
 
         # Step 3: Run inference
         print("\n3. Running inference...")
@@ -513,11 +513,11 @@ def example_10_complete_workflow():
         )
 
         if inference_result['success']:
-            print(f"   ✓ Generated {inference_result['tokens_generated']} tokens")
-            print(f"   ✓ Speed: {inference_result['tokens_per_second']} tokens/s")
+            print(f"   [OK] Generated {inference_result['tokens_generated']} tokens")
+            print(f"   [OK] Speed: {inference_result['tokens_per_second']} tokens/s")
             print(f"\n   Generated Text:\n   {inference_result['generated_text']}")
         else:
-            print(f"   ✗ Inference failed: {inference_result.get('error')}")
+            print(f"   [FAIL] Inference failed: {inference_result.get('error')}")
 
         # Step 4: Team consensus
         print("\n4. Running team consensus...")
@@ -530,9 +530,9 @@ def example_10_complete_workflow():
         )
 
         if consensus_result['success']:
-            print(f"   ✓ Team consensus completed")
+            print(f"   [OK] Team consensus completed")
         else:
-            print(f"   ✗ Consensus failed: {consensus_result.get('error')}")
+            print(f"   [FAIL] Consensus failed: {consensus_result.get('error')}")
 
         # Step 5: Check cache stats
         print("\n5. Checking cache statistics...")
@@ -543,12 +543,12 @@ def example_10_complete_workflow():
             for ensemble in stats['cached_ensembles']:
                 print(f"   - {ensemble['ensemble_id']}: {ensemble['use_count']} uses")
 
-        print("\n✓ Complete workflow finished successfully!")
+        print("\n[OK] Complete workflow finished successfully!")
 
     except C2CError as e:
-        print(f"\n✗ C2C error: {e}")
+        print(f"\n[FAIL] C2C error: {e}")
     except Exception as e:
-        print(f"\n✗ Unexpected error: {e}")
+        print(f"\n[FAIL] Unexpected error: {e}")
 
 
 # ============================================================================

@@ -45,17 +45,31 @@ try:
     from lean4_integration import (
         Lean4VerificationEngine,
         Lean4ServerConfig,
-        Lean4VerificationConfig,
         VerificationResult,
-        VerificationCache,
         AutoformalizationEngine,
-        ProofSearchEngine,
         LeanAideClient
     )
     LEANAIDE_AVAILABLE = True
 except ImportError:
     LEANAIDE_AVAILABLE = False
     logging.warning("LeanAide integration not available - using simulation mode")
+    
+    # Define fallback VerificationResult for type hints
+    @dataclass
+    class VerificationResult:
+        """Fallback VerificationResult when Lean4 integration is not available"""
+        success: bool = False
+        status: str = "unknown"
+        errors: List[str] = field(default_factory=list)
+        output: str = ""
+        
+        def to_dict(self) -> Dict[str, Any]:
+            return {
+                "success": self.success,
+                "status": self.status,
+                "errors": self.errors,
+                "output": self.output
+            }
 
 logger = logging.getLogger(__name__)
 

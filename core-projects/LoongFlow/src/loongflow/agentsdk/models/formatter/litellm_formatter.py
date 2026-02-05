@@ -31,8 +31,8 @@ class LiteLLMFormatter(BaseFormatter):
     Formatter that bridges LoongFlow message and response schemas
     with LiteLLM's API semantics.
 
-    - Request direction: LoongFlow → LiteLLM
-    - Response direction: LiteLLM → LoongFlow
+    - Request direction: LoongFlow -> LiteLLM
+    - Response direction: LiteLLM -> LoongFlow
     """
 
     MODEL_PROVIDER_PREFIX_MAP = {
@@ -208,7 +208,7 @@ class LiteLLMFormatter(BaseFormatter):
                 self._collect_message_elements(msg)
             )
 
-            # 1. Convert tool output results → 'tool' messages
+            # 1. Convert tool output results -> 'tool' messages
             for toe in tool_outputs:
                 converted.append(self._convert_tool_output(toe))
 
@@ -296,7 +296,7 @@ class LiteLLMFormatter(BaseFormatter):
             content_texts.append(f"[unsupported {elem.mime_type}]")
 
     def _convert_tool_output(self, toe: "ToolOutputElement") -> dict[str, Any]:
-        """Convert ToolOutputElement → OpenAI-compatible 'tool' message."""
+        """Convert ToolOutputElement -> OpenAI-compatible 'tool' message."""
         result_items = []
         for r in toe.result:
             if isinstance(r, ContentElement):
@@ -578,5 +578,5 @@ class LiteLLMFormatter(BaseFormatter):
             )
             err_msg = f"Failed to parse tool arguments: {e2}"
 
-        # All strategies failed → return failure info
+        # All strategies failed -> return failure info
         return {}, "failed", err_msg

@@ -345,7 +345,7 @@ async def example_artifact_inspection():
         print("EVOLUTIONARY LINEAGE:")
         print(f"  Generations: {lineage.content['generations']}")
         print(f"  Branching Factor: {lineage.content['branching_factor']}")
-        print(f"  Best Path: {' → '.join(lineage.content['best_path'])}")
+        print(f"  Best Path: {' -> '.join(lineage.content['best_path'])}")
         print()
 
     # Optimized Solution
@@ -380,7 +380,7 @@ async def example_domain_detection():
     print("Domain Detection Results:")
     for problem, problem_type, expected_domain in test_cases:
         detected = extractor._detect_domain(problem, problem_type)
-        status = "✓" if detected == expected_domain else "✗"
+        status = "[OK]" if detected == expected_domain else "[FAIL]"
         print(f"  {status} Problem: {problem[:50]}")
         print(f"     Detected: {detected}")
         print()
@@ -522,7 +522,7 @@ async def example_error_handling():
     # Test domain detection with edge cases
     print("3. Edge Case Domain Detection:")
     domain = extractor._detect_domain("", "")
-    print(f"   Empty input → Domain: {domain}")
+    print(f"   Empty input -> Domain: {domain}")
     print()
 
 

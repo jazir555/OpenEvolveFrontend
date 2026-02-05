@@ -36,7 +36,7 @@ for filepath in python_files:
         original_content = content
 
         # Fix B324: MD5 hash usage
-        # Pattern: hashlib.md5(...) → hashlib.md5(..., usedforsecurity=False)
+        # Pattern: hashlib.md5(...) -> hashlib.md5(..., usedforsecurity=False)
         if 'hashlib.md5' in content and 'usedforsecurity' not in content:
             # Fix hashlib.md5() calls
             content = re.sub(

@@ -5,7 +5,7 @@ This module provides an automated pipeline that converts ROMA (Recursive Optimiz
 executions into persistent knowledge in the knowledge graph.
 
 Pipeline Flow:
-ROMA Decomposition → Entity Extraction → Knowledge Storage → Similar Solution Retrieval
+ROMA Decomposition -> Entity Extraction -> Knowledge Storage -> Similar Solution Retrieval
 
 Features:
 - Execute ROMA and automatically persist results
@@ -119,7 +119,7 @@ class ROMAKnowledgePipeline:
     """
     Pipeline to convert ROMA executions into persistent knowledge.
 
-    Automates the flow from ROMA decomposition → knowledge extraction → knowledge storage.
+    Automates the flow from ROMA decomposition -> knowledge extraction -> knowledge storage.
 
     Features:
     - Execute ROMA decomposition and automatically store results

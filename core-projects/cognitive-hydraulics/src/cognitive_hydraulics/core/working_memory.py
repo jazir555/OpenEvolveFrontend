@@ -121,7 +121,7 @@ class WorkingMemory:
         lines.append(f"Goal: {self.current_goal.description}\n")
 
         for i, transition in enumerate(self.history, 1):
-            status = "✓" if transition.result.success else "✗"
+            status = "[OK]" if transition.result.success else "[FAIL]"
             lines.append(f"{i}. {status} {transition.operator}")
             lines.append(f"   {transition.result.output}")
             if transition.result.error:

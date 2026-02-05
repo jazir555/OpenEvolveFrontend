@@ -50,7 +50,7 @@ async def probe_bilingual_extraction():
             enable_translation=False
         )
         linker = CrossLingualEntityLinker(config)
-        logger.info("✓ Linker initialized successfully")
+        logger.info("[OK] Linker initialized successfully")
 
         # Test 2: Language detection
         logger.info("Test 2: Language detection")
@@ -60,7 +60,7 @@ async def probe_bilingual_extraction():
 
         assert lang_en == LinkerLanguage.ENGLISH
         assert lang_zh == LinkerLanguage.CHINESE
-        logger.info(f"✓ Language detection working: EN={lang_en}, ZH={lang_zh}")
+        logger.info(f"[OK] Language detection working: EN={lang_en}, ZH={lang_zh}")
 
         # Test 3: Entity creation
         logger.info("Test 3: Entity creation")
@@ -80,7 +80,7 @@ async def probe_bilingual_extraction():
             language=LinkerLanguage.BILINGUAL
         )
 
-        logger.info("✓ Entities created successfully")
+        logger.info("[OK] Entities created successfully")
 
         # Test 4: Add entities to index
         logger.info("Test 4: Add entities to index")
@@ -90,13 +90,13 @@ async def probe_bilingual_extraction():
         assert result1 == True
         assert result2 == True
         assert len(linker.entity_index) == 2
-        logger.info("✓ Entities added to index")
+        logger.info("[OK] Entities added to index")
 
         # Test 5: Idempotent add
         logger.info("Test 5: Idempotent operations")
         result_dup = await linker.add_entity(entity1)
         assert result_dup == False  # Already exists
-        logger.info("✓ Idempotent operations working")
+        logger.info("[OK] Idempotent operations working")
 
         # Test 6: Exact match
         logger.info("Test 6: Exact entity matching")
@@ -109,7 +109,7 @@ async def probe_bilingual_extraction():
         match_result = await linker.match_entities(entity1, entity3, MatchStrategy.EXACT)
         assert match_result.matched == True
         assert match_result.confidence == 1.0
-        logger.info("✓ Exact matching working")
+        logger.info("[OK] Exact matching working")
 
         # Test 7: Fuzzy match
         logger.info("Test 7: Fuzzy entity matching")
@@ -145,12 +145,12 @@ async def probe_bilingual_extraction():
         assert len(kg["nodes"]) == 2
         assert kg["nodes"][0]["names"]["en"] == ["Apple Inc."]
         assert kg["nodes"][0]["names"]["zh"] == ["苹果公司"]
-        logger.info("✓ Bilingual KG format working")
+        logger.info("[OK] Bilingual KG format working")
 
         # Test 10: Find candidates
         logger.info("Test 10: Find candidate entities")
         candidates = await linker.find_candidates(entity1)
-        logger.info(f"✓ Found {len(candidates)} candidates")
+        logger.info(f"[OK] Found {len(candidates)} candidates")
 
         logger.info({
             "msg": "Bilingual extraction probe complete",

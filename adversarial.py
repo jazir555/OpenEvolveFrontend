@@ -423,18 +423,18 @@ def run_comprehensive_adversarial_testing(
     # Validate configuration
     validation_result = config.validate(param_manager)
     if not validation_result.valid:
-        _update_adv_log_and_status(f"⚠️ Configuration validation errors: {validation_result.errors}")
+        _update_adv_log_and_status(f"[WARN] Configuration validation errors: {validation_result.errors}")
         for error in validation_result.errors[:3]:  # Show first 3 errors
             logger.warning(f"Adversarial parameter validation error: {error}")
     
     # Log comprehensive configuration summary
     _update_adv_log_and_status("📊 Adversarial Configuration Summary:")
-    _update_adv_log_and_status(f"   • Adversarial Rounds: {config.adversarial_rounds}")
-    _update_adv_log_and_status(f"   • Attack Strength: {config.attack_strength}")
-    _update_adv_log_and_status(f"   • Defense Strategy: {config.defense_strategy}")
-    _update_adv_log_and_status(f"   • Red Team Models: {len(config.red_team_models)}")
-    _update_adv_log_and_status(f"   • Blue Team Models: {len(config.blue_team_models)}")
-    _update_adv_log_and_status(f"   • Coevolutionary: {config.coevolutionary_approach}")
+    _update_adv_log_and_status(f"   * Adversarial Rounds: {config.adversarial_rounds}")
+    _update_adv_log_and_status(f"   * Attack Strength: {config.attack_strength}")
+    _update_adv_log_and_status(f"   * Defense Strategy: {config.defense_strategy}")
+    _update_adv_log_and_status(f"   * Red Team Models: {len(config.red_team_models)}")
+    _update_adv_log_and_status(f"   * Blue Team Models: {len(config.blue_team_models)}")
+    _update_adv_log_and_status(f"   * Coevolutionary: {config.coevolutionary_approach}")
     
     # Advanced features summary
     advanced_features = []
@@ -456,7 +456,7 @@ def run_comprehensive_adversarial_testing(
         advanced_features.append("Attack Diversity")
     
     if advanced_features:
-        _update_adv_log_and_status(f"   • Advanced Features: {', '.join(advanced_features)}")
+        _update_adv_log_and_status(f"   * Advanced Features: {', '.join(advanced_features)}")
     
     # Initialize comprehensive result structure
     start_time = time.time()
@@ -609,7 +609,7 @@ def run_comprehensive_adversarial_testing(
                         if best_fix.fixed_content and best_fix.fixed_content.strip():
                             current_content_working = best_fix.fixed_content
                             round_result["content_after"] = current_content_working
-                            _update_adv_log_and_status(f"✅ Applied fix: {best_fix.description[:100]}...")
+                            _update_adv_log_and_status(f"[OK] Applied fix: {best_fix.description[:100]}...")
                         
                         _update_adv_log_and_status(f"🔧 Blue Team generated {len(blue_assessment.applied_fixes)} fixes")
                     
@@ -631,7 +631,7 @@ def run_comprehensive_adversarial_testing(
                         _update_adv_log_and_status(f"📊 Evaluator consensus score: {consensus_score:.3f}")
                 
                 else:
-                    _update_adv_log_and_status("✅ Red Team found no significant issues")
+                    _update_adv_log_and_status("[OK] Red Team found no significant issues")
                 
                 round_result["end_time"] = time.time()
                 round_result["duration"] = round_result["end_time"] - round_result["start_time"]
@@ -684,7 +684,7 @@ def run_comprehensive_adversarial_testing(
         adversarial_result["total_duration"] = end_time - start_time
 
         # Log comprehensive results
-        _update_adv_log_and_status("✅ Comprehensive adversarial testing completed!")
+        _update_adv_log_and_status("[OK] Comprehensive adversarial testing completed!")
         _update_adv_log_and_status(f"⏱️ Total duration: {adversarial_result['total_duration']:.2f}s")
         _update_adv_log_and_status(f"🛡️ Robustness score: {adversarial_result['metrics']['robustness_score']:.4f}")
         _update_adv_log_and_status(f"🔍 Vulnerabilities found: {adversarial_result['metrics']['vulnerability_count']}")
@@ -870,7 +870,7 @@ def _run_adversarial_testing_with_openevolve_backend_enhanced(
                 
                 all_round_results.append(round_data)
                 
-                _update_adv_log_and_status(f"✅ Round {round_num + 1} completed - Score: {round_score:.4f}")
+                _update_adv_log_and_status(f"[OK] Round {round_num + 1} completed - Score: {round_score:.4f}")
                 
                 # Track best result
                 if round_score > best_score:
@@ -878,7 +878,7 @@ def _run_adversarial_testing_with_openevolve_backend_enhanced(
                     best_results = round_data
                     current_content = round_result  # Use improved content for next round
             else:
-                _update_adv_log_and_status(f"⚠️ Round {round_num + 1} produced no improvement")
+                _update_adv_log_and_status(f"[WARN] Round {round_num + 1} produced no improvement")
         
         # Compile comprehensive results
         if best_results:
@@ -1055,12 +1055,12 @@ def create_adversarial_configuration_from_session() -> AdversarialConfiguration:
         # Validate configuration
         validation_result = config.validate(param_manager)
         if not validation_result.valid:
-            _update_adv_log_and_status(f"⚠️ Configuration has {len(validation_result.errors)} validation errors")
+            _update_adv_log_and_status(f"[WARN] Configuration has {len(validation_result.errors)} validation errors")
             for error in validation_result.errors[:3]:  # Show first 3 errors
                 _update_adv_log_and_status(f"   - {error}")
         
         if validation_result.warnings:
-            _update_adv_log_and_status(f"⚠️ Configuration has {len(validation_result.warnings)} warnings")
+            _update_adv_log_and_status(f"[WARN] Configuration has {len(validation_result.warnings)} warnings")
         
         return config
     except ImportError:
@@ -1351,7 +1351,7 @@ def get_adversarial_capabilities_summary() -> Dict[str, Any]:
                 max_tokens=max_tokens,  # Use same max_tokens as main evolution
                 seed=seed,
             )
-            _update_adv_log_and_status("✅ Content augmentation complete.")
+            _update_adv_log_and_status("[OK] Content augmentation complete.")
 
         # Create evaluator function based on content_type
         if content_type.startswith("code_"):
@@ -1574,7 +1574,7 @@ def run_adversarial_testing():
                 import requests
                 health_response = requests.get("http://localhost:8000/health", timeout=5)
                 if health_response.status_code == 200:
-                    _update_adv_log_and_status("✅ OpenEvolve backend is available")
+                    _update_adv_log_and_status("[OK] OpenEvolve backend is available")
                     
                     # Run comprehensive adversarial testing
                     result = run_comprehensive_adversarial_testing(
@@ -1591,7 +1591,7 @@ def run_adversarial_testing():
                         _update_adv_log_and_status(f"🏆 Best robustness score: {result.get('best_score', 0.0):.4f}")
                         _update_adv_log_and_status(f"🔄 Rounds completed: {result.get('total_rounds', 0)}")
                     else:
-                        _update_adv_log_and_status(f"⚠️ Adversarial testing completed with issues: {result.get('message', 'Unknown error')}")
+                        _update_adv_log_and_status(f"[WARN] Adversarial testing completed with issues: {result.get('message', 'Unknown error')}")
                         
                 else:
                     st.error("OpenEvolve backend is not responding. Please ensure it is running.")
@@ -1860,7 +1860,7 @@ def _load_human_feedback() -> List[Dict]:
             with open(feedback_file, "r") as f:
                 return json.load(f)
         except json.JSONDecodeError:
-            _update_adv_log_and_status(f"⚠️ Corrupted human feedback file: {feedback_file}. Starting fresh.")
+            _update_adv_log_and_status(f"[WARN] Corrupted human feedback file: {feedback_file}. Starting fresh.")
             return []
     return []
 
@@ -1887,7 +1887,7 @@ def capture_human_feedback(
             with open(feedback_file, "r") as f:
                 all_feedback = json.load(f)
         except json.JSONDecodeError:
-            _update_adv_log_and_status(f"⚠️ Corrupted human feedback file: {feedback_file}. Starting fresh.")
+            _update_adv_log_and_status(f"[WARN] Corrupted human feedback file: {feedback_file}. Starting fresh.")
             all_feedback = []
 
     all_feedback.append(feedback_entry)
@@ -1899,7 +1899,7 @@ def capture_human_feedback(
             f"📝 Captured human feedback for adversarial example {adversarial_example.get('id')} and saved to {feedback_file}"
         )
     except (IOError, OSError, PermissionError) as e:
-        _update_adv_log_and_status(f"❌ Failed to save human feedback to {feedback_file}: {e}")
+        _update_adv_log_and_status(f"[FAIL] Failed to save human feedback to {feedback_file}: {e}")
 
 
 def optimize_model_selection(
@@ -2062,15 +2062,15 @@ def run_ultimate_adversarial_testing(
                         ultimate_result["native_openevolve_results"]["cost_usd"] = oe_result.metrics.get("cost_usd", 0.0)
                         
                         ultimate_result["testing_phases"]["phase_1_native_adversarial"]["success"] = True
-                        _update_adv_log_and_status(f"✅ Native OpenEvolve adversarial completed: Score {oe_result.best_score:.4f}")
+                        _update_adv_log_and_status(f"[OK] Native OpenEvolve adversarial completed: Score {oe_result.best_score:.4f}")
                     else:
-                        _update_adv_log_and_status(f"⚠️ Native OpenEvolve adversarial failed: {oe_result.error}")
+                        _update_adv_log_and_status(f"[WARN] Native OpenEvolve adversarial failed: {oe_result.error}")
                 
                 else:
-                    _update_adv_log_and_status("⚠️ Native OpenEvolve not available")
+                    _update_adv_log_and_status("[WARN] Native OpenEvolve not available")
                 
             except ImportError:
-                _update_adv_log_and_status("⚠️ OpenEvolve client not available")
+                _update_adv_log_and_status("[WARN] OpenEvolve client not available")
             
             ultimate_result["testing_phases"]["phase_1_native_adversarial"]["status"] = "completed"
             ultimate_result["testing_phases"]["phase_1_native_adversarial"]["duration"] = time.time() - phase_start
@@ -2123,13 +2123,13 @@ def run_ultimate_adversarial_testing(
                     ultimate_result["detailed_analysis"]["fixes"] = workflow_result.get("fixes", [])
                     
                     ultimate_result["testing_phases"]["phase_2_workflow_testing"]["success"] = True
-                    _update_adv_log_and_status(f"✅ Workflow adversarial testing completed: {workflow_metrics.get('total_rounds', 0)} rounds")
+                    _update_adv_log_and_status(f"[OK] Workflow adversarial testing completed: {workflow_metrics.get('total_rounds', 0)} rounds")
                 
                 else:
-                    _update_adv_log_and_status("⚠️ Workflow adversarial testing failed")
+                    _update_adv_log_and_status("[WARN] Workflow adversarial testing failed")
                 
             except (RuntimeError, ValueError, ConnectionError) as e:
-                _update_adv_log_and_status(f"⚠️ Workflow adversarial testing error: {e}")
+                _update_adv_log_and_status(f"[WARN] Workflow adversarial testing error: {e}")
             
             ultimate_result["testing_phases"]["phase_2_workflow_testing"]["status"] = "completed"
             ultimate_result["testing_phases"]["phase_2_workflow_testing"]["duration"] = time.time() - phase_start
@@ -2280,7 +2280,7 @@ def run_native_openevolve_adversarial_only(
         client = OpenEvolveClient()
         
         if not client.available:
-            _update_adv_log_and_status("❌ Native OpenEvolve not available")
+            _update_adv_log_and_status("[FAIL] Native OpenEvolve not available")
             result["error"] = "Native OpenEvolve backend not available"
             return result
         
@@ -2328,10 +2328,10 @@ def run_native_openevolve_adversarial_only(
                 "total_duration": time.time() - start_time
             }
             
-            _update_adv_log_and_status(f"✅ Native OpenEvolve adversarial completed: Score {openevolve_result.best_score:.4f}")
+            _update_adv_log_and_status(f"[OK] Native OpenEvolve adversarial completed: Score {openevolve_result.best_score:.4f}")
         else:
             result["error"] = openevolve_result.error
-            _update_adv_log_and_status(f"❌ Native OpenEvolve adversarial failed: {openevolve_result.error}")
+            _update_adv_log_and_status(f"[FAIL] Native OpenEvolve adversarial failed: {openevolve_result.error}")
         
         return result
         

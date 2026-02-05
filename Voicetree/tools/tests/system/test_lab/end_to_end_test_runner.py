@@ -264,7 +264,7 @@ Parent:
         result = self.run_headless_agent_test(source_note, "", expected_behaviors, hook_injection)
         
         if result is None:
-            print(f"❌ Test failed to execute: {self.current_test.get('error', 'Unknown error')}")
+            print(f"[FAIL] Test failed to execute: {self.current_test.get('error', 'Unknown error')}")
             return False
             
         # Validate
@@ -284,7 +284,7 @@ Parent:
         print(f"Validations Passed: {passed_validations}/{total_validations}")
         
         for validation, passed in validations.items():
-            status = "✅" if passed else "❌"
+            status = "[OK]" if passed else "[FAIL]"
             print(f"  {status} {validation}")
             
         if result.stdout:
@@ -302,7 +302,7 @@ Parent:
             print(f"❗ Test vault preserved for debugging: {self.test_vault_root}")
         else:
             self.cleanup_test_environment()
-        print(f"Overall Result: {'✅ PASS' if success else '❌ FAIL'}")
+        print(f"Overall Result: {'[OK] PASS' if success else '[FAIL] FAIL'}")
         
         return success
         
@@ -378,7 +378,7 @@ def main():
     print(f"\n🎯 END-TO-END TEST LAB SUMMARY:")
     print(f"Total Scenarios: 2")
     print(f"Passed: {sum([success1, success2])}/2")
-    print(f"Overall Status: {'✅ ALL TESTS PASSED' if total_success else '❌ SOME TESTS FAILED'}")
+    print(f"Overall Status: {'[OK] ALL TESTS PASSED' if total_success else '[FAIL] SOME TESTS FAILED'}")
     
     return 0 if total_success else 1
 

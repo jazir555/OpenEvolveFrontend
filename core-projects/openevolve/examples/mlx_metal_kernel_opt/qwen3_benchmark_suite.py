@@ -589,9 +589,9 @@ Given this comprehensive overview of the current state and future directions of 
                     print(f"   Warmup run {i+1}/{WARMUP_RUNS}...")
                     warmup_result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
                     if warmup_result.returncode != 0:
-                        print(f"   ⚠️  Warmup run {i+1} failed: {warmup_result.stderr[:100]}...")
+                        print(f"   [WARN]  Warmup run {i+1} failed: {warmup_result.stderr[:100]}...")
                     else:
-                        print(f"   ✅ Warmup run {i+1} completed")
+                        print(f"   [OK] Warmup run {i+1} completed")
 
                     # Clear cache between warmup runs
                     mx.clear_cache()
@@ -599,7 +599,7 @@ Given this comprehensive overview of the current state and future directions of 
                 except subprocess.TimeoutExpired:
                     print(f"   ⏰ Warmup run {i+1} timed out")
                 except Exception as e:
-                    print(f"   ❌ Warmup run {i+1} error: {e}")
+                    print(f"   [FAIL] Warmup run {i+1} error: {e}")
 
             print(f"📊 Running {MEASUREMENT_RUNS} measurement runs...")
 
@@ -619,7 +619,7 @@ Given this comprehensive overview of the current state and future directions of 
                     end_time = time.perf_counter()
 
                     if result.returncode != 0:
-                        print(f"   ❌ Measurement run {run_idx+1} failed: {result.stderr[:100]}...")
+                        print(f"   [FAIL] Measurement run {run_idx+1} failed: {result.stderr[:100]}...")
                         continue
 
                     # Parse output
@@ -630,22 +630,22 @@ Given this comprehensive overview of the current state and future directions of 
                     if parsed_result:
                         successful_results.append(parsed_result)
                         print(
-                            f"   ✅ Run {run_idx+1}: {parsed_result.decode_tokens_per_sec:.1f} tokens/sec"
+                            f"   [OK] Run {run_idx+1}: {parsed_result.decode_tokens_per_sec:.1f} tokens/sec"
                         )
                     else:
-                        print(f"   ❌ Run {run_idx+1}: Failed to parse output")
+                        print(f"   [FAIL] Run {run_idx+1}: Failed to parse output")
 
                 except subprocess.TimeoutExpired:
                     print(f"   ⏰ Measurement run {run_idx+1} timed out")
                 except Exception as e:
-                    print(f"   ❌ Measurement run {run_idx+1} error: {e}")
+                    print(f"   [FAIL] Measurement run {run_idx+1} error: {e}")
 
             # Require at least 2 successful runs for reliable results
             if len(successful_results) < 2:
                 print(
-                    f"❌ Only {len(successful_results)}/{MEASUREMENT_RUNS} measurement runs succeeded"
+                    f"[FAIL] Only {len(successful_results)}/{MEASUREMENT_RUNS} measurement runs succeeded"
                 )
-                print(f"❌ Need at least 2 successful runs for reliable results")
+                print(f"[FAIL] Need at least 2 successful runs for reliable results")
                 raise RuntimeError(
                     f"Insufficient successful runs: {len(successful_results)}/{MEASUREMENT_RUNS}"
                 )

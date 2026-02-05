@@ -670,7 +670,7 @@ def print_import_status() -> None:
     total_count = len(available)
 
     for module_name, is_avail in available.items():
-        status = "✓ Available" if is_avail else "✗ Not Available"
+        status = "[OK] Available" if is_avail else "[FAIL] Not Available"
         print(f"  {module_name:.<40} {status}")
 
     print("-"*60)
@@ -735,11 +735,11 @@ if __name__ == "__main__":
 
     # Test basic usage
     if EVOLUTION_AVAILABLE:
-        print("✓ Evolution module can be imported")
+        print("[OK] Evolution module can be imported")
     else:
-        print("✗ Evolution module cannot be imported")
+        print("[FAIL] Evolution module cannot be imported")
 
     if ADVERSARIAL_AVAILABLE:
-        print("✓ Adversarial module can be imported")
+        print("[OK] Adversarial module can be imported")
     else:
-        print("✗ Adversarial module cannot be imported")
+        print("[FAIL] Adversarial module cannot be imported")

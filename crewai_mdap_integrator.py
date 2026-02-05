@@ -13,10 +13,10 @@ Key Features:
 5. Integration with CrewAI flows
 
 Architecture:
-- MDAP debate participants → CrewAI Agents
-- MDAP steps → CrewAI Tasks
-- MDAP task execution → CrewAI Crew
-- Voting coordination → CrewAI Process
+- MDAP debate participants -> CrewAI Agents
+- MDAP steps -> CrewAI Tasks
+- MDAP task execution -> CrewAI Crew
+- Voting coordination -> CrewAI Process
 
 License: MIT (replaces AGPL Hephaestus)
 """

@@ -631,7 +631,7 @@ class AdaptiveHybridSelector:
             "theorem_length": len(theorem),
             "word_count": len(theorem.split()),
             "has_quantifiers": any(q in theorem for q in ["forall", "exists", "∀", "∃"]),
-            "has_implications": any(imp in theorem for imp in ["->", "→", "implies"]),
+            "has_implications": any(imp in theorem for imp in ["->", "->", "implies"]),
             "has_conjunctions": any(conj in theorem for conj in ["and", "∧", "/\\"]),
             "has_disjunctions": any(disj in theorem for disj in ["or", "√", "\\/"]),
             "complexity_score": 0,

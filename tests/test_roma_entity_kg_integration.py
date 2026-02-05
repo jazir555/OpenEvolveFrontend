@@ -757,16 +757,16 @@ Test Coverage Summary:
 - Edge Cases: 7 tests
 
 Coverage Areas:
-✓ Entity extraction from decompositions
-✓ Concept and technology extraction
-✓ Relationship extraction
-✓ Entity type classification
-✓ Knowledge writing operations
-✓ Batch operations
-✓ Knowledge reading operations
-✓ Query functionality
-✓ Similar entity search
-✓ Data serialization
-✓ Error handling
-✓ Edge cases
+[OK] Entity extraction from decompositions
+[OK] Concept and technology extraction
+[OK] Relationship extraction
+[OK] Entity type classification
+[OK] Knowledge writing operations
+[OK] Batch operations
+[OK] Knowledge reading operations
+[OK] Query functionality
+[OK] Similar entity search
+[OK] Data serialization
+[OK] Error handling
+[OK] Edge cases
 """

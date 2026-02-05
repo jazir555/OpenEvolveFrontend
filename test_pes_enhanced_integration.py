@@ -808,9 +808,9 @@ class PESIntegrationTester:
             status_counts[result.status] += 1
         
         print(f"\nTotal Tests: {len(self.results)}")
-        print(f"  ✓ WORKS:    {status_counts['WORKS']}")
+        print(f"  [OK] WORKS:    {status_counts['WORKS']}")
         print(f"  ⚠ PARTIAL:  {status_counts['PARTIAL']}")
-        print(f"  ✗ BROKEN:   {status_counts['BROKEN']}")
+        print(f"  [FAIL] BROKEN:   {status_counts['BROKEN']}")
         print(f"  ? UNKNOWN:  {status_counts['UNKNOWN']}")
         
         # Critical issues
@@ -820,10 +820,10 @@ class PESIntegrationTester:
             print("CRITICAL ISSUES (BROKEN)")
             print("="*70)
             for issue in critical_issues:
-                print(f"\n• {issue.component} - {issue.test_name}")
+                print(f"\n* {issue.component} - {issue.test_name}")
                 print(f"  {issue.details}")
                 if issue.recommendation:
-                    print(f"  → Fix: {issue.recommendation}")
+                    print(f"  -> Fix: {issue.recommendation}")
         
         # Partial issues
         partial_issues = [r for r in self.results if r.status == "PARTIAL"]
@@ -832,10 +832,10 @@ class PESIntegrationTester:
             print("PARTIAL ISSUES (NEED ATTENTION)")
             print("="*70)
             for issue in partial_issues:
-                print(f"\n• {issue.component} - {issue.test_name}")
+                print(f"\n* {issue.component} - {issue.test_name}")
                 print(f"  {issue.details}")
                 if issue.recommendation:
-                    print(f"  → Fix: {issue.recommendation}")
+                    print(f"  -> Fix: {issue.recommendation}")
         
         # Overall assessment
         print("\n" + "="*70)
@@ -845,13 +845,13 @@ class PESIntegrationTester:
         broken_pct = status_counts['BROKEN'] / len(self.results) * 100 if self.results else 0
         
         if broken_pct == 0:
-            print("✓ EXCELLENT: No critical issues found. Integration is solid.")
+            print("[OK] EXCELLENT: No critical issues found. Integration is solid.")
         elif broken_pct < 10:
-            print("✓ GOOD: Minor issues found but core functionality works.")
+            print("[OK] GOOD: Minor issues found but core functionality works.")
         elif broken_pct < 25:
             print("⚠ MODERATE: Several issues need attention before production use.")
         else:
-            print("✗ POOR: Significant issues found. Integration needs major work.")
+            print("[FAIL] POOR: Significant issues found. Integration needs major work.")
         
         return {
             'total_tests': len(self.results),

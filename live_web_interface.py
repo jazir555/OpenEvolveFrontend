@@ -777,20 +777,20 @@ if __name__ == "__main__":
         agent = ResearchAgent()
         await agent.initialize()
         
-        print("\n✓ Research Agent initialized")
+        print("\n[OK] Research Agent initialized")
         print(f"  Browser: {agent.browser_config.engine.value}")
         print(f"  Headless: {agent.browser_config.headless}")
         
         print("\n" + "=" * 60)
         print("Example Use Cases:")
         print("  1. Blue Team hits Z3 error")
-        print("     → Research GitHub Issues for solutions")
+        print("     -> Research GitHub Issues for solutions")
         print("  2. New library documentation needed")
-        print("     → Crawl docs and ingest into OneKE")
+        print("     -> Crawl docs and ingest into OneKE")
         print("  3. Monitor documentation for updates")
         print("  4. MultiOn AI-powered browsing")
         
         await agent.close()
-        print("\n✓ Demo complete")
+        print("\n[OK] Demo complete")
     
     asyncio.run(demo())

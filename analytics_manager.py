@@ -730,7 +730,7 @@ class AnalyticsManager:
                 <p style="font-size: 1.5em; font-weight: bold; margin: 0;">{len([s for s in insights["structure_analysis"].values() if s])}/7</p>
             </div>
             <div style="background-color: #ffebee; padding: 15px; border-radius: 8px; border-left: 4px solid #f44336;">
-                <h4 style="margin-top: 0; color: #c62828;">⚠️ Compliance Risk</h4>
+                <h4 style="margin-top: 0; color: #c62828;">[WARN] Compliance Risk</h4>
                 <p style="font-size: 1.5em; font-weight: bold; margin: 0; text-transform: capitalize;">{insights["compliance_risk"]}</p>
             </div>
         </div>
@@ -745,7 +745,7 @@ class AnalyticsManager:
         if insights["strengths"]:
             html += """
             <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px;">
-                <h3 style="color: #2e7d32; margin-top: 0;">✅ Strengths</h3>
+                <h3 style="color: #2e7d32; margin-top: 0;">[OK] Strengths</h3>
                 <ul style="padding-left: 20px;">
             """
             for strength in insights["strengths"][:5]:  # Limit to first 5
@@ -759,7 +759,7 @@ class AnalyticsManager:
         if insights["weaknesses"]:
             html += """
             <div style="background-color: #ffebee; padding: 15px; border-radius: 8px;">
-                <h3 style="color: #c62828; margin-top: 0;">❌ Areas for Improvement</h3>
+                <h3 style="color: #c62828; margin-top: 0;">[FAIL] Areas for Improvement</h3>
                 <ul style="padding-left: 20px;">
             """
             for weakness in insights["weaknesses"][:5]:  # Limit to first 5
@@ -787,7 +787,7 @@ class AnalyticsManager:
         if insights["threats"]:
             html += """
             <div style="background-color: #fff3e0; padding: 15px; border-radius: 8px;">
-                <h3 style="color: #ef6c00; margin-top: 0;">⚠️ Potential Threats</h3>
+                <h3 style="color: #ef6c00; margin-top: 0;">[WARN] Potential Threats</h3>
                 <ul style="padding-left: 20px;">
             """
             for threat in insights["threats"][:5]:  # Limit to first 5

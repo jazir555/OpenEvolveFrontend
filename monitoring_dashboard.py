@@ -322,7 +322,7 @@ def render_alerts_section():
             st.write(f"Since: {alert['since']}")
             col1, col2 = st.columns(2)
             with col1:
-                if st.button("✓ Acknowledge", key=f"ack_{alert['service']}"):
+                if st.button("[OK] Acknowledge", key=f"ack_{alert['service']}"):
                     st.success("Alert acknowledged")
             with col2:
                 if st.button("📝 View Details", key=f"det_{alert['service']}"):

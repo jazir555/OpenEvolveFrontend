@@ -7,7 +7,7 @@ feeding to LLM. Instead of providing raw transcripts, it produces a structured "
 the union" view.
 
 Four-Stage Pipeline:
-    1. Hierarchical Stage: Retrieve memories by importance level (CORE → IMPORTANT → CONTEXTUAL → GRANULAR)
+    1. Hierarchical Stage: Retrieve memories by importance level (CORE -> IMPORTANT -> CONTEXTUAL -> GRANULAR)
     2. Graph Stage: Follow relationship paths to connect distant memories
     3. Deduplication Stage: Use hash index to remove/merge near-duplicates
     4. Semantic Stage: Re-rank remaining by semantic similarity to current query
@@ -409,7 +409,7 @@ class AssembledContext:
             sections.append("=== CORE PRINCIPLES ===")
             for item in sorted(self.core_principles, 
                              key=lambda x: x.composite_score, reverse=True):
-                sections.append(f"• {item.content}")
+                sections.append(f"* {item.content}")
                 if item.cross_references:
                     sections.append(f"  [See also: {', '.join(item.cross_references)}]")
         
@@ -418,7 +418,7 @@ class AssembledContext:
             sections.append("\n=== KEY RELATIONSHIPS ===")
             for item in sorted(self.key_relationships,
                              key=lambda x: x.composite_score, reverse=True):
-                sections.append(f"• {item.content}")
+                sections.append(f"* {item.content}")
                 if item.related_item_ids:
                     sections.append(f"  [Related to: {', '.join(item.related_item_ids[:3])}]")
         
@@ -427,7 +427,7 @@ class AssembledContext:
             sections.append("\n=== RECENT RELEVANT DETAILS ===")
             for item in sorted(self.recent_details,
                              key=lambda x: x.created_at, reverse=True)[:10]:
-                sections.append(f"• {item.content}")
+                sections.append(f"* {item.content}")
         
         # Connection Summary
         if self.connection_summary:
@@ -1659,7 +1659,7 @@ class ContextRotPreventer:
             summary_parts.append("Key Principles Established:")
             unique_principles = {p.content: p for p in all_core}
             for principle in list(unique_principles.values())[:10]:
-                summary_parts.append(f"  • {principle.content}")
+                summary_parts.append(f"  * {principle.content}")
             summary_parts.append("")
         
         # Add relationships
@@ -1667,7 +1667,7 @@ class ContextRotPreventer:
             summary_parts.append("Key Connections Made:")
             unique_rels = {r.content: r for r in all_relationships}
             for rel in list(unique_rels.values())[:10]:
-                summary_parts.append(f"  • {rel.content}")
+                summary_parts.append(f"  * {rel.content}")
             summary_parts.append("")
         
         # Add session stats

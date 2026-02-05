@@ -6,12 +6,12 @@ Decision Aggregation Protocol) and MAKER (Multi-Agent voting for KEeping Reliabi
 capabilities with the OpenEvolve decomposition workflow.
 
 MDAP Architecture:
-    Multiple Agent Generation (MAG) → Strategy Pool → Aggregation → Best Strategy
-    ↓
-    LeanAide Verification → Formal Proof → Confidence Score
+    Multiple Agent Generation (MAG) -> Strategy Pool -> Aggregation -> Best Strategy
+    v
+    LeanAide Verification -> Formal Proof -> Confidence Score
 
 MAKER Architecture:
-    Task Decomposition → Tactic Voting → First-to-Ahead-by-K → Red-Flagging → Final Proof
+    Task Decomposition -> Tactic Voting -> First-to-Ahead-by-K -> Red-Flagging -> Final Proof
 
 Integration Points:
     - Stage 3A: MDAP/MAKER for initial proof generation
@@ -1183,7 +1183,7 @@ class LeanHybridIntegrator:
         Returns:
             SolutionAttempt with hybrid-generated proof
         """
-        logger.info(f"Hybrid MDAP→MAKER: Solving {sub_problem.id}")
+        logger.info(f"Hybrid MDAP->MAKER: Solving {sub_problem.id}")
 
         # Step 1: Generate with MDAP
         mdap_solution = await self.mdap_integrator.solve_subproblem_with_mdap(sub_problem)
@@ -1212,7 +1212,7 @@ class LeanHybridIntegrator:
         Returns:
             SolutionAttempt with hybrid-generated proof
         """
-        logger.info(f"Hybrid MAKER→MDAP: Solving {sub_problem.id}")
+        logger.info(f"Hybrid MAKER->MDAP: Solving {sub_problem.id}")
 
         # Step 1: Generate with MAKER
         maker_solution = await self.maker_integrator.solve_with_maker_voting(sub_problem)

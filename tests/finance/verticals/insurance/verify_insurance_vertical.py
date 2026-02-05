@@ -25,10 +25,10 @@ def test_imports():
             Bond,
             CreditRating
         )
-        print("✓ All imports successful")
+        print("[OK] All imports successful")
         return True
     except Exception as e:
-        print(f"✗ Import failed: {e}")
+        print(f"[FAIL] Import failed: {e}")
         return False
 
 
@@ -74,11 +74,11 @@ def test_rbc_calculator():
         )
 
         assert rbc_ratio > 0, "RBC ratio should be positive"
-        print(f"✓ RBC Calculator working (RBC: {rbc_ratio:.2f}%)")
+        print(f"[OK] RBC Calculator working (RBC: {rbc_ratio:.2f}%)")
         return True
 
     except Exception as e:
-        print(f"✗ RBC Calculator test failed: {e}")
+        print(f"[FAIL] RBC Calculator test failed: {e}")
         return False
 
 
@@ -101,11 +101,11 @@ def test_stress_generator():
             assert scenario.shocks, "Scenario should have shocks"
             assert scenario.duration_months > 0, "Duration should be positive"
 
-        print(f"✓ Stress Scenario Generator working ({len(scenarios)} scenarios)")
+        print(f"[OK] Stress Scenario Generator working ({len(scenarios)} scenarios)")
         return True
 
     except Exception as e:
-        print(f"✗ Stress Scenario Generator test failed: {e}")
+        print(f"[FAIL] Stress Scenario Generator test failed: {e}")
         return False
 
 
@@ -155,11 +155,11 @@ def test_portfolio_constraints():
         assert portfolio.duration <= constraints.max_duration, "Duration constraint"
         assert len(portfolio.bonds) >= constraints.min_diversification, "Diversification constraint"
 
-        print("✓ Portfolio Constraints working")
+        print("[OK] Portfolio Constraints working")
         return True
 
     except Exception as e:
-        print(f"✗ Portfolio Constraints test failed: {e}")
+        print(f"[FAIL] Portfolio Constraints test failed: {e}")
         return False
 
 
@@ -181,11 +181,11 @@ def test_evolver_initialization():
         assert evolver.rbc_calculator is not None
         assert evolver.stress_generator is not None
 
-        print("✓ Insurance Reserve Evolver initialization successful")
+        print("[OK] Insurance Reserve Evolver initialization successful")
         return True
 
     except Exception as e:
-        print(f"✗ Evolver initialization test failed: {e}")
+        print(f"[FAIL] Evolver initialization test failed: {e}")
         return False
 
 
@@ -209,7 +209,7 @@ def main():
             result = test_func()
             results.append((name, result))
         except Exception as e:
-            print(f"\n✗ {name} test crashed: {e}")
+            print(f"\n[FAIL] {name} test crashed: {e}")
             results.append((name, False))
 
     # Summary
@@ -221,7 +221,7 @@ def main():
     total = len(results)
 
     for name, result in results:
-        status = "✓ PASS" if result else "✗ FAIL"
+        status = "[OK] PASS" if result else "[FAIL] FAIL"
         print(f"{status}: {name}")
 
     print(f"\nPassed: {passed}/{total} tests")
@@ -230,7 +230,7 @@ def main():
         print("\n🎉 All tests passed! Insurance vertical is ready.")
         return 0
     else:
-        print(f"\n⚠️  {total - passed} test(s) failed. Please review.")
+        print(f"\n[WARN]  {total - passed} test(s) failed. Please review.")
         return 1
 
 

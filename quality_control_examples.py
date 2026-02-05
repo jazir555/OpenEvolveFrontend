@@ -261,16 +261,16 @@ def example_8_ci_cd_integration():
     print(f"Quality Gate Threshold: {QUALITY_GATE_THRESHOLD:.2%}")
 
     if result['quality_score'] >= QUALITY_GATE_THRESHOLD:
-        print("✓ Quality gate PASSED")
+        print("[OK] Quality gate PASSED")
         exit_code = 0
     else:
-        print("✗ Quality gate FAILED")
+        print("[FAIL] Quality gate FAILED")
         print(f"  Score {result['quality_score']:.2%} is below threshold {QUALITY_GATE_THRESHOLD:.2%}")
         exit_code = 1
 
     # Check for critical security issues
     if result['critical_issues'] > 0:
-        print(f"✗ Found {result['critical_issues']} critical security issues")
+        print(f"[FAIL] Found {result['critical_issues']} critical security issues")
         exit_code = 1
 
     print(f"\nExit Code: {exit_code}")

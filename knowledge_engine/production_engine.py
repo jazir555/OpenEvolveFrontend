@@ -818,10 +818,10 @@ async def main():
     }
     
     processing_result = engine.process_workflow_production(workflow_data)
-    print(f"✅ Processed workflow: {processing_result['status']}")
-    print(f"✅ Extracted {processing_result['knowledge_extracted']} knowledge artifacts")
-    print(f"✅ Processing time: {processing_result['processing_time']:.4f}s")
-    print(f"✅ Production mode: {processing_result['production_mode']}")
+    print(f"[OK] Processed workflow: {processing_result['status']}")
+    print(f"[OK] Extracted {processing_result['knowledge_extracted']} knowledge artifacts")
+    print(f"[OK] Processing time: {processing_result['processing_time']:.4f}s")
+    print(f"[OK] Production mode: {processing_result['production_mode']}")
     
     # Example 2: Production search
     print("\n2. Performing production search...")
@@ -831,9 +831,9 @@ async def main():
         query_type="hybrid",
         limit=3
     )
-    print(f"✅ Search status: {search_results['status']}")
-    print(f"✅ Found {search_results['result_count']} results")
-    print(f"✅ Processing time: {search_results['processing_time']:.4f}s")
+    print(f"[OK] Search status: {search_results['status']}")
+    print(f"[OK] Found {search_results['result_count']} results")
+    print(f"[OK] Processing time: {search_results['processing_time']:.4f}s")
     
     # Example 3: Production recommendations
     print("\n3. Getting production recommendations...")
@@ -852,29 +852,29 @@ async def main():
     }
     
     recommendations = engine.get_production_recommendations(context, user_profile)
-    print(f"✅ Recommendations status: {recommendations['status']}")
-    print(f"✅ Got {recommendations['recommendation_count']} recommendations")
-    print(f"✅ Processing time: {recommendations['processing_time']:.4f}s")
+    print(f"[OK] Recommendations status: {recommendations['status']}")
+    print(f"[OK] Got {recommendations['recommendation_count']} recommendations")
+    print(f"[OK] Processing time: {recommendations['processing_time']:.4f}s")
     
     # Example 4: Comprehensive analytics
     print("\n4. Generating comprehensive analytics...")
     
     analytics = engine.get_comprehensive_analytics()
-    print(f"✅ Knowledge base contains {analytics['storage']['total_artifacts']} artifacts")
-    print(f"✅ Overall quality score: {analytics['overall_quality_score']:.2f}")
-    print(f"✅ Current trend: {analytics['trends'].get('trend', 'unknown')}")
-    print(f"✅ System health: {analytics['system']['status']['status']}")
+    print(f"[OK] Knowledge base contains {analytics['storage']['total_artifacts']} artifacts")
+    print(f"[OK] Overall quality score: {analytics['overall_quality_score']:.2f}")
+    print(f"[OK] Current trend: {analytics['trends'].get('trend', 'unknown')}")
+    print(f"[OK] System health: {analytics['system']['status']['status']}")
     
     # Example 5: Health report
     print("\n5. Generating production health report...")
     
     health_report = engine.get_production_health_report()
-    print(f"✅ Overall status: {health_report['overall_status']}")
-    print(f"✅ Health score: {health_report['health_indicators']['health_score']}")
-    print(f"✅ Production ready: {health_report['health_indicators']['production_ready']}")
+    print(f"[OK] Overall status: {health_report['overall_status']}")
+    print(f"[OK] Health score: {health_report['health_indicators']['health_score']}")
+    print(f"[OK] Production ready: {health_report['health_indicators']['production_ready']}")
     
     if health_report['recommendations']:
-        print("✅ Health recommendations:")
+        print("[OK] Health recommendations:")
         for i, recommendation in enumerate(health_report['recommendations'], 1):
             print(f"  {i}. {recommendation}")
     

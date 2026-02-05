@@ -385,7 +385,7 @@ def evaluate_stage3(program_path):
                     artifacts["timeout_duration"], 3, "timeout_duration should match config"
                 )
 
-                print(f"✅ Artifacts captured correctly: {list(artifacts.keys())}")
+                print(f"[OK] Artifacts captured correctly: {list(artifacts.keys())}")
 
         asyncio.run(run_test())
 

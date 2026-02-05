@@ -31,50 +31,50 @@ def verify_config_usage():
     # llm_model
     llm_client = LLMClient(config=config)
     if llm_client.model == config.llm_model:
-        print(f"   ✓ llm_model: {config.llm_model} → LLMClient.model")
+        print(f"   [OK] llm_model: {config.llm_model} -> LLMClient.model")
         verified['llm_model'] = True
     else:
-        print(f"   ✗ llm_model: {config.llm_model} → NOT USED (got {llm_client.model})")
+        print(f"   [FAIL] llm_model: {config.llm_model} -> NOT USED (got {llm_client.model})")
         verified['llm_model'] = False
 
     # llm_host
     if llm_client.host == config.llm_host:
-        print(f"   ✓ llm_host: {config.llm_host} → LLMClient.host")
+        print(f"   [OK] llm_host: {config.llm_host} -> LLMClient.host")
         verified['llm_host'] = True
     else:
-        print(f"   ✗ llm_host: {config.llm_host} → NOT USED (got {llm_client.host})")
+        print(f"   [FAIL] llm_host: {config.llm_host} -> NOT USED (got {llm_client.host})")
         verified['llm_host'] = False
 
     # llm_timeout
     if llm_client.timeout == config.llm_timeout:
-        print(f"   ✓ llm_timeout: {config.llm_timeout}s → LLMClient.timeout")
+        print(f"   [OK] llm_timeout: {config.llm_timeout}s -> LLMClient.timeout")
         verified['llm_timeout'] = True
     else:
-        print(f"   ✗ llm_timeout: {config.llm_timeout}s → NOT USED (got {llm_client.timeout}s)")
+        print(f"   [FAIL] llm_timeout: {config.llm_timeout}s -> NOT USED (got {llm_client.timeout}s)")
         verified['llm_timeout'] = False
 
     # llm_temperature - check if it's used in structured_query
     if hasattr(llm_client, '_config') and llm_client._config:
         if llm_client._config.llm_temperature == config.llm_temperature:
-            print(f"   ✓ llm_temperature: {config.llm_temperature} → LLMClient._config.llm_temperature")
+            print(f"   [OK] llm_temperature: {config.llm_temperature} -> LLMClient._config.llm_temperature")
             verified['llm_temperature'] = True
         else:
-            print(f"   ✗ llm_temperature: {config.llm_temperature} → NOT USED")
+            print(f"   [FAIL] llm_temperature: {config.llm_temperature} -> NOT USED")
             verified['llm_temperature'] = False
     else:
-        print(f"   ⚠️  llm_temperature: {config.llm_temperature} → Stored in config (used in structured_query)")
+        print(f"   [WARN]  llm_temperature: {config.llm_temperature} -> Stored in config (used in structured_query)")
         verified['llm_temperature'] = True  # It's used, just not directly accessible
 
     # llm_max_retries - check if it's used in structured_query
     if hasattr(llm_client, '_config') and llm_client._config:
         if llm_client._config.llm_max_retries == config.llm_max_retries:
-            print(f"   ✓ llm_max_retries: {config.llm_max_retries} → LLMClient._config.llm_max_retries")
+            print(f"   [OK] llm_max_retries: {config.llm_max_retries} -> LLMClient._config.llm_max_retries")
             verified['llm_max_retries'] = True
         else:
-            print(f"   ✗ llm_max_retries: {config.llm_max_retries} → NOT USED")
+            print(f"   [FAIL] llm_max_retries: {config.llm_max_retries} -> NOT USED")
             verified['llm_max_retries'] = False
     else:
-        print(f"   ⚠️  llm_max_retries: {config.llm_max_retries} → Stored in config (used in structured_query)")
+        print(f"   [WARN]  llm_max_retries: {config.llm_max_retries} -> Stored in config (used in structured_query)")
         verified['llm_max_retries'] = True  # It's used, just not directly accessible
 
     print()
@@ -87,27 +87,27 @@ def verify_config_usage():
 
     # actr_goal_value
     if actr_resolver.G == config.actr_goal_value:
-        print(f"   ✓ actr_goal_value: {config.actr_goal_value} → ACTRResolver.G")
+        print(f"   [OK] actr_goal_value: {config.actr_goal_value} -> ACTRResolver.G")
         verified['actr_goal_value'] = True
     else:
-        print(f"   ✗ actr_goal_value: {config.actr_goal_value} → NOT USED (got {actr_resolver.G})")
+        print(f"   [FAIL] actr_goal_value: {config.actr_goal_value} -> NOT USED (got {actr_resolver.G})")
         verified['actr_goal_value'] = False
 
     # actr_noise_stddev
     if actr_resolver.noise_stddev == config.actr_noise_stddev:
-        print(f"   ✓ actr_noise_stddev: {config.actr_noise_stddev} → ACTRResolver.noise_stddev")
+        print(f"   [OK] actr_noise_stddev: {config.actr_noise_stddev} -> ACTRResolver.noise_stddev")
         verified['actr_noise_stddev'] = True
     else:
-        print(f"   ✗ actr_noise_stddev: {config.actr_noise_stddev} → NOT USED (got {actr_resolver.noise_stddev})")
+        print(f"   [FAIL] actr_noise_stddev: {config.actr_noise_stddev} -> NOT USED (got {actr_resolver.noise_stddev})")
         verified['actr_noise_stddev'] = False
 
     # ACTRResolver also uses llm_model
     if hasattr(actr_resolver, 'llm') and hasattr(actr_resolver.llm, 'model'):
         if actr_resolver.llm.model == config.llm_model:
-            print(f"   ✓ llm_model: {config.llm_model} → ACTRResolver.llm.model")
+            print(f"   [OK] llm_model: {config.llm_model} -> ACTRResolver.llm.model")
             verified['llm_model_actr'] = True
         else:
-            print(f"   ✗ llm_model in ACTRResolver: NOT USED")
+            print(f"   [FAIL] llm_model in ACTRResolver: NOT USED")
             verified['llm_model_actr'] = False
 
     print()
@@ -120,26 +120,26 @@ def verify_config_usage():
 
     # cognitive_depth_threshold
     if agent.meta_monitor.depth_threshold == config.cognitive_depth_threshold:
-        print(f"   ✓ cognitive_depth_threshold: {config.cognitive_depth_threshold} → MetaCognitiveMonitor.depth_threshold")
+        print(f"   [OK] cognitive_depth_threshold: {config.cognitive_depth_threshold} -> MetaCognitiveMonitor.depth_threshold")
         verified['cognitive_depth_threshold'] = True
     else:
-        print(f"   ✗ cognitive_depth_threshold: {config.cognitive_depth_threshold} → NOT USED (got {agent.meta_monitor.depth_threshold})")
+        print(f"   [FAIL] cognitive_depth_threshold: {config.cognitive_depth_threshold} -> NOT USED (got {agent.meta_monitor.depth_threshold})")
         verified['cognitive_depth_threshold'] = False
 
     # cognitive_time_threshold_ms
     if agent.meta_monitor.time_threshold_ms == config.cognitive_time_threshold_ms:
-        print(f"   ✓ cognitive_time_threshold_ms: {config.cognitive_time_threshold_ms}ms → MetaCognitiveMonitor.time_threshold_ms")
+        print(f"   [OK] cognitive_time_threshold_ms: {config.cognitive_time_threshold_ms}ms -> MetaCognitiveMonitor.time_threshold_ms")
         verified['cognitive_time_threshold_ms'] = True
     else:
-        print(f"   ✗ cognitive_time_threshold_ms: {config.cognitive_time_threshold_ms}ms → NOT USED (got {agent.meta_monitor.time_threshold_ms}ms)")
+        print(f"   [FAIL] cognitive_time_threshold_ms: {config.cognitive_time_threshold_ms}ms -> NOT USED (got {agent.meta_monitor.time_threshold_ms}ms)")
         verified['cognitive_time_threshold_ms'] = False
 
     # cognitive_max_cycles
     if agent.max_cycles == config.cognitive_max_cycles:
-        print(f"   ✓ cognitive_max_cycles: {config.cognitive_max_cycles} → CognitiveAgent.max_cycles")
+        print(f"   [OK] cognitive_max_cycles: {config.cognitive_max_cycles} -> CognitiveAgent.max_cycles")
         verified['cognitive_max_cycles'] = True
     else:
-        print(f"   ✗ cognitive_max_cycles: {config.cognitive_max_cycles} → NOT USED (got {agent.max_cycles})")
+        print(f"   [FAIL] cognitive_max_cycles: {config.cognitive_max_cycles} -> NOT USED (got {agent.max_cycles})")
         verified['cognitive_max_cycles'] = False
 
     print()
@@ -158,13 +158,13 @@ def verify_config_usage():
     passed = sum(1 for s in all_settings if verified.get(s, False))
     total = len(all_settings)
 
-    print(f"✅ Verified: {passed}/{total} settings")
+    print(f"[OK] Verified: {passed}/{total} settings")
     print()
 
     if passed == total:
         print("🎉 All config settings are being used correctly!")
     else:
-        print("⚠️  Some settings may not be used correctly. Check the output above.")
+        print("[WARN]  Some settings may not be used correctly. Check the output above.")
 
     return passed == total
 

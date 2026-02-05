@@ -62,7 +62,7 @@ def test_gamma1_performance():
     print(f"  Time: {elapsed:.4f}s")
 
     passed = elapsed < 5.0
-    status = "✅ PASS" if passed else "❌ FAIL"
+    status = "[OK] PASS" if passed else "[FAIL] FAIL"
     print(f"\n  Target: < 5.0s")
     print(f"  Result: {status}")
 
@@ -122,7 +122,7 @@ def test_gamma2_performance():
     print(f"  Time: {elapsed:.4f}s")
 
     passed = elapsed < 60.0
-    status = "✅ PASS" if passed else "❌ FAIL"
+    status = "[OK] PASS" if passed else "[FAIL] FAIL"
     print(f"\n  Target: < 60.0s for 1K iterations")
     print(f"  Result: {status}")
 
@@ -168,7 +168,7 @@ def test_aci_correlation():
     print(f"  Qualities: {[f'{q:.3f}' for q in solution_qualities[:5]]}...")
 
     passed = abs(correlation) > 0.85
-    status = "✅ PASS" if passed else "❌ FAIL"
+    status = "[OK] PASS" if passed else "[FAIL] FAIL"
     print(f"\n  Target: |correlation| > 0.85")
     print(f"  Result: {status}")
 
@@ -227,7 +227,7 @@ def test_architecture_assembly_performance():
     print(f"  Time: {elapsed:.2f}ms")
 
     passed = elapsed < 100.0
-    status = "✅ PASS" if passed else "❌ FAIL"
+    status = "[OK] PASS" if passed else "[FAIL] FAIL"
     print(f"\n  Target: < 100ms")
     print(f"  Result: {status}")
 
@@ -256,18 +256,18 @@ def main():
     print("SUMMARY")
     print("="*70)
 
-    print(f"\n  Γ₁ ACI Analyzer: {gamma1_time:.4f}s - {'✅ PASS' if results['gamma1'] else '❌ FAIL'}")
-    print(f"  Γ₂ MCTS Search: {gamma2_time:.4f}s - {'✅ PASS' if results['gamma2'] else '❌ FAIL'}")
-    print(f"  ACI Correlation: {aci_corr:.4f} - {'✅ PASS' if results['aci_correlation'] else '❌ FAIL'}")
-    print(f"  Architecture Assembly: {assembly_time:.2f}ms - {'✅ PASS' if results['assembly'] else '❌ FAIL'}")
+    print(f"\n  Γ₁ ACI Analyzer: {gamma1_time:.4f}s - {'[OK] PASS' if results['gamma1'] else '[FAIL] FAIL'}")
+    print(f"  Γ₂ MCTS Search: {gamma2_time:.4f}s - {'[OK] PASS' if results['gamma2'] else '[FAIL] FAIL'}")
+    print(f"  ACI Correlation: {aci_corr:.4f} - {'[OK] PASS' if results['aci_correlation'] else '[FAIL] FAIL'}")
+    print(f"  Architecture Assembly: {assembly_time:.2f}ms - {'[OK] PASS' if results['assembly'] else '[FAIL] FAIL'}")
 
     all_passed = all(results.values())
 
     print("\n" + "="*70)
     if all_passed:
-        print("✅ ALL PERFORMANCE TARGETS MET")
+        print("[OK] ALL PERFORMANCE TARGETS MET")
     else:
-        print("❌ SOME PERFORMANCE TARGETS NOT MET")
+        print("[FAIL] SOME PERFORMANCE TARGETS NOT MET")
     print("="*70 + "\n")
 
     return 0 if all_passed else 1

@@ -421,26 +421,26 @@ class UltimateIntegrationBridge:
         report += f"""
 ## Integration Verification
 
-- **100% Integration Achieved**: {'✅ YES' if verification['integration_complete'] else '❌ NO'}
+- **100% Integration Achieved**: {'[OK] YES' if verification['integration_complete'] else '[FAIL] NO'}
 - **Components Connected**: {verification['components_count']}
 - **Active Workflows**: {status['active_workflows']}
 - **Knowledge Entries**: {status['knowledge_entries']}
 
 ## Subsystems Integrated
 
-1. ✅ OpenEvolve Core (Evolution, Decomposition)
-2. ✅ LeanAide (Theorem Proving)
-3. ✅ BubbleLabs (Enterprise Integration)
-4. ✅ ROMA (Recomposition)
-5. ✅ CrewAI (Agent Orchestration)
-6. ✅ Z3 Prover (Constraint Solving)
-7. ✅ Stage 6 Knowledge (Pattern Extraction)
-8. ✅ Event Bus (Messaging)
-9. ✅ OpenTelemetry (Observability)
+1. [OK] OpenEvolve Core (Evolution, Decomposition)
+2. [OK] LeanAide (Theorem Proving)
+3. [OK] BubbleLabs (Enterprise Integration)
+4. [OK] ROMA (Recomposition)
+5. [OK] CrewAI (Agent Orchestration)
+6. [OK] Z3 Prover (Constraint Solving)
+7. [OK] Stage 6 Knowledge (Pattern Extraction)
+8. [OK] Event Bus (Messaging)
+9. [OK] OpenTelemetry (Observability)
 
 ## Conclusion
 
-**Integration Status**: {'✅ COMPLETE (100%)' if verification['integration_complete'] else '⚠️ PARTIAL'}
+**Integration Status**: {'[OK] COMPLETE (100%)' if verification['integration_complete'] else '[WARN] PARTIAL'}
 
 All subsystems are successfully integrated and operational.
 """
@@ -480,7 +480,7 @@ async def main():
     # Verify 100% integration
     verification = bridge.verify_100_percent_integration()
     print("Integration Verification:")
-    print(f"  100% Complete: {'✅ YES' if verification['integration_complete'] else '❌ NO'}")
+    print(f"  100% Complete: {'[OK] YES' if verification['integration_complete'] else '[FAIL] NO'}")
     print(f"  Integration Percentage: {verification['integration_percentage']}%")
     print()
     
@@ -514,7 +514,7 @@ async def main():
     print()
     
     print("=" * 70)
-    print("✅ 100% INTEGRATION ACHIEVED")
+    print("[OK] 100% INTEGRATION ACHIEVED")
     print("=" * 70)
 
 

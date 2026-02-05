@@ -189,7 +189,7 @@ class SlackAdapter(PluginBase):
 
         try:
             self.send_notification(
-                f"✅ Workflow complete for: {plan.original_problem[:100]}",
+                f"[OK] Workflow complete for: {plan.original_problem[:100]}",
                 SlackNotificationType.SUCCESS
             )
         except Exception as e:
@@ -207,7 +207,7 @@ class SlackAdapter(PluginBase):
         threshold = context.get('threshold')
 
         try:
-            message = f"⚠️ Quality threshold failed: {quality_score:.2f} < {threshold:.2f}"
+            message = f"[WARN] Quality threshold failed: {quality_score:.2f} < {threshold:.2f}"
             self.send_notification(message, SlackNotificationType.WARNING)
         except Exception as e:
             logger.error(f"Failed to send threshold warning: {e}")
@@ -223,7 +223,7 @@ class SlackAdapter(PluginBase):
         error = context.get('error')
 
         try:
-            message = f"❌ Workflow error: {str(error)[:200]}"
+            message = f"[FAIL] Workflow error: {str(error)[:200]}"
             self.send_notification(message, SlackNotificationType.ERROR)
         except Exception as e:
             logger.error(f"Failed to send error notification: {e}")
@@ -329,9 +329,9 @@ class SlackAdapter(PluginBase):
                     "text": {
                         "type": "mrkdwn",
                         "text": f"*Quality Breakdown:*\n"
-                                f"• Cohesion: {plan.quality_scores.cohesion:.2f}\n"
-                                f"• Completeness: {plan.quality_scores.completeness:.2f}\n"
-                                f"• Clarity: {plan.quality_scores.clarity:.2f}"
+                                f"* Cohesion: {plan.quality_scores.cohesion:.2f}\n"
+                                f"* Completeness: {plan.quality_scores.completeness:.2f}\n"
+                                f"* Clarity: {plan.quality_scores.clarity:.2f}"
                     }
                 }
             ]
@@ -339,12 +339,12 @@ class SlackAdapter(PluginBase):
             # Add sub-problems section
             if plan.sub_problems:
                 subproblem_text = "\n".join(
-                    f"• {sp.title} (complexity: {sp.complexity_score.value:.2f})"
+                    f"* {sp.title} (complexity: {sp.complexity_score.value:.2f})"
                     for sp in plan.sub_problems[:5]  # Limit to 5
                 )
 
                 if len(plan.sub_problems) > 5:
-                    subproblem_text += f"\n• ... and {len(plan.sub_problems) - 5} more"
+                    subproblem_text += f"\n* ... and {len(plan.sub_problems) - 5} more"
 
                 blocks.append({
                     "type": "section",

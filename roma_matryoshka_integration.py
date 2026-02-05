@@ -2,11 +2,11 @@
 ROMA-Matryoshka Integration
 
 Integrates Matryoshka Execution Engine into ROMA's recursive decomposition:
-- Phase 1: Problem Setup → Matryoshka analyzes problem structure
-- Phase 2: Solution Generation → Matryoshka solves each sub-problem
-- Phase 3: Critique → Matryoshka adversarially critiques
-- Phase 4: Verification → Matryoshka verifies solutions
-- Phase 5: Reassembly → ROMA aggregates (Matryoshka provides findings)
+- Phase 1: Problem Setup -> Matryoshka analyzes problem structure
+- Phase 2: Solution Generation -> Matryoshka solves each sub-problem
+- Phase 3: Critique -> Matryoshka adversarially critiques
+- Phase 4: Verification -> Matryoshka verifies solutions
+- Phase 5: Reassembly -> ROMA aggregates (Matryoshka provides findings)
 
 Matryoshka becomes a first-class solver option in ROMA.
 """
@@ -1108,7 +1108,7 @@ if __name__ == "__main__":
     availability = check_matryoshka_availability()
     print("Component Availability:")
     for component, available in availability.items():
-        print(f"  {component}: {'✓' if available else '✗'}")
+        print(f"  {component}: {'[OK]' if available else '[FAIL]'}")
     
     # Example: Create bridge and solve
     bridge = MatryoshkaROMABridge()

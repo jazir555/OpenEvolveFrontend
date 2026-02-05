@@ -58,7 +58,7 @@ async def main():
         workspace_dir="./example_ma_workspace",
     )
 
-    print("   ✓ Platform initialized")
+    print("   [OK] Platform initialized")
 
     # 2. Create Target Company (simulating sourcing result)
     print("\n2. Creating Target Company...")
@@ -76,7 +76,7 @@ async def main():
         website="www.cloudtechexample.com",
     )
 
-    print(f"   ✓ Target: {target.name}")
+    print(f"   [OK] Target: {target.name}")
     print(f"     - Revenue: ${target.revenue:.1f}M")
     print(f"     - Growth: {target.growth_rate:.1%}")
     print(f"     - Employees: {target.employees}")
@@ -86,14 +86,14 @@ async def main():
     fit = await platform.sourcer.analyze_strategic_fit(target)
     target.strategic_fit = fit
 
-    print(f"   ✓ Overall Score: {fit.overall_score:.1%}")
+    print(f"   [OK] Overall Score: {fit.overall_score:.1%}")
     print(f"     - Strategic Alignment: {fit.strategic_alignment:.1%}")
     print(f"     - Cultural Fit: {fit.cultural_fit:.1%}")
     print(f"     - Technology Compatibility: {fit.technology_compatibility:.1%}")
     print(f"     - Market Expansion: {fit.market_expansion:.1%}")
     print(f"     - Synergies Identified: {len(fit.synergies)}")
     for synergy in fit.synergies:
-        print(f"       • {synergy.synergy_type.value}: "
+        print(f"       * {synergy.synergy_type.value}: "
               f"${synergy.estimated_value:.1f}M ({synergy.time_to_realize} months)")
 
     # 4. Create Deal
@@ -107,7 +107,7 @@ async def main():
     )
 
     platform.deals[deal.deal_id] = deal
-    print(f"   ✓ Deal created: {deal.deal_id}")
+    print(f"   [OK] Deal created: {deal.deal_id}")
 
     # 5. Initiate Due Diligence
     print("\n5. Initiating Due Diligence...")
@@ -116,7 +116,7 @@ async def main():
         diligence_depth="standard",
     )
 
-    print(f"   ✓ Diligence Complete")
+    print(f"   [OK] Diligence Complete")
     print(f"     - Recommendation: {diligence_report.recommendation.upper()}")
     print(f"     - Confidence: {diligence_report.confidence:.1%}")
     print(f"     - Financial Health: {diligence_report.financial_health}")
@@ -134,16 +134,16 @@ async def main():
     print("\n6. Analyzing Deal...")
     valuation, structure, integration_plan = await platform.analyze_deal(deal.deal_id)
 
-    print(f"   ✓ Valuation: ${valuation.implied_value:.1f}M")
+    print(f"   [OK] Valuation: ${valuation.implied_value:.1f}M")
     print(f"     - Range: ${valuation.valuation_range[0]:.1f}M - "
           f"${valuation.valuation_range[1]:.1f}M")
     print(f"     - Methods: {len(valuation.methods)}")
     for method in valuation.methods:
-        print(f"       • {method.method}: ${method.value:.1f}M "
+        print(f"       * {method.method}: ${method.value:.1f}M "
               f"(confidence: {method.confidence:.1%})")
     print(f"     - Synergy Value: ${valuation.synergy_value:.1f}M")
 
-    print(f"\n   ✓ Deal Structure:")
+    print(f"\n   [OK] Deal Structure:")
     print(f"     - Total Value: ${structure.total_value:.1f}M")
     print(f"     - Cash: ${structure.cash_component:.1f}M "
           f"({structure.cash_component/structure.total_value:.0%})")
@@ -154,7 +154,7 @@ async def main():
     print(f"     - Tax Efficiency: {structure.tax_efficiency:.1%}")
     print(f"     - Efficiency Score: {structure.efficiency_score:.1%}")
 
-    print(f"\n   ✓ Integration Plan:")
+    print(f"\n   [OK] Integration Plan:")
     print(f"     - Day 1 Items: {len(integration_plan.day_1_plan)}")
     print(f"     - 30-Day Milestones: {len(integration_plan.first_30_days)}")
     print(f"     - 90-Day Milestones: {len(integration_plan.first_90_days)}")
@@ -165,7 +165,7 @@ async def main():
     print("\n7. Generating Recommendation...")
     recommendation = await platform.generate_recommendation(deal.deal_id)
 
-    print(f"   ✓ Recommendation: {recommendation['recommendation'].upper()}")
+    print(f"   [OK] Recommendation: {recommendation['recommendation'].upper()}")
     print(f"     - Confidence: {recommendation['confidence']:.1%}")
     print(f"     - Rationale: {recommendation['rationale']}")
 
@@ -173,7 +173,7 @@ async def main():
     print("\n8. Preparing Negotiation Strategy...")
     strategy = await platform.prepare_negotiation(deal.deal_id)
 
-    print(f"   ✓ Strategy: {strategy.approach}")
+    print(f"   [OK] Strategy: {strategy.approach}")
     print(f"     - Our BATNA: {strategy.batna.description}")
     print(f"       Value: ${strategy.batna.value:.1f}M, "
           f"Probability: {strategy.batna.probability:.1%}")
@@ -183,24 +183,24 @@ async def main():
     print(f"     - Leverage: {strategy.leverage_assessment}")
     print(f"     - Must Haves: {len(strategy.must_haves)}")
     for item in strategy.must_haves[:3]:
-        print(f"       • {item}")
+        print(f"       * {item}")
     print(f"     - Tradeables: {len(strategy.tradeables)}")
     for item in strategy.tradeables[:3]:
-        print(f"       • {item}")
+        print(f"       * {item}")
 
     # 9. Close Deal
     print("\n9. Closing Deal...")
     final_value = structure.total_value
     await platform.close_deal(deal.deal_id, final_value=final_value)
 
-    print(f"   ✓ Deal closed at ${final_value:.1f}M")
+    print(f"   [OK] Deal closed at ${final_value:.1f}M")
     print(f"     - Stage: {deal.stage.value}")
 
     # 10. Start Integration
     print("\n10. Starting Integration...")
     active_plan = await platform.start_integration(deal.deal_id)
 
-    print(f"   ✓ Integration started")
+    print(f"   [OK] Integration started")
     print(f"     - Steering Committee: {len(active_plan.steering_committee)} members")
     print(f"     - Communication Plan: {len(active_plan.communication_plan)} items")
     print(f"     - Retention Plan: {len(active_plan.retention_plan)} items")
@@ -244,7 +244,7 @@ async def main():
 
     await platform.record_outcome(deal.deal_id, outcome)
 
-    print(f"   ✓ Outcome recorded")
+    print(f"   [OK] Outcome recorded")
     print(f"     - Final Value: ${outcome.final_value:.1f}M")
     print(f"     - Actual vs Expected: {outcome.actual_vs_expected:.1%}")
     print(f"     - Synergy Realization: {outcome.synergy_realization_rate:.1%}")
@@ -255,7 +255,7 @@ async def main():
     print("\n12. Platform Learning...")
     patterns = await platform.knowledge.get_success_patterns()
 
-    print(f"   ✓ Success Patterns Identified: {len(patterns)}")
+    print(f"   [OK] Success Patterns Identified: {len(patterns)}")
     for pattern_name, pattern in patterns.items():
         print(f"     - {pattern.pattern}")
         print(f"       Success Rate: {pattern.success_rate:.1%}, "
@@ -265,13 +265,13 @@ async def main():
     print("\n13. Pipeline Summary...")
     summary = await platform.get_pipeline_summary()
 
-    print(f"   ✓ Total Deals: {summary['total_deals']}")
-    print(f"   ✓ By Stage:")
+    print(f"   [OK] Total Deals: {summary['total_deals']}")
+    print(f"   [OK] By Stage:")
     for stage, count in summary['by_stage'].items():
         if count > 0:
             print(f"     - {stage}: {count}")
-    print(f"   ✓ Conversion Rate: {summary['conversion_rate']:.1f}")
-    print(f"   ✓ Average Deal Size: ${summary['average_deal_size']:.1f}M")
+    print(f"   [OK] Conversion Rate: {summary['conversion_rate']:.1f}")
+    print(f"   [OK] Average Deal Size: ${summary['average_deal_size']:.1f}M")
 
     print("\n" + "=" * 60)
     print("M&A Deal Workflow Complete!")

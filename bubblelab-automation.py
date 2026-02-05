@@ -288,7 +288,7 @@ class WorkflowManager:
                     # Update existing
                     self.client.update_flow(existing['id'], code=code)
                     results['deployed'].append(workflow_name)
-                    print(f"  ✅ Updated: {workflow_name}")
+                    print(f"  [OK] Updated: {workflow_name}")
                 else:
                     # Create new
                     flow = self.client.create_flow(
@@ -297,7 +297,7 @@ class WorkflowManager:
                         description=f"Auto-generated from {workflow_file.name}"
                     )
                     results['deployed'].append(workflow_name)
-                    print(f"  ✅ Created: {workflow_name}")
+                    print(f"  [OK] Created: {workflow_name}")
 
                     # Activate if requested
                     if activate:
@@ -309,7 +309,7 @@ class WorkflowManager:
                     'workflow': workflow_name,
                     'error': str(e)
                 })
-                print(f"  ❌ Failed: {workflow_name} - {e}")
+                print(f"  [FAIL] Failed: {workflow_name} - {e}")
 
         return results
 
@@ -359,7 +359,7 @@ class WorkflowManager:
         with open(metadata_file, 'w') as f:
             json.dump(metadata, f, indent=2)
 
-        print(f"✅ Backup complete: {len(files)} workflows")
+        print(f"[OK] Backup complete: {len(files)} workflows")
         return str(backup_path)
 
     def generate_and_deploy(
@@ -379,7 +379,7 @@ class WorkflowManager:
             errors = generated.get('validation', {}).get('errors', [])
             raise ValueError(f"Generated code is invalid:\n" + "\n".join(errors))
 
-        print("✅ Code generated successfully")
+        print("[OK] Code generated successfully")
 
         # Deploy
         flow = self.client.create_flow(
@@ -388,7 +388,7 @@ class WorkflowManager:
             description=generated.get('explanation', '')
         )
 
-        print(f"✅ Workflow created: ID {flow['id']}")
+        print(f"[OK] Workflow created: ID {flow['id']}")
 
         if activate:
             self.client.activate_flow(flow['id'])
@@ -416,18 +416,18 @@ class WorkflowManager:
         print(f"\n{'='*60}")
         print(f"Deployment Summary for {environment}")
         print(f"{'='*60}")
-        print(f"✅ Successful: {len(results['deployed'])}")
-        print(f"❌ Failed: {len(results['failed'])}")
+        print(f"[OK] Successful: {len(results['deployed'])}")
+        print(f"[FAIL] Failed: {len(results['failed'])}")
 
         if results['deployed']:
             print(f"\nDeployed Workflows:")
             for name in results['deployed']:
-                print(f"  ✅ {name}")
+                print(f"  [OK] {name}")
 
         if results['failed']:
             print(f"\nFailed Workflows:")
             for failure in results['failed']:
-                print(f"  ❌ {failure['workflow']}: {failure.get('error', 'Unknown error')}")
+                print(f"  [FAIL] {failure['workflow']}: {failure.get('error', 'Unknown error')}")
 
         return results
 
@@ -446,11 +446,11 @@ def cmd_setup(args):
     bubblelab_url = input(f"BubbleLab URL [http://localhost:3001]: ") or "http://localhost:3001"
 
     # Get API key
-    print("\n📝 API Key (from BubbleLab Settings → API)")
+    print("\n📝 API Key (from BubbleLab Settings -> API)")
     api_key = getpass("API Key: ")
 
     if not api_key:
-        print("❌ API Key is required!")
+        print("[FAIL] API Key is required!")
         sys.exit(1)
 
     # Create config
@@ -458,14 +458,14 @@ def cmd_setup(args):
     config.set('base_url', bubblelab_url)
     config.set('api_key', api_key)
 
-    print("\n✅ Configuration saved")
+    print("\n[OK] Configuration saved")
 
     # Test connection
     print("\n🔍 Testing connection...")
     try:
         client = BubbleLabClient(config)
         flows = client.list_flows()
-        print(f"✅ Connected! Found {len(flows)} existing workflows")
+        print(f"[OK] Connected! Found {len(flows)} existing workflows")
 
         if flows:
             print("\n📊 Existing Workflows:")
@@ -474,7 +474,7 @@ def cmd_setup(args):
                 print(f"  {status} {flow['name']}")
 
     except (ConnectionError, RuntimeError, ValueError) as e:
-        print(f"❌ Connection failed: {e}")
+        print(f"[FAIL] Connection failed: {e}")
         print("\nPlease verify:")
         print("  1. BubbleLab is running")
         print("  2. API URL is correct")
@@ -483,9 +483,9 @@ def cmd_setup(args):
 
     print("\n✨ Setup complete!")
     print("\nNext steps:")
-    print("  • Run: python bubblelab_automation.py list")
-    print("  • Run: python bubblelab_automation.py generate")
-    print("  • Run: python bubblelab_automation.py deploy")
+    print("  * Run: python bubblelab_automation.py list")
+    print("  * Run: python bubblelab_automation.py generate")
+    print("  * Run: python bubblelab_automation.py deploy")
 
 
 def cmd_list(args):
@@ -515,14 +515,14 @@ def cmd_list(args):
             print()
 
     except (ConnectionError, RuntimeError, ValueError) as e:
-        print(f"❌ Error: {e}")
+        print(f"[FAIL] Error: {e}")
         sys.exit(1)
 
 
 def cmd_create(args):
     """Create new workflow from file"""
     if not args.file:
-        print("❌ --file is required")
+        print("[FAIL] --file is required")
         sys.exit(1)
 
     config = Config()
@@ -542,7 +542,7 @@ def cmd_create(args):
             description=args.description or f"Created from {args.file}"
         )
 
-        print(f"✅ Workflow created!")
+        print(f"[OK] Workflow created!")
         print(f"   ID: {flow['id']}")
         print(f"   Name: {flow['name']}")
 
@@ -555,7 +555,7 @@ def cmd_create(args):
             print("   ▶️  Activated")
 
     except (ConnectionError, RuntimeError, ValueError) as e:
-        print(f"❌ Error: {e}")
+        print(f"[FAIL] Error: {e}")
         sys.exit(1)
 
 
@@ -573,8 +573,8 @@ def cmd_deploy(args):
     print(f"\n{'='*60}")
     print(f"Deployment Summary")
     print(f"{'='*60}")
-    print(f"✅ Deployed: {len(results['deployed'])}")
-    print(f"❌ Failed: {len(results['failed'])}")
+    print(f"[OK] Deployed: {len(results['deployed'])}")
+    print(f"[FAIL] Failed: {len(results['failed'])}")
 
     if results['failed']:
         sys.exit(1)
@@ -583,11 +583,11 @@ def cmd_deploy(args):
 def cmd_generate(args):
     """Generate workflow with AI"""
     if not args.prompt:
-        print("❌ --prompt is required")
+        print("[FAIL] --prompt is required")
         sys.exit(1)
 
     if not args.name:
-        print("❌ --name is required")
+        print("[FAIL] --name is required")
         sys.exit(1)
 
     config = Config()
@@ -615,7 +615,7 @@ def cmd_generate(args):
             print(f"   {result['explanation'][:200]}...")
 
     except (RuntimeError, ConnectionError) as e:
-        print(f"\n❌ Error: {e}")
+        print(f"\n[FAIL] Error: {e}")
         sys.exit(1)
 
 
@@ -630,9 +630,9 @@ def cmd_export(args):
 
     try:
         files = manager.export_all_workflows(output_dir)
-        print(f"\n✅ Exported {len(files)} workflows")
+        print(f"\n[OK] Exported {len(files)} workflows")
     except (ConnectionError, RuntimeError, ValueError) as e:
-        print(f"❌ Error: {e}")
+        print(f"[FAIL] Error: {e}")
         sys.exit(1)
 
 
@@ -645,9 +645,9 @@ def cmd_backup(args):
 
     try:
         backup_path = manager.backup_workflows(backup_dir)
-        print(f"\n✅ Backup created at: {backup_path}")
+        print(f"\n[OK] Backup created at: {backup_path}")
     except (ConnectionError, RuntimeError, ValueError) as e:
-        print(f"❌ Error: {e}")
+        print(f"[FAIL] Error: {e}")
         sys.exit(1)
 
 
@@ -659,7 +659,7 @@ def cmd_monitor(args):
     client = BubbleLabClient(config)
 
     if not args.flow_id and not args.flow_name:
-        print("❌ --flow-id or --flow-name is required")
+        print("[FAIL] --flow-id or --flow-name is required")
         sys.exit(1)
 
     # Get flow
@@ -671,7 +671,7 @@ def cmd_monitor(args):
         flow = next((f for f in flows if f['name'].lower() == args.flow_name.lower()), None)
 
     if not flow:
-        print(f"❌ Flow not found")
+        print(f"[FAIL] Flow not found")
         sys.exit(1)
 
     flow_id = flow['id']
@@ -722,7 +722,7 @@ def cmd_sync(args):
         if results['failed']:
             sys.exit(1)
     except (RuntimeError, ConnectionError) as e:
-        print(f"\n❌ Error: {e}")
+        print(f"\n[FAIL] Error: {e}")
         sys.exit(1)
 
 
@@ -741,7 +741,7 @@ def cmd_status(args):
 
     try:
         flows = client.list_flows()
-        print(f"   Status: ✅ Connected")
+        print(f"   Status: [OK] Connected")
         print(f"   Workflows: {len(flows)}")
 
         active_count = sum(1 for f in flows if f.get('isActive'))
@@ -751,7 +751,7 @@ def cmd_status(args):
         print(f"   Total Executions: {total_executions}")
 
     except (ConnectionError, RuntimeError) as e:
-        print(f"   Status: ❌ Disconnected")
+        print(f"   Status: [FAIL] Disconnected")
         print(f"   Error: {e}")
         return
 

@@ -180,7 +180,7 @@ class OutputValidator:
             score -= 30
         
         # Check for lists
-        has_lists = bool(re.search(r'^\s*[-*•\d]\.', output, re.MULTILINE))
+        has_lists = bool(re.search(r'^\s*[-**\d]\.', output, re.MULTILINE))
         if not has_lists and len(output) > 400:
             score -= 20
         

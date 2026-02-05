@@ -130,7 +130,7 @@ class ASCIITreeRenderer:
 
         # Team history
         if node.teams:
-            teams_str = ' → '.join(node.teams)
+            teams_str = ' -> '.join(node.teams)
             lines.append(f"{indent}Teams: {teams_str}")
 
         # Timing
@@ -153,8 +153,8 @@ class ASCIITreeRenderer:
         icons = {
             'pending': '⏳',
             'in_progress': '🔄',
-            'complete': '✅',
-            'failed': '❌',
+            'complete': '[OK]',
+            'failed': '[FAIL]',
             'approved': '🏆',
         }
         return icons.get(status, '❓')

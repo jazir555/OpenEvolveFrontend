@@ -17,12 +17,12 @@ Core Philosophy:
     that can be solved independently and then reassembled into a complete solution.
 
 Architecture:
-    1. Problem Analysis → Understand domain, complexity, constraints
-    2. Strategy Selection → Choose best decomposition approach
-    3. Decomposition → Break into sub-problems with dependencies
-    4. Execution → Solve each sub-problem (using appropriate teams/methods)
-    5. Reassembly → Combine solutions with conflict resolution
-    6. Validation → Verify final solution meets success criteria
+    1. Problem Analysis -> Understand domain, complexity, constraints
+    2. Strategy Selection -> Choose best decomposition approach
+    3. Decomposition -> Break into sub-problems with dependencies
+    4. Execution -> Solve each sub-problem (using appropriate teams/methods)
+    5. Reassembly -> Combine solutions with conflict resolution
+    6. Validation -> Verify final solution meets success criteria
 
 Usage:
     >>> from universal_decomposition_engine import UniversalDecompositionEngine

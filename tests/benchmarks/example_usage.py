@@ -164,7 +164,7 @@ def example_regression_detection():
                 print(f"    Current:  {new_result.value:.2f}")
                 print(f"    Change:   +{change:.1f}%")
             elif change < -10:
-                print(f"  ✓ IMPROVEMENT: {new_result.metric_name}")
+                print(f"  [OK] IMPROVEMENT: {new_result.metric_name}")
                 print(f"    Previous: {prev_result['value']:.2f}")
                 print(f"    Current:  {new_result.value:.2f}")
                 print(f"    Change:   {change:.1f}%")
@@ -185,7 +185,7 @@ def example_ci_integration():
 
     # Determine exit code
     if results.failed > 0:
-        print(f"\n❌ CI FAILED: {results.failed} benchmarks failed")
+        print(f"\n[FAIL] CI FAILED: {results.failed} benchmarks failed")
         print("Failing checks...")
 
         # List failures
@@ -195,7 +195,7 @@ def example_ci_integration():
 
         return 1  # Non-zero exit code for CI
     else:
-        print(f"\n✅ CI PASSED: All {results.passed} benchmarks passed")
+        print(f"\n[OK] CI PASSED: All {results.passed} benchmarks passed")
         return 0
 
 

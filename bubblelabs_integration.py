@@ -3,6 +3,9 @@ BubbleLabs Integration for OpenEvolve Workflows
 
 This module provides integration between OpenEvolve workflows and the BubbleLabs UI,
 enabling visualization, interaction, and control of workflows through the BubbleLabs interface.
+
+CIRCULAR IMPORT FIX: All imports from api_server are now lazy (inside functions)
+to prevent circular import issues with the Z3 service chain.
 """
 
 import json
@@ -16,7 +19,35 @@ import uuid
 from workflow_structures import WorkflowState
 from team_manager import TeamManager
 from gauntlet_manager import GauntletManager
-from api_server import team_manager, gauntlet_manager  # Import managers only
+
+# Lazy imports from api_server to prevent circular imports
+# These are imported inside functions where needed instead of at module level
+_api_server_team_manager = None
+_api_server_gauntlet_manager = None
+
+def _get_api_server_managers():
+    """Lazy import api_server managers to prevent circular imports.
+    
+    This function uses lazy imports to break the circular dependency chain:
+    z3_api_server -> z3_leanaide_openevolve_integration -> bubblelabs_integration -> api_server
+    
+    Returns:
+        Tuple of (team_manager, gauntlet_manager)
+    """
+    global _api_server_team_manager, _api_server_gauntlet_manager
+    if _api_server_team_manager is None or _api_server_gauntlet_manager is None:
+        try:
+            # Lazy import to prevent circular import
+            from api_server import team_manager, gauntlet_manager
+            _api_server_team_manager = team_manager
+            _api_server_gauntlet_manager = gauntlet_manager
+        except Exception as e:
+            # If api_server is not available (circular import or other error),
+            # create local instances as fallback
+            logger.debug(f"Using local TeamManager/GauntletManager due to: {e}")
+            _api_server_team_manager = TeamManager()
+            _api_server_gauntlet_manager = GauntletManager()
+    return _api_server_team_manager, _api_server_gauntlet_manager
 
 # Import LeanAide integration
 try:
@@ -119,8 +150,10 @@ class BubbleLabsIntegration:
         self.workflow_instances: Dict[str, BubbleWorkflowInstance] = {}
         self.workflow_definitions: Dict[str, BubbleWorkflowDefinition] = {}
         self.running_threads: Dict[str, threading.Thread] = {}
-        self.team_manager = TeamManager()
-        self.gauntlet_manager = GauntletManager()
+        # Use lazy imports to avoid circular import issues
+        team_mgr, gauntlet_mgr = _get_api_server_managers()
+        self.team_manager = team_mgr
+        self.gauntlet_manager = gauntlet_mgr
 
         # CONCURRENCY FIX (Issue #3): Use RLock for reentrancy and establish lock hierarchy
         # Using separate RLocks allows fine-grained locking while preventing deadlock
@@ -617,8 +650,37 @@ class BubbleLabsIntegration:
             return None
 
 
-# Initialize the integration manager
-bubblelabs_integration = BubbleLabsIntegration()
+# Initialize the integration manager (lazy initialization)
+_bubblelabs_integration_instance = None
+
+def get_bubblelabs_integration():
+    """Get the singleton BubbleLabsIntegration instance (lazy initialization)."""
+    global _bubblelabs_integration_instance
+    if _bubblelabs_integration_instance is None:
+        _bubblelabs_integration_instance = BubbleLabsIntegration()
+    return _bubblelabs_integration_instance
+
+
+# Backward compatibility: module-level access will use lazy initialization
+# Note: Direct use of bubblelabs_integration at module level is deprecated.
+# Use get_bubblelabs_integration() instead.
+class _LazyIntegrationProxy:
+    """Proxy that lazily initializes the real integration on first access."""
+    
+    def __getattr__(self, name):
+        instance = get_bubblelabs_integration()
+        return getattr(instance, name)
+    
+    def __setattr__(self, name, value):
+        instance = get_bubblelabs_integration()
+        return setattr(instance, name, value)
+    
+    def __call__(self, *args, **kwargs):
+        instance = get_bubblelabs_integration()
+        return instance(*args, **kwargs)
+
+
+bubblelabs_integration = _LazyIntegrationProxy()
 
 
 if __name__ == "__main__":

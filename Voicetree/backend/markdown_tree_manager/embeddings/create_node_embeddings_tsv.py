@@ -203,7 +203,7 @@ def main() -> None:
     logger.info("Saving embeddings to TSV format...")
     save_to_tsv(embeddings, nodes, output_dir)
 
-    print(f"\n✅ Successfully created embeddings for {len(embeddings)} nodes")
+    print(f"\n[OK] Successfully created embeddings for {len(embeddings)} nodes")
     print(f"📁 Output files saved to: {output_dir.absolute()}")
     print("\nTo visualize in TensorFlow Projector:")
     print("1. Go to https://projector.tensorflow.org/")

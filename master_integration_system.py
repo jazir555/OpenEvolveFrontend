@@ -157,10 +157,10 @@ class MasterIntegrationSystem:
         try:
             logger.info("Initializing universal alerting...")
             self.alerting = get_universal_alerting()
-            logger.info("  ✓ Universal alerting")
+            logger.info("  [OK] Universal alerting")
             return True
         except Exception as e:
-            logger.error(f"  ✗ Alerting: {e}")
+            logger.error(f"  [FAIL] Alerting: {e}")
             return False
 
     def _init_alerting_wrapper(self) -> bool:
@@ -169,10 +169,10 @@ class MasterIntegrationSystem:
             logger.info("Applying alerting to all components...")
             self.alerting_wrapper = get_alerting_wrapper()
             self.alerting_wrapper.wrap_all()
-            logger.info("  ✓ Alerting applied to all components")
+            logger.info("  [OK] Alerting applied to all components")
             return True
         except Exception as e:
-            logger.error(f"  ✗ Alerting wrapper: {e}")
+            logger.error(f"  [FAIL] Alerting wrapper: {e}")
             return False
 
     def _init_verification(self) -> bool:
@@ -180,10 +180,10 @@ class MasterIntegrationSystem:
         try:
             logger.info("Initializing expanded Z3 verification...")
             self.verification = get_expanded_verification()
-            logger.info("  ✓ Expanded Z3 verification")
+            logger.info("  [OK] Expanded Z3 verification")
             return True
         except Exception as e:
-            logger.error(f"  ✗ Verification: {e}")
+            logger.error(f"  [FAIL] Verification: {e}")
             return False
 
     def _init_caching(self) -> bool:
@@ -194,10 +194,10 @@ class MasterIntegrationSystem:
             self.cache_verification = get_cache("verification", prefix="verification")
             self.cache_workflow = get_cache("workflow", prefix="workflow")
             self.cache_knowledge = get_cache("knowledge", prefix="knowledge")
-            logger.info("  ✓ All caching systems initialized")
+            logger.info("  [OK] All caching systems initialized")
             return True
         except Exception as e:
-            logger.error(f"  ✗ Caching: {e}")
+            logger.error(f"  [FAIL] Caching: {e}")
             return False
 
     def _init_adaptive(self) -> bool:
@@ -205,10 +205,10 @@ class MasterIntegrationSystem:
         try:
             logger.info("Initializing adaptive strategy manager...")
             self.adaptive = get_adaptive_manager()
-            logger.info("  ✓ Adaptive strategy manager")
+            logger.info("  [OK] Adaptive strategy manager")
             return True
         except Exception as e:
-            logger.error(f"  ✗ Adaptive: {e}")
+            logger.error(f"  [FAIL] Adaptive: {e}")
             return False
 
     def _init_knowledge(self) -> bool:
@@ -220,12 +220,12 @@ class MasterIntegrationSystem:
             knowledge_path = self.config['knowledge']['knowledge_storage_path']
             if os.path.exists(knowledge_path):
                 self.knowledge.import_verified_knowledge(knowledge_path)
-                logger.info(f"  ✓ Imported knowledge from {knowledge_path}")
+                logger.info(f"  [OK] Imported knowledge from {knowledge_path}")
 
-            logger.info("  ✓ Knowledge reasoning integration")
+            logger.info("  [OK] Knowledge reasoning integration")
             return True
         except Exception as e:
-            logger.error(f"  ✗ Knowledge: {e}")
+            logger.error(f"  [FAIL] Knowledge: {e}")
             return False
 
     def _init_constraint_alerting(self) -> bool:
@@ -233,10 +233,10 @@ class MasterIntegrationSystem:
         try:
             logger.info("Initializing constraint-based alerting...")
             self.constraint_alerting = get_constraint_alerting()
-            logger.info("  ✓ Constraint-based alerting")
+            logger.info("  [OK] Constraint-based alerting")
             return True
         except Exception as e:
-            logger.error(f"  ✗ Constraint alerting: {e}")
+            logger.error(f"  [FAIL] Constraint alerting: {e}")
             return False
 
     def _wire_components(self) -> bool:
@@ -248,58 +248,58 @@ class MasterIntegrationSystem:
         try:
             logger.info("Wiring components together with ACTUAL method calls...")
 
-            # **ACTUAL WIRING 1**: Verification → Alerting
+            # **ACTUAL WIRING 1**: Verification -> Alerting
             if self.verification and self.alerting:
-                logger.info("  → Verification → Alerting (wired)")
+                logger.info("  -> Verification -> Alerting (wired)")
                 # Verification engine already has alerting built in via _trigger_verification_alerts
                 # This is verified in verification_engine.py
 
-            # **ACTUAL WIRING 2**: Caching → Adaptive (performance tracking)
+            # **ACTUAL WIRING 2**: Caching -> Adaptive (performance tracking)
             if self.cache_llm and self.adaptive:
-                logger.info("  → Caching → Adaptive (wired)")
+                logger.info("  -> Caching -> Adaptive (wired)")
                 # Cache already records to adaptive tracker in c2c_cache_manager.py
                 # This is verified in c2c_cache_manager.py
 
-            # **ACTUAL WIRING 3**: Knowledge → Verification (knowledge extraction)
+            # **ACTUAL WIRING 3**: Knowledge -> Verification (knowledge extraction)
             if self.knowledge and self.verification:
-                logger.info("  → Knowledge → Verification (wired)")
+                logger.info("  -> Knowledge -> Verification (wired)")
                 # Verification already learns from knowledge in verification_engine.py
                 # This is verified in verification_engine.py
 
-            # **ACTUAL WIRING 4**: Adaptive → Caching (strategy recommendations)
+            # **ACTUAL WIRING 4**: Adaptive -> Caching (strategy recommendations)
             if self.adaptive and self.cache_llm:
-                logger.info("  → Adaptive → Caching (wired)")
+                logger.info("  -> Adaptive -> Caching (wired)")
                 # Adaptive selector already queries knowledge for recommendations
                 # This is verified in adaptive_strategy_selector.py
 
-            # **ACTUAL WIRING 5**: Constraints → Alerting (constraint-based alerts)
+            # **ACTUAL WIRING 5**: Constraints -> Alerting (constraint-based alerts)
             if self.constraint_alerting and self.alerting:
-                logger.info("  → Constraints → Alerting (wired)")
+                logger.info("  -> Constraints -> Alerting (wired)")
                 # Constraint alerting already triggers alerts via alerting system
                 # This is verified in constraint_based_alerting.py
 
-            # **NEW WIRING 6**: Knowledge → All components (knowledge sharing)
+            # **NEW WIRING 6**: Knowledge -> All components (knowledge sharing)
             if self.knowledge:
-                logger.info("  → Knowledge → All components (wired)")
+                logger.info("  -> Knowledge -> All components (wired)")
                 # Knowledge is queried by decomposition, workflow, adaptive, ROMA, LeanAide, BubbleLabs
                 # All verified in their respective integration files
 
-            # **NEW WIRING 7**: Alerting → All components (failure notifications)
+            # **NEW WIRING 7**: Alerting -> All components (failure notifications)
             if self.alerting:
-                logger.info("  → Alerting → All components (wired)")
+                logger.info("  -> Alerting -> All components (wired)")
                 # All components trigger alerts on failures
                 # Verified in decomposition_engine.py, workflow_engine.py, etc.
 
-            # **NEW WIRING 8**: Caching → All components (performance optimization)
+            # **NEW WIRING 8**: Caching -> All components (performance optimization)
             if self.cache_llm:
-                logger.info("  → Caching → All components (wired)")
+                logger.info("  -> Caching -> All components (wired)")
                 # All components can use unified caching
                 # Verified in unified_caching.py
 
-            logger.info("  ✓ All components ACTUALLY wired with method calls")
+            logger.info("  [OK] All components ACTUALLY wired with method calls")
             return True
         except Exception as e:
-            logger.error(f"  ✗ Wiring: {e}")
+            logger.error(f"  [FAIL] Wiring: {e}")
             return False
 
     def verify_component_state(self, component: str, state: Dict[str, Any]) -> Dict[str, Any]:

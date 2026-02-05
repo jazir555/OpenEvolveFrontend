@@ -29,20 +29,20 @@ def verify_pdf_fields(pdf_path):
                         "page": page_num + 1,
                     }
                     print(
-                        f"✅ Field '{widget.field_name}' = '{widget.field_value}' on page {page_num + 1}"
+                        f"[OK] Field '{widget.field_name}' = '{widget.field_value}' on page {page_num + 1}"
                     )
 
         pdf_document.close()
 
         if not found_fields:
-            print("❌ No filled fields found")
+            print("[FAIL] No filled fields found")
         else:
             print(f"📊 Found {len(found_fields)} filled fields")
 
         return found_fields
 
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"[FAIL] Error: {e}")
         return {}
 
 

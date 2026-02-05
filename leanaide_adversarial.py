@@ -606,7 +606,7 @@ class LeanRedTeamAgent:
             ))
 
         # Check for circular reasoning
-        if theorem.split("→")[0].lower() in lean_code[:100]:
+        if theorem.split("->")[0].lower() in lean_code[:100]:
             critiques.append(ProofCritique(
                 issue_type="logic_gap",
                 description="Potential circular reasoning detected",
@@ -908,7 +908,7 @@ example : False := by
         """Generate collision example for injectivity claim"""
         return f"""
 -- Counterexample to injectivity claim: {theorem[:50]}...
-example (f : Nat → Nat) : ∃ x y, x ≠ y ∧ f x = f y := by
+example (f : Nat -> Nat) : ∃ x y, x ≠ y ∧ f x = f y := by
   -- Find two distinct inputs with same output
   exists (0, 1)
   -- Define function where f(0) = f(1)

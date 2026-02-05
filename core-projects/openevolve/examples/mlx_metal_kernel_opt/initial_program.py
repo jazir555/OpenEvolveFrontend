@@ -234,7 +234,7 @@ def qwen3_custom_gqa_attention(queries, keys, values, scale=1.0, mask=None):
 
     except Exception as e:
         # No fallback - let the custom kernel failure propagate for proper scoring
-        print(f"❌ Custom GQA kernel failed: {e}")
+        print(f"[FAIL] Custom GQA kernel failed: {e}")
         raise RuntimeError(f"Custom Metal kernel execution failed: {e}") from e
 
 
@@ -279,7 +279,7 @@ class CustomGQAAttention(nn.Module):
                 max_position_embeddings=args.max_position_embeddings,
             )
         except ImportError:
-            print("⚠️ Could not import mlx_lm rope_utils, using basic RoPE")
+            print("[WARN] Could not import mlx_lm rope_utils, using basic RoPE")
             self.rope = None
 
         print(f"🔧 Initialized Custom Metal GQA Attention")
@@ -337,11 +337,11 @@ def create_metal_qwen3_optimization_hook():
             # Replace with Metal optimized implementation
             qwen3_module.Attention = CustomGQAAttention
 
-            print("✅ Applied Custom Metal GQA Attention hook")
+            print("[OK] Applied Custom Metal GQA Attention hook")
             return original_attention
 
         except ImportError:
-            print("❌ Could not import mlx_lm.models.qwen3")
+            print("[FAIL] Could not import mlx_lm.models.qwen3")
             return None
 
     def remove_optimization_hook(original_attention):
@@ -350,7 +350,7 @@ def create_metal_qwen3_optimization_hook():
             import mlx_lm.models.qwen3 as qwen3_module
 
             qwen3_module.Attention = original_attention
-            print("✅ Removed Custom Metal GQA Attention hook")
+            print("[OK] Removed Custom Metal GQA Attention hook")
         except ImportError:
             pass
 
@@ -449,19 +449,19 @@ def test_metal_gqa_correctness():
     metal_attn = CustomGQAAttention(args)
     output = metal_attn(x, mask=mask)
 
-    print(f"✅ Metal GQA output shape: {output.shape}")
+    print(f"[OK] Metal GQA output shape: {output.shape}")
 
     # Check for valid output
     has_nan = bool(mx.any(mx.isnan(output)))
     has_inf = bool(mx.any(mx.isinf(output)))
 
-    print(f"✅ Has NaN: {has_nan}, Has Inf: {has_inf}")
+    print(f"[OK] Has NaN: {has_nan}, Has Inf: {has_inf}")
 
     # Check output statistics
     output_mean = float(mx.mean(output))
     output_std = float(mx.std(output))
 
-    print(f"✅ Output statistics - Mean: {output_mean:.6f}, Std: {output_std:.6f}")
+    print(f"[OK] Output statistics - Mean: {output_mean:.6f}, Std: {output_std:.6f}")
 
     # Test direct kernel function
     print("\n=== Testing Direct Kernel Function ===")
@@ -472,11 +472,11 @@ def test_metal_gqa_correctness():
     scale = 1.0 / math.sqrt(D)
 
     kernel_output = qwen3_custom_gqa_attention(q, k, v, scale=scale, mask="causal")
-    print(f"✅ Direct kernel output shape: {kernel_output.shape}")
+    print(f"[OK] Direct kernel output shape: {kernel_output.shape}")
 
     kernel_mean = float(mx.mean(kernel_output))
     kernel_std = float(mx.std(kernel_output))
-    print(f"✅ Direct kernel stats - Mean: {kernel_mean:.6f}, Std: {kernel_std:.6f}")
+    print(f"[OK] Direct kernel stats - Mean: {kernel_mean:.6f}, Std: {kernel_std:.6f}")
 
     return True
 

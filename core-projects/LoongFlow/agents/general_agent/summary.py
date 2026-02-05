@@ -92,7 +92,7 @@ class GeneralSummaryAgent(Worker):
         score = evidence.current_solution.score if evidence else 0.0
         total_tokens = analysis.get("total_prompt_tokens", 0) + analysis.get("total_completion_tokens", 0)
         logger.info(
-            f"[{context.trace_id}] Summary: ✅ Iteration completed - score={score:.4f}, tokens={total_tokens}"
+            f"[{context.trace_id}] Summary: [OK] Iteration completed - score={score:.4f}, tokens={total_tokens}"
         )
         
         return Message.from_elements(
@@ -289,12 +289,12 @@ class GeneralSummaryAgent(Worker):
         # Check if Claude wrote the plan file (primary path)
         if os.path.exists(best_summary_full_path):
             logger.info(
-                f"[{context.trace_id}] Summary: ✅ Summary generated at {best_summary_full_path}"
+                f"[{context.trace_id}] Summary: [OK] Summary generated at {best_summary_full_path}"
             )
         else:
             # Fallback: extract plan from Claude's response and save it manually
             logger.warning(
-                f"[{context.trace_id}] Summary: ⚠️ Summary file not found, extracting from response"
+                f"[{context.trace_id}] Summary: [WARN] Summary file not found, extracting from response"
             )
             # Extract the plan content from Claude's response
             if (
@@ -313,7 +313,7 @@ class GeneralSummaryAgent(Worker):
                 context, plan_content, BEST_SUMMARY_FILE
             )
             logger.info(
-                f"[{context.trace_id}] Summary: ✅ Summary extracted and saved"
+                f"[{context.trace_id}] Summary: [OK] Summary extracted and saved"
             )
 
         reflection = ""
@@ -369,7 +369,7 @@ class GeneralSummaryAgent(Worker):
         await self.db.add_solution(evidence.current_solution)
 
         logger.info(
-            f"[{context.trace_id}] Summary: ✅ New solution added - id={evidence.current_solution.solution_id}, score={evidence.current_solution.score:.4f}"
+            f"[{context.trace_id}] Summary: [OK] New solution added - id={evidence.current_solution.solution_id}, score={evidence.current_solution.score:.4f}"
         )
 
         return

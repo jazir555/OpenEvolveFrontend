@@ -579,7 +579,7 @@ if __name__ == "__main__":
         verifier = get_leanaide_quality_gate_verifier(config)
         
         # Test with mathematical content
-        theorem = "theorem sqrt_2_irrational : ∀ n : ℕ, n*n = 2 → false"
+        theorem = "theorem sqrt_2_irrational : ∀ n : ℕ, n*n = 2 -> false"
         theorem += "\n| h := h\n| h := h\nbegin\n  cases h,\nend"
         
         print("\n1. Testing mathematical content verification...")

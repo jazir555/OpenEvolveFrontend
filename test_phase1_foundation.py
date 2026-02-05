@@ -66,11 +66,11 @@ async def test_physics_validator():
             domain="physics"
         )
 
-        print(f"✓ Physics Validator initialized")
-        print(f"✓ Validation complete: passed={result.passed}")
-        print(f"✓ Issues found: {len(result.issues)}")
-        print(f"✓ Warnings found: {len(result.warnings)}")
-        print(f"✓ Confidence: {result.confidence:.2f}")
+        print(f"[OK] Physics Validator initialized")
+        print(f"[OK] Validation complete: passed={result.passed}")
+        print(f"[OK] Issues found: {len(result.issues)}")
+        print(f"[OK] Warnings found: {len(result.warnings)}")
+        print(f"[OK] Confidence: {result.confidence:.2f}")
 
         if result.issues:
             print("\nIssues detected:")
@@ -80,7 +80,7 @@ async def test_physics_validator():
         return True
 
     except Exception as e:
-        print(f"✗ Physics Validator test failed: {e}")
+        print(f"[FAIL] Physics Validator test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -103,12 +103,12 @@ async def test_knowledge_engine_imports():
         try:
             module = __import__(module_name, fromlist=[class_name])
             cls = getattr(module, class_name)
-            print(f"✓ {module_name}.{class_name} - Available")
+            print(f"[OK] {module_name}.{class_name} - Available")
             available_count += 1
         except ImportError:
             print(f"○ {module_name}.{class_name} - Not available (expected)")
         except Exception as e:
-            print(f"✗ {module_name}.{class_name} - Error: {e}")
+            print(f"[FAIL] {module_name}.{class_name} - Error: {e}")
 
     print(f"\nKnowledge Engine: {available_count}/{len(imports_to_test)} components available")
     return True
@@ -122,7 +122,7 @@ async def test_decomposition_engine_imports():
 
     try:
         from roma_mdap_maker_engine import ROMAMDAPMakerEngine, ROMAMDAPMakerConfig
-        print("✓ ROMA-MDAP-MAKER Engine - Available")
+        print("[OK] ROMA-MDAP-MAKER Engine - Available")
         roma_available = True
     except ImportError:
         print("○ ROMA-MDAP-MAKER Engine - Not available")
@@ -130,14 +130,14 @@ async def test_decomposition_engine_imports():
 
     try:
         from decomposition_engine import DecompositionEngine
-        print("✓ Decomposition Engine - Available")
+        print("[OK] Decomposition Engine - Available")
         decomp_available = True
     except ImportError:
         print("○ Decomposition Engine - Not available")
         decomp_available = False
 
     if roma_available or decomp_available:
-        print("\n✓ At least one decomposition engine is available")
+        print("\n[OK] At least one decomposition engine is available")
         return True
     else:
         print("\n⚠ No decomposition engines available (will use MAKER fallback)")
@@ -152,18 +152,18 @@ async def test_leanaide_imports():
 
     try:
         from leanaide_client import LeanAideClient, LeanAideConfig, TaskType
-        print("✓ LeanAide Client - Available")
+        print("[OK] LeanAide Client - Available")
 
         # Try to create client (doesn't connect to server)
         config = LeanAideConfig(host="localhost", port=7654)
         client = LeanAideClient(config=config)
-        print("✓ LeanAide Client instantiated successfully")
+        print("[OK] LeanAide Client instantiated successfully")
 
         # Check health (will fail if server not running, but that's OK)
         try:
             is_healthy = await client.health_check()
             if is_healthy:
-                print("✓ LeanAide Server is running and healthy!")
+                print("[OK] LeanAide Server is running and healthy!")
             else:
                 print("○ LeanAide Server not responding (will use fallback)")
         except Exception as e:
@@ -176,7 +176,7 @@ async def test_leanaide_imports():
         print("○ LeanAide Client - Not available (will use MAKER fallback)")
         return True
     except Exception as e:
-        print(f"✗ LeanAide test failed: {e}")
+        print(f"[FAIL] LeanAide test failed: {e}")
         return False
 
 
@@ -190,7 +190,7 @@ async def test_end_to_end_planner_integration():
         # Import the planner
         from end_to_end_invention_planner import EndToEndInventionPlanner
 
-        print("✓ EndToEndInventionPlanner imported")
+        print("[OK] EndToEndInventionPlanner imported")
 
         # Check that it has all required methods
         required_methods = [
@@ -203,19 +203,19 @@ async def test_end_to_end_planner_integration():
 
         for method in required_methods:
             if hasattr(EndToEndInventionPlanner, method):
-                print(f"✓ Method {method} exists")
+                print(f"[OK] Method {method} exists")
             else:
-                print(f"✗ Method {method} missing!")
+                print(f"[FAIL] Method {method} missing!")
                 return False
 
-        print("\n✓ All Phase 1 foundation methods are implemented")
+        print("\n[OK] All Phase 1 foundation methods are implemented")
         return True
 
     except ImportError as e:
-        print(f"✗ Failed to import EndToEndInventionPlanner: {e}")
+        print(f"[FAIL] Failed to import EndToEndInventionPlanner: {e}")
         return False
     except Exception as e:
-        print(f"✗ Integration test failed: {e}")
+        print(f"[FAIL] Integration test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -252,13 +252,13 @@ async def main():
     total = len(results)
 
     for name, result in results:
-        status = "✓ PASS" if result else "✗ FAIL"
+        status = "[OK] PASS" if result else "[FAIL] FAIL"
         print(f"{status}: {name}")
 
     print(f"\nResults: {passed}/{total} tests passed")
 
     if passed == total:
-        print("\n✓✓✓ ALL TESTS PASSED ✓✓✓")
+        print("\n[OK][OK][OK] ALL TESTS PASSED [OK][OK][OK]")
         print("\nPhase 1 Foundation Implementation is complete!")
         return 0
     else:

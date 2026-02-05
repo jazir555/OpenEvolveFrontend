@@ -139,7 +139,7 @@ class RobustnessCoordinator:
             )
             self.sandbox = ExecutionSandbox(sandbox_config)
             await self.sandbox.start()
-            logger.info("✓ Execution Sandbox initialized")
+            logger.info("[OK] Execution Sandbox initialized")
         
         # 2. Vision-Language Monitor
         if self.config.enable_vlm:
@@ -149,7 +149,7 @@ class RobustnessCoordinator:
             )
             self.vlm = VisionLanguageMonitor(vlm_config)
             await self.vlm.initialize()
-            logger.info("✓ Vision-Language Monitor initialized")
+            logger.info("[OK] Vision-Language Monitor initialized")
         
         # 3. Live Web Interface
         if self.config.enable_web_research:
@@ -161,19 +161,19 @@ class RobustnessCoordinator:
                 enable_multion=self.config.enable_multion
             )
             await self.web_research.initialize()
-            logger.info("✓ Live Web Interface initialized")
+            logger.info("[OK] Live Web Interface initialized")
         
         # 4. System 1 Router
         if self.config.enable_router:
             self.router = System1Router(self.config.router_config)
-            logger.info("✓ System 1 Router initialized")
+            logger.info("[OK] System 1 Router initialized")
         
         # 5. Chronicle Memory
         if self.config.enable_chronicle:
             self.chronicle = await create_chronicle(
                 storage_path=self.config.chronicle_storage_path
             )
-            logger.info("✓ Chronicle Memory initialized")
+            logger.info("[OK] Chronicle Memory initialized")
         
         self._initialized = True
         logger.info("Robustness Layer fully initialized")
@@ -279,7 +279,7 @@ class RobustnessCoordinator:
         Verify a UI fix visually using VLM
         
         Example: Blue Team says "I fixed the node rendering"
-        → VLM takes screenshot and confirms visually
+        -> VLM takes screenshot and confirms visually
         
         Args:
             url: URL of the application
@@ -1189,7 +1189,7 @@ if __name__ == "__main__":
         
         layer = await get_robustness_layer(config)
         
-        print("\n✓ Robustness Layer initialized")
+        print("\n[OK] Robustness Layer initialized")
         print(f"  Components: {list(layer.get_stats()['components'].keys())}")
         
         # Demo 1: Secure Code Execution
@@ -1206,7 +1206,7 @@ print(f"Result: {x}")
 """
         
         result = await layer.execute_code_securely(code, agent_id="demo-agent")
-        print(f"\nExecution: {'✓ SUCCESS' if result['success'] else '✗ FAILED'}")
+        print(f"\nExecution: {'[OK] SUCCESS' if result['success'] else '[FAIL] FAILED'}")
         print(f"Output: {result['stdout'][:200]}")
         print(f"Time: {result['execution_time_ms']:.0f}ms")
         
@@ -1224,11 +1224,11 @@ print(f"Result: {x}")
             )
             
             if check["should_prevent"]:
-                print(f"\nAttempt {i+1}: ⚠️ LOOP DETECTED!")
+                print(f"\nAttempt {i+1}: [WARN] LOOP DETECTED!")
                 print(f"  Warning: {check['warning']}")
                 break
             else:
-                print(f"\nAttempt {i+1}: ✓ Proceeding")
+                print(f"\nAttempt {i+1}: [OK] Proceeding")
                 # Record the attempt
                 await layer.record_attempt("strategy_A", {"approach": "quick_fix"}, "demo-agent")
                 await layer.complete_attempt(success=False)
@@ -1261,6 +1261,6 @@ print(f"Result: {x}")
         
         # Cleanup
         await layer.close()
-        print("\n✓ Demo complete")
+        print("\n[OK] Demo complete")
     
     asyncio.run(demo())

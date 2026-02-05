@@ -41,10 +41,10 @@ def test_initialization(engine):
     assert stats['learning_enabled'] == True
     assert stats['healing_enabled'] == True
     
-    print(f"✓ Components: {stats['components']}")
-    print(f"✓ Learning: {stats['learning_enabled']}")
-    print(f"✓ Healing: {stats['healing_enabled']}")
-    print("✓ Initialization test passed")
+    print(f"[OK] Components: {stats['components']}")
+    print(f"[OK] Learning: {stats['learning_enabled']}")
+    print(f"[OK] Healing: {stats['healing_enabled']}")
+    print("[OK] Initialization test passed")
 
 def test_component_registry(engine):
     """Test component registry"""
@@ -63,9 +63,9 @@ def test_component_registry(engine):
     for comp in components:
         instance = engine.component_registry.get_component(comp)
         assert instance is not None, f"Component {comp} not found"
-        print(f"✓ {comp}")
+        print(f"[OK] {comp}")
     
-    print(f"✓ All {len(components)} components accessible")
+    print(f"[OK] All {len(components)} components accessible")
 
 def test_capabilities(engine):
     """Test capability mapping"""
@@ -86,13 +86,13 @@ def test_capabilities(engine):
     found_count = 0
     for cap in expected_caps:
         if cap in capabilities:
-            print(f"✓ {cap}: {len(capabilities[cap])} component(s)")
+            print(f"[OK] {cap}: {len(capabilities[cap])} component(s)")
             found_count += 1
         else:
             print(f"⚠ {cap}: not found")
     
-    print(f"✓ Found capabilities: {found_count}/{len(expected_caps)}")
-    print(f"✓ Total capabilities: {len(capabilities)}")
+    print(f"[OK] Found capabilities: {found_count}/{len(expected_caps)}")
+    print(f"[OK] Total capabilities: {len(capabilities)}")
 
 def test_substitution_matrix(engine):
     """Test component substitution"""
@@ -109,10 +109,10 @@ def test_substitution_matrix(engine):
     
     for component, expected_subs in test_cases:
         substitutes = engine.component_registry.get_substitutes(component)
-        print(f"✓ {component} substitutes: {substitutes}")
+        print(f"[OK] {component} substitutes: {substitutes}")
         # Don't assert - substitutes may be empty in mock mode
     
-    print("✓ Substitution matrix accessible")
+    print("[OK] Substitution matrix accessible")
 
 @pytest.mark.asyncio
 async def test_knowledge_processing(engine):
@@ -131,12 +131,12 @@ async def test_knowledge_processing(engine):
     assert response.request_id is not None
     assert response.processing_time_ms >= 0  # Can be 0 for very fast operations
     
-    print(f"✓ Request ID: {response.request_id}")
-    print(f"✓ Success: {response.success}")
-    print(f"✓ Processing time: {response.processing_time_ms:.2f}ms")
-    print(f"✓ Components used: {response.components_used}")
-    print(f"✓ Quality score: {response.quality_score:.2f}")
-    print(f"✓ Confidence: {response.confidence:.2f}")
+    print(f"[OK] Request ID: {response.request_id}")
+    print(f"[OK] Success: {response.success}")
+    print(f"[OK] Processing time: {response.processing_time_ms:.2f}ms")
+    print(f"[OK] Components used: {response.components_used}")
+    print(f"[OK] Quality score: {response.quality_score:.2f}")
+    print(f"[OK] Confidence: {response.confidence:.2f}")
 
 @pytest.mark.asyncio
 async def test_domain_specific_processing(engine):
@@ -156,7 +156,7 @@ async def test_domain_specific_processing(engine):
             domain=domain
         )
         
-        print(f"✓ {domain.value}: {len(response.components_used)} components")
+        print(f"[OK] {domain.value}: {len(response.components_used)} components")
         print(f"  Components: {response.components_used}")
 
 @pytest.mark.asyncio
@@ -179,14 +179,14 @@ async def test_learning(engine):
             domain=KnowledgeDomain.GENERAL,
             user_id="test_user"
         )
-        print(f"✓ Query {i+1}: {response.success}, learned {len(response.learned_lessons)} lessons")
+        print(f"[OK] Query {i+1}: {response.success}, learned {len(response.learned_lessons)} lessons")
     
     # Get recommendations
     if engine.self_improving:
         recommendations = engine.self_improving.get_recommendations(
             'general', 'general'
         )
-        print(f"✓ Generated recommendations")
+        print(f"[OK] Generated recommendations")
         print(f"  Learning summary available: {bool(recommendations.get('learning_summary'))}")
 
 @pytest.mark.asyncio
@@ -204,11 +204,11 @@ async def test_healing(engine):
         if state == 'open':
             print(f"⚠ {name}: circuit {state}")
     
-    print(f"✓ Circuit breakers active: {len(engine.circuit_breakers)}")
+    print(f"[OK] Circuit breakers active: {len(engine.circuit_breakers)}")
     
     # Test substitution
     substitutes = engine.component_registry.get_substitutes('kggen')
-    print(f"✓ Substitution available: kggen -> {substitutes}")
+    print(f"[OK] Substitution available: kggen -> {substitutes}")
 
 def test_statistics(engine):
     """Test statistics gathering"""
@@ -217,11 +217,11 @@ def test_statistics(engine):
     
     stats = engine.get_statistics()
     
-    print(f"✓ Total executions: {stats['executions']}")
-    print(f"✓ Successes: {stats['successes']}")
-    print(f"✓ Failures: {stats['failures']}")
-    print(f"✓ Success rate: {stats['success_rate']:.2%}")
-    print(f"✓ Healing actions: {stats['healing_actions']}")
-    print(f"✓ Components: {stats['components']}")
-    print(f"✓ Available components: {stats['available_components']}")
-    print(f"✓ Capabilities: {stats['capabilities']}")
+    print(f"[OK] Total executions: {stats['executions']}")
+    print(f"[OK] Successes: {stats['successes']}")
+    print(f"[OK] Failures: {stats['failures']}")
+    print(f"[OK] Success rate: {stats['success_rate']:.2%}")
+    print(f"[OK] Healing actions: {stats['healing_actions']}")
+    print(f"[OK] Components: {stats['components']}")
+    print(f"[OK] Available components: {stats['available_components']}")
+    print(f"[OK] Capabilities: {stats['capabilities']}")

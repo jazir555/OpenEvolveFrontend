@@ -32,5 +32,5 @@ for lesson, count in list(summary['most_common_lessons'].items())[:5]:
     print(f"  {count}x: {lesson}")
 
 print("\n" + "=" * 80)
-print("✓ Historical exploits database working correctly!")
+print("[OK] Historical exploits database working correctly!")
 print("=" * 80)

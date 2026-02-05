@@ -201,14 +201,14 @@ if __name__ == "__main__":
     # Calculate quality
     metrics = calculator.calculate_quality(solution, requirements)
 
-    print("\n✓ Quality Metrics Calculated:")
+    print("\n[OK] Quality Metrics Calculated:")
     print(f"  Correctness:    {metrics.correctness:.2%}")
     print(f"  Completeness:   {metrics.completeness:.2%}")
     print(f"  Efficiency:     {metrics.efficiency:.2%}")
     print(f"  Maintainability: {metrics.maintainability:.2%}")
 
     overall = calculator.calculate_overall_score(metrics)
-    print(f"\n✓ Overall Quality Score: {overall:.2%}")
+    print(f"\n[OK] Overall Quality Score: {overall:.2%}")
 
     # Verify metrics are in valid range
     assert 0.0 <= metrics.correctness <= 1.0, "Correctness out of range"
@@ -217,7 +217,7 @@ if __name__ == "__main__":
     assert 0.0 <= metrics.maintainability <= 1.0, "Maintainability out of range"
     assert 0.0 <= overall <= 1.0, "Overall score out of range"
 
-    print("\n✓ All metrics in valid range [0.0, 1.0]")
+    print("\n[OK] All metrics in valid range [0.0, 1.0]")
 
     return True
 
@@ -343,20 +343,20 @@ def calculate_aggregates(data: List[float]) -> Dict[str, float]:
 
     analysis = analyze_code_quality(solution_code)
 
-    print("\n✓ Code Quality Analysis Complete:")
+    print("\n[OK] Code Quality Analysis Complete:")
     print(f"  Complexity Score:     {analysis.complexity_score:.2%}")
     print(f"  Documentation Score:  {analysis.documentation_score:.2%}")
     print(f"  Naming Score:         {analysis.naming_score:.2%}")
     print(f"  Structure Score:      {analysis.structure_score:.2%}")
 
-    print(f"\n✓ Code Smells Detected: {len(analysis.code_smells)}")
+    print(f"\n[OK] Code Smells Detected: {len(analysis.code_smells)}")
     if analysis.code_smells:
         for smell in analysis.code_smells:
             print(f"  - {smell}")
     else:
         print("  No code smells detected!")
 
-    print(f"\n✓ Suggestions: {len(analysis.suggestions)}")
+    print(f"\n[OK] Suggestions: {len(analysis.suggestions)}")
     if analysis.suggestions:
         for suggestion in analysis.suggestions[:3]:
             print(f"  - {suggestion}")
@@ -369,7 +369,7 @@ def calculate_aggregates(data: List[float]) -> Dict[str, float]:
     assert isinstance(analysis.code_smells, list), "code_smells should be list"
     assert isinstance(analysis.suggestions, list), "suggestions should be list"
 
-    print("\n✓ Analysis structure validated")
+    print("\n[OK] Analysis structure validated")
 
     return True
 
@@ -408,7 +408,7 @@ class EmptyClass:
 
     smells = detect_code_smells(bad_code)
 
-    print(f"\n✓ Detected {len(smells)} code smells:")
+    print(f"\n[OK] Detected {len(smells)} code smells:")
     for smell in smells:
         print(f"  - {smell}")
 
@@ -425,9 +425,9 @@ class EmptyClass:
     detected_types = ' '.join(smells).lower()
     for expected in expected_types:
         if expected.lower() in detected_types:
-            print(f"\n✓ Detected expected smell type: {expected}")
+            print(f"\n[OK] Detected expected smell type: {expected}")
 
-    print("\n✓ Code smell detection working")
+    print("\n[OK] Code smell detection working")
 
     return True
 
@@ -512,7 +512,7 @@ def quick_sort(arr: List[int]) -> List[int]:
     print(f"  Maintainability: {good_metrics.maintainability:.2%}")
 
     # Good solution should score higher on maintainability at least
-    print(f"\n✓ Maintainability difference: {good_metrics.maintainability - poor_metrics.maintainability:.2%}")
+    print(f"\n[OK] Maintainability difference: {good_metrics.maintainability - poor_metrics.maintainability:.2%}")
 
     return True
 
@@ -538,7 +538,7 @@ def test_edge_cases():
     metrics = calculator.calculate_quality(empty_solution, ["requirement"])
     assert metrics.correctness == 0.0, "Empty solution should have 0 correctness"
     assert metrics.completeness == 0.0, "Empty solution should have 0 completeness"
-    print("✓ Empty solution handled correctly")
+    print("[OK] Empty solution handled correctly")
 
     # Solution with syntax error
     invalid_solution = SolutionAttempt(
@@ -552,10 +552,10 @@ def test_edge_cases():
     print("\nTesting solution with syntax errors...")
     try:
         metrics = calculator.calculate_quality(invalid_solution, ["requirement"])
-        print("✓ Syntax errors handled gracefully")
+        print("[OK] Syntax errors handled gracefully")
         print(f"  Correctness: {metrics.correctness:.2%}")
     except Exception as e:
-        print(f"✗ Failed to handle syntax errors: {e}")
+        print(f"[FAIL] Failed to handle syntax errors: {e}")
         return False
 
     # Very long solution
@@ -569,7 +569,7 @@ def test_edge_cases():
 
     print("\nTesting very long solution (1000 lines)...")
     metrics = calculator.calculate_quality(long_solution, ["Have content"])
-    print(f"✓ Long solution processed: Completeness = {metrics.completeness:.2%}")
+    print(f"[OK] Long solution processed: Completeness = {metrics.completeness:.2%}")
 
     return True
 
@@ -596,13 +596,13 @@ def main():
         try:
             if test_func():
                 passed += 1
-                print(f"\n✓ {test_name}: PASSED")
+                print(f"\n[OK] {test_name}: PASSED")
             else:
                 failed += 1
-                print(f"\n✗ {test_name}: FAILED")
+                print(f"\n[FAIL] {test_name}: FAILED")
         except Exception as e:
             failed += 1
-            print(f"\n✗ {test_name}: FAILED with exception")
+            print(f"\n[FAIL] {test_name}: FAILED with exception")
             print(f"  Error: {e}")
             import traceback
             traceback.print_exc()
@@ -614,10 +614,10 @@ def main():
     print(f"Failed: {failed}/{len(tests)}")
 
     if failed == 0:
-        print("\n✓ ALL TESTS PASSED")
+        print("\n[OK] ALL TESTS PASSED")
         return 0
     else:
-        print(f"\n✗ {failed} TEST(S) FAILED")
+        print(f"\n[FAIL] {failed} TEST(S) FAILED")
         return 1
 
 

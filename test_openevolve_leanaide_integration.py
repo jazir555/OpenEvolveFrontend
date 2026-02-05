@@ -24,10 +24,10 @@ def test_imports():
         # Test OpenEvolve imports
         from workflow_structures import MathematicalDomain, VerificationMethod
         from workflow_engine import WorkflowEngine
-        print("✅ OpenEvolve imports successful")
+        print("[OK] OpenEvolve imports successful")
         
     except ImportError as e:
-        print(f"⚠️  OpenEvolve imports failed (expected in standalone test): {e}")
+        print(f"[WARN]  OpenEvolve imports failed (expected in standalone test): {e}")
         
     try:
         # Test LeanAIDE bridge imports
@@ -35,10 +35,10 @@ def test_imports():
             OpenEvolveLeanAideBridge, OpenEvolveLeanAideConfig,
             AutoformalizationStage, AutoformalizationResult
         )
-        print("✅ LeanAIDE bridge imports successful")
+        print("[OK] LeanAIDE bridge imports successful")
         
     except ImportError as e:
-        print(f"❌ LeanAIDE bridge imports failed: {e}")
+        print(f"[FAIL] LeanAIDE bridge imports failed: {e}")
         return False
         
     try:
@@ -47,10 +47,10 @@ def test_imports():
             OpenEvolveLeanAideIntegrationSystem, EnhancedWorkflowState,
             get_openevolve_leanaide_integration
         )
-        print("✅ Integration system imports successful")
+        print("[OK] Integration system imports successful")
         
     except ImportError as e:
-        print(f"❌ Integration system imports failed: {e}")
+        print(f"[FAIL] Integration system imports failed: {e}")
         return False
         
     return True
@@ -65,7 +65,7 @@ def test_bridge_initialization():
         
         # Test default initialization
         bridge = OpenEvolveLeanAideBridge()
-        print("✅ Default bridge initialization successful")
+        print("[OK] Default bridge initialization successful")
         
         # Test custom configuration
         config = OpenEvolveLeanAideConfig(
@@ -75,12 +75,12 @@ def test_bridge_initialization():
         )
         
         bridge_with_config = OpenEvolveLeanAideBridge(config)
-        print("✅ Custom bridge initialization successful")
+        print("[OK] Custom bridge initialization successful")
         
         return True
         
     except Exception as e:
-        print(f"❌ Bridge initialization failed: {e}")
+        print(f"[FAIL] Bridge initialization failed: {e}")
         return False
 
 
@@ -93,18 +93,18 @@ def test_integration_system_initialization():
         
         # Test basic initialization
         integration_system = get_openevolve_leanaide_integration()
-        print("✅ Integration system initialization successful")
+        print("[OK] Integration system initialization successful")
         
         # Test that bridge is available
         if integration_system.leanaide_bridge:
-            print("✅ LeanAIDE bridge available in integration system")
+            print("[OK] LeanAIDE bridge available in integration system")
         else:
-            print("⚠️  LeanAIDE bridge not available (may be expected in test environment)")
+            print("[WARN]  LeanAIDE bridge not available (may be expected in test environment)")
             
         return True
         
     except Exception as e:
-        print(f"❌ Integration system initialization failed: {e}")
+        print(f"[FAIL] Integration system initialization failed: {e}")
         return False
 
 
@@ -139,24 +139,24 @@ def test_mathematical_detection():
         for problem in math_problems:
             is_math = bridge.is_mathematical_problem(problem)
             if not is_math:
-                print(f"❌ Failed to detect mathematical problem: {problem}")
+                print(f"[FAIL] Failed to detect mathematical problem: {problem}")
                 all_correct = False
             else:
                 domain = bridge.detect_mathematical_domain(problem)
-                print(f"✅ Detected mathematical problem: {problem[:50]}... (Domain: {domain})")
+                print(f"[OK] Detected mathematical problem: {problem[:50]}... (Domain: {domain})")
                 
         for problem in non_math_problems:
             is_math = bridge.is_mathematical_problem(problem)
             if is_math:
-                print(f"❌ Incorrectly detected non-mathematical problem: {problem}")
+                print(f"[FAIL] Incorrectly detected non-mathematical problem: {problem}")
                 all_correct = False
             else:
-                print(f"✅ Correctly identified non-mathematical problem: {problem[:50]}...")
+                print(f"[OK] Correctly identified non-mathematical problem: {problem[:50]}...")
                 
         return all_correct
         
     except Exception as e:
-        print(f"❌ Mathematical detection test failed: {e}")
+        print(f"[FAIL] Mathematical detection test failed: {e}")
         return False
 
 
@@ -183,7 +183,7 @@ async def test_autoformalization_workflow():
         print(f"Result status: {result['status']}")
         
         if result['status'] == 'completed':
-            print("✅ Autoformalization and verification completed successfully")
+            print("[OK] Autoformalization and verification completed successfully")
             
             autoformalization = result.get('autoformalization', {})
             verification = result.get('verification', {})
@@ -199,16 +199,16 @@ async def test_autoformalization_workflow():
             return True
             
         elif result['status'] == 'autoformalization_failed':
-            print("⚠️  Autoformalization failed (may be expected in test environment)")
+            print("[WARN]  Autoformalization failed (may be expected in test environment)")
             print(f"Errors: {result.get('errors', [])}")
             return True  # Not a failure in test environment
             
         else:
-            print(f"❌ Unexpected result status: {result['status']}")
+            print(f"[FAIL] Unexpected result status: {result['status']}")
             return False
             
     except Exception as e:
-        print(f"❌ Autoformalization workflow test failed: {e}")
+        print(f"[FAIL] Autoformalization workflow test failed: {e}")
         return False
 
 
@@ -225,14 +225,14 @@ async def test_enhanced_workflow_state():
             workflow_id="test_workflow_123"
         )
         
-        print("✅ Enhanced workflow state created successfully")
+        print("[OK] Enhanced workflow state created successfully")
         
         # Test state methods
         workflow_state.enable_autoformalization()
-        print("✅ Autoformalization enabled")
+        print("[OK] Autoformalization enabled")
         
         workflow_state.disable_autoformalization()
-        print("✅ Autoformalization disabled")
+        print("[OK] Autoformalization disabled")
         
         workflow_state.enable_autoformalization()  # Re-enable for further tests
         
@@ -251,7 +251,7 @@ async def test_enhanced_workflow_state():
         )
         
         workflow_state.add_autoformalization_result("test_stage", result)
-        print("✅ Autoformalization result added successfully")
+        print("[OK] Autoformalization result added successfully")
         
         # Test adding formal verification result
         verification_result = {
@@ -263,12 +263,12 @@ async def test_enhanced_workflow_state():
         }
         
         workflow_state.add_formal_verification_result("test_verification", verification_result)
-        print("✅ Formal verification result added successfully")
+        print("[OK] Formal verification result added successfully")
         
         return True
         
     except Exception as e:
-        print(f"❌ Enhanced workflow state test failed: {e}")
+        print(f"[FAIL] Enhanced workflow state test failed: {e}")
         return False
 
 
@@ -295,17 +295,17 @@ async def test_strategy_recommendation():
                 strategy = integration_system.get_autoformalization_strategy_recommendation(problem, stage)
                 domain = integration_system.leanaide_bridge.detect_mathematical_domain(problem)
                 
-                print(f"✅ Problem: {problem[:40]}...")
+                print(f"[OK] Problem: {problem[:40]}...")
                 print(f"   Domain: {domain}, Stage: {stage}, Strategy: {strategy}")
                 
             except Exception as e:
-                print(f"❌ Strategy recommendation failed for problem: {e}")
+                print(f"[FAIL] Strategy recommendation failed for problem: {e}")
                 all_correct = False
                 
         return all_correct
         
     except Exception as e:
-        print(f"❌ Strategy recommendation test failed: {e}")
+        print(f"[FAIL] Strategy recommendation test failed: {e}")
         return False
 
 
@@ -332,7 +332,7 @@ async def test_comprehensive_integration():
         print(f"Workflow status: {result['status']}")
         
         if result['status'] == 'completed':
-            print("✅ Comprehensive workflow completed successfully")
+            print("[OK] Comprehensive workflow completed successfully")
             
             # Check report
             report = result.get('autoformalization_report', {})
@@ -345,13 +345,13 @@ async def test_comprehensive_integration():
             return True
             
         else:
-            print(f"⚠️  Comprehensive workflow status: {result['status']}")
+            print(f"[WARN]  Comprehensive workflow status: {result['status']}")
             if 'error' in result:
                 print(f"Error: {result['error']}")
             return True  # Not a failure in test environment
             
     except Exception as e:
-        print(f"❌ Comprehensive integration test failed: {e}")
+        print(f"[FAIL] Comprehensive integration test failed: {e}")
         return False
 
 
@@ -386,11 +386,11 @@ async def run_all_tests():
                 result = test_func()
                 
             results.append(result)
-            status = "✅ PASSED" if result else "❌ FAILED"
+            status = "[OK] PASSED" if result else "[FAIL] FAILED"
             print(f"\n📊 {test_name}: {status}")
             
         except Exception as e:
-            print(f"\n📊 {test_name}: ❌ ERROR - {e}")
+            print(f"\n📊 {test_name}: [FAIL] ERROR - {e}")
             results.append(False)
     
     # Summary
@@ -411,10 +411,10 @@ async def run_all_tests():
         print("\n🎉 All tests passed! OpenEvolve-LeanAIDE integration is working correctly.")
         return True
     elif passed_tests >= total_tests * 0.7:  # 70% success rate is acceptable for integration tests
-        print("\n✅ Most tests passed. Integration is functional with some expected limitations.")
+        print("\n[OK] Most tests passed. Integration is functional with some expected limitations.")
         return True
     else:
-        print("\n⚠️  Some tests failed. Please check the output above for details.")
+        print("\n[WARN]  Some tests failed. Please check the output above for details.")
         return False
 
 

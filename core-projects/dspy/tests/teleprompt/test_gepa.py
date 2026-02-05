@@ -224,7 +224,7 @@ def any_metric(
     """
     For this test, we only care that the program runs, not the score.
     """
-    return 0.0  # ← Just returns 0.0, doesn't access any attributes!
+    return 0.0  # <- Just returns 0.0, doesn't access any attributes!
 
 
 def test_gepa_compile_with_track_usage_no_tuple_error(caplog):

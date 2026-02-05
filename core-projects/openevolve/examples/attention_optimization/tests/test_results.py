@@ -18,14 +18,14 @@ def test_initial_program():
         
         if result.returncode == 0:
             output = json.loads(result.stdout)
-            print(f"✅ Initial program works. Params: {len(output['params'])} parameters")
+            print(f"[OK] Initial program works. Params: {len(output['params'])} parameters")
             return True
         else:
-            print(f"❌ Initial program failed: {result.stderr}")
+            print(f"[FAIL] Initial program failed: {result.stderr}")
             return False
             
     except Exception as e:
-        print(f"❌ Initial program error: {e}")
+        print(f"[FAIL] Initial program error: {e}")
         return False
 
 def test_evaluator():
@@ -39,17 +39,17 @@ def test_evaluator():
         if result.returncode == 0:
             output = json.loads(result.stdout)
             if "score" in output:
-                print(f"✅ Evaluator works. Score: {output['score']:.3f}")
+                print(f"[OK] Evaluator works. Score: {output['score']:.3f}")
                 return True
             else:
-                print(f"❌ Evaluator missing score: {output}")
+                print(f"[FAIL] Evaluator missing score: {output}")
                 return False
         else:
-            print(f"❌ Evaluator failed: {result.stderr}")
+            print(f"[FAIL] Evaluator failed: {result.stderr}")
             return False
             
     except Exception as e:
-        print(f"❌ Evaluator error: {e}")
+        print(f"[FAIL] Evaluator error: {e}")
         return False
 
 def test_mlir_file():
@@ -60,13 +60,13 @@ def test_mlir_file():
     if mlir_file.exists():
         content = mlir_file.read_text()
         if "func.func @baseline_attention" in content:
-            print("✅ MLIR file exists and looks valid")
+            print("[OK] MLIR file exists and looks valid")
             return True
         else:
-            print("❌ MLIR file missing expected content")
+            print("[FAIL] MLIR file missing expected content")
             return False
     else:
-        print("❌ MLIR file not found")
+        print("[FAIL] MLIR file not found")
         return False
 
 def main():
@@ -93,7 +93,7 @@ def main():
         print("🎉 Setup is ready! You can now run:")
         print("python ../../openevolve-run.py initial_program.py evaluator.py --config config.yaml --iterations 10")
     else:
-        print("❌ Setup needs fixing before running evolution")
+        print("[FAIL] Setup needs fixing before running evolution")
     
     return passed == len(tests)
 

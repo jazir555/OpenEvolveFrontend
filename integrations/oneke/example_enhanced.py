@@ -51,7 +51,7 @@ EXAMPLE_TEXTS = {
     'chemistry': """
     Photosynthesis converts carbon dioxide and water into glucose and oxygen
     using sunlight. The chemical equation is: 6CO2 + 6H2O + light energy
-    → C6H12O6 + 6O2. Chlorophyll in chloroplasts absorbs light energy to
+    -> C6H12O6 + 6O2. Chlorophyll in chloroplasts absorbs light energy to
     drive this reaction. This process is fundamental to life on Earth.
     """
 }

@@ -225,7 +225,7 @@ def compare_with_baseline(
             }
 
             # Print comparison
-            status = "✓" if time_change_pct < 0 else ("✗" if time_change_pct > 10 else "=")
+            status = "[OK]" if time_change_pct < 0 else ("[FAIL]" if time_change_pct > 10 else "=")
             print(f"\n{phase.upper()} - {benchmark_name}:")
             print(f"  Time: {curr_time:.2f}ms vs {base_time:.2f}ms ({time_change_pct:+.1f}%) {status}")
 
@@ -320,7 +320,7 @@ def generate_markdown_report(
                 current = metrics.get("current_time_ms", 0)
                 baseline = metrics.get("baseline_time_ms", 0)
 
-                status = "✓" if time_change < 0 else ("✗" if time_change > 10 else "=")
+                status = "[OK]" if time_change < 0 else ("[FAIL]" if time_change > 10 else "=")
                 lines.append(f"| {benchmark_name} | {time_change:+.1f}% {status} | {current:.2f}ms | {baseline:.2f}ms |")
 
             lines.append("")

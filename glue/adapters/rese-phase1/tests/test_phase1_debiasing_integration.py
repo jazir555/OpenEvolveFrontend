@@ -70,7 +70,7 @@ async def test_debiasing_integration_with_phase1():
     assert executor.metacognitive_reflector is not None, \
         "MetacognitiveReflector should be initialized"
 
-    print("✓ MetacognitiveReflector integrated with Phase I executor")
+    print("[OK] MetacognitiveReflector integrated with Phase I executor")
 
 
 async def test_debiasing_results_in_audit():
@@ -114,7 +114,7 @@ async def test_debiasing_results_in_audit():
     assert 'average_cbi' in result.metrics, "Metrics should include average_cbi"
     assert 'average_bias_reduction' in result.metrics, "Metrics should include average_bias_reduction"
 
-    print("✓ Debiasing results present in EpistemicAuditResult")
+    print("[OK] Debiasing results present in EpistemicAuditResult")
     print(f"  - Assumptions debiased: {result.metrics['assumptions_debiased']}")
     print(f"  - Average CBI: {result.metrics.get('average_cbi', 'N/A')}")
     print(f"  - Average bias reduction: {result.metrics.get('average_bias_reduction', 'N/A')}")
@@ -155,7 +155,7 @@ async def test_cbi_tracking_across_iterations():
     assert len(cbis) > 0, "Should have CBI measurements"
     assert all(0.0 <= cbi <= 1.0 for cbi in cbis), "All CBI values should be in [0,1]"
 
-    print("✓ CBI tracked across iterations")
+    print("[OK] CBI tracked across iterations")
     print(f"  - Iterations with CBI: {len(cbis)}")
     print(f"  - CBI values: {[f'{cbi:.4f}' for cbi in cbis]}")
 
@@ -202,7 +202,7 @@ async def test_bias_reduction_measurement():
             assert final_cbi <= initial_cbi, \
                 f"Final CBI ({final_cbi}) should be <= initial CBI ({initial_cbi})"
 
-        print("✓ Bias reduction measured correctly")
+        print("[OK] Bias reduction measured correctly")
         print(f"  - Assumptions debiased: {len(result.debiasing_results)}")
         if result.metrics.get('average_bias_reduction'):
             print(f"  - Average bias reduction: {result.metrics['average_bias_reduction']:.2f}%")
@@ -243,7 +243,7 @@ async def test_error_handling_when_debiasing_disabled():
     # Audit should complete successfully even without debiasing
     assert isinstance(result, EpistemicAuditResult), "Audit should complete"
 
-    print("✓ Audit completes successfully when debiasing disabled")
+    print("[OK] Audit completes successfully when debiasing disabled")
     print(f"  - Debiasing results: {result.debiasing_results}")
 
 
@@ -274,7 +274,7 @@ async def test_debiasing_with_no_assumptions():
     if result.debiasing_results is not None:
         assert len(result.debiasing_results) == 0, "Should have no debiasing results"
 
-    print("✓ Audit completes with no assumptions")
+    print("[OK] Audit completes with no assumptions")
     print(f"  - Tacit assumptions: {len(result.tacit_assumptions)}")
     print(f"  - Debiasing results: {result.debiasing_results}")
 
@@ -341,7 +341,7 @@ async def test_canonical_schema_compliance():
             for field in required_debiasing_fields:
                 assert field in debiasing_result, f"Missing debiasing field: {field}"
 
-    print("✓ Canonical schema compliance verified")
+    print("[OK] Canonical schema compliance verified")
     print(f"  - Required fields present: {len(required_fields)}")
     print(f"  - Debiasing results: {len(result_dict['debiasing_results'] or [])}")
 
@@ -389,7 +389,7 @@ async def test_timestamp_utc_compliance():
             except ValueError:
                 assert False, f"Debiasing timestamp {i} should be ISO-8601"
 
-    print("✓ UTC timestamp compliance verified")
+    print("[OK] UTC timestamp compliance verified")
 
 
 # ============================================================================
@@ -421,10 +421,10 @@ async def run_all_tests():
             await test()
             passed += 1
         except AssertionError as e:
-            print(f"\n✗ FAILED: {e}")
+            print(f"\n[FAIL] FAILED: {e}")
             failed += 1
         except Exception as e:
-            print(f"\n✗ ERROR: {e}")
+            print(f"\n[FAIL] ERROR: {e}")
             import traceback
             traceback.print_exc()
             failed += 1

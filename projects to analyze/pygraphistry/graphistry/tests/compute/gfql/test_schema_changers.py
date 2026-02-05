@@ -5,7 +5,7 @@ These tests verify the fix for GitHub issue #761, where UMAP operations failed
 when mixed with other GFQL operations due to missing tracking columns.
 
 The fix implements recursive dispatch that automatically splits chains at
-schema-changer boundaries, executing them as: before → schema_changer → rest.
+schema-changer boundaries, executing them as: before -> schema_changer -> rest.
 
 NOTE: These tests are skipped in CI because they require full Plotter setup with
 UMAPMixin and HypergraphMixin. They are validated via standalone test scripts in
@@ -83,7 +83,7 @@ class TestSchemaChangerRecursiveDispatch:
         })
 
         # This was the failing case in issue #761: "Column 'index' not found in edges"
-        # Recursive dispatch splits this into: filter → umap
+        # Recursive dispatch splits this into: filter -> umap
         result = g.gfql([filter_op, umap_op], engine='pandas')
 
         assert len(result._nodes) == 4, "Should preserve filtered node count"
@@ -112,7 +112,7 @@ class TestSchemaChangerRecursiveDispatch:
             e()
         ]
 
-        # Recursive dispatch splits into: [n, e] → umap → [n, e]
+        # Recursive dispatch splits into: [n, e] -> umap -> [n, e]
         result = g.gfql(ops, engine='pandas')
 
         assert len(result._nodes) > 0

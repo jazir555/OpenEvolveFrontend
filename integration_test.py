@@ -48,7 +48,7 @@ class TestOpenEvolveCrewAIIntegration:
         )
         assert model_config.model_id == "gpt-4-test"
         assert model_config.api_base == "http://localhost:8001"
-        print("✓ ModelConfig structure is valid")
+        print("[OK] ModelConfig structure is valid")
         
         # Test Team
         team = Team(
@@ -59,7 +59,7 @@ class TestOpenEvolveCrewAIIntegration:
         assert team.name == "test-team"
         assert team.role == "Blue"
         assert len(team.members) == 1
-        print("✓ Team structure is valid")
+        print("[OK] Team structure is valid")
         
         # Test GauntletRoundRule
         round_rule = GauntletRoundRule(
@@ -68,7 +68,7 @@ class TestOpenEvolveCrewAIIntegration:
             quorum_from_panel_size=1
         )
         assert round_rule.round_number == 1
-        print("✓ GauntletRoundRule structure is valid")
+        print("[OK] GauntletRoundRule structure is valid")
         
         # Test GauntletDefinition
         gauntlet = GauntletDefinition(
@@ -78,9 +78,9 @@ class TestOpenEvolveCrewAIIntegration:
         )
         assert gauntlet.name == "test-gauntlet"
         assert len(gauntlet.rounds) == 1
-        print("✓ GauntletDefinition structure is valid")
+        print("[OK] GauntletDefinition structure is valid")
         
-        print("All data structures are compatible ✓")
+        print("All data structures are compatible [OK]")
         return True
 
     def test_team_manager_functionality(self):
@@ -108,18 +108,18 @@ class TestOpenEvolveCrewAIIntegration:
         # Create team
         success = team_manager.create_team(team)
         assert success, "Failed to create team"
-        print("✓ Team creation successful")
+        print("[OK] Team creation successful")
         
         # Get team
         retrieved_team = team_manager.get_team("integration-test-team")
         assert retrieved_team is not None
         assert retrieved_team.name == "integration-test-team"
-        print("✓ Team retrieval successful")
+        print("[OK] Team retrieval successful")
         
         # List teams
         all_teams = team_manager.get_all_teams()
         assert len(all_teams) >= 1
-        print("✓ Team listing successful")
+        print("[OK] Team listing successful")
         
         # Test team update
         updated_team = Team(
@@ -130,14 +130,14 @@ class TestOpenEvolveCrewAIIntegration:
         )
         update_success = team_manager.update_team(updated_team)
         assert update_success, "Failed to update team"
-        print("✓ Team update successful")
+        print("[OK] Team update successful")
         
         # Cleanup: delete team
         delete_success = team_manager.delete_team("integration-test-team")
         assert delete_success, "Failed to delete team"
-        print("✓ Team deletion successful")
+        print("[OK] Team deletion successful")
         
-        print("TeamManager functionality verified ✓")
+        print("TeamManager functionality verified [OK]")
         return True
 
     def test_gauntlet_manager_functionality(self):
@@ -165,18 +165,18 @@ class TestOpenEvolveCrewAIIntegration:
         # Create gauntlet
         success = gauntlet_manager.create_gauntlet(gauntlet)
         assert success, "Failed to create gauntlet"
-        print("✓ Gauntlet creation successful")
+        print("[OK] Gauntlet creation successful")
         
         # Get gauntlet
         retrieved_gauntlet = gauntlet_manager.get_gauntlet("integration-test-gauntlet")
         assert retrieved_gauntlet is not None
         assert retrieved_gauntlet.name == "integration-test-gauntlet"
-        print("✓ Gauntlet retrieval successful")
+        print("[OK] Gauntlet retrieval successful")
         
         # List gauntlets
         all_gauntlets = gauntlet_manager.get_all_gauntlets()
         assert len(all_gauntlets) >= 1
-        print("✓ Gauntlet listing successful")
+        print("[OK] Gauntlet listing successful")
         
         # Test gauntlet update
         updated_round = GauntletRoundRule(
@@ -192,14 +192,14 @@ class TestOpenEvolveCrewAIIntegration:
         )
         update_success = gauntlet_manager.update_gauntlet(updated_gauntlet)
         assert update_success, "Failed to update gauntlet"
-        print("✓ Gauntlet update successful")
+        print("[OK] Gauntlet update successful")
         
         # Cleanup: delete gauntlet
         delete_success = gauntlet_manager.delete_gauntlet("integration-test-gauntlet")
         assert delete_success, "Failed to delete gauntlet"
-        print("✓ Gauntlet deletion successful")
+        print("[OK] Gauntlet deletion successful")
         
-        print("GauntletManager functionality verified ✓")
+        print("GauntletManager functionality verified [OK]")
         return True
 
     def test_CREWAI_api_endpoints(self):
@@ -233,14 +233,14 @@ class TestOpenEvolveCrewAIIntegration:
                 json=team_data
             )
             assert response.status_code == 201 or response.status_code == 200, f"Failed to create team via API: {response.status_code}"
-            print("  ✓ Team creation via API successful")
+            print("  [OK] Team creation via API successful")
             
             # Get teams via API
             response = self.session.get(f"{self.CREWAI_api_base}/openevolve/teams")
             assert response.status_code == 200, f"Failed to get teams: {response.status_code}"
             teams_data = response.json()
             assert "teams" in teams_data, "Teams data not found in response"
-            print("  ✓ Team listing via API successful")
+            print("  [OK] Team listing via API successful")
             
             # Test gauntlets endpoints
             print("  Testing gauntlets endpoints...")
@@ -265,25 +265,25 @@ class TestOpenEvolveCrewAIIntegration:
                 json=gauntlet_data
             )
             assert response.status_code == 201 or response.status_code == 200, f"Failed to create gauntlet via API: {response.status_code}"
-            print("  ✓ Gauntlet creation via API successful")
+            print("  [OK] Gauntlet creation via API successful")
             
             # Get gauntlets via API
             response = self.session.get(f"{self.CREWAI_api_base}/openevolve/gauntlets")
             assert response.status_code == 200, f"Failed to get gauntlets: {response.status_code}"
             gauntlets_data = response.json()
             assert "gauntlets" in gauntlets_data, "Gauntlets data not found in response"
-            print("  ✓ Gauntlet listing via API successful")
+            print("  [OK] Gauntlet listing via API successful")
             
             # Cleanup: delete created resources
             response = self.session.delete(f"{self.CREWAI_api_base}/openevolve/teams/api-test-team")
             if response.status_code in [200, 404]:  # 404 means it was already deleted
-                print("  ✓ Team cleanup successful")
+                print("  [OK] Team cleanup successful")
             
             response = self.session.delete(f"{self.CREWAI_api_base}/openevolve/gauntlets/api-test-gauntlet")
             if response.status_code in [200, 404]:  # 404 means it was already deleted
-                print("  ✓ Gauntlet cleanup successful")
+                print("  [OK] Gauntlet cleanup successful")
             
-            print("CREWAI API endpoints verified ✓")
+            print("CREWAI API endpoints verified [OK]")
             return True
             
         except requests.exceptions.ConnectionError:
@@ -291,7 +291,7 @@ class TestOpenEvolveCrewAIIntegration:
             print("  To run the server: python -m CREWAI.main")
             return False
         except Exception as e:
-            print(f"✗ Error testing API endpoints: {e}")
+            print(f"[FAIL] Error testing API endpoints: {e}")
             return False
 
     def test_ticket_with_verification(self):
@@ -320,7 +320,7 @@ class TestOpenEvolveCrewAIIntegration:
                 ticket_id = ticket_result.get("ticket", {}).get("id")
                 
                 if ticket_id:
-                    print(f"  ✓ Ticket created successfully: {ticket_id}")
+                    print(f"  [OK] Ticket created successfully: {ticket_id}")
                     
                     # Update ticket to simulate completion
                     update_data = {
@@ -337,15 +337,15 @@ class TestOpenEvolveCrewAIIntegration:
                     )
                     
                     if update_response.status_code == 200:
-                        print("  ✓ Ticket solution content updated")
+                        print("  [OK] Ticket solution content updated")
                         
                         # Get the updated ticket to verify verification status
                         ticket_response = self.session.get(f"{self.CREWAI_api_base}/tickets/{ticket_id}")
                         if ticket_response.status_code == 200:
                             ticket = ticket_response.json().get("ticket")
                             if ticket:
-                                print(f"  ✓ Verification status: {ticket.get('verification_status', 'not_found')}")
-                                print(f"  ✓ Ticket status: {ticket.get('status', 'not_found')}")
+                                print(f"  [OK] Verification status: {ticket.get('verification_status', 'not_found')}")
+                                print(f"  [OK] Ticket status: {ticket.get('status', 'not_found')}")
                                 
                                 # Clean up the ticket
                                 # Note: There's no delete endpoint in the current server, so we'll just update status
@@ -356,14 +356,14 @@ class TestOpenEvolveCrewAIIntegration:
                                         "updates": {"status": "archived"}
                                     }
                                 )
-                                print("  ✓ Ticket cleanup attempted")
+                                print("  [OK] Ticket cleanup attempted")
                         
                     return True
                 else:
-                    print("  ✗ Failed to get ticket ID from creation response")
+                    print("  [FAIL] Failed to get ticket ID from creation response")
                     return False
             else:
-                print(f"  ✗ Failed to create ticket: {response.status_code}, {response.text}")
+                print(f"  [FAIL] Failed to create ticket: {response.status_code}, {response.text}")
                 return False
                 
         except requests.exceptions.ConnectionError:
@@ -371,7 +371,7 @@ class TestOpenEvolveCrewAIIntegration:
             print("  To run the server: python -m CREWAI.main")
             return False
         except Exception as e:
-            print(f"✗ Error testing ticket functionality: {e}")
+            print(f"[FAIL] Error testing ticket functionality: {e}")
             return False
 
     def test_sgd_workflow_orchestration(self):
@@ -401,26 +401,26 @@ class TestOpenEvolveCrewAIIntegration:
                 final_gold_gauntlet="final-gold-gauntlet"
             )
             
-            print(f"  ✓ Workflow created: {workflow_id}")
+            print(f"  [OK] Workflow created: {workflow_id}")
             
             # Check workflow status
             status = orchestrator.get_workflow_status(workflow_id)
             if status:
-                print(f"  ✓ Workflow status: {status['status']}")
+                print(f"  [OK] Workflow status: {status['status']}")
             
             # List workflows
             workflows = orchestrator.list_workflows()
-            print(f"  ✓ Total workflows: {len(workflows)}")
+            print(f"  [OK] Total workflows: {len(workflows)}")
             
             # Clean up: try to stop the workflow
             orchestrator.stop_workflow(workflow_id)
-            print("  ✓ Workflow cleanup attempted")
+            print("  [OK] Workflow cleanup attempted")
             
-            print("SGD workflow orchestration verified ✓")
+            print("SGD workflow orchestration verified [OK]")
             return True
             
         except Exception as e:
-            print(f"✗ Error testing SGD workflow orchestration: {e}")
+            print(f"[FAIL] Error testing SGD workflow orchestration: {e}")
             return False
 
     def run_all_tests(self):
@@ -448,9 +448,9 @@ class TestOpenEvolveCrewAIIntegration:
                 result = test_func()
                 results.append((test_name, result))
                 if result:
-                    print(f"  {test_name}: PASSED ✓")
+                    print(f"  {test_name}: PASSED [OK]")
                 else:
-                    print(f"  {test_name}: FAILED ✗")
+                    print(f"  {test_name}: FAILED [FAIL]")
             except Exception as e:
                 print(f"  {test_name}: ERROR - {e}")
                 results.append((test_name, False))

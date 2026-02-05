@@ -5,7 +5,7 @@ This module provides Model Context Protocol (MCP) tools that CREWAI agents
 can use to leverage Steer's reliability layer for AI agent outputs.
 
 CRITICAL ARCHITECTURE:
-    CREWAI (Orchestrator) → Agent Function → Steer Reality Locks → Verified Output
+    CREWAI (Orchestrator) -> Agent Function -> Steer Reality Locks -> Verified Output
 
 Steer provides deterministic verification of probabilistic LLM outputs through:
 - JSON structure validation
@@ -17,7 +17,7 @@ Steer provides deterministic verification of probabilistic LLM outputs through:
 - Custom regex patterns
 
 Architecture:
-    CREWAI Agent → MCP Tool → Steer Judge → Verification Result → Block/Pass
+    CREWAI Agent -> MCP Tool -> Steer Judge -> Verification Result -> Block/Pass
 """
 
 import logging

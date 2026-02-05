@@ -65,7 +65,7 @@ async def example_1_basic_evolution():
 
     print(f"\nAttack Survival: {sum(result.attack_survival.values())}/{len(result.attack_survival)}")
     for attack, survived in result.attack_survival.items():
-        status = "✓" if survived else "✗"
+        status = "[OK]" if survived else "[FAIL]"
         print(f"  {status} {attack}")
 
     print(f"\nHistorical Performance:")

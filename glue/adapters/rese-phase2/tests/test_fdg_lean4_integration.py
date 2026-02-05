@@ -381,7 +381,7 @@ class TestHELCFCaseStudy:
             use_lean4=False
         )
 
-        # Both have isolation → computation → release structure
+        # Both have isolation -> computation -> release structure
         # Should have moderate I_mech
         assert result["i_mech_score"] >= 0
 

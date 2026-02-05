@@ -336,7 +336,7 @@ class CriticalReviewer:
 
         print(f"\n  Found {len(env_vars)} environment variables:")
         for var in sorted(set(env_vars)):
-            print(f"    • {var}")
+            print(f"    * {var}")
 
         # Check if all are documented in validate()
         if "missing_keys.append" in content or "errors.append" in content:

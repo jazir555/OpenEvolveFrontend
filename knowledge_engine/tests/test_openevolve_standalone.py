@@ -86,7 +86,7 @@ async def test_openevolve_rule_based():
         enable_loongflow=False
     )
 
-    # Test Case 1: Multi-objective → MO mode
+    # Test Case 1: Multi-objective -> MO mode
     print("\n1. Multi-objective problem:")
     problem_chars = ProblemCharacteristics(
         domain="finance",
@@ -116,7 +116,7 @@ async def test_openevolve_rule_based():
     assert mode_value == "mo", "Should recommend MO for multi-objective"
     print("   [OK] Correctly selects MO mode")
 
-    # Test Case 2: Diversity → QD mode
+    # Test Case 2: Diversity -> QD mode
     print("\n2. Diversity problem:")
     problem_chars = ProblemCharacteristics(
         domain="science",
@@ -144,7 +144,7 @@ async def test_openevolve_rule_based():
     assert mode_value == "qd", "Should recommend QD for diversity"
     print("   [OK] Correctly selects QD mode")
 
-    # Test Case 3: Robustness → Adversarial mode
+    # Test Case 3: Robustness -> Adversarial mode
     print("\n3. Robustness problem:")
     problem_chars = ProblemCharacteristics(
         domain="engineering",
@@ -172,7 +172,7 @@ async def test_openevolve_rule_based():
     assert mode_value == "adversarial", "Should recommend Adversarial for robustness"
     print("   [OK] Correctly selects Adversarial mode")
 
-    # Test Case 4: Default → Standard mode
+    # Test Case 4: Default -> Standard mode
     print("\n4. Default problem:")
     problem_chars = ProblemCharacteristics(
         domain="web",

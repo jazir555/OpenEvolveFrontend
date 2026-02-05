@@ -325,9 +325,9 @@ def apply_fixes(dry_run: bool = False) -> Dict[str, int]:
                 if new_content != modified_content:
                     fixes_applied += 1
                     modified_content = new_content
-                    print(f"  ✓ {fix.description}")
+                    print(f"  [OK] {fix.description}")
             except Exception as e:
-                print(f"  ✗ {fix.description}: {e}")
+                print(f"  [FAIL] {fix.description}: {e}")
 
         # Write file if changes were made
         if fixes_applied > 0 and not dry_run:
@@ -361,17 +361,17 @@ def print_summary(results: Dict[str, int]):
 
     print("\nBreakdown by file:")
     for file_path, count in results.items():
-        status = "✓" if count > 0 else "○"
+        status = "[OK]" if count > 0 else "○"
         print(f"  {status} {file_path}: {count} fixes")
 
     print("\n" + "="*70)
     print("FIX CATEGORIES")
     print("="*70)
-    print("  ✓ Complete docstrings added: 20 locations")
-    print("  ✓ Magic numbers replaced: 15 locations")
-    print("  ✓ Duplicate code removed: 10 locations")
-    print("  ✓ Complex functions simplified: 5 locations")
-    print("  ✓ Variable names improved: 4 locations")
+    print("  [OK] Complete docstrings added: 20 locations")
+    print("  [OK] Magic numbers replaced: 15 locations")
+    print("  [OK] Duplicate code removed: 10 locations")
+    print("  [OK] Complex functions simplified: 5 locations")
+    print("  [OK] Variable names improved: 4 locations")
     print("  ──────────────────────────────────")
     print(f"  TOTAL: 54 code quality improvements")
     print("="*70)

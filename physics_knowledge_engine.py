@@ -177,9 +177,9 @@ class EinsteinFieldEquations:
         return f"""
 theorem EinsteinFieldEquation :
   manifold.ricci -
-    (1/2) • manifold.scalar_metric • manifold.metric =
-    8 * π * G • {self.stress_energy} +
-    {self.cosmological_constant} • manifold.metric := by
+    (1/2) * manifold.scalar_metric * manifold.metric =
+    8 * π * G * {self.stress_energy} +
+    {self.cosmological_constant} * manifold.metric := by
   sorry
 """
 
@@ -228,7 +228,7 @@ QUANTUM_THEOREMS = {
         name="HeisenbergUncertaintyPrinciple",
         domain=PhysicsDomain.QUANTUM_MECHANICS,
         statement="The product of uncertainties of two non-commuting observables is bounded below",
-        formal_statement="∀ (A B : Observable) (commutator : [A, B] ≠ 0), σ(A) • σ(B) ≥ |⟨[A, B]⟩| / 2",
+        formal_statement="∀ (A B : Observable) (commutator : [A, B] ≠ 0), σ(A) * σ(B) ≥ |⟨[A, B]⟩| / 2",
         dependencies=["Observable", "Commutator"],
         applications=["Quantum Mechanics", "Measurement Theory"]
     ),
@@ -257,7 +257,7 @@ RELATIVITY_THEOREMS = {
         name="TimeDilation",
         domain=PhysicsDomain.RELATIVITY,
         statement="Moving clocks run slow relative to stationary observer",
-        formal_statement="∀ (v : Velocity), Δt' = γ • Δt, where γ = 1/√(1 - v²/c²)",
+        formal_statement="∀ (v : Velocity), Δt' = γ * Δt, where γ = 1/√(1 - v²/c²)",
         dependencies=["LorentzTransformation"],
         applications=["Special Relativity", "GPS Systems"]
     ),
@@ -426,7 +426,7 @@ class PhysicsKnowledgeEngine:
                 name="ErgodicHypothesis",
                 domain=domain,
                 statement="Time averages equal ensemble averages",
-                formal_statement="lim_{T→∞} (1/T)∫ f dt = ⟨f⟩_ensemble",
+                formal_statement="lim_{T->∞} (1/T)∫ f dt = ⟨f⟩_ensemble",
                 dependencies=["PhaseSpace", "EnsembleAverage"],
                 applications=["Statistical Mechanics", "Molecular Dynamics"]
             ),

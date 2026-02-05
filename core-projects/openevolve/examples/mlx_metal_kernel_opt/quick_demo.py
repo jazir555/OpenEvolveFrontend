@@ -18,9 +18,9 @@ def main():
         import mlx
         import mlx_lm
 
-        print("✅ Dependencies available")
+        print("[OK] Dependencies available")
     except ImportError as e:
-        print(f"❌ Missing: {e}")
+        print(f"[FAIL] Missing: {e}")
         print("   Run: pip install -r requirements.txt")
         return
 
@@ -29,11 +29,11 @@ def main():
     found = any(os.path.exists(loc) for loc in locations)
 
     if not found:
-        print("❌ No optimized program found!")
+        print("[FAIL] No optimized program found!")
         print("   Please run AlphaEvolve first.")
         return
 
-    print(f"✅ Found optimized program")
+    print(f"[OK] Found optimized program")
 
     # Test cases
     tests = [
@@ -60,11 +60,11 @@ def main():
 
         try:
             subprocess.run(cmd, check=True)
-            print("✅ Test completed")
+            print("[OK] Test completed")
         except subprocess.CalledProcessError:
-            print("❌ Test failed")
+            print("[FAIL] Test failed")
         except KeyboardInterrupt:
-            print("\n⚠️  Demo interrupted")
+            print("\n[WARN]  Demo interrupted")
             break
 
         if i < len(tests):

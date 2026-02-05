@@ -331,7 +331,7 @@ class VerbosePrinter:
 
         # Title
         title = Text()
-        title.append("★ ", style=STYLE_WARNING)
+        title.append("* ", style=STYLE_WARNING)
         title.append("Final Answer", style=Style(color=COLORS["warning"], bold=True))
 
         # Answer content

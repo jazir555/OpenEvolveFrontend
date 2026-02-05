@@ -30,6 +30,59 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+# SECURITY: Import security framework with comprehensive features
+try:
+    from security_framework import (
+        Permission, Role, UserContext, JWTManager, get_jwt_manager,
+        RateLimiter, get_rate_limiter, InputValidator, ValidationError,
+        AuditLogger, get_audit_logger, SecurityHeadersMiddleware, RateLimitMiddleware,
+        security_scheme, api_key_scheme, get_current_user, require_auth, require_permission,
+        generate_secure_id, hash_sensitive_data
+    )
+    from security_framework import SecurityConfig
+    SECURITY_FRAMEWORK_AVAILABLE = True
+    logger.info("SECURITY: Security framework loaded successfully")
+except ImportError as e:
+    SECURITY_FRAMEWORK_AVAILABLE = False
+    logger.warning(f"SECURITY: Security framework not available: {e}")
+    # Define stub classes for when security framework is not available
+    class Permission:
+        WORKFLOW_CREATE = "workflow:create"
+        WORKFLOW_READ = "workflow:read"
+        WORKFLOW_UPDATE = "workflow:update"
+        WORKFLOW_DELETE = "workflow:delete"
+        WORKFLOW_EXECUTE = "workflow:execute"
+        API_ACCESS = "api:access"
+        API_ADMIN = "api:admin"
+        SYSTEM_ADMIN = "system:admin"
+    
+    class UserContext:
+        def __init__(self, user_id="anonymous", username="anonymous", email="", roles=None, permissions=None):
+            self.user_id = user_id
+            self.username = username
+            self.email = email
+            self.roles = roles or []
+            self.permissions = permissions or []
+            self.is_superuser = False
+        
+        def has_permission(self, permission):
+            return True
+    
+    def get_current_user():
+        return None
+    
+    def require_auth():
+        return None
+    
+    def require_permission(permission):
+        return None
+    
+    class SecurityHeadersMiddleware:
+        pass
+    
+    class RateLimitMiddleware:
+        pass
+
 
 class _SessionState(dict):
     """Lightweight SessionState replacement with attribute access."""
@@ -371,6 +424,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# SECURITY: Add security headers middleware
+if SECURITY_FRAMEWORK_AVAILABLE:
+    app.add_middleware(SecurityHeadersMiddleware)
+    app.add_middleware(RateLimitMiddleware)
+    logger.info("SECURITY: Security middleware enabled")
 
 _model_orchestrator = ModelOrchestrator() if MODEL_ORCHESTRATION_AVAILABLE else None
 if _model_orchestrator and _model_orchestration is not None:

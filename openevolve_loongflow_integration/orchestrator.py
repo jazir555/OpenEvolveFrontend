@@ -65,10 +65,10 @@ class StrategySelector:
         Select optimal strategy based on problem analysis.
         
         Rules:
-        - Multiple objectives → MO mode
-        - Exploration focus → QD mode
-        - PES enabled and beneficial → PES_ENHANCED
-        - Default → STANDARD
+        - Multiple objectives -> MO mode
+        - Exploration focus -> QD mode
+        - PES enabled and beneficial -> PES_ENHANCED
+        - Default -> STANDARD
         """
         # Check configuration mode
         if self.config.strategy_selection_mode == StrategySelectionMode.MANUAL:

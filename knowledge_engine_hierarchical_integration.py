@@ -2,7 +2,7 @@
 Knowledge Engine Hierarchical Integration - 4-Layer Unified Indexing System
 
 Integrates four specialized indexes into a cohesive knowledge engine:
-1. Hierarchical Index - Importance-based memory organization (CORE → GRANULAR)
+1. Hierarchical Index - Importance-based memory organization (CORE -> GRANULAR)
 2. Graph Index - Logical relationship preservation system
 3. Hash Index - Deduplication layer using multiple hash strategies
 4. Semantic Index - Vector embedding-based semantic search
@@ -396,7 +396,7 @@ class EnhancedKnowledgeEngine:
     Backwards compatible with existing KnowledgeEngine API.
     
     The 4 layers work together:
-    1. Hierarchical Index - Organizes by importance (CORE → GRANULAR)
+    1. Hierarchical Index - Organizes by importance (CORE -> GRANULAR)
     2. Graph Index - Preserves logical relationships between entries
     3. Hash Index - Deduplicates content using multiple hash strategies
     4. Semantic Index - Enables meaning-based search with embeddings

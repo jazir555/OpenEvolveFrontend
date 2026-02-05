@@ -36,7 +36,7 @@ def optimize_attention():
         sys.path.insert(0, '.')
         from evaluator import evaluate_program
         
-        print("✅ Evaluator imported successfully")
+        print("[OK] Evaluator imported successfully")
         
         # Test evaluation
         result = evaluate_program(test_program)
@@ -49,17 +49,17 @@ def optimize_attention():
                 print(f"📂 MLIR source: {result['mlir_source']}")
                 
             if result['error'] < 1000:
-                print("✅ Evaluator works!")
+                print("[OK] Evaluator works!")
                 return True
             else:
-                print(f"❌ Evaluator failed: {result}")
+                print(f"[FAIL] Evaluator failed: {result}")
                 return False
         else:
-            print(f"❌ Invalid result format: {result}")
+            print(f"[FAIL] Invalid result format: {result}")
             return False
             
     except Exception as e:
-        print(f"❌ Evaluator test failed: {e}")
+        print(f"[FAIL] Evaluator test failed: {e}")
         return False
 
 def test_initial_program():
@@ -73,22 +73,22 @@ def test_initial_program():
         
         params = optimize_attention()
         
-        print("✅ Initial program imported successfully")
+        print("[OK] Initial program imported successfully")
         print(f"📊 Generated parameters: {list(params.keys())}")
         
         # Check required parameters
         required = ['tile_size_m', 'tile_size_n', 'unroll_factor']
         for param in required:
             if param in params:
-                print(f"✅ {param}: {params[param]}")
+                print(f"[OK] {param}: {params[param]}")
             else:
-                print(f"❌ Missing parameter: {param}")
+                print(f"[FAIL] Missing parameter: {param}")
                 return False
         
         return True
         
     except Exception as e:
-        print(f"❌ Initial program test failed: {e}")
+        print(f"[FAIL] Initial program test failed: {e}")
         return False
 
 def test_mlir_file():
@@ -99,24 +99,24 @@ def test_mlir_file():
     mlir_file = Path("./mlir/self_attn_with_consts_linalg_dialect.mlir")
     
     if mlir_file.exists():
-        print(f"✅ MLIR file exists: {mlir_file}")
+        print(f"[OK] MLIR file exists: {mlir_file}")
         try:
             with open(mlir_file, 'r') as f:
                 content = f.read()
-                print(f"✅ MLIR file readable: {len(content)} characters")
+                print(f"[OK] MLIR file readable: {len(content)} characters")
                 
                 # Check for fixed tensor.expand_shape syntax
                 if 'output_shape' in content:
-                    print("✅ tensor.expand_shape syntax is fixed")
+                    print("[OK] tensor.expand_shape syntax is fixed")
                 else:
-                    print("⚠️ tensor.expand_shape may need fixing")
+                    print("[WARN] tensor.expand_shape may need fixing")
                 
                 return True
         except Exception as e:
-            print(f"❌ Cannot read MLIR file: {e}")
+            print(f"[FAIL] Cannot read MLIR file: {e}")
             return False
     else:
-        print(f"❌ MLIR file not found: {mlir_file}")
+        print(f"[FAIL] MLIR file not found: {mlir_file}")
         return False
 
 def main():
@@ -142,7 +142,7 @@ def main():
     
     passed = 0
     for test_name, success in results:
-        status = "✅ PASS" if success else "❌ FAIL"
+        status = "[OK] PASS" if success else "[FAIL] FAIL"
         print(f"{status:8} {test_name}")
         if success:
             passed += 1
@@ -155,7 +155,7 @@ def main():
         print("   python ../../openevolve-run.py initial_program.py evaluator.py --config config.yaml --iterations 10")
         print("\n🎯 Target: Achieve 32% speedup (1.32x) like AlphaEvolve paper")
     else:
-        print(f"\n⚠️ {len(results) - passed} test(s) failed. Fix issues before running evolution.")
+        print(f"\n[WARN] {len(results) - passed} test(s) failed. Fix issues before running evolution.")
     
     return passed == len(results)
 

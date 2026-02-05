@@ -15,7 +15,7 @@ OpenEvolve API:
 - evolve_code() - Evolve arbitrary code
 
 Architecture:
-    CREWAI Agent → MCP Tool → OpenEvolve API → Optimized Code
+    CREWAI Agent -> MCP Tool -> OpenEvolve API -> Optimized Code
 """
 
 import json

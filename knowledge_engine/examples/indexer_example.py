@@ -40,7 +40,7 @@ async def example_1_basic_indexing():
     print(f"\n📁 Indexing repository: knowledge_engine")
     output_files = await indexer.build_all_indexes()
 
-    print(f"\n✅ Created {len(output_files)} index file(s):")
+    print(f"\n[OK] Created {len(output_files)} index file(s):")
     for repo_name, file_path in output_files.items():
         print(f"  - {repo_name}: {file_path}")
 
@@ -147,7 +147,7 @@ async def example_4_file_relationships():
         print(f"  High confidence: {metadata.get('high_confidence_count', 0)}")
 
         for rel in rels[:3]:
-            print(f"\n  → {rel['target_file_path']}")
+            print(f"\n  -> {rel['target_file_path']}")
             print(f"    Type: {rel['relationship_type']}")
             print(f"    Confidence: {rel['confidence_score']:.2f}")
             print(f"    Usage: {rel['usage_suggestions'][:80]}...")
@@ -178,9 +178,9 @@ async def example_5_incremental_updates():
         )
 
         if success:
-            print("✅ Index updated successfully")
+            print("[OK] Index updated successfully")
         else:
-            print("❌ Update failed")
+            print("[FAIL] Update failed")
     else:
         print(f"File not found: {test_file}")
 
@@ -267,11 +267,11 @@ async def main():
         await example_7_advanced_search()
 
         print("\n" + "="*80)
-        print("✅ All examples completed successfully!")
+        print("[OK] All examples completed successfully!")
         print("="*80)
 
     except Exception as e:
-        print(f"\n❌ Error running examples: {e}")
+        print(f"\n[FAIL] Error running examples: {e}")
         import traceback
         traceback.print_exc()
 

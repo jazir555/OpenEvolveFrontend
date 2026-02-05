@@ -47,13 +47,13 @@ for category, file_path in required_files.items():
     full_path = Path(__file__).parent.parent / file_path
     if full_path.exists():
         size = full_path.stat().st_size
-        print(f"   ✅ {category}: {file_path} ({size:,} bytes)")
+        print(f"   [OK] {category}: {file_path} ({size:,} bytes)")
     else:
-        print(f"   ❌ {category}: {file_path} - MISSING")
+        print(f"   [FAIL] {category}: {file_path} - MISSING")
         missing_files.append(file_path)
 
 if missing_files:
-    print(f"\n❌ FAILED: {len(missing_files)} required files are missing")
+    print(f"\n[FAIL] FAILED: {len(missing_files)} required files are missing")
     sys.exit(1)
 
 # ========================================================================
@@ -74,9 +74,9 @@ try:
         EvolutionarySystem,
         ComparisonMetric
     )
-    print("   ✅ Main integration module imports successfully")
+    print("   [OK] Main integration module imports successfully")
 except ImportError as e:
-    print(f"   ❌ Import error: {e}")
+    print(f"   [FAIL] Import error: {e}")
     sys.exit(1)
 
 try:
@@ -89,9 +89,9 @@ try:
         SystemType,
         DomainType
     )
-    print("   ✅ Evolutionary artifacts module imports successfully")
+    print("   [OK] Evolutionary artifacts module imports successfully")
 except ImportError as e:
-    print(f"   ❌ Import error: {e}")
+    print(f"   [FAIL] Import error: {e}")
     sys.exit(1)
 
 try:
@@ -101,9 +101,9 @@ try:
         WinnerType,
         ComparisonCategory
     )
-    print("   ✅ Comparison results module imports successfully")
+    print("   [OK] Comparison results module imports successfully")
 except ImportError as e:
-    print(f"   ❌ Import error: {e}")
+    print(f"   [FAIL] Import error: {e}")
     sys.exit(1)
 
 # ========================================================================
@@ -125,20 +125,20 @@ try:
 
     for method in extractor_methods:
         if hasattr(UnifiedEvolutionKnowledgeExtractor, method):
-            print(f"   ✅ UnifiedEvolutionKnowledgeExtractor.{method}() exists")
+            print(f"   [OK] UnifiedEvolutionKnowledgeExtractor.{method}() exists")
         else:
-            print(f"   ❌ UnifiedEvolutionKnowledgeExtractor.{method}() MISSING")
+            print(f"   [FAIL] UnifiedEvolutionKnowledgeExtractor.{method}() MISSING")
 
     # Check data classes
-    print(f"   ✅ PerformanceComparison data class exists")
-    print(f"   ✅ SynergyOpportunity data class exists")
-    print(f"   ✅ BestPractice data class exists")
-    print(f"   ✅ HybridStrategyRecommendation data class exists")
-    print(f"   ✅ DualRunAnalysis data class exists")
-    print(f"   ✅ KnowledgeArtifact data class exists")
+    print(f"   [OK] PerformanceComparison data class exists")
+    print(f"   [OK] SynergyOpportunity data class exists")
+    print(f"   [OK] BestPractice data class exists")
+    print(f"   [OK] HybridStrategyRecommendation data class exists")
+    print(f"   [OK] DualRunAnalysis data class exists")
+    print(f"   [OK] KnowledgeArtifact data class exists")
 
 except Exception as e:
-    print(f"   ❌ Error checking classes: {e}")
+    print(f"   [FAIL] Error checking classes: {e}")
     sys.exit(1)
 
 # ========================================================================
@@ -165,13 +165,13 @@ if test_file.exists():
 
     for test_class in test_classes:
         if f"class {test_class}" in test_content:
-            print(f"   ✅ {test_class} exists")
+            print(f"   [OK] {test_class} exists")
 
     # Count test methods
     test_methods = test_content.count('async def test_')
-    print(f"   ✅ Total test methods: {test_methods}")
+    print(f"   [OK] Total test methods: {test_methods}")
 else:
-    print(f"   ❌ Test file not found")
+    print(f"   [FAIL] Test file not found")
 
 # ========================================================================
 # Functional Test
@@ -182,7 +182,7 @@ print("\n⚙️  Running functional test...")
 try:
     # Create extractor instance
     extractor = UnifiedEvolutionKnowledgeExtractor(knowledge_engine=None)
-    print("   ✅ Extractor instance created")
+    print("   [OK] Extractor instance created")
 
     # Test with minimal mock data
     oe_result = {
@@ -211,7 +211,7 @@ try:
         return comparison
 
     comparison = asyncio.run(test_comparison())
-    print(f"   ✅ Performance comparison works")
+    print(f"   [OK] Performance comparison works")
     print(f"      Winner: {comparison.overall_winner}")
     print(f"      Confidence: {comparison.confidence:.2f}")
 
@@ -222,12 +222,12 @@ try:
         return oe_artifacts, lf_artifacts
 
     oe_artifacts, lf_artifacts = asyncio.run(test_extraction())
-    print(f"   ✅ Artifact extraction works")
+    print(f"   [OK] Artifact extraction works")
     print(f"      OpenEvolve artifacts: {len(oe_artifacts)}")
     print(f"      LoongFlow artifacts: {len(lf_artifacts)}")
 
 except Exception as e:
-    print(f"   ❌ Functional test failed: {e}")
+    print(f"   [FAIL] Functional test failed: {e}")
     import traceback
     traceback.print_exc()
     sys.exit(1)
@@ -237,16 +237,16 @@ except Exception as e:
 # ========================================================================
 
 print("\n" + "=" * 80)
-print("VERIFICATION COMPLETE - ALL CHECKS PASSED ✅")
+print("VERIFICATION COMPLETE - ALL CHECKS PASSED [OK]")
 print("=" * 80)
 
 print("\n📊 Summary:")
-print("   ✅ All required files present")
-print("   ✅ All imports successful")
-print("   ✅ All 6 core methods implemented")
-print("   ✅ All data structures defined")
-print("   ✅ Test suite complete (23 tests)")
-print("   ✅ Functional tests passing")
+print("   [OK] All required files present")
+print("   [OK] All imports successful")
+print("   [OK] All 6 core methods implemented")
+print("   [OK] All data structures defined")
+print("   [OK] Test suite complete (23 tests)")
+print("   [OK] Functional tests passing")
 
 print("\n🎯 System Status: PRODUCTION READY")
 

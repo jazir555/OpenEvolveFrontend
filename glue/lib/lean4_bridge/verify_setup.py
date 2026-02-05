@@ -30,15 +30,15 @@ def print_header(text):
 
 def print_success(text):
     """Print success message."""
-    print(f"{GREEN}✓{NC} {text}")
+    print(f"{GREEN}[OK]{NC} {text}")
 
 def print_error(text):
     """Print error message."""
-    print(f"{RED}✗{NC} {text}")
+    print(f"{RED}[FAIL]{NC} {text}")
 
 def print_warning(text):
     """Print warning message."""
-    print(f"{YELLOW}⚠{NC} {text}")
+    print(f"{YELLOW}[WARN]{NC} {text}")
 
 def check_file_exists(filepath, description):
     """Check if a file exists."""

@@ -22,22 +22,22 @@ def test_imports():
         print(f"Line 26 content: '{line_26}'")
 
         if "import uuid" in line_26:
-            print("✅ CONFIRMED: 'import uuid' found at line 26")
+            print("[OK] CONFIRMED: 'import uuid' found at line 26")
             return True
         else:
             # Check if it appears anywhere in first 30 lines
             found = False
             for i, line in enumerate(lines[:30], 1):
                 if "import uuid" in line.strip():
-                    print(f"⚠️ FOUND BUT NOT AT LINE 26: Found at line {i}")
+                    print(f"[WARN] FOUND BUT NOT AT LINE 26: Found at line {i}")
                     found = True
                     break
             if not found:
-                print("❌ NOT FOUND: 'import uuid' not found in first 30 lines")
+                print("[FAIL] NOT FOUND: 'import uuid' not found in first 30 lines")
             return found
 
     except Exception as e:
-        print(f"❌ ERROR: {e}")
+        print(f"[FAIL] ERROR: {e}")
         return False
 
 
@@ -64,20 +64,20 @@ def test_sub_problem_type():
         assert analysis == "ANALYSIS", "ANALYSIS has wrong value"
         assert validation == "VALIDATION", "VALIDATION has wrong value"
 
-        print("✅ CONFIRMED: All three SubProblemType enum values exist and work")
+        print("[OK] CONFIRMED: All three SubProblemType enum values exist and work")
         return True
 
     except ImportError as e:
-        print(f"❌ IMPORT ERROR: {e}")
+        print(f"[FAIL] IMPORT ERROR: {e}")
         return False
     except AssertionError as e:
-        print(f"❌ ASSERTION ERROR: {e}")
+        print(f"[FAIL] ASSERTION ERROR: {e}")
         return False
     except AttributeError as e:
-        print(f"❌ ATTRIBUTE ERROR: {e}")
+        print(f"[FAIL] ATTRIBUTE ERROR: {e}")
         return False
     except Exception as e:
-        print(f"❌ ERROR: {e}")
+        print(f"[FAIL] ERROR: {e}")
         return False
 
 
@@ -106,17 +106,17 @@ def test_complexity_score():
         assert hasattr(score, "overall_complexity"), "overall_complexity field missing"
         assert score.overall_complexity == 5.0, "overall_complexity has wrong value"
 
-        print("✅ CONFIRMED: ComplexityScore has overall_complexity field")
+        print("[OK] CONFIRMED: ComplexityScore has overall_complexity field")
         return True
 
     except ImportError as e:
-        print(f"❌ IMPORT ERROR: {e}")
+        print(f"[FAIL] IMPORT ERROR: {e}")
         return False
     except AssertionError as e:
-        print(f"❌ ASSERTION ERROR: {e}")
+        print(f"[FAIL] ASSERTION ERROR: {e}")
         return False
     except Exception as e:
-        print(f"❌ ERROR: {e}")
+        print(f"[FAIL] ERROR: {e}")
         return False
 
 
@@ -152,17 +152,17 @@ def test_dependency_graph():
 
         assert graph2.execution_order == ["a", "b", "c"], "execution_order has wrong value"
 
-        print("✅ CONFIRMED: DependencyGraph has execution_order field with default_factory=list")
+        print("[OK] CONFIRMED: DependencyGraph has execution_order field with default_factory=list")
         return True
 
     except ImportError as e:
-        print(f"❌ IMPORT ERROR: {e}")
+        print(f"[FAIL] IMPORT ERROR: {e}")
         return False
     except AssertionError as e:
-        print(f"❌ ASSERTION ERROR: {e}")
+        print(f"[FAIL] ASSERTION ERROR: {e}")
         return False
     except Exception as e:
-        print(f"❌ ERROR: {e}")
+        print(f"[FAIL] ERROR: {e}")
         return False
 
 
@@ -189,20 +189,20 @@ def test_sovereign_decomposition_strategy():
         assert roma == "ROMA", "ROMA has wrong value"
         assert semantic == "SEMANTIC", "SEMANTIC has wrong value"
 
-        print("✅ CONFIRMED: SovereignDecompositionStrategy class exists with all three attributes")
+        print("[OK] CONFIRMED: SovereignDecompositionStrategy class exists with all three attributes")
         return True
 
     except ImportError as e:
-        print(f"❌ IMPORT ERROR: {e}")
+        print(f"[FAIL] IMPORT ERROR: {e}")
         return False
     except AssertionError as e:
-        print(f"❌ ASSERTION ERROR: {e}")
+        print(f"[FAIL] ASSERTION ERROR: {e}")
         return False
     except AttributeError as e:
-        print(f"❌ ATTRIBUTE ERROR: {e}")
+        print(f"[FAIL] ATTRIBUTE ERROR: {e}")
         return False
     except Exception as e:
-        print(f"❌ ERROR: {e}")
+        print(f"[FAIL] ERROR: {e}")
         return False
 
 
@@ -248,11 +248,11 @@ def test_integration():
         print(f"  - Strategy: {strategy}")
         print(f"  - Generated UUID: {test_id}")
 
-        print("✅ CONFIRMED: All fixes work together without regressions")
+        print("[OK] CONFIRMED: All fixes work together without regressions")
         return True
 
     except Exception as e:
-        print(f"❌ INTEGRATION TEST FAILED: {e}")
+        print(f"[FAIL] INTEGRATION TEST FAILED: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -279,16 +279,16 @@ def main():
     print("="*60)
 
     for fix_name, passed in results.items():
-        status = "✅ PASS" if passed else "❌ FAIL"
+        status = "[OK] PASS" if passed else "[FAIL] FAIL"
         print(f"{status}: {fix_name}")
 
     # Overall assessment
     all_passed = all(results.values())
     print("\n" + "="*60)
     if all_passed:
-        print("OVERALL ASSESSMENT: ✅ PASS - All fixes verified!")
+        print("OVERALL ASSESSMENT: [OK] PASS - All fixes verified!")
     else:
-        print("OVERALL ASSESSMENT: ❌ FAIL - Some fixes are missing or broken")
+        print("OVERALL ASSESSMENT: [FAIL] FAIL - Some fixes are missing or broken")
     print("="*60)
 
     return 0 if all_passed else 1

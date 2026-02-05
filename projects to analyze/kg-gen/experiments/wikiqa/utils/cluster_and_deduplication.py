@@ -330,16 +330,16 @@ class KGAssistedRAG:
             duplicates = [dup for dup in result.duplicates if dup in cluster]
 
             if len(duplicates) > 0:
-                print(f"  ✓ Found {len(duplicates)} duplicates for '{item}'")
+                print(f"  [OK] Found {len(duplicates)} duplicates for '{item}'")
                 print(
-                    f"  → Using alias '{result.alias}' to represent: '{item}' and {duplicates}"
+                    f"  -> Using alias '{result.alias}' to represent: '{item}' and {duplicates}"
                 )
                 item_clusters[result.alias] = {item}
                 for duplicate in duplicates:
                     cluster.remove(duplicate)
                     item_clusters[result.alias].add(duplicate)
             else:
-                print(f"  ✗ No duplicates found for '{item}', keeping as is")
+                print(f"  [FAIL] No duplicates found for '{item}', keeping as is")
                 item_clusters[item] = {item}
 
         print(

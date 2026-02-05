@@ -136,7 +136,7 @@ new_content = re.sub(pattern, new_class, content, flags=re.DOTALL)
 with open('evolution.py', 'w', encoding='utf-8') as f:
     f.write(new_content)
 
-print("✓ EvolutionConfiguration refactored successfully!")
+print("[OK] EvolutionConfiguration refactored successfully!")
 print("  - Eliminated 272 duplicated parameters")
 print("  - Now extends BaseConfiguration")
 print("  - Maintains 100% backward compatibility")

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-RESE Phase I → Lean 4 Formalization Coverage Verification
+RESE Phase I -> Lean 4 Formalization Coverage Verification
 
 Per RESE Technical Manual §2.1.5:
 "All Hard Parameter Inequality Constraints (Category A laws) are formally
@@ -433,7 +433,7 @@ class CoverageReportGenerator:
         Returns:
             Report as markdown string
         """
-        report = f"""# RESE Phase I → Lean 4 Formalization Coverage Report
+        report = f"""# RESE Phase I -> Lean 4 Formalization Coverage Report
 
 **Generated:** {datetime.now(timezone.utc).isoformat()}
 **Correlation ID:** {result.correlation_id}
@@ -453,14 +453,14 @@ class CoverageReportGenerator:
 """
 
         if result.coverage_percentage >= 100.0:
-            report += "✅ **100% Coverage Achieved** - All Category A constraints formalized\n"
+            report += "[OK] **100% Coverage Achieved** - All Category A constraints formalized\n"
         else:
-            report += f"⚠️ **Coverage Below 100%** - {100.0 - result.coverage_percentage:.1f}% missing\n"
+            report += f"[WARN] **Coverage Below 100%** - {100.0 - result.coverage_percentage:.1f}% missing\n"
 
         report += "\n## Theorems\n\n"
 
         for i, theorem in enumerate(result.theorems, 1):
-            proof_status = "✅" if theorem.proof else "❌"
+            proof_status = "[OK]" if theorem.proof else "[FAIL]"
             report += f"{i}. {proof_status} **{theorem.theorem_name}**\n"
             report += f"   - Signature: `{theorem.signature}`\n"
             if theorem.proof:
@@ -472,7 +472,7 @@ class CoverageReportGenerator:
         if result.errors:
             report += "## Errors\n\n"
             for error in result.errors:
-                report += f"- ❌ {error}\n"
+                report += f"- [FAIL] {error}\n"
 
         report += "\n## Verification\n\n"
 
@@ -483,26 +483,26 @@ class CoverageReportGenerator:
         # Check 1: File exists
         checks_total += 1
         if os.path.exists(result.lean4_file_path):
-            report += f"- ✅ Lean 4 file exists\n"
+            report += f"- [OK] Lean 4 file exists\n"
             checks_passed += 1
         else:
-            report += f"- ❌ Lean 4 file missing\n"
+            report += f"- [FAIL] Lean 4 file missing\n"
 
         # Check 2: Coverage 100%
         checks_total += 1
         if result.coverage_percentage >= 100.0:
-            report += f"- ✅ 100% coverage achieved\n"
+            report += f"- [OK] 100% coverage achieved\n"
             checks_passed += 1
         else:
-            report += f"- ❌ Coverage {result.coverage_percentage}% < 100%\n"
+            report += f"- [FAIL] Coverage {result.coverage_percentage}% < 100%\n"
 
         # Check 3: All proofs complete
         checks_total += 1
         if result.proof_complete_count == result.total_constraints:
-            report += f"- ✅ All proofs complete\n"
+            report += f"- [OK] All proofs complete\n"
             checks_passed += 1
         else:
-            report += f"- ❌ {result.total_constraints - result.proof_complete_count} proofs incomplete\n"
+            report += f"- [FAIL] {result.total_constraints - result.proof_complete_count} proofs incomplete\n"
 
         report += f"\n**Verification: {checks_passed}/{checks_total} checks passed**\n"
 
@@ -518,7 +518,7 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(
-        description='RESE Phase I → Lean 4 Formalization Coverage Verification'
+        description='RESE Phase I -> Lean 4 Formalization Coverage Verification'
     )
     parser.add_argument('--output-report', help='Write coverage report to file')
     parser.add_argument('--verbose', '-v', action='store_true',
@@ -554,13 +554,13 @@ def main():
 
     # Exit with status code based on coverage
     if result.coverage_percentage < config.MIN_COVERAGE_PERCENTAGE:
-        print(f"\n❌ Coverage {result.coverage_percentage}% below minimum {config.MIN_COVERAGE_PERCENTAGE}%")
+        print(f"\n[FAIL] Coverage {result.coverage_percentage}% below minimum {config.MIN_COVERAGE_PERCENTAGE}%")
         sys.exit(1)
     elif config.REQUIRE_ALL_PROOFS_COMPLETE and result.proof_complete_count < result.total_constraints:
-        print(f"\n❌ {result.total_constraints - result.proof_complete_count} proofs incomplete")
+        print(f"\n[FAIL] {result.total_constraints - result.proof_complete_count} proofs incomplete")
         sys.exit(1)
     else:
-        print(f"\n✅ All checks passed!")
+        print(f"\n[OK] All checks passed!")
         sys.exit(0)
 
 

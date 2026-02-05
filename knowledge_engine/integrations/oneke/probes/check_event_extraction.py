@@ -54,19 +54,19 @@ async def probe_event_extraction():
             enable_causal_extraction=True
         )
         pipeline = EventExtractionPipeline(config)
-        logger.info("✓ Pipeline initialized successfully")
+        logger.info("[OK] Pipeline initialized successfully")
 
         # Test 2: Event type enum
         logger.info("Test 2: Event type enumeration")
         assert EventType.ACQUISITION.value == "acquisition"
         assert EventType.LAUNCH.value == "launch"
-        logger.info("✓ Event types working")
+        logger.info("[OK] Event types working")
 
         # Test 3: Argument role enum
         logger.info("Test 3: Argument role enumeration")
         assert ArgumentRole.SUBJECT.value == "subject"
         assert ArgumentRole.TIME.value == "time"
-        logger.info("✓ Argument roles working")
+        logger.info("[OK] Argument roles working")
 
         # Test 4: Temporal event creation
         logger.info("Test 4: Temporal event creation")
@@ -81,7 +81,7 @@ async def probe_event_extraction():
         assert event.event_id == "EV1"
         assert event.event_type == EventType.LAUNCH
         assert event.timestamp.tzinfo == timezone.utc
-        logger.info("✓ Temporal event creation working")
+        logger.info("[OK] Temporal event creation working")
 
         # Test 5: Event serialization
         logger.info("Test 5: Event serialization")
@@ -90,7 +90,7 @@ async def probe_event_extraction():
         assert "event_type" in event_dict
         assert "trigger" in event_dict
         assert "timestamp" in event_dict
-        logger.info("✓ Event serialization working")
+        logger.info("[OK] Event serialization working")
 
         # Test 6: Event chain creation
         logger.info("Test 6: Event chain creation")
@@ -115,7 +115,7 @@ async def probe_event_extraction():
         chain.add_event(event2)
         assert len(chain.events) == 2
         assert len(chain.temporal_order) == 2
-        logger.info("✓ Event chain creation working")
+        logger.info("[OK] Event chain creation working")
 
         # Test 7: Event argument extraction
         logger.info("Test 7: Event argument extraction")
@@ -128,13 +128,13 @@ async def probe_event_extraction():
         )
 
         updated_event = await pipeline.extract_arguments(event3, text)
-        logger.info(f"✓ Extracted {len(updated_event.arguments)} arguments")
+        logger.info(f"[OK] Extracted {len(updated_event.arguments)} arguments")
 
         # Test 8: Event chain building
         logger.info("Test 8: Event chain building")
         events = [event1, event2]
         chains = await pipeline.build_event_chains(events)
-        logger.info(f"✓ Built {len(chains)} event chains")
+        logger.info(f"[OK] Built {len(chains)} event chains")
 
         # Test 9: Causal relation extraction
         logger.info("Test 9: Causal relation extraction")
@@ -150,7 +150,7 @@ async def probe_event_extraction():
             text_causal,
             Language.ENGLISH
         )
-        logger.info(f"✓ Extracted {len(causal_relations)} causal relations")
+        logger.info(f"[OK] Extracted {len(causal_relations)} causal relations")
 
         # Test 10: Temporal ordering
         logger.info("Test 10: Temporal ordering")
@@ -158,7 +158,7 @@ async def probe_event_extraction():
 
         ordered = await pipeline.order_events_temporally(events, text_order)
         assert len(ordered) == 2
-        logger.info(f"✓ Temporal ordering: {ordered}")
+        logger.info(f"[OK] Temporal ordering: {ordered}")
 
         # Test 11: Complete pipeline
         logger.info("Test 11: Complete extraction pipeline")
@@ -178,7 +178,7 @@ async def probe_event_extraction():
         assert "temporal_order" in result
         assert "metadata" in result
 
-        logger.info(f"✓ Complete pipeline: {result['metadata']['num_events']} events, "
+        logger.info(f"[OK] Complete pipeline: {result['metadata']['num_events']} events, "
                    f"{result['metadata']['num_chains']} chains")
 
         # Test 12: Event chain serialization
@@ -187,7 +187,7 @@ async def probe_event_extraction():
         assert "chain_id" in chain_dict
         assert "events" in chain_dict
         assert "temporal_order" in chain_dict
-        logger.info("✓ Event chain serialization working")
+        logger.info("[OK] Event chain serialization working")
 
         logger.info({
             "msg": "Event extraction probe complete",

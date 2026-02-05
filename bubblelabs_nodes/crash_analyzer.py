@@ -274,7 +274,7 @@ class CrashAnalyzer:
 
         if high_count > 0:
             recommendations.append(
-                f"⚠️ HIGH PRIORITY: Address {high_count} high-severity issues"
+                f"[WARN] HIGH PRIORITY: Address {high_count} high-severity issues"
             )
 
         # Pattern-based recommendations
@@ -449,12 +449,12 @@ class CrashReporter:
             if vulns:
                 emoji = {
                     VulnerabilitySeverity.CRITICAL: "🚨",
-                    VulnerabilitySeverity.HIGH: "⚠️",
+                    VulnerabilitySeverity.HIGH: "[WARN]",
                     VulnerabilitySeverity.MEDIUM: "⚡",
                     VulnerabilitySeverity.LOW: "ℹ️",
                     VulnerabilitySeverity.INFO: "📝",
                 }
-                lines.append(f"- {emoji.get(severity, '•')} **{severity.value.upper()}:** {len(vulns)}")
+                lines.append(f"- {emoji.get(severity, '*')} **{severity.value.upper()}:** {len(vulns)}")
 
         if report.top_crash_types:
             lines.extend([

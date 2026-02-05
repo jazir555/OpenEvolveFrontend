@@ -73,7 +73,7 @@ def create_profile(name, base, description, config, interactive):
             # Create from existing config file
             config_mgr = ConfigManager()
             profile_config = config_mgr.load_config(config_file=config)
-            click.echo(f"✓ Loaded config from {config}")
+            click.echo(f"[OK] Loaded config from {config}")
 
         elif interactive:
             # Interactive mode
@@ -100,7 +100,7 @@ def create_profile(name, base, description, config, interactive):
             # Create from base profile
             base_config = profile_mgr.load_profile(base)
             profile_config = base_config
-            click.echo(f"✓ Loaded base profile '{base}'")
+            click.echo(f"[OK] Loaded base profile '{base}'")
 
         # Add description
         if description:
@@ -110,10 +110,10 @@ def create_profile(name, base, description, config, interactive):
         # Save profile
         profile_mgr.save_profile(name, profile_config, description)
 
-        click.echo(f"✓ Profile '{name}' created")
+        click.echo(f"[OK] Profile '{name}' created")
 
     except Exception as e:
-        click.echo(f"✗ Error creating profile: {e}", err=True)
+        click.echo(f"[FAIL] Error creating profile: {e}", err=True)
         raise click.Abort()
 
 
@@ -164,7 +164,7 @@ def list_profiles(format, verbose):
                 click.echo("No profiles found")
 
     except Exception as e:
-        click.echo(f"✗ Error listing profiles: {e}", err=True)
+        click.echo(f"[FAIL] Error listing profiles: {e}", err=True)
         raise click.Abort()
 
 
@@ -214,7 +214,7 @@ def show_profile(name, format):
                 click.echo("tabulate not installed. Use --format yaml instead")
 
     except Exception as e:
-        click.echo(f"✗ Error showing profile: {e}", err=True)
+        click.echo(f"[FAIL] Error showing profile: {e}", err=True)
         return 1
 
 
@@ -248,10 +248,10 @@ def apply_profile(name, output, format):
         output_file = output or 'evolve.config.yaml'
         config_mgr.save_config(profile_config, output_file, format)
 
-        click.echo(f"✓ Applied profile '{name}' to {output_file}")
+        click.echo(f"[OK] Applied profile '{name}' to {output_file}")
 
     except Exception as e:
-        click.echo(f"✗ Error applying profile: {e}", err=True)
+        click.echo(f"[FAIL] Error applying profile: {e}", err=True)
         return 1
 
 
@@ -275,7 +275,7 @@ def delete_profile(name, force):
         # Prevent deletion of built-in profiles
         built_in = ['default', 'dev', 'test', 'prod']
         if name in built_in:
-            click.echo(f"✗ Cannot delete built-in profile '{name}'", err=True)
+            click.echo(f"[FAIL] Cannot delete built-in profile '{name}'", err=True)
             return 1
 
         if not force:
@@ -286,10 +286,10 @@ def delete_profile(name, force):
         manager = ProfileManager()
         manager.delete_profile(name)
 
-        click.echo(f"✓ Deleted profile '{name}'")
+        click.echo(f"[OK] Deleted profile '{name}'")
 
     except Exception as e:
-        click.echo(f"✗ Error deleting profile: {e}", err=True)
+        click.echo(f"[FAIL] Error deleting profile: {e}", err=True)
         return 1
 
 
@@ -318,10 +318,10 @@ def export_profile(name, output, format):
         profile_config = profile_mgr.load_profile(name)
         config_mgr.save_config(profile_config, output, format)
 
-        click.echo(f"✓ Exported profile '{name}' to {output}")
+        click.echo(f"[OK] Exported profile '{name}' to {output}")
 
     except Exception as e:
-        click.echo(f"✗ Error exporting profile: {e}", err=True)
+        click.echo(f"[FAIL] Error exporting profile: {e}", err=True)
         return 1
 
 
@@ -349,10 +349,10 @@ def import_profile(file, name, description):
         profile_mgr = ProfileManager()
         profile_mgr.save_profile(name, profile_config, description)
 
-        click.echo(f"✓ Imported profile '{name}' from {file}")
+        click.echo(f"[OK] Imported profile '{name}' from {file}")
 
     except Exception as e:
-        click.echo(f"✗ Error importing profile: {e}", err=True)
+        click.echo(f"[FAIL] Error importing profile: {e}", err=True)
         return 1
 
 
@@ -381,18 +381,18 @@ def update_profile(name, description, config):
             # Update from config file
             new_config = config_mgr.load_config(config_file=config)
             profile_mgr.save_profile(name, new_config, description)
-            click.echo(f"✓ Updated profile '{name}' from {config}")
+            click.echo(f"[OK] Updated profile '{name}' from {config}")
         elif description:
             # Update description only
             profile_config = profile_mgr.load_profile(name)
             profile_mgr.save_profile(name, profile_config, description)
-            click.echo(f"✓ Updated profile '{name}' description")
+            click.echo(f"[OK] Updated profile '{name}' description")
         else:
-            click.echo("✗ No changes specified. Use --description or --config", err=True)
+            click.echo("[FAIL] No changes specified. Use --description or --config", err=True)
             return 1
 
     except Exception as e:
-        click.echo(f"✗ Error updating profile: {e}", err=True)
+        click.echo(f"[FAIL] Error updating profile: {e}", err=True)
         return 1
 
 
@@ -419,16 +419,16 @@ def validate_profile(name):
         result = validator.validate(profile_config)
 
         if result.is_valid:
-            click.echo(f"✓ Profile '{name}' is valid")
+            click.echo(f"[OK] Profile '{name}' is valid")
             return 0
         else:
-            click.echo(f"✗ Profile '{name}' has {len(result.errors)} error(s):", err=True)
+            click.echo(f"[FAIL] Profile '{name}' has {len(result.errors)} error(s):", err=True)
             for error in result.errors:
                 click.echo(f"  - {error}", err=True)
             return 1
 
     except Exception as e:
-        click.echo(f"✗ Error validating profile: {e}", err=True)
+        click.echo(f"[FAIL] Error validating profile: {e}", err=True)
         return 1
 
 
@@ -509,5 +509,5 @@ def diff_profiles(profile1, profile2, format):
                 click.echo("tabulate not installed")
 
     except Exception as e:
-        click.echo(f"✗ Error comparing profiles: {e}", err=True)
+        click.echo(f"[FAIL] Error comparing profiles: {e}", err=True)
         return 1

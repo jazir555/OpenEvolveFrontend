@@ -122,9 +122,9 @@ async def startup_event():
     retriever = get_ragbits_retriever()
     
     if processor_success:
-        logger.info("✅ RAGBits components initialized successfully")
+        logger.info("[OK] RAGBits components initialized successfully")
     else:
-        logger.warning("⚠️ RAGBits initialization failed - using fallback mode")
+        logger.warning("[WARN] RAGBits initialization failed - using fallback mode")
 
 
 @app.get("/health")

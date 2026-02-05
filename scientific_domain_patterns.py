@@ -134,19 +134,19 @@ class ScientificDomainPatterns:
                 typical_conditions=[
                     "x(0) = x₀",
                     "v(0) = v₀",
-                    "x(t) → 0 as t → ∞"
+                    "x(t) -> 0 as t -> ∞"
                 ],
                 solution_method="Direct integration or energy methods",
                 lean4_template='''
 /-- Newton's Second Law -/
-def newtons_second_law (F : Real → Real) (m : Real) (x : Real → Real) : Prop :=
+def newtons_second_law (F : Real -> Real) (m : Real) (x : Real -> Real) : Prop :=
   ∀ t, m * deriv (deriv x) t = F t
 
 theorem newtons_second_law_solution
-    (F : Real → Real)
+    (F : Real -> Real)
     (m : Real) [hm : 0 < m]
     (x₀ v₀ : Real)
-    : ∃ x : Real → Real,
+    : ∃ x : Real -> Real,
         newtons_second_law F m x ∧
         x 0 = x₀ ∧
         deriv x 0 = v₀
@@ -172,13 +172,13 @@ theorem newtons_second_law_solution
                 solution_method="Separation of variables, Fourier series",
                 lean4_template='''
 /-- Heat Equation -/
-def heat_equation (α : Real) (u : Real → Real → Real) : Prop :=
+def heat_equation (α : Real) (u : Real -> Real -> Real) : Prop :=
   ∀ x t, deriv (fun t => u x t) t = α * laplacian (fun x => u x t) x
 
 theorem heat_equation_solution_exists
     (α : Real) [hα : 0 < α]
-    (f : Real → Real)
-    : ∃ u : Real → Real → Real,
+    (f : Real -> Real)
+    : ∃ u : Real -> Real -> Real,
         heat_equation α u ∧
         (∀ x, u x 0 = f x)
 '''
@@ -203,13 +203,13 @@ theorem heat_equation_solution_exists
                 solution_method="d'Alembert's formula, separation of variables",
                 lean4_template='''
 /-- Wave Equation -/
-def wave_equation (c : Real) (u : Real → Real → Real) : Prop :=
+def wave_equation (c : Real) (u : Real -> Real -> Real) : Prop :=
   ∀ x t, deriv (deriv (fun t => u x t)) t = c² * laplacian (fun x => u x t) x
 
 theorem wave_equation_solution
     (c : Real) [hc : 0 < c]
-    (f g : Real → Real)
-    : ∃ u : Real → Real → Real,
+    (f g : Real -> Real)
+    : ∃ u : Real -> Real -> Real,
         wave_equation c u ∧
         (∀ x, u x 0 = f x) ∧
         (∀ x, deriv (fun t => u x t) 0 = g x)
@@ -229,20 +229,20 @@ theorem wave_equation_solution
                 },
                 typical_conditions=[
                     "ψ(x,0) = ψ₀(x)",
-                    "ψ → 0 as |x| → ∞",
+                    "ψ -> 0 as |x| -> ∞",
                     "∫|ψ|²dx = 1"
                 ],
                 solution_method="Spectral methods, perturbation theory",
                 lean4_template='''
 /-- Schrödinger Equation -/
-def schrödinger_equation (Ĥ : (Real → Complex) → (Real → Complex)) (ψ : Real → Real → Complex) : Prop :=
+def schrödinger_equation (Ĥ : (Real -> Complex) -> (Real -> Complex)) (ψ : Real -> Real -> Complex) : Prop :=
   ∀ x t, I * ħ * deriv (fun t => ψ x t) t = Ĥ (fun x => ψ x t) x
 
 theorem schrödinger_solution_exists
     (Ĥ : _)
-    (ψ₀ : Real → Complex)
+    (ψ₀ : Real -> Complex)
     (h_normalized : ∫ x, |ψ₀ x|² = 1)
-    : ∃ ψ : Real → Real → Complex,
+    : ∃ ψ : Real -> Real -> Complex,
         schrödinger_equation Ĥ ψ ∧
         (∀ x, ψ x 0 = ψ₀ x) ∧
         (∀ t, ∫ x, |ψ x t|² = 1)
@@ -260,19 +260,19 @@ theorem schrödinger_solution_exists
                 },
                 typical_conditions=[
                     "φ = f on ∂Ω",
-                    "φ → 0 as |x| → ∞",
+                    "φ -> 0 as |x| -> ∞",
                     "∂φ/∂n = g on ∂Ω"
                 ],
                 solution_method="Potential theory, Green's functions",
                 lean4_template='''
 /-- Laplace Equation -/
-def laplace_equation (φ : Real → Real) : Prop :=
+def laplace_equation (φ : Real -> Real) : Prop :=
   ∀ x, laplacian φ x = 0
 
 theorem laplace_solution_exists
-    (Ω : Set (Fin n → Real))
-    (f : ∂Ω → Real)
-    : ∃ φ : Fin n → Real → Real,
+    (Ω : Set (Fin n -> Real))
+    (f : ∂Ω -> Real)
+    : ∃ φ : Fin n -> Real -> Real,
         laplace_equation (fun x => φ x) ∧
         (∀ x ∈ ∂Ω, φ x = f x)
 '''
@@ -298,7 +298,7 @@ theorem laplace_solution_exists
                 lean4_template='''
 /-- Navier-Stokes Equation -/
 def navier_stokes
-    (u p : Real → Real → Real)
+    (u p : Real -> Real -> Real)
     (ρ ν : Real)
     : Prop :=
   (∀ x t, div u x = 0) ∧
@@ -396,20 +396,20 @@ def navier_stokes
                 },
                 typical_conditions=[
                     "[A](0) = [A]₀",
-                    "[A] → 0 as t → ∞",
+                    "[A] -> 0 as t -> ∞",
                     "Temperature T fixed"
                 ],
                 solution_method="Analytical integration (simple orders), numerical (complex)",
                 lean4_template='''
 /-- Chemical Rate Equation -/
-def rate_equation (n : Nat) (k : Real) (A : Real → Real) : Prop :=
+def rate_equation (n : Nat) (k : Real) (A : Real -> Real) : Prop :=
   ∀ t, deriv A t = -k * (A t) ^ n
 
 theorem rate_equation_solution
     (n : Nat)
     (k : Real) [hk : 0 < k]
     (A₀ : Real)
-    : ∃ A : Real → Real,
+    : ∃ A : Real -> Real,
         rate_equation n k A ∧
         A 0 = A₀
 '''
@@ -434,7 +434,7 @@ theorem rate_equation_solution
                 solution_method="Quasi-steady-state approximation",
                 lean4_template='''
 /-- Michaelis-Menten Kinetics -/
-def michaelis_menten (V_max K_m : Real) (S P : Real → Real) : Prop :=
+def michaelis_menten (V_max K_m : Real) (S P : Real -> Real) : Prop :=
   ∀ t,
     deriv P t = V_max * S t / (K_m + S t) ∧
     deriv S t = -deriv P t
@@ -442,7 +442,7 @@ def michaelis_menten (V_max K_m : Real) (S P : Real → Real) : Prop :=
 theorem michaelis_menten_solution
     (V_max K_m : Real)
     (S₀ : Real) [hV : 0 < V_max] [hK : 0 < K_m]
-    : ∃ S P : Real → Real,
+    : ∃ S P : Real -> Real,
         michaelis_menten V_max K_m S P ∧
         S 0 = S₀ ∧
         P 0 = 0
@@ -468,13 +468,13 @@ theorem michaelis_menten_solution
                 solution_method="Separation of variables, error function solutions",
                 lean4_template='''
 /-- Diffusion Equation -/
-def diffusion_equation (D : Real) (C : Real → Real → Real) : Prop :=
+def diffusion_equation (D : Real) (C : Real -> Real -> Real) : Prop :=
   ∀ x t, deriv (fun t => C x t) t = D * laplacian (fun x => C x t) x
 
 theorem diffusion_solution
     (D : Real) [hD : 0 < D]
-    (C₀ : Real → Real)
-    : ∃ C : Real → Real → Real,
+    (C₀ : Real -> Real)
+    : ∃ C : Real -> Real -> Real,
         diffusion_equation D C ∧
         (∀ x, C x 0 = C₀ x)
 '''
@@ -524,7 +524,7 @@ theorem diffusion_solution
                 "Fixed concentration at boundary",
                 "No-flux boundary condition",
                 "Periodic boundary conditions",
-                "Infinite boundary (C → 0 as x → ∞)"
+                "Infinite boundary (C -> 0 as x -> ∞)"
             ],
             typical_solution_methods=[
                 "Steady-state approximation",
@@ -571,7 +571,7 @@ theorem diffusion_solution
                 solution_method="Phase plane analysis, numerical integration",
                 lean4_template='''
 /-- Lotka-Volterra Predator-Prey Model -/
-def lotka_volterra (α β δ γ : Real) (x y : Real → Real) : Prop :=
+def lotka_volterra (α β δ γ : Real) (x y : Real -> Real) : Prop :=
   (∀ t, deriv x t = α * x t - β * x t * y t) ∧
   (∀ t, deriv y t = δ * x t * y t - γ * y t) ∧
   (∀ t, 0 ≤ x t ∧ 0 ≤ y t)
@@ -580,7 +580,7 @@ theorem lotka_volterra_solution
     (α β δ γ : Real)
     (x₀ y₀ : Real)
     [hα : 0 < α] [hβ : 0 < β] [hδ : 0 < δ] [hγ : 0 < γ]
-    : ∃ x y : Real → Real,
+    : ∃ x y : Real -> Real,
         lotka_volterra α β δ γ x y ∧
         x 0 = x₀ ∧ y 0 = y₀
 '''
@@ -607,7 +607,7 @@ theorem lotka_volterra_solution
                 solution_method="Phase plane analysis, basic reproduction number R₀",
                 lean4_template='''
 /-- SIR Epidemic Model -/
-def sir_model (β γ : Real) (S I R : Real → Real) : Prop :=
+def sir_model (β γ : Real) (S I R : Real -> Real) : Prop :=
   (∀ t, deriv S t = -β * S t * I t) ∧
   (∀ t, deriv I t = β * S t * I t - γ * I t) ∧
   (∀ t, deriv R t = γ * I t) ∧
@@ -616,7 +616,7 @@ def sir_model (β γ : Real) (S I R : Real → Real) : Prop :=
 theorem sir_solution
     (β γ : Real)
     (S₀ I₀ N : Real)
-    : ∃ S I R : Real → Real,
+    : ∃ S I R : Real -> Real,
         sir_model β γ S I R ∧
         S 0 = S₀ ∧ I 0 = I₀ ∧ R 0 = 0
 '''
@@ -643,14 +643,14 @@ theorem sir_solution
                 solution_method="Numerical integration, bifurcation analysis",
                 lean4_template='''
 /-- FitzHugh-Nagumo Model -/
-def fitzhugh_nagumo (a b τ I : Real) (v w : Real → Real) : Prop :=
+def fitzhugh_nagumo (a b τ I : Real) (v w : Real -> Real) : Prop :=
   (∀ t, deriv v t = v t - (v t)³ / 3 + w t + I) ∧
   (∀ t, deriv w t = (v t - a + b * w t) / τ)
 
 theorem fitzhugh_nagumo_solution
     (a b τ I : Real)
     (v₀ w₀ : Real)
-    : ∃ v w : Real → Real,
+    : ∃ v w : Real -> Real,
         fitzhugh_nagumo a b τ I v w ∧
         v 0 = v₀ ∧ w 0 = w₀
 '''
@@ -669,19 +669,19 @@ theorem fitzhugh_nagumo_solution
                 typical_conditions=[
                     "N(0) = N₀",
                     "0 ≤ N ≤ K",
-                    "N → K as t → ∞"
+                    "N -> K as t -> ∞"
                 ],
                 solution_method="Analytical solution (logistic function)",
                 lean4_template='''
 /-- Logistic Growth Model -/
-def logistic_growth (r K : Real) (N : Real → Real) : Prop :=
+def logistic_growth (r K : Real) (N : Real -> Real) : Prop :=
   (∀ t, deriv N t = r * N t * (1 - N t / K)) ∧
   (∀ t, 0 ≤ N t ∧ N t ≤ K)
 
 theorem logistic_solution
     (r K : Real)
     (N₀ : Real) [hr : 0 < r] [hK : 0 < K]
-    : ∃ N : Real → Real,
+    : ∃ N : Real -> Real,
         logistic_growth r K N ∧
         N 0 = N₀
 '''
@@ -769,14 +769,14 @@ theorem logistic_solution
                 solution_method="Matrix exponential, Laplace transform",
                 lean4_template='''
 /-- State-Space Control System -/
-def state_space (A B : Matrix) (x u : Real → Real) : Prop :=
+def state_space (A B : Matrix) (x u : Real -> Real) : Prop :=
   ∀ t, deriv x t = A * x t + B * u t
 
 theorem state_space_response
     (A B : Matrix)
     (x₀ : Real)
-    (u : Real → Real)
-    : ∃ x : Real → Real,
+    (u : Real -> Real)
+    : ∃ x : Real -> Real,
         state_space A B x u ∧
         x 0 = x₀
 '''
@@ -802,14 +802,14 @@ theorem state_space_response
                 solution_method="Characteristic equation, Laplace transform",
                 lean4_template='''
 /-- RLC Circuit -/
-def rlc_circuit (L R C : Real) (V q : Real → Real) : Prop :=
+def rlc_circuit (L R C : Real) (V q : Real -> Real) : Prop :=
   L * deriv (deriv q) t + R * deriv q t + q t / C = V t
 
 theorem rlc_solution
     (L R C : Real)
-    (V : Real → Real)
+    (V : Real -> Real)
     (q₀ I₀ : Real)
-    : ∃ q : Real → Real,
+    : ∃ q : Real -> Real,
         rlc_circuit L R C V q ∧
         q 0 = q₀ ∧
         deriv q 0 = I₀
@@ -835,14 +835,14 @@ theorem rlc_solution
                 solution_method="Green's functions, superposition",
                 lean4_template='''
 /-- Euler-Bernoulli Beam Equation -/
-def beam_equation (E I : Real) (q w : Real → Real) : Prop :=
+def beam_equation (E I : Real) (q w : Real -> Real) : Prop :=
   ∀ x, E * I * deriv (deriv (deriv (deriv w))) x = q x
 
 theorem beam_solution
     (E I : Real)
-    (q : Real → Real)
+    (q : Real -> Real)
     (boundary_conditions : List BoundaryCondition)
-    : ∃ w : Real → Real,
+    : ∃ w : Real -> Real,
         beam_equation E I q w ∧
         boundary_conditions_satisfied
 '''
@@ -918,12 +918,12 @@ theorem beam_solution
                 typical_conditions=[
                     "V(S,T) = max(S-K, 0) (payoff)",
                     "V(0,t) = 0",
-                    "V(S,t) → S as S → ∞"
+                    "V(S,t) -> S as S -> ∞"
                 ],
                 solution_method="Analytical (Black-Scholes formula), numerical (finite differences)",
                 lean4_template='''
 /-- Black-Scholes Equation -/
-def black_scholes (σ r : Real) (V : Real → Real → Real) : Prop :=
+def black_scholes (σ r : Real) (V : Real -> Real -> Real) : Prop :=
   ∀ S t,
     deriv (fun t => V S t) t +
     (1/2) * σ² * S² * deriv (deriv (fun S => V S t)) S +
@@ -932,7 +932,7 @@ def black_scholes (σ r : Real) (V : Real → Real → Real) : Prop :=
 
 theorem black_scholes_solution
     (σ r K T : Real)
-    : ∃ V : Real → Real → Real,
+    : ∃ V : Real -> Real -> Real,
         black_scholes σ r V ∧
         (∀ S, V S T = max (S - K) 0)
 '''
@@ -956,7 +956,7 @@ theorem black_scholes_solution
                 solution_method="Itô calculus (analytical solution: log-normal)",
                 lean4_template='''
 /-- Geometric Brownian Motion -/
-def gbm (μ σ : Real) (S : Real → Real) : Prop :=
+def gbm (μ σ : Real) (S : Real -> Real) : Prop :=
   ∃ W : BrownianMotion,
     ∀ t,
       S t = S₀ * exp ((μ - σ²/2) * t + σ * W t)
@@ -964,7 +964,7 @@ def gbm (μ σ : Real) (S : Real → Real) : Prop :=
 theorem gbm_solution
     (μ σ : Real)
     (S₀ : Real) [hS₀ : 0 < S₀]
-    : ∃ S W : Real → Real,
+    : ∃ S W : Real -> Real,
         gbm μ σ S W ∧
         S 0 = S₀
 '''
@@ -984,22 +984,22 @@ theorem gbm_solution
                 },
                 typical_conditions=[
                     "k(0) = k₀",
-                    "k → k* (steady state) as t → ∞"
+                    "k -> k* (steady state) as t -> ∞"
                 ],
                 solution_method="Steady-state analysis, phase diagram",
                 lean4_template='''
 /-- Solow Growth Model -/
-def solow_model (s n g δ : Real) (f k : Real → Real) : Prop :=
+def solow_model (s n g δ : Real) (f k : Real -> Real) : Prop :=
   ∀ t,
     deriv k t = s * f (k t) - (n + g + δ) * k t
 
 theorem solow_steady_state
     (s n g δ : Real)
     (k₀ : Real)
-    : ∃ k : Real → Real,
+    : ∃ k : Real -> Real,
         solow_model s n g δ f k ∧
         k 0 = k₀ ∧
-        (∃ k* : Real, limit k t = k* as t → ∞)
+        (∃ k* : Real, limit k t = k* as t -> ∞)
 '''
             )
         ]

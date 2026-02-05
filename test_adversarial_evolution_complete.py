@@ -24,7 +24,7 @@ def test_team_system_availability():
     print("🧪 Testing Team System Availability")
     print("=" * 50)
     
-    print(f"✅ Team System Available: {TEAM_SYSTEM_AVAILABLE}")
+    print(f"[OK] Team System Available: {TEAM_SYSTEM_AVAILABLE}")
     
     if TEAM_SYSTEM_AVAILABLE:
         try:
@@ -34,7 +34,7 @@ def test_team_system_availability():
             from team_manager import TeamManager
             from gauntlet_manager import GauntletManager
             
-            print("✅ All team system components imported successfully")
+            print("[OK] All team system components imported successfully")
             
             # Test basic initialization
             red_team = RedTeam()
@@ -43,19 +43,19 @@ def test_team_system_availability():
             team_manager = TeamManager()
             gauntlet_manager = GauntletManager()
             
-            print(f"✅ Red Team: {len(red_team.team_members)} members")
-            print(f"✅ Blue Team: {len(blue_team.team_members)} members")
-            print(f"✅ Evaluator Team: {len(evaluator_team.evaluators)} members")
-            print(f"✅ Team Manager: {len(team_manager.get_all_teams())} teams")
-            print(f"✅ Gauntlet Manager: {len(gauntlet_manager.get_all_gauntlets())} gauntlets")
+            print(f"[OK] Red Team: {len(red_team.team_members)} members")
+            print(f"[OK] Blue Team: {len(blue_team.team_members)} members")
+            print(f"[OK] Evaluator Team: {len(evaluator_team.evaluators)} members")
+            print(f"[OK] Team Manager: {len(team_manager.get_all_teams())} teams")
+            print(f"[OK] Gauntlet Manager: {len(gauntlet_manager.get_all_gauntlets())} gauntlets")
             
             return True
             
         except Exception as e:
-            print(f"❌ Error initializing team system: {e}")
+            print(f"[FAIL] Error initializing team system: {e}")
             return False
     else:
-        print("⚠️ Team system not available - adversarial features will be limited")
+        print("[WARN] Team system not available - adversarial features will be limited")
         return False
 
 def test_adversarial_configuration():
@@ -77,7 +77,7 @@ def test_adversarial_configuration():
     config.ensemble_defense = True
     config.gradient_masking = False
     
-    print("✅ Adversarial configuration created")
+    print("[OK] Adversarial configuration created")
     print(f"   - Evolution Mode: {config.evolution_mode}")
     print(f"   - Adversarial Rounds: {config.adversarial_rounds}")
     print(f"   - Attack Strength: {config.attack_strength}")
@@ -87,7 +87,7 @@ def test_adversarial_configuration():
     
     # Validate configuration
     validation_result = config.validate(param_manager)
-    print(f"✅ Configuration validation: {validation_result.valid}")
+    print(f"[OK] Configuration validation: {validation_result.valid}")
     
     if not validation_result.valid:
         print("   Validation errors:")
@@ -103,26 +103,26 @@ def test_evolution_capabilities():
     
     capabilities = get_evolution_capabilities_summary()
     
-    print(f"✅ Total Parameters: {capabilities['total_parameters']}")
-    print(f"✅ Categories: {capabilities['categories']}")
-    print(f"✅ Evolution Modes: {len(capabilities['evolution_modes'])}")
+    print(f"[OK] Total Parameters: {capabilities['total_parameters']}")
+    print(f"[OK] Categories: {capabilities['categories']}")
+    print(f"[OK] Evolution Modes: {len(capabilities['evolution_modes'])}")
     
     # Check adversarial mode
     if "adversarial" in capabilities["evolution_modes"]:
-        print("✅ Adversarial mode available")
+        print("[OK] Adversarial mode available")
     else:
-        print("❌ Adversarial mode not found")
+        print("[FAIL] Adversarial mode not found")
     
     # Check team system
     team_system = capabilities.get("team_system", {})
     if team_system.get("available"):
-        print("✅ Team system available:")
+        print("[OK] Team system available:")
         print(f"   - Red Team: {team_system.get('red_team', 'Not available')}")
         print(f"   - Blue Team: {team_system.get('blue_team', 'Not available')}")
         print(f"   - Evaluator Team: {team_system.get('evaluator_team', 'Not available')}")
         print(f"   - Gauntlet System: {team_system.get('gauntlet_system', 'Not available')}")
     else:
-        print("⚠️ Team system not available")
+        print("[WARN] Team system not available")
     
     return True
 
@@ -132,7 +132,7 @@ def test_adversarial_evolution_simulation():
     print("=" * 50)
     
     if not TEAM_SYSTEM_AVAILABLE:
-        print("⚠️ Skipping - team system not available")
+        print("[WARN] Skipping - team system not available")
         return True
     
     # Create test content
@@ -157,25 +157,25 @@ def test_adversarial_evolution_simulation():
     config.max_iterations = 3
     config.population_size = 5
     
-    print("✅ Test configuration created")
+    print("[OK] Test configuration created")
     print(f"   Content length: {len(test_content)} characters")
     print(f"   Adversarial rounds: {config.adversarial_rounds}")
     
     try:
         # This would normally run the full adversarial evolution
         # For testing, we'll just verify the function exists and can be called
-        print("✅ Adversarial evolution function available")
+        print("[OK] Adversarial evolution function available")
         print("   (Skipping actual execution to avoid API calls)")
         
         # Test configuration validation
         param_manager = ParameterManager()
         validation = config.validate(param_manager)
-        print(f"✅ Configuration validation: {validation.valid}")
+        print(f"[OK] Configuration validation: {validation.valid}")
         
         return True
         
     except Exception as e:
-        print(f"❌ Error in adversarial evolution simulation: {e}")
+        print(f"[FAIL] Error in adversarial evolution simulation: {e}")
         return False
 
 def test_gauntlet_system():
@@ -184,7 +184,7 @@ def test_gauntlet_system():
     print("=" * 50)
     
     if not TEAM_SYSTEM_AVAILABLE:
-        print("⚠️ Skipping - team system not available")
+        print("[WARN] Skipping - team system not available")
         return True
     
     try:
@@ -222,10 +222,10 @@ def test_gauntlet_system():
         
         # Test gauntlet operations
         created = gauntlet_manager.create_gauntlet(test_gauntlet)
-        print(f"✅ Gauntlet creation: {created}")
+        print(f"[OK] Gauntlet creation: {created}")
         
         retrieved = gauntlet_manager.get_gauntlet("test_security_gauntlet")
-        print(f"✅ Gauntlet retrieval: {retrieved is not None}")
+        print(f"[OK] Gauntlet retrieval: {retrieved is not None}")
         
         if retrieved:
             print(f"   - Name: {retrieved.name}")
@@ -234,16 +234,16 @@ def test_gauntlet_system():
         
         # Test effectiveness tracking
         effectiveness = gauntlet_manager.get_gauntlet_effectiveness("test_security_gauntlet")
-        print(f"✅ Effectiveness tracking: {effectiveness}")
+        print(f"[OK] Effectiveness tracking: {effectiveness}")
         
         # Cleanup
         deleted = gauntlet_manager.delete_gauntlet("test_security_gauntlet")
-        print(f"✅ Gauntlet cleanup: {deleted}")
+        print(f"[OK] Gauntlet cleanup: {deleted}")
         
         return True
         
     except Exception as e:
-        print(f"❌ Error testing gauntlet system: {e}")
+        print(f"[FAIL] Error testing gauntlet system: {e}")
         return False
 
 def test_decomposition_integration():
@@ -262,7 +262,7 @@ def test_decomposition_integration():
     config.decomposition_method = "hierarchical"
     config.max_components = 5
     
-    print("✅ Decomposition configuration created")
+    print("[OK] Decomposition configuration created")
     print(f"   - Evolution mode: {config.evolution_mode}")
     print(f"   - Decomposition enabled: {getattr(config, 'problem_decomposition', False)}")
     
@@ -276,8 +276,8 @@ def test_decomposition_integration():
     5. Handles password recovery
     """
     
-    print(f"✅ Test content prepared ({len(test_content)} characters)")
-    print("✅ Decomposition integration ready for adversarial evolution")
+    print(f"[OK] Test content prepared ({len(test_content)} characters)")
+    print("[OK] Decomposition integration ready for adversarial evolution")
     
     return True
 
@@ -301,9 +301,9 @@ def test_parameter_coverage():
     for category in adversarial_categories:
         params = param_manager.get_parameters_by_category(category)
         total_adversarial_params += len(params)
-        print(f"✅ {category}: {len(params)} parameters")
+        print(f"[OK] {category}: {len(params)} parameters")
     
-    print(f"✅ Total adversarial-related parameters: {total_adversarial_params}")
+    print(f"[OK] Total adversarial-related parameters: {total_adversarial_params}")
     
     # Test configuration with adversarial parameters
     config = EvolutionConfiguration()
@@ -339,7 +339,7 @@ def test_parameter_coverage():
             if param_def.category in adversarial_categories:
                 adversarial_params_set += 1
     
-    print(f"✅ Adversarial parameters configured: {adversarial_params_set}")
+    print(f"[OK] Adversarial parameters configured: {adversarial_params_set}")
     
     return adversarial_params_set > 20  # Should have configured many adversarial parameters
 
@@ -364,7 +364,7 @@ def main():
             result = test_func()
             results.append((test_name, result))
         except Exception as e:
-            print(f"\n❌ {test_name} failed with error: {e}")
+            print(f"\n[FAIL] {test_name} failed with error: {e}")
             results.append((test_name, False))
     
     # Summary
@@ -376,20 +376,20 @@ def main():
     total = len(results)
     
     for test_name, result in results:
-        status = "✅ PASS" if result else "❌ FAIL"
+        status = "[OK] PASS" if result else "[FAIL] FAIL"
         print(f"{status} {test_name}")
     
     print(f"\n🎯 Overall: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
     
     if passed == total:
         print("\n🎉 ALL TESTS PASSED! Adversarial evolution with team system is ready!")
-        print("✅ Red Team, Blue Team, and Evaluator Team integration complete")
-        print("✅ Gauntlet system operational")
-        print("✅ Decomposition integration working")
-        print("✅ Comprehensive parameter coverage achieved")
+        print("[OK] Red Team, Blue Team, and Evaluator Team integration complete")
+        print("[OK] Gauntlet system operational")
+        print("[OK] Decomposition integration working")
+        print("[OK] Comprehensive parameter coverage achieved")
         return 0
     else:
-        print(f"\n⚠️ {total - passed} tests failed. Review the output above.")
+        print(f"\n[WARN] {total - passed} tests failed. Review the output above.")
         return 1
 
 if __name__ == "__main__":

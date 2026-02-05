@@ -343,11 +343,11 @@ def main():
     print(f"Success Rate: {(passed_count/total_count)*100:.1f}%")
 
     if passed_count == total_count:
-        print(f"\n{Colors.GREEN}{Colors.BOLD}✓ ALL TESTS PASSED!{Colors.ENDC}")
+        print(f"\n{Colors.GREEN}{Colors.BOLD}[OK] ALL TESTS PASSED!{Colors.ENDC}")
         print(f"{Colors.GREEN}OpenEvolve is properly integrated.{Colors.ENDC}")
         return 0
     else:
-        print(f"\n{Colors.RED}{Colors.BOLD}✗ SOME TESTS FAILED{Colors.ENDC}")
+        print(f"\n{Colors.RED}{Colors.BOLD}[FAIL] SOME TESTS FAILED{Colors.ENDC}")
         print(f"{Colors.YELLOW}Please review the failures above.{Colors.ENDC}")
         return 1
 

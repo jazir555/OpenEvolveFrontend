@@ -44,7 +44,7 @@ try:
         Phase3Config,
     )
     from phase3_adapter import Phase3Adapter
-    print("  ✓ All imports successful")
+    print("  [OK] All imports successful")
     print()
 
     # Test 2: Configuration
@@ -52,13 +52,13 @@ try:
     config = Phase3Config.from_env()
     assert config.iterations == 20
     assert config.max_depth == 5
-    print(f"  ✓ Configuration loaded: {config.iterations} iterations, max depth {config.max_depth}")
+    print(f"  [OK] Configuration loaded: {config.iterations} iterations, max depth {config.max_depth}")
     print()
 
     # Test 3: Executor Initialization
     print("Test 3: Initializing executor...")
     executor = MCTSSearchExecutor(config)
-    print("  ✓ Executor initialized successfully")
+    print("  [OK] Executor initialized successfully")
     print()
 
     # Test 4: Simple Search
@@ -97,10 +97,10 @@ try:
     )
 
     if error:
-        print(f"  ✗ Search failed: {error}")
+        print(f"  [FAIL] Search failed: {error}")
         sys.exit(1)
 
-    print(f"  ✓ Search completed successfully")
+    print(f"  [OK] Search completed successfully")
     print(f"    - Search ID: {search_result.search_id}")
     print(f"    - Iterations: {search_result.iterations}")
     print(f"    - Total nodes: {search_result.total_nodes}")
@@ -127,10 +127,10 @@ try:
     result = adapter.search(request)
 
     if not result.get("success"):
-        print(f"  ✗ Adapter search failed: {result.get('error')}")
+        print(f"  [FAIL] Adapter search failed: {result.get('error')}")
         sys.exit(1)
 
-    print(f"  ✓ Adapter search completed successfully")
+    print(f"  [OK] Adapter search completed successfully")
     print(f"    - Search ID: {result['search_id']}")
     print(f"    - Best confidence: {result['best_confidence']:.3f}")
     print()
@@ -138,24 +138,24 @@ try:
     # Test 6: Health Check
     print("Test 6: Health check...")
     health = adapter.get_health()
-    print(f"  ✓ Health status: {health['status']}")
+    print(f"  [OK] Health status: {health['status']}")
     print(f"    - Circuit breaker: {health['circuit_breaker_state']}")
     print(f"    - DLQ size: {health['dlq_size']}")
     print()
 
     # Summary
     print("=" * 60)
-    print("ALL TESTS PASSED ✓")
+    print("ALL TESTS PASSED [OK]")
     print("=" * 60)
     print()
     print("RESE Phase III MCTS Search Executor is functional!")
     print()
     print("Components verified:")
-    print("  ✓ Configuration")
-    print("  ✓ Executor initialization")
-    print("  ✓ MCTS search execution")
-    print("  ✓ Adapter interface")
-    print("  ✓ Health monitoring")
+    print("  [OK] Configuration")
+    print("  [OK] Executor initialization")
+    print("  [OK] MCTS search execution")
+    print("  [OK] Adapter interface")
+    print("  [OK] Health monitoring")
     print()
     print("Ready for integration with DEE and LLTL.")
     print()
@@ -163,7 +163,7 @@ try:
 except Exception as e:
     print()
     print("=" * 60)
-    print("TEST FAILED ✗")
+    print("TEST FAILED [FAIL]")
     print("=" * 60)
     print()
     print(f"Error: {e}")

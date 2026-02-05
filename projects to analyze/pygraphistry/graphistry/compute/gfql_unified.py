@@ -171,13 +171,13 @@ def gfql(self: Plottable,
 
     ::
 
-        # List → chain execution
+        # List -> chain execution
         g.gfql([n(), e(), n()])
 
-        # Single ASTObject → chain execution
+        # Single ASTObject -> chain execution
         g.gfql(n({'type': 'person'}))
 
-        # Dict → DAG execution (convenience)
+        # Dict -> DAG execution (convenience)
         g.gfql({'people': n({'type': 'person'})})
     """
     # Create ExecutionContext at start
@@ -193,7 +193,7 @@ def gfql(self: Plottable,
     if policy:
         context.policy_depth = policy_depth + 1
 
-    # Expand policy shortcuts to full hook names (e.g., 'pre' → all pre* hooks)
+    # Expand policy shortcuts to full hook names (e.g., 'pre' -> all pre* hooks)
     expanded_policy: Optional[PolicyDict] = None
     if policy:
         expanded_policy = expand_policy(policy)

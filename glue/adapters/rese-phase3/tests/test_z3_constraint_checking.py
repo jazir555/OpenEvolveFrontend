@@ -9,7 +9,7 @@ Tests:
 
 Following CLAUDE.md principles:
 - Law of Runtime Truth: Test against actual Z3 solver
-- Law of Idempotency: Same hypothesis → same verification result
+- Law of Idempotency: Same hypothesis -> same verification result
 - Law of Configuration Explicitness: Use env vars for config
 """
 
@@ -304,7 +304,7 @@ class TestZ3ConstraintChecking(unittest.TestCase):
         self.assertTrue(all(results), "All verification results should be True")
         self.assertEqual(len(set(results)), 1, "All results should be identical")
 
-        print(f"[OK] Idempotency verified: same hypothesis → same result (5/5)")
+        print(f"[OK] Idempotency verified: same hypothesis -> same result (5/5)")
 
     # =========================================================================
     # TEST 4: Performance Benchmarks

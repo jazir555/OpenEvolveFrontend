@@ -1,5 +1,5 @@
 """
-Migration Script: Scattered MCP Files → Unified MCP Server
+Migration Script: Scattered MCP Files -> Unified MCP Server
 License: Apache 2.0
 
 This script helps migrate from the old scattered MCP file structure
@@ -335,7 +335,7 @@ if __name__ == "__main__":
         all_passed = all(check[1] for check in checks)
         
         for name, passed in checks:
-            status = "✅" if passed else "❌"
+            status = "[OK]" if passed else "[FAIL]"
             print(f"  {status} {name}")
         
         return all_passed
@@ -424,7 +424,7 @@ def main():
         if report.recommendations:
             print("\nRecommendations:")
             for rec in report.recommendations:
-                print(f"  • {rec}")
+                print(f"  * {rec}")
     
     if args.generate_config:
         migrator.analyzer.find_mcp_files()

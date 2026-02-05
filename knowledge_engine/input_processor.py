@@ -483,7 +483,7 @@ class EnhancedInputProcessor:
             if capability.alternative_suggestions:
                 messages.append("\nInstead, you could:")
                 for suggestion in capability.alternative_suggestions[:3]:
-                    messages.append(f"  • {suggestion}")
+                    messages.append(f"  * {suggestion}")
         
         return "\n".join(messages)
 

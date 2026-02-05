@@ -90,7 +90,7 @@ class CircuitBreaker:
     """
     Circuit breaker for detecting assembly failures.
 
-    Following CLAUDE.md §2.3: System Failure → Circuit Breaker.
+    Following CLAUDE.md §2.3: System Failure -> Circuit Breaker.
     """
 
     def __init__(self, failure_threshold: int = 5, timeout_ms: int = 60000):

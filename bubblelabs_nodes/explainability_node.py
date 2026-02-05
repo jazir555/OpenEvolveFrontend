@@ -797,7 +797,7 @@ class ExplainabilityNode(BubbleLabsNode):
 
         for i, step in enumerate(reasoning_path):
             content = step.get('content', 'Unknown')
-            arrow = "→" if i < len(reasoning_path) - 1 else "✓"
+            arrow = "->" if i < len(reasoning_path) - 1 else "[OK]"
             parts.append(f"  {arrow} Step {i+1}: {content[:60]}")
 
         return "\n".join(parts)

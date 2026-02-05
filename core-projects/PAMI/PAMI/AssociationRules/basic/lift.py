@@ -208,7 +208,7 @@ class lift:
                     pat = tuple(sorted(it for it in items.split(self._sep) if it))
                     fp[pat] = float(sup)
 
-        # ▲ Scale counts → probabilities (if needed) ---------------------
+        # ▲ Scale counts -> probabilities (if needed) ---------------------
         if any(v > 1 for v in fp.values()):                # looks like counts
             denom = (self._dbLen or
                      self._count_db_lines() or
@@ -232,7 +232,7 @@ class lift:
                     cons = tuple(sorted(set(itemset) - set(ante)))
                     pa   = self._frequentPatterns[ante]
                     pb   = self._frequentPatterns[cons]
-                    lift_val = sup_xy / (pa * pb)          # ← correct formula
+                    lift_val = sup_xy / (pa * pb)          # <- correct formula
                     if lift_val >= self._minLift:
                         self._associationRules.append((ante, cons, sup_xy, lift_val))
 

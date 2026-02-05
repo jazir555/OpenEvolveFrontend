@@ -52,10 +52,10 @@ def ensure_results_exist():
         # Clean up the zip file
         zip_path.unlink()
 
-        st.success("✅ Results downloaded and extracted successfully!")
+        st.success("[OK] Results downloaded and extracted successfully!")
 
     except Exception as e:
-        st.error(f"❌ Failed to download results: {str(e)}")
+        st.error(f"[FAIL] Failed to download results: {str(e)}")
         st.info("Please manually download from: " + RESULTS_URL)
         raise
 
@@ -142,7 +142,7 @@ def visualize_kg_in_browser(graph: Graph, model_name: str, essay_idx: int):
     output_path = output_dir / f"kg_{essay_idx}_visualization.html"
 
     KGGen.visualize(graph, str(output_path), open_in_browser=True)
-    st.success("✅ Knowledge graph visualization opened in a new browser window!")
+    st.success("[OK] Knowledge graph visualization opened in a new browser window!")
     st.caption(f"File saved to: {output_path}")
 
 
@@ -207,7 +207,7 @@ def main():
 
     if models_without_data:
         st.info(
-            f"⚠️ {len(models_without_data)} model(s) missing results for this essay: {', '.join(models_without_data)}"
+            f"[WARN] {len(models_without_data)} model(s) missing results for this essay: {', '.join(models_without_data)}"
         )
 
     # Build table data
@@ -229,7 +229,7 @@ def main():
                 evaluation = result.get("evaluation", 0)
 
                 row[f"{model_name} - Context"] = context
-                row[f"{model_name} - Evaluation"] = "✅" if evaluation == 1 else "❌"
+                row[f"{model_name} - Evaluation"] = "[OK]" if evaluation == 1 else "[FAIL]"
             else:
                 row[f"{model_name} - Context"] = "N/A"
                 row[f"{model_name} - Evaluation"] = "N/A"

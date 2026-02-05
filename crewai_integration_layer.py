@@ -22,10 +22,10 @@ try:
     from langchain_openai import ChatOpenAI
     from langchain.tools import tool
     CREWAI_AVAILABLE = True
-    logger.info("✅ CrewAI components available for integration")
+    logger.info("[OK] CrewAI components available for integration")
 except ImportError:
     CREWAI_AVAILABLE = False
-    logger.warning("⚠️ CrewAI not available - using mock implementations")
+    logger.warning("[WARN] CrewAI not available - using mock implementations")
 
 
 class CrewAIService:

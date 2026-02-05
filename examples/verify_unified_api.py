@@ -46,10 +46,10 @@ async def verify_imports():
             evolve_no_gauntlet,
             evolve_batch
         )
-        print("✅ All main imports successful")
+        print("[OK] All main imports successful")
         return True
     except Exception as e:
-        print(f"❌ Import failed: {e}")
+        print(f"[FAIL] Import failed: {e}")
         return False
 
 
@@ -73,14 +73,14 @@ async def verify_basic_evolution():
         assert result.final_score >= 0.0, "Valid score"
         assert result.total_time >= 0.0, "Valid time"
 
-        print(f"✅ Basic evolution successful")
+        print(f"[OK] Basic evolution successful")
         print(f"   Solution: {result.best_solution[:50]}...")
         print(f"   Score: {result.final_score:.3f}")
         print(f"   Strategy: {result.strategy_used.system}/{result.strategy_used.mode}")
         return True
 
     except Exception as e:
-        print(f"❌ Basic evolution failed: {e}")
+        print(f"[FAIL] Basic evolution failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -109,13 +109,13 @@ async def verify_progress_callback():
         assert len(updates) > 0, "Callback was called"
         assert updates[-1].percent_complete == 100, "Final update at 100%"
 
-        print(f"✅ Progress callback successful")
+        print(f"[OK] Progress callback successful")
         print(f"   Updates received: {len(updates)}")
         print(f"   Stages: {set(u.stage for u in updates)}")
         return True
 
     except Exception as e:
-        print(f"❌ Progress callback failed: {e}")
+        print(f"[FAIL] Progress callback failed: {e}")
         return False
 
 
@@ -133,7 +133,7 @@ async def verify_convenience_functions():
         )
         assert isinstance(solution, str), "Returns string"
         assert len(solution) > 0, "Solution not empty"
-        print("✅ quick_evolve() works")
+        print("[OK] quick_evolve() works")
 
         # Test evolve_no_gauntlet
         result = await evolve_no_gauntlet(
@@ -141,7 +141,7 @@ async def verify_convenience_functions():
             domain="general"
         )
         assert result.gauntlet_result is None, "No gauntlet result"
-        print("✅ evolve_no_gauntlet() works")
+        print("[OK] evolve_no_gauntlet() works")
 
         # Test evolve_batch
         problems = ["Problem 1", "Problem 2"]
@@ -151,12 +151,12 @@ async def verify_convenience_functions():
             max_concurrent=2
         )
         assert len(results) == len(problems), "All results present"
-        print("✅ evolve_batch() works")
+        print("[OK] evolve_batch() works")
 
         return True
 
     except Exception as e:
-        print(f"❌ Convenience functions failed: {e}")
+        print(f"[FAIL] Convenience functions failed: {e}")
         return False
 
 
@@ -184,17 +184,17 @@ async def verify_result_serialization():
 
         try:
             result.save(filepath)
-            print(f"✅ Result saved to {filepath}")
+            print(f"[OK] Result saved to {filepath}")
 
             # Load result
             loaded = EvolutionResult.load(filepath)
-            print(f"✅ Result loaded from {filepath}")
+            print(f"[OK] Result loaded from {filepath}")
 
             # Verify
             assert loaded.best_solution == result.best_solution, "Solution matches"
             assert loaded.final_score == result.final_score, "Score matches"
 
-            print("✅ Serialization successful")
+            print("[OK] Serialization successful")
             return True
 
         finally:
@@ -203,7 +203,7 @@ async def verify_result_serialization():
                 os.remove(filepath)
 
     except Exception as e:
-        print(f"❌ Serialization failed: {e}")
+        print(f"[FAIL] Serialization failed: {e}")
         return False
 
 
@@ -234,14 +234,14 @@ async def verify_all_domains():
                 store_knowledge=False
             )
             results[domain] = result
-            print(f"✅ {domain:12s} - Score: {result.final_score:.3f}, Strategy: {result.strategy_used.mode}")
+            print(f"[OK] {domain:12s} - Score: {result.final_score:.3f}, Strategy: {result.strategy_used.mode}")
 
         except Exception as e:
-            print(f"❌ {domain:12s} - Failed: {e}")
+            print(f"[FAIL] {domain:12s} - Failed: {e}")
             results[domain] = None
 
     success_count = sum(1 for r in results.values() if r is not None)
-    print(f"\n✅ Domains successful: {success_count}/{len(domains)}")
+    print(f"\n[OK] Domains successful: {success_count}/{len(domains)}")
 
     return success_count == len(domains)
 
@@ -266,12 +266,12 @@ async def verify_api_class():
         assert result is not None, "Result exists"
         assert isinstance(result, EvolutionResult), "Correct type"
 
-        print("✅ API class works")
+        print("[OK] API class works")
         print(f"   Result score: {result.final_score:.3f}")
         return True
 
     except Exception as e:
-        print(f"❌ API class failed: {e}")
+        print(f"[FAIL] API class failed: {e}")
         return False
 
 
@@ -302,12 +302,12 @@ async def verify_error_handling():
             assert "Test error" in result.error, "Error message present"
             assert result.final_score == 0.0, "Zero score on error"
 
-        print("✅ Error handling works correctly")
+        print("[OK] Error handling works correctly")
         print(f"   Error captured: {result.error}")
         return True
 
     except Exception as e:
-        print(f"❌ Error handling verification failed: {e}")
+        print(f"[FAIL] Error handling verification failed: {e}")
         return False
 
 
@@ -341,7 +341,7 @@ async def run_verification():
             success = await test_func()
             results[test_name] = success
         except Exception as e:
-            print(f"\n❌ {test_name} crashed: {e}")
+            print(f"\n[FAIL] {test_name} crashed: {e}")
             import traceback
             traceback.print_exc()
             results[test_name] = False
@@ -352,7 +352,7 @@ async def run_verification():
     print("="*80)
 
     for test_name, success in results.items():
-        status = "✅ PASS" if success else "❌ FAIL"
+        status = "[OK] PASS" if success else "[FAIL] FAIL"
         print(f"{status:8s} | {test_name}")
 
     total = len(results)
@@ -366,7 +366,7 @@ async def run_verification():
         print("The Unified Evolution API is working correctly.")
         return 0
     else:
-        print(f"\n⚠️  {total - passed} test(s) failed. Please review the errors above.")
+        print(f"\n[WARN]  {total - passed} test(s) failed. Please review the errors above.")
         return 1
 
 

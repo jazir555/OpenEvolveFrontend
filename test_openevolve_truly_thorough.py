@@ -270,25 +270,25 @@ def evaluate(program_path):
             with open(program_file, 'w') as f:
                 f.write(initial_code)
 
-            print(f"✓ Created test files")
+            print(f"[OK] Created test files")
             print(f"  Program: {program_file}")
             print(f"  Evaluator: {eval_file}")
 
             # Test that initial code works
-            print(f"\n✓ Testing initial code...")
+            print(f"\n[OK] Testing initial code...")
 
             # Try importing openevolve
             try:
                 from openevolve.api import run_evolution
                 from openevolve.config import Config, LLMModelConfig
-                print(f"✓ Successfully imported openevolve.api and openevolve.config")
+                print(f"[OK] Successfully imported openevolve.api and openevolve.config")
             except ImportError as e:
                 # Try alternate import path
                 try:
                     sys.path.insert(0, str(Path(__file__).parent / "openevolve"))
                     from openevolve.api import run_evolution
                     from openevolve.config import Config, LLMModelConfig
-                    print(f"✓ Successfully imported openevolve (alternate path)")
+                    print(f"[OK] Successfully imported openevolve (alternate path)")
                 except ImportError as e2:
                     raise ImportError(f"Cannot import OpenEvolve: {e2}")
 
@@ -298,7 +298,7 @@ def evaluate(program_path):
                 print(f"⚠ No OPENAI_API_KEY found, using mock mode")
 
                 # In mock mode, just test that the initial code is valid
-                print(f"✓ Running in mock mode - validating initial code only")
+                print(f"[OK] Running in mock mode - validating initial code only")
 
                 # Test that initial code can be executed
                 spec = importlib.util.spec_from_file_location("test_program", str(program_file))
@@ -309,7 +309,7 @@ def evaluate(program_path):
                     # Test the function
                     result = module.bubble_sort([3, 1, 2])
                     assert result == [1, 2, 3], f"Initial code incorrect: got {result}"
-                    print(f"✓ Initial code executes correctly")
+                    print(f"[OK] Initial code executes correctly")
 
                     execution_time = time.time() - start_time
 
@@ -327,7 +327,7 @@ def evaluate(program_path):
                     )
 
             # If we have API keys, try actual evolution
-            print(f"✓ API key found, attempting actual evolution")
+            print(f"[OK] API key found, attempting actual evolution")
 
             # Create config
             config = Config()
@@ -343,12 +343,12 @@ def evaluate(program_path):
             config.database.population_size = 10
             config.database.num_islands = 2
 
-            print(f"✓ Config created")
+            print(f"[OK] Config created")
             print(f"  Max iterations: {config.max_iterations}")
             print(f"  Population size: {config.database.population_size}")
 
             # Run evolution
-            print(f"\n✓ Running evolution (this may take a minute)...")
+            print(f"\n[OK] Running evolution (this may take a minute)...")
 
             evolution_start = time.time()
             try:
@@ -362,13 +362,13 @@ def evaluate(program_path):
                 )
                 evolution_time = time.time() - evolution_start
 
-                print(f"✓ Evolution completed in {evolution_time:.2f}s")
+                print(f"[OK] Evolution completed in {evolution_time:.2f}s")
                 print(f"  Best score: {result.best_score:.4f}")
                 print(f"  Output dir: {result.output_dir}")
 
                 # Verify evolved code
                 if result.best_code:
-                    print(f"\n✓ Evolved code generated ({len(result.best_code)} chars)")
+                    print(f"\n[OK] Evolved code generated ({len(result.best_code)} chars)")
 
                     # Save evolved code
                     evolved_file = self.output_dir / "evolved_program_1_1.py"
@@ -386,7 +386,7 @@ def evaluate(program_path):
                             test_result = module.bubble_sort([5, 2, 8, 1])
                             assert test_result == [1, 2, 5, 8], f"Evolved code incorrect: {test_result}"
 
-                            print(f"✓ Evolved code executes correctly")
+                            print(f"[OK] Evolved code executes correctly")
                             print(f"  Test: bubble_sort([5, 2, 8, 1]) = {test_result}")
 
                     except Exception as e:
@@ -426,7 +426,7 @@ def evaluate(program_path):
                     )
 
             except Exception as e:
-                print(f"✗ Evolution failed: {e}")
+                print(f"[FAIL] Evolution failed: {e}")
                 print(f"  Traceback: {traceback.format_exc()}")
 
                 execution_time = time.time() - start_time
@@ -441,7 +441,7 @@ def evaluate(program_path):
                 )
 
         except Exception as e:
-            print(f"✗ Test failed: {e}")
+            print(f"[FAIL] Test failed: {e}")
             print(f"  Traceback:\n{traceback.format_exc()}")
 
             execution_time = time.time() - start_time
@@ -547,7 +547,7 @@ def calculate_sum(numbers):
                 return metrics
 
             # Measure both
-            print(f"✓ Measuring good code quality...")
+            print(f"[OK] Measuring good code quality...")
             good_metrics = measure_code_quality(good_code)
             print(f"  Valid: {good_metrics.get('syntactically_valid')}")
             print(f"  Lines: {good_metrics.get('line_count')}")
@@ -555,7 +555,7 @@ def calculate_sum(numbers):
             if 'performance' in good_metrics:
                 print(f"  Performance: {good_metrics.get('performance', 'N/A'):.4f}s")
 
-            print(f"\n✓ Measuring bad code quality...")
+            print(f"\n[OK] Measuring bad code quality...")
             bad_metrics = measure_code_quality(bad_code)
             print(f"  Valid: {bad_metrics.get('syntactically_valid')}")
             print(f"  Lines: {bad_metrics.get('line_count')}")
@@ -564,7 +564,7 @@ def calculate_sum(numbers):
                 print(f"  Performance: {bad_metrics.get('performance', 'N/A'):.4f}s")
 
             # Compare
-            print(f"\n✓ Comparing metrics...")
+            print(f"\n[OK] Comparing metrics...")
             comparisons = {
                 'good_faster': good_metrics.get('performance', float('inf')) < bad_metrics.get('performance', float('inf')),
                 'good_less_complex': good_metrics.get('complexity', 999) <= bad_metrics.get('complexity', 0),
@@ -592,7 +592,7 @@ def calculate_sum(numbers):
             )
 
         except Exception as e:
-            print(f"✗ Test failed: {e}")
+            print(f"[FAIL] Test failed: {e}")
             print(f"  Traceback:\n{traceback.format_exc()}")
 
             execution_time = time.time() - start_time
@@ -681,7 +681,7 @@ def calculate_statistics(numbers):
 
                 return constraints
 
-            print(f"✓ Checking initial code constraints...")
+            print(f"[OK] Checking initial code constraints...")
             initial_constraints = check_constraints(initial_code)
             print(f"  Under max length: {initial_constraints['under_max_length']}")
             print(f"  Has math import: {initial_constraints['has_math_import']}")
@@ -691,7 +691,7 @@ def calculate_statistics(numbers):
             namespace = {}
             exec(initial_code, namespace)
             result = namespace['calculate_statistics']([1, 2, 3, 4, 5])
-            print(f"\n✓ Initial code execution test:")
+            print(f"\n[OK] Initial code execution test:")
             print(f"  Result: {result}")
             print(f"  Returns dict: {initial_constraints['returns_dict']}")
             print(f"  Has mean: {initial_constraints['has_mean']}")
@@ -713,7 +713,7 @@ def calculate_statistics(numbers):
             )
 
         except Exception as e:
-            print(f"✗ Test failed: {e}")
+            print(f"[FAIL] Test failed: {e}")
             print(f"  Traceback:\n{traceback.format_exc()}")
 
             execution_time = time.time() - start_time
@@ -787,7 +787,7 @@ def process_data(items):
 
                 return bugs
 
-            print(f"✓ Analyzing buggy code...")
+            print(f"[OK] Analyzing buggy code...")
             bugs_found = find_bugs(buggy_code)
 
             print(f"  Bugs found: {len(bugs_found)}")
@@ -812,7 +812,7 @@ def process_data(items):
             )
 
         except Exception as e:
-            print(f"✗ Test failed: {e}")
+            print(f"[FAIL] Test failed: {e}")
             execution_time = time.time() - start_time
 
             return TestResult(
@@ -886,12 +886,12 @@ def process_items(items):
                 except Exception as e:
                     return {"works": False, "error": str(e)}
 
-            print(f"✓ Testing buggy code...")
+            print(f"[OK] Testing buggy code...")
             buggy_result = test_function(buggy_code, 'process_items')
             print(f"  Works: {buggy_result['works']}")
             print(f"  Returns None on empty: {buggy_result.get('returns_none_on_empty', False)}")
 
-            print(f"\n✓ Testing fixed code...")
+            print(f"\n[OK] Testing fixed code...")
             fixed_result = test_function(fixed_code, 'process_items')
             print(f"  Works: {fixed_result['works']}")
             print(f"  Returns None on empty: {fixed_result.get('returns_none_on_empty', False)}")
@@ -922,7 +922,7 @@ def process_items(items):
             )
 
         except Exception as e:
-            print(f"✗ Test failed: {e}")
+            print(f"[FAIL] Test failed: {e}")
             execution_time = time.time() - start_time
 
             return TestResult(
@@ -975,7 +975,7 @@ class Phase3_IslandModelTests:
                 key = (complexity_bin, performance_bin)
                 feature_map[key] = sol
 
-            print(f"✓ Created feature map with {len(feature_map)} bins")
+            print(f"[OK] Created feature map with {len(feature_map)} bins")
             print(f"  Unique complexity bins: {set(k[0] for k in feature_map.keys())}")
             print(f"  Unique performance bins: {set(k[1] for k in feature_map.keys())}")
 
@@ -998,7 +998,7 @@ class Phase3_IslandModelTests:
             )
 
         except Exception as e:
-            print(f"✗ Test failed: {e}")
+            print(f"[FAIL] Test failed: {e}")
             execution_time = time.time() - start_time
 
             return TestResult(
@@ -1030,7 +1030,7 @@ class Phase3_IslandModelTests:
                 for i in range(num_islands)
             ]
 
-            print(f"✓ Created {num_islands} islands")
+            print(f"[OK] Created {num_islands} islands")
             for island in islands:
                 print(f"  Island {island['id']}: {len(island['programs'])} programs")
 
@@ -1041,7 +1041,7 @@ class Phase3_IslandModelTests:
 
             # Simulate migration
             migration_rate = 0.2  # Migrate 20%
-            print(f"\n✓ Simulating migration (rate={migration_rate})...")
+            print(f"\n[OK] Simulating migration (rate={migration_rate})...")
 
             for island_id, island in enumerate(islands):
                 num_migrants = int(len(island["programs"]) * migration_rate)
@@ -1054,7 +1054,7 @@ class Phase3_IslandModelTests:
 
                 print(f"  Island {island_id} -> {target_island}: {num_migrants} programs")
 
-            print(f"\n✓ After migration:")
+            print(f"\n[OK] After migration:")
             for island in islands:
                 print(f"  Island {island['id']}: {len(island['programs'])} programs")
 
@@ -1086,7 +1086,7 @@ class Phase3_IslandModelTests:
 
             migration_happened = programs_changed and expected_has_migrant
 
-            print(f"\n✓ Migration verification:")
+            print(f"\n[OK] Migration verification:")
             print(f"  Programs changed between islands: {programs_changed}")
             print(f"  Migrants detected: {expected_has_migrant}")
             print(f"  Migration successful: {migration_happened}")
@@ -1109,7 +1109,7 @@ class Phase3_IslandModelTests:
             )
 
         except Exception as e:
-            print(f"✗ Test failed: {e}")
+            print(f"[FAIL] Test failed: {e}")
             execution_time = time.time() - start_time
 
             return TestResult(
@@ -1152,11 +1152,11 @@ class Phase4_EndToEndTests:
             print(f"{'='*70}")
 
             # Step 1: Problem definition
-            print(f"\n✓ Step 1: Define problem")
+            print(f"\n[OK] Step 1: Define problem")
             problem = "Create a function to find the maximum value in a list"
 
             # Step 2: Initial solution
-            print(f"✓ Step 2: Create initial solution")
+            print(f"[OK] Step 2: Create initial solution")
             initial_solution = '''
 # EVOLVE-BLOCK-START
 def find_max(items):
@@ -1173,7 +1173,7 @@ def find_max(items):
 '''
 
             # Step 3: Create evaluator
-            print(f"✓ Step 3: Create evaluator")
+            print(f"[OK] Step 3: Create evaluator")
             evaluator_code = '''
 def evaluate(program_path):
     import importlib.util
@@ -1207,7 +1207,7 @@ def evaluate(program_path):
 '''
 
             # Step 4: Test initial solution
-            print(f"✓ Step 4: Test initial solution")
+            print(f"[OK] Step 4: Test initial solution")
             namespace = {}
             exec(initial_solution, namespace)
             test_result = namespace['find_max']([1, 5, 3, 9, 2])
@@ -1215,7 +1215,7 @@ def evaluate(program_path):
             print(f"  Initial solution works: find_max([1,5,3,9,2]) = {test_result}")
 
             # Step 5: Verify workflow
-            print(f"\n✓ Step 5: Verify workflow components")
+            print(f"\n[OK] Step 5: Verify workflow components")
             components = {
                 "problem_defined": bool(problem),
                 "initial_solution_valid": "def find_max" in initial_solution,
@@ -1243,7 +1243,7 @@ def evaluate(program_path):
             )
 
         except Exception as e:
-            print(f"✗ Test failed: {e}")
+            print(f"[FAIL] Test failed: {e}")
             print(f"  Traceback:\n{traceback.format_exc()}")
             execution_time = time.time() - start_time
 
@@ -1324,16 +1324,16 @@ def find_duplicate_fast(arr):
                 list(range(2000)) + [1000],  # Larger list
             ]
 
-            print(f"✓ Benchmarking slow implementation...")
+            print(f"[OK] Benchmarking slow implementation...")
             slow_time = benchmark(slow_code, 'find_duplicate_slow', test_data)
             print(f"  Time: {slow_time:.4f}s")
 
-            print(f"\n✓ Benchmarking fast implementation...")
+            print(f"\n[OK] Benchmarking fast implementation...")
             fast_time = benchmark(fast_code, 'find_duplicate_fast', test_data)
             print(f"  Time: {fast_time:.4f}s")
 
             speedup = slow_time / fast_time if fast_time > 0 else float('inf')
-            print(f"\n✓ Speedup: {speedup:.2f}x")
+            print(f"\n[OK] Speedup: {speedup:.2f}x")
 
             execution_time = time.time() - start_time
 
@@ -1351,7 +1351,7 @@ def find_duplicate_fast(arr):
             )
 
         except Exception as e:
-            print(f"✗ Test failed: {e}")
+            print(f"[FAIL] Test failed: {e}")
             execution_time = time.time() - start_time
 
             return TestResult(
@@ -1440,13 +1440,13 @@ def process_data(data):
                     "total_chars": len(code)
                 }
 
-            print(f"✓ Measuring complex code...")
+            print(f"[OK] Measuring complex code...")
             complex_metrics = calculate_metrics(complex_code)
             print(f"  Lines: {complex_metrics['lines_of_code']}")
             print(f"  Complexity: {complex_metrics['cyclomatic_complexity']}")
             print(f"  Max nesting: {complex_metrics['max_nesting']}")
 
-            print(f"\n✓ Measuring simple code...")
+            print(f"\n[OK] Measuring simple code...")
             simple_metrics = calculate_metrics(simple_code)
             print(f"  Lines: {simple_metrics['lines_of_code']}")
             print(f"  Complexity: {simple_metrics['cyclomatic_complexity']}")
@@ -1459,9 +1459,9 @@ def process_data(data):
                 "less_nesting": simple_metrics['max_nesting'] < complex_metrics['max_nesting']
             }
 
-            print(f"\n✓ Improvements:")
+            print(f"\n[OK] Improvements:")
             for metric, improved in improvements.items():
-                status = "✓" if improved else "✗"
+                status = "[OK]" if improved else "[FAIL]"
                 print(f"  {status} {metric}: {improved}")
 
             execution_time = time.time() - start_time
@@ -1479,7 +1479,7 @@ def process_data(data):
             )
 
         except Exception as e:
-            print(f"✗ Test failed: {e}")
+            print(f"[FAIL] Test failed: {e}")
             execution_time = time.time() - start_time
 
             return TestResult(
@@ -1531,7 +1531,7 @@ class Phase6_EdgeCaseTests:
                 except SyntaxError as e:
                     results[name] = {"compiles": False, "error": str(e)}
 
-                print(f"✓ Test case: {name}")
+                print(f"[OK] Test case: {name}")
                 print(f"  Compiles: {results[name]['compiles']}")
                 if results[name]['error']:
                     print(f"  Error: {results[name]['error']}")
@@ -1550,7 +1550,7 @@ class Phase6_EdgeCaseTests:
             )
 
         except Exception as e:
-            print(f"✗ Test failed: {e}")
+            print(f"[FAIL] Test failed: {e}")
             execution_time = time.time() - start_time
 
             return TestResult(
@@ -1576,7 +1576,7 @@ class Phase6_EdgeCaseTests:
             print(f"{'='*70}")
 
             # Generate large code
-            print(f"✓ Generating large code (~1000 lines)...")
+            print(f"[OK] Generating large code (~1000 lines)...")
             large_code = "# Large code file\n"
 
             for i in range(100):
@@ -1598,7 +1598,7 @@ class Class_{i}:
 """
 
             # Measure
-            print(f"✓ Measuring large code...")
+            print(f"[OK] Measuring large code...")
             lines = large_code.count('\n')
             chars = len(large_code)
 
@@ -1611,7 +1611,7 @@ class Class_{i}:
             compile(large_code, '<string>', 'exec')
             compile_time = time.time() - compile_start
 
-            print(f"✓ Compile time: {compile_time:.4f}s")
+            print(f"[OK] Compile time: {compile_time:.4f}s")
 
             execution_time = time.time() - start_time
 
@@ -1629,7 +1629,7 @@ class Class_{i}:
             )
 
         except Exception as e:
-            print(f"✗ Test failed: {e}")
+            print(f"[FAIL] Test failed: {e}")
             execution_time = time.time() - start_time
 
             return TestResult(
@@ -1729,7 +1729,7 @@ def main():
     print(f"{'='*70}")
 
     for result in suite.results:
-        status = "✓ PASS" if result.passed else "✗ FAIL"
+        status = "[OK] PASS" if result.passed else "[FAIL] FAIL"
         print(f"\n{status} | {result.test_name} ({result.phase})")
         print(f"  Time: {result.execution_time:.2f}s")
         if result.error_message:

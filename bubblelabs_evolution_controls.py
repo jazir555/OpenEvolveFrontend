@@ -380,21 +380,21 @@ class EvolutionControlPanel:
 
         # Check population size
         if state.population_size < 4:
-            warnings.append("⚠️ Small population size may lead to premature convergence")
+            warnings.append("[WARN] Small population size may lead to premature convergence")
 
         # Check elitism
         if state.elitism_count >= state.population_size // 2:
-            warnings.append("⚠️ High elitism count may reduce diversity")
+            warnings.append("[WARN] High elitism count may reduce diversity")
 
         # Check mutation rate
         if state.mutation_rate < 0.01:
-            warnings.append("⚠️ Very low mutation rate may limit exploration")
+            warnings.append("[WARN] Very low mutation rate may limit exploration")
         elif state.mutation_rate > 0.5:
-            warnings.append("⚠️ Very high mutation rate may disrupt good solutions")
+            warnings.append("[WARN] Very high mutation rate may disrupt good solutions")
 
         # Check voting threshold
         if state.enable_maker_voting and state.voting_threshold > state.population_size // 3:
-            warnings.append("⚠️ Voting threshold may be too high for population size")
+            warnings.append("[WARN] Voting threshold may be too high for population size")
 
         if warnings:
             st.warning("\n".join(warnings))

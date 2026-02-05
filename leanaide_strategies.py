@@ -213,7 +213,7 @@ class LeanTacticLibrary:
             category=TacticCategory.REWRITE,
             description="Rewrite using equations",
             success_rate=0.75,
-            examples=["rw [add_zero]", "rw [← h1]", "rw [add_comm, add_assoc]"]
+            examples=["rw [add_zero]", "rw [<- h1]", "rw [add_comm, add_assoc]"]
         ))
 
         self._add_tactic(TacticMetadata(
@@ -1227,7 +1227,7 @@ class ContrapositiveStrategy(LeanProofStrategy):
         stmt_lower = context.theorem_statement.lower()
 
         # Implication statements
-        if "→" in context.theorem_statement or "implies" in stmt_lower:
+        if "->" in context.theorem_statement or "implies" in stmt_lower:
             return 0.7
 
         return 0.4

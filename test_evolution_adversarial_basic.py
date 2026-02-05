@@ -25,7 +25,7 @@ def test_adversarial_parameters():
     
     # Get adversarial parameters
     adversarial_params = param_manager.get_parameters_by_category("adversarial")
-    print(f"✅ Adversarial parameters available: {len(adversarial_params)}")
+    print(f"[OK] Adversarial parameters available: {len(adversarial_params)}")
     
     for param in adversarial_params[:5]:  # Show first 5
         print(f"   - {param.name}: {param.description}")
@@ -65,7 +65,7 @@ def test_adversarial_configuration():
     config.adversarial_temperature = 0.8
     config.attack_diversity = True
     
-    print("✅ Adversarial configuration created")
+    print("[OK] Adversarial configuration created")
     print(f"   - Evolution Mode: {config.evolution_mode}")
     print(f"   - Adversarial Rounds: {config.adversarial_rounds}")
     print(f"   - Attack Strength: {config.attack_strength}")
@@ -77,7 +77,7 @@ def test_adversarial_configuration():
     
     # Validate configuration
     validation_result = config.validate(param_manager)
-    print(f"✅ Configuration validation: {validation_result.valid}")
+    print(f"[OK] Configuration validation: {validation_result.valid}")
     
     if not validation_result.valid:
         print("   Validation errors:")
@@ -93,18 +93,18 @@ def test_evolution_capabilities():
     
     capabilities = get_evolution_capabilities_summary()
     
-    print(f"✅ Total Parameters: {capabilities['total_parameters']}")
-    print(f"✅ Categories: {capabilities['categories']}")
-    print(f"✅ Evolution Modes: {capabilities['evolution_modes']}")
+    print(f"[OK] Total Parameters: {capabilities['total_parameters']}")
+    print(f"[OK] Categories: {capabilities['categories']}")
+    print(f"[OK] Evolution Modes: {capabilities['evolution_modes']}")
     
     # Check adversarial mode
     adversarial_available = "adversarial" in capabilities["evolution_modes"]
-    print(f"✅ Adversarial mode available: {adversarial_available}")
+    print(f"[OK] Adversarial mode available: {adversarial_available}")
     
     # Check team system status
     team_system = capabilities.get("team_system", {})
     team_available = team_system.get("available", False)
-    print(f"✅ Team system available: {team_available}")
+    print(f"[OK] Team system available: {team_available}")
     
     if team_available:
         print("   Team system features:")
@@ -118,7 +118,7 @@ def test_evolution_capabilities():
     # Check advanced features
     advanced_features = capabilities.get("advanced_features", {})
     adversarial_feature = advanced_features.get("adversarial", "Not available")
-    print(f"✅ Adversarial feature: {adversarial_feature}")
+    print(f"[OK] Adversarial feature: {adversarial_feature}")
     
     return adversarial_available
 
@@ -147,7 +147,7 @@ def test_parameter_serialization():
         config_dict = config.to_openevolve_config()
         config_json = json.dumps(config_dict, indent=2, default=str)
         
-        print(f"✅ Configuration serialized: {len(config_json)} characters")
+        print(f"[OK] Configuration serialized: {len(config_json)} characters")
         
         # Test that adversarial parameters are included
         adversarial_keys = [
@@ -156,7 +156,7 @@ def test_parameter_serialization():
         ]
         
         included_keys = [key for key in adversarial_keys if key in config_dict]
-        print(f"✅ Adversarial parameters included: {len(included_keys)}/{len(adversarial_keys)}")
+        print(f"[OK] Adversarial parameters included: {len(included_keys)}/{len(adversarial_keys)}")
         
         for key in included_keys:
             print(f"   - {key}: {config_dict[key]}")
@@ -164,7 +164,7 @@ def test_parameter_serialization():
         return len(included_keys) >= 5  # Should include most adversarial parameters
         
     except Exception as e:
-        print(f"❌ Serialization failed: {e}")
+        print(f"[FAIL] Serialization failed: {e}")
         return False
 
 def test_parameter_coverage():
@@ -188,9 +188,9 @@ def test_parameter_coverage():
     for category in adversarial_categories:
         params = param_manager.get_parameters_by_category(category)
         total_params += len(params)
-        print(f"✅ {category}: {len(params)} parameters")
+        print(f"[OK] {category}: {len(params)} parameters")
     
-    print(f"✅ Total adversarial-relevant parameters: {total_params}")
+    print(f"[OK] Total adversarial-relevant parameters: {total_params}")
     
     # Test that we can create a configuration with many parameters
     config = EvolutionConfiguration()
@@ -204,13 +204,13 @@ def test_parameter_coverage():
     config.num_islands = 3  # island_model
     
     configured_params = len([k for k, v in config.__dict__.items() if v is not None])
-    print(f"✅ Parameters configured in test: {configured_params}")
+    print(f"[OK] Parameters configured in test: {configured_params}")
     
     return total_params >= 50  # Should have at least 50 relevant parameters
 
 def test_evolution_mode_validation():
     """Test that adversarial evolution mode is properly validated"""
-    print("\n✅ Testing Evolution Mode Validation")
+    print("\n[OK] Testing Evolution Mode Validation")
     print("=" * 50)
     
     param_manager = ParameterManager()
@@ -222,7 +222,7 @@ def test_evolution_mode_validation():
     valid_config.adversarial_rounds = 3
     
     validation = valid_config.validate(param_manager)
-    print(f"✅ Valid adversarial config: {validation.valid}")
+    print(f"[OK] Valid adversarial config: {validation.valid}")
     
     # Test invalid evolution mode
     invalid_config = EvolutionConfiguration()
@@ -230,7 +230,7 @@ def test_evolution_mode_validation():
     invalid_config.api_key = "test_key"
     
     validation = invalid_config.validate(param_manager)
-    print(f"✅ Invalid mode detected: {not validation.valid}")
+    print(f"[OK] Invalid mode detected: {not validation.valid}")
     
     if not validation.valid:
         print("   Validation errors (expected):")
@@ -263,7 +263,7 @@ def main():
             result = test_func()
             results.append((test_name, result))
         except Exception as e:
-            print(f"\n❌ {test_name} failed with error: {e}")
+            print(f"\n[FAIL] {test_name} failed with error: {e}")
             results.append((test_name, False))
     
     # Summary
@@ -275,23 +275,23 @@ def main():
     total = len(results)
     
     for test_name, result in results:
-        status = "✅ PASS" if result else "❌ FAIL"
+        status = "[OK] PASS" if result else "[FAIL] FAIL"
         print(f"{status} {test_name}")
     
     print(f"\n🎯 Overall: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
     
     if passed == total:
         print("\n🎉 ALL TESTS PASSED! Adversarial evolution features are working!")
-        print("✅ 272 parameters including comprehensive adversarial support")
-        print("✅ Adversarial evolution mode available")
-        print("✅ Parameter validation and serialization working")
+        print("[OK] 272 parameters including comprehensive adversarial support")
+        print("[OK] Adversarial evolution mode available")
+        print("[OK] Parameter validation and serialization working")
         if TEAM_SYSTEM_AVAILABLE:
-            print("✅ Full team system integration available")
+            print("[OK] Full team system integration available")
         else:
-            print("⚠️ Team system not available - basic adversarial mode only")
+            print("[WARN] Team system not available - basic adversarial mode only")
         return 0
     else:
-        print(f"\n⚠️ {total - passed} tests failed. Review the output above.")
+        print(f"\n[WARN] {total - passed} tests failed. Review the output above.")
         return 1
 
 if __name__ == "__main__":

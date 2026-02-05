@@ -29,7 +29,7 @@ try:
     )
     print("[INFO] This script compares deprecated ParameterManager vs new UnifiedConfiguration")
 except ImportError as e:
-    print(f"❌ Import error: {e}")
+    print(f"[FAIL] Import error: {e}")
     sys.exit(1)
 
 
@@ -450,7 +450,7 @@ class ParameterManagerComparator:
             print(f"Running {benchmark.__name__}...")
             result = benchmark()
             results.append(result)
-            print(f"  Result: {'✓' if result.success else '✗'}")
+            print(f"  Result: {'[OK]' if result.success else '[FAIL]'}")
 
         return results
 
@@ -475,7 +475,7 @@ class ParameterManagerComparator:
             min_ms = result.min_time * 1000
             max_ms = result.max_time * 1000
 
-            status = "✓ PASS" if result.success else "✗ FAIL"
+            status = "[OK] PASS" if result.success else "[FAIL] FAIL"
 
             # Truncate long names
             name = result.name[:44]
@@ -525,7 +525,7 @@ class ParameterManagerComparator:
             report_lines.append("FAILED BENCHMARKS:")
             report_lines.append("-" * 40)
             for result in failed_benchmarks:
-                report_lines.append(f"❌ {result.name}: {result.error}")
+                report_lines.append(f"[FAIL] {result.name}: {result.error}")
             report_lines.append("")
 
         # Recommendations
@@ -536,11 +536,11 @@ class ParameterManagerComparator:
         successful_uc = sum(1 for r in results if "UnifiedConfiguration" in r.name and r.success)
 
         if successful_uc > successful_pm:
-            report_lines.append("✓ UnifiedConfiguration has more successful benchmarks")
+            report_lines.append("[OK] UnifiedConfiguration has more successful benchmarks")
 
         # Feature comparison
         feature_lines = [
-            "✓ UnifiedConfiguration provides:",
+            "[OK] UnifiedConfiguration provides:",
             "  - Type-safe property access",
             "  - Flexible get/set methods",
             "  - Merging capabilities",
@@ -553,7 +553,7 @@ class ParameterManagerComparator:
         if successful_uc >= successful_pm:
             feature_lines.extend([
                 "",
-                "✓ Migrating to UnifiedConfiguration provides:",
+                "[OK] Migrating to UnifiedConfiguration provides:",
                 "  - More features with similar performance",
                 "  - Better maintainability",
                 "  - Reduced code duplication",
@@ -599,7 +599,7 @@ def main():
             return 1
 
     except (RuntimeError, OSError, ValueError) as e:
-        print(f"\n❌ Benchmarking failed: {str(e)}")
+        print(f"\n[FAIL] Benchmarking failed: {str(e)}")
         return 1
 
 

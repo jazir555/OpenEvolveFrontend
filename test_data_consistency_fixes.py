@@ -42,16 +42,16 @@ def test_foreign_keys_enabled():
             result = cursor.fetchone()
 
             if result[0] == 1:
-                print("✅ PASS: Foreign keys are ENABLED")
+                print("[OK] PASS: Foreign keys are ENABLED")
                 print(f"   PRAGMA foreign_keys = {result[0]}")
                 return True
             else:
-                print("❌ FAIL: Foreign keys are NOT enabled")
+                print("[FAIL] FAIL: Foreign keys are NOT enabled")
                 print(f"   PRAGMA foreign_keys = {result[0]}")
                 return False
 
     except Exception as e:
-        print(f"❌ ERROR: {e}")
+        print(f"[FAIL] ERROR: {e}")
         return False
     finally:
         # Cleanup
@@ -83,16 +83,16 @@ def test_foreign_key_enforcement():
                     VALUES ('fake-workflow-id', 'node1', 'test')
                 """)
                 conn.commit()
-                print("❌ FAIL: Foreign key constraint NOT enforced")
+                print("[FAIL] FAIL: Foreign key constraint NOT enforced")
                 print("   Orphaned record was created (this should not happen)")
                 return False
             except sqlite3.IntegrityError as e:
-                print("✅ PASS: Foreign key constraint enforced")
+                print("[OK] PASS: Foreign key constraint enforced")
                 print(f"   Error: {e}")
                 return True
 
     except Exception as e:
-        print(f"❌ ERROR: {e}")
+        print(f"[FAIL] ERROR: {e}")
         return False
     finally:
         # Cleanup
@@ -151,16 +151,16 @@ def test_cascade_delete():
             print(f"   Node metrics after delete: {after_count}")
 
             if before_count > 0 and after_count == 0:
-                print("✅ PASS: CASCADE delete working correctly")
+                print("[OK] PASS: CASCADE delete working correctly")
                 print("   Child records were automatically deleted")
                 return True
             else:
-                print("❌ FAIL: CASCADE delete not working")
+                print("[FAIL] FAIL: CASCADE delete not working")
                 print(f"   Before: {before_count}, After: {after_count}")
                 return False
 
     except Exception as e:
-        print(f"❌ ERROR: {e}")
+        print(f"[FAIL] ERROR: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -236,18 +236,18 @@ def test_referential_integrity():
             after_providers = cursor.fetchone()[0]
 
             if after_nodes == 0 and after_providers == 0:
-                print("✅ PASS: All child records deleted via CASCADE")
+                print("[OK] PASS: All child records deleted via CASCADE")
                 print(f"   Node metrics deleted: {node_count} -> {after_nodes}")
                 print(f"   Provider metrics deleted: {provider_count} -> {after_providers}")
                 return True
             else:
-                print("❌ FAIL: Some child records not deleted")
+                print("[FAIL] FAIL: Some child records not deleted")
                 print(f"   Node metrics: {node_count} -> {after_nodes}")
                 print(f"   Provider metrics: {provider_count} -> {after_providers}")
                 return False
 
     except Exception as e:
-        print(f"❌ ERROR: {e}")
+        print(f"[FAIL] ERROR: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -287,7 +287,7 @@ def main():
     total = len(results)
 
     for test_name, result in results:
-        status = "✅ PASS" if result else "❌ FAIL"
+        status = "[OK] PASS" if result else "[FAIL] FAIL"
         print(f"{status}: {test_name}")
 
     print("\n" + "-"*70)
@@ -298,7 +298,7 @@ def main():
         print("\n🎉 ALL TESTS PASSED! Data consistency fixes are working correctly.")
         return 0
     else:
-        print(f"\n⚠️  {total - passed} test(s) failed. Please review the errors above.")
+        print(f"\n[WARN]  {total - passed} test(s) failed. Please review the errors above.")
         return 1
 
 

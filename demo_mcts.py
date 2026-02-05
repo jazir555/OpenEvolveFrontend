@@ -348,7 +348,7 @@ def run_all_demos():
         try:
             demo()
         except Exception as e:
-            print(f"\n✗ Demo failed: {e}")
+            print(f"\n[FAIL] Demo failed: {e}")
             import traceback
             traceback.print_exc()
 

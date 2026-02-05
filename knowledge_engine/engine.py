@@ -20,10 +20,10 @@ from .elasticsearch_search import ElasticsearchSearchEngine
 # Import DTS integration
 try:
     from dts_integration import DTSIntegration, DTSIntegrationConfig, DTS_AVAILABLE
-    print("✅ DTS integration available for enhanced knowledge processing")
+    print("[OK] DTS integration available for enhanced knowledge processing")
 except ImportError:
     DTS_AVAILABLE = False
-    print("⚠️ DTS not available - using fallback knowledge processing methods")
+    print("[WARN] DTS not available - using fallback knowledge processing methods")
 
 # LLM client initialization - use fallback if not available
 try:
@@ -82,12 +82,12 @@ class KnowledgeEngine:
         try:
             self.bedrock_client = BedrockKnowledgeBaseClient()
         except Exception as e:
-            print(f"⚠️ Could not initialize BedrockKnowledgeBaseClient: {e}. AWS credentials might be missing or invalid.")
+            print(f"[WARN] Could not initialize BedrockKnowledgeBaseClient: {e}. AWS credentials might be missing or invalid.")
         
         try:
             self.eks_handler = EKSKnowledgeBaseHandler()
         except Exception as e:
-            print(f"⚠️ Could not initialize EKSKnowledgeBaseHandler: {e}. AWS credentials might be missing or invalid.")
+            print(f"[WARN] Could not initialize EKSKnowledgeBaseHandler: {e}. AWS credentials might be missing or invalid.")
 
         try:
             # Placeholder for Elasticsearch hosts and API key
@@ -96,7 +96,7 @@ class KnowledgeEngine:
             es_api_key = os.environ.get("ELASTICSEARCH_API_KEY", "your_elasticsearch_api_key")
             self.elasticsearch_client = ElasticsearchSearchEngine(hosts=es_hosts, api_key=es_api_key)
         except Exception as e:
-            print(f"⚠️ Could not initialize ElasticsearchSearchEngine: {e}. Elasticsearch might not be running or config is invalid.")
+            print(f"[WARN] Could not initialize ElasticsearchSearchEngine: {e}. Elasticsearch might not be running or config is invalid.")
 
     def _setup_logger(self):
         """Setup a basic logger for the KnowledgeEngine."""
@@ -124,10 +124,10 @@ class KnowledgeEngine:
             }
             return {"default_models": default_models, **llm_section} # Merge default_models into llm_section
         except FileNotFoundError:
-            print(f"❌ LLM config file not found at {config_path}")
+            print(f"[FAIL] LLM config file not found at {config_path}")
             return {}
         except yaml.YAMLError as e:
-            print(f"❌ Error parsing LLM config file {config_path}: {e}")
+            print(f"[FAIL] Error parsing LLM config file {config_path}: {e}")
             return {}
 
     async def _initialize_llm_client(self):
@@ -236,12 +236,12 @@ class KnowledgeEngine:
                 print(f"📥 Downloading {file_url} to {file_path}...")
                 download_result = await document_loader.download_file(file_url, str(file_path))
                 if not download_result.get("success"):
-                    print(f"❌ Download failed: {download_result.get('error')}")
+                    print(f"[FAIL] Download failed: {download_result.get('error')}")
                     return None
             else:
                 file_path = Path(path_or_url)
                 if not file_path.exists():
-                    print(f"❌ File not found: {file_path}")
+                    print(f"[FAIL] File not found: {file_path}")
                     return None
 
             # Convert to markdown text
@@ -268,14 +268,14 @@ class KnowledgeEngine:
                  return None
 
             if text_content:
-                print("✅ Document processed successfully.")
+                print("[OK] Document processed successfully.")
             else:
-                print("❌ Document processing failed to extract text.")
+                print("[FAIL] Document processing failed to extract text.")
 
             return text_content
 
         except Exception as e:
-            print(f"❌ An error occurred during document processing: {e}")
+            print(f"[FAIL] An error occurred during document processing: {e}")
             return None
         finally:
             if temp_dir:
@@ -311,7 +311,7 @@ class KnowledgeEngine:
         Requires AWS Bedrock client configuration.
         """
         if not self.bedrock_client:
-            print("❌ BedrockKnowledgeBaseClient not initialized.")
+            print("[FAIL] BedrockKnowledgeBaseClient not initialized.")
             return {"error": "BedrockKnowledgeBaseClient not initialized"}
         print(f"☁️ Querying Amazon Bedrock Knowledge Base '{knowledge_base_id}' for: {query}")
         response = await self.bedrock_client.query_knowledge_base(knowledge_base_id, query)
@@ -323,7 +323,7 @@ class KnowledgeEngine:
         Requires EKS hosted MCP service integration.
         """
         if not self.eks_handler:
-            print("❌ EKSKnowledgeBaseHandler not initialized.")
+            print("[FAIL] EKSKnowledgeBaseHandler not initialized.")
             return {"error": "EKSKnowledgeBaseHandler not initialized"}
         print(f"☸️ Querying EKS Knowledge Base for: {query}")
         response = await self.eks_handler.query_eks_knowledge_base(query)
@@ -335,7 +335,7 @@ class KnowledgeEngine:
         Requires Elasticsearch client configuration.
         """
         if not self.elasticsearch_client:
-            print("❌ ElasticsearchSearchEngine not initialized.")
+            print("[FAIL] ElasticsearchSearchEngine not initialized.")
             return {"error": "ElasticsearchSearchEngine not initialized"}
         print(f"🔍 Querying Elasticsearch index '{index}' for: {query}")
         response = await self.elasticsearch_client.search(index, query)
@@ -394,11 +394,11 @@ class KnowledgeEngine:
             with open(output_file, "w", encoding="utf-8") as f:
                 json.dump(asdict(repo_index), f, indent=2, ensure_ascii=False)
 
-            print(f"✅ Indexing completed. Index saved to: {output_file}")
+            print(f"[OK] Indexing completed. Index saved to: {output_file}")
             return {repo_index.repo_name: str(output_file)}
 
         except Exception as e:
-            print(f"❌ Indexing failed: {e}")
+            print(f"[FAIL] Indexing failed: {e}")
             import traceback
             traceback.print_exc()
             return {}
@@ -418,10 +418,10 @@ class KnowledgeEngine:
             with open(index_path, "r", encoding="utf-8") as f:
                 return json.load(f)
         except FileNotFoundError:
-            print(f"❌ Error: Index file not found at {index_path}")
+            print(f"[FAIL] Error: Index file not found at {index_path}")
             return {}
         except json.JSONDecodeError:
-            print(f"❌ Error: Could not decode JSON from {index_path}")
+            print(f"[FAIL] Error: Could not decode JSON from {index_path}")
             return {}
 
     def query_index_by_keyword(
@@ -443,7 +443,7 @@ class KnowledgeEngine:
             A list of matching file summaries.
         """
         if not index_data:
-            print("⚠️ Cannot query empty index.")
+            print("[WARN] Cannot query empty index.")
             return []
 
         print(f"🔍 Searching for keyword '{keyword}' in index...")
@@ -498,12 +498,12 @@ class KnowledgeEngine:
                 enable_read_tools=enable_read_tools
             )
             if result["status"] == "success":
-                self.logger.info("✅ Code Implementation Workflow completed successfully.")
+                self.logger.info("[OK] Code Implementation Workflow completed successfully.")
             else:
-                self.logger.error(f"❌ Code Implementation Workflow failed: {result.get('message', 'Unknown error.')}")
+                self.logger.error(f"[FAIL] Code Implementation Workflow failed: {result.get('message', 'Unknown error.')}")
             return result
         except Exception as e:
-            self.logger.error(f"❌ Error running Code Implementation Workflow: {e}")
+            self.logger.error(f"[FAIL] Error running Code Implementation Workflow: {e}")
             return {"status": "error", "message": str(e)}
 
     async def run_multi_agent_research_pipeline(
@@ -544,10 +544,10 @@ class KnowledgeEngine:
                 progress_callback=progress_callback,
                 enable_indexing=enable_indexing
             )
-            self.logger.info("✅ Multi-Agent Research Pipeline completed successfully.")
+            self.logger.info("[OK] Multi-Agent Research Pipeline completed successfully.")
             return {"status": "success", "summary": pipeline_summary}
         except Exception as e:
-            self.logger.error(f"❌ Error running Multi-Agent Research Pipeline: {e}")
+            self.logger.error(f"[FAIL] Error running Multi-Agent Research Pipeline: {e}")
             return {"status": "error", "message": str(e)}
 
     async def run_chat_based_planning_pipeline(
@@ -586,10 +586,10 @@ class KnowledgeEngine:
                 progress_callback=progress_callback,
                 enable_indexing=enable_indexing
             )
-            self.logger.info("✅ Chat-Based Planning Pipeline completed successfully.")
+            self.logger.info("[OK] Chat-Based Planning Pipeline completed successfully.")
             return {"status": "success", "summary": pipeline_summary}
         except Exception as e:
-            self.logger.error(f"❌ Error running Chat-Based Planning Pipeline: {e}")
+            self.logger.error(f"[FAIL] Error running Chat-Based Planning Pipeline: {e}")
             return {"status": "error", "message": str(e)}
 
     async def extract_knowledge_with_dspy(
@@ -923,7 +923,7 @@ async def main():
     
     # Create a dummy secrets file if it doesn't exist
     if not Path("mcp_agent.secrets.yaml").exists():
-        print("⚠️ mcp_agent.secrets.yaml not found. Creating a dummy file.")
+        print("[WARN] mcp_agent.secrets.yaml not found. Creating a dummy file.")
         print("   Please fill it with your actual API keys for the indexer to work.")
         with open("mcp_agent.secrets.yaml", "w") as f:
             f.write(

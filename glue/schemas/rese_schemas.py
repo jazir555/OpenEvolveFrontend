@@ -936,8 +936,8 @@ class InvertedConstraint:
     An inverted constraint (Ψ₃: Constraint Inversion).
 
     Represents a constraint that has been inverted to define solution space.
-    Original: C → must satisfy C
-    Inverted: ¬C → must avoid violating C, defines allowed space
+    Original: C -> must satisfy C
+    Inverted: ¬C -> must avoid violating C, defines allowed space
 
     Attributes:
         constraint_id: Unique identifier

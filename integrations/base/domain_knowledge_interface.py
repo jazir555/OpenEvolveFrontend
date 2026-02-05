@@ -6,7 +6,7 @@ This interface defines the contract that all domain knowledge adapters must impl
 
 Author: global-chem Integration Specialist
 Created: 2026-01-02
-Status: ✅ Complete
+Status: [OK] Complete
 """
 
 from abc import ABC, abstractmethod

@@ -330,7 +330,7 @@ class UnifiedLineage:
 
     def get_evolutionary_path(self, solution_id: str) -> List[LineageNode]:
         """Get the full evolutionary path from root to solution"""
-        return self.trace_solution_origin(solution_id)[::-1]  # Reverse to get root→solution
+        return self.trace_solution_origin(solution_id)[::-1]  # Reverse to get root->solution
 
 
 @dataclass
@@ -1190,8 +1190,8 @@ class EvolutionaryMemoryFusion:
         Find opportunities for cross-system knowledge transfer.
 
         Identifies where knowledge from one system could benefit the other:
-        - LoongFlow planning → OpenEvolve mutation
-        - OpenEvolve diversity → LoongFlow initialization
+        - LoongFlow planning -> OpenEvolve mutation
+        - OpenEvolve diversity -> LoongFlow initialization
         - Cross-system parameter sharing
         - Strategy transfer
 
@@ -1205,7 +1205,7 @@ class EvolutionaryMemoryFusion:
         oe = fused_memory.openevolve_component
         lf = fused_memory.loongflow_component
 
-        # Opportunity 1: LoongFlow planning → OpenEvolve mutation
+        # Opportunity 1: LoongFlow planning -> OpenEvolve mutation
         if lf.planning_strategies:
             best_strategy = max(lf.planning_strategies, key=lambda s: s.get("success_rate", 0.0))
 
@@ -1228,7 +1228,7 @@ class EvolutionaryMemoryFusion:
                 },
             ))
 
-        # Opportunity 2: OpenEvolve diversity → LoongFlow initialization
+        # Opportunity 2: OpenEvolve diversity -> LoongFlow initialization
         if oe.elite_solutions and len(oe.elite_solutions) > 5:
             opportunities.append(PollinationOpportunity(
                 opportunity_id=f"oe_to_lf_diversity_{uuid.uuid4().hex[:8]}",
@@ -1267,7 +1267,7 @@ class EvolutionaryMemoryFusion:
                 metadata={"oe_params": oe_params, "lf_params": lf_params},
             ))
 
-        # Opportunity 4: LoongFlow early stopping → OpenEvolve evaluation
+        # Opportunity 4: LoongFlow early stopping -> OpenEvolve evaluation
         if lf.execution_patterns:
             early_stop_patterns = [
                 p for p in lf.execution_patterns
@@ -1296,7 +1296,7 @@ class EvolutionaryMemoryFusion:
                     },
                 ))
 
-        # Opportunity 5: OpenEvolve MAP-Elites → LoongFlow diversity
+        # Opportunity 5: OpenEvolve MAP-Elites -> LoongFlow diversity
         if oe.population_archive:
             opportunities.append(PollinationOpportunity(
                 opportunity_id=f"oe_to_lf_mapelites_{uuid.uuid4().hex[:8]}",

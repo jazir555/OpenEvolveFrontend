@@ -178,14 +178,14 @@ class ROMAComparator:
         best_quality = max(metrics, key=lambda m: m.quality_score)
         if best_quality.quality_score > 0.7:
             recommendations.append(
-                f"✓ Use {best_quality.strategy} for best quality (score: {best_quality.quality_score:.3f})"
+                f"[OK] Use {best_quality.strategy} for best quality (score: {best_quality.quality_score:.3f})"
             )
 
         # Find fastest
         fastest = min(metrics, key=lambda m: m.decomposition_time)
         if fastest.decomposition_time < 1.0:
             recommendations.append(
-                f"✓ Use {fastest.strategy} for fastest decomposition ({fastest.decomposition_time:.3f}s)"
+                f"[OK] Use {fastest.strategy} for fastest decomposition ({fastest.decomposition_time:.3f}s)"
             )
 
         # Check ROMA specifically
@@ -194,7 +194,7 @@ class ROMAComparator:
             roma = roma_metrics[0]
             if roma.quality_score > 0.6:
                 recommendations.append(
-                    f"✓ ROMA provides good quality decomposition (score: {roma.quality_score:.3f})"
+                    f"[OK] ROMA provides good quality decomposition (score: {roma.quality_score:.3f})"
                 )
             else:
                 recommendations.append(

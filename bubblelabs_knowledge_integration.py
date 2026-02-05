@@ -1027,7 +1027,7 @@ class BubbleLabsKnowledgeUI:
                     if results['relationships']:
                         st.markdown("**Relationships:**")
                         for rel in results['relationships'][:20]:
-                            st.write(f"- {rel['source']} → {rel['relation']} → {rel['target']}")
+                            st.write(f"- {rel['source']} -> {rel['relation']} -> {rel['target']}")
                 else:
                     st.error(f"Extraction failed: {results.get('error')}")
 
@@ -1060,9 +1060,9 @@ class BubbleLabsKnowledgeUI:
 
         with col4:
             if self.engine:
-                st.metric("Engine Status", "✅ Active")
+                st.metric("Engine Status", "[OK] Active")
             else:
-                st.metric("Engine Status", "❌ Inactive")
+                st.metric("Engine Status", "[FAIL] Inactive")
 
         # Entity type distribution
         if st.session_state.knowledge_graph_data['entities']:

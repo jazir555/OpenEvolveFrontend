@@ -11,7 +11,7 @@ def test_team_system_functionality():
         print(f"TEAM_SYSTEM_AVAILABLE = {TEAM_SYSTEM_AVAILABLE}")
         
         if not TEAM_SYSTEM_AVAILABLE:
-            print("❌ Team system still not available")
+            print("[FAIL] Team system still not available")
             return False
             
         # Test team imports and basic functionality
@@ -26,7 +26,7 @@ def test_team_system_functionality():
         evaluator_team = EvaluatorTeam()
         team_manager = TeamManager()
         
-        print("✅ All team classes instantiated successfully!")
+        print("[OK] All team classes instantiated successfully!")
         
         # Test basic functionality (without requiring API keys)
         test_content = "This is a test content for team analysis."
@@ -34,29 +34,29 @@ def test_team_system_functionality():
         # Test red team basic assessment (should work without API)
         try:
             red_assessment = red_team.assess_content(test_content, use_openevolve=False)
-            print("✅ Red team basic assessment works!")
+            print("[OK] Red team basic assessment works!")
         except Exception as e:
-            print(f"⚠️ Red team assessment failed (expected without API): {e}")
+            print(f"[WARN] Red team assessment failed (expected without API): {e}")
         
         # Test blue team basic assessment
         try:
             blue_assessment = blue_team.assess_content(test_content, use_openevolve=False)
-            print("✅ Blue team basic assessment works!")
+            print("[OK] Blue team basic assessment works!")
         except Exception as e:
-            print(f"⚠️ Blue team assessment failed (expected without API): {e}")
+            print(f"[WARN] Blue team assessment failed (expected without API): {e}")
             
         # Test evaluator team basic assessment
         try:
             evaluator_assessment = evaluator_team.assess_content(test_content, use_openevolve=False)
-            print("✅ Evaluator team basic assessment works!")
+            print("[OK] Evaluator team basic assessment works!")
         except Exception as e:
-            print(f"⚠️ Evaluator team assessment failed (expected without API): {e}")
+            print(f"[WARN] Evaluator team assessment failed (expected without API): {e}")
         
-        print("✅ Team system is functional!")
+        print("[OK] Team system is functional!")
         return True
         
     except Exception as e:
-        print(f"❌ Team system test failed: {e}")
+        print(f"[FAIL] Team system test failed: {e}")
         return False
 
 if __name__ == "__main__":

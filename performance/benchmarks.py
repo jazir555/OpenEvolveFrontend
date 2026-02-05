@@ -134,7 +134,7 @@ class PerformanceBenchmark:
         print(f"  Time:       {elapsed:.4f}s")
         print(f"  Throughput: {ops_per_sec:.0f} ops/sec")
         print(f"  Memory:     {memory_used:.2f} MB")
-        print(f"  Status:     {'✓ PASS' if passed else '✗ FAIL'}")
+        print(f"  Status:     {'[OK] PASS' if passed else '[FAIL] FAIL'}")
 
         if not passed:
             if not success:
@@ -202,7 +202,7 @@ class PerformanceBenchmark:
 
             # Show individual benchmarks
             for r in results:
-                status = "✓" if r.passed else "✗"
+                status = "[OK]" if r.passed else "[FAIL]"
                 lines.append(f"    {status} {r.name}: {r.time_seconds:.4f}s @ {r.input_size} items")
 
         lines.append("")

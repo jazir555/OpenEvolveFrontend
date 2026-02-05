@@ -72,7 +72,7 @@ class ACE:
                 curator_model, 
                 max_tokens
             )
-            print(f"✓ BulletpointAnalyzer initialized (threshold={bulletpoint_analyzer_threshold})")
+            print(f"[OK] BulletpointAnalyzer initialized (threshold={bulletpoint_analyzer_threshold})")
         else:
             self.bulletpoint_analyzer = None
         

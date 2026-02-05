@@ -456,7 +456,7 @@ class TestPlugin(IntegrationPlugin):
             result = await test()
             self.results.append(result)
             
-            status_icon = "✓" if result.status == "passed" else "✗"
+            status_icon = "[OK]" if result.status == "passed" else "[FAIL]"
             print(f"  {status_icon} {result.test_name}: {result.status.upper()}")
             if result.message:
                 print(f"    {result.message}")
@@ -479,9 +479,9 @@ class TestPlugin(IntegrationPlugin):
         print()
         
         if failed == 0:
-            print("✓ ALL TESTS PASSED - System is fully integrated!")
+            print("[OK] ALL TESTS PASSED - System is fully integrated!")
         else:
-            print(f"✗ {failed} test(s) failed - See details above")
+            print(f"[FAIL] {failed} test(s) failed - See details above")
         
         print()
         

@@ -55,11 +55,11 @@ class TestRunner:
             
         except subprocess.TimeoutExpired:
             duration = time.time() - start_time
-            print(f"❌ Test suite timed out after {duration:.2f}s")
+            print(f"[FAIL] Test suite timed out after {duration:.2f}s")
             return False, duration, "TIMEOUT"
         except Exception as e:
             duration = time.time() - start_time
-            print(f"❌ Test suite failed: {e}")
+            print(f"[FAIL] Test suite failed: {e}")
             return False, duration, str(e)
     
     def run_all_tests(self) -> bool:
@@ -130,7 +130,7 @@ class TestRunner:
         print("-" * 60)
         
         for suite_name, result in self.results.items():
-            status = "✓ PASS" if result['success'] else "❌ FAIL"
+            status = "[OK] PASS" if result['success'] else "[FAIL] FAIL"
             duration = result['duration']
             print(f"{status:10} {suite_name:30} {duration:6.2f}s")
         
@@ -145,9 +145,9 @@ class TestRunner:
         
         print("\n" + "="*60)
         if failed == 0:
-            print("✓ ALL TESTS PASSED")
+            print("[OK] ALL TESTS PASSED")
         else:
-            print(f"❌ {failed} SUITE(S) FAILED")
+            print(f"[FAIL] {failed} SUITE(S) FAILED")
         print("="*60 + "\n")
     
     def generate_report(self, filename: str = "test_report.txt"):

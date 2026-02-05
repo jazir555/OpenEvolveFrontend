@@ -65,7 +65,7 @@ def main():
     strategy = SemanticDecomposition()
     sub_problems = strategy.decompose(problem)
 
-    print(f"\n✓ Generated {len(sub_problems)} research sub-problems\n")
+    print(f"\n[OK] Generated {len(sub_problems)} research sub-problems\n")
 
     # Display by research phase
     print("RESEARCH PHASES:")

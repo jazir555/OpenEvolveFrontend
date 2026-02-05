@@ -202,9 +202,9 @@ def render_suggestions():
                     if vulnerabilities:
                         st.warning(f"Found {len(vulnerabilities)} potential security issues:")
                         for vuln in vulnerabilities:
-                            st.warning(f"⚠️ {vuln}")
+                            st.warning(f"[WARN] {vuln}")
                     else:
-                        st.success("✅ No immediate security vulnerabilities detected.")
+                        st.success("[OK] No immediate security vulnerabilities detected.")
                 except Exception as e:
                     st.error(f"Error during security scan: {e}")
     
@@ -221,7 +221,7 @@ def render_suggestions():
                     elif potential > 0.4:
                         st.info("👍 This content has moderate potential for improvement.")
                     else:
-                        st.info("✅ This content appears to be well-structured with limited improvement potential.")
+                        st.info("[OK] This content appears to be well-structured with limited improvement potential.")
                     
                     # Show explanation
                     st.write("**How it's calculated:**")

@@ -36,8 +36,8 @@ class CoverageAnalyzer:
             elif f.name.endswith(".ts") and not f.name.endswith(".d.ts"):
                 self.source_files.append(f)
 
-        print(f"✓ Found {len(self.source_files)} source files")
-        print(f"✓ Found {len(self.test_files)} test files")
+        print(f"[OK] Found {len(self.source_files)} source files")
+        print(f"[OK] Found {len(self.test_files)} test files")
 
     def identify_missing_tests(self) -> None:
         """Identify source files without corresponding test files"""
@@ -52,7 +52,7 @@ class CoverageAnalyzer:
             if not (test_name.exists() or alt_test_name.exists() or alt_test_name2.exists()):
                 self.files_without_tests.append(source_file)
 
-        print(f"✓ Found {len(self.files_without_tests)} files without tests")
+        print(f"[OK] Found {len(self.files_without_tests)} files without tests")
 
     def analyze_complexity(self, file_path: Path) -> int:
         """
@@ -87,7 +87,7 @@ class CoverageAnalyzer:
 
             return complexity
         except Exception as e:
-            print(f"  ⚠️  Error analyzing {file_path}: {e}")
+            print(f"  [WARN]  Error analyzing {file_path}: {e}")
             return 0
 
     def prioritize_files(self) -> List[Tuple[Path, int]]:
@@ -122,7 +122,7 @@ class CoverageAnalyzer:
         # Sort by priority (descending)
         priorities.sort(key=lambda x: x[1], reverse=True)
 
-        print(f"✓ Prioritized {len(priorities)} files")
+        print(f"[OK] Prioritized {len(priorities)} files")
         return priorities
 
     def generate_test_template(self, source_file: Path) -> str:
@@ -249,7 +249,7 @@ describe('{source_file.stem.replace('-', ' ').title()}', () => {{
 """
             return template
         except Exception as e:
-            print(f"  ⚠️  Error generating template for {source_file}: {e}")
+            print(f"  [WARN]  Error generating template for {source_file}: {e}")
             return ""
 
     def generate_report(self) -> Dict:
@@ -286,7 +286,7 @@ describe('{source_file.stem.replace('-', ' ').title()}', () => {{
             else:
                 report['by_directory'][parent]['without_tests'] += 1
 
-        print(f"✓ Generated report")
+        print(f"[OK] Generated report")
         return report
 
     def run(self) -> Dict:
@@ -324,7 +324,7 @@ describe('{source_file.stem.replace('-', ' ').title()}', () => {{
             report_copy['by_directory'] = dict(report['by_directory'])
             json.dump(report_copy, f, indent=2)
 
-        print(f"\n✓ Full report saved to: {report_path}")
+        print(f"\n[OK] Full report saved to: {report_path}")
 
         return report
 
@@ -344,7 +344,7 @@ def main():
     analyzer = CoverageAnalyzer(src_dir)
     report = analyzer.run()
 
-    print("\n✅ Analysis complete!")
+    print("\n[OK] Analysis complete!")
     print("\nNext steps:")
     print("1. Review coverage_gap_report.json")
     print("2. Prioritize files based on complexity and importance")

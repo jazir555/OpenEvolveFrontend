@@ -631,7 +631,7 @@ class ProofTranslationNode(BubbleLabsNode):
     def _lean_to_tptp_expr(self, expr: str) -> str:
         """Convert Lean expression to TPTP."""
         # Simple replacements
-        expr = expr.replace("→", ">")
+        expr = expr.replace("->", ">")
         expr = expr.replace("∧", "&")
         expr = expr.replace("∨", "|")
         expr = expr.replace("¬", "~")
@@ -641,7 +641,7 @@ class ProofTranslationNode(BubbleLabsNode):
     
     def _tptp_to_lean_expr(self, expr: str) -> str:
         """Convert TPTP expression to Lean."""
-        expr = expr.replace(">", "→")
+        expr = expr.replace(">", "->")
         expr = expr.replace("&", "∧")
         expr = expr.replace("|", "∨")
         expr = expr.replace("~", "¬")

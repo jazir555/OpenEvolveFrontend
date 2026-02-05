@@ -55,12 +55,12 @@ def test_adversarial_parameter_coverage():
     param_manager = ParameterManager()
     adversarial_params = param_manager.get_parameters_by_category("adversarial")
     total_adversarial_params = len(adversarial_params)
-    print(f"✅ Total adversarial parameters in manager: {total_adversarial_params}")
+    print(f"[OK] Total adversarial parameters in manager: {total_adversarial_params}")
     
     # Create adversarial configuration
     config = AdversarialConfiguration()
     config_dict = asdict(config)
-    print(f"✅ Adversarial configuration fields: {len(config_dict)}")
+    print(f"[OK] Adversarial configuration fields: {len(config_dict)}")
     
     # Check coverage of adversarial parameters
     adversarial_param_names = set(p.name for p in adversarial_params)
@@ -70,15 +70,15 @@ def test_adversarial_parameter_coverage():
     missing_adversarial = adversarial_param_names - config_names
     
     coverage_percent = len(covered_adversarial) / total_adversarial_params * 100
-    print(f"✅ Adversarial parameter coverage: {len(covered_adversarial)}/{total_adversarial_params} ({coverage_percent:.1f}%)")
+    print(f"[OK] Adversarial parameter coverage: {len(covered_adversarial)}/{total_adversarial_params} ({coverage_percent:.1f}%)")
     
     if missing_adversarial:
-        print(f"⚠️ Missing adversarial parameters ({len(missing_adversarial)}):")
+        print(f"[WARN] Missing adversarial parameters ({len(missing_adversarial)}):")
         for param in sorted(list(missing_adversarial)):
             print(f"   - {param}")
     
     # List covered parameters
-    print(f"\n✅ Covered adversarial parameters ({len(covered_adversarial)}):")
+    print(f"\n[OK] Covered adversarial parameters ({len(covered_adversarial)}):")
     for param in sorted(list(covered_adversarial)):
         print(f"   - {param}")
     
@@ -124,7 +124,7 @@ def test_adversarial_parameter_types():
         elif isinstance(value, dict):
             type_counts["dict"] += 1
     
-    print("✅ Parameter type distribution:")
+    print("[OK] Parameter type distribution:")
     for param_type, count in type_counts.items():
         print(f"   - {param_type}: {count} parameters")
     
@@ -145,16 +145,16 @@ def test_adversarial_serialization():
     try:
         config_dict = asdict(config)
         config_json = json.dumps(config_dict, indent=2, default=str)
-        print(f"✅ Configuration serialized: {len(config_json)} characters")
+        print(f"[OK] Configuration serialized: {len(config_json)} characters")
         
         # Test deserialization
         parsed_config = json.loads(config_json)
-        print(f"✅ Configuration deserialized: {len(parsed_config)} fields")
+        print(f"[OK] Configuration deserialized: {len(parsed_config)} fields")
         
         return True
         
     except Exception as e:
-        print(f"❌ Serialization failed: {e}")
+        print(f"[FAIL] Serialization failed: {e}")
         return False
 
 def test_adversarial_validation_logic():
@@ -193,14 +193,14 @@ def test_adversarial_validation_logic():
                 is_valid = False
             
             if is_valid == should_be_valid:
-                status = "✅"
+                status = "[OK]"
             else:
-                status = "❌"
+                status = "[FAIL]"
                 all_passed = False
             
             print(f"   {status} {param_name} = {value} (expected valid: {should_be_valid}, got: {is_valid})")
         else:
-            print(f"   ⚠️ Parameter {param_name} not found in schema")
+            print(f"   [WARN] Parameter {param_name} not found in schema")
     
     return all_passed
 
@@ -222,7 +222,7 @@ def main():
             result = test_func()
             results.append((test_name, result))
         except Exception as e:
-            print(f"\n❌ {test_name} failed with error: {e}")
+            print(f"\n[FAIL] {test_name} failed with error: {e}")
             results.append((test_name, False))
     
     # Summary
@@ -234,7 +234,7 @@ def main():
     total = len(results)
     
     for test_name, result in results:
-        status = "✅ PASS" if result else "❌ FAIL"
+        status = "[OK] PASS" if result else "[FAIL] FAIL"
         print(f"{status} {test_name}")
     
     print(f"\n🎯 Overall: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
@@ -243,7 +243,7 @@ def main():
         print("\n🎉 ALL TESTS PASSED! Adversarial parameters are properly configured!")
         return 0
     else:
-        print(f"\n⚠️ {total - passed} tests failed.")
+        print(f"\n[WARN] {total - passed} tests failed.")
         return 1
 
 if __name__ == "__main__":

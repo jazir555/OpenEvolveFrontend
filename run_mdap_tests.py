@@ -247,7 +247,7 @@ class MDAPTestRunner:
         print("=" * 80)
 
         for category, results in self.results.items():
-            status = "✓ PASSED" if results["success"] else "✗ FAILED"
+            status = "[OK] PASSED" if results["success"] else "[FAIL] FAILED"
             print(f"\n{category.upper()}: {status}")
             print(f"  Tests run: {results['tests_run']}")
             print(f"  Successes: {results['successes']}")
@@ -373,7 +373,7 @@ class PerformanceBenchmark:
         # Print results
         print("\nBenchmark Results:")
         for benchmark, result in self.results.items():
-            status = "✓" if result["passed"] else "✗"
+            status = "[OK]" if result["passed"] else "[FAIL]"
             print(f"  {status} {benchmark}: {result['duration']:.4f}s")
 
     def save_benchmark_results(

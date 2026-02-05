@@ -71,9 +71,9 @@ def run_quick_test():
             )
             print(f"   Global warmup in progress...")
             warmup_result = benchmark_suite.run_single_benchmark(warmup_config)
-            print(f"   ✅ Global warmup completed")
+            print(f"   [OK] Global warmup completed")
         except Exception as e:
-            print(f"   ⚠️  Global warmup failed: {e}")
+            print(f"   [WARN]  Global warmup failed: {e}")
             print(f"   Continuing with individual tests...")
 
         results = []
@@ -124,7 +124,7 @@ def run_quick_test():
         print("Quick test complete! If this looks good, run the full benchmark suite.")
         print("Full suite: python qwen3_benchmark_suite.py")
         print("Compare mode: python run_benchmarks.py --mode compare")
-        print(f"✅ All tests included proper warmup for reliable results")
+        print(f"[OK] All tests included proper warmup for reliable results")
         print(f"🎯 Ready to test custom Metal kernel optimization!")
         print(f"{'='*80}")
 

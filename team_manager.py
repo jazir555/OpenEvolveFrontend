@@ -5,6 +5,18 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime
 from openevolve_structures import Team, ModelConfig
 
+# SECURITY: Import security framework
+try:
+    from security_framework import (
+        Permission, UserContext, authenticated, authorized,
+        get_audit_logger, InputValidator
+    )
+    SECURITY_AVAILABLE = True
+    logging.info("SECURITY: Team manager security enabled")
+except ImportError as e:
+    SECURITY_AVAILABLE = False
+    logging.warning(f"SECURITY: Team manager security not available: {e}")
+
 # **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for team operations
 try:
     from alerting_system import get_alert_manager, AlertSeverity

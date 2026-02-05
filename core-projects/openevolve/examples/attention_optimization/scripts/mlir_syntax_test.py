@@ -78,14 +78,14 @@
 #         Path(temp_file).unlink()  # Clean up
         
 #         if result.returncode == 0:
-#             print("✅ MLIR baseline syntax is correct!")
+#             print("[OK] MLIR baseline syntax is correct!")
 #             return True
 #         else:
-#             print(f"❌ MLIR syntax error: {result.stderr}")
+#             print(f"[FAIL] MLIR syntax error: {result.stderr}")
 #             return False
             
 #     except Exception as e:
-#         print(f"❌ Test error: {e}")
+#         print(f"[FAIL] Test error: {e}")
 #         return False
 
 # def test_tiling_pass():
@@ -127,16 +127,16 @@
 #         Path(temp_file).unlink()  # Clean up
         
 #         if result.returncode == 0:
-#             print("✅ Linalg tiling pass works!")
+#             print("[OK] Linalg tiling pass works!")
 #             print("Sample output:")
 #             print(result.stdout[:500] + "..." if len(result.stdout) > 500 else result.stdout)
 #             return True
 #         else:
-#             print(f"❌ Tiling pass error: {result.stderr}")
+#             print(f"[FAIL] Tiling pass error: {result.stderr}")
 #             return False
             
 #     except Exception as e:
-#         print(f"❌ Test error: {e}")
+#         print(f"[FAIL] Test error: {e}")
 #         return False
 
 # if __name__ == "__main__":
@@ -147,9 +147,9 @@
     
 #     if success1 and success2:
 #         print("\n🎉 All MLIR syntax tests passed!")
-#         print("✅ Ready to run AlphaEvolve evolution")
+#         print("[OK] Ready to run AlphaEvolve evolution")
 #     else:
-#         print("\n⚠️ Some tests failed. Check MLIR installation.")
+#         print("\n[WARN] Some tests failed. Check MLIR installation.")
         
 #     print("\n📋 If tests passed, run:")
 #     print("python openevolve-run.py fixed_initial_program.py fixed_evaluator.py --iterations 10")
@@ -235,14 +235,14 @@ module {
         Path(temp_file).unlink()  # Clean up
         
         if result.returncode == 0:
-            print("✅ MLIR baseline syntax is correct!")
+            print("[OK] MLIR baseline syntax is correct!")
             return True
         else:
-            print(f"❌ MLIR syntax error: {result.stderr}")
+            print(f"[FAIL] MLIR syntax error: {result.stderr}")
             return False
             
     except Exception as e:
-        print(f"❌ Test error: {e}")
+        print(f"[FAIL] Test error: {e}")
         return False
 
 def test_tiling_pass():
@@ -284,16 +284,16 @@ module {
         Path(temp_file).unlink()  # Clean up
         
         if result.returncode == 0:
-            print("✅ Linalg tiling pass works!")
+            print("[OK] Linalg tiling pass works!")
             print("Sample output:")
             print(result.stdout[:500] + "..." if len(result.stdout) > 500 else result.stdout)
             return True
         else:
-            print(f"❌ Tiling pass error: {result.stderr}")
+            print(f"[FAIL] Tiling pass error: {result.stderr}")
             return False
             
     except Exception as e:
-        print(f"❌ Test error: {e}")
+        print(f"[FAIL] Test error: {e}")
         return False
 
 if __name__ == "__main__":
@@ -304,9 +304,9 @@ if __name__ == "__main__":
     
     if success1 and success2:
         print("\n🎉 All MLIR syntax tests passed!")
-        print("✅ Ready to run AlphaEvolve evolution")
+        print("[OK] Ready to run AlphaEvolve evolution")
     else:
-        print("\n⚠️ Some tests failed. Check MLIR installation.")
+        print("\n[WARN] Some tests failed. Check MLIR installation.")
         
     print("\n📋 If tests passed, run:")
     print("python openevolve-run.py fixed_initial_program.py fixed_evaluator.py --iterations 10")

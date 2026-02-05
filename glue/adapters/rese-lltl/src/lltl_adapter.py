@@ -144,7 +144,7 @@ except ImportError as e:
         detection and auditability.
 
         From RESE Technical Manual §2.2:
-        "DEE → SCE (Auditability): The DEE's statistical results are converted
+        "DEE -> SCE (Auditability): The DEE's statistical results are converted
         into auditable Formal Propositional Commitments by assigning explicit
         Confidence Thresholds that the SCE can integrate into its logic graph
         for contradiction detection."
@@ -220,7 +220,7 @@ class LLTLAdapter:
             dito_config=DITOConfig(**self.config["dito"])
         )
 
-        # Initialize auditability components for DEE → SCE
+        # Initialize auditability components for DEE -> SCE
         self.auditability_enabled = os.getenv("LLTL_AUDITABILITY_ENABLED", "true").lower() == "true"
         self.default_confidence_threshold = float(os.getenv("LLTL_CONFIDENCE_THRESHOLD_DEFAULT", "0.75"))
         self.significance_level = float(os.getenv("LLTL_SIGNIFICANCE_LEVEL", "0.05"))
@@ -649,7 +649,7 @@ class LLTLAdapter:
             return False, f"Health check failed: {str(e)}"
 
     # ==========================================================================
-    # DEE → SCE: AUDITABILITY COMPONENT
+    # DEE -> SCE: AUDITABILITY COMPONENT
     # ==========================================================================
 
     def statistical_to_formal(
@@ -662,10 +662,10 @@ class LLTLAdapter:
         """
         Convert DEE statistical result to Formal Propositional Commitment
 
-        This is the missing DEE → SCE component specified in §2.2
+        This is the missing DEE -> SCE component specified in §2.2
 
         From RESE Technical Manual §2.2:
-        "DEE → SCE (Auditability): The DEE's statistical results are converted
+        "DEE -> SCE (Auditability): The DEE's statistical results are converted
         into auditable Formal Propositional Commitments by assigning explicit
         Confidence Thresholds that the SCE can integrate into its logic graph
         for contradiction detection."
@@ -849,7 +849,7 @@ class LLTLAdapter:
         """
         Construct formal logical statement from statistical evidence
 
-        Format: "H ∧ (confidence ≥ T) ∧ (p ≤ α) → Accept(H)"
+        Format: "H ∧ (confidence ≥ T) ∧ (p ≤ α) -> Accept(H)"
 
         Args:
             hypothesis: Hypothesis statement
@@ -872,7 +872,7 @@ class LLTLAdapter:
             f"(confidence ≥ {confidence:.3f}) ∧ "
             f"(p_value ≤ {α:.3f}) ∧ "
             f"(CI ∈ [{confidence_interval[0]:.3f}, {confidence_interval[1]:.3f}]) "
-            f"→ Accept({hypothesis_short})"
+            f"-> Accept({hypothesis_short})"
         )
 
         return statement
@@ -1046,7 +1046,7 @@ class LLTLAdapter:
         """
         Get all formal commitments for audit
 
-        Returns complete audit trail of DEE → SCE translations
+        Returns complete audit trail of DEE -> SCE translations
 
         Returns:
             List of all FormalCommitment objects

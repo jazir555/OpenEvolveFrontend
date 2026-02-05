@@ -27,10 +27,10 @@ def test_imports():
             solve_with_guardrails,
             solve_with_redflagging
         )
-        print("✓ MDAP adapter imports successful")
+        print("[OK] MDAP adapter imports successful")
         return True
     except ImportError as e:
-        print(f"✗ Import failed: {e}")
+        print(f"[FAIL] Import failed: {e}")
         return False
 
 def test_enhanced_redflagging_imports():
@@ -49,7 +49,7 @@ def test_enhanced_redflagging_imports():
         )
 
         if ENHANCED_REDFLAGGING_AVAILABLE:
-            print("✓ Enhanced red flagging is available")
+            print("[OK] Enhanced red flagging is available")
             print(f"  - EnhancedRedFlagger: {EnhancedRedFlagger}")
             print(f"  - EnhancedRedFlagRules: {EnhancedRedFlagRules}")
             print(f"  - RedFlag: {RedFlag}")
@@ -59,7 +59,7 @@ def test_enhanced_redflagging_imports():
 
         return True
     except ImportError as e:
-        print(f"✗ Enhanced red flagging import failed: {e}")
+        print(f"[FAIL] Enhanced red flagging import failed: {e}")
         return False
 
 def test_adapter_creation():
@@ -73,14 +73,14 @@ def test_adapter_creation():
 
         adapter = create_mdap_adapter()
 
-        print("✓ Adapter created successfully")
+        print("[OK] Adapter created successfully")
         print(f"  - Type: {type(adapter).__name__}")
         print(f"  - Enhanced red flagging enabled: {adapter.enhanced_redflagging_enabled}")
         print(f"  - Enhanced red flagger: {adapter.enhanced_redflagger is not None}")
 
         return adapter
     except (ImportError, AttributeError, TypeError) as e:
-        print(f"✗ Adapter creation failed: {e}")
+        print(f"[FAIL] Adapter creation failed: {e}")
         return None
 
 def test_adapter_status(adapter):
@@ -90,13 +90,13 @@ def test_adapter_status(adapter):
     print("=" * 60)
 
     if not adapter:
-        print("✗ No adapter to test")
+        print("[FAIL] No adapter to test")
         return False
 
     try:
         status = adapter.get_status()
 
-        print("✓ Status retrieved successfully")
+        print("[OK] Status retrieved successfully")
         print(f"  - MDAP Core Available: {status.get('mdap_core_available')}")
         print(f"  - MDAP MCP Available: {status.get('mdap_mcp_available')}")
         print(f"  - Guardrails Available: {status.get('guardrails_available')}")
@@ -112,7 +112,7 @@ def test_adapter_status(adapter):
 
         return True
     except (AttributeError, KeyError, TypeError) as e:
-        print(f"✗ Status retrieval failed: {e}")
+        print(f"[FAIL] Status retrieval failed: {e}")
         return False
 
 def test_statistics(adapter):
@@ -122,26 +122,26 @@ def test_statistics(adapter):
     print("=" * 60)
 
     if not adapter:
-        print("✗ No adapter to test")
+        print("[FAIL] No adapter to test")
         return False
 
     try:
         stats = adapter.get_statistics()
 
-        print("✓ Statistics retrieved successfully")
+        print("[OK] Statistics retrieved successfully")
         print("  Statistics:")
         for key, value in stats.items():
             print(f"    - {key}: {value}")
 
         # Check for new statistics
         if 'enhanced_redflagging_used' in stats:
-            print("\n✓ Enhanced red flagging statistics tracked")
+            print("\n[OK] Enhanced red flagging statistics tracked")
         if 'red_flags_detected' in stats:
-            print("✓ Red flag detection statistics tracked")
+            print("[OK] Red flag detection statistics tracked")
 
         return True
     except (AttributeError, KeyError, TypeError) as e:
-        print(f"✗ Statistics retrieval failed: {e}")
+        print(f"[FAIL] Statistics retrieval failed: {e}")
         return False
 
 def test_method_signatures():
@@ -166,14 +166,14 @@ def test_method_signatures():
         all_exist = True
         for method in methods:
             if hasattr(MDAPReliabilityAdapter, method):
-                print(f"✓ Method exists: {method}")
+                print(f"[OK] Method exists: {method}")
             else:
-                print(f"✗ Method missing: {method}")
+                print(f"[FAIL] Method missing: {method}")
                 all_exist = False
 
         return all_exist
     except (ImportError, AttributeError) as e:
-        print(f"✗ Method signature check failed: {e}")
+        print(f"[FAIL] Method signature check failed: {e}")
         return False
 
 def main():
@@ -205,16 +205,16 @@ def main():
     total = len(results)
 
     for name, result in results:
-        status = "✓ PASS" if result else "✗ FAIL"
+        status = "[OK] PASS" if result else "[FAIL] FAIL"
         print(f"{status}: {name}")
 
     print(f"\nTotal: {passed}/{total} tests passed")
 
     if passed == total:
-        print("\n✓ All tests passed! Integration successful.")
+        print("\n[OK] All tests passed! Integration successful.")
         return 0
     else:
-        print(f"\n✗ {total - passed} test(s) failed.")
+        print(f"\n[FAIL] {total - passed} test(s) failed.")
         return 1
 
 if __name__ == "__main__":

@@ -70,44 +70,44 @@ async def test_backend_interface(backend_class, config: dict, backend_name: str)
     try:
         # Create backend
         backend = backend_class(config=config)
-        print(f"✓ Created {backend_name} backend")
+        print(f"[OK] Created {backend_name} backend")
 
         # Check backend type
         assert hasattr(backend, 'backend_type'), f"{backend_name}: Missing backend_type"
         assert hasattr(backend, 'get_backend_name'), f"{backend_name}: Missing get_backend_name"
-        print(f"✓ Backend type: {backend.get_backend_name()}")
+        print(f"[OK] Backend type: {backend.get_backend_name()}")
 
         # Test connection
         await backend.connect()
-        print(f"✓ Connected successfully")
+        print(f"[OK] Connected successfully")
 
         # Test health check
         is_healthy = await backend.health_check()
         assert is_healthy, f"{backend_name}: Health check failed"
-        print(f"✓ Health check passed")
+        print(f"[OK] Health check passed")
 
         # Test add_knowledge
         entry_id = await backend.add_knowledge(SAMPLE_ENTRIES[0])
         assert entry_id is not None, f"{backend_name}: add_knowledge returned None"
         assert isinstance(entry_id, str), f"{backend_name}: entry_id is not string"
-        print(f"✓ add_knowledge: {entry_id}")
+        print(f"[OK] add_knowledge: {entry_id}")
 
         # Test batch_add_knowledge
         ids = await backend.batch_add_knowledge(SAMPLE_ENTRIES[1:])
         assert len(ids) == len(SAMPLE_ENTRIES[1:]), f"{backend_name}: batch_add failed"
-        print(f"✓ batch_add_knowledge: {len(ids)} entries")
+        print(f"[OK] batch_add_knowledge: {len(ids)} entries")
 
         # Test search
         results = await backend.search(query="neural networks", limit=10)
         assert isinstance(results, SearchResults), f"{backend_name}: search didn't return SearchResults"
         assert results.backend_used == backend.get_backend_name(), f"{backend_name}: wrong backend name"
-        print(f"✓ search: {results.total_count} results in {results.search_time_ms:.2f}ms")
+        print(f"[OK] search: {results.total_count} results in {results.search_time_ms:.2f}ms")
 
         # Test get_statistics
         stats = await backend.get_statistics()
         assert isinstance(stats, GraphStatistics), f"{backend_name}: stats not GraphStatistics"
         assert stats.backend == backend.get_backend_name(), f"{backend_name}: wrong stats backend"
-        print(f"✓ get_statistics: {stats.node_count} nodes, {stats.edge_count} edges")
+        print(f"[OK] get_statistics: {stats.node_count} nodes, {stats.edge_count} edges")
 
         # Test analyze (try different types based on backend)
         analysis_types = {
@@ -122,7 +122,7 @@ async def test_backend_interface(backend_class, config: dict, backend_name: str)
             try:
                 analysis = await backend.analyze(analysis_type=analysis_type)
                 assert isinstance(analysis, AnalysisResult), f"{backend_name}: analysis not AnalysisResult"
-                print(f"✓ analyze ({analysis_type}): completed")
+                print(f"[OK] analyze ({analysis_type}): completed")
                 break  # Only need one successful analysis
             except Exception as e:
                 print(f"⊘ analyze ({analysis_type}): skipped - {str(e)[:50]}")
@@ -133,7 +133,7 @@ async def test_backend_interface(backend_class, config: dict, backend_name: str)
             viz = await backend.visualize(output_format='json')
             assert isinstance(viz, str), f"{backend_name}: visualize didn't return string"
             assert len(viz) > 0, f"{backend_name}: visualize returned empty string"
-            print(f"✓ visualize (json): {len(viz)} chars")
+            print(f"[OK] visualize (json): {len(viz)} chars")
         except Exception as e:
             print(f"⊘ visualize (json): skipped - {str(e)[:50]}")
 
@@ -141,7 +141,7 @@ async def test_backend_interface(backend_class, config: dict, backend_name: str)
         if backend_name != "KarateClub":  # Skip for KarateClub
             try:
                 updated = await backend.update_knowledge(entry_id, {"content": "Updated content"})
-                print(f"✓ update_knowledge: {updated}")
+                print(f"[OK] update_knowledge: {updated}")
             except NotImplementedError:
                 print(f"⊘ update_knowledge: not implemented")
             except Exception as e:
@@ -150,7 +150,7 @@ async def test_backend_interface(backend_class, config: dict, backend_name: str)
         # Test delete_knowledge
         try:
             deleted = await backend.delete_knowledge(entry_id)
-            print(f"✓ delete_knowledge: {deleted}")
+            print(f"[OK] delete_knowledge: {deleted}")
         except NotImplementedError:
             print(f"⊘ delete_knowledge: not implemented")
         except Exception as e:
@@ -158,13 +158,13 @@ async def test_backend_interface(backend_class, config: dict, backend_name: str)
 
         # Test disconnect
         await backend.disconnect()
-        print(f"✓ Disconnected")
+        print(f"[OK] Disconnected")
 
-        print(f"\n✅ {backend_name} Backend: ALL TESTS PASSED")
+        print(f"\n[OK] {backend_name} Backend: ALL TESTS PASSED")
         return True
 
     except Exception as e:
-        print(f"\n❌ {backend_name} Backend: FAILED")
+        print(f"\n[FAIL] {backend_name} Backend: FAILED")
         print(f"   Error: {e}")
         import traceback
         traceback.print_exc()
@@ -260,9 +260,9 @@ async def run_comprehensive_tests():
 
     for backend, result in results.items():
         if result is True:
-            status = "✅ PASSED"
+            status = "[OK] PASSED"
         elif result is False:
-            status = "❌ FAILED"
+            status = "[FAIL] FAILED"
         else:
             status = "⊘ SKIPPED"
         print(f"{backend:15s} {status}")
@@ -273,7 +273,7 @@ async def run_comprehensive_tests():
         print("\n🎉 SUCCESS: At least one backend working correctly!")
         return 0
     else:
-        print("\n⚠️  WARNING: Some backends failed")
+        print("\n[WARN]  WARNING: Some backends failed")
         return 1
 
 

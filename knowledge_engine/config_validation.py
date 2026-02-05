@@ -743,16 +743,16 @@ class ConfigValidator:
         print("="*80 + "\n")
 
         if self.result.is_valid:
-            print("✓ Configuration validation PASSED\n")
+            print("[OK] Configuration validation PASSED\n")
         else:
-            print("✗ Configuration validation FAILED\n")
+            print("[FAIL] Configuration validation FAILED\n")
 
         # Print errors
         if self.result.errors:
             print("ERRORS:")
             print("-" * 80)
             for error in self.result.errors:
-                print(f"  ✗ {error}")
+                print(f"  [FAIL] {error}")
             print()
 
         # Print warnings

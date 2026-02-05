@@ -358,7 +358,7 @@ class KnowledgeGraphMenu:
             lines.append(f"{prefix}{item.label}{shortcut}{submenu_indicator}")
 
         lines.append("")
-        lines.append("Use ↑↓ to navigate, Enter to select, Esc to go back")
+        lines.append("Use ^v to navigate, Enter to select, Esc to go back")
 
         return "\n".join(lines)
 

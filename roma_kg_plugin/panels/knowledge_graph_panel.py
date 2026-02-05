@@ -48,9 +48,9 @@ class KnowledgeGraphPanel:
     ├──────────────┬──────────────────────────────────┤
     │ Graph Stats  │ Interactive Graph                │
     │              │                                  │
-    │ - Nodes: 123  │     [Node A]───→[Node B]        │
+    │ - Nodes: 123  │     [Node A]───->[Node B]        │
     │ - Edges: 456  │        │         │              │
-    │ - Comm: 12    │        ↓         ↓              │
+    │ - Comm: 12    │        v         v              │
     │              │     [Node C]   [Node D]           │
     ├──────────────┴──────────────────────────────────┤
     │ Search: [______________] [Filter] [Export]       │

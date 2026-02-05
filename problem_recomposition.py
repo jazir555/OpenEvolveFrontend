@@ -1380,8 +1380,8 @@ class SolutionAssembler:
         4. Generates deterministic, reproducible output
 
         Key difference from creative mode:
-        - CREATIVE: LLM sees full content → rewrites everything → mutations occur
-        - DETERMINISTIC: LLM sees metadata only → decides structure → insert verbatim → no mutations
+        - CREATIVE: LLM sees full content -> rewrites everything -> mutations occur
+        - DETERMINISTIC: LLM sees metadata only -> decides structure -> insert verbatim -> no mutations
 
         Args:
             plan: Original decomposition plan with dependencies
@@ -1477,7 +1477,7 @@ class SolutionAssembler:
             sub_solutions: Dict of sub-solutions
 
         Returns:
-            Dict mapping sub_solution_id → metadata dict
+            Dict mapping sub_solution_id -> metadata dict
         """
         metadata = {}
 

@@ -3,10 +3,10 @@
 
 description = "Task description: The task is to extract key fields from customer documents (Purchase Order (PO) and Bill of Material (BOM), and align them so that each PO item is enriched with the correct technical details. Start with the customer purchase order, which could have multiple items. The item is linked to its BOM via a Material Number. For every item in the PO, pull out the Material Number along with the basic item details like Quantity, Description, and Delivery Date. Use the item’s Material Number from the PO to find the BOM having the same Material Number (represented as ‘ID’). From the matching BOM, extract the part’s ‘Type/Part Designation’ and Dimensions. Once you have the Type/Part Designation and Dimensions matched back to the PO item, keep them linked together with the PO fields you already pulled out. Repeat this process for all items in the PO. The final output should therefore contain as many lines as the number of items in the PO. 
 Each line should have: 
-• Material Number (from PO → linked with ‘ID’ in BOM) 
-• Quantity, Description, Delivery Date (from PO) 
-• Type/Part Designation (from BOM) 
-• Dimensions (from BOM)"
+* Material Number (from PO -> linked with ‘ID’ in BOM) 
+* Quantity, Description, Delivery Date (from PO) 
+* Type/Part Designation (from BOM) 
+* Dimensions (from BOM)"
 extraction_sequence = ['PO Item Extraction', 'BOM Detail Extraction', 'PO-BOM Alignment and Consolidation']
 document_classifications = {
   "Purchase Order (PO)": "PO-BOM Alignment and Consolidation",

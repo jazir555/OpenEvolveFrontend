@@ -24,10 +24,10 @@ def check(condition, name, description):
     """Check a condition and record result."""
     if condition:
         results['passed'].append((name, description))
-        print(f"✓ {name}: {description}")
+        print(f"[OK] {name}: {description}")
     else:
         results['failed'].append((name, description))
-        print(f"✗ {name}: {description}")
+        print(f"[FAIL] {name}: {description}")
 
 def warn(condition, name, description):
     """Check a condition and record warning."""
@@ -35,7 +35,7 @@ def warn(condition, name, description):
         results['warnings'].append((name, description))
         print(f"⚠ {name}: {description}")
     else:
-        print(f"✓ {name}: {description}")
+        print(f"[OK] {name}: {description}")
 
 # 1. Check Python version
 print("\n1. Python Version Check")
@@ -279,14 +279,14 @@ print("\n" + "="*80)
 print("VERIFICATION SUMMARY")
 print("="*80)
 
-print(f"\n✓ Passed: {len(results['passed'])}")
-print(f"✗ Failed: {len(results['failed'])}")
+print(f"\n[OK] Passed: {len(results['passed'])}")
+print(f"[FAIL] Failed: {len(results['failed'])}")
 print(f"⚠ Warnings: {len(results['warnings'])}")
 
 if results['failed']:
     print("\nFailed Checks:")
     for name, desc in results['failed']:
-        print(f"  ✗ {name}: {desc}")
+        print(f"  [FAIL] {name}: {desc}")
 
 if results['warnings']:
     print("\nWarnings:")
@@ -296,7 +296,7 @@ if results['warnings']:
 # Overall result
 if not results['failed']:
     print("\n" + "="*80)
-    print("✓ ALL CRITICAL CHECKS PASSED!")
+    print("[OK] ALL CRITICAL CHECKS PASSED!")
     print("="*80)
     print("\nThe OneKE Enhanced Integration is ready to use.")
     print("\nNext Steps:")
@@ -307,7 +307,7 @@ if not results['failed']:
     sys.exit(0)
 else:
     print("\n" + "="*80)
-    print("✗ SOME CHECKS FAILED")
+    print("[FAIL] SOME CHECKS FAILED")
     print("="*80)
     print("\nPlease resolve the failed checks above before using the integration.")
     sys.exit(1)

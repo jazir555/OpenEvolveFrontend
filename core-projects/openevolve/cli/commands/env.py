@@ -60,7 +60,7 @@ def set_env(variable, value, export, permanent):
     # Set in current environment
     os.environ[env_var] = value
 
-    click.echo(f"✓ Set {env_var}={value}")
+    click.echo(f"[OK] Set {env_var}={value}")
 
     # Export to .env file if specified
     if export:
@@ -111,7 +111,7 @@ def get_env(variable):
     if value is not None:
         click.echo(f"{env_var}={value}")
     else:
-        click.echo(f"✗ Environment variable '{env_var}' not set", err=True)
+        click.echo(f"[FAIL] Environment variable '{env_var}' not set", err=True)
         return 1
 
 
@@ -191,7 +191,7 @@ def export_env(output, prefix, force):
                 value = f'"{value}"'
             f.write(f"{var}={value}\n")
 
-    click.echo(f"✓ Exported {len(env_vars)} variables to {output}")
+    click.echo(f"[OK] Exported {len(env_vars)} variables to {output}")
 
 
 @env.command('load')
@@ -240,7 +240,7 @@ def load_env(file, dry_run):
     if dry_run:
         click.echo(f"\nDry run: Found variables in {file}")
     else:
-        click.echo(f"✓ Loaded {count} variable(s) from {file}")
+        click.echo(f"[OK] Loaded {count} variable(s) from {file}")
 
 
 @env.command('unset')
@@ -267,7 +267,7 @@ def unset_env(variable, remove_from):
     # Unset from current environment
     if env_var in os.environ:
         del os.environ[env_var]
-        click.echo(f"✓ Unset {env_var}")
+        click.echo(f"[OK] Unset {env_var}")
     else:
         click.echo(f"Environment variable '{env_var}' was not set")
         return 1
@@ -308,16 +308,16 @@ def validate_env():
         errors = parser.validate_env_vars()
 
         if not errors:
-            click.echo("✓ All environment variables are valid")
+            click.echo("[OK] All environment variables are valid")
             return 0
         else:
-            click.echo(f"✗ Found {len(errors)} environment variable error(s):", err=True)
+            click.echo(f"[FAIL] Found {len(errors)} environment variable error(s):", err=True)
             for error in errors:
                 click.echo(f"  - {error}", err=True)
             return 1
 
     except Exception as e:
-        click.echo(f"✗ Error validating environment: {e}", err=True)
+        click.echo(f"[FAIL] Error validating environment: {e}", err=True)
         return 1
 
 
@@ -343,7 +343,7 @@ def show_env_config():
         click.echo(yaml.dump(config.dict(), default_flow_style=False, sort_keys=False))
 
     except Exception as e:
-        click.echo(f"✗ Error showing configuration: {e}", err=True)
+        click.echo(f"[FAIL] Error showing configuration: {e}", err=True)
         return 1
 
 
@@ -406,7 +406,7 @@ def create_template(output, with_examples):
                 f.write(f"{var}=\n")
             f.write("\n")
 
-    click.echo(f"✓ Created template file: {output}")
+    click.echo(f"[OK] Created template file: {output}")
 
 
 # ============================================================================

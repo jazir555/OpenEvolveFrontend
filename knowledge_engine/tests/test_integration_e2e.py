@@ -78,7 +78,7 @@ class TestDocumentProcessingPipeline:
     @pytest.mark.skipif(not LOADER_AVAILABLE, reason="DocumentLoader not available")
     async def test_full_document_ingestion(self, sample_document, temp_dir, performance_tracker):
         """
-        Test complete document ingestion: load → extract → store → retrieve.
+        Test complete document ingestion: load -> extract -> store -> retrieve.
         """
         performance_tracker.start()
 
@@ -486,7 +486,7 @@ class TestEndToEndWorkflows:
     @pytest.mark.skipif(not CORE_AVAILABLE, reason="Core module not available")
     async def test_research_workflow(self, sample_document, performance_tracker):
         """
-        Test complete research workflow: ingest → extract → analyze → visualize.
+        Test complete research workflow: ingest -> extract -> analyze -> visualize.
         """
         performance_tracker.start()
 

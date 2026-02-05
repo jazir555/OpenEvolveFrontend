@@ -104,7 +104,7 @@ def list_presets(category, format, verbose):
                 click.echo(f"No presets found for category: {category}")
 
     except Exception as e:
-        click.echo(f"✗ Error listing presets: {e}", err=True)
+        click.echo(f"[FAIL] Error listing presets: {e}", err=True)
         raise click.Abort()
 
 
@@ -164,7 +164,7 @@ def show_preset(name, format):
                 click.echo("tabulate not installed. Use --format yaml instead")
 
     except Exception as e:
-        click.echo(f"✗ Error showing preset: {e}", err=True)
+        click.echo(f"[FAIL] Error showing preset: {e}", err=True)
         return 1
 
 
@@ -207,10 +207,10 @@ def apply_preset(name, output, format, base):
         # Save
         config_mgr.save_config(config, output_file, format)
 
-        click.echo(f"✓ Applied preset '{name}' to {output_file}")
+        click.echo(f"[OK] Applied preset '{name}' to {output_file}")
 
     except Exception as e:
-        click.echo(f"✗ Error applying preset: {e}", err=True)
+        click.echo(f"[FAIL] Error applying preset: {e}", err=True)
         return 1
 
 
@@ -239,12 +239,12 @@ def create_preset(name, config_file, description, category):
         config = config_mgr.load_config(config_file=config_file)
         preset = preset_mgr.create_preset(name, config, description, category)
 
-        click.echo(f"✓ Created preset '{name}'")
+        click.echo(f"[OK] Created preset '{name}'")
         click.echo(f"  Category: {category}")
         click.echo(f"  Description: {description}")
 
     except Exception as e:
-        click.echo(f"✗ Error creating preset: {e}", err=True)
+        click.echo(f"[FAIL] Error creating preset: {e}", err=True)
         return 1
 
 
@@ -270,7 +270,7 @@ def delete_preset(name, force):
         built_in_presets = ['fast', 'balanced', 'thorough', 'minimal', 'maximum']
 
         if name in built_in_presets:
-            click.echo(f"✗ Cannot delete built-in preset '{name}'", err=True)
+            click.echo(f"[FAIL] Cannot delete built-in preset '{name}'", err=True)
             return 1
 
         if not force:
@@ -280,10 +280,10 @@ def delete_preset(name, force):
 
         manager.delete_preset(name)
 
-        click.echo(f"✓ Deleted preset '{name}'")
+        click.echo(f"[OK] Deleted preset '{name}'")
 
     except Exception as e:
-        click.echo(f"✗ Error deleting preset: {e}", err=True)
+        click.echo(f"[FAIL] Error deleting preset: {e}", err=True)
         return 1
 
 
@@ -313,16 +313,16 @@ def validate_preset(name):
         result = validator.validate(config)
 
         if result.is_valid:
-            click.echo(f"✓ Preset '{name}' is valid")
+            click.echo(f"[OK] Preset '{name}' is valid")
             return 0
         else:
-            click.echo(f"✗ Preset '{name}' has {len(result.errors)} error(s):", err=True)
+            click.echo(f"[FAIL] Preset '{name}' has {len(result.errors)} error(s):", err=True)
             for error in result.errors:
                 click.echo(f"  - {error}", err=True)
             return 1
 
     except Exception as e:
-        click.echo(f"✗ Error validating preset: {e}", err=True)
+        click.echo(f"[FAIL] Error validating preset: {e}", err=True)
         return 1
 
 
@@ -377,7 +377,7 @@ def compare_presets(preset1, preset2, format):
                 click.echo("tabulate not installed")
 
     except Exception as e:
-        click.echo(f"✗ Error comparing presets: {e}", err=True)
+        click.echo(f"[FAIL] Error comparing presets: {e}", err=True)
         return 1
 
 
@@ -445,5 +445,5 @@ def search_presets(query, category):
             click.echo(f"No presets found matching '{query}'")
 
     except Exception as e:
-        click.echo(f"✗ Error searching presets: {e}", err=True)
+        click.echo(f"[FAIL] Error searching presets: {e}", err=True)
         return 1

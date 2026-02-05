@@ -41,7 +41,7 @@ class TestLeanAideSOPIntegration(unittest.TestCase):
         self.assertIsNotNone(self.integration.autoformalization_engine)
         self.assertTrue(self.integration.enable_predictive_flagging)
         self.assertTrue(self.integration.enable_red_flagging)
-        print("✅ Integration system initialized successfully")
+        print("[OK] Integration system initialized successfully")
 
     def test_mathematical_component_extraction(self):
         """Test extraction of mathematical components from SOP content."""
@@ -69,7 +69,7 @@ class TestLeanAideSOPIntegration(unittest.TestCase):
             self.assertTrue(any("x + y > 0" in comp.description for comp in components))
             self.assertTrue(any("a² + b² = c²" in comp.description for comp in components))
             
-            print(f"✅ Extracted {len(components)} mathematical components")
+            print(f"[OK] Extracted {len(components)} mathematical components")
             
             # Check domain inference
             for comp in components:
@@ -97,7 +97,7 @@ class TestLeanAideSOPIntegration(unittest.TestCase):
             print(f"  - '{statement[:30]}...' -> {inferred_domain} (expected: {expected_domain})")
             # Note: We're just verifying the function works, not exact matches
         
-        print("✅ Domain inference working")
+        print("[OK] Domain inference working")
 
     @patch('leanaide_sop_integration.LeanAideAutoformalizationEngine')
     def test_verify_mathematical_component(self, mock_engine_class):
@@ -128,7 +128,7 @@ class TestLeanAideSOPIntegration(unittest.TestCase):
             self.assertIsInstance(result, FormalVerificationResult)
             self.assertTrue(result.success)
             self.assertGreater(result.confidence, 0.5)
-            print(f"✅ Mathematical component verified: confidence={result.confidence}")
+            print(f"[OK] Mathematical component verified: confidence={result.confidence}")
         
         asyncio.run(run_test())
 
@@ -168,7 +168,7 @@ class TestLeanAideSOPIntegration(unittest.TestCase):
             self.assertIn("average_confidence", results)
             self.assertIn("components", results)
             
-            print(f"✅ SOP verification completed: {results['total_components']} components, "
+            print(f"[OK] SOP verification completed: {results['total_components']} components, "
                   f"{results['successful_verifications']} successful, "
                   f"success_rate={results['success_rate']:.2f}, "
                   f"avg_confidence={results['average_confidence']:.3f}")
@@ -208,7 +208,7 @@ class TestLeanAideSOPIntegration(unittest.TestCase):
         self.assertIn("Successfully verified: 1", enhanced_sop)
         self.assertIn("Success rate: 0.50", enhanced_sop)
         
-        print("✅ SOP enhancement with verification summary working")
+        print("[OK] SOP enhancement with verification summary working")
 
 
 class TestEnhancedSOPGenerator(unittest.TestCase):
@@ -237,7 +237,7 @@ class TestEnhancedSOPGenerator(unittest.TestCase):
         self.assertIsNotNone(self.enhanced_generator)
         self.assertEqual(self.enhanced_generator.base_generator, self.mock_base_generator)
         self.assertEqual(self.enhanced_generator.leanaide_integration, self.leanaide_integration)
-        print("✅ Enhanced SOP generator initialized successfully")
+        print("[OK] Enhanced SOP generator initialized successfully")
 
     @patch('leanaide_sop_integration.LeanAideSOPIntegration')
     @patch('leanaide_sop_integration.EnhancedSOPGenerator._sop_to_content')
@@ -266,7 +266,7 @@ class TestEnhancedSOPGenerator(unittest.TestCase):
             )
             
             self.assertIsNotNone(result)
-            print("✅ SOP generation with verification completed successfully")
+            print("[OK] SOP generation with verification completed successfully")
         
         asyncio.run(run_test())
 
@@ -295,7 +295,7 @@ class TestEnhancedSOPGenerator(unittest.TestCase):
         content = self.enhanced_generator._sop_to_content(plain_obj)
         self.assertEqual(content, "plain content")
         
-        print("✅ SOP to content conversion working")
+        print("[OK] SOP to content conversion working")
 
     def test_update_sop_with_verification(self):
         """Test updating SOP with verification information."""
@@ -313,7 +313,7 @@ class TestEnhancedSOPGenerator(unittest.TestCase):
         self.assertIn("verification_results", updated_sop.metadata)
         self.assertEqual(updated_sop.metadata["verification_results"], verification_results)
         
-        print("✅ SOP update with verification working")
+        print("[OK] SOP update with verification working")
 
 
 class TestFactoryFunction(unittest.TestCase):
@@ -332,7 +332,7 @@ class TestFactoryFunction(unittest.TestCase):
         )
         
         self.assertIsInstance(enhanced_gen, EnhancedSOPGenerator)
-        print("✅ Factory function creates enhanced generator successfully")
+        print("[OK] Factory function creates enhanced generator successfully")
 
 
 def run_integration_tests():
@@ -363,9 +363,9 @@ def run_integration_tests():
     
     if result.wasSuccessful():
         print("\n🎉 ALL INTEGRATION TESTS PASSED!")
-        print("✅ LeanAide-SOP integration is fully functional")
+        print("[OK] LeanAide-SOP integration is fully functional")
     else:
-        print(f"\n❌ {len(result.failures) + len(result.errors)} tests failed")
+        print(f"\n[FAIL] {len(result.failures) + len(result.errors)} tests failed")
         for failure in result.failures:
             print(f"FAILURE: {failure[0]} - {failure[1]}")
         for error in result.errors:

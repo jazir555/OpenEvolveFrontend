@@ -6,11 +6,11 @@ providing a robust, multi-agent, voting-based system for generating and verifyin
 
 Architecture:
     Layer 1: LeanMDAPTask decomposition (if needed)
-        ↓
+        v
     Layer 2: Multi-agent parallel execution (evolution, MCTS, adversarial, self-play)
-        ↓
+        v
     Layer 3: Voting-based aggregation (first-K-ahead-by-K)
-        ↓
+        v
     Layer 4: Verification and refinement
 
 Key Components:
@@ -344,7 +344,7 @@ class LeanMDAPTask(MDAPTask):
 
     Typical workflow:
     1. Decomposition (if needed for complex theorems)
-    2. Translation (Natural Language → Lean)
+    2. Translation (Natural Language -> Lean)
     3. Proof generation (multiple strategies)
     4. Verification
     5. Refinement (if needed)
@@ -1110,7 +1110,7 @@ class LeanMDAPOrchestrator(MDAPOrchestrator if MDAP_AVAILABLE else object):
     - Parallel agent execution
     - Voting aggregation
     - Red-flagging for invalid proofs
-    - Hierarchical execution (decomposition → proof → verify)
+    - Hierarchical execution (decomposition -> proof -> verify)
     - Checkpointing for long-running tasks
     """
 
@@ -1877,7 +1877,7 @@ class LeanMDAPOrchestrator(MDAPOrchestrator if MDAP_AVAILABLE else object):
             })
 
         # Pattern 3: Complex implication chain
-        elif theorem.count("→") > 2 or theorem.count("->") > 2:
+        elif theorem.count("->") > 2 or theorem.count("->") > 2:
             # Break into intermediate lemmas
             sub_theorems.append({
                 "description": "Intermediate result 1",

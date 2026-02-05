@@ -319,7 +319,7 @@ class OutputGenerator:
             lines.append("")
 
             for result in assembly.validation_results:
-                status = "✅" if result.get("passed", False) else "❌"
+                status = "[OK]" if result.get("passed", False) else "[FAIL]"
                 lines.append(f"- {status} **{result.get('validation_type', 'Unknown')}**")
                 if "reason" in result:
                     lines.append(f"  - Reason: {result['reason']}")

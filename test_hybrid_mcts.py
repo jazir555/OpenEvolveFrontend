@@ -144,7 +144,7 @@ def test_theorems():
         },
         {
             "name": "complex_lemma",
-            "statement": "∀ (P : Nat → Prop), (∀ n, P n → P (n + 1)) → P 0 → ∀ n, P n",
+            "statement": "∀ (P : Nat -> Prop), (∀ n, P n -> P (n + 1)) -> P 0 -> ∀ n, P n",
             "difficulty": "hard",
             "expected_tactics": ["induction", "cases", "apply"],
         },

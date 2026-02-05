@@ -13,17 +13,17 @@ The prompt is a working surface. Memory lives outside.
 State is continuously maintained. Only changes are merged.
 
 Architecture:
-    User Input → Process Turn → Build Context → LLM → Extract Updates
-                      ↓              ↑
+    User Input -> Process Turn -> Build Context -> LLM -> Extract Updates
+                      v              ^
               [Unified Memory System]
-                      ↓
+                      v
     ┌─────────────────┼─────────────────┐
-    ↓                 ↓                 ↓
+    v                 v                 v
 State Manager    4-Layer Index    Hybrid Retriever
-    ↓                 ↓                 ↓
-Always-True   Hash→Hierarchical→  4 Strategies
-   State        Graph→Semantic    (top-N results)
-    ↓                 ↓                 ↓
+    v                 v                 v
+Always-True   Hash->Hierarchical->  4 Strategies
+   State        Graph->Semantic    (top-N results)
+    v                 v                 v
 Persistent     Lifecycle Mgr    Working Memory
 Storage        (confidence,      (build prompt)
                decay, archive)

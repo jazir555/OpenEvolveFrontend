@@ -49,7 +49,7 @@ class WorkingIntegrationBridge:
             logger.info("[OK] LeanAide client available")
         except ImportError as e:
             self.status['leanaide'] = f'not_available: {e}'
-            logger.warning("✗ LeanAide not available: %s", e)
+            logger.warning("[FAIL] LeanAide not available: %s", e)
         
         # Check BubbleLabs availability
         try:
@@ -59,7 +59,7 @@ class WorkingIntegrationBridge:
             logger.info("[OK] BubbleLabs integration available")
         except ImportError as e:
             self.status['bubblelabs'] = f'not_available: {e}'
-            logger.warning("✗ BubbleLabs not available: %s", e)
+            logger.warning("[FAIL] BubbleLabs not available: %s", e)
         
         # Check ROMA availability
         try:
@@ -69,7 +69,7 @@ class WorkingIntegrationBridge:
             logger.info("[OK] ROMA integration available")
         except ImportError as e:
             self.status['roma'] = f'not_available: {e}'
-            logger.warning("✗ ROMA not available: %s", e)
+            logger.warning("[FAIL] ROMA not available: %s", e)
         
         # Check CrewAI availability
         try:
@@ -79,7 +79,7 @@ class WorkingIntegrationBridge:
             logger.info("[OK] CrewAI-BubbleLabs bridge available")
         except ImportError as e:
             self.status['crewai_bubblelabs'] = f'not_available: {e}'
-            logger.warning("✗ CrewAI bridge not available: %s", e)
+            logger.warning("[FAIL] CrewAI bridge not available: %s", e)
         
         try:
             import roma_crewai_bridge
@@ -88,7 +88,7 @@ class WorkingIntegrationBridge:
             logger.info("[OK] CrewAI-ROMA bridge available")
         except ImportError as e:
             self.status['crewai_roma'] = f'not_available: {e}'
-            logger.warning("✗ CrewAI-ROMA bridge not available: %s", e)
+            logger.warning("[FAIL] CrewAI-ROMA bridge not available: %s", e)
         
         try:
             import leanaide_crewai_bridge
@@ -97,7 +97,7 @@ class WorkingIntegrationBridge:
             logger.info("[OK] CrewAI-LeanAide bridge available")
         except ImportError as e:
             self.status['crewai_leanaide'] = f'not_available: {e}'
-            logger.warning("✗ CrewAI-LeanAide bridge not available: %s", e)
+            logger.warning("[FAIL] CrewAI-LeanAide bridge not available: %s", e)
         
         # Check integration modules
         try:
@@ -107,7 +107,7 @@ class WorkingIntegrationBridge:
             logger.info("[OK] BubbleLabs-LeanAide integration available")
         except ImportError as e:
             self.status['bubblelabs_leanaide'] = f'not_available: {e}'
-            logger.warning("✗ BubbleLabs-LeanAide not available: %s", e)
+            logger.warning("[FAIL] BubbleLabs-LeanAide not available: %s", e)
     
     async def call_leanaide_autoformalize(self, problem_description: str) -> Dict[str, Any]:
         """

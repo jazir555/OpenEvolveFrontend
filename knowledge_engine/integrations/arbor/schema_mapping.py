@@ -1,5 +1,5 @@
 """
-Schema Mapping: Arbor Graph → Knowledge Engine Unified Graph
+Schema Mapping: Arbor Graph -> Knowledge Engine Unified Graph
 
 Converts Arbor's code graph schema to Knowledge Engine's entity-relationship model.
 
@@ -100,7 +100,7 @@ class ArborSchemaMapper:
     Maps Arbor graph schema to Knowledge Engine unified schema.
     
     Handles:
-    - Node type conversion (Arbor kind → KE entity_type)
+    - Node type conversion (Arbor kind -> KE entity_type)
     - Property mapping and transformation
     - Edge relationship conversion
     - ID namespacing to avoid collisions

@@ -30,7 +30,7 @@ manager = OpenEvolveWorkflowManager(
     analytics_db_path='demo_openevolve_analytics.db',
     enable_CREWAI=False  # Disable for demo
 )
-print("   ✓ Manager initialized")
+print("   [OK] Manager initialized")
 
 # Create a workflow from template
 print("\n2. Creating workflow from template...")
@@ -43,7 +43,7 @@ workflow_id = manager.create_workflow_from_template(
         'team_size': 2
     }
 )
-print(f"   ✓ Created workflow: {workflow_id}")
+print(f"   [OK] Created workflow: {workflow_id}")
 
 # List all workflows
 print("\n3. Listing all workflows...")
@@ -70,7 +70,7 @@ result = manager.execute_workflow(
 )
 
 if result.success:
-    print(f"   ✓ Execution successful!")
+    print(f"   [OK] Execution successful!")
     print(f"   - Status: {result.status}")
     print(f"   - Execution time: {result.execution_time:.2f}s")
     print(f"   - Tokens used: {result.tokens_used}")
@@ -78,13 +78,13 @@ if result.success:
     if result.result:
         print(f"   - Result: {result.result}")
 else:
-    print(f"   ✗ Execution failed: {result.error}")
+    print(f"   [FAIL] Execution failed: {result.error}")
 
 # Get analytics
 print("\n6. Getting workflow analytics...")
 metrics = manager.get_workflow_metrics(workflow_id)
 if metrics:
-    print(f"   ✓ Analytics available:")
+    print(f"   [OK] Analytics available:")
     print(f"   - Total workflows: {metrics.get('total_workflows', 0)}")
     print(f"   - Total tokens: {metrics.get('total_tokens', 0)}")
     print(f"   - Total cost: ${metrics.get('total_cost', 0.0):.4f}")

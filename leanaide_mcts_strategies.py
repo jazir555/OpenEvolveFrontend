@@ -1259,7 +1259,7 @@ class LogicalMCTS(DomainSpecificStrategy):
                     base_score *= 1.6
 
             # Implication
-            if "→" in state.get("goal", "") or "implies" in goal:
+            if "->" in state.get("goal", "") or "implies" in goal:
                 if tactic_name in ["intro", "apply"]:
                     base_score *= 1.4
 
@@ -1287,7 +1287,7 @@ class LogicalMCTS(DomainSpecificStrategy):
             base_value += 0.15
 
         # Bonus for quantifiers
-        if any(q in state.get("goal", "") for q in ["∀", "∃", "→", "∧", "∨"]):
+        if any(q in state.get("goal", "") for q in ["∀", "∃", "->", "∧", "∨"]):
             base_value += 0.15
 
         # Bonus for constructive structure

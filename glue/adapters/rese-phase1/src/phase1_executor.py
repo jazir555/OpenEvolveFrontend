@@ -290,7 +290,7 @@ class CircuitBreaker:
     """Circuit breaker for failure detection
 
     Follows CLAUDE.md Failure Management Strategy:
-    - System Failure → Circuit Breaker
+    - System Failure -> Circuit Breaker
     - Stop hammering the dead service
     - Wait for health check to pass
     """
@@ -369,7 +369,7 @@ class DeadLetterQueue:
     """Dead Letter Queue for failed audits
 
     Follows CLAUDE.md Failure Management Strategy:
-    - Logic Failure → DLQ (bad assumptions)
+    - Logic Failure -> DLQ (bad assumptions)
     - Do not block the pipeline
     """
 
@@ -967,8 +967,8 @@ class ConstraintHardener:
 
     Z3 Integration:
     - Uses formal logic for constraint inversion (not text replacement)
-    - Handles quantifier negation: ¬(∃x. P(x)) → ∀x. ¬P(x)
-    - Applies De Morgan's laws: ¬(P ∧ Q) → (¬P ∨ ¬Q)
+    - Handles quantifier negation: ¬(∃x. P(x)) -> ∀x. ¬P(x)
+    - Applies De Morgan's laws: ¬(P ∧ Q) -> (¬P ∨ ¬Q)
     - Verifies satisfiability of inverted constraints
     """
 

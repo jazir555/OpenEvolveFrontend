@@ -23,10 +23,10 @@ def test_core_data_models() -> bool:
             SubProblem, DecompositionPlan, SolutionAttempt, 
             CritiqueReport, VerificationReport, WorkflowState, KnowledgeArtifact, PerformanceMetrics
         )
-        print("✅ Core data models loaded successfully")
+        print("[OK] Core data models loaded successfully")
         return True
     except ImportError as e:
-        print(f"❌ Failed to import core data models: {e}")
+        print(f"[FAIL] Failed to import core data models: {e}")
         return False
 
 def test_team_management() -> bool:
@@ -36,10 +36,10 @@ def test_team_management() -> bool:
     try:
         from team_manager import TeamManager
         manager = TeamManager()
-        print("✅ Team manager loaded successfully")
+        print("[OK] Team manager loaded successfully")
         return True
     except ImportError as e:
-        print(f"❌ Failed to import team manager: {e}")
+        print(f"[FAIL] Failed to import team manager: {e}")
         return False
 
 def test_gauntlet_system() -> bool:
@@ -49,10 +49,10 @@ def test_gauntlet_system() -> bool:
     try:
         from gauntlet_manager import GauntletManager
         manager = GauntletManager()
-        print("✅ Gauntlet manager loaded successfully")
+        print("[OK] Gauntlet manager loaded successfully")
         return True
     except ImportError as e:
-        print(f"❌ Failed to import gauntlet manager: {e}")
+        print(f"[FAIL] Failed to import gauntlet manager: {e}")
         return False
 
 def test_workflow_engine() -> bool:
@@ -61,10 +61,10 @@ def test_workflow_engine() -> bool:
     
     try:
         from workflow_engine import run_sovereign_workflow
-        print("✅ Workflow engine loaded successfully")
+        print("[OK] Workflow engine loaded successfully")
         return True
     except ImportError as e:
-        print(f"❌ Failed to import workflow engine: {e}")
+        print(f"[FAIL] Failed to import workflow engine: {e}")
         return False
 
 def test_ui_components() -> bool:
@@ -76,10 +76,10 @@ def test_ui_components() -> bool:
             render_team_manager, render_gauntlet_designer, 
             render_manual_review_panel, render_enhanced_monitoring
         )
-        print("✅ UI components loaded successfully")
+        print("[OK] UI components loaded successfully")
         return True
     except ImportError as e:
-        print(f"❌ Failed to import UI components: {e}")
+        print(f"[FAIL] Failed to import UI components: {e}")
         return False
 
 def test_crewai_integration() -> bool:
@@ -91,10 +91,10 @@ def test_crewai_integration() -> bool:
         from crewai_client import CrewAIClient
         from sovereign_decomposition_crewai_integration import SovereignDecompositionCrewAIIntegration
         
-        print("✅ CrewAI integration components loaded successfully")
+        print("[OK] CrewAI integration components loaded successfully")
         return True
     except ImportError as e:
-        print(f"❌ Failed to import crewai # MIGRATED: was CrewAI integration: {e}")
+        print(f"[FAIL] Failed to import crewai # MIGRATED: was CrewAI integration: {e}")
         return False
 
 def test_main_orchestrator() -> bool:
@@ -107,10 +107,10 @@ def test_main_orchestrator() -> bool:
         # Check if SOVEREIGN_DECOMPOSITION is in the enum
         assert hasattr(EvolutionWorkflow, 'SOVEREIGN_DECOMPOSITION'), "SOVEREIGN_DECOMPOSITION not in EvolutionWorkflow enum"
         
-        print("✅ Main orchestrator includes sovereign workflow")
+        print("[OK] Main orchestrator includes sovereign workflow")
         return True
     except (ImportError, AssertionError) as e:
-        print(f"❌ Failed to verify main orchestrator: {e}")
+        print(f"[FAIL] Failed to verify main orchestrator: {e}")
         return False
 
 def test_workflow_stages() -> bool:
@@ -137,13 +137,13 @@ def test_workflow_stages() -> bool:
         ]
         
         if all(stages_found):
-            print("✅ All workflow stages are implemented")
+            print("[OK] All workflow stages are implemented")
             return True
         else:
-            print(f"❌ Missing stages: {[i for i, found in enumerate(stages_found) if not found]}")
+            print(f"[FAIL] Missing stages: {[i for i, found in enumerate(stages_found) if not found]}")
             return False
     except Exception as e:
-        print(f"❌ Failed to verify workflow stages: {e}")
+        print(f"[FAIL] Failed to verify workflow stages: {e}")
         return False
 
 def test_integration_points() -> bool:
@@ -161,10 +161,10 @@ def test_integration_points() -> bool:
             setup_crewai_integration
         )
         
-        print("✅ Integration points are properly implemented")
+        print("[OK] Integration points are properly implemented")
         return True
     except ImportError as e:
-        print(f"❌ Failed to import integration functions: {e}")
+        print(f"[FAIL] Failed to import integration functions: {e}")
         return False
 
 def run_comprehensive_verification() -> Dict[str, Any]:
@@ -195,7 +195,7 @@ def run_comprehensive_verification() -> Dict[str, Any]:
             if not result:
                 all_passed = False
         except Exception as e:
-            print(f"❌ Test {test_name} failed with exception: {e}")
+            print(f"[FAIL] Test {test_name} failed with exception: {e}")
             results[test_name] = False
             all_passed = False
     
@@ -204,25 +204,25 @@ def run_comprehensive_verification() -> Dict[str, Any]:
     print("=" * 80)
     
     for test_name, result in results.items():
-        status = "✅ PASS" if result else "❌ FAIL"
+        status = "[OK] PASS" if result else "[FAIL] FAIL"
         print(f"{test_name:<30} {status}")
     
     print("=" * 80)
     if all_passed:
         print("SUCCESS: ALL TESTS PASSED! The Sovereign-Grade Decomposition Workflow is fully implemented.")
         print("\nImplemented Features:")
-        print("• Core data models and schemas")
-        print("• Team management system (Blue/Red/Gold teams)")
-        print("• Gauntlet system with programmable rules")
-        print("• End-to-end workflow stages 0-6")
-        print("• UI/UX components")
-        print("• Complete CrewAI integration")
-        print("• Real-time monitoring and analytics")
-        print("• Knowledge extraction and learning")
-        print("• Self-healing automation")
-        print("• Sovereign-grade control with manual override")
+        print("* Core data models and schemas")
+        print("* Team management system (Blue/Red/Gold teams)")
+        print("* Gauntlet system with programmable rules")
+        print("* End-to-end workflow stages 0-6")
+        print("* UI/UX components")
+        print("* Complete CrewAI integration")
+        print("* Real-time monitoring and analytics")
+        print("* Knowledge extraction and learning")
+        print("* Self-healing automation")
+        print("* Sovereign-grade control with manual override")
     else:
-        print("❌ SOME TESTS FAILED! Review the implementation status above.")
+        print("[FAIL] SOME TESTS FAILED! Review the implementation status above.")
     
     return {
         "all_tests_passed": all_passed,
@@ -237,5 +237,5 @@ if __name__ == "__main__":
     if results["all_tests_passed"]:
         print(f"\n🎉 SUCCESS: Implementation completeness: {results['passed_tests']}/{results['total_tests']} tests passed")
     else:
-        print(f"\n⚠️  PARTIAL SUCCESS: {results['passed_tests']}/{results['total_tests']} tests passed")
+        print(f"\n[WARN]  PARTIAL SUCCESS: {results['passed_tests']}/{results['total_tests']} tests passed")
         print("Some components may need additional implementation.")

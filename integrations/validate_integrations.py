@@ -50,7 +50,7 @@ def validate_stage(stage_num: int) -> bool:
 
         return True
     except Exception as e:
-        print(f"  ✗ Error: {e}")
+        print(f"  [FAIL] Error: {e}")
         return False
 
 def main():

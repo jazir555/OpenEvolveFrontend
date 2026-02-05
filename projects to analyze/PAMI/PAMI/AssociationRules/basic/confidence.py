@@ -210,7 +210,7 @@ class confidence:
 
         for itemset, sup in self._frequentPatterns.items():
             k = len(itemset)
-            if k < 2:           # singleton → no rule possible
+            if k < 2:           # singleton -> no rule possible
                 continue
 
             # all non-empty proper subsets are candidate antecedents

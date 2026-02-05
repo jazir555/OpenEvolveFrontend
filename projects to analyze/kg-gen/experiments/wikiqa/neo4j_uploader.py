@@ -39,9 +39,9 @@ Example (from a notebook):
 
 Mapping to Neo4j
 ----------------
-- Entities → Nodes with label `Entity`
-- Relations → Relationships with the predicate as the relationship type
-- Graph Name → Optional label/property you can set for organization
+- Entities -> Nodes with label `Entity`
+- Relations -> Relationships with the predicate as the relationship type
+- Graph Name -> Optional label/property you can set for organization
 
 Notes
 -----

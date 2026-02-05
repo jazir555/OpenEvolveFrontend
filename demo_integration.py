@@ -154,7 +154,7 @@ class IntegrationDemo:
                 self._print_success(f"Found {len(artifacts)} applicable artifacts")
                 
                 for artifact in artifacts[:3]:
-                    self._print_info(f"  • {artifact.name} (validity: {artifact.validity_score:.2f})")
+                    self._print_info(f"  * {artifact.name} (validity: {artifact.validity_score:.2f})")
                 
                 self.results.append({
                     'component': 'stage6',
@@ -231,7 +231,7 @@ class IntegrationDemo:
                     table.add_row(
                         event.type.value,
                         "workflow_events" if "WORKFLOW" in event.type.value else "stage_events",
-                        "✓ Received"
+                        "[OK] Received"
                     )
                 
                 console.print(table)
@@ -325,11 +325,11 @@ class IntegrationDemo:
                 table.add_column("Feature", style="cyan")
                 table.add_column("Status", style="green")
                 
-                table.add_row("Dynamic Loading", "✓ Supported")
-                table.add_row("File-based Discovery", "✓ Supported")
-                table.add_row("Module Import", "✓ Supported")
-                table.add_row("Lifecycle Management", "✓ Supported")
-                table.add_row("Hot Reload", "✓ Supported")
+                table.add_row("Dynamic Loading", "[OK] Supported")
+                table.add_row("File-based Discovery", "[OK] Supported")
+                table.add_row("Module Import", "[OK] Supported")
+                table.add_row("Lifecycle Management", "[OK] Supported")
+                table.add_row("Hot Reload", "[OK] Supported")
                 
                 console.print(table)
             
@@ -387,9 +387,9 @@ class IntegrationDemo:
                 f"[bold green]Demo Complete![/bold green]\n\n"
                 f"Successfully demonstrated {success_count}/{total_count} components.\n\n"
                 "Next steps:\n"
-                "  • Start services: [cyan]make start[/cyan]\n"
-                "  • Run tests: [cyan]make test[/cyan]\n"
-                "  • View dashboard: [cyan]make dashboard[/cyan]\n\n"
+                "  * Start services: [cyan]make start[/cyan]\n"
+                "  * Run tests: [cyan]make test[/cyan]\n"
+                "  * View dashboard: [cyan]make dashboard[/cyan]\n\n"
                 "Documentation: [cyan]INTEGRATION_GUIDE.md[/cyan]",
                 title="🎉 Finished",
                 border_style="green"
@@ -413,16 +413,16 @@ class IntegrationDemo:
     def _print_step(self, message: str):
         """Print step message."""
         if console:
-            console.print(f"  [blue]→[/blue] {message}")
+            console.print(f"  [blue]->[/blue] {message}")
         else:
-            print(f"  → {message}")
+            print(f"  -> {message}")
     
     def _print_success(self, message: str):
         """Print success message."""
         if console:
-            console.print(f"    [green]✓[/green] {message}")
+            console.print(f"    [green][OK][/green] {message}")
         else:
-            print(f"    ✓ {message}")
+            print(f"    [OK] {message}")
     
     def _print_info(self, message: str):
         """Print info message."""
@@ -434,9 +434,9 @@ class IntegrationDemo:
     def _print_error(self, message: str):
         """Print error message."""
         if console:
-            console.print(f"    [red]✗[/red] {message}")
+            console.print(f"    [red][FAIL][/red] {message}")
         else:
-            print(f"    ✗ {message}")
+            print(f"    [FAIL] {message}")
     
     async def run(self, components: List[str] = None):
         """Run demo."""

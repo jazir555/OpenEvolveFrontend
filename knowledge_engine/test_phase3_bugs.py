@@ -29,7 +29,7 @@ def test_imports():
     from real_database_integration import RealDatabaseIntegrator
     from production_engine import ProductionKnowledgeEngine
     
-    print("✅ All imports successful")
+    print("[OK] All imports successful")
     return True
 
 def test_database_integrator():
@@ -54,7 +54,7 @@ def test_database_integrator():
     production_ready = integrator.is_production_ready()
     print(f"Production ready: {production_ready}")
     
-    print("✅ Database integrator test completed")
+    print("[OK] Database integrator test completed")
     return True
 
 def test_production_engine():
@@ -76,7 +76,7 @@ def test_production_engine():
     print(f"Health report status: {health_report['overall_status']}")
     assert 'overall_status' in health_report
     
-    print("✅ Production engine test completed")
+    print("[OK] Production engine test completed")
     return True
 
 def test_workflow_processing():
@@ -108,7 +108,7 @@ def test_workflow_processing():
     print(f"Minimal workflow result: {minimal_result['status']}")
     assert 'status' in minimal_result
     
-    print("✅ Workflow processing test completed")
+    print("[OK] Workflow processing test completed")
     return True
 
 def test_search_functionality():
@@ -132,7 +132,7 @@ def test_search_functionality():
     print(f"Hybrid: {hybrid_result['status']}, Vector: {vector_result['status']}, Keyword: {keyword_result['status']}")
     assert hybrid_result['status'] == 'success'
     
-    print("✅ Search functionality test completed")
+    print("[OK] Search functionality test completed")
     return True
 
 def test_recommendations():
@@ -155,7 +155,7 @@ def test_recommendations():
     print(f"Personalized recommendations: {personalized_recs['status']}")
     assert personalized_recs['status'] == 'success'
     
-    print("✅ Recommendations test completed")
+    print("[OK] Recommendations test completed")
     return True
 
 def test_analytics():
@@ -176,7 +176,7 @@ def test_analytics():
     print(f"Health report generated: {len(health_report) > 0}")
     assert 'overall_status' in health_report
     
-    print("✅ Analytics test completed")
+    print("[OK] Analytics test completed")
     return True
 
 def test_error_handling():
@@ -195,7 +195,7 @@ def test_error_handling():
     except Exception as e:
         print(f"Caught expected error or handled gracefully: {e}")
     
-    print("✅ Error handling test completed")
+    print("[OK] Error handling test completed")
     return True
 
 if __name__ == "__main__":

@@ -46,7 +46,7 @@ class TestEntityKnowledgeGraph:
         assert stats['entity_count'] == 0
         assert stats['relationship_count'] == 0
         assert stats['correlation_id'] == "test-123"
-        print("✓ Graph initialization successful")
+        print("[OK] Graph initialization successful")
 
     def test_add_entity(self):
         """Test adding entities to the graph."""
@@ -65,7 +65,7 @@ class TestEntityKnowledgeGraph:
         assert entity['name'] == "Alice"
         assert entity['entity_type'] == "Person"
         assert entity['attributes']['age'] == 30
-        print("✓ Entity added successfully")
+        print("[OK] Entity added successfully")
 
     def test_add_entity_idempotent(self):
         """Test that adding same entity twice is idempotent."""
@@ -83,7 +83,7 @@ class TestEntityKnowledgeGraph:
         assert entity_v2['attributes']['age'] == 25
         assert entity_v2['attributes']['city'] == "LA"
         assert entity_v2['updated_at'] >= entity_v1['updated_at']
-        print("✓ Entity addition is idempotent")
+        print("[OK] Entity addition is idempotent")
 
     def test_add_entity_validation(self):
         """Test input validation for entity addition."""
@@ -99,7 +99,7 @@ class TestEntityKnowledgeGraph:
         result = graph.add_entity(None, "Person")
         assert result is False
 
-        print("✓ Entity validation works correctly")
+        print("[OK] Entity validation works correctly")
 
     def test_add_relationship(self):
         """Test adding relationships between entities."""
@@ -125,7 +125,7 @@ class TestEntityKnowledgeGraph:
         assert relationships[0]['source'] == "Alice"
         assert relationships[0]['target'] == "Bob"
         assert relationships[0]['relation_type'] == "KNOWS"
-        print("✓ Relationship added successfully")
+        print("[OK] Relationship added successfully")
 
     def test_add_relationship_idempotent(self):
         """Test that adding same relationship twice is idempotent."""
@@ -145,7 +145,7 @@ class TestEntityKnowledgeGraph:
         assert result1 is True
         assert result2 is True
         assert len(relationships_v1) == len(relationships_v2) == 1
-        print("✓ Relationship addition is idempotent")
+        print("[OK] Relationship addition is idempotent")
 
     def test_find_entities_by_type(self):
         """Test finding entities by type."""
@@ -159,7 +159,7 @@ class TestEntityKnowledgeGraph:
         persons = graph.find_entities(entity_type="Person")
         assert len(persons) == 2
         assert all(p['entity_type'] == "Person" for p in persons)
-        print("✓ Finding entities by type works")
+        print("[OK] Finding entities by type works")
 
     def test_find_entities_by_attributes(self):
         """Test finding entities by attributes."""
@@ -176,7 +176,7 @@ class TestEntityKnowledgeGraph:
         )
         assert len(results) == 1
         assert results[0]['name'] == "Alice"
-        print("✓ Finding entities by attributes works")
+        print("[OK] Finding entities by attributes works")
 
     def test_search_entities(self):
         """Test searching entities by query."""
@@ -194,7 +194,7 @@ class TestEntityKnowledgeGraph:
         results = graph.search_entities("programming")
         assert len(results) == 1
         assert results[0]['name'] == "Python"
-        print("✓ Entity search works correctly")
+        print("[OK] Entity search works correctly")
 
     def test_to_json(self):
         """Test serializing graph to JSON."""
@@ -212,7 +212,7 @@ class TestEntityKnowledgeGraph:
         assert len(data['entities']) == 2
         assert len(data['relationships']) == 1
         assert data['metadata']['correlation_id'] == "test-json"
-        print("✓ JSON serialization works")
+        print("[OK] JSON serialization works")
 
     def test_from_json(self):
         """Test loading graph from JSON."""
@@ -237,7 +237,7 @@ class TestEntityKnowledgeGraph:
         alice = graph2.get_entity("Alice")
         assert alice is not None
         assert alice['attributes']['age'] == 30
-        print("✓ JSON deserialization works")
+        print("[OK] JSON deserialization works")
 
     def test_get_statistics(self):
         """Test getting graph statistics."""
@@ -253,7 +253,7 @@ class TestEntityKnowledgeGraph:
         assert stats['relationship_count'] == 1
         assert 'Person' in stats['entity_types']
         assert stats['entity_types']['Person'] == 2
-        print("✓ Statistics calculation works")
+        print("[OK] Statistics calculation works")
 
     def test_clear(self):
         """Test clearing the graph."""
@@ -268,7 +268,7 @@ class TestEntityKnowledgeGraph:
         stats = graph.get_statistics()
         assert stats['entity_count'] == 0
         assert stats['relationship_count'] == 0
-        print("✓ Graph clearing works")
+        print("[OK] Graph clearing works")
 
     @pytest.mark.asyncio
     async def test_async_operations(self):
@@ -295,7 +295,7 @@ class TestEntityKnowledgeGraph:
         data = json.loads(json_str)
         assert data['metadata']['entity_count'] == 2
 
-        print("✓ Async operations work correctly")
+        print("[OK] Async operations work correctly")
 
 
 class TestKnowledgeState:
@@ -312,7 +312,7 @@ class TestKnowledgeState:
         assert stats['query'] == "What is AI?"
         assert stats['triple_count'] == 0
         assert stats['correlation_id'] == "test-state-123"
-        print("✓ State initialization successful")
+        print("[OK] State initialization successful")
 
     def test_add_knowledge(self):
         """Test adding knowledge triples."""
@@ -329,7 +329,7 @@ class TestKnowledgeState:
 
         current = state.get_current_state()
         assert current['triple_count'] == 3
-        print("✓ Knowledge added successfully")
+        print("[OK] Knowledge added successfully")
 
     def test_add_knowledge_idempotent(self):
         """Test that adding same knowledge twice is idempotent."""
@@ -347,7 +347,7 @@ class TestKnowledgeState:
 
         # Should not duplicate
         assert stats_v1['triple_count'] == stats_v2['triple_count'] == 1
-        print("✓ Knowledge addition is idempotent")
+        print("[OK] Knowledge addition is idempotent")
 
     def test_add_fact(self):
         """Test adding facts."""
@@ -361,7 +361,7 @@ class TestKnowledgeState:
 
         current = state.get_current_state()
         assert len(current['facts']) == 1
-        print("✓ Facts added successfully")
+        print("[OK] Facts added successfully")
 
     def test_add_uncertainty(self):
         """Test adding uncertainties."""
@@ -372,7 +372,7 @@ class TestKnowledgeState:
 
         current = state.get_current_state()
         assert len(current['uncertainties']) == 1
-        print("✓ Uncertainties added successfully")
+        print("[OK] Uncertainties added successfully")
 
     def test_snapshots(self):
         """Test temporal snapshots."""
@@ -390,7 +390,7 @@ class TestKnowledgeState:
         assert len(history) == 2
         assert history[0]['timestamp'] == timestamp1
         assert history[1]['timestamp'] == timestamp2
-        print("✓ Temporal snapshots work correctly")
+        print("[OK] Temporal snapshots work correctly")
 
     def test_get_state_at_time(self):
         """Test getting state at specific time."""
@@ -412,7 +412,7 @@ class TestKnowledgeState:
         state_at_t2 = state.get_state_at_time(timestamp2)
         assert state_at_t2 is not None
         assert len(state_at_t2['triples']) == 2
-        print("✓ Getting state at time works")
+        print("[OK] Getting state at time works")
 
     def test_search_triples(self):
         """Test searching triples by pattern."""
@@ -437,7 +437,7 @@ class TestKnowledgeState:
         # Search by object
         results = state.search_triples(obj="ML")
         assert len(results) == 2
-        print("✓ Triple search works correctly")
+        print("[OK] Triple search works correctly")
 
     def test_to_dict(self):
         """Test serializing state to dictionary."""
@@ -453,7 +453,7 @@ class TestKnowledgeState:
         assert len(data['facts']) == 1
         assert len(data['uncertainties']) == 1
         assert data['correlation_id'] == "test-dict"
-        print("✓ Dictionary serialization works")
+        print("[OK] Dictionary serialization works")
 
     def test_from_dict(self):
         """Test loading state from dictionary."""
@@ -471,7 +471,7 @@ class TestKnowledgeState:
         assert state2._version == state1._version
         assert len(state2._triples) == 1
         assert len(state2._facts) == 1
-        print("✓ Dictionary deserialization works")
+        print("[OK] Dictionary deserialization works")
 
     def test_to_json(self):
         """Test serializing state to JSON."""
@@ -486,7 +486,7 @@ class TestKnowledgeState:
         assert data['query'] == "Test query"
         assert data['triple_count'] == 1
         assert len(data['facts']) == 1
-        print("✓ JSON serialization works")
+        print("[OK] JSON serialization works")
 
     def test_from_json(self):
         """Test loading state from JSON."""
@@ -503,7 +503,7 @@ class TestKnowledgeState:
         assert state2.query == "Test query"
         assert len(state2._triples) == 1
         assert len(state2._facts) == 1
-        print("✓ JSON deserialization works")
+        print("[OK] JSON deserialization works")
 
     def test_clear(self):
         """Test clearing state."""
@@ -519,7 +519,7 @@ class TestKnowledgeState:
         assert stats['triple_count'] == 0
         assert stats['fact_count'] == 0
         assert stats['version'] == 0
-        print("✓ State clearing works")
+        print("[OK] State clearing works")
 
     def test_get_statistics(self):
         """Test getting state statistics."""
@@ -534,7 +534,7 @@ class TestKnowledgeState:
         assert stats['fact_count'] == 1
         assert stats['uncertainty_count'] == 1
         assert stats['query'] == "What is AI?"
-        print("✓ Statistics calculation works")
+        print("[OK] Statistics calculation works")
 
     @pytest.mark.asyncio
     async def test_async_operations(self):
@@ -559,7 +559,7 @@ class TestKnowledgeState:
         stats = await state.get_statistics_async()
         assert stats['triple_count'] == 1
 
-        print("✓ Async operations work correctly")
+        print("[OK] Async operations work correctly")
 
 
 class TestIntegration:
@@ -594,7 +594,7 @@ class TestIntegration:
 
         assert len(state_triples) == 2
         assert len(graph_rels) == 1
-        print("✓ Graph and state integration works")
+        print("[OK] Graph and state integration works")
 
     def test_serialization_roundtrip(self):
         """Test complete serialization roundtrip."""
@@ -625,7 +625,7 @@ class TestIntegration:
         assert graph2._correlation_id == "test-roundtrip"
         assert state2._correlation_id == "test-roundtrip"
 
-        print("✓ Serialization roundtrip successful")
+        print("[OK] Serialization roundtrip successful")
 
 
 def run_tests():
@@ -655,7 +655,7 @@ def run_tests():
     # Run async test
     asyncio.run(graph_tests.test_async_operations())
 
-    print("\n✅ All EntityKnowledgeGraph tests passed!\n")
+    print("\n[OK] All EntityKnowledgeGraph tests passed!\n")
 
     # Test KnowledgeState
     print("Testing KnowledgeState...")
@@ -679,7 +679,7 @@ def run_tests():
     # Run async test
     asyncio.run(state_tests.test_async_operations())
 
-    print("\n✅ All KnowledgeState tests passed!\n")
+    print("\n[OK] All KnowledgeState tests passed!\n")
 
     # Test Integration
     print("Testing Integration...")
@@ -688,7 +688,7 @@ def run_tests():
     integration_tests.test_graph_and_state_integration()
     integration_tests.test_serialization_roundtrip()
 
-    print("\n✅ All Integration tests passed!\n")
+    print("\n[OK] All Integration tests passed!\n")
 
     print("="*60)
     print("🎉 ALL TESTS PASSED!")

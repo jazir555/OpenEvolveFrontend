@@ -86,7 +86,7 @@ class TestCommunityDetection:
         assert len(result.communities) > 0
         assert result.algorithm == 'label_propagation'
         assert result.modularity >= 0
-        print(f"✓ Label Propagation: {result.num_communities} communities, modularity={result.modularity:.3f}")
+        print(f"[OK] Label Propagation: {result.num_communities} communities, modularity={result.modularity:.3f}")
 
     @pytest.mark.asyncio
     async def test_gemsec(self, analytics_engine, sample_graph):
@@ -98,7 +98,7 @@ class TestCommunityDetection:
 
         assert result.num_communities > 0
         assert result.algorithm == 'gemsec'
-        print(f"✓ GEMSEC: {result.num_communities} communities")
+        print(f"[OK] GEMSEC: {result.num_communities} communities")
 
     @pytest.mark.asyncio
     async def test_edmot(self, analytics_engine, sample_graph):
@@ -110,7 +110,7 @@ class TestCommunityDetection:
 
         assert result.num_communities > 0
         assert result.algorithm == 'edmot'
-        print(f"✓ EdMot: {result.num_communities} communities")
+        print(f"[OK] EdMot: {result.num_communities} communities")
 
     @pytest.mark.asyncio
     async def test_all_community_algorithms(self, analytics_engine, sample_graph):
@@ -125,9 +125,9 @@ class TestCommunityDetection:
                     algorithm=algo_name
                 )
                 results[algo_name] = result
-                print(f"✓ {algo_name}: {result.num_communities} communities")
+                print(f"[OK] {algo_name}: {result.num_communities} communities")
             except Exception as e:
-                print(f"✗ {algo_name}: {e}")
+                print(f"[FAIL] {algo_name}: {e}")
                 # Some algorithms may fail - that's okay for testing
 
         # At least some algorithms should succeed
@@ -152,7 +152,7 @@ class TestNodeEmbeddings:
         assert result.embedding_dim == 64
         assert len(result.embeddings) > 0
         assert result.algorithm == 'deepwalk'
-        print(f"✓ DeepWalk: {result.num_nodes} nodes, {result.embedding_dim} dimensions")
+        print(f"[OK] DeepWalk: {result.num_nodes} nodes, {result.embedding_dim} dimensions")
 
     @pytest.mark.asyncio
     async def test_node2vec(self, analytics_engine, sample_graph):
@@ -167,7 +167,7 @@ class TestNodeEmbeddings:
         assert result.embedding_dim == 128
         assert len(result.embeddings) > 0
         assert result.algorithm == 'node2vec'
-        print(f"✓ Node2Vec: {result.num_nodes} nodes, {result.embedding_dim} dimensions")
+        print(f"[OK] Node2Vec: {result.num_nodes} nodes, {result.embedding_dim} dimensions")
 
     @pytest.mark.asyncio
     async def test_walklets(self, analytics_engine, sample_graph):
@@ -181,7 +181,7 @@ class TestNodeEmbeddings:
         assert result.num_nodes > 0
         assert result.embedding_dim == 64
         assert result.algorithm == 'walklets'
-        print(f"✓ Walklets: {result.num_nodes} nodes, {result.embedding_dim} dimensions")
+        print(f"[OK] Walklets: {result.num_nodes} nodes, {result.embedding_dim} dimensions")
 
     @pytest.mark.asyncio
     async def test_grarep(self, analytics_engine, sample_graph):
@@ -195,7 +195,7 @@ class TestNodeEmbeddings:
         assert result.num_nodes > 0
         assert result.embedding_dim == 64
         assert result.algorithm == 'grarep'
-        print(f"✓ GraRep: {result.num_nodes} nodes, {result.embedding_dim} dimensions")
+        print(f"[OK] GraRep: {result.num_nodes} nodes, {result.embedding_dim} dimensions")
 
     @pytest.mark.asyncio
     async def test_hope(self, analytics_engine, sample_graph):
@@ -208,7 +208,7 @@ class TestNodeEmbeddings:
 
         assert result.num_nodes > 0
         assert result.algorithm == 'hope'
-        print(f"✓ HOPE: {result.num_nodes} nodes")
+        print(f"[OK] HOPE: {result.num_nodes} nodes")
 
     @pytest.mark.asyncio
     async def test_netmf(self, analytics_engine, sample_graph):
@@ -221,7 +221,7 @@ class TestNodeEmbeddings:
 
         assert result.num_nodes > 0
         assert result.algorithm == 'netmf'
-        print(f"✓ NetMF: {result.num_nodes} nodes")
+        print(f"[OK] NetMF: {result.num_nodes} nodes")
 
     @pytest.mark.asyncio
     async def test_role2vec(self, analytics_engine, sample_graph):
@@ -234,7 +234,7 @@ class TestNodeEmbeddings:
 
         assert result.num_nodes > 0
         assert result.algorithm == 'role2vec'
-        print(f"✓ Role2Vec: {result.num_nodes} nodes (structural)")
+        print(f"[OK] Role2Vec: {result.num_nodes} nodes (structural)")
 
     @pytest.mark.asyncio
     async def test_neighbourhood_algorithms(self, analytics_engine, sample_graph):
@@ -254,9 +254,9 @@ class TestNodeEmbeddings:
                     dimensions=64
                 )
                 results[algo_name] = result
-                print(f"✓ {algo_name}: {result.num_nodes} nodes")
+                print(f"[OK] {algo_name}: {result.num_nodes} nodes")
             except Exception as e:
-                print(f"✗ {algo_name}: {str(e)[:100]}")
+                print(f"[FAIL] {algo_name}: {str(e)[:100]}")
 
         assert len(results) > 0
 
@@ -279,7 +279,7 @@ class TestGraphEmbeddings:
         assert result.embedding_dim == 128
         assert len(result.embeddings) > 0
         assert result.algorithm == 'graph2vec'
-        print(f"✓ Graph2Vec: {result.num_graphs} graphs, {result.embedding_dim} dimensions")
+        print(f"[OK] Graph2Vec: {result.num_graphs} graphs, {result.embedding_dim} dimensions")
 
     @pytest.mark.asyncio
     async def test_feather_g(self, analytics_engine, sample_graphs):
@@ -292,7 +292,7 @@ class TestGraphEmbeddings:
 
         assert result.num_graphs > 0
         assert result.algorithm == 'feather_g'
-        print(f"✓ Feather-G: {result.num_graphs} graphs")
+        print(f"[OK] Feather-G: {result.num_graphs} graphs")
 
     @pytest.mark.asyncio
     async def test_all_graph_embedding_algorithms(self, analytics_engine, sample_graphs):
@@ -308,9 +308,9 @@ class TestGraphEmbeddings:
                     dimensions=64
                 )
                 results[algo_name] = result
-                print(f"✓ {algo_name}: {result.num_graphs} graphs")
+                print(f"[OK] {algo_name}: {result.num_graphs} graphs")
             except Exception as e:
-                print(f"✗ {algo_name}: {str(e)[:100]}")
+                print(f"[FAIL] {algo_name}: {str(e)[:100]}")
 
         assert len(results) > 0
 
@@ -332,7 +332,7 @@ class TestGraphMetrics:
         assert isinstance(metrics.is_connected, bool)
         assert metrics.num_components > 0
 
-        print(f"✓ Graph metrics: {metrics.num_nodes} nodes, {metrics.num_edges} edges, "
+        print(f"[OK] Graph metrics: {metrics.num_nodes} nodes, {metrics.num_edges} edges, "
               f"density={metrics.density:.3f}, clustering={metrics.avg_clustering:.3f}")
 
     @pytest.mark.asyncio
@@ -350,7 +350,7 @@ class TestGraphMetrics:
         assert metrics.clustering_coefficient >= 0
         assert metrics.degree >= 0
 
-        print(f"✓ Node metrics for {node}: degree={metrics.degree}, "
+        print(f"[OK] Node metrics for {node}: degree={metrics.degree}, "
               f"pagerank={metrics.pagerank:.3f}")
 
     @pytest.mark.asyncio
@@ -363,7 +363,7 @@ class TestGraphMetrics:
         assert len(analysis.centrality) > 0
         assert analysis.execution_time_ms > 0
 
-        print(f"✓ Structure analysis: {analysis.communities.num_communities} communities, "
+        print(f"[OK] Structure analysis: {analysis.communities.num_communities} communities, "
               f"{analysis.metrics.num_nodes} nodes")
 
 
@@ -385,7 +385,7 @@ class TestRetrieval:
         assert index.algorithm is not None
         assert len(index.node_list) > 0
 
-        print(f"✓ Generated embeddings: {len(index.embeddings)} nodes, "
+        print(f"[OK] Generated embeddings: {len(index.embeddings)} nodes, "
               f"{index.embedding_dim} dimensions")
 
     @pytest.mark.asyncio
@@ -407,7 +407,7 @@ class TestRetrieval:
         assert len(similar_nodes) > 0
         assert all(isinstance(node.similarity, float) for node in similar_nodes)
 
-        print(f"✓ Retrieved {len(similar_nodes)} similar nodes to '{query_node}'")
+        print(f"[OK] Retrieved {len(similar_nodes)} similar nodes to '{query_node}'")
 
     @pytest.mark.asyncio
     async def test_hybrid_retrieval(self, retrieval_engine, sample_graph):
@@ -428,7 +428,7 @@ class TestRetrieval:
         assert len(result.combined_results) >= 0
         assert result.alpha == 0.5
 
-        print(f"✓ Hybrid retrieval: {len(result.combined_results)} results for 'person'")
+        print(f"[OK] Hybrid retrieval: {len(result.combined_results)} results for 'person'")
 
 
 # ========== Workflow Integration Tests ==========
@@ -458,7 +458,7 @@ class TestWorkflowIntegration:
         assert analysis.agent_communities.num_communities >= 0
         assert len(analysis.insights) > 0
 
-        print(f"✓ Workflow analysis: {analysis.workflow_id}, "
+        print(f"[OK] Workflow analysis: {analysis.workflow_id}, "
               f"{analysis.agent_communities.num_communities} communities")
 
     @pytest.mark.asyncio
@@ -484,7 +484,7 @@ class TestWorkflowIntegration:
         assert len(analysis.key_contributors) > 0
         assert len(analysis.recommendations) > 0
 
-        print(f"✓ Team analysis: {analysis.team_id}, "
+        print(f"[OK] Team analysis: {analysis.team_id}, "
               f"{len(analysis.key_contributors)} key contributors")
 
     @pytest.mark.asyncio
@@ -499,7 +499,7 @@ class TestWorkflowIntegration:
         assert len(analysis.topic_density) > 0
         assert len(analysis.structural_insights) > 0
 
-        print(f"✓ KG analysis: {analysis.knowledge_domains.num_communities} domains, "
+        print(f"[OK] KG analysis: {analysis.knowledge_domains.num_communities} domains, "
               f"{len(analysis.key_concepts)} key concepts")
 
 
@@ -521,7 +521,7 @@ class TestGraphComparison:
         assert len(comparison.most_similar) > 0
         assert len(comparison.least_similar) >= 0
 
-        print(f"✓ Graph comparison (embeddings): {len(comparison.similarities)} pairs")
+        print(f"[OK] Graph comparison (embeddings): {len(comparison.similarities)} pairs")
 
     @pytest.mark.asyncio
     async def test_compare_graphs_metrics(self, analytics_engine, sample_graphs):
@@ -534,7 +534,7 @@ class TestGraphComparison:
         assert comparison.method == 'metrics'
         assert len(comparison.similarities) > 0
 
-        print(f"✓ Graph comparison (metrics): {len(comparison.similarities)} pairs")
+        print(f"[OK] Graph comparison (metrics): {len(comparison.similarities)} pairs")
 
 
 # ========== Algorithm Registry Tests ==========
@@ -553,7 +553,7 @@ class TestAlgorithmRegistry:
         assert len(all_algos['node_embedding']) == 32
         assert len(all_algos['graph_embedding']) == 10
 
-        print(f"✓ Algorithm registry: {len(all_algos['community'])} community, "
+        print(f"[OK] Algorithm registry: {len(all_algos['community'])} community, "
               f"{len(all_algos['node_embedding'])} node embedding, "
               f"{len(all_algos['graph_embedding'])} graph embedding")
 
@@ -566,7 +566,7 @@ class TestAlgorithmRegistry:
         assert info.description is not None
         assert info.year is not None
 
-        print(f"✓ Algorithm info: {info.name} ({info.year})")
+        print(f"[OK] Algorithm info: {info.name} ({info.year})")
 
     def test_get_total_count(self):
         """Test getting total count"""
@@ -577,7 +577,7 @@ class TestAlgorithmRegistry:
         assert counts['graph_embedding'] == 10
         assert counts['total'] == 51
 
-        print(f"✓ Total algorithms: {counts['total']}")
+        print(f"[OK] Total algorithms: {counts['total']}")
 
 
 # ========== Integration Tests ==========
@@ -604,7 +604,7 @@ class TestIntegration:
         structure = await analytics_engine.analyze_graph_structure(sample_graph)
         assert structure.communities.num_communities > 0
 
-        print("✓ End-to-end analysis pipeline successful")
+        print("[OK] End-to-end analysis pipeline successful")
 
     @pytest.mark.asyncio
     async def test_all_51_algorithms(self, analytics_engine, sample_graph, sample_graphs):
@@ -619,10 +619,10 @@ class TestIntegration:
             try:
                 result = await analytics_engine.detect_communities(sample_graph, algorithm=algo)
                 successful[algo] = result
-                print(f"✓ Community - {algo}")
+                print(f"[OK] Community - {algo}")
             except Exception as e:
                 failed[algo] = str(e)[:100]
-                print(f"✗ Community - {algo}: {failed[algo]}")
+                print(f"[FAIL] Community - {algo}: {failed[algo]}")
 
         # Test node embedding (sample of most common)
         common_node_algos = ['deepwalk', 'node2vec', 'walklets', 'grarep', 'hope']
@@ -632,10 +632,10 @@ class TestIntegration:
                     sample_graph, algorithm=algo, dimensions=64
                 )
                 successful[algo] = result
-                print(f"✓ Node embedding - {algo}")
+                print(f"[OK] Node embedding - {algo}")
             except Exception as e:
                 failed[algo] = str(e)[:100]
-                print(f"✗ Node embedding - {algo}: {failed[algo]}")
+                print(f"[FAIL] Node embedding - {algo}: {failed[algo]}")
 
         # Test graph embedding (sample of most common)
         common_graph_algos = ['graph2vec', 'feather_g', 'netlsd']
@@ -645,13 +645,13 @@ class TestIntegration:
                     sample_graphs, algorithm=algo, dimensions=64
                 )
                 successful[algo] = result
-                print(f"✓ Graph embedding - {algo}")
+                print(f"[OK] Graph embedding - {algo}")
             except Exception as e:
                 failed[algo] = str(e)[:100]
-                print(f"✗ Graph embedding - {algo}: {failed[algo]}")
+                print(f"[FAIL] Graph embedding - {algo}: {failed[algo]}")
 
-        print(f"\n✓ Successfully tested {len(successful)} algorithms")
-        print(f"✗ Failed {len(failed)} algorithms")
+        print(f"\n[OK] Successfully tested {len(successful)} algorithms")
+        print(f"[FAIL] Failed {len(failed)} algorithms")
 
         # At least 50% should succeed
         assert len(successful) >= 5

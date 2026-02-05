@@ -247,7 +247,7 @@ def verify_migration(database_url: str = "sqlite:///z3_knowledge.db"):
         
         all_present = True
         for table in expected_tables:
-            status = "✓" if table in existing_tables else "✗"
+            status = "[OK]" if table in existing_tables else "[FAIL]"
             print(f"  {status} {table}")
             if table not in existing_tables:
                 all_present = False

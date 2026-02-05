@@ -34,10 +34,10 @@ class TestBubbleLabsAnalyticsEdgeCases(unittest.TestCase):
             from bubblelabs_analytics import BubbleLabsAnalytics, ProviderCostConfig
             self.BubbleLabsAnalytics = BubbleLabsAnalytics
             self.ProviderCostConfig = ProviderCostConfig
-            print("✓ Successfully imported bubblelabs_analytics")
+            print("[OK] Successfully imported bubblelabs_analytics")
             return True
         except Exception as e:
-            print(f"✗ Failed to import bubblelabs_analytics: {e}")
+            print(f"[FAIL] Failed to import bubblelabs_analytics: {e}")
             return False
 
     def test_1_none_values(self):
@@ -56,9 +56,9 @@ class TestBubbleLabsAnalyticsEdgeCases(unittest.TestCase):
                 workflow_name="Test",
                 instance_id="instance-1"
             )
-            print("✗ Should reject None workflow_id")
+            print("[FAIL] Should reject None workflow_id")
         except (ValueError, TypeError, AttributeError):
-            print("✓ Correctly rejected None workflow_id")
+            print("[OK] Correctly rejected None workflow_id")
 
         # Test track_node_execution with None
         try:
@@ -69,11 +69,11 @@ class TestBubbleLabsAnalyticsEdgeCases(unittest.TestCase):
                 tokens_used=100,
                 execution_time=1.0
             )
-            print("✗ Should reject None workflow_id in track_node_execution")
+            print("[FAIL] Should reject None workflow_id in track_node_execution")
         except (ValueError, TypeError, AttributeError):
-            print("✓ Correctly rejected None in track_node_execution")
+            print("[OK] Correctly rejected None in track_node_execution")
 
-        print("✓ None value tests passed")
+        print("[OK] None value tests passed")
 
     def test_2_empty_strings(self):
         """Test Case 2: Empty strings for all parameters"""
@@ -91,9 +91,9 @@ class TestBubbleLabsAnalyticsEdgeCases(unittest.TestCase):
                 workflow_name="Test",
                 instance_id="instance-1"
             )
-            print("✗ Should reject empty workflow_id")
+            print("[FAIL] Should reject empty workflow_id")
         except (ValueError, AttributeError):
-            print("✓ Correctly rejected empty workflow_id")
+            print("[OK] Correctly rejected empty workflow_id")
 
         try:
             analytics.start_workflow_tracking(
@@ -101,11 +101,11 @@ class TestBubbleLabsAnalyticsEdgeCases(unittest.TestCase):
                 workflow_name="   ",
                 instance_id="instance-1"
             )
-            print("✗ Should reject whitespace-only workflow_name")
+            print("[FAIL] Should reject whitespace-only workflow_name")
         except (ValueError, AttributeError):
-            print("✓ Correctly rejected whitespace-only workflow_name")
+            print("[OK] Correctly rejected whitespace-only workflow_name")
 
-        print("✓ Empty string tests passed")
+        print("[OK] Empty string tests passed")
 
     def test_3_negative_numbers(self):
         """Test Case 3: Negative numbers"""
@@ -131,9 +131,9 @@ class TestBubbleLabsAnalyticsEdgeCases(unittest.TestCase):
                 tokens_used=-100,
                 execution_time=1.0
             )
-            print("✗ Should reject negative tokens_used")
+            print("[FAIL] Should reject negative tokens_used")
         except ValueError:
-            print("✓ Correctly rejected negative tokens_used")
+            print("[OK] Correctly rejected negative tokens_used")
 
         # Test with negative execution time
         try:
@@ -144,11 +144,11 @@ class TestBubbleLabsAnalyticsEdgeCases(unittest.TestCase):
                 tokens_used=100,
                 execution_time=-1.0
             )
-            print("✗ Should reject negative execution_time")
+            print("[FAIL] Should reject negative execution_time")
         except ValueError:
-            print("✓ Correctly rejected negative execution_time")
+            print("[OK] Correctly rejected negative execution_time")
 
-        print("✓ Negative number tests passed")
+        print("[OK] Negative number tests passed")
 
     def test_4_very_large_numbers(self):
         """Test Case 4: Very large numbers"""
@@ -174,7 +174,7 @@ class TestBubbleLabsAnalyticsEdgeCases(unittest.TestCase):
                 tokens_used=10**12,
                 execution_time=1.0
             )
-            print("✓ Handled very large token count (1 trillion)")
+            print("[OK] Handled very large token count (1 trillion)")
         except Exception as e:
             print(f"⚠ Very large token count: {e}")
 
@@ -187,11 +187,11 @@ class TestBubbleLabsAnalyticsEdgeCases(unittest.TestCase):
                 tokens_used=100,
                 execution_time=10**6
             )
-            print("✓ Handled very large execution time (1 million seconds)")
+            print("[OK] Handled very large execution time (1 million seconds)")
         except Exception as e:
             print(f"⚠ Very large execution time: {e}")
 
-        print("✓ Large number tests completed")
+        print("[OK] Large number tests completed")
 
     def test_5_special_characters(self):
         """Test Case 5: Special characters in strings"""
@@ -219,11 +219,11 @@ class TestBubbleLabsAnalyticsEdgeCases(unittest.TestCase):
                     workflow_name=special_str,
                     instance_id=f"instance-{abs(hash(special_str))}"
                 )
-                print(f"✓ Handled special chars: {repr(special_str[:20])}...")
+                print(f"[OK] Handled special chars: {repr(special_str[:20])}...")
             except Exception as e:
-                print(f"✗ Failed for special string: {e}")
+                print(f"[FAIL] Failed for special string: {e}")
 
-        print("✓ Special character tests completed")
+        print("[OK] Special character tests completed")
 
     def test_6_unicode_characters(self):
         """Test Case 6: Unicode characters"""
@@ -247,11 +247,11 @@ class TestBubbleLabsAnalyticsEdgeCases(unittest.TestCase):
                     workflow_name=uni_str,
                     instance_id=f"instance-{abs(hash(uni_str))}"
                 )
-                print(f"✓ Handled string: {uni_str}")
+                print(f"[OK] Handled string: {uni_str}")
             except Exception as e:
-                print(f"✗ Failed for string: {e}")
+                print(f"[FAIL] Failed for string: {e}")
 
-        print("✓ Unicode character tests completed")
+        print("[OK] Unicode character tests completed")
 
     def test_7_concurrent_access(self):
         """Test Case 7: Concurrent access (multi-threading)"""
@@ -305,10 +305,10 @@ class TestBubbleLabsAnalyticsEdgeCases(unittest.TestCase):
         for t in threads:
             t.join()
 
-        print(f"✓ Concurrent access: {results['success']} succeeded, {results['failure']} failed")
+        print(f"[OK] Concurrent access: {results['success']} succeeded, {results['failure']} failed")
 
         summary = analytics.get_analytics_summary()
-        print(f"✓ Total workflows tracked: {summary.get('total_workflows', 0)}")
+        print(f"[OK] Total workflows tracked: {summary.get('total_workflows', 0)}")
 
     def test_8_database_connection_failures(self):
         """Test Case 8: Database connection failures"""
@@ -325,11 +325,11 @@ class TestBubbleLabsAnalyticsEdgeCases(unittest.TestCase):
                 workflow_name="Test",
                 instance_id="test"
             )
-            print("✓ Handled invalid path (created or failed gracefully)")
+            print("[OK] Handled invalid path (created or failed gracefully)")
         except Exception as e:
-            print(f"✓ Failed as expected: {type(e).__name__}")
+            print(f"[OK] Failed as expected: {type(e).__name__}")
 
-        print("✓ Database connection failure tests completed")
+        print("[OK] Database connection failure tests completed")
 
     def test_10_invalid_state_transitions(self):
         """Test Case 10: Invalid state transitions"""
@@ -352,7 +352,7 @@ class TestBubbleLabsAnalyticsEdgeCases(unittest.TestCase):
                 workflow_id="workflow-state",
                 status="invalid_status"
             )
-            print("✓ Accepted invalid status (logs warning)")
+            print("[OK] Accepted invalid status (logs warning)")
         except Exception as e:
             print(f"⚠ Rejected invalid status: {e}")
 
@@ -367,11 +367,11 @@ class TestBubbleLabsAnalyticsEdgeCases(unittest.TestCase):
                 workflow_id="workflow-state",
                 status="failed"
             )
-            print("✓ Allowed status update (idempotent)")
+            print("[OK] Allowed status update (idempotent)")
         except Exception as e:
             print(f"⚠ Prevented re-ending: {e}")
 
-        print("✓ Invalid state transition tests completed")
+        print("[OK] Invalid state transition tests completed")
 
     def test_11_missing_files(self):
         """Test Case 11: Missing files"""
@@ -388,20 +388,20 @@ class TestBubbleLabsAnalyticsEdgeCases(unittest.TestCase):
         try:
             result = analytics.export_analytics_report(output_path=non_existent_path)
             if result:
-                print("✓ Created directory automatically")
+                print("[OK] Created directory automatically")
             else:
-                print("✓ Failed gracefully for non-existent directory")
+                print("[OK] Failed gracefully for non-existent directory")
         except Exception as e:
-            print(f"✓ Handled missing file: {type(e).__name__}")
+            print(f"[OK] Handled missing file: {type(e).__name__}")
 
         # Try to get non-existent workflow
         result = analytics.get_workflow_analytics("non-existent-workflow-id")
         if result is None:
-            print("✓ Returned None for non-existent workflow")
+            print("[OK] Returned None for non-existent workflow")
         else:
             print("⚠ Did not return None for non-existent workflow")
 
-        print("✓ Missing file tests completed")
+        print("[OK] Missing file tests completed")
 
     def test_12_invalid_paths(self):
         """Test Case 12: Invalid paths"""
@@ -423,11 +423,11 @@ class TestBubbleLabsAnalyticsEdgeCases(unittest.TestCase):
                 if result:
                     print(f"⚠ Path accepted: {invalid_path}")
                 else:
-                    print(f"✓ Rejected invalid path: {invalid_path}")
+                    print(f"[OK] Rejected invalid path: {invalid_path}")
             except Exception as e:
-                print(f"✓ Handled invalid path: {type(e).__name__}")
+                print(f"[OK] Handled invalid path: {type(e).__name__}")
 
-        print("✓ Invalid path tests completed")
+        print("[OK] Invalid path tests completed")
 
 
 class TestBubbleLabsCREWAIBridgeEdgeCases(unittest.TestCase):
@@ -453,10 +453,10 @@ class TestBubbleLabsCREWAIBridgeEdgeCases(unittest.TestCase):
             self.BubbleLabsCREWAIBridge = BubbleLabsCREWAIBridge
             self.validate_workflow_transition = validate_workflow_transition
             self.validate_ticket_transition = validate_ticket_transition
-            print("✓ Successfully imported bubblelabs_CREWAI_bridge")
+            print("[OK] Successfully imported bubblelabs_CREWAI_bridge")
             return True
         except Exception as e:
-            print(f"✗ Failed to import bubblelabs_crewai_bridge: {e}")
+            print(f"[FAIL] Failed to import bubblelabs_crewai_bridge: {e}")
             return False
 
     def test_1_none_values(self):
@@ -470,9 +470,9 @@ class TestBubbleLabsCREWAIBridgeEdgeCases(unittest.TestCase):
             bridge = self.BubbleLabsCREWAIBridge(batch_size=None)
             print("⚠ Accepted None batch_size")
         except (ValueError, TypeError):
-            print("✓ Rejected None batch_size")
+            print("[OK] Rejected None batch_size")
 
-        print("✓ None value tests passed")
+        print("[OK] None value tests passed")
 
     def test_2_empty_strings(self):
         """Test Case 2: Empty strings"""
@@ -485,17 +485,17 @@ class TestBubbleLabsCREWAIBridgeEdgeCases(unittest.TestCase):
 
         result = bridge.sync_workflow_to_ticket("")
         if not result:
-            print("✓ Returned False for empty workflow_id")
+            print("[OK] Returned False for empty workflow_id")
         else:
             print("⚠ Did not return False for empty workflow_id")
 
         result = bridge.get_ticket_for_workflow("")
         if result is None:
-            print("✓ Returned None for empty workflow_id")
+            print("[OK] Returned None for empty workflow_id")
         else:
             print("⚠ Did not return None for empty workflow_id")
 
-        print("✓ Empty string tests passed")
+        print("[OK] Empty string tests passed")
 
     def test_3_negative_numbers(self):
         """Test Case 3: Negative numbers"""
@@ -508,22 +508,22 @@ class TestBubbleLabsCREWAIBridgeEdgeCases(unittest.TestCase):
             bridge = self.BubbleLabsCREWAIBridge(batch_size=-1)
             print("⚠ Accepted negative batch_size")
         except ValueError:
-            print("✓ Rejected negative batch_size")
+            print("[OK] Rejected negative batch_size")
 
         bridge = self.BubbleLabsCREWAIBridge(mappings_db_path=self.test_db)
         try:
             bridge.stop_background_sync(timeout=-10)
             print("⚠ Accepted negative timeout")
         except ValueError:
-            print("✓ Rejected negative timeout")
+            print("[OK] Rejected negative timeout")
 
         try:
             bridge.cleanup_old_mappings(max_age_days=-30)
             print("⚠ Accepted negative max_age_days")
         except ValueError:
-            print("✓ Rejected negative max_age_days")
+            print("[OK] Rejected negative max_age_days")
 
-        print("✓ Negative number tests passed")
+        print("[OK] Negative number tests passed")
 
     def test_4_very_large_numbers(self):
         """Test Case 4: Very large numbers"""
@@ -536,16 +536,16 @@ class TestBubbleLabsCREWAIBridgeEdgeCases(unittest.TestCase):
             bridge = self.BubbleLabsCREWAIBridge(batch_size=10**9)
             print("⚠ Accepted very large batch_size")
         except ValueError:
-            print("✓ Rejected very large batch_size")
+            print("[OK] Rejected very large batch_size")
 
         bridge = self.BubbleLabsCREWAIBridge(mappings_db_path=self.test_db)
         try:
             bridge.stop_background_sync(timeout=10**9)
             print("⚠ Accepted very large timeout")
         except ValueError:
-            print("✓ Rejected very large timeout")
+            print("[OK] Rejected very large timeout")
 
-        print("✓ Large number tests passed")
+        print("[OK] Large number tests passed")
 
     def test_10_invalid_state_transitions(self):
         """Test Case 10: Invalid state transitions"""
@@ -563,7 +563,7 @@ class TestBubbleLabsCREWAIBridgeEdgeCases(unittest.TestCase):
         for current, new in invalid_transitions:
             result = self.validate_workflow_transition(current, new)
             if not result:
-                print(f"✓ Rejected: {current} -> {new}")
+                print(f"[OK] Rejected: {current} -> {new}")
             else:
                 print(f"⚠ Accepted invalid: {current} -> {new}")
 
@@ -575,11 +575,11 @@ class TestBubbleLabsCREWAIBridgeEdgeCases(unittest.TestCase):
         for current, new in invalid_ticket_transitions:
             result = self.validate_ticket_transition(current, new)
             if not result:
-                print(f"✓ Rejected ticket: {current} -> {new}")
+                print(f"[OK] Rejected ticket: {current} -> {new}")
             else:
                 print(f"⚠ Accepted invalid ticket: {current} -> {new}")
 
-        print("✓ Invalid state transition tests passed")
+        print("[OK] Invalid state transition tests passed")
 
 
 class TestBubbleLabsTypeScriptExportEdgeCases(unittest.TestCase):
@@ -613,10 +613,10 @@ class TestBubbleLabsTypeScriptExportEdgeCases(unittest.TestCase):
             self.TypeScriptExportConfig = TypeScriptExportConfig
             self.ExportResult = ExportResult
             self.BubbleWorkflowDefinition = BubbleWorkflowDefinition
-            print("✓ Successfully imported bubblelabs_typescript_export")
+            print("[OK] Successfully imported bubblelabs_typescript_export")
             return True
         except Exception as e:
-            print(f"✗ Failed to import: {e}")
+            print(f"[FAIL] Failed to import: {e}")
             return False
 
     def test_1_none_values(self):
@@ -630,11 +630,11 @@ class TestBubbleLabsTypeScriptExportEdgeCases(unittest.TestCase):
 
         result = exporter.export_workflow(None)
         if not result.success:
-            print("✓ Rejected None workflow")
+            print("[OK] Rejected None workflow")
         else:
             print("⚠ Accepted None workflow")
 
-        print("✓ None value tests passed")
+        print("[OK] None value tests passed")
 
     def test_2_empty_strings(self):
         """Test Case 2: Empty strings"""
@@ -647,19 +647,19 @@ class TestBubbleLabsTypeScriptExportEdgeCases(unittest.TestCase):
             self.validate_output_path("")
             print("⚠ Accepted empty path")
         except ValueError:
-            print("✓ Rejected empty path")
+            print("[OK] Rejected empty path")
 
         try:
             self.validate_file_extension("", ['.ts'])
             print("⚠ Accepted empty filename")
         except ValueError:
-            print("✓ Rejected empty filename")
+            print("[OK] Rejected empty filename")
 
         result = self.sanitize_filename("")
         if result is not None:
-            print("✓ Handled empty filename")
+            print("[OK] Handled empty filename")
 
-        print("✓ Empty string tests passed")
+        print("[OK] Empty string tests passed")
 
     def test_5_special_characters(self):
         """Test Case 5: Special characters"""
@@ -686,11 +686,11 @@ class TestBubbleLabsTypeScriptExportEdgeCases(unittest.TestCase):
             )
             result = exporter.export_workflow(workflow)
             if result.success:
-                print(f"✓ Handled: {repr(special_name[:20])}...")
+                print(f"[OK] Handled: {repr(special_name[:20])}...")
             else:
                 print(f"⚠ Failed for: {repr(special_name[:20])}...")
 
-        print("✓ Special character tests completed")
+        print("[OK] Special character tests completed")
 
     def test_12_invalid_paths(self):
         """Test Case 12: Invalid paths"""
@@ -709,21 +709,21 @@ class TestBubbleLabsTypeScriptExportEdgeCases(unittest.TestCase):
                 result = self.validate_output_path(invalid_path)
                 print(f"⚠ Accepted: {invalid_path}")
             except ValueError:
-                print(f"✓ Rejected: {invalid_path}")
+                print(f"[OK] Rejected: {invalid_path}")
 
         try:
             self.validate_file_extension("test.exe", ['.ts', '.js'])
             print("⚠ Accepted .exe extension")
         except ValueError:
-            print("✓ Rejected .exe extension")
+            print("[OK] Rejected .exe extension")
 
         try:
             self.validate_file_extension("../test.ts", ['.ts'])
             print("⚠ Accepted path with separator")
         except ValueError:
-            print("✓ Rejected path with separator")
+            print("[OK] Rejected path with separator")
 
-        print("✓ Invalid path tests passed")
+        print("[OK] Invalid path tests passed")
 
 
 class TestBubbleLabsMCPToolsEdgeCases(unittest.TestCase):
@@ -746,10 +746,10 @@ class TestBubbleLabsMCPToolsEdgeCases(unittest.TestCase):
             self.validate_range = validate_range
             self.list_mcp_tools = list_mcp_tools
             self.get_mcp_tool = get_mcp_tool
-            print("✓ Successfully imported bubblelabs_mcp_tools")
+            print("[OK] Successfully imported bubblelabs_mcp_tools")
             return True
         except Exception as e:
-            print(f"✗ Failed to import: {e}")
+            print(f"[FAIL] Failed to import: {e}")
             return False
 
     def test_1_none_values(self):
@@ -763,21 +763,21 @@ class TestBubbleLabsMCPToolsEdgeCases(unittest.TestCase):
             self.validate_not_empty(None, "test_param")
             print("⚠ Accepted None")
         except ValueError:
-            print("✓ Rejected None")
+            print("[OK] Rejected None")
 
         try:
             self.validate_string_length(None, 100, "test_param")
             print("⚠ Accepted None length")
         except ValueError:
-            print("✓ Rejected None length")
+            print("[OK] Rejected None length")
 
         try:
             self.validate_range(None, 0, 100, "test_param")
             print("⚠ Accepted None range")
         except ValueError:
-            print("✓ Rejected None range")
+            print("[OK] Rejected None range")
 
-        print("✓ None value tests passed")
+        print("[OK] None value tests passed")
 
     def test_2_empty_strings(self):
         """Test Case 2: Empty strings"""
@@ -790,15 +790,15 @@ class TestBubbleLabsMCPToolsEdgeCases(unittest.TestCase):
             self.validate_not_empty("", "test_param")
             print("⚠ Accepted empty string")
         except ValueError:
-            print("✓ Rejected empty string")
+            print("[OK] Rejected empty string")
 
         try:
             self.validate_not_empty("   ", "test_param")
             print("⚠ Accepted whitespace")
         except ValueError:
-            print("✓ Rejected whitespace")
+            print("[OK] Rejected whitespace")
 
-        print("✓ Empty string tests passed")
+        print("[OK] Empty string tests passed")
 
     def test_3_negative_numbers(self):
         """Test Case 3: Negative numbers"""
@@ -811,13 +811,13 @@ class TestBubbleLabsMCPToolsEdgeCases(unittest.TestCase):
             self.validate_range(-1, 0, 100, "test_param")
             print("⚠ Accepted negative")
         except ValueError:
-            print("✓ Rejected negative")
+            print("[OK] Rejected negative")
 
         result = self.validate_range(-5, -10, 10, "test_param")
         if result == -5:
-            print("✓ Accepted negative within valid range")
+            print("[OK] Accepted negative within valid range")
 
-        print("✓ Negative number tests passed")
+        print("[OK] Negative number tests passed")
 
     def test_4_very_large_numbers(self):
         """Test Case 4: Very large numbers"""
@@ -830,16 +830,16 @@ class TestBubbleLabsMCPToolsEdgeCases(unittest.TestCase):
             self.validate_range(10**12, 0, 1000, "test_param")
             print("⚠ Accepted very large number")
         except ValueError:
-            print("✓ Rejected very large number")
+            print("[OK] Rejected very large number")
 
         very_long = "a" * 1000000
         try:
             self.validate_string_length(very_long, 1000, "test_param")
             print("⚠ Accepted very long string")
         except ValueError:
-            print("✓ Rejected very long string")
+            print("[OK] Rejected very long string")
 
-        print("✓ Large number tests passed")
+        print("[OK] Large number tests passed")
 
     def test_5_special_characters(self):
         """Test Case 5: Special characters"""
@@ -857,11 +857,11 @@ class TestBubbleLabsMCPToolsEdgeCases(unittest.TestCase):
         for special_str in special_strings:
             try:
                 result = self.validate_not_empty(special_str, "test_param")
-                print(f"✓ Accepted: {repr(special_str[:20])}...")
+                print(f"[OK] Accepted: {repr(special_str[:20])}...")
             except (ValueError, TypeError, RuntimeError):
                 print(f"⚠ Rejected: {repr(special_str[:20])}...")
 
-        print("✓ Special character tests completed")
+        print("[OK] Special character tests completed")
 
     def test_7_concurrent_access(self):
         """Test Case 7: Concurrent access"""
@@ -890,7 +890,7 @@ class TestBubbleLabsMCPToolsEdgeCases(unittest.TestCase):
         for t in threads:
             t.join()
 
-        print(f"✓ All {results['count']} workers completed successfully")
+        print(f"[OK] All {results['count']} workers completed successfully")
 
 
 def run_all_edge_case_tests():
@@ -944,7 +944,7 @@ def run_all_edge_case_tests():
             f.write("## Status: FAILED\n\n")
             f.write("Some tests failed. Please review the output above.\n")
 
-    print(f"\n✓ Report saved to: {report_path}")
+    print(f"\n[OK] Report saved to: {report_path}")
 
     return result
 

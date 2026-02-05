@@ -476,7 +476,7 @@ async def example_7_performance_monitoring():
                 recent_perf = engine.agent.performance_history[-5:]
                 print(f"\n  Recent agent performance:")
                 for perf in recent_perf:
-                    status = "✓" if perf['success'] else "✗"
+                    status = "[OK]" if perf['success'] else "[FAIL]"
                     print(f"    {status} {perf['theorem_id'][:20]}... "
                           f"(reward: {perf['reward']:.2f})")
 

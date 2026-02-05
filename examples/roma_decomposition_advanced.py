@@ -129,11 +129,11 @@ def example_error_handling():
     if decomposer.last_roma_error:
         print(f"\n⚠ ROMA encountered an error:")
         print(f"  {decomposer.last_roma_error}")
-        print(f"\n✓ Fallback decomposition used:")
+        print(f"\n[OK] Fallback decomposition used:")
         print(f"  Strategy: {result.decomposition_strategy.value}")
         print(f"  Components: {len(result.components)}")
     else:
-        print(f"\n✓ ROMA decomposition successful!")
+        print(f"\n[OK] ROMA decomposition successful!")
         print(f"  Components: {len(result.components)}")
         print(f"  Quality: {result.quality_score:.2f}")
 
@@ -144,7 +144,7 @@ def example_error_handling():
         print(f"  - Adjusting min_component_size")
         print(f"  - Using a different decomposition strategy")
     else:
-        print(f"\n✓ Good quality decomposition achieved")
+        print(f"\n[OK] Good quality decomposition achieved")
 
 
 def example_performance_optimization():
@@ -222,7 +222,7 @@ def example_custom_config_validation():
         for error in errors:
             print(f"  - {error}")
     else:
-        print(f"\n✓ Configuration is valid!")
+        print(f"\n[OK] Configuration is valid!")
         print(f"\nConfiguration Details:")
         print(f"  Model: {config.model}")
         print(f"  Atomizer Model: {config.atomizer_model}")

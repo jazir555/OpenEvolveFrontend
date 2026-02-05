@@ -303,7 +303,7 @@ def check_all_optional_dependencies() -> dict[str, bool]:
     for module_name, info in OPTIONAL_DEPENDENCIES.items():
         available = is_available(module_name.replace('.', '_'))
         results[info['package']] = available
-        status = "✓" if available else "✗"
+        status = "[OK]" if available else "[FAIL]"
         print(f"{status} {info['package']:30s} - {info['feature']}")
     return results
 

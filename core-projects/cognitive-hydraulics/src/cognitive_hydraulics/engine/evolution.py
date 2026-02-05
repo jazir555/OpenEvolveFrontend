@@ -127,7 +127,7 @@ class EvolutionarySolver:
             results.append((candidate, result.score))
 
             if should_print(verbose_level, VerbosityLevel.BASIC):
-                status = "✓" if result.score == 100 else "✗"
+                status = "[OK]" if result.score == 100 else "[FAIL]"
                 print(f"         {status} Score: {result.score}/100")
                 if result.error_message:
                     print(f"         Error: {result.error_message[:100]}")
@@ -136,9 +136,9 @@ class EvolutionarySolver:
                 thinking_lines = [
                     f"Hypothesis: {candidate.hypothesis}",
                     f"Score: {result.score}/100",
-                    f"Syntax: {'✓' if result.syntax_valid else '✗'}",
-                    f"Runtime: {'✓' if result.runtime_valid else '✗'}",
-                    f"Correctness: {'✓' if result.correctness_valid else '✗'}",
+                    f"Syntax: {'[OK]' if result.syntax_valid else '[FAIL]'}",
+                    f"Runtime: {'[OK]' if result.runtime_valid else '[FAIL]'}",
+                    f"Correctness: {'[OK]' if result.correctness_valid else '[FAIL]'}",
                 ]
                 if result.error_message:
                     thinking_lines.append(f"Issue: {result.error_message[:80]}")
@@ -218,13 +218,13 @@ class EvolutionarySolver:
 
             if response:
                 if should_print(verbose_level, VerbosityLevel.BASIC):
-                    print(f"      ✓ Generated mutation")
+                    print(f"      [OK] Generated mutation")
                 return response
             return None
 
         except Exception as e:
             if should_print(verbose_level, VerbosityLevel.BASIC):
-                print(f"      ✗ Mutation failed: {e}")
+                print(f"      [FAIL] Mutation failed: {e}")
             return None
 
     async def evolve(
@@ -270,7 +270,7 @@ class EvolutionarySolver:
 
         if not population:
             if should_print(verbose_level, VerbosityLevel.BASIC):
-                print("   ✗ Failed to generate initial population")
+                print("   [FAIL] Failed to generate initial population")
             return None
 
         best_candidate: Optional[CodeCandidate] = None
@@ -292,7 +292,7 @@ class EvolutionarySolver:
             # Perfect score - return immediately
             if best_score == 100:
                 if should_print(verbose_level, VerbosityLevel.BASIC):
-                    print(f"   ✅ Perfect solution found in generation 0!")
+                    print(f"   [OK] Perfect solution found in generation 0!")
                 return best_candidate
 
         # Evolution loop
@@ -303,7 +303,7 @@ class EvolutionarySolver:
             # Select best candidate from previous generation
             if not evaluated or not best_candidate:
                 if should_print(verbose_level, VerbosityLevel.BASIC):
-                    print("   ⚠️  No candidates to evolve from")
+                    print("   [WARN]  No candidates to evolve from")
                 break
 
             # Mutate best candidate
@@ -337,7 +337,7 @@ class EvolutionarySolver:
 
             if not next_population:
                 if should_print(verbose_level, VerbosityLevel.BASIC):
-                    print("   ⚠️  Failed to generate next generation")
+                    print("   [WARN]  Failed to generate next generation")
                 break
 
             # Evaluate new generation
@@ -359,11 +359,11 @@ class EvolutionarySolver:
                 # Perfect score - return immediately
                 if gen_score == 100:
                     if should_print(verbose_level, VerbosityLevel.BASIC):
-                        print(f"   ✅ Perfect solution found in generation {gen}!")
+                        print(f"   [OK] Perfect solution found in generation {gen}!")
                     return gen_best
             else:
                 if should_print(verbose_level, VerbosityLevel.BASIC):
-                    print("   ⚠️  No valid candidates in this generation")
+                    print("   [WARN]  No valid candidates in this generation")
                 break
 
         # Return best found (even if not perfect)

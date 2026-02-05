@@ -139,7 +139,7 @@ theorem sqrt_two_irrational : ∀ q : ℚ, q ^ 2 ≠ 2 := by
     rw [hd, pow_two]
     linarith
   have : 2 * c ^ 2 = 4 * d ^ 2 := by
-    rw [← this, h2']
+    rw [<- this, h2']
   have : c ^ 2 = 2 * d ^ 2 := by
     linarith
   -- Contradiction with infinite descent

@@ -166,7 +166,7 @@ def comprehensive_demo():
     analysis_result = content_analyzer.analyze_content(complex_content)
     analysis_time = time.time() - analysis_start
     
-    print(f"  ✓ Content analyzed in {analysis_time:.2f} seconds")
+    print(f"  [OK] Content analyzed in {analysis_time:.2f} seconds")
     print(f"  Content type: {analysis_result.semantic_understanding.get('content_type', 'unknown')}")
     print(f"  Overall score: {analysis_result.overall_score:.2f}/100")
     print(f"  Word count: {analysis_result.input_parsing.get('word_count', 0)}")
@@ -192,7 +192,7 @@ def comprehensive_demo():
     )
     
     prompt_time = time.time() - prompt_start
-    print(f"  ✓ Prompts generated in {prompt_time:.2f} seconds")
+    print(f"  [OK] Prompts generated in {prompt_time:.2f} seconds")
     print(f"  Critique prompt length: {len(critique_prompt.rendered_prompt)} characters")
     print(f"  Patch prompt length: {len(patch_prompt.rendered_prompt)} characters")
     
@@ -204,7 +204,7 @@ def comprehensive_demo():
     qa_result = quality_assessment.assess_quality(complex_content, "document")
     qa_time = time.time() - qa_start
     
-    print(f"  ✓ Quality assessed in {qa_time:.2f} seconds")
+    print(f"  [OK] Quality assessed in {qa_time:.2f} seconds")
     print(f"  Composite score: {qa_result.composite_score:.2f}/100")
     print(f"  Issues found: {len(qa_result.issues)}")
     print(f"  Recommendations: {len(qa_result.recommendations)}")
@@ -217,7 +217,7 @@ def comprehensive_demo():
     red_result = red_team.assess_content(complex_content, "document")
     red_time = time.time() - red_start
     
-    print(f"  ✓ Red team assessment in {red_time:.2f} seconds")
+    print(f"  [OK] Red team assessment in {red_time:.2f} seconds")
     print(f"  Issues identified: {len(red_result.findings)}")
     if red_result.findings:
         severity_counts = {}
@@ -234,7 +234,7 @@ def comprehensive_demo():
     blue_result = blue_team.apply_fixes(complex_content, red_result.findings, "document")
     blue_time = time.time() - blue_start
     
-    print(f"  ✓ Blue team fixes applied in {blue_time:.2f} seconds")
+    print(f"  [OK] Blue team fixes applied in {blue_time:.2f} seconds")
     print(f"  Fixes applied: {len(blue_result.applied_fixes)}")
     print(f"  Improvement score: {blue_result.overall_improvement_score:.2f}/100")
     print(f"  Fixed content length: {len(blue_result.fixed_content)} characters")
@@ -247,7 +247,7 @@ def comprehensive_demo():
     eval_result = evaluator_team.evaluate_content(blue_result.fixed_content, "document")
     eval_time = time.time() - eval_start
     
-    print(f"  ✓ Evaluator team assessment in {eval_time:.2f} seconds")
+    print(f"  [OK] Evaluator team assessment in {eval_time:.2f} seconds")
     print(f"  Consensus reached: {eval_result.consensus_reached}")
     print(f"  Consensus score: {eval_result.consensus_score:.2f}/100")
     print(f"  Final verdict: {eval_result.final_verdict}")
@@ -257,7 +257,7 @@ def comprehensive_demo():
     print("-" * 30)
     
     config_params = config_manager.list_parameters()
-    print("  ✓ Configuration system ready")
+    print("  [OK] Configuration system ready")
     print(f"  Parameters available: {len(config_params)}")
     
     # 8. Quality Assurance
@@ -265,7 +265,7 @@ def comprehensive_demo():
     print("-" * 30)
     
     qa_gates = len(qa_orchestrator.gates)
-    print("  ✓ Quality assurance system ready")
+    print("  [OK] Quality assurance system ready")
     print(f"  Quality gates: {qa_gates}")
     
     # 9. Performance Optimization
@@ -273,7 +273,7 @@ def comprehensive_demo():
     print("-" * 30)
     
     perf_optimizers = len(perf_optimizer.optimizers)
-    print("  ✓ Performance optimization system ready")
+    print("  [OK] Performance optimization system ready")
     print(f"  Optimizers available: {perf_optimizers}")
     
     # Summary
@@ -315,7 +315,7 @@ def comprehensive_demo():
     improvement_percentage = (improvement / initial_score) * 100 if initial_score > 0 else 0
     
     print("\\nOverall Improvement:")
-    print(f"  Score change: {initial_score:.2f} → {final_score:.2f} ({improvement:+.2f})")
+    print(f"  Score change: {initial_score:.2f} -> {final_score:.2f} ({improvement:+.2f})")
     print(f"  Percentage improvement: {improvement_percentage:+.2f}%")
     
     print("\\n\\n[SUCCESS] Comprehensive demo completed successfully!")

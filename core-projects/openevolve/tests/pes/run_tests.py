@@ -155,9 +155,9 @@ Examples:
     # Print summary
     print(f"\n{'='*60}")
     if exit_code == 0:
-        print("✓ All tests passed!")
+        print("[OK] All tests passed!")
     else:
-        print("✗ Some tests failed")
+        print("[FAIL] Some tests failed")
     print(f"{'='*60}\n")
 
     if args.coverage:

@@ -135,7 +135,7 @@ async def test_phase(phase_name: str, config: Dict[str, Any]) -> List[Dict[str, 
 
             # Print result
             status_color = Colors.GREEN if result["success"] else Colors.RED
-            status_icon = "✓" if result["success"] else "✗"
+            status_icon = "[OK]" if result["success"] else "[FAIL]"
 
             print(f"{status_color}{status_icon} {Colors.BOLD}{endpoint}{Colors.RESET} "
                   f"({result['status_code']}): {result['response_time_ms']}ms")
@@ -192,7 +192,7 @@ async def test_all_phases():
     if failed_tests:
         print(f"\n{Colors.RED}{Colors.BOLD}Failed Tests:{Colors.RESET}")
         for result in failed_tests:
-            print(f"  {Colors.RED}✗{Colors.RESET} {result['phase']} - {result['endpoint']}")
+            print(f"  {Colors.RED}[FAIL]{Colors.RESET} {result['phase']} - {result['endpoint']}")
             if result["error"]:
                 print(f"    Error: {result['error']}")
 
@@ -222,7 +222,7 @@ def main():
         if failed_count > 0:
             sys.exit(1)
         else:
-            print(f"\n{Colors.GREEN}{Colors.BOLD}All tests passed! ✓{Colors.RESET}")
+            print(f"\n{Colors.GREEN}{Colors.BOLD}All tests passed! [OK]{Colors.RESET}")
             sys.exit(0)
 
     except KeyboardInterrupt:

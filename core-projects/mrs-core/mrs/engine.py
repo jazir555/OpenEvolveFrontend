@@ -37,7 +37,7 @@ class MRSCoreEngine:
 
             new_phase = next_phase(op_key, state.phase)
             if new_phase != state.phase:
-                state.log.append(f"[PHASE] {state.phase} → {new_phase}")
+                state.log.append(f"[PHASE] {state.phase} -> {new_phase}")
                 state.phase = new_phase
 
         return state.finalize()

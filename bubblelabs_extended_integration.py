@@ -790,7 +790,7 @@ if __name__ == "__main__":
     results = initialize_extended_integration()
     
     for name, result in results.items():
-        status = "✓" if result["success"] else "✗"
+        status = "[OK]" if result["success"] else "[FAIL]"
         print(f"  {status} {name.upper()}: {result['status']}")
     
     # Get full status

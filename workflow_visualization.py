@@ -304,8 +304,8 @@ class OpenEvolveVisualizer:
             'paused': '⏸️',
             'stopping': '🛑',
             'stopped': '⏹️',
-            'completed': '✅',
-            'failed': '❌',
+            'completed': '[OK]',
+            'failed': '[FAIL]',
             'cancelled': '🚫'
         }
         return status_icons.get(status.lower(), '❓')

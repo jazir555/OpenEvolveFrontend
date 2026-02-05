@@ -718,7 +718,7 @@ if __name__ == "__main__":
         
         # Test with mathematical content
         problem = "Prove that the square root of 2 is irrational"
-        solution = "theorem sqrt_2_irrational : ∀ n : ℕ, n*n = 2 → false := by sorry"
+        solution = "theorem sqrt_2_irrational : ∀ n : ℕ, n*n = 2 -> false := by sorry"
         
         print("\nTesting mathematical fitness evaluation...")
         math_fitness = await integrator.evaluate_mathematical_fitness(problem, solution)

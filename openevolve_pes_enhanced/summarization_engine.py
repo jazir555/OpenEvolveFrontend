@@ -109,7 +109,7 @@ class InsightExtractor:
                     description="Rapid early improvement detected",
                     frequency=1,
                     confidence=early_improvement,
-                    examples=[f"Generation 0→4: {fitness_history[0]:.3f}→{fitness_history[4]:.3f}"]
+                    examples=[f"Generation 0->4: {fitness_history[0]:.3f}->{fitness_history[4]:.3f}"]
                 ))
         
         # Pattern 2: Plateau detection
@@ -132,7 +132,7 @@ class InsightExtractor:
                     description="Premature convergence - diversity lost",
                     frequency=1,
                     confidence=0.9,
-                    examples=[f"Diversity: {diversity_history[0]:.3f}→{diversity_history[-1]:.3f}"]
+                    examples=[f"Diversity: {diversity_history[0]:.3f}->{diversity_history[-1]:.3f}"]
                 ))
         
         # Pattern 4: Oscillating fitness
@@ -231,7 +231,7 @@ class InsightExtractor:
                     frequency=1,
                     root_cause="Selection pressure too high or population too small",
                     prevention_strategy="Increase population size or use island model",
-                    examples=[f"Diversity: {early_diversity:.3f}→{late_diversity:.3f}"]
+                    examples=[f"Diversity: {early_diversity:.3f}->{late_diversity:.3f}"]
                 ))
         
         # Failure 3: No improvement

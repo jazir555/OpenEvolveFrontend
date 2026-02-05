@@ -45,7 +45,7 @@ def test_formal_commitment():
 
         commitment = FormalCommitment(
             proposition_id="test-prop-1",
-            statement="(H) ∧ (confidence ≥ 0.950) → Accept(H)",
+            statement="(H) ∧ (confidence ≥ 0.950) -> Accept(H)",
             confidence_threshold=0.90,
             statistical_evidence={
                 'confidence': 0.95,
@@ -89,7 +89,7 @@ def test_sce_constraint_conversion():
 
         commitment = FormalCommitment(
             proposition_id="test-prop-1",
-            statement="(H) ∧ (confidence ≥ 0.950) → Accept(H)",
+            statement="(H) ∧ (confidence ≥ 0.950) -> Accept(H)",
             confidence_threshold=0.90,
             statistical_evidence={'confidence': 0.95},
             source_hypothesis="hypothesis-1",
@@ -229,7 +229,7 @@ def test_confidence_threshold_calculation():
                 print(f"  [FAIL] {description}: Expected {expected_threshold}, got {commitment.confidence_threshold}")
                 all_passed = False
             else:
-                print(f"  [PASS] {description}: {confidence:.2f} → {commitment.confidence_threshold:.2f}")
+                print(f"  [PASS] {description}: {confidence:.2f} -> {commitment.confidence_threshold:.2f}")
 
         if all_passed:
             print("\n[PASS] PASSED: All confidence threshold calculations correct")

@@ -535,7 +535,7 @@ class UnifiedEvolutionKnowledgeExtractor:
         """
         opportunities = []
 
-        # Opportunity 1: LoongFlow's PES planning → OpenEvolve
+        # Opportunity 1: LoongFlow's PES planning -> OpenEvolve
         if self._has_pes_advantages(loongflow_insights):
             opportunities.append(SynergyOpportunity(
                 opportunity_type="technique_transfer",
@@ -548,7 +548,7 @@ class UnifiedEvolutionKnowledgeExtractor:
                 priority=85.0
             ))
 
-        # Opportunity 2: OpenEvolve's MAP-Elites → LoongFlow
+        # Opportunity 2: OpenEvolve's MAP-Elites -> LoongFlow
         if self._has_qd_advantages(openevolve_insights):
             opportunities.append(SynergyOpportunity(
                 opportunity_type="technique_transfer",

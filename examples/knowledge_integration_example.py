@@ -232,14 +232,14 @@ async def example_4_complete_workflow():
 
         print(f"  Saved to {output_dir / 'extracted_knowledge.json'}")
 
-        print("\n✅ Complete workflow finished successfully!")
+        print("\n[OK] Complete workflow finished successfully!")
         return {
             'query_results': query_results,
             'extraction_results': extraction_results,
             'graph_stats': stats
         }
     else:
-        print("❌ Workflow failed at extraction step")
+        print("[FAIL] Workflow failed at extraction step")
         return None
 
 
@@ -328,9 +328,9 @@ async def example_6_batch_processing():
         if results and 'error' not in results:
             all_entities.extend(results['entities'])
             all_relationships.extend(results['relationships'])
-            print(f"  ✓ Extracted {len(results['entities'])} entities")
+            print(f"  [OK] Extracted {len(results['entities'])} entities")
         else:
-            print(f"  ✗ Failed: {results.get('error', 'Unknown error')}")
+            print(f"  [FAIL] Failed: {results.get('error', 'Unknown error')}")
 
     # Build combined knowledge graph
     print(f"\nBuilding combined knowledge graph...")
@@ -357,7 +357,7 @@ async def example_6_batch_processing():
             }
         }, f, indent=2)
 
-    print(f"\n✅ Batch processing complete!")
+    print(f"\n[OK] Batch processing complete!")
     print(f"Results saved to: {output_dir / 'batch_extraction.json'}")
 
 

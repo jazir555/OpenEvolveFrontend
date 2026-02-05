@@ -284,7 +284,7 @@ async def demo_complete_system():
     # Create system with Conservative profile
     print("\n1. Initializing Gauntlet System...")
     system = GauntletSystem(config=create_config(profile=StrategyProfile.CONSERVATIVE))
-    print("   ✅ System initialized")
+    print("   [OK] System initialized")
 
     # Generate test problems
     print("\n2. Generating Test Problems...")
@@ -374,7 +374,7 @@ async def demo_complete_system():
     # Cleanup
     print("\n10. Cleanup...")
     system.shutdown()
-    print("   ✅ System shutdown complete")
+    print("   [OK] System shutdown complete")
 
     print("\n" + "=" * 80)
     print("DEMONSTRATION COMPLETE")
@@ -481,7 +481,7 @@ async def main():
     # Metrics collection demo
     await demo_metrics_collection()
 
-    print("\n✅ ALL DEMONSTRATIONS COMPLETE")
+    print("\n[OK] ALL DEMONSTRATIONS COMPLETE")
 
 
 if __name__ == '__main__':

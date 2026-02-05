@@ -331,10 +331,10 @@ class MetricCard(UIComponent):
         trend_html = ""
         if self.trend and self.change_percentage is not None:
             trend_icon = {
-                'up': '↑',
-                'down': '↓',
-                'neutral': '→'
-            }.get(self.trend, '→')
+                'up': '^',
+                'down': 'v',
+                'neutral': '->'
+            }.get(self.trend, '->')
 
             trend_class = f"trend-{self.trend}"
             trend_html = f'<div class="metric-trend {trend_class}">{trend_icon} {abs(self.change_percentage):.1f}%</div>'

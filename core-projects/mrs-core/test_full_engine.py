@@ -36,7 +36,7 @@ def test_presets():
     print("\n\n=== TEST: PRESETS ===")
     for preset_name in ["simple", "reasoning", "full_chain"]:
         operators = get_preset(preset_name)
-        run_test(f"PRESET → {preset_name}", operators)
+        run_test(f"PRESET -> {preset_name}", operators)
 
 
 def test_random_chains():

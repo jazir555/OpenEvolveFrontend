@@ -66,7 +66,7 @@ class LoongFlowChecker:
 
             # Cache successful result
             cls._availability_cache = True
-            logger.info("✅ LoongFlow is available and properly configured")
+            logger.info("[OK] LoongFlow is available and properly configured")
 
             return True
 

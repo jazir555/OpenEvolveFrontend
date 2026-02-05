@@ -68,9 +68,9 @@ async def run_phase_2_integration_test():
         knowledge_retriever=None
     )
 
-    print("✓ Agents initialized")
-    print("✓ A2A Protocol initialized")
-    print("✓ Storage Manager initialized")
+    print("[OK] Agents initialized")
+    print("[OK] A2A Protocol initialized")
+    print("[OK] Storage Manager initialized")
     print()
 
     # Sub-problem definition
@@ -97,7 +97,7 @@ async def run_phase_2_integration_test():
         use_rag=False
     )
 
-    print(f"✓ Blue Team generated solution")
+    print(f"[OK] Blue Team generated solution")
     print(f"  Sub-problem: {blue_result['sub_problem_title']}")
     print(f"  Solution length: {len(blue_result['solution'])} chars")
     print(f"  Artifact ID: {blue_result['artifact_id']}")
@@ -121,12 +121,12 @@ async def run_phase_2_integration_test():
         artifact_id=solution_msg.artifact_id
     )
 
-    print(f"✓ Blue Team notified Red Team via A2A protocol")
+    print(f"[OK] Blue Team notified Red Team via A2A protocol")
     print()
 
     # Red Team receives message
     red_messages = await protocol.get_messages("red_team")
-    print(f"✓ Red Team received {len(red_messages)} messages")
+    print(f"[OK] Red Team received {len(red_messages)} messages")
 
     print("-" * 80)
     print("STEP 2: Red Team Critiques Solution")
@@ -140,7 +140,7 @@ async def run_phase_2_integration_test():
         use_patterns=False
     )
 
-    print(f"✓ Red Team completed critique")
+    print(f"[OK] Red Team completed critique")
     print(f"  Issues identified: {red_result['total_issues']}")
     print(f"  Artifact ID: {red_result['artifact_id']}")
     print()
@@ -161,7 +161,7 @@ async def run_phase_2_integration_test():
             artifact_id=blue_result["artifact_id"]
         )
 
-        print(f"✓ Red Team sent refinement request via A2A protocol")
+        print(f"[OK] Red Team sent refinement request via A2A protocol")
         print()
 
     print("-" * 80)
@@ -175,7 +175,7 @@ async def run_phase_2_integration_test():
         iteration=2
     )
 
-    print(f"✓ Blue Team refined solution")
+    print(f"[OK] Blue Team refined solution")
     print(f"  New artifact ID: {refined_result['artifact_id']}")
     print(f"  Issues addressed: {len(refined_result['critique_addressed'])}")
     print()
@@ -189,7 +189,7 @@ async def run_phase_2_integration_test():
             reply_content="Refinement complete, all issues addressed"
         )
 
-        print(f"✓ Blue Team confirmed refinement via A2A protocol")
+        print(f"[OK] Blue Team confirmed refinement via A2A protocol")
         print()
 
     print("-" * 80)
@@ -207,7 +207,7 @@ async def run_phase_2_integration_test():
         }
     )
 
-    print(f"✓ Gold Team completed verification")
+    print(f"[OK] Gold Team completed verification")
     print(f"  Passes: {gold_result['passes']}")
     print(f"  Overall Score: {gold_result['overall_score']}/10")
     print(f"  Artifact ID: {gold_result['artifact_id']}")
@@ -233,7 +233,7 @@ async def run_phase_2_integration_test():
         artifact_id=verification_msg.artifact_id
     )
 
-    print(f"✓ Gold Team sent verification result via A2A protocol")
+    print(f"[OK] Gold Team sent verification result via A2A protocol")
     print()
 
     print("=" * 80)
@@ -258,18 +258,18 @@ async def run_phase_2_integration_test():
     print()
 
     print("=" * 80)
-    print("✅ PHASE 2 INTEGRATION TEST COMPLETE!")
+    print("[OK] PHASE 2 INTEGRATION TEST COMPLETE!")
     print("=" * 80)
     print()
     print("Components Tested:")
-    print("  ✓ Blue Team Agent (solution generation)")
-    print("  ✓ Red Team Agent (critique)")
-    print("  ✓ Gold Team Agent (verification)")
-    print("  ✓ A2A Protocol (agent-to-agent messaging)")
-    print("  ✓ Message Builder (convenience methods)")
-    print("  ✓ Message routing and delivery")
-    print("  ✓ Refinement workflow")
-    print("  ✓ Verification workflow")
+    print("  [OK] Blue Team Agent (solution generation)")
+    print("  [OK] Red Team Agent (critique)")
+    print("  [OK] Gold Team Agent (verification)")
+    print("  [OK] A2A Protocol (agent-to-agent messaging)")
+    print("  [OK] Message Builder (convenience methods)")
+    print("  [OK] Message routing and delivery")
+    print("  [OK] Refinement workflow")
+    print("  [OK] Verification workflow")
     print()
 
     return True
@@ -313,7 +313,7 @@ async def test_agent_tools_integration():
         knowledge_retriever=retriever
     )
 
-    print(f"✓ Blue Team agent initialized with {len(blue_agent.get_tools())} tools")
+    print(f"[OK] Blue Team agent initialized with {len(blue_agent.get_tools())} tools")
     print(f"  Available tools: {blue_agent.get_tools()}")
     print()
 
@@ -326,7 +326,7 @@ async def test_agent_tools_integration():
             top_k=3
         )
 
-        print("✓ Knowledge search tool executed")
+        print("[OK] Knowledge search tool executed")
         print(f"  Results: {len(tool_result)} items returned")
         print()
 
@@ -338,7 +338,7 @@ async def test_agent_tools_integration():
     print(f"  Tools Available: {metadata['tools_available']}")
     print()
 
-    print("✅ AGENT TOOLS INTEGRATION TEST COMPLETE!")
+    print("[OK] AGENT TOOLS INTEGRATION TEST COMPLETE!")
     print()
 
     return True
@@ -369,7 +369,7 @@ if __name__ == "__main__":
         except Exception as e:
             print()
             print("=" * 80)
-            print(f"❌ TEST FAILED: {e}")
+            print(f"[FAIL] TEST FAILED: {e}")
             print("=" * 80)
             import traceback
             traceback.print_exc()

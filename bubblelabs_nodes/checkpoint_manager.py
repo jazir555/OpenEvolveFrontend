@@ -472,7 +472,7 @@ class CheckpointManager:
 
             if success:
                 self.checkpoint_count += 1
-                logger.info(f"✅ Checkpoint created: {checkpoint_id} ({len(data)} bytes)")
+                logger.info(f"[OK] Checkpoint created: {checkpoint_id} ({len(data)} bytes)")
 
                 # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful checkpoint
                 self._extract_checkpoint_knowledge("create_checkpoint", checkpoint_id, metadata, state)
@@ -529,7 +529,7 @@ class CheckpointManager:
             state = await self.serializer.deserialize(data)
             load_time = time.time() - start_time
 
-            logger.info(f"✅ Checkpoint loaded: {checkpoint_id} from {metadata.timestamp}")
+            logger.info(f"[OK] Checkpoint loaded: {checkpoint_id} from {metadata.timestamp}")
 
             # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful resume
             self._extract_checkpoint_knowledge("resume_from_checkpoint", checkpoint_id, metadata, state)

@@ -73,7 +73,7 @@ def main():
 
     sub_problems = strategy.decompose(problem)
 
-    print(f"\n✓ Generated {len(sub_problems)} process stages\n")
+    print(f"\n[OK] Generated {len(sub_problems)} process stages\n")
 
     # Display as pipeline
     print("PROCESS FLOW:")

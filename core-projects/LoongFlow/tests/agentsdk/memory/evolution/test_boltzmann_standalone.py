@@ -68,8 +68,8 @@ def _boltzmann_selection_with_weights(
 
         # Combine Boltzmann probabilities with sampling weights using proper normalization
         # This ensures the mathematical properties are preserved:
-        # 1. Same weights: higher score → higher probability
-        # 2. Same scores: higher weight → higher probability
+        # 1. Same weights: higher score -> higher probability
+        # 2. Same scores: higher weight -> higher probability
         combined_probs = boltzmann_probs * sampling_weights
 
         # Validate and normalize probabilities

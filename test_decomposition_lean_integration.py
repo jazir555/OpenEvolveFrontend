@@ -161,7 +161,7 @@ class TestMathematicalDetection:
             assert metadata.domain == problem_data["expected_domain"], \
                 f"Domain mismatch for {problem_name}: got {metadata.domain}, expected {problem_data['expected_domain']}"
 
-            logger.info(f"✓ {problem_name}: domain={metadata.domain.value}, difficulty={metadata.proof_difficulty}")
+            logger.info(f"[OK] {problem_name}: domain={metadata.domain.value}, difficulty={metadata.proof_difficulty}")
 
     @pytest.mark.asyncio
     async def test_detect_non_mathematical_problem(self, detector, mathematical_problems):
@@ -359,7 +359,7 @@ class TestLeanEnhancedDecomposition:
         assert metadata.is_mathematical
         assert plan is not None
 
-        logger.info(f"✓ Detection and routing: domain={metadata.domain.value if metadata.domain else 'N/A'}")
+        logger.info(f"[OK] Detection and routing: domain={metadata.domain.value if metadata.domain else 'N/A'}")
 
     @pytest.mark.asyncio
     async def test_non_mathematical_routing(self, mathematical_problems):
@@ -402,7 +402,7 @@ class TestLeanEnhancedDecomposition:
         assert not metadata.is_mathematical
         assert plan is None  # No Lean decomposition for non-mathematical
 
-        logger.info("✓ Non-mathematical problem correctly identified")
+        logger.info("[OK] Non-mathematical problem correctly identified")
 
 
 # =============================================================================
@@ -427,15 +427,15 @@ class TestIntegration:
         )
 
         assert metadata.is_mathematical
-        logger.info(f"✓ Step 1: Detected as {metadata.domain.value}")
+        logger.info(f"[OK] Step 1: Detected as {metadata.domain.value}")
 
         # Step 2: Generate evolutionary config
         config = await generate_evolutionary_config(metadata)
         if metadata.requires_evolution:
             assert config.get("enable_evolution")
-            logger.info(f"✓ Step 2: Evolutionary config generated with strategy {config.get('strategy_type')}")
+            logger.info(f"[OK] Step 2: Evolutionary config generated with strategy {config.get('strategy_type')}")
         else:
-            logger.info("✓ Step 2: Evolution not required for this problem")
+            logger.info("[OK] Step 2: Evolution not required for this problem")
 
         # Step 3: Create problem definition
         problem_def = ProblemDefinition(
@@ -472,7 +472,7 @@ class TestIntegration:
 
         assert plan is not None
         assert len(plan.sub_problems) > 0
-        logger.info(f"✓ Step 3: Decomposition created {len(plan.sub_problems)} sub-problems")
+        logger.info(f"[OK] Step 3: Decomposition created {len(plan.sub_problems)} sub-problems")
 
         # Step 5: Verify Lean metadata in sub-problems
         lean_subproblems = [
@@ -480,7 +480,7 @@ class TestIntegration:
             if sp.metadata.get("lean_formalization")
         ]
 
-        logger.info(f"✓ Step 4: Found {len(lean_subproblems)} Lean-formalizable sub-problems")
+        logger.info(f"[OK] Step 4: Found {len(lean_subproblems)} Lean-formalizable sub-problems")
 
         # Step 6: Check evolutionary config in sub-problems
         for sp in lean_subproblems:
@@ -514,7 +514,7 @@ class TestPerformance:
 
             # Detection should be fast (< 1 second for heuristic)
             assert elapsed < 1.0, f"Detection too slow for {problem_name}: {elapsed}s"
-            logger.info(f"✓ {problem_name}: detected in {elapsed:.3f}s")
+            logger.info(f"[OK] {problem_name}: detected in {elapsed:.3f}s")
 
     @pytest.mark.asyncio
     async def test_decomposition_performance(self, mathematical_problems):
@@ -562,7 +562,7 @@ class TestPerformance:
 
         # Decomposition should complete in reasonable time
         assert elapsed < 10.0, f"Decomposition too slow: {elapsed}s"
-        logger.info(f"✓ Decomposition completed in {elapsed:.3f}s")
+        logger.info(f"[OK] Decomposition completed in {elapsed:.3f}s")
 
 
 # =============================================================================

@@ -124,7 +124,7 @@ def run_fully_integrated_adversarial_evolution(
             max_tokens=max_tokens,
             seed=seed,
         )
-        _update_adv_log_and_status("✅ Content augmentation for adversarial testing complete.")
+        _update_adv_log_and_status("[OK] Content augmentation for adversarial testing complete.")
     
     # Run adversarial testing using our enhanced function
     try:
@@ -192,7 +192,7 @@ def run_fully_integrated_adversarial_evolution(
         
         # Get the adversarially improved content
         adversarially_improved = adversarial_results.get("final_content", working_content)
-        _update_adv_log_and_status(f"✅ Adversarial testing complete. Content improved from {len(working_content)} to {len(adversarially_improved)} chars.")
+        _update_adv_log_and_status(f"[OK] Adversarial testing complete. Content improved from {len(working_content)} to {len(adversarially_improved)} chars.")
         
         # Update the content to evolve
         working_content = adversarially_improved
@@ -201,7 +201,7 @@ def run_fully_integrated_adversarial_evolution(
         integrated_results["adversarial_results"] = adversarial_results
         
     except Exception as e:
-        _update_adv_log_and_status(f"⚠️ Adversarial testing failed: {e}. Continuing with original content.")
+        _update_adv_log_and_status(f"[WARN] Adversarial testing failed: {e}. Continuing with original content.")
         # Continue with evolution even if adversarial testing fails
         import traceback
         traceback.print_exc()
@@ -246,7 +246,7 @@ def run_fully_integrated_adversarial_evolution(
             checkpoint_interval=checkpoint_interval
         )
         
-        _update_adv_log_and_status(f"✅ Evolution optimization complete. Final content length: {len(evolution_final_content)} chars.")
+        _update_adv_log_and_status(f"[OK] Evolution optimization complete. Final content length: {len(evolution_final_content)} chars.")
         
         # Update content for evaluation phase
         working_content = evolution_final_content
@@ -256,7 +256,7 @@ def run_fully_integrated_adversarial_evolution(
         integrated_results["evolution_results"]["process_stage"] = "evolution_completed"
         
     except Exception as e:
-        _update_adv_log_and_status(f"❌ Evolution optimization failed: {e}")
+        _update_adv_log_and_status(f"[FAIL] Evolution optimization failed: {e}")
         import traceback
         traceback.print_exc()
         # Continue with evaluation using the best available content
@@ -300,7 +300,7 @@ def run_fully_integrated_adversarial_evolution(
             rotation_strategy=rotation_strategy
         )
         
-        _update_adv_log_and_status(f"✅ Evaluation complete. Final content length: {len(evaluation_results.get('final_content', working_content))} chars.")
+        _update_adv_log_and_status(f"[OK] Evaluation complete. Final content length: {len(evaluation_results.get('final_content', working_content))} chars.")
         
         # Update final results
         integrated_results["final_content"] = evaluation_results.get("final_content", working_content)
@@ -318,7 +318,7 @@ def run_fully_integrated_adversarial_evolution(
         return integrated_results
         
     except Exception as e:
-        _update_adv_log_and_status(f"❌ Evaluation failed: {e}")
+        _update_adv_log_and_status(f"[FAIL] Evaluation failed: {e}")
         import traceback
         traceback.print_exc()
         integrated_results["success"] = False
@@ -424,7 +424,7 @@ def run_evaluator_loop(
             selected_evaluators = evaluator_models
 
         if not selected_evaluators:
-            _update_adv_log_and_status("❌ Error: No evaluator models selected for current iteration. Stopping.")
+            _update_adv_log_and_status("[FAIL] Error: No evaluator models selected for current iteration. Stopping.")
             break
 
         _update_adv_log_and_status(f"Evaluator Team: {', '.join(selected_evaluators)}")
@@ -491,7 +491,7 @@ def run_evaluator_loop(
 
         # Check if content meets acceptance criteria
         if consecutive_acceptable_rounds >= evaluator_consecutive_rounds:
-            _update_adv_log_and_status(f"✅ Content accepted after {consecutive_acceptable_rounds} consecutive rounds meeting threshold!")
+            _update_adv_log_and_status(f"[OK] Content accepted after {consecutive_acceptable_rounds} consecutive rounds meeting threshold!")
             break
 
         # Content doesn't meet threshold, continue to next iteration
@@ -523,7 +523,7 @@ def run_evaluator_loop(
                     total_cost += improvement_result.get("cost", 0.0)
                     _update_adv_log_and_status(f"🔧 Applied evaluator feedback using {improver_model}")
                 else:
-                    _update_adv_log_and_status("⚠️ Feedback-based improvement failed; continuing with current content.")
+                    _update_adv_log_and_status("[WARN] Feedback-based improvement failed; continuing with current content.")
 
     # Return final results
     return {
@@ -659,7 +659,7 @@ def run_enhanced_adversarial_loop(
             blue_team_models_selected = blue_team_models
 
         if not red_team_models_selected or not blue_team_models_selected:
-            _update_adv_log_and_status("❌ Error: No models selected for current iteration. Stopping.")
+            _update_adv_log_and_status("[FAIL] Error: No models selected for current iteration. Stopping.")
             break
 
         _update_adv_log_and_status(f"Red Team: {', '.join(red_team_models_selected)} | Blue Team: {', '.join(blue_team_models_selected)}")
@@ -703,7 +703,7 @@ def run_enhanced_adversarial_loop(
                     _update_adv_log_and_status(f"🔴 {model_id} generated an exception: {exc}")
 
         if not critiques:
-            _update_adv_log_and_status("⚠️ No valid critiques generated. Stopping.")
+            _update_adv_log_and_status("[WARN] No valid critiques generated. Stopping.")
             break
 
         # --- Blue Team Patches ---
@@ -779,7 +779,7 @@ Patch Quality: {patch_quality}""",
         total_completion_tokens += approval_check["completion_tokens"]
         total_cost += approval_check["cost"]
         final_approval_rate = approval_check["approval_rate"]
-        _update_adv_log_and_status(f"✅ Approval Rate: {final_approval_rate:.1f}%")
+        _update_adv_log_and_status(f"[OK] Approval Rate: {final_approval_rate:.1f}%")
 
         # --- Update State ---
         iteration_results.append(
@@ -809,7 +809,7 @@ Patch Quality: {patch_quality}""",
                 "content_length": len(new_content_text)
             })
 
-    _update_adv_log_and_status("✅ Enhanced adversarial evolution complete.")
+    _update_adv_log_and_status("[OK] Enhanced adversarial evolution complete.")
     
     return {
         "final_content": current_content_text,
@@ -953,14 +953,14 @@ def run_enhanced_evolution_loop(
                     if os.path.exists(temp_file_path):
                         os.unlink(temp_file_path)
             except ImportError:
-                _update_evolution_log_and_status("⚠️ OpenEvolve imports failed, falling back to API-based evolution...")
+                _update_evolution_log_and_status("[WARN] OpenEvolve imports failed, falling back to API-based evolution...")
                 # Fall through to the API-based implementation
             except Exception as e:
-                _update_evolution_log_and_status(f"⚠️ OpenEvolve execution failed: {e}, falling back to API-based evolution...")
+                _update_evolution_log_and_status(f"[WARN] OpenEvolve execution failed: {e}, falling back to API-based evolution...")
                 # Fall through to the API-based implementation
         
         # Fallback to the custom evolution loop when OpenEvolve is not available or failed
-        _update_evolution_log_and_status("⚠️ OpenEvolve not available, using API-based enhanced evolution as fallback...")
+        _update_evolution_log_and_status("[WARN] OpenEvolve not available, using API-based enhanced evolution as fallback...")
         for i in range(max_iterations):
                 # Check if we have adversarial stop flag
                 if st.session_state.get("adversarial_stop_flag", False):
@@ -999,7 +999,7 @@ def run_enhanced_evolution_loop(
                             result = future.result()
                             new_population.append(result)
                         except Exception as e:
-                            _update_evolution_log_and_status(f"❌ Error generating candidate: {e}")
+                            _update_evolution_log_and_status(f"[FAIL] Error generating candidate: {e}")
                             # Implement retry logic with exponential backoff
                             max_retries = 3
                             for retry in range(max_retries):
@@ -1022,13 +1022,13 @@ def run_enhanced_evolution_loop(
                                         seed + i if seed is not None else None,
                                     )
                                     new_population.append(retry_result)
-                                    _update_evolution_log_and_status(f"✅ Retry successful")
+                                    _update_evolution_log_and_status(f"[OK] Retry successful")
                                     break
                                 except Exception as retry_error:
                                     if retry == max_retries - 1:
-                                        _update_evolution_log_and_status(f"❌ All retries failed: {retry_error}")
+                                        _update_evolution_log_and_status(f"[FAIL] All retries failed: {retry_error}")
                                     else:
-                                        _update_evolution_log_and_status(f"⚠️ Retry {retry + 1} failed: {retry_error}")
+                                        _update_evolution_log_and_status(f"[WARN] Retry {retry + 1} failed: {retry_error}")
 
                 _update_evolution_log_and_status("🔍 Evaluating new population...")
 
@@ -1071,7 +1071,7 @@ def run_enhanced_evolution_loop(
                                     result = future.result()
                                     new_population.append(result)
                                 except Exception as e:
-                                    _update_evolution_log_and_status(f"❌ Error generating improvement candidate: {e}")
+                                    _update_evolution_log_and_status(f"[FAIL] Error generating improvement candidate: {e}")
 
                 # Evaluate new population
                 with ThreadPoolExecutor(max_workers=population_size) as executor:
@@ -1103,7 +1103,7 @@ def run_enhanced_evolution_loop(
                                 best_score = score
                                 best_candidate = candidate
                         except Exception as e:
-                            _update_evolution_log_and_status(f"❌ Error evaluating candidate: {e}")
+                            _update_evolution_log_and_status(f"[FAIL] Error evaluating candidate: {e}")
                             continue
 
                 if best_candidate and best_score > 0:
@@ -1239,7 +1239,7 @@ def capture_integrated_human_feedback(
             f"📝 Captured integrated human feedback for content example {content_example.get('id')}"
         )
     except Exception as e:
-        _update_adv_log_and_status(f"❌ Failed to save integrated human feedback: {e}")
+        _update_adv_log_and_status(f"[FAIL] Failed to save integrated human feedback: {e}")
 
 
 def calculate_average_severity(critiques: List[Dict]) -> float:
@@ -1517,7 +1517,7 @@ def check_approval_rate(
         }
         
     except Exception as e:
-        _update_adv_log_and_status(f"⚠️ Ensemble evaluation failed, using fallback: {e}")
+        _update_adv_log_and_status(f"[WARN] Ensemble evaluation failed, using fallback: {e}")
         
         # Fallback to simple evaluation
         approvals = 0
@@ -1547,7 +1547,7 @@ def check_approval_rate(
                     rejections += 1
                     
             except Exception as model_error:
-                _update_adv_log_and_status(f"⚠️ Model {model_id} evaluation failed: {model_error}")
+                _update_adv_log_and_status(f"[WARN] Model {model_id} evaluation failed: {model_error}")
                 rejections += 1
         
         approval_rate = approvals / len(red_team_models) if red_team_models else 0.0

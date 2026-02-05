@@ -411,7 +411,7 @@ class UnifiedEvolutionAPI:
                 logger.info("ℹ️  LoongFlow not available, using OpenEvolve-only mode")
         else:
             should_use_loongflow = True
-            logger.info("✅ LoongFlow available and enabled")
+            logger.info("[OK] LoongFlow available and enabled")
 
         # Log what we're doing
         if should_use_loongflow:

@@ -13,10 +13,10 @@ Key Features:
 4. Algorithm 4: Recursive multi-agent solve with decomposition
 
 CrewAI Architecture:
-- MAKEREngine → CrewAI Crew with multiple agents
-- VotingEngine → CrewAI Task with agent coordination
-- VoteCollector → CrewAI Agent with red-flagging
-- RecursiveMAKERSolver → Nested CrewAI Crews
+- MAKEREngine -> CrewAI Crew with multiple agents
+- VotingEngine -> CrewAI Task with agent coordination
+- VoteCollector -> CrewAI Agent with red-flagging
+- RecursiveMAKERSolver -> Nested CrewAI Crews
 
 License: MIT (replaces AGPL Hephaestus)
 """
@@ -470,9 +470,9 @@ class CrewAIVotingEngine:
 
     From paper (line 1-9):
     1: Input: x, M, k
-    2: V ← {v : 0 ∀v}    # Vote counts
+    2: V <- {v : 0 ∀v}    # Vote counts
     3: while True do
-    4:   y ← get_vote(x, M)
+    4:   y <- get_vote(x, M)
     5:   V [y] = V [y] + 1
     6:   if V [y] ≥ k + maxv̸=y V [v] then
     7:     return y
@@ -644,10 +644,10 @@ class CrewAIMAKEREngine:
 
     From paper (line 1-8):
     1: Input xo, M, k
-    2: Initialize A ← []   # Action list
-    3: Initialize x ← xo
+    2: Initialize A <- []   # Action list
+    3: Initialize x <- xo
     4: for s steps do
-    5:   a, x ← do_voting(x, M, k)
+    5:   a, x <- do_voting(x, M, k)
     6:   Append a to A
     7: end for
     8: return A
@@ -913,7 +913,7 @@ class CrewAIRecursiveMAKERSolver:
     Implements general-purpose decomposition with voting at each level.
 
     From paper (line 1-18):
-    1:  N ← 2k − 1                    # First-to-k voting, N candidates per step
+    1:  N <- 2k − 1                    # First-to-k voting, N candidates per step
     2:  function D ECOMPOSE(x)
     3:    sample N decompositions via D ECOMPOSER(x)
     4:    vote via S OLUTION D ISCRIMINATOR until one reaches k

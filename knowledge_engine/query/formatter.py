@@ -311,7 +311,7 @@ class ResultFormatter:
         
         for r in results:
             title = r.metadata.get('name', r.id)
-            lines.append(f"• {title} ({r.score:.2f})")
+            lines.append(f"* {title} ({r.score:.2f})")
         
         content = "\n".join(lines)
         
@@ -341,7 +341,7 @@ class ResultFormatter:
         lines = [f"Found {len(results)} results:\n"]
         
         for source, source_results in by_source.items():
-            lines.append(f"• {len(source_results)} from {source}")
+            lines.append(f"* {len(source_results)} from {source}")
         
         lines.append("")
         

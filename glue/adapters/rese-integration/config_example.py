@@ -39,7 +39,7 @@ def example_basic_usage():
         print(f"\nConfiguration exported as dict with {len(config_dict)} sections")
 
     except ConfigurationError as e:
-        print(f"\n❌ Configuration Error: {e}")
+        print(f"\n[FAIL] Configuration Error: {e}")
         sys.exit(1)
 
 
@@ -136,18 +136,18 @@ def example_environment_specific():
     print(f"\nCurrent Environment: {env}")
 
     if env == "development":
-        print("  → Fast iteration, detailed logging, permissive validation")
-        print(f"  → Log Level: {config.log_level}")
-        print(f"  → Profiling Enabled: {config.enable_profiling}")
+        print("  -> Fast iteration, detailed logging, permissive validation")
+        print(f"  -> Log Level: {config.log_level}")
+        print(f"  -> Profiling Enabled: {config.enable_profiling}")
     elif env == "staging":
-        print("  → Production-like with comprehensive testing")
-        print(f"  → Log Level: {config.log_level}")
-        print(f"  → Tracing Enabled: {config.enable_tracing}")
+        print("  -> Production-like with comprehensive testing")
+        print(f"  -> Log Level: {config.log_level}")
+        print(f"  -> Tracing Enabled: {config.enable_tracing}")
     elif env == "production":
-        print("  → Maximum quality, resilience, and observability")
-        print(f"  → Log Level: {config.log_level}")
-        print(f"  → Circuit Breakers: {config.enable_circuit_breakers}")
-        print(f"  → DLQ Enabled: {config.enable_dlq}")
+        print("  -> Maximum quality, resilience, and observability")
+        print(f"  -> Log Level: {config.log_level}")
+        print(f"  -> Circuit Breakers: {config.enable_circuit_breakers}")
+        print(f"  -> DLQ Enabled: {config.enable_dlq}")
 
 
 def example_conditional_logic():
@@ -162,34 +162,34 @@ def example_conditional_logic():
 
     # Phase I features
     if config.phase1_enable_tacit_mining:
-        print("  ✓ Tacit assumption mining ENABLED")
+        print("  [OK] Tacit assumption mining ENABLED")
     else:
-        print("  ✗ Tacit assumption mining DISABLED")
+        print("  [FAIL] Tacit assumption mining DISABLED")
 
     if config.phase1_enable_red_team:
-        print("  ✓ Red team mode ENABLED")
+        print("  [OK] Red team mode ENABLED")
     else:
-        print("  ✗ Red team mode DISABLED")
+        print("  [FAIL] Red team mode DISABLED")
 
     if config.phase1_enable_lean4_integration:
-        print(f"  ✓ Lean4 integration ENABLED (path: {config.lean4_exec_path})")
+        print(f"  [OK] Lean4 integration ENABLED (path: {config.lean4_exec_path})")
     else:
-        print("  ✗ Lean4 integration DISABLED")
+        print("  [FAIL] Lean4 integration DISABLED")
 
     # Phase II features
     if config.phase2_enable_constraint_inversion:
-        print("  ✓ Constraint inversion ENABLED")
+        print("  [OK] Constraint inversion ENABLED")
     else:
-        print("  ✗ Constraint inversion DISABLED")
+        print("  [FAIL] Constraint inversion DISABLED")
 
     # Phase IV strategy
     strategy = config.phase4_integration_strategy
     if strategy == "conservative":
-        print("  ✓ Integration strategy: CONSERVATIVE (100% confidence required)")
+        print("  [OK] Integration strategy: CONSERVATIVE (100% confidence required)")
     elif strategy == "balanced":
-        print("  ✓ Integration strategy: BALANCED (80%+ confidence required)")
+        print("  [OK] Integration strategy: BALANCED (80%+ confidence required)")
     elif strategy == "aggressive":
-        print("  ✓ Integration strategy: AGGRESSIVE (all viable components)")
+        print("  [OK] Integration strategy: AGGRESSIVE (all viable components)")
 
 
 def main():
@@ -211,12 +211,12 @@ def main():
         print("=" * 60)
 
     except ConfigurationError as e:
-        print(f"\n❌ Configuration Error: {e}")
+        print(f"\n[FAIL] Configuration Error: {e}")
         print("\n💡 Tip: Make sure you have set the required environment variables")
         print("   or created a .env file from .env.example")
         sys.exit(1)
     except Exception as e:
-        print(f"\n❌ Unexpected Error: {e}")
+        print(f"\n[FAIL] Unexpected Error: {e}")
         sys.exit(1)
 
 

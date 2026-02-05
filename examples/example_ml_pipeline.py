@@ -113,7 +113,7 @@ def main():
     engine = DecompositionEngine()
     result = engine.decompose(problem, strategy="semantic")
 
-    print(f"\n✓ Generated {len(result.sub_problems)} sub-problems\n")
+    print(f"\n[OK] Generated {len(result.sub_problems)} sub-problems\n")
 
     # ============================================================================
     # STEP 4: Display Decomposition Results
@@ -263,15 +263,15 @@ def main():
 
     print(f"\nHigh Complexity Tasks (≥8/10): {len(high_complexity)}")
     for sp in high_complexity:
-        print(f"  ⚠️  {sp.title} (complexity: {sp.complexity_score.overall_complexity}/10)")
+        print(f"  [WARN]  {sp.title} (complexity: {sp.complexity_score.overall_complexity}/10)")
 
     print(f"\nHigh Effort Tasks (≥24h): {len(high_effort)}")
     for sp in high_effort:
-        print(f"  ⚠️  {sp.title} (effort: {sp.estimated_effort}h)")
+        print(f"  [WARN]  {sp.title} (effort: {sp.estimated_effort}h)")
 
     print(f"\nMany Dependencies (≥3): {len(many_deps)}")
     for sp in many_deps:
-        print(f"  ⚠️  {sp.title} (dependencies: {len(sp.dependencies)})")
+        print(f"  [WARN]  {sp.title} (dependencies: {len(sp.dependencies)})")
 
     # ============================================================================
     # STEP 8: Export Results
@@ -323,17 +323,17 @@ def main():
     with open(output_file, 'w') as f:
         json.dump(export_data, f, indent=2)
 
-    print(f"\n✓ Exported to: {output_file}")
+    print(f"\n[OK] Exported to: {output_file}")
 
     # Print summary
     print("\n" + "=" * 80)
     print("DECOMPOSITION SUMMARY")
     print("=" * 80)
-    print(f"✓ Problem: {problem.title}")
-    print(f"✓ Generated {len(result.sub_problems)} sub-problems")
-    print(f"✓ Total effort: {total_effort} hours ({total_effort/8:.1f} days)")
-    print(f"✓ Estimated phases: {phase}")
-    print(f"✓ Parallelizable: {parallelizable_pct:.1f}%")
+    print(f"[OK] Problem: {problem.title}")
+    print(f"[OK] Generated {len(result.sub_problems)} sub-problems")
+    print(f"[OK] Total effort: {total_effort} hours ({total_effort/8:.1f} days)")
+    print(f"[OK] Estimated phases: {phase}")
+    print(f"[OK] Parallelizable: {parallelizable_pct:.1f}%")
     print("=" * 80)
 
 

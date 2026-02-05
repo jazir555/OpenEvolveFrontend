@@ -106,7 +106,7 @@ Z3_NODE_ICONS = {
     "cross_verify": "⚖️",
     "classification": "🔍",
     "input": "📥",
-    "result": "✅",
+    "result": "[OK]",
     "subproblem_loop": "🔄",
     "entanglement_viz": "🕸️",
     "subproblem": "📦",
@@ -121,10 +121,10 @@ Z3_NODE_ICONS = {
     "error_handler": "🚨",
     "refinement": "🔧",
     "composition": "🧩",
-    "validation": "✅",
+    "validation": "[OK]",
     "parallelization": "⚡",
     "convergence": "🎯",
-    "divergence": "⚠️",
+    "divergence": "[WARN]",
     # Extended bubbles
     "adversarial_testing": "⚔️",
     "mdap": "📊",
@@ -921,7 +921,7 @@ def create_z3_result_bubble(
         Dict representing a result bubble
     """
     position = position or Z3_NODE_POSITIONS.get("result", {"x": 800, "y": 0})
-    icon = Z3_NODE_ICONS.get("result", "✅")
+    icon = Z3_NODE_ICONS.get("result", "[OK]")
     color = Z3_NODE_COLORS.get("result", "#00B894")
     
     status_colors = {
@@ -1576,7 +1576,7 @@ def create_validation_bubble(
         Dict representing a validation bubble
     """
     position = position or {"x": 650, "y": 750}
-    icon = Z3_NODE_ICONS.get("validation", "✅")
+    icon = Z3_NODE_ICONS.get("validation", "[OK]")
     color = Z3_NODE_COLORS.get("validation", "#0984E3")
     label = label or f"{icon} Validation"
     

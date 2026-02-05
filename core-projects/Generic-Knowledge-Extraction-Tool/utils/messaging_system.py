@@ -33,9 +33,9 @@ class ConsoleMessenger:
     
     # Unicode symbols for visual appeal
     SYMBOLS = {
-        'success': '✅',
-        'error': '❌',
-        'warning': '⚠️',
+        'success': '[OK]',
+        'error': '[FAIL]',
+        'warning': '[WARN]',
         'info': 'ℹ️',
         'progress': '🔄',
         'document': '📄',
@@ -43,9 +43,9 @@ class ConsoleMessenger:
         'processing': '⚙️',
         'complete': '🎯',
         'arrow': '➤',
-        'bullet': '•',
-        'check': '✓',
-        'cross': '✗',
+        'bullet': '*',
+        'check': '[OK]',
+        'cross': '[FAIL]',
         'spinner': ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
     }
     
@@ -153,7 +153,7 @@ class ConsoleMessenger:
     
     def extraction_progress(self, stage: str, documents_count: int, results_count: int):
         """Print extraction progress"""
-        print(f"{self.SYMBOLS['extraction']} {self._colorize(stage, 'blue')}: {documents_count} docs → {results_count} results")
+        print(f"{self.SYMBOLS['extraction']} {self._colorize(stage, 'blue')}: {documents_count} docs -> {results_count} results")
     
     def parsing_method(self, method: str, filename: str):
         """Print parsing method being used"""

@@ -936,8 +936,8 @@ if __name__ == "__main__":
     
     # Exit with appropriate code
     if results['overall']['overall_success']:
-        print("\nAll tests passed! ✓")
+        print("\nAll tests passed! [OK]")
         sys.exit(0)
     else:
-        print("\nSome tests failed! ✗")
+        print("\nSome tests failed! [FAIL]")
         sys.exit(1)

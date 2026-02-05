@@ -66,16 +66,16 @@ class Z3LeanAideIntegrationDemo:
         print(f"Integration Ready: {status['ready']}")
         print(f"Message: {status['message']}")
         print(f"\nComponents:")
-        print(f"  Z3 Solver: {'✓' if status['z3_available'] else '✗'}")
-        print(f"  LeanAIDE: {'✓' if status['leanaide_available'] else '✗'}")
-        print(f"  Z3-LeanAIDE Bridge: {'✓' if status['z3_leanaide_bridge_available'] else '✗'}")
-        print(f"  OpenEvolve: {'✓' if status['openevolve_available'] else '✗'}")
-        print(f"  BubbleLabs: {'✓' if status['bubblelabs_available'] else '✗'}")
+        print(f"  Z3 Solver: {'[OK]' if status['z3_available'] else '[FAIL]'}")
+        print(f"  LeanAIDE: {'[OK]' if status['leanaide_available'] else '[FAIL]'}")
+        print(f"  Z3-LeanAIDE Bridge: {'[OK]' if status['z3_leanaide_bridge_available'] else '[FAIL]'}")
+        print(f"  OpenEvolve: {'[OK]' if status['openevolve_available'] else '[FAIL]'}")
+        print(f"  BubbleLabs: {'[OK]' if status['bubblelabs_available'] else '[FAIL]'}")
     
     async def demo_z3_constraint_solving(self):
         """Demonstrate Z3 constraint solving."""
         if not is_z3_available():
-            print("\n⚠️  Z3 not available - skipping constraint solving demo")
+            print("\n[WARN]  Z3 not available - skipping constraint solving demo")
             return
         
         self.print_header("Demo 1: Z3 Constraint Solving")
@@ -110,7 +110,7 @@ class Z3LeanAideIntegrationDemo:
         result = engine.solve_constraints(variables, constraints)
         elapsed = time.time() - start
         
-        print(f"\n✓ Solved in {elapsed:.3f}s")
+        print(f"\n[OK] Solved in {elapsed:.3f}s")
         print(f"Status: {result.status.value}")
         
         if result.model:
@@ -123,7 +123,7 @@ class Z3LeanAideIntegrationDemo:
     async def demo_z3_theorem_proving(self):
         """Demonstrate Z3 theorem proving."""
         if not is_z3_available():
-            print("\n⚠️  Z3 not available - skipping theorem proving demo")
+            print("\n[WARN]  Z3 not available - skipping theorem proving demo")
             return
         
         self.print_header("Demo 2: Z3 Theorem Proving")
@@ -146,7 +146,7 @@ class Z3LeanAideIntegrationDemo:
         result = prover.prove_theorem(theorem)
         elapsed = time.time() - start
         
-        print(f"\n✓ Proven in {elapsed:.3f}s")
+        print(f"\n[OK] Proven in {elapsed:.3f}s")
         print(f"Proven: {result.proven}")
         print(f"Tactic used: {result.tactic_used}")
         
@@ -158,7 +158,7 @@ class Z3LeanAideIntegrationDemo:
         try:
             from z3_leanaide_bridge import TranslationDirection
         except ImportError:
-            print("\n⚠️  Z3-LeanAIDE bridge not available - skipping translation demo")
+            print("\n[WARN]  Z3-LeanAIDE bridge not available - skipping translation demo")
             return
         
         self.print_header("Demo 3: SMT-LIB to Lean 4 Translation")
@@ -182,20 +182,20 @@ class Z3LeanAideIntegrationDemo:
         result = await bridge.translate_smt_to_lean(smtlib)
         
         if result.success:
-            print(f"\n✓ Translation successful ({result.execution_time:.3f}s)")
+            print(f"\n[OK] Translation successful ({result.execution_time:.3f}s)")
             print("\nGenerated Lean 4 code:")
             print("-" * 50)
             print(result.translation)
             print("-" * 50)
         else:
-            print(f"\n✗ Translation failed: {result.errors}")
+            print(f"\n[FAIL] Translation failed: {result.errors}")
     
     async def demo_combined_verification(self):
         """Demonstrate combined Z3 + LeanAIDE verification."""
         try:
             from z3_leanaide_bridge import CombinedVerificationResult
         except ImportError:
-            print("\n⚠️  Z3-LeanAIDE bridge not available - skipping combined verification demo")
+            print("\n[WARN]  Z3-LeanAIDE bridge not available - skipping combined verification demo")
             return
         
         self.print_header("Demo 4: Combined Z3 + LeanAIDE Verification")
@@ -215,7 +215,7 @@ class Z3LeanAideIntegrationDemo:
         
         result = await bridge.verify_with_both(problem, VerificationStrategy.PARALLEL)
         
-        print(f"\n✓ Verification complete ({result.execution_time:.3f}s)")
+        print(f"\n[OK] Verification complete ({result.execution_time:.3f}s)")
         print(f"Strategy: {result.strategy_used.value}")
         print(f"Success: {result.success}")
         print(f"Z3 Status: {result.z3_result.status.value if result.z3_result else 'N/A'}")
@@ -279,7 +279,7 @@ class Z3LeanAideIntegrationDemo:
         result = await solve_with_z3_leanaide(problem)
         elapsed = time.time() - start
         
-        print(f"\n✓ Workflow complete in {elapsed:.3f}s")
+        print(f"\n[OK] Workflow complete in {elapsed:.3f}s")
         print(f"Status: {result['status']}")
         
         if result['status'] == 'completed':
@@ -300,7 +300,7 @@ class Z3LeanAideIntegrationDemo:
         result = register_z3_leanaide_bubblelabs_tools()
         
         if result['success']:
-            print(f"✓ Registered {result['nodes_registered']} node types")
+            print(f"[OK] Registered {result['nodes_registered']} node types")
             print(f"  Node types: {', '.join(result['node_types'])}")
         
         # Show node definitions
@@ -333,17 +333,17 @@ class Z3LeanAideIntegrationDemo:
                 else:
                     demo_func()
             except Exception as e:
-                print(f"\n⚠️  Demo '{name}' failed: {e}")
+                print(f"\n[WARN]  Demo '{name}' failed: {e}")
         
         self.print_header("Demo Complete")
         print("\nIntegration Features Demonstrated:")
-        print("  ✓ Z3 Constraint Solving")
-        print("  ✓ Z3 Theorem Proving")
-        print("  ✓ SMT-LIB to Lean Translation")
-        print("  ✓ Combined Z3 + LeanAIDE Verification")
-        print("  ✓ Automatic Problem Classification")
-        print("  ✓ Integrated Workflow Processing")
-        print("  ✓ BubbleLabs UI Integration")
+        print("  [OK] Z3 Constraint Solving")
+        print("  [OK] Z3 Theorem Proving")
+        print("  [OK] SMT-LIB to Lean Translation")
+        print("  [OK] Combined Z3 + LeanAIDE Verification")
+        print("  [OK] Automatic Problem Classification")
+        print("  [OK] Integrated Workflow Processing")
+        print("  [OK] BubbleLabs UI Integration")
         
         print("\nFor more information, see:")
         print("  - z3prover_integration.py (Core Z3 integration)")

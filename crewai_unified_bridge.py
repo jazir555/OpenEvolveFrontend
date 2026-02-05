@@ -12,7 +12,7 @@ Key Features:
 5. Config-based execution for all phases
 
 Architecture:
-    User API → CrewAI Unified Bridge → CrewAI Unified Flow → Local Execution
+    User API -> CrewAI Unified Bridge -> CrewAI Unified Flow -> Local Execution
 
 The bridge maintains API compatibility while delegating to the CrewAI infrastructure
 built in Phase 1 (crewai_unified_flow.py, crewai_state_management.py, etc.)

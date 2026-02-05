@@ -76,7 +76,7 @@ def test_ultimate_comprehensive_evolution():
     assert "meta_learning" in features
     assert "transfer_learning" in features
     
-    print(f"✅ Ultimate comprehensive evolution test passed")
+    print(f"[OK] Ultimate comprehensive evolution test passed")
     print(f"   Overall score: {result.get('overall_score', 0):.4f}")
     print(f"   Duration: {result.get('total_duration', 0):.2f}s")
     
@@ -114,7 +114,7 @@ def test_native_openevolve_with_workflow_enhancement():
     assert "hybrid_approach" in metrics
     assert metrics["hybrid_approach"] is True
     
-    print(f"✅ Native OpenEvolve + workflow enhancement test passed")
+    print(f"[OK] Native OpenEvolve + workflow enhancement test passed")
     print(f"   Native score: {metrics.get('native_openevolve_score', 0):.4f}")
     print(f"   Enhancement applied: {metrics.get('workflow_enhancement_applied', False)}")
     
@@ -171,7 +171,7 @@ def test_ultimate_adversarial_testing():
     assert "testing_effectiveness" in hybrid_metrics
     assert "overall_security_score" in hybrid_metrics
     
-    print(f"✅ Ultimate adversarial testing test passed")
+    print(f"[OK] Ultimate adversarial testing test passed")
     print(f"   Security score: {hybrid_metrics.get('overall_security_score', 0):.4f}")
     print(f"   Testing effectiveness: {hybrid_metrics.get('testing_effectiveness', 0):.4f}")
     
@@ -208,7 +208,7 @@ def test_native_openevolve_adversarial_only():
         assert "iterations_completed" in metrics
         assert "total_duration" in metrics
     
-    print(f"✅ Native OpenEvolve adversarial only test passed")
+    print(f"[OK] Native OpenEvolve adversarial only test passed")
     print(f"   Success: {result.get('success', False)}")
     
     return True
@@ -234,7 +234,7 @@ def test_comprehensive_adversarial_config():
     assert hasattr(config, 'defense_strength')
     assert config.defense_strength == 0.9
     
-    print(f"✅ Comprehensive adversarial config test passed")
+    print(f"[OK] Comprehensive adversarial config test passed")
     print(f"   Rounds: {config.adversarial_rounds}")
     print(f"   Attack strength: {config.attack_strength}")
     
@@ -272,7 +272,7 @@ def test_evolution_capabilities():
     assert "hybrid_approaches" in combined
     assert "full_parameter_support" in combined
     
-    print(f"✅ Evolution capabilities test passed")
+    print(f"[OK] Evolution capabilities test passed")
     print(f"   Native OpenEvolve available: {native.get('available', False)}")
     print(f"   Workflow system available: {workflow.get('available', False)}")
     
@@ -303,7 +303,7 @@ def test_adversarial_capabilities():
     assert "team_components" in workflow
     assert "testing_phases" in workflow
     
-    print(f"✅ Adversarial capabilities test passed")
+    print(f"[OK] Adversarial capabilities test passed")
     print(f"   Native adversarial available: {native.get('available', False)}")
     print(f"   Workflow adversarial available: {workflow.get('available', False)}")
     
@@ -323,9 +323,9 @@ def test_integration_compatibility():
         config = create_evolution_configuration_from_session()
         assert hasattr(config, 'evolution_mode')
         assert hasattr(config, 'max_iterations')
-        print("   ✅ Existing evolution configuration works")
+        print("   [OK] Existing evolution configuration works")
     except Exception as e:
-        print(f"   ❌ Evolution configuration error: {e}")
+        print(f"   [FAIL] Evolution configuration error: {e}")
         return False
     
     # Test existing adversarial function
@@ -333,12 +333,12 @@ def test_integration_compatibility():
         adv_config = create_adversarial_configuration_from_session()
         assert hasattr(adv_config, 'adversarial_rounds')
         assert hasattr(adv_config, 'attack_strength')
-        print("   ✅ Existing adversarial configuration works")
+        print("   [OK] Existing adversarial configuration works")
     except Exception as e:
-        print(f"   ❌ Adversarial configuration error: {e}")
+        print(f"   [FAIL] Adversarial configuration error: {e}")
         return False
     
-    print(f"✅ Integration compatibility test passed")
+    print(f"[OK] Integration compatibility test passed")
     
     return True
 
@@ -368,7 +368,7 @@ if __name__ == "__main__":
             else:
                 failed += 1
         except Exception as e:
-            print(f"❌ {test.__name__} failed: {e}")
+            print(f"[FAIL] {test.__name__} failed: {e}")
             failed += 1
         print()
     
@@ -378,4 +378,4 @@ if __name__ == "__main__":
     if failed == 0:
         print("🎉 ALL ULTIMATE INTEGRATION TESTS PASSED!")
     else:
-        print(f"⚠️ {failed} tests failed")
+        print(f"[WARN] {failed} tests failed")

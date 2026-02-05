@@ -697,9 +697,9 @@ def render_openevolve_metrics_dashboard(metrics_data: Dict[str, Any]):
                 st.write(f"- Exploitation Ratio: {params.get('exploitation_ratio', 'N/A')}")
                 
                 if params.get('enable_quality_diversity'):
-                    st.write("**Quality Diversity:** ✅ Enabled")
+                    st.write("**Quality Diversity:** [OK] Enabled")
                 if params.get('enable_cascade_evaluation'):
-                    st.write("**Cascade Evaluation:** ✅ Enabled")
+                    st.write("**Cascade Evaluation:** [OK] Enabled")
 
 def render_diversity_heatmap(archive_data: List[Dict[str, Any]], feature_dimensions: Optional[List[str]] = None):
     """Render comprehensive quality diversity archive heatmap with interactive features"""
@@ -978,9 +978,9 @@ def render_population_diversity_plot(diversity_history: List[Dict[str, Any]]):
         st.markdown(f"**Diversity Trend:** :{trend_color}[{diversity_trend.upper()}]")
         
         if diversity_trend == "decreasing":
-            st.warning("⚠️ Decreasing diversity may indicate premature convergence. Consider increasing exploration ratio or population size.")
+            st.warning("[WARN] Decreasing diversity may indicate premature convergence. Consider increasing exploration ratio or population size.")
         else:
-            st.success("✅ Increasing diversity indicates good exploration of the solution space.")
+            st.success("[OK] Increasing diversity indicates good exploration of the solution space.")
 
 
 def render_pareto_front(solutions: List[Dict[str, Any]], objective_names: Optional[List[str]] = None):

@@ -205,7 +205,7 @@ class Lean4Verifier:
             # Type annotations
             "prop": re.compile(r'\bProp\b'),
             "type": re.compile(r'\bType\b'),
-            "function_arrow": re.compile(r'→|->'),
+            "function_arrow": re.compile(r'->|->'),
 
             # Quantifiers
             "forall": re.compile(r'∀|forall'),
@@ -524,8 +524,8 @@ class Lean4Verifier:
                 ))
 
         # Check for function type consistency
-        arrow_count = lean4_code.count('→') + lean4_code.count('->')
-        if arrow_count > 0 and "fun" not in lean4_code and "→" not in lean4_code:
+        arrow_count = lean4_code.count('->') + lean4_code.count('->')
+        if arrow_count > 0 and "fun" not in lean4_code and "->" not in lean4_code:
             issues.append(VerificationIssue(
                 check_type=CheckType.TYPE,
                 severity="info",
@@ -851,7 +851,7 @@ if __name__ == "__main__":
     translation_result = translator.translate(detection_result)
 
     if translation_result.success:
-        print("   ✓ Translation successful")
+        print("   [OK] Translation successful")
 
         # Verify
         print("\n3. Verifying Lean 4 code...")
@@ -869,11 +869,11 @@ if __name__ == "__main__":
             for issue in verification_result.issues[:5]:  # Show first 5
                 print(f"   - [{issue.severity.upper()}] {issue.message}")
                 if issue.suggestion:
-                    print(f"     → {issue.suggestion}")
+                    print(f"     -> {issue.suggestion}")
 
         if verification_result.is_valid:
-            print("\n   ✓ Code is valid!")
+            print("\n   [OK] Code is valid!")
         else:
-            print("\n   ✗ Code has errors that need fixing")
+            print("\n   [FAIL] Code has errors that need fixing")
     else:
-        print("   ✗ Translation failed")
+        print("   [FAIL] Translation failed")

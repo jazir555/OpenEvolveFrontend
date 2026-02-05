@@ -33,7 +33,7 @@ def test_adapter_basic():
     # Check health
     health = adapter.get_health()
     assert health["status"] == "healthy"
-    print(f"✓ Adapter healthy: {health}")
+    print(f"[OK] Adapter healthy: {health}")
 
     # Execute Phase II
     request = {
@@ -53,7 +53,7 @@ def test_adapter_basic():
     assert "mappings" in result
     assert "summary" in result
 
-    print(f"✓ Phase II execution successful")
+    print(f"[OK] Phase II execution successful")
     print(f"  - Result ID: {result['result_id']}")
     print(f"  - Mappings found: {result['summary']['mapping_count']}")
     print(f"  - Patterns found: {result['summary']['pattern_count']}")
@@ -63,18 +63,18 @@ def test_adapter_basic():
 
     # Check best mapping
     if result["best_mapping"]:
-        print(f"✓ Best mapping found:")
+        print(f"[OK] Best mapping found:")
         print(f"  - Target: {result['best_mapping']['target_domain']}")
         print(f"  - I_mech: {result['best_mapping']['i_mech_score']:.2f}")
         print(f"  - Confidence: {result['best_mapping']['confidence']:.2f}")
 
     # Check inverted constraints
     if result["inverted_constraints"]:
-        print(f"✓ Inverted constraints:")
+        print(f"[OK] Inverted constraints:")
         for inv in result["inverted_constraints"]:
             print(f"  - {inv['inverted'][:80]}...")
 
-    print("\n✓ All integration tests passed!")
+    print("\n[OK] All integration tests passed!")
 
 
 def test_adapter_error_handling():
@@ -90,18 +90,18 @@ def test_adapter_error_handling():
         })
         assert False, "Should have raised ValueError"
     except ValueError as e:
-        print(f"✓ Validation error caught: {str(e)[:60]}...")
+        print(f"[OK] Validation error caught: {str(e)[:60]}...")
 
     # Check DLQ
     dlq = adapter.get_dlq_contents()
-    print(f"✓ DLQ size: {len(dlq)}")
+    print(f"[OK] DLQ size: {len(dlq)}")
 
-    print("\n✓ Error handling tests passed!")
+    print("\n[OK] Error handling tests passed!")
 
 
 if __name__ == "__main__":
     test_adapter_basic()
     test_adapter_error_handling()
     print("\n" + "="*60)
-    print("ALL INTEGRATION TESTS PASSED ✓")
+    print("ALL INTEGRATION TESTS PASSED [OK]")
     print("="*60)

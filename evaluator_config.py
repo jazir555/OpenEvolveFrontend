@@ -10,7 +10,7 @@ from typing import List, Dict, Any, Optional
 # Evaluator team presets for different evaluation scenarios
 EVALUATOR_PRESETS = {
     "Quality Assurance": {
-        "name": "✅ Quality Assurance",
+        "name": "[OK] Quality Assurance",
         "description": "Focus on content quality, accuracy, and completeness.",
         "models": [
             "openai/gpt-4o",
@@ -336,7 +336,7 @@ def format_evaluator_results(results: Dict[str, Any]) -> str:
     try:
         formatted = "## Evaluator Results\n\n"
         formatted += f"**Score:** {results.get('score', 0.0):.1f}%\n"
-        formatted += f"**Threshold Met:** {'✅ Yes' if results.get('threshold_met', False) else '❌ No'}\n"
+        formatted += f"**Threshold Met:** {'[OK] Yes' if results.get('threshold_met', False) else '[FAIL] No'}\n"
         formatted += f"**Consecutive Rounds:** {results.get('consecutive_rounds', 0)}/{results.get('required_consecutive_rounds', 1)}\n\n"
         
         if "feedback" in results:

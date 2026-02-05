@@ -453,7 +453,7 @@ class LeanAideContinuousMCP:
         # Combined workflow tools
         self._register_tool(
             name="complete_pipeline",
-            description="Run complete pipeline: detect → translate → verify",
+            description="Run complete pipeline: detect -> translate -> verify",
             category="workflow",
             handler=self._complete_pipeline_handler,
             input_schema=[

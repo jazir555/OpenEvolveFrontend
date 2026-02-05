@@ -156,14 +156,14 @@ class HumanApprovalSystem:
                 )
                 break
             elif choice == "m":
-                print("⚠️  Operator modification not yet implemented.")
+                print("[WARN]  Operator modification not yet implemented.")
                 print("    Please use [a] to approve or [r] to reject.")
                 continue
             elif choice == "q":
                 print("🛑 Agent execution stopped by user.")
                 raise KeyboardInterrupt("User requested stop")
             else:
-                print("❌ Invalid choice. Please enter a, r, m, or q.")
+                print("[FAIL] Invalid choice. Please enter a, r, m, or q.")
                 continue
 
         self._record(operator, state, utility, reasoning, result)

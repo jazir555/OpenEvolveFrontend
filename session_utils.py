@@ -1623,7 +1623,7 @@ def _load_parameter_settings() -> Dict:
             with open(settings_file, "r") as f:
                 return json.load(f)
         except json.JSONDecodeError:
-            st.warning(f"⚠️ Corrupted parameter settings file: {settings_file}. Using defaults.")
+            st.warning(f"[WARN] Corrupted parameter settings file: {settings_file}. Using defaults.")
             return {}
     return {}
 
@@ -1634,7 +1634,7 @@ def _load_user_preferences() -> Dict:
             with open(preferences_file, "r") as f:
                 return json.load(f)
         except json.JSONDecodeError:
-            st.warning(f"⚠️ Corrupted user preferences file: {preferences_file}. Using defaults.")
+            st.warning(f"[WARN] Corrupted user preferences file: {preferences_file}. Using defaults.")
             return {}
     return {}
 

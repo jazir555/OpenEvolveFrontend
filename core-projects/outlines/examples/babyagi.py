@@ -110,7 +110,7 @@ def one_cycle(objective: str, task_list, next_task_id: int):
 for _ in range(5):
     print("\033[95m\033[1m" + "\n*****TASK LIST*****\n" + "\033[0m\033[0m")
     for t in task_list:
-        print(" • " + str(t["task_name"]))
+        print(" * " + str(t["task_name"]))
 
     task, result, task_list, next_task_id = one_cycle(
         objective, task_list, next_task_id

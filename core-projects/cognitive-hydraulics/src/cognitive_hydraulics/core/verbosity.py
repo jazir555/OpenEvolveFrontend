@@ -61,6 +61,6 @@ def format_thinking(header: str, content: str, level: int = 2) -> str:
     formatted_lines = [f"THINKING: {header}"]
     for line in lines:
         if line.strip():
-            formatted_lines.append(f"  → {line.strip()}")
+            formatted_lines.append(f"  -> {line.strip()}")
     return "\n".join(formatted_lines)
 

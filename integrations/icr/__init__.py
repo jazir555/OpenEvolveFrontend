@@ -1,7 +1,7 @@
 """ICR - Iterative Contextual Refinements.
 
 A system for iterative refinement of outputs through multiple rounds
-of self-improvement: Generate → Critique → Refine → Judge → Iterate.
+of self-improvement: Generate -> Critique -> Refine -> Judge -> Iterate.
 
 Example:
     >>> from integrations.icr import ICREngine, Generator, Critic, Refiner, Judge

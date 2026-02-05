@@ -89,14 +89,14 @@ def render_provider_settings():
             st.write(f"**Model:** {current_model}")
         with col2:
             st.write(f"**Base URL:** {current_base}")
-            st.write(f"**API Key Set:** {'✅ Yes' if api_key_set else '❌ No'}")
+            st.write(f"**API Key Set:** {'[OK] Yes' if api_key_set else '[FAIL] No'}")
         
         if not current_provider or current_provider not in PROVIDERS:
             st.warning("No provider selected. Please select one from the list above.")
         elif not api_key_set:
             st.warning("API key not configured. Provider will not work without it.")
         else:
-            st.success("✅ Provider is properly configured and ready to use!")
+            st.success("[OK] Provider is properly configured and ready to use!")
     
     # Test provider connection
     with st.expander("🧪 Test Provider Connection", expanded=True):
@@ -111,7 +111,7 @@ def render_provider_settings():
                     # Test connection with a simple API call
                     import time
                     time.sleep(1)  # API call delay
-                    st.success(f"✅ Successfully connected to {provider}!")
+                    st.success(f"[OK] Successfully connected to {provider}!")
             else:
                 st.error("Please select a provider and enter an API key first.")
     

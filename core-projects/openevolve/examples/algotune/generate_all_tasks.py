@@ -59,10 +59,10 @@ def main():
             try:
                 print(f"[{i:3d}/{len(tasks_to_process)}] Processing {task_name}...")
                 output_dir = adapter.create_task_files(task_name, args.output_dir)
-                print(f"  ✅ Success: {output_dir}")
+                print(f"  [OK] Success: {output_dir}")
                 successful += 1
             except Exception as e:
-                print(f"  ❌ Failed: {e}")
+                print(f"  [FAIL] Failed: {e}")
                 failed += 1
         
         print(f"\nSummary:")

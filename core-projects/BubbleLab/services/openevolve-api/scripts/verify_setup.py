@@ -16,10 +16,10 @@ from pathlib import Path
 def check_file_exists(filepath: str, description: str) -> bool:
     """Check if a file exists"""
     if os.path.exists(filepath):
-        print(f"✅ {description}")
+        print(f"[OK] {description}")
         return True
     else:
-        print(f"❌ {description} - NOT FOUND")
+        print(f"[FAIL] {description} - NOT FOUND")
         return False
 
 
@@ -27,10 +27,10 @@ def check_import(module_name: str) -> bool:
     """Check if a module can be imported"""
     try:
         __import__(module_name)
-        print(f"✅ {module_name} - available")
+        print(f"[OK] {module_name} - available")
         return True
     except ImportError:
-        print(f"❌ {module_name} - NOT AVAILABLE")
+        print(f"[FAIL] {module_name} - NOT AVAILABLE")
         return False
 
 
@@ -145,7 +145,7 @@ def main():
         print("2. Run tests: python scripts/run_tests.py")
         return 0
     else:
-        print(f"\n⚠️  {total - passed} check(s) failed.")
+        print(f"\n[WARN]  {total - passed} check(s) failed.")
         print("\nPlease fix the issues above before proceeding.")
         return 1
 

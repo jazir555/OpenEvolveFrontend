@@ -20,6 +20,19 @@ from error_handler import (
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# SECURITY: Import security framework
+try:
+    from security_framework import (
+        Permission, UserContext, authenticated, authorized,
+        InputValidator, get_audit_logger, ValidationError
+    )
+    from input_validation import get_validator
+    SECURITY_AVAILABLE = True
+    logger.info("SECURITY: Evolution engine security enabled")
+except ImportError as e:
+    SECURITY_AVAILABLE = False
+    logger.warning(f"SECURITY: Evolution engine security not available: {e}")
+
 # **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Evolution Engine
 try:
     from alerting_system import get_alert_manager, AlertSeverity
@@ -1038,7 +1051,7 @@ Domain Knowledge:
         _update_evolution_log_and_status("💥 Could not parse sub-problems.")
         return current_content
         
-    _update_evolution_log_and_status(f"✅ Decomposed into {len(sub_problems)} sub-problems.")
+    _update_evolution_log_and_status(f"[OK] Decomposed into {len(sub_problems)} sub-problems.")
 
     # 2. Solve each sub-problem using enhanced evolution
     solutions = []
@@ -1064,7 +1077,7 @@ This Sub-Problem: {sub_problem_text}
         )
         
         solutions.append(f"Solution for sub-problem '{sub_problem_text}':\n---\n{solution}\n---")
-        _update_evolution_log_and_status(f"✅ Solved sub-problem {i+1}/{len(sub_problems)}.")
+        _update_evolution_log_and_status(f"[OK] Solved sub-problem {i+1}/{len(sub_problems)}.")
 
     # 3. Reassemble the solutions using advanced techniques
     _update_evolution_log_and_status("🧩 Reassembling solutions with advanced synthesis...")
@@ -1118,7 +1131,7 @@ Please provide the final, reassembled solution that addresses the original probl
         _update_evolution_log_and_status("💥 Failed to reassemble solution. Returning combined solutions.")
         return "\n\n".join(solutions)
 
-    _update_evolution_log_and_status("✅ Enhanced reassembly complete.")
+    _update_evolution_log_and_status("[OK] Enhanced reassembly complete.")
     return final_solution
 
 def _run_problem_decomposition(
@@ -1170,7 +1183,7 @@ System Prompt:
         _update_evolution_log_and_status("💥 Could not parse sub-problems.")
         return current_content
         
-    _update_evolution_log_and_status(f"✅ Decomposed into {len(sub_problems)} sub-problems.")
+    _update_evolution_log_and_status(f"[OK] Decomposed into {len(sub_problems)} sub-problems.")
 
     # 2. Solve each sub-problem
     solutions = []
@@ -1198,7 +1211,7 @@ This Sub-Problem: {sub_problem_text}
 
         solution = run_evolution_loop(**recursive_kwargs)
         solutions.append(f"Solution for sub-problem '{sub_problem_text}':\n---\n{solution}\n---")
-        _update_evolution_log_and_status(f"✅ Solved sub-problem {i+1}/{len(sub_problems)}.")
+        _update_evolution_log_and_status(f"[OK] Solved sub-problem {i+1}/{len(sub_problems)}.")
 
     # 3. Reassemble the solutions
     _update_evolution_log_and_status("🧩 Reassembling solutions...")
@@ -1237,7 +1250,7 @@ Please provide the final, reassembled solution that addresses the original probl
         _update_evolution_log_and_status("💥 Failed to reassemble solution. Returning combined solutions.")
         return "\n\n".join(solutions)
 
-    _update_evolution_log_and_status("✅ Reassembly complete.")
+    _update_evolution_log_and_status("[OK] Reassembly complete.")
     return final_solution
 
 def run_evolution_loop(
@@ -1276,7 +1289,7 @@ def run_evolution_loop(
     # Validate configuration
     validation_result = config.validate(param_manager)
     if not validation_result.valid:
-        _update_evolution_log_and_status(f"⚠️ Configuration validation errors: {validation_result.errors}")
+        _update_evolution_log_and_status(f"[WARN] Configuration validation errors: {validation_result.errors}")
         # Continue with warnings but log them
         for error in validation_result.errors[:3]:  # Show first 3 errors
             logger.warning(f"Parameter validation error: {error}")
@@ -1908,12 +1921,12 @@ def create_evolution_configuration_from_session() -> EvolutionConfiguration:
         # Validate configuration
         validation_result = config.validate(param_manager)
         if not validation_result.valid:
-            _update_evolution_log_and_status(f"⚠️ Configuration has {len(validation_result.errors)} validation errors")
+            _update_evolution_log_and_status(f"[WARN] Configuration has {len(validation_result.errors)} validation errors")
             for error in validation_result.errors[:3]:  # Show first 3 errors
                 _update_evolution_log_and_status(f"   - {error}")
         
         if validation_result.warnings:
-            _update_evolution_log_and_status(f"⚠️ Configuration has {len(validation_result.warnings)} warnings")
+            _update_evolution_log_and_status(f"[WARN] Configuration has {len(validation_result.warnings)} warnings")
         
         return config
     except ImportError:
@@ -1986,19 +1999,19 @@ def run_comprehensive_evolution(
     
     # Log comprehensive configuration summary
     _update_evolution_log_and_status("📊 Configuration Summary:")
-    _update_evolution_log_and_status(f"   • Evolution Mode: {config.evolution_mode}")
-    _update_evolution_log_and_status(f"   • Max Iterations: {config.max_iterations}")
-    _update_evolution_log_and_status(f"   • Population Size: {config.population_size}")
-    _update_evolution_log_and_status(f"   • Temperature: {config.temperature}")
-    _update_evolution_log_and_status(f"   • Model: {config.model_id}")
+    _update_evolution_log_and_status(f"   * Evolution Mode: {config.evolution_mode}")
+    _update_evolution_log_and_status(f"   * Max Iterations: {config.max_iterations}")
+    _update_evolution_log_and_status(f"   * Population Size: {config.population_size}")
+    _update_evolution_log_and_status(f"   * Temperature: {config.temperature}")
+    _update_evolution_log_and_status(f"   * Model: {config.model_id}")
     
     # Team system summary
     if TEAM_SYSTEM_AVAILABLE:
-        _update_evolution_log_and_status(f"   • Team System: Available")
+        _update_evolution_log_and_status(f"   * Team System: Available")
         if gauntlet_name:
-            _update_evolution_log_and_status(f"   • Gauntlet: {gauntlet_name}")
+            _update_evolution_log_and_status(f"   * Gauntlet: {gauntlet_name}")
         if use_decomposition:
-            _update_evolution_log_and_status(f"   • Decomposition: Enabled")
+            _update_evolution_log_and_status(f"   * Decomposition: Enabled")
     
     # Advanced features summary
     advanced_features = []
@@ -2023,7 +2036,7 @@ def run_comprehensive_evolution(
         advanced_features.append("Transfer Learning")
     
     if advanced_features:
-        _update_evolution_log_and_status(f"   • Advanced Features: {', '.join(advanced_features)}")
+        _update_evolution_log_and_status(f"   * Advanced Features: {', '.join(advanced_features)}")
     
     # Initialize comprehensive metrics tracking
     start_time = time.time()
@@ -2144,7 +2157,7 @@ def run_comprehensive_evolution(
         evolution_result["success"] = True
 
         # Log comprehensive results
-        _update_evolution_log_and_status("✅ Comprehensive evolution completed successfully!")
+        _update_evolution_log_and_status("[OK] Comprehensive evolution completed successfully!")
         _update_evolution_log_and_status(f"⏱️ Total duration: {evolution_result['total_duration']:.2f}s")
         _update_evolution_log_and_status(f"🏆 Final fitness: {evolution_result['metrics']['final_fitness']:.4f}")
         _update_evolution_log_and_status(f"📈 Improvement: {evolution_result['metrics']['improvement_ratio']:.2%}")
@@ -2313,9 +2326,9 @@ def run_ultimate_adversarial_evolution(
                 from gauntlet_manager import GauntletManager
                 team_manager = TeamManager()
                 gauntlet_manager = GauntletManager()
-                _update_evolution_log_and_status("✅ Team system initialized")
+                _update_evolution_log_and_status("[OK] Team system initialized")
             except ImportError:
-                _update_evolution_log_and_status("⚠️ Team system components not fully available")
+                _update_evolution_log_and_status("[WARN] Team system components not fully available")
         
         ultimate_result["phases"]["initialization"]["status"] = "completed"
         ultimate_result["phases"]["initialization"]["duration"] = time.time() - phase_start
@@ -2410,7 +2423,7 @@ def run_ultimate_adversarial_evolution(
                 ultimate_result["team_results"]["evaluator_team"]["consensus_reached"] = final_evaluation.consensus_score > 0.8 if final_evaluation else False
                 
             except ImportError:
-                _update_evolution_log_and_status("⚠️ Evaluator team not available")
+                _update_evolution_log_and_status("[WARN] Evaluator team not available")
         
         ultimate_result["phases"]["evaluator_integration"]["status"] = "completed"
         ultimate_result["phases"]["evaluator_integration"]["duration"] = time.time() - phase_start
@@ -2529,7 +2542,7 @@ def run_quality_diversity_evolution(
             }
         else:
             # Fallback QD implementation
-            _update_evolution_log_and_status("⚠️ Using fallback QD implementation")
+            _update_evolution_log_and_status("[WARN] Using fallback QD implementation")
             return {
                 "success": True,
                 "final_content": content,
@@ -2624,7 +2637,7 @@ def run_multi_objective_evolution(
             }
         else:
             # Fallback MO implementation
-            _update_evolution_log_and_status("⚠️ Using fallback MO implementation")
+            _update_evolution_log_and_status("[WARN] Using fallback MO implementation")
             return {
                 "success": True,
                 "final_content": content,
@@ -2699,7 +2712,7 @@ def run_decomposition_evolution(
             )
         else:
             # Fallback decomposition
-            _update_evolution_log_and_status("⚠️ Using fallback decomposition implementation")
+            _update_evolution_log_and_status("[WARN] Using fallback decomposition implementation")
             return {
                 "success": True,
                 "final_content": content,
@@ -2752,7 +2765,7 @@ def run_adversarial_evolution_with_teams(
     """
     
     if not TEAM_SYSTEM_AVAILABLE:
-        _update_evolution_log_and_status("⚠️ Team system not available - falling back to basic adversarial evolution")
+        _update_evolution_log_and_status("[WARN] Team system not available - falling back to basic adversarial evolution")
         return run_evolution_loop(content, content_type, config, **kwargs)
     
     _update_evolution_log_and_status("🛡️ Starting adversarial evolution with full team system...")
@@ -2786,7 +2799,7 @@ def run_adversarial_evolution_with_teams(
         if gauntlet:
             _update_evolution_log_and_status(f"🎯 Using gauntlet: {gauntlet_name} ({len(gauntlet.rounds)} rounds)")
         else:
-            _update_evolution_log_and_status(f"⚠️ Gauntlet '{gauntlet_name}' not found - proceeding without gauntlet")
+            _update_evolution_log_and_status(f"[WARN] Gauntlet '{gauntlet_name}' not found - proceeding without gauntlet")
     
     # Run adversarial evolution rounds
     results = {
@@ -2909,7 +2922,7 @@ def run_adversarial_evolution_with_teams(
         # Early stopping if quality is sufficient
         if (evaluator_assessment.consensus_score >= config.convergence_threshold * 100 and 
             config.early_stopping):
-            _update_evolution_log_and_status("✅ Early stopping: Quality threshold reached")
+            _update_evolution_log_and_status("[OK] Early stopping: Quality threshold reached")
             break
     
     # Calculate final metrics
@@ -3069,7 +3082,7 @@ Create a unified, improved version that maintains coherence while incorporating 
     if not reassembled_content:
         reassembled_content = '\n\n'.join([r['fixed_component'] for r in component_results])
     
-    _update_evolution_log_and_status("   ✅ Decomposition analysis complete")
+    _update_evolution_log_and_status("   [OK] Decomposition analysis complete")
     
     return {
         "components": component_results,
@@ -3125,7 +3138,7 @@ def run_gauntlet_evolution(
     """
     
     if not TEAM_SYSTEM_AVAILABLE:
-        _update_evolution_log_and_status("⚠️ Team system not available - cannot run gauntlet evolution")
+        _update_evolution_log_and_status("[WARN] Team system not available - cannot run gauntlet evolution")
         return {"error": "Team system not available"}
     
     _update_evolution_log_and_status(f"🎯 Starting gauntlet evolution: {gauntlet_name}")
@@ -3140,7 +3153,7 @@ def run_gauntlet_evolution(
     gauntlet = gauntlet_manager.get_gauntlet(gauntlet_name)
     if not gauntlet:
         error_msg = f"Gauntlet '{gauntlet_name}' not found"
-        _update_evolution_log_and_status(f"❌ {error_msg}")
+        _update_evolution_log_and_status(f"[FAIL] {error_msg}")
         return {"error": error_msg}
     
     _update_evolution_log_and_status(f"📋 Loaded gauntlet: {len(gauntlet.rounds)} rounds")
@@ -3224,10 +3237,10 @@ def create_adaptive_gauntlet(
     
     if success:
         adaptive_name = f"{base_gauntlet_name}_adaptive_{int(time.time())}"
-        _update_evolution_log_and_status(f"✅ Created adaptive gauntlet: {adaptive_name}")
+        _update_evolution_log_and_status(f"[OK] Created adaptive gauntlet: {adaptive_name}")
         return adaptive_name
     else:
-        _update_evolution_log_and_status("❌ Failed to create adaptive gauntlet")
+        _update_evolution_log_and_status("[FAIL] Failed to create adaptive gauntlet")
         return None
 
 
@@ -3405,10 +3418,10 @@ def run_ultimate_comprehensive_evolution(
             from openevolve_client import OpenEvolveClient
             openevolve_client = OpenEvolveClient(config=custom_config or {})
             ultimate_result["openevolve_metrics"]["backend_available"] = openevolve_client.available
-            _update_evolution_log_and_status(f"✅ OpenEvolve client initialized (Available: {openevolve_client.available})")
+            _update_evolution_log_and_status(f"[OK] OpenEvolve client initialized (Available: {openevolve_client.available})")
         except ImportError:
             openevolve_client = None
-            _update_evolution_log_and_status("⚠️ OpenEvolve client not available - using workflow-only mode")
+            _update_evolution_log_and_status("[WARN] OpenEvolve client not available - using workflow-only mode")
         
         # Initialize parameter manager with full 272 parameter support
         param_manager = ParameterManager()
@@ -3445,9 +3458,9 @@ def run_ultimate_comprehensive_evolution(
                 team_manager = TeamManager()
                 gauntlet_manager = GauntletManager()
                 ultimate_result["workflow_phases"]["phase_1_initialization"]["team_coordination"] = True
-                _update_evolution_log_and_status("✅ Team system initialized")
+                _update_evolution_log_and_status("[OK] Team system initialized")
             except ImportError:
-                _update_evolution_log_and_status("⚠️ Team system components not fully available")
+                _update_evolution_log_and_status("[WARN] Team system components not fully available")
         
         ultimate_result["workflow_phases"]["phase_1_initialization"]["status"] = "completed"
         ultimate_result["workflow_phases"]["phase_1_initialization"]["duration"] = time.time() - phase_start
@@ -3481,10 +3494,10 @@ def run_ultimate_comprehensive_evolution(
                 if openevolve_result.success:
                     content = openevolve_result.best_code
                     ultimate_result["openevolve_metrics"]["performance_score"] = openevolve_result.best_score
-                    _update_evolution_log_and_status(f"✅ Native OpenEvolve adversarial: Score {openevolve_result.best_score:.4f}")
+                    _update_evolution_log_and_status(f"[OK] Native OpenEvolve adversarial: Score {openevolve_result.best_score:.4f}")
                 
             except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
-                _update_evolution_log_and_status(f"⚠️ Native OpenEvolve adversarial failed: {e}")
+                _update_evolution_log_and_status(f"[WARN] Native OpenEvolve adversarial failed: {e}")
         
         # Run workflow-based adversarial testing with team system
         if TEAM_SYSTEM_AVAILABLE and team_manager:
@@ -3553,12 +3566,12 @@ def run_ultimate_comprehensive_evolution(
                         openevolve_result.best_score
                     )
                     ultimate_result["workflow_metrics"]["improvement_ratio"] = openevolve_result.metrics.get("improvement_ratio", 0.0)
-                    _update_evolution_log_and_status(f"✅ Native OpenEvolve {evolution_mode}: Score {openevolve_result.best_score:.4f}")
+                    _update_evolution_log_and_status(f"[OK] Native OpenEvolve {evolution_mode}: Score {openevolve_result.best_score:.4f}")
                 
                 ultimate_result["workflow_phases"]["phase_3_evolutionary_optimization"]["native_evolution"] = True
                 
             except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
-                _update_evolution_log_and_status(f"⚠️ Native OpenEvolve {evolution_mode} failed: {e}")
+                _update_evolution_log_and_status(f"[WARN] Native OpenEvolve {evolution_mode} failed: {e}")
         
         # Run workflow-based evolution as enhancement
         _update_evolution_log_and_status("🔄 Running workflow-based evolution enhancement...")
@@ -3656,7 +3669,7 @@ def run_ultimate_comprehensive_evolution(
                 ultimate_result["workflow_phases"]["phase_4_evaluator_integration"]["consensus_building"] = True
                 
             except ImportError:
-                _update_evolution_log_and_status("⚠️ Evaluator team not available")
+                _update_evolution_log_and_status("[WARN] Evaluator team not available")
         
         ultimate_result["workflow_phases"]["phase_4_evaluator_integration"]["status"] = "completed"
         ultimate_result["workflow_phases"]["phase_4_evaluator_integration"]["duration"] = time.time() - phase_start
@@ -3690,7 +3703,7 @@ def run_ultimate_comprehensive_evolution(
                 ultimate_result["workflow_phases"]["phase_5_model_management"]["portfolio_optimization"] = True
                 
             except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
-                _update_evolution_log_and_status(f"⚠️ Model portfolio optimization failed: {e}")
+                _update_evolution_log_and_status(f"[WARN] Model portfolio optimization failed: {e}")
         
         ultimate_result["workflow_phases"]["phase_5_model_management"]["status"] = "completed"
         ultimate_result["workflow_phases"]["phase_5_model_management"]["duration"] = time.time() - phase_start
@@ -4015,7 +4028,7 @@ def run_evolution_with_dts_strategy_exploration(
     except Exception as e:
         logger.error(f"Error running DTS-enhanced evolution: {e}", exc_info=True)
         # Fall back to standard evolution
-        _update_evolution_log_and_status("⚠️ DTS strategy exploration failed, using standard evolution...")
+        _update_evolution_log_and_status("[WARN] DTS strategy exploration failed, using standard evolution...")
         
         # Strip parameters not supported by targeted evolution functions
         evolution_func_params = evolution_params.copy()
@@ -4115,7 +4128,7 @@ def run_native_openevolve_with_workflow_enhancement(
         client = OpenEvolveClient()
         
         if not client.available:
-            _update_evolution_log_and_status("❌ Native OpenEvolve not available")
+            _update_evolution_log_and_status("[FAIL] Native OpenEvolve not available")
             result["error"] = "Native OpenEvolve backend not available"
             return result
         
@@ -4140,7 +4153,7 @@ def run_native_openevolve_with_workflow_enhancement(
         
         if openevolve_result.success:
             result["final_content"] = openevolve_result.best_code
-            _update_evolution_log_and_status(f"✅ Native OpenEvolve completed: Score {openevolve_result.best_score:.4f}")
+            _update_evolution_log_and_status(f"[OK] Native OpenEvolve completed: Score {openevolve_result.best_score:.4f}")
         
         # Add workflow enhancements if enabled
         if workflow_enhancement and TEAM_SYSTEM_AVAILABLE:
@@ -4233,7 +4246,7 @@ def run_native_openevolve_with_workflow_enhancement(
         
         result["success"] = openevolve_result.success
         
-        _update_evolution_log_and_status("✅ Native OpenEvolve + Workflow Enhancement completed!")
+        _update_evolution_log_and_status("[OK] Native OpenEvolve + Workflow Enhancement completed!")
         
         return result
         

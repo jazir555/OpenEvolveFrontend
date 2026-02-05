@@ -352,7 +352,7 @@ class UnifiedMatryoshkaExecutor:
         config: Optional[GauntletConfig] = None
     ) -> GauntletResult:
         """
-        Execute full 3-round gauntlet (Blue → Red → Gold).
+        Execute full 3-round gauntlet (Blue -> Red -> Gold).
         
         Convenience method for decomposition workflow.
         """
@@ -673,10 +673,10 @@ ARCHITECTURE_OVERVIEW = """
 ║  ┌─────────────────────────────────────────────────────────────────────┐     ║
 ║  │              MATRYOSHKA EXECUTION ENGINE                             │     ║
 ║  │                                                                     │     ║
-║  │  • Iterative symbolic execution via Nucleus/Lattice                 │     ║
-║  │  • Problem space abstraction (Document, Code, Data, Abstract)       │     ║
-║  │  • State management across iterations                               │     ║
-║  │  • Finding and failure tracking                                     │     ║
+║  │  * Iterative symbolic execution via Nucleus/Lattice                 │     ║
+║  │  * Problem space abstraction (Document, Code, Data, Abstract)       │     ║
+║  │  * State management across iterations                               │     ║
+║  │  * Finding and failure tracking                                     │     ║
 ║  └─────────────────────────────────────────────────────────────────────┘     ║
 ║                                    │                                          ║
 ║          ┌─────────────────────────┼─────────────────────────┐                ║
@@ -686,10 +686,10 @@ ARCHITECTURE_OVERVIEW = """
 ║  │   4-Layer     │        │  Always-True  │        │    Hybrid     │         ║
 ║  │    Indexes    │        │     State     │        │   Retrieval   │         ║
 ║  │               │        │               │        │               │         ║
-║  │ • Hierarchical│        │ • Never drops │        │ • 4 strategies│         ║
-║  │ • Graph       │        │ • Continuous  │        │ • Top-N limit │         ║
-║  │ • Hash        │        │ • Source of   │        │ • ~5KB limit  │         ║
-║  │ • Semantic    │        │   truth       │        │               │         ║
+║  │ * Hierarchical│        │ * Never drops │        │ * 4 strategies│         ║
+║  │ * Graph       │        │ * Continuous  │        │ * Top-N limit │         ║
+║  │ * Hash        │        │ * Source of   │        │ * ~5KB limit  │         ║
+║  │ * Semantic    │        │   truth       │        │               │         ║
 ║  └───────────────┘        └───────────────┘        └───────────────┘         ║
 ║                                                                               ║
 ╚══════════════════════════════════════════════════════════════════════════════╝

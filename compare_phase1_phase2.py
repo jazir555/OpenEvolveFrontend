@@ -2,7 +2,7 @@
 Compare Phase 1 and Phase 2 Results
 ===================================
 
-MIGRATION NOTICE: crewai (AGPL) → CrewAI (MIT)
+MIGRATION NOTICE: crewai (AGPL) -> CrewAI (MIT)
 This module has been migrated from crewai to CrewAI orchestration.
 
 This script compares Phase 1 and Phase 2 results:

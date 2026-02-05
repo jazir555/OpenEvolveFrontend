@@ -15,10 +15,10 @@ def test_imports():
         from problem_analyzer import ProblemAnalyzer
         from decomposition_engine import DecompositionEngine
         from sovereign_gauntlets import GauntletSystem
-        logger.info("✓ All imports successful")
+        logger.info("[OK] All imports successful")
         return True
     except Exception as e:
-        logger.error(f"✗ Import failed: {e}")
+        logger.error(f"[FAIL] Import failed: {e}")
         return False
 
 def test_problem_analyzer():
@@ -38,13 +38,13 @@ def test_problem_analyzer():
         assert problem.complexity_score is not None
         assert len(problem.constraints) >= 0
         
-        logger.info(f"✓ Problem analyzed: {problem.title}")
+        logger.info(f"[OK] Problem analyzed: {problem.title}")
         logger.info(f"  Domain: {problem.domain_context.domain}")
         logger.info(f"  Complexity: {problem.complexity_score.overall_complexity}/10")
         logger.info(f"  Constraints: {len(problem.constraints)}")
         return True
     except Exception as e:
-        logger.error(f"✗ Problem Analyzer failed: {e}")
+        logger.error(f"[FAIL] Problem Analyzer failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -70,13 +70,13 @@ def test_decomposition_engine():
         assert len(plan.sub_problems) >= 2
         assert plan.dependency_graph is not None
         
-        logger.info(f"✓ Decomposition created: {len(plan.sub_problems)} sub-problems")
+        logger.info(f"[OK] Decomposition created: {len(plan.sub_problems)} sub-problems")
         logger.info(f"  Strategy: {plan.strategy.value}")
         for i, sp in enumerate(plan.sub_problems[:3], 1):
             logger.info(f"  {i}. {sp.title}")
         return True
     except Exception as e:
-        logger.error(f"✗ Decomposition Engine failed: {e}")
+        logger.error(f"[FAIL] Decomposition Engine failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -103,7 +103,7 @@ def test_gauntlets():
         
         assert len(results) > 0
         
-        logger.info(f"✓ Gauntlets executed: {len(results)} gauntlets")
+        logger.info(f"[OK] Gauntlets executed: {len(results)} gauntlets")
         for name, result in results.items():
             status = "PASS" if result.passed else "FAIL"
             logger.info(f"  {name}: {status} ({result.score:.2f})")
@@ -112,7 +112,7 @@ def test_gauntlets():
         logger.info(f"  Overall Quality: {overall:.2f}")
         return True
     except Exception as e:
-        logger.error(f"✗ Gauntlets failed: {e}")
+        logger.error(f"[FAIL] Gauntlets failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -135,7 +135,7 @@ def main():
     logger.info("="*60)
     
     for name, passed in results:
-        status = "✓ PASS" if passed else "✗ FAIL"
+        status = "[OK] PASS" if passed else "[FAIL] FAIL"
         logger.info(f"{status}: {name}")
     
     total_passed = sum(1 for _, passed in results if passed)
@@ -145,7 +145,7 @@ def main():
         logger.info("\n🎉 ALL VALIDATIONS PASSED - PRODUCTION READY!")
         return 0
     else:
-        logger.info("\n⚠️  SOME VALIDATIONS FAILED - NEEDS WORK")
+        logger.info("\n[WARN]  SOME VALIDATIONS FAILED - NEEDS WORK")
         return 1
 
 if __name__ == "__main__":

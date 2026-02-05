@@ -26,6 +26,23 @@ from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends, status
 from pydantic import BaseModel, Field
 import uuid
 
+# SECURITY: Import security framework
+try:
+    from security_framework import (
+        Permission, UserContext, get_current_user, require_auth, require_permission,
+        InputValidator, get_rate_limiter, get_audit_logger
+    )
+    SECURITY_AVAILABLE = True
+    logging.info("SECURITY: CrewAI API routes security enabled")
+except ImportError as e:
+    SECURITY_AVAILABLE = False
+    logging.warning(f"SECURITY: CrewAI API routes security not available: {e}")
+    
+    # Define stubs
+    def get_current_user(): return None
+    def require_auth(): return None
+    def require_permission(permission): return None
+
 # Import CrewAI components
 try:
     from crewai_client import create_crewai_client, ExecutionMethod, ExecutionResult

@@ -476,18 +476,18 @@ class BasePESRunner(ABC):
         try:
             final_result = await agent.run()
             if final_result is not None:
-                print("\n✅ Evolution process finished successfully.")
+                print("\n[OK] Evolution process finished successfully.")
                 print(final_result.model_dump_json(indent=2))
             else:
                 print(
-                    "\n⚠️ Evolution process finished with no result returned. "
+                    "\n[WARN] Evolution process finished with no result returned. "
                     "Maybe it was interrupted."
                 )
         except KeyboardInterrupt:
             print("\n🛑 Process interrupted by user. Shutting down gracefully...")
         except Exception as e:
             print(
-                f"\n❌ An unexpected error occurred during evolution: {e}",
+                f"\n[FAIL] An unexpected error occurred during evolution: {e}",
                 file=sys.stderr,
             )
             import traceback

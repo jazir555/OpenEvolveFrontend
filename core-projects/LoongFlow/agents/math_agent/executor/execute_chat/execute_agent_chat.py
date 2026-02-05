@@ -158,7 +158,7 @@ class EvolveExecuteAgentChat(Worker):
             if better:
                 best = max(better, key=lambda r: r.score)
                 logger.info(
-                    f"Trace ID: {context.trace_id}: Executor Chat: ✅ Improved candidate found in "
+                    f"Trace ID: {context.trace_id}: Executor Chat: [OK] Improved candidate found in "
                     + f"round {round_idx}: {best.score:.6f} > {parent_ctx.parent_core:.6f}"
                 )
                 self._write_best_results(context, best)
@@ -177,7 +177,7 @@ class EvolveExecuteAgentChat(Worker):
 
         if not all_results:
             logger.warning(
-                f"Trace ID: {context.trace_id}: Executor Chat: ⚠️ No candidates generated in any round."
+                f"Trace ID: {context.trace_id}: Executor Chat: [WARN] No candidates generated in any round."
             )
             return self._make_result_message(parent_ctx, None)
 
@@ -279,7 +279,7 @@ class EvolveExecuteAgentChat(Worker):
         if previous_evaluation:
             logger.debug(
                 f"Trace ID: {context.trace_id}: Executor Chat"
-                + f": ⚠️ Previous evaluation result: {previous_evaluation}"
+                + f": [WARN] Previous evaluation result: {previous_evaluation}"
             )
 
         system_message = Message.from_text(

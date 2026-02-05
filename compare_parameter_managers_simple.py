@@ -137,24 +137,24 @@ def simple_comparison():
 
     features = {
         "ParameterManager": [
-            "✓ Basic parameter validation",
-            "✓ Schema definition",
-            "✓ Default value management",
-            "✗ Property access (no direct support)",
-            "✗ Merging capabilities",
-            "✗ File I/O operations",
-            "✗ Preset configurations"
+            "[OK] Basic parameter validation",
+            "[OK] Schema definition",
+            "[OK] Default value management",
+            "[FAIL] Property access (no direct support)",
+            "[FAIL] Merging capabilities",
+            "[FAIL] File I/O operations",
+            "[FAIL] Preset configurations"
         ],
         "UnifiedConfiguration": [
-            "✓ All ParameterManager features",
-            "✓ Property access (config.max_iterations)",
-            "✓ Flexible get/set methods",
-            "✓ Dict-style access (config['param'])",
-            "✓ Parameter merging capabilities",
-            "✓ File save/load operations",
-            "✓ Preset configuration functions",
-            "✓ Better error handling",
-            "✓ Caching for performance"
+            "[OK] All ParameterManager features",
+            "[OK] Property access (config.max_iterations)",
+            "[OK] Flexible get/set methods",
+            "[OK] Dict-style access (config['param'])",
+            "[OK] Parameter merging capabilities",
+            "[OK] File save/load operations",
+            "[OK] Preset configuration functions",
+            "[OK] Better error handling",
+            "[OK] Caching for performance"
         ]
     }
 

@@ -66,7 +66,7 @@ def main():
     engine = DecompositionEngine()
     result = engine.decompose(problem, strategy="hierarchical")
 
-    print(f"\n✓ Generated {len(result.sub_problems)} sub-problems\n")
+    print(f"\n[OK] Generated {len(result.sub_problems)} sub-problems\n")
 
     # Display as hierarchy
     print("HIERARCHICAL STRUCTURE:")

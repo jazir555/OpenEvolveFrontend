@@ -58,10 +58,10 @@ class DependencyVisualizer:
         # Check for issues
         cycles = self.detect_circular_dependencies()
         if cycles:
-            st.error(f"⚠️ Circular dependencies detected! ({len(cycles)} cycles)")
+            st.error(f"[WARN] Circular dependencies detected! ({len(cycles)} cycles)")
             with st.expander("View Circular Dependencies"):
                 for i, cycle in enumerate(cycles, 1):
-                    st.write(f"**Cycle {i}:** {' → '.join(cycle)}")
+                    st.write(f"**Cycle {i}:** {' -> '.join(cycle)}")
         
         # Calculate layout
         try:
@@ -285,9 +285,9 @@ class DependencyVisualizer:
         with col4:
             st.metric("Longest Chain", stats['longest_dependency_chain'])
             if stats['has_circular_dependencies']:
-                st.error(f"⚠️ {stats['number_of_cycles']} Cycles")
+                st.error(f"[WARN] {stats['number_of_cycles']} Cycles")
             else:
-                st.success("✓ No Cycles")
+                st.success("[OK] No Cycles")
         
         # Execution order
         st.subheader("🔄 Suggested Execution Order")
@@ -402,7 +402,7 @@ def detect_and_fix_circular_dependencies(plan: DecompositionPlan) -> Tuple[bool,
             from_sp = cycle[-1]
             to_sp = cycle[0]
             suggestions.append(
-                f"Remove dependency: {from_sp} → {to_sp} (breaks cycle: {' → '.join(cycle)})"
+                f"Remove dependency: {from_sp} -> {to_sp} (breaks cycle: {' -> '.join(cycle)})"
             )
     
     return True, suggestions, fixed_plan
@@ -433,7 +433,7 @@ def validate_dependencies(plan: DecompositionPlan) -> Tuple[bool, List[str]]:
     
     if cycles:
         for cycle in cycles:
-            issues.append(f"Circular dependency: {' → '.join(cycle)}")
+            issues.append(f"Circular dependency: {' -> '.join(cycle)}")
     
     # Check for self-dependencies
     for sp in plan.sub_problems:

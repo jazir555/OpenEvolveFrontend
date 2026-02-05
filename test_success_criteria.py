@@ -699,22 +699,22 @@ if __name__ == "__main__":
         print("=" * 80)
 
         manager = SuccessCriteriaManager()
-        print("✓ Manager initialized")
+        print("[OK] Manager initialized")
 
         # Test create_criteria
         criteria = manager.create_criteria([
             "Must implement authentication",
             "Should be secure"
         ])
-        print(f"✓ Created {len(criteria)} criteria")
+        print(f"[OK] Created {len(criteria)} criteria")
 
         # Test define_criterion
         criterion = manager.define_criterion("Test requirement")
-        print("✓ Defined criterion")
+        print("[OK] Defined criterion")
 
         # Test set_threshold
         updated = manager.set_threshold(criterion, 0.9)
-        print("✓ Set threshold")
+        print("[OK] Set threshold")
 
         # Create test solution
         solution = SolutionAttempt(
@@ -727,13 +727,13 @@ if __name__ == "__main__":
 
         # Test evaluation
         satisfaction = manager.check_criteria_satisfaction(solution, criteria)
-        print(f"✓ Checked satisfaction: {sum(satisfaction.values())}/{len(satisfaction)} satisfied")
+        print(f"[OK] Checked satisfaction: {sum(satisfaction.values())}/{len(satisfaction)} satisfied")
 
         score = manager.calculate_criteria_score(solution, criteria)
-        print(f"✓ Calculated score: {score:.2%}")
+        print(f"[OK] Calculated score: {score:.2%}")
 
         report = manager.generate_criteria_report(criteria)
-        print("✓ Generated report")
+        print("[OK] Generated report")
 
         print("\n" + "=" * 80)
         print("All basic tests passed!")

@@ -41,7 +41,7 @@ async def example_basic_usage():
 
     # Initialize
     if not await processor.initialize():
-        print("❌ Failed to initialize processor (RAGBits not available)")
+        print("[FAIL] Failed to initialize processor (RAGBits not available)")
         return
 
     # Ingest some sample documents
@@ -84,9 +84,9 @@ async def example_basic_usage():
             source=doc["metadata"]["title"]
         )
         if result.success:
-            print(f"  ✅ {result.document_id}: {result.chunks_ingested} chunks")
+            print(f"  [OK] {result.document_id}: {result.chunks_ingested} chunks")
         else:
-            print(f"  ❌ Failed: {result.error}")
+            print(f"  [FAIL] Failed: {result.error}")
 
     # Search for relevant content
     print("\n🔍 Searching for 'neural networks'...")
@@ -156,9 +156,9 @@ async def example_file_ingestion():
     print(f"\nProcessed {len(results)} files:")
     for result in results:
         if result.success:
-            print(f"  ✅ {result.metadata['file_name']}: {result.chunks_ingested} chunks")
+            print(f"  [OK] {result.metadata['file_name']}: {result.chunks_ingested} chunks")
         else:
-            print(f"  ❌ {result.metadata.get('file_name', 'unknown')}: {result.error}")
+            print(f"  [FAIL] {result.metadata.get('file_name', 'unknown')}: {result.error}")
 
     # Search
     print("\n🔍 Searching for 'machine learning'...")
@@ -209,7 +209,7 @@ async def example_with_filters():
             metadata=doc["metadata"],
             source=f"{doc['metadata']['category']}_{doc['metadata']['language']}"
         )
-        print(f"  ✅ {result.document_id}")
+        print(f"  [OK] {result.document_id}")
 
     # Search without filters
     print("\n🔍 Search: 'JavaScript framework'")
@@ -254,14 +254,14 @@ async def example_with_qdrant():
 
     processor = RAGBitsDocumentProcessor(config)
 
-    print("⚠️  Note: This requires Qdrant running at http://localhost:6333")
+    print("[WARN]  Note: This requires Qdrant running at http://localhost:6333")
     print("   To start Qdrant:")
     print("   docker run -p 6333:6333 qdrant/qdrant")
     print()
 
     # Try to initialize
     if not await processor.initialize():
-        print("❌ Failed to initialize (Qdrant not available)")
+        print("[FAIL] Failed to initialize (Qdrant not available)")
         print("   Falling back to in-memory storage for demo...")
 
         # Use in-memory instead
@@ -280,7 +280,7 @@ async def example_with_qdrant():
     results = await processor.search("vector search", top_k=1)
 
     if results:
-        print(f"✅ Found: {results[0]['content']}")
+        print(f"[OK] Found: {results[0]['content']}")
 
 
 async def example_idempotency():
@@ -309,7 +309,7 @@ async def example_idempotency():
     print(f"  Chunks: {result2.chunks_ingested}")
     print(f"  Note: Skipped due to idempotency check")
 
-    print("\n✅ Idempotency verified: Re-ingesting same document is safe")
+    print("\n[OK] Idempotency verified: Re-ingesting same document is safe")
 
 
 async def main():
@@ -328,11 +328,11 @@ async def main():
         await example_idempotency()
 
         print("\n" + "="*60)
-        print("✅ All examples completed successfully!")
+        print("[OK] All examples completed successfully!")
         print("="*60 + "\n")
 
     except Exception as e:  # TODO: Catch specific exception instead of Exception
-        print(f"\n❌ Error: {e}")
+        print(f"\n[FAIL] Error: {e}")
         import traceback
         traceback.print_exc()
 

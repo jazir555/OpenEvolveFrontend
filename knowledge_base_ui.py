@@ -525,7 +525,7 @@ class KnowledgeBaseUI:
         
         # Clear knowledge base
         st.subheader("🗑️ Clear Knowledge Base")
-        st.warning("⚠️ This will permanently delete all knowledge artifacts!")
+        st.warning("[WARN] This will permanently delete all knowledge artifacts!")
         
         if st.button("Clear All Artifacts", type="secondary"):
             if st.checkbox("I understand this action cannot be undone"):

@@ -24,14 +24,14 @@ def check_mlir_tools():
     for tool in tools:
         path = shutil.which(tool)
         available[tool] = path is not None
-        status = "✅" if path else "❌"
+        status = "[OK]" if path else "[FAIL]"
         print(f"  {status} {tool}: {path or 'Not found'}")
     
     return available
 
 def test_mlir_translate():
     """Test MLIR to LLVM translation"""
-    print("\n🧪 Testing MLIR→LLVM translation:")
+    print("\n🧪 Testing MLIR->LLVM translation:")
     
     # Simple test MLIR
     test_mlir = '''
@@ -53,19 +53,19 @@ module {
             result = subprocess.run(cmd, capture_output=True, text=True)
             
             if result.returncode == 0:
-                print("✅ mlir-translate works!")
+                print("[OK] mlir-translate works!")
                 print(f"   LLVM IR size: {len(result.stdout)} chars")
                 return True
             else:
-                print("❌ mlir-translate failed:")
+                print("[FAIL] mlir-translate failed:")
                 print(f"   Error: {result.stderr}")
                 return False
                 
         except FileNotFoundError:
-            print("❌ mlir-translate not found")
+            print("[FAIL] mlir-translate not found")
             return False
         except Exception as e:
-            print(f"❌ mlir-translate error: {e}")
+            print(f"[FAIL] mlir-translate error: {e}")
             return False
 
 def test_actual_mlir_file():
@@ -74,7 +74,7 @@ def test_actual_mlir_file():
     
     mlir_file = Path("mlir/self_attn_with_consts_linalg_dialect.mlir")
     if not mlir_file.exists():
-        print("❌ MLIR file not found!")
+        print("[FAIL] MLIR file not found!")
         return False
     
     try:
@@ -83,14 +83,14 @@ def test_actual_mlir_file():
         result = subprocess.run(cmd, capture_output=True, text=True)
         
         if result.returncode == 0:
-            print("✅ MLIR file parses correctly")
+            print("[OK] MLIR file parses correctly")
             
             # Test optimization
             cmd = ['mlir-opt', str(mlir_file), '--canonicalize']
             result = subprocess.run(cmd, capture_output=True, text=True)
             
             if result.returncode == 0:
-                print("✅ Basic optimization works")
+                print("[OK] Basic optimization works")
                 
                 # Test LLVM translation
                 if shutil.which('mlir-translate'):
@@ -98,27 +98,27 @@ def test_actual_mlir_file():
                     result = subprocess.run(cmd, capture_output=True, text=True)
                     
                     if result.returncode == 0:
-                        print("✅ LLVM translation works!")
+                        print("[OK] LLVM translation works!")
                         print(f"   LLVM IR size: {len(result.stdout)} chars")
                         return True
                     else:
-                        print("❌ LLVM translation failed:")
+                        print("[FAIL] LLVM translation failed:")
                         print(f"   Error: {result.stderr[:500]}...")
                         return False
                 else:
-                    print("⚠️ mlir-translate not available")
+                    print("[WARN] mlir-translate not available")
                     return False
             else:
-                print("❌ Basic optimization failed:")
+                print("[FAIL] Basic optimization failed:")
                 print(f"   Error: {result.stderr}")
                 return False
         else:
-            print("❌ MLIR file parsing failed:")
+            print("[FAIL] MLIR file parsing failed:")
             print(f"   Error: {result.stderr}")
             return False
             
     except Exception as e:
-        print(f"❌ Error testing MLIR file: {e}")
+        print(f"[FAIL] Error testing MLIR file: {e}")
         return False
 
 def suggest_fixes():

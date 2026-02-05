@@ -4,12 +4,12 @@ Enhanced orchestration system using OpenEvolve's ensemble functionality
 for coordinating multi-agent parallel adversarial testing.
 
 Architecture:
-    Content → RedTeamCoordinator → LLMEnsemble (parallel)
-                         ↓
+    Content -> RedTeamCoordinator -> LLMEnsemble (parallel)
+                         v
                     Attack Task Distribution
-                         ↓
+                         v
                     Vulnerability Aggregation
-                         ↓
+                         v
                     Security Findings
 
 This refactored version uses OpenEvolve's LLMEnsemble for coordination instead of

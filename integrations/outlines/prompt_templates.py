@@ -116,7 +116,7 @@ EXTRACTION RULES:
 3. Ensure source and target entities match the known entities list
 4. Provide confidence scores (0.0-1.0) for each extraction
 5. Extract relevant properties for each relationship (e.g., dates, locations)
-6. All relationships are directed (source → target)
+6. All relationships are directed (source -> target)
 7. If no relationships are found, return an empty relationships array
 
 OUTPUT FORMAT (JSON):

@@ -91,7 +91,7 @@ async def test_postgresql_backend():
     try:
         import asyncpg
     except ImportError:
-        print("⚠️  asyncpg not installed - skipping PostgreSQL tests")
+        print("[WARN]  asyncpg not installed - skipping PostgreSQL tests")
         return False
     
     config = {
@@ -107,21 +107,21 @@ async def test_postgresql_backend():
     try:
         connected = await backend.connect()
         if connected:
-            print("   ✅ Connected to PostgreSQL")
+            print("   [OK] Connected to PostgreSQL")
         else:
-            print("   ⚠️  Could not connect to PostgreSQL (server may not be running)")
+            print("   [WARN]  Could not connect to PostgreSQL (server may not be running)")
             return False
     except Exception as e:
-        print(f"   ⚠️  Connection failed: {e}")
+        print(f"   [WARN]  Connection failed: {e}")
         return False
     
     # Test health check
     print("\n2. Testing health check...")
     try:
         is_healthy = await backend.health_check()
-        print(f"   {'✅' if is_healthy else '❌'} Health check: {is_healthy}")
+        print(f"   {'[OK]' if is_healthy else '[FAIL]'} Health check: {is_healthy}")
     except Exception as e:
-        print(f"   ❌ Health check failed: {e}")
+        print(f"   [FAIL] Health check failed: {e}")
     
     # Test adding knowledge
     print("\n3. Testing add_knowledge...")
@@ -136,40 +136,40 @@ async def test_postgresql_backend():
             )
             entry_id = await backend.add_knowledge(entry)
             entry_ids.append(entry_id)
-            print(f"   ✅ Added entry: {entry_id[:20]}...")
+            print(f"   [OK] Added entry: {entry_id[:20]}...")
         except Exception as e:
-            print(f"   ❌ Failed to add entry: {e}")
+            print(f"   [FAIL] Failed to add entry: {e}")
     
     # Test search
     print("\n4. Testing search...")
     try:
         results = await backend.search(query="database", limit=10)
-        print(f"   ✅ Search completed: {results.total_count} results")
+        print(f"   [OK] Search completed: {results.total_count} results")
         print(f"      Backend used: {results.backend_used}")
         print(f"      Search time: {results.search_time_ms:.2f}ms")
     except Exception as e:
-        print(f"   ❌ Search failed: {e}")
+        print(f"   [FAIL] Search failed: {e}")
     
     # Test statistics
     print("\n5. Testing get_statistics...")
     try:
         stats = await backend.get_statistics()
-        print(f"   ✅ Statistics retrieved")
+        print(f"   [OK] Statistics retrieved")
         print(f"      Nodes: {stats.node_count}")
         print(f"      Edges: {stats.edge_count}")
         print(f"      Backend type: {stats.backend_type.value}")
     except Exception as e:
-        print(f"   ❌ Statistics failed: {e}")
+        print(f"   [FAIL] Statistics failed: {e}")
     
     # Test analysis
     print("\n6. Testing analyze...")
     try:
         analysis = await backend.analyze(analysis_type="entity_analysis")
-        print(f"   ✅ Analysis completed: {analysis.analysis_type}")
+        print(f"   [OK] Analysis completed: {analysis.analysis_type}")
         if analysis.results:
             print(f"      Entities found: {analysis.results.get('total_entities', 0)}")
     except Exception as e:
-        print(f"   ❌ Analysis failed: {e}")
+        print(f"   [FAIL] Analysis failed: {e}")
     
     # Test update
     print("\n7. Testing update_knowledge...")
@@ -179,28 +179,28 @@ async def test_postgresql_backend():
                 entry_ids[0], 
                 {"content": "Updated content for testing"}
             )
-            print(f"   {'✅' if updated else '❌'} Update: {updated}")
+            print(f"   {'[OK]' if updated else '[FAIL]'} Update: {updated}")
         except Exception as e:
-            print(f"   ❌ Update failed: {e}")
+            print(f"   [FAIL] Update failed: {e}")
     
     # Test delete
     print("\n8. Testing delete_knowledge...")
     for entry_id in entry_ids:
         try:
             deleted = await backend.delete_knowledge(entry_id)
-            print(f"   {'✅' if deleted else '❌'} Deleted: {entry_id[:20]}...")
+            print(f"   {'[OK]' if deleted else '[FAIL]'} Deleted: {entry_id[:20]}...")
         except Exception as e:
-            print(f"   ❌ Delete failed: {e}")
+            print(f"   [FAIL] Delete failed: {e}")
     
     # Disconnect
     print("\n9. Testing disconnect...")
     try:
         await backend.disconnect()
-        print("   ✅ Disconnected from PostgreSQL")
+        print("   [OK] Disconnected from PostgreSQL")
     except Exception as e:
-        print(f"   ❌ Disconnect failed: {e}")
+        print(f"   [FAIL] Disconnect failed: {e}")
     
-    print("\n✅ PostgreSQL backend tests completed!")
+    print("\n[OK] PostgreSQL backend tests completed!")
     return True
 
 
@@ -228,21 +228,21 @@ async def test_memgraph_backend():
     try:
         connected = await backend.connect()
         if connected:
-            print("   ✅ Connected to Memgraph")
+            print("   [OK] Connected to Memgraph")
         else:
-            print("   ⚠️  Could not connect to Memgraph (server may not be running)")
+            print("   [WARN]  Could not connect to Memgraph (server may not be running)")
             return False
     except Exception as e:
-        print(f"   ⚠️  Connection failed: {e}")
+        print(f"   [WARN]  Connection failed: {e}")
         return False
     
     # Test health check
     print("\n2. Testing health check...")
     try:
         is_healthy = await backend.health_check()
-        print(f"   {'✅' if is_healthy else '❌'} Health check: {is_healthy}")
+        print(f"   {'[OK]' if is_healthy else '[FAIL]'} Health check: {is_healthy}")
     except Exception as e:
-        print(f"   ❌ Health check failed: {e}")
+        print(f"   [FAIL] Health check failed: {e}")
     
     # Test adding knowledge
     print("\n3. Testing add_knowledge...")
@@ -257,40 +257,40 @@ async def test_memgraph_backend():
             )
             entry_id = await backend.add_knowledge(entry)
             entry_ids.append(entry_id)
-            print(f"   ✅ Added entry: {entry_id[:20]}...")
+            print(f"   [OK] Added entry: {entry_id[:20]}...")
         except Exception as e:
-            print(f"   ❌ Failed to add entry: {e}")
+            print(f"   [FAIL] Failed to add entry: {e}")
     
     # Test search
     print("\n4. Testing search...")
     try:
         results = await backend.search(query="graph database", limit=10)
-        print(f"   ✅ Search completed: {results.total_count} results")
+        print(f"   [OK] Search completed: {results.total_count} results")
         print(f"      Backend used: {results.backend_used}")
         print(f"      Search time: {results.search_time_ms:.2f}ms")
     except Exception as e:
-        print(f"   ❌ Search failed: {e}")
+        print(f"   [FAIL] Search failed: {e}")
     
     # Test statistics
     print("\n5. Testing get_statistics...")
     try:
         stats = await backend.get_statistics()
-        print(f"   ✅ Statistics retrieved")
+        print(f"   [OK] Statistics retrieved")
         print(f"      Nodes: {stats.node_count}")
         print(f"      Edges: {stats.edge_count}")
         print(f"      Backend type: {stats.backend_type.value}")
     except Exception as e:
-        print(f"   ❌ Statistics failed: {e}")
+        print(f"   [FAIL] Statistics failed: {e}")
     
     # Test graph analysis
     print("\n6. Testing graph analysis...")
     try:
         analysis = await backend.analyze(analysis_type="centrality")
-        print(f"   ✅ Analysis completed: {analysis.analysis_type}")
+        print(f"   [OK] Analysis completed: {analysis.analysis_type}")
         if analysis.results:
             print(f"      Results: {json.dumps(analysis.results, indent=2)[:100]}...")
     except Exception as e:
-        print(f"   ❌ Analysis failed: {e}")
+        print(f"   [FAIL] Analysis failed: {e}")
     
     # Test update
     print("\n7. Testing update_knowledge...")
@@ -300,28 +300,28 @@ async def test_memgraph_backend():
                 entry_ids[0],
                 {"content": "Updated graph content"}
             )
-            print(f"   {'✅' if updated else '❌'} Update: {updated}")
+            print(f"   {'[OK]' if updated else '[FAIL]'} Update: {updated}")
         except Exception as e:
-            print(f"   ❌ Update failed: {e}")
+            print(f"   [FAIL] Update failed: {e}")
     
     # Test delete
     print("\n8. Testing delete_knowledge...")
     for entry_id in entry_ids:
         try:
             deleted = await backend.delete_knowledge(entry_id)
-            print(f"   {'✅' if deleted else '❌'} Deleted: {entry_id[:20]}...")
+            print(f"   {'[OK]' if deleted else '[FAIL]'} Deleted: {entry_id[:20]}...")
         except Exception as e:
-            print(f"   ❌ Delete failed: {e}")
+            print(f"   [FAIL] Delete failed: {e}")
     
     # Disconnect
     print("\n9. Testing disconnect...")
     try:
         await backend.disconnect()
-        print("   ✅ Disconnected from Memgraph")
+        print("   [OK] Disconnected from Memgraph")
     except Exception as e:
-        print(f"   ❌ Disconnect failed: {e}")
+        print(f"   [FAIL] Disconnect failed: {e}")
     
-    print("\n✅ Memgraph backend tests completed!")
+    print("\n[OK] Memgraph backend tests completed!")
     return True
 
 
@@ -363,39 +363,39 @@ async def test_enhanced_storage():
             )
             if result.success:
                 artifact_ids.append(result.artifact_id)
-                print(f"   ✅ Stored: {result.artifact_id[:20]}... (backend: {result.backend_used})")
+                print(f"   [OK] Stored: {result.artifact_id[:20]}... (backend: {result.backend_used})")
             else:
-                print(f"   ❌ Failed to store: {result.error}")
+                print(f"   [FAIL] Failed to store: {result.error}")
         except Exception as e:
-            print(f"   ⚠️  Storage error: {e}")
+            print(f"   [WARN]  Storage error: {e}")
     
     # Test statistics
     print("\n3. Testing get_aggregated_statistics...")
     try:
         stats = storage.get_aggregated_statistics()
-        print(f"   ✅ Statistics retrieved")
+        print(f"   [OK] Statistics retrieved")
         print(f"      Backend status: {list(stats.get('backend_status', {}).keys())}")
     except Exception as e:
-        print(f"   ⚠️  Statistics error: {e}")
+        print(f"   [WARN]  Statistics error: {e}")
     
     # Test optimization
     print("\n4. Testing optimize_storage...")
     try:
         results = storage.optimize_storage()
-        print(f"   ✅ Optimization completed")
+        print(f"   [OK] Optimization completed")
         print(f"      Operations: {results.get('operations_performed', [])}")
     except Exception as e:
-        print(f"   ⚠️  Optimization error: {e}")
+        print(f"   [WARN]  Optimization error: {e}")
     
     # Test close connections
     print("\n5. Testing close_connections...")
     try:
         storage.close_connections()
-        print("   ✅ Connections closed")
+        print("   [OK] Connections closed")
     except Exception as e:
-        print(f"   ⚠️  Close error: {e}")
+        print(f"   [WARN]  Close error: {e}")
     
-    print("\n✅ Enhanced storage tests completed!")
+    print("\n[OK] Enhanced storage tests completed!")
     return True
 
 
@@ -430,11 +430,11 @@ async def test_knowledge_storage():
             success = await storage.store_knowledge_artifact(artifact)
             if success:
                 artifact_ids.append(artifact["artifact_id"])
-                print(f"   ✅ Stored: {artifact['artifact_id']}")
+                print(f"   [OK] Stored: {artifact['artifact_id']}")
             else:
-                print(f"   ❌ Failed to store: {artifact['artifact_id']}")
+                print(f"   [FAIL] Failed to store: {artifact['artifact_id']}")
         except Exception as e:
-            print(f"   ⚠️  Storage error: {e}")
+            print(f"   [WARN]  Storage error: {e}")
     
     # Test retrieval
     print("\n3. Testing retrieve_knowledge_artifact...")
@@ -442,31 +442,31 @@ async def test_knowledge_storage():
         try:
             result = await storage.retrieve_knowledge_artifact(artifact_id)
             if result:
-                print(f"   ✅ Retrieved: {artifact_id}")
+                print(f"   [OK] Retrieved: {artifact_id}")
                 print(f"      Content: {result.get('content', 'N/A')[:50]}...")
             else:
-                print(f"   ⚠️  Not found: {artifact_id}")
+                print(f"   [WARN]  Not found: {artifact_id}")
         except Exception as e:
-            print(f"   ⚠️  Retrieval error: {e}")
+            print(f"   [WARN]  Retrieval error: {e}")
     
     # Test statistics
     print("\n4. Testing get_statistics...")
     try:
         stats = storage.get_statistics()
-        print(f"   ✅ Statistics retrieved")
+        print(f"   [OK] Statistics retrieved")
         print(f"      Backend status: {list(stats.get('backend_status', {}).keys())}")
     except Exception as e:
-        print(f"   ⚠️  Statistics error: {e}")
+        print(f"   [WARN]  Statistics error: {e}")
     
     # Test close
     print("\n5. Testing close_connections...")
     try:
         storage.close_connections()
-        print("   ✅ Connections closed")
+        print("   [OK] Connections closed")
     except Exception as e:
-        print(f"   ⚠️  Close error: {e}")
+        print(f"   [WARN]  Close error: {e}")
     
-    print("\n✅ Knowledge storage tests completed!")
+    print("\n[OK] Knowledge storage tests completed!")
     return True
 
 
@@ -492,25 +492,25 @@ async def run_all_tests():
     try:
         results["postgresql"] = await test_postgresql_backend()
     except Exception as e:
-        print(f"\n❌ PostgreSQL tests failed with exception: {e}")
+        print(f"\n[FAIL] PostgreSQL tests failed with exception: {e}")
     
     # Run Memgraph tests
     try:
         results["memgraph"] = await test_memgraph_backend()
     except Exception as e:
-        print(f"\n❌ Memgraph tests failed with exception: {e}")
+        print(f"\n[FAIL] Memgraph tests failed with exception: {e}")
     
     # Run EnhancedStorage tests
     try:
         results["enhanced_storage"] = await test_enhanced_storage()
     except Exception as e:
-        print(f"\n❌ Enhanced storage tests failed with exception: {e}")
+        print(f"\n[FAIL] Enhanced storage tests failed with exception: {e}")
     
     # Run KnowledgeStorage tests
     try:
         results["knowledge_storage"] = await test_knowledge_storage()
     except Exception as e:
-        print(f"\n❌ Knowledge storage tests failed with exception: {e}")
+        print(f"\n[FAIL] Knowledge storage tests failed with exception: {e}")
     
     # Summary
     print("\n" + "="*60)
@@ -518,7 +518,7 @@ async def run_all_tests():
     print("="*60)
     
     for test_name, passed in results.items():
-        status = "✅ PASSED" if passed else "⚠️  SKIPPED/FAILED"
+        status = "[OK] PASSED" if passed else "[WARN]  SKIPPED/FAILED"
         print(f"  {test_name:20s}: {status}")
     
     passed_count = sum(1 for v in results.values() if v)
@@ -529,7 +529,7 @@ async def run_all_tests():
     if passed_count == total_count:
         print("\n🎉 All backend integration tests passed!")
     else:
-        print("\n⚠️  Some tests were skipped or failed (servers may not be running)")
+        print("\n[WARN]  Some tests were skipped or failed (servers may not be running)")
     
     return results
 

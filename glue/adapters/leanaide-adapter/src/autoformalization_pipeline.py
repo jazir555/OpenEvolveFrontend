@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-RESE Phase I → Lean 4 Autoformalization Pipeline
+RESE Phase I -> Lean 4 Autoformalization Pipeline
 
 Per RESE Technical Manual §2.1.5:
 "All Hard Parameter Inequality Constraints (Category A laws) are formally
@@ -854,7 +854,7 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(
-        description='RESE Phase I → Lean 4 Autoformalization Pipeline'
+        description='RESE Phase I -> Lean 4 Autoformalization Pipeline'
     )
     parser.add_argument('--correlation-id', help='Correlation ID')
     parser.add_argument('--verify-coverage', action='store_true',

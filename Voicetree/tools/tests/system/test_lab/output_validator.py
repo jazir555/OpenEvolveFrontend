@@ -257,14 +257,14 @@ class AgentOutputValidator:
             "AGENT OUTPUT VALIDATION REPORT",
             "="*60,
             f"Files Validated: {validation_results['files_validated']}",
-            f"Overall Pass: {'✅ PASS' if validation_results['overall_pass'] else '❌ FAIL'}",
+            f"Overall Pass: {'[OK] PASS' if validation_results['overall_pass'] else '[FAIL] FAIL'}",
             f"Pass Rate: {validation_results.get('pass_rate', 0):.1%}",
             "",
             "Validation Results:",
         ]
         
         for validation, passed in validation_results['validations'].items():
-            status = "✅" if passed else "❌"
+            status = "[OK]" if passed else "[FAIL]"
             report_lines.append(f"  {status} {validation.replace('_', ' ').title()}")
         
         if validation_results['errors']:
@@ -273,7 +273,7 @@ class AgentOutputValidator:
                 "Errors:",
             ])
             for error in validation_results['errors']:
-                report_lines.append(f"  ❌ {error}")
+                report_lines.append(f"  [FAIL] {error}")
         
         if validation_results['details']:
             report_lines.extend([
@@ -287,14 +287,14 @@ class AgentOutputValidator:
                     if key == 'errors':
                         continue
                     if isinstance(value, bool):
-                        status = "✅" if value else "❌"
+                        status = "[OK]" if value else "[FAIL]"
                         report_lines.append(f"    {status} {key.replace('_', ' ').title()}")
                     elif value is not None and key in ['node_id', 'title', 'color']:
                         report_lines.append(f"    📝 {key.title()}: {value}")
                 
                 if file_results.get('errors'):
                     for error in file_results['errors']:
-                        report_lines.append(f"    ❌ {error}")
+                        report_lines.append(f"    [FAIL] {error}")
         
         report = "\n".join(report_lines)
         

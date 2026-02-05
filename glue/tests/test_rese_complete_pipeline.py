@@ -921,7 +921,7 @@ def test_data_flow(logger: PipelineTestLogger,
             details=f"Correlation ID {logger.correlation_id} consistent throughout"
         )
 
-    # Phase I → Phase II
+    # Phase I -> Phase II
     if phase1_result and phase2_result:
         logger.record_test(
             "integration",
@@ -930,7 +930,7 @@ def test_data_flow(logger: PipelineTestLogger,
             details="Constraints and assumptions flowed to Phase II"
         )
 
-    # Phase II → Phase III
+    # Phase II -> Phase III
     if phase2_result and phase3_result:
         logger.record_test(
             "integration",
@@ -939,7 +939,7 @@ def test_data_flow(logger: PipelineTestLogger,
             details="Isomorphic mappings available to Phase III"
         )
 
-    # Phase III → Phase IV
+    # Phase III -> Phase IV
     if phase3_result and phase4_result:
         logger.record_test(
             "integration",
@@ -1144,7 +1144,7 @@ def generate_markdown_report(report: Dict[str, Any], logger: PipelineTestLogger)
 
         f.write("## Integrations Verified\n\n")
         for integration, available in report['integrations_verified'].items():
-            status = "✅ Available" if available else "❌ Not Available"
+            status = "[OK] Available" if available else "[FAIL] Not Available"
             f.write(f"- **{integration}:** {status}\n")
         f.write("\n")
 
@@ -1155,7 +1155,7 @@ def generate_markdown_report(report: Dict[str, Any], logger: PipelineTestLogger)
 
         f.write("## Detailed Test Results\n\n")
         for result in report['test_results']:
-            status = "✅ PASS" if result['passed'] else "❌ FAIL"
+            status = "[OK] PASS" if result['passed'] else "[FAIL] FAIL"
             f.write(f"### {status} - {result['phase'].upper()}::{result['test_name']}\n\n")
             f.write(f"- **Details:** {result['details']}\n")
             if result['execution_time_ms'] > 0:
@@ -1220,11 +1220,11 @@ def generate_markdown_report(report: Dict[str, Any], logger: PipelineTestLogger)
 
         f.write("## Conclusion\n\n")
         if summary['failed'] == 0:
-            f.write("✅ **All tests passed!** The RESE pipeline is functioning correctly.\n\n")
+            f.write("[OK] **All tests passed!** The RESE pipeline is functioning correctly.\n\n")
         else:
-            f.write(f"⚠️ **{summary['failed']} test(s) failed.** Review the failed tests above.\n\n")
+            f.write(f"[WARN] **{summary['failed']} test(s) failed.** Review the failed tests above.\n\n")
 
-        overall_health = "✅ Healthy" if summary['failed'] == 0 else "⚠️ Needs Attention"
+        overall_health = "[OK] Healthy" if summary['failed'] == 0 else "[WARN] Needs Attention"
         f.write(f"**Overall Pipeline Health: {overall_health}**\n")
 
     print(f"Markdown report saved to: {md_path}")

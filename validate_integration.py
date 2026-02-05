@@ -92,7 +92,7 @@ class IntegrationValidator:
                 'skipped': 'dim'
             }.get(status, 'white')
             
-            icon = {'passed': '✓', 'failed': '✗', 'warning': '!', 'skipped': '○'}.get(status, '?')
+            icon = {'passed': '[OK]', 'failed': '[FAIL]', 'warning': '!', 'skipped': '○'}.get(status, '?')
             console.print(f"  [{status_color}]{icon}[/{status_color}] {check}: {message}")
     
     def validate_file_structure(self):

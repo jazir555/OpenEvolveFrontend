@@ -335,7 +335,7 @@ class TestEndToEndProductionWorkflow:
         results = gauntlet_system.run_decomposition_gauntlets(plan)
         
         for name, result in results.items():
-            status = "✓ PASS" if result.passed else "✗ FAIL"
+            status = "[OK] PASS" if result.passed else "[FAIL] FAIL"
             logger.info(f"  {name}: {status} ({result.score:.2f})")
         
         overall_quality = gauntlet_system.get_overall_quality(results)

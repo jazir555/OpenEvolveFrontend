@@ -185,8 +185,8 @@ class TestWorkingMemory:
         assert "read_file" in trace
         assert "edit_file" in trace
         assert "Permission denied" in trace
-        assert "✓" in trace  # Success symbol
-        assert "✗" in trace  # Failure symbol
+        assert "[OK]" in trace  # Success symbol
+        assert "[FAIL]" in trace  # Failure symbol
 
     def test_history_size_limit(self):
         """Test that history is trimmed when exceeding max size."""

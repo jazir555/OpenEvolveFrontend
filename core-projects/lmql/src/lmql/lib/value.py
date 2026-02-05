@@ -35,8 +35,8 @@ def is_eq_int(a, b):
     if not eq_int(a, b):
         print("assertion failure: " + f"Equality {a} == {b} does not hold, after conversion we get {to_int(a)} != {to_int(b)}")
         return f"{a} != {b} X"
-    return f"{a} = {b} ✓"
+    return f"{a} = {b} [OK]"
 
 def check_is_eq_int(a, b):
     result = is_eq_int(a, b)
-    return result.endswith("✓")
+    return result.endswith("[OK]")

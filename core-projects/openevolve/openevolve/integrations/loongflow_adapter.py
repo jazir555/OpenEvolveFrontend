@@ -124,7 +124,7 @@ class LoongFlowAdapter:
                 self._initialize_loongflow()
                 self.using_loongflow = True
                 self.mode = "loongflow"
-                logger.info("✓ LoongFlow PES initialized successfully")
+                logger.info("[OK] LoongFlow PES initialized successfully")
 
                 if self.show_messages:
                     logger.info(LoongFlowMessages.using_loongflow_message())
@@ -193,7 +193,7 @@ class LoongFlowAdapter:
         Initialize OpenEvolve fallback adapter.
         """
         self.fallback_adapter = OpenEvolveFallbackAdapter(self.config)
-        logger.info("✓ OpenEvolve fallback adapter initialized")
+        logger.info("[OK] OpenEvolve fallback adapter initialized")
 
         if self.show_messages:
             mode = self.config.get("mode", "standard")
@@ -206,13 +206,13 @@ class LoongFlowAdapter:
         Converts between OpenEvolve's configuration schema and LoongFlow's
         expected configuration format.
 
-        OpenEvolve params → LoongFlow params:
-            - max_iterations → max_iterations
-            - population_size → population_size
-            - enable_planning → enable_planning
-            - enable_memory → enable_memory
-            - llm_config → llm_config
-            - timeout → timeout
+        OpenEvolve params -> LoongFlow params:
+            - max_iterations -> max_iterations
+            - population_size -> population_size
+            - enable_planning -> enable_planning
+            - enable_memory -> enable_memory
+            - llm_config -> llm_config
+            - timeout -> timeout
 
         Args:
             oe_config: OpenEvolve configuration dictionary

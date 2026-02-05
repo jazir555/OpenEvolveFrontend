@@ -5,7 +5,7 @@ This module provides Model Context Protocol (MCP) tools that CREWAI agents
 can use to leverage DataPizza's multi-agent framework for problem solving.
 
 Architecture:
-    CREWAI Agent → MCP Tool → DataPizza Agent → Tools → Result
+    CREWAI Agent -> MCP Tool -> DataPizza Agent -> Tools -> Result
 
 Key Features:
     - Multi-agent coordination (Blue/Red/Gold teams)

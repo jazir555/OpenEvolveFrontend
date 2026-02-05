@@ -887,7 +887,7 @@ class TestEndToEndTurnProcessing:
     """Test full turn processing pipeline."""
     
     def test_full_turn_input_to_response(self, unified_system):
-        """Test complete turn: input → LLM → response → update."""
+        """Test complete turn: input -> LLM -> response -> update."""
         system = unified_system
         conv_id = "e2e_turn_test"
         
@@ -935,7 +935,7 @@ class TestEndToEndTurnProcessing:
             assert state.facts[f"fact_{turn}"].source_turn == turn
     
     def test_memory_lifecycle_transitions(self, lifecycle_manager):
-        """Test full memory lifecycle: create → active → cooling → archive."""
+        """Test full memory lifecycle: create -> active -> cooling -> archive."""
         # Create memory
         meta = lifecycle_manager.create_memory(
             memory_id="lifecycle_test",

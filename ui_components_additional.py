@@ -426,13 +426,13 @@ def render_realtime_monitoring(
         if alerts:
             for alert in alerts:
                 if alert["level"] == "error":
-                    st.error(f"❌ {alert['message']}")
+                    st.error(f"[FAIL] {alert['message']}")
                 elif alert["level"] == "warning":
-                    st.warning(f"⚠️ {alert['message']}")
+                    st.warning(f"[WARN] {alert['message']}")
                 else:
                     st.info(f"ℹ️ {alert['message']}")
         else:
-            st.success("✅ No alerts - Workflow running smoothly")
+            st.success("[OK] No alerts - Workflow running smoothly")
 
     # Log viewer section
     with st.expander("📜 Log Viewer"):
@@ -453,8 +453,8 @@ def render_realtime_monitoring(
                 status_emoji = {
                     "pending": "⏳",
                     "in_progress": "🔄",
-                    "solved": "✅",
-                    "failed": "❌",
+                    "solved": "[OK]",
+                    "failed": "[FAIL]",
                     "requires_rework": "🔧"
                 }.get(sp.status, "❓")
 

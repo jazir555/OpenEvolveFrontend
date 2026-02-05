@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """Test for coerce_col_safe int32 NaN handling bug fix
 
-Bug report: Arrow optimization converts int64 → int32, then hypergraph operations
+Bug report: Arrow optimization converts int64 -> int32, then hypergraph operations
 introduce NaN during pandas merges/reindexing. coerce_col_safe() tried to convert
-float64 → int32 without filling NaN first, causing "Cannot convert non-finite values".
+float64 -> int32 without filling NaN first, causing "Cannot convert non-finite values".
 """
 
 import numpy as np
@@ -18,13 +18,13 @@ def test_coerce_col_safe_int32_with_nan():
 
     Regression test for bug where coerce_col_safe only handled int64 with NaN,
     but not int32, causing "Cannot convert non-finite values (NA or inf) to integer"
-    error when Arrow optimizes int64 → int32.
+    error when Arrow optimizes int64 -> int32.
     """
     # Create a float64 Series with NaN (simulates result of pandas merge/reindex)
     s = pd.Series([1.0, 2.0, np.nan, 4.0], name='test_col')
     assert s.dtype == 'float64'
 
-    # Create int32 dtype (simulates Arrow optimization converting int64 → int32)
+    # Create int32 dtype (simulates Arrow optimization converting int64 -> int32)
     target_dtype = pd.Series([1], dtype='int32').dtype
     assert target_dtype.name == 'int32'
 
@@ -33,7 +33,7 @@ def test_coerce_col_safe_int32_with_nan():
 
     # Verify NaN was filled with 0 and converted to int32
     assert result.dtype.name == 'int32'
-    assert result.tolist() == [1, 2, 0, 4]  # NaN → 0
+    assert result.tolist() == [1, 2, 0, 4]  # NaN -> 0
 
 
 def test_coerce_col_safe_int64_with_nan():

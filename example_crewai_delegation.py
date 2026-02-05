@@ -6,7 +6,7 @@ to solve complex problems with multi-agent orchestration.
 
 MIGRATED FROM: example_hephaestus_delegation.py
 MIGRATION DATE: 2026-01-21
-LICENSE CHANGE: Hephaestus (AGPL) → CrewAI (MIT)
+LICENSE CHANGE: Hephaestus (AGPL) -> CrewAI (MIT)
 
 NEW PATTERNS SHOWCASED:
 - CrewAI Flows for multi-agent orchestration
@@ -86,7 +86,7 @@ async def example_simple_workflow():
             max_sub_problems=5,
         )
 
-        console.print(f"[green]✓[/green] Workflow started: {state.workflow_id}")
+        console.print(f"[green][OK][/green] Workflow started: {state.workflow_id}")
 
         # Monitor with progress display
         console.print("\n[yellow]Monitoring workflow...[/yellow]\n")
@@ -121,9 +121,9 @@ async def example_simple_workflow():
         print_workflow_summary(state)
 
         if state.status == "completed":
-            console.print("\n[green]✓ Workflow completed successfully![/green]")
+            console.print("\n[green][OK] Workflow completed successfully![/green]")
         else:
-            console.print("\n[red]✗ Workflow failed[/red]")
+            console.print("\n[red][FAIL] Workflow failed[/red]")
 
     except Exception as e:  # TODO: Catch specific exception instead of Exception
         console.print(f"[red]Error: {e}[/red]")
@@ -132,7 +132,7 @@ async def example_simple_workflow():
     finally:
         console.print("\n[yellow]Shutting down...[/yellow]")
         await bridge.shutdown()
-        console.print("[green]✓ Shutdown complete[/green]")
+        console.print("[green][OK] Shutdown complete[/green]")
 
 
 async def example_custom_configuration():
@@ -173,7 +173,7 @@ async def example_custom_configuration():
             max_sub_problems=8,
         )
 
-        console.print(f"[green]✓[/green] Workflow started: {state.workflow_id}")
+        console.print(f"[green][OK][/green] Workflow started: {state.workflow_id}")
 
         # Monitor with callback
         async def status_callback(state: WorkflowState):
@@ -252,17 +252,17 @@ async def example_context_manager():
             complexity_level="Medium (4-7)",
         )
 
-        console.print(f"[green]✓[/green] Workflow started: {state.workflow_id}")
+        console.print(f"[green][OK][/green] Workflow started: {state.workflow_id}")
 
         final_state = await bridge.monitor_workflow(
             state.workflow_id,
             poll_interval=3,
         )
 
-        console.print(f"\n[green]✓[/green] Workflow {final_state.status}")
+        console.print(f"\n[green][OK][/green] Workflow {final_state.status}")
 
     # Automatic shutdown happens here
-    console.print("[green]✓ Automatically shut down[/green]")
+    console.print("[green][OK] Automatically shut down[/green]")
 
 
 async def example_health_check():
@@ -282,22 +282,22 @@ async def example_health_check():
         table.add_column("Status", style="green")
 
         for component, status in health.items():
-            status_text = "[green]✓ Healthy[/green]" if status else "[red]✗ Unhealthy[/red]"
+            status_text = "[green][OK] Healthy[/green]" if status else "[red][FAIL] Unhealthy[/red]"
             table.add_row(component, status_text)
 
         console.print(table)
 
         if health["overall"]:
-            console.print("\n[green]✓ All systems healthy[/green]")
+            console.print("\n[green][OK] All systems healthy[/green]")
         else:
-            console.print("\n[red]✗ Some systems unhealthy[/red]")
+            console.print("\n[red][FAIL] Some systems unhealthy[/red]")
 
         # List available execution methods
         console.print("\n[yellow]Available execution methods:[/yellow]\n")
         methods = bridge.list_execution_methods()
 
         for method in methods:
-            console.print(f"  • [cyan]{method}[/cyan]")
+            console.print(f"  * [cyan]{method}[/cyan]")
 
     finally:
         await bridge.shutdown()

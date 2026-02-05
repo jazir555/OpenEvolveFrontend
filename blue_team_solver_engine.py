@@ -6,8 +6,8 @@ the decomposition engine and orchestrates their solution through multiple stages
 analysis, planning, solving, validation, and refinement.
 
 Architecture:
-    Decomposition Engine → Blue Team Solver → Solution Integration
-                                                        ↓
+    Decomposition Engine -> Blue Team Solver -> Solution Integration
+                                                        v
                                                     Quality Tracker
 
 Key Features:

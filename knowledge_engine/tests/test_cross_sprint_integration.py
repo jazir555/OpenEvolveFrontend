@@ -8,10 +8,10 @@ Following CLAUDE.md principles:
 - Verify error propagation
 
 Tests verify:
-- Sprint 1 (Graphiti) → Sprint 2 (KG-Gen) integration
-- Sprint 2 → Sprint 3 (OneKE) integration
-- Sprint 3 → Sprint 4 (Visualization) integration
-- Full pipeline: Document → Extraction → Bilingual → Visualization
+- Sprint 1 (Graphiti) -> Sprint 2 (KG-Gen) integration
+- Sprint 2 -> Sprint 3 (OneKE) integration
+- Sprint 3 -> Sprint 4 (Visualization) integration
+- Full pipeline: Document -> Extraction -> Bilingual -> Visualization
 """
 
 import asyncio
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 class TestSprint1ToSprint2Integration:
     """
-    Tests for Sprint 1 (Graphiti temporal) → Sprint 2 (KG-Gen pipeline) integration.
+    Tests for Sprint 1 (Graphiti temporal) -> Sprint 2 (KG-Gen pipeline) integration.
     """
 
     @pytest.mark.asyncio
@@ -120,7 +120,7 @@ class TestSprint1ToSprint2Integration:
 
 class TestSprint2ToSprint3Integration:
     """
-    Tests for Sprint 2 (KG-Gen) → Sprint 3 (OneKE bilingual) integration.
+    Tests for Sprint 2 (KG-Gen) -> Sprint 3 (OneKE bilingual) integration.
     """
 
     @pytest.mark.asyncio
@@ -199,7 +199,7 @@ class TestSprint2ToSprint3Integration:
 
 class TestSprint3ToSprint4Integration:
     """
-    Tests for Sprint 3 (OneKE) → Sprint 4 (Visualization) integration.
+    Tests for Sprint 3 (OneKE) -> Sprint 4 (Visualization) integration.
     """
 
     @pytest.mark.asyncio
@@ -302,7 +302,7 @@ class TestFullPipelineIntegration:
     @pytest.mark.asyncio
     async def test_document_to_visualization_pipeline(self):
         """
-        Test full pipeline: Document → Temporal Extraction → Bilingual KG → Visualization.
+        Test full pipeline: Document -> Temporal Extraction -> Bilingual KG -> Visualization.
         """
         # Step 1: Input document
         document = """

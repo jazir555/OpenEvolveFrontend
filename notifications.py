@@ -122,9 +122,9 @@ def render_notifications():
             # Determine icon and color based on type
             type_icons = {
                 "info": "ℹ️",
-                "warning": "⚠️", 
-                "error": "❌",
-                "success": "✅"
+                "warning": "[WARN]", 
+                "error": "[FAIL]",
+                "success": "[OK]"
             }
             type_colors = {
                 "info": "#1976d2",

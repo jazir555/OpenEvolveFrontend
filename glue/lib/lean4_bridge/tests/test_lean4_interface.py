@@ -311,7 +311,7 @@ class TestConstraintTranslator:
         result = translator.translate_to_lean4(constraint, "proposition")
 
         assert "∀" in result or "forall" in result
-        assert "→" in result or "->" in result
+        assert "->" in result or "->" in result
 
     def test_translate_to_lean4_theorem(self, translator):
         """Test translating theorem to Lean 4."""
@@ -323,7 +323,7 @@ class TestConstraintTranslator:
 
     def test_is_lean4_syntax_true(self, translator):
         """Test detecting Lean 4 syntax."""
-        constraint = "∀ x, P x → Q x"
+        constraint = "∀ x, P x -> Q x"
         assert translator._is_lean4_syntax(constraint) is True
 
     def test_is_lean4_syntax_false(self, translator):

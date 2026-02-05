@@ -580,7 +580,7 @@ class AdaptiveMDAPAllocator:
         if changes:
             old_thresholds = list(self.thresholds)
             self.update_thresholds(new_thresholds, reason="ICR_pattern_adaptation")
-            changes.append(f"Updated thresholds: {old_thresholds} → {new_thresholds}")
+            changes.append(f"Updated thresholds: {old_thresholds} -> {new_thresholds}")
         else:
             changes.append("No threshold adjustments needed")
         

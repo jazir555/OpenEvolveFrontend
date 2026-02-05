@@ -906,10 +906,10 @@ class BubbleLabsMakerUI:
                     )
 
                     if tool:
-                        st.success(f"✅ Tool '{tool_name}' created successfully!")
+                        st.success(f"[OK] Tool '{tool_name}' created successfully!")
                         st.json(tool.to_dict())
                     else:
-                        st.error(f"❌ Failed to create tool: {error}")
+                        st.error(f"[FAIL] Failed to create tool: {error}")
 
     def _render_tool_repository(self):
         """Render tool repository browser"""
@@ -971,7 +971,7 @@ class BubbleLabsMakerUI:
                     with col2:
                         st.markdown(f"**Status:** {tool.status.value.title()}")
                         if tool.test_results:
-                            st.markdown("**Test Results:** ✅ Passed")
+                            st.markdown("**Test Results:** [OK] Passed")
                         else:
                             st.markdown("**Test Results:** ⏳ Not tested")
 
@@ -990,7 +990,7 @@ class BubbleLabsMakerUI:
 
                     with col5:
                         if tool.status == ToolStatus.DRAFT:
-                            if st.button(f"✅ Validate", key=f"validate_{tool.tool_id}"):
+                            if st.button(f"[OK] Validate", key=f"validate_{tool.tool_id}"):
                                 self.tool_repository.update_tool(
                                     tool.tool_id,
                                     status=ToolStatus.VALIDATED
@@ -1005,7 +1005,7 @@ class BubbleLabsMakerUI:
         tools = self.tool_repository.list_tools(status_filter=ToolStatus.VALIDATED)
 
         if not tools:
-            st.warning("⚠️ No validated tools available. Please validate a tool first.")
+            st.warning("[WARN] No validated tools available. Please validate a tool first.")
             return
 
         tool_options = {f"{t.name} ({t.tool_id})": t for t in tools}
@@ -1065,7 +1065,7 @@ class BubbleLabsMakerUI:
 
                         if result:
                             # Display result
-                            st.success(f"✅ Execution completed in {result.execution_time:.2f}s")
+                            st.success(f"[OK] Execution completed in {result.execution_time:.2f}s")
 
                             if result.CREWAI_ticket_id:
                                 st.info(f"📋 CrewAI Ticket: {result.CREWAI_ticket_id}")
@@ -1086,7 +1086,7 @@ class BubbleLabsMakerUI:
                                 st.json(result.input_data)
 
                         else:
-                            st.error(f"❌ Execution failed: {error}")
+                            st.error(f"[FAIL] Execution failed: {error}")
 
                 except json.JSONDecodeError:
                     st.error("Invalid JSON input")
@@ -1096,7 +1096,7 @@ class BubbleLabsMakerUI:
         st.subheader("📋 CrewAI Workflow Tracker")
 
         if not CREWAI_INTEGRATION_AVAILABLE:
-            st.warning("⚠️ CrewAI integration not available")
+            st.warning("[WARN] CrewAI integration not available")
             return
 
         # Status filter
@@ -1143,8 +1143,8 @@ class BubbleLabsMakerUI:
                     DelegationStatus.ASSIGNED: "📋",
                     DelegationStatus.IN_PROGRESS: "⚙️",
                     DelegationStatus.REVIEW: "👀",
-                    DelegationStatus.COMPLETE: "✅",
-                    DelegationStatus.FAILED: "❌"
+                    DelegationStatus.COMPLETE: "[OK]",
+                    DelegationStatus.FAILED: "[FAIL]"
                 }.get(delegation.status, "❓")
 
                 with st.expander(f"{status_emoji} {delegation.title} - {delegation.status.value.title()}"):
@@ -1229,8 +1229,8 @@ class BubbleLabsMakerUI:
                     DelegationStatus.ASSIGNED: "📋",
                     DelegationStatus.IN_PROGRESS: "⚙️",
                     DelegationStatus.REVIEW: "👀",
-                    DelegationStatus.COMPLETE: "✅",
-                    DelegationStatus.FAILED: "❌"
+                    DelegationStatus.COMPLETE: "[OK]",
+                    DelegationStatus.FAILED: "[FAIL]"
                 }.get(delegation.status, "❓")
 
                 st.markdown(f"{status_emoji} **{delegation.title}** - {delegation.created_at}")

@@ -48,33 +48,33 @@ class MathKnowledgeIntegrationDemo:
         try:
             from z3_solver_connector import get_z3_connector
             self.z3_connector = get_z3_connector()
-            logger.info("✓ Z3 connector initialized")
+            logger.info("[OK] Z3 connector initialized")
         except Exception as e:
-            logger.warning(f"✗ Z3 connector failed: {e}")
+            logger.warning(f"[FAIL] Z3 connector failed: {e}")
         
         # Initialize LeanAIDE connector
         try:
             from leanaide_production_connector import get_leanaide_connector
             self.leanaide_connector = await get_leanaide_connector()
-            logger.info("✓ LeanAIDE connector initialized")
+            logger.info("[OK] LeanAIDE connector initialized")
         except Exception as e:
-            logger.warning(f"✗ LeanAIDE connector failed: {e}")
+            logger.warning(f"[FAIL] LeanAIDE connector failed: {e}")
         
         # Initialize unified bridge
         try:
             from unified_math_bridge_complete import get_unified_bridge_complete
             self.unified_bridge = await get_unified_bridge_complete()
-            logger.info("✓ Unified bridge initialized")
+            logger.info("[OK] Unified bridge initialized")
         except Exception as e:
-            logger.warning(f"✗ Unified bridge failed: {e}")
+            logger.warning(f"[FAIL] Unified bridge failed: {e}")
         
         # Initialize knowledge manager
         try:
             from z3_knowledge_complete import get_z3_knowledge_manager
             self.knowledge_manager = await get_z3_knowledge_manager()
-            logger.info("✓ Knowledge manager initialized")
+            logger.info("[OK] Knowledge manager initialized")
         except Exception as e:
-            logger.warning(f"✗ Knowledge manager failed: {e}")
+            logger.warning(f"[FAIL] Knowledge manager failed: {e}")
         
         logger.info("Initialization complete")
     
@@ -388,10 +388,10 @@ class MathKnowledgeIntegrationDemo:
             try:
                 result = await stage['action'](stage['input'], context)
                 context[stage['stage']] = result
-                print(f"  Status: ✓ Success")
+                print(f"  Status: [OK] Success")
                 print(f"  Result: {json.dumps(result, indent=4)[:150]}...")
             except Exception as e:
-                print(f"  Status: ✗ Failed - {e}")
+                print(f"  Status: [FAIL] Failed - {e}")
     
     async def _analyze_problem(self, input_data, context):
         """Analyze problem in workflow."""
@@ -502,12 +502,12 @@ class MathKnowledgeIntegrationDemo:
         print("MATHEMATICAL KNOWLEDGE INTEGRATION - COMPLETE DEMO")
         print("="*70)
         print("\nThis demo showcases the full integration between:")
-        print("  • Z3 SMT Solver (constraint satisfaction)")
-        print("  • LeanAIDE (theorem proving)")
-        print("  • Knowledge extraction and learning")
-        print("  • Pattern matching and strategy recommendation")
-        print("  • OpenEvolve workflow integration")
-        print("  • BubbleLabs UI components")
+        print("  * Z3 SMT Solver (constraint satisfaction)")
+        print("  * LeanAIDE (theorem proving)")
+        print("  * Knowledge extraction and learning")
+        print("  * Pattern matching and strategy recommendation")
+        print("  * OpenEvolve workflow integration")
+        print("  * BubbleLabs UI components")
         
         # Initialize
         await self.initialize()
@@ -534,11 +534,11 @@ class MathKnowledgeIntegrationDemo:
         print("DEMO COMPLETE")
         print("="*70)
         print("\nSummary:")
-        print(f"  • Total demos: {len(demos)}")
-        print(f"  • Z3 available: {self.z3_connector is not None}")
-        print(f"  • LeanAIDE available: {self.leanaide_connector is not None}")
-        print(f"  • Unified bridge available: {self.unified_bridge is not None}")
-        print(f"  • Knowledge manager available: {self.knowledge_manager is not None}")
+        print(f"  * Total demos: {len(demos)}")
+        print(f"  * Z3 available: {self.z3_connector is not None}")
+        print(f"  * LeanAIDE available: {self.leanaide_connector is not None}")
+        print(f"  * Unified bridge available: {self.unified_bridge is not None}")
+        print(f"  * Knowledge manager available: {self.knowledge_manager is not None}")
         print("\nNext steps:")
         print("  1. Deploy with Docker: docker-compose up -d")
         print("  2. Access API at: http://localhost:8765")

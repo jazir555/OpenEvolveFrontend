@@ -71,7 +71,7 @@ def start_test_server(model: str = TEST_MODEL, port: Optional[int] = None) -> Tu
         try:
             response = requests.get(f"http://localhost:{port}/health", timeout=2)
             if response.status_code == 200:
-                print(f"✅ optillm server started successfully on port {port}")
+                print(f"[OK] optillm server started successfully on port {port}")
                 return proc, port
         except Exception as e:
             if i < 5:  # Only print for first few attempts to avoid spam
@@ -81,7 +81,7 @@ def start_test_server(model: str = TEST_MODEL, port: Optional[int] = None) -> Tu
     
     # Server didn't start in time - clean up
     error_msg = f"optillm server failed to start on port {port}"
-    print(f"❌ {error_msg} - check that optillm is installed and model is available")
+    print(f"[FAIL] {error_msg} - check that optillm is installed and model is available")
     
     # Clean up
     try:

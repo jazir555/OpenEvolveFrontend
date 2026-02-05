@@ -86,7 +86,7 @@ async def example_batch_evaluation():
     print(f"\n{'Solution':<12} {'Score':<10} {'Passed':<8} {'Time':<10}")
     print("-" * 40)
     for i, result in enumerate(results, 1):
-        status = "✅ PASS" if result.passed else "❌ FAIL"
+        status = "[OK] PASS" if result.passed else "[FAIL] FAIL"
         print(f"Solution {i:<4} {result.overall_score:<10.1%} {status:<8} {result.evaluation_time:<10.2f}s")
 
     # Summary statistics
@@ -132,7 +132,7 @@ async def example_strict_evaluation():
     print(f"Required: {config.quality_threshold:.1%}")
 
     if not result.passed:
-        print(f"\n❌ Solution failed strict quality requirements")
+        print(f"\n[FAIL] Solution failed strict quality requirements")
         print(f"   Score: {result.overall_score:.1%} < {config.quality_threshold:.1%}")
 
     return result
@@ -182,7 +182,7 @@ def get_nth_fibonacci(n):
     if result.strengths:
         print("Strengths:")
         for strength in result.strengths:
-            print(f"  ✓ {strength}")
+            print(f"  [OK] {strength}")
 
     return result
 
@@ -249,7 +249,7 @@ async def example_error_handling():
 
     # Check availability
     if not evaluator.is_available():
-        print("⚠️  LoongFlow not available, using fallback mode")
+        print("[WARN]  LoongFlow not available, using fallback mode")
 
     # Try evaluating
     result = await evaluator.evaluate_solution(
@@ -260,9 +260,9 @@ async def example_error_handling():
 
     # Handle gracefully
     if result.passed:
-        print("✅ Evaluation succeeded")
+        print("[OK] Evaluation succeeded")
     else:
-        print("❌ Evaluation failed or solution rejected")
+        print("[FAIL] Evaluation failed or solution rejected")
         if "error" in result.feedback.lower():
             print(f"   Error: {result.feedback}")
 
@@ -367,7 +367,7 @@ async def main():
         print("=" * 60)
 
     except Exception as e:
-        print(f"\n❌ Error running examples: {e}")
+        print(f"\n[FAIL] Error running examples: {e}")
         import traceback
         traceback.print_exc()
 

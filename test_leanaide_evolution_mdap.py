@@ -127,7 +127,7 @@ class ProofApproach(Enum):
 SAMPLE_THEOREMS = {
     "easy": "∀ n : Nat, n + 0 = n",
     "medium": "∀ a b : Nat, a + b = b + a",
-    "hard": "∀ (f : Nat → Nat), (∀ n, f n = 0) → f = (λ _, 0)"
+    "hard": "∀ (f : Nat -> Nat), (∀ n, f n = 0) -> f = (λ _, 0)"
 }
 
 # Sample tactic sequences
@@ -750,7 +750,7 @@ class TestWorkflowIntegration(unittest.TestCase):
         theorems = {
             "easy": "∀ n, n + 0 = n",
             "medium": "∀ a b, a + b = b + a",
-            "hard": "∀ f, (∀ n, f n = 0) → f = (λ _, 0)"
+            "hard": "∀ f, (∀ n, f n = 0) -> f = (λ _, 0)"
         }
 
         # Select strategy based on difficulty

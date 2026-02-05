@@ -936,10 +936,10 @@ class StateTransitionGuard:
         allowed_transitions = self.valid_transitions[current_status]
 
         if new_status not in allowed_transitions:
-            logger.warning(f"Invalid transition: {current_status} → {new_status}")
+            logger.warning(f"Invalid transition: {current_status} -> {new_status}")
             return False
 
-        logger.debug(f"Valid transition: {current_status} → {new_status}")
+        logger.debug(f"Valid transition: {current_status} -> {new_status}")
         return True
 
     def guard_transition(
@@ -962,7 +962,7 @@ class StateTransitionGuard:
         """
         if not self.validate_transition(state.status, new_status):
             raise ValueError(
-                f"Invalid state transition: {state.status} → {new_status}"
+                f"Invalid state transition: {state.status} -> {new_status}"
             )
 
         state.status = new_status

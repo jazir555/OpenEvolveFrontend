@@ -159,10 +159,10 @@ def is_even (n : Nat) : Prop :=
         "complex": """
 theorem prime_factorization_unique (n : Nat) (h : n > 0) :
     ∀ (f1 f2 : List Nat),
-      (∀ p ∈ f1, Nat.Prime p) →
-      (∀ p ∈ f2, Nat.Prime p) →
-      f1.prod = n →
-      f2.prod = n →
+      (∀ p ∈ f1, Nat.Prime p) ->
+      (∀ p ∈ f2, Nat.Prime p) ->
+      f1.prod = n ->
+      f2.prod = n ->
       f1.perm f2 := by
   sorry
 """
@@ -932,7 +932,7 @@ class TestBridgePhase6_KnowledgeExtraction:
 
         lean_code = """
 theorem test_theorem : True := by trivial
-lemma test_lemma : False → True := by
+lemma test_lemma : False -> True := by
   intro h
   trivial
 

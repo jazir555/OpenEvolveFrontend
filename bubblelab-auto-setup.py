@@ -83,17 +83,17 @@ class Logger:
     @staticmethod
     def success(text: str):
         """Print success message"""
-        print(f"{Colors.OKGREEN}✅ {text}{Colors.ENDC}")
+        print(f"{Colors.OKGREEN}[OK] {text}{Colors.ENDC}")
 
     @staticmethod
     def error(text: str):
         """Print error message"""
-        print(f"{Colors.FAIL}❌ {text}{Colors.ENDC}")
+        print(f"{Colors.FAIL}[FAIL] {text}{Colors.ENDC}")
 
     @staticmethod
     def warning(text: str):
         """Print warning message"""
-        print(f"{Colors.WARNING}⚠️  {text}{Colors.ENDC}")
+        print(f"{Colors.WARNING}[WARN]  {text}{Colors.ENDC}")
 
     @staticmethod
     def info(text: str):
@@ -189,12 +189,12 @@ class RollbackManager:
             try:
                 Logger.detail(f"Rolling back: {operation}")
                 rollback_fn()
-                Logger.success(f"✓ Rolled back: {operation}")
+                Logger.success(f"[OK] Rolled back: {operation}")
             except (OSError, RuntimeError, ValueError) as e:
-                Logger.error(f"✗ Rollback failed for {operation}: {e}")
+                Logger.error(f"[FAIL] Rollback failed for {operation}: {e}")
                 self.logger.error(f"Rollback error: {e}", exc_info=True)
 
-        Logger.warning("⚠️  Rollback complete. Some files may remain.")
+        Logger.warning("[WARN]  Rollback complete. Some files may remain.")
 
 # =============================================================================
 # Backup Manager - Preserve Existing Files
@@ -287,7 +287,7 @@ class BackupManager:
             self.backup_directory(dir_path)
 
         if self.backups_created:
-            Logger.success(f"✓ Created {len(self.backups_created)} backups")
+            Logger.success(f"[OK] Created {len(self.backups_created)} backups")
         else:
             Logger.info("No existing files to backup")
 
@@ -312,10 +312,10 @@ class ResourceValidator:
             free_gb = usage.free / (1024 ** 3)
 
             if free_gb >= self.MIN_DISK_GB:
-                Logger.success(f"✓ Disk space: {free_gb:.2f} GB free")
+                Logger.success(f"[OK] Disk space: {free_gb:.2f} GB free")
                 return True, f"{free_gb:.2f} GB free"
             else:
-                Logger.error(f"✗ Insufficient disk space: {free_gb:.2f} GB free (need {self.MIN_DISK_GB} GB)")
+                Logger.error(f"[FAIL] Insufficient disk space: {free_gb:.2f} GB free (need {self.MIN_DISK_GB} GB)")
                 return False, f"Need {self.MIN_DISK_GB} GB, have {free_gb:.2f} GB"
         except OSError as e:
             Logger.error(f"Cannot check disk space: {e}")
@@ -324,7 +324,7 @@ class ResourceValidator:
     def check_memory(self) -> Tuple[bool, str]:
         """Check available memory"""
         if not HAS_PSUTIL:
-            Logger.warning("⚠️  Cannot check memory (psutil not installed)")
+            Logger.warning("[WARN]  Cannot check memory (psutil not installed)")
             return True, "Memory check skipped"
 
         try:
@@ -332,13 +332,13 @@ class ResourceValidator:
             available_gb = mem.available / (1024 ** 3)
 
             if available_gb >= self.MIN_MEMORY_GB:
-                Logger.success(f"✓ Memory: {available_gb:.2f} GB available")
+                Logger.success(f"[OK] Memory: {available_gb:.2f} GB available")
                 return True, f"{available_gb:.2f} GB available"
             else:
-                Logger.error(f"✗ Insufficient memory: {available_gb:.2f} GB available (need {self.MIN_MEMORY_GB} GB)")
+                Logger.error(f"[FAIL] Insufficient memory: {available_gb:.2f} GB available (need {self.MIN_MEMORY_GB} GB)")
                 return False, f"Need {self.MIN_MEMORY_GB} GB, have {available_gb:.2f} GB"
         except (OSError, AttributeError) as e:
-            Logger.warning(f"⚠️  Cannot check memory: {e}")
+            Logger.warning(f"[WARN]  Cannot check memory: {e}")
             return True, "Memory check skipped"
 
     def validate(self) -> bool:
@@ -370,10 +370,10 @@ class NetworkValidator:
         """Check DNS resolution"""
         try:
             socket.gethostbyname(hostname)
-            Logger.success(f"✓ DNS resolution: {hostname}")
+            Logger.success(f"[OK] DNS resolution: {hostname}")
             return True, f"{hostname} resolves"
         except socket.gaierror as e:
-            Logger.error(f"✗ DNS resolution failed for {hostname}: {e}")
+            Logger.error(f"[FAIL] DNS resolution failed for {hostname}: {e}")
             return False, f"DNS failed: {e}"
 
     def check_tcp_connection(self, host: str, port: int, timeout: float = 5.0) -> Tuple[bool, str]:
@@ -385,13 +385,13 @@ class NetworkValidator:
             sock.close()
 
             if result == 0:
-                Logger.success(f"✓ TCP connection: {host}:{port}")
+                Logger.success(f"[OK] TCP connection: {host}:{port}")
                 return True, f"{host}:{port} reachable"
             else:
-                Logger.error(f"✗ TCP connection failed: {host}:{port}")
+                Logger.error(f"[FAIL] TCP connection failed: {host}:{port}")
                 return False, f"{host}:{port} unreachable"
         except socket.error as e:
-            Logger.error(f"✗ TCP connection error: {e}")
+            Logger.error(f"[FAIL] TCP connection error: {e}")
             return False, f"Connection error: {e}"
 
     def check_http_url(self, url: str, timeout: float = 10.0) -> Tuple[bool, str]:
@@ -400,16 +400,16 @@ class NetworkValidator:
             import requests
             response = requests.get(url, timeout=timeout)
             if response.status_code < 400:
-                Logger.success(f"✓ HTTP check: {url}")
+                Logger.success(f"[OK] HTTP check: {url}")
                 return True, f"{url} reachable (status {response.status_code})"
             else:
-                Logger.warning(f"⚠️  HTTP check: {url} (status {response.status_code})")
+                Logger.warning(f"[WARN]  HTTP check: {url} (status {response.status_code})")
                 return False, f"HTTP error {response.status_code}"
         except requests.exceptions.RequestException as e:
-            Logger.error(f"✗ HTTP check failed for {url}: {e}")
+            Logger.error(f"[FAIL] HTTP check failed for {url}: {e}")
             return False, f"HTTP error: {e}"
         except ImportError:
-            Logger.warning("⚠️  Cannot check HTTP (requests not installed)")
+            Logger.warning("[WARN]  Cannot check HTTP (requests not installed)")
             return True, "HTTP check skipped"
 
     def validate_url(self, url: str) -> bool:
@@ -468,16 +468,16 @@ class ServiceHealthChecker:
 
             if response.status_code == 200:
                 data = response.json()
-                Logger.success(f"✓ Health check passed: {data.get('status', 'OK')}")
+                Logger.success(f"[OK] Health check passed: {data.get('status', 'OK')}")
                 return True, data
             else:
-                Logger.warning(f"⚠️  Health check returned status {response.status_code}")
+                Logger.warning(f"[WARN]  Health check returned status {response.status_code}")
                 return False, {'status': 'error', 'code': response.status_code}
         except requests.exceptions.RequestException as e:
-            Logger.error(f"✗ Health check failed: {e}")
+            Logger.error(f"[FAIL] Health check failed: {e}")
             return False, {'status': 'error', 'message': str(e)}
         except ImportError:
-            Logger.warning("⚠️  Cannot check health (requests not installed)")
+            Logger.warning("[WARN]  Cannot check health (requests not installed)")
             return True, {'status': 'skipped'}
 
     def check_database_connectivity(self) -> Tuple[bool, str]:
@@ -498,13 +498,13 @@ class ServiceHealthChecker:
             )
 
             if response.status_code < 500:
-                Logger.success("✓ API responsive (database likely connected)")
+                Logger.success("[OK] API responsive (database likely connected)")
                 return True, "API responsive"
             else:
-                Logger.warning("⚠️  API returning errors (database may be disconnected)")
+                Logger.warning("[WARN]  API returning errors (database may be disconnected)")
                 return False, "API errors"
         except (requests.exceptions.RequestException, ConnectionError) as e:
-            Logger.warning(f"⚠️  Cannot verify database: {e}")
+            Logger.warning(f"[WARN]  Cannot verify database: {e}")
             return True, "Database check skipped"
 
     def validate(self) -> bool:
@@ -519,7 +519,7 @@ class ServiceHealthChecker:
         if all_ok:
             Logger.success("\n✨ Service health verified")
         else:
-            Logger.warning("\n⚠️  Service health issues detected")
+            Logger.warning("\n[WARN]  Service health issues detected")
 
         return all_ok
 
@@ -626,7 +626,7 @@ class DependencyInstaller:
                 capture_output=True,
                 timeout=120
             )
-            Logger.success(f"✓ {package}")
+            Logger.success(f"[OK] {package}")
             self.installed.append(package)
 
             # Register rollback
@@ -645,17 +645,17 @@ class DependencyInstaller:
 
             return True
         except subprocess.TimeoutExpired as e:
-            Logger.error(f"✗ {package} (timeout)")
+            Logger.error(f"[FAIL] {package} (timeout)")
             self.failed.append(package)
             self.logger.error(f"Timeout installing {package}")
             return False
         except subprocess.CalledProcessError as e:
-            Logger.error(f"✗ {package} (installation failed)")
+            Logger.error(f"[FAIL] {package} (installation failed)")
             self.failed.append(package)
             self.logger.error(f"Failed to install {package}: {e}")
             return False
         except FileNotFoundError as e:
-            Logger.error(f"✗ {package} (pip not found)")
+            Logger.error(f"[FAIL] {package} (pip not found)")
             self.failed.append(package)
             self.logger.error(f"pip not found: {e}")
             return False
@@ -672,7 +672,7 @@ class DependencyInstaller:
         if all_success:
             Logger.success(f"\n✨ All {len(self.installed)} packages installed successfully")
         else:
-            Logger.warning(f"\n⚠️  {len(self.installed)} installed, {len(self.failed)} failed")
+            Logger.warning(f"\n[WARN]  {len(self.installed)} installed, {len(self.failed)} failed")
 
         return all_success
 
@@ -705,12 +705,12 @@ class DirectoryCreator:
         path = self.base_dir / directory
         try:
             if path.exists():
-                Logger.detail(f"✓ {directory} (already exists)")
+                Logger.detail(f"[OK] {directory} (already exists)")
                 self.existing.append(directory)
                 return True
             else:
                 path.mkdir(parents=True, exist_ok=True)
-                Logger.success(f"✓ {directory} (created)")
+                Logger.success(f"[OK] {directory} (created)")
                 self.created.append(directory)
 
                 # Register rollback
@@ -725,11 +725,11 @@ class DirectoryCreator:
 
                 return True
         except PermissionError as e:
-            Logger.error(f"✗ {directory} (permission denied)")
+            Logger.error(f"[FAIL] {directory} (permission denied)")
             self.logger.error(f"Permission denied creating {directory}: {e}")
             return False
         except OSError as e:
-            Logger.error(f"✗ {directory} ({e})")
+            Logger.error(f"[FAIL] {directory} ({e})")
             self.logger.error(f"Failed to create {directory}: {e}")
             return False
 
@@ -943,7 +943,7 @@ export class HealthCheckWorkflow extends BubbleFlow<'schedule/cron'> {
     if (count > 100) {
       const slack = new SlackBubble({
         channel: '#alerts',
-        text: `⚠️  High user registration rate: ${count} users in last hour`
+        text: `[WARN]  High user registration rate: ${count} users in last hour`
       });
 
       await slack.action();
@@ -967,25 +967,25 @@ export class HealthCheckWorkflow extends BubbleFlow<'schedule/cron'> {
             config_file = base_dir / 'bubblelab-config.yaml'
             with open(config_file, 'w') as f:
                 yaml.dump(self.generate_yaml_config(), f, default_flow_style=False)
-            Logger.success("✓ bubblelab-config.yaml")
+            Logger.success("[OK] bubblelab-config.yaml")
 
             # Save .env
             env_file = base_dir / '.env'
             with open(env_file, 'w') as f:
                 f.write(self.generate_env_file())
-            Logger.success("✓ .env")
+            Logger.success("[OK] .env")
 
             # Save .gitignore
             gitignore_file = base_dir / '.gitignore'
             with open(gitignore_file, 'w') as f:
                 f.write(self.generate_gitignore())
-            Logger.success("✓ .gitignore")
+            Logger.success("[OK] .gitignore")
 
             # Save example workflow
             workflow_file = base_dir / 'bubblelab-workflows' / 'health-check.ts'
             with open(workflow_file, 'w') as f:
                 f.write(self.generate_example_workflow())
-            Logger.success("✓ bubblelab-workflows/health-check.ts (example)")
+            Logger.success("[OK] bubblelab-workflows/health-check.ts (example)")
 
             return True
         except (OSError, IOError) as e:
@@ -1053,7 +1053,7 @@ class SetupOrchestrator:
                 self.results['resource_check'] = resource_validator.validate()
 
                 if not self.results['resource_check']:
-                    Logger.error("\n❌ Insufficient system resources. Please free up resources and try again.")
+                    Logger.error("\n[FAIL] Insufficient system resources. Please free up resources and try again.")
                     self.print_summary()
                     return False
 
@@ -1064,7 +1064,7 @@ class SetupOrchestrator:
                 self.results['validation'] = valid
 
                 if not valid:
-                    Logger.error("\n❌ Environment validation failed. Please fix the errors above.")
+                    Logger.error("\n[FAIL] Environment validation failed. Please fix the errors above.")
                     self.print_summary()
                     return False
 
@@ -1080,7 +1080,7 @@ class SetupOrchestrator:
                 self.results['dependencies'] = installer.install_all()
 
                 if not self.results['dependencies']:
-                    Logger.warning("\n⚠️  Some dependencies failed to install.")
+                    Logger.warning("\n[WARN]  Some dependencies failed to install.")
                     response = input("Continue anyway? (y/N): ").strip().lower()
                     if response != 'y':
                         Logger.info("Setup cancelled by user")
@@ -1094,7 +1094,7 @@ class SetupOrchestrator:
                 self.results['directories'] = creator.create_all()
 
                 if not self.results['directories']:
-                    Logger.error("\n❌ Failed to create directory structure")
+                    Logger.error("\n[FAIL] Failed to create directory structure")
                     self.rollback_manager.rollback()
                     self.print_summary()
                     return False
@@ -1112,7 +1112,7 @@ class SetupOrchestrator:
                 self.results['configuration'] = generator.save_all(Path.cwd())
 
                 if not self.results['configuration']:
-                    Logger.error("\n❌ Failed to generate configuration files")
+                    Logger.error("\n[FAIL] Failed to generate configuration files")
                     self.rollback_manager.rollback()
                     self.print_summary()
                     return False
@@ -1123,7 +1123,7 @@ class SetupOrchestrator:
                 self.results['network'] = network_validator.validate_url(self.api_url)
 
                 if not self.results['network']:
-                    Logger.warning("\n⚠️  Network connectivity issues detected")
+                    Logger.warning("\n[WARN]  Network connectivity issues detected")
                     response = input("Continue anyway? (y/N): ").strip().lower()
                     if response != 'y':
                         Logger.info("Setup cancelled by user")
@@ -1138,7 +1138,7 @@ class SetupOrchestrator:
                         health_checker = ServiceHealthChecker(self.api_url, self.api_key)
                         self.results['service_health'] = health_checker.validate()
                     except ImportError:
-                        Logger.warning("⚠️  Cannot check service health (requests not installed)")
+                        Logger.warning("[WARN]  Cannot check service health (requests not installed)")
                         self.results['service_health'] = None
                 else:
                     Logger.info("Skipping service health check (no API key provided)")
@@ -1176,7 +1176,7 @@ class SetupOrchestrator:
                 return critical_success
 
             except KeyboardInterrupt:
-                Logger.warning("\n\n⚠️  Setup interrupted by user")
+                Logger.warning("\n\n[WARN]  Setup interrupted by user")
                 self.rollback_manager.rollback()
                 self.print_summary()
                 return False
@@ -1200,19 +1200,19 @@ class SetupOrchestrator:
                 with open(config_file, 'r') as f:
                     config = yaml.safe_load(f)
                     if 'base_url' in config and 'api_key' in config:
-                        Logger.success("✓ Configuration file valid")
+                        Logger.success("[OK] Configuration file valid")
                     else:
-                        Logger.error("✗ Configuration file missing required fields")
+                        Logger.error("[FAIL] Configuration file missing required fields")
                         tests_passed = False
             else:
-                Logger.error("✗ Configuration file not found")
+                Logger.error("[FAIL] Configuration file not found")
                 tests_passed = False
         except yaml.YAMLError as e:
-            Logger.error(f"✗ Configuration test failed (YAML error): {e}")
+            Logger.error(f"[FAIL] Configuration test failed (YAML error): {e}")
             self.logger.error(f"YAML error: {e}", exc_info=True)
             tests_passed = False
         except IOError as e:
-            Logger.error(f"✗ Configuration test failed (IO error): {e}")
+            Logger.error(f"[FAIL] Configuration test failed (IO error): {e}")
             self.logger.error(f"IO error: {e}", exc_info=True)
             tests_passed = False
 
@@ -1222,9 +1222,9 @@ class SetupOrchestrator:
         for dir_name in required_dirs:
             dir_path = Path.cwd() / dir_name
             if dir_path.exists():
-                Logger.success(f"✓ {dir_name}/ exists")
+                Logger.success(f"[OK] {dir_name}/ exists")
             else:
-                Logger.error(f"✗ {dir_name}/ missing")
+                Logger.error(f"[FAIL] {dir_name}/ missing")
                 tests_passed = False
 
         # Test 3: Python packages importable
@@ -1232,16 +1232,16 @@ class SetupOrchestrator:
         for package in ['yaml', 'requests']:
             try:
                 __import__(package)
-                Logger.success(f"✓ {package} importable")
+                Logger.success(f"[OK] {package} importable")
             except ImportError as e:
-                Logger.error(f"✗ {package} not importable: {e}")
+                Logger.error(f"[FAIL] {package} not importable: {e}")
                 self.logger.error(f"Import error for {package}: {e}")
                 tests_passed = False
 
         if tests_passed:
-            Logger.success("\n✓ All tests passed")
+            Logger.success("\n[OK] All tests passed")
         else:
-            Logger.warning("\n⚠️  Some tests failed")
+            Logger.warning("\n[WARN]  Some tests failed")
 
         return tests_passed
 
@@ -1256,9 +1256,9 @@ class SetupOrchestrator:
         print("Results:")
         for step, result in self.results.items():
             if result is True:
-                Logger.success(f"  ✓ {step}")
+                Logger.success(f"  [OK] {step}")
             elif result is False:
-                Logger.error(f"  ✗ {step}")
+                Logger.error(f"  [FAIL] {step}")
             else:
                 Logger.warning(f"  ○ {step} (skipped)")
 
@@ -1363,7 +1363,7 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        Logger.warning("\n\n⚠️  Setup interrupted by user")
+        Logger.warning("\n\n[WARN]  Setup interrupted by user")
         sys.exit(130)
     except MemoryError:
         Logger.error("\n\n💥 Fatal error: Out of memory")

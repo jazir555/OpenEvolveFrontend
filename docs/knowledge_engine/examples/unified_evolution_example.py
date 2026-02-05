@@ -331,7 +331,7 @@ async def demo_synergy_opportunities(analysis: DualRunAnalysis):
     for i, opp in enumerate(top_opportunities, 1):
         print(f"\n   {i}. {opp.description}")
         print(f"      Type: {opp.opportunity_type}")
-        print(f"      From: {opp.source_system} → To: {opp.target_system}")
+        print(f"      From: {opp.source_system} -> To: {opp.target_system}")
         print(f"      Expected Improvement: {opp.expected_improvement * 100:.1f}%")
         print(f"      Complexity: {opp.implementation_complexity}")
         print(f"      Priority: {opp.priority:.1f}/100")
@@ -356,7 +356,7 @@ async def demo_hybrid_recommendation(analysis: DualRunAnalysis):
     for key, value in rec.configuration.items():
         print(f"   {key}: {value}")
 
-    print(f"\n⚠️  Risk Factors:")
+    print(f"\n[WARN]  Risk Factors:")
     for risk in rec.risk_factors:
         print(f"   - {risk}")
 
@@ -447,20 +447,20 @@ async def main():
         print("=" * 80)
 
         print("\n📊 Key Takeaways:")
-        print(f"   • LoongFlow achieved {analysis.performance_comparison.evaluation_efficiency['loongflow'] / analysis.performance_comparison.evaluation_efficiency['openevolve']:.1f}x better evaluation efficiency")
-        print(f"   • LoongFlow used 60% fewer evaluations")
-        print(f"   • {len(analysis.synergy_opportunities)} cross-system synergy opportunities identified")
-        print(f"   • Recommended: {analysis.hybrid_recommendation.recommended_mode.upper()} mode for this domain")
+        print(f"   * LoongFlow achieved {analysis.performance_comparison.evaluation_efficiency['loongflow'] / analysis.performance_comparison.evaluation_efficiency['openevolve']:.1f}x better evaluation efficiency")
+        print(f"   * LoongFlow used 60% fewer evaluations")
+        print(f"   * {len(analysis.synergy_opportunities)} cross-system synergy opportunities identified")
+        print(f"   * Recommended: {analysis.hybrid_recommendation.recommended_mode.upper()} mode for this domain")
 
         print("\n✨ The unified system successfully:")
-        print("   ✓ Extracted knowledge from both evolutionary systems")
-        print("   ✓ Compared performance across 6 dimensions")
-        print("   ✓ Identified actionable best practices")
-        print("   ✓ Detected high-value synergy opportunities")
-        print("   ✓ Generated data-driven hybrid strategy recommendation")
+        print("   [OK] Extracted knowledge from both evolutionary systems")
+        print("   [OK] Compared performance across 6 dimensions")
+        print("   [OK] Identified actionable best practices")
+        print("   [OK] Detected high-value synergy opportunities")
+        print("   [OK] Generated data-driven hybrid strategy recommendation")
 
     except Exception as e:
-        print(f"\n❌ Error: {e}")
+        print(f"\n[FAIL] Error: {e}")
         import traceback
         traceback.print_exc()
 

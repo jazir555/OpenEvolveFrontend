@@ -579,7 +579,7 @@ Examples:
     def _print_text(self, data: dict):
         """Print data as formatted text"""
         if "error" in data:
-            print(f"❌ Error: {data['error']}")
+            print(f"[FAIL] Error: {data['error']}")
             return
 
         print("=" * 70)

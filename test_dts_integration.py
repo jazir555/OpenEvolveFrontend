@@ -17,31 +17,31 @@ def test_dts_import():
     # Test 1: Import the integration module
     try:
         from dts_integration import DTSIntegration, DTSIntegrationConfig
-        print("✓ DTS integration module imports successfully")
+        print("[OK] DTS integration module imports successfully")
         
         # Test 2: Create config (should work even without API keys)
         try:
             config = DTSIntegrationConfig(max_rounds=2, use_multi_judge=True)
-            print("✓ DTSIntegrationConfig created successfully")
+            print("[OK] DTSIntegrationConfig created successfully")
         except Exception as e:
-            print(f"✗ DTSIntegrationConfig creation failed: {e}")
+            print(f"[FAIL] DTSIntegrationConfig creation failed: {e}")
             
         # Test 3: Create integration instance
         try:
             integration = DTSIntegration(config)
-            print("✓ DTSIntegration instance created successfully")
+            print("[OK] DTSIntegration instance created successfully")
             
             # Test 4: Check if DTS is available
             if integration.dts_available:
-                print("✓ DTS engine is available (API keys configured)")
+                print("[OK] DTS engine is available (API keys configured)")
             else:
-                print("✓ DTS engine is not available (fallback mode active)")
+                print("[OK] DTS engine is not available (fallback mode active)")
                 
         except Exception as e:
-            print(f"✗ DTSIntegration instance creation failed: {e}")
+            print(f"[FAIL] DTSIntegration instance creation failed: {e}")
             
     except ImportError as e:
-        print(f"✗ Failed to import DTS integration module: {e}")
+        print(f"[FAIL] Failed to import DTS integration module: {e}")
         return False
     
     return True
@@ -53,7 +53,7 @@ def test_red_team_integration():
     try:
         from red_team import RedTeam
         red_team = RedTeam()
-        print("✓ RedTeam imported successfully")
+        print("[OK] RedTeam imported successfully")
         
         # Test the DTS method
         sample_content = "def test(): return 1"
@@ -63,7 +63,7 @@ def test_red_team_integration():
             rounds=1
         )
         
-        print(f"✓ Red Team DTS method executed successfully")
+        print(f"[OK] Red Team DTS method executed successfully")
         print(f"  DTS available: {result.get('dts_available', False)}")
         print(f"  Fallback used: {result.get('fallback_used', False)}")
         print(f"  Findings count: {result.get('findings_count', 0)}")
@@ -71,7 +71,7 @@ def test_red_team_integration():
         return True
         
     except Exception as e:
-        print(f"✗ Red Team DTS integration test failed: {e}")
+        print(f"[FAIL] Red Team DTS integration test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -83,7 +83,7 @@ def test_blue_team_integration():
     try:
         from blue_team import BlueTeam
         blue_team = BlueTeam()
-        print("✓ BlueTeam imported successfully")
+        print("[OK] BlueTeam imported successfully")
         
         # Test the DTS method
         sample_content = "def test(): return 1"
@@ -93,7 +93,7 @@ def test_blue_team_integration():
             rounds=1
         )
         
-        print(f"✓ Blue Team DTS method executed successfully")
+        print(f"[OK] Blue Team DTS method executed successfully")
         print(f"  DTS available: {result.get('dts_available', False)}")
         print(f"  Fallback used: {result.get('fallback_used', False)}")
         print(f"  Fix strategies count: {result.get('fix_count', 0)}")
@@ -101,7 +101,7 @@ def test_blue_team_integration():
         return True
         
     except Exception as e:
-        print(f"✗ Blue Team DTS integration test failed: {e}")
+        print(f"[FAIL] Blue Team DTS integration test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -113,7 +113,7 @@ def test_quality_assessment_integration():
     try:
         from quality_assessment import QualityAssessmentEngine
         engine = QualityAssessmentEngine()
-        print("✓ QualityAssessmentEngine imported successfully")
+        print("[OK] QualityAssessmentEngine imported successfully")
         
         # Test the DTS method
         sample_content = "This is a test document for quality assessment."
@@ -123,7 +123,7 @@ def test_quality_assessment_integration():
             judge_count=2
         )
         
-        print(f"✓ Quality Assessment DTS method executed successfully")
+        print(f"[OK] Quality Assessment DTS method executed successfully")
         print(f"  DTS available: {result.get('dts_available', False)}")
         print(f"  Fallback used: {result.get('fallback_used', False)}")
         print(f"  Consensus score: {result.get('consensus_score', 0):.2f}")
@@ -131,7 +131,7 @@ def test_quality_assessment_integration():
         return True
         
     except Exception as e:
-        print(f"✗ Quality Assessment DTS integration test failed: {e}")
+        print(f"[FAIL] Quality Assessment DTS integration test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -142,7 +142,7 @@ def test_evolution_integration():
     
     try:
         from evolution import run_evolution_with_dts_strategy_exploration
-        print("✓ Evolution DTS function imported successfully")
+        print("[OK] Evolution DTS function imported successfully")
         
         # Test the DTS method (with minimal parameters)
         sample_content = "def add(a, b): return a + b"
@@ -154,7 +154,7 @@ def test_evolution_integration():
             dts_rounds=1
         )
         
-        print(f"✓ Evolution DTS method executed successfully")
+        print(f"[OK] Evolution DTS method executed successfully")
         print(f"  DTS available: {result.get('dts_available', False)}")
         print(f"  Fallback used: {result.get('fallback_used', False)}")
         print(f"  Final score: {result.get('final_score', 0):.2f}")
@@ -162,7 +162,7 @@ def test_evolution_integration():
         return True
         
     except Exception as e:
-        print(f"✗ Evolution DTS integration test failed: {e}")
+        print(f"[FAIL] Evolution DTS integration test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -193,11 +193,11 @@ def main():
         try:
             if test_func():
                 tests_passed += 1
-                print(f"✓ {test_name} PASSED")
+                print(f"[OK] {test_name} PASSED")
             else:
-                print(f"✗ {test_name} FAILED")
+                print(f"[FAIL] {test_name} FAILED")
         except Exception as e:
-            print(f"✗ {test_name} ERROR: {e}")
+            print(f"[FAIL] {test_name} ERROR: {e}")
             import traceback
             traceback.print_exc()
     
@@ -208,7 +208,7 @@ def main():
     print(f"Tests passed: {tests_passed}/{tests_total}")
     
     if tests_passed == tests_total:
-        print("✓ All tests passed! DTS integration is working correctly.")
+        print("[OK] All tests passed! DTS integration is working correctly.")
         return 0
     else:
         print(f"⚠ {tests_total - tests_passed} tests failed.")

@@ -301,15 +301,15 @@ if __name__ == "__main__":
 
     try:
         validate_fitness(0.85)
-        print("✓ Valid fitness")
+        print("[OK] Valid fitness")
     except HybridTypeError as e:
-        print(f"✗ {e.message}")
+        print(f"[FAIL] {e.message}")
 
     try:
         validate_fitness(1.5)  # Invalid
-        print("✗ Should have failed!")
+        print("[FAIL] Should have failed!")
     except HybridTypeError as e:
-        print(f"✓ Caught type error: {e.message}")
+        print(f"[OK] Caught type error: {e.message}")
 
     # Demo 3: Typed constructors
     print("\n3. Typed Constructors")

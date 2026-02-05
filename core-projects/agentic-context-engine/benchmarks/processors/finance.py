@@ -86,7 +86,7 @@ class FinanceDataProcessor:
 
         This format is used by formula-based financial reasoning tasks. The method
         adds a numeric conversion hint to ensure proper handling of financial numbers
-        (e.g., "5 million" → 5000000.0).
+        (e.g., "5 million" -> 5000000.0).
 
         Args:
             context: Raw context string containing question
@@ -254,7 +254,7 @@ class FinanceDataProcessor:
 
         Formula tasks involve financial calculations and numerical reasoning.
         This method:
-        1. Removes commas from numbers (e.g., "1,000" → "1000")
+        1. Removes commas from numbers (e.g., "1,000" -> "1000")
         2. Compares as floating point numbers
         3. Falls back to string comparison if conversion fails
 

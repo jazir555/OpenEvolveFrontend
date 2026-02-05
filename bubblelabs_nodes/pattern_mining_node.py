@@ -1190,7 +1190,7 @@ class PatternMiningNode(BubbleLabsNode):
             for i, pattern in enumerate(patterns[:10], 1):
                 pattern_items = pattern.get('pattern', [])
                 support = pattern.get('support_ratio', 0)
-                lines.append(f"  {i}. {' → '.join(str(p) for p in pattern_items)} (support: {support:.3f})")
+                lines.append(f"  {i}. {' -> '.join(str(p) for p in pattern_items)} (support: {support:.3f})")
 
         rules = result.get('rules', [])
         if rules:
@@ -1205,7 +1205,7 @@ class PatternMiningNode(BubbleLabsNode):
                 consequent = rule.get('consequent', [])
                 confidence = rule.get('confidence', 0)
                 support = rule.get('support', 0)
-                lines.append(f"  {i}. {' ∧ '.join(str(a) for a in antecedent)} → {' ∧ '.join(str(c) for c in consequent)}")
+                lines.append(f"  {i}. {' ∧ '.join(str(a) for a in antecedent)} -> {' ∧ '.join(str(c) for c in consequent)}")
                 lines.append(f"     (confidence: {confidence:.3f}, support: {support:.3f})")
 
         anomalies = result.get('anomalies', [])

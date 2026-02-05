@@ -1396,7 +1396,7 @@ def run_ultimate_comprehensive_tests():
         for test, trace in result.errors:
             print(f"\nERROR: {test}")
             print(trace)
-        print(f"\n⚠️  Tests completed with issues - {result.testsRun - len(result.failures) - len(result.errors)}/{result.testsRun} passed")
+        print(f"\n[WARN]  Tests completed with issues - {result.testsRun - len(result.failures) - len(result.errors)}/{result.testsRun} passed")
     else:
         print(f"\n🎉 ALL {result.testsRun} ULTIMATE COMPREHENSIVE TESTS PASSED! 🎉")
         print("The Sovereign-Grade system has passed all extreme validation scenarios!")

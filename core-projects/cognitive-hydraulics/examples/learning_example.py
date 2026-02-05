@@ -36,11 +36,11 @@ async def main():
 
         agent = CognitiveAgent(
             safety_config=config,
-            enable_learning=True,  # ← Enable learning
+            enable_learning=True,  # <- Enable learning
             chunk_store_path=temp_dir,
             max_cycles=5,
         )
-        print("✓ Agent created with learning enabled")
+        print("[OK] Agent created with learning enabled")
 
         # 2. First attempt - will be slow (learning)
         print("\n" + "=" * 70)
@@ -81,7 +81,7 @@ async def main():
         print(f"   - Total chunks: {stats['total_chunks']}")
         print(f"   - Collection: {stats['collection_name']}")
 
-        print("\n✅ Learning example complete!")
+        print("\n[OK] Learning example complete!")
         print("\n💡 Key Insight:")
         print("   - First attempt: Slow (ACT-R + LLM)")
         print("   - Second attempt: Fast (Memory retrieval)")

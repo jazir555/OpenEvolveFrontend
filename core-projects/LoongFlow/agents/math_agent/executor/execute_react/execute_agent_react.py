@@ -178,7 +178,7 @@ class EvolveExecuteAgentReact(Worker):
             if better:
                 best = max(better, key=lambda r: r.score)
                 logger.info(
-                    f"Trace ID: {context.trace_id}: Executor React: ✅ Improved candidate found in "
+                    f"Trace ID: {context.trace_id}: Executor React: [OK] Improved candidate found in "
                     + f"round {round_idx}: {best.score:.6f} > {parent_ctx.parent_core:.6f}"
                 )
                 self._write_best_results(context, best)
@@ -192,7 +192,7 @@ class EvolveExecuteAgentReact(Worker):
 
         if not all_results:
             logger.warning(
-                f"Trace ID: {context.trace_id}: Executor React: ⚠️ No candidates generated in any round."
+                f"Trace ID: {context.trace_id}: Executor React: [WARN] No candidates generated in any round."
             )
             return self._make_result_message(parent_ctx, None)
 

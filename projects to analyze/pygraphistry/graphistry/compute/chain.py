@@ -520,7 +520,7 @@ def _handle_boundary_calls(
     Handle boundary call() patterns by splitting and executing sequentially.
 
     Detects patterns like [call(), n(), e(), call()] and executes as:
-    prefix → middle → suffix via recursive chain() calls.
+    prefix -> middle -> suffix via recursive chain() calls.
 
     Returns:
         Plottable if boundary pattern detected and executed, None otherwise
@@ -707,7 +707,7 @@ def _chain_impl(self: Plottable, ops: Union[List[ASTObject], Chain], engine: Uni
 
     # Recursive dispatch for schema-changing operations (UMAP, hypergraph, etc.)
     # These operations create entirely new graph structures, so we split the chain
-    # and execute segments sequentially: before → schema_changer → rest
+    # and execute segments sequentially: before -> schema_changer -> rest
     from graphistry.compute.ast import ASTCall
 
     # Extensible list of schema-changing operations
@@ -750,7 +750,7 @@ def _chain_impl(self: Plottable, ops: Union[List[ASTObject], Chain], engine: Uni
             schema_changer = ops[schema_changer_idx]
             rest = ops[schema_changer_idx + 1:]
 
-            # Execute segments: before → schema_changer → rest
+            # Execute segments: before -> schema_changer -> rest
             # Recursion handles multiple schema-changers automatically
             g_temp = self.chain(before, engine=engine, validate_schema=validate_schema, policy=policy, context=context) if before else self  # type: ignore[call-arg]
             g_temp2 = g_temp.chain([schema_changer], engine=engine, validate_schema=validate_schema, policy=policy, context=context)  # type: ignore[call-arg]
@@ -859,7 +859,7 @@ def _chain_impl(self: Plottable, ops: Union[List[ASTObject], Chain], engine: Uni
             # - ASTCall: Use previous operation's result (for chaining filters/transforms)
             if isinstance(op, ASTCall):
                 # For ASTCall operations (filter_edges_by_dict, etc.), pass previous result
-                # This ensures chained filters apply sequentially: filter1(g) → filter2(result1) → ...
+                # This ensures chained filters apply sequentially: filter1(g) -> filter2(result1) -> ...
                 current_g = g_stack[-1] if g_stack else g
                 prev_step_nodes = None  # ASTCall doesn't use wavefronts
             else:

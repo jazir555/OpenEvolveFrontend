@@ -21,9 +21,9 @@ def test_gauntlets():
         MultiRoundGauntletOrchestrator,
     )
 
-    print("✓ LoongFlowGauntletEvaluator imported")
-    print("✓ ThreeRoundGauntletOrchestrator imported")
-    print("✓ MultiRoundGauntletOrchestrator imported")
+    print("[OK] LoongFlowGauntletEvaluator imported")
+    print("[OK] ThreeRoundGauntletOrchestrator imported")
+    print("[OK] MultiRoundGauntletOrchestrator imported")
 
     return True
 
@@ -43,25 +43,25 @@ def test_domain_optimizers():
         WebDesignOptimizer,
     )
 
-    print("✓ All domain optimizers imported")
+    print("[OK] All domain optimizers imported")
 
     # Test instantiation
     finance = FinanceOptimizer()
     trading = TradingOptimizer()
     science = ScienceOptimizer()
 
-    print("✓ FinanceOptimizer instantiated")
-    print("✓ TradingOptimizer instantiated")
-    print("✓ ScienceOptimizer instantiated")
+    print("[OK] FinanceOptimizer instantiated")
+    print("[OK] TradingOptimizer instantiated")
+    print("[OK] ScienceOptimizer instantiated")
 
     # Test config retrieval
     finance_config = finance.get_default_config()
     trading_config = trading.get_default_config()
     science_config = science.get_default_config()
 
-    print(f"✓ Finance config: {type(finance_config).__name__}")
-    print(f"✓ Trading config: {type(trading_config).__name__}")
-    print(f"✓ Science config: {type(science_config).__name__}")
+    print(f"[OK] Finance config: {type(finance_config).__name__}")
+    print(f"[OK] Trading config: {type(trading_config).__name__}")
+    print(f"[OK] Science config: {type(science_config).__name__}")
 
     return True
 
@@ -76,7 +76,7 @@ def test_unified_config():
 
     config = UnifiedEvolutionConfig()
 
-    print(f"✓ UnifiedEvolutionConfig created")
+    print(f"[OK] UnifiedEvolutionConfig created")
     print(f"  - max_iterations: {config.max_iterations}")
     print(f"  - population_size: {config.population_size}")
     print(f"  - evolution_mode: {config.evolution_mode}")
@@ -94,7 +94,7 @@ def test_knowledge_engine():
         LoongFlowKnowledgeExtractor,
     )
 
-    print("✓ LoongFlowKnowledgeExtractor imported")
+    print("[OK] LoongFlowKnowledgeExtractor imported")
 
     return True
 
@@ -118,7 +118,7 @@ def test_evolution_result():
         output_dir=None
     )
 
-    print(f"✓ EvolutionResult created")
+    print(f"[OK] EvolutionResult created")
     print(f"  - best_score: {result.best_score}")
     print(f"  - iterations: {result.metrics['iterations']}")
 
@@ -148,10 +148,10 @@ def run_all_tests():
         try:
             test_func()
             passed += 1
-            print(f"\n✓ PASSED: {name}")
+            print(f"\n[OK] PASSED: {name}")
         except Exception as e:
             failed += 1
-            print(f"\n✗ FAILED: {name}")
+            print(f"\n[FAIL] FAILED: {name}")
             print(f"  Error: {e}")
 
     # Print summary
@@ -165,7 +165,7 @@ def run_all_tests():
     print("="*80)
 
     if failed == 0:
-        print("\n✓ ALL TESTS PASSED!")
+        print("\n[OK] ALL TESTS PASSED!")
     else:
         print(f"\n⚠ {failed} test(s) failed")
 

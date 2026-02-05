@@ -245,7 +245,7 @@ class ExperimentationInterface(ABC):
         max_iterations: int = 3
     ) -> VerificationReport:
         """
-        Execute complete workflow: design → run → analyze → reflect.
+        Execute complete workflow: design -> run -> analyze -> reflect.
 
         Args:
             hypothesis: Hypothesis to test

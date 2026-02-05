@@ -68,7 +68,7 @@ def test_basic_multi_round():
         base_parameters={'iterations': 10, 'mutation_rate': 0.1}
     )
     
-    print(f"✅ Basic multi-round test completed:")
+    print(f"[OK] Basic multi-round test completed:")
     print(f"   - Total rounds: {result.total_rounds}")
     print(f"   - Successful rounds: {result.successful_rounds}")
     print(f"   - Overall improvement: {result.overall_improvement:.2f}")
@@ -97,7 +97,7 @@ def test_adaptive_strategy():
         base_parameters={'iterations': 5, 'mutation_rate': 0.2}
     )
     
-    print(f"✅ Adaptive strategy test completed:")
+    print(f"[OK] Adaptive strategy test completed:")
     print(f"   - Total rounds: {result.total_rounds}")
     print(f"   - Parameter evolution tracked: {len(result.convergence_data['parameter_evolution'])}")
     
@@ -130,7 +130,7 @@ def test_progressive_strategy():
         base_parameters={'iterations': 5, 'mutation_rate': 0.1}
     )
     
-    print(f"✅ Progressive strategy test completed:")
+    print(f"[OK] Progressive strategy test completed:")
     print(f"   - Total rounds: {result.total_rounds}")
     
     # Check that parameters increased progressively
@@ -170,7 +170,7 @@ def test_stopping_criteria():
         base_parameters={}
     )
     
-    print(f"✅ Stopping criteria test completed:")
+    print(f"[OK] Stopping criteria test completed:")
     print(f"   - Rounds run: {result.total_rounds}")
     print(f"   - Stopping reason: {result.stopping_reason}")
     print(f"   - Improvement scores: {[round(r.improvement_score, 3) for r in result.round_results]}")
@@ -196,7 +196,7 @@ def test_team_integration():
         base_parameters={'team_size': 3, 'consensus_threshold': 0.6}
     )
     
-    print(f"✅ Team integration test completed:")
+    print(f"[OK] Team integration test completed:")
     print(f"   - Total rounds: {result.total_rounds}")
     print(f"   - Best round quality: {result.best_round.quality_score:.2f}")
     
@@ -219,7 +219,7 @@ def test_convenience_functions():
         base_parameters={'iterations': 5}
     )
     
-    print(f"✅ Evolution convenience function:")
+    print(f"[OK] Evolution convenience function:")
     print(f"   - Rounds: {evolution_result.total_rounds}")
     print(f"   - Improvement: {evolution_result.overall_improvement:.2f}")
     
@@ -232,7 +232,7 @@ def test_convenience_functions():
         base_parameters={'team_size': 4}
     )
     
-    print(f"✅ Team convenience function:")
+    print(f"[OK] Team convenience function:")
     print(f"   - Rounds: {team_result.total_rounds}")
     print(f"   - Improvement: {team_result.overall_improvement:.2f}")
     
@@ -262,7 +262,7 @@ def test_adaptive_learning():
     # Get adaptive recommendations
     recommendations = tester.get_adaptive_recommendations()
     
-    print(f"✅ Adaptive learning test completed:")
+    print(f"[OK] Adaptive learning test completed:")
     print(f"   - Recommendations generated: {len(recommendations)}")
     print(f"   - Sample recommendations: {recommendations}")
     
@@ -287,7 +287,7 @@ def test_convergence_analysis():
         base_parameters={'iterations': 10, 'mutation_rate': 0.2}
     )
     
-    print(f"✅ Convergence analysis test completed:")
+    print(f"[OK] Convergence analysis test completed:")
     print(f"   - Quality scores: {[round(s, 2) for s in result.convergence_data['quality_scores']]}")
     print(f"   - Improvement scores: {[round(s, 2) for s in result.convergence_data['improvement_scores']]}")
     
@@ -326,7 +326,7 @@ def test_error_handling():
         base_parameters={'should_fail': False}  # Start with success
     )
     
-    print(f"✅ Error handling test completed:")
+    print(f"[OK] Error handling test completed:")
     print(f"   - Total rounds: {result.total_rounds}")
     print(f"   - Successful rounds: {result.successful_rounds}")
     
@@ -351,6 +351,6 @@ if __name__ == "__main__":
         print("\n🎉 All multi-round testing tests passed! System is fully functional.")
         
     except Exception as e:
-        print(f"\n❌ Test failed: {e}")
+        print(f"\n[FAIL] Test failed: {e}")
         import traceback
         traceback.print_exc()

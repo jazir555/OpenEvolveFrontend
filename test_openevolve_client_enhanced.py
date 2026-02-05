@@ -16,17 +16,17 @@ def test_enhanced_openevolve_client():
             from openevolve_client import OpenEvolveClient
             
             client = OpenEvolveClient()
-            print("✅ OpenEvolve client initialized successfully!")
+            print("[OK] OpenEvolve client initialized successfully!")
             print(f"   - Available: {client.available}")
-            print(f"   - Parameter manager: {'✅' if client.parameter_manager else '❌'}")
-            print(f"   - Metrics collector: {'✅' if client.metrics_collector else '❌'}")
+            print(f"   - Parameter manager: {'[OK]' if client.parameter_manager else '[FAIL]'}")
+            print(f"   - Metrics collector: {'[OK]' if client.metrics_collector else '[FAIL]'}")
             
             if client.parameter_manager:
                 total_params = len(client.parameter_manager.schema.parameters)
                 print(f"   - Total parameters supported: {total_params}")
             
         except Exception as e:
-            print(f"❌ Client initialization failed: {e}")
+            print(f"[FAIL] Client initialization failed: {e}")
             return False
         
         # Test parameter validation
@@ -42,13 +42,13 @@ def test_enhanced_openevolve_client():
             }
             
             validation = client.validate_parameters(valid_params)
-            print("✅ Parameter validation works!")
+            print("[OK] Parameter validation works!")
             print(f"   - Valid: {validation.valid}")
             print(f"   - Errors: {len(validation.errors)}")
             print(f"   - Warnings: {len(validation.warnings)}")
             
         except Exception as e:
-            print(f"❌ Parameter validation failed: {e}")
+            print(f"[FAIL] Parameter validation failed: {e}")
             return False
         
         # Test configuration creation with comprehensive parameters
@@ -71,14 +71,14 @@ def test_enhanced_openevolve_client():
             }
             
             config = client.create_config_with_validation(**comprehensive_params)
-            print("✅ Comprehensive configuration created!")
+            print("[OK] Comprehensive configuration created!")
             print(f"   - Evolution mode: {config.evolution_mode}")
             print(f"   - Max iterations: {config.max_iterations}")
             print(f"   - Population size: {config.database.population_size}")
             print(f"   - LLM models: {len(config.llm.models)}")
             
         except Exception as e:
-            print(f"❌ Comprehensive configuration failed: {e}")
+            print(f"[FAIL] Comprehensive configuration failed: {e}")
             return False
         
         # Test parameter filtering
@@ -94,13 +94,13 @@ def test_enhanced_openevolve_client():
             }
             
             filtered = client._filter_openevolve_parameters(mixed_params)
-            print("✅ Parameter filtering works!")
+            print("[OK] Parameter filtering works!")
             print(f"   - Original params: {len(mixed_params)}")
             print(f"   - Filtered params: {len(filtered)}")
             print(f"   - Filtered keys: {list(filtered.keys())}")
             
         except Exception as e:
-            print(f"❌ Parameter filtering failed: {e}")
+            print(f"[FAIL] Parameter filtering failed: {e}")
             return False
         
         # Test evolution with comprehensive parameters
@@ -121,7 +121,7 @@ def test_enhanced_openevolve_client():
                 **evolution_params
             )
             
-            print("✅ Evolution with enhanced parameters works!")
+            print("[OK] Evolution with enhanced parameters works!")
             print(f"   - Success: {result.success}")
             print(f"   - Iterations: {result.iterations_completed}")
             print(f"   - Metrics collected: {len(result.metrics)}")
@@ -131,7 +131,7 @@ def test_enhanced_openevolve_client():
                 print(f"   - Parameters used: {result.metrics.get('parameters_used', 0)}")
             
         except Exception as e:
-            print(f"⚠️ Evolution test failed (expected without real API): {e}")
+            print(f"[WARN] Evolution test failed (expected without real API): {e}")
             # This is expected to fail without a real API key, but should fail gracefully
         
         # Test different evolution modes
@@ -147,10 +147,10 @@ def test_enhanced_openevolve_client():
                     api_key='test-key',
                     max_iterations=3
                 )
-                print(f"✅ {mode} mode configuration: OK")
+                print(f"[OK] {mode} mode configuration: OK")
                 
             except Exception as e:
-                print(f"❌ {mode} mode configuration failed: {e}")
+                print(f"[FAIL] {mode} mode configuration failed: {e}")
                 return False
         
         # Test metrics extraction
@@ -173,30 +173,30 @@ def test_enhanced_openevolve_client():
                 kwargs={'param1': 'value1', 'param2': 'value2'}
             )
             
-            print("✅ Metrics extraction works!")
+            print("[OK] Metrics extraction works!")
             print(f"   - Duration calculated: {metrics.get('duration', 0):.2f}s")
             print(f"   - Evolution mode: {metrics.get('evolution_mode')}")
             print(f"   - Parameters used: {metrics.get('parameters_used')}")
             
         except Exception as e:
-            print(f"❌ Metrics extraction failed: {e}")
+            print(f"[FAIL] Metrics extraction failed: {e}")
             return False
         
         print("\n" + "=" * 60)
         print("📊 ENHANCED OPENEVOLVE CLIENT SUMMARY")
         print("=" * 60)
-        print("✅ Client initialization: WORKING")
-        print("✅ Parameter validation: WORKING") 
-        print("✅ Comprehensive configuration: WORKING")
-        print("✅ Parameter filtering: WORKING")
-        print("✅ Multiple evolution modes: WORKING")
-        print("✅ Enhanced metrics: WORKING")
-        print("⚠️ Evolution execution: GRACEFUL FALLBACK (no real API)")
+        print("[OK] Client initialization: WORKING")
+        print("[OK] Parameter validation: WORKING") 
+        print("[OK] Comprehensive configuration: WORKING")
+        print("[OK] Parameter filtering: WORKING")
+        print("[OK] Multiple evolution modes: WORKING")
+        print("[OK] Enhanced metrics: WORKING")
+        print("[WARN] Evolution execution: GRACEFUL FALLBACK (no real API)")
         
         return True
         
     except Exception as e:
-        print(f"❌ Enhanced OpenEvolve client test failed: {e}")
+        print(f"[FAIL] Enhanced OpenEvolve client test failed: {e}")
         return False
 
 if __name__ == "__main__":

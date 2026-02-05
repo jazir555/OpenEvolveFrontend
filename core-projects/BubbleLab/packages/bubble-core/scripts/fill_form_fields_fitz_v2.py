@@ -57,16 +57,16 @@ def fill_pdf_form_with_fitz_v2(pdf_data, field_values):
                                 widget.update()
                                 page_filled += 1
                                 
-                                print(f"✅ Page {page_num + 1}: Set '{widget.field_name}' = '{field_value}'", file=sys.stderr)
+                                print(f"[OK] Page {page_num + 1}: Set '{widget.field_name}' = '{field_value}'", file=sys.stderr)
                                 
                             except Exception as widget_error:
-                                print(f"⚠️ Page {page_num + 1}: Could not set '{widget.field_name}': {widget_error}", file=sys.stderr)
+                                print(f"[WARN] Page {page_num + 1}: Could not set '{widget.field_name}': {widget_error}", file=sys.stderr)
                     
                     if page_filled > 0:
                         filled_count += page_filled
         
         except Exception as method1_error:
-            print(f"⚠️ Method 1 error: {method1_error}", file=sys.stderr)
+            print(f"[WARN] Method 1 error: {method1_error}", file=sys.stderr)
         
         print(f"📊 Successfully filled {filled_count} form fields", file=sys.stderr)
         
@@ -77,8 +77,8 @@ def fill_pdf_form_with_fitz_v2(pdf_data, field_values):
         
     except Exception as e:
         import traceback
-        print(f"❌ PyMuPDF v2 Error: {e}", file=sys.stderr)
-        print(f"❌ PyMuPDF v2 Traceback: {traceback.format_exc()}", file=sys.stderr)
+        print(f"[FAIL] PyMuPDF v2 Error: {e}", file=sys.stderr)
+        print(f"[FAIL] PyMuPDF v2 Traceback: {traceback.format_exc()}", file=sys.stderr)
         return None
 
 def verify_filled_pdf(pdf_data):
@@ -106,7 +106,7 @@ def verify_filled_pdf(pdf_data):
         return verification_results
         
     except Exception as e:
-        print(f"❌ Verification error: {e}", file=sys.stderr)
+        print(f"[FAIL] Verification error: {e}", file=sys.stderr)
         return {}
 
 if __name__ == "__main__":
@@ -135,13 +135,13 @@ if __name__ == "__main__":
                 expected = str(field_values[field_name])
                 actual = field_info['value']
                 if actual == expected:
-                    print(f"✅ Verified: '{field_name}' = '{actual}'", file=sys.stderr)
+                    print(f"[OK] Verified: '{field_name}' = '{actual}'", file=sys.stderr)
                 else:
-                    print(f"⚠️ Mismatch: '{field_name}' expected '{expected}', got '{actual}'", file=sys.stderr)
+                    print(f"[WARN] Mismatch: '{field_name}' expected '{expected}', got '{actual}'", file=sys.stderr)
     
     # If filling fails, return original PDF
     if result is None:
-        print("❌ PyMuPDF v2 filling failed, returning original PDF", file=sys.stderr)
+        print("[FAIL] PyMuPDF v2 filling failed, returning original PDF", file=sys.stderr)
         result = pdf_data
     
     # Output the result

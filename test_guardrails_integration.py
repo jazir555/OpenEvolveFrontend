@@ -31,14 +31,14 @@ def test_guardrails_import():
             create_adapter,
             ValidationResult
         )
-        logger.info("✅ Guardrails adapter imported successfully")
+        logger.info("[OK] Guardrails adapter imported successfully")
         return True, {
             "test": "import",
             "status": "success",
             "available": True
         }
     except ImportError as e:
-        logger.warning(f"⚠️  Guardrails adapter not available: {e}")
+        logger.warning(f"[WARN]  Guardrails adapter not available: {e}")
         logger.warning("   Install with: pip install guardrails-ai")
         return False, {
             "test": "import",
@@ -61,7 +61,7 @@ def test_adapter_creation():
         )
 
         stats = adapter.get_statistics()
-        logger.info(f"✅ Adapter created successfully")
+        logger.info(f"[OK] Adapter created successfully")
         logger.info(f"   Guardrails available: {stats['guardrails_available']}")
         logger.info(f"   Enabled: {stats['enabled']}")
         logger.info(f"   Total validators: {stats['total_validators']}")
@@ -72,7 +72,7 @@ def test_adapter_creation():
             "statistics": stats
         }
     except (ValueError, TypeError, ImportError) as e:
-        logger.error(f"❌ Adapter creation failed: {e}")
+        logger.error(f"[FAIL] Adapter creation failed: {e}")
         return False, {
             "test": "adapter_creation",
             "status": "failed",
@@ -110,7 +110,7 @@ def test_output_validation():
             on_fail="fix"
         )
 
-        logger.info("✅ Output validation completed")
+        logger.info("[OK] Output validation completed")
         logger.info(f"   Valid output test: {result1.is_valid}")
         logger.info(f"   JSON validation test: {result2.is_valid}")
         logger.info(f"   PII filter test: {result3.is_valid}")
@@ -125,7 +125,7 @@ def test_output_validation():
             "pii_remediation": result3.remediation_applied
         }
     except (ValueError, TypeError, ImportError) as e:
-        logger.error(f"❌ Output validation failed: {e}")
+        logger.error(f"[FAIL] Output validation failed: {e}")
         return False, {
             "test": "output_validation",
             "status": "failed",
@@ -165,7 +165,7 @@ def test_mdap_engine_integration():
         # Get statistics
         stats = red_flagger.get_guardrails_stats()
 
-        logger.info("✅ MDAP engine integration successful")
+        logger.info("[OK] MDAP engine integration successful")
         logger.info(f"   Is flagged: {is_flagged}")
         logger.info(f"   Reasons: {reasons}")
         logger.info(f"   Guardrails stats: {stats}")
@@ -178,7 +178,7 @@ def test_mdap_engine_integration():
             "statistics": stats
         }
     except (ValueError, TypeError, ImportError, AttributeError) as e:
-        logger.error(f"❌ MDAP engine integration failed: {e}")
+        logger.error(f"[FAIL] MDAP engine integration failed: {e}")
         import traceback
         traceback.print_exc()
         return False, {
@@ -222,7 +222,7 @@ def test_remediation_strategies():
                     "error": str(e)
                 }
 
-        logger.info("✅ Remediation strategies tested")
+        logger.info("[OK] Remediation strategies tested")
         for strategy, result in results.items():
             logger.info(f"   {strategy}: {result}")
 
@@ -232,7 +232,7 @@ def test_remediation_strategies():
             "strategies": results
         }
     except (ValueError, TypeError, ImportError) as e:
-        logger.error(f"❌ Remediation strategies test failed: {e}")
+        logger.error(f"[FAIL] Remediation strategies test failed: {e}")
         return False, {
             "test": "remediation_strategies",
             "status": "failed",
@@ -289,7 +289,7 @@ def test_custom_validators():
             on_fail="refrain"
         )
 
-        logger.info("✅ Custom validators tested")
+        logger.info("[OK] Custom validators tested")
         logger.info(f"   Safe output valid: {result1.is_valid}")
         logger.info(f"   Malicious output valid: {result2.is_valid}")
         logger.info(f"   Malicious output failures: {result2.failures}")
@@ -302,7 +302,7 @@ def test_custom_validators():
             "malicious_failures": result2.failures
         }
     except (ValueError, TypeError, ImportError) as e:
-        logger.error(f"❌ Custom validators test failed: {e}")
+        logger.error(f"[FAIL] Custom validators test failed: {e}")
         return False, {
             "test": "custom_validators",
             "status": "failed",
@@ -328,7 +328,7 @@ def test_graceful_degradation():
 
         stats = red_flagger.get_guardrails_stats()
 
-        logger.info("✅ Graceful degradation working")
+        logger.info("[OK] Graceful degradation working")
         logger.info(f"   Is flagged: {is_flagged}")
         logger.info(f"   Guardrails validations: {stats['guardrails_validations']}")
         logger.info(f"   System works without Guardrails: True")
@@ -341,7 +341,7 @@ def test_graceful_degradation():
             "degraded_mode_working": True
         }
     except (ValueError, TypeError, ImportError, AttributeError) as e:
-        logger.error(f"❌ Graceful degradation test failed: {e}")
+        logger.error(f"[FAIL] Graceful degradation test failed: {e}")
         return False, {
             "test": "graceful_degradation",
             "status": "failed",
@@ -390,7 +390,7 @@ def main():
     failed = sum(1 for r in results if r.get("status") != "success")
 
     for result in results:
-        status_icon = "✅" if result.get("status") == "success" else "❌"
+        status_icon = "[OK]" if result.get("status") == "success" else "[FAIL]"
         logger.info(f"{status_icon} {result.get('test')}: {result.get('status')}")
 
     logger.info("\n" + "-" * 60)

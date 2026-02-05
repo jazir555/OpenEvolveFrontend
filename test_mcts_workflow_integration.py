@@ -89,7 +89,7 @@ def test_search_space_analysis():
     print(f"  Applicability Score: {search_space.calculate_applicability_score():.2f}")
     print(f"  Is Applicable: {search_space.is_applicable}")
 
-    print("✓ Search space analysis test passed")
+    print("[OK] Search space analysis test passed")
     return search_space
 
 
@@ -128,7 +128,7 @@ def test_monitor():
     should_terminate = monitor.should_early_terminate("test_001")
     print(f"  Should Terminate: {should_terminate}")
 
-    print("✓ Monitor test passed")
+    print("[OK] Monitor test passed")
 
 
 def test_strategies():
@@ -150,7 +150,7 @@ def test_strategies():
         )
         print(f"  {strategy.value:20s} - iterations={config.lean_mcts_iterations}")
 
-    print("✓ Strategies test passed")
+    print("[OK] Strategies test passed")
 
 
 def test_workflow_state_integration():
@@ -193,7 +193,7 @@ def test_workflow_state_integration():
     assert config.lean_mcts_strategy == extracted_config.lean_mcts_strategy
     assert config.lean_mcts_iterations == extracted_config.lean_mcts_iterations
 
-    print("✓ WorkflowState integration test passed")
+    print("[OK] WorkflowState integration test passed")
 
 
 async def test_integrator_creation():
@@ -211,7 +211,7 @@ async def test_integrator_creation():
     print(f"  Config: {integrator.config.lean_mcts_strategy.value}")
     print(f"  Monitor created: {integrator.monitor is not None}")
 
-    print("✓ Integrator creation test passed")
+    print("[OK] Integrator creation test passed")
 
 
 def test_proof_refiner():
@@ -224,7 +224,7 @@ def test_proof_refiner():
     print(f"  Refiner created: {refiner is not None}")
     print(f"  Config iterations: {refiner.config.lean_mcts_refinement_iterations}")
 
-    print("✓ Proof refiner test passed")
+    print("[OK] Proof refiner test passed")
 
 
 def test_subproblem_solver():
@@ -238,7 +238,7 @@ def test_subproblem_solver():
     print(f"  Solver created: {solver is not None}")
     print(f"  Integrator linked: {solver.integrator is integrator}")
 
-    print("✓ Subproblem solver test passed")
+    print("[OK] Subproblem solver test passed")
 
 
 def test_availability():
@@ -250,7 +250,7 @@ def test_availability():
     print(f"  Evolutionary Available: {EVOLUTIONARY_AVAILABLE}")
     print(f"  Workflow Available: {WORKFLOW_AVAILABLE}")
 
-    print("✓ Availability test passed")
+    print("[OK] Availability test passed")
 
 
 async def run_all_tests():
@@ -288,11 +288,11 @@ async def run_all_tests():
         test_workflow_state_integration()
 
         print("\n" + "=" * 60)
-        print("All tests passed! ✓")
+        print("All tests passed! [OK]")
         print("=" * 60)
 
     except Exception as e:
-        print(f"\n✗ Test failed: {e}")
+        print(f"\n[FAIL] Test failed: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

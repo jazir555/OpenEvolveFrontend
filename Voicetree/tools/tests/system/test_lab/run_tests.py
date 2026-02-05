@@ -72,7 +72,7 @@ def main():
         # Run specific scenario
         scenario = next((s for s in scenarios if s['name'] == args.scenario), None)
         if not scenario:
-            print(f"❌ Scenario '{args.scenario}' not found")
+            print(f"[FAIL] Scenario '{args.scenario}' not found")
             return 1
             
         print(f"🧪 Running single test scenario: {args.scenario}")
@@ -106,10 +106,10 @@ def main():
     print(f"Report: {report_file}")
     
     if pass_rate >= config.get('test_configuration', {}).get('pass_threshold', 0.7) * 100:
-        print("✅ TEST SUITE PASSED")
+        print("[OK] TEST SUITE PASSED")
         return 0
     else:
-        print("❌ TEST SUITE FAILED")
+        print("[FAIL] TEST SUITE FAILED")
         return 1
 
 

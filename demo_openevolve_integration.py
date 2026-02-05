@@ -97,7 +97,7 @@ def demo_basic_integration():
     
     # Create and run pipeline
     print(f"\n🚀 Executing OpenEvolve-Integrated Pipeline...")
-    print("   (Decomposition → Evolution → Recomposition)")
+    print("   (Decomposition -> Evolution -> Recomposition)")
     
     pipeline = OpenEvolveIntegratedPipeline(evolution_config=evolution_config)
     
@@ -106,7 +106,7 @@ def demo_basic_integration():
     elapsed = time.time() - start_time
     
     print_section("Results")
-    print(f"✅ Pipeline completed in {elapsed:.2f}s")
+    print(f"[OK] Pipeline completed in {elapsed:.2f}s")
     print(f"\n📊 Quality Scores:")
     print(f"   Overall Quality:     {result.overall_quality:.2f}/1.0")
     print(f"   Decomposition:       {result.decomposition_quality:.2f}/1.0")
@@ -241,14 +241,14 @@ def demo_cross_domain():
             'successful': result.is_successful()
         })
         
-        print(f"   ✅ Quality: {result.overall_quality:.2f} | Time: {elapsed:.2f}s")
+        print(f"   [OK] Quality: {result.overall_quality:.2f} | Time: {elapsed:.2f}s")
     
     print_section("Cross-Domain Summary")
     print(f"\n{'Domain':<15} {'Problem':<25} {'Quality':>10} {'Time':>8} {'Status':>10}")
     print("-" * 80)
     
     for r in results:
-        status = "✅ PASS" if r['successful'] else "❌ FAIL"
+        status = "[OK] PASS" if r['successful'] else "[FAIL] FAIL"
         print(f"{r['domain']:<15} {r['title']:<25} {r['quality']:>10.2f} {r['time']:>8.2f} {status:>10}")
 
 
@@ -300,7 +300,7 @@ def demo_metrics_collection():
                 total_time * 0.2  # Estimated
             )
         
-        print(f"     ✅ Quality: {result.overall_quality:.2f}")
+        print(f"     [OK] Quality: {result.overall_quality:.2f}")
     
     # Display summary
     print_section("Metrics Summary")
@@ -344,7 +344,7 @@ def demo_adapter_usage():
     )
     
     print_section("Adapter Results")
-    print(f"✅ Success: {result['success']}")
+    print(f"[OK] Success: {result['success']}")
     print(f"📊 Overall Quality: {result['overall_quality']:.2f}")
     
     if result['decomposition']:
@@ -391,7 +391,7 @@ def demo_quick_solve():
     )
     
     print_section("Quick Solve Results")
-    print(f"✅ Pipeline ID: {result.pipeline_id}")
+    print(f"[OK] Pipeline ID: {result.pipeline_id}")
     print(f"📊 Overall Quality: {result.overall_quality:.2f}")
     print(f"🧩 Decomposition Quality: {result.decomposition_quality:.2f}")
     print(f"🔧 Solution Quality: {result.solution_quality:.2f}")
@@ -400,7 +400,7 @@ def demo_quick_solve():
         print(f"\n📋 Pipeline Stages:")
         for stage in result.stages:
             duration = stage.duration_seconds()
-            status_icon = "✅" if stage.status == "completed" else "❌"
+            status_icon = "[OK]" if stage.status == "completed" else "[FAIL]"
             print(f"   {status_icon} {stage.name}: {stage.status} ({duration:.2f}s)")
     
     print(f"\n📝 Solution Preview:")
@@ -450,7 +450,7 @@ def demo_configuration_options():
     pipeline = OpenEvolveIntegratedPipeline(evolution_config=evolution_config)
     result = pipeline.execute(problem)
     
-    print(f"\n✅ Result: Quality={result.overall_quality:.2f}, Sub-problems={len(result.decomposition_plan.sub_problems) if result.decomposition_plan else 0}")
+    print(f"\n[OK] Result: Quality={result.overall_quality:.2f}, Sub-problems={len(result.decomposition_plan.sub_problems) if result.decomposition_plan else 0}")
 
 
 # Need json for the last demo
@@ -464,12 +464,12 @@ def main():
 ║     OPENEVOLVE ENHANCED DECOMPOSITION INTEGRATION DEMO               ║
 ║                                                                      ║
 ║  Features:                                                           ║
-║  • LLM-Powered Intelligent Decomposition                             ║
-║  • Evolutionary Solution Generation                                  ║
-║  • Parallel Sub-Problem Evolution                                    ║
-║  • Conflict-Aware Solution Assembly                                  ║
-║  • Cross-Domain Problem Solving                                      ║
-║  • Comprehensive Metrics Collection                                  ║
+║  * LLM-Powered Intelligent Decomposition                             ║
+║  * Evolutionary Solution Generation                                  ║
+║  * Parallel Sub-Problem Evolution                                    ║
+║  * Conflict-Aware Solution Assembly                                  ║
+║  * Cross-Domain Problem Solving                                      ║
+║  * Comprehensive Metrics Collection                                  ║
 ╚══════════════════════════════════════════════════════════════════════╝
     """)
     
@@ -489,7 +489,7 @@ def main():
         try:
             demo_func()
         except Exception as e:
-            print(f"\n❌ Error in demo '{name}': {e}")
+            print(f"\n[FAIL] Error in demo '{name}': {e}")
             import traceback
             traceback.print_exc()
     
@@ -497,7 +497,7 @@ def main():
     
     print_header("ALL DEMOS COMPLETE", "=")
     print(f"\n⏱️  Total execution time: {total_elapsed:.2f}s")
-    print("\n✅ All demonstrations completed successfully!")
+    print("\n[OK] All demonstrations completed successfully!")
     
     print("\n📚 Key Integration Points:")
     print("  1. OpenEvolveSolutionSolver - Evolves sub-problems using OpenEvolve")
@@ -507,11 +507,11 @@ def main():
     print("  5. DecompositionMetricsCollector - Collects metrics from all stages")
     
     print("\n🔗 Integration Benefits:")
-    print("  • Higher quality solutions through evolutionary optimization")
-    print("  • Parallel evolution reduces total execution time")
-    print("  • Automatic conflict detection and resolution")
-    print("  • Comprehensive quality metrics at each stage")
-    print("  • Compatible with existing OpenEvolve infrastructure")
+    print("  * Higher quality solutions through evolutionary optimization")
+    print("  * Parallel evolution reduces total execution time")
+    print("  * Automatic conflict detection and resolution")
+    print("  * Comprehensive quality metrics at each stage")
+    print("  * Compatible with existing OpenEvolve infrastructure")
 
 
 if __name__ == "__main__":

@@ -267,7 +267,7 @@ class A2AProtocol:
             await self._persist_message(message)
 
         logger.info(
-            f"Message sent: {sender} → {recipient} "
+            f"Message sent: {sender} -> {recipient} "
             f"({message_type.value}, priority={priority.name})"
         )
 

@@ -13,8 +13,8 @@ Key Features:
 - Appeal and re-evaluation workflow
 
 Architecture:
-    Blue Team Solutions → Quality Gate → Solution Integration (if PASSED)
-                                           ↓
+    Blue Team Solutions -> Quality Gate -> Solution Integration (if PASSED)
+                                           v
                                       Appeal (if FAILED/CONDITIONAL)
 
 Author: OpenEvolve
@@ -31,6 +31,19 @@ from datetime import datetime
 from collections import defaultdict
 import statistics
 import re
+
+# SECURITY: Import security framework
+try:
+    from security_framework import (
+        Permission, UserContext, authenticated, authorized,
+        InputValidator, ValidationError, get_audit_logger
+    )
+    from input_validation import get_validator
+    SECURITY_AVAILABLE = True
+    logging.info("SECURITY: Quality gate engine security enabled")
+except ImportError as e:
+    SECURITY_AVAILABLE = False
+    logging.warning(f"SECURITY: Quality gate engine security not available: {e}")
 
 from evaluator_team import (
     EvaluationMetric,

@@ -344,7 +344,7 @@ class LeanMathematicalDetector:
         has_proof_keywords = any(kw in text for kw in self.PROOF_KEYWORDS)
 
         # Check for mathematical symbols
-        has_math_symbols = bool(re.search(r'∀|∃|→|⇒|∈|⊂|∪|∩|≤|≥|≠|∑|∏|∫', text))
+        has_math_symbols = bool(re.search(r'∀|∃|->|⇒|∈|⊂|∪|∩|≤|≥|≠|∑|∏|∫', text))
 
         # Check for mathematical keywords
         math_keyword_count = sum(

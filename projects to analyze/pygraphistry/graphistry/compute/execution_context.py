@@ -20,12 +20,12 @@ class ExecutionContext:
     **Example: Execution tracking**::
 
         context = ExecutionContext()
-        context.push_depth()  # 0 → 1
-        context.push_path('dag')  # 'query' → 'query.dag'
+        context.push_depth()  # 0 -> 1
+        context.push_path('dag')  # 'query' -> 'query.dag'
         depth = context.execution_depth  # 1
         path = context.operation_path  # 'query.dag'
-        context.pop_path()  # 'query.dag' → 'query'
-        context.pop_depth()  # 1 → 0
+        context.pop_path()  # 'query.dag' -> 'query'
+        context.pop_depth()  # 1 -> 0
     """
 
     def __init__(self) -> None:

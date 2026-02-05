@@ -107,7 +107,7 @@ def demo_towers_of_hanoi(num_disks: int = 5, k_ahead: int = 3):
                 logger.info(f"  ... ({len(actions) - 5} more moves)")
 
         logger.info("")
-        logger.info("✓ Towers of Hanoi demo completed successfully!")
+        logger.info("[OK] Towers of Hanoi demo completed successfully!")
 
     except Exception as e:
         logger.error(f"Towers of Hanoi demo failed: {e}", exc_info=True)
@@ -176,7 +176,7 @@ def demo_multiplication(num1_digits: int = 3, num2_digits: int = 3, k_ahead: int
             logger.info(f"  {json.dumps(solution, indent=2)}")
 
         logger.info("")
-        logger.info("✓ Multiplication demo completed!")
+        logger.info("[OK] Multiplication demo completed!")
 
     except Exception as e:
         logger.error(f"Multiplication demo failed: {e}", exc_info=True)
@@ -243,7 +243,7 @@ def demo_recursive_solve(task: str, k_ahead: int = 3, max_depth: int = 4):
                 logger.info(f"  (truncated, total size: {len(json.dumps(solution))} chars)")
 
         logger.info("")
-        logger.info("✓ Recursive solve demo completed!")
+        logger.info("[OK] Recursive solve demo completed!")
 
     except Exception as e:
         logger.error(f"Recursive solve demo failed: {e}", exc_info=True)
@@ -324,11 +324,11 @@ def demo_red_flagging():
 
     for name, response, should_flag in test_cases:
         is_flagged = collector._has_red_flags(response, None)
-        status = "✓" if is_flagged == should_flag else "✗"
+        status = "[OK]" if is_flagged == should_flag else "[FAIL]"
         logger.info(f"{status} {name}: flagged={is_flagged} (expected={should_flag})")
 
     logger.info("")
-    logger.info("✓ Red-flagging demo completed!")
+    logger.info("[OK] Red-flagging demo completed!")
 
 
 def main():
@@ -466,11 +466,11 @@ Examples:
 
         if success_count == total_count:
             logger.info("")
-            logger.info("✓✓✓ ALL DEMOS PASSED ✓✓✓")
+            logger.info("[OK][OK][OK] ALL DEMOS PASSED [OK][OK][OK]")
             return 0
         else:
             logger.warning("")
-            logger.warning(f"✗ {total_count - success_count} demo(s) failed")
+            logger.warning(f"[FAIL] {total_count - success_count} demo(s) failed")
             return 1
 
     return 0

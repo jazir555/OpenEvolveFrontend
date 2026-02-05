@@ -7,9 +7,9 @@ MDAP multi-agent voting for optimal Lean 4 proof generation.
 
 Architecture:
     MDAP (Multi-Strategy Decision Aggregation Protocol) + MCTS (Monte Carlo Tree Search)
-    ↓
+    v
     Multi-Agent Voting for Tactical Decisions + Tree Search for Proof Paths
-    ↓
+    v
     Hybrid Approach: MCTS explores proof tree, MDAP agents vote on best tactics at each node
 
 Key Features:

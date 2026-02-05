@@ -636,7 +636,7 @@ class ConflictDetector:
             content = solution.solution_content
             
             # Detect bullet style
-            if re.search(r'^\s*[-•]\s', content, re.MULTILINE):
+            if re.search(r'^\s*[-*]\s', content, re.MULTILINE):
                 bullet_style = "dash"
             elif re.search(r'^\s*\*\s', content, re.MULTILINE):
                 bullet_style = "asterisk"

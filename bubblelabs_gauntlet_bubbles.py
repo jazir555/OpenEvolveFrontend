@@ -9,7 +9,7 @@ Gauntlet Types Supported:
 - Red Team Gauntlets (Adversarial Testing)
 - Blue Team Gauntlets (Fix Generation)
 - Gold Team Gauntlets (Consensus Verification)
-- 3-Round Gauntlet System (LoongFlow AI Eval → Red Team → Gold Team)
+- 3-Round Gauntlet System (LoongFlow AI Eval -> Red Team -> Gold Team)
 
 Usage:
     from bubblelabs_gauntlet_bubbles import (
@@ -57,7 +57,7 @@ GAUNTLET_NODE_ICONS = {
     "blue_team": "🔧",
     "gold_team": "✨",
     "evaluation": "📊",
-    "result": "✅",
+    "result": "[OK]",
     "input": "📥",
     "output": "📤",
 }
@@ -248,9 +248,9 @@ def create_gauntlet_result_bubble(
     
     status_icons = {
         "pending": "⏳",
-        "passed": "✅",
-        "failed": "❌",
-        "partial": "⚠️",
+        "passed": "[OK]",
+        "failed": "[FAIL]",
+        "partial": "[WARN]",
     }
     status_colors = {
         "pending": "#FFEAA7",

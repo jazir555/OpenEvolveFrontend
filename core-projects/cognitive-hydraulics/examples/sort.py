@@ -20,7 +20,7 @@ def test_bubbleSort():
     for input_arr, expected in test_cases:
         result = bubbleSort(input_arr.copy())
         assert result == expected, f"Failed: {input_arr} -> {result}, expected {expected}"
-        print(f"✓ Test passed: {input_arr} -> {result}")
+        print(f"[OK] Test passed: {input_arr} -> {result}")
 
 if __name__ == "__main__":
     test_bubbleSort()

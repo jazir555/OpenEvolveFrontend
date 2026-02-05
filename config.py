@@ -75,7 +75,7 @@ class Phase2Config:
 
     # Ψ₁: Constraint Inversion
     psi1_enabled: bool = True
-    psi1_complexity_reduction_target: float = 0.1  # 2^n → 2^(n/10)
+    psi1_complexity_reduction_target: float = 0.1  # 2^n -> 2^(n/10)
     psi1_max_inversion_depth: int = 5
 
     # Ψ₂: Ontology Mapping

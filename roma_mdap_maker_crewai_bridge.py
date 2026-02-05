@@ -8,18 +8,18 @@ This replaces roma_mdap_maker_hephaestus_bridge.py with local CrewAI execution.
 
 ROMA-MDAP-MAKER Architecture:
     ROMA (Recursive Decomposition)
-        ↓
+        v
     MAKER (First-to-Ahead-by-K Voting + Red-Flagging)
-        ↓
+        v
     Hierarchical Aggregation with Confidence Weighting
 
 Phase Mapping:
-- Phase 1: Problem Setup → ROMA-MDAP complexity analysis + parameter recommendation
-- Phase 2: Solution Generation → ROMA decomposition + MAKER voting on each atomic task
-- Phase 3: Adversarial Critique → ROMA-MDAP critique with voting
-- Phase 4: Verification → ROMA-MDAP verification with voting
-- Phase 5: Reassembly → Hierarchical aggregation with confidence weighting
-- Phase 6: Final Validation → Full ROMA-MDAP-MAKER with verification
+- Phase 1: Problem Setup -> ROMA-MDAP complexity analysis + parameter recommendation
+- Phase 2: Solution Generation -> ROMA decomposition + MAKER voting on each atomic task
+- Phase 3: Adversarial Critique -> ROMA-MDAP critique with voting
+- Phase 4: Verification -> ROMA-MDAP verification with voting
+- Phase 5: Reassembly -> Hierarchical aggregation with confidence weighting
+- Phase 6: Final Validation -> Full ROMA-MDAP-MAKER with verification
 
 Zero-Error Guarantee:
 - First-to-ahead-by-k voting: P(success) ≈ 1 - exp(-k)
@@ -255,8 +255,8 @@ def _extract_mdap_critique_findings(critique_text: str) -> List[Dict[str, Any]]:
             })
             continue
 
-        # Match bullet points (-, *, •)
-        match = re.match(r'^[-*•]\s+(.+)', line)
+        # Match bullet points (-, *, *)
+        match = re.match(r'^[-**]\s+(.+)', line)
         if match:
             finding_text = match.group(1)
             findings.append({

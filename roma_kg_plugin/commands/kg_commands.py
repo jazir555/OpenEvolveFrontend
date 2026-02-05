@@ -162,7 +162,7 @@ class KnowledgeGraphCommands:
         if not result['exists']:
             return f"No path exists between {source} and {target}"
 
-        path_str = " → ".join(result['path'])
+        path_str = " -> ".join(result['path'])
 
         return f"Path found (length {result['length']}): {path_str}"
 

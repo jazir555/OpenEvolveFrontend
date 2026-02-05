@@ -85,7 +85,7 @@ class CheckpointedPipeline:
                 state = await self.checkpoint_manager.load_checkpoint(resume_from_checkpoint)
 
                 if state:
-                    logger.info(f"✅ Resumed from checkpoint: {resume_from_checkpoint}")
+                    logger.info(f"[OK] Resumed from checkpoint: {resume_from_checkpoint}")
                     # Continue from where we left off
                     result = await self._continue_from_checkpoint(state, solve_func)
                     return PipelineResult(

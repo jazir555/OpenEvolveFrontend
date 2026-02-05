@@ -13,15 +13,15 @@ a complete, bulletproof SOP with:
 - Turnkey-ready for any qualified lab/engineer
 
 Pipeline:
-1. Prompt Analysis → Understand the invention goal
-2. Knowledge Retrieval → Gather relevant scientific/engineering knowledge
-3. Decomposition → Break down into atomic steps
-4. Math Formalization → Convert all math to Lean proofs
-5. Physics Validation → Verify logical/physical consistency
-6. Error Analysis → Identify every possible error source
-7. Red/Blue Team → Adversarial testing of entire plan
-8. SOP Generation → Create turnkey-ready document
-9. Success Criteria → Binary pass/fail metrics
+1. Prompt Analysis -> Understand the invention goal
+2. Knowledge Retrieval -> Gather relevant scientific/engineering knowledge
+3. Decomposition -> Break down into atomic steps
+4. Math Formalization -> Convert all math to Lean proofs
+5. Physics Validation -> Verify logical/physical consistency
+6. Error Analysis -> Identify every possible error source
+7. Red/Blue Team -> Adversarial testing of entire plan
+8. SOP Generation -> Create turnkey-ready document
+9. Success Criteria -> Binary pass/fail metrics
 
 Author: End-to-End Invention Planner
 Version: 1.0.0
@@ -318,7 +318,7 @@ class EndToEndInventionPlanner:
     """
     Complete end-to-end invention planning system.
 
-    Takes natural language prompt → generates bulletproof SOP with:
+    Takes natural language prompt -> generates bulletproof SOP with:
     - All procedures validated
     - All materials validated
     - All math formalized in Lean
@@ -881,8 +881,8 @@ Focus on the MOST CRITICAL knowledge (top 15-20 items).
             for line in result.solution.split('\n'):
                 line = line.strip()
                 if line and (line.startswith('-') or line.startswith('*') or
-                           line[0].isdigit() or line.startswith('•')):
-                    knowledge_items.append(line.lstrip('-*•').strip())
+                           line[0].isdigit() or line.startswith('*')):
+                    knowledge_items.append(line.lstrip('-**').strip())
 
         return knowledge_items[:20]  # Top 20 items
 

@@ -43,41 +43,41 @@ class AutoApprovalChecker:
         # Check maximum complexity threshold
         max_complexity = self.criteria.get("max_complexity", 10)
         if self._check_complexity(plan, max_complexity):
-            reasons.append(f"✓ Complexity within threshold ({max_complexity})")
+            reasons.append(f"[OK] Complexity within threshold ({max_complexity})")
         else:
-            reasons.append(f"✗ Complexity exceeds threshold ({max_complexity})")
+            reasons.append(f"[FAIL] Complexity exceeds threshold ({max_complexity})")
             should_approve = False
         
         # Check maximum number of sub-problems
         max_sub_problems = self.criteria.get("max_sub_problems", 10)
         if len(plan.sub_problems) <= max_sub_problems:
-            reasons.append(f"✓ Sub-problems within limit ({len(plan.sub_problems)}/{max_sub_problems})")
+            reasons.append(f"[OK] Sub-problems within limit ({len(plan.sub_problems)}/{max_sub_problems})")
         else:
-            reasons.append(f"✗ Too many sub-problems ({len(plan.sub_problems)}/{max_sub_problems})")
+            reasons.append(f"[FAIL] Too many sub-problems ({len(plan.sub_problems)}/{max_sub_problems})")
             should_approve = False
         
         # Check if all sub-problems have assigned teams
         if self.criteria.get("require_all_teams_assigned", True):
             if self._check_all_teams_assigned(plan):
-                reasons.append("✓ All sub-problems have assigned teams")
+                reasons.append("[OK] All sub-problems have assigned teams")
             else:
-                reasons.append("✗ Some sub-problems missing team assignments")
+                reasons.append("[FAIL] Some sub-problems missing team assignments")
                 should_approve = False
         
         # Check if all sub-problems have assigned gauntlets
         if self.criteria.get("require_all_gauntlets_assigned", True):
             if self._check_all_gauntlets_assigned(plan):
-                reasons.append("✓ All sub-problems have assigned gauntlets")
+                reasons.append("[OK] All sub-problems have assigned gauntlets")
             else:
-                reasons.append("✗ Some sub-problems missing gauntlet assignments")
+                reasons.append("[FAIL] Some sub-problems missing gauntlet assignments")
                 should_approve = False
         
         # Check for circular dependencies
         if self.criteria.get("reject_circular_dependencies", True):
             if not self._has_circular_dependencies(plan):
-                reasons.append("✓ No circular dependencies detected")
+                reasons.append("[OK] No circular dependencies detected")
             else:
-                reasons.append("✗ Circular dependencies detected")
+                reasons.append("[FAIL] Circular dependencies detected")
                 should_approve = False
         
         # Check domain whitelist (if specified)
@@ -85,9 +85,9 @@ class AutoApprovalChecker:
         if domain_whitelist:
             domain = plan.analyzed_context.get("domain", "")
             if domain in domain_whitelist:
-                reasons.append(f"✓ Domain '{domain}' is whitelisted")
+                reasons.append(f"[OK] Domain '{domain}' is whitelisted")
             else:
-                reasons.append(f"✗ Domain '{domain}' not in whitelist")
+                reasons.append(f"[FAIL] Domain '{domain}' not in whitelist")
                 should_approve = False
         
         # Check minimum confidence in AI suggestions
@@ -95,7 +95,7 @@ class AutoApprovalChecker:
         if min_confidence > 0:
             # For now, we assume AI suggestions are always confident
             # In a real implementation, this would check actual confidence scores
-            reasons.append(f"✓ AI confidence meets threshold ({min_confidence})")
+            reasons.append(f"[OK] AI confidence meets threshold ({min_confidence})")
         
         return should_approve, reasons
     

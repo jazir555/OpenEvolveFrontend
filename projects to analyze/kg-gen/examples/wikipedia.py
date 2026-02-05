@@ -53,10 +53,10 @@ def process_article(article_data):
         graph = kg.generate(input_data=text)
         token_usage = kg.extract_token_usage_from_history()
         graph.to_file(f"./examples/wikipedia/{title}.json")
-        print(f"✓ Generated graph for {title}")
+        print(f"[OK] Generated graph for {title}")
         return {"title": title, "token_usage": token_usage, "success": True}
     except Exception as e:
-        print(f"✗ Error processing {title}: {e}")
+        print(f"[FAIL] Error processing {title}: {e}")
         return {"title": title, "error": str(e), "success": False}
 
 

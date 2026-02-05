@@ -38,13 +38,13 @@ async def probe_temporal_queries() -> bool:
         print("[1/5] Loading configuration...")
         config = GraphitiConfig()
         config.validate()
-        print("✓ Configuration loaded")
+        print("[OK] Configuration loaded")
 
         # Create bridge
         print("\n[2/5] Creating temporal bridge...")
         bridge = GraphitiTemporalBridge(config=config)
         await bridge.initialize()
-        print("✓ Bridge initialized")
+        print("[OK] Bridge initialized")
 
         # Add test data with different timestamps
         print("\n[3/5] Adding test episodes with different timestamps...")
@@ -62,7 +62,7 @@ async def probe_temporal_queries() -> bool:
                 reference_time=timestamp,
                 source="temporal_probe",
             )
-            print(f"  ✓ Added episode {i+1} at {timestamp.isoformat()}")
+            print(f"  [OK] Added episode {i+1} at {timestamp.isoformat()}")
 
         # Test current query
         print("\n[4/5] Testing CURRENT temporal filter...")
@@ -71,7 +71,7 @@ async def probe_temporal_queries() -> bool:
             filter_type=TemporalFilter.CURRENT,
             max_results=10,
         )
-        print(f"  ✓ CURRENT filter returned {len(results.get('edges', []))} edges")
+        print(f"  [OK] CURRENT filter returned {len(results.get('edges', []))} edges")
 
         # Test time range query
         print("\n[5/5] Testing TIME_RANGE temporal filter...")
@@ -82,7 +82,7 @@ async def probe_temporal_queries() -> bool:
             end_time=now + timedelta(hours=1),
             max_results=10,
         )
-        print(f"  ✓ TIME_RANGE filter returned {len(results.get('edges', []))} edges")
+        print(f"  [OK] TIME_RANGE filter returned {len(results.get('edges', []))} edges")
 
         # Test point-in-time query
         print("\n[Bonus] Testing point-in-time query...")
@@ -90,13 +90,13 @@ async def probe_temporal_queries() -> bool:
             query="*",
             max_results=10,
         )
-        print(f"  ✓ Point-in-time query returned {len(artifacts.get('edges', []))} edges")
+        print(f"  [OK] Point-in-time query returned {len(artifacts.get('edges', []))} edges")
 
-        print("\n✓ All temporal query checks passed")
+        print("\n[OK] All temporal query checks passed")
         return True
 
     except Exception as e:
-        print(f"\n✗ Probe failed: {e}")
+        print(f"\n[FAIL] Probe failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -106,7 +106,7 @@ async def probe_temporal_queries() -> bool:
         if bridge:
             try:
                 await bridge.close()
-                print("\n✓ Cleanup completed")
+                print("\n[OK] Cleanup completed")
             except Exception as e:
                 print(f"\n⚠ Cleanup warning: {e}")
 

@@ -213,7 +213,7 @@ def render_sovereign_status() -> None:
     
     with col2:
         st.metric("Teams", "3")
-        st.metric("Active", "✅")
+        st.metric("Active", "[OK]")
     
     # Knowledge base stats (would connect to actual data)
     with st.sidebar.expander("Knowledge Base"):

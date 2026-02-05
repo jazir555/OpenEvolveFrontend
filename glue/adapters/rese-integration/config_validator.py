@@ -600,14 +600,14 @@ def main():
 
         validator.validate_all()
 
-        print("✅ Configuration validation passed!", file=sys.stderr)
+        print("[OK] Configuration validation passed!", file=sys.stderr)
         if args.verbose:
             print(f"\nValidated {len(validator.VARIABLE_SPECS)} configuration variables")
 
         sys.exit(0)
 
     except ValidationError as e:
-        print(f"\n❌ {e}", file=sys.stderr)
+        print(f"\n[FAIL] {e}", file=sys.stderr)
         sys.exit(1)
 
 

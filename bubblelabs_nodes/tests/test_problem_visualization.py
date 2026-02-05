@@ -150,7 +150,7 @@ class TestASCIITreeRenderer:
         assert 'root' in output
         assert 'complete' in output
         assert '85' in output
-        assert '✅' in output or 'complete' in output
+        assert '[OK]' in output or 'complete' in output
 
     def test_render_hierarchy(self):
         """Test rendering a hierarchy"""
@@ -180,8 +180,8 @@ class TestASCIITreeRenderer:
 
         assert renderer._status_symbol(ProblemStatus.PENDING) == "⏳"
         assert renderer._status_symbol(ProblemStatus.IN_PROGRESS) == "🔄"
-        assert renderer._status_symbol(ProblemStatus.COMPLETE) == "✅"
-        assert renderer._status_symbol(ProblemStatus.FAILED) == "❌"
+        assert renderer._status_symbol(ProblemStatus.COMPLETE) == "[OK]"
+        assert renderer._status_symbol(ProblemStatus.FAILED) == "[FAIL]"
 
     def test_timing_display(self):
         """Test timing information display"""
@@ -206,7 +206,7 @@ class TestASCIITreeRenderer:
         output = renderer.render(root)
 
         assert 'Blue' in output
-        assert 'Red' in output or '→' in output
+        assert 'Red' in output or '->' in output
 
 
 class TestHTMLTreeRenderer:
@@ -534,8 +534,8 @@ class TestVisualizationIntegration:
         assert 'subproblem_1' in ascii_result
         assert 'subproblem_1_a' in ascii_result
         assert '95' in ascii_result  # score
-        assert '✅' in ascii_result  # complete status
-        assert '❌' in ascii_result  # failed status
+        assert '[OK]' in ascii_result  # complete status
+        assert '[FAIL]' in ascii_result  # failed status
 
         # Test HTML
         html_result = visualize_problem(problem, format='html')

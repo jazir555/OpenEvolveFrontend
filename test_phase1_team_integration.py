@@ -23,13 +23,13 @@ def test_team_system_integration():
                 model_name="gpt-4"
             )
             
-            print("✅ RedTeam quality diversity assessment works!")
+            print("[OK] RedTeam quality diversity assessment works!")
             print(f"   - Findings: {len(red_assessment.findings)}")
             print(f"   - Confidence: {red_assessment.confidence_score:.2f}")
             print(f"   - Quality diversity approach: {red_assessment.assessment_metadata.get('quality_diversity_approach', False)}")
             
         except Exception as e:
-            print(f"❌ RedTeam quality diversity test failed: {e}")
+            print(f"[FAIL] RedTeam quality diversity test failed: {e}")
             return False
         
         # Test BlueTeam apply_fixes method
@@ -57,12 +57,12 @@ def test_team_system_integration():
                 content_type="code"
             )
             
-            print("✅ BlueTeam apply fixes works!")
+            print("[OK] BlueTeam apply fixes works!")
             print(f"   - Fixes applied: {len(blue_assessment.applied_fixes)}")
             print(f"   - Assessment summary: {blue_assessment.assessment_summary[:50]}...")
             
         except Exception as e:
-            print(f"❌ BlueTeam apply fixes test failed: {e}")
+            print(f"[FAIL] BlueTeam apply fixes test failed: {e}")
             return False
         
         # Test EvaluatorTeam evaluate_content method
@@ -77,13 +77,13 @@ def test_team_system_integration():
                 content_type="code"
             )
             
-            print("✅ EvaluatorTeam evaluate content works!")
+            print("[OK] EvaluatorTeam evaluate content works!")
             print(f"   - Consensus score: {evaluation.consensus_score:.2f}")
             print(f"   - Final verdict: {evaluation.final_verdict}")
             print(f"   - Consensus reached: {evaluation.consensus_reached}")
             
         except Exception as e:
-            print(f"❌ EvaluatorTeam evaluate content test failed: {e}")
+            print(f"[FAIL] EvaluatorTeam evaluate content test failed: {e}")
             return False
         
         # Test integrated workflow
@@ -118,18 +118,18 @@ def test_team_system_integration():
                         content_type="code"
                     )
                     
-                    print("✅ Integrated team workflow works!")
+                    print("[OK] Integrated team workflow works!")
                     print(f"   - Issues found: {len(red_assessment.findings)}")
                     print(f"   - Fixes applied: {len(blue_assessment.applied_fixes)}")
                     print(f"   - Final score: {final_evaluation.consensus_score:.2f}")
                     
                 else:
-                    print("⚠️ Blue team didn't generate fixes, but workflow completed")
+                    print("[WARN] Blue team didn't generate fixes, but workflow completed")
             else:
-                print("⚠️ Red team didn't find issues, but workflow completed")
+                print("[WARN] Red team didn't find issues, but workflow completed")
             
         except Exception as e:
-            print(f"❌ Integrated workflow test failed: {e}")
+            print(f"[FAIL] Integrated workflow test failed: {e}")
             return False
         
         # Test ultimate functions with better error handling
@@ -149,27 +149,27 @@ def test_team_system_integration():
                 content="Test content for adversarial testing"
             )
             
-            print("✅ Ultimate functions execute without crashing!")
+            print("[OK] Ultimate functions execute without crashing!")
             print(f"   - Evolution success: {evo_result.get('success', False)}")
             print(f"   - Adversarial success: {adv_result.get('success', False)}")
             
         except Exception as e:
-            print(f"⚠️ Ultimate functions test failed (expected): {e}")
+            print(f"[WARN] Ultimate functions test failed (expected): {e}")
             # This is expected to have some issues, but should not crash completely
         
         print("\n" + "=" * 60)
         print("📊 PHASE 1 TEAM INTEGRATION SUMMARY")
         print("=" * 60)
-        print("✅ RedTeam quality diversity assessment: WORKING")
-        print("✅ BlueTeam apply fixes: WORKING") 
-        print("✅ EvaluatorTeam evaluate content: WORKING")
-        print("✅ Integrated team workflow: WORKING")
-        print("⚠️ Ultimate functions: PARTIALLY WORKING (graceful error handling)")
+        print("[OK] RedTeam quality diversity assessment: WORKING")
+        print("[OK] BlueTeam apply fixes: WORKING") 
+        print("[OK] EvaluatorTeam evaluate content: WORKING")
+        print("[OK] Integrated team workflow: WORKING")
+        print("[WARN] Ultimate functions: PARTIALLY WORKING (graceful error handling)")
         
         return True
         
     except Exception as e:
-        print(f"❌ Phase 1 team integration test failed: {e}")
+        print(f"[FAIL] Phase 1 team integration test failed: {e}")
         return False
 
 if __name__ == "__main__":

@@ -399,7 +399,7 @@ def render_validation_manager():
     Renders the validation manager section in the Streamlit UI.
     Allows users to define, manage, and apply validation rules.
     """
-    st.header("✅ Validation Manager")
+    st.header("[OK] Validation Manager")
     
     # Initialize validation manager
     vm = ValidationManager()
@@ -482,7 +482,7 @@ def render_validation_manager():
                         st.subheader("Validation Summary")
                         col1, col2, col3 = st.columns(3)
                         with col1:
-                            st.metric("Overall Result", "✅ Pass" if validation_results["overall_result"] else "❌ Fail")
+                            st.metric("Overall Result", "[OK] Pass" if validation_results["overall_result"] else "[FAIL] Fail")
                         with col2:
                             st.metric("Errors", validation_results["error_count"])
                         with col3:
@@ -504,7 +504,7 @@ def render_validation_manager():
             # Detailed breakdown
             st.subheader("Detailed Results")
             for rule_name, rule_result in results["validations"].items():
-                with st.expander(f"Rule: {rule_name} - {'✅ Pass' if rule_result['valid'] else '❌ Fail'}"):
+                with st.expander(f"Rule: {rule_name} - {'[OK] Pass' if rule_result['valid'] else '[FAIL] Fail'}"):
                     if rule_result["errors"]:
                         st.error(f"Errors ({len(rule_result['errors'])}):")
                         for error in rule_result["errors"]:

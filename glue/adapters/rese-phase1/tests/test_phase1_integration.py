@@ -54,7 +54,7 @@ def test_config_from_env():
     assert config.MAX_ASSUMPTIONS == 150
     assert config.MIN_ASSUMPTION_CONFIDENCE == 0.4
 
-    print("  ✓ Configuration loaded correctly")
+    print("  [OK] Configuration loaded correctly")
     return True
 
 
@@ -69,7 +69,7 @@ def test_config_validation():
         assert False, "Should have raised ValueError"
     except ValueError as e:
         assert "must be positive" in str(e)
-        print("  ✓ Invalid timeout rejected")
+        print("  [OK] Invalid timeout rejected")
 
     # Test invalid confidence
     os.environ['PHASE1_TIMEOUT_MS'] = '15000'
@@ -79,7 +79,7 @@ def test_config_validation():
         assert False, "Should have raised ValueError"
     except ValueError as e:
         assert "between 0 and 1" in str(e)
-        print("  ✓ Invalid confidence rejected")
+        print("  [OK] Invalid confidence rejected")
 
     return True
 
@@ -100,7 +100,7 @@ def test_executor_initialization():
     assert executor.circuit_breaker is not None
     assert executor.dlq is not None
 
-    print("  ✓ Executor initialized successfully")
+    print("  [OK] Executor initialized successfully")
     return True
 
 
@@ -126,7 +126,7 @@ def test_tacit_assumption_serialization():
     assert reconstructed.id == assumption.id
     assert reconstructed.description == assumption.description
 
-    print("  ✓ TacitAssumption serialization works")
+    print("  [OK] TacitAssumption serialization works")
     return True
 
 
@@ -154,7 +154,7 @@ def test_contradiction_detection_serialization():
     assert reconstructed.id == contradiction.id
     assert reconstructed.fallacy_type == LogicalFallacy.CONTRADICTION
 
-    print("  ✓ ContradictionDetection serialization works")
+    print("  [OK] ContradictionDetection serialization works")
     return True
 
 
@@ -182,7 +182,7 @@ def test_constraint_hardening():
     assert 'inverted_description' in constraints[0]
     assert constraints[0]['inverted_description'] != problem
 
-    print(f"  ✓ Extracted {len(constraints)} constraints")
+    print(f"  [OK] Extracted {len(constraints)} constraints")
     return True
 
 
@@ -216,7 +216,7 @@ def test_assumption_mining():
     assert assumptions[0].confidence_score >= 0.3
     assert assumptions[0].source_pattern == patterns[0]['pattern_description']
 
-    print(f"  ✓ Mined {len(assumptions)} assumptions")
+    print(f"  [OK] Mined {len(assumptions)} assumptions")
     return True
 
 
@@ -254,7 +254,7 @@ def test_red_team_protocol():
     assert results[0].falsified == True
     assert results[0].hypothesis_robustness_score < 0.5
 
-    print(f"  ✓ Tested {len(results)} hypotheses, {sum(1 for r in results if r.falsified)} falsified")
+    print(f"  [OK] Tested {len(results)} hypotheses, {sum(1 for r in results if r.falsified)} falsified")
     return True
 
 
@@ -286,7 +286,7 @@ def test_circuit_breaker():
     cb.record_success()
     assert cb.get_stats()['state'] == 'closed'
 
-    print("  ✓ Circuit breaker state transitions work")
+    print("  [OK] Circuit breaker state transitions work")
     return True
 
 
@@ -313,7 +313,7 @@ def test_dead_letter_queue():
 
     assert dlq.size() == 10  # Should be capped
 
-    print("  ✓ Dead letter queue works")
+    print("  [OK] Dead letter queue works")
     return True
 
 
@@ -363,7 +363,7 @@ def test_full_audit():
     assert 'metadata' in result_dict
     assert 'timestamp' in result_dict
 
-    print(f"  ✓ Audit completed successfully")
+    print(f"  [OK] Audit completed successfully")
     print(f"    - Assumptions: {len(result.tacit_assumptions)}")
     print(f"    - Contradictions: {len(result.contradictions)}")
     print(f"    - Falsified: {result.metrics['hypotheses_falsified']}")
@@ -408,7 +408,7 @@ def test_idempotency():
     for r in results[1:]:
         assert len(r.tacit_assumptions) == len(first.tacit_assumptions)
 
-    print("  ✓ Idempotency verified (10 runs, all consistent)")
+    print("  [OK] Idempotency verified (10 runs, all consistent)")
     return True
 
 
@@ -442,7 +442,7 @@ def main():
             if test():
                 passed += 1
         except Exception as e:
-            print(f"  ✗ Test failed: {e}")
+            print(f"  [FAIL] Test failed: {e}")
             failed += 1
         print()
 

@@ -472,15 +472,15 @@ Make sure all enum values are properly formatted and all field types are correct
             
         # Replace common Unicode characters with ASCII equivalents
         replacements = {
-            '\u2011': '-',  # Non-breaking hyphen → regular hyphen
-            '\u2013': '-',  # En dash → regular hyphen
-            '\u2014': '-',  # Em dash → regular hyphen
-            '\u2018': "'",  # Left single quotation mark → apostrophe
-            '\u2019': "'",  # Right single quotation mark → apostrophe
-            '\u201C': '"',  # Left double quotation mark → quote
-            '\u201D': '"',  # Right double quotation mark → quote
-            '\u00A0': ' ',  # Non-breaking space → regular space
-            '\u2026': '...',  # Horizontal ellipsis → three dots
+            '\u2011': '-',  # Non-breaking hyphen -> regular hyphen
+            '\u2013': '-',  # En dash -> regular hyphen
+            '\u2014': '-',  # Em dash -> regular hyphen
+            '\u2018': "'",  # Left single quotation mark -> apostrophe
+            '\u2019': "'",  # Right single quotation mark -> apostrophe
+            '\u201C': '"',  # Left double quotation mark -> quote
+            '\u201D': '"',  # Right double quotation mark -> quote
+            '\u00A0': ' ',  # Non-breaking space -> regular space
+            '\u2026': '...',  # Horizontal ellipsis -> three dots
         }
         
         normalized_text = text

@@ -410,7 +410,7 @@ async def example_9_progress_tracking():
 # Example 10: Complete Workflow
 async def example_10_complete_workflow():
     """
-    Complete workflow: document → chunking → extraction → upload → query.
+    Complete workflow: document -> chunking -> extraction -> upload -> query.
     """
     print("\n=== Example 10: Complete Workflow ===\n")
 

@@ -18,10 +18,10 @@ INTEGRATION_ARCHITECTURE = """
 ║  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐         │
 ║  │  BubbleLabs UI   │  │   LeanAide UI    │  │  Documentation   │         │
 ║  │                  │  │                  │  │                  │         │
-║  │ • Workflow       │  │ • Theorem Prove  │  │ • Integration    │         │
-║  │ • Designer       │  │ • MCTS Visualize │  │ • API Reference  │         │
-║  │ • Active Jobs    │  │ • Lean4 Verify   │  │ • Examples       │         │
-║  │ • Control Panel  │  │ • Math Query     │  │ • Troubleshooting│         │
+║  │ * Workflow       │  │ * Theorem Prove  │  │ * Integration    │         │
+║  │ * Designer       │  │ * MCTS Visualize │  │ * API Reference  │         │
+║  │ * Active Jobs    │  │ * Lean4 Verify   │  │ * Examples       │         │
+║  │ * Control Panel  │  │ * Math Query     │  │ * Troubleshooting│         │
 ║  └────────┬─────────┘  └────────┬─────────┘  └────────┬─────────┘         │
 └───────────┼────────────────────┼─────────────────────┼──────────────────────┘
             │                    │                     │
@@ -37,11 +37,11 @@ INTEGRATION_ARCHITECTURE = """
 ║  │  │   Task      │  │  Visualize  │  │  Resource   │                 │  │
 ║  │  │  Execution  │  │   Data      │  │  Management │                 │  │
 ║  │  │             │  │             │  │             │                 │  │
-║  │  │ • Translate │  │ • MCTS Tree │  │ • Thread    │                 │  │
-║  │  │ • Prove     │  │ • Proof     │  │   Locks     │                 │  │
-║  │  │ • Verify    │  │ • Stats     │  │ • Cleanup   │                 │  │
-║  │  │ • Query     │  │ • Export    │  │ • History   │                 │  │
-║  │  │ • MCTS      │  │             │  │             │                 │  │
+║  │  │ * Translate │  │ * MCTS Tree │  │ * Thread    │                 │  │
+║  │  │ * Prove     │  │ * Proof     │  │   Locks     │                 │  │
+║  │  │ * Verify    │  │ * Stats     │  │ * Cleanup   │                 │  │
+║  │  │ * Query     │  │ * Export    │  │ * History   │                 │  │
+║  │  │ * MCTS      │  │             │  │             │                 │  │
 ║  │  └─────────────┘  └─────────────┘  └─────────────┘                 │  │
 ║  └──────────────────────────────────────────────────────────────────────┘  │
 └────────────────────────────┬───────────────────────────────────────────────┘
@@ -53,11 +53,11 @@ INTEGRATION_ARCHITECTURE = """
 ║  ┌────────────────────┐      ┌────────────────────┐                       ║
 ║  │  LeanAide Client   │      │   MCTS-MDAP        │                       ║
 ║  │                    │      │   Engine           │                       ║
-║  │  • HTTP Client     │      │                    │                       ║
-║  │  • Async I/O       │      │  • MCTS Node       │                       ║
-║  │  • Task Execution  │      │  • MDAP Agents     │                       ║
-║  │  • Retry Logic     │      │  • Voting          │                       ║
-║  │  • Error Handling  │      │  • Red-Flagging    │                       ║
+║  │  * HTTP Client     │      │                    │                       ║
+║  │  * Async I/O       │      │  * MCTS Node       │                       ║
+║  │  * Task Execution  │      │  * MDAP Agents     │                       ║
+║  │  * Retry Logic     │      │  * Voting          │                       ║
+║  │  * Error Handling  │      │  * Red-Flagging    │                       ║
 ║  └─────────┬──────────┘      └─────────┬──────────┘                       ║
 ║            │                          │                                   ║
 ║            └──────────┬───────────────┘                                   ║
@@ -67,19 +67,19 @@ INTEGRATION_ARCHITECTURE = """
 ║  │              LeanAide Server (localhost:7654)                  │       ║
 ║  │                                                               │       ║
 ║  │  Tasks:                                                        │       ║
-║  │  • translate_thm        • prove_for_formalization            │       ║
-║  │  • translate_def        • elaborate                          │       ║
-║  │  • theorem_doc          • math_query                         │       ║
-║  │  • def_doc                                                   │       ║
+║  │  * translate_thm        * prove_for_formalization            │       ║
+║  │  * translate_def        * elaborate                          │       ║
+║  │  * theorem_doc          * math_query                         │       ║
+║  │  * def_doc                                                   │       ║
 ║  └───────────────────────┬────────────────────────────────────┘       ║
 ║                          │                                              ║
 ║                          ▼                                              ║
 ║  ┌──────────────────────────────────────────────────────────────┐       ║
 ║  │                   Lean4 Theorem Prover                         │       ║
 ║  │                                                               │       ║
-║  │  • Formal verification                                        │       ║
-║  │  • Type checking                                              │       ║
-║  │  • Proof construction                                         │       ║
+║  │  * Formal verification                                        │       ║
+║  │  * Type checking                                              │       ║
+║  │  * Proof construction                                         │       ║
 ║  └──────────────────────────────────────────────────────────────┘       ║
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
@@ -185,16 +185,16 @@ Bridge Implementation:
 │ LeanAideIntegrationBridge                    │
 │                                             │
 │ Thread-Safe Components:                     │
-│ • _lock (RLock)                             │
-│ • _active_trees_lock (RLock)                │
-│ • _active_proofs_lock (RLock)               │
-│ • _client_lock (Lock)                       │
+│ * _lock (RLock)                             │
+│ * _active_trees_lock (RLock)                │
+│ * _active_proofs_lock (RLock)               │
+│ * _client_lock (Lock)                       │
 │                                             │
 │ Thread-Safe Methods:                        │
-│ • execute_task() - Thread-safe              │
-│ • get_tree() - Lock-protected read          │
-│ • get_proof() - Lock-protected read         │
-│ • cleanup() - Thread-safe shutdown          │
+│ * execute_task() - Thread-safe              │
+│ * get_tree() - Lock-protected read          │
+│ * get_proof() - Lock-protected read         │
+│ * cleanup() - Thread-safe shutdown          │
 └─────────────────────────────────────────────┘
 
 Thread Pool Executor:
@@ -202,9 +202,9 @@ Thread Pool Executor:
 │ ThreadPoolExecutor(max_workers=4)           │
 │                                             │
 │ Used For:                                   │
-│ • Parallel task execution                   │
-│ • Async operations in sync context          │
-│ • Background processing                      │
+│ * Parallel task execution                   │
+│ * Async operations in sync context          │
+│ * Background processing                      │
 └─────────────────────────────────────────────┘
 
 
@@ -328,48 +328,48 @@ if not result.success:
 ║                      KEY FEATURES SUMMARY                                    ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-✓ LeanAide Task Execution
+[OK] LeanAide Task Execution
   - 6 task types (translate, prove, verify, query, elaborate, MCTS)
   - Async and sync execution
   - Automatic retry logic
 
-✓ MCTS Visualization
+[OK] MCTS Visualization
   - Interactive tree display
   - Node-level statistics
   - Best path highlighting
   - Agent performance tracking
 
-✓ Lean4 Proof Tracking
+[OK] Lean4 Proof Tracking
   - Step-by-step visualization
   - Goal tracking
   - Error reporting
   - Verification status
 
-✓ MDAP Integration
+[OK] MDAP Integration
   - Multi-agent voting
   - Decision aggregation
   - Performance ranking
   - Red-flag analysis
 
-✓ Thread Safety
+[OK] Thread Safety
   - Thread-safe operations
   - Resource locks
   - Thread pool executor
   - Safe cleanup
 
-✓ UI Components
+[OK] UI Components
   - Tabbed interface
   - Quick actions
   - Settings panel
   - Real-time updates
 
-✓ Documentation
+[OK] Documentation
   - Complete guide
   - API reference
   - Examples
   - Quick reference
 
-✓ Integration Support
+[OK] Integration Support
   - Workflow nodes
   - BubbleLabs patch
   - Tool registration
@@ -377,17 +377,17 @@ if not result.success:
 
 
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║                         INTEGRATION COMPLETE ✓                                ║
+║                         INTEGRATION COMPLETE [OK]                                ║
 ║                                                                              ║
 ║  The BubbleLabs-LeanAide integration is production-ready and includes:       ║
 ║                                                                              ║
-║  • 7 major files (3,000+ lines of code)                                     ║
-║  • Complete thread-safe implementation                                       ║
-║  • Rich visualization capabilities                                            ║
-║  • Comprehensive documentation                                                ║
-║  • 6 example workflows                                                       ║
-║  • Easy-to-use API                                                           ║
-║  • Full LeanAide support                                                      ║
+║  * 7 major files (3,000+ lines of code)                                     ║
+║  * Complete thread-safe implementation                                       ║
+║  * Rich visualization capabilities                                            ║
+║  * Comprehensive documentation                                                ║
+║  * 6 example workflows                                                       ║
+║  * Easy-to-use API                                                           ║
+║  * Full LeanAide support                                                      ║
 ║                                                                              ║
 ║  Ready for immediate use in BubbleLabs workflows!                            ║
 ║                                                                              ║

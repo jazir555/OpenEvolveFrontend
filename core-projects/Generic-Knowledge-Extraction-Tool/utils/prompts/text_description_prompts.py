@@ -17,7 +17,7 @@ CONTEXT: {context or "No additional context provided"}
 TASK:
 Extract all fields that need to be extracted from documents based on the description. For each field, determine:
 
-1. **field_name**: Convert to snake_case format (e.g., "Company Name" → "company_name")
+1. **field_name**: Convert to snake_case format (e.g., "Company Name" -> "company_name")
 2. **field_type**: Choose appropriate type from: str, int, float, bool, list[str], enum, list[enum]
 3. **description**: Clear, specific description of what to extract
 4. **required**: true/false (default to true unless explicitly mentioned as optional)
@@ -85,13 +85,13 @@ CONTEXT: {context}
 Choose from: str, int, float, bool, list[str], enum, list[enum]
 
 Consider:
-- Text content → str
-- Whole numbers → int
-- Decimal numbers → float
-- True/false values → bool
-- Multiple text entries → list[str]
-- Single choice from options → enum
-- Multiple choices from options → list[enum]
+- Text content -> str
+- Whole numbers -> int
+- Decimal numbers -> float
+- True/false values -> bool
+- Multiple text entries -> list[str]
+- Single choice from options -> enum
+- Multiple choices from options -> list[enum]
 
 Return only the type name.
 """

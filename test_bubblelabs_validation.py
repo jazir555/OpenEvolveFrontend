@@ -561,9 +561,9 @@ def run_validation_tests():
     print("\nValidation Coverage Estimate: 95%")
 
     if result.wasSuccessful():
-        print("\n✓ All validation tests passed!")
+        print("\n[OK] All validation tests passed!")
     else:
-        print("\n✗ Some validation tests failed or have errors")
+        print("\n[FAIL] Some validation tests failed or have errors")
         print("\nNOTE: Tests marked as 'MISSING VALIDATION' document")
         print("methods that need validation added to reach 100% coverage.")
 

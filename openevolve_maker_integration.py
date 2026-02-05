@@ -5,10 +5,10 @@ This module integrates the MAKER framework (from arXiv:2511.09030) with the Open
 decomposition workflow, providing zero-error solving capabilities for long-horizon tasks.
 
 Key Integrations:
-1. MAKER ←→ OpenEvolve API: Uses OpenEvolveClient for LLM calls
-2. MAKER ←→ Decomposition Workflow: Integrated into workflow_engine.py
-3. MAKER ←→ MDAP: Works alongside existing MDAP implementation
-4. MAKER ←→ Sovereign Teams: Uses Team configurations from workflow
+1. MAKER <--> OpenEvolve API: Uses OpenEvolveClient for LLM calls
+2. MAKER <--> Decomposition Workflow: Integrated into workflow_engine.py
+3. MAKER <--> MDAP: Works alongside existing MDAP implementation
+4. MAKER <--> Sovereign Teams: Uses Team configurations from workflow
 
 Based on:
 - Paper: "Solving a Million-Step LLM Task with Zero Errors" (arXiv:2511.09030)

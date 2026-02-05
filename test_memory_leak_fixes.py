@@ -57,7 +57,7 @@ def test_leak_1_thread_cleanup():
 
         # Add to running_threads
         integration.running_threads[instance_id] = thread
-        print(f"✓ Created test thread: {instance_id}")
+        print(f"[OK] Created test thread: {instance_id}")
 
         # Test cancel action which should trigger proper cleanup
         result = integration.control_workflow_local(instance_id, "cancel")
@@ -70,14 +70,14 @@ def test_leak_1_thread_cleanup():
         print(f"Removed from running_threads: {removed_from_dict}")
 
         if thread_stopped and removed_from_dict:
-            print("✓ LEAK #1 FIXED: Thread properly cleaned up with join()")
+            print("[OK] LEAK #1 FIXED: Thread properly cleaned up with join()")
             return True
         else:
-            print("✗ LEAK #1 NOT FIXED: Thread not properly cleaned up")
+            print("[FAIL] LEAK #1 NOT FIXED: Thread not properly cleaned up")
             return False
 
     except Exception as e:
-        print(f"✗ Error testing Leak #1: {e}")
+        print(f"[FAIL] Error testing Leak #1: {e}")
         return False
 
 
@@ -106,7 +106,7 @@ def test_leak_2_session_expiration():
             )
 
         initial_count = len(auth_manager.sessions)
-        print(f"✓ Created {initial_count} sessions")
+        print(f"[OK] Created {initial_count} sessions")
 
         # Test cleanup method
         removed = auth_manager.clean_expired_sessions()
@@ -125,14 +125,14 @@ def test_leak_2_session_expiration():
         print(f"Session count after limit test: {final_count} (max: {auth_manager.MAX_SESSIONS})")
 
         if final_count <= auth_manager.MAX_SESSIONS:
-            print("✓ LEAK #2 FIXED: Sessions have max_size limit and TTL")
+            print("[OK] LEAK #2 FIXED: Sessions have max_size limit and TTL")
             return True
         else:
-            print("✗ LEAK #2 NOT FIXED: Sessions exceed max_size limit")
+            print("[FAIL] LEAK #2 NOT FIXED: Sessions exceed max_size limit")
             return False
 
     except Exception as e:
-        print(f"✗ Error testing Leak #2: {e}")
+        print(f"[FAIL] Error testing Leak #2: {e}")
         return False
 
 
@@ -169,14 +169,14 @@ def test_leak_3_csrf_token_cleanup():
         print(f"Cleaned {removed} expired tokens")
 
         if token_count <= csrf.MAX_TOKENS:
-            print("✓ LEAK #3 FIXED: CSRF tokens have max_size limit and cleanup")
+            print("[OK] LEAK #3 FIXED: CSRF tokens have max_size limit and cleanup")
             return True
         else:
-            print("✗ LEAK #3 NOT FIXED: CSRF tokens exceed max_size limit")
+            print("[FAIL] LEAK #3 NOT FIXED: CSRF tokens exceed max_size limit")
             return False
 
     except Exception as e:
-        print(f"✗ Error testing Leak #3: {e}")
+        print(f"[FAIL] Error testing Leak #3: {e}")
         return False
 
 
@@ -213,14 +213,14 @@ def test_leak_4_rate_limiter_buckets():
         print(f"Cleaned {removed} inactive buckets")
 
         if bucket_count <= rate_limiter.MAX_BUCKETS:
-            print("✓ LEAK #4 FIXED: Rate limiter buckets have max_size limit and cleanup")
+            print("[OK] LEAK #4 FIXED: Rate limiter buckets have max_size limit and cleanup")
             return True
         else:
-            print("✗ LEAK #4 NOT FIXED: Buckets exceed max_size limit")
+            print("[FAIL] LEAK #4 NOT FIXED: Buckets exceed max_size limit")
             return False
 
     except Exception as e:
-        print(f"✗ Error testing Leak #4: {e}")
+        print(f"[FAIL] Error testing Leak #4: {e}")
         return False
 
 
@@ -249,17 +249,17 @@ def test_leak_5_connection_pool_validation():
                 result = cursor.fetchone()
                 assert result[0] == 1, "Connection validation failed"
 
-        print("✓ Used connection pool 10 times without error")
+        print("[OK] Used connection pool 10 times without error")
 
         # Close all connections
         analytics.close_all_connections()
-        print("✓ All connections closed successfully")
+        print("[OK] All connections closed successfully")
 
-        print("✓ LEAK #5 FIXED: Connection pool validates health before use")
+        print("[OK] LEAK #5 FIXED: Connection pool validates health before use")
         return True
 
     except Exception as e:
-        print(f"✗ Error testing Leak #5: {e}")
+        print(f"[FAIL] Error testing Leak #5: {e}")
         return False
 
 
@@ -291,11 +291,11 @@ def test_leak_6_api_key_limit():
         assert hasattr(auth_manager, 'MAX_API_KEYS'), "MAX_API_KEYS not defined"
         assert auth_manager.MAX_API_KEYS > 0, "MAX_API_KEYS must be positive"
 
-        print(f"✓ MAX_API_KEYS limit defined: {auth_manager.MAX_API_KEYS}")
+        print(f"[OK] MAX_API_KEYS limit defined: {auth_manager.MAX_API_KEYS}")
 
         # Test cleanup method
         removed = auth_manager.clean_unused_api_keys()
-        print(f"✓ clean_unused_api_keys() method exists and returned: {removed}")
+        print(f"[OK] clean_unused_api_keys() method exists and returned: {removed}")
 
         # Verify API keys have last_used timestamp
         if auth_manager.api_keys:
@@ -303,13 +303,13 @@ def test_leak_6_api_key_limit():
                 assert "created_at" in data, "API key missing created_at"
                 assert "last_used" in data, "API key missing last_used"
 
-            print("✓ API keys have created_at and last_used timestamps")
+            print("[OK] API keys have created_at and last_used timestamps")
 
-        print("✓ LEAK #6 FIXED: API keys have max_size limit and cleanup")
+        print("[OK] LEAK #6 FIXED: API keys have max_size limit and cleanup")
         return True
 
     except Exception as e:
-        print(f"✗ Error testing Leak #6: {e}")
+        print(f"[FAIL] Error testing Leak #6: {e}")
         return False
 
 
@@ -335,12 +335,12 @@ def test_leak_7_singleton_cleanup():
         bubblelabs = get_shared_bubblelabs()
         api = get_shared_api()
 
-        print("✓ Created singleton instances")
+        print("[OK] Created singleton instances")
 
         # Test cleanup function exists and is callable
         assert callable(cleanup_shared_instances), "cleanup_shared_instances not callable"
 
-        print("✓ cleanup_shared_instances() function exists")
+        print("[OK] cleanup_shared_instances() function exists")
 
         # Test that cleanup function is registered with atexit
         import atexit
@@ -351,15 +351,15 @@ def test_leak_7_singleton_cleanup():
         )
 
         if cleanup_registered:
-            print("✓ cleanup_shared_instances() registered with atexit")
+            print("[OK] cleanup_shared_instances() registered with atexit")
         else:
             print("⚠ cleanup_shared_instances() not found in atexit callbacks (may be called differently)")
 
-        print("✓ LEAK #7 FIXED: Singleton cleanup function implemented")
+        print("[OK] LEAK #7 FIXED: Singleton cleanup function implemented")
         return True
 
     except Exception as e:
-        print(f"✗ Error testing Leak #7: {e}")
+        print(f"[FAIL] Error testing Leak #7: {e}")
         return False
 
 
@@ -438,7 +438,7 @@ def main():
     total = len(results)
 
     for test_name, result in results:
-        status = "✓ PASS" if result else "✗ FAIL"
+        status = "[OK] PASS" if result else "[FAIL] FAIL"
         print(f"{status}: {test_name}")
 
     print("\n" + "=" * 70)
@@ -446,10 +446,10 @@ def main():
     print("=" * 70)
 
     if passed == total:
-        print("\n✓ ALL MEMORY LEAK FIXES VERIFIED!")
+        print("\n[OK] ALL MEMORY LEAK FIXES VERIFIED!")
         return 0
     else:
-        print(f"\n✗ {total - passed} test(s) failed")
+        print(f"\n[FAIL] {total - passed} test(s) failed")
         return 1
 
 
