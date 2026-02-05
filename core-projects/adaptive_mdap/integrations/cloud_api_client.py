@@ -7,18 +7,6 @@ Provides unified interface to multiple LLM providers:
 - Google (Gemini 1.5 Pro, Gemini 1.5 Flash)
 """
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for Cloud Api Client
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    AdaptiveMDAPAllocator = None
-    SubProblem = None
-
-
 import time
 from typing import Dict, Any, Optional, List, Callable
 from dataclasses import dataclass

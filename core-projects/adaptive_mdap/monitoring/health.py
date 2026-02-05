@@ -1,17 +1,5 @@
 """Health check system for Adaptive MDAP."""
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for Health
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    AdaptiveMDAPAllocator = None
-    SubProblem = None
-
-
 import time
 import psutil
 from typing import Dict, Any, Optional

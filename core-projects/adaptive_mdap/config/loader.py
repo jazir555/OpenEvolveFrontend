@@ -1,17 +1,5 @@
 """Configuration loader with environment variable overrides."""
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for Loader
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    AdaptiveMDAPAllocator = None
-    SubProblem = None
-
-
 import os
 import yaml
 from typing import Dict, Any, Optional

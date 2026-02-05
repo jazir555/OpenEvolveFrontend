@@ -12,18 +12,6 @@ The allocator implements threshold-based policy where:
 This adaptive approach achieves 30-50% cost reduction while maintaining quality.
 """
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for Resource Allocator
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    AdaptiveMDAPAllocator = None
-    SubProblem = None
-
-
 import time
 from typing import Dict, Any, Optional, List, Tuple
 from dataclasses import dataclass

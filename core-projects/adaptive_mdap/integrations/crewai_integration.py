@@ -5,18 +5,6 @@ Properly integrates with the existing CrewAI infrastructure in the project,
 using the actual CrewAI Agent, Task, Crew, and Process classes.
 """
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for Crewai Integration
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    AdaptiveMDAPAllocator = None
-    SubProblem = None
-
-
 import time
 import uuid
 from typing import Dict, Any, Optional, List
