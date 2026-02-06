@@ -755,7 +755,7 @@ class Relationship:
     - graph/models.py (relationship_id, source_entity_id, target_entity_id, relationship_type)
     - core/entity_knowledge_graph.py (source, target, relation_type, attributes)
     - graph/models.py (edge_type variant)
-    
+
     Backward compatibility:
     - source/target map to source_entity_id/target_entity_id
     - relation_type/edge_type map to relationship_type
@@ -769,10 +769,96 @@ class Relationship:
     metadata: Dict[str, Any] = field(default_factory=dict)
     confidence: float = 1.0
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    
+
     def __post_init__(self):
         """Post-initialization normalization."""
         self.confidence = max(0.0, min(1.0, float(self.confidence)))
+
+    def __init__(
+        self,
+        relationship_id: Optional[str] = None,
+        source_entity_id: Optional[str] = None,
+        target_entity_id: Optional[str] = None,
+        relationship_type: Union[RelationshipType, str] = RelationshipType.RELATED_TO,
+        properties: Optional[Dict[str, Any]] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        confidence: float = 1.0,
+        created_at: Optional[datetime] = None,
+        # Backward compatibility parameters
+        source: Optional[str] = None,
+        target: Optional[str] = None,
+        relation_type: Optional[Union[RelationshipType, str]] = None,
+        edge_type: Optional[Union[RelationshipType, str]] = None,
+        attributes: Optional[Dict[str, Any]] = None,
+        **kwargs  # Catch any other deprecated parameters
+    ):
+        """
+        Initialize Relationship with backward compatibility support.
+
+        Args:
+            relationship_id: Unique relationship identifier
+            source_entity_id: Source entity ID
+            target_entity_id: Target entity ID
+            relationship_type: Type of relationship
+            properties: Relationship properties
+            metadata: Additional metadata
+            confidence: Confidence score
+            created_at: Creation timestamp
+            source: DEPRECATED - use source_entity_id instead
+            target: DEPRECATED - use target_entity_id instead
+            relation_type: DEPRECATED - use relationship_type instead
+            edge_type: DEPRECATED - use relationship_type instead
+            attributes: DEPRECATED - use properties instead
+            **kwargs: Additional deprecated parameters
+        """
+        # Handle relationship_id generation
+        if relationship_id is None:
+            relationship_id = str(uuid.uuid4())
+
+        # Handle deprecated source/target parameters
+        if source is not None:
+            source_entity_id = source_entity_id or source
+        if target is not None:
+            target_entity_id = target_entity_id or target
+
+        # Handle deprecated relationship_type variants
+        if relation_type is not None:
+            relationship_type = relation_type
+        if edge_type is not None:
+            relationship_type = edge_type
+
+        # Handle deprecated attributes parameter
+        if attributes is not None:
+            if properties is None:
+                properties = attributes
+            else:
+                # Merge both, with properties taking precedence
+                properties = {**attributes, **properties}
+
+        # Set defaults
+        if source_entity_id is None:
+            source_entity_id = ""
+        if target_entity_id is None:
+            target_entity_id = ""
+        if properties is None:
+            properties = {}
+        if metadata is None:
+            metadata = {}
+        if created_at is None:
+            created_at = datetime.now(timezone.utc)
+
+        # Validate confidence
+        confidence = max(0.0, min(1.0, float(confidence)))
+
+        # Set all attributes
+        self.relationship_id = relationship_id
+        self.source_entity_id = source_entity_id
+        self.target_entity_id = target_entity_id
+        self.relationship_type = relationship_type
+        self.properties = properties
+        self.metadata = metadata
+        self.confidence = confidence
+        self.created_at = created_at
     
     @property
     def source(self) -> str:

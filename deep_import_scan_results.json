@@ -1,0 +1,13 @@
+{
+  "syntax_errors": [
+    {
+      "file": "autonomous_research_quest.py",
+      "error": "unterminated string literal (detected at line 112) (<unknown>, line 112)"
+    },
+    {
+      "file": "projects to analyze\\pygraphistry\\demos\\demos_databases_apis\\databricks_pyspark\\graphistry-notebook-dashboard.py",
+      "error": "invalid syntax (<unknown>, line 25)"
+    }
+  ],
+  "missing_modules": []
+}

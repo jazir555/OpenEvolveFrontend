@@ -31,4 +31,15 @@ tests/test_performance.py::TestConcurrencyPerformance::test_concurrent_reads PAS
 tests/test_performance.py::TestConcurrencyPerformance::test_mixed_read_write_workload PASSED [ 10%]
 tests/test_performance.py::TestConcurrencyPerformance::test_async_entity_ingestion FAILED [ 11%]
 tests/test_performance.py::TestMemoryUsage::test_initial_memory_footprint PASSED [ 12%]
-tests/test_performance.py::TestMemoryUsage::test_memory_per_entity 
+tests/test_performance.py::TestMemoryUsage::test_memory_per_entity PASSED [ 12%]
+tests/test_performance.py::TestMemoryUsage::test_memory_per_relationship PASSED [ 13%]
+tests/test_performance.py::TestMemoryUsage::test_memory_leak_detection PASSED [ 13%]
+tests/test_performance.py::TestMemoryUsage::test_peak_memory_during_bulk_ingestion PASSED [ 14%]
+tests/test_performance.py::TestIntegrationPerformance::test_roma_decomposition_performance PASSED [ 15%]
+tests/test_performance.py::TestIntegrationPerformance::test_entity_extraction_simulation PASSED [ 15%]
+tests/test_performance.py::TestIntegrationPerformance::test_knowledge_fusion_simulation PASSED [ 16%]
+tests/test_performance.py::TestIntegrationPerformance::test_graph_traversal_performance PASSED [ 16%]
+tests/test_performance.py::TestIntegrationPerformance::test_batch_query_performance PASSED [ 17%]
+tests/test_performance.py::TestScalability::test_scalability_1x PASSED   [ 18%]
+tests/test_performance.py::TestScalability::test_scalability_10x PASSED  [ 18%]
+tests/test_performance.py::TestScalability::test_scalability_100x 

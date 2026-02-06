@@ -171,8 +171,34 @@ class AlertStore:
             except Exception as e:
                 logger.error(f"Failed to save alerts to {self.db_path}: {e}")
 
-    def save_alert(self, alert: Alert) -> bool:
-        """Save an alert."""
+    def save_alert(self, alert) -> bool:
+        """Save an alert.
+
+        Args:
+            alert: Either an Alert object or a dict with alert data
+
+        Returns:
+            True if alert was saved successfully
+        """
+        # Handle both Alert objects and dicts
+        if isinstance(alert, dict):
+            # Create Alert from dict
+            alert_id = alert.get('alert_id') or alert.get('id', str(hashlib.md5(str(alert).encode()).hexdigest()))
+            alert_obj = Alert(
+                id=alert_id,
+                title=alert.get('title', alert.get('message', '')),
+                description=alert.get('description', alert.get('message', '')),
+                severity=alert.get('severity', 'info'),
+                status=alert.get('status', 'open'),
+                source=alert.get('source', 'unknown'),
+                component=alert.get('component', 'unknown'),
+                created_at=datetime.now(),
+                updated_at=datetime.now(),
+                metadata=alert.get('metadata', {}),
+                tags=alert.get('tags', [])
+            )
+            alert = alert_obj
+
         # Default implementation using in-memory storage
         self._alerts[alert.id] = alert
         if self.db_path:

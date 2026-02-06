@@ -26,9 +26,13 @@ class BackupConfig:
 
 class BackupManager:
     """Backup Manager class"""
-    
-    def __init__(self, config: Optional[BackupConfig] = None):
-        self.config = config or BackupConfig()
+
+    def __init__(self, config: Optional[BackupConfig] = None, backup_dir: Optional[str] = None):
+        # Support both config object and backup_dir parameter for backward compatibility
+        if backup_dir is not None:
+            self.config = BackupConfig(backup_dir=backup_dir)
+        else:
+            self.config = config or BackupConfig()
         logger.info("Backup Manager initialized")
     
     def create_backup(self, data: Dict[str, Any]) -> str:

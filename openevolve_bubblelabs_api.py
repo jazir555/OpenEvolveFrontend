@@ -279,6 +279,70 @@ class OpenEvolveBubbleLabsIntegration:
         except Exception as e:
             logger.error(f"Failed to trigger ACE reflection: {e}")
 
+    def handle_research_stage_approval(self, instance_id: str, stage_id: int):
+        """
+        Handle UI approval of a research stage.
+        Triggers SOP generation and autonomous execution.
+        """
+        if instance_id not in self.workflow_instances:
+            return {"error": f"Workflow instance {instance_id} not found"}
+            
+        workflow_state = self.workflow_instances[instance_id]
+        
+        # Start execution in background
+        async def _execute_async():
+            from autonomous_research_quest import AutonomousResearchQuestOrchestrator
+            orch = AutonomousResearchQuestOrchestrator()
+            
+            result = await orch.execute_research_stage(
+                research_question=workflow_state.problem_statement,
+                stage_id=stage_id,
+                context={"workflow_id": instance_id}
+            )
+            
+            # Store result in state
+            if not hasattr(workflow_state, 'metadata'):
+                workflow_state.metadata = {}
+            
+            workflow_state.metadata[f"research_stage_{stage_id}_result"] = result.__dict__ if hasattr(result, '__dict__') else str(result)
+            
+            self._trigger_event("research_stage_completed", {
+                "instance_id": instance_id,
+                "stage_id": stage_id,
+                "success": result.success
+            })
+
+        # Run the async execution
+        thread = threading.Thread(target=lambda: asyncio.run(_execute_async()))
+        thread.daemon = True
+        thread.start()
+        
+        return {"message": f"Stage {stage_id} execution started", "instance_id": instance_id}
+
+    def generate_truth_package(self, instance_id: str) -> Dict[str, Any]:
+        """
+        Generate a comprehensive Truth Package for a workflow.
+        Aggregates evidence, feasibility, and proof artifacts.
+        """
+        if instance_id not in self.workflow_instances:
+            return {"error": f"Workflow instance {instance_id} not found"}
+            
+        workflow_state = self.workflow_instances[instance_id]
+        
+        from truth_package_generator import TruthPackageGenerator
+        gen = TruthPackageGenerator()
+        package = gen.generate_package(workflow_state)
+        
+        report_md = gen.export_markdown(package)
+        
+        return {
+            "package_id": package.package_id,
+            "status": package.certification_status,
+            "overall_score": package.overall_trust_score,
+            "markdown_report": report_md,
+            "package_data": package.__dict__ if hasattr(package, '__dict__') else str(package)
+        }
+
     def register_event_callback(self, event_type: str, callback: Callable):
         """Register a callback for specific events."""
         if event_type not in self.event_callbacks:

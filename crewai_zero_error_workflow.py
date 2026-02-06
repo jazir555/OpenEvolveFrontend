@@ -1905,11 +1905,11 @@ class ZeroErrorWorkflowAdapter:
     async def execute_workflow(self, problem_statement: str, **kwargs) -> 'WorkflowExecutionResult':
         """
         Execute the workflow with the given problem statement.
-        
+
         Args:
             problem_statement: The problem to process
             **kwargs: Additional arguments
-            
+
         Returns:
             WorkflowExecutionResult with status and final_solution
         """
@@ -1918,21 +1918,21 @@ class ZeroErrorWorkflowAdapter:
                 inputs={"problem_statement": problem_statement},
                 timeout_override=kwargs.get("timeout", 300)
             )
-            
+
             self.status = "completed" if result.status == WorkflowStatus.COMPLETED else "failed"
-            
-            # Extract solution from result
-            if result.outputs and "problem_statement" in result.outputs:
-                self.final_solution = result.outputs["problem_statement"]
+
+            # Extract solution from result - use final_output instead of outputs
+            if hasattr(result, 'final_output') and result.final_output:
+                self.final_solution = str(result.final_output)
             else:
                 self.final_solution = problem_statement
-                
+
             return WorkflowExecutionResult(
                 status=self.status,
                 final_solution=self.final_solution,
                 result=result
             )
-            
+
         except Exception as e:
             logger.error(f"Workflow execution failed: {e}")
             self.status = "failed"

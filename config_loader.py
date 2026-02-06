@@ -281,7 +281,11 @@ class ConfigLoader:
         Args:
             config_dir: Directory containing config files. If None, uses current directory.
         """
-        self.config_dir = config_dir or Path.cwd()
+        # Convert string to Path if necessary
+        if isinstance(config_dir, str):
+            self.config_dir = Path(config_dir)
+        else:
+            self.config_dir = config_dir or Path.cwd()
         self.config_file = self.config_dir / "config.yaml"
         self.params_file = self.config_dir / "parameter_settings.json"
         self._raw_config: Dict[str, Any] = {}

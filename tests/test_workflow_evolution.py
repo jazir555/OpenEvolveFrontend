@@ -115,12 +115,14 @@ class TestEvolutionSystem(unittest.TestCase):
         """Test complete evolution run."""
         try:
             from evolution import EvolutionEngine
-            
+
             engine = EvolutionEngine(
-                population_size=50,
-                generations=10,
-                crossover_rate=0.8,
-                mutation_rate=0.1
+                config={
+                    "population_size": 50,
+                    "generations": 10,
+                    "crossover_rate": 0.8,
+                    "mutation_rate": 0.1
+                }
             )
             
             result = engine.run(

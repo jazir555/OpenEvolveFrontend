@@ -325,8 +325,11 @@ class TestNeuromancerDynamicsModelerNeuralODE:
 
     def test_train_neural_ode_success(self, neuromancer_modeler, sample_time_series_data, mock_torch, mock_neuromancer):
         """Test successful neural ODE training."""
-        # Patch the import statements inside the method
-        with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+        # Patch the neuromancer.modules.blocks import at the source
+        mock_neuromancer_module = MagicMock()
+        mock_neuromancer_module.blocks = mock_neuromancer['modules'].blocks
+
+        with patch.dict('sys.modules', {'neuromancer.modules.blocks': mock_neuromancer_module.blocks}):
             result = neuromancer_modeler.train_neural_ode(
                 sample_time_series_data['data'],
                 sample_time_series_data['time_points']
@@ -340,7 +343,10 @@ class TestNeuromancerDynamicsModelerNeuralODE:
     def test_train_neural_ode_custom_config(self, neuromancer_modeler, sample_time_series_data, mock_neuromancer):
         """Test neural ODE training with custom configuration."""
         config = {'hidden_dim': 128, 'batch_size': 32}
-        with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+        mock_neuromancer_module = MagicMock()
+        mock_neuromancer_module.blocks = mock_neuromancer['modules'].blocks
+
+        with patch.dict('sys.modules', {'neuromancer.modules.blocks': mock_neuromancer_module.blocks}):
             result = neuromancer_modeler.train_neural_ode(
                 sample_time_series_data['data'],
                 sample_time_series_data['time_points'],
@@ -378,7 +384,10 @@ class TestNeuromancerDynamicsModelerNeuralODE:
             (np.random.randn(50, 10), np.linspace(0, 5, 50), 10),
         ]
 
-        with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+        mock_neuromancer_module = MagicMock()
+        mock_neuromancer_module.blocks = mock_neuromancer['modules'].blocks
+
+        with patch.dict('sys.modules', {'neuromancer.modules.blocks': mock_neuromancer_module.blocks}):
             for data, time_points, expected_dim in test_cases:
                 result = neuromancer_modeler.train_neural_ode(data, time_points)
                 assert result['status'] == 'success'
@@ -387,7 +396,10 @@ class TestNeuromancerDynamicsModelerNeuralODE:
     def test_model_storage_after_training(self, neuromancer_modeler, sample_time_series_data, mock_neuromancer):
         """Test that models are stored after training."""
         initial_count = len(neuromancer_modeler.models)
-        with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+        mock_neuromancer_module = MagicMock()
+        mock_neuromancer_module.blocks = mock_neuromancer['modules'].blocks
+
+        with patch.dict('sys.modules', {'neuromancer.modules.blocks': mock_neuromancer_module.blocks}):
             result = neuromancer_modeler.train_neural_ode(
                 sample_time_series_data['data'],
                 sample_time_series_data['time_points']

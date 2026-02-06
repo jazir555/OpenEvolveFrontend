@@ -181,6 +181,32 @@ class LeanAideCAVNLPBridge:
     # Translation Methods (Redirected to CAV-NLP)
     # ========================================================================
     
+    @staticmethod
+    def _normalize_result_payload(result: Any) -> Dict[str, Any]:
+        """Normalize LeanAide/unified service results to a dictionary payload."""
+        if isinstance(result, dict):
+            return result
+        if hasattr(result, "to_dict"):
+            try:
+                normalized = result.to_dict()
+                if isinstance(normalized, dict):
+                    return normalized
+            except Exception:
+                pass
+        if hasattr(result, "dict"):
+            try:
+                normalized = result.dict()
+                if isinstance(normalized, dict):
+                    return normalized
+            except Exception:
+                pass
+        if hasattr(result, "__dict__"):
+            try:
+                return dict(result.__dict__)
+            except Exception:
+                pass
+        return {"success": False, "error": "Unsupported result payload type"}
+
     async def translate_thm(self, text: str, **kwargs) -> Dict[str, Any]:
         """
         Translate theorem to Lean 4.
@@ -331,7 +357,8 @@ class LeanAideCAVNLPBridge:
                 "info": result.info
             })
         elif self.lean_client:
-            return merge_web3_formal_status(await self.lean_client.elaborate(code, **kwargs))
+            result = await self.lean_client.elaborate(code, **kwargs)
+            return merge_web3_formal_status(self._normalize_result_payload(result))
         else:
             return merge_web3_formal_status({
                 "success": False,
@@ -363,8 +390,11 @@ class LeanAideCAVNLPBridge:
                 "theorem_name": result.theorem_name
             })
         elif self.lean_client:
+            if hasattr(self.lean_client, "generate_documentation"):
+                result = await self.lean_client.generate_documentation(code, **kwargs)
+                return merge_web3_formal_status(self._normalize_result_payload(result))
             return merge_web3_formal_status(
-                await self.lean_client.generate_documentation(code, **kwargs)
+                {"success": False, "error": "Documentation generation not supported by client"}
             )
         else:
             return merge_web3_formal_status({
@@ -402,7 +432,13 @@ class LeanAideCAVNLPBridge:
                     {"success": False, "error": "Verification returned None"}
                 )
         elif self.lean_client:
-            return merge_web3_formal_status(await self.lean_client.check_elaboration(code, **kwargs))
+            if hasattr(self.lean_client, "check_elaboration"):
+                result = await self.lean_client.check_elaboration(code, **kwargs)
+            elif hasattr(self.lean_client, "verify"):
+                result = await self.lean_client.verify(code)
+            else:
+                result = {"success": False, "error": "Verification not supported by client"}
+            return merge_web3_formal_status(self._normalize_result_payload(result))
         else:
             return merge_web3_formal_status({
                 "success": False,

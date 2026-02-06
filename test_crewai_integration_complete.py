@@ -415,7 +415,7 @@ async def run_all_tests():
         test_instance.teardown_method()
     
     # Test state management
-    state_test = TestCrewAStateManagement()
+    state_test = TestCrewAIStateManagement()
     state_test.setup_method()
     
     try:

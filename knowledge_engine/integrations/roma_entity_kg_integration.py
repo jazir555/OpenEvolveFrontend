@@ -45,6 +45,9 @@ from ..schemas.base import Entity, Relationship, KnowledgeArtifact, ArtifactType
 
 logger = logging.getLogger(__name__)
 
+# ROMA-Entity Knowledge Graph integration availability flag
+EKG_AVAILABLE = True
+
 
 # ============================================================================
 # ROMA ENTITY SCHEMA

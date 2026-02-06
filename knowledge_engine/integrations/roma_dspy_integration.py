@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 # ROMA-DSPy integration availability flag
 ROMA_DSPY_INTEGRATION_AVAILABLE = True
+DSPY_AVAILABLE = ROMA_DSPY_INTEGRATION_AVAILABLE  # Alias for test compatibility
 
 
 @dataclass

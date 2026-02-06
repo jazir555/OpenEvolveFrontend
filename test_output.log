@@ -1,0 +1,269 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\python.exe
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.0', 'Platform': 'Windows-10-10.0.26200-SP0', 'Packages': {'pytest': '9.0.2', 'pluggy': '1.6.0'}, 'Plugins': {'anyio': '4.12.1', 'Faker': '38.2.0', 'langsmith': '0.5.2', 'libtmux': '0.23.2', 'pyfakefs': '6.0.0', 'asyncio': '1.3.0', 'cov': '4.1.0', 'html': '4.1.1', 'metadata': '3.1.1', 'timeout': '2.4.0', 'typeguard': '4.4.4'}}
+rootdir: C:\Users\mmeadow\Documents\OpenEvolve\Frontend
+configfile: pytest.ini (WARNING: ignoring pytest config in pyproject.toml!)
+plugins: anyio-4.12.1, Faker-38.2.0, langsmith-0.5.2, libtmux-0.23.2, pyfakefs-6.0.0, asyncio-1.3.0, cov-4.1.0, html-4.1.1, metadata-3.1.1, timeout-2.4.0, typeguard-4.4.4
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 99 items
+
+tests/test_mcp_gateway_integration.py::TestMCPResult::test_mcp_result_initialization_success PASSED [  1%]
+tests/test_mcp_gateway_integration.py::TestMCPResult::test_mcp_result_initialization_failure PASSED [  2%]
+tests/test_mcp_gateway_integration.py::TestMCPResult::test_mcp_result_to_dict PASSED [  3%]
+tests/test_mcp_gateway_integration.py::TestMCPResult::test_mcp_result_with_all_fields PASSED [  4%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationInitialization::test_default_initialization PASSED [  5%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationInitialization::test_custom_initialization PASSED [  6%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationInitialization::test_get_default_config PASSED [  7%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationInitialization::test_initialize_components_success FAILED [  8%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationInitialization::test_initialize_components_import_error FAILED [  9%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationToolCalling::test_call_tool_success PASSED [ 10%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationToolCalling::test_call_tool_without_namespace PASSED [ 11%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationToolCalling::test_call_tool_with_auto_correlation_id PASSED [ 12%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationToolCalling::test_call_tool_gateway_not_initialized PASSED [ 13%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationToolCalling::test_call_tool_exception_handling PASSED [ 14%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationToolDiscovery::test_discover_tools_all PASSED [ 15%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationToolDiscovery::test_discover_tools_with_namespace_filter PASSED [ 16%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationToolDiscovery::test_discover_tools_with_category_filter PASSED [ 17%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationToolDiscovery::test_discover_tools_empty_result PASSED [ 18%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationToolDiscovery::test_discover_tools_gateway_error PASSED [ 19%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationWorkflowExecution::test_knowledge_extraction_workflow_all_types PASSED [ 20%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationWorkflowExecution::test_knowledge_extraction_workflow_default_types PASSED [ 21%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationWorkflowExecution::test_knowledge_extraction_workflow_partial_failure PASSED [ 22%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationWorkflowExecution::test_knowledge_extraction_workflow_all_failures PASSED [ 23%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationWorkflowExecution::test_knowledge_extraction_workflow_gateway_not_initialized PASSED [ 24%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationMultiAgentCoordination::test_multi_agent_coordination_success PASSED [ 25%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationMultiAgentCoordination::test_multi_agent_coordination_without_preferences PASSED [ 26%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationMultiAgentCoordination::test_multi_agent_coordination_failure PASSED [ 27%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationFormalVerification::test_formal_verification_success PASSED [ 28%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationFormalVerification::test_formal_verification_with_proof PASSED [ 29%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationFormalVerification::test_formal_verification_failure PASSED [ 30%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationBatchExecution::test_batch_execute_all_success PASSED [ 31%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationBatchExecution::test_batch_execute_partial_failures PASSED [ 32%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationBatchExecution::test_batch_execute_exception_handling PASSED [ 33%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationBatchExecution::test_batch_execute_gateway_not_initialized PASSED [ 34%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationStatus::test_get_mcp_status_with_gateway PASSED [ 35%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationStatus::test_get_mcp_status_without_gateway PASSED [ 36%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationStatus::test_get_mcp_status_with_health_check PASSED [ 37%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationResourceManagement::test_close_with_gateway PASSED [ 38%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationResourceManagement::test_close_without_gateway PASSED [ 39%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationResourceManagement::test_close_with_shutdown_error PASSED [ 40%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationEdgeCases::test_call_tool_with_empty_params PASSED [ 41%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationEdgeCases::test_call_tool_with_complex_params PASSED [ 42%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationEdgeCases::test_batch_execute_empty_list PASSED [ 43%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationEdgeCases::test_workflow_with_empty_text PASSED [ 44%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationEdgeCases::test_discover_tools_with_invalid_filters PASSED [ 45%]
+tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationEdgeCases::test_call_tool_with_special_characters_in_params PASSED [ 46%]
+tests/test_neuromancer_integration.py::TestNeuromancerIntegration::test_initialization_default_config PASSED [ 47%]
+tests/test_neuromancer_integration.py::TestNeuromancerIntegration::test_initialization_custom_config PASSED [ 48%]
+tests/test_neuromancer_integration.py::TestNeuromancerIntegration::test_is_available_true PASSED [ 49%]
+tests/test_neuromancer_integration.py::TestNeuromancerIntegration::test_is_available_false PASSED [ 50%]
+tests/test_neuromancer_integration.py::TestNeuromancerIntegration::test_train_neural_ode_success PASSED [ 51%]
+tests/test_neuromancer_integration.py::TestNeuromancerIntegration::test_train_neural_ode_with_config PASSED [ 52%]
+tests/test_neuromancer_integration.py::TestNeuromancerIntegration::test_train_neural_ode_unavailable PASSED [ 53%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerInit::test_initialization_cpu_device PASSED [ 54%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerInit::test_initialization_cuda_device PASSED [ 55%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerInit::test_initialization_import_error PASSED [ 56%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerInit::test_initialization_exception_handling PASSED [ 57%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerInit::test_is_available_true PASSED [ 58%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerInit::test_is_available_false PASSED [ 59%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerNeuralODE::test_train_neural_ode_success FAILED [ 60%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerNeuralODE::test_train_neural_ode_custom_config FAILED [ 61%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerNeuralODE::test_train_neural_ode_unavailable PASSED [ 62%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerNeuralODE::test_train_neural_ode_exception_handling PASSED [ 63%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerNeuralODE::test_train_neural_ode_different_dimensions FAILED [ 64%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerNeuralODE::test_model_storage_after_training FAILED [ 65%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerPrediction::test_predict_dynamics_success FAILED [ 66%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerPrediction::test_predict_dynamics_model_not_found PASSED [ 67%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerPrediction::test_predict_dynamics_unavailable PASSED [ 68%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerPrediction::test_predict_dynamics_different_horizons FAILED [ 69%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerPrediction::test_predict_dynamics_default_model PASSED [ 70%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerPhysicsInformed::test_create_physics_informed_model_success PASSED [ 71%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerPhysicsInformed::test_create_physics_informed_model_with_config PASSED [ 72%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerPhysicsInformed::test_create_physics_informed_model_unavailable PASSED [ 73%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerPhysicsInformed::test_create_physics_informed_model_empty_constraints PASSED [ 74%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerPhysicsInformed::test_create_physics_informed_model_various_constraints PASSED [ 75%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerSystemAnalysis::test_analyze_system_stability_stable FAILED [ 76%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerSystemAnalysis::test_analyze_system_stability_unstable FAILED [ 77%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerSystemAnalysis::test_analyze_system_stability_marginally_stable PASSED [ 78%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerSystemAnalysis::test_analyze_system_stability_different_sizes PASSED [ 79%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerSystemAnalysis::test_analyze_system_stability_exception_handling PASSED [ 80%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerSystemAnalysis::test_system_identification_success PASSED [ 81%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerSystemAnalysis::test_system_identification_different_orders PASSED [ 82%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerSimulation::test_simulate_dynamical_system_success PASSED [ 83%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerSimulation::test_simulate_dynamical_system_different_time_spans PASSED [ 84%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerSimulation::test_simulate_dynamical_system_different_time_points PASSED [ 85%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerSimulation::test_simulate_dynamical_system_high_dimensional PASSED [ 86%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerSimulation::test_simulate_dynamical_system_exception_handling PASSED [ 87%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerUtilities::test_get_available_models_empty PASSED [ 88%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerUtilities::test_get_available_models_with_trained_models FAILED [ 89%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerUtilities::test_get_status_available PASSED [ 90%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerUtilities::test_get_status_unavailable PASSED [ 91%]
+tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerUtilities::test_get_status_with_models FAILED [ 92%]
+tests/test_neuromancer_integration.py::TestNeuromancerEdgeCases::test_empty_time_series_data PASSED [ 93%]
+tests/test_neuromancer_integration.py::TestNeuromancerEdgeCases::test_single_time_point PASSED [ 94%]
+tests/test_neuromancer_integration.py::TestNeuromancerEdgeCases::test_mismatched_dimensions PASSED [ 95%]
+tests/test_neuromancer_integration.py::TestNeuromancerEdgeCases::test_nan_values PASSED [ 96%]
+tests/test_neuromancer_integration.py::TestNeuromancerEdgeCases::test_inf_values PASSED [ 97%]
+tests/test_neuromancer_integration.py::TestNeuromancerEdgeCases::test_very_large_data PASSED [ 98%]
+tests/test_neuromancer_integration.py::TestNeuromancerEdgeCases::test_negative_time_values PASSED [100%]
+
+================================== FAILURES ===================================
+_ TestMCPGatewayIntegrationInitialization.test_initialize_components_success __
+tests\test_mcp_gateway_integration.py:395: in test_initialize_components_success
+    assert integration.unified_gateway is not None
+E   assert None is not None
+E    +  where None = <knowledge_engine.integrations.mcp_gateway_integration.MCPGatewayIntegration object at 0x00000275B5950610>.unified_gateway
+---------------------------- Captured stderr call -----------------------------
+2026-02-06 14:34:27,463 - knowledge_engine.integrations.mcp_gateway_integration - WARNING - {'msg': "MCP Gateway not available, using mock implementation: No module named 'mcp.gateway.models'; 'mcp.gateway' is not a package", 'timestamp': '2026-02-06T22:34:27.463632+00:00'}
+2026-02-06 14:34:27,466 - knowledge_engine.integrations.mcp_gateway_integration - WARNING - {'msg': 'MCP Gateway not available - components will fail on use', 'install': 'pip install mcp-gateway', 'timestamp': '2026-02-06T22:34:27.466620+00:00'}
+------------------------------ Captured log call ------------------------------
+WARNING  knowledge_engine.integrations.mcp_gateway_integration:mcp_gateway_integration.py:137 {'msg': "MCP Gateway not available, using mock implementation: No module named 'mcp.gateway.models'; 'mcp.gateway' is not a package", 'timestamp': '2026-02-06T22:34:27.463632+00:00'}
+WARNING  knowledge_engine.integrations.mcp_gateway_integration:mcp_gateway_integration.py:152 {'msg': 'MCP Gateway not available - components will fail on use', 'install': 'pip install mcp-gateway', 'timestamp': '2026-02-06T22:34:27.466620+00:00'}
+_ TestMCPGatewayIntegrationInitialization.test_initialize_components_import_error _
+tests\test_mcp_gateway_integration.py:405: in test_initialize_components_import_error
+    with patch('knowledge_engine.integrations.mcp_gateway_integration.UnifiedMCPGateway', side_effect=ImportError("mcp-gateway not installed")):
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1427: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1400: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'knowledge_engine.integrations.mcp_gateway_integration' from 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\knowledge_engine\\integrations\\mcp_gateway_integration.py'> does not have the attribute 'UnifiedMCPGateway'
+____ TestNeuromancerDynamicsModelerNeuralODE.test_train_neural_ode_success ____
+tests\test_neuromancer_integration.py:329: in test_train_neural_ode_success
+    with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1427: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1400: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'knowledge_engine.integrations.neuromancer_integration' from 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\knowledge_engine\\integrations\\neuromancer_integration.py'> does not have the attribute 'blocks'
+---------------------------- Captured stderr setup ----------------------------
+2026-02-06 14:35:29,133 - knowledge_engine.integrations.neuromancer_integration - WARNING - Neuromancer not available: cannot import name 'dynamics' from 'neuromancer' (C:\Users\mmeadow\Documents\OpenEvolve\Frontend\integrations\neuromancer\__init__.py)
+----------------------------- Captured log setup ------------------------------
+WARNING  knowledge_engine.integrations.neuromancer_integration:neuromancer_integration.py:118 Neuromancer not available: cannot import name 'dynamics' from 'neuromancer' (C:\Users\mmeadow\Documents\OpenEvolve\Frontend\integrations\neuromancer\__init__.py)
+_ TestNeuromancerDynamicsModelerNeuralODE.test_train_neural_ode_custom_config _
+tests\test_neuromancer_integration.py:343: in test_train_neural_ode_custom_config
+    with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1427: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1400: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'knowledge_engine.integrations.neuromancer_integration' from 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\knowledge_engine\\integrations\\neuromancer_integration.py'> does not have the attribute 'blocks'
+---------------------------- Captured stderr setup ----------------------------
+2026-02-06 14:35:29,439 - knowledge_engine.integrations.neuromancer_integration - WARNING - Neuromancer not available: cannot import name 'dynamics' from 'neuromancer' (C:\Users\mmeadow\Documents\OpenEvolve\Frontend\integrations\neuromancer\__init__.py)
+----------------------------- Captured log setup ------------------------------
+WARNING  knowledge_engine.integrations.neuromancer_integration:neuromancer_integration.py:118 Neuromancer not available: cannot import name 'dynamics' from 'neuromancer' (C:\Users\mmeadow\Documents\OpenEvolve\Frontend\integrations\neuromancer\__init__.py)
+_ TestNeuromancerDynamicsModelerNeuralODE.test_train_neural_ode_different_dimensions _
+tests\test_neuromancer_integration.py:381: in test_train_neural_ode_different_dimensions
+    with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1427: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1400: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'knowledge_engine.integrations.neuromancer_integration' from 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\knowledge_engine\\integrations\\neuromancer_integration.py'> does not have the attribute 'blocks'
+---------------------------- Captured stderr setup ----------------------------
+2026-02-06 14:35:30,283 - knowledge_engine.integrations.neuromancer_integration - WARNING - Neuromancer not available: cannot import name 'dynamics' from 'neuromancer' (C:\Users\mmeadow\Documents\OpenEvolve\Frontend\integrations\neuromancer\__init__.py)
+----------------------------- Captured log setup ------------------------------
+WARNING  knowledge_engine.integrations.neuromancer_integration:neuromancer_integration.py:118 Neuromancer not available: cannot import name 'dynamics' from 'neuromancer' (C:\Users\mmeadow\Documents\OpenEvolve\Frontend\integrations\neuromancer\__init__.py)
+__ TestNeuromancerDynamicsModelerNeuralODE.test_model_storage_after_training __
+tests\test_neuromancer_integration.py:390: in test_model_storage_after_training
+    with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1427: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1400: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'knowledge_engine.integrations.neuromancer_integration' from 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\knowledge_engine\\integrations\\neuromancer_integration.py'> does not have the attribute 'blocks'
+---------------------------- Captured stderr setup ----------------------------
+2026-02-06 14:35:30,614 - knowledge_engine.integrations.neuromancer_integration - WARNING - Neuromancer not available: cannot import name 'dynamics' from 'neuromancer' (C:\Users\mmeadow\Documents\OpenEvolve\Frontend\integrations\neuromancer\__init__.py)
+----------------------------- Captured log setup ------------------------------
+WARNING  knowledge_engine.integrations.neuromancer_integration:neuromancer_integration.py:118 Neuromancer not available: cannot import name 'dynamics' from 'neuromancer' (C:\Users\mmeadow\Documents\OpenEvolve\Frontend\integrations\neuromancer\__init__.py)
+___ TestNeuromancerDynamicsModelerPrediction.test_predict_dynamics_success ____
+tests\test_neuromancer_integration.py:409: in test_predict_dynamics_success
+    with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1427: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1400: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'knowledge_engine.integrations.neuromancer_integration' from 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\knowledge_engine\\integrations\\neuromancer_integration.py'> does not have the attribute 'blocks'
+---------------------------- Captured stderr setup ----------------------------
+2026-02-06 14:35:30,917 - knowledge_engine.integrations.neuromancer_integration - WARNING - Neuromancer not available: cannot import name 'dynamics' from 'neuromancer' (C:\Users\mmeadow\Documents\OpenEvolve\Frontend\integrations\neuromancer\__init__.py)
+----------------------------- Captured log setup ------------------------------
+WARNING  knowledge_engine.integrations.neuromancer_integration:neuromancer_integration.py:118 Neuromancer not available: cannot import name 'dynamics' from 'neuromancer' (C:\Users\mmeadow\Documents\OpenEvolve\Frontend\integrations\neuromancer\__init__.py)
+_ TestNeuromancerDynamicsModelerPrediction.test_predict_dynamics_different_horizons _
+tests\test_neuromancer_integration.py:449: in test_predict_dynamics_different_horizons
+    with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1427: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1400: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'knowledge_engine.integrations.neuromancer_integration' from 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\knowledge_engine\\integrations\\neuromancer_integration.py'> does not have the attribute 'blocks'
+---------------------------- Captured stderr setup ----------------------------
+2026-02-06 14:35:31,762 - knowledge_engine.integrations.neuromancer_integration - WARNING - Neuromancer not available: cannot import name 'dynamics' from 'neuromancer' (C:\Users\mmeadow\Documents\OpenEvolve\Frontend\integrations\neuromancer\__init__.py)
+----------------------------- Captured log setup ------------------------------
+WARNING  knowledge_engine.integrations.neuromancer_integration:neuromancer_integration.py:118 Neuromancer not available: cannot import name 'dynamics' from 'neuromancer' (C:\Users\mmeadow\Documents\OpenEvolve\Frontend\integrations\neuromancer\__init__.py)
+_ TestNeuromancerDynamicsModelerSystemAnalysis.test_analyze_system_stability_stable _
+tests\test_neuromancer_integration.py:544: in test_analyze_system_stability_stable
+    assert result['is_stable'] is True
+E   assert True is True
+---------------------------- Captured stderr setup ----------------------------
+2026-02-06 14:35:33,460 - knowledge_engine.integrations.neuromancer_integration - WARNING - Neuromancer not available: cannot import name 'dynamics' from 'neuromancer' (C:\Users\mmeadow\Documents\OpenEvolve\Frontend\integrations\neuromancer\__init__.py)
+----------------------------- Captured log setup ------------------------------
+WARNING  knowledge_engine.integrations.neuromancer_integration:neuromancer_integration.py:118 Neuromancer not available: cannot import name 'dynamics' from 'neuromancer' (C:\Users\mmeadow\Documents\OpenEvolve\Frontend\integrations\neuromancer\__init__.py)
+_ TestNeuromancerDynamicsModelerSystemAnalysis.test_analyze_system_stability_unstable _
+tests\test_neuromancer_integration.py:558: in test_analyze_system_stability_unstable
+    assert result['is_stable'] is False
+E   assert False is False
+---------------------------- Captured stderr setup ----------------------------
+2026-02-06 14:35:33,690 - knowledge_engine.integrations.neuromancer_integration - WARNING - Neuromancer not available: cannot import name 'dynamics' from 'neuromancer' (C:\Users\mmeadow\Documents\OpenEvolve\Frontend\integrations\neuromancer\__init__.py)
+----------------------------- Captured log setup ------------------------------
+WARNING  knowledge_engine.integrations.neuromancer_integration:neuromancer_integration.py:118 Neuromancer not available: cannot import name 'dynamics' from 'neuromancer' (C:\Users\mmeadow\Documents\OpenEvolve\Frontend\integrations\neuromancer\__init__.py)
+_ TestNeuromancerDynamicsModelerUtilities.test_get_available_models_with_trained_models _
+tests\test_neuromancer_integration.py:737: in test_get_available_models_with_trained_models
+    with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1427: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1400: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'knowledge_engine.integrations.neuromancer_integration' from 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\knowledge_engine\\integrations\\neuromancer_integration.py'> does not have the attribute 'blocks'
+---------------------------- Captured stderr setup ----------------------------
+2026-02-06 14:35:40,804 - knowledge_engine.integrations.neuromancer_integration - WARNING - Neuromancer not available: cannot import name 'dynamics' from 'neuromancer' (C:\Users\mmeadow\Documents\OpenEvolve\Frontend\integrations\neuromancer\__init__.py)
+----------------------------- Captured log setup ------------------------------
+WARNING  knowledge_engine.integrations.neuromancer_integration:neuromancer_integration.py:118 Neuromancer not available: cannot import name 'dynamics' from 'neuromancer' (C:\Users\mmeadow\Documents\OpenEvolve\Frontend\integrations\neuromancer\__init__.py)
+_____ TestNeuromancerDynamicsModelerUtilities.test_get_status_with_models _____
+tests\test_neuromancer_integration.py:770: in test_get_status_with_models
+    with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1427: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1400: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'knowledge_engine.integrations.neuromancer_integration' from 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\knowledge_engine\\integrations\\neuromancer_integration.py'> does not have the attribute 'blocks'
+---------------------------- Captured stderr setup ----------------------------
+2026-02-06 14:35:42,475 - knowledge_engine.integrations.neuromancer_integration - WARNING - Neuromancer not available: cannot import name 'dynamics' from 'neuromancer' (C:\Users\mmeadow\Documents\OpenEvolve\Frontend\integrations\neuromancer\__init__.py)
+----------------------------- Captured log setup ------------------------------
+WARNING  knowledge_engine.integrations.neuromancer_integration:neuromancer_integration.py:118 Neuromancer not available: cannot import name 'dynamics' from 'neuromancer' (C:\Users\mmeadow\Documents\OpenEvolve\Frontend\integrations\neuromancer\__init__.py)
+=========================== short test summary info ===========================
+FAILED tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationInitialization::test_initialize_components_success - assert None is not None
+ +  where None = <knowledge_engine.integrations.mcp_gateway_integration.MCPGatewayIntegration object at 0x00000275B5950610>.unified_gateway
+FAILED tests/test_mcp_gateway_integration.py::TestMCPGatewayIntegrationInitialization::test_initialize_components_import_error - AttributeError: <module 'knowledge_engine.integrations.mcp_gateway_integration' from 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\knowledge_engine\\integrations\\mcp_gateway_integration.py'> does not have the attribute 'UnifiedMCPGateway'
+FAILED tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerNeuralODE::test_train_neural_ode_success - AttributeError: <module 'knowledge_engine.integrations.neuromancer_integration' from 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\knowledge_engine\\integrations\\neuromancer_integration.py'> does not have the attribute 'blocks'
+FAILED tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerNeuralODE::test_train_neural_ode_custom_config - AttributeError: <module 'knowledge_engine.integrations.neuromancer_integration' from 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\knowledge_engine\\integrations\\neuromancer_integration.py'> does not have the attribute 'blocks'
+FAILED tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerNeuralODE::test_train_neural_ode_different_dimensions - AttributeError: <module 'knowledge_engine.integrations.neuromancer_integration' from 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\knowledge_engine\\integrations\\neuromancer_integration.py'> does not have the attribute 'blocks'
+FAILED tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerNeuralODE::test_model_storage_after_training - AttributeError: <module 'knowledge_engine.integrations.neuromancer_integration' from 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\knowledge_engine\\integrations\\neuromancer_integration.py'> does not have the attribute 'blocks'
+FAILED tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerPrediction::test_predict_dynamics_success - AttributeError: <module 'knowledge_engine.integrations.neuromancer_integration' from 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\knowledge_engine\\integrations\\neuromancer_integration.py'> does not have the attribute 'blocks'
+FAILED tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerPrediction::test_predict_dynamics_different_horizons - AttributeError: <module 'knowledge_engine.integrations.neuromancer_integration' from 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\knowledge_engine\\integrations\\neuromancer_integration.py'> does not have the attribute 'blocks'
+FAILED tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerSystemAnalysis::test_analyze_system_stability_stable - assert True is True
+FAILED tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerSystemAnalysis::test_analyze_system_stability_unstable - assert False is False
+FAILED tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerUtilities::test_get_available_models_with_trained_models - AttributeError: <module 'knowledge_engine.integrations.neuromancer_integration' from 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\knowledge_engine\\integrations\\neuromancer_integration.py'> does not have the attribute 'blocks'
+FAILED tests/test_neuromancer_integration.py::TestNeuromancerDynamicsModelerUtilities::test_get_status_with_models - AttributeError: <module 'knowledge_engine.integrations.neuromancer_integration' from 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\knowledge_engine\\integrations\\neuromancer_integration.py'> does not have the attribute 'blocks'
+================== 12 failed, 87 passed in 85.91s (0:01:25) ===================

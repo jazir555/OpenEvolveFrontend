@@ -275,11 +275,12 @@ class EntityKnowledgeGraph:
 
     def add_relationship(
         self,
-        source: str,
-        target: str,
+        source: Optional[str] = None,
+        target: Optional[str] = None,
         relation_type: Optional[str] = None,
         relationship_type: Optional[str] = None,
-        attributes: Optional[Dict[str, Any]] = None
+        attributes: Optional[Dict[str, Any]] = None,
+        relationship: Optional[Relationship] = None  # Support passing Relationship object directly
     ) -> bool:
         """
         Add a relationship between entities (synchronous).
@@ -292,21 +293,31 @@ class EntityKnowledgeGraph:
             relation_type: Type of relationship (deprecated, use relationship_type)
             relationship_type: Type of relationship
             attributes: Optional relationship properties (maps to properties)
+            relationship: Optional Relationship object to add directly (takes precedence if provided)
 
         Returns:
             True if relationship was added, False on error or duplicate
         """
         try:
-            # Support both parameter names for backward compatibility
-            rel_type = relationship_type or relation_type
-            if not rel_type:
-                raise ValueError("Either relation_type or relationship_type must be provided")
+            # Support passing Relationship object directly
+            if relationship is not None:
+                if not isinstance(relationship, Relationship):
+                    raise ValueError("relationship parameter must be a Relationship instance")
+                source = relationship.source_entity_id
+                target = relationship.target_entity_id
+                rel_type = relationship.relationship_type.value if isinstance(relationship.relationship_type, Enum) else relationship.relationship_type
+                attributes = relationship.properties
+            else:
+                # Support both parameter names for backward compatibility
+                rel_type = relationship_type or relation_type
+                if not rel_type:
+                    raise ValueError("Either relation_type or relationship_type must be provided")
 
-            # Validate inputs
-            if not source or not target:
-                raise ValueError("Source and target must be non-empty strings")
+                # Validate inputs
+                if not source or not target:
+                    raise ValueError("Source and target must be non-empty strings")
 
-            attributes = attributes or {}
+                attributes = attributes or {}
 
             with self._lock:
                 # Ensure entities exist (create empty ones if not)

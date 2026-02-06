@@ -111,13 +111,12 @@ def execute_phase_1_setup(
 
         # Stage 1: AI-Assisted Decomposition
         logger.info(f"  Stage 1: Decomposing problem into sub-problems...")
-        decomposition_plan = workflow._decompose_problem(
+        # Since the workflow object doesn't have _decompose_problem method, 
+        # we'll create a basic decomposition plan manually
+        decomposition_plan = _create_basic_decomposition_plan(
             problem_statement=problem_statement,
-            context={
-                "max_sub_problems": max_sub_problems,
-                "strategy": decomposition_strategy,
-                "use_evolution": use_evolution,
-            },
+            max_sub_problems=max_sub_problems,
+            strategy=decomposition_strategy
         )
 
         return {

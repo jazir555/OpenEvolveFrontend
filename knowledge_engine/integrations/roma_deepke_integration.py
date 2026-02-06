@@ -39,6 +39,9 @@ from .deepke_integration import DeepKEIntegration, DeepKEResult
 
 logger = logging.getLogger(__name__)
 
+# ROMA-DeepKE integration availability flag
+DEEPKE_AVAILABLE = True
+
 
 @dataclass
 class EntityExtraction:
