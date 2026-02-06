@@ -1,0 +1,76 @@
+{
+  "report": {
+    "title": "DSPy Framework Syntax Error Fixes - Batch 2",
+    "date": "2026-02-05",
+    "summary": "Fixed systematic import block insertion issues in 7 DSPy framework files. The adaptive_mdap import blocks were incorrectly inserted between method definitions and their bodies, causing syntax errors.",
+    "total_files_fixed": 7,
+    "files_fixed": [
+      {
+        "file": "dspy/evaluate/evaluate.py",
+        "issue": "unexpected indent",
+        "root_cause": "Adaptive MDAP import block inserted between 'display' function definition and its body (print statement)",
+        "fix_applied": "Moved import block to module level (after 'import tqdm') and restored 'print(obj)' inside the display function",
+        "status": "FIXED",
+        "verified": true
+      },
+      {
+        "file": "dspy/evaluate/metrics.py",
+        "issue": "return outside function",
+        "root_cause": "Adaptive MDAP import block inserted inside EM() function, between docstring and function body",
+        "fix_applied": "Moved import block to module level (at top of file) and restored return statement inside EM() function",
+        "status": "FIXED",
+        "verified": true
+      },
+      {
+        "file": "dspy/predict/aggregation.py",
+        "issue": "return outside function",
+        "root_cause": "Adaptive MDAP import block inserted inside majority() function, between docstring and function body",
+        "fix_applied": "Moved import block to module level (after imports) and restored assertion code inside majority() function",
+        "status": "FIXED",
+        "verified": true
+      },
+      {
+        "file": "dspy/predict/best_of_n.py",
+        "issue": "unexpected indent",
+        "root_cause": "Adaptive MDAP import block inserted inside __init__() method, between docstring and method body (self.module = module)",
+        "fix_applied": "Moved import block to module level (at top of file) and restored self.* assignments inside __init__() method",
+        "status": "FIXED",
+        "verified": true
+      },
+      {
+        "file": "dspy/predict/chain_of_thought.py",
+        "issue": "unexpected indent",
+        "root_cause": "Adaptive MDAP import block inserted inside __init__() method, between docstring and method body (super().__init__())",
+        "fix_applied": "Moved import block to module level (at top of file) and restored super().__init__() and other code inside __init__() method",
+        "status": "FIXED",
+        "verified": true
+      },
+      {
+        "file": "dspy/predict/knn.py",
+        "issue": "unexpected indent",
+        "root_cause": "Adaptive MDAP import block inserted inside __init__() method, between docstring and method body (self.k = k)",
+        "fix_applied": "Moved import block to module level (after 'import numpy') and restored self.* assignments inside __init__() method",
+        "status": "FIXED",
+        "verified": true
+      },
+      {
+        "file": "dspy/predict/react.py",
+        "issue": "unexpected indent",
+        "root_cause": "Adaptive MDAP import block inserted inside __init__() method, between docstring and method body (super().__init__())",
+        "fix_applied": "Moved import block to module level (after 'from litellm import') and restored super().__init__() and other code inside __init__() method",
+        "status": "FIXED",
+        "verified": true
+      }
+    ],
+    "verification": {
+      "method": "py_compile",
+      "all_files_compile": true,
+      "test_command": "python -m py_compile <file>"
+    },
+    "pattern_analysis": {
+      "description": "All 7 files had the same systematic issue: an adaptive_mdap integration import block was incorrectly inserted INSIDE method/class definitions instead of at module level",
+      "common_import_block": "\n# **ACTUAL INTEGRATION**: Adaptive MDAP for <Module>\ntry:\n    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator\n    from adaptive_mdap.core.types import SubProblem\n    ADAPTIVE_MDAP_AVAILABLE = True\nexcept ImportError:\n    ADAPTIVE_MDAP_AVAILABLE = False\n    TaskComplexityClassifier = None\n    AdaptiveMDAPAllocator = None\n    SubProblem = None\n",
+      "resolution_strategy": "Moved all adaptive_mdap import blocks to module level (top of file, after other imports) and restored the original code that was displaced"
+    }
+  }
+}

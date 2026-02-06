@@ -28,15 +28,15 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "..", "..
 
 # Import services and workflow
 try:
-    from glue.adapters.rese-leanaide-workflow.src.autoformalization_service import (
+    from glue.adapters.rese_leanaide_workflow.src.autoformalization_service import (
         AutoformalizationService, AutoformalizationConfig, AutoformalizationPhase,
         AutoformalizationResult, FormalizationDomain, AutoformalizationLogger
     )
-    from glue.adapters.rese-leanaide-workflow.src.proof_search_service import (
+    from glue.adapters.rese_leanaide_workflow.src.proof_search_service import (
         ProofSearchService, ProofSearchConfig, ProofStrategy, ProofStatus,
         ProofSearchResult, ProofTactic, ProofSearchLogger
     )
-    from glue.adapters.rese-leanaide-workflow.src.leanaide_rese_workflow import (
+    from glue.adapters.rese_leanaide_workflow.src.leanaide_rese_workflow import (
         LeanAideRESEWorkflow, WorkflowConfig, ProblemType, SolverType,
         ProblemClassification, PhaseResult, PhaseStatus, WorkflowResult,
         WorkflowLogger

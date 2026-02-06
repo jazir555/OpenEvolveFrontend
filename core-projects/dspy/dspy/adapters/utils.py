@@ -16,16 +16,6 @@ from dspy.adapters.types.reasoning import Reasoning
 from dspy.signatures.utils import get_dspy_field_type
 
 
-def serialize_for_json(value: Any) -> Any:
-    """
-    Formats the specified value so that it can be serialized as a JSON string.
-
-    Args:
-        value: The value to format as a JSON string.
-    Returns:
-        The formatted value, which is serializable as a JSON string.
-    """
-
 # **ACTUAL INTEGRATION**: Adaptive MDAP for Utils
 try:
     from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
@@ -37,6 +27,16 @@ except ImportError:
     AdaptiveMDAPAllocator = None
     SubProblem = None
 
+
+def serialize_for_json(value: Any) -> Any:
+    """
+    Formats the specified value so that it can be serialized as a JSON string.
+
+    Args:
+        value: The value to format as a JSON string.
+    Returns:
+        The formatted value, which is serializable as a JSON string.
+    """
     # Attempt to format the value as a JSON-compatible object using pydantic, falling back to
     # a string representation of the value if that fails (e.g. if the value contains an object
     # that pydantic doesn't recognize or can't serialize)

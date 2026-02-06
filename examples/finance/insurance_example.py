@@ -27,6 +27,7 @@ from openevolve.finance.verticals.insurance import (
     Portfolio,
     Bond,
     CreditRating
+)
 
 
 async def example_1_basic_evolution():

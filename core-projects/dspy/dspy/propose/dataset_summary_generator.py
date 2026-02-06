@@ -1,3 +1,14 @@
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Dataset Summary Generator
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 import re
 
 import dspy
@@ -12,18 +23,6 @@ class ObservationSummarizer(dspy.Signature):
 class DatasetDescriptor(dspy.Signature):
     ("""Given several examples from a dataset please write observations about trends that hold for most or all of the samples. """
     """Some areas you may consider in your observations: topics, content, syntax, conciseness, etc. """
-
-# **ACTUAL INTEGRATION**: Adaptive MDAP for Dataset Summary Generator
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    AdaptiveMDAPAllocator = None
-    SubProblem = None
-
     """It will be useful to make an educated guess as to the nature of the task this dataset will enable. Don't be afraid to be creative""")
 
     examples = dspy.InputField(desc="Sample data points from the dataset")

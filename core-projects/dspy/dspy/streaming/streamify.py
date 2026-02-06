@@ -1,3 +1,14 @@
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Streamify
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 import asyncio
 import contextvars
 import logging
@@ -150,18 +161,6 @@ def streamify(
 
     You should see the streaming chunks (in the format of `dspy.streaming.StreamResponse`) in the console output.
     """
-
-# **ACTUAL INTEGRATION**: Adaptive MDAP for Streamify
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    AdaptiveMDAPAllocator = None
-    SubProblem = None
-
     stream_listeners = stream_listeners or []
     if len(stream_listeners) > 0:
         predict_id_to_listener = find_predictor_for_stream_listeners(program, stream_listeners)

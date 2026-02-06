@@ -323,11 +323,6 @@ def train_sft_locally(model_name, train_data, train_kwargs):
     return sft_config.output_dir
 
 
-def get_free_port() -> int:
-    """
-    Return a free TCP port on localhost.
-    """
-
 # **ACTUAL INTEGRATION**: Adaptive MDAP for Lm Local
 try:
     from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
@@ -339,6 +334,11 @@ except ImportError:
     AdaptiveMDAPAllocator = None
     SubProblem = None
 
+
+def get_free_port() -> int:
+    """
+    Return a free TCP port on localhost.
+    """
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(("localhost", 0))
         return s.getsockname()[1]

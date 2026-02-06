@@ -7,6 +7,17 @@ from dspy.primitives import Example
 from dspy.teleprompt import BootstrapFewShot
 from dspy.teleprompt.teleprompt import Teleprompter
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Knn Fewshot
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 
 class KNNFewShot(Teleprompter):
     def __init__(self, k: int, trainset: list[Example], vectorizer: Embedder, **few_shot_bootstrap_args: dict[str, Any]):
@@ -49,17 +60,6 @@ class KNNFewShot(Teleprompter):
             result = compiled_qa("What is the capital of Belgium?")
             ```
         """
-
-# **ACTUAL INTEGRATION**: Adaptive MDAP for Knn Fewshot
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    AdaptiveMDAPAllocator = None
-    SubProblem = None
 
         self.KNN = KNN(k, trainset, vectorizer=vectorizer)
         self.few_shot_bootstrap_args = few_shot_bootstrap_args

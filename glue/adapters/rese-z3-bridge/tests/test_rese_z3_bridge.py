@@ -55,6 +55,9 @@ Z3Client = rese_z3_client.Z3Client
 Z3ClientConfig = rese_z3_client.Z3ClientConfig
 CircuitBreakerConfig = rese_z3_client.CircuitBreakerConfig
 CircuitBreakerState = rese_z3_client.CircuitBreakerState
+
+# Import canonical schema types
+from rese_z3_schema import (
     CanonicalSolverRequest,
     CanonicalSolverResponse,
     CanonicalTheoremRequest,

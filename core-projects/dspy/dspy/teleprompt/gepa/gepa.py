@@ -22,6 +22,17 @@ from dspy.teleprompt.gepa.gepa_utils import (
 from dspy.teleprompt.teleprompt import Teleprompter
 from dspy.utils.annotation import experimental
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Gepa
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 logger = logging.getLogger(__name__)
 
 AUTO_RUN_SETTINGS = {
@@ -61,18 +72,7 @@ class GEPAFeedbackMetric(Protocol):
         f"This trajectory got a score of {score}."
         """
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for Gepa
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    AdaptiveMDAPAllocator = None
-    SubProblem = None
 
-        ...
 
 
 @experimental(version="3.0.0")

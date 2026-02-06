@@ -1,3 +1,14 @@
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Embeddings
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 import json
 import os
 from typing import Any
@@ -98,18 +109,6 @@ class Embeddings:
         Args:
             path: Directory path where the embeddings will be saved
         """
-
-# **ACTUAL INTEGRATION**: Adaptive MDAP for Embeddings
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    AdaptiveMDAPAllocator = None
-    SubProblem = None
-
         os.makedirs(path, exist_ok=True)
 
         # Save configuration and corpus

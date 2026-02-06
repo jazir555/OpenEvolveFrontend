@@ -14,7 +14,16 @@ from dspy.primitives.module import Module
 from dspy.teleprompt.bootstrap_trace import bootstrap_trace_data
 from dspy.teleprompt.teleprompt import Teleprompter
 
-logger = logging.getLogger(__name__)
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Bootstrap Finetune
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
 
 
 class FinetuneTeleprompter(Teleprompter):
@@ -242,17 +251,6 @@ def build_call_data_from_trace(
 # teleprompters. These can be moved to shared locations.
 def all_predictors_have_lms(program: Module) -> bool:
     """Return True if all predictors in the program have an LM set."""
-
-# **ACTUAL INTEGRATION**: Adaptive MDAP for Bootstrap Finetune
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    AdaptiveMDAPAllocator = None
-    SubProblem = None
 
     return all(pred.lm for pred in program.predictors())
 

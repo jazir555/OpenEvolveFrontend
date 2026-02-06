@@ -1,3 +1,14 @@
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Base Module
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 import copy
 import logging
 from collections import deque
@@ -24,19 +35,6 @@ class BaseModule:
         """
         Unlike PyTorch, handles (non-recursive) lists of parameters too.
         """
-
-# **ACTUAL INTEGRATION**: Adaptive MDAP for Base Module
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    AdaptiveMDAPAllocator = None
-    SubProblem = None
-
-
         import dspy
         from dspy.predict.parameter import Parameter
 

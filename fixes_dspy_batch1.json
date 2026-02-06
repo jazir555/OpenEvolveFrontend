@@ -1,0 +1,40 @@
+{
+  "summary": {
+    "total": 6,
+    "success": 6,
+    "failed": 0,
+    "all_success": true
+  },
+  "results": [
+    {
+      "file": "core-projects/dspy/dspy/adapters/json_adapter.py",
+      "status": "success",
+      "error": null
+    },
+    {
+      "file": "core-projects/dspy/dspy/adapters/types/audio.py",
+      "status": "success",
+      "error": null
+    },
+    {
+      "file": "core-projects/dspy/dspy/adapters/types/image.py",
+      "status": "success",
+      "error": null
+    },
+    {
+      "file": "core-projects/dspy/dspy/adapters/utils.py",
+      "status": "success",
+      "error": null
+    },
+    {
+      "file": "core-projects/dspy/dspy/adapters/xml_adapter.py",
+      "status": "success",
+      "error": null
+    },
+    {
+      "file": "core-projects/dspy/dspy/clients/lm_local.py",
+      "status": "success",
+      "error": null
+    }
+  ]
+}

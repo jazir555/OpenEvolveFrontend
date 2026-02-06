@@ -94,17 +94,15 @@ class TestCompleteIntegration(unittest.TestCase):
         
         # Test plugin system import
         from PluginSystem import pluginRegistry
-# OpenEvolve imports with backward compatibility
-try:
-    from openevolve_imports import (
-    LEANAIDE_MCTS_MDAP_AVAILABLE = True
-except ImportError:
-    try:
-        from leanaide_mcts_mdap import (
-        LEANAIDE_MCTS_MDAP_AVAILABLE = True
-    except ImportError:
-        LEANAIDE_MCTS_MDAP_AVAILABLE = False
-
+        
+        # OpenEvolve imports with backward compatibility
+        try:
+            from openevolve_imports import LEANAIDE_MCTS_MDAP_AVAILABLE
+        except ImportError:
+            try:
+                from leanaide_mcts_mdap import LEANAIDE_MCTS_MDAP_AVAILABLE
+            except ImportError:
+                LEANAIDE_MCTS_MDAP_AVAILABLE = False
 
         self.assertIsNotNone(pluginRegistry)
         

@@ -17,9 +17,6 @@ except ImportError:
     SF_AVAILABLE = False
 
 
-def _normalize_audio_format(audio_format: str) -> str:
-    """Removes 'x-' prefixes from audio format strings."""
-
 # **ACTUAL INTEGRATION**: Adaptive MDAP for Audio
 try:
     from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
@@ -31,6 +28,9 @@ except ImportError:
     AdaptiveMDAPAllocator = None
     SubProblem = None
 
+
+def _normalize_audio_format(audio_format: str) -> str:
+    """Removes 'x-' prefixes from audio format strings."""
     return audio_format.removeprefix("x-")
 
 

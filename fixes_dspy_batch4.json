@@ -1,0 +1,73 @@
+{
+  "batch": 4,
+  "timestamp": "2026-02-05T22:32:11-08:00",
+  "summary": {
+    "total_files": 5,
+    "fixed_files": 5,
+    "failed_files": 0
+  },
+  "fixes": [
+    {
+      "file": "dspy/teleprompt/bootstrap.py",
+      "issue": "unexpected indent",
+      "description": "Import block was incorrectly inserted between __init__ method definition and its body (line 71-80)",
+      "fix_applied": "Moved the import block to module level (top of file) before logger definition",
+      "verification": "py_compile successful",
+      "original_location": "Lines 71-80 (inside __init__ method)",
+      "new_location": "Lines 33-42 (module level)"
+    },
+    {
+      "file": "dspy/teleprompt/bootstrap_finetune.py",
+      "issue": "return outside function",
+      "description": "Import block was incorrectly inserted between all_predictors_have_lms function definition and its return statement (lines 246-257)",
+      "fix_applied": "Moved the import block to module level (top of file) before class definitions",
+      "verification": "py_compile successful",
+      "original_location": "Lines 246-256 (inside all_predictors_have_lms function)",
+      "new_location": "Lines 17-26 (module level)"
+    },
+    {
+      "file": "dspy/teleprompt/gepa/gepa.py",
+      "issue": "unexpected indent",
+      "description": "Import block was incorrectly inserted between GEPAFeedbackMetric Protocol class and its method body (lines 64-75), with orphaned '...' placeholder",
+      "fix_applied": "Moved the import block to module level (top of file) after existing imports, removed orphaned '...'",
+      "verification": "py_compile successful",
+      "original_location": "Lines 64-75 (inside Protocol class)",
+      "new_location": "Lines 26-37 (module level)"
+    },
+    {
+      "file": "dspy/teleprompt/knn_fewshot.py",
+      "issue": "unexpected indent",
+      "description": "Import block was incorrectly inserted between __init__ method definition and its body (lines 53-63)",
+      "fix_applied": "Moved the import block to module level (top of file) after existing imports",
+      "verification": "py_compile successful",
+      "original_location": "Lines 53-62 (inside __init__ method)",
+      "new_location": "Lines 9-19 (module level)"
+    },
+    {
+      "file": "dspy/teleprompt/teleprompt.py",
+      "issue": "unexpected indent",
+      "description": "Import block was incorrectly inserted between compile method definition and its body (lines 24-35)",
+      "fix_applied": "Moved the import block to module level (top of file) after existing imports",
+      "verification": "py_compile successful",
+      "original_location": "Lines 24-33 (inside compile method)",
+      "new_location": "Lines 5-15 (module level)"
+    }
+  ],
+  "common_pattern": {
+    "root_cause": "Import blocks for 'adaptive_mdap' were incorrectly inserted between method/function definitions and their bodies",
+    "fix_strategy": "Moved all import blocks to module level at the top of each file, maintaining proper Python structure",
+    "import_block_content": [
+      "try:",
+      "    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator",
+      "    from adaptive_mdap.core.types import SubProblem",
+      "    ADAPTIVE_MDAP_AVAILABLE = True",
+      "except ImportError:",
+      "    ADAPTIVE_MDAP_AVAILABLE = False",
+      "    TaskComplexityClassifier = None",
+      "    AdaptiveMDAPAllocator = None",
+      "    SubProblem = None"
+    ]
+  },
+  "verified": true,
+  "verification_method": "py_compile (Python built-in module)"
+}

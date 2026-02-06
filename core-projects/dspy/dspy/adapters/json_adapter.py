@@ -25,13 +25,6 @@ from dspy.utils.exceptions import AdapterParseError
 logger = logging.getLogger(__name__)
 
 
-def _has_open_ended_mapping(signature: SignatureMeta) -> bool:
-    """
-    Check whether any output field in the signature has an open-ended mapping type,
-    such as dict[str, Any]. Structured Outputs require explicit properties, so such fields
-    are incompatible.
-    """
-
 # **ACTUAL INTEGRATION**: Adaptive MDAP for Json Adapter
 try:
     from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
@@ -43,6 +36,13 @@ except ImportError:
     AdaptiveMDAPAllocator = None
     SubProblem = None
 
+
+def _has_open_ended_mapping(signature: SignatureMeta) -> bool:
+    """
+    Check whether any output field in the signature has an open-ended mapping type,
+    such as dict[str, Any]. Structured Outputs require explicit properties, so such fields
+    are incompatible.
+    """
     for field in signature.output_fields.values():
         annotation = field.annotation
         if get_origin(annotation) is dict:

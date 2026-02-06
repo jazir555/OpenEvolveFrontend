@@ -2,6 +2,17 @@ from typing import Any
 
 from pydantic.fields import FieldInfo
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Chain Of Thought
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 import dspy
 from dspy.primitives.module import Module
 from dspy.signatures.signature import Signature, ensure_signature
@@ -24,18 +35,6 @@ class ChainOfThought(Module):
             rationale_field_type (Type): The type of the rationale field.
             **config: The configuration for the module.
         """
-
-# **ACTUAL INTEGRATION**: Adaptive MDAP for Chain Of Thought
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    AdaptiveMDAPAllocator = None
-    SubProblem = None
-
         super().__init__()
         signature = ensure_signature(signature)
         prefix = "Reasoning: Let's think step by step in order to"

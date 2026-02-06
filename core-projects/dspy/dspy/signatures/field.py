@@ -1,3 +1,14 @@
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Field
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 import pydantic
 
 # The following arguments can be used in DSPy InputField and OutputField in addition
@@ -42,19 +53,6 @@ def move_kwargs(**kwargs):
 
 def _translate_pydantic_field_constraints(**kwargs):
     """Extracts Pydantic constraints and translates them into human-readable format."""
-
-# **ACTUAL INTEGRATION**: Adaptive MDAP for Field
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    AdaptiveMDAPAllocator = None
-    SubProblem = None
-
-
     constraints = []
     for key, value in kwargs.items():
         if key in PYDANTIC_CONSTRAINT_MAP:

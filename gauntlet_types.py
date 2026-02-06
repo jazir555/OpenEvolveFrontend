@@ -31,13 +31,11 @@ from openevolve_structures import GauntletDefinition, GauntletRoundRule
 # Integration imports with fallbacks
 try:
     from z3prover_integration import (
-        Z3ProverIntegration, Z3SolverResult, Z3ResultStatus,
-        DigitalTwinSandbox, SmartContractInvariantTranslator
+        Z3SolverResult, Z3ResultStatus
     )
     Z3_AVAILABLE = True
 except ImportError:
-    from z3prover_integration import Z3ProverIntegration, Z3SolverResult, Z3ResultStatus
-    Z3_AVAILABLE = True
+    Z3_AVAILABLE = False
 except Exception:
     Z3_AVAILABLE = False
 

@@ -1,18 +1,6 @@
 from dspy.evaluate import normalize_text
 from dspy.primitives.prediction import Completions, Prediction
 
-
-def default_normalize(s):
-    return normalize_text(s) or None
-
-
-def majority(prediction_or_completions, normalize=default_normalize, field=None):
-    """
-    Returns the most common completion for the target field (or the last field) in the signature.
-    When normalize returns None, that completion is ignored.
-    In case of a tie, earlier completion are prioritized.
-    """
-
 # **ACTUAL INTEGRATION**: Adaptive MDAP for Aggregation
 try:
     from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
@@ -25,6 +13,16 @@ except ImportError:
     SubProblem = None
 
 
+def default_normalize(s):
+    return normalize_text(s) or None
+
+
+def majority(prediction_or_completions, normalize=default_normalize, field=None):
+    """
+    Returns the most common completion for the target field (or the last field) in the signature.
+    When normalize returns None, that completion is ignored.
+    In case of a tie, earlier completion are prioritized.
+    """
     assert any(isinstance(prediction_or_completions, t) for t in [Prediction, Completions, list])
     type(prediction_or_completions)
 
