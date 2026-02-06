@@ -1513,6 +1513,9 @@ def get_web3_formal_tool_inventory() -> Dict[str, Any]:
         "tools": tools,
         "web3_formal_tools": tools,
         "formal_capabilities": formal_capabilities,
+        "audit_exploit_verification_available": bool(
+            formal_capabilities.get("composite_exploit_verification")
+        ),
     }
 
 

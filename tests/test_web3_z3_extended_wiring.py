@@ -97,6 +97,7 @@ def test_workflow_stage_web3_formal_status_schema(monkeypatch):
     status = z3_stage.get_web3_formal_status()
     assert "web3_formal_tools" in status
     assert "formal_capabilities" in status
+    assert "audit_exploit_verification_available" in status
     assert "z3_web3_audit_exploit_verification" in status["web3_formal_tools"]
 
 
@@ -120,6 +121,7 @@ def test_workflow_stage_web3_status_infers_available_when_flag_false(monkeypatch
     status = z3_stage.get_web3_formal_status()
     assert status["available"] is True
     assert status["web3_formal_available"] is True
+    assert status["audit_exploit_verification_available"] is True
 
 
 def test_workflow_stage_invariant_translate_does_not_require_witness(monkeypatch):
@@ -224,6 +226,7 @@ def test_z3_crewai_module_status_infers_available_when_flag_false(monkeypatch):
     status = z3_crewai.get_web3_formal_status()
     assert status["available"] is True
     assert status["web3_formal_available"] is True
+    assert status["audit_exploit_verification_available"] is True
 
 
 def test_z3_bubblelabs_ui_exposes_web3_node_types():
@@ -265,6 +268,7 @@ def test_z3_bubblelabs_ui_status_exposes_formal_capabilities(monkeypatch):
     assert "web3_formal_tools" in status
     assert "formal_capabilities" in status
     assert status["formal_capabilities"]["composite_exploit_verification"] is True
+    assert status["audit_exploit_verification_available"] is True
     assert "z3_web3_audit_exploit_verification" in status["web3_formal_tools"]
 
 

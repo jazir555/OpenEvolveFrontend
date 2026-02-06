@@ -21,6 +21,7 @@ def test_bridge_capabilities_include_web3_flags():
     bridge = z3_bridge.Z3LeanAideBridge(config={"use_cav_nlp": False})
     capabilities = bridge.get_capabilities()
     assert "web3_formal_available" in capabilities
+    assert "audit_exploit_verification_available" in capabilities
     assert "solidity_invariant_translation" in capabilities
     assert "invariant_translation_verification" in capabilities
     assert "smart_contract_exploit_witness" in capabilities

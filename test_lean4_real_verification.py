@@ -323,12 +323,12 @@ if __name__ == "__main__":
     print(f"Lean Required: {LEAN_REQUIRED}")
     
     if LEAN_AVAILABLE:
-        print("\n✓ Lean 4 detected - tests will run with real verification")
+        print("\n[OK] Lean 4 detected - tests will run with real verification")
         # Run pytest
         exit_code = pytest.main([__file__, "-v"])
         sys.exit(exit_code)
     else:
-        print("\n✗ Lean 4 not detected - tests will be skipped")
+        print("\n[INFO] Lean 4 not detected - tests will be skipped")
         print("\nTo run these tests:")
         print("  1. Install Lean 4: https://elan.readthedocs.io")
         print("  2. Set up mathlib4 project")

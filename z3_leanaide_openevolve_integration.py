@@ -249,6 +249,7 @@ class IntegrationStatus:
     bubblelabs_available: bool = False
     cav_nlp_available: bool = False
     web3_formal_available: bool = False
+    audit_exploit_verification_available: bool = False
     web3_formal_tools: List[str] = field(default_factory=list)
     formal_capabilities: Dict[str, bool] = field(default_factory=dict)
     ready: bool = False
@@ -534,6 +535,9 @@ class Z3LeanAideOpenEvolveIntegration:
             bubblelabs_available=BUBBLELABS_AVAILABLE and self.bubblelabs is not None,
             cav_nlp_available=CAV_NLP_AVAILABLE,
             web3_formal_available=inferred_formal_available or bool(WEB3_FORMAL_AVAILABLE),
+            audit_exploit_verification_available=bool(
+                formal_capabilities.get("composite_exploit_verification")
+            ),
             web3_formal_tools=web3_formal_tools,
             formal_capabilities=formal_capabilities,
             ready=self._check_ready(),

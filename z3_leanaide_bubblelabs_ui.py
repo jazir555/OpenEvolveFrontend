@@ -357,6 +357,9 @@ class Z3BubbleLabsUIManager:
             "web3_formal_available": bool(web3_formal_tools),
             "web3_formal_tools": web3_formal_tools,
             "formal_capabilities": formal_capabilities,
+            "audit_exploit_verification_available": bool(
+                formal_capabilities.get("composite_exploit_verification")
+            ),
             "z3_leanaide_available": Z3_LEANAIDE_AVAILABLE and self.z3_bridge is not None,
             "full_integration_available": FULL_INTEGRATION_AVAILABLE and self.full_integration is not None,
             "bubblelabs_leanaide_available": BUBBLELABS_LEANAIDE_AVAILABLE and self.leanaide_bridge is not None,

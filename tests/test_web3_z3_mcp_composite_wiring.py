@@ -10,6 +10,7 @@ def test_web3_inventory_includes_composite_exploit_verification_tool():
     assert "z3_web3_audit_exploit_verification" in inventory.get("tools", [])
     assert "z3_web3_audit_exploit_verification" in inventory.get("web3_formal_tools", [])
     assert "composite_exploit_verification" in inventory.get("formal_capabilities", {})
+    assert "audit_exploit_verification_available" in inventory
 
 
 def test_web3_inventory_infers_available_when_flag_false(monkeypatch):
@@ -31,6 +32,7 @@ def test_web3_inventory_infers_available_when_flag_false(monkeypatch):
     )
     inventory = z3_mcp_tools.get_web3_formal_tool_inventory()
     assert inventory["available"] is True
+    assert inventory["audit_exploit_verification_available"] is True
     assert {
         "z3_translate_solidity_invariant",
         "z3_solve_smart_contract_exploit_witness",

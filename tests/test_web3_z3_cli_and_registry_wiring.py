@@ -41,6 +41,7 @@ def test_z3_coordinator_status_exposes_web3_formal_schema():
     status = coordinator.get_status()
     assert "web3_formal_tools" in status
     assert "formal_capabilities" in status
+    assert "audit_exploit_verification_available" in status
     assert status["registered_agents"] >= 1
 
 
@@ -49,6 +50,7 @@ def test_z3_crewai_bridge_module_web3_formal_status_shape():
     assert "available" in status
     assert "web3_formal_tools" in status
     assert "formal_capabilities" in status
+    assert "audit_exploit_verification_available" in status
 
 
 def test_z3_coordinator_web3_problem_detection():

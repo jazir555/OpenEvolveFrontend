@@ -1123,6 +1123,9 @@ class Z3LeanAideBridge:
             "z3_available": Z3_AVAILABLE,
             "lean_available": LEAN4_AVAILABLE,
             "web3_formal_available": bool(web3_formal_tools),
+            "audit_exploit_verification_available": bool(
+                formal_capabilities.get("composite_exploit_verification")
+            ),
             "translation_z3_to_lean": True,
             "translation_lean_to_z3": Z3_AVAILABLE,
             "hybrid_verification": Z3_AVAILABLE and LEAN4_AVAILABLE,

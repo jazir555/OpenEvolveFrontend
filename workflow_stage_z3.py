@@ -89,6 +89,9 @@ def get_web3_formal_status() -> Dict[str, Any]:
         "web3_formal_available": inferred_formal_available or bool(WEB3_FORMAL_AVAILABLE),
         "web3_formal_tools": web3_formal_tools,
         "formal_capabilities": formal_capabilities,
+        "audit_exploit_verification_available": bool(
+            formal_capabilities.get("composite_exploit_verification")
+        ),
     }
 
 
