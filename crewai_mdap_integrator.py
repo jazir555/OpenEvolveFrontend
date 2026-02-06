@@ -30,6 +30,14 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 from enum import Enum
 from datetime import datetime
 
+# CAV-NLP imports
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 # CrewAI imports
 try:
     from crewai import Agent, Task, Crew, Process
@@ -471,6 +479,7 @@ class CrewAIMDAPIntegrator:
         self,
         config: MDAPConfig,
         workflow_id: Optional[str] = None,
+        use_cav_nlp: bool = True,
     ):
         """
         Initialize MDAP integrator.
@@ -478,6 +487,7 @@ class CrewAIMDAPIntegrator:
         Args:
             config: MDAP configuration
             workflow_id: Optional workflow identifier
+            use_cav_nlp: Enable CAV-NLP integration
         """
         self.config = config
         self.workflow_id = workflow_id or f"workflow_{uuid.uuid4().hex[:12]}"
@@ -489,7 +499,39 @@ class CrewAIMDAPIntegrator:
             ttl_seconds=config.cache_ttl_seconds or 3600
         )
 
+        # CAV-NLP integration
+        self.use_cav_nlp = use_cav_nlp and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            self.enhanced_solver = EnhancedZ3Solver()
+            self.math_service = UnifiedMathService()
+            logger.info("CAV-NLP integration enabled for CrewAIMDAPIntegrator")
+
         logger.info(f"CrewAIMDAPIntegrator initialized for workflow {self.workflow_id}")
+
+    def integrate_with_cav_nlp(self, crewai_result, mdap_result):
+        """Integrate CrewAI and MDAP results using CAV-NLP."""
+        if self.use_cav_nlp:
+            # Formalize both results
+            crewai_formal = self.math_service.formalize(str(crewai_result))
+            mdap_formal = self.math_service.formalize(str(mdap_result))
+            # Verify consistency
+            return self.verify_consistency(crewai_formal.code, mdap_formal.code)
+        return {"verified": False, "reason": "CAV-NLP not available"}
+
+    def verify_consistency(self, code1: str, code2: str) -> Dict[str, Any]:
+        """Verify consistency between two formalized codes."""
+        if not self.use_cav_nlp:
+            return {"consistent": False, "reason": "CAV-NLP not available"}
+        try:
+            result = self.enhanced_solver.verify_with_lean(f"{code1} == {code2}")
+            return {
+                "consistent": result.get("verified", False),
+                "confidence": result.get("confidence", 0.0),
+                "method": "lean_verification"
+            }
+        except Exception as e:
+            logger.warning(f"CAV-NLP consistency check failed: {e}")
+            return {"consistent": False, "error": str(e)}
 
     def execute_step(
         self,

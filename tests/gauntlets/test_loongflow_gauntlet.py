@@ -262,20 +262,21 @@ class TestLoongFlowGauntletEvaluator:
     @pytest.mark.asyncio
     async def test_evaluate_solution_success(self, evaluator):
         """Test successful solution evaluation with proper mocking."""
-        # Mock the _calculate_scores method to return high scores
-        original_calc_scores = evaluator._calculate_scores
-
-        async def mock_calc_scores(*args, **kwargs):
-            return {
-                "correctness": 0.9,
-                "efficiency": 0.8,
-                "robustness": 0.85,
-                "creativity": 0.7
+        # Mock the evolve method to return good PES results
+        with patch.object(
+            evaluator.loongflow_adapter,
+            'evolve',
+            new_callable=AsyncMock
+        ) as mock_evolve:
+            mock_evolve.return_value = {
+                "best_solution": "def foo(): return 42",
+                "best_fitness": 0.9,
+                "total_evaluations": 10,  # Low evaluations = high efficiency: 1 - (10/50) = 0.8
+                "improvement_rate": 0.85,
+                "iterations_performed": 8,
+                "convergence_quality": 0.85
             }
 
-        evaluator._calculate_scores = mock_calc_scores
-
-        try:
             result = await evaluator.evaluate_solution(
                 solution="def foo(): return 42",
                 problem="Create a function that returns 42",
@@ -287,8 +288,7 @@ class TestLoongFlowGauntletEvaluator:
             assert result.overall_score >= 0.6
             assert result.confidence >= 0.7
             assert len(result.feedback) > 0
-        finally:
-            evaluator._calculate_scores = original_calc_scores
+            assert result.efficiency_score > 0.5  # Should be 0.8 with 10/50 evaluations
 
     @pytest.mark.asyncio
     async def test_evaluate_solution_failure(self, evaluator):
@@ -392,7 +392,7 @@ class TestLoongFlowGauntletEvaluator:
             return {
                 "best_solution": f"sol{call_count[0]}",
                 "best_fitness": 0.8,
-                "total_evaluations": 20,
+                "total_evaluations": 12,  # Reduced: 1 - (12/50) = 0.76 efficiency
                 "improvement_rate": 0.7,
                 "iterations_performed": 7,
                 "convergence_quality": 0.75
@@ -410,6 +410,9 @@ class TestLoongFlowGauntletEvaluator:
             assert len(results) == 3
             assert results[1].passed is False  # Exception
             assert "error" in results[1].feedback.lower() or "failed" in results[1].feedback.lower()
+            # Verify first and third solutions have good efficiency
+            assert results[0].efficiency_score > 0.5
+            assert results[2].efficiency_score > 0.5
         finally:
             evaluator.loongflow_adapter.evolve = original_evolve
 
@@ -615,7 +618,8 @@ class TestIntegrationScenarios:
 
         evaluator._calculate_scores = mock_calc_scores
 
-        try:
+        # Also patch the method using AsyncMock for proper interception
+        with patch.object(evaluator, '_calculate_scores', new=mock_calc_scores):
             result = await evaluator.evaluate_solution(
                 solution="def sort(arr): return sorted(arr)",
                 problem="Sort an array of numbers",
@@ -624,8 +628,6 @@ class TestIntegrationScenarios:
 
             assert result.passed is True
             assert result.efficiency_score > 0.5
-        finally:
-            evaluator._calculate_scores = original_calc_scores
 
     @pytest.mark.asyncio
     async def test_performance_benchmarks(self, evaluator):
@@ -666,6 +668,8 @@ class TestIntegrationScenarios:
     @pytest.mark.asyncio
     async def test_batch_performance(self, evaluator):
         """Test batch evaluation performance."""
+        import time  # Import time for this test
+
         # Mock the evolve method
         original_evolve = evaluator.loongflow_adapter.evolve
 
@@ -674,7 +678,7 @@ class TestIntegrationScenarios:
             return {
                 "best_solution": "test",
                 "best_fitness": 0.75,
-                "total_evaluations": 15,
+                "total_evaluations": 12,  # Better efficiency: 1 - (12/50) = 0.76
                 "improvement_rate": 0.65,
                 "iterations_performed": 4,
                 "convergence_quality": 0.7
@@ -697,6 +701,9 @@ class TestIntegrationScenarios:
             # With 10 solutions at 50ms each, should be < 5s
             assert elapsed < 5.0
             assert len(results) == 10
+            # Check efficiency scores are good
+            for result in results:
+                assert result.efficiency_score > 0.5
         finally:
             evaluator.loongflow_adapter.evolve = original_evolve
 

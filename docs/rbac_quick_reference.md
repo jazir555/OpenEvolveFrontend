@@ -11,11 +11,11 @@ cp rbac_enhanced_tests.py /path/to/project/
 ## 30-Second Setup
 
 ```python
-from rbac_enhanced import create_rbac_system, StreamlitRBAC, Permission
+from rbac_enhanced import create_rbac_system, UIRBAC, Permission
 
 # Initialize
 rbac = create_rbac_system(use_database=True)
-st_rbac = StreamlitRBAC(rbac)
+st_rbac = UIRBAC(rbac)
 
 # Create admin user (run once)
 admin = rbac.create_user("admin", "admin@example.com", "secure_password", roles=["admin"])
@@ -25,11 +25,11 @@ admin = rbac.create_user("admin", "admin@example.com", "secure_password", roles=
 
 ```python
 import BubbleLab UI as st
-from rbac_enhanced import create_rbac_system, StreamlitRBAC, Permission
+from rbac_enhanced import create_rbac_system, UIRBAC, Permission
 
 # Initialize
 rbac = create_rbac_system()
-st_rbac = StreamlitRBAC(rbac)
+st_rbac = UIRBAC(rbac)
 
 # Main app
 def main():
@@ -336,7 +336,7 @@ for role_name in user.role_names:
 ```python
 # Old: import from rbac
 # New: import from rbac_enhanced
-from rbac_enhanced import create_rbac_system, StreamlitRBAC
+from rbac_enhanced import create_rbac_system, UIRBAC
 ```
 
 ### Step 2: Initialize Storage
@@ -389,4 +389,5 @@ Part of the OpenEvolve project.
 **Version:** 2.0.0
 **Status:** Production Ready
 **Tests:** 39/39 Passing ✅
+
 

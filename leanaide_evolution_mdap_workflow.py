@@ -13,6 +13,7 @@ Key Features:
 - Configuration integration with WorkflowState
 - Fallback strategies and error handling
 - Integration with LeanAide, CrewAI, Knowledge Engine, and ACE
+- CAV-NLP enhanced formalization support
 
 Author: OpenEvolve
 Created: 2025-12-30
@@ -32,6 +33,14 @@ from typing import (
 )
 import threading
 from concurrent.futures import ThreadPoolExecutor
+
+# CAV-NLP Integration
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logging.getLogger(__name__).debug("CAV-NLP not available for evolution workflow")
 
 # Configure logging
 logger = logging.getLogger(__name__)

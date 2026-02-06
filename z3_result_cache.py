@@ -29,6 +29,18 @@ from enum import Enum
 logger = logging.getLogger(__name__)
 
 # =============================================================================
+# CAV-NLP Integration
+# =============================================================================
+
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logger.debug("CAV-NLP integration not available for Z3 result cache")
+
+# =============================================================================
 # Valkey Import with Graceful Fallback
 # =============================================================================
 
@@ -541,6 +553,13 @@ class Z3ResultCache:
         self._valkey_backend: Optional[ValkeyCacheBackend] = None
         self._use_valkey = False
         
+        # CAV-NLP integration
+        self.use_cav_nlp = getattr(self.config, 'use_cav_nlp', True) and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            self.enhanced_solver = EnhancedZ3Solver()
+            self.math_service = UnifiedMathService()
+            logger.info("CAV-NLP integration enabled for Z3 result cache")
+        
         # Initialize Valkey if configured and available
         if self.config.distributed and self.config.valkey_host:
             self._valkey_backend = ValkeyCacheBackend(self.config)
@@ -984,6 +1003,71 @@ class Z3ResultCache:
                 except Exception as e:
                     logger.error(f"Failed to clear database: {e}")
 
+    def cache_cav_nlp_formalization(
+        self,
+        problem_text: str,
+        formalization_result: Dict[str, Any],
+        ttl: Optional[float] = None
+    ) -> bool:
+        """
+        Cache a CAV-NLP formalization result.
+        
+        Args:
+            problem_text: Original problem text
+            formalization_result: CAV-NLP formalization output
+            ttl: Optional custom TTL
+            
+        Returns:
+            True if cached successfully
+        """
+        params = {
+            'type': 'cav_nlp_formalization',
+            'problem_hash': hashlib.sha256(problem_text.encode()).hexdigest()[:16],
+            'problem_preview': problem_text[:100]
+        }
+        
+        self.set(
+            operation='cav_nlp_formalize',
+            params=params,
+            value=formalization_result,
+            ttl=ttl or 7200,  # 2 hour default for formalizations
+            tags=['cav_nlp', 'formalization', 'z3']
+        )
+        
+        logger.debug(f"Cached CAV-NLP formalization for problem: {params['problem_preview']}...")
+        return True
+    
+    def get_cav_nlp_formalization(
+        self,
+        problem_text: str
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Retrieve cached CAV-NLP formalization.
+        
+        Args:
+            problem_text: Problem text to look up
+            
+        Returns:
+            Cached formalization or None
+        """
+        params = {
+            'type': 'cav_nlp_formalization',
+            'problem_hash': hashlib.sha256(problem_text.encode()).hexdigest()[:16],
+            'problem_preview': problem_text[:100]
+        }
+        
+        hit, value = self.get('cav_nlp_formalize', params)
+        
+        if hit:
+            logger.debug(f"CAV-NLP formalization cache hit for problem: {params['problem_preview']}...")
+            return value
+        
+        return None
+    
+    def invalidate_cav_nlp_cache(self) -> int:
+        """Invalidate all CAV-NLP related cache entries."""
+        return self.invalidate(tags=['cav_nlp'])
+    
     def __del__(self):
         """Close database and Redis connections."""
         if hasattr(self, '_db_conn') and self._db_conn:

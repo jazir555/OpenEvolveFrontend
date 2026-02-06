@@ -8,10 +8,28 @@ Achieves 100% BubbleLabs integration.
 """
 
 import json
+import logging
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass, asdict
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
+
+# =============================================================================
+# CAV-NLP INTEGRATION (with graceful fallback)
+# =============================================================================
+
+try:
+    from z3_cav_nlp_integration import EnhancedZ3Solver
+    from unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+    logger.debug("[OK] CAV-NLP integration available in BubbleLabs Node Completion")
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    EnhancedZ3Solver = None
+    UnifiedMathService = None
+    logger.debug("[INFO] CAV-NLP integration not available - z3_cav_nlp_integration not found")
 
 
 @dataclass
@@ -50,6 +68,7 @@ class BubbleLabsNodeCompletion:
     - ROMA nodes
     - Integration nodes
     - Complete workflows
+    - CAV-NLP enhanced Z3 nodes (constraint formalization from natural language)
     """
     
     def __init__(self, output_dir: str = "bubblelabs_nodes"):
@@ -57,6 +76,17 @@ class BubbleLabsNodeCompletion:
         self.output_dir.mkdir(exist_ok=True)
         self.nodes: List[BubbleNode] = []
         self.workflows: List[BubbleWorkflow] = []
+        
+        # Initialize CAV-NLP integration for Z3 nodes
+        self._cav_nlp_solver: Optional[Any] = None
+        self._math_service: Optional[Any] = None
+        if CAV_NLP_AVAILABLE:
+            try:
+                self._cav_nlp_solver = EnhancedZ3Solver()
+                self._math_service = UnifiedMathService()
+                logger.info("[OK] CAV-NLP solver initialized for BubbleLabs nodes")
+            except Exception as e:
+                logger.warning(f"[WARN] Failed to initialize CAV-NLP solver: {e}")
     
     def create_openevolve_nodes(self):
         """Create OpenEvolve integration nodes."""
@@ -237,6 +267,158 @@ class BubbleLabsNodeCompletion:
         self.nodes.extend(nodes)
         return nodes
     
+    def create_cav_nlp_nodes(self):
+        """Create CAV-NLP enhanced Z3 nodes for natural language constraint formalization."""
+        if not CAV_NLP_AVAILABLE:
+            logger.debug("CAV-NLP not available, skipping CAV-NLP node creation")
+            return []
+        
+        nodes = [
+            BubbleNode(
+                node_id="cav-nlp-formalize",
+                node_type="cav_nlp",
+                category="CAV-NLP",
+                name="Formalize Constraint (NLP)",
+                description="Convert natural language constraint to formal Z3 specification using CAV-NLP",
+                inputs=[
+                    {"name": "nl_constraint", "type": "string", "required": True, "description": "Natural language constraint description"},
+                    {"name": "context", "type": "object", "required": False, "description": "Optional context for formalization"}
+                ],
+                outputs=[
+                    {"name": "formalized_constraint", "type": "string", "description": "Formal Z3 constraint expression"},
+                    {"name": "confidence", "type": "number", "description": "Formalization confidence score"},
+                    {"name": "variables", "type": "array", "description": "Extracted variable names"}
+                ],
+                parameters=[
+                    {"name": "verification_mode", "type": "string", "default": "strict", "description": "Verification strictness level"}
+                ],
+                icon="🧠",
+                color="#9b59b6"
+            ),
+            BubbleNode(
+                node_id="cav-nlp-verify",
+                node_type="cav_nlp",
+                category="CAV-NLP",
+                name="Hybrid Verify",
+                description="Verify constraint using hybrid NLP + Z3 approach",
+                inputs=[
+                    {"name": "constraint", "type": "string", "required": True, "description": "Constraint to verify (NL or formal)"},
+                    {"name": "context", "type": "object", "required": False, "description": "Verification context"}
+                ],
+                outputs=[
+                    {"name": "verification_result", "type": "object", "description": "Verification outcome with details"},
+                    {"name": "is_valid", "type": "boolean", "description": "Whether constraint is valid"},
+                    {"name": "counterexample", "type": "object", "description": "Counterexample if invalid"}
+                ],
+                parameters=[
+                    {"name": "timeout", "type": "number", "default": 30, "description": "Verification timeout in seconds"}
+                ],
+                icon="✓",
+                color="#2ecc71"
+            ),
+            BubbleNode(
+                node_id="cav-nlp-export-lean",
+                node_type="cav_nlp",
+                category="CAV-NLP",
+                name="Export to Lean",
+                description="Export formalized constraint to Lean 4 proof format",
+                inputs=[
+                    {"name": "constraint", "type": "string", "required": True, "description": "Constraint to export"},
+                    {"name": "proof_name", "type": "string", "required": False, "description": "Name for the proof"}
+                ],
+                outputs=[
+                    {"name": "lean_code", "type": "string", "description": "Generated Lean 4 code"},
+                    {"name": "formalized", "type": "string", "description": "Formal constraint expression"}
+                ],
+                parameters=[
+                    {"name": "include_tactics", "type": "boolean", "default": True, "description": "Include proof tactics"}
+                ],
+                icon="📐",
+                color="#1abc9c"
+            ),
+        ]
+        self.nodes.extend(nodes)
+        logger.info(f"[OK] Created {len(nodes)} CAV-NLP enhanced nodes")
+        return nodes
+    
+    def formalize_constraint(self, nl_constraint: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Formalize a natural language constraint using CAV-NLP.
+        
+        Args:
+            nl_constraint: Natural language constraint description
+            context: Optional context for formalization
+            
+        Returns:
+            Dictionary with formalized constraint, confidence, and metadata
+        """
+        if not CAV_NLP_AVAILABLE or not self._cav_nlp_solver:
+            return {
+                "success": False,
+                "error": "CAV-NLP not available",
+                "formalized_constraint": None,
+                "confidence": 0.0
+            }
+        
+        try:
+            formalized = self._cav_nlp_solver.formalize_constraint(nl_constraint)
+            return {
+                "success": True,
+                "formalized_constraint": formalized,
+                "original": nl_constraint,
+                "confidence": getattr(self._cav_nlp_solver, 'last_confidence', 0.8),
+                "method": "cav_nlp"
+            }
+        except Exception as e:
+            logger.error(f"CAV-NLP formalization failed: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "formalized_constraint": None,
+                "confidence": 0.0
+            }
+    
+    def hybrid_verify(self, constraint: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Perform hybrid verification using CAV-NLP + Z3.
+        
+        Args:
+            constraint: Constraint to verify (natural language or formal)
+            context: Optional verification context
+            
+        Returns:
+            Dictionary with verification results
+        """
+        if not CAV_NLP_AVAILABLE or not self._cav_nlp_solver:
+            return {
+                "success": False,
+                "error": "CAV-NLP not available",
+                "is_valid": False
+            }
+        
+        try:
+            # Formalize if needed
+            formalized = self._cav_nlp_solver.formalize_constraint(constraint)
+            
+            # Perform verification
+            result = self._cav_nlp_solver.verify_constraint(formalized, context or {})
+            
+            return {
+                "success": True,
+                "is_valid": result.get("valid", False),
+                "constraint": constraint,
+                "formalized": formalized,
+                "verification": result,
+                "method": "hybrid_cav_nlp"
+            }
+        except Exception as e:
+            logger.error(f"CAV-NLP hybrid verification failed: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "is_valid": False
+            }
+    
     def create_integration_nodes(self):
         """Create cross-system integration nodes."""
         nodes = [
@@ -416,6 +598,13 @@ class BubbleLabsNodeCompletion:
         
         self.create_z3_nodes()
         print(f"  [OK] Created {2} Z3 Prover nodes")
+        
+        # Create CAV-NLP nodes if available
+        cav_nlp_nodes = self.create_cav_nlp_nodes()
+        if cav_nlp_nodes:
+            print(f"  [OK] Created {len(cav_nlp_nodes)} CAV-NLP enhanced nodes")
+        else:
+            print(f"  [INFO] CAV-NLP not available, skipping CAV-NLP nodes")
         
         self.create_integration_nodes()
         print(f"  [OK] Created {2} Integration nodes")

@@ -134,11 +134,11 @@ if rbac.has_permission(user, Permission.MANAGE_USERS):
 
 ```python
 import BubbleLab UI as st
-from rbac_enhanced import create_rbac_system, StreamlitRBAC
+from rbac_enhanced import create_rbac_system, UIRBAC
 
 # Create RBAC system
 rbac = create_rbac_system()
-st_rbac = StreamlitRBAC(rbac)
+st_rbac = UIRBAC(rbac)
 
 # Get current user or show login
 user = st_rbac.get_current_user()
@@ -343,9 +343,9 @@ except AuthorizationError:
 ### BubbleLab UI Permission Checks
 
 ```python
-from rbac_enhanced import StreamlitRBAC, Permission
+from rbac_enhanced import UIRBAC, Permission
 
-st_rbac = StreamlitRBAC(rbac)
+st_rbac = UIRBAC(rbac)
 
 # Method 1: Using permission_check
 if st_rbac.permission_check(Permission.MANAGE_USERS):
@@ -365,14 +365,14 @@ def render_admin_panel():
 
 ```python
 import BubbleLab UI as st
-from rbac_enhanced import create_rbac_system, StreamlitRBAC, Permission
+from rbac_enhanced import create_rbac_system, UIRBAC, Permission
 
 # Page config
 st.set_page_config(page_title="My App", page_icon="🔒")
 
 # Initialize RBAC
 rbac = create_rbac_system(use_database=True)
-st_rbac = StreamlitRBAC(rbac)
+st_rbac = UIRBAC(rbac)
 
 # Main app
 def main():
@@ -503,7 +503,7 @@ Generate an API key for a user.
 
 **Returns:** `str` API key or `None`
 
-### StreamlitRBAC Class
+### UIRBAC Class
 
 #### Methods
 
@@ -547,12 +547,12 @@ Render the complete RBAC management UI.
 ### Example 1: Basic Web App Protection
 
 ```python
-from rbac_enhanced import create_rbac_system, StreamlitRBAC, Permission
+from rbac_enhanced import create_rbac_system, UIRBAC, Permission
 import BubbleLab UI as st
 
 # Initialize
 rbac = create_rbac_system()
-st_rbac = StreamlitRBAC(rbac)
+st_rbac = UIRBAC(rbac)
 
 # Protect page
 user = st_rbac.get_current_user()
@@ -710,11 +710,11 @@ def has_permission(username: str, permission: str) -> bool:
 
 ```python
 # New rbac_enhanced.py
-from rbac_enhanced import create_rbac_system, StreamlitRBAC, Permission
+from rbac_enhanced import create_rbac_system, UIRBAC, Permission
 
 # Initialize with persistent storage
 rbac = create_rbac_system(use_database=True)
-st_rbac = StreamlitRBAC(rbac)
+st_rbac = UIRBAC(rbac)
 
 # Get current user
 user = st_rbac.get_current_user()
@@ -816,4 +816,5 @@ For issues, questions, or contributions, please refer to the main OpenEvolve doc
 - BubbleLab UI session state storage
 - Basic role/permission checking
 - Simple user management
+
 

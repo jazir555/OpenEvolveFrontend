@@ -97,6 +97,14 @@ try:
 except ImportError:
     Z3_PYTHON_BINDINGS = False
 
+# CAV-NLP Integration
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -142,6 +150,19 @@ class BaseGauntlet(ABC):
         self.config = config or {}
         self.logger = logging.getLogger(f"{__name__}.{name}")
         self.execution_history: List[GauntletResult] = []
+        
+        # CAV-NLP integration
+        self.use_cav_nlp = config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        self.enhanced_solver = None
+        self.math_service = None
+        if self.use_cav_nlp:
+            try:
+                self.enhanced_solver = EnhancedZ3Solver()
+                self.math_service = UnifiedMathService()
+                self.logger.info(f"CAV-NLP initialized for {name}")
+            except Exception as e:
+                self.logger.warning(f"Failed to initialize CAV-NLP for {name}: {e}")
+                self.use_cav_nlp = False
     
     @abstractmethod
     def execute(self, solution: Any, context: Dict[str, Any]) -> GauntletResult:
@@ -175,6 +196,28 @@ class BaseGauntlet(ABC):
         )
         self.execution_history.append(result)
         return result
+    
+    def validate_type_with_cav_nlp(self, value, type_def):
+        """Validate gauntlet type using CAV-NLP.
+        
+        Args:
+            value: Value to validate
+            type_def: Type definition string
+            
+        Returns:
+            bool: True if validation passes with confidence > 0.8
+        """
+        if self.use_cav_nlp and self.enhanced_solver:
+            try:
+                # Use CAV-NLP for enhanced type validation
+                constraint = self.enhanced_solver.formalize_constraint(f"{value} is {type_def}")
+                result = self.enhanced_solver.verify_with_lean(constraint)
+                return hasattr(result, 'confidence') and result.confidence > 0.8
+            except Exception as e:
+                self.logger.warning(f"CAV-NLP type validation failed: {e}")
+        
+        # Fallback to simple type checking
+        return isinstance(value, (int, float, str, bool, list, dict))
 
 
 class AdversarialGauntlet(BaseGauntlet):

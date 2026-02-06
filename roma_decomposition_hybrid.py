@@ -28,6 +28,14 @@ import re
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 
+# CAV-NLP imports
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 from utils.entanglement_utils import (
     build_symbolic_entanglement_matrix,
     normalize_entanglement_matrix,
@@ -132,12 +140,13 @@ class ROMADecompositionHybrid:
     Decomposition Workflow's team-based quality assurance.
     """
 
-    def __init__(self, config: Optional[HybridConfig] = None):
+    def __init__(self, config: Optional[HybridConfig] = None, use_cav_nlp: bool = True):
         """
         Initialize the hybrid executor.
 
         Args:
             config: Hybrid configuration (uses defaults if None)
+            use_cav_nlp: Enable CAV-NLP integration
         """
         self.config = config or HybridConfig()
 
@@ -168,6 +177,50 @@ class ROMADecompositionHybrid:
                 logger.info("ROMA solver initialized for hybrid mode")
             except (RuntimeError, ImportError, ValueError) as e:
                 logger.error(f"Failed to initialize ROMA solver: {e}")
+
+        # CAV-NLP integration
+        self.use_cav_nlp = use_cav_nlp and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            self.enhanced_solver = EnhancedZ3Solver()
+            self.math_service = UnifiedMathService()
+            logger.info("CAV-NLP integration enabled for ROMADecompositionHybrid")
+
+    def execute_hybrid_with_cav_nlp(self, problem):
+        """Execute hybrid decomposition with CAV-NLP enhancement."""
+        if self.use_cav_nlp:
+            formalized = self.math_service.formalize(problem)
+            # Use formalized problem for decomposition
+            return self.decompose(formalized.code)
+        return {"decomposed": False, "reason": "CAV-NLP not available"}
+
+    def decompose(self, problem_text: str) -> Dict[str, Any]:
+        """Decompose a problem using ROMA with optional CAV-NLP enhancement."""
+        # This method can be called from execute_hybrid_with_cav_nlp
+        if ROMA_MCP_AVAILABLE:
+            return solve_with_roma(
+                task=f"Decompose this problem into sub-problems:\n\n{problem_text}",
+                max_depth=self.config.roma_max_depth_analysis if self.config else 3,
+                execution_mode=self.config.roma_execution_mode if self.config else "recursive",
+                provider=self.config.roma_provider if self.config else None,
+            )
+        return {"error": "ROMA MCP tools not available", "decomposition": None}
+
+    def verify_problem_with_cav_nlp(self, problem_statement: str) -> Dict[str, Any]:
+        """Verify a problem statement using CAV-NLP."""
+        if not self.use_cav_nlp:
+            return {"verified": False, "reason": "CAV-NLP not available"}
+        try:
+            formalized = self.math_service.formalize(problem_statement)
+            result = self.enhanced_solver.verify_with_lean(formalized.code)
+            return {
+                "verified": result.get("verified", False),
+                "confidence": result.get("confidence", 0.0),
+                "formalized_code": formalized.code,
+                "method": "lean_verification"
+            }
+        except Exception as e:
+            logger.warning(f"CAV-NLP verification failed: {e}")
+            return {"verified": False, "error": str(e)}
 
     @staticmethod
     def _tokenize_symbols(text: str) -> List[str]:

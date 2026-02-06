@@ -323,7 +323,7 @@ The OpenEvolve Platform consists of **9 major architectural layers**:
 class PresentationLayer:
     def __init__(self):
         self.bubblelabs = BubbleLabsAdapter()
-        self.BubbleLab UI = StreamlitUI()
+        self.BubbleLab UI = BubbleLabUI()
         self.claudiomiro = ClaudiomiroAgent()
         self.datapizza = DataPizzaCoordinator()
 
@@ -1325,4 +1325,5 @@ Traffic Switch
 **Maintained By:** OpenEvolve Architecture Team
 
 For implementation details, see individual integration guides and the master integration registry in `MASTER_INTEGRATIONS_GUIDE.md`.
+
 

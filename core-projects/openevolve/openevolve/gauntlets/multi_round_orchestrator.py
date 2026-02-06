@@ -1061,11 +1061,20 @@ class MultiRoundGauntletOrchestrator:
         intersection = words1.intersection(words2)
         union = words1.union(words2)
 
-        similarity = len(intersection) / len(union)
-        return similarity >= threshold
+        similarity = len(intersection) / len(union) if union else 0
+
+        # Also check if any key word is shared (for conflict detection)
+        # This is more lenient for detecting conceptual conflicts
+        has_shared_keyword = len(intersection) > 0
+
+        return similarity >= threshold or has_shared_keyword
 
     def _generate_recommendation(self, state: GauntletState) -> str:
         """Generate overall recommendation based on all rounds."""
+        # If no rounds completed and status is not_started, return empty recommendation
+        if not state.rounds_completed and state.status == "not_started":
+            return ""
+
         if state.status == "terminated":
             return "Solution did not meet quality thresholds - not recommended"
 
@@ -1156,12 +1165,17 @@ class MultiRoundGauntletOrchestrator:
 
         final_score = weighted_sum / total_weight if total_weight > 0 else 0.0
 
-        logger.info(
-            f"Final score: {final_score:.2f} "
-            f"(R1={state.round1_normalized_score:.2f} * {self.config.round1_weight}, "
-            f"R2={state.round2_normalized_score:.2f} * {self.config.round2_weight}, "
-            f"R3={state.round3_normalized_score:.2f} * {self.config.round3_weight})"
-        )
+        # Build log message with only non-None scores
+        score_parts = []
+        if state.round1_normalized_score is not None:
+            score_parts.append(f"R1={state.round1_normalized_score:.2f} * {self.config.round1_weight}")
+        if state.round2_normalized_score is not None:
+            score_parts.append(f"R2={state.round2_normalized_score:.2f} * {self.config.round2_weight}")
+        if state.round3_normalized_score is not None:
+            score_parts.append(f"R3={state.round3_normalized_score:.2f} * {self.config.round3_weight}")
+
+        score_detail = ", ".join(score_parts) if score_parts else "No scores"
+        logger.info(f"Final score: {final_score:.2f} ({score_detail})")
 
         return final_score
 

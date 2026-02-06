@@ -26,6 +26,14 @@ Key Features:
 import logging
 from typing import Dict, Any, List, Optional, Union
 
+# CAV-NLP imports
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 # Try to import ROMA components
@@ -46,6 +54,17 @@ except ImportError as e:
     TaskNode = None
     ROMAConfig = None
     TaskDAG = None
+
+# CAV-NLP initialization
+_cav_nlp_solver = None
+_math_service = None
+if CAV_NLP_AVAILABLE:
+    try:
+        _cav_nlp_solver = EnhancedZ3Solver()
+        _math_service = UnifiedMathService()
+        logger.info("CAV-NLP initialized for ROMA MCP tools")
+    except Exception as e:
+        logger.warning(f"Failed to initialize CAV-NLP: {e}")
 
 # =============================================================================
 # MCP TOOL REGISTRY

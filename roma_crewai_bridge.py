@@ -26,6 +26,14 @@ import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
+# CAV-NLP imports
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 # **ACTUAL INTEGRATION**: Verification, knowledge, and alerting for ROMA
 try:
     from verification_engine import VerificationEngine
@@ -60,6 +68,33 @@ from crewai_state_management import (
 )
 
 logger = logging.getLogger(__name__)
+
+# CAV-NLP configuration (module-level)
+_use_cav_nlp = CAV_NLP_AVAILABLE
+_enhanced_solver = None
+_math_service = None
+
+def _get_cav_nlp():
+    """Get or initialize CAV-NLP components."""
+    global _enhanced_solver, _math_service
+    if _use_cav_nlp and _enhanced_solver is None:
+        _enhanced_solver = EnhancedZ3Solver()
+        _math_service = UnifiedMathService()
+        logger.info("CAV-NLP initialized for ROMA-CrewAI bridge")
+    return _enhanced_solver, _math_service
+
+
+def bridge_with_cav_nlp(roma_task: Any, crewai_task: Any) -> bool:
+    """Bridge ROMA and CrewAI using CAV-NLP formalization."""
+    if _use_cav_nlp:
+        enhanced_solver, math_service = _get_cav_nlp()
+        # Formalize both tasks
+        roma_formal = math_service.formalize(str(roma_task))
+        crewai_formal = math_service.formalize(str(crewai_task))
+        # Verify equivalence
+        result = enhanced_solver.verify_equivalence(roma_formal.code, crewai_formal.code)
+        return result.agreed if hasattr(result, 'agreed') else False
+    return False
 
 
 # =============================================================================

@@ -25,6 +25,14 @@ from typing import Dict, Any, List, Optional, Union
 from datetime import datetime
 from enum import Enum
 
+# CAV-NLP imports
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 # CrewAI imports
 try:
     from crewai import Flow, start, listen, router
@@ -218,6 +226,13 @@ class CrewAIUnifiedFlow:
             self.state_manager = StateManager(state_storage_dir)
         else:
             self.state_manager = None
+
+        # CAV-NLP integration
+        self.use_cav_nlp = CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            self.enhanced_solver = EnhancedZ3Solver()
+            self.math_service = UnifiedMathService()
+            logger.info("CAV-NLP integration enabled for CrewAIUnifiedFlow")
 
         logger.info(f"CrewAIUnifiedFlow initialized with default_method={default_execution_method}")
 

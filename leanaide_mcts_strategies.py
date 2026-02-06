@@ -11,6 +11,7 @@ Features:
 - Expansion strategies: Standard, Progressive Widening, Tree Policy
 - Backpropagation strategies: Standard, AMAF/RAVE
 - Domain-specific strategies: Induction, Algebraic, Logical
+- CAV-NLP enhanced strategy selection
 - Strategy factory for composition
 - Performance tracking and analytics
 
@@ -30,6 +31,14 @@ import math
 import logging
 import time
 from collections import defaultdict
+
+# CAV-NLP Integration
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logging.getLogger(__name__).debug("CAV-NLP not available for MCTS strategies")
 
 # Import base strategy library
 try:

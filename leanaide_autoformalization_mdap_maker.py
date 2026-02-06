@@ -11,6 +11,7 @@ This module provides:
 - Proof sketch -> formal proof via MDAP
 - Multi-round verification with red-flagging
 - Automated error correction and iteration
+- CAV-NLP enhanced formalization
 
 Author: OpenEvolve
 Version: 1.0.0 - Complete Implementation
@@ -28,6 +29,14 @@ from enum import Enum, auto
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, Set
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+
+# CAV-NLP Integration
+try:
+    from openevolve.unified_math_service import UnifiedMathService, FormalizationResult
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logging.getLogger(__name__).debug("CAV-NLP not available for autoformalization")
 
 # Import LeanAide components
 try:

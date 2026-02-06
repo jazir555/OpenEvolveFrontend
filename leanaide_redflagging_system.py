@@ -5,12 +5,14 @@ Comprehensive red-flagging system for quality control in:
     - MCTS (Monte Carlo Tree Search) for intelligent tree search
     - MDAP (Multi-Agent Pipeline) for multi-agent voting
     - MAKER (Multi-Agent Knowledge Enhanced Reasoning) for tactic voting
+    - CAV-NLP enhanced formalization and verification
 
 Features:
     - Multi-level quality assessment
     - Confidence-based flagging
     - Pattern-based detection
     - Performance-based flagging
+    - CAV-NLP enhanced quality checks
     - Adaptive threshold adjustment
     - Comprehensive analysis and reporting
 
@@ -35,6 +37,14 @@ from typing import (
     Any, Callable, Dict, List, Optional, Set, Tuple, Union
 )
 from pathlib import Path
+
+# CAV-NLP Integration
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logging.getLogger(__name__).debug("CAV-NLP not available for redflagging system")
 
 
 logger = logging.getLogger(__name__)

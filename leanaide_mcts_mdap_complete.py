@@ -5,6 +5,7 @@ Comprehensive integration of:
     - MCTS (Monte Carlo Tree Search) for intelligent tree search
     - MDAP (Multi-Agent Pipeline) for multi-agent voting
     - MAKER (Multi-Agent Knowledge Enhanced Reasoning) for tactic voting
+    - CAV-NLP for enhanced formalization and verification
 
 Architecture:
     MDAPMCTSNode: Enhanced MCTS node with MDAP multi-agent voting
@@ -17,6 +18,7 @@ Benefits:
     - MDAP: Multi-agent perspectives reduce bias
     - MAKER: Voting consensus with error correction
     - Red-flagging: Quality control and pruning
+    - CAV-NLP: Enhanced mathematical formalization
 
 Author: OpenEvolve
 Created: 2025-12-30
@@ -39,6 +41,14 @@ from typing import (
     Any, Callable, Dict, List, Optional, Set, Tuple, Union
 )
 from pathlib import Path
+
+# CAV-NLP Integration
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logging.getLogger(__name__).debug("CAV-NLP not available for MCTS-MDAP")
 
 # Import MCTS components
 try:

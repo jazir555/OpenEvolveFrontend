@@ -28,6 +28,14 @@ try:
 except ImportError:
     EVOLUTION_AVAILABLE = False
 
+# CAV-NLP Integration
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 
 class VerificationMethod(Enum):
     """Verification methods"""
@@ -115,7 +123,8 @@ class ComplianceVerifier:
         self,
         use_formal_methods: bool = True,
         timeout_seconds: int = 60,
-        logger: Optional[logging.Logger] = None
+        logger: Optional[logging.Logger] = None,
+        use_cav_nlp: bool = True
     ):
         """
         Initialize compliance verifier
@@ -124,9 +133,11 @@ class ComplianceVerifier:
             use_formal_methods: Enable formal verification with Z3
             timeout_seconds: Timeout for verification
             logger: Logger instance
+            use_cav_nlp: Enable CAV-NLP hybrid verification
         """
         self.use_formal_methods = use_formal_methods and Z3_AVAILABLE
         self.timeout = timeout_seconds
+        self.use_cav_nlp = use_cav_nlp and CAV_NLP_AVAILABLE
 
         self.logger = logger or self._setup_logging()
 
@@ -135,6 +146,18 @@ class ComplianceVerifier:
                 "Z3 not available. Install z3-solver for formal verification. "
                 "Falling back to logical verification."
             )
+        
+        # Initialize CAV-NLP components
+        self.math_service = None
+        self.enhanced_solver = None
+        if self.use_cav_nlp:
+            try:
+                self.math_service = UnifiedMathService()
+                self.enhanced_solver = EnhancedZ3Solver()
+                self.logger.info("CAV-NLP integration initialized for compliance verifier")
+            except Exception as e:
+                self.logger.warning(f"Failed to initialize CAV-NLP: {e}")
+                self.use_cav_nlp = False
 
     def _setup_logging(self) -> logging.Logger:
         """Setup logging"""
@@ -707,3 +730,44 @@ class ComplianceVerifier:
             return self._model_to_dict(model)
 
         return None
+
+    async def verify_compliance_with_cav_nlp(
+        self,
+        rule: Dict[str, Any],
+        system: Dict[str, Any]
+    ) -> VerificationResult:
+        """Verify compliance using CAV-NLP hybrid verification.
+        
+        Args:
+            rule: Compliance rule with description to formalize
+            system: System state to verify against
+            
+        Returns:
+            VerificationResult with hybrid verification outcome
+        """
+        if self.use_cav_nlp and self.math_service and self.enhanced_solver:
+            try:
+                start_time = datetime.utcnow()
+                
+                # Formalize compliance rule
+                description = str(rule.get('description', rule.get('logic', '')))
+                formalized = self.math_service.formalize(description)
+                
+                # Hybrid verification
+                if hasattr(formalized, 'code') and formalized.code:
+                    result = self.enhanced_solver.verify_with_lean(formalized.code)
+                    
+                    if hasattr(result, 'success'):
+                        return VerificationResult(
+                            method=VerificationMethod.HYBRID,
+                            proof_type=ProofType.CORRECTNESS,
+                            success=result.success,
+                            confidence=getattr(result, 'confidence', 0.8),
+                            proof=getattr(result, 'proof', f"CAV-NLP verification: {formalized.code}"),
+                            verification_time=(datetime.utcnow() - start_time).total_seconds()
+                        )
+            except Exception as e:
+                self.logger.warning(f"CAV-NLP verification failed: {e}, falling back to standard")
+        
+        # Fallback to standard verification
+        return await self._hybrid_verify({rule['constraint_id']: rule}, ProofType.CORRECTNESS)

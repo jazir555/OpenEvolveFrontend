@@ -20,6 +20,14 @@ except ImportError:
     Z3_AVAILABLE = False
     z3 = None
 
+# CAV-NLP Integration
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 from alerting_system import (
     get_alert_manager,
     AlertSeverity,
@@ -60,12 +68,29 @@ class ConstraintBasedAlerting:
     when constraints are violated.
     """
 
-    def __init__(self):
-        """Initialize constraint-based alerting."""
+    def __init__(self, use_cav_nlp: bool = True):
+        """Initialize constraint-based alerting.
+        
+        Args:
+            use_cav_nlp: Enable CAV-NLP enhanced formalization
+        """
         self.constraints: Dict[str, AlertConstraint] = {}
         self.alert_manager = get_alert_manager()
         self.state_history: Dict[str, List[Any]] = {}
         self.violation_history: List[Dict[str, Any]] = []
+        self.use_cav_nlp = use_cav_nlp and CAV_NLP_AVAILABLE
+        
+        # Initialize CAV-NLP components
+        self.math_service = None
+        self.enhanced_solver = None
+        if self.use_cav_nlp:
+            try:
+                self.math_service = UnifiedMathService()
+                self.enhanced_solver = EnhancedZ3Solver()
+                logger.info("CAV-NLP integration initialized for constraint-based alerting")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP: {e}")
+                self.use_cav_nlp = False
 
     def add_constraint(
         self,
@@ -364,6 +389,31 @@ class ConstraintBasedAlerting:
             'total_violations': len(self.violation_history),
             'violations_by_component': by_component,
         }
+
+    def check_alert_with_cav_nlp(self, alert_rule, context):
+        """Check alert rule using CAV-NLP enhanced formalization.
+        
+        Args:
+            alert_rule: Alert rule with description to formalize
+            context: Current system state context
+            
+        Returns:
+            Violation details or None if no violation
+        """
+        if self.use_cav_nlp and self.math_service:
+            try:
+                # Formalize the alert rule description
+                description = getattr(alert_rule, 'description', str(alert_rule))
+                formalized = self.math_service.formalize(description)
+                # Check using formalized constraint
+                if hasattr(formalized, 'code') and formalized.code:
+                    return self.check_constraint(formalized.code, context)
+            except Exception as e:
+                logger.warning(f"CAV-NLP check failed: {e}, falling back to standard check")
+        
+        # Fallback to standard constraint check
+        rule_name = getattr(alert_rule, 'name', str(alert_rule))
+        return self.check_constraint(rule_name, context)
 
 
 class ConstraintAlertingDecorator:

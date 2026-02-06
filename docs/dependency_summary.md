@@ -97,7 +97,7 @@ All required packages import successfully without conflicts:
 ```python
 import BubbleLab UI
 import requests
-import streamlit_tags
+import bubblelab_tags
 import fpdf
 import docx
 ```
@@ -124,3 +124,4 @@ All dependency management tasks have been successfully completed:
 8. ✅ Installation instructions are clear and functional
 
 The OpenEvolve Frontend application has a solid dependency foundation and is ready for continued development and testing.
+

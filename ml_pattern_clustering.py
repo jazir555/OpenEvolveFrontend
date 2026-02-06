@@ -60,6 +60,14 @@ try:
 except ImportError:
     Z3_AVAILABLE = False
 
+# CAV-NLP Integration
+ try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 # DeepKE Integration - WIRED TO CORE
 try:
     from integrations.deepke import DeepKEBridge
@@ -834,7 +842,8 @@ class MLPatternClustering:
         model_name: str = 'all-MiniLM-L6-v2',
         clustering_algorithm: str = 'dbscan',
         min_cluster_size: int = 2,
-        min_samples: int = 2
+        min_samples: int = 2,
+        config: Optional[Dict[str, Any]] = None
     ):
         """
         Initialize ML pattern clustering.
@@ -844,15 +853,24 @@ class MLPatternClustering:
             clustering_algorithm: 'dbscan', 'kmeans', or 'hierarchical'
             min_cluster_size: Minimum patterns per cluster
             min_samples: Minimum samples for core points (DBSCAN)
+            config: Optional configuration dictionary
         """
         self.model_name = model_name
         self.clustering_algorithm = clustering_algorithm
         self.min_cluster_size = min_cluster_size
         self.min_samples = min_samples
+        self.config = config or {}
         
         self.embedding_model = None
         self._lock = threading.RLock()
         self._pattern_history: List[MLPattern] = []
+        
+        # CAV-NLP integration
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            self.enhanced_solver = EnhancedZ3Solver()
+            self.math_service = UnifiedMathService()
+            logger.info("CAV-NLP integration enabled for pattern clustering")
         
         # Initialize embedding model
         if SENTENCE_TRANSFORMERS_AVAILABLE:
@@ -1077,6 +1095,113 @@ class MLPatternClustering:
             patterns.append(pattern)
         
         return patterns
+    
+    def formalize_pattern_with_cav_nlp(self, pattern: MLPattern) -> Dict[str, Any]:
+        """
+        Formalize a discovered pattern using CAV-NLP.
+        
+        Args:
+            pattern: Pattern to formalize
+            
+        Returns:
+            Formalization result with constraints and properties
+        """
+        if not self.use_cav_nlp:
+            return {
+                'success': False,
+                'error': 'CAV-NLP not available',
+                'pattern_id': pattern.pattern_id
+            }
+        
+        try:
+            # Use enhanced solver to formalize pattern
+            formalization = self.enhanced_solver.formalize_natural_language(
+                pattern.description,
+                context={
+                    'cluster_size': pattern.cluster_size,
+                    'confidence': pattern.confidence,
+                    'examples': pattern.representative_examples[:3]
+                }
+            )
+            
+            result = {
+                'success': formalization.get('success', False),
+                'pattern_id': pattern.pattern_id,
+                'constraints': formalization.get('constraints', []),
+                'variables': formalization.get('variables', []),
+                'properties': formalization.get('properties', {}),
+                'z3_expr': formalization.get('z3_expression', None),
+                'confidence': formalization.get('confidence', 0.0)
+            }
+            
+            logger.info(f"Formalized pattern {pattern.pattern_id} with CAV-NLP "
+                       f"(confidence: {result['confidence']:.2f})")
+            return result
+            
+        except Exception as e:
+            logger.error(f"CAV-NLP formalization failed for {pattern.pattern_id}: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'pattern_id': pattern.pattern_id
+            }
+    
+    def validate_pattern_with_z3(self, pattern: MLPattern) -> Dict[str, Any]:
+        """
+        Validate a pattern using Z3 via CAV-NLP.
+        
+        Args:
+            pattern: Pattern to validate
+            
+        Returns:
+            Validation result
+        """
+        if not self.use_cav_nlp:
+            return {
+                'valid': None,
+                'confidence': pattern.confidence,
+                'message': 'CAV-NLP not available for validation'
+            }
+        
+        try:
+            # Formalize then verify
+            formalization = self.formalize_pattern_with_cav_nlp(pattern)
+            
+            if not formalization['success']:
+                return {
+                    'valid': None,
+                    'confidence': pattern.confidence * 0.8,
+                    'message': f"Formalization failed: {formalization.get('error')}"
+                }
+            
+            # Use math service to verify constraints
+            if formalization.get('z3_expr'):
+                verification = self.math_service.verify_expression(
+                    formalization['z3_expr']
+                )
+                
+                return {
+                    'valid': verification.get('valid', False),
+                    'confidence': min(1.0, pattern.confidence * 1.1),
+                    'message': verification.get('message', 'Validation completed'),
+                    'z3_result': verification.get('z3_result'),
+                    'formalization': formalization
+                }
+            
+            return {
+                'valid': True,
+                'confidence': pattern.confidence,
+                'message': 'Pattern formalized but no constraints to verify',
+                'formalization': formalization
+            }
+            
+        except Exception as e:
+            logger.error(f"Z3 validation failed for {pattern.pattern_id}: {e}")
+            return {
+                'valid': None,
+                'confidence': pattern.confidence * 0.9,
+                'message': f"Validation error: {e}"
+            }
     
     def _generate_cluster_description(self, cluster_texts: List[str]) -> str:
         """Generate a description for a cluster."""

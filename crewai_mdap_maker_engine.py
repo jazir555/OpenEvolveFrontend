@@ -29,6 +29,14 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from enum import Enum
 
+# CAV-NLP imports
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 # CrewAI imports
 try:
     from crewai import Agent, Task, Crew, Process
@@ -674,7 +682,36 @@ class CrewAIMAKEREngine:
         # Initialize voting engine
         self.voting_engine = CrewAIVotingEngine(config, workflow_id)
 
+        # CAV-NLP integration
+        self.use_cav_nlp = getattr(config, 'use_cav_nlp', True) and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            self.enhanced_solver = EnhancedZ3Solver()
+            self.math_service = UnifiedMathService()
+            logger.info("CAV-NLP integration enabled for CrewAIMAKEREngine")
+
         logger.info(f"CrewAIMAKEREngine initialized with {len(agents)} agents")
+
+    def vote_with_cav_nlp(self, proposals: List[Any], criteria: str) -> Tuple[Any, float]:
+        """Vote on proposals using CAV-NLP enhanced evaluation."""
+        if self.use_cav_nlp:
+            formalized_criteria = self.math_service.formalize(criteria)
+            # Evaluate each proposal against formalized criteria
+            scores = []
+            for proposal in proposals:
+                score = self._evaluate_proposal(proposal, formalized_criteria.code)
+                scores.append(score)
+            best_idx = max(range(len(scores)), key=lambda i: scores[i])
+            return proposals[best_idx], scores[best_idx]
+        # Fallback: return first proposal with score 0.5
+        return proposals[0] if proposals else None, 0.5
+
+    def _evaluate_proposal(self, proposal: Any, formalized_criteria: str) -> float:
+        """Evaluate a proposal against formalized criteria."""
+        # Simple heuristic: check if proposal contains key terms from criteria
+        proposal_str = str(proposal).lower()
+        criteria_terms = formalized_criteria.lower().split()
+        matches = sum(1 for term in criteria_terms if term in proposal_str)
+        return min(1.0, matches / max(1, len(criteria_terms)))
 
     def generate_solution(
         self,

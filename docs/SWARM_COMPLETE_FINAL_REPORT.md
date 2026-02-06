@@ -30,7 +30,7 @@ The **massive BubbleLab UI to BubbleLab migration** has been executed successful
 **Key Achievement**: Complete inventory of 96 BubbleLab UI files with 47 component mappings
 
 **Deliverables**:
-- STREAMLIT_FILES_INVENTORY.md
+- BUBBLELAB_UI_FILES_INVENTORY.md
 - COMPONENT_MAPPING_MATRIX.md
 - BACKEND_API_REQUIREMENTS.md
 - AGENT_1_DISCOVERY_REPORT.md
@@ -239,9 +239,9 @@ api/gateway/
 ### Root Level Documentation
 ```
 C:\Users\mmeadow\Documents\OpenEvolve\Frontend\
-├── STREAMLIT_TO_BUBBLELAB_MIGRATION.md           # Master plan
-├── STREAMLIT_MIGRATION_QUICKSTART.md             # Agent guide
-├── STREAMLIT_FILES_INVENTORY.md                  # File catalog
+├── BUBBLELAB_UI_MIGRATION.md                     # Master plan
+├── BUBBLELAB_UI_MIGRATION_QUICKSTART.md          # Agent guide
+├── BUBBLELAB_UI_FILES_INVENTORY.md               # File catalog
 ├── COMPONENT_MAPPING_MATRIX.md                   # React mappings
 ├── BACKEND_API_REQUIREMENTS.md                   # API specs
 ├── MIGRATION_PROGRESS_REPORT.md                  # Progress tracking

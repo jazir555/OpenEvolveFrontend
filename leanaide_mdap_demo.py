@@ -3,10 +3,18 @@ LeanAide MDAP Integration Demo
 
 This file demonstrates the usage of the Lean MDAP integration for Lean 4 proof generation.
 Shows multi-agent, voting-based proof generation with various strategies.
+Includes CAV-NLP enhanced formalization demonstration.
 """
 
 import logging
 import os
+
+# CAV-NLP Integration
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
 
 # Configure logging
 logging.basicConfig(

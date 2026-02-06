@@ -55,6 +55,14 @@ try:
 except ImportError:
     CONTINUOUS_MATH_AVAILABLE = False
 
+# CAV-NLP Integration
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -780,14 +788,27 @@ class Z3LeanAideBridge:
     - Hybrid verification
     - Counterexample generation
     - Proof assistance
+    - CAV-NLP enhanced solving (alternative to LeanAide)
     """
     
-    def __init__(self, lean_service: Optional[LeanAideService] = None):
+    def __init__(
+        self, 
+        lean_service: Optional[LeanAideService] = None,
+        config: Optional[Dict[str, Any]] = None
+    ):
         """Initialize Z3-LeanAide bridge"""
+        self.config = config or {}
         self.z3_to_lean = Z3ToLeanTranslator()
         self.lean_to_z3 = LeanToZ3Translator()
         self.verification = Z3LeanVerificationBridge(lean_service)
         self.hybrid_proof = HybridProofEngine(self.verification)
+        
+        # CAV-NLP integration as alternative to LeanAide
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            self.enhanced_solver = EnhancedZ3Solver()
+            self.math_service = UnifiedMathService()
+            logger.info("CAV-NLP integration enabled as LeanAide alternative")
         
         logger.info("Z3LeanAideBridge initialized")
     
@@ -830,6 +851,143 @@ class Z3LeanAideBridge:
     def is_lean_available(self) -> bool:
         """Check if Lean is available"""
         return LEAN4_AVAILABLE
+    
+    def is_cav_nlp_available(self) -> bool:
+        """Check if CAV-NLP is available"""
+        return CAV_NLP_AVAILABLE
+    
+    async def verify_with_cav_nlp(
+        self,
+        problem_text: str,
+        use_cache: bool = True
+    ) -> Dict[str, Any]:
+        """
+        Verify a problem using CAV-NLP (alternative to Lean verification).
+        
+        Args:
+            problem_text: Problem in natural language or formal notation
+            use_cache: Whether to use cached formalizations
+            
+        Returns:
+            Verification result with formalization and proof status
+        """
+        if not self.use_cav_nlp:
+            return {
+                'success': False,
+                'error': 'CAV-NLP not available',
+                'verified': False,
+                'confidence': 0.0
+            }
+        
+        try:
+            # Step 1: Formalize the problem
+            formalization = self.enhanced_solver.formalize_natural_language(
+                problem_text,
+                use_cache=use_cache
+            )
+            
+            if not formalization.get('success'):
+                return {
+                    'success': False,
+                    'error': formalization.get('error', 'Formalization failed'),
+                    'verified': False,
+                    'confidence': 0.0,
+                    'formalization': formalization
+                }
+            
+            # Step 2: Verify using math service
+            z3_expr = formalization.get('z3_expression')
+            if z3_expr:
+                verification = self.math_service.verify_expression(z3_expr)
+                
+                return {
+                    'success': True,
+                    'verified': verification.get('valid', False),
+                    'confidence': verification.get('confidence', 0.0),
+                    'formalization': formalization,
+                    'verification': verification,
+                    'solver_used': 'cav_nlp'
+                }
+            
+            return {
+                'success': True,
+                'verified': False,
+                'confidence': 0.5,
+                'formalization': formalization,
+                'message': 'Formalized but no verifiable expression'
+            }
+            
+        except Exception as e:
+            logger.error(f"CAV-NLP verification failed: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'verified': False,
+                'confidence': 0.0
+            }
+    
+    async def hybrid_verify_with_fallback(
+        self,
+        problem_text: str,
+        prefer_lean: bool = True
+    ) -> Dict[str, Any]:
+        """
+        Verify using preferred method with automatic fallback.
+        
+        Tries LeanAide first (if prefer_lean=True and available),
+        then falls back to CAV-NLP.
+        
+        Args:
+            problem_text: Problem to verify
+            prefer_lean: Whether to prefer Lean over CAV-NLP
+            
+        Returns:
+            Verification result
+        """
+        # Try preferred method first
+        if prefer_lean and LEAN4_AVAILABLE and self.verification.lean_service:
+            try:
+                lean_result = await self.verification.lean_service.verify(problem_text)
+                if lean_result.success:
+                    return {
+                        'success': True,
+                        'verified': lean_result.success,
+                        'confidence': lean_result.confidence,
+                        'solver_used': 'lean',
+                        'result': lean_result
+                    }
+            except Exception as e:
+                logger.warning(f"Lean verification failed, trying CAV-NLP: {e}")
+        
+        # Fall back to CAV-NLP if available
+        if self.use_cav_nlp:
+            cav_result = await self.verify_with_cav_nlp(problem_text)
+            if cav_result.get('success'):
+                return cav_result
+        
+        # Try CAV-NLP first if not preferring Lean
+        if not prefer_lean and self.use_cav_nlp:
+            cav_result = await self.verify_with_cav_nlp(problem_text)
+            if cav_result.get('success') and cav_result.get('verified'):
+                return cav_result
+            
+            # Fall back to Lean
+            if LEAN4_AVAILABLE and self.verification.lean_service:
+                lean_result = await self.verification.lean_service.verify(problem_text)
+                return {
+                    'success': lean_result.success,
+                    'verified': lean_result.success,
+                    'confidence': lean_result.confidence,
+                    'solver_used': 'lean',
+                    'result': lean_result
+                }
+        
+        return {
+            'success': False,
+            'error': 'No verification method available',
+            'verified': False,
+            'confidence': 0.0
+        }
     
     def get_capabilities(self) -> Dict[str, bool]:
         """Get available capabilities"""

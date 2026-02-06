@@ -32,6 +32,14 @@ try:
 except ImportError:
     Z3_AVAILABLE = False
 
+# CAV-NLP Integration
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 
 @dataclass
 class TheoremNode:
@@ -107,11 +115,29 @@ class KnowledgeGraphZ3Connector:
     - Querying proof history
     """
     
-    def __init__(self):
+    def __init__(self, use_cav_nlp: bool = True):
+        """Initialize connector.
+        
+        Args:
+            use_cav_nlp: Enable CAV-NLP enhanced query formalization
+        """
         self.theorems: Dict[str, TheoremNode] = {}
         self.proofs: Dict[str, ProofNode] = {}
         self.tactics: Dict[str, TacticNode] = {}
         self.edges: List[Dict[str, str]] = []  # (source, target, relation)
+        
+        # CAV-NLP integration
+        self.use_cav_nlp = use_cav_nlp and CAV_NLP_AVAILABLE
+        self.math_service = None
+        self.enhanced_solver = None
+        if self.use_cav_nlp:
+            try:
+                self.math_service = UnifiedMathService()
+                self.enhanced_solver = EnhancedZ3Solver()
+                logger.info("CAV-NLP integration initialized for knowledge graph connector")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP: {e}")
+                self.use_cav_nlp = False
     
     def add_theorem(
         self,
@@ -291,6 +317,70 @@ class KnowledgeGraphZ3Connector:
         complexity += statement.count("*") * 0.5
         
         return complexity
+
+    def query_with_cav_nlp(self, natural_language_query: str) -> List[Dict[str, Any]]:
+        """Query knowledge graph using CAV-NLP formalization.
+        
+        Args:
+            natural_language_query: Natural language query to formalize and execute
+            
+        Returns:
+            List of matching theorem/proof/tactic dictionaries
+        """
+        if self.use_cav_nlp and self.math_service:
+            try:
+                # Convert NL to formal query
+                formalized = self.math_service.formalize(natural_language_query)
+                
+                # Execute formal query if code is available
+                if hasattr(formalized, 'code') and formalized.code:
+                    return self.query(formalized.code)
+            except Exception as e:
+                logger.warning(f"CAV-NLP query failed: {e}, falling back to keyword search")
+        
+        # Fallback to keyword-based search
+        results = []
+        query_lower = natural_language_query.lower()
+        
+        # Search theorems
+        for theorem in self.theorems.values():
+            if query_lower in theorem.statement.lower():
+                results.append(theorem.to_dict())
+        
+        # Search proofs
+        for proof in self.proofs.values():
+            if query_lower in proof.proof_text.lower():
+                results.append(proof.to_dict())
+        
+        # Search tactics
+        for tactic in self.tactics.values():
+            if query_lower in tactic.tactic_name.lower() or query_lower in tactic.description.lower():
+                results.append(tactic.to_dict())
+        
+        return results
+    
+    def query(self, formal_code: str) -> List[Dict[str, Any]]:
+        """Execute formal query against knowledge graph.
+        
+        Args:
+            formal_code: Formal query code
+            
+        Returns:
+            List of matching results
+        """
+        results = []
+        code_lower = formal_code.lower()
+        
+        # Simple pattern matching on formal code
+        for theorem in self.theorems.values():
+            if any(term in theorem.statement.lower() for term in code_lower.split()):
+                results.append(theorem.to_dict())
+        
+        for proof in self.proofs.values():
+            if any(term in proof.proof_text.lower() for term in code_lower.split()):
+                results.append(proof.to_dict())
+        
+        return results
 
 
 def get_knowledge_graph_z3_connector():

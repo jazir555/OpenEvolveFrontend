@@ -31,6 +31,14 @@ import traceback
 import json
 import hashlib
 
+# CAV-NLP imports
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -539,7 +547,23 @@ class ZeroErrorWorkflow:
         self._agent = None
         self._task = None
 
+        # CAV-NLP integration
+        self.use_cav_nlp = getattr(definition, 'config', {}).get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            self.enhanced_solver = EnhancedZ3Solver()
+            self.math_service = UnifiedMathService()
+            logger.info("CAV-NLP integration enabled for ZeroErrorWorkflow")
+
         logger.info(f"Initialized ZeroErrorWorkflow: {self.workflow_id}")
+
+    def verify_zero_error_with_cav_nlp(self, workflow: Any) -> bool:
+        """Verify workflow has zero errors using CAV-NLP."""
+        if self.use_cav_nlp:
+            description = getattr(workflow, 'description', str(workflow))
+            formalized = self.math_service.formalize(description)
+            result = self.enhanced_solver.verify_with_lean(formalized.code)
+            return result.agreed and result.confidence > 0.95
+        return False
 
     def _check_crewai_availability(self) -> bool:
         """Check if CrewAI is available and import it"""

@@ -215,7 +215,7 @@ When a parameter is changed in the BubbleLabs UI:
 parameter_mapping = {
     # Generation parameters
     "temperature": {
-        "streamlit_key": "temperature",
+        "ui_key": "temperature",
         "bubblelabs_key": "bl_temperature",
         "type": "slider",
         "range": (0.0, 2.0),
@@ -223,7 +223,7 @@ parameter_mapping = {
         "sync_on_change": True
     },
     "top_p": {
-        "streamlit_key": "top_p",
+        "ui_key": "top_p",
         "bubblelabs_key": "bl_top_p",
         "type": "slider",
         "range": (0.0, 1.0),
@@ -232,7 +232,7 @@ parameter_mapping = {
     },
     # Evolution parameters
     "max_iterations": {
-        "streamlit_key": "max_iterations",
+        "ui_key": "max_iterations",
         "bubblelabs_key": "bl_max_iterations",
         "type": "number",
         "range": (1, 10000),
@@ -637,3 +637,4 @@ Comprehensive analytics capabilities:
 This comprehensive integration specification provides a complete framework for achieving full control of OpenEvolve workflows through the BubbleLabs UI. The system ensures that every configuration knob, control, and parameter available in the BubbleLab UI UI is fully accessible and manageable through the BubbleLabs interface, providing enhanced visualization and control capabilities for complex AI workflows.
 
 The integration maintains full compatibility with existing OpenEvolve functionality while providing the enhanced visualization and control capabilities that make complex workflows easier to understand and manage. The sophisticated parameter synchronization system ensures that changes made in either UI are immediately reflected in both, providing a seamless user experience.
+

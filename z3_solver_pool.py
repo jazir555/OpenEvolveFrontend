@@ -27,6 +27,14 @@ from enum import Enum
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# CAV-NLP Integration
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 
 # =============================================================================
 # Data Classes
@@ -97,6 +105,7 @@ class Z3SolverPool:
     - Thread-safe metrics access
     - Context manager for automatic state tracking
     - Event callbacks for state changes
+    - CAV-NLP EnhancedZ3Solver support
     
     Usage:
         # Register a solver when created
@@ -116,9 +125,17 @@ class Z3SolverPool:
         # Get current metrics
         metrics = pool.get_metrics()
         print(f"Active: {metrics.active_solvers}, Queue: {metrics.queue_depth}")
+        
+        # Get CAV-NLP enhanced solver
+        enhanced_solver = pool.get_enhanced_solver()
     """
     
-    def __init__(self, max_pool_size: int = 10, max_queue_depth: int = 100):
+    def __init__(
+        self, 
+        max_pool_size: int = 10, 
+        max_queue_depth: int = 100,
+        config: Optional[Dict[str, Any]] = None
+    ):
         self._max_pool_size = max_pool_size
         self._max_queue_depth = max_queue_depth
         
@@ -144,6 +161,52 @@ class Z3SolverPool:
     # =====================================================================
     # Solver Registration
     # =====================================================================
+    
+    def get_enhanced_solver(self, solver_id: Optional[str] = None) -> Optional[EnhancedZ3Solver]:
+        """
+        Get or create a CAV-NLP enhanced solver.
+        
+        Args:
+            solver_id: Optional solver ID to associate with enhanced solver
+            
+        Returns:
+            EnhancedZ3Solver instance or None if CAV-NLP not available
+        """
+        if not self.use_cav_nlp:
+            return None
+        
+        with self._lock:
+            # Return existing enhanced solver if ID provided and exists
+            if solver_id and solver_id in self._enhanced_solvers:
+                return self._enhanced_solvers[solver_id]
+            
+            # Create new enhanced solver
+            try:
+                enhanced = EnhancedZ3Solver()
+                
+                if solver_id:
+                    self._enhanced_solvers[solver_id] = enhanced
+                
+                logger.debug(f"Created EnhancedZ3Solver{' for ' + solver_id if solver_id else ''}")
+                return enhanced
+                
+            except Exception as e:
+                logger.error(f"Failed to create EnhancedZ3Solver: {e}")
+                return None
+    
+    def get_math_service(self) -> Optional[UnifiedMathService]:
+        """Get the unified math service for CAV-NLP operations."""
+        return self._math_service
+    
+    def get_enhanced_solver_metrics(self) -> Dict[str, Any]:
+        """Get metrics for CAV-NLP enhanced solvers."""
+        with self._lock:
+            return {
+                'cav_nlp_available': CAV_NLP_AVAILABLE,
+                'cav_nlp_enabled': self.use_cav_nlp,
+                'enhanced_solvers_created': len(self._enhanced_solvers),
+                'math_service_available': self._math_service is not None
+            }
     
     def register_solver(self, solver_id: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None) -> str:
         """
@@ -428,6 +491,8 @@ class Z3SolverPool:
             self._solvers.clear()
             self._operation_queue.clear()
             self._callbacks.clear()
+            self._enhanced_solvers.clear()
+            self._math_service = None
             
             logger.info("Z3SolverPool shutdown complete")
     

@@ -24,6 +24,14 @@ from datetime import datetime
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# CAV-NLP Integration
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 # Import base components
 try:
     from z3_leanaide_bubblelabs_ui import (
@@ -167,13 +175,22 @@ class Z3AdvancedBubbleLabsUI:
     - Proof tree explorers
     - Optimization landscapes
     - Real-time progress tracking
+    - CAV-NLP enhanced solving options
     """
     
-    def __init__(self):
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        self.config = config or {}
         self.base_ui = None
         if BASE_UI_AVAILABLE:
             from z3_leanaide_bubblelabs_ui import get_z3_bubblelabs_ui
             self.base_ui = get_z3_bubblelabs_ui()
+        
+        # CAV-NLP integration
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            self.enhanced_solver = EnhancedZ3Solver()
+            self.math_service = UnifiedMathService()
+            logger.info("CAV-NLP integration enabled for BubbleLabs Advanced UI")
         
         # State storage for visualizations
         self._constraint_viz: Dict[str, List[ConstraintVisualization]] = {}
@@ -540,6 +557,91 @@ class Z3AdvancedBubbleLabsUI:
             "format": format,
             "data": data,
             "exported_at": datetime.utcnow().isoformat()
+        }
+    
+    # =====================================================================
+    # CAV-NLP Options UI
+    # =====================================================================
+    
+    def create_cav_nlp_options_panel(self, node_id: str) -> Dict[str, Any]:
+        """
+        Create CAV-NLP options panel for the UI.
+        
+        Returns configuration options for CAV-NLP enhanced solving.
+        """
+        return {
+            "node_id": node_id,
+            "type": "cav_nlp_options",
+            "title": "CAV-NLP Enhanced Solving",
+            "enabled": self.use_cav_nlp,
+            "available": CAV_NLP_AVAILABLE,
+            "options": [
+                {
+                    "id": "use_natural_language_input",
+                    "label": "Enable Natural Language Input",
+                    "type": "toggle",
+                    "default": True,
+                    "description": "Allow problems to be specified in natural language"
+                },
+                {
+                    "id": "auto_formalization",
+                    "label": "Auto-Formalization",
+                    "type": "toggle",
+                    "default": True,
+                    "description": "Automatically convert NL to formal constraints"
+                },
+                {
+                    "id": "formalization_cache",
+                    "label": "Cache Formalizations",
+                    "type": "toggle",
+                    "default": True,
+                    "description": "Cache formalization results for reuse"
+                },
+                {
+                    "id": "verification_mode",
+                    "label": "Verification Mode",
+                    "type": "select",
+                    "options": ["standard", "enhanced", "strict"],
+                    "default": "enhanced",
+                    "description": "Level of verification to apply"
+                },
+                {
+                    "id": "constraint_extraction",
+                    "label": "Extract Implicit Constraints",
+                    "type": "toggle",
+                    "default": True,
+                    "description": "Automatically detect implicit constraints from text"
+                }
+            ],
+            "actions": [
+                {
+                    "id": "test_cav_nlp",
+                    "label": "Test CAV-NLP Connection",
+                    "type": "button",
+                    "enabled": CAV_NLP_AVAILABLE
+                },
+                {
+                    "id": "view_formalization_history",
+                    "label": "View Formalization History",
+                    "type": "button",
+                    "enabled": self.use_cav_nlp
+                }
+            ]
+        }
+    
+    def get_cav_nlp_status(self, node_id: str) -> Dict[str, Any]:
+        """Get current CAV-NLP status for display in UI."""
+        return {
+            "node_id": node_id,
+            "available": CAV_NLP_AVAILABLE,
+            "enabled": self.use_cav_nlp,
+            "solver_ready": hasattr(self, 'enhanced_solver') and self.enhanced_solver is not None,
+            "service_ready": hasattr(self, 'math_service') and self.math_service is not None,
+            "capabilities": [
+                "natural_language_formalization",
+                "constraint_extraction",
+                "auto_verification"
+            ] if self.use_cav_nlp else []
         }
     
     # =====================================================================

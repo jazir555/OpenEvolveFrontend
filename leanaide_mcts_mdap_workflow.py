@@ -20,6 +20,7 @@ Key Features:
 - Stage 5 integration: Final verification with MDAP-MCTS fallback
 - Configuration integration with WorkflowState
 - Graceful fallback to non-MCTS approaches
+- CAV-NLP enhanced formalization support
 - Comprehensive error handling and logging
 
 When to use MDAP-MCTS:
@@ -47,6 +48,14 @@ from typing import (
 )
 import threading
 import math
+
+# CAV-NLP Integration
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logging.getLogger(__name__).debug("CAV-NLP not available for MCTS workflow")
 
 # Configure logging
 logger = logging.getLogger(__name__)

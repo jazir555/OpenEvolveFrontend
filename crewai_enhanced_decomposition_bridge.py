@@ -19,6 +19,13 @@ from dataclasses import dataclass, field
 from datetime import datetime
 import uuid
 
+# CAV-NLP imports
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
 
 # Import enhanced systems
 from enhanced_decomposition_engine import (
@@ -224,12 +231,51 @@ class CrewAIDecompositionBridge:
     def __init__(
         self,
         decomposition_engine: Optional[EnhancedDecompositionEngine] = None,
-        agent_pool: Optional[AgentPool] = None
+        agent_pool: Optional[AgentPool] = None,
+        use_cav_nlp: bool = True,
     ):
         self.decomposition_engine = decomposition_engine or EnhancedDecompositionEngine()
         self.agent_pool = agent_pool or AgentPool()
         self.solver = OpenEvolveSolutionSolver()
         self.logger = logging.getLogger(__name__)
+
+        # CAV-NLP integration
+        self.use_cav_nlp = use_cav_nlp and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            self.enhanced_solver = EnhancedZ3Solver()
+            self.math_service = UnifiedMathService()
+            self.logger.info("CAV-NLP integration enabled for CrewAIDecompositionBridge")
+
+    def formalize_subproblem(self, sub_problem: SubProblem) -> Dict[str, Any]:
+        """Formalize a sub-problem using CAV-NLP."""
+        if not self.use_cav_nlp:
+            return {"formalized": False, "reason": "CAV-NLP not available"}
+        try:
+            formalized = self.math_service.formalize(sub_problem.description)
+            return {
+                "formalized": True,
+                "code": formalized.code,
+                "confidence": formalized.confidence,
+                "sub_problem_id": sub_problem.id
+            }
+        except Exception as e:
+            self.logger.warning(f"CAV-NLP formalization failed: {e}")
+            return {"formalized": False, "error": str(e)}
+
+    def verify_solution_with_cav_nlp(self, solution: Dict[str, Any]) -> Dict[str, Any]:
+        """Verify a solution using CAV-NLP."""
+        if not self.use_cav_nlp:
+            return {"verified": False, "reason": "CAV-NLP not available"}
+        try:
+            result = self.enhanced_solver.verify_with_lean(str(solution))
+            return {
+                "verified": result.get("verified", False),
+                "confidence": result.get("confidence", 0.0),
+                "method": "lean_verification"
+            }
+        except Exception as e:
+            self.logger.warning(f"CAV-NLP verification failed: {e}")
+            return {"verified": False, "error": str(e)}
     
     def decompose_and_assign(
         self,

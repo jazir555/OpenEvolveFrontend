@@ -32,6 +32,14 @@ License: MIT (replaces AGPL Hephaestus)
 import logging
 from typing import Dict, Any, List, Optional
 
+# CAV-NLP imports
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 # Import CrewAI zero-error workflow
 from crewai_zero_error_workflow import (
     CrewAIZeroErrorWorkflow,
@@ -50,6 +58,20 @@ from crewai_state_management import (
 )
 
 logger = logging.getLogger(__name__)
+
+# CAV-NLP configuration (module-level)
+_use_cav_nlp = CAV_NLP_AVAILABLE
+_enhanced_solver = None
+_math_service = None
+
+def _get_cav_nlp():
+    """Get or initialize CAV-NLP components."""
+    global _enhanced_solver, _math_service
+    if _use_cav_nlp and _enhanced_solver is None:
+        _enhanced_solver = EnhancedZ3Solver()
+        _math_service = UnifiedMathService()
+        logger.info("CAV-NLP initialized for ROMA-MDAP-MAKER bridge")
+    return _enhanced_solver, _math_service
 
 
 # =============================================================================

@@ -10,12 +10,14 @@ Components wrapped:
 - B.2: ODE/PDE Translator
 - B.3: Scientific Domain Patterns
 - B.4: Verification Methods
+- B.5: CAV-NLP Enhanced Formalization
 
 Features:
 - Unified MCP interface for all components
 - Tool definitions with input/output schemas
 - Error handling and validation
 - Comprehensive metadata
+- CAV-NLP integration for enhanced formalization
 - Easy integration with MCP servers
 
 Author: OpenEvolve
@@ -29,6 +31,14 @@ import time
 from typing import Any, Dict, List, Optional, Union
 from dataclasses import dataclass, field, asdict
 from enum import Enum
+
+# CAV-NLP Integration
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logging.getLogger(__name__).debug("CAV-NLP not available for continuous MCP")
 
 # Import all components
 from continuous_math_detector import (

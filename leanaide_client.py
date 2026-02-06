@@ -5,6 +5,9 @@ A production-ready asynchronous Python client for the LeanAide server.
 This client supports all JSON API tasks with connection pooling, retries,
 streaming, and comprehensive error handling.
 
+CAV-NLP Integration: This client now supports CAV-NLP enhanced formalization
+for improved mathematical text processing.
+
 Author: OpenEvolve
 Created: 2025-12-30
 """
@@ -19,6 +22,14 @@ from datetime import datetime, timezone
 
 import aiohttp
 from aiohttp import ClientTimeout, ClientSession, ClientError, ClientResponseError
+
+# CAV-NLP Integration
+try:
+    from openevolve.unified_math_service import UnifiedMathService, FormalizationResult
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logging.getLogger(__name__).debug("CAV-NLP not available for leanaide_client")
 
 
 # Configure logging
@@ -125,12 +136,14 @@ class LeanAideClient:
     - Health checks
     - Support for all LeanAide JSON API tasks
     - Chained task execution
+    - CAV-NLP enhanced formalization (when enabled)
     """
 
     def __init__(
         self,
         config: Optional[LeanAideConfig] = None,
-        session: Optional[ClientSession] = None
+        session: Optional[ClientSession] = None,
+        use_cav_nlp: bool = True
     ):
         """
         Initialize the LeanAide client.
@@ -138,11 +151,23 @@ class LeanAideClient:
         Args:
             config: Client configuration (uses defaults if not provided)
             session: Optional existing aiohttp session (creates new one if not provided)
+            use_cav_nlp: Whether to enable CAV-NLP enhanced formalization
         """
         self.config = config or LeanAideConfig()
         self._session = session
         self._owned_session = session is None
         self._closed = False
+        
+        # CAV-NLP Integration
+        self.use_cav_nlp = use_cav_nlp and CAV_NLP_AVAILABLE
+        self._math_service = None
+        if self.use_cav_nlp:
+            try:
+                self._math_service = UnifiedMathService(use_cav_nlp=True, use_leanaide=True)
+                logger.info("CAV-NLP enhanced formalization enabled")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP math service: {e}")
+                self.use_cav_nlp = False
 
         if self.config.enable_logging:
             # Note: We don't call logging.basicConfig here as it's a global setting
@@ -181,6 +206,91 @@ class LeanAideClient:
             if self._owned_session and self._session and not self._session.closed:
                 await self._session.close()
             self._closed = True
+    
+    # ========== CAV-NLP Enhanced Methods ==========
+    
+    async def formalize_with_cav_nlp(
+        self,
+        text: str,
+        use_cav_nlp: Optional[bool] = None
+    ) -> LeanAideResult:
+        """
+        Formalize natural language text with optional CAV-NLP enhancement.
+        
+        Uses CAV-NLP (Computer Algebra Verification + NLP) for enhanced
+        mathematical formalization when available and enabled.
+        
+        Args:
+            text: Natural language mathematical statement
+            use_cav_nlp: Override to use CAV-NLP (None uses instance default)
+            
+        Returns:
+            LeanAideResult with formalized Lean code
+        """
+        should_use_cav_nlp = use_cav_nlp if use_cav_nlp is not None else self.use_cav_nlp
+        
+        if should_use_cav_nlp and self._math_service:
+            try:
+                logger.info("Using CAV-NLP enhanced formalization")
+                result = await self._math_service.formalize(text)
+                
+                return LeanAideResult(
+                    success=result.success,
+                    task="formalize_with_cav_nlp",
+                    data={
+                        "result": result.code,
+                        "source": result.source,
+                        "canonical_form": result.canonical_form,
+                        "elaborated_code": result.elaborated_code,
+                        "metadata": result.metadata
+                    },
+                    response_time=0.0,
+                    timestamp=datetime.now(timezone.utc).isoformat()
+                )
+            except Exception as e:
+                logger.warning(f"CAV-NLP formalization failed: {e}, falling back to standard")
+        
+        # Fallback to standard translate_thm
+        return await self.translate_thm(text)
+    
+    async def verify_with_cav_nlp(
+        self,
+        lean_code: str,
+        use_cav_nlp: Optional[bool] = None
+    ) -> LeanAideResult:
+        """
+        Verify Lean code with optional CAV-NLP enhancement.
+        
+        Args:
+            lean_code: Lean 4 code to verify
+            use_cav_nlp: Override to use CAV-NLP verification
+            
+        Returns:
+            LeanAideResult with verification status
+        """
+        should_use_cav_nlp = use_cav_nlp if use_cav_nlp is not None else self.use_cav_nlp
+        
+        if should_use_cav_nlp and self._math_service:
+            try:
+                logger.info("Using CAV-NLP enhanced verification")
+                result = await self._math_service.verify(lean_code)
+                
+                return LeanAideResult(
+                    success=result.success,
+                    task="verify_with_cav_nlp",
+                    data={
+                        "verified": result.success,
+                        "source": "cav_nlp",
+                        "metadata": result.metadata if hasattr(result, 'metadata') else {}
+                    },
+                    response_time=0.0,
+                    timestamp=datetime.now(timezone.utc).isoformat()
+                )
+            except Exception as e:
+                logger.warning(f"CAV-NLP verification failed: {e}, falling back to standard")
+        
+        # Fallback to standard elaborate
+        return await self.elaborate(lean_code)
 
     async def health_check(self) -> bool:
         """

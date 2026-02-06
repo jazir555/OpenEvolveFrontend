@@ -50,9 +50,9 @@ except ImportError:
 
 try:
     from ui_shim import st_tags
-    HAS_STREAMLIT_TAGS = True
+    HAS_UI_TAGS = True
 except ImportError:
-    HAS_STREAMLIT_TAGS = False
+    HAS_UI_TAGS = False
 
 try:
     from pyvis.network import Network

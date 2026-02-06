@@ -18,6 +18,14 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Callable, Union, Tuple
 from enum import Enum
 
+# CAV-NLP imports
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 # ============================================================================
 # LOGGING
 # ============================================================================
@@ -239,7 +247,7 @@ class ROMAMatryoshkaAdapter:
     4. Falls back to standard ROMA when Matryoshka unavailable
     """
     
-    def __init__(self, config: ROMAMatryoshkaConfig):
+    def __init__(self, config: ROMAMatryoshkaConfig, use_cav_nlp: bool = True):
         self.config = config
         self.matryoshka_solver: Optional[Any] = None
         self._fallback_used_count = 0
@@ -252,6 +260,47 @@ class ROMAMatryoshkaAdapter:
                 logger.warning("Matryoshka Engine not available. Will use ROMA fallbacks.")
             if not config.enable_matryoshka_solver:
                 logger.info("Matryoshka solver disabled in config.")
+
+        # CAV-NLP integration
+        self.use_cav_nlp = use_cav_nlp and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            self.enhanced_solver = EnhancedZ3Solver()
+            self.math_service = UnifiedMathService()
+            logger.info("CAV-NLP integration enabled for ROMAMatryoshkaAdapter")
+
+    def formalize_problem_with_cav_nlp(self, problem: str) -> Dict[str, Any]:
+        """Formalize a problem using CAV-NLP."""
+        if not self.use_cav_nlp:
+            return {"formalized": False, "reason": "CAV-NLP not available"}
+        try:
+            formalized = self.math_service.formalize(problem)
+            return {
+                "formalized": True,
+                "code": formalized.code,
+                "confidence": formalized.confidence,
+                "method": "cav_nlp"
+            }
+        except Exception as e:
+            logger.warning(f"CAV-NLP formalization failed: {e}")
+            return {"formalized": False, "error": str(e)}
+
+    def verify_with_cav_nlp(self, solution: Any, requirements: List[str]) -> Dict[str, Any]:
+        """Verify a solution using CAV-NLP."""
+        if not self.use_cav_nlp:
+            return {"verified": False, "reason": "CAV-NLP not available"}
+        try:
+            solution_text = str(solution)
+            formalized = self.math_service.formalize(solution_text)
+            result = self.enhanced_solver.verify_with_lean(formalized.code)
+            return {
+                "verified": result.get("verified", False),
+                "confidence": result.get("confidence", 0.0),
+                "method": "lean_verification",
+                "requirements_checked": len(requirements)
+            }
+        except Exception as e:
+            logger.warning(f"CAV-NLP verification failed: {e}")
+            return {"verified": False, "error": str(e)}
     
     def _init_matryoshka(self):
         """Initialize Matryoshka solver if available."""

@@ -955,7 +955,7 @@ Professional-grade graph visualization and ML for knowledge graphs.
 - GPU acceleration (100X+ speedup via cuGraph)
 - UMAP embeddings for vector representations
 - DBSCAN clustering for pattern discovery
-- Streamlit iframe embedding for dashboards
+- BUBBLELAB iframe embedding for dashboards
 - Filtering, styling, and exploration tools
 
 **Used in:**
@@ -2187,3 +2187,4 @@ A **complete turnkey "build bible"** containing:
 **Total Projects**: 18 (9 integrated, 5 in progress, 2 secondary, 2 optional)
 **Timeline**: 31-44 weeks to full implementation
 **Vision**: Idea → TRL-9 Product in One Experimental Process
+

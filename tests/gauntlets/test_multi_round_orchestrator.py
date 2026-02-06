@@ -716,7 +716,7 @@ class TestProgressReporting:
 
         assert "GAUNTLET PROGRESS REPORT" in report
         assert "Test problem" in report
-        assert "test" in report.upper()
+        assert "TEST" in report.upper()  # Domain is uppercased in report
         assert "0/3" in report
 
     def test_generate_progress_report_round1_complete(self):
@@ -744,8 +744,9 @@ class TestProgressReporting:
         report = orchestrator.generate_progress_report(state)
 
         assert "ROUND 1: LoongFlow" in report
-        assert "85%" in report
-        assert "continue" in report.upper()
+        # The score is formatted as percentage with 2 decimals
+        assert "85.00%" in report or "85%" in report
+        assert "CONTINUE" in report.upper()
         assert "Clear" in report
 
     def test_generate_progress_report_completed(self):

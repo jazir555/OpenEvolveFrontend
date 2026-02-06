@@ -1,8 +1,89 @@
 #!/usr/bin/env python3
-"""Detailed Real vs Mocked Analysis"""
+"""Detailed Real vs Mocked Analysis with CAV-NLP Integration"""
 
 import re
 import os
+import logging
+
+# CAV-NLP Integration
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
+logger = logging.getLogger(__name__)
+
+class AuditConfig:
+    """Configuration for detailed audit with CAV-NLP support."""
+    
+    def __init__(self, use_cav_nlp: bool = True):
+        self.use_cav_nlp = use_cav_nlp and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            self.enhanced_solver = EnhancedZ3Solver()
+            self.math_service = UnifiedMathService()
+            logger.info("CAV-NLP integration enabled for detailed audit")
+
+
+def formalize_audit_finding_with_cav_nlp(
+    finding: Dict[str, Any],
+    config: Optional[AuditConfig] = None
+) -> Dict[str, Any]:
+    """
+    Formalize an audit finding using CAV-NLP.
+    
+    Args:
+        finding: Audit finding to formalize
+        config: Audit configuration with CAV-NLP settings
+        
+    Returns:
+        Formalized audit result
+    """
+    if not config or not config.use_cav_nlp:
+        return {
+            'success': False,
+            'error': 'CAV-NLP not available',
+            'finding': finding
+        }
+    
+    try:
+        # Create description from finding
+        description = finding.get('description', '')
+        if not description and 'real_examples' in finding:
+            description = str(finding['real_examples'])
+        
+        # Use enhanced solver to formalize
+        formalization = config.enhanced_solver.formalize_natural_language(
+            description,
+            context={
+                'file': finding.get('file', 'unknown'),
+                'real_patterns': finding.get('real_patterns', 0),
+                'mock_indicators': finding.get('mock_indicators', 0),
+                'is_real': finding.get('is_mostly_real', False)
+            }
+        )
+        
+        result = {
+            'success': formalization.get('success', False),
+            'finding': finding,
+            'constraints': formalization.get('constraints', []),
+            'properties': formalization.get('properties', {}),
+            'confidence': formalization.get('confidence', 0.0),
+            'formalized': formalization.get('formalized_problem', '')
+        }
+        
+        logger.debug(f"Formalized audit finding with confidence: {result['confidence']:.2f}")
+        return result
+        
+    except Exception as e:
+        logger.error(f"CAV-NLP formalization failed: {e}")
+        return {
+            'success': False,
+            'error': str(e),
+            'finding': finding
+        }
+
 
 def analyze_file_real_vs_mock(file_path):
     """Analyze if a file has real implementations or is mocked"""

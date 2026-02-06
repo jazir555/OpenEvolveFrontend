@@ -118,7 +118,7 @@ def create_user_handler():
 
 ### 4. BubbleLab UI Integration
 
-#### StreamlitRBAC Class
+#### UIRBAC Class
 - Built-in login form with username/password
 - Session management (login/logout)
 - Permission-based UI rendering
@@ -133,10 +133,10 @@ def create_user_handler():
 **Usage Example:**
 ```python
 import BubbleLab UI as st
-from rbac_enhanced import create_rbac_system, StreamlitRBAC
+from rbac_enhanced import create_rbac_system, UIRBAC
 
 rbac = create_rbac_system()
-st_rbac = StreamlitRBAC(rbac)
+st_rbac = UIRBAC(rbac)
 
 # Get current user or show login
 user = st_rbac.get_current_user()
@@ -313,10 +313,10 @@ authenticated = rbac.authenticate("alice", "password")
 ### 2. BubbleLab UI Application
 ```python
 import BubbleLab UI as st
-from rbac_enhanced import create_rbac_system, StreamlitRBAC
+from rbac_enhanced import create_rbac_system, UIRBAC
 
 rbac = create_rbac_system()
-st_rbac = StreamlitRBAC(rbac)
+st_rbac = UIRBAC(rbac)
 
 user = st_rbac.get_current_user()
 if not user:
@@ -382,7 +382,7 @@ def has_permission(username: str, permission: str) -> bool:
 ```python
 # Persistent storage with multiple backends
 rbac = create_rbac_system(use_database=True)
-st_rbac = StreamlitRBAC(rbac)
+st_rbac = UIRBAC(rbac)
 
 user = st_rbac.get_current_user()
 if st_rbac.permission_check(Permission.MANAGE_USERS):
@@ -394,7 +394,7 @@ if st_rbac.permission_check(Permission.MANAGE_USERS):
 2. Initialize with chosen storage backend
 3. Migrate existing users/roles to persistent storage
 4. Update permission checks to use new API
-5. Replace UI components with StreamlitRBAC
+5. Replace UI components with UIRBAC
 6. Enable authentication backends (JWT/API keys as needed)
 
 ---
@@ -554,4 +554,5 @@ The system is now suitable for:
 - ✅ High-security environments
 
 **All tests passing. Ready for production use.**
+
 

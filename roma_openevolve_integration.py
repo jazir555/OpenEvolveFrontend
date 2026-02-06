@@ -28,6 +28,14 @@ from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
 
+# CAV-NLP imports
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 try:
     from utils.entanglement_utils import (
         build_symbolic_entanglement_matrix,
@@ -155,17 +163,25 @@ class ROMAOpenEvolveAdapter:
     - Final Validation (Phase 6)
     """
 
-    def __init__(self, config: ROMAOpenEvolveConfig):
+    def __init__(self, config: ROMAOpenEvolveConfig, use_cav_nlp: bool = True):
         """
         Initialize the ROMA-OpenEvolve adapter.
 
         Args:
             config: Configuration for ROMA integration
+            use_cav_nlp: Enable CAV-NLP integration
         """
         self.config = config
         self._roma_available = False
         self._roma_mdap_maker_available = False
         self._decomposition_available = False
+
+        # CAV-NLP integration
+        self.use_cav_nlp = use_cav_nlp and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            self.enhanced_solver = EnhancedZ3Solver()
+            self.math_service = UnifiedMathService()
+            logger.info("CAV-NLP integration enabled for ROMAOpenEvolveAdapter")
 
         # Check ROMA bridge availability
         try:
@@ -889,6 +905,31 @@ class ROMAOpenEvolveAdapter:
     # =========================================================================
     # PHASE 6: FINAL VALIDATION
     # =========================================================================
+
+    def integrate_with_cav_nlp(self, roma_plan, openevolve_result):
+        """Integrate ROMA and OpenEvolve using CAV-NLP verification."""
+        if self.use_cav_nlp:
+            formalized = self.math_service.formalize(roma_plan)
+            result = self.enhanced_solver.verify_with_lean(formalized.code)
+            return result
+        return {"verified": False, "reason": "CAV-NLP not available"}
+
+    def verify_plan_with_cav_nlp(self, plan: str) -> Dict[str, Any]:
+        """Verify a ROMA plan using CAV-NLP formal verification."""
+        if not self.use_cav_nlp:
+            return {"verified": False, "reason": "CAV-NLP not available"}
+        try:
+            formalized = self.math_service.formalize(plan)
+            result = self.enhanced_solver.verify_with_lean(formalized.code)
+            return {
+                "verified": result.get("verified", False),
+                "confidence": result.get("confidence", 0.0),
+                "formalized_code": formalized.code,
+                "method": "lean_verification"
+            }
+        except Exception as e:
+            logger.warning(f"CAV-NLP plan verification failed: {e}")
+            return {"verified": False, "error": str(e)}
 
     def final_validation(
         self,

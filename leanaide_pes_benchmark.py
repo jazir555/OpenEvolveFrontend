@@ -9,12 +9,20 @@ Lean 4 proof generation results by completing proofs that would otherwise fail.
 The benchmark compares:
 1. Original proofs with 'sorry' (unfinished)
 2. PES-enhanced proofs (completed with appropriate tactics)
-3. Verification that enhanced proofs are syntactically valid
+3. CAV-NLP enhanced formalization (when available)
+4. Verification that enhanced proofs are syntactically valid
 """
 
 import sys
 import os
 import re
+
+# CAV-NLP Integration
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
 
 # Add current directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

@@ -567,6 +567,22 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
+# =============================================================================
+# CAV-NLP INTEGRATION (with graceful fallback)
+# =============================================================================
+
+try:
+    from z3_cav_nlp_integration import EnhancedZ3Solver
+    from unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+    logger.debug("[OK] CAV-NLP integration available in Knowledge Engine")
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    EnhancedZ3Solver = None
+    UnifiedMathService = None
+    logger.debug("[INFO] CAV-NLP integration not available - z3_cav_nlp_integration not found")
+
+
 @dataclass
 class KnowledgeEngineOutput:
     """Output from the Knowledge Engine."""
@@ -625,12 +641,18 @@ class OpenEvolveKnowledgeEngine:
         self.adaptation_engine = None
         self.reflection_engine = None
         
+        # Initialize CAV-NLP integration for formal verification
+        self._cav_nlp_solver: Optional[Any] = None
+        self._math_service: Optional[Any] = None
+        self._initialize_cav_nlp()
+        
         # Initialize based on configuration
         self._initialize_learning_components()
         
         logger.info({
             "msg": "OpenEvolveKnowledgeEngine initialized",
             "components_count": len(self.orchestrator.components),
+            "cav_nlp_available": CAV_NLP_AVAILABLE and self._cav_nlp_solver is not None,
             "config": self.config,
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
@@ -719,6 +741,139 @@ class OpenEvolveKnowledgeEngine:
             "error_count": 0,
             "operation_history": [],
             "component_performance": {}
+        }
+    
+    def _initialize_cav_nlp(self):
+        """Initialize CAV-NLP integration for formal verification and constraint solving."""
+        if not CAV_NLP_AVAILABLE:
+            logger.debug({
+                "msg": "CAV-NLP not available, skipping initialization",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+            return
+        
+        try:
+            # Check if formal verification is enabled in config
+            enable_formal = self.config.get("verification", {}).get("enable_formal_verification", True)
+            
+            if enable_formal:
+                self._cav_nlp_solver = EnhancedZ3Solver()
+                self._math_service = UnifiedMathService()
+                logger.info({
+                    "msg": "CAV-NLP integration initialized",
+                    "capabilities": ["constraint_formalization", "hybrid_verification", "lean_export"],
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                })
+            else:
+                logger.debug({
+                    "msg": "CAV-NLP available but formal verification disabled in config",
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                })
+        except Exception as e:
+            logger.warning({
+                "msg": "Failed to initialize CAV-NLP integration",
+                "error": str(e),
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+    
+    def formalize_constraint(self, nl_constraint: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Formalize a natural language constraint using CAV-NLP.
+        
+        Args:
+            nl_constraint: Natural language constraint description
+            context: Optional context for formalization
+            
+        Returns:
+            Dictionary with formalized constraint and metadata
+        """
+        if not CAV_NLP_AVAILABLE or not self._cav_nlp_solver:
+            return {
+                "success": False,
+                "error": "CAV-NLP not available",
+                "formalized": None
+            }
+        
+        try:
+            formalized = self._cav_nlp_solver.formalize_constraint(nl_constraint)
+            return {
+                "success": True,
+                "original": nl_constraint,
+                "formalized": formalized,
+                "method": "cav_nlp",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        except Exception as e:
+            logger.error({
+                "msg": "CAV-NLP formalization failed",
+                "error": str(e),
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+            return {
+                "success": False,
+                "error": str(e),
+                "original": nl_constraint,
+                "formalized": None
+            }
+    
+    def verify_with_cav_nlp(self, constraint: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Verify a constraint using hybrid CAV-NLP + Z3 approach.
+        
+        Args:
+            constraint: Constraint to verify (NL or formal)
+            context: Optional verification context
+            
+        Returns:
+            Dictionary with verification results
+        """
+        if not CAV_NLP_AVAILABLE or not self._cav_nlp_solver:
+            return {
+                "success": False,
+                "error": "CAV-NLP not available",
+                "is_valid": False
+            }
+        
+        try:
+            # Formalize if natural language
+            formalized = self._cav_nlp_solver.formalize_constraint(constraint)
+            
+            # Perform verification
+            result = self._cav_nlp_solver.verify_constraint(formalized, context or {})
+            
+            return {
+                "success": True,
+                "is_valid": result.get("valid", False),
+                "constraint": constraint,
+                "formalized": formalized,
+                "verification": result,
+                "method": "hybrid_cav_nlp",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        except Exception as e:
+            logger.error({
+                "msg": "CAV-NLP verification failed",
+                "error": str(e),
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+            return {
+                "success": False,
+                "error": str(e),
+                "is_valid": False
+            }
+    
+    def get_cav_nlp_status(self) -> Dict[str, Any]:
+        """Get CAV-NLP integration status."""
+        return {
+            "available": CAV_NLP_AVAILABLE,
+            "solver_initialized": self._cav_nlp_solver is not None,
+            "math_service_initialized": self._math_service is not None,
+            "capabilities": [
+                "constraint_formalization",
+                "hybrid_verification",
+                "lean_export"
+            ] if CAV_NLP_AVAILABLE and self._cav_nlp_solver else [],
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
     
     async def process_request(

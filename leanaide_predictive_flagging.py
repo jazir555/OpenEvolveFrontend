@@ -7,6 +7,7 @@ Uses machine learning models to predict potential problems based on:
 - Pattern recognition
 - Agent behavior analysis
 - Contextual factors
+- CAV-NLP enhanced analysis
 
 Features:
 - Predictive quality assessment
@@ -14,6 +15,7 @@ Features:
 - Historical pattern analysis
 - Agent behavior prediction
 - Context-aware forecasting
+- CAV-NLP enhanced predictions
 - Early warning systems
 
 Author: OpenEvolve
@@ -38,6 +40,14 @@ from typing import (
 )
 from pathlib import Path
 import statistics
+
+# CAV-NLP Integration
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logging.getLogger(__name__).debug("CAV-NLP not available for predictive flagging")
 
 
 logger = logging.getLogger(__name__)

@@ -843,7 +843,7 @@ demo_leanaide_client.py                 # Usage examples
 # LeanAide Core System
 LeanAide/leanaide_server.py             # Main API server
 LeanAide/server/api_server.py           # REST API endpoints
-LeanAide/server/streamlit_ui.py         # Web UI
+LeanAide/server/bubblelabs_ui.py         # Web UI
 LeanAide/SimilaritySearch/              # Theorem similarity search
 LeanAide/dependency_graph/              # Theorem dependency analysis
 ```
@@ -1828,5 +1828,6 @@ The MCTS-MDAP system integrates with the decomposition workflow:
 5. **Stage 5**: Validate with Lean 4 server
 
 This hybrid approach enables automated proving of complex theorems that would be intractable for pure MCTS or pure decomposition approaches.
+
 
 

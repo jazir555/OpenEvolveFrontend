@@ -31,6 +31,14 @@ Key Features:
 import logging
 from typing import Dict, Any, List, Optional
 
+# CAV-NLP imports
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 # ACE + Steer Integration (optional)
 try:
     from ace_steer_integration import AceSteerBridge
@@ -49,6 +57,17 @@ from roma_crewai_bridge import (
     execute_phase_2_generation as roma_phase2,
     execute_phase_5_reassemble as roma_phase5,
 )
+
+# CAV-NLP initialization
+_cav_nlp_solver = None
+_math_service = None
+if CAV_NLP_AVAILABLE:
+    try:
+        _cav_nlp_solver = EnhancedZ3Solver()
+        _math_service = UnifiedMathService()
+        logger.info("CAV-NLP initialized for ROMA CrewAI tools")
+    except Exception as e:
+        logger.warning(f"Failed to initialize CAV-NLP: {e}")
 
 # =============================================================================
 # MCP TOOL REGISTRY
