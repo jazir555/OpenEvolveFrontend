@@ -6,7 +6,7 @@ within the BubbleLabs interface, including real-time metrics, progress tracking,
 and workflow graph visualization.
 """
 
-import streamlit as st
+from ui_shim import ui as st
 import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd

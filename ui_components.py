@@ -1,4 +1,4 @@
-import streamlit as st
+from ui_shim import ui as st
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime, timedelta
 from workflow_structures import Team, ModelConfig, GauntletDefinition, GauntletRoundRule, DecompositionPlan, SubProblem
@@ -4438,7 +4438,7 @@ This file contains additional UI components that need to be added to ui_componen
 """
 
 from typing import Dict, Any, Optional, List
-import streamlit as st
+from ui_shim import ui as st
 import time
 
 

@@ -1,11 +1,9 @@
 import dataclasses # Added for dataclasses.is_dataclass
 import time
-import types
 import json
 import uuid
 import threading # Added for parallel execution in gauntlets
 import os # Added for path manipulation in OpenEvolve integration and env vars for crewai
-import sys
 from unittest.mock import Mock
 import re # Added for regex parsing in targeted feedback
 from typing import Any, Dict, List, Literal, Optional
@@ -95,91 +93,13 @@ try:
 except ImportError:
     CACHE_AVAILABLE = False
 
-class _NoOpStreamlit:
-    """Fallback Streamlit shim for non-UI execution contexts (e.g., tests)."""
-
-    def __init__(self) -> None:
-        self.session_state = {}
-
-    def __getattr__(self, name):
-        def _noop(*args, **kwargs):
-            return None
-        return _noop
+from ui_shim import ui as st
 
 
-class _SafeStreamlitProxy:
-    """Proxy to guard Streamlit calls when runtime isn't fully initialized."""
+def _ensure_ui_safe() -> None:
+    """No-op placeholder for legacy safety checks."""
+    return None
 
-    def __init__(self, target: Any) -> None:
-        self._target = target
-
-    def __getattr__(self, name: str):
-        attr = getattr(self._target, name, None)
-        if callable(attr):
-            def _safe(*args, **kwargs):
-                try:
-                    return attr(*args, **kwargs)
-                except Exception:
-                    return None
-            return _safe
-        return attr
-
-
-def _disable_streamlit_module(module: Any) -> None:
-    """Force Streamlit module into a safe no-op mode."""
-    def _noop(*args, **kwargs):
-        return None
-    for name in ("info", "warning", "error", "success", "markdown", "subheader", "caption", "write", "rerun"):
-        try:
-            setattr(module, name, _noop)
-        except Exception:
-            pass
-    try:
-        if not hasattr(module, "session_state"):
-            module.session_state = {}
-    except Exception:
-        pass
-
-
-streamlit_override = sys.modules.get("streamlit")
-if streamlit_override is not None and (
-    isinstance(streamlit_override, Mock)
-    or not isinstance(streamlit_override, types.ModuleType)
-    or isinstance(getattr(streamlit_override, "info", None), Mock)
-):
-    st = streamlit_override
-elif os.getenv("OPENEVOLVE_STREAMLIT_UI") == "1":
-    try:
-        import streamlit as st  # type: ignore
-    except Exception:
-        st = _NoOpStreamlit()
-else:
-    st = _NoOpStreamlit()
-
-if os.getenv("OPENEVOLVE_STREAMLIT_UI") != "1":
-    if "streamlit" in sys.modules and isinstance(sys.modules["streamlit"], types.ModuleType):
-        _disable_streamlit_module(sys.modules["streamlit"])
-
-
-def _ensure_streamlit_safe() -> None:
-    """Swap to a no-op Streamlit shim when running tests without mocks."""
-    global st
-    module_override = sys.modules.get("streamlit")
-    if module_override is not None and module_override is not st:
-        if (
-            os.getenv("OPENEVOLVE_STREAMLIT_UI") == "1"
-            or isinstance(module_override, Mock)
-            or not isinstance(module_override, types.ModuleType)
-            or isinstance(getattr(module_override, "info", None), Mock)
-        ):
-            st = module_override
-    if not isinstance(st, types.ModuleType):
-        return
-    if os.getenv("OPENEVOLVE_STREAMLIT_UI") != "1":
-        st = _NoOpStreamlit()
-        return
-    if not isinstance(st, _SafeStreamlitProxy):
-        st = _SafeStreamlitProxy(st)
 from ui_components import render_manual_review_panel # Import for Stage 2 UI
 from memory_agent import MemoryAgent
 
@@ -1517,16 +1437,11 @@ async def run_sovereign_workflow(
         solver_generation_gauntlet: The Blue Team Gauntlet used by the solver/patcher for internal generation/peer review.
         max_refinement_loops: The maximum number of self-healing loops allowed for the final solution.
     """
-    global st
-    if os.getenv("PYTEST_CURRENT_TEST") or os.getenv("PYTEST_RUNNING"):
-        st = _NoOpStreamlit()
-    elif os.getenv("OPENEVOLVE_STREAMLIT_UI") != "1":
-        st = _NoOpStreamlit()
-    _ensure_streamlit_safe()
+    _ensure_ui_safe()
     try:
         st.info(f"Starting Sovereign-Grade Workflow: {workflow_state.workflow_id}")
     except Exception:
-        st = _NoOpStreamlit()
+        pass
     workflow_state.status = "running"
     resource_manager = ResourceManager()
     workflow_started_at = time.time()
@@ -1771,7 +1686,7 @@ async def run_sovereign_workflow(
                             context=ctx,
                             workflow_state=workflow_state,
                             solver_generation_gauntlet=actual_generation_gauntlet,
-                            emit_streamlit=False
+                            emit_ui=False
                         )
                         return SolutionAttempt(
                             sub_problem_id=sp.id,
@@ -1818,7 +1733,7 @@ async def run_sovereign_workflow(
                                 "context": {"current_solution": ""},
                                 "workflow_state": workflow_state,
                                 "solver_generation_gauntlet": actual_generation_gauntlet,
-                                "emit_streamlit": False
+                                "emit_ui": False
                             }
                         ))
 
@@ -3046,7 +2961,7 @@ def generate_solution_for_sub_problem(
     context: Dict[str, Any],
     workflow_state: WorkflowState,
     solver_generation_gauntlet: Optional[GauntletDefinition] = None,
-    emit_streamlit: bool = True
+    emit_ui: bool = True
 ) -> str:
     """    Generates a solution for a given sub-problem using the assigned solver team and OpenEvolve.
     This function supports different generation modes based on the `solver_generation_gauntlet`:
@@ -3065,10 +2980,10 @@ def generate_solution_for_sub_problem(
     Returns:
         str: The generated solution content, or an error message if generation fails.
     """
-    emit_info = st.info if emit_streamlit else logger.info
-    emit_warning = st.warning if emit_streamlit else logger.warning
-    emit_error = st.error if emit_streamlit else logger.error
-    emit_success = st.success if emit_streamlit else logger.info
+    emit_info = st.info if emit_ui else logger.info
+    emit_warning = st.warning if emit_ui else logger.warning
+    emit_error = st.error if emit_ui else logger.error
+    emit_success = st.success if emit_ui else logger.info
 
     emit_info(f"Generating solution for {sub_problem.id} using {team.name} via OpenEvolve...")
     

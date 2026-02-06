@@ -12,6 +12,25 @@ import re
 from dataclasses import dataclass
 from typing import Any, Dict, Iterable, Iterator, Optional, Tuple
 
+# =============================================================================
+# CAV-NLP Integration with Graceful Fallback
+# =============================================================================
+
+try:
+    from openevolve.z3_cav_nlp_integration import (
+        EnhancedZ3Solver,
+        ConstraintFormalizer,
+        FormalizationResult,
+        VerificationResult,
+    )
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    EnhancedZ3Solver = None
+    ConstraintFormalizer = None
+    FormalizationResult = None
+    VerificationResult = None
+
 
 def optional_import(module_name: str):
     try:

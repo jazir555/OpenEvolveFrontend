@@ -4,7 +4,7 @@ This file manages protocol validation, compliance checks, and validation-related
 File size: ~600 lines (under the 2000 line limit)
 """
 
-import streamlit as st
+from ui_shim import ui as st
 from typing import Dict, List, Any, Optional
 import re
 import logging

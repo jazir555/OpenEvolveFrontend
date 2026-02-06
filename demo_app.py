@@ -3,7 +3,7 @@ Demo Application for OpenEvolve
 A simple demonstration of the complete OpenEvolve system functionality.
 """
 
-import streamlit as st
+from ui_shim import ui as st
 import sys
 import os
 from datetime import datetime

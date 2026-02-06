@@ -260,16 +260,14 @@ class TestLoongFlowGauntletEvaluator:
 
     @pytest.mark.asyncio
     async def test_evaluate_solution_success(self, evaluator):
-        """Test successful solution evaluation."""
-        # Mock the LoongFlow adapter
-        with patch.object(
-            evaluator.loongflow_adapter,
-            'evolve',
-            new_callable=AsyncMock
-        ) as mock_evolve:
-            mock_evolve.return_value = {
+        """Test successful solution evaluation with proper mocking."""
+        # Mock the LoongFlow adapter at the instance level
+        original_evolve = evaluator.loongflow_adapter.evolve
+
+        async def mock_evolve(*args, **kwargs):
+            return {
                 "best_solution": "def foo(): return 42",
-                "best_fitness": 0.85,
+                "best_fitness": 0.85,  # High fitness to pass threshold
                 "total_evaluations": 25,
                 "improvement_rate": 0.75,
                 "iterations_performed": 8,
@@ -277,18 +275,24 @@ class TestLoongFlowGauntletEvaluator:
                 "strategy_used": "pes"
             }
 
+        evaluator.loongflow_adapter.evolve = mock_evolve
+
+        try:
             result = await evaluator.evaluate_solution(
                 solution="def foo(): return 42",
                 problem="Create a function that returns 42",
                 domain="code"
             )
 
+            # With best_fitness=0.85, should pass 0.6 threshold
             assert result.passed is True
             assert result.overall_score >= 0.6
             assert result.confidence >= 0.7
             assert result.pes_evaluations == 25
             assert result.pes_iterations == 8
             assert len(result.feedback) > 0
+        finally:
+            evaluator.loongflow_adapter.evolve = original_evolve
 
     @pytest.mark.asyncio
     async def test_evaluate_solution_failure(self, evaluator):
@@ -381,20 +385,24 @@ class TestLoongFlowGauntletEvaluator:
         """Test batch evaluation with some failures."""
         solutions = ["sol1", "sol2", "sol3"]
 
-        with patch.object(
-            evaluator.loongflow_adapter,
-            'evolve',
-            new_callable=AsyncMock
-        ) as mock_evolve:
-            # First succeeds, second fails, third succeeds
-            mock_evolve.side_effect = [
-                {"best_solution": "sol1", "best_fitness": 0.8, "total_evaluations": 20,
-                 "improvement_rate": 0.7, "iterations_performed": 7, "convergence_quality": 0.75},
-                Exception("Error"),
-                {"best_solution": "sol3", "best_fitness": 0.9, "total_evaluations": 15,
-                 "improvement_rate": 0.8, "iterations_performed": 5, "convergence_quality": 0.85}
-            ]
+        # Mock the evolve method to return different values for each call
+        original_evolve = evaluator.loongflow_adapter.evolve
+        call_count = [0]
 
+        async def mock_evolve_with_exception(*args, **kwargs):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                return {"best_solution": "sol1", "best_fitness": 0.8, "total_evaluations": 20,
+                        "improvement_rate": 0.7, "iterations_performed": 7, "convergence_quality": 0.75}
+            elif call_count[0] == 2:
+                raise Exception("Error")
+            else:
+                return {"best_solution": "sol3", "best_fitness": 0.9, "total_evaluations": 15,
+                        "improvement_rate": 0.8, "iterations_performed": 5, "convergence_quality": 0.85}
+
+        evaluator.loongflow_adapter.evolve = mock_evolve_with_exception
+
+        try:
             results = await evaluator.evaluate_batch(
                 solutions=solutions,
                 problem="Test",
@@ -406,6 +414,8 @@ class TestLoongFlowGauntletEvaluator:
             assert results[1].passed is False  # Exception
             assert results[2].passed is True  # Success
             assert "error" in results[1].feedback.lower()
+        finally:
+            evaluator.loongflow_adapter.evolve = original_evolve
 
     def test_is_available(self, evaluator):
         """Test checking if LoongFlow is available."""
@@ -596,12 +606,11 @@ class TestIntegrationScenarios:
     @pytest.mark.asyncio
     async def test_code_problem_evaluation(self, evaluator):
         """Test evaluating a code problem solution."""
-        with patch.object(
-            evaluator.loongflow_adapter,
-            'evolve',
-            new_callable=AsyncMock
-        ) as mock_evolve:
-            mock_evolve.return_value = {
+        # Mock the evolve method
+        original_evolve = evaluator.loongflow_adapter.evolve
+
+        async def mock_evolve(*args, **kwargs):
+            return {
                 "best_solution": "def sort(arr): return sorted(arr)",
                 "best_fitness": 0.88,
                 "total_evaluations": 28,
@@ -611,6 +620,9 @@ class TestIntegrationScenarios:
                 "strategy_used": "pes"
             }
 
+        evaluator.loongflow_adapter.evolve = mock_evolve
+
+        try:
             result = await evaluator.evaluate_solution(
                 solution="def sort(arr): return sorted(arr)",
                 problem="Sort an array of numbers",
@@ -619,6 +631,8 @@ class TestIntegrationScenarios:
 
             assert result.passed is True
             assert result.efficiency_score > 0.5
+        finally:
+            evaluator.loongflow_adapter.evolve = original_evolve
 
     @pytest.mark.asyncio
     async def test_performance_benchmarks(self, evaluator):
@@ -659,24 +673,23 @@ class TestIntegrationScenarios:
     @pytest.mark.asyncio
     async def test_batch_performance(self, evaluator):
         """Test batch evaluation performance."""
-        with patch.object(
-            evaluator.loongflow_adapter,
-            'evolve',
-            new_callable=AsyncMock
-        ) as mock_evolve:
-            async def quick_evolve(*args, **kwargs):
-                await asyncio.sleep(0.05)
-                return {
-                    "best_solution": "test",
-                    "best_fitness": 0.75,
-                    "total_evaluations": 15,
-                    "improvement_rate": 0.65,
-                    "iterations_performed": 4,
-                    "convergence_quality": 0.7
-                }
+        # Mock the evolve method
+        original_evolve = evaluator.loongflow_adapter.evolve
 
-            mock_evolve.side_effect = quick_evolve
+        async def quick_evolve(*args, **kwargs):
+            await asyncio.sleep(0.05)
+            return {
+                "best_solution": "test",
+                "best_fitness": 0.75,
+                "total_evaluations": 15,
+                "improvement_rate": 0.65,
+                "iterations_performed": 4,
+                "convergence_quality": 0.7
+            }
 
+        evaluator.loongflow_adapter.evolve = quick_evolve
+
+        try:
             solutions = [f"def solution_{i}(): return {i}" for i in range(10)]
 
             start = time.time()
@@ -688,9 +701,11 @@ class TestIntegrationScenarios:
             elapsed = time.time() - start
 
             # Batch should complete in reasonable time
-            # With 10 solutions at 50ms each, should be < 1s with concurrency
+            # With 10 solutions at 50ms each, should be < 5s
             assert elapsed < 5.0
             assert len(results) == 10
+        finally:
+            evaluator.loongflow_adapter.evolve = original_evolve
 
 
 if __name__ == "__main__":

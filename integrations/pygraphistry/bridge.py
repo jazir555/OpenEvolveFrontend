@@ -335,7 +335,7 @@ class PygraphistryBridge:
             Streamlit component code as string
         """
         code = f"""
-import streamlit.components.v1 as components
+from ui_shim import components
 
 # Display Pygraphistry visualization
 components.iframe(

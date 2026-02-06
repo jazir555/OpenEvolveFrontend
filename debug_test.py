@@ -4,9 +4,9 @@ import sys
 sys.path.insert(0, 'tests')
 
 from unittest.mock import patch, MagicMock
-import streamlit as st
+from ui_shim import ui as st
 
-# Mock streamlit
+# Mock UI shim
 st.session_state = MagicMock()
 st.session_state.edited_sub_problems = {}
 st.info = MagicMock()
@@ -61,7 +61,7 @@ with patch('workflow_engine._request_openai_compatible_chat') as mock_chat:
 
     # Patch also at llm_utils level
     with patch('llm_utils._request_openai_compatible_chat', return_value='Generated solution content.'):
-        result = generate_solution_for_sub_problem(sub_problem, solver_team, {}, workflow_state, solver_gauntlet, emit_streamlit=False)
+        result = generate_solution_for_sub_problem(sub_problem, solver_team, {}, workflow_state, solver_gauntlet, emit_ui=False)
 
         print(f'Result: {repr(result)}')
         print(f'Mock called: {mock_chat.called}')

@@ -5,7 +5,7 @@ This module provides comprehensive analytics and visualization for the Decomposi
 including workflow performance, team effectiveness, gauntlet performance, and solution quality metrics.
 """
 
-import streamlit as st
+from ui_shim import ui as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go

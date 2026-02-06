@@ -4,7 +4,7 @@ This module provides the core functionality that combines adversarial testing an
 into a single, powerful workflow that enhances content quality through AI-driven critique and refinement.
 """
 
-import streamlit as st
+from ui_shim import ui as st
 import json
 import time
 from typing import Dict, Any, List, Optional

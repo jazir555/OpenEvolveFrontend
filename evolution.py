@@ -1,4 +1,4 @@
-import streamlit as st
+from ui_shim import ui as st
 import time
 import tempfile
 import os
@@ -1997,7 +1997,7 @@ def create_evolution_configuration_from_session() -> EvolutionConfiguration:
     This is the legacy version for backward compatibility.
     """
     try:
-        import streamlit as st
+        from ui_shim import ui as st
         param_manager = ParameterManager()
         config = EvolutionConfiguration.from_parameter_manager(param_manager, st.session_state)
         

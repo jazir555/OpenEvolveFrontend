@@ -4,7 +4,7 @@ This file manages project import/export, serialization, and file handling
 File size: ~800 lines (under the 2000 line limit)
 """
 
-import streamlit as st
+from ui_shim import ui as st
 from datetime import datetime
 import logging
 from typing import Any, Dict, List, Optional

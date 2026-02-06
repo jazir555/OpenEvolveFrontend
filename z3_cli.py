@@ -4,7 +4,7 @@ Z3 Integration Command Line Interface
 Unified CLI for the Z3-LeanAIDE-OpenEvolve-BubbleLabs integration.
 
 Commands:
-- solve: Solve constraint problems
+- solve: Solve constraint problems [--use-cav-nlp]
 - solve-batch: Batch problem solving from JSON file
 - solve-portfolio: Portfolio/multi-strategy solving
 - solve-incremental: Interactive incremental solving with push/pop/add/check
@@ -17,6 +17,11 @@ Commands:
 - config: Manage configuration
 - knowledge: Query knowledge base
 
+CAV-NLP Commands:
+- formalize: Formalize natural language to Lean/Z3
+- verify: Verify constraint with optional hybrid Z3+Lean
+- canonicalize: Canonicalize constraint to standard form
+
 Author: OpenEvolve
 Created: 2026-01-31
 """
@@ -28,6 +33,14 @@ import logging
 import sys
 from pathlib import Path
 from typing import Optional
+
+# CAV-NLP Integration
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
 
 # CLI framework
 try:
@@ -97,7 +110,8 @@ if CLICK_AVAILABLE:
     @click.option('--timeout', '-t', default=60.0, help='Timeout in seconds')
     @click.option('--output', '-o', help='Output file')
     @click.option('--format', 'output_format', default='json', type=click.Choice(['json', 'yaml', 'text']))
-    def solve(problem, variables, constraints, timeout, output, output_format):
+    @click.option('--use-cav-nlp', is_flag=True, help='Use CAV-NLP enhancement for natural language problems')
+    def solve(problem, variables, constraints, timeout, output, output_format, use_cav_nlp):
         """Solve a constraint satisfaction problem."""
         try:
             from z3prover_integration import get_z3_solver_engine, Z3Variable, Z3Constraint, Z3ConstraintType
@@ -105,7 +119,14 @@ if CLICK_AVAILABLE:
             echo(style("Solving constraint problem...", fg='blue'))
             echo(f"Problem: {problem[:100]}...")
             
-            solver = get_z3_solver_engine()
+            # Use CAV-NLP enhanced solver if requested and available
+            if use_cav_nlp and CAV_NLP_AVAILABLE:
+                echo(style("Using CAV-NLP enhancement...", fg='cyan'))
+                solver = EnhancedZ3Solver()
+            else:
+                if use_cav_nlp and not CAV_NLP_AVAILABLE:
+                    echo(style("Warning: CAV-NLP not available, using standard solver", fg='yellow'))
+                solver = get_z3_solver_engine()
             
             # Parse inputs
             vars_list = json.loads(variables) if variables else []
@@ -158,6 +179,196 @@ if CLICK_AVAILABLE:
             else:
                 echo(style(f"[FAIL] {result.status.value.upper()}", fg='red'))
         
+        except Exception as e:
+            echo(style(f"Error: {e}", fg='red'), err=True)
+            sys.exit(1)
+
+
+    # =============================================================================
+    # CAV-NLP Commands
+    # =============================================================================
+
+    @cli.command()
+    @click.argument('text', type=str)
+    @click.option('--elaborate', is_flag=True, help='Elaborate with LeanAide before formalization')
+    @click.option('--output', '-o', help='Output file for formalized code')
+    def formalize(text, elaborate, output):
+        """Formalize natural language to Lean/Z3 using CAV-NLP.
+        
+        Examples:
+            z3 formalize "x is greater than 0 and less than 100"
+            z3 formalize "forall integers x, x squared is non-negative" --elaborate
+            z3 formalize "sum of two even numbers is even" -o output.lean
+        """
+        if not CAV_NLP_AVAILABLE:
+            echo(style("Error: CAV-NLP not available. Install required dependencies.", fg='red'), err=True)
+            sys.exit(1)
+        
+        try:
+            echo(style("Formalizing natural language...", fg='blue'))
+            echo(f"Input: {text}")
+            
+            service = UnifiedMathService()
+            result = asyncio.run(service.formalize(text, elaborate=elaborate))
+            
+            output_data = {
+                "success": result.success,
+                "code": result.code,
+                "language": result.language,
+                "confidence": result.confidence,
+                "elaborated": result.elaborated,
+                "errors": result.errors
+            }
+            
+            if output:
+                Path(output).write_text(result.code)
+                echo(style(f"Formalized code written to {output}", fg='green'))
+            
+            if result.success:
+                echo(style(f"[OK] Formalized to {result.language}", fg='green'))
+                echo(f"Confidence: {result.confidence:.1%}")
+                if result.elaborated:
+                    echo(style("(Elaborated with LeanAide)", fg='cyan'))
+                echo("\nFormalized code:")
+                echo(result.code)
+            else:
+                echo(style("[FAIL] Formalization failed", fg='red'))
+                if result.errors:
+                    echo("Errors:")
+                    for error in result.errors:
+                        echo(f"  - {error}")
+            
+            if not output:
+                echo(json.dumps(output_data, indent=2))
+                
+        except Exception as e:
+            echo(style(f"Error: {e}", fg='red'), err=True)
+            sys.exit(1)
+
+
+    @cli.command()
+    @click.argument('constraint', type=str)
+    @click.option('--hybrid', is_flag=True, help='Use hybrid Z3+Lean verification')
+    @click.option('--output', '-o', help='Output file')
+    @click.option('--format', 'output_format', default='json', type=click.Choice(['json', 'yaml', 'text']))
+    def verify(constraint, hybrid, output, output_format):
+        """Verify constraint with optional hybrid verification.
+        
+        Examples:
+            z3 verify "x > 0 and x < 100"
+            z3 verify "forall x: x * x >= 0" --hybrid
+            z3 verify "n > 2 implies n^2 > 4" --hybrid -o result.json
+        """
+        try:
+            echo(style("Verifying constraint...", fg='blue'))
+            echo(f"Constraint: {constraint}")
+            
+            if hybrid and CAV_NLP_AVAILABLE:
+                echo(style("Using hybrid Z3+Lean verification...", fg='cyan'))
+                solver = EnhancedZ3Solver()
+                result = asyncio.run(solver.verify_with_lean(constraint))
+                
+                output_data = {
+                    "success": result.success,
+                    "verified": result.verified,
+                    "confidence": result.confidence,
+                    "method": result.method,
+                    "z3_result": result.z3_result,
+                    "lean_result": result.lean_result,
+                    "errors": result.errors
+                }
+                
+                if result.verified:
+                    echo(style(f"[OK] Verified (Confidence: {result.confidence:.1%})", fg='green'))
+                    echo(f"Method: {result.method}")
+                else:
+                    echo(style("[FAIL] Verification failed", fg='red'))
+                    if result.errors:
+                        echo("Errors:")
+                        for error in result.errors:
+                            echo(f"  - {error}")
+                
+                _output_result(output_data, output, output_format)
+                
+            else:
+                if hybrid and not CAV_NLP_AVAILABLE:
+                    echo(style("Warning: CAV-NLP not available, using standard Z3 verification", fg='yellow'))
+                
+                # Standard Z3 verification
+                from z3prover_integration import get_z3_solver_engine, Z3Constraint, Z3ConstraintType
+                
+                solver = get_z3_solver_engine()
+                z3_constraint = Z3Constraint(constraint, Z3ConstraintType.BOOLEAN)
+                
+                import time
+                start = time.time()
+                result = solver.solve_constraints([], [z3_constraint])
+                elapsed = (time.time() - start) * 1000
+                
+                output_data = {
+                    "success": result.status.value == 'sat',
+                    "verified": result.is_sat(),
+                    "status": result.status.value,
+                    "method": "z3",
+                    "execution_time_ms": elapsed
+                }
+                
+                if result.is_sat():
+                    echo(style("[OK] Constraint is satisfiable", fg='green'))
+                elif result.is_unsat():
+                    echo(style("[OK] Constraint is valid (unsatisfiable negation)", fg='green'))
+                else:
+                    echo(style("[FAIL] Verification inconclusive", fg='yellow'))
+                
+                _output_result(output_data, output, output_format)
+                
+        except Exception as e:
+            echo(style(f"Error: {e}", fg='red'), err=True)
+            sys.exit(1)
+
+
+    @cli.command()
+    @click.argument('constraint', type=str)
+    @click.option('--output', '-o', help='Output file')
+    def canonicalize(constraint, output):
+        """Canonicalize constraint using CAV-NLP.
+        
+        Converts constraints to a standardized canonical form for easier
+        comparison and pattern matching.
+        
+        Examples:
+            z3 canonicalize "x > 0 and x < 100"
+            z3 canonicalize "y + x = 10"
+            z3 canonicalize "a implies b" -o canonical.txt
+        """
+        if not CAV_NLP_AVAILABLE:
+            echo(style("Error: CAV-NLP not available. Install required dependencies.", fg='red'), err=True)
+            sys.exit(1)
+        
+        try:
+            echo(style("Canonicalizing constraint...", fg='blue'))
+            echo(f"Input: {constraint}")
+            
+            solver = EnhancedZ3Solver()
+            canonical = solver.canonical_manager.canonicalize(constraint)
+            
+            output_data = {
+                "success": True,
+                "input": constraint,
+                "canonical": canonical
+            }
+            
+            if output:
+                Path(output).write_text(canonical)
+                echo(style(f"Canonical form written to {output}", fg='green'))
+            
+            echo(style("[OK] Canonicalized", fg='green'))
+            echo(f"Input:    {constraint}")
+            echo(f"Canonical: {canonical}")
+            
+            if not output:
+                echo(json.dumps(output_data, indent=2))
+                
         except Exception as e:
             echo(style(f"Error: {e}", fg='red'), err=True)
             sys.exit(1)
@@ -1066,7 +1277,7 @@ else:
     def main():
         print("Click is required for CLI. Install with: pip install click")
         print("\nAvailable commands would be:")
-        print("  z3 solve <problem>")
+        print("  z3 solve <problem> [--use-cav-nlp]")
         print("  z3 solve-batch <input-file>")
         print("  z3 solve-portfolio <input-file>")
         print("  z3 solve-incremental --operation <op>")
@@ -1077,6 +1288,10 @@ else:
         print("  z3 monitor")
         print("  z3 config show")
         print("  z3 knowledge patterns")
+        print("\nCAV-NLP Commands:")
+        print("  z3 formalize <text> [--elaborate]")
+        print("  z3 verify <constraint> [--hybrid]")
+        print("  z3 canonicalize <constraint>")
 
 
 if __name__ == "__main__":

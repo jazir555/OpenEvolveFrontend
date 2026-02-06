@@ -55,6 +55,18 @@ try:
 except ImportError:
     pass
 
+# =============================================================================
+# CAV-NLP Integration
+# =============================================================================
+
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver, ProofExporter
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logger.debug("CAV-NLP integration not available")
+
 
 # =============================================================================
 # Advanced Data Classes
@@ -211,6 +223,29 @@ class PortfolioResult:
             "execution_time": self.execution_time,
             "parallel_speedup": self.parallel_speedup,
             "results_count": len(self.all_results)
+        }
+
+
+@dataclass
+class ProofResult:
+    """Result from a proof attempt with CAV-NLP integration."""
+    success: bool
+    theorem: Optional[str] = None
+    formalized_theorem: Optional[str] = None
+    proof: Optional[Any] = None
+    verification: Optional[Any] = None
+    execution_time: float = 0.0
+    error_message: Optional[str] = None
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "success": self.success,
+            "theorem": self.theorem,
+            "formalized_theorem": self.formalized_theorem,
+            "proof": str(self.proof) if self.proof else None,
+            "verification": self.verification.to_dict() if hasattr(self.verification, 'to_dict') else str(self.verification),
+            "execution_time": self.execution_time,
+            "error_message": self.error_message
         }
 
 
@@ -541,6 +576,291 @@ class TrueIncrementalSolver:
                 return str(value)
         else:
             return str(value)
+
+
+# =============================================================================
+# Advanced Z3 Prover with CAV-NLP Integration
+# =============================================================================
+
+class AdvancedZ3Prover:
+    """
+    Advanced Z3 prover with CAV-NLP integration.
+    
+    This prover extends Z3 capabilities with:
+    - Natural language theorem formalization
+    - Hybrid Z3 + Lean verification
+    - Proof export to Lean 4
+    - CAV-NLP enhanced solving
+    
+    The CAV-NLP integration is optional and configurable.
+    """
+    
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        """
+        Initialize the advanced prover.
+        
+        Args:
+            config: Configuration dictionary with options:
+                - use_cav_nlp: Enable CAV-NLP integration (default: True)
+                - timeout: Solver timeout in seconds (default: 30)
+                - enable_proof_extraction: Enable proof extraction (default: True)
+        """
+        self.config = config or {}
+        self.solver = z3.Solver() if Z3_PYTHON_AVAILABLE else None
+        
+        # Configure timeout
+        if self.solver is not None:
+            timeout = self.config.get("timeout", 30)
+            self.solver.set("timeout", int(timeout * 1000))
+        
+        # CAV-NLP integration
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        self._cav_nlp_components: Dict[str, Any] = {}
+        
+        if self.use_cav_nlp:
+            try:
+                self._cav_nlp_components['enhanced_solver'] = EnhancedZ3Solver()
+                self._cav_nlp_components['math_service'] = UnifiedMathService()
+                self._cav_nlp_components['proof_exporter'] = ProofExporter()
+                logger.info("CAV-NLP integration initialized successfully")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP components: {e}")
+                self.use_cav_nlp = False
+        
+        # Proof extraction
+        self._proof_extractor = ProofExtractor()
+        self._enable_proof_extraction = self.config.get("enable_proof_extraction", True)
+    
+    # =====================================================================
+    # CAV-NLP Enhanced Methods
+    # =====================================================================
+    
+    async def prove_natural_language(self, nl_theorem: str) -> ProofResult:
+        """
+        Prove theorem stated in natural language using CAV-NLP.
+        
+        This method:
+        1. Formalizes the natural language theorem to Z3/SMT-LIB
+        2. Proves the formalized theorem
+        3. Returns the proof result with verification
+        
+        Args:
+            nl_theorem: Theorem stated in natural language
+            
+        Returns:
+            ProofResult containing the proof or error information
+            
+        Raises:
+            ValueError: If CAV-NLP is not available
+        """
+        if not self.use_cav_nlp:
+            raise ValueError(
+                "CAV-NLP not available. "
+                "Ensure openevolve.z3_cav_nlp_integration is installed."
+            )
+        
+        start_time = time.time()
+        
+        try:
+            # Step 1: Formalize natural language to Z3
+            math_service = self._cav_nlp_components.get('math_service')
+            formalized = await math_service.formalize(nl_theorem)
+            
+            if not formalized or not formalized.code:
+                return ProofResult(
+                    success=False,
+                    theorem=nl_theorem,
+                    error_message="Failed to formalize natural language theorem",
+                    execution_time=time.time() - start_time
+                )
+            
+            # Step 2: Prove the formalized theorem
+            result = await self.prove(
+                formalized.code,
+                use_hybrid=True,
+                nl_source=nl_theorem
+            )
+            
+            # Add formalization info to result
+            result.formalized_theorem = formalized.code
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Natural language proving failed: {e}")
+            return ProofResult(
+                success=False,
+                theorem=nl_theorem,
+                error_message=str(e),
+                execution_time=time.time() - start_time
+            )
+    
+    async def prove(
+        self,
+        theorem: str,
+        use_hybrid: bool = False,
+        nl_source: Optional[str] = None
+    ) -> ProofResult:
+        """
+        Prove a theorem with optional hybrid verification.
+        
+        Args:
+            theorem: Theorem in Z3/SMT-LIB format
+            use_hybrid: Whether to use hybrid Z3 + Lean verification
+            nl_source: Original natural language source (if applicable)
+            
+        Returns:
+            ProofResult containing the proof result
+        """
+        start_time = time.time()
+        
+        try:
+            # Basic Z3 solving
+            if not Z3_PYTHON_AVAILABLE:
+                return ProofResult(
+                    success=False,
+                    theorem=nl_source or theorem,
+                    error_message="Z3 Python API not available",
+                    execution_time=time.time() - start_time
+                )
+            
+            # Solve with Z3
+            self.solver.reset()
+            self.solver.from_string(theorem)
+            z3_result = self.solver.check()
+            
+            proof = None
+            verification = None
+            
+            if z3_result == z3.unsat:
+                # Theorem is valid (negation is unsatisfiable)
+                success = True
+                
+                # Extract proof if enabled
+                if self._enable_proof_extraction:
+                    try:
+                        proof = self.solver.proof()
+                    except Exception as e:
+                        logger.debug(f"Proof extraction failed: {e}")
+                
+            elif z3_result == z3.sat:
+                # Theorem is invalid (counterexample found)
+                success = False
+                proof = self.solver.model()
+            else:
+                success = False
+            
+            # Hybrid verification with CAV-NLP
+            if use_hybrid and self.use_cav_nlp and success:
+                try:
+                    verification = await self.verify_hybrid(theorem)
+                    # Update success based on hybrid verification
+                    if verification and hasattr(verification, 'success'):
+                        success = success and verification.success
+                except Exception as e:
+                    logger.warning(f"Hybrid verification failed: {e}")
+                    verification = None
+            
+            return ProofResult(
+                success=success,
+                theorem=nl_source or theorem,
+                proof=proof,
+                verification=verification,
+                execution_time=time.time() - start_time
+            )
+            
+        except Exception as e:
+            logger.error(f"Proof failed: {e}")
+            return ProofResult(
+                success=False,
+                theorem=nl_source or theorem,
+                error_message=str(e),
+                execution_time=time.time() - start_time
+            )
+    
+    async def verify_hybrid(self, theorem: str) -> Any:
+        """
+        Verify using hybrid Z3 + Lean approach.
+        
+        This method uses CAV-NLP's enhanced solver to verify theorems
+        using both Z3 and Lean 4 for increased confidence.
+        
+        Args:
+            theorem: Theorem in Z3/SMT-LIB format
+            
+        Returns:
+            VerificationResult from CAV-NLP integration
+            
+        Raises:
+            ValueError: If CAV-NLP is not available
+        """
+        if not self.use_cav_nlp:
+            raise ValueError(
+                "CAV-NLP not available. "
+                "Ensure openevolve.z3_cav_nlp_integration is installed."
+            )
+        
+        try:
+            enhanced_solver = self._cav_nlp_components.get('enhanced_solver')
+            if enhanced_solver is None:
+                raise ValueError("Enhanced Z3 solver not initialized")
+            
+            # Use CAV-NLP enhanced solver for hybrid verification
+            result = await enhanced_solver.verify_with_lean(theorem)
+            return result
+            
+        except Exception as e:
+            logger.error(f"Hybrid verification failed: {e}")
+            raise
+    
+    def export_proof_to_lean(self, proof: Any) -> str:
+        """
+        Export proof to Lean 4 using CAV-NLP.
+        
+        Args:
+            proof: Proof object from Z3
+            
+        Returns:
+            Lean 4 code as string
+            
+        Raises:
+            ValueError: If CAV-NLP is not available
+        """
+        if not self.use_cav_nlp:
+            raise ValueError(
+                "CAV-NLP not available. "
+                "Ensure openevolve.z3_cav_nlp_integration is installed."
+            )
+        
+        try:
+            proof_exporter = self._cav_nlp_components.get('proof_exporter')
+            if proof_exporter is None:
+                raise ValueError("Proof exporter not initialized")
+            
+            return proof_exporter.export_proof(proof)
+            
+        except Exception as e:
+            logger.error(f"Proof export failed: {e}")
+            raise ValueError(f"Failed to export proof to Lean: {e}")
+    
+    # =====================================================================
+    # Utility Methods
+    # =====================================================================
+    
+    def is_cav_nlp_available(self) -> bool:
+        """Check if CAV-NLP integration is available."""
+        return self.use_cav_nlp
+    
+    def get_cav_nlp_status(self) -> Dict[str, Any]:
+        """Get status of CAV-NLP integration."""
+        return {
+            "available": CAV_NLP_AVAILABLE,
+            "enabled": self.use_cav_nlp,
+            "components": {
+                name: component is not None
+                for name, component in self._cav_nlp_components.items()
+            }
+        }
 
 
 # =============================================================================

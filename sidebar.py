@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-import streamlit as st
+from ui_shim import ui as st
 from providercatalogue import get_providers
 from session_utils import reset_defaults, save_user_preferences
 from openevolve_integration import OpenEvolveAPI

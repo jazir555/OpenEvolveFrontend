@@ -8,9 +8,7 @@ This is the main entry point that ties together all the components of the OpenEv
 
 import os
 
-os.environ.setdefault("OPENEVOLVE_STREAMLIT_UI", "1")
-
-import streamlit as st
+from ui_shim import ui as st
 st.set_page_config(page_title="OpenEvolve", layout="wide")
 
 import sys

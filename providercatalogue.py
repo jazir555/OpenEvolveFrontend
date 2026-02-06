@@ -1,4 +1,4 @@
-import streamlit as st
+from ui_shim import ui as st
 """
 Provider Catalogue for OpenEvolve
 """
@@ -374,7 +374,7 @@ def _bedrock_loader(api_key: Optional[str] = None) -> List[str]:
         "meta.llama2-70b-chat-v1",
         "stability.stable-diffusion-xl-v1",
     ]
-import streamlit as st
+from ui_shim import ui as st
 import requests
 from typing import List, Dict, Any, Optional
 from openevolve_integration import OpenEvolveAPI

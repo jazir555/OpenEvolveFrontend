@@ -20,7 +20,7 @@ from typing import Dict, List, Optional
 from dataclasses import dataclass, asdict
 from pathlib import Path
 
-import streamlit as st
+from ui_shim import ui as st
 
 # Plotly - MIT License
 import plotly.graph_objects as go

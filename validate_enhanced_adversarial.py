@@ -58,8 +58,8 @@ def check_imports(file_path):
         
         # Check for key imports
         required_imports = [
-            "streamlit as st",
-            "pandas as pd", 
+            "from ui_shim import ui as st",
+            "pandas as pd",
             "json",
             "time",
             "threading"

@@ -250,7 +250,7 @@ def add_leanaide_to_sidebar():
         status = bridge.get_status()
 
         # Add sidebar status indicator
-        import streamlit as st
+        from ui_shim import ui as st
 
         with st.sidebar:
             st.markdown("---")
@@ -515,7 +515,7 @@ def example_integrated_workflow():
 
     This demonstrates how LeanAide nodes can be used in BubbleLabs workflows.
     """
-    import streamlit as st
+    from ui_shim import ui as st
 
     st.title("BubbleLabs + LeanAide Integrated Workflow")
 

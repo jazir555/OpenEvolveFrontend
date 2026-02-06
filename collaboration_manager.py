@@ -5,7 +5,7 @@ File size: ~1800 lines (under the 2000 line limit)
 """
 
 
-import streamlit as st
+from ui_shim import ui as st
 import uuid
 import threading
 import logging

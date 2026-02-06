@@ -22,6 +22,18 @@ from .utils import (
     validate_schema,
 )
 
+# =============================================================================
+# CAV-NLP Integration with Graceful Fallback
+# =============================================================================
+
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver, ConstraintFormalizer
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    EnhancedZ3Solver = None
+    ConstraintFormalizer = None
+
 
 @dataclass
 class AttractorCheck:

@@ -71,6 +71,24 @@ try:
 except ImportError:
     check = None
 
+# CAV-NLP Integration for enhanced formal verification
+try:
+    from openevolve.z3_cav_nlp_integration import (
+        EnhancedZ3Solver,
+        ConstraintFormalizer,
+        VerificationResult,
+        FormalizationResult,
+    )
+    CAV_NLP_AVAILABLE = True
+    logger.info("CAV-NLP integration available for enhanced SOP verification")
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    EnhancedZ3Solver = None
+    ConstraintFormalizer = None
+    VerificationResult = None
+    FormalizationResult = None
+    logger.warning("CAV-NLP not available - using standard Z3 verification")
+
 # Existing SOP Generator
 try:
     from sop_generator import SOPGenerator

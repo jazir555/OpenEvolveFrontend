@@ -19,8 +19,8 @@ import io
 import altair as alt
 import numpy as np
 import pandas as pd
-import streamlit as st
-from streamlit.components.v1 import html
+from ui_shim import ui as st
+from ui_shim import html
 
 # --- Optional Imports with Fallbacks ---
 try:
@@ -44,12 +44,12 @@ except ImportError:
     LOG_STREAMING_AVAILABLE = False
 
 try:
-    from streamlit_autorefresh import st_autorefresh
+    from ui_shim import st_autorefresh
 except ImportError:
     st_autorefresh = None  # Define a fallback if not available
 
 try:
-    from streamlit_tags import st_tags
+    from ui_shim import st_tags
     HAS_STREAMLIT_TAGS = True
 except ImportError:
     HAS_STREAMLIT_TAGS = False
@@ -1898,5 +1898,5 @@ def render_main_layout():
 if __name__ == "__main__":
     # When running this file directly, we need to set page config
     # But when imported by main.py, it's already set there
-    import streamlit as st
+    from ui_shim import ui as st
     render_main_layout()

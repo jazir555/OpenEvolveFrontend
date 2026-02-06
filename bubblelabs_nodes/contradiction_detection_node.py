@@ -87,6 +87,45 @@ class ContradictionDetectionNode(BubbleLabsNode):
     def __init__(self, config: Dict[str, Any] = None):
         super().__init__(config)
 
+        # CAV-NLP configuration option
+        self.use_cav_nlp = self.config.get('use_cav_nlp', True)
+
+        # Safe imports for optional dependencies (CAV-NLP)
+        self.cav_nlp_bridge = self.safe_import(
+            'cav_nlp.cav_nlp_math_bridge.CAVNLPMathBridge',
+            fallback_value=None,
+            error_msg="CAV-NLP bridge not available for ContradictionDetectionNode"
+        )
+        if self.cav_nlp_bridge is None:
+            self.cav_nlp_bridge = self.safe_import(
+                'cav_nlp_math_bridge.CAVNLPMathBridge',
+                fallback_value=None,
+                error_msg="CAV-NLP bridge not found in alternate path"
+            )
+
+        # Import CAV-NLP enhanced solver
+        self.EnhancedSolver = self.safe_import(
+            'cav_nlp.cav_nlp_math_bridge.EnhancedSolver',
+            fallback_value=None,
+            error_msg="CAV-NLP EnhancedSolver not available"
+        )
+        if self.EnhancedSolver is None:
+            self.EnhancedSolver = self.safe_import(
+                'cav_nlp_math_bridge.EnhancedSolver',
+                fallback_value=None,
+                error_msg="EnhancedSolver not found in alternate path"
+            )
+
+        # Initialize CAV-NLP enhanced solver
+        self.enhanced_solver = None
+        if self.use_cav_nlp and self.EnhancedSolver:
+            try:
+                self.enhanced_solver = self.EnhancedSolver()
+                self.logger.info("CAV-NLP EnhancedSolver initialized for ContradictionDetectionNode")
+            except Exception as e:
+                self.logger.warning(f"Could not initialize CAV-NLP EnhancedSolver: {e}")
+                self.enhanced_solver = None
+
         # Safe imports for optional dependencies
         self.UnifiedKGIntegrationHub = self.safe_import(
             'knowledge_engine.unified_kg_integration_hub.UnifiedKGIntegrationHub',

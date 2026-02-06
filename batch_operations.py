@@ -271,7 +271,7 @@ def render_batch_operations_ui(sub_problems: Dict[str, SubProblem]) -> Dict[str,
     Returns:
         Updated dictionary of sub-problems
     """
-    import streamlit as st
+    from ui_shim import ui as st
     from team_manager import TeamManager
     from gauntlet_manager import GauntletManager
     

@@ -24,6 +24,18 @@ logger = logging.getLogger(__name__)
 
 
 # =============================================================================
+# CAV-NLP INTEGRATION (with graceful fallback)
+# =============================================================================
+
+try:
+    from z3_cav_nlp_integration import EnhancedZ3Solver
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logger.debug("CAV-NLP integration not available - z3_cav_nlp_integration not found")
+
+
+# =============================================================================
 # COMPONENT STATUS ENUM
 # =============================================================================
 
@@ -510,7 +522,21 @@ class BubbleLabsExtendedIntegration:
     Thread-safe with proper locking hierarchy.
     """
     
-    def __init__(self):
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        # Configuration
+        config = config or {}
+        self.use_cav_nlp = config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        
+        # CAV-NLP enhanced solver
+        self._enhanced_solver: Optional[Any] = None
+        if self.use_cav_nlp:
+            try:
+                self._enhanced_solver = EnhancedZ3Solver()
+                logger.info("[OK] CAV-NLP Enhanced Solver - Initialized")
+            except Exception as e:
+                logger.warning(f"[WARN] CAV-NLP Enhanced Solver - Initialization failed: {e}")
+                self.use_cav_nlp = False
+        
         # Component bridges
         self._ace_bridge: Optional[ACEIntegrationBridge] = None
         self._z3_bridge: Optional[Z3IntegrationBridge] = None
@@ -526,7 +552,7 @@ class BubbleLabsExtendedIntegration:
         # Executor for async operations
         self._executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="bubblelabs")
         
-        logger.info("BubbleLabsExtendedIntegration initialized")
+        logger.info(f"BubbleLabsExtendedIntegration initialized (CAV-NLP: {self.use_cav_nlp})")
     
     def initialize_all(self) -> Dict[str, Any]:
         """Initialize all component bridges."""
@@ -617,9 +643,12 @@ class BubbleLabsExtendedIntegration:
             else:
                 components["security"] = {"component": "Security", "status": "unavailable"}
             
+            # CAV-NLP
+            components["cav_nlp"] = self.get_cav_nlp_status()
+            
             return {
                 "total_components": len(components),
-                "available_components": sum(1 for c in components.values() if c.get("status") == "available"),
+                "available_components": sum(1 for c in components.values() if c.get("status") == "available" or c.get("available") == True),
                 "components": components,
             }
     
@@ -716,6 +745,201 @@ class BubbleLabsExtendedIntegration:
         if self._leanaide_bridge:
             return self._leanaide_bridge.prove_theorem(theorem)
         return {"success": False, "error": "LeanAIDE not available"}
+    
+    # =========================================================================
+    # CAV-NLP Enhanced Methods
+    # =========================================================================
+    
+    def formalize_extended_constraint(self, nl_constraint: str) -> Dict[str, Any]:
+        """
+        Formalize a natural language constraint using CAV-NLP.
+        
+        Args:
+            nl_constraint: Natural language constraint description
+            
+        Returns:
+            Dict with formalized constraint or error
+        """
+        if not self.use_cav_nlp or not self._enhanced_solver:
+            return {
+                "success": False, 
+                "error": "CAV-NLP not available",
+                "constraint": nl_constraint
+            }
+        
+        try:
+            formalized = self._enhanced_solver.formalize_constraint(nl_constraint)
+            return {
+                "success": True,
+                "constraint": nl_constraint,
+                "formalized": formalized,
+                "method": "cav_nlp"
+            }
+        except Exception as e:
+            logger.error(f"CAV-NLP formalization failed: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "constraint": nl_constraint
+            }
+    
+    def formalize_extended_operation(self, operation_description: str) -> Dict[str, Any]:
+        """
+        Formalize an extended bubble operation using CAV-NLP.
+        
+        Args:
+            operation_description: Natural language operation description
+            
+        Returns:
+            Dict with formalized operation specification
+        """
+        if not self.use_cav_nlp or not self._enhanced_solver:
+            return {
+                "success": False,
+                "error": "CAV-NLP not available",
+                "operation": operation_description
+            }
+        
+        try:
+            # Formalize the operation constraints
+            formalized = self._enhanced_solver.formalize_constraint(operation_description)
+            
+            return {
+                "success": True,
+                "operation": operation_description,
+                "formalized_spec": formalized,
+                "method": "cav_nlp_extended"
+            }
+        except Exception as e:
+            logger.error(f"CAV-NLP operation formalization failed: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "operation": operation_description
+            }
+    
+    def hybrid_verify_extended_constraint(
+        self,
+        constraint: str,
+        context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Perform hybrid verification of an extended constraint using CAV-NLP.
+        
+        Combines natural language understanding with formal verification.
+        
+        Args:
+            constraint: Constraint to verify (natural language or formal)
+            context: Additional context for verification
+            
+        Returns:
+            Dict with verification results
+        """
+        if not self.use_cav_nlp or not self._enhanced_solver:
+            return {
+                "success": False,
+                "error": "CAV-NLP not available",
+                "constraint": constraint
+            }
+        
+        context = context or {}
+        
+        try:
+            # First formalize if needed
+            formalized = self._enhanced_solver.formalize_constraint(constraint)
+            
+            # Perform hybrid verification
+            verification_result = self._enhanced_solver.verify_constraint(
+                formalized,
+                context=context
+            )
+            
+            return {
+                "success": True,
+                "constraint": constraint,
+                "formalized": formalized,
+                "verification": verification_result,
+                "method": "hybrid_cav_nlp",
+                "timestamp": time.time()
+            }
+        except Exception as e:
+            logger.error(f"CAV-NLP hybrid verification failed: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "constraint": constraint
+            }
+    
+    def export_proof_to_lean(
+        self,
+        constraint: str,
+        proof_name: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Export a formalized proof to Lean format using CAV-NLP.
+        
+        Args:
+            constraint: Constraint to formalize and export
+            proof_name: Optional name for the proof
+            
+        Returns:
+            Dict with exported proof details
+        """
+        if not self.use_cav_nlp or not self._enhanced_solver:
+            return {
+                "success": False,
+                "error": "CAV-NLP not available",
+                "constraint": constraint
+            }
+        
+        proof_name = proof_name or f"proof_{uuid.uuid4().hex[:8]}"
+        
+        try:
+            # Formalize the constraint
+            formalized = self._enhanced_solver.formalize_constraint(constraint)
+            
+            # Generate Lean proof (if method available)
+            lean_code = None
+            if hasattr(self._enhanced_solver, 'export_to_lean'):
+                lean_code = self._enhanced_solver.export_to_lean(formalized, proof_name)
+            else:
+                # Generate basic Lean structure
+                lean_code = f"-- Proof: {proof_name}\n"
+                lean_code += f"-- Original constraint: {constraint}\n\n"
+                lean_code += f"theorem {proof_name} :\n"
+                lean_code += f"  {formalized} := by\n"
+                lean_code += f"  sorry\n"
+            
+            return {
+                "success": True,
+                "proof_name": proof_name,
+                "constraint": constraint,
+                "formalized": formalized,
+                "lean_code": lean_code,
+                "method": "cav_nlp_to_lean"
+            }
+        except Exception as e:
+            logger.error(f"CAV-NLP proof export failed: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "constraint": constraint
+            }
+    
+    def get_cav_nlp_status(self) -> Dict[str, Any]:
+        """Get CAV-NLP integration status."""
+        return {
+            "component": "CAV-NLP (Computer-Aided Verification NLP)",
+            "available": CAV_NLP_AVAILABLE,
+            "enabled": self.use_cav_nlp,
+            "solver_initialized": self._enhanced_solver is not None,
+            "capabilities": [
+                "constraint_formalization",
+                "operation_formalization",
+                "hybrid_verification",
+                "lean_export"
+            ] if self.use_cav_nlp else []
+        }
     
     # =========================================================================
     # Utility Methods

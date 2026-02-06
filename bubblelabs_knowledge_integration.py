@@ -22,7 +22,7 @@ import os
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional, List, Tuple
-import streamlit as st
+from ui_shim import ui as st
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px

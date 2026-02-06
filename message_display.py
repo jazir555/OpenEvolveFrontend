@@ -1,4 +1,4 @@
-import streamlit as st
+from ui_shim import ui as st
 
 
 def display_success_message(message: str):

@@ -49,6 +49,45 @@ class MathCounterexampleNode(BubbleLabsNode):
     def __init__(self, config: Optional[Dict] = None):
         super().__init__(config)
         self._z3_engine = None
+        
+        # CAV-NLP configuration option
+        self.use_cav_nlp = self.config.get('use_cav_nlp', True)
+        
+        # Safe imports for optional dependencies (CAV-NLP)
+        self.cav_nlp_bridge = self.safe_import(
+            'cav_nlp.cav_nlp_math_bridge.CAVNLPMathBridge',
+            fallback_value=None,
+            error_msg="CAV-NLP bridge not available for MathCounterexampleNode"
+        )
+        if self.cav_nlp_bridge is None:
+            self.cav_nlp_bridge = self.safe_import(
+                'cav_nlp_math_bridge.CAVNLPMathBridge',
+                fallback_value=None,
+                error_msg="CAV-NLP bridge not found in alternate path"
+            )
+        
+        # Import CAV-NLP enhanced solver
+        self.EnhancedSolver = self.safe_import(
+            'cav_nlp.cav_nlp_math_bridge.EnhancedSolver',
+            fallback_value=None,
+            error_msg="CAV-NLP EnhancedSolver not available"
+        )
+        if self.EnhancedSolver is None:
+            self.EnhancedSolver = self.safe_import(
+                'cav_nlp_math_bridge.EnhancedSolver',
+                fallback_value=None,
+                error_msg="EnhancedSolver not found in alternate path"
+            )
+        
+        # Initialize CAV-NLP enhanced solver
+        self.enhanced_solver = None
+        if self.use_cav_nlp and self.EnhancedSolver:
+            try:
+                self.enhanced_solver = self.EnhancedSolver()
+                logger.info("CAV-NLP EnhancedSolver initialized for MathCounterexampleNode")
+            except Exception as e:
+                logger.warning(f"Could not initialize CAV-NLP EnhancedSolver: {e}")
+                self.enhanced_solver = None
     
     def _initialize_z3(self):
         """Initialize Z3 engine."""
@@ -460,3 +499,68 @@ class MathCounterexampleNode(BubbleLabsNode):
     def is_healthy(self) -> bool:
         """Check node health."""
         return True
+    
+    def find_counterexample_with_cav_nlp(self, theorem: str) -> Dict[str, Any]:
+        """
+        Use CAV-NLP to formalize theorem and find counterexamples.
+        
+        Args:
+            theorem: Theorem statement to check
+            
+        Returns:
+            Dict containing counterexample results with formalized analysis
+        """
+        if not self.use_cav_nlp or not self.enhanced_solver:
+            logger.warning("CAV-NLP not available, falling back to standard counterexample search")
+            return {
+                'success': False,
+                'found': False,
+                'reason': 'CAV-NLP not available',
+                'fallback': True
+            }
+        
+        try:
+            logger.info(f"Using CAV-NLP enhanced counterexample search for: {theorem[:50]}...")
+            
+            # Use CAV-NLP to formalize the theorem as a constraint
+            formalized = self.enhanced_solver.formalize_constraint(theorem)
+            
+            if not formalized:
+                return {
+                    'success': False,
+                    'found': False,
+                    'reason': 'Failed to formalize theorem',
+                    'theorem': theorem
+                }
+            
+            # Use enhanced solver to find counterexample
+            counterexample = self.enhanced_solver.find_counterexample(formalized)
+            
+            if counterexample:
+                return {
+                    'success': True,
+                    'found': True,
+                    'theorem': theorem,
+                    'counterexample': counterexample,
+                    'formalized_constraint': str(formalized),
+                    'method': 'cav_nlp_enhanced'
+                }
+            else:
+                return {
+                    'success': True,
+                    'found': False,
+                    'theorem': theorem,
+                    'formalized_constraint': str(formalized),
+                    'method': 'cav_nlp_enhanced',
+                    'note': 'No counterexample found in search space'
+                }
+            
+        except Exception as e:
+            logger.error(f"CAV-NLP counterexample search failed: {e}")
+            return {
+                'success': False,
+                'found': False,
+                'reason': str(e),
+                'theorem': theorem,
+                'fallback': True
+            }

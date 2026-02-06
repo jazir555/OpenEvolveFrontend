@@ -243,23 +243,27 @@ async def example_4_complete_workflow():
         return None
 
 
-async def example_5_streamlit_ui():
+async def example_5_bubblelab_ui():
     """
-    Example 5: Using the Streamlit UI (requires streamlit run)
+    Example 5: Using the BubbleLab UI (TypeScript)
     """
     print("\n" + "="*60)
-    print("Example 5: Streamlit UI Usage")
+    print("Example 5: BubbleLab UI Usage")
     print("="*60)
 
     print("""
-To use the Streamlit UI:
+To use the BubbleLab UI:
 
-1. Run this command:
-   streamlit run bubblelabs_knowledge_integration.py
+1. Build the BubbleLab components:
+   npm install
+   npm run build
 
-2. In your browser, go to: http://localhost:8501
+2. Load the OpenEvolve components in your BubbleLab host app
+   (package: @openevolve/bubblelab-components).
 
-3. Use the four main tabs:
+3. Point the host app at the OpenEvolve API server.
+
+4. Use the four main tabs:
 
    🔍 Query Knowledge Tab:
    - Enter your query in the text box
@@ -290,7 +294,7 @@ To use the Streamlit UI:
    - Review query statistics
    - Analyze graph metrics
 
-4. Use the sidebar for additional settings
+5. Use the sidebar for additional settings
 
 For more details, see the documentation.
     """)
@@ -374,7 +378,7 @@ async def main():
         ("Knowledge Extraction", example_2_knowledge_extraction),
         ("Graph Visualization", example_3_graph_visualization),
         ("Complete Workflow", example_4_complete_workflow),
-        ("Streamlit UI", example_5_streamlit_ui),
+        ("BubbleLab UI", example_5_bubblelab_ui),
         ("Batch Processing", example_6_batch_processing),
     ]
 
@@ -391,7 +395,7 @@ async def main():
     # await example_2_knowledge_extraction()
     # await example_3_graph_visualization()
     # await example_4_complete_workflow()
-    await example_5_streamlit_ui()  # This one just prints instructions
+    await example_5_bubblelab_ui()  # This one just prints instructions
     # await example_6_batch_processing()
 
     print("\n" + "="*70)

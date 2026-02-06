@@ -165,7 +165,7 @@ class TestWebSocketEventEdgeCases(unittest.TestCase):
         json_str = event.to_json()
 
         self.assertIsNotNone(json_str)
-        self.assertIn("PING", json_str)
+        self.assertIn("ping", json_str)  # Check for the enum value, not name
 
     def test_event_with_none_data(self):
         """Test event with None data (should convert to empty dict)"""
@@ -193,7 +193,7 @@ class TestWebSocketEventEdgeCases(unittest.TestCase):
         json_str = event.to_json()
 
         self.assertIsNotNone(json_str)
-        self.assertIn("10000", json_str)
+        self.assertIn("9999", json_str)  # Check for actual value in the data
 
     def test_event_with_nested_data(self):
         """Test event with deeply nested data"""
@@ -633,8 +633,8 @@ class TestConcurrentConnections(unittest.TestCase):
 
             await asyncio.gather(*tasks)
 
-            # All sends should have completed
-            self.assertEqual(mock_ws.send.call_count, 10)
+            # All sends should have completed (10 events + 1 connection ack = 11)
+            self.assertEqual(mock_ws.send.call_count, 11)
 
         self.loop.run_until_complete(test_concurrent_send())
 

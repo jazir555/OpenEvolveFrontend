@@ -4,7 +4,7 @@ This module provides utilities for integrating with GitHub repositories.
 """
 
 
-import streamlit as st
+from ui_shim import ui as st
 import requests
 import logging
 from typing import Dict, Any, List

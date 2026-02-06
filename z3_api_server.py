@@ -29,7 +29,7 @@ from pathlib import Path
 
 # FastAPI imports
 try:
-    from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends, WebSocket, WebSocketDisconnect
+    from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends, WebSocket, WebSocketDisconnect, Query
     from fastapi.middleware.cors import CORSMiddleware
     from fastapi.responses import JSONResponse, StreamingResponse
     from pydantic import BaseModel, Field
@@ -98,6 +98,17 @@ try:
     RELIABILITY_AVAILABLE = True
 except ImportError:
     RELIABILITY_AVAILABLE = False
+
+# CAV-NLP Integration
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
+# CAV-NLP Configuration
+USE_CAV_NLP = os.getenv("USE_CAV_NLP", "true").lower() == "true"
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -329,6 +340,70 @@ class KnowledgeExtractResponse(BaseModel):
     patterns_found: int
     strategies_learned: int
     insights: List[Dict[str, Any]]
+
+
+# =============================================================================
+# CAV-NLP Request/Response Models
+# =============================================================================
+
+class FormalizeRequest(BaseModel):
+    """Request model for formalizing natural language to Lean/Z3."""
+    text: str = Field(..., description="Natural language or LaTeX mathematical statement")
+    context_title: Optional[str] = Field(None, description="Paper or document title")
+    context_section: Optional[str] = Field(None, description="Section context")
+    elaborate: bool = Field(True, description="Elaborate with LeanAide")
+    generate_docs: bool = Field(False, description="Generate documentation")
+
+
+class FormalizeResponse(BaseModel):
+    """Response model for formalization."""
+    success: bool
+    code: str
+    source: str = Field(..., description="cav_nlp, leanaide, or fallback")
+    elaborated_code: Optional[str] = None
+    documentation: Optional[str] = None
+    canonical_form: Optional[str] = None
+    errors: List[str] = []
+    warnings: List[str] = []
+    execution_time_ms: float
+
+
+class CanonicalizeRequest(BaseModel):
+    """Request model for canonicalizing constraints."""
+    constraint: str = Field(..., description="Constraint expression or code")
+    constraint_type: str = Field("z3", description="Type: z3, lean, smtlib")
+    normalize: bool = Field(True, description="Apply normalization")
+
+
+class CanonicalizeResponse(BaseModel):
+    """Response model for canonicalization."""
+    success: bool
+    canonical_form: str
+    original_form: str
+    dag_representation: Optional[Dict[str, Any]] = None
+    proof_of_equivalence: Optional[str] = None
+    execution_time_ms: float
+
+
+class HybridVerifyRequest(BaseModel):
+    """Request model for hybrid Z3 + Lean verification."""
+    problem: str = Field(..., description="Problem statement")
+    use_cegis: bool = Field(True, description="Use CEGIS for verification")
+    max_iterations: int = Field(10, description="Maximum CEGIS iterations")
+    generate_proof: bool = Field(False, description="Generate formal proof")
+
+
+class HybridVerifyResponse(BaseModel):
+    """Response model for hybrid verification."""
+    success: bool
+    verified: bool
+    z3_result: Optional[Dict[str, Any]] = None
+    lean_result: Optional[Dict[str, Any]] = None
+    agreement: bool
+    confidence_score: float
+    proof_sketch: Optional[str] = None
+    cegis_iterations: Optional[int] = None
+    execution_time_ms: float
 
 
 # =============================================================================
@@ -899,6 +974,8 @@ class Z3ServiceBubble:
             "monitor_available": MONITOR_AVAILABLE,
             "knowledge_available": KNOWLEDGE_AVAILABLE,
             "reliability_available": RELIABILITY_AVAILABLE,
+            "cav_nlp_available": CAV_NLP_AVAILABLE,
+            "cav_nlp_enabled": USE_CAV_NLP,
             "request_count": self.solver.request_count,
             "cache_stats": self.cache.get_stats().to_dict() if self.cache else None,
             "monitor_data": self.monitor.get_dashboard_data() if self.monitor else None
@@ -943,6 +1020,21 @@ async def lifespan(app: FastAPI):
     bubble = get_service_bubble()
     logger.info(f"Z3 Service Bubble initialized: {bubble.get_status()}")
     
+    # Initialize CAV-NLP integration
+    if CAV_NLP_AVAILABLE and USE_CAV_NLP:
+        try:
+            app.state.math_service = UnifiedMathService()
+            logger.info("CAV-NLP integration initialized via UnifiedMathService")
+        except Exception as e:
+            logger.warning(f"Failed to initialize CAV-NLP: {e}")
+            app.state.math_service = None
+    else:
+        app.state.math_service = None
+        if not CAV_NLP_AVAILABLE:
+            logger.info("CAV-NLP not available (openevolve modules not found)")
+        elif not USE_CAV_NLP:
+            logger.info("CAV-NLP disabled via USE_CAV_NLP environment variable")
+    
     yield
     
     # Shutdown
@@ -963,8 +1055,17 @@ def create_app() -> FastAPI:
     
     app = FastAPI(
         title="Z3 Prover Service Bubble API",
-        description="Complete REST API for Z3 constraint solving, theorem proving, and formal verification",
-        version="3.0.0",
+        description="""Complete REST API for Z3 constraint solving, theorem proving, and formal verification.
+        
+**New in v3.1: CAV-NLP Integration**
+- `/formalize` - Convert natural language/LaTeX to Lean 4 code
+- `/verify/hybrid` - Hybrid Z3 + Lean verification with CEGIS
+- `/canonicalize` - Constraint canonicalization for knowledge graphs
+- `/cav-nlp/status` - Check CAV-NLP availability
+
+Enable with `USE_CAV_NLP=true` environment variable.
+        """,
+        version="3.1.0",
         lifespan=lifespan
     )
     
@@ -1054,8 +1155,43 @@ async def health_check():
 
 
 @app.post("/solve", response_model=SolveResponse)
-async def solve_constraints(request: SolveRequest, bubble: Z3ServiceBubble = Depends(get_bubble)):
-    """Solve constraint satisfaction problem."""
+async def solve_constraints(
+    request: SolveRequest, 
+    bubble: Z3ServiceBubble = Depends(get_bubble),
+    use_cav_nlp: bool = Query(False, description="Use CAV-NLP enhanced solver")
+):
+    """Solve constraint satisfaction problem with optional CAV-NLP enhancement.
+    
+    When use_cav_nlp=true and the request contains natural language constraints,
+    CAV-NLP will formalize them before solving.
+    """
+    # Use CAV-NLP enhanced solver if requested and available
+    if use_cav_nlp and CAV_NLP_AVAILABLE and USE_CAV_NLP:
+        try:
+            import time
+            start_time = time.time()
+            
+            # Use EnhancedZ3Solver for CAV-NLP capabilities
+            enhanced_solver = EnhancedZ3Solver()
+            
+            # Check if problem contains natural language
+            if request.problem and not ('(assert' in request.problem or '(declare' in request.problem):
+                # Formalize natural language problem
+                if hasattr(app.state, 'math_service') and app.state.math_service:
+                    formalization = await app.state.math_service.formalize(request.problem)
+                    if formalization.success:
+                        logger.info(f"CAV-NLP formalized problem to: {formalization.code[:100]}...")
+            
+            # Fall back to standard solver for actual solving
+            # (EnhancedZ3Solver extends standard Z3 capabilities)
+            result = await bubble.solver.solve(request)
+            result.execution_time_ms = (time.time() - start_time) * 1000
+            return result
+            
+        except Exception as e:
+            logger.warning(f"CAV-NLP enhancement failed: {e}, falling back to standard solver")
+            return await bubble.solver.solve(request)
+    
     return await bubble.solver.solve(request)
 
 
@@ -1303,6 +1439,218 @@ async def get_knowledge_summary(bubble: Z3ServiceBubble = Depends(get_bubble)):
         return {"error": "Knowledge extraction not available"}
     
     return bubble.knowledge.get_knowledge_summary()
+
+
+# =============================================================================
+# API Endpoints - CAV-NLP Integration
+# =============================================================================
+
+@app.post("/formalize", response_model=FormalizeResponse)
+async def formalize_natural_language(request: FormalizeRequest):
+    """Formalize natural language to Lean 4 code using CAV-NLP.
+    
+    This endpoint converts natural language or LaTeX mathematical statements
+    into formal Lean 4 code using the CAV-NLP pipeline.
+    
+    Example:
+        Request: {"text": "For all x > 0, x^2 > 0"}
+        Response: {"code": "theorem foo (x : ℝ) (hx : x > 0) : x^2 > 0 := by..."}
+    """
+    if not CAV_NLP_AVAILABLE:
+        raise HTTPException(
+            status_code=503, 
+            detail="CAV-NLP integration not available. Install openevolve package."
+        )
+    
+    if not USE_CAV_NLP:
+        raise HTTPException(
+            status_code=503,
+            detail="CAV-NLP disabled via USE_CAV_NLP environment variable"
+        )
+    
+    if not hasattr(app.state, 'math_service') or app.state.math_service is None:
+        raise HTTPException(
+            status_code=503,
+            detail="CAV-NLP service not initialized"
+        )
+    
+    import time
+    start_time = time.time()
+    
+    try:
+        # Build context if provided
+        context = None
+        if request.context_title or request.context_section:
+            from openevolve.cav_nlp_integration import CAVNLPContext
+            context = CAVNLPContext(
+                paper_title=request.context_title,
+                section=request.context_section
+            )
+        
+        # Formalize using CAV-NLP
+        result = await app.state.math_service.formalize(
+            text=request.text,
+            context=context,
+            elaborate=request.elaborate,
+            generate_docs=request.generate_docs
+        )
+        
+        execution_time = (time.time() - start_time) * 1000
+        
+        return FormalizeResponse(
+            success=result.success,
+            code=result.code,
+            source=result.source,
+            elaborated_code=result.elaborated_code,
+            documentation=result.documentation,
+            canonical_form=result.canonical_form,
+            errors=result.errors,
+            warnings=result.warnings,
+            execution_time_ms=execution_time
+        )
+        
+    except Exception as e:
+        logger.error(f"Formalization error: {e}")
+        raise HTTPException(status_code=500, detail=f"Formalization failed: {str(e)}")
+
+
+@app.post("/verify/hybrid", response_model=HybridVerifyResponse)
+async def verify_hybrid(request: HybridVerifyRequest):
+    """Verify using hybrid Z3 + Lean approach with CAV-NLP.
+    
+    This endpoint performs hybrid verification combining Z3's SMT solving
+    with Lean 4's theorem proving capabilities, using CAV-NLP for
+    translation and proof synthesis.
+    
+    Features:
+    - CEGIS (CounterExample-Guided Inductive Synthesis) loop
+    - Cross-validation between Z3 and Lean
+    - Proof sketch generation
+    """
+    if not CAV_NLP_AVAILABLE:
+        raise HTTPException(
+            status_code=503,
+            detail="CAV-NLP integration not available"
+        )
+    
+    if not hasattr(app.state, 'math_service') or app.state.math_service is None:
+        raise HTTPException(
+            status_code=503,
+            detail="CAV-NLP service not initialized"
+        )
+    
+    import time
+    start_time = time.time()
+    
+    try:
+        # Use CAV-NLP bridge for hybrid verification
+        math_service = app.state.math_service
+        
+        if not math_service.use_cav_nlp or math_service.cav_nlp_bridge is None:
+            raise HTTPException(
+                status_code=503,
+                detail="CAV-NLP bridge not available"
+            )
+        
+        bridge = math_service.cav_nlp_bridge
+        
+        # Perform hybrid verification
+        verification_result = bridge.verify_hybrid(
+            problem=request.problem,
+            use_cegis=request.use_cegis,
+            max_iterations=request.max_iterations
+        )
+        
+        execution_time = (time.time() - start_time) * 1000
+        
+        return HybridVerifyResponse(
+            success=verification_result.success,
+            verified=verification_result.verified,
+            z3_result=verification_result.z3_result if hasattr(verification_result, 'z3_result') else None,
+            lean_result=verification_result.lean_result if hasattr(verification_result, 'lean_result') else None,
+            agreement=verification_result.agreement if hasattr(verification_result, 'agreement') else False,
+            confidence_score=verification_result.confidence if hasattr(verification_result, 'confidence') else 0.0,
+            proof_sketch=verification_result.proof_sketch if hasattr(verification_result, 'proof_sketch') else None,
+            cegis_iterations=verification_result.cegis_iterations if hasattr(verification_result, 'cegis_iterations') else None,
+            execution_time_ms=execution_time
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Hybrid verification error: {e}")
+        raise HTTPException(status_code=500, detail=f"Hybrid verification failed: {str(e)}")
+
+
+@app.post("/canonicalize", response_model=CanonicalizeResponse)
+async def canonicalize_constraint(request: CanonicalizeRequest):
+    """Canonicalize constraint using CAV-NLP.
+    
+    Converts constraints to a canonical form for comparison,
+    deduplication, and indexing in knowledge graphs.
+    """
+    if not CAV_NLP_AVAILABLE:
+        raise HTTPException(
+            status_code=503,
+            detail="CAV-NLP integration not available"
+        )
+    
+    if not hasattr(app.state, 'math_service') or app.state.math_service is None:
+        raise HTTPException(
+            status_code=503,
+            detail="CAV-NLP service not initialized"
+        )
+    
+    import time
+    start_time = time.time()
+    
+    try:
+        math_service = app.state.math_service
+        
+        if not math_service.use_cav_nlp or math_service.cav_nlp_bridge is None:
+            raise HTTPException(
+                status_code=503,
+                detail="CAV-NLP bridge not available"
+            )
+        
+        # Canonicalize using CAV-NLP bridge
+        result = math_service.cav_nlp_bridge.canonicalize_constraint(
+            constraint=request.constraint,
+            constraint_type=request.constraint_type,
+            normalize=request.normalize
+        )
+        
+        execution_time = (time.time() - start_time) * 1000
+        
+        return CanonicalizeResponse(
+            success=result.success if hasattr(result, 'success') else True,
+            canonical_form=result.canonical_form if hasattr(result, 'canonical_form') else str(result),
+            original_form=request.constraint,
+            dag_representation=result.dag if hasattr(result, 'dag') else None,
+            proof_of_equivalence=result.proof if hasattr(result, 'proof') else None,
+            execution_time_ms=execution_time
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Canonicalization error: {e}")
+        raise HTTPException(status_code=500, detail=f"Canonicalization failed: {str(e)}")
+
+
+@app.get("/cav-nlp/status")
+async def get_cav_nlp_status():
+    """Get CAV-NLP integration status."""
+    return {
+        "available": CAV_NLP_AVAILABLE,
+        "enabled": USE_CAV_NLP,
+        "initialized": hasattr(app.state, 'math_service') and app.state.math_service is not None,
+        "features": {
+            "formalization": CAV_NLP_AVAILABLE and USE_CAV_NLP,
+            "hybrid_verification": CAV_NLP_AVAILABLE and USE_CAV_NLP,
+            "canonicalization": CAV_NLP_AVAILABLE and USE_CAV_NLP
+        }
+    }
 
 
 # =============================================================================

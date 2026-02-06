@@ -18,17 +18,17 @@ import threading
 import asyncio
 import uvicorn
 import os
-import sys
 import re
 import base64
 import json
 import time
 import tempfile
-import types
 from datetime import datetime, timedelta
 import uuid
 import logging
 from pathlib import Path
+
+from ui_shim import ui as _UI_SHIM, SessionState
 
 logger = logging.getLogger(__name__)
 
@@ -86,36 +86,14 @@ except ImportError as e:
         pass
 
 
-class _SessionState(dict):
-    """Lightweight SessionState replacement with attribute access."""
-
-    def __getattr__(self, key):
-        return self.get(key)
-
-    def __setattr__(self, key, value):
-        self[key] = value
-
-
-class _NoOpStreamlit:
-    """Fallback Streamlit shim for API contexts."""
+class _RunUIContext:
+    """Per-run UI context with isolated session_state."""
 
     def __init__(self):
-        self.session_state = _SessionState()
+        self.session_state = SessionState()
         if "thread_lock" not in self.session_state:
             self.session_state.thread_lock = threading.Lock()
         self.sidebar = self
-
-    def cache_data(self, *args, **kwargs):
-        def _decorator(func):
-            return func
-
-        return _decorator
-
-    def cache_resource(self, *args, **kwargs):
-        def _decorator(func):
-            return func
-
-        return _decorator
 
     def __getattr__(self, _name):
         def _noop(*_args, **_kwargs):
@@ -124,34 +102,10 @@ class _NoOpStreamlit:
         return _noop
 
 
-_STREAMLIT_SHIM = _NoOpStreamlit()
-
-# Ensure modules importing streamlit in API context get the shim instead of requiring UI runtime.
-_streamlit_module = types.ModuleType("streamlit")
-_streamlit_module.session_state = _STREAMLIT_SHIM.session_state
-_streamlit_module.sidebar = _STREAMLIT_SHIM.sidebar
-
-
-def _streamlit_shim_getattr(name: str):
-    return getattr(_STREAMLIT_SHIM, name)
-
-
-_streamlit_module.__getattr__ = _streamlit_shim_getattr
-sys.modules["streamlit"] = _streamlit_module
-
-
-def _patch_streamlit(module):
-    """Ensure Streamlit calls do not break in non-UI contexts."""
+def _attach_ui(module, ui_instance=_UI_SHIM):
+    """Attach a UI shim to a module."""
     try:
-        module.st = _STREAMLIT_SHIM
-    except Exception:
-        pass
-
-
-def _attach_streamlit(module, streamlit_instance):
-    """Attach a provided Streamlit shim to a module."""
-    try:
-        module.st = streamlit_instance
+        module.st = ui_instance
     except Exception:
         pass
 
@@ -248,7 +202,7 @@ except ImportError:
 
 try:
     import version_control as _version_control_module
-    _attach_streamlit(_version_control_module, _STREAMLIT_SHIM)
+    _attach_ui(_version_control_module, _UI_SHIM)
     _version_control_manager = _version_control_module.VersionControl()
     VERSION_CONTROL_AVAILABLE = True
 except Exception as e:
@@ -258,7 +212,7 @@ except Exception as e:
 
 try:
     import validation_manager as _validation_manager_module
-    _attach_streamlit(_validation_manager_module, _STREAMLIT_SHIM)
+    _attach_ui(_validation_manager_module, _UI_SHIM)
     _validation_manager = _validation_manager_module.ValidationManager()
     VALIDATION_MANAGER_AVAILABLE = True
 except Exception as e:
@@ -501,7 +455,7 @@ if SECURITY_FRAMEWORK_AVAILABLE:
 
 _model_orchestrator = ModelOrchestrator() if MODEL_ORCHESTRATION_AVAILABLE else None
 if _model_orchestrator and _model_orchestration is not None:
-    _patch_streamlit(_model_orchestration)
+    _attach_ui(_model_orchestration, _UI_SHIM)
 
 
 # Initialize templates for dashboard
@@ -598,7 +552,7 @@ class _RunState:
     result: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
     cancel_requested: bool = False
-    session_state: Optional[_SessionState] = None
+    session_state: Optional[SessionState] = None
 
 
 _run_lock = threading.Lock()
@@ -633,14 +587,14 @@ def _save_json_store(path: str, data: Dict[str, Any]) -> None:
         logger.error("Failed to save JSON store %s: %s", path, exc)
 
 
-def _create_run_context(run_state: _RunState, log_key: str) -> _NoOpStreamlit:
-    """Create an isolated Streamlit shim for a background run."""
-    streamlit_instance = _NoOpStreamlit()
-    streamlit_instance.session_state[log_key] = run_state.logs
-    streamlit_instance.session_state["thread_lock"] = threading.Lock()
-    streamlit_instance.session_state[f"{log_key}_status_message"] = ""
-    run_state.session_state = streamlit_instance.session_state
-    return streamlit_instance
+def _create_run_context(run_state: _RunState, log_key: str) -> _RunUIContext:
+    """Create an isolated UI context for a background run."""
+    ui_context = _RunUIContext()
+    ui_context.session_state[log_key] = run_state.logs
+    ui_context.session_state["thread_lock"] = threading.Lock()
+    ui_context.session_state[f"{log_key}_status_message"] = ""
+    run_state.session_state = ui_context.session_state
+    return ui_context
 
 
 def _finalize_run_state(run_state: _RunState, result: Optional[Dict[str, Any]], error: Optional[str]) -> None:
@@ -4472,7 +4426,7 @@ def create_version(request: VersionCreateRequest):
     if not VERSION_CONTROL_AVAILABLE or _version_control_manager is None:
         raise HTTPException(status_code=503, detail="Version control not available")
     if request.author:
-        _STREAMLIT_SHIM.session_state.user = request.author
+        _UI_SHIM.session_state.user = request.author
     version_id = _version_control_manager.create_new_version(
         request.protocol_text,
         request.version_name or "",
@@ -5789,7 +5743,7 @@ def run_integrated_workflow(
     if not INTEGRATED_WORKFLOW_AVAILABLE:
         raise HTTPException(status_code=503, detail="Integrated workflow not available")
     if _integrated_workflow is not None:
-        _patch_streamlit(_integrated_workflow)
+        _attach_ui(_integrated_workflow, _UI_SHIM)
 
     try:
         results = run_fully_integrated_adversarial_evolution(
@@ -6433,11 +6387,11 @@ def start_evolution_run(
         _evolution_runs[run_id] = run_state
 
     def _execute():
-        streamlit_context = _create_run_context(run_state, "evolution_log")
+        ui_context = _create_run_context(run_state, "evolution_log")
         import session_utils as _session_utils
         import evolution as _evolution_module
-        _attach_streamlit(_session_utils, streamlit_context)
-        _attach_streamlit(_evolution_module, streamlit_context)
+        _attach_ui(_session_utils, ui_context)
+        _attach_ui(_evolution_module, ui_context)
         result = run_comprehensive_evolution(
             content=request.content,
             content_type=request.content_type,
@@ -6520,11 +6474,11 @@ def start_adversarial_run(
         _adversarial_runs[run_id] = run_state
 
     def _execute():
-        streamlit_context = _create_run_context(run_state, "adversarial_log")
+        ui_context = _create_run_context(run_state, "adversarial_log")
         import session_utils as _session_utils
         import adversarial as _adversarial_module
-        _attach_streamlit(_session_utils, streamlit_context)
-        _attach_streamlit(_adversarial_module, streamlit_context)
+        _attach_ui(_session_utils, ui_context)
+        _attach_ui(_adversarial_module, ui_context)
         config = create_adversarial_configuration(parameters=request.parameters or None)
         result = run_comprehensive_adversarial_testing(
             current_content=request.content,

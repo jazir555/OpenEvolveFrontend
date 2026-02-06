@@ -2,7 +2,7 @@
 Deep integration with OpenEvolve backend for enhanced code evolution capabilities.
 """
 
-import streamlit as st
+from ui_shim import ui as st
 import tempfile
 import os
 import json as json_module

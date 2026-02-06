@@ -3,7 +3,7 @@ OpenEvolve Configuration Management System
 Handles all configuration parameters for OpenEvolve features
 """
 
-import streamlit as st
+from ui_shim import ui as st
 from typing import Dict, Any, Optional
 import json
 import os

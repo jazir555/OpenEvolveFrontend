@@ -514,7 +514,7 @@ def render_resource_dashboard(resource_manager: ResourceManager):
     Args:
         resource_manager: ResourceManager instance to display
     """
-    import streamlit as st
+    from ui_shim import ui as st
     import plotly.graph_objects as go
     
     st.subheader("📊 Resource Usage Dashboard")

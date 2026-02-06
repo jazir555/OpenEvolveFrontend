@@ -93,14 +93,16 @@ class Portfolio:
 
     @property
     def duration(self) -> float:
-        """Calculate portfolio duration"""
-        if not self.bonds or self.total_value == 0:
+        """Calculate portfolio duration (cash has duration of 0)"""
+        if self.total_value == 0:
             return 0.0
 
+        # Cash has duration of 0, so we only sum bond durations
         weighted_duration = sum(
             bond.duration * bond.market_value
             for bond in self.bonds
         )
+        # Divide by total value (cash contributes 0 to numerator)
         return weighted_duration / self.total_value
 
     @property

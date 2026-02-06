@@ -1,4 +1,4 @@
-import streamlit as st
+from ui_shim import ui as st
 import threading
 from typing import Callable, TypeVar
 

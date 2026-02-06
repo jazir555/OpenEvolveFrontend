@@ -2,7 +2,7 @@
 OpenEvolve Orchestration System
 Advanced workflow orchestration for ALL OpenEvolve features
 """
-import streamlit as st
+from ui_shim import ui as st
 import time
 import threading
 import os

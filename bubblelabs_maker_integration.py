@@ -34,7 +34,7 @@ from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple, Callable
 from enum import Enum
-import streamlit as st
+from ui_shim import ui as st
 import pandas as pd
 
 # Import Maker Engine components

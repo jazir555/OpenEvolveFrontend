@@ -1,4 +1,4 @@
-import streamlit as st
+from ui_shim import ui as st
 import uuid
 from datetime import datetime
 from typing import List, Dict, Optional

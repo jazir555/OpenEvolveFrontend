@@ -2,11 +2,22 @@
 Z3 Knowledge Extraction - Mock/Simplified Version
 
 Provides the classes needed by z3_knowledge_complete.py
+With CAV-NLP integration support.
 """
 
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 from datetime import datetime
+
+# CAV-NLP integration imports
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    UnifiedMathService = None
+    EnhancedZ3Solver = None
 
 
 @dataclass

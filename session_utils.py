@@ -4,7 +4,7 @@ This file contains utility functions and core helpers that were in the original 
 File size: ~1500 lines (under the 2000 line limit)
 """
 
-import streamlit as st
+from ui_shim import ui as st
 import threading
 from typing import Any, Dict, List, Optional
 from datetime import datetime

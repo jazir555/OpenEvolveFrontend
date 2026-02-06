@@ -9,7 +9,7 @@
 # identify weaknesses and enhance the quality of the content in a controlled and
 # ethical manner.
 
-import streamlit as st
+from ui_shim import ui as st
 import time
 import threading
 import traceback
@@ -1045,7 +1045,7 @@ def create_adversarial_configuration_from_session() -> AdversarialConfiguration:
     This is the legacy version for backward compatibility.
     """
     try:
-        import streamlit as st
+        from ui_shim import ui as st
         param_manager = ParameterManager()
         config = AdversarialConfiguration.from_parameter_manager(param_manager, st.session_state)
         

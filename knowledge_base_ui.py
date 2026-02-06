@@ -5,7 +5,7 @@ This module provides the user interface for exploring, managing, and visualizing
 the knowledge base of artifacts extracted from workflow executions.
 """
 
-import streamlit as st
+from ui_shim import ui as st
 import pandas as pd
 import plotly.graph_objects as go
 import networkx as nx

@@ -184,7 +184,7 @@ def log_evolution_operation(operation_name: str):
 
 def _update_adv_log_and_status(message: str) -> None:
     """Update adversarial log and status message in a thread-safe manner."""
-    import streamlit as st
+    from ui_shim import ui as st
     with st.session_state.thread_lock:
         if "adversarial_log" not in st.session_state:
             st.session_state.adversarial_log = []

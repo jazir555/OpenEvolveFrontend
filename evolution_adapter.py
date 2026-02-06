@@ -217,7 +217,7 @@ class EvolutionAdapter:
 
         # Try to extract from Streamlit session state if available
         try:
-            import streamlit as st
+            from ui_shim import ui as st
 
             if 'evolution_metrics' in st.session_state:
                 metrics = st.session_state.evolution_metrics.copy()

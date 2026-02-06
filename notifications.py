@@ -1,5 +1,5 @@
 import asyncio
-import streamlit as st # Import streamlit to access session_state
+from ui_shim import ui as st # Import streamlit to access session_state
 
 
 class NotificationManager:
@@ -45,7 +45,7 @@ def render_notifications():
     Renders notifications in the Streamlit UI.
     Displays a list of recent notifications to the user.
     """
-    import streamlit as st
+    from ui_shim import ui as st
     st.header("🔔 Notifications Center")
     
     # Initialize notifications in session state if not exists

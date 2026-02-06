@@ -6,7 +6,7 @@ for OpenEvolve workflows within the BubbleLabs interface, including
 real-time metrics, performance analytics, and system monitoring.
 """
 
-import streamlit as st
+from ui_shim import ui as st
 import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd

@@ -10,7 +10,7 @@ Provides specialized UI components for:
 Author: OpenEvolve Frontend Team
 """
 
-import streamlit as st
+from ui_shim import ui as st
 import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd

@@ -1,4 +1,4 @@
-import streamlit as st
+from ui_shim import ui as st
 import json
 from evolution import _request_openai_compatible_chat, _compose_messages
 from typing import List, Dict, Any

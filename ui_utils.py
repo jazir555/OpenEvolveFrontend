@@ -3,7 +3,7 @@ Shared utility functions for UI components.
 Provides common patterns for error handling, validation, caching, and rendering.
 """
 
-import streamlit as st
+from ui_shim import ui as st
 import logging
 from typing import Any, Callable, Dict, List, Optional, TypeVar
 from functools import wraps

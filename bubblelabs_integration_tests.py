@@ -161,7 +161,7 @@ class TestParameterSyncManager(unittest.TestCase):
         initial_count = len(self.sync_manager.change_history)
         
         self.sync_manager._record_parameter_change(
-            "test_param", "old_value", "new_value", "streamlit"
+            "test_param", "old_value", "new_value", "ui"
         )
         
         self.assertEqual(len(self.sync_manager.change_history), initial_count + 1)
@@ -169,7 +169,7 @@ class TestParameterSyncManager(unittest.TestCase):
         self.assertEqual(latest_change.name, "test_param")
         self.assertEqual(latest_change.old_value, "old_value")
         self.assertEqual(latest_change.new_value, "new_value")
-        self.assertEqual(latest_change.source_ui, "streamlit")
+        self.assertEqual(latest_change.source_ui, "ui")
     
     def test_sync_status(self):
         """Test getting parameter synchronization status."""
@@ -258,7 +258,7 @@ class TestOpenEvolveVisualizer(unittest.TestCase):
         """Test rendering workflow status pane."""
         # This would normally render to UI, but we can at least test it doesn't error
         try:
-            # We can't easily test the Streamlit output, but we can ensure the method exists and runs
+            # We can't easily test the UI output, but we can ensure the method exists and runs
             self.visualizer.render_workflow_status_pane(self.test_workflow_state)
             self.assertTrue(True)  # If we get here, no exception was raised
         except Exception as e:
@@ -389,20 +389,20 @@ class TestIntegration(unittest.TestCase):
         self.assertIn(status_after["status"], ["pending", "running", "failed"])
 
         # Step 6: Test parameter synchronization
-        sync_result = self.sync_manager.sync_from_streamlit_to_bubblelabs()
+        sync_result = self.sync_manager.sync_from_ui_to_bubblelabs()
         self.assertIsNotNone(sync_result)
         self.assertIn("status", sync_result)
     
     def test_parameter_sync_integration(self):
         """Test that parameter synchronization works with workflow creation."""
-        # Simulate parameters in Streamlit session state
-        import streamlit as st
+        # Simulate parameters in UI session state
+        from ui_shim import ui as st
         st.session_state["temperature"] = 0.8
         st.session_state["max_iterations"] = 25
         st.session_state["population_size"] = 25
 
-        # Sync from streamlit to bubblelabs
-        sync_result = self.sync_manager.sync_from_streamlit_to_bubblelabs()
+        # Sync from ui to bubblelabs
+        sync_result = self.sync_manager.sync_from_ui_to_bubblelabs()
         # Accept both "success" and "partial" since some parameters may not be in session state
         self.assertIn(sync_result["status"], ["success", "partial"])
 

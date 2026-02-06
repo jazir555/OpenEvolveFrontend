@@ -4,7 +4,7 @@ This file manages analytics, insights, and data analysis features
 File size: ~1200 lines (under the 2000 line limit)
 """
 
-import streamlit as st
+from ui_shim import ui as st
 import logging
 import os
 import json

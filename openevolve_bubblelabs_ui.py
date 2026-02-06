@@ -8,7 +8,7 @@ Author: OpenEvolve Team
 Date: 2025-12-30
 """
 
-import streamlit as st
+from ui_shim import ui as st
 import json
 import time
 from typing import Dict, Any, List, Optional

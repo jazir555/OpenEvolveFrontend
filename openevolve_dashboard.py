@@ -4,7 +4,7 @@ OpenEvolve Dashboard
 A high-level overview of the OpenEvolve system.
 """
 
-import streamlit as st
+from ui_shim import ui as st
 import pandas as pd
 import plotly.express as px
 import time

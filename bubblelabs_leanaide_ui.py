@@ -19,7 +19,7 @@ Author: OpenEvolve
 Created: 2025-01-03
 """
 
-import streamlit as st
+from ui_shim import ui as st
 import json
 import time
 import threading

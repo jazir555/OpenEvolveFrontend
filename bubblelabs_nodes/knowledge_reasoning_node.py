@@ -34,6 +34,45 @@ class KnowledgeReasoningNode(BubbleLabsNode):
     def __init__(self, config: Dict[str, Any] = None):
         super().__init__(config)
 
+        # CAV-NLP configuration option
+        self.use_cav_nlp = self.config.get('use_cav_nlp', True)
+
+        # Safe imports for optional dependencies (CAV-NLP)
+        self.cav_nlp_bridge = self.safe_import(
+            'cav_nlp.cav_nlp_math_bridge.CAVNLPMathBridge',
+            fallback_value=None,
+            error_msg="CAV-NLP bridge not available for KnowledgeReasoningNode"
+        )
+        if self.cav_nlp_bridge is None:
+            self.cav_nlp_bridge = self.safe_import(
+                'cav_nlp_math_bridge.CAVNLPMathBridge',
+                fallback_value=None,
+                error_msg="CAV-NLP bridge not found in alternate path"
+            )
+
+        # Import CAV-NLP math service
+        self.MathService = self.safe_import(
+            'cav_nlp.cav_nlp_math_bridge.MathService',
+            fallback_value=None,
+            error_msg="CAV-NLP MathService not available"
+        )
+        if self.MathService is None:
+            self.MathService = self.safe_import(
+                'cav_nlp_math_bridge.MathService',
+                fallback_value=None,
+                error_msg="MathService not found in alternate path"
+            )
+
+        # Initialize CAV-NLP math service
+        self.math_service = None
+        if self.use_cav_nlp and self.MathService:
+            try:
+                self.math_service = self.MathService()
+                self.logger.info("CAV-NLP MathService initialized for KnowledgeReasoningNode")
+            except Exception as e:
+                self.logger.warning(f"Could not initialize CAV-NLP MathService: {e}")
+                self.math_service = None
+
         # Import Z3 integration (safe import)
         self.Z3SolverEngine = self.safe_import(
             'z3prover_integration.Z3SolverEngine',
@@ -96,6 +135,75 @@ class KnowledgeReasoningNode(BubbleLabsNode):
                 self.prover = self.get_z3_theorem_prover(config)
             except Exception as e:
                 self.logger.warning(f"Could not initialize Z3 solver: {e}")
+
+    def reason_with_cav_nlp(self, knowledge_base: List[str], query: str) -> Dict[str, Any]:
+        """
+        Use CAV-NLP to formalize query and reason over knowledge base.
+        
+        Args:
+            knowledge_base: List of premises/facts
+            query: Query string to reason about
+            
+        Returns:
+            Dict containing reasoning results with formalized analysis
+        """
+        if not self.use_cav_nlp or not self.math_service:
+            self.logger.warning("CAV-NLP not available, falling back to standard reasoning")
+            return {'success': False, 'reason': 'CAV-NLP not available'}
+        
+        try:
+            self.logger.info(f"Using CAV-NLP enhanced reasoning for query: {query[:50]}...")
+            
+            # Formalize query using CAV-NLP
+            formalized = self.math_service.formalize(query)
+            
+            if not formalized or not hasattr(formalized, 'code'):
+                return {
+                    'success': False,
+                    'reason': 'Failed to formalize query',
+                    'query': query
+                }
+            
+            # Perform reasoning with formalized query
+            reasoning_result = self._reason(knowledge_base, formalized.code)
+            
+            return {
+                'success': True,
+                'query': query,
+                'formalized_code': formalized.code,
+                'formalized_language': getattr(formalized, 'language', 'unknown'),
+                'result': reasoning_result
+            }
+            
+        except Exception as e:
+            self.logger.error(f"CAV-NLP reasoning failed: {e}")
+            return {
+                'success': False,
+                'reason': str(e),
+                'query': query
+            }
+    
+    def _reason(self, knowledge_base: List[str], formalized_code: str) -> Dict[str, Any]:
+        """Perform reasoning with formalized code over knowledge base."""
+        # Combine knowledge base with formalized query
+        combined_premises = knowledge_base + [f"Query: {formalized_code}"]
+        
+        # Use existing reasoning methods
+        if self.prover:
+            smtlib = self._build_verification_smtlib(knowledge_base, formalized_code)
+            result = self.prover.prove_theorem(smtlib)
+            return {
+                'proven': getattr(result, 'proven', False),
+                'tactic_used': getattr(result, 'tactic_used', None),
+                'status': 'verified' if getattr(result, 'proven', False) else 'unverified'
+            }
+        else:
+            # Fallback to simple reasoning
+            return {
+                'proven': False,
+                'status': 'unverified_no_prover',
+                'note': 'Z3 prover not available for formal reasoning'
+            }
 
     def validate_inputs(self, inputs: Dict) -> List[str]:
         """

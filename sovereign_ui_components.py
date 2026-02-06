@@ -3,7 +3,7 @@ Sovereign-Grade Problem Decomposition System - UI Components
 Complete integration of monitoring and visualization components into the main application UI.
 """
 
-import streamlit as st
+from ui_shim import ui as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go

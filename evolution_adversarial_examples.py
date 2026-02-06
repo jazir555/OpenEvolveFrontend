@@ -8,7 +8,7 @@ Author: OpenEvolve Frontend Team
 """
 
 
-import streamlit as st
+from ui_shim import ui as st
 from bubblelabs_evolution_integration import BubbleLabsEvolutionIntegration
 from evolution_workflow_templates import TemplateManager
 

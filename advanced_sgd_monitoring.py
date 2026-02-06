@@ -5,7 +5,7 @@ This module provides comprehensive monitoring and reporting capabilities for the
 CrewAI integration with OpenEvolve's Sovereign-Grade Decomposition workflows.
 """
 
-import streamlit as st
+from ui_shim import ui as st
 import pandas as pd
 import numpy as np
 import plotly.express as px

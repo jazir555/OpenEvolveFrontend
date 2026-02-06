@@ -6,7 +6,7 @@ File size: ~500 lines (well under the 2000 line limit)
 
 from typing import Any, Dict, List, Tuple
 
-import streamlit as st
+from ui_shim import ui as st
 from session_utils import DEFAULTS
 from providers import PROVIDERS
 

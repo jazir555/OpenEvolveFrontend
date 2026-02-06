@@ -4,7 +4,7 @@ This file manages protocol versions, branching, and version-related features
 File size: ~1000 lines (under the 2000 line limit)
 """
 
-import streamlit as st
+from ui_shim import ui as st
 import uuid
 from datetime import datetime
 from typing import Dict, List, Optional

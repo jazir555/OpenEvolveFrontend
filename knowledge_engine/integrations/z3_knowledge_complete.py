@@ -10,6 +10,7 @@ Features:
 - Redis caching integration
 - Comprehensive monitoring
 - Configuration management
+- CAV-NLP enhanced knowledge extraction
 
 Author: OpenEvolve
 Created: 2026-01-31
@@ -29,6 +30,16 @@ import re
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+# CAV-NLP integration imports
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    UnifiedMathService = None
+    EnhancedZ3Solver = None
 
 # SQLAlchemy imports
 try:

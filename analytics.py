@@ -7,7 +7,7 @@ import re
 import time
 import numpy as np
 from typing import Dict, Any, List
-import streamlit as st
+from ui_shim import ui as st
 
 def analyze_plan_quality(plan_text: str) -> Dict[str, Any]:
     """Analyze plan quality metrics.

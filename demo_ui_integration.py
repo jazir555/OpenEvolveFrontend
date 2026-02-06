@@ -4,10 +4,13 @@ Demo: OpenEvolve + BubbleLabs UI Integration
 This script demonstrates the complete UI integration.
 
 Usage:
-    streamlit run demo_ui_integration.py
+    python demo_ui_integration.py
+
+Note: The BubbleLab UI now lives in the TypeScript app. This demo module
+keeps the legacy wiring in place via the UI shim for local smoke checks.
 """
 
-import streamlit as st
+from ui_shim import ui as st
 import sys
 import os
 

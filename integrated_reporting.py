@@ -4,7 +4,7 @@ This module provides comprehensive reporting and analytics for the integrated wo
 """
 
 
-import streamlit as st
+from ui_shim import ui as st
 import pandas as pd
 import plotly.express as px
 from typing import Dict, Any

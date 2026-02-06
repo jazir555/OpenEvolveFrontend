@@ -1,4 +1,4 @@
-import streamlit as st
+from ui_shim import ui as st
 import requests
 import base64
 import logging
@@ -352,7 +352,7 @@ def get_github_commit_history(
 # The functionality is now implemented using Streamlit native components instead of HTML/JS
 def render_github_integration_ui():
     """Deprecated: GitHub integration UI. Use the GitHub tab in mainlayout.py instead."""
-    import streamlit as st
+    from ui_shim import ui as st
     st.warning("GitHub integration is now available in the GitHub tab.")
     if st.button("Go to GitHub Tab"):
         # This requires Streamlit's experimental feature which might not work as expected
@@ -575,7 +575,7 @@ def get_protocol_generations_from_github(repo_name: str) -> List[Dict]:
 # The functionality is now implemented using Streamlit native components instead of HTML/JS
 def render_github_branching_ui():
     """Deprecated: GitHub branching UI. Use the GitHub tab in mainlayout.py instead."""
-    import streamlit as st
+    from ui_shim import ui as st
     st.warning("GitHub branching is now available in the GitHub tab.")
     if st.button("Go to GitHub Tab for Branching"):
         st.info("Navigate to the GitHub tab (🐙) in the main interface")

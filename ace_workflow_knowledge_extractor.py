@@ -122,6 +122,15 @@ from ace_knowledge_artifacts import (
     create_decomposition_strategy,
 )
 
+# CAV-NLP Integration for workflow knowledge formalization
+try:
+    from openevolve.cav_nlp_integration import Z3LeanAideBridge
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logger = logging.getLogger(__name__)
+    logger.warning("CAV-NLP not available for workflow knowledge formalization")
+
 # Logging configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -176,6 +185,7 @@ class WorkflowKnowledgeExtractor:
         skillbook_path: Optional[str] = None,
         enable_learning: bool = True,
         max_artifacts: int = 10000,
+        use_cav_nlp: bool = True,
     ):
         """
         Initialize the workflow knowledge extractor.
@@ -219,6 +229,17 @@ class WorkflowKnowledgeExtractor:
 
         if self.ace_available:
             self._initialize_ace_components(skillbook_path)
+        
+        # CAV-NLP integration for workflow knowledge formalization
+        self.use_cav_nlp = use_cav_nlp and CAV_NLP_AVAILABLE
+        self.cav_nlp_bridge: Optional[Z3LeanAideBridge] = None
+        if self.use_cav_nlp:
+            try:
+                self.cav_nlp_bridge = Z3LeanAideBridge()
+                logger.info("[OK] CAV-NLP bridge initialized for workflow knowledge")
+            except Exception as e:
+                logger.warning(f"[FAIL] Failed to initialize CAV-NLP bridge: {e}")
+                self.use_cav_nlp = False
 
         # SECURITY FIX: Thread safety - create locks for concurrent access
         # Use global locks if security utils available, otherwise create local locks
@@ -267,6 +288,107 @@ class WorkflowKnowledgeExtractor:
             except Exception as e:
                 logger.warning(f"[FAIL] Failed to initialize ML clustering: {e}")
                 self.ml_clustering_available = False
+    
+    def formalize_workflow_knowledge(
+        self, 
+        description: str, 
+        target_format: str = "z3"
+    ) -> Optional[str]:
+        """
+        Formalize workflow knowledge using CAV-NLP.
+        
+        Args:
+            description: Natural language description of the knowledge
+            target_format: Target formal language ('z3', 'lean4')
+            
+        Returns:
+            Formalized representation, or None if conversion fails
+            
+        Example:
+            >>> extractor = WorkflowKnowledgeExtractor()
+            >>> formal = extractor.formalize_workflow_knowledge(
+            ...     "x must be positive and less than 100",
+            ...     target_format="z3"
+            ... )
+            >>> print(formal)
+            'And(x > 0, x < 100)'
+        """
+        if not self.use_cav_nlp or not self.cav_nlp_bridge:
+            logger.debug("CAV-NLP not available, skipping formalization")
+            return None
+        
+        try:
+            if target_format == "lean4":
+                result = self.cav_nlp_bridge.z3_to_lean4(description)
+            elif target_format == "z3":
+                # Try natural language to Z3 conversion
+                if hasattr(self.cav_nlp_bridge, 'nl_to_z3'):
+                    result = self.cav_nlp_bridge.nl_to_z3(description)
+                else:
+                    # Fallback to lean4 then back to Z3 if available
+                    result = self.cav_nlp_bridge.z3_to_lean4(description)
+            else:
+                logger.warning(f"Unknown target format: {target_format}")
+                return None
+            
+            if result:
+                logger.debug(f"Successfully formalized workflow knowledge using CAV-NLP")
+            return result
+            
+        except Exception as e:
+            logger.warning(f"CAV-NLP formalization failed: {e}")
+            return None
+    
+    def extract_formalized_knowledge(
+        self,
+        workflow_id: str,
+        problem_statement: str,
+        workflow_results: Dict[str, Any],
+        target_format: str = "z3"
+    ) -> Dict[str, Any]:
+        """
+        Extract knowledge from workflow with CAV-NLP formalization.
+        
+        This is an enhanced version of extract_from_workflow that adds
+        formal representation to extracted artifacts using CAV-NLP.
+        
+        Args:
+            workflow_id: Unique identifier for the workflow
+            problem_statement: The original problem statement
+            workflow_results: Complete results from all workflow stages
+            target_format: Target formal language for formalization
+            
+        Returns:
+            Dictionary with extracted artifacts and their formal representations
+        """
+        # First perform standard extraction
+        result = self.extract_from_workflow(
+            workflow_id=workflow_id,
+            problem_statement=problem_statement,
+            workflow_results=workflow_results
+        )
+        
+        # Add formal representations using CAV-NLP
+        if self.use_cav_nlp and result:
+            formalized_artifacts = []
+            for artifact in result.get("artifacts", []):
+                # Try to formalize artifact content if it's text-based
+                if hasattr(artifact, 'description'):
+                    formalized = self.formalize_workflow_knowledge(
+                        artifact.description,
+                        target_format=target_format
+                    )
+                    if formalized:
+                        artifact.formal_representation = formalized
+                        artifact.formalization_method = "cav_nlp"
+                formalized_artifacts.append(artifact)
+            
+            result["artifacts"] = formalized_artifacts
+            result["cav_nlp_used"] = True
+        else:
+            result["cav_nlp_used"] = False
+        
+        return result
 
     def _initialize_ace_components(self, skillbook_path: Optional[str]):
         """Initialize ACE components."""

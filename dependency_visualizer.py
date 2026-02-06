@@ -6,7 +6,7 @@ in the decomposition workflow, including circular dependency detection and
 execution order suggestions.
 """
 
-import streamlit as st
+from ui_shim import ui as st
 import plotly.graph_objects as go
 import networkx as nx
 from typing import List, Dict, Any, Tuple, Optional

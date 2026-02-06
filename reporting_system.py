@@ -2,7 +2,7 @@
 Comprehensive Reporting System for OpenEvolve
 Generates detailed reports, visualizations, and documentation for evolution runs.
 """
-import streamlit as st
+from ui_shim import ui as st
 import pandas as pd
 import numpy as np
 import plotly.express as px

@@ -2,7 +2,7 @@
 OpenEvolve Visualization Module for Frontend
 Implements visualization tools for OpenEvolve features including MAP-Elites, evolution trees, and analytics.
 """
-import streamlit as st
+from ui_shim import ui as st
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd

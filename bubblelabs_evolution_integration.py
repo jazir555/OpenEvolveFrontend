@@ -18,7 +18,7 @@ Key Features:
 Author: OpenEvolve Frontend Team
 """
 
-import streamlit as st
+from ui_shim import ui as st
 import time
 import threading
 import json

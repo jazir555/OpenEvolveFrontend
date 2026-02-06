@@ -1,5 +1,132 @@
 
 # =============================================================================
+# CAV-NLP Integration
+# =============================================================================
+
+# CAV-NLP for natural language to formal constraint conversion
+try:
+    from openevolve.cav_nlp_integration import Z3LeanAideBridge
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
+# Unified Math Service for formalization
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    UNIFIED_MATH_AVAILABLE = True
+except ImportError:
+    UNIFIED_MATH_AVAILABLE = False
+
+
+def build_constraint_with_cav_nlp(
+    natural_language: str,
+    constraint_type: str = "z3",
+    config: Optional[Dict] = None
+) -> Optional[str]:
+    """
+    Build formal constraint from natural language using CAV-NLP.
+    
+    Args:
+        natural_language: Natural language constraint description
+        constraint_type: Target formal language ('z3', 'lean4', etc.)
+        config: Optional configuration dict with CAV-NLP settings
+        
+    Returns:
+        Formalized constraint string, or None if conversion fails
+        
+    Example:
+        >>> constraint = build_constraint_with_cav_nlp(
+        ...     "x must be greater than 0 and less than 100",
+        ...     constraint_type="z3"
+        ... )
+        >>> print(constraint)
+        'And(x > 0, x < 100)'
+    """
+    config = config or {}
+    use_cav_nlp = config.get("use_cav_nlp", True)
+    
+    if not use_cav_nlp:
+        return None
+    
+    # Try CAV-NLP bridge first (most direct method)
+    if CAV_NLP_AVAILABLE:
+        try:
+            bridge = Z3LeanAideBridge()
+            if constraint_type == "lean4":
+                result = bridge.z3_to_lean4(natural_language)
+            else:
+                # Default to Z3 constraint building via NL
+                result = bridge.nl_to_z3(natural_language)
+            if result:
+                return result
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(
+                f"CAV-NLP bridge failed for constraint building: {e}"
+            )
+    
+    # Fallback to unified math service
+    if UNIFIED_MATH_AVAILABLE:
+        try:
+            math_service = UnifiedMathService()
+            import asyncio
+            formalized = asyncio.run(
+                math_service.formalize(natural_language)
+            )
+            if formalized and hasattr(formalized, 'code'):
+                return formalized.code
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(
+                f"Unified math service failed for constraint building: {e}"
+            )
+    
+    # Final fallback: return None to indicate failure
+    return None
+
+
+def validate_constraint_with_cav_nlp(
+    natural_language: str,
+    variables: Optional[Dict[str, Any]] = None,
+    config: Optional[Dict] = None
+) -> Dict[str, Any]:
+    """
+    Validate a natural language constraint by formalizing and checking it.
+    
+    Args:
+        natural_language: Natural language constraint description
+        variables: Optional variable assignments to check against
+        config: Optional configuration dict
+        
+    Returns:
+        Validation result with 'valid', 'formalized', and 'error' fields
+    """
+    config = config or {}
+    result = {
+        "valid": False,
+        "formalized": None,
+        "error": None,
+        "method_used": None
+    }
+    
+    # Try to formalize the constraint
+    formalized = build_constraint_with_cav_nlp(
+        natural_language,
+        constraint_type="z3",
+        config=config
+    )
+    
+    if formalized:
+        result["formalized"] = formalized
+        result["method_used"] = "cav_nlp"
+        result["valid"] = True
+    else:
+        result["error"] = "Could not formalize constraint with CAV-NLP"
+    
+    return result
+
+
+# =============================================================================
 # STAGE 4: CONFIGURABLE REASSEMBLY
 # =============================================================================
 

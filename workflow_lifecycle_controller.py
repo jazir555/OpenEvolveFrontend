@@ -6,7 +6,7 @@ within the BubbleLabs interface, including start, pause, resume, stop, cancel,
 and restart functionality.
 """
 
-import streamlit as st
+from ui_shim import ui as st
 import time
 from typing import Dict, Any, Optional, List
 from datetime import datetime

@@ -81,6 +81,14 @@ try:
 except ImportError:
     Z3_AVAILABLE = False
 
+# CAV-NLP Integration for knowledge formalization
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    print("CAV-NLP not available for knowledge formalization")
+
 
 # =============================================================================
 # DATA MODELS
@@ -130,6 +138,10 @@ class KnowledgeArtifact:
     valid_from: Optional[datetime] = None
     valid_until: Optional[datetime] = None
     version: int = 1
+    
+    # CAV-NLP formal representation
+    formal_representation: Optional[str] = None  # Formalized code (Z3, Lean4, etc.)
+    formalization_method: Optional[str] = None  # 'cav_nlp', 'manual', 'z3', 'lean4'
     
     def to_dict(self) -> Dict:
         return {
@@ -1137,7 +1149,12 @@ class Stage6KnowledgeExtraction:
     License: Apache 2.0
     """
     
-    def __init__(self, storage_path: Optional[Path] = None, enable_ml: bool = True):
+    def __init__(
+        self, 
+        storage_path: Optional[Path] = None, 
+        enable_ml: bool = True,
+        use_cav_nlp: bool = True
+    ):
         self.storage_path = storage_path or Path("knowledge_extraction")
         self.storage_path.mkdir(exist_ok=True)
         
@@ -1161,6 +1178,17 @@ class Stage6KnowledgeExtraction:
                 print("[OK] ML Knowledge Extraction enabled")
             except Exception as e:
                 print(f"[FAIL] Failed to initialize ML extraction: {e}")
+        
+        # CAV-NLP integration for knowledge formalization
+        self.use_cav_nlp = use_cav_nlp and CAV_NLP_AVAILABLE
+        self.math_service: Optional[UnifiedMathService] = None
+        if self.use_cav_nlp:
+            try:
+                self.math_service = UnifiedMathService()
+                print("[OK] CAV-NLP formalization enabled")
+            except Exception as e:
+                print(f"[FAIL] Failed to initialize CAV-NLP: {e}")
+                self.use_cav_nlp = False
         
         self._load_existing_data()
     

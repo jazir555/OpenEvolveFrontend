@@ -1,5 +1,5 @@
 import asyncio
-import streamlit as st
+from ui_shim import ui as st
 from typing import Set, Dict, Any
 import socket  # Added this import
 import threading # Added this import

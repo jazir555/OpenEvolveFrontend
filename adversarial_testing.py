@@ -3,7 +3,7 @@ Comprehensive Adversarial Testing Implementation
 Implements all adversarial testing functionality from ULTIMATE_ADVERSARIAL_EVOLUTION_EXPLAINED.md
 """
 
-import streamlit as st
+from ui_shim import ui as st
 import json
 from typing import Dict, Any, List, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed

@@ -40,6 +40,16 @@ try:
 except ImportError:
     Z3_AVAILABLE = False
 
+# CAV-NLP integration imports
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    UnifiedMathService = None
+    EnhancedZ3Solver = None
+
 
 class Z3AutoExtractionManager:
     """

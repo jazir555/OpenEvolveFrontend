@@ -3,7 +3,7 @@ Sovereign-Grade Problem Decomposition System - Sidebar Integration
 Integrates sovereign decomposition controls into the Streamlit sidebar.
 """
 
-import streamlit as st
+from ui_shim import ui as st
 from typing import Optional, Dict, Any
 
 from problem_analyzer import ProblemAnalyzer

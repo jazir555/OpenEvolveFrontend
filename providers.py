@@ -1,4 +1,4 @@
-import streamlit as st
+from ui_shim import ui as st
 from typing import Dict, Any
 
 PROVIDERS: Dict[str, Dict[str, Any]] = {

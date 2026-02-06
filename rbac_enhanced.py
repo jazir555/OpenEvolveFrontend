@@ -32,7 +32,7 @@ from typing import (
     Any, Callable, Dict, List, Optional, Set, Tuple, Type, TypeVar, Union
 )
 
-import streamlit as st
+from ui_shim import ui as st
 
 # Optional imports for authentication backends
 try:
@@ -1954,7 +1954,7 @@ def example_basic_usage():
 
 def example_streamlit_integration():
     """Example: Streamlit integration."""
-    import streamlit as st
+    from ui_shim import ui as st
 
     # Create RBAC system
     rbac = create_rbac_system()

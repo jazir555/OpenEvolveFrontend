@@ -3,7 +3,7 @@ Evaluator Team Configuration and Utilities
 This module provides configuration and utility functions for the evaluator team functionality.
 """
 
-import streamlit as st
+from ui_shim import ui as st
 from typing import List, Dict, Any, Optional
 
 
