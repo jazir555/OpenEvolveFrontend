@@ -19,6 +19,8 @@ def test_z3_api_registers_web3_formal_routes():
 def test_z3_api_web3_status_shape():
     status = asyncio.run(z3_api_server.get_web3_formal_status())
     assert "available" in status
+    assert "web3_formal_available" in status
+    assert "web3_formal_verification_available" in status
     assert "solidity_invariant_translation_available" in status
     assert "exploit_witness_available" in status
     assert "audit_exploit_verification_available" in status
@@ -68,6 +70,8 @@ def test_z3_api_web3_status_infers_available_when_inventory_flag_false(monkeypat
     )
     status = asyncio.run(z3_api_server.get_web3_formal_status())
     assert status["available"] is True
+    assert status["web3_formal_available"] is True
+    assert status["web3_formal_verification_available"] is True
     assert status["audit_exploit_verification_available"] is True
 
 
@@ -92,6 +96,7 @@ def test_z3_service_bubble_status_exposes_web3_formal_inventory(monkeypatch):
     bubble = z3_api_server.Z3ServiceBubble()
     status = bubble.get_status()
     assert status["web3_formal_available"] is True
+    assert status["web3_formal_verification_available"] is True
     assert {
         "z3_translate_solidity_invariant",
         "z3_solve_smart_contract_exploit_witness",

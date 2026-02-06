@@ -154,6 +154,7 @@ def _normalize_web3_formal_inventory(
     )
     inventory: Dict[str, Any] = {
         "available": default_available,
+        "web3_formal_available": default_available,
         "tools": [],
         "formal_capabilities": dict(default_formal_capabilities),
     }
@@ -206,6 +207,10 @@ def _normalize_web3_formal_inventory(
         bool(value) for value in merged_formal_capabilities.values()
     )
     inventory["available"] = available or inferred_available
+    inventory["web3_formal_available"] = bool(inventory["available"])
+    inventory["audit_exploit_verification_available"] = bool(
+        merged_formal_capabilities.get("composite_exploit_verification")
+    )
 
     return inventory
 
@@ -1112,6 +1117,9 @@ class Z3ServiceBubble:
         """Get comprehensive service status."""
         web3_inventory = _normalize_web3_formal_inventory()
         formal_capabilities = web3_inventory.get("formal_capabilities", {})
+        web3_formal_available = bool(
+            web3_inventory.get("web3_formal_available", web3_inventory.get("available"))
+        )
         return {
             "z3_available": Z3_AVAILABLE,
             "z3_advanced_available": Z3_ADVANCED_AVAILABLE,
@@ -1124,7 +1132,8 @@ class Z3ServiceBubble:
             "request_count": self.solver.request_count,
             "cache_stats": self.cache.get_stats().to_dict() if self.cache else None,
             "monitor_data": self.monitor.get_dashboard_data() if self.monitor else None,
-            "web3_formal_available": bool(web3_inventory.get("available")),
+            "web3_formal_available": web3_formal_available,
+            "web3_formal_verification_available": web3_formal_available,
             "web3_formal_tools": list(web3_inventory.get("tools", []) or []),
             "formal_capabilities": formal_capabilities,
             "audit_exploit_verification_available": bool(
@@ -1798,6 +1807,12 @@ async def get_web3_formal_status():
 
     return {
         "available": bool(inventory.get("available")),
+        "web3_formal_available": bool(
+            inventory.get("web3_formal_available", inventory.get("available"))
+        ),
+        "web3_formal_verification_available": bool(
+            inventory.get("web3_formal_available", inventory.get("available"))
+        ),
         "solidity_invariant_translation_available": bool(
             merged_formal_capabilities.get("solidity_invariant_translation")
         ),

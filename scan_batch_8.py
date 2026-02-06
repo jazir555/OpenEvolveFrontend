@@ -184,8 +184,8 @@ class ImportErrorScanner:
     def _check_py_compile(self, filepath: str, content: str):
         """Check file with py_compile."""
         try:
-            # Write to temp file and compile
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+            # Write to temp file and compile with UTF-8 encoding
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False, encoding='utf-8') as f:
                 f.write(content)
                 temp_path = f.name
             

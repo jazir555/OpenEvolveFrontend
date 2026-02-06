@@ -1,0 +1,1259 @@
+{
+  "total_files": 500,
+  "errors_found": 179,
+  "errors": [
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\evaluation\\eval.py",
+      "error_type": "syntax_error",
+      "line_number": 273,
+      "message": "Syntax error: f-string: unmatched '['",
+      "suggested_fix": "Fix syntax error: f-string: unmatched '['"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\evaluation\\judge.py",
+      "error_type": "syntax_error",
+      "line_number": 481,
+      "message": "Syntax error: f-string: unmatched '['",
+      "suggested_fix": "Fix syntax error: f-string: unmatched '['"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\evaluation\\main_eval.py",
+      "error_type": "syntax_error",
+      "line_number": 65,
+      "message": "Syntax error: f-string: unmatched '['",
+      "suggested_fix": "Fix syntax error: f-string: unmatched '['"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\evaluation\\parallel_eval.py",
+      "error_type": "syntax_error",
+      "line_number": 177,
+      "message": "Syntax error: f-string: unmatched '('",
+      "suggested_fix": "Fix syntax error: f-string: unmatched '('"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\evaluation\\utils.py",
+      "error_type": "syntax_error",
+      "line_number": 3,
+      "message": "Syntax error: f-string: unmatched '['",
+      "suggested_fix": "Fix syntax error: f-string: unmatched '['"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\evaluation\\error_stats.py",
+      "error_type": "syntax_error",
+      "line_number": 5,
+      "message": "Syntax error: unexpected indent",
+      "suggested_fix": "Check indentation consistency (spaces vs tabs)"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\DeepKE\\example\\ee\\standard\\predict.py",
+      "error_type": "import_error",
+      "line_number": 31,
+      "message": "Wildcard import used - potential namespace pollution",
+      "suggested_fix": "Import specific symbols or use explicit module namespace"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\DeepKE\\example\\ee\\standard\\run.py",
+      "error_type": "import_error",
+      "line_number": 31,
+      "message": "Wildcard import used - potential namespace pollution",
+      "suggested_fix": "Import specific symbols or use explicit module namespace"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\DeepKE\\example\\ee\\standard\\degree\\predict.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Wildcard import used - potential namespace pollution",
+      "suggested_fix": "Import specific symbols or use explicit module namespace"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\oxylabs_amazon_product_scraper_tool\\oxylabs_amazon_product_scraper_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\tests\\tools\\test_oxylabs_tools.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\oxylabs_google_search_scraper_tool\\oxylabs_google_search_scraper_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\tests\\tools\\test_oxylabs_tools.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\patronus_eval_tool\\patronus_local_evaluator_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\patronus_eval_tool\\example.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\patronus_eval_tool\\patronus_local_evaluator_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\patronus_eval_tool\\__init__.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\scrape_website_tool\\scrape_website_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\construct_workflow_graph.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\scrape_website_tool\\scrape_website_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\base_node.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\scrape_website_tool\\scrape_website_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\exec_validator.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\scrape_website_tool\\scrape_website_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_cli_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\scrape_website_tool\\scrape_website_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_file_write.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\scrape_website_tool\\scrape_website_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_model.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\scrape_website_tool\\scrape_website_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_openhands_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\scrape_website_tool\\scrape_website_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_redo_partition.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\scrape_website_tool\\scrape_website_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_remove_plan.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\scrape_website_tool\\scrape_website_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_sched_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\scrape_website_tool\\scrape_website_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\selenium_scraping_tool\\selenium_scraping_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\tests\\tools\\selenium_scraping_tool_test.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\selenium_scraping_tool\\selenium_scraping_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\construct_workflow_graph.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\selenium_scraping_tool\\selenium_scraping_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\base_node.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\selenium_scraping_tool\\selenium_scraping_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\exec_validator.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\selenium_scraping_tool\\selenium_scraping_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_cli_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\selenium_scraping_tool\\selenium_scraping_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_file_write.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\selenium_scraping_tool\\selenium_scraping_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_model.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\selenium_scraping_tool\\selenium_scraping_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_openhands_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\selenium_scraping_tool\\selenium_scraping_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_redo_partition.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\selenium_scraping_tool\\selenium_scraping_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_remove_plan.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\selenium_scraping_tool\\selenium_scraping_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_sched_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\selenium_scraping_tool\\selenium_scraping_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\serpapi_tool\\serpapi_base_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\serpapi_tool\\serpapi_google_search_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\serpapi_tool\\serpapi_base_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\serpapi_tool\\serpapi_google_shopping_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\serpapi_tool\\serpapi_base_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\construct_workflow_graph.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\serpapi_tool\\serpapi_base_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\base_node.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\serpapi_tool\\serpapi_base_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\exec_validator.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\serpapi_tool\\serpapi_base_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_cli_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\serpapi_tool\\serpapi_base_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_file_write.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\serpapi_tool\\serpapi_base_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_model.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\serpapi_tool\\serpapi_base_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_openhands_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\serpapi_tool\\serpapi_base_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_redo_partition.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\serpapi_tool\\serpapi_base_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_remove_plan.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\serpapi_tool\\serpapi_base_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_sched_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\serpapi_tool\\serpapi_base_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\stagehand_tool\\stagehand_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\stagehand_tool\\__init__.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\stagehand_tool\\stagehand_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\tests\\tools\\stagehand_tool_test.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\stagehand_tool\\stagehand_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\construct_workflow_graph.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\stagehand_tool\\stagehand_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\base_node.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\stagehand_tool\\stagehand_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\exec_validator.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\stagehand_tool\\stagehand_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_cli_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\stagehand_tool\\stagehand_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_file_write.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\stagehand_tool\\stagehand_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_model.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\stagehand_tool\\stagehand_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_openhands_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\stagehand_tool\\stagehand_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_redo_partition.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\stagehand_tool\\stagehand_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_remove_plan.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\stagehand_tool\\stagehand_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_sched_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\stagehand_tool\\stagehand_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\tests\\tools\\test_import_without_warnings.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai-tools\\src\\crewai_tools\\tools\\patronus_eval_tool\\patronus_eval_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\helper\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\model.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\helper\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\inspect_agent\\start.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\helper\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\inspect_agent\\_basic_agent_iterative.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\helper\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\inspect_agent\\_basic_agent_plus.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\helper\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\model.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\helper\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\scheduler.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\helper\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\helper\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\base_node.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\helper\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\clarification.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\helper\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\exec_validator.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\helper\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\user_input.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\helper\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\formatter.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\scheduler.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\formatter.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\formatter.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_sched_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\formatter.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_structured_output.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\logger.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\construct_workflow_graph.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\logger.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\experiment.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\logger.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\main.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\logger.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\model.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\logger.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\scheduler.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\logger.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\logger.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\base_node.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\logger.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\exec_validator.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\scheduler.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\construct_workflow_graph.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\scheduler.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\analyzer.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\scheduler.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\architect.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\scheduler.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\base_node.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\scheduler.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\clarification.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\scheduler.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\concluder.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\scheduler.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\data_analyzer.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\scheduler.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\llm_validator.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\scheduler.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\patcher.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\scheduler.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\technician.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\scheduler.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\user_input.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\scheduler.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_redo_partition.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\scheduler.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_remove_plan.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\scheduler.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_sched_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\scheduler.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\construct_workflow_graph.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\base_node.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\exec_validator.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_cli_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_file_write.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_model.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_openhands_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_redo_partition.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_remove_plan.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_sched_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\clarification.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\inspect_agent\\start.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\inspect_agent\\_basic_agent_iterative.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\inspect_agent\\_basic_agent_plus.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\model.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\scheduler.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\base_node.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\exec_validator.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\user_input.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_cli_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_openhands_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_cli_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_sched_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_cli_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_model.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_openhands_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_sched_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_openhands_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_sched_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\construct_workflow_graph.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_sched_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\base_node.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_sched_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\exec_validator.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_sched_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_file_write.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_sched_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_model.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_sched_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_redo_partition.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_sched_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_remove_plan.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_sched_tool.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-clients\\datapizza-ai-clients-azure-openai\\datapizza\\clients\\azure_openai\\azure_openai_client.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-clients\\datapizza-ai-clients-azure-openai\\datapizza\\clients\\azure_openai\\__init__.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-clients\\datapizza-ai-clients-openai\\datapizza\\clients\\openai\\openai_client.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-clients\\datapizza-ai-clients-azure-openai\\datapizza\\clients\\azure_openai\\azure_openai_client.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-core\\datapizza\\clients\\mock_client.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-core\\datapizza\\core\\clients\\tests\\test_mock_client.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-core\\datapizza\\core\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\clarification.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-core\\datapizza\\core\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-core\\datapizza\\pipeline\\functional_pipeline.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-core\\datapizza\\modules\\parsers\\md_parser.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-core\\datapizza\\modules\\parsers\\tests\\test_md_parser.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-core\\datapizza\\modules\\parsers\\text_parser.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-core\\datapizza\\modules\\parsers\\tests\\test_base_parser.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-core\\datapizza\\modules\\treebuilder\\llm_treebuilder.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-core\\datapizza\\modules\\treebuilder\\test\\test_llm_treebuilder.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-core\\datapizza\\tools\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\inspect_agent\\start.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-core\\datapizza\\tools\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\inspect_agent\\_basic_agent_iterative.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-core\\datapizza\\tools\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\inspect_agent\\_basic_agent_plus.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-core\\datapizza\\tracing\\tracing.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-core\\datapizza\\tracing\\__init__.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-core\\datapizza\\tracing\\tracing.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-core\\datapizza\\tracing\\tests\\test_tracing.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-embedders\\cohere\\datapizza\\embedders\\cohere\\cohere.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-modules\\rerankers\\cohere\\datapizza\\modules\\rerankers\\cohere\\cohere_reranker.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-embedders\\google\\datapizza\\embedders\\google\\google.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-clients\\datapizza-ai-clients-google\\datapizza\\clients\\google\\google_client.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-embedders\\openai\\datapizza\\embedders\\openai\\openai.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-clients\\datapizza-ai-clients-azure-openai\\datapizza\\clients\\azure_openai\\azure_openai_client.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-embedders\\openai\\datapizza\\embedders\\openai\\openai.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-clients\\datapizza-ai-clients-openai\\datapizza\\clients\\openai\\openai_client.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-embedders\\openai\\datapizza\\embedders\\openai\\openai.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-clients\\datapizza-ai-clients-openai-like\\datapizza\\clients\\openai_like\\openai_completion_client.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\datapizza\\datapizza-ai-modules\\parsers\\docling\\datapizza\\modules\\parsers\\docling\\utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\clarification.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\agents.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\graph.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\citations.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\agents.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\citations.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\tools.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\citations.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\__init__.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\credibility.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\agents.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\credibility.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\__init__.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\exports.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\app.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\exports.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\__init__.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\web_utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\inspect_agent\\start.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\web_utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\inspect_agent\\_basic_agent_iterative.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\web_utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\inspect_agent\\_basic_agent_plus.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\web_utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\model.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\web_utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\scheduler.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\web_utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\web_utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\base_node.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\web_utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\clarification.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\web_utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\exec_validator.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\web_utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\nodes\\user_input.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\web_utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\curie\\tests\\test_tool.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\web_utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\tools.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\web_utils.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\deep-research-agent\\src\\utils\\__init__.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\DeepKE\\example\\llm\\CPM-Bee\\src\\cpm_live\\models\\ant_torch.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\DeepKE\\example\\llm\\CPM-Bee\\src\\cpm_live\\models\\bee_torch.py",
+      "suggested_fix": "Consider restructuring imports or using TYPE_CHECKING"
+    }
+  ]
+}

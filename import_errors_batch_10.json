@@ -6,22 +6,41 @@
       "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Generic-Knowledge-Extraction-Tool\\ai\\clients\\claude_client.py",
       "error_type": "syntax_error",
       "line_number": 34,
-      "message": "unexpected indent (<unknown>, line 34)",
-      "suggested_fix": "Check syntax around line 34:         use_case = field_config.get('use_case', 'Document Analysis')\n"
+      "message": "unexpected indent - Code at lines 33-35 is indented but outside of any function. The 'generate_pydantic_models' method (line 19) has its body separated by an import block inserted at lines 22-31.",
+      "suggested_fix": "Move the import block (lines 22-31) outside of the class/method OR move lines 33-35 back inside the generate_pydantic_models method by removing the blank line 32 and ensuring proper indentation within the method."
     },
     {
       "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Generic-Knowledge-Extraction-Tool\\parsers\\docling_parser.py",
       "error_type": "syntax_error",
       "line_number": 116,
-      "message": "unexpected indent (<unknown>, line 116)",
-      "suggested_fix": "Check syntax around line 116:         if HAS_TORCH:\n"
+      "message": "unexpected indent - The _detect_device method body (lines 116-122) is indented correctly but placed at module level instead of being inside the class. The 'ACTUAL INTEGRATION' comment block (lines 105-114) was inserted between the method definition (line 102-104) and its body.",
+      "suggested_fix": "Move lines 116-122 to be immediately after line 104 (inside the _detect_device method) OR move the import block (lines 105-114) to before the class definition. The import block is breaking the method body."
     },
     {
       "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Generic-Knowledge-Extraction-Tool\\templates\\PoDataExtraction\\PoDataExtraction_strategy.py",
       "error_type": "syntax_error",
       "line_number": 4,
-      "message": "unterminated string literal (detected at line 4) (<unknown>, line 4)",
-      "suggested_fix": "Check syntax around line 4: description = \"Task description: The task is to extract key fields from customer documents (Purchase Order (PO) and Bill of Material (BOM), and align them so that each PO item is enriched with the correct technical details. Start with the customer purchase order, which could have multiple items. The item is linked to its BOM via a Material Number. For every item in the PO, pull out the Material Number along with the basic item details like Quantity, Description, and Delivery Date. Use the item\u2019s Material Number from the PO to find the BOM having the same Material Number (represented as \u2018ID\u2019). From the matching BOM, extract the part\u2019s \u2018Type/Part Designation\u2019 and Dimensions. Once you have the Type/Part Designation and Dimensions matched back to the PO item, keep them linked together with the PO fields you already pulled out. Repeat this process for all items in the PO. The final output should therefore contain as many lines as the number of items in the PO. "
+      "message": "unterminated string literal - The description string on line 4 starts with a double quote but contains newline characters. Multi-line strings must use triple quotes (\"\"\" or ''').",
+      "suggested_fix": "Change the opening quote on line 4 from a single double quote (\") to triple double quotes (\"\"\"). The string spans from line 4 to line 9 and contains multiple lines and special characters like bullet points."
     }
+  ],
+  "summary": {
+    "files_with_syntax_errors": 3,
+    "files_with_import_errors": 0,
+    "files_with_circular_imports": 0,
+    "files_with_typos": 0,
+    "clean_files": 497
+  },
+  "error_categories": {
+    "syntax_error": 3,
+    "import_error": 0,
+    "circular_import": 0,
+    "other": 0
+  },
+  "notes": [
+    "All 3 errors are syntax errors caused by code structure issues (indentation problems and unterminated strings).",
+    "No actual import errors (ImportError/ModuleNotFoundError) were detected.",
+    "The syntax errors in claude_client.py and docling_parser.py appear to be caused by 'ACTUAL INTEGRATION' blocks being inserted between method definitions and their bodies.",
+    "The PoDataExtraction_strategy.py error is a simple string formatting issue - needs triple quotes for multi-line strings."
   ]
 }

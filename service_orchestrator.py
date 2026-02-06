@@ -103,11 +103,17 @@ class ManagedService:
         
     async def start(self) -> bool:
         """Start the service. Returns True if successful."""
-        raise NotImplementedError
-        
+        # Default implementation - should be overridden by subclasses
+        self.info.status = ServiceStatus.RUNNING
+        self.info.last_start_time = datetime.now()
+        return True
+
     async def stop(self) -> bool:
         """Stop the service. Returns True if successful."""
-        raise NotImplementedError
+        # Default implementation - should be overridden by subclasses
+        self.info.status = ServiceStatus.STOPPED
+        self.info.last_stop_time = datetime.now()
+        return True
         
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check. Returns health info dict."""

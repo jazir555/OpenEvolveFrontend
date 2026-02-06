@@ -191,6 +191,7 @@ class Z3API:
         return {
             "available": bool(inventory["available"]),
             "web3_formal_available": bool(inventory["web3_formal_available"]),
+            "web3_formal_verification_available": bool(inventory["web3_formal_available"]),
             "solidity_invariant_translation_available": bool(
                 formal_capabilities.get("solidity_invariant_translation")
             ),

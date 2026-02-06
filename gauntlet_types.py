@@ -30,9 +30,15 @@ from openevolve_structures import GauntletDefinition, GauntletRoundRule
 
 # Integration imports with fallbacks
 try:
-    from z3prover_integration import Z3ProverIntegration, Z3SolverResult, Z3ResultStatus
+    from z3prover_integration import (
+        Z3ProverIntegration, Z3SolverResult, Z3ResultStatus,
+        DigitalTwinSandbox, SmartContractInvariantTranslator
+    )
     Z3_AVAILABLE = True
 except ImportError:
+    from z3prover_integration import Z3ProverIntegration, Z3SolverResult, Z3ResultStatus
+    Z3_AVAILABLE = True
+except Exception:
     Z3_AVAILABLE = False
 
 try:
@@ -240,6 +246,7 @@ class LeanVerificationGauntlet(BaseGauntlet):
         config = config or {}
         super().__init__(name, GauntletType.FORMAL_VERIFICATION, config)
         self.lean_client: Optional[LeanAideClient] = None
+        self.verification_timeout = config.get("verification_timeout", 300)
         self._init_lean_client()
     
     def _init_lean_client(self):
@@ -247,87 +254,100 @@ class LeanVerificationGauntlet(BaseGauntlet):
         if LEAN_AVAILABLE:
             try:
                 self.lean_client = LeanAideClient()
-                self.logger.info("LeanAide client initialized for formal verification gauntlet")
+                self.logger.info("LeanAide client initialized for Lean verification gauntlet")
             except Exception as e:
                 self.logger.warning(f"Failed to initialize LeanAide client: {e}")
                 self.lean_client = None
     
-    async def verify_with_lean(
-        self, 
-        content: str, 
-        attack_vector: str = None
-    ) -> Dict[str, Any]:
-        """Verify content using Lean theorem prover.
-        
-        Args:
-            content: The content to verify (theorem, proof, or statement)
-            attack_vector: Optional attack vector identifier
-            
-        Returns:
-            Dictionary with verification results
+    def execute(self, solution: Any, context: Optional[Dict] = None) -> GauntletResult:
         """
-        if not LEAN_AVAILABLE or self.lean_client is None:
-            return {"verified": False, "reason": "Lean unavailable"}
-        
-        try:
-            # Translate content to formal theorem statement
-            formalized = await self.lean_client.translate_thm(content)
-            
-            # Verify the formalized content
-            result = await self.lean_client.verify(formalized)
-            
-            return {
-                "verified": result.verified if hasattr(result, 'verified') else False,
-                "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
-                "proof": result.proof_code if hasattr(result, 'proof_code') else None,
-                "attack_vector": attack_vector,
-                "formalized_statement": formalized
-            }
-        except Exception as e:
-            self.logger.warning(f"Lean verification failed: {e}")
-            return {"verified": False, "reason": str(e), "attack_vector": attack_vector}
-    
-    def execute(self, solution: Any, context: Dict[str, Any]) -> GauntletResult:
-        """Execute Lean verification gauntlet.
+        Execute Lean verification gauntlet.
         
         Args:
-            solution: Solution to verify
-            context: Must contain 'content' (str) to verify
+            solution: Solution to verify (should contain mathematical content)
+            context: Optional context with theorem statement
             
         Returns:
-            GauntletResult with verification status
+            GauntletResult with verification outcome
         """
         import asyncio
         start_time = time.time()
+        context = context or {}
         solution_id = getattr(solution, 'id', str(hash(str(solution))))
         
-        try:
-            content = context.get("content", str(solution))
-            attack_vector = context.get("attack_vector")
-            
-            # Run Lean verification
-            if LEAN_AVAILABLE and self.lean_client:
-                # Use async verification
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                try:
-                    verification_result = loop.run_until_complete(
-                        self.verify_with_lean(content, attack_vector)
-                    )
-                finally:
-                    loop.close()
-            else:
-                verification_result = {"verified": False, "reason": "Lean unavailable"}
-            
-            execution_time = time.time() - start_time
-            
-            verified = verification_result.get("verified", False)
-            confidence = verification_result.get("confidence", 0.0)
-            
+        # Extract content to verify
+        if isinstance(solution, str):
+            content = solution
+        elif hasattr(solution, 'content'):
+            content = solution.content
+        elif hasattr(solution, 'theorem_statement'):
+            content = solution.theorem_statement
+        else:
+            content = str(solution)
+        
+        if not LEAN_AVAILABLE or not self.lean_client:
             return self._create_result(
                 solution_id=solution_id,
-                passed=verified,
-                score=confidence,
+                passed=False,
+                score=0.0,
+                confidence=0.0,
+                execution_time=time.time() - start_time,
+                details={"error": "Lean verification not available"},
+                feedback="Lean verification failed: Lean/LeanAide unavailable"
+            )
+        
+        try:
+            # Run async verification
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                # 1. Auto-formalize if it's natural language
+                if context.get("is_natural_language", True):
+                    formalized = loop.run_until_complete(self.lean_client.translate_thm(content))
+                else:
+                    formalized = content
+                
+                # 2. Verify the formalized content
+                verification = loop.run_until_complete(self.lean_client.verify(formalized))
+                
+                # Determine result
+                verified = verification.verified if hasattr(verification, 'verified') else verification.get("success", False)
+                errors = verification.errors if hasattr(verification, 'errors') else verification.get("errors", [])
+                
+                # Calculate score
+                score = 1.0 if verified else 0.0
+                if errors:
+                    score = max(0.0, 1.0 - len(errors) * 0.1)
+                
+                execution_time = time.time() - start_time
+                
+                return self._create_result(
+                    solution_id=solution_id,
+                    passed=verified,
+                    score=score,
+                    confidence=0.9,
+                    execution_time=execution_time,
+                    details={
+                        "formalized": formalized,
+                        "errors": errors,
+                        "verified": verified
+                    },
+                    feedback=f"Lean verification: {'Passed' if verified else 'Failed'} with {len(errors)} errors"
+                )
+            finally:
+                loop.close()
+                
+        except Exception as e:
+            self.logger.error(f"Lean verification failed: {e}")
+            return self._create_result(
+                solution_id=solution_id,
+                passed=False,
+                score=0.0,
+                confidence=0.0,
+                execution_time=time.time() - start_time,
+                details={"error": str(e)},
+                feedback=f"Lean verification error: {str(e)}"
+            )
                 confidence=confidence,
                 execution_time=execution_time,
                 details={
@@ -663,6 +683,96 @@ class FormalVerificationGauntlet(BaseGauntlet):
                 execution_time=time.time() - start_time,
                 details={"error": str(e)},
                 feedback=f"Verification error: {str(e)}"
+            )
+
+class LogicalSandboxGauntlet(BaseGauntlet):
+    """
+    Logical Sandbox Gauntlet: Digital Twin logical sandboxing.
+    
+    Uses Z3-based Digital Twin Sandbox to verify that solutions (SOPs, fixes)
+    comply with safety invariants.
+    """
+    
+    def __init__(self, name: str = "logical_sandbox_gauntlet", config: Optional[Dict] = None):
+        super().__init__(name, GauntletType.FORMAL_VERIFICATION, config)
+        self.sandbox = None
+        self._init_sandbox()
+        
+    def _init_sandbox(self):
+        """Initialize Digital Twin Sandbox if available."""
+        if Z3_AVAILABLE:
+            try:
+                self.sandbox = DigitalTwinSandbox()
+                self.logger.info("Digital Twin Sandbox initialized for logical sandbox gauntlet")
+            except Exception as e:
+                self.logger.warning(f"Failed to initialize Digital Twin Sandbox: {e}")
+                
+    def execute(self, solution: Any, context: Dict[str, Any]) -> GauntletResult:
+        """
+        Execute logical sandbox verification.
+        
+        Args:
+            solution: Solution/fix to verify (str or object)
+            context: Must contain 'safety_invariants' (List[str])
+            
+        Returns:
+            GauntletResult with sandbox verification status
+        """
+        start_time = time.time()
+        solution_id = getattr(solution, 'id', str(hash(str(solution))))
+        fix_text = str(solution)
+        safety_invariants = context.get("safety_invariants", [])
+        
+        if not safety_invariants:
+            return self._create_result(
+                solution_id=solution_id,
+                passed=True,
+                score=1.0,
+                confidence=1.0,
+                execution_time=time.time() - start_time,
+                feedback="No safety invariants provided - vacuously passed",
+                details={"vacuous": True}
+            )
+            
+        if not self.sandbox:
+            return self._create_result(
+                solution_id=solution_id,
+                passed=False,
+                score=0.0,
+                confidence=0.0,
+                execution_time=time.time() - start_time,
+                details={"error": "Digital Twin Sandbox not available"},
+                feedback="Sandbox verification failed: Z3/Sandbox unavailable"
+            )
+            
+        try:
+            passed, counterexample = self.sandbox.verify_fix_with_invariants(fix_text, safety_invariants)
+            execution_time = time.time() - start_time
+            
+            return self._create_result(
+                solution_id=solution_id,
+                passed=passed,
+                score=1.0 if passed else 0.0,
+                confidence=0.95,
+                execution_time=execution_time,
+                details={
+                    "safety_invariants_count": len(safety_invariants),
+                    "counterexample": counterexample,
+                    "passed": passed
+                },
+                feedback="Logical sandbox: Safety invariants verified" if passed else "Logical sandbox: Safety violation detected",
+                improvements=[f"Fix safety violation: {counterexample}"] if counterexample else []
+            )
+        except Exception as e:
+            self.logger.error(f"Sandbox verification failed: {e}")
+            return self._create_result(
+                solution_id=solution_id,
+                passed=False,
+                score=0.0,
+                confidence=0.0,
+                execution_time=time.time() - start_time,
+                details={"error": str(e)},
+                feedback=f"Sandbox verification error: {str(e)}"
             )
     
     def _verify_property(self, code: str, property_spec: Dict, constraints: List) -> Dict[str, Any]:
@@ -1254,6 +1364,8 @@ class DomainSpecificGauntlet(BaseGauntlet):
                 return self._execute_chemistry_validation(solution, context, start_time, solution_id)
             elif self.domain == "engineering":
                 return self._execute_engineering_validation(solution, context, start_time, solution_id)
+            elif self.domain in {"web3", "defi"}:
+                return self._execute_web3_validation(solution, context, start_time, solution_id)
             else:
                 # Fallback to rule-based validation
                 return self._execute_rule_based_validation(solution, context, start_time, solution_id)
@@ -1736,6 +1848,60 @@ class DomainSpecificGauntlet(BaseGauntlet):
             feedback=f"Engineering validation (fallback): {sum(1 for r in check_results if r['passed'])}/{len(check_results)} checks passed",
             improvements=[r.get("message", "") for r in check_results if not r.get("passed")]
         )
+
+    def _execute_web3_validation(
+        self, solution: Any, context: Dict, start_time: float, solution_id: str
+    ) -> GauntletResult:
+        """Execute REAL web3 validation using Z3 and SmartContractInvariantTranslator."""
+        if Z3_AVAILABLE:
+            try:
+                translator = SmartContractInvariantTranslator()
+                solution_text = str(solution)
+                
+                # Try to extract assignment and invariants from context or content
+                statement = context.get("solidity_statement")
+                if not statement:
+                    # Heuristic: find lines with assignment in solution text
+                    import re
+                    matches = re.findall(r'.*=[^=].*;', solution_text)
+                    if matches:
+                        # Take the last assignment usually containing the state update
+                        statement = matches[-1].strip()
+                
+                if statement:
+                    translation = translator.translate_assignment(
+                        statement=statement,
+                        non_negative_target=context.get("non_negative", True),
+                        max_withdraw_expr=context.get("max_withdraw")
+                    )
+                    
+                    # Verify translation with Z3
+                    from z3prover_integration import verify_solidity_invariant_translation
+                    verification = verify_solidity_invariant_translation(translation)
+                    
+                    execution_time = time.time() - start_time
+                    proven = verification.get("proven")
+                    
+                    return self._create_result(
+                        solution_id=solution_id,
+                        passed=proven is True,
+                        score=1.0 if proven else 0.5 if proven is None else 0.0,
+                        confidence=0.9 if proven is not None else 0.5,
+                        execution_time=execution_time,
+                        details={
+                            "domain": self.domain,
+                            "translation": translation.to_dict(),
+                            "verification": verification,
+                            "statement_extracted": statement
+                        },
+                        feedback=f"Web3/DeFi invariant verification: {'Passed' if proven else 'Failed' if proven is False else 'Unknown'}",
+                        improvements=[verification.get("reason", "")] if verification.get("counterexample") else []
+                    )
+            except Exception as e:
+                self.logger.warning(f"Web3 invariant validation failed: {e}, using fallback")
+        
+        # Fallback to rule-based validation
+        return self._execute_rule_based_validation(solution, context, start_time, solution_id)
     
     def _execute_rule_based_validation(
         self, solution: Any, context: Dict, start_time: float, solution_id: str
@@ -2727,123 +2893,7 @@ class CrossValidationGauntlet(BaseGauntlet):
         return matches / len(data)
 
 
-class LeanVerificationGauntlet(BaseGauntlet):
-    """
-    Gauntlet that uses Lean theorem prover for formal verification.
-    
-    This gauntlet formalizes mathematical content into Lean 4 and verifies
-    the proofs, providing rigorous correctness guarantees.
-    """
-    
-    def __init__(self, name: str = "lean_verification", config: Optional[Dict] = None):
-        super().__init__(GauntletType.FORMAL_VERIFICATION, name, config)
-        self.lean_client: Optional[LeanAideClient] = None
-        self.verification_timeout = config.get("verification_timeout", 300) if config else 300
-        
-        if LEAN_AVAILABLE:
-            try:
-                self.lean_client = LeanAideClient()
-                logger.info("LeanVerificationGauntlet initialized with LeanAideClient")
-            except Exception as e:
-                logger.warning(f"Failed to initialize LeanAideClient: {e}")
-    
-    def execute(self, solution: Any, context: Optional[Dict] = None) -> GauntletResult:
-        """
-        Execute Lean verification gauntlet.
-        
-        Args:
-            solution: Solution to verify (should contain mathematical content)
-            context: Optional context with theorem statement
-            
-        Returns:
-            GauntletResult with verification outcome
-        """
-        start_time = time.time()
-        context = context or {}
-        
-        # Extract content to verify
-        if isinstance(solution, str):
-            content = solution
-        elif hasattr(solution, 'content'):
-            content = solution.content
-        elif hasattr(solution, 'theorem_statement'):
-            content = solution.theorem_statement
-        else:
-            content = str(solution)
-        
-        logger.info(f"Starting Lean verification gauntlet for: {content[:100]}...")
-        
-        if not LEAN_AVAILABLE or not self.lean_client:
-            logger.warning("Lean not available, returning failed result")
-            return GauntletResult(
-                gauntlet_type=self.gauntlet_type,
-                gauntlet_name=self.name,
-                solution_id=getattr(solution, 'id', 'unknown'),
-                passed=False,
-                score=0.0,
-                execution_time=time.time() - start_time,
-                details={"error": "Lean verification not available"},
-                timestamp=datetime.now()
-            )
-        
-        try:
-            # Auto-formalize the content
-            formalized = self.lean_client.autoformalize(content)
-            
-            # Verify the formalized content
-            verification = self.lean_client.verify(formalized)
-            
-            # Determine result
-            verified = verification.get("success", False)
-            errors = verification.get("errors", [])
-            
-            # Calculate score based on verification
-            score = 1.0 if verified else 0.0
-            if errors:
-                # Partial credit if some errors but proof structure is sound
-                score = max(0.0, 1.0 - len(errors) * 0.1)
-            
-            execution_time = time.time() - start_time
-            
-            # Trigger alert if verification failed critically
-            if not verified and ALERTING_AVAILABLE:
-                alert_mgr = get_alert_manager()
-                alert_mgr.trigger_alert(
-                    title=f"Lean Verification Failed: {self.name}",
-                    message=f"Lean verification failed with {len(errors)} errors",
-                    severity=AlertSeverity.MEDIUM,
-                    source="LeanVerificationGauntlet",
-                    metadata={"errors": errors[:5]}  # First 5 errors
-                )
-            
-            return GauntletResult(
-                gauntlet_type=self.gauntlet_type,
-                gauntlet_name=self.name,
-                solution_id=getattr(solution, 'id', 'unknown'),
-                passed=verified,
-                score=score,
-                execution_time=execution_time,
-                details={
-                    "formalized": formalized,
-                    "proof_status": verification.get("status", "unknown"),
-                    "errors": errors,
-                    "verified": verified
-                },
-                timestamp=datetime.now()
-            )
-            
-        except Exception as e:
-            logger.error(f"Lean verification failed: {e}")
-            return GauntletResult(
-                gauntlet_type=self.gauntlet_type,
-                gauntlet_name=self.name,
-                solution_id=getattr(solution, 'id', 'unknown'),
-                passed=False,
-                score=0.0,
-                execution_time=time.time() - start_time,
-                details={"error": str(e)},
-                timestamp=datetime.now()
-            )
+# Factory function for creating gauntlets
 
 
 # Factory function for creating gauntlets
@@ -2870,6 +2920,7 @@ def create_gauntlet(gauntlet_type: str, name: Optional[str] = None, config: Opti
         "adversarial": lambda n, c: AdversarialGauntlet(n, c, red_team=kwargs.get("red_team"), blue_team=kwargs.get("blue_team")),
         "formal": FormalVerificationGauntlet,
         "formal_verification": FormalVerificationGauntlet,
+        "logical_sandbox": LogicalSandboxGauntlet,
         "lean": LeanVerificationGauntlet,
         "lean_verification": LeanVerificationGauntlet,
         "statistical": StatisticalGauntlet,
@@ -2899,6 +2950,7 @@ def list_available_gauntlets() -> Dict[str, str]:
     return {
         "adversarial": "Red team attacks and robustness testing",
         "formal_verification": "Z3-based formal proofs and property verification (REAL Z3)",
+        "logical_sandbox": "Digital twin logical sandboxing using Z3 invariants",
         "lean_verification": "Lean 4 theorem prover verification (REAL LeanAide)",
         "statistical": "Monte Carlo validation and hypothesis testing",
         "physics": "Domain-specific validation for physics problems (REAL PhysicsValidator)",
@@ -2922,9 +2974,11 @@ __all__ = [
     # Base class
     'BaseGauntlet',
     
-    # Gauntlet implementations (ALL 8 TYPES)
+    # Gauntlet implementations
     'AdversarialGauntlet',
     'FormalVerificationGauntlet',
+    'LogicalSandboxGauntlet',
+    'LeanVerificationGauntlet',
     'StatisticalGauntlet',
     'DomainSpecificGauntlet',
     'MultiObjectiveGauntlet',

@@ -1,0 +1,3278 @@
+{
+  "summary": {
+    "total_scanned": 13848,
+    "critical_errors": 385,
+    "syntax_errors": 62,
+    "import_errors": 323,
+    "files_to_fix": 180
+  },
+  "errors": [
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\automated_proof_engine.py",
+      "error_type": "syntax_error",
+      "line_number": 1321,
+      "message": "Python 2 style print statement detected",
+      "severity": "high",
+      "suggested_fix": "Use print() function instead of print statement"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\benchmark_ultra_comprehensive_artifacts.py",
+      "error_type": "syntax_error",
+      "line_number": 572,
+      "message": "Python 2 style print statement detected",
+      "severity": "high",
+      "suggested_fix": "Use print() function instead of print statement"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\comprehensive_security_test_coverage.py",
+      "error_type": "syntax_error",
+      "line_number": 530,
+      "message": "unterminated string literal (detected at line 530) (<unknown>, line 530)",
+      "severity": "critical",
+      "suggested_fix": "Check syntax around line 530:             {\"data': '{\"__class__\": \"evil.Class\"}', \"format\": \"json\", \"risk\": \"class_loading\"},"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\evaluation\\eval.py",
+      "error_type": "syntax_error",
+      "line_number": 273,
+      "message": "Syntax error: f-string: unmatched '['",
+      "severity": "critical",
+      "suggested_fix": "Fix syntax error: f-string: unmatched '['"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\evaluation\\judge.py",
+      "error_type": "syntax_error",
+      "line_number": 481,
+      "message": "Syntax error: f-string: unmatched '['",
+      "severity": "critical",
+      "suggested_fix": "Fix syntax error: f-string: unmatched '['"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\evaluation\\main_eval.py",
+      "error_type": "syntax_error",
+      "line_number": 65,
+      "message": "Syntax error: f-string: unmatched '['",
+      "severity": "critical",
+      "suggested_fix": "Fix syntax error: f-string: unmatched '['"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\evaluation\\parallel_eval.py",
+      "error_type": "syntax_error",
+      "line_number": 177,
+      "message": "Syntax error: f-string: unmatched '('",
+      "severity": "critical",
+      "suggested_fix": "Fix syntax error: f-string: unmatched '('"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\evaluation\\utils.py",
+      "error_type": "syntax_error",
+      "line_number": 3,
+      "message": "Syntax error: f-string: unmatched '['",
+      "severity": "critical",
+      "suggested_fix": "Fix syntax error: f-string: unmatched '['"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\evaluation\\error_stats.py",
+      "error_type": "syntax_error",
+      "line_number": 5,
+      "message": "Syntax error: unexpected indent",
+      "severity": "critical",
+      "suggested_fix": "Check indentation consistency (spaces vs tabs)"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Generic-Knowledge-Extraction-Tool\\ai\\clients\\claude_client.py",
+      "error_type": "syntax_error",
+      "line_number": 34,
+      "message": "unexpected indent - Code at lines 33-35 is indented but outside of any function. The 'generate_pydantic_models' method (line 19) has its body separated by an import block inserted at lines 22-31.",
+      "severity": "critical",
+      "suggested_fix": "Move the import block (lines 22-31) outside of the class/method OR move lines 33-35 back inside the generate_pydantic_models method by removing the blank line 32 and ensuring proper indentation within the method."
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Generic-Knowledge-Extraction-Tool\\parsers\\docling_parser.py",
+      "error_type": "syntax_error",
+      "line_number": 116,
+      "message": "unexpected indent - The _detect_device method body (lines 116-122) is indented correctly but placed at module level instead of being inside the class. The 'ACTUAL INTEGRATION' comment block (lines 105-114) was inserted between the method definition (line 102-104) and its body.",
+      "severity": "critical",
+      "suggested_fix": "Move lines 116-122 to be immediately after line 104 (inside the _detect_device method) OR move the import block (lines 105-114) to before the class definition. The import block is breaking the method body."
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Generic-Knowledge-Extraction-Tool\\templates\\PoDataExtraction\\PoDataExtraction_strategy.py",
+      "error_type": "syntax_error",
+      "line_number": 4,
+      "message": "unterminated string literal - The description string on line 4 starts with a double quote but contains newline characters. Multi-line strings must use triple quotes (\"\"\" or ''').",
+      "severity": "critical",
+      "suggested_fix": "Change the opening quote on line 4 from a single double quote (\") to triple double quotes (\"\"\"). The string spans from line 4 to line 9 and contains multiple lines and special characters like bullet points."
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Lean4-LLM-Ai-Agent-Mooc\\src\\main.py",
+      "error_type": "syntax_error",
+      "line_number": 7,
+      "message": "invalid syntax (<unknown>, line 7)",
+      "severity": "critical",
+      "suggested_fix": "Check for invalid Python syntax, missing colons, or mismatched brackets"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\LeanAide\\server\\tabs\\server_response.py",
+      "error_type": "syntax_error",
+      "line_number": 301,
+      "message": "f-string: unmatched '[' (<unknown>, line 301)",
+      "severity": "critical",
+      "suggested_fix": "Check for invalid Python syntax, missing colons, or mismatched brackets"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 58,
+      "message": "Module not found: adaptive_mdap.classifiers.task_complexity_classifier",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.classifiers.task_complexity_classifier' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 115,
+      "message": "Module not found: adaptive_mdap.config.profiles",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.config.profiles' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 122,
+      "message": "Module not found: adaptive_mdap.monitoring.health",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.monitoring.health' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 130,
+      "message": "Module not found: adaptive_mdap.monitoring.dashboard",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.monitoring.dashboard' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 140,
+      "message": "Module not found: adaptive_mdap.monitoring.alerts",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.monitoring.alerts' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 152,
+      "message": "Module not found: adaptive_mdap.utils.metrics",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.metrics' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 153,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 154,
+      "message": "Module not found: adaptive_mdap.utils.cache",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.cache' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\allocators\\resource_allocator.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Module not found: adaptive_mdap.utils.metrics",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.metrics' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\allocators\\resource_allocator.py",
+      "error_type": "import_error",
+      "line_number": 24,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\classifiers\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 3,
+      "message": "Module not found: adaptive_mdap.classifiers.task_complexity_classifier",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.classifiers.task_complexity_classifier' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\classifiers\\task_complexity_classifier.py",
+      "error_type": "import_error",
+      "line_number": 32,
+      "message": "Module not found: adaptive_mdap.utils.cache",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.cache' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\classifiers\\task_complexity_classifier.py",
+      "error_type": "import_error",
+      "line_number": 33,
+      "message": "Module not found: adaptive_mdap.utils.metrics",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.metrics' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\classifiers\\task_complexity_classifier.py",
+      "error_type": "import_error",
+      "line_number": 34,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\config\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 3,
+      "message": "Module not found: adaptive_mdap.config.loader",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.config.loader' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\config\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 4,
+      "message": "Module not found: adaptive_mdap.config.profiles",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.config.profiles' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\controllers\\execution_controller.py",
+      "error_type": "import_error",
+      "line_number": 27,
+      "message": "Module not found: adaptive_mdap.classifiers.task_complexity_classifier",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.classifiers.task_complexity_classifier' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\controllers\\execution_controller.py",
+      "error_type": "import_error",
+      "line_number": 36,
+      "message": "Module not found: adaptive_mdap.utils.metrics",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.metrics' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\controllers\\execution_controller.py",
+      "error_type": "import_error",
+      "line_number": 37,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\cloud_api_client.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\crewai_integration.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\subproblem_solver_integration.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Module not found: adaptive_mdap.classifiers.task_complexity_classifier",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.classifiers.task_complexity_classifier' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\subproblem_solver_integration.py",
+      "error_type": "import_error",
+      "line_number": 18,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\subproblem_solver_integration.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module not found: adaptive_mdap.utils.metrics",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.metrics' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\subproblem_solver_integration.py",
+      "error_type": "import_error",
+      "line_number": 317,
+      "message": "Module not found: adaptive_mdap.config.profiles",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.config.profiles' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\workflow_engine_integration.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module not found: adaptive_mdap.classifiers.task_complexity_classifier",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.classifiers.task_complexity_classifier' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\workflow_engine_integration.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\monitoring\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 7,
+      "message": "Module not found: adaptive_mdap.monitoring.health",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.monitoring.health' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\monitoring\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 15,
+      "message": "Module not found: adaptive_mdap.monitoring.dashboard",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.monitoring.dashboard' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\monitoring\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 25,
+      "message": "Module not found: adaptive_mdap.monitoring.alerts",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.monitoring.alerts' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\monitoring\\alerts.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\monitoring\\dashboard.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\monitoring\\dashboard.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Module not found: adaptive_mdap.utils.metrics",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.metrics' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\monitoring\\health.py",
+      "error_type": "import_error",
+      "line_number": 10,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\monitoring\\health.py",
+      "error_type": "import_error",
+      "line_number": 148,
+      "message": "Module not found: adaptive_mdap.utils.cache",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.cache' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\monitoring\\health.py",
+      "error_type": "import_error",
+      "line_number": 181,
+      "message": "Module not found: adaptive_mdap.utils.metrics",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.metrics' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\test\\test_classifiers.py",
+      "error_type": "import_error",
+      "line_number": 7,
+      "message": "Module not found: adaptive_mdap.classifiers.task_complexity_classifier",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.classifiers.task_complexity_classifier' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\test\\test_monitoring.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module not found: adaptive_mdap.monitoring.health",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.monitoring.health' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\test\\test_monitoring.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module not found: adaptive_mdap.monitoring.dashboard",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.monitoring.dashboard' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\test\\test_monitoring.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Module not found: adaptive_mdap.monitoring.alerts",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.monitoring.alerts' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\test\\test_monitoring.py",
+      "error_type": "import_error",
+      "line_number": 403,
+      "message": "Module not found: adaptive_mdap.monitoring.alerts",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.monitoring.alerts' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\tools\\cost_calculator.py",
+      "error_type": "import_error",
+      "line_number": 20,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\utils\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 3,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\utils\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 4,
+      "message": "Module not found: adaptive_mdap.utils.cache",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.cache' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\utils\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 5,
+      "message": "Module not found: adaptive_mdap.utils.metrics",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.metrics' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 49,
+      "message": "Module not found: adaptive_mdap.classifiers.task_complexity_classifier",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.classifiers.task_complexity_classifier' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 79,
+      "message": "Module not found: adaptive_mdap.monitoring.health",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.monitoring.health' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 85,
+      "message": "Module not found: adaptive_mdap.monitoring.dashboard",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.monitoring.dashboard' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 110,
+      "message": "Module not found: adaptive_mdap.classifiers.task_complexity_classifier",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.classifiers.task_complexity_classifier' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 251,
+      "message": "Module not found: adaptive_mdap.classifiers.task_complexity_classifier",
+      "severity": "high",
+      "suggested_fix": "Check if module 'adaptive_mdap.classifiers.task_complexity_classifier' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\tests\\test_async_learning.py",
+      "error_type": "import_error",
+      "line_number": 36,
+      "message": "Module not found: tests.conftest",
+      "severity": "high",
+      "suggested_fix": "Check if module 'tests.conftest' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\tests\\test_roles.py",
+      "error_type": "import_error",
+      "line_number": 95,
+      "message": "Module not found: tests.conftest",
+      "severity": "high",
+      "suggested_fix": "Check if module 'tests.conftest' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\tests\\test_roles.py",
+      "error_type": "import_error",
+      "line_number": 177,
+      "message": "Module not found: tests.conftest",
+      "severity": "high",
+      "suggested_fix": "Check if module 'tests.conftest' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\tests\\test_roles.py",
+      "error_type": "import_error",
+      "line_number": 305,
+      "message": "Module not found: tests.conftest",
+      "severity": "high",
+      "suggested_fix": "Check if module 'tests.conftest' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\cognitive-hydraulics\\example\\sort.py",
+      "error_type": "syntax_error",
+      "line_number": 34,
+      "message": "  File \"C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\cognitive-hydraulics\\example\\sort.py\", line 34\n    def mergeSort(arr, l, l):\n                          ^\nSyntaxError: duplicate argument 'l' in function definition\n",
+      "severity": "critical",
+      "suggested_fix": "Fix compilation error"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\crew\\crew.py",
+      "error_type": "syntax_error",
+      "line_number": 10,
+      "message": "invalid syntax (<unknown>, line 10)",
+      "severity": "critical",
+      "suggested_fix": "Fix syntax error in file"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\crew\\main.py",
+      "error_type": "syntax_error",
+      "line_number": 7,
+      "message": "invalid syntax (<unknown>, line 7)",
+      "severity": "critical",
+      "suggested_fix": "Fix syntax error in file"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\flow\\main.py",
+      "error_type": "syntax_error",
+      "line_number": 8,
+      "message": "invalid syntax (<unknown>, line 8)",
+      "severity": "critical",
+      "suggested_fix": "Fix syntax error in file"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\tool\\src\\{{folder_name}}\\__init__.py",
+      "error_type": "syntax_error",
+      "line_number": 1,
+      "message": "invalid syntax (<unknown>, line 1)",
+      "severity": "critical",
+      "suggested_fix": "Fix syntax error in file"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\tool\\src\\{{folder_name}}\\tool.py",
+      "error_type": "syntax_error",
+      "line_number": 4,
+      "message": "invalid syntax (<unknown>, line 4)",
+      "severity": "critical",
+      "suggested_fix": "Fix syntax error in file"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\adapters\\json_adapter.py",
+      "error_type": "syntax_error",
+      "line_number": 49,
+      "message": "CompileError:   File \"C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\adapters\\json_adapter.py\", line 49\n    return True\n    ^^^^^^^^^^^\nSyntaxError: 'return' outside function\n",
+      "severity": "critical",
+      "suggested_fix": "Fix syntax error before running"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\adapters\\types\\audio.py",
+      "error_type": "syntax_error",
+      "line_number": 34,
+      "message": "CompileError:   File \"C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\adapters\\types\\audio.py\", line 34\n    return audio_format.removeprefix(\"x-\")\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nSyntaxError: 'return' outside function\n",
+      "severity": "critical",
+      "suggested_fix": "Fix syntax error before running"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\adapters\\types\\image.py",
+      "error_type": "syntax_error",
+      "line_number": 65,
+      "message": "SyntaxError: unexpected indent",
+      "severity": "critical",
+      "suggested_fix": "Check syntax around line 65, text:         if url is not None and \"url\" not in data:\n"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\adapters\\utils.py",
+      "error_type": "syntax_error",
+      "line_number": 44,
+      "message": "CompileError:   File \"C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\adapters\\utils.py\", line 44\n    return TypeAdapter(type(value)).dump_python(value, mode=\"json\")\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nSyntaxError: 'return' outside function\n",
+      "severity": "critical",
+      "suggested_fix": "Fix syntax error before running"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\adapters\\xml_adapter.py",
+      "error_type": "syntax_error",
+      "line_number": 41,
+      "message": "SyntaxError: unexpected indent",
+      "severity": "critical",
+      "suggested_fix": "Check syntax around line 41, text:         parts = []\n"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\clients\\lm_local.py",
+      "error_type": "syntax_error",
+      "line_number": 344,
+      "message": "CompileError:   File \"C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\clients\\lm_local.py\", line 344\n    return s.getsockname()[1]\n    ^^^^^^^^^^^^^^^^^^^^^^^^^\nSyntaxError: 'return' outside function\n",
+      "severity": "critical",
+      "suggested_fix": "Fix syntax error before running"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\evaluate\\evaluate.py",
+      "error_type": "syntax_error",
+      "line_number": 42,
+      "message": "SyntaxError: unexpected indent",
+      "severity": "critical",
+      "suggested_fix": "Check syntax around line 42, text:         print(obj)\n"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\evaluate\\metrics.py",
+      "error_type": "syntax_error",
+      "line_number": 48,
+      "message": "CompileError:   File \"C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\evaluate\\metrics.py\", line 48\n    return max(em_score(prediction, ans) for ans in answers_list)\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nSyntaxError: 'return' outside function\n",
+      "severity": "critical",
+      "suggested_fix": "Fix syntax error before running"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\predict\\aggregation.py",
+      "error_type": "syntax_error",
+      "line_number": 66,
+      "message": "CompileError:   File \"C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\predict\\aggregation.py\", line 66\n    return Prediction.from_completions([completion], signature=signature)\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nSyntaxError: 'return' outside function\n",
+      "severity": "critical",
+      "suggested_fix": "Fix syntax error before running"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\predict\\best_of_n.py",
+      "error_type": "syntax_error",
+      "line_number": 61,
+      "message": "SyntaxError: unexpected indent",
+      "severity": "critical",
+      "suggested_fix": "Check syntax around line 61, text:         self.module = module\n"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\predict\\chain_of_thought.py",
+      "error_type": "syntax_error",
+      "line_number": 39,
+      "message": "SyntaxError: unexpected indent",
+      "severity": "critical",
+      "suggested_fix": "Check syntax around line 39, text:         super().__init__()\n"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\predict\\knn.py",
+      "error_type": "syntax_error",
+      "line_number": 51,
+      "message": "SyntaxError: unexpected indent",
+      "severity": "critical",
+      "suggested_fix": "Check syntax around line 51, text:         self.k = k\n"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\predict\\react.py",
+      "error_type": "syntax_error",
+      "line_number": 53,
+      "message": "SyntaxError: unexpected indent",
+      "severity": "critical",
+      "suggested_fix": "Check syntax around line 53, text:         super().__init__()\n"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\primitives\\base_module.py",
+      "error_type": "syntax_error",
+      "line_number": 40,
+      "message": "SyntaxError: unexpected indent",
+      "severity": "critical",
+      "suggested_fix": "Check syntax around line 40, text:         import dspy\n"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\propose\\dataset_summary_generator.py",
+      "error_type": "syntax_error",
+      "line_number": 17,
+      "message": "SyntaxError: invalid syntax",
+      "severity": "critical",
+      "suggested_fix": "Check syntax around line 17, text: try:\n"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\propose\\grounded_proposer.py",
+      "error_type": "syntax_error",
+      "line_number": 33,
+      "message": "SyntaxError: invalid syntax",
+      "severity": "critical",
+      "suggested_fix": "Check syntax around line 33, text: try:\n"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\retrievers\\embeddings.py",
+      "error_type": "syntax_error",
+      "line_number": 113,
+      "message": "SyntaxError: unexpected indent",
+      "severity": "critical",
+      "suggested_fix": "Check syntax around line 113, text:         os.makedirs(path, exist_ok=True)\n"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\signatures\\field.py",
+      "error_type": "syntax_error",
+      "line_number": 63,
+      "message": "CompileError:   File \"C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\signatures\\field.py\", line 63\n    return \", \".join(constraints)\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nSyntaxError: 'return' outside function\n",
+      "severity": "critical",
+      "suggested_fix": "Fix syntax error before running"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\streaming\\streamify.py",
+      "error_type": "syntax_error",
+      "line_number": 229,
+      "message": "CompileError:   File \"C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\streaming\\streamify.py\", line 229\n    return async_streamer\n    ^^^^^^^^^^^^^^^^^^^^^\nSyntaxError: 'return' outside function\n",
+      "severity": "critical",
+      "suggested_fix": "Fix syntax error before running"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\teleprompt\\bootstrap.py",
+      "error_type": "syntax_error",
+      "line_number": 82,
+      "message": "SyntaxError: unexpected indent",
+      "severity": "critical",
+      "suggested_fix": "Check syntax around line 82, text:         self.metric = metric\n"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\teleprompt\\bootstrap_finetune.py",
+      "error_type": "syntax_error",
+      "line_number": 257,
+      "message": "CompileError:   File \"C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\teleprompt\\bootstrap_finetune.py\", line 257\n    return all(pred.lm for pred in program.predictors())\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nSyntaxError: 'return' outside function\n",
+      "severity": "critical",
+      "suggested_fix": "Fix syntax error before running"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\teleprompt\\gepa\\gepa.py",
+      "error_type": "syntax_error",
+      "line_number": 75,
+      "message": "SyntaxError: unexpected indent",
+      "severity": "critical",
+      "suggested_fix": "Check syntax around line 75, text:         ...\n"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\teleprompt\\knn_fewshot.py",
+      "error_type": "syntax_error",
+      "line_number": 64,
+      "message": "SyntaxError: unexpected indent",
+      "severity": "critical",
+      "suggested_fix": "Check syntax around line 64, text:         self.KNN = KNN(k, trainset, vectorizer=vectorizer)\n"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\teleprompt\\teleprompt.py",
+      "error_type": "syntax_error",
+      "line_number": 35,
+      "message": "SyntaxError: unexpected indent",
+      "severity": "critical",
+      "suggested_fix": "Check syntax around line 35, text:         raise NotImplementedError\n"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\lmql\\src\\lmql\\ui\\playground\\ref.py",
+      "error_type": "syntax_error",
+      "line_number": 2,
+      "message": "expected ':' (<unknown>, line 2)",
+      "severity": "critical",
+      "suggested_fix": "Check for invalid Python syntax, missing colons, or mismatched brackets"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\demo_hierarchical_indexing.py",
+      "error_type": "syntax_error",
+      "line_number": 585,
+      "message": "Python 2 style print statement detected",
+      "severity": "high",
+      "suggested_fix": "Use print() function instead of print statement"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\demo_mdap_maker_mcts_unified.py",
+      "error_type": "syntax_error",
+      "line_number": 56,
+      "message": "Python 2 style print statement detected",
+      "severity": "high",
+      "suggested_fix": "Use print() function instead of print statement"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\examples\\enhanced_gauntlet_example.py",
+      "error_type": "syntax_error",
+      "line_number": 67,
+      "message": "invalid syntax. Perhaps you forgot a comma? (<unknown>, line 67)",
+      "severity": "critical",
+      "suggested_fix": "Check for missing colons, brackets, quotes, or indentation errors"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\examples\\finance\\insurance_example.py",
+      "error_type": "syntax_error",
+      "line_number": 22,
+      "message": "'(' was never closed (<unknown>, line 22)",
+      "severity": "critical",
+      "suggested_fix": "Check for missing colons, brackets, quotes, or indentation errors"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\glue\\adapters\\leanaide-adapter\\src\\autoformalization_pipeline.py",
+      "error_type": "syntax_error",
+      "line_number": 51,
+      "message": "invalid syntax (<unknown>, line 51)",
+      "severity": "critical",
+      "suggested_fix": "Check for missing colons, brackets, quotes, or indentation errors"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\glue\\adapters\\rese-benchmarks\\benchmark_phase2.py",
+      "error_type": "syntax_error",
+      "line_number": 383,
+      "message": "f-string: unmatched ')' (<unknown>, line 383)",
+      "severity": "critical",
+      "suggested_fix": "Check for missing colons, brackets, quotes, or indentation errors"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\glue\\adapters\\rese-benchmarks\\run_all_benchmarks.py",
+      "error_type": "syntax_error",
+      "line_number": 404,
+      "message": "  File \"C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\glue\\adapters\\rese-benchmarks\\run_all_benchmarks.py\", line 404\n    global BENCHMARK_SCRIPTS\n    ^^^^^^^^^^^^^^^^^^^^^^^^\nSyntaxError: name 'BENCHMARK_SCRIPTS' is used prior to global declaration\n",
+      "severity": "critical",
+      "suggested_fix": "Fix syntax error before running"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\glue\\adapters\\rese-leanaide-workflow\\tests\\test_leanaide_rese_workflow.py",
+      "error_type": "syntax_error",
+      "line_number": 31,
+      "message": "invalid syntax (<unknown>, line 31)",
+      "severity": "critical",
+      "suggested_fix": "Check for missing colons, brackets, quotes, or indentation errors"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\glue\\adapters\\rese-sce\\__init__.py",
+      "error_type": "syntax_error",
+      "line_number": 1,
+      "message": "invalid non-printable character U+FEFF (<unknown>, line 1)",
+      "severity": "critical",
+      "suggested_fix": "Check for missing colons, brackets, quotes, or indentation errors"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\glue\\adapters\\rese-z3-bridge\\tests\\test_rese_z3_bridge.py",
+      "error_type": "syntax_error",
+      "line_number": 58,
+      "message": "unexpected indent (<unknown>, line 58)",
+      "severity": "critical",
+      "suggested_fix": "Check for missing colons, brackets, quotes, or indentation errors"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ground_truth_store.py",
+      "error_type": "syntax_error",
+      "line_number": 1212,
+      "message": "Python 2 style print statement detected",
+      "severity": "high",
+      "suggested_fix": "Use print() function instead of print statement"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ground_truth_store.py",
+      "error_type": "syntax_error",
+      "line_number": 1317,
+      "message": "Python 2 style print statement detected",
+      "severity": "high",
+      "suggested_fix": "Use print() function instead of print statement"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\leanaide-bubblelab-plugin\\test_final_verification.py",
+      "error_type": "syntax_error",
+      "line_number": 100,
+      "message": "invalid syntax (<unknown>, line 100)",
+      "severity": "critical",
+      "suggested_fix": "Check for missing colons, brackets, quotes, or indentation errors"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\llm_utils.py",
+      "error_type": "syntax_error",
+      "line_number": 40,
+      "message": "Python 2 style print statement detected",
+      "severity": "high",
+      "suggested_fix": "Use print() function instead of print statement"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\migrate_adversarial.py",
+      "error_type": "import_error",
+      "line_number": 60,
+      "message": "Module 'adversarial_advanced' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\migrate_adversarial.py",
+      "error_type": "import_error",
+      "line_number": 280,
+      "message": "Module 'adversarial_advanced' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\migrate_adversarial.py",
+      "error_type": "import_error",
+      "line_number": 388,
+      "message": "Module 'adversarial_advanced' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ml_pattern_clustering.py",
+      "error_type": "syntax_error",
+      "line_number": 64,
+      "message": "Syntax error: unindent does not match any outer indentation level",
+      "severity": "critical",
+      "suggested_fix": "Check line 64: try:"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\monitoring.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Module 'psutil' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\monitoring.py",
+      "error_type": "import_error",
+      "line_number": 265,
+      "message": "Module 'psutil' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\monitoring.py",
+      "error_type": "import_error",
+      "line_number": 523,
+      "message": "Module 'psutil' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\monitoring_dashboard.py",
+      "error_type": "import_error",
+      "line_number": 26,
+      "message": "Module 'plotly.graph_objects' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\monitoring_system.py",
+      "error_type": "import_error",
+      "line_number": 18,
+      "message": "Module 'psutil' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\monitoring_system.py",
+      "error_type": "import_error",
+      "line_number": 44,
+      "message": "Module 'adaptive_mdap.utils.metrics' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\monitoring_system.py",
+      "error_type": "import_error",
+      "line_number": 921,
+      "message": "Module 'adaptive_mdap.utils.metrics' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\monitoring_system.py",
+      "error_type": "import_error",
+      "line_number": 922,
+      "message": "Module 'adaptive_mdap.utils.cache' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ode_pde_translator.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Module 'sympy' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ode_pde_translator.py",
+      "error_type": "import_error",
+      "line_number": 29,
+      "message": "Module 'sympy.parsing.sympy_parser' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_api.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module 'uvicorn' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_cli.py",
+      "error_type": "import_error",
+      "line_number": 38,
+      "message": "Module 'rich.console' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_cli.py",
+      "error_type": "import_error",
+      "line_number": 39,
+      "message": "Module 'rich.table' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_cli.py",
+      "error_type": "import_error",
+      "line_number": 40,
+      "message": "Module 'rich.panel' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_cli.py",
+      "error_type": "import_error",
+      "line_number": 765,
+      "message": "Module 'adaptive_mdap.config.profiles' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_cli.py",
+      "error_type": "import_error",
+      "line_number": 806,
+      "message": "Module 'adaptive_mdap.utils.cache' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_cli.py",
+      "error_type": "import_error",
+      "line_number": 845,
+      "message": "Module 'adaptive_mdap.config.profiles' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_client.py",
+      "error_type": "import_error",
+      "line_number": 15,
+      "message": "Module 'openevolve.api' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_client.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Module 'openevolve.config' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_integration.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Module 'openevolve.api' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_integration.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Module 'openevolve.config' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_integration.py",
+      "error_type": "import_error",
+      "line_number": 1567,
+      "message": "Module 'openevolve.config' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_integration.py",
+      "error_type": "import_error",
+      "line_number": 1360,
+      "message": "Module 'openevolve.api' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_integration.py",
+      "error_type": "import_error",
+      "line_number": 1701,
+      "message": "Module 'openevolve.api' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_integration.py",
+      "error_type": "import_error",
+      "line_number": 1889,
+      "message": "Module 'pylint.lint' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_mcp_tools.py",
+      "error_type": "import_error",
+      "line_number": 33,
+      "message": "Module 'openevolve.api' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_mcp_tools.py",
+      "error_type": "import_error",
+      "line_number": 396,
+      "message": "Module 'openevolve.config' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_visualization.py",
+      "error_type": "import_error",
+      "line_number": 7,
+      "message": "Module 'plotly.graph_objects' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_visualization.py",
+      "error_type": "import_error",
+      "line_number": 646,
+      "message": "Module 'networkx' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\parallel_processing.py",
+      "error_type": "import_error",
+      "line_number": 464,
+      "message": "Module 'psutil' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\parallel_processing.py",
+      "error_type": "import_error",
+      "line_number": 505,
+      "message": "Module 'psutil' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\parallel_processing.py",
+      "error_type": "import_error",
+      "line_number": 630,
+      "message": "Module 'psutil' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\performance_profiler.py",
+      "error_type": "import_error",
+      "line_number": 203,
+      "message": "Module 'psutil' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\performance_profiler.py",
+      "error_type": "import_error",
+      "line_number": 537,
+      "message": "Module 'psutil' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\performance_profiler.py",
+      "error_type": "import_error",
+      "line_number": 554,
+      "message": "Module 'psutil' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\performance_profiler.py",
+      "error_type": "import_error",
+      "line_number": 236,
+      "message": "Module 'psutil' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator.py",
+      "error_type": "import_error",
+      "line_number": 30,
+      "message": "Module 'scipy' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_enhanced.py",
+      "error_type": "import_error",
+      "line_number": 30,
+      "message": "Module 'scipy.integrate' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_enhanced.py",
+      "error_type": "import_error",
+      "line_number": 31,
+      "message": "Module 'scipy.optimize' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_enhanced.py",
+      "error_type": "import_error",
+      "line_number": 32,
+      "message": "Module 'scipy.interpolate' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_enhanced.py",
+      "error_type": "import_error",
+      "line_number": 39,
+      "message": "Module 'sympy' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_enhanced.py",
+      "error_type": "import_error",
+      "line_number": 40,
+      "message": "Module 'sympy' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_enhanced.py",
+      "error_type": "import_error",
+      "line_number": 252,
+      "message": "Module 'scipy.integrate' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_enhanced.py",
+      "error_type": "import_error",
+      "line_number": 314,
+      "message": "Module 'scipy.integrate' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_real.py",
+      "error_type": "import_error",
+      "line_number": 30,
+      "message": "Module 'scipy.sparse' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_real.py",
+      "error_type": "import_error",
+      "line_number": 31,
+      "message": "Module 'scipy.sparse.linalg' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_real.py",
+      "error_type": "import_error",
+      "line_number": 32,
+      "message": "Module 'scipy.integrate' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_real.py",
+      "error_type": "import_error",
+      "line_number": 33,
+      "message": "Module 'scipy.linalg' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_real.py",
+      "error_type": "import_error",
+      "line_number": 34,
+      "message": "Module 'scipy.spatial' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_real.py",
+      "error_type": "import_error",
+      "line_number": 35,
+      "message": "Module 'sympy' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_real.py",
+      "error_type": "import_error",
+      "line_number": 36,
+      "message": "Module 'sympy' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_real.py",
+      "error_type": "import_error",
+      "line_number": 40,
+      "message": "Module 'physicsnemo' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\problem_classifier.py",
+      "error_type": "import_error",
+      "line_number": 404,
+      "message": "Module 'openevolve.api' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\problem_classifier.py",
+      "error_type": "import_error",
+      "line_number": 405,
+      "message": "Module 'openevolve.config' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\problem_recomposition.py",
+      "error_type": "import_error",
+      "line_number": 276,
+      "message": "Module 'sentence_transformers' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\progress_visualizer.py",
+      "error_type": "import_error",
+      "line_number": 34,
+      "message": "Module 'networkx' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\PAMI\\extras\\convert\\_DF2DB\\DF2DBPlus.py",
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from 'PAMI.extras.DF2DB.DenseFormatDFPlus'",
+      "severity": "high",
+      "suggested_fix": "Avoid wildcard imports; import specific names"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\PAMI\\extras\\convert\\_DF2DB\\_DF2DB.py",
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from 'PAMI.extras.DF2DB.denseDF2DB'",
+      "severity": "high",
+      "suggested_fix": "Avoid wildcard imports; import specific names"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\PAMI\\frequentPattern\\basic\\_ECLATDiffset.py",
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from 'abstract'",
+      "severity": "high",
+      "suggested_fix": "Avoid wildcard imports; import specific names"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\PAMI\\highUtilitySpatialPattern\\topk\\TKSHUIM.py",
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from 'PAMI.highUtilitySpatialPattern.topk.abstract'",
+      "severity": "high",
+      "suggested_fix": "Avoid wildcard imports; import specific names"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\tests\\frequentPattern\\basic\\test_eclatdiffset.py",
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from 'abstract'",
+      "severity": "high",
+      "suggested_fix": "Avoid wildcard imports; import specific names"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\karateclub\\karateclub\\community_detection\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from '.overlapping'",
+      "severity": "high",
+      "suggested_fix": "Avoid wildcard imports; import specific names"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\karateclub\\karateclub\\node_embedding\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from '.neighbourhood'",
+      "severity": "high",
+      "suggested_fix": "Avoid wildcard imports; import specific names"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\pygraphistry\\demos\\demos_databases_apis\\databricks_pyspark\\graphistry-notebook-dashboard.py",
+      "error_type": "syntax_error",
+      "line_number": 25,
+      "message": "SyntaxError: invalid syntax",
+      "severity": "critical",
+      "suggested_fix": "Check syntax at line 25"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\pygraphistry\\graphistry\\layout\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from '.utils'",
+      "severity": "high",
+      "suggested_fix": "Avoid wildcard imports; import specific names"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\prompt_engineering.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Module 'openevolve.api' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\prompt_engineering.py",
+      "error_type": "import_error",
+      "line_number": 24,
+      "message": "Module 'openevolve.config' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\providercatalogue.py",
+      "error_type": "import_error",
+      "line_number": 43,
+      "message": "Module 'aleph_alpha_client' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\providercatalogue.py",
+      "error_type": "import_error",
+      "line_number": 50,
+      "message": "Module 'runpod' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\providercatalogue.py",
+      "error_type": "import_error",
+      "line_number": 412,
+      "message": "Module 'aleph_alpha_client' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\providercatalogue.py",
+      "error_type": "import_error",
+      "line_number": 419,
+      "message": "Module 'runpod' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_assessment.py",
+      "error_type": "import_error",
+      "line_number": 48,
+      "message": "Module 'openevolve.api' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_assessment.py",
+      "error_type": "import_error",
+      "line_number": 49,
+      "message": "Module 'openevolve.config' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_assessment.py",
+      "error_type": "import_error",
+      "line_number": 67,
+      "message": "Module 'dspy' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_assessment.py",
+      "error_type": "import_error",
+      "line_number": 68,
+      "message": "Module 'dspy.teleprompt' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_assessment.py",
+      "error_type": "import_error",
+      "line_number": 74,
+      "message": "Module 'dspy' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_assessment.py",
+      "error_type": "import_error",
+      "line_number": 75,
+      "message": "Module 'dspy.teleprompt' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_control.py",
+      "error_type": "import_error",
+      "line_number": 7,
+      "message": "Module 'astor' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ragbits_server.py",
+      "error_type": "import_error",
+      "line_number": 25,
+      "message": "Module 'uvicorn' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rbac_enhanced.py",
+      "error_type": "import_error",
+      "line_number": 39,
+      "message": "Module 'jwt' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team.py",
+      "error_type": "import_error",
+      "line_number": 37,
+      "message": "Module 'openevolve.api' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team.py",
+      "error_type": "import_error",
+      "line_number": 38,
+      "message": "Module 'openevolve.config' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team.py",
+      "error_type": "import_error",
+      "line_number": 56,
+      "message": "Module 'dspy' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team.py",
+      "error_type": "import_error",
+      "line_number": 57,
+      "message": "Module 'dspy.teleprompt' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team.py",
+      "error_type": "import_error",
+      "line_number": 63,
+      "message": "Module 'dspy' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team.py",
+      "error_type": "import_error",
+      "line_number": 64,
+      "message": "Module 'dspy.teleprompt' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team_coordinator.py",
+      "error_type": "import_error",
+      "line_number": 78,
+      "message": "Module 'openevolve.llm.ensemble' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team_coordinator.py",
+      "error_type": "import_error",
+      "line_number": 79,
+      "message": "Module 'openevolve.config' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\report_generator.py",
+      "error_type": "import_error",
+      "line_number": 88,
+      "message": "Module 'openpyxl' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\report_generator.py",
+      "error_type": "import_error",
+      "line_number": 89,
+      "message": "Module 'openpyxl' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\report_generator.py",
+      "error_type": "import_error",
+      "line_number": 90,
+      "message": "Module 'openpyxl.styles' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\report_generator.py",
+      "error_type": "import_error",
+      "line_number": 91,
+      "message": "Module 'openpyxl.chart' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\resource_manager.py",
+      "error_type": "import_error",
+      "line_number": 518,
+      "message": "Module 'plotly.graph_objects' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rlm_core_integration.py",
+      "error_type": "import_error",
+      "line_number": 27,
+      "message": "Module 'rlm' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rlm_core_integration.py",
+      "error_type": "import_error",
+      "line_number": 29,
+      "message": "Module 'rlm.environments' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rlm_core_integration.py",
+      "error_type": "import_error",
+      "line_number": 30,
+      "message": "Module 'rlm.clients' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rlm_core_integration.py",
+      "error_type": "import_error",
+      "line_number": 412,
+      "message": "Module 'rlm' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rlm_core_integration.py",
+      "error_type": "import_error",
+      "line_number": 433,
+      "message": "Module 'rlm.environments' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rlm_core_integration.py",
+      "error_type": "import_error",
+      "line_number": 439,
+      "message": "Module 'rlm.environments' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\robust_z3_leanaide_integration.py",
+      "error_type": "import_error",
+      "line_number": 75,
+      "message": "Module 'dspy' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\robust_z3_leanaide_integration.py",
+      "error_type": "import_error",
+      "line_number": 76,
+      "message": "Module 'dspy.teleprompt' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\robust_z3_leanaide_integration.py",
+      "error_type": "import_error",
+      "line_number": 82,
+      "message": "Module 'dspy' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\robust_z3_leanaide_integration.py",
+      "error_type": "import_error",
+      "line_number": 83,
+      "message": "Module 'dspy.teleprompt' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_decomposition_hybrid.py",
+      "error_type": "import_error",
+      "line_number": 50,
+      "message": "Module 'roma_dspy.config.schemas.root' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_mcp_tools.py",
+      "error_type": "import_error",
+      "line_number": 43,
+      "message": "Module 'roma_dspy.config.schemas.root' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_mcp_tools.py",
+      "error_type": "import_error",
+      "line_number": 538,
+      "message": "Module 'roma_dspy' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_mcp_tools.py",
+      "error_type": "import_error",
+      "line_number": 545,
+      "message": "Module 'dspy' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_mdap_maker_engine.py",
+      "error_type": "import_error",
+      "line_number": 76,
+      "message": "Module 'roma_dspy.config.schemas.root' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\run_integration_tests.py",
+      "error_type": "import_error",
+      "line_number": 25,
+      "message": "Module 'rich.console' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\run_integration_tests.py",
+      "error_type": "import_error",
+      "line_number": 26,
+      "message": "Module 'rich.table' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\run_integration_tests.py",
+      "error_type": "import_error",
+      "line_number": 27,
+      "message": "Module 'rich.panel' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\run_integration_tests.py",
+      "error_type": "import_error",
+      "line_number": 30,
+      "message": "Module 'rich.syntax' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\run_mcts_mdap_tests.py",
+      "error_type": "import_error",
+      "line_number": 224,
+      "message": "Module 'coverage' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\run_mdap_tests.py",
+      "error_type": "import_error",
+      "line_number": 196,
+      "message": "Module 'coverage' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\scalability_improvements.py",
+      "error_type": "import_error",
+      "line_number": 21,
+      "message": "Module 'psutil' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\scheduled_reports.py",
+      "error_type": "import_error",
+      "line_number": 41,
+      "message": "Module 'croniter' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\scheduled_reports.py",
+      "error_type": "import_error",
+      "line_number": 48,
+      "message": "Module 'schedule' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\scheduled_reports.py",
+      "error_type": "import_error",
+      "line_number": 56,
+      "message": "Module 'smtplib' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\secure_api.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\secure_api.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Module 'cryptography.hazmat.primitives' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\secure_api.py",
+      "error_type": "import_error",
+      "line_number": 15,
+      "message": "Module 'cryptography.hazmat.primitives.kdf.pbkdf2' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\secure_api.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Module 'cryptography.hazmat.primitives.asymmetric' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\secure_api.py",
+      "error_type": "import_error",
+      "line_number": 297,
+      "message": "Module 'cryptography' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\secure_api.py",
+      "error_type": "import_error",
+      "line_number": 298,
+      "message": "Module 'cryptography.x509.oid' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\secure_api.py",
+      "error_type": "import_error",
+      "line_number": 370,
+      "message": "Module 'cryptography.x509.oid' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_framework.py",
+      "error_type": "import_error",
+      "line_number": 31,
+      "message": "Module 'jwt' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_framework.py",
+      "error_type": "import_error",
+      "line_number": 1533,
+      "message": "Module 'cryptography' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_framework.py",
+      "error_type": "import_error",
+      "line_number": 1534,
+      "message": "Module 'cryptography.x509.oid' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_framework.py",
+      "error_type": "import_error",
+      "line_number": 1535,
+      "message": "Module 'cryptography.hazmat.primitives' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_framework.py",
+      "error_type": "import_error",
+      "line_number": 1536,
+      "message": "Module 'cryptography.hazmat.primitives.asymmetric' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_helpers.py",
+      "error_type": "import_error",
+      "line_number": 15,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_helpers.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Module 'cryptography.hazmat.primitives' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_helpers.py",
+      "error_type": "import_error",
+      "line_number": 17,
+      "message": "Module 'cryptography.hazmat.primitives.kdf.pbkdf2' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 181,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 218,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 294,
+      "message": "Module 'cryptography.hazmat.primitives' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 295,
+      "message": "Module 'cryptography.hazmat.primitives.asymmetric' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 335,
+      "message": "Module 'cryptography.hazmat.primitives' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 336,
+      "message": "Module 'cryptography.hazmat.primitives.asymmetric' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 421,
+      "message": "Module 'bcrypt' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 461,
+      "message": "Module 'jwt' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 492,
+      "message": "Module 'jwt' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 894,
+      "message": "Module 'cryptography.hazmat.primitives' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 895,
+      "message": "Module 'cryptography.hazmat.primitives.asymmetric' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 896,
+      "message": "Module 'cryptography' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 897,
+      "message": "Module 'cryptography.x509.oid' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 944,
+      "message": "Module 'cryptography.hazmat.primitives' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 945,
+      "message": "Module 'cryptography.hazmat.primitives.asymmetric' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 946,
+      "message": "Module 'cryptography' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 947,
+      "message": "Module 'cryptography.x509.oid' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 1010,
+      "message": "Module 'cryptography.hazmat.primitives.asymmetric' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 1044,
+      "message": "Module 'cryptography.hazmat.primitives.asymmetric' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\service_orchestrator.py",
+      "error_type": "import_error",
+      "line_number": 39,
+      "message": "Module 'uvicorn' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_deepke.py",
+      "error_type": "import_error",
+      "line_number": 218,
+      "message": "Module 'deepke' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_deepke.py",
+      "error_type": "import_error",
+      "line_number": 219,
+      "message": "Module 'deepke' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_deepke.py",
+      "error_type": "import_error",
+      "line_number": 236,
+      "message": "Module 'deepke' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_deepke.py",
+      "error_type": "import_error",
+      "line_number": 244,
+      "message": "Module 'deepke' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_deepke.py",
+      "error_type": "import_error",
+      "line_number": 252,
+      "message": "Module 'deepke' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_deepke.py",
+      "error_type": "import_error",
+      "line_number": 269,
+      "message": "Module 'transformers' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_deepke_fixed.py",
+      "error_type": "import_error",
+      "line_number": 20,
+      "message": "Module 'venv' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_deepke_fixed.py",
+      "error_type": "import_error",
+      "line_number": 144,
+      "message": "Module 'deepke' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_integration.py",
+      "error_type": "import_error",
+      "line_number": 25,
+      "message": "Module 'rich.console' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_integration.py",
+      "error_type": "import_error",
+      "line_number": 26,
+      "message": "Module 'rich.panel' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_integration.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Module 'rich.table' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_integration.py",
+      "error_type": "import_error",
+      "line_number": 29,
+      "message": "Module 'rich.prompt' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_oneke.py",
+      "error_type": "import_error",
+      "line_number": 220,
+      "message": "Module 'src.oneke' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_oneke.py",
+      "error_type": "import_error",
+      "line_number": 228,
+      "message": "Module 'oneke' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\simple_dspy_check.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module 'dspy' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\simple_dspy_check.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Module 'dspy.teleprompt' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\simple_dspy_test.py",
+      "error_type": "import_error",
+      "line_number": 18,
+      "message": "Module 'dspy' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\simple_test_clean.py",
+      "error_type": "import_error",
+      "line_number": 15,
+      "message": "Module 'chromadb' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\simple_test_clean.py",
+      "error_type": "import_error",
+      "line_number": 22,
+      "message": "Module 'sentence_transformers' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\solution_pattern_miner.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module 'dspy' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\solution_pattern_miner.py",
+      "error_type": "import_error",
+      "line_number": 20,
+      "message": "Module 'dspy.teleprompt' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\solution_pattern_miner.py",
+      "error_type": "import_error",
+      "line_number": 26,
+      "message": "Module 'dspy' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\solution_pattern_miner.py",
+      "error_type": "import_error",
+      "line_number": 27,
+      "message": "Module 'dspy.teleprompt' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\solution_pattern_miner.py",
+      "error_type": "import_error",
+      "line_number": 334,
+      "message": "Module 'umap' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\solution_pattern_miner.py",
+      "error_type": "import_error",
+      "line_number": 885,
+      "message": "Module 'networkx' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\solution_pattern_miner.py",
+      "error_type": "import_error",
+      "line_number": 886,
+      "message": "Module 'plotly.graph_objects' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\solution_pattern_miner.py",
+      "error_type": "import_error",
+      "line_number": 201,
+      "message": "Module 'umap' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sop_generator_real.py",
+      "error_type": "import_error",
+      "line_number": 35,
+      "message": "Module 'llm4ias' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_integration.py",
+      "error_type": "import_error",
+      "line_number": 90,
+      "message": "Module 'adaptive_mdap.config.profiles' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_ui.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Module 'flask_cors' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_ui_components.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Module 'plotly.graph_objects' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_ui_components.py",
+      "error_type": "import_error",
+      "line_number": 10,
+      "message": "Module 'plotly.subplots' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\stage6_knowledge_extraction.py",
+      "error_type": "import_error",
+      "line_number": 39,
+      "message": "Module 'networkx' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\stage6_knowledge_extraction.py",
+      "error_type": "import_error",
+      "line_number": 72,
+      "message": "Module 'sentence_transformers' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\steer_context_engine.py",
+      "error_type": "import_error",
+      "line_number": 36,
+      "message": "Module 'steer.judges' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\steer_context_engine.py",
+      "error_type": "import_error",
+      "line_number": 47,
+      "message": "Module 'steer.schemas' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\steer_context_engine.py",
+      "error_type": "import_error",
+      "line_number": 48,
+      "message": "Module 'steer.utils' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\steer_context_engine.py",
+      "error_type": "import_error",
+      "line_number": 49,
+      "message": "Module 'steer.storage' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\steer_context_engine.py",
+      "error_type": "import_error",
+      "line_number": 104,
+      "message": "Module 'ace_steer_config' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\steer_mcp_tools.py",
+      "error_type": "import_error",
+      "line_number": 35,
+      "message": "Module 'steer.judges' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\steer_mcp_tools.py",
+      "error_type": "import_error",
+      "line_number": 46,
+      "message": "Module 'steer.schemas' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\symbolic_constraint_engine.py",
+      "error_type": "syntax_error",
+      "line_number": 5,
+      "message": "Possible import typo: Invalid import syntax",
+      "severity": "critical",
+      "suggested_fix": "Check import statement syntax"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\system1_router.py",
+      "error_type": "import_error",
+      "line_number": 153,
+      "message": "Module 'sentence_transformers' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\system_health.py",
+      "error_type": "import_error",
+      "line_number": 22,
+      "message": "Module 'rich.console' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\system_health.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Module 'rich.table' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\system_health.py",
+      "error_type": "import_error",
+      "line_number": 24,
+      "message": "Module 'rich.panel' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\telemetry.py",
+      "error_type": "import_error",
+      "line_number": 27,
+      "message": "Module 'opentelemetry' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\telemetry.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Module 'opentelemetry.trace' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\telemetry.py",
+      "error_type": "import_error",
+      "line_number": 29,
+      "message": "Module 'opentelemetry.metrics' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\telemetry.py",
+      "error_type": "import_error",
+      "line_number": 30,
+      "message": "Module 'opentelemetry.sdk.trace' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\telemetry.py",
+      "error_type": "import_error",
+      "line_number": 31,
+      "message": "Module 'opentelemetry.sdk.trace.export' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\telemetry.py",
+      "error_type": "import_error",
+      "line_number": 32,
+      "message": "Module 'opentelemetry.sdk.metrics' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\telemetry.py",
+      "error_type": "import_error",
+      "line_number": 33,
+      "message": "Module 'opentelemetry.sdk.metrics.export' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\telemetry.py",
+      "error_type": "import_error",
+      "line_number": 35,
+      "message": "Module 'opentelemetry.exporter.otlp.proto.grpc.trace_exporter' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\telemetry.py",
+      "error_type": "import_error",
+      "line_number": 36,
+      "message": "Module 'opentelemetry.exporter.otlp.proto.grpc.metric_exporter' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_ace_integration.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module 'ace_context_engine' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_ace_steer_unified.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module 'ace_steer_unified' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_authentication_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module 'jwt' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_authentication_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 451,
+      "message": "Module 'pyotp' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_authentication_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 464,
+      "message": "Module 'pyotp' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_compliance.py",
+      "error_type": "import_error",
+      "line_number": 44,
+      "message": "Module 'bcrypt' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_crewai_research_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 588,
+      "message": "Module 'PIL' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_deployment_readiness.py",
+      "error_type": "import_error",
+      "line_number": 321,
+      "message": "Module 'psutil' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_dspy_integration.py",
+      "error_type": "import_error",
+      "line_number": 22,
+      "message": "Module 'dspy' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption.py",
+      "error_type": "import_error",
+      "line_number": 41,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption.py",
+      "error_type": "import_error",
+      "line_number": 51,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption.py",
+      "error_type": "import_error",
+      "line_number": 113,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption.py",
+      "error_type": "import_error",
+      "line_number": 128,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption.py",
+      "error_type": "import_error",
+      "line_number": 150,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption.py",
+      "error_type": "import_error",
+      "line_number": 516,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption.py",
+      "error_type": "import_error",
+      "line_number": 535,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Module 'cryptography.hazmat.primitives' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 15,
+      "message": "Module 'cryptography.hazmat.primitives.asymmetric' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Module 'cryptography.hazmat.primitives.ciphers' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 17,
+      "message": "Module 'cryptography.hazmat.primitives.kdf.pbkdf2' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 18,
+      "message": "Module 'cryptography.hazmat.primitives.kdf.scrypt' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module 'cryptography.hazmat.backends' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 87,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_fuzzing.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Module 'hypothesis' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_input_validation_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 598,
+      "message": "Module 'defusedxml' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_insurance_fixes.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Module 'openevolve.finance.verticals.insurance' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_integration_openevolve.py",
+      "error_type": "import_error",
+      "line_number": 496,
+      "message": "Module 'psutil' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_integration_security.py",
+      "error_type": "import_error",
+      "line_number": 163,
+      "message": "Module 'jwt' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_integrations_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Module 'strawberry' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_knowledge_engine_simple.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Module 'knowledge_extractor' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_knowledge_engine_simple.py",
+      "error_type": "import_error",
+      "line_number": 17,
+      "message": "Module 'knowledge_storage' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_knowledge_engine_simple.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module 'integrated_engine' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_knowledge_extraction_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 49,
+      "message": "Module 'sentence_transformers' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_knowledge_unified_system_complete.py",
+      "error_type": "import_error",
+      "line_number": 1259,
+      "message": "Module 'psutil' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_mcp_server.py",
+      "error_type": "import_error",
+      "line_number": 18,
+      "message": "Module 'py_compile' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_mcp_server.py",
+      "error_type": "import_error",
+      "line_number": 35,
+      "message": "Module 'py_compile' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_mcp_server.py",
+      "error_type": "import_error",
+      "line_number": 52,
+      "message": "Module 'py_compile' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_memory_leaks.py",
+      "error_type": "import_error",
+      "line_number": 31,
+      "message": "Module 'psutil' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_openevolve_integration_verification.py",
+      "error_type": "import_error",
+      "line_number": 47,
+      "message": "Module 'openevolve.api' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_openevolve_integration_verification.py",
+      "error_type": "import_error",
+      "line_number": 48,
+      "message": "Module 'openevolve.config' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_openevolve_integration_verification.py",
+      "error_type": "import_error",
+      "line_number": 190,
+      "message": "Module 'openevolve.api' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_openevolve_truly_thorough.py",
+      "error_type": "import_error",
+      "line_number": 62,
+      "message": "Module 'codecs' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_openevolve_truly_thorough.py",
+      "error_type": "import_error",
+      "line_number": 282,
+      "message": "Module 'openevolve.api' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_openevolve_truly_thorough.py",
+      "error_type": "import_error",
+      "line_number": 283,
+      "message": "Module 'openevolve.config' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_openevolve_truly_thorough.py",
+      "error_type": "import_error",
+      "line_number": 289,
+      "message": "Module 'openevolve.api' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_openevolve_truly_thorough.py",
+      "error_type": "import_error",
+      "line_number": 290,
+      "message": "Module 'openevolve.config' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_performance_integration.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module 'psutil' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_phase4_simple.py",
+      "error_type": "import_error",
+      "line_number": 65,
+      "message": "Module 'phase4_executor' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_phase4_simple.py",
+      "error_type": "import_error",
+      "line_number": 100,
+      "message": "Module 'adapter' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_proofgpt_issue.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Module 'transformers' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_proofgpt_issue.py",
+      "error_type": "import_error",
+      "line_number": 32,
+      "message": "Module 'transformers' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_proofgpt_issue.py",
+      "error_type": "import_error",
+      "line_number": 56,
+      "message": "Module 'transformers' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_reproduction.py",
+      "error_type": "import_error",
+      "line_number": 17,
+      "message": "Module 'transformers' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_reproduction.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Module 'transformers' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_reproduction.py",
+      "error_type": "import_error",
+      "line_number": 52,
+      "message": "Module 'transformers' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\testing_framework.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Module 'psutil' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\testing_framework.py",
+      "error_type": "import_error",
+      "line_number": 546,
+      "message": "Module 'psutil' not found in project",
+      "severity": "high",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\unified_mcp_server.py",
+      "error_type": "import_error",
+      "line_number": 79,
+      "message": "Module not found: mcp.server",
+      "severity": "high",
+      "suggested_fix": "Check if module 'mcp.server' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\unified_mcp_server.py",
+      "error_type": "import_error",
+      "line_number": 80,
+      "message": "Module not found: mcp.server.models",
+      "severity": "high",
+      "suggested_fix": "Check if module 'mcp.server.models' exists"
+    }
+  ],
+  "files_by_fix_type": {
+    "syntax_errors": [
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\automated_proof_engine.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\benchmark_ultra_comprehensive_artifacts.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\comprehensive_security_test_coverage.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\evaluation\\eval.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\evaluation\\judge.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\evaluation\\main_eval.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\evaluation\\parallel_eval.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\benchmark\\exp_bench\\evaluation\\utils.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Curie\\evaluation\\error_stats.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Generic-Knowledge-Extraction-Tool\\ai\\clients\\claude_client.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Generic-Knowledge-Extraction-Tool\\parsers\\docling_parser.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Generic-Knowledge-Extraction-Tool\\templates\\PoDataExtraction\\PoDataExtraction_strategy.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\Lean4-LLM-Ai-Agent-Mooc\\src\\main.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\LeanAide\\server\\tabs\\server_response.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\cognitive-hydraulics\\example\\sort.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\crew\\crew.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\crew\\main.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\flow\\main.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\tool\\src\\{{folder_name}}\\__init__.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\tool\\src\\{{folder_name}}\\tool.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\adapters\\json_adapter.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\adapters\\types\\audio.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\adapters\\types\\image.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\adapters\\utils.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\adapters\\xml_adapter.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\clients\\lm_local.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\evaluate\\evaluate.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\evaluate\\metrics.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\predict\\aggregation.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\predict\\best_of_n.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\predict\\chain_of_thought.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\predict\\knn.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\predict\\react.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\primitives\\base_module.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\propose\\dataset_summary_generator.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\propose\\grounded_proposer.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\retrievers\\embeddings.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\signatures\\field.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\streaming\\streamify.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\teleprompt\\bootstrap.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\teleprompt\\bootstrap_finetune.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\teleprompt\\gepa\\gepa.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\teleprompt\\knn_fewshot.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\teleprompt\\teleprompt.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\lmql\\src\\lmql\\ui\\playground\\ref.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\demo_hierarchical_indexing.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\demo_mdap_maker_mcts_unified.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\examples\\enhanced_gauntlet_example.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\examples\\finance\\insurance_example.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\glue\\adapters\\leanaide-adapter\\src\\autoformalization_pipeline.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\glue\\adapters\\rese-benchmarks\\benchmark_phase2.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\glue\\adapters\\rese-benchmarks\\run_all_benchmarks.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\glue\\adapters\\rese-leanaide-workflow\\tests\\test_leanaide_rese_workflow.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\glue\\adapters\\rese-sce\\__init__.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\glue\\adapters\\rese-z3-bridge\\tests\\test_rese_z3_bridge.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ground_truth_store.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\leanaide-bubblelab-plugin\\test_final_verification.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\llm_utils.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ml_pattern_clustering.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\pygraphistry\\demos\\demos_databases_apis\\databricks_pyspark\\graphistry-notebook-dashboard.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\symbolic_constraint_engine.py"
+    ],
+    "missing_imports": [
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\__init__.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\allocators\\resource_allocator.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\classifiers\\__init__.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\classifiers\\task_complexity_classifier.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\config\\__init__.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\controllers\\execution_controller.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\cloud_api_client.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\crewai_integration.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\subproblem_solver_integration.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\workflow_engine_integration.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\monitoring\\__init__.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\monitoring\\alerts.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\monitoring\\dashboard.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\monitoring\\health.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\test\\test_classifiers.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\test\\test_monitoring.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\tools\\cost_calculator.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\utils\\__init__.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\tests\\test_async_learning.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\tests\\test_roles.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\migrate_adversarial.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\monitoring.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\monitoring_dashboard.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\monitoring_system.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ode_pde_translator.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_api.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_cli.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_client.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_integration.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_mcp_tools.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_visualization.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\parallel_processing.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\performance_profiler.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_enhanced.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_real.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\problem_classifier.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\problem_recomposition.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\progress_visualizer.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\PAMI\\extras\\convert\\_DF2DB\\DF2DBPlus.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\PAMI\\extras\\convert\\_DF2DB\\_DF2DB.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\PAMI\\frequentPattern\\basic\\_ECLATDiffset.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\PAMI\\highUtilitySpatialPattern\\topk\\TKSHUIM.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\tests\\frequentPattern\\basic\\test_eclatdiffset.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\karateclub\\karateclub\\community_detection\\__init__.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\karateclub\\karateclub\\node_embedding\\__init__.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\pygraphistry\\graphistry\\layout\\__init__.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\prompt_engineering.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\providercatalogue.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_assessment.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_control.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ragbits_server.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rbac_enhanced.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team_coordinator.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\report_generator.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\resource_manager.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rlm_core_integration.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\robust_z3_leanaide_integration.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_decomposition_hybrid.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_mcp_tools.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_mdap_maker_engine.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\run_integration_tests.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\run_mcts_mdap_tests.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\run_mdap_tests.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\scalability_improvements.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\scheduled_reports.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\secure_api.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_framework.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_helpers.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\service_orchestrator.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_deepke.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_deepke_fixed.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_integration.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_oneke.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\simple_dspy_check.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\simple_dspy_test.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\simple_test_clean.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\solution_pattern_miner.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sop_generator_real.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_integration.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_ui.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_ui_components.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\stage6_knowledge_extraction.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\steer_context_engine.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\steer_mcp_tools.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\system1_router.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\system_health.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\telemetry.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_ace_integration.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_ace_steer_unified.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_authentication_comprehensive.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_compliance.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_crewai_research_comprehensive.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_deployment_readiness.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_dspy_integration.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption_comprehensive.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_fuzzing.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_input_validation_comprehensive.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_insurance_fixes.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_integration_openevolve.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_integration_security.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_integrations_comprehensive.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_knowledge_engine_simple.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_knowledge_extraction_comprehensive.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_knowledge_unified_system_complete.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_mcp_server.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_memory_leaks.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_openevolve_integration_verification.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_openevolve_truly_thorough.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_performance_integration.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_phase4_simple.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_proofgpt_issue.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_reproduction.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\testing_framework.py",
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\unified_mcp_server.py"
+    ],
+    "circular_imports": []
+  }
+}

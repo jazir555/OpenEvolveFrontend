@@ -235,6 +235,7 @@ def test_mcp_inventory_exposes_web3_formal_tools(monkeypatch):
     }.issubset(
         set(inventory.get("web3_tools", []))
     )
+    assert inventory.get("web3_ingestion_available") is True
     assert inventory.get("formal_capabilities", {}).get("composite_exploit_verification") is True
     assert inventory.get("web3_formal_available") is True
     assert inventory.get("audit_exploit_verification_available") is True

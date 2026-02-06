@@ -218,7 +218,66 @@ class Z3BaseAgent:
     
     async def execute(self, task: AgentTask) -> AgentResult:
         """Execute a task."""
-        raise NotImplementedError
+        try:
+            # Log the task execution
+            self.logger.info(f"Executing task: {task.description[:100]}...")
+            
+            # Create a crew based on the task requirements
+            from crewai import Agent, Task, Crew
+            import asyncio
+            
+            # Create agent with the role and tools
+            agent = Agent(
+                role=self.role.value,
+                goal=f"Complete the assigned task: {task.description}",
+                backstory=f"As an expert {self.role.value}, you have extensive experience in this domain.",
+                verbose=True,
+                allow_delegation=False,
+            )
+            
+            # Create the task for the agent
+            crew_task = Task(
+                description=task.description,
+                expected_output="A detailed response to the task with supporting evidence and reasoning.",
+                agent=agent
+            )
+            
+            # Create and run the crew
+            crew = Crew(
+                agents=[agent],
+                tasks=[crew_task],
+                verbose=2
+            )
+            
+            # Execute the crew
+            result = crew.kickoff()
+            
+            # Create and return the result
+            agent_result = AgentResult(
+                task_id=task.id,
+                agent_id=self.agent_id,
+                result=result,
+                success=True,
+                execution_time=0.0,  # Placeholder - would need timing mechanism
+                timestamp=datetime.now()
+            )
+            
+            # Add to history
+            self.task_history.append(task)
+            self.result_history.append(agent_result)
+            
+            return agent_result
+            
+        except Exception as e:
+            self.logger.error(f"Task execution failed: {e}")
+            return AgentResult(
+                task_id=task.id,
+                agent_id=self.agent_id,
+                result=f"Execution failed: {str(e)}",
+                success=False,
+                execution_time=0.0,
+                timestamp=datetime.now()
+            )
     
     def get_capabilities(self) -> List[str]:
         """Get agent capabilities."""

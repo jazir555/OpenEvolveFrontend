@@ -1804,6 +1804,7 @@ def get_mcp_tool_inventory() -> Dict[str, Any]:
             "foundry": FOUNDRY_AVAILABLE,
             "web3_formal": bool(formal_inventory.get("available")),
         },
+        "web3_ingestion_available": bool(web3_ingestion_tools),
         "web3_formal_available": bool(formal_inventory.get("available")),
         "audit_exploit_verification_available": bool(
             formal_inventory.get("formal_capabilities", {}).get("composite_exploit_verification")

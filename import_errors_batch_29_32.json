@@ -1,0 +1,153 @@
+{
+  "total_files": 1348,
+  "errors_found": 21,
+  "errors": [
+    {
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from 'karateclub.community_detection'",
+      "suggested_fix": "Avoid wildcard imports; import specific names",
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\karateclub\\karateclub\\__init__.py"
+    },
+    {
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from '.overlapping'",
+      "suggested_fix": "Avoid wildcard imports; import specific names",
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\karateclub\\karateclub\\community_detection\\__init__.py"
+    },
+    {
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from '.neighbourhood'",
+      "suggested_fix": "Avoid wildcard imports; import specific names",
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\karateclub\\karateclub\\node_embedding\\__init__.py"
+    },
+    {
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from 'array'",
+      "suggested_fix": "Avoid wildcard imports; import specific names",
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\PAMI\\contiguousFrequentPattern\\basic\\abstract.py"
+    },
+    {
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from 'PAMI.extras.DF2DB.DenseFormatDFPlus'",
+      "suggested_fix": "Avoid wildcard imports; import specific names",
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\PAMI\\extras\\convert\\_DF2DB\\DF2DBPlus.py"
+    },
+    {
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from 'PAMI.extras.DF2DB.denseDF2DB'",
+      "suggested_fix": "Avoid wildcard imports; import specific names",
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\PAMI\\extras\\convert\\_DF2DB\\_DF2DB.py"
+    },
+    {
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from 'abstract'",
+      "suggested_fix": "Avoid wildcard imports; import specific names",
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\PAMI\\frequentPattern\\basic\\_ECLATDiffset.py"
+    },
+    {
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from 'array'",
+      "suggested_fix": "Avoid wildcard imports; import specific names",
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\PAMI\\graphTransactionalCoveragePattern\\basic\\abstract.py"
+    },
+    {
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from 'array'",
+      "suggested_fix": "Avoid wildcard imports; import specific names",
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\PAMI\\highUtilityPattern\\basic\\abstract.py"
+    },
+    {
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from 'array'",
+      "suggested_fix": "Avoid wildcard imports; import specific names",
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\PAMI\\highUtilityPattern\\parallel\\abstract.py"
+    },
+    {
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from 'array'",
+      "suggested_fix": "Avoid wildcard imports; import specific names",
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\PAMI\\highUtilityPatternsInStreams\\abstract.py"
+    },
+    {
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from 'PAMI.highUtilitySpatialPattern.topk.abstract'",
+      "suggested_fix": "Avoid wildcard imports; import specific names",
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\PAMI\\highUtilitySpatialPattern\\topk\\TKSHUIM.py"
+    },
+    {
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from 'PAMI.partialPeriodicFrequentPattern.basic.abstract'",
+      "suggested_fix": "Avoid wildcard imports; import specific names",
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\PAMI\\partialPeriodicFrequentPattern\\basic\\GPFgrowth.py"
+    },
+    {
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from 'PAMI.partialPeriodicFrequentPattern.basic.abstract'",
+      "suggested_fix": "Avoid wildcard imports; import specific names",
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\PAMI\\partialPeriodicFrequentPattern\\basic\\PPF_DFS.py"
+    },
+    {
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from 'PAMI.partialPeriodicFrequentPattern.basic.abstract'",
+      "suggested_fix": "Avoid wildcard imports; import specific names",
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\PAMI\\partialPeriodicFrequentPattern\\basic\\_GPFgrowth.py"
+    },
+    {
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from 'PAMI.partialPeriodicFrequentPattern.basic.abstract'",
+      "suggested_fix": "Avoid wildcard imports; import specific names",
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\PAMI\\partialPeriodicFrequentPattern\\basic\\_PPF_DFS.py"
+    },
+    {
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from 'PAMI.partialPeriodicFrequentPattern.basic.abstract'",
+      "suggested_fix": "Avoid wildcard imports; import specific names",
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\PAMI\\partialPeriodicFrequentPattern\\cuda\\cuGPPMiner.py"
+    },
+    {
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from 'array'",
+      "suggested_fix": "Avoid wildcard imports; import specific names",
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\PAMI\\relativeHighUtilityPattern\\basic\\abstract.py"
+    },
+    {
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from 'abstract'",
+      "suggested_fix": "Avoid wildcard imports; import specific names",
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\PAMI\\tests\\frequentPattern\\basic\\test_eclatdiffset.py"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\pygraphistry\\demos\\demos_databases_apis\\databricks_pyspark\\graphistry-notebook-dashboard.py",
+      "error_type": "syntax_error",
+      "line_number": 25,
+      "message": "SyntaxError: invalid syntax",
+      "suggested_fix": "Check syntax at line 25"
+    },
+    {
+      "error_type": "import_error",
+      "line_number": 0,
+      "message": "Wildcard import from '.utils'",
+      "suggested_fix": "Avoid wildcard imports; import specific names",
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\projects to analyze\\pygraphistry\\graphistry\\layout\\__init__.py"
+    }
+  ]
+}
