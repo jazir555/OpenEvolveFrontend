@@ -1068,9 +1068,10 @@ class LoongFlowKnowledgeExtractor:
         problem_type_lower = problem_type.lower()
 
         # Domain-specific keywords
+        # Note: Order matters! More specific domains should be checked first.
         domain_keywords = {
-            ProblemDomain.FINANCE.value: ["portfolio", "trading", "investment", "financial", "stock", "market"],
-            ProblemDomain.TRADING.value: ["trading", "algorithm", "strategy", "buy", "sell"],
+            ProblemDomain.TRADING.value: ["trading strategy", "algorithmic trading", "buy", "sell", "arbitrage"],
+            ProblemDomain.FINANCE.value: ["portfolio", "investment", "financial", "stock", "market", "trading"],
             ProblemDomain.SCIENCE.value: ["experiment", "scientific", "research", "hypothesis", "lab"],
             ProblemDomain.MATHEMATICS.value: ["equation", "prove", "theorem", "mathematical", "optimization"],
             ProblemDomain.MACHINE_LEARNING.value: ["model", "training", "neural", "ml", "deep learning", "classifier"],

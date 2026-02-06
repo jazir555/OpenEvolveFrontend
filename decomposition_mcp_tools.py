@@ -21,6 +21,7 @@ import json
 import subprocess
 import shutil
 import os
+import re
 from typing import Dict, Any, List, Optional
 from dataclasses import asdict
 
@@ -87,6 +88,19 @@ if CLAUDIOMIRO_AVAILABLE:
     logger.info("Claudiomiro CLI detected")
 else:
     logger.info("Claudiomiro CLI not found - will use graceful fallback")
+
+# Web3 toolchain detection
+SLITHER_AVAILABLE = shutil.which("slither") is not None
+FORGE_AVAILABLE = shutil.which("forge") is not None
+FOUNDRY_AVAILABLE = FORGE_AVAILABLE
+if SLITHER_AVAILABLE:
+    logger.info("Slither CLI detected")
+else:
+    logger.info("Slither CLI not found - static smart contract ingestion will be unavailable")
+if FORGE_AVAILABLE:
+    logger.info("Foundry Forge CLI detected")
+else:
+    logger.info("Foundry Forge CLI not found - fuzz ingestion will be unavailable")
 
 # Try to import DataPizza
 try:
@@ -191,6 +205,243 @@ def get_mcp_tool(name: str) -> Optional[callable]:
 def list_mcp_tools() -> List[str]:
     """List all registered MCP tools"""
     return list(_MCP_TOOLS.keys())
+
+
+# =============================================================================
+# WEB3 INGESTION HELPERS
+# =============================================================================
+
+def _extract_json_payload(raw_output: str) -> Optional[Any]:
+    """Extract JSON payload from stdout/stderr text."""
+    if not raw_output:
+        return None
+
+    text = raw_output.strip()
+    if not text:
+        return None
+
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+
+    start = text.find("{")
+    end = text.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        candidate = text[start:end + 1]
+        try:
+            return json.loads(candidate)
+        except json.JSONDecodeError:
+            pass
+
+    events = []
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or not line.startswith("{") or not line.endswith("}"):
+            continue
+        try:
+            events.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    return events or None
+
+
+def _discover_contract_sources(project_path: str) -> Dict[str, List[str]]:
+    """Discover Solidity and Rust smart contract sources."""
+    solidity_files: List[str] = []
+    rust_files: List[str] = []
+    max_files = 2000
+
+    for root, _, files in os.walk(project_path):
+        for filename in files:
+            full_path = os.path.join(root, filename)
+            rel_path = os.path.relpath(full_path, project_path)
+            if filename.endswith(".sol"):
+                solidity_files.append(rel_path)
+            elif filename.endswith(".rs"):
+                rust_files.append(rel_path)
+            if len(solidity_files) + len(rust_files) >= max_files:
+                return {
+                    "solidity_files": sorted(solidity_files),
+                    "rust_files": sorted(rust_files),
+                    "truncated": True,
+                }
+
+    return {
+        "solidity_files": sorted(solidity_files),
+        "rust_files": sorted(rust_files),
+        "truncated": False,
+    }
+
+
+def _safe_contract_name(value: str) -> str:
+    """Normalize contract-like identifiers."""
+    return value.strip().strip(".,:;()[]{}")
+
+
+def _collect_contract_dependencies(slither_payload: Dict[str, Any]) -> Dict[str, List[str]]:
+    """
+    Build dependency map from Slither JSON payload.
+
+    Works with multiple Slither JSON layouts by using conservative extraction.
+    """
+    contract_names = set()
+    dependency_map: Dict[str, set] = {}
+
+    def add_contract(name: str):
+        clean = _safe_contract_name(name)
+        if not clean:
+            return
+        if not re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", clean):
+            return
+        contract_names.add(clean)
+        dependency_map.setdefault(clean, set())
+
+    # Pass 1: collect explicit contract names
+    compilation_units = slither_payload.get("compilation_units", [])
+    if isinstance(compilation_units, list):
+        for unit in compilation_units:
+            contracts = unit.get("contracts", []) if isinstance(unit, dict) else []
+            if isinstance(contracts, list):
+                for contract in contracts:
+                    if isinstance(contract, dict):
+                        name = contract.get("name")
+                        if isinstance(name, str):
+                            add_contract(name)
+                    elif isinstance(contract, str):
+                        add_contract(contract)
+
+    if isinstance(slither_payload.get("contracts"), list):
+        for contract in slither_payload.get("contracts", []):
+            if isinstance(contract, dict):
+                name = contract.get("name")
+                if isinstance(name, str):
+                    add_contract(name)
+            elif isinstance(contract, str):
+                add_contract(contract)
+
+    # Pass 2: infer dependencies from inheritance/calls keys
+    dep_keys = {"dependencies", "inheritance", "inherits", "calls", "interacts_with", "uses"}
+    iterable_sections = []
+    if isinstance(slither_payload.get("compilation_units"), list):
+        iterable_sections.extend(slither_payload.get("compilation_units", []))
+    if isinstance(slither_payload.get("contracts"), list):
+        iterable_sections.extend(slither_payload.get("contracts", []))
+
+    for section in iterable_sections:
+        if not isinstance(section, dict):
+            continue
+        contracts = section.get("contracts", [])
+        if isinstance(contracts, list):
+            for contract in contracts:
+                if not isinstance(contract, dict):
+                    continue
+                source = contract.get("name")
+                if not isinstance(source, str):
+                    continue
+                add_contract(source)
+                for key in dep_keys:
+                    values = contract.get(key)
+                    if isinstance(values, list):
+                        for dep in values:
+                            if isinstance(dep, str):
+                                add_contract(dep)
+                                if dep != source:
+                                    dependency_map[source].add(dep)
+                            elif isinstance(dep, dict):
+                                dep_name = dep.get("name")
+                                if isinstance(dep_name, str):
+                                    add_contract(dep_name)
+                                    if dep_name != source:
+                                        dependency_map[source].add(dep_name)
+
+    # Pass 3: detector descriptions as fallback
+    detectors = (
+        slither_payload.get("results", {}).get("detectors", [])
+        if isinstance(slither_payload.get("results"), dict)
+        else []
+    )
+    if isinstance(detectors, list):
+        for detector in detectors:
+            if not isinstance(detector, dict):
+                continue
+            description = detector.get("description") or detector.get("check") or ""
+            if not isinstance(description, str):
+                continue
+            mentioned = re.findall(r"\b[A-Z][A-Za-z0-9_]{2,}\b", description)
+            mentioned = [_safe_contract_name(name) for name in mentioned]
+            mentioned = [name for name in mentioned if name in contract_names]
+            if len(mentioned) >= 2:
+                for idx in range(len(mentioned) - 1):
+                    left = mentioned[idx]
+                    right = mentioned[idx + 1]
+                    if left != right:
+                        dependency_map[left].add(right)
+
+    # Symmetrize to support entanglement representation
+    for source, deps in list(dependency_map.items()):
+        for dep in list(deps):
+            dependency_map.setdefault(dep, set()).add(source)
+
+    return {
+        source: sorted(list(deps))
+        for source, deps in dependency_map.items()
+        if deps
+    }
+
+
+def _dependency_map_to_entanglement_matrix(dependencies: Dict[str, List[str]]) -> Dict[str, List[str]]:
+    """Convert contract dependency map to symmetric entanglement matrix."""
+    matrix: Dict[str, set] = {}
+    for source, deps in dependencies.items():
+        matrix.setdefault(source, set())
+        for dep in deps:
+            if dep == source:
+                continue
+            matrix[source].add(dep)
+            matrix.setdefault(dep, set()).add(source)
+
+    return {key: sorted(list(value)) for key, value in matrix.items()}
+
+
+def _summarize_forge_events(events: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Summarize Foundry JSON events into pass/fail and fuzz metadata."""
+    passed = 0
+    failed = 0
+    fuzz_cases = 0
+    failing_tests: List[Dict[str, Any]] = []
+    contracts_seen = set()
+
+    for event in events:
+        event_name = str(event.get("event") or event.get("type") or "").lower()
+        status = str(event.get("status") or event.get("result") or event.get("outcome") or "").lower()
+        test_name = str(event.get("name") or event.get("test") or event.get("test_name") or "")
+        contract_name = str(event.get("contract") or event.get("contract_name") or "")
+        if contract_name:
+            contracts_seen.add(contract_name)
+
+        if "fuzz" in event_name or "fuzz" in test_name.lower():
+            fuzz_cases += 1
+
+        if status in {"ok", "pass", "passed", "success"}:
+            passed += 1
+        elif status in {"fail", "failed", "error"}:
+            failed += 1
+            failing_tests.append(
+                {
+                    "test_name": test_name or "<unknown>",
+                    "contract": contract_name or "<unknown>",
+                    "reason": event.get("reason") or event.get("error") or event.get("message") or "",
+                }
+            )
+
+    return {
+        "passed_tests": passed,
+        "failed_tests": failed,
+        "fuzz_event_count": fuzz_cases,
+        "contracts_seen": sorted(c for c in contracts_seen if c),
+        "failing_tests": failing_tests[:50],
+    }
 
 
 # =============================================================================
@@ -1248,6 +1499,244 @@ Solution needs verification.
 
 
 # =============================================================================
+# WEB3 INGESTION TOOLS
+# =============================================================================
+
+@mcp_tool("web3_ingest_slither_static_analysis")
+def web3_ingest_slither_static_analysis(
+    project_path: str = ".",
+    timeout_seconds: int = 240,
+    extra_args: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    """
+    Run Slither static analysis and return vulnerability hints + dependency map.
+
+    The output is intentionally normalized for downstream use by decomposition,
+    entanglement mapping, and gauntlet orchestration.
+    """
+    if not SLITHER_AVAILABLE:
+        return {
+            "success": False,
+            "error": "Slither CLI not available",
+            "hint": "Install Slither and ensure 'slither' is in PATH",
+        }
+
+    if not os.path.isdir(project_path):
+        return {
+            "success": False,
+            "error": f"Project path does not exist: {project_path}",
+        }
+
+    cmd = ["slither", project_path, "--json", "-"]
+    if extra_args:
+        cmd.extend(str(arg) for arg in extra_args if arg is not None)
+
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=timeout_seconds,
+            cwd=project_path,
+        )
+    except subprocess.TimeoutExpired:
+        return {
+            "success": False,
+            "error": f"Slither timed out after {timeout_seconds}s",
+        }
+    except OSError as exc:
+        return {
+            "success": False,
+            "error": str(exc),
+        }
+
+    payload = _extract_json_payload(result.stdout) or _extract_json_payload(result.stderr) or {}
+    if not isinstance(payload, dict):
+        payload = {"raw_events": payload}
+
+    detectors = []
+    raw_detectors = (
+        payload.get("results", {}).get("detectors", [])
+        if isinstance(payload.get("results"), dict)
+        else []
+    )
+    if isinstance(raw_detectors, list):
+        for detector in raw_detectors:
+            if not isinstance(detector, dict):
+                continue
+            detectors.append(
+                {
+                    "check": detector.get("check") or "",
+                    "impact": detector.get("impact") or "",
+                    "confidence": detector.get("confidence") or "",
+                    "description": detector.get("description") or "",
+                }
+            )
+
+    dependencies = _collect_contract_dependencies(payload)
+    entanglement_matrix = _dependency_map_to_entanglement_matrix(dependencies)
+    contracts = sorted(set(list(entanglement_matrix.keys()) + list(dependencies.keys())))
+
+    return {
+        "success": result.returncode == 0,
+        "tool": "slither",
+        "project_path": project_path,
+        "return_code": result.returncode,
+        "contracts": contracts,
+        "dependencies": dependencies,
+        "entanglement_matrix": entanglement_matrix,
+        "findings": detectors,
+        "raw_stdout_present": bool(result.stdout.strip()),
+        "raw_stderr_present": bool(result.stderr.strip()),
+    }
+
+
+@mcp_tool("web3_ingest_foundry_fuzzing")
+def web3_ingest_foundry_fuzzing(
+    project_path: str = ".",
+    timeout_seconds: int = 420,
+    match_contract: Optional[str] = None,
+    match_test: Optional[str] = None,
+    fork_url: Optional[str] = None,
+    extra_args: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    """
+    Run Foundry/Forge fuzz tests and normalize outputs for downstream consumption.
+    """
+    if not FORGE_AVAILABLE:
+        return {
+            "success": False,
+            "error": "Forge CLI not available",
+            "hint": "Install Foundry and ensure 'forge' is in PATH",
+        }
+
+    if not os.path.isdir(project_path):
+        return {
+            "success": False,
+            "error": f"Project path does not exist: {project_path}",
+        }
+
+    cmd = ["forge", "test", "--json"]
+    if match_contract:
+        cmd.extend(["--match-contract", match_contract])
+    if match_test:
+        cmd.extend(["--match-test", match_test])
+    if fork_url:
+        cmd.extend(["--fork-url", fork_url])
+    if extra_args:
+        cmd.extend(str(arg) for arg in extra_args if arg is not None)
+
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=timeout_seconds,
+            cwd=project_path,
+        )
+    except subprocess.TimeoutExpired:
+        return {
+            "success": False,
+            "error": f"Forge timed out after {timeout_seconds}s",
+        }
+    except OSError as exc:
+        return {
+            "success": False,
+            "error": str(exc),
+        }
+
+    parsed = _extract_json_payload(result.stdout) or []
+    events: List[Dict[str, Any]] = []
+    if isinstance(parsed, list):
+        events = [event for event in parsed if isinstance(event, dict)]
+    elif isinstance(parsed, dict):
+        events = [parsed]
+
+    summary = _summarize_forge_events(events)
+
+    return {
+        "success": result.returncode == 0,
+        "tool": "forge",
+        "project_path": project_path,
+        "return_code": result.returncode,
+        "events_count": len(events),
+        "summary": summary,
+        "raw_stdout_present": bool(result.stdout.strip()),
+        "raw_stderr_present": bool(result.stderr.strip()),
+    }
+
+
+@mcp_tool("web3_ingest_contract_audit_stack")
+def web3_ingest_contract_audit_stack(
+    project_path: str = ".",
+    run_fuzzing: bool = True,
+    slither_timeout_seconds: int = 240,
+    forge_timeout_seconds: int = 420,
+) -> Dict[str, Any]:
+    """
+    Ingest Solidity/Rust sources and run the Web3 audit ingress stack.
+
+    Pipeline:
+    1. Source discovery (.sol/.rs)
+    2. Slither static analysis
+    3. Forge fuzzing (optional)
+    4. Entanglement matrix materialization
+    """
+    source_inventory = _discover_contract_sources(project_path)
+    slither_result = web3_ingest_slither_static_analysis(
+        project_path=project_path,
+        timeout_seconds=slither_timeout_seconds,
+    )
+    forge_result = None
+    if run_fuzzing:
+        forge_result = web3_ingest_foundry_fuzzing(
+            project_path=project_path,
+            timeout_seconds=forge_timeout_seconds,
+        )
+
+    entanglement_matrix = {}
+    if isinstance(slither_result, dict):
+        entanglement_matrix = slither_result.get("entanglement_matrix", {}) or {}
+
+    contracts = set(slither_result.get("contracts", []) if isinstance(slither_result, dict) else [])
+    if isinstance(forge_result, dict):
+        summary = forge_result.get("summary", {})
+        if isinstance(summary, dict):
+            contracts.update(summary.get("contracts_seen", []))
+
+    return {
+        "success": bool(slither_result.get("success")),
+        "project_path": project_path,
+        "source_inventory": source_inventory,
+        "contracts": sorted(c for c in contracts if c),
+        "entanglement_matrix": entanglement_matrix,
+        "slither": slither_result,
+        "forge": forge_result,
+    }
+
+
+@mcp_tool("get_mcp_tool_inventory")
+def get_mcp_tool_inventory() -> Dict[str, Any]:
+    """Return MCP tool inventory with Web3 ingestion capability status."""
+    all_tools = sorted(list_mcp_tools())
+    web3_tools = sorted([
+        "web3_ingest_slither_static_analysis",
+        "web3_ingest_foundry_fuzzing",
+        "web3_ingest_contract_audit_stack",
+    ])
+    return {
+        "total_tools": len(all_tools),
+        "tools": all_tools,
+        "web3_tools": web3_tools,
+        "availability": {
+            "slither": SLITHER_AVAILABLE,
+            "forge": FORGE_AVAILABLE,
+            "foundry": FOUNDRY_AVAILABLE,
+        },
+    }
+
+
+# =============================================================================
 # UTILITY FUNCTIONS
 # =============================================================================
 
@@ -1306,6 +1795,11 @@ def list_available_gauntlets() -> Dict[str, Any]:
 @mcp_tool("get_decomposition_status")
 def get_decomposition_status() -> Dict[str, Any]:
     """Get the status of the decomposition workflow system"""
+    web3_tools = [
+        "web3_ingest_slither_static_analysis",
+        "web3_ingest_foundry_fuzzing",
+        "web3_ingest_contract_audit_stack",
+    ]
     return {
         "available": DECOMPOSITION_AVAILABLE,
         "openevolve_available": OPENEVOLVE_AVAILABLE,
@@ -1314,6 +1808,7 @@ def get_decomposition_status() -> Dict[str, Any]:
         "roma_available": ROMA_AVAILABLE,
         "hybrid_available": HYBRID_AVAILABLE,
         "roma_mdap_maker_available": ROMA_MDAP_MAKER_AVAILABLE,
+        "web3_toolchain_available": SLITHER_AVAILABLE or FORGE_AVAILABLE,
         "total_execution_methods": 7,  # traditional, claudiomiro, datapizza, roma, hybrid, roma_mdap_maker, auto
         "execution_methods": [
             "traditional",
@@ -1335,6 +1830,13 @@ def get_decomposition_status() -> Dict[str, Any]:
             "roma_recursive": ROMA_AVAILABLE,
             "roma_decomposition_hybrid": HYBRID_AVAILABLE,
             "roma_mdap_maker": ROMA_MDAP_MAKER_AVAILABLE,
+            "slither_static_analysis": SLITHER_AVAILABLE,
+            "foundry_fuzzing": FORGE_AVAILABLE,
+            "web3_ingestion_stack": SLITHER_AVAILABLE or FORGE_AVAILABLE,
+        },
+        "mcp_tool_inventory": {
+            "registered_tools": len(list_mcp_tools()),
+            "web3_tools": web3_tools,
         },
     }
 

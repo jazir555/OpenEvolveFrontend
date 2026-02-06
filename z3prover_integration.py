@@ -1657,6 +1657,412 @@ def generate_refutation_narrative(
 
     return narrative
 
+
+# =============================================================================
+# SMART CONTRACT INVARIANT TRANSLATION
+# =============================================================================
+
+@dataclass
+class SolidityInvariantTranslation:
+    """Structured translation of Solidity state update semantics to Z3 artifacts."""
+    source_statement: str
+    variables: List[Z3Variable]
+    constraints: List[Z3Constraint]
+    invariants: List[Z3Constraint]
+    lean_spec: str = ""
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        serialized_variables = []
+        for variable in self.variables:
+            serialized_variables.append(
+                {
+                    "name": variable.name,
+                    "var_type": variable.var_type.name.lower(),
+                    "bounds": variable.bounds,
+                    "bit_width": variable.bit_width,
+                }
+            )
+        return {
+            "source_statement": self.source_statement,
+            "variables": serialized_variables,
+            "constraints": [c.expression for c in self.constraints],
+            "invariants": [i.expression for i in self.invariants],
+            "lean_spec": self.lean_spec,
+            "metadata": self.metadata,
+        }
+
+
+class SmartContractInvariantTranslator:
+    """
+    Translate Solidity state transitions into Z3 constraints and Lean specs.
+
+    Focuses on common high-impact patterns in audits (withdraw/deposit balance math),
+    while remaining conservative and explicit.
+    """
+
+    _ASSIGN_PATTERN = re.compile(r"^\s*(?P<lhs>[^=]+?)\s*=\s*(?P<rhs>.+?)\s*;?\s*$")
+    _INPLACE_PATTERN = re.compile(r"^\s*(?P<lhs>.+?)\s*(?P<op>\+=|-=)\s*(?P<rhs>.+?)\s*;?\s*$")
+    _TOKEN_PATTERN = re.compile(r"[A-Za-z_][A-Za-z0-9_]*(?:\[[^\]]+\])*(?:\.[A-Za-z_][A-Za-z0-9_]*)*")
+    _KEYWORDS = {"if", "for", "while", "return", "require", "assert", "true", "false"}
+
+    @staticmethod
+    def _normalize_symbol(symbol: str) -> str:
+        cleaned = symbol.strip()
+        cleaned = cleaned.replace("msg.sender", "msg_sender")
+        cleaned = cleaned.replace("tx.origin", "tx_origin")
+        cleaned = cleaned.replace("block.timestamp", "block_timestamp")
+        cleaned = re.sub(r"[^A-Za-z0-9_]", "_", cleaned)
+        cleaned = re.sub(r"_+", "_", cleaned).strip("_")
+        if not cleaned:
+            cleaned = "value"
+        if cleaned[0].isdigit():
+            cleaned = f"v_{cleaned}"
+        return cleaned
+
+    @classmethod
+    def _extract_tokens(cls, expression: str) -> List[str]:
+        tokens = cls._TOKEN_PATTERN.findall(expression or "")
+        filtered = []
+        for token in tokens:
+            if token.lower() in cls._KEYWORDS:
+                continue
+            filtered.append(token)
+        return sorted(set(filtered), key=len, reverse=True)
+
+    @classmethod
+    def _base_symbol(cls, lhs: str) -> str:
+        raw = lhs.strip()
+        raw = re.split(r"[\[.]", raw)[0]
+        return cls._normalize_symbol(raw) or "state"
+
+    @classmethod
+    def _rewrite_expression(
+        cls,
+        expression: str,
+        lhs: str,
+        old_symbol: str,
+    ) -> Tuple[str, Dict[str, str]]:
+        rewritten = expression.strip()
+        token_map: Dict[str, str] = {}
+
+        lhs_norm = cls._normalize_symbol(lhs)
+        tokens = cls._extract_tokens(rewritten)
+        for token in tokens:
+            norm = cls._normalize_symbol(token)
+            mapped = old_symbol if norm == lhs_norm else norm
+            token_map[token] = mapped
+
+        for token in sorted(token_map.keys(), key=len, reverse=True):
+            rewritten = rewritten.replace(token, token_map[token])
+
+        return rewritten, token_map
+
+    def translate_assignment(
+        self,
+        statement: str,
+        non_negative_target: bool = True,
+        max_withdraw_expr: Optional[str] = None,
+    ) -> SolidityInvariantTranslation:
+        """
+        Translate a Solidity assignment/update statement into Z3 constraints.
+
+        Example input:
+            balance[msg.sender] -= amount;
+
+        Example output constraints:
+            new_balance == old_balance - amount
+            new_balance >= 0
+        """
+        source = (statement or "").strip()
+        if not source:
+            raise ValueError("Solidity statement cannot be empty")
+
+        lhs = ""
+        rhs = ""
+        op = ""
+
+        inplace = self._INPLACE_PATTERN.match(source)
+        if inplace:
+            lhs = inplace.group("lhs").strip()
+            rhs = inplace.group("rhs").strip()
+            op = inplace.group("op")
+        else:
+            assign = self._ASSIGN_PATTERN.match(source)
+            if not assign:
+                raise ValueError(f"Unsupported Solidity assignment syntax: {source}")
+            lhs = assign.group("lhs").strip()
+            rhs = assign.group("rhs").strip()
+            rhs_match = re.match(rf"^\s*{re.escape(lhs)}\s*([+-])\s*(.+)$", rhs)
+            if rhs_match:
+                op = "+=" if rhs_match.group(1) == "+" else "-="
+                rhs = rhs_match.group(2).strip()
+            else:
+                op = "="
+
+        base = self._base_symbol(lhs)
+        old_symbol = f"old_{base}"
+        new_symbol = f"new_{base}"
+        rewritten_rhs, token_map = self._rewrite_expression(rhs, lhs, old_symbol)
+
+        if op == "-=":
+            relation = f"{new_symbol} == {old_symbol} - ({rewritten_rhs})"
+        elif op == "+=":
+            relation = f"{new_symbol} == {old_symbol} + ({rewritten_rhs})"
+        else:
+            relation = f"{new_symbol} == ({rewritten_rhs})"
+
+        variable_names = {old_symbol, new_symbol}
+        variable_names.update(token_map.values())
+        variable_names = {v for v in variable_names if re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", v)}
+        variables = [
+            Z3Variable(name=name, var_type=Z3ConstraintType.INTEGER)
+            for name in sorted(variable_names)
+        ]
+
+        constraints = [
+            Z3Constraint(
+                expression=relation,
+                constraint_type=Z3ConstraintType.BOOLEAN,
+                description=f"State transition derived from: {source}",
+            )
+        ]
+
+        invariants: List[Z3Constraint] = []
+        if non_negative_target:
+            invariants.append(
+                Z3Constraint(
+                    expression=f"{new_symbol} >= 0",
+                    constraint_type=Z3ConstraintType.BOOLEAN,
+                    description=f"Non-negative {base} invariant",
+                )
+            )
+        if max_withdraw_expr:
+            rewritten_limit, _ = self._rewrite_expression(max_withdraw_expr, lhs, old_symbol)
+            invariants.append(
+                Z3Constraint(
+                    expression=f"{rewritten_rhs} <= ({rewritten_limit})",
+                    constraint_type=Z3ConstraintType.BOOLEAN,
+                    description="Withdrawal upper-bound invariant",
+                )
+            )
+
+        lean_spec = self.to_lean_spec(
+            theorem_name=f"{base}_state_transition",
+            constraints=[c.expression for c in constraints],
+            invariants=[i.expression for i in invariants],
+        )
+
+        return SolidityInvariantTranslation(
+            source_statement=source,
+            variables=variables,
+            constraints=constraints,
+            invariants=invariants,
+            lean_spec=lean_spec,
+            metadata={
+                "lhs": lhs,
+                "operator": op,
+                "base_symbol": base,
+                "token_map": token_map,
+            },
+        )
+
+    @staticmethod
+    def to_lean_spec(
+        theorem_name: str,
+        constraints: List[str],
+        invariants: List[str],
+    ) -> str:
+        """Generate a minimal Lean 4 theorem scaffold for translated constraints."""
+        assumptions = constraints or ["True"]
+        goals = invariants or ["True"]
+        assumptions_expr = " /\\ ".join(assumptions)
+        goals_expr = " /\\ ".join(goals)
+        return (
+            f"theorem {theorem_name} :\n"
+            f"  ({assumptions_expr}) -> ({goals_expr}) := by\n"
+            f"  intro h\n"
+            f"  sorry\n"
+        )
+
+
+def translate_solidity_assignment_to_z3(
+    statement: str,
+    non_negative_target: bool = True,
+    max_withdraw_expr: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Convenience API for Blue Team invariant translation requests.
+
+    Example:
+        translate_solidity_assignment_to_z3("balance[msg.sender] -= amount;")
+    """
+    translator = SmartContractInvariantTranslator()
+    translation = translator.translate_assignment(
+        statement=statement,
+        non_negative_target=non_negative_target,
+        max_withdraw_expr=max_withdraw_expr,
+    )
+    return translation.to_dict()
+
+
+def verify_solidity_invariant_translation(
+    translation: Union[SolidityInvariantTranslation, Dict[str, Any]],
+    assume_non_negative_amount: bool = True,
+) -> Dict[str, Any]:
+    """
+    Verify translated invariants by checking:
+        constraints AND assumptions AND NOT(invariants) is UNSAT.
+    """
+    def _coerce_var_type(value: Any) -> Z3ConstraintType:
+        if isinstance(value, Z3ConstraintType):
+            return value
+        if isinstance(value, str):
+            mapping = {
+                "boolean": Z3ConstraintType.BOOLEAN,
+                "bool": Z3ConstraintType.BOOLEAN,
+                "integer": Z3ConstraintType.INTEGER,
+                "int": Z3ConstraintType.INTEGER,
+                "real": Z3ConstraintType.REAL,
+                "bit_vector": Z3ConstraintType.BIT_VECTOR,
+                "array": Z3ConstraintType.ARRAY,
+                "floating_point": Z3ConstraintType.FLOATING_POINT,
+                "string": Z3ConstraintType.STRING,
+            }
+            return mapping.get(value.lower(), Z3ConstraintType.INTEGER)
+        return Z3ConstraintType.INTEGER
+
+    if isinstance(translation, dict):
+        variables = [
+            Z3Variable(
+                name=v.get("name"),
+                var_type=_coerce_var_type(v.get("var_type", Z3ConstraintType.INTEGER)),
+                bounds=v.get("bounds"),
+                bit_width=v.get("bit_width"),
+            )
+            for v in translation.get("variables", [])
+            if isinstance(v, dict) and v.get("name")
+        ]
+        constraints = [
+            Z3Constraint(expression=expr, constraint_type=Z3ConstraintType.BOOLEAN)
+            for expr in translation.get("constraints", [])
+            if isinstance(expr, str)
+        ]
+        invariants = [
+            Z3Constraint(expression=expr, constraint_type=Z3ConstraintType.BOOLEAN)
+            for expr in translation.get("invariants", [])
+            if isinstance(expr, str)
+        ]
+    else:
+        variables = translation.variables
+        constraints = translation.constraints
+        invariants = translation.invariants
+
+    if not Z3_PYTHON_AVAILABLE:
+        return {
+            "proven": None,
+            "reason": "Z3 Python bindings unavailable",
+            "counterexample": None,
+        }
+
+    try:
+        engine = get_z3_solver_engine()
+        solver = z3.Solver()
+        z3_vars = {var.name: engine._create_z3_variable(var) for var in variables}
+
+        for constraint in constraints:
+            expr = engine._parse_constraint(constraint.expression, z3_vars)
+            if expr is not None:
+                solver.add(expr)
+
+        if assume_non_negative_amount and "amount" in z3_vars:
+            solver.add(z3_vars["amount"] >= 0)
+
+        invariant_exprs = []
+        for invariant in invariants:
+            expr = engine._parse_constraint(invariant.expression, z3_vars)
+            if expr is not None:
+                invariant_exprs.append(expr)
+
+        if not invariant_exprs:
+            return {
+                "proven": None,
+                "reason": "No invariants provided",
+                "counterexample": None,
+            }
+
+        solver.add(z3.Not(z3.And(*invariant_exprs)))
+        result = solver.check()
+
+        if result == z3.unsat:
+            return {
+                "proven": True,
+                "reason": "Constraints imply invariants",
+                "counterexample": None,
+            }
+
+        if result == z3.sat:
+            model = solver.model()
+            return {
+                "proven": False,
+                "reason": "Found counterexample",
+                "counterexample": {d.name(): str(model[d]) for d in model.decls()},
+            }
+
+        return {
+            "proven": None,
+            "reason": "Solver returned unknown",
+            "counterexample": None,
+        }
+    except Exception as exc:
+        return {
+            "proven": None,
+            "reason": f"Verification failed: {exc}",
+            "counterexample": None,
+        }
+
+
+def solve_smart_contract_exploit_witness(
+    additional_constraints: Optional[List[str]] = None,
+    timeout: Optional[float] = 10.0,
+) -> Dict[str, Any]:
+    """
+    Solve a canonical exploit witness query:
+        Exists(input) such that
+            contract_balance_post < contract_balance_pre
+            AND user_deposit == 0
+    """
+    variables = [
+        Z3Variable("contract_balance_pre", Z3ConstraintType.INTEGER),
+        Z3Variable("contract_balance_post", Z3ConstraintType.INTEGER),
+        Z3Variable("user_deposit", Z3ConstraintType.INTEGER),
+        Z3Variable("attacker_input", Z3ConstraintType.INTEGER),
+    ]
+    constraints = [
+        Z3Constraint("contract_balance_pre > 0", Z3ConstraintType.BOOLEAN),
+        Z3Constraint("contract_balance_post >= 0", Z3ConstraintType.BOOLEAN),
+        Z3Constraint("contract_balance_post < contract_balance_pre", Z3ConstraintType.BOOLEAN),
+        Z3Constraint("user_deposit == 0", Z3ConstraintType.BOOLEAN),
+        Z3Constraint("attacker_input >= 0", Z3ConstraintType.BOOLEAN),
+    ]
+
+    if additional_constraints:
+        for constraint in additional_constraints:
+            if isinstance(constraint, str) and constraint.strip():
+                constraints.append(Z3Constraint(constraint.strip(), Z3ConstraintType.BOOLEAN))
+
+    config = Z3Config(timeout=timeout or 10.0)
+    engine = get_z3_solver_engine(config)
+    result = engine.solve_constraints(variables, constraints)
+    return {
+        "status": result.status.value,
+        "satisfiable": result.is_sat(),
+        "model": result.model.assignments if result.model else None,
+        "constraints": [c.expression for c in constraints],
+        "errors": result.errors,
+    }
+
+
 # =============================================================================
 # Global Instance
 # =============================================================================
@@ -3092,6 +3498,8 @@ __all__ = [
     'DigitalTwinSandbox',
     'Z3LogicCompressor',
     'Z3DSPyIntegration',
+    'SolidityInvariantTranslation',
+    'SmartContractInvariantTranslator',
     
     # CAV-NLP enhanced components
     'EnhancedZ3Solver',
@@ -3109,6 +3517,9 @@ __all__ = [
     'is_cav_nlp_available',
     'pattern_operator',
     'generate_refutation_narrative',
+    'translate_solidity_assignment_to_z3',
+    'verify_solidity_invariant_translation',
+    'solve_smart_contract_exploit_witness',
     
     # Example functions
     'example_constraint_solving',

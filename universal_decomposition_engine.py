@@ -97,6 +97,7 @@ class ProblemDomain(Enum):
     """Supported problem domains"""
     SOFTWARE = "software"
     FINANCE = "finance"
+    WEB3 = "web3"
     SCIENTIFIC = "scientific"
     HEALTHCARE = "healthcare"
     MANUFACTURING = "manufacturing"
@@ -349,6 +350,11 @@ class SemanticDecomposition(DecompositionStrategyBase):
             r'(?:risk assessment|portfolio|trading|compliance|regulatory|audit)',
             r'(?:market data|pricing|valuation|settlement|clearing|reporting)',
             r'(?:credit risk|market risk|operational risk|liquidity risk)',
+        ],
+        ProblemDomain.WEB3: [
+            r'(?:smart contract|solidity|evm|foundry|forge|slither|hardhat|rust|anchor)',
+            r'(?:defi|vault|oracle|flash loan|reentrancy|amm|liquidity pool|bridge)',
+            r'(?:invariant|symbolic execution|exploit|audit|bug bounty|onchain)',
         ],
         ProblemDomain.HEALTHCARE: [
             r'(?:patient|diagnosis|treatment|medication|clinical|epidemiology)',
@@ -1092,7 +1098,8 @@ class UniversalDecompositionEngine:
         success_criteria: Optional[List[str]] = None,
         strategy: Optional[DecompositionStrategy] = None,
         max_subproblems: int = 15,
-        min_subproblem_size: int = 50
+        min_subproblem_size: int = 50,
+        domain_artifacts: Optional[Dict[str, Any]] = None,
     ) -> DecompositionPlan:
         """
         Decompose a problem statement into sub-problems.
@@ -1106,6 +1113,8 @@ class UniversalDecompositionEngine:
             strategy: Decomposition strategy to use (auto-selected if None)
             max_subproblems: Maximum number of sub-problems to create
             min_subproblem_size: Minimum description length for sub-problems
+            domain_artifacts: Optional domain-specific pre-analysis artifacts
+                (e.g., Slither/Forge outputs for Web3 decomposition)
 
         Returns:
             DecompositionPlan with all sub-problems and dependencies
@@ -1126,7 +1135,8 @@ class UniversalDecompositionEngine:
                 title=title,
                 domain=domain,
                 constraints=constraints or [],
-                success_criteria=success_criteria or []
+                success_criteria=success_criteria or [],
+                domain_artifacts=domain_artifacts or {},
             )
 
             # Select strategy
@@ -1250,7 +1260,8 @@ class UniversalDecompositionEngine:
         title: Optional[str],
         domain: ProblemDomain,
         constraints: List[str],
-        success_criteria: List[str]
+        success_criteria: List[str],
+        domain_artifacts: Optional[Dict[str, Any]] = None,
     ) -> ProblemDefinition:
         """Create a problem definition from input"""
         
@@ -1289,7 +1300,10 @@ class UniversalDecompositionEngine:
             domain=domain,
             complexity_score=complexity,
             constraints=constraint_objects,
-            success_criteria=criteria_objects
+            success_criteria=criteria_objects,
+            metadata={
+                "domain_artifacts": domain_artifacts or {}
+            }
         )
     
     def _estimate_problem_complexity(self, statement: str, domain: ProblemDomain) -> ComplexityScore:
@@ -1302,6 +1316,7 @@ class UniversalDecompositionEngine:
         domain_base = {
             ProblemDomain.SOFTWARE: 5.0,
             ProblemDomain.FINANCE: 6.0,
+            ProblemDomain.WEB3: 7.2,
             ProblemDomain.SCIENTIFIC: 7.0,
             ProblemDomain.HEALTHCARE: 6.5,
             ProblemDomain.MANUFACTURING: 6.0,
@@ -1463,6 +1478,10 @@ class UniversalDecompositionEngine:
         if domain == ProblemDomain.FINANCE or FinanceDomainExtension.is_finance_problem(statement):
             plan = FinanceDomainExtension.enhance_decomposition(plan)
             applied.append("finance")
+
+        if domain == ProblemDomain.WEB3 or Web3DomainExtension.is_web3_problem(statement):
+            plan = Web3DomainExtension.enhance_decomposition(plan)
+            applied.append("web3")
 
         if domain == ProblemDomain.LEGAL or LegalDomainExtension.is_legal_problem(statement):
             plan = LegalDomainExtension.enhance_decomposition(plan)
@@ -1920,6 +1939,266 @@ class ManufacturingDomainExtension:
         return plan
 
 
+class Web3DomainExtension:
+    """
+    Web3-specific extensions for decomposition.
+
+    Provides specialized handling for smart contract audit and exploit-generation
+    workflows including:
+    - Slither static analysis ingestion
+    - Foundry/Forge fuzzing ingestion
+    - Solidity/Rust invariant translation to Z3/Lean
+    - Exploit witness synthesis
+    """
+
+    TEMPLATES = {
+        "static_ingestion": {
+            "title": "Static Ingestion: Slither Contract Analysis",
+            "description": (
+                "Run Slither static analysis to extract AST structure, detector findings, "
+                "and contract dependency signals for entanglement mapping"
+            ),
+            "type": SubProblemType.ANALYSIS,
+            "effort": 14,
+            "complexity": 6.8,
+        },
+        "fuzz_ingestion": {
+            "title": "Dynamic Ingestion: Foundry/Forge Fuzz Harness",
+            "description": (
+                "Execute Forge fuzz tests and property checks to surface edge-case failures, "
+                "counterexample traces, and state-transition anomalies"
+            ),
+            "type": SubProblemType.TESTING,
+            "effort": 18,
+            "complexity": 7.2,
+        },
+        "formal_translation": {
+            "title": "Formal Translation: Solidity Invariants to Z3/Lean",
+            "description": (
+                "Translate critical state transitions (withdraw/deposit/mint/burn) into Z3 "
+                "constraints and Lean specifications for theorem-backed validation"
+            ),
+            "type": SubProblemType.VALIDATION,
+            "effort": 22,
+            "complexity": 7.6,
+        },
+        "exploit_synthesis": {
+            "title": "Red Team Exploit Synthesis and Witness Generation",
+            "description": (
+                "Use symbolic execution and adversarial search to solve exploit predicates "
+                "(e.g., balance drain with zero user deposit) and generate reproducible PoCs"
+            ),
+            "type": SubProblemType.IMPLEMENTATION,
+            "effort": 24,
+            "complexity": 8.2,
+        },
+        "patch_validation": {
+            "title": "Blue/Gold Patch Validation and Replay",
+            "description": (
+                "Validate proposed remediations by replaying exploit traces, re-running fuzzing, "
+                "and proving key invariants still hold after patching"
+            ),
+            "type": SubProblemType.VALIDATION,
+            "effort": 16,
+            "complexity": 7.0,
+        },
+    }
+
+    WEB3_KEYWORDS = [
+        "smart contract", "solidity", "evm", "bytecode", "defi", "web3", "onchain",
+        "foundry", "forge", "slither", "hardhat", "anchor", "rust", "ink!",
+        "reentrancy", "flash loan", "oracle", "bridge", "amm", "liquidity", "vault",
+        "bug bounty", "audit", "exploit",
+    ]
+
+    @classmethod
+    def is_web3_problem(cls, problem_statement: str) -> bool:
+        lower = problem_statement.lower()
+        return any(term in lower for term in cls.WEB3_KEYWORDS)
+
+    @classmethod
+    def _extract_contract_names(
+        cls,
+        statement: str,
+        artifacts: Optional[Dict[str, Any]] = None,
+    ) -> List[str]:
+        contracts: Set[str] = set()
+
+        for match in re.findall(r"\b(?:contract|interface|library|struct)\s+([A-Z]\w+)", statement):
+            contracts.add(match)
+
+        for match in re.findall(r"\b([A-Z][a-zA-Z0-9_]{2,})\b", statement):
+            if match.lower() not in {"solidity", "foundry", "slither", "defi", "evm", "z3", "lean"}:
+                contracts.add(match)
+
+        if isinstance(artifacts, dict):
+            raw_contracts = artifacts.get("contracts", [])
+            if isinstance(raw_contracts, list):
+                for item in raw_contracts:
+                    if isinstance(item, str):
+                        contracts.add(item)
+                    elif isinstance(item, dict):
+                        name = item.get("name")
+                        if isinstance(name, str):
+                            contracts.add(name)
+            raw_dependencies = artifacts.get("dependencies", {})
+            if isinstance(raw_dependencies, dict):
+                for key, values in raw_dependencies.items():
+                    if isinstance(key, str):
+                        contracts.add(key)
+                    if isinstance(values, list):
+                        for dep in values:
+                            if isinstance(dep, str):
+                                contracts.add(dep)
+
+        return sorted(c for c in contracts if c and len(c) > 2)
+
+    @classmethod
+    def _extract_dependency_hints(
+        cls,
+        statement: str,
+        contract_names: List[str],
+        artifacts: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, List[str]]:
+        dependency_map: Dict[str, Set[str]] = {c: set() for c in contract_names}
+
+        if isinstance(artifacts, dict):
+            raw_dependencies = artifacts.get("dependencies", {})
+            if isinstance(raw_dependencies, dict):
+                for source, deps in raw_dependencies.items():
+                    if source not in dependency_map:
+                        continue
+                    if isinstance(deps, list):
+                        for dep in deps:
+                            if dep in dependency_map and dep != source:
+                                dependency_map[source].add(dep)
+
+        lower = statement.lower()
+        for source in contract_names:
+            source_lower = source.lower()
+            if source_lower not in lower:
+                continue
+            for target in contract_names:
+                if source == target:
+                    continue
+                target_lower = target.lower()
+                if target_lower not in lower:
+                    continue
+                source_idx = lower.find(source_lower)
+                target_idx = lower.find(target_lower)
+                window = lower[min(source_idx, target_idx):max(source_idx, target_idx) + len(target_lower)]
+                if any(term in window for term in ["depends", "uses", "calls", "oracle", "reads", "writes"]):
+                    dependency_map[source].add(target)
+
+        if not any(v for v in dependency_map.values()) and len(contract_names) >= 2:
+            for idx in range(len(contract_names) - 1):
+                dependency_map[contract_names[idx]].add(contract_names[idx + 1])
+
+        return {key: sorted(list(value)) for key, value in dependency_map.items() if value}
+
+    @classmethod
+    def enhance_decomposition(cls, plan: DecompositionPlan) -> DecompositionPlan:
+        statement = plan.original_problem.description
+        if not cls.is_web3_problem(statement):
+            return plan
+
+        artifacts = {}
+        if isinstance(plan.original_problem.metadata, dict):
+            raw = plan.original_problem.metadata.get("domain_artifacts", {})
+            if isinstance(raw, dict):
+                artifacts = raw
+
+        contract_names = cls._extract_contract_names(statement, artifacts)
+        dependency_hints = cls._extract_dependency_hints(statement, contract_names, artifacts)
+        base_dependencies = [sp.id for sp in plan.sub_problems[:2]]
+
+        def _has_marker(marker: str) -> bool:
+            return any(
+                sp.metadata.get("web3_stage") == marker
+                for sp in plan.sub_problems
+            )
+
+        def _append_template(template_key: str, stage: str, deps: Optional[List[str]] = None) -> Optional[str]:
+            if _has_marker(stage):
+                existing = next(
+                    (sp.id for sp in plan.sub_problems if sp.metadata.get("web3_stage") == stage),
+                    None,
+                )
+                return existing
+
+            tpl = cls.TEMPLATES[template_key]
+            complexity = tpl["complexity"]
+            sub_problem = SubProblem(
+                id=f"web3_{stage}_{uuid.uuid4().hex[:8]}",
+                parent_id=plan.original_problem.id,
+                title=tpl["title"],
+                description=tpl["description"],
+                type=tpl["type"],
+                complexity_score=ComplexityScore(
+                    cognitive_complexity=min(complexity + 0.3, 10.0),
+                    computational_complexity=min(complexity, 10.0),
+                    domain_complexity=min(complexity + 0.6, 10.0),
+                    integration_complexity=min(complexity + 0.4, 10.0),
+                    overall_complexity=complexity,
+                    explanation=f"Web3 {stage} complexity",
+                ),
+                dependencies=list(deps or base_dependencies),
+                estimated_effort_hours=tpl["effort"],
+                metadata={
+                    "domain_extension": "web3",
+                    "web3_stage": stage,
+                    "interface_contracts": contract_names,
+                    "entanglement_symbols": contract_names,
+                    "shared_symbols": contract_names + ["slither", "forge", "z3", "lean4"],
+                },
+            )
+            plan.sub_problems.append(sub_problem)
+            return sub_problem.id
+
+        static_id = _append_template("static_ingestion", "static_ingestion")
+        fuzz_id = _append_template(
+            "fuzz_ingestion",
+            "fuzz_ingestion",
+            deps=[dep for dep in [static_id] if dep] or base_dependencies,
+        )
+        formal_id = _append_template(
+            "formal_translation",
+            "formal_translation",
+            deps=[dep for dep in [static_id, fuzz_id] if dep] or base_dependencies,
+        )
+        exploit_id = _append_template(
+            "exploit_synthesis",
+            "exploit_synthesis",
+            deps=[dep for dep in [fuzz_id, formal_id] if dep] or base_dependencies,
+        )
+        _append_template(
+            "patch_validation",
+            "patch_validation",
+            deps=[dep for dep in [formal_id, exploit_id] if dep] or base_dependencies,
+        )
+
+        for sp in plan.sub_problems:
+            symbols = set(sp.metadata.get("entanglement_symbols", []))
+            text = f"{sp.title} {sp.description}".lower()
+            for name in contract_names:
+                if name.lower() in text:
+                    symbols.add(name)
+            if sp.metadata.get("domain_extension") == "web3":
+                symbols.update(contract_names)
+            if symbols:
+                sp.metadata["entanglement_symbols"] = sorted(symbols)
+
+        plan.metadata.setdefault("web3", {})
+        plan.metadata["web3"].update({
+            "contracts": contract_names,
+            "dependency_hints": dependency_hints,
+            "ingestion_tools": ["slither", "forge"],
+            "formal_tools": ["z3", "lean4"],
+        })
+
+        return plan
+
+
 # ============================================================================
 # EXPORTS
 # ============================================================================
@@ -1954,6 +2233,7 @@ __all__ = [
     
     # Extensions
     'FinanceDomainExtension',
+    'Web3DomainExtension',
     'LegalDomainExtension',
     'ManufacturingDomainExtension',
 ]

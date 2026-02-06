@@ -43,6 +43,14 @@ import uuid
 import threading
 from contextlib import contextmanager
 
+# Optional symbolic exploit witness solver for DeFi gauntlet checks
+try:
+    from z3prover_integration import solve_smart_contract_exploit_witness
+    Z3_WEB3_AUDIT_AVAILABLE = True
+except ImportError:
+    solve_smart_contract_exploit_witness = None
+    Z3_WEB3_AUDIT_AVAILABLE = False
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -491,6 +499,12 @@ class RecompositionConfig:
     
     parallel_processing: bool = True
     max_workers: int = 4
+
+    # Web3/DeFi red-team gauntlet configuration
+    enable_defi_gauntlet: bool = True
+    defi_max_attack_vectors: int = 3
+    defi_symbolic_timeout_seconds: float = 10.0
+    defi_custom_vectors: List[Dict[str, Any]] = field(default_factory=list)
 
 
 # ============================================================================
@@ -1302,9 +1316,183 @@ class EnhancedRecompositionEngine:
         
         # Analytics
         self.recomposition_stats: List[Dict[str, Any]] = []
-        
+
+        # Specialized Web3/DeFi red-team gauntlet profile
+        self.defi_gauntlet_config = self._build_default_defi_gauntlet_config()
+        if self.config.defi_custom_vectors:
+            self.defi_gauntlet_config["attack_vectors"].extend(self.config.defi_custom_vectors)
+
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.info("EnhancedRecompositionEngine initialized")
+
+    def _build_default_defi_gauntlet_config(self) -> Dict[str, Any]:
+        """Build default DeFi gauntlet profile for Web3 assembly contexts."""
+        attack_vectors = [
+            {
+                "id": "flash_loan_attack",
+                "name": "Flash Loan Attack",
+                "goal": "Borrow extreme liquidity, manipulate price/oracle, drain vault, repay loan",
+                "predicate": "contract_balance_post < contract_balance_pre and attacker_capital == 0",
+            },
+            {
+                "id": "reentrancy_attack",
+                "name": "Reentrancy",
+                "goal": "Re-enter before state update and drain funds recursively",
+                "predicate": "external_call_before_state_update and recursive_entry_possible",
+            },
+            {
+                "id": "symbolic_execution_probe",
+                "name": "Symbolic Execution",
+                "goal": "Find satisfiable witness for loss-with-zero-deposit condition",
+                "predicate": "exists(input): post_balance < pre_balance and user_deposit == 0",
+            },
+        ]
+        return {
+            "name": "DeFi Gauntlet",
+            "mode": "web3_red_team",
+            "attack_vectors": attack_vectors[: self.config.defi_max_attack_vectors],
+            "symbolic_timeout_seconds": self.config.defi_symbolic_timeout_seconds,
+        }
+
+    def configure_defi_gauntlet(
+        self,
+        additional_vectors: Optional[List[Dict[str, Any]]] = None,
+        symbolic_timeout_seconds: Optional[float] = None,
+    ) -> Dict[str, Any]:
+        """
+        Configure specialized DeFi gauntlet settings.
+
+        Returns the active gauntlet configuration.
+        """
+        self.config.enable_defi_gauntlet = True
+        self.defi_gauntlet_config = self._build_default_defi_gauntlet_config()
+        if symbolic_timeout_seconds is not None:
+            self.defi_gauntlet_config["symbolic_timeout_seconds"] = float(symbolic_timeout_seconds)
+        if additional_vectors:
+            self.defi_gauntlet_config["attack_vectors"].extend(additional_vectors)
+        return self.defi_gauntlet_config
+
+    def _is_web3_context(self, sub_solutions: Dict[str, SubProblemSolution]) -> bool:
+        """Detect whether current recomposition is Web3/smart-contract oriented."""
+        web3_keywords = [
+            "solidity", "smart contract", "defi", "vault", "oracle", "flash loan",
+            "reentrancy", "evm", "foundry", "forge", "slither", "anchor", "rust",
+        ]
+
+        for solution in sub_solutions.values():
+            metadata = solution.metadata or {}
+            if metadata.get("domain_extension") == "web3":
+                return True
+            if metadata.get("web3_stage"):
+                return True
+            text = solution.solution_content.lower()
+            if any(keyword in text for keyword in web3_keywords):
+                return True
+        return False
+
+    def _detect_flash_loan_risk(self, content: str) -> Optional[Dict[str, Any]]:
+        """Heuristic flash-loan risk detection."""
+        flash_terms = ["flash loan", "flashloan", "aave", "balancer", "dydx"]
+        oracle_terms = ["oracle", "twap", "price feed", "spot price"]
+        liquidity_terms = ["vault", "pool", "liquidity", "collateral"]
+        lowered = content.lower()
+
+        if any(term in lowered for term in flash_terms) and any(
+            term in lowered for term in (oracle_terms + liquidity_terms)
+        ):
+            return {
+                "vector": "flash_loan_attack",
+                "severity": "high",
+                "finding": "Flash-loan primitives and price-sensitive state appear coupled.",
+                "recommendation": "Add TWAP bounds, block-level replay checks, and post-manipulation guards.",
+            }
+        return None
+
+    def _detect_reentrancy_risk(self, content: str) -> Optional[Dict[str, Any]]:
+        """Heuristic reentrancy risk detection."""
+        lowered = content.lower()
+        external_call = bool(re.search(r"\.call\s*\(|\.transfer\s*\(|\.send\s*\(", lowered))
+        state_update = bool(re.search(r"balance\s*\[.*?\]\s*[-+]?=", lowered))
+
+        if external_call and state_update:
+            call_pos = min(
+                [idx for idx in [
+                    lowered.find(".call("),
+                    lowered.find(".transfer("),
+                    lowered.find(".send("),
+                ] if idx >= 0] or [10**9]
+            )
+            update_pos = lowered.find("balance")
+            if call_pos < update_pos:
+                return {
+                    "vector": "reentrancy_attack",
+                    "severity": "critical",
+                    "finding": "Potential external call before balance/state update.",
+                    "recommendation": "Apply checks-effects-interactions pattern and reentrancy guards.",
+                }
+        return None
+
+    def _run_symbolic_exploit_probe(self) -> Dict[str, Any]:
+        """Run symbolic exploit witness query using Z3 helper when available."""
+        if not Z3_WEB3_AUDIT_AVAILABLE or solve_smart_contract_exploit_witness is None:
+            return {
+                "available": False,
+                "status": "unavailable",
+                "reason": "Z3 Web3 audit helper unavailable",
+            }
+
+        result = solve_smart_contract_exploit_witness(
+            timeout=self.defi_gauntlet_config.get("symbolic_timeout_seconds", 10.0)
+        )
+        return {
+            "available": True,
+            "status": result.get("status", "unknown"),
+            "satisfiable": result.get("satisfiable"),
+            "model": result.get("model"),
+            "constraints": result.get("constraints", []),
+        }
+
+    def _run_defi_gauntlet(
+        self,
+        sub_solutions: Dict[str, SubProblemSolution],
+    ) -> Dict[str, Any]:
+        """Execute specialized DeFi gauntlet on assembled sub-solutions."""
+        findings: List[Dict[str, Any]] = []
+        for sol_id, solution in sub_solutions.items():
+            content = solution.solution_content
+            flash_finding = self._detect_flash_loan_risk(content)
+            if flash_finding:
+                flash_finding["sub_problem_id"] = sol_id
+                findings.append(flash_finding)
+            reentrancy_finding = self._detect_reentrancy_risk(content)
+            if reentrancy_finding:
+                reentrancy_finding["sub_problem_id"] = sol_id
+                findings.append(reentrancy_finding)
+
+        symbolic_result = self._run_symbolic_exploit_probe()
+        if symbolic_result.get("satisfiable"):
+            findings.append(
+                {
+                    "vector": "symbolic_execution_probe",
+                    "severity": "high",
+                    "finding": "Symbolic exploit witness is satisfiable under current constraints.",
+                    "recommendation": "Strengthen invariants and add pre/post-state guards.",
+                    "sub_problem_id": "global",
+                }
+            )
+
+        critical_findings = len([f for f in findings if f.get("severity") == "critical"])
+        high_findings = len([f for f in findings if f.get("severity") == "high"])
+
+        return {
+            "gauntlet_name": self.defi_gauntlet_config.get("name", "DeFi Gauntlet"),
+            "attack_vectors": self.defi_gauntlet_config.get("attack_vectors", []),
+            "findings": findings,
+            "critical_findings": critical_findings,
+            "high_findings": high_findings,
+            "symbolic_execution": symbolic_result,
+            "passed": critical_findings == 0,
+        }
     
     def assemble(
         self,
@@ -1393,7 +1581,27 @@ class EnhancedRecompositionEngine:
         solution.status = RecompositionStatus.VALIDATING
         quality_metrics = self._validate_solution(solution, unresolved)
         solution.quality_metrics = quality_metrics
-        
+
+        # Specialized Web3 DeFi gauntlet
+        if self.config.enable_defi_gauntlet and self._is_web3_context(sub_solutions):
+            defi_gauntlet_result = self._run_defi_gauntlet(sub_solutions)
+            solution.metadata["defi_gauntlet"] = defi_gauntlet_result
+            if defi_gauntlet_result.get("critical_findings", 0) > 0:
+                penalty = min(0.2, 0.05 * defi_gauntlet_result["critical_findings"])
+                solution.quality_metrics.integration_quality = max(
+                    0.0,
+                    solution.quality_metrics.integration_quality - penalty,
+                )
+                solution.quality_metrics.calculate_overall()
+                solution.assembly_log.append(
+                    f"DeFi gauntlet penalty applied: -{penalty:.2f} integration quality"
+                )
+            self.logger.info(
+                "DeFi gauntlet executed: critical=%d high=%d",
+                defi_gauntlet_result.get("critical_findings", 0),
+                defi_gauntlet_result.get("high_findings", 0),
+            )
+
         # Finalize
         solution.status = RecompositionStatus.COMPLETED
         
