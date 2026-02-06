@@ -8,6 +8,7 @@ z3_mcp_tools = pytest.importorskip("z3_mcp_tools")
 def test_web3_inventory_includes_composite_exploit_verification_tool():
     inventory = z3_mcp_tools.get_web3_formal_tool_inventory()
     assert "z3_web3_audit_exploit_verification" in inventory.get("tools", [])
+    assert "z3_web3_audit_exploit_verification" in inventory.get("web3_formal_tools", [])
     assert "composite_exploit_verification" in inventory.get("formal_capabilities", {})
 
 

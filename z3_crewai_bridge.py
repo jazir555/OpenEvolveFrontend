@@ -39,7 +39,10 @@ try:
         verify_solidity_invariant_translation, solve_smart_contract_exploit_witness
     )
     Z3_AVAILABLE = True
-    WEB3_FORMAL_AVAILABLE = True
+    WEB3_FORMAL_AVAILABLE = (
+        translate_solidity_assignment_to_z3 is not None
+        and solve_smart_contract_exploit_witness is not None
+    )
 except ImportError:
     Z3_AVAILABLE = False
     WEB3_FORMAL_AVAILABLE = False
@@ -73,6 +76,32 @@ try:
     CAV_NLP_AVAILABLE = True
 except ImportError:
     CAV_NLP_AVAILABLE = False
+
+
+def _get_web3_formal_capabilities() -> Dict[str, bool]:
+    """Return capability flags for Web3 formal audit operations."""
+    return {
+        "solidity_invariant_translation": translate_solidity_assignment_to_z3 is not None,
+        "invariant_translation_verification": verify_solidity_invariant_translation is not None,
+        "symbolic_exploit_witness": solve_smart_contract_exploit_witness is not None,
+        "composite_exploit_verification": (
+            translate_solidity_assignment_to_z3 is not None
+            and solve_smart_contract_exploit_witness is not None
+        ),
+    }
+
+
+def _get_web3_formal_tools() -> List[str]:
+    """Return normalized Web3 formal tool identifiers exposed by CrewAI bridge."""
+    caps = _get_web3_formal_capabilities()
+    tools: List[str] = []
+    if caps["solidity_invariant_translation"]:
+        tools.append("z3_translate_solidity_invariant")
+    if caps["symbolic_exploit_witness"]:
+        tools.append("z3_solve_smart_contract_exploit_witness")
+    if caps["composite_exploit_verification"]:
+        tools.append("z3_web3_audit_exploit_verification")
+    return sorted(set(tools))
 
 
 # =============================================================================
@@ -697,6 +726,46 @@ class Z3AgentCoordinator:
         agent = Z3Web3AuditAgent(agent_id)
         self.register_agent(agent)
         return agent
+
+    def create_agent(self, agent_id: str, role: str) -> Z3BaseAgent:
+        """Compatibility factory for role-based agent creation."""
+        normalized_role = str(role or "").strip().lower()
+        if normalized_role in {"solver", AgentRole.SOLVER.value}:
+            return self.create_solver_agent(agent_id)
+        if normalized_role in {"optimizer", AgentRole.OPTIMIZER.value}:
+            return self.create_optimizer_agent(agent_id)
+        if normalized_role in {"prover", AgentRole.PROVER.value}:
+            return self.create_prover_agent(agent_id)
+        if normalized_role in {"translator", AgentRole.TRANSLATOR.value}:
+            return self.create_translator_agent(agent_id)
+        if normalized_role in {"verifier", AgentRole.VERIFIER.value}:
+            return self.create_verifier_agent(agent_id)
+        if normalized_role in {
+            "web3_auditor",
+            "web3-auditor",
+            "web3_audit",
+            "web3_audit_agent",
+            AgentRole.WEB3_AUDITOR.value,
+        }:
+            return self.create_web3_audit_agent(agent_id)
+        raise ValueError(f"Unknown agent role: {role}")
+
+    def get_status(self) -> Dict[str, Any]:
+        """Return coordinator status including Web3 formal tool inventory."""
+        role_counts: Dict[str, int] = {}
+        for agent in self.agents.values():
+            role_counts[agent.role.value] = role_counts.get(agent.role.value, 0) + 1
+        formal_capabilities = _get_web3_formal_capabilities()
+        web3_formal_tools = _get_web3_formal_tools()
+        return {
+            "z3_available": Z3_AVAILABLE,
+            "web3_formal_available": bool(web3_formal_tools),
+            "formal_capabilities": formal_capabilities,
+            "web3_formal_tools": web3_formal_tools,
+            "registered_agents": len(self.agents),
+            "active_sessions": len(self.sessions),
+            "role_counts": role_counts,
+        }
     
     def select_agents_for_task(self, task: AgentTask) -> List[Z3BaseAgent]:
         """Select appropriate agents for a task."""
@@ -843,6 +912,18 @@ def get_z3_agent_coordinator() -> Z3AgentCoordinator:
     if _coordinator is None:
         _coordinator = Z3AgentCoordinator()
     return _coordinator
+
+
+def get_web3_formal_status() -> Dict[str, Any]:
+    """Get normalized Web3 formal capability status for CrewAI bridge."""
+    formal_capabilities = _get_web3_formal_capabilities()
+    web3_formal_tools = _get_web3_formal_tools()
+    return {
+        "available": bool(web3_formal_tools),
+        "web3_formal_available": WEB3_FORMAL_AVAILABLE,
+        "web3_formal_tools": web3_formal_tools,
+        "formal_capabilities": formal_capabilities,
+    }
 
 
 # =============================================================================

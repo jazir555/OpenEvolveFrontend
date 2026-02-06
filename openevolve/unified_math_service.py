@@ -998,10 +998,17 @@ theorem proof_goal {var_decls} :
 
 def create_unified_math_service(
     use_cav_nlp: bool = True,
-    use_leanaide: bool = True
+    use_leanaide: bool = True,
+    lean_service: Optional[Any] = None,
+    cav_nlp_bridge: Optional[Any] = None
 ) -> UnifiedMathService:
     """Create a UnifiedMathService instance."""
-    return UnifiedMathService(use_cav_nlp=use_cav_nlp, use_leanaide=use_leanaide)
+    return UnifiedMathService(
+        use_cav_nlp=use_cav_nlp, 
+        use_leanaide=use_leanaide,
+        lean_service=lean_service,
+        cav_nlp_bridge=cav_nlp_bridge
+    )
 
 
 async def quick_formalize(text: str) -> FormalizationResult:

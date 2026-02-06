@@ -25,6 +25,7 @@ Enhanced: 2026-02-04 (Z3 ATP Integration)
 
 import os
 import sys
+from pathlib import Path
 import json
 import uuid
 import time
@@ -36,14 +37,25 @@ from enum import Enum
 import logging
 
 # Import SCE components
-from sce_bridge import (
-    Constraint,
-    ConstraintType,
-    ConstraintCategory,
-    ContradictionPair,
-    LogicalFallacy,
-    SCEConfig,
-)
+try:
+    from sce_bridge import (
+        Constraint,
+        ConstraintType,
+        ConstraintCategory,
+        ContradictionPair,
+        LogicalFallacy,
+        SCEConfig,
+    )
+except ImportError:
+    # Try relative import
+    from .sce_bridge import (
+        Constraint,
+        ConstraintType,
+        ConstraintCategory,
+        ContradictionPair,
+        LogicalFallacy,
+        SCEConfig,
+    )
 
 # Try to import Z3 for targeted ATP
 try:

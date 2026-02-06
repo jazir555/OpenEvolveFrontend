@@ -373,13 +373,25 @@ class Z3SolverEngine:
     
     def get_status(self) -> Dict[str, Any]:
         """Get engine status."""
+        web3_formal_capabilities = self._get_web3_formal_capabilities()
+        web3_formal_tools: List[str] = []
+        if web3_formal_capabilities["solidity_invariant_translation"]:
+            web3_formal_tools.append("z3_translate_solidity_invariant")
+        if web3_formal_capabilities["symbolic_exploit_witness"]:
+            web3_formal_tools.append("z3_solve_smart_contract_exploit_witness")
+        if web3_formal_capabilities["composite_exploit_verification"]:
+            web3_formal_tools.append("z3_web3_audit_exploit_verification")
+
         status = {
             "z3_available": Z3_AVAILABLE,
             "z3_python_available": Z3_PYTHON_AVAILABLE,
             "config": asdict(self.config),
             "statistics": self._stats.copy(),
             "solver_id": self._solver_id,
-            "pool_registered": self._pool is not None
+            "pool_registered": self._pool is not None,
+            "web3_formal_available": bool(web3_formal_tools),
+            "web3_formal_tools": web3_formal_tools,
+            "formal_capabilities": web3_formal_capabilities,
         }
         
         # Add pool metrics if available
@@ -391,6 +403,19 @@ class Z3SolverEngine:
                 logger.debug(f"Failed to get pool metrics: {e}")
         
         return status
+
+    @staticmethod
+    def _get_web3_formal_capabilities() -> Dict[str, bool]:
+        """Return Web3 formal capability flags without hard import coupling."""
+        translator = globals().get("translate_solidity_assignment_to_z3")
+        verifier = globals().get("verify_solidity_invariant_translation")
+        witness_solver = globals().get("solve_smart_contract_exploit_witness")
+        return {
+            "solidity_invariant_translation": callable(translator),
+            "invariant_translation_verification": callable(verifier),
+            "symbolic_exploit_witness": callable(witness_solver),
+            "composite_exploit_verification": callable(translator) and callable(witness_solver),
+        }
     
     def _track_operation(self, operation_name: str = "solve"):
         """

@@ -78,6 +78,28 @@ def test_workflow_stage_web3_audit_exploit_verification_wiring(monkeypatch):
     assert result.metadata.get("verified_exploit") is True
 
 
+def test_workflow_stage_web3_formal_status_schema(monkeypatch):
+    monkeypatch.setattr(
+        z3_stage,
+        "translate_solidity_assignment_to_z3",
+        lambda **kwargs: {"constraints": ["new_balance == old_balance - amount"]},
+    )
+    monkeypatch.setattr(
+        z3_stage,
+        "verify_solidity_invariant_translation",
+        lambda **kwargs: {"proven": True},
+    )
+    monkeypatch.setattr(
+        z3_stage,
+        "solve_smart_contract_exploit_witness",
+        lambda **kwargs: {"status": "sat", "satisfiable": True},
+    )
+    status = z3_stage.get_web3_formal_status()
+    assert "web3_formal_tools" in status
+    assert "formal_capabilities" in status
+    assert "z3_web3_audit_exploit_verification" in status["web3_formal_tools"]
+
+
 def test_z3_crewai_web3_audit_agent_executes_full_audit(monkeypatch):
     monkeypatch.setattr(z3_crewai, "WEB3_FORMAL_AVAILABLE", True)
     monkeypatch.setattr(

@@ -38,6 +38,14 @@ class NodeStatus(Enum):
     VERIFIED = "verified"
 
 
+class LogicalFallacy(Enum):
+    """Types of logical fallacies."""
+    CIRCULAR_REASONING = "circular_reasoning"
+    CONTRADICTION = "contradiction"
+    FALSE_CAUSE = "false_cause"
+    GENERAL = "general"
+
+
 @dataclass
 class Constraint:
     """Represents a constraint in SCE."""
@@ -69,6 +77,21 @@ class ConstraintNode:
 
 
 @dataclass
+class ContradictionPair:
+    """Represents a pair of contradicting constraints."""
+    pair_id: str
+    constraint_a_id: str
+    constraint_b_id: str
+    contradiction_type: str = "logical"
+    severity: str = "high"
+    resolution_hints: List[str] = None
+    
+    def __post_init__(self):
+        if self.resolution_hints is None:
+            self.resolution_hints = []
+
+
+@dataclass
 class ContradictionReport:
     """Report of contradictions found in SCE."""
     contradiction_id: str
@@ -80,6 +103,20 @@ class ContradictionReport:
     def __post_init__(self):
         if self.resolution_suggestions is None:
             self.resolution_suggestions = []
+
+
+@dataclass
+class SCEConfig:
+    """Configuration for SCE."""
+    max_constraints: int = 10000
+    enable_z3: bool = True
+    enable_logging: bool = True
+    timeout_seconds: float = 300.0
+    metadata: Dict[str, Any] = None
+    
+    def __post_init__(self):
+        if self.metadata is None:
+            self.metadata = {}
 
 
 class SymbolicConstraintEngine:
@@ -197,9 +234,12 @@ class Z3SCEBridge:
 __all__ = [
     "SymbolicConstraintEngine",
     "Constraint",
-    "ConstraintNode",
     "ConstraintType",
     "ConstraintCategory",
+    "ConstraintNode",
+    "ContradictionPair",
+    "LogicalFallacy",
+    "SCEConfig",
     "NodeStatus",
     "ContradictionReport",
     "Z3SCEBridge",

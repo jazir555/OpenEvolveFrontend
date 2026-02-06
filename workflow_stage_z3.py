@@ -29,7 +29,10 @@ try:
         verify_solidity_invariant_translation, solve_smart_contract_exploit_witness
     )
     Z3_AVAILABLE = True
-    WEB3_FORMAL_AVAILABLE = True
+    WEB3_FORMAL_AVAILABLE = (
+        translate_solidity_assignment_to_z3 is not None
+        and solve_smart_contract_exploit_witness is not None
+    )
 except ImportError:
     Z3_AVAILABLE = False
     WEB3_FORMAL_AVAILABLE = False
@@ -52,6 +55,37 @@ except ImportError:
     CAV_NLP_AVAILABLE = False
     Z3LeanAideBridge = None
     MathematicalTextParser = None
+
+
+def _get_web3_formal_capabilities() -> Dict[str, bool]:
+    """Return capability flags for Web3 formal stage operations."""
+    return {
+        "solidity_invariant_translation": translate_solidity_assignment_to_z3 is not None,
+        "invariant_translation_verification": verify_solidity_invariant_translation is not None,
+        "symbolic_exploit_witness": solve_smart_contract_exploit_witness is not None,
+        "composite_exploit_verification": (
+            translate_solidity_assignment_to_z3 is not None
+            and solve_smart_contract_exploit_witness is not None
+        ),
+    }
+
+
+def get_web3_formal_status() -> Dict[str, Any]:
+    """Get normalized Web3 formal status for workflow-stage integrations."""
+    formal_capabilities = _get_web3_formal_capabilities()
+    web3_formal_tools: List[str] = []
+    if formal_capabilities["solidity_invariant_translation"]:
+        web3_formal_tools.append("z3_translate_solidity_invariant")
+    if formal_capabilities["symbolic_exploit_witness"]:
+        web3_formal_tools.append("z3_solve_smart_contract_exploit_witness")
+    if formal_capabilities["composite_exploit_verification"]:
+        web3_formal_tools.append("z3_web3_audit_exploit_verification")
+    return {
+        "available": bool(web3_formal_tools),
+        "web3_formal_available": WEB3_FORMAL_AVAILABLE,
+        "web3_formal_tools": sorted(set(web3_formal_tools)),
+        "formal_capabilities": formal_capabilities,
+    }
 
 
 class Z3StageType(Enum):
@@ -593,6 +627,14 @@ class Z3StageRegistry:
         if stage_class:
             return stage_class(config)
         return None
+
+    def get_status(self) -> Dict[str, Any]:
+        """Get registry status including Web3 formal stage capabilities."""
+        return {
+            "registered_stage_types": sorted(self.stage_types.keys()),
+            "stage_count": len(self.stage_types),
+            **get_web3_formal_status(),
+        }
 
 
 # Global registry
