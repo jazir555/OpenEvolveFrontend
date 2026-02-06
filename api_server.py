@@ -6233,6 +6233,19 @@ def web3_status():
                 web3_formal_tools = list(inventory.get("web3_formal_tools", []) or [])
         except Exception as exc:
             inventory = {"error": str(exc)}
+    formal_capabilities = {
+        "solidity_invariant_translation": translate_solidity_assignment_to_z3 is not None,
+        "invariant_translation_verification": verify_solidity_invariant_translation is not None,
+        "symbolic_exploit_witness": solve_smart_contract_exploit_witness is not None,
+        "composite_exploit_verification": (
+            translate_solidity_assignment_to_z3 is not None
+            and solve_smart_contract_exploit_witness is not None
+        ),
+    }
+    if isinstance(inventory, dict):
+        merged = inventory.get("formal_capabilities")
+        if isinstance(merged, dict):
+            formal_capabilities.update(merged)
     return {
         "web3_ingestion_available": WEB3_INGESTION_AVAILABLE,
         "web3_formal_verification_available": WEB3_FORMAL_VERIFICATION_AVAILABLE,
@@ -6247,6 +6260,7 @@ def web3_status():
         "web3_tools": web3_tools,
         "web3_ingestion_tools": web3_ingestion_tools,
         "web3_formal_tools": web3_formal_tools,
+        "formal_capabilities": formal_capabilities,
         "mcp_tool_inventory": inventory,
     }
 

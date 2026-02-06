@@ -219,7 +219,12 @@ def _get_web3_formal_inventory() -> Dict[str, Any]:
     return {
         "available": False,
         "tools": [],
-        "formal_capabilities": {},
+        "formal_capabilities": {
+            "solidity_invariant_translation": False,
+            "invariant_translation_verification": False,
+            "symbolic_exploit_witness": False,
+            "composite_exploit_verification": False,
+        },
     }
 
 

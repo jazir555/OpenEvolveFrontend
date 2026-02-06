@@ -124,6 +124,7 @@ def test_bubblelabs_web3_status_shape():
     assert "formal_available" in status
     assert "audit_exploit_verification_available" in status
     assert "composite_exploit_verification" in status.get("capabilities", [])
+    assert "formal_capabilities" in status
     assert "tool_inventory" in status
 
 
@@ -197,20 +198,31 @@ def test_mcp_inventory_exposes_web3_formal_tools(monkeypatch):
             "tools": [
                 "z3_translate_solidity_invariant",
                 "z3_solve_smart_contract_exploit_witness",
+                "z3_web3_audit_exploit_verification",
             ],
             "formal_capabilities": {
                 "solidity_invariant_translation": True,
                 "symbolic_exploit_witness": True,
+                "composite_exploit_verification": True,
             },
         },
     )
     inventory = decomp_mcp_tools.get_mcp_tool_inventory()
-    assert {"z3_translate_solidity_invariant", "z3_solve_smart_contract_exploit_witness"}.issubset(
+    assert {
+        "z3_translate_solidity_invariant",
+        "z3_solve_smart_contract_exploit_witness",
+        "z3_web3_audit_exploit_verification",
+    }.issubset(
         set(inventory.get("web3_formal_tools", []))
     )
-    assert {"z3_translate_solidity_invariant", "z3_solve_smart_contract_exploit_witness"}.issubset(
+    assert {
+        "z3_translate_solidity_invariant",
+        "z3_solve_smart_contract_exploit_witness",
+        "z3_web3_audit_exploit_verification",
+    }.issubset(
         set(inventory.get("web3_tools", []))
     )
+    assert inventory.get("formal_capabilities", {}).get("composite_exploit_verification") is True
 
 
 def test_api_web3_status_exposes_formal_tools_from_inventory(monkeypatch):
@@ -218,15 +230,29 @@ def test_api_web3_status_exposes_formal_tools_from_inventory(monkeypatch):
         api_server,
         "get_mcp_tool_inventory",
         lambda: {
-            "web3_tools": ["web3_ingest_contract_audit_stack", "z3_translate_solidity_invariant"],
+            "web3_tools": [
+                "web3_ingest_contract_audit_stack",
+                "z3_translate_solidity_invariant",
+                "z3_web3_audit_exploit_verification",
+            ],
             "web3_ingestion_tools": ["web3_ingest_contract_audit_stack"],
-            "web3_formal_tools": ["z3_translate_solidity_invariant"],
+            "web3_formal_tools": [
+                "z3_translate_solidity_invariant",
+                "z3_web3_audit_exploit_verification",
+            ],
+            "formal_capabilities": {
+                "composite_exploit_verification": True,
+            },
         },
     )
     status = api_server.web3_status()
     assert "audit_exploit_verification_available" in status
-    assert status["web3_formal_tools"] == ["z3_translate_solidity_invariant"]
+    assert status["web3_formal_tools"] == [
+        "z3_translate_solidity_invariant",
+        "z3_web3_audit_exploit_verification",
+    ]
     assert status["web3_ingestion_tools"] == ["web3_ingest_contract_audit_stack"]
+    assert status["formal_capabilities"]["composite_exploit_verification"] is True
 
 
 def test_api_web3_audit_endpoint_returns_verified_exploit(monkeypatch):

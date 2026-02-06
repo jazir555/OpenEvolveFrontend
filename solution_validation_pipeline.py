@@ -67,7 +67,7 @@ class SolutionValidationPipeline:
             except Exception as e:
                 logger.warning(f"Failed to initialize LeanAide client: {e}")
 
-    def validate_solution(
+    async def validate_solution(
         self,
         solution: SolutionAttempt,
         sub_problem: SubProblem,

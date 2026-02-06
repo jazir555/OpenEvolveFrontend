@@ -18,6 +18,7 @@ Tools Provided:
 - z3_canonicalize_constraint: Return canonical form using CAV-NLP
 - z3_translate_solidity_invariant: Translate Solidity state updates to Z3/Lean invariants
 - z3_solve_smart_contract_exploit_witness: Solve symbolic exploit witness predicates
+- z3_web3_audit_exploit_verification: Combined invariant verification + exploit witness workflow
 
 Author: OpenEvolve
 Created: 2026-01-31

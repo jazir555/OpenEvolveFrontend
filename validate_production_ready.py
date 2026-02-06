@@ -4,6 +4,7 @@ Simple validation script for production-ready implementations
 
 import sys
 import logging
+from typing import Dict
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

@@ -12,4 +12,4 @@ collected 3788 items / 1 error / 3 skipped
 =========================== short test summary info ===========================
 ERROR tests/test_entanglement_matrix.py
 !!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
-======================== 3 skipped, 1 error in 16.58s =========================
+======================== 3 skipped, 1 error in 20.10s =========================

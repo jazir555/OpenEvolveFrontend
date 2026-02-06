@@ -1709,3 +1709,47 @@ class WorkflowState:
                 if sp.id == sub_problem_id:
                     sp.status = new_status
                     break
+
+
+
+# Knowledge Artifact Manager for backward compatibility
+class KnowledgeArtifactManager:
+    """Manages knowledge artifacts storage and retrieval."""
+    
+    def __init__(self, db_path: Optional[str] = None):
+        self.db_path = db_path
+        self.artifacts: Dict[str, KnowledgeArtifact] = {}
+    
+    def add_artifact(self, artifact: KnowledgeArtifact) -> str:
+        """Add an artifact to the manager."""
+        self.artifacts[artifact.id] = artifact
+        return artifact.id
+    
+    def get_artifact(self, artifact_id: str) -> Optional[KnowledgeArtifact]:
+        """Get an artifact by ID."""
+        return self.artifacts.get(artifact_id)
+    
+    def get_all_artifacts(self) -> List[KnowledgeArtifact]:
+        """Get all artifacts."""
+        return list(self.artifacts.values())
+    
+    def get_artifacts_by_type(self, artifact_type: str) -> List[KnowledgeArtifact]:
+        """Get artifacts by type."""
+        return [a for a in self.artifacts.values() if a.artifact_type == artifact_type]
+    
+    def update_artifact(self, artifact_id: str, updates: Dict[str, Any]) -> bool:
+        """Update an artifact."""
+        if artifact_id in self.artifacts:
+            artifact = self.artifacts[artifact_id]
+            for key, value in updates.items():
+                if hasattr(artifact, key):
+                    setattr(artifact, key, value)
+            return True
+        return False
+    
+    def delete_artifact(self, artifact_id: str) -> bool:
+        """Delete an artifact."""
+        if artifact_id in self.artifacts:
+            del self.artifacts[artifact_id]
+            return True
+        return False

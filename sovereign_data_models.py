@@ -824,3 +824,7 @@ class IntegratedSolution:
             "lean_verified": self.lean_verified,
             "lean_proof": self.lean_proof
         }
+
+
+# Alias for backward compatibility
+RedTeamCritiqueReport = CritiqueReport

@@ -55,10 +55,22 @@ except ImportError:
         STANDARD_GAUNTLET = "standard_gauntlet"
         HYBRID = "hybrid"
 
+# Fallback AutoformalizationStrategy (defined before try blocks)
+class AutoformalizationStrategy(Enum):
+    """Autoformalization strategy enum."""
+    ADAPTIVE = "adaptive"
+    CONSERVATIVE = "conservative"
+    AGGRESSIVE = "aggressive"
+    DIRECT = "direct"
+    HYBRID = "hybrid"
+    MDAP = "mdap"
+    MAKER = "maker"
+    STANDARD_GAUNTLET = "standard_gauntlet"
+
 # Import LeanAIDE autoformalization engine
 try:
     from leanaide_autoformalization_mdap_maker import (
-        LeanAideAutoformalizationEngine, AutoformalizationStrategy
+        LeanAideAutoformalizationEngine
     )
     from leanaide_client import LeanAideClient, LeanAideConfig
     LEANAIDE_AUTOFORMALIZATION_AVAILABLE = True
@@ -72,13 +84,6 @@ try:
     LEAN_AVAILABLE = True
 except ImportError:
     LEAN_AVAILABLE = False
-
-    # Fallback AutoformalizationStrategy if not available
-    class AutoformalizationStrategy(Enum):
-        """Fallback autoformalization strategy enum."""
-        ADAPTIVE = "adaptive"
-        CONSERVATIVE = "conservative"
-        AGGRESSIVE = "aggressive"
 
 # Import LeanAIDE workflow integration
 try:
