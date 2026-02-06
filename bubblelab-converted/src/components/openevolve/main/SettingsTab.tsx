@@ -47,10 +47,27 @@ export const SettingsTab: React.FC = () => {
   const [baseUrl, setBaseUrl] = useState(() => readStorage("openevolve_api_base", ""));
 
   const [providers, setProviders] = useState<ProviderSummary[]>([]);
-  const [selectedProvider, setSelectedProvider] = useState<string>("");
-  const [providerApiKey, setProviderApiKey] = useState("");
+  const [selectedProvider, setSelectedProvider] = useState<string>(() =>
+    readStorage("openevolve_provider", ""),
+  );
+  const [providerKeys, setProviderKeys] = useState<Record<string, string>>(() => {
+    try {
+      return JSON.parse(readStorage("openevolve_provider_keys", "{}")) as Record<string, string>;
+    } catch {
+      return {};
+    }
+  });
+  const [providerApiKey, setProviderApiKey] = useState(() =>
+    readStorage("openevolve_provider_api_key", ""),
+  );
+  const [providerBaseUrl, setProviderBaseUrl] = useState(() =>
+    readStorage("openevolve_provider_base_url", ""),
+  );
   const [providerModels, setProviderModels] = useState<string[]>([]);
-  const [selectedModel, setSelectedModel] = useState("");
+  const [selectedModel, setSelectedModel] = useState(() =>
+    readStorage("openevolve_selected_model", ""),
+  );
+  const [providerStatus, setProviderStatus] = useState<string | null>(null);
 
   const [parameters, setParameters] = useState<ParameterDefinition[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -115,6 +132,18 @@ export const SettingsTab: React.FC = () => {
     loadSettings();
   }, [apiConfig.apiKey]);
 
+  useEffect(() => {
+    if (!selectedProvider) return;
+    const provider = providers.find((item) => item.id === selectedProvider);
+    if (provider && !providerBaseUrl) {
+      setProviderBaseUrl(provider.api_base ?? "");
+    }
+    const storedKey = providerKeys[selectedProvider];
+    if (storedKey && storedKey !== providerApiKey) {
+      setProviderApiKey(storedKey);
+    }
+  }, [providers, selectedProvider]);
+
   const fetchProviderModels = async () => {
     if (!selectedProvider) return;
     setErrorMessage(null);
@@ -125,9 +154,24 @@ export const SettingsTab: React.FC = () => {
         apiConfig,
       );
       setProviderModels(response.models ?? []);
+      setProviderStatus("Connection successful.");
     } catch (error: any) {
       setErrorMessage(error?.message ?? "Failed to load provider models.");
+      setProviderStatus("Connection failed.");
     }
+  };
+
+  const saveProviderSettings = () => {
+    if (selectedProvider) {
+      const nextKeys = { ...providerKeys, [selectedProvider]: providerApiKey };
+      setProviderKeys(nextKeys);
+      writeStorage("openevolve_provider_keys", JSON.stringify(nextKeys));
+      writeStorage("openevolve_provider", selectedProvider);
+    }
+    writeStorage("openevolve_provider_api_key", providerApiKey);
+    writeStorage("openevolve_provider_base_url", providerBaseUrl);
+    writeStorage("openevolve_selected_model", selectedModel);
+    setStatusMessage("Provider settings saved locally.");
   };
 
   const validateParameters = async () => {
@@ -204,22 +248,27 @@ export const SettingsTab: React.FC = () => {
           {errorMessage ? <div className="text-sm text-red-500">{errorMessage}</div> : null}
           {statusMessage ? <div className="text-sm text-green-600">{statusMessage}</div> : null}
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Provider Configuration</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Provider</Label>
-                  <Select
-                    value={selectedProvider}
-                    onValueChange={(value) => {
-                      setSelectedProvider(value);
-                      setSelectedModel("");
-                      setProviderModels([]);
-                    }}
-                  >
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Provider Configuration</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>Provider</Label>
+                    <Select
+                      value={selectedProvider}
+                      onValueChange={(value) => {
+                        setSelectedProvider(value);
+                        setSelectedModel("");
+                        setProviderModels([]);
+                        setProviderApiKey(providerKeys[value] ?? "");
+                        const provider = providers.find((item) => item.id === value);
+                        if (provider?.api_base) {
+                          setProviderBaseUrl(provider.api_base);
+                        }
+                      }}
+                    >
                     <SelectTrigger>
                       <SelectValue placeholder="Select provider" />
                     </SelectTrigger>
@@ -232,27 +281,46 @@ export const SettingsTab: React.FC = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label>Provider API Key</Label>
-                  <Input
-                    value={providerApiKey}
-                    type="password"
-                    onChange={(event) => setProviderApiKey(event.target.value)}
-                  />
+                  <div className="space-y-2">
+                    <Label>Provider API Key</Label>
+                    <Input
+                      value={providerApiKey}
+                      type="password"
+                      onChange={(event) => setProviderApiKey(event.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Provider Base URL</Label>
+                    <Input
+                      value={providerBaseUrl}
+                      onChange={(event) => setProviderBaseUrl(event.target.value)}
+                      placeholder="https://api.openai.com/v1"
+                    />
+                  </div>
                 </div>
-              </div>
-              <Button variant="outline" onClick={fetchProviderModels} disabled={!selectedProvider}>
-                Fetch Models
-              </Button>
-              <div className="space-y-2">
-                <Label>Models</Label>
-                <Select
-                  value={selectedModel}
-                  onValueChange={(value) => {
-                    setSelectedModel(value);
-                    writeStorage("openevolve_selected_model", value);
-                  }}
-                >
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" onClick={fetchProviderModels} disabled={!selectedProvider}>
+                    Test Connection
+                  </Button>
+                  <Button variant="outline" onClick={fetchProviderModels} disabled={!selectedProvider}>
+                    Fetch Models
+                  </Button>
+                  <Button onClick={saveProviderSettings} disabled={!selectedProvider}>
+                    Save Provider Settings
+                  </Button>
+                </div>
+                {providerStatus ? (
+                  <div className="text-xs text-muted-foreground">{providerStatus}</div>
+                ) : null}
+                <div className="space-y-2">
+                  <Label>Models</Label>
+                  <Select
+                    value={selectedModel}
+                    onValueChange={(value) => {
+                      setSelectedModel(value);
+                      writeStorage("openevolve_selected_model", value);
+                    }}
+                  >
                   <SelectTrigger>
                     <SelectValue placeholder="Select model" />
                   </SelectTrigger>
@@ -264,13 +332,30 @@ export const SettingsTab: React.FC = () => {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Parameter Overrides</CardTitle>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Current Provider Status</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <div>
+                  Provider:{" "}
+                  <Badge variant={selectedProvider ? "default" : "secondary"}>
+                    {selectedProvider || "Not selected"}
+                  </Badge>
+                </div>
+                <div>Model: {selectedModel || "Not selected"}</div>
+                <div>Base URL: {providerBaseUrl || "Not configured"}</div>
+                <div>API Key Set: {providerApiKey ? "[OK] Yes" : "[FAIL] No"}</div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Parameter Overrides</CardTitle>
               <CardDescription>Override defaults with custom values.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">

@@ -105,6 +105,18 @@ class _NoOpStreamlit:
             self.session_state.thread_lock = threading.Lock()
         self.sidebar = self
 
+    def cache_data(self, *args, **kwargs):
+        def _decorator(func):
+            return func
+
+        return _decorator
+
+    def cache_resource(self, *args, **kwargs):
+        def _decorator(func):
+            return func
+
+        return _decorator
+
     def __getattr__(self, _name):
         def _noop(*_args, **_kwargs):
             return None
@@ -254,13 +266,23 @@ except Exception as e:
     _validation_manager = None
     logger.warning(f"Validation manager unavailable: {e}")
 
-try:
-    from openevolve_bubblelabs_api import openevolve_bubblelabs_integration as _bubblelabs_workflow_integration
-    BUBBLELABS_WORKFLOW_AVAILABLE = True
-except Exception as e:
-    BUBBLELABS_WORKFLOW_AVAILABLE = False
-    _bubblelabs_workflow_integration = None
-    logger.warning(f"BubbleLabs workflow integration unavailable: {e}")
+BUBBLELABS_WORKFLOW_AVAILABLE = False
+_bubblelabs_workflow_integration = None
+
+
+def _get_bubblelabs_workflow_integration():
+    global _bubblelabs_workflow_integration, BUBBLELABS_WORKFLOW_AVAILABLE
+    if _bubblelabs_workflow_integration is not None:
+        return _bubblelabs_workflow_integration
+    try:
+        from openevolve_bubblelabs_api import openevolve_bubblelabs_integration
+        _bubblelabs_workflow_integration = openevolve_bubblelabs_integration
+        BUBBLELABS_WORKFLOW_AVAILABLE = True
+    except Exception as e:
+        BUBBLELABS_WORKFLOW_AVAILABLE = False
+        _bubblelabs_workflow_integration = None
+        logger.warning(f"BubbleLabs workflow integration unavailable: {e}")
+    return _bubblelabs_workflow_integration
 
 
 # **ACTUAL INTEGRATION HELPER METHODS**: API Server
@@ -1234,8 +1256,16 @@ class VersionLoadRequest(BaseModel):
     version_id: str
 
 
-class ValidationRuleRequest(BaseModel):
+class ValidationRuleCreateRequest(BaseModel):
     name: str
+    max_length: Optional[int] = None
+    min_length: Optional[int] = None
+    required_keywords: Optional[List[str]] = None
+    forbidden_patterns: Optional[List[str]] = None
+    required_sections: Optional[List[str]] = None
+
+
+class ValidationRuleUpdateRequest(BaseModel):
     max_length: Optional[int] = None
     min_length: Optional[int] = None
     required_keywords: Optional[List[str]] = None
@@ -4512,7 +4542,7 @@ def get_validation_rule(rule_name: str):
 
 
 @app.post("/validation/rules", dependencies=[Depends(require_role(UserRole.USER))])
-def create_validation_rule(request: ValidationRuleRequest):
+def create_validation_rule(request: ValidationRuleCreateRequest):
     if not VALIDATION_MANAGER_AVAILABLE or _validation_manager is None:
         raise HTTPException(status_code=503, detail="Validation manager not available")
     rule_config: Dict[str, Any] = {}
@@ -4533,7 +4563,7 @@ def create_validation_rule(request: ValidationRuleRequest):
 
 
 @app.put("/validation/rules/{rule_name}", dependencies=[Depends(require_role(UserRole.USER))])
-def update_validation_rule(rule_name: str, request: ValidationRuleRequest):
+def update_validation_rule(rule_name: str, request: ValidationRuleUpdateRequest):
     if not VALIDATION_MANAGER_AVAILABLE or _validation_manager is None:
         raise HTTPException(status_code=503, detail="Validation manager not available")
     rule_config: Dict[str, Any] = {}
@@ -4588,16 +4618,18 @@ def run_compliance_check(request: ComplianceCheckRequest):
 
 @app.get("/bubblelabs/workflow-definitions", dependencies=[Depends(verify_api_key)])
 def list_bubblelabs_workflow_definitions():
-    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+    integration = _get_bubblelabs_workflow_integration()
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or integration is None:
         raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
-    return {"definitions": _bubblelabs_workflow_integration.list_workflow_definitions()}
+    return {"definitions": integration.list_workflow_definitions()}
 
 
 @app.get("/bubblelabs/workflow-definitions/{definition_id}", dependencies=[Depends(verify_api_key)])
 def get_bubblelabs_workflow_definition(definition_id: str):
-    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+    integration = _get_bubblelabs_workflow_integration()
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or integration is None:
         raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
-    definition = _bubblelabs_workflow_integration.get_workflow_definition(definition_id)
+    definition = integration.get_workflow_definition(definition_id)
     if not definition:
         raise HTTPException(status_code=404, detail="Workflow definition not found")
     return definition
@@ -4605,9 +4637,10 @@ def get_bubblelabs_workflow_definition(definition_id: str):
 
 @app.post("/bubblelabs/workflow-definitions", dependencies=[Depends(require_role(UserRole.USER))])
 def create_bubblelabs_workflow_definition(request: WorkflowDefinitionCreateRequest):
-    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+    integration = _get_bubblelabs_workflow_integration()
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or integration is None:
         raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
-    definition_id = _bubblelabs_workflow_integration.create_workflow_definition(
+    definition_id = integration.create_workflow_definition(
         name=request.name,
         description=request.description,
         workflow_type=request.workflow_type,
@@ -4618,16 +4651,18 @@ def create_bubblelabs_workflow_definition(request: WorkflowDefinitionCreateReque
 
 @app.get("/bubblelabs/workflow-instances", dependencies=[Depends(verify_api_key)])
 def list_bubblelabs_workflow_instances():
-    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+    integration = _get_bubblelabs_workflow_integration()
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or integration is None:
         raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
-    return {"instances": _bubblelabs_workflow_integration.list_workflow_instances()}
+    return {"instances": integration.list_workflow_instances()}
 
 
 @app.post("/bubblelabs/workflow-instances", dependencies=[Depends(require_role(UserRole.USER))])
 def create_bubblelabs_workflow_instance(request: WorkflowInstanceCreateRequest):
-    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+    integration = _get_bubblelabs_workflow_integration()
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or integration is None:
         raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
-    instance_id = _bubblelabs_workflow_integration.create_workflow_instance(
+    instance_id = integration.create_workflow_instance(
         definition_id=request.definition_id,
         instance_name=request.instance_name,
         inputs=request.inputs,
@@ -4637,12 +4672,13 @@ def create_bubblelabs_workflow_instance(request: WorkflowInstanceCreateRequest):
 
 @app.get("/bubblelabs/workflow-instances/{instance_id}", dependencies=[Depends(verify_api_key)])
 def get_bubblelabs_workflow_instance(instance_id: str):
-    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+    integration = _get_bubblelabs_workflow_integration()
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or integration is None:
         raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
-    status_info = _bubblelabs_workflow_integration.get_workflow_instance_status(instance_id)
+    status_info = integration.get_workflow_instance_status(instance_id)
     if "error" in status_info:
         raise HTTPException(status_code=404, detail=status_info["error"])
-    workflow_state = _bubblelabs_workflow_integration.workflow_instances.get(instance_id)
+    workflow_state = integration.workflow_instances.get(instance_id)
     params: Dict[str, Any] = {}
     if workflow_state:
         for attr_name in dir(workflow_state):
@@ -4658,51 +4694,58 @@ def get_bubblelabs_workflow_instance(instance_id: str):
 
 @app.post("/bubblelabs/workflow-instances/{instance_id}/start", dependencies=[Depends(require_role(UserRole.USER))])
 def start_bubblelabs_workflow_instance(instance_id: str):
-    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+    integration = _get_bubblelabs_workflow_integration()
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or integration is None:
         raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
-    return _bubblelabs_workflow_integration.start_workflow_instance(instance_id)
+    return integration.start_workflow_instance(instance_id)
 
 
 @app.post("/bubblelabs/workflow-instances/{instance_id}/pause", dependencies=[Depends(require_role(UserRole.USER))])
 def pause_bubblelabs_workflow_instance(instance_id: str):
-    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+    integration = _get_bubblelabs_workflow_integration()
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or integration is None:
         raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
-    return _bubblelabs_workflow_integration.pause_workflow_instance(instance_id)
+    return integration.pause_workflow_instance(instance_id)
 
 
 @app.post("/bubblelabs/workflow-instances/{instance_id}/resume", dependencies=[Depends(require_role(UserRole.USER))])
 def resume_bubblelabs_workflow_instance(instance_id: str):
-    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+    integration = _get_bubblelabs_workflow_integration()
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or integration is None:
         raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
-    return _bubblelabs_workflow_integration.resume_workflow_instance(instance_id)
+    return integration.resume_workflow_instance(instance_id)
 
 
 @app.post("/bubblelabs/workflow-instances/{instance_id}/stop", dependencies=[Depends(require_role(UserRole.USER))])
 def stop_bubblelabs_workflow_instance(instance_id: str):
-    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+    integration = _get_bubblelabs_workflow_integration()
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or integration is None:
         raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
-    return _bubblelabs_workflow_integration.stop_workflow_instance(instance_id)
+    return integration.stop_workflow_instance(instance_id)
 
 
 @app.post("/bubblelabs/workflow-instances/{instance_id}/cancel", dependencies=[Depends(require_role(UserRole.USER))])
 def cancel_bubblelabs_workflow_instance(instance_id: str):
-    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+    integration = _get_bubblelabs_workflow_integration()
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or integration is None:
         raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
-    return _bubblelabs_workflow_integration.cancel_workflow_instance(instance_id)
+    return integration.cancel_workflow_instance(instance_id)
 
 
 @app.post("/bubblelabs/workflow-instances/{instance_id}/restart", dependencies=[Depends(require_role(UserRole.USER))])
 def restart_bubblelabs_workflow_instance(instance_id: str):
-    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+    integration = _get_bubblelabs_workflow_integration()
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or integration is None:
         raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
-    return _bubblelabs_workflow_integration.restart_workflow_instance(instance_id)
+    return integration.restart_workflow_instance(instance_id)
 
 
 @app.delete("/bubblelabs/workflow-instances/{instance_id}", dependencies=[Depends(require_role(UserRole.USER))])
 def delete_bubblelabs_workflow_instance(instance_id: str):
-    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+    integration = _get_bubblelabs_workflow_integration()
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or integration is None:
         raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
-    return _bubblelabs_workflow_integration.delete_workflow_instance(instance_id)
+    return integration.delete_workflow_instance(instance_id)
 
 
 @app.get("/parameters/schema", dependencies=[Depends(verify_api_key)])

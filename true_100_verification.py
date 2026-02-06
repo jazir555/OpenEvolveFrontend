@@ -17,12 +17,26 @@ import subprocess
 from pathlib import Path
 from typing import Dict, List, Tuple, Any
 
+# CAV-NLP integration for enhanced verification
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 class TRUE100Verifier:
     """Verifies all 4 systems are at TRUE 100%."""
     
-    def __init__(self):
+    def __init__(self, use_cav_nlp: bool = True):
         self.results = {}
         self.errors = []
+        
+        # CAV-NLP enhanced verification
+        self.use_cav_nlp = use_cav_nlp and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            self.enhanced_solver = EnhancedZ3Solver()
+            self.math_service = UnifiedMathService()
         
     async def verify_all(self) -> Dict[str, Any]:
         """Verify all 4 systems."""
@@ -37,6 +51,11 @@ class TRUE100Verifier:
         # System 2: Z3 Prover
         print("\n[2/4] Verifying Z3 Prover (75% -> 100%)...")
         self.results['z3_prover'] = await self._verify_z3_prover()
+        
+        # CAV-NLP Enhanced Verification
+        if self.use_cav_nlp:
+            print("\n[2.5/4] Verifying CAV-NLP Integration...")
+            self.results['cav_nlp'] = await self._verify_cav_nlp()
         
         # System 3: CrewAI Research
         print("\n[3/4] Verifying CrewAI Research (50% -> 100%)...")
@@ -164,6 +183,61 @@ class TRUE100Verifier:
         
         return checks
     
+    async def _verify_cav_nlp(self) -> Dict[str, Any]:
+        """Verify CAV-NLP integration for enhanced verification."""
+        checks = {}
+        
+        try:
+            # Check CAV-NLP availability
+            checks['cav_nlp_available'] = CAV_NLP_AVAILABLE
+            
+            if CAV_NLP_AVAILABLE:
+                # Check EnhancedZ3Solver
+                checks['enhanced_solver'] = hasattr(self.enhanced_solver, 'solve')
+                checks['math_service'] = hasattr(self.math_service, 'verify')
+                
+                # Test hybrid verification
+                test_constraints = ["x > 0", "y > x", "z = x + y"]
+                try:
+                    cav_result = await self.math_service.verify(test_constraints)
+                    checks['hybrid_verification'] = isinstance(cav_result, dict)
+                    checks['verification_response'] = cav_result.get('verified', False) if isinstance(cav_result, dict) else False
+                except Exception as e:
+                    checks['hybrid_verification'] = False
+                    checks['verification_error'] = str(e)
+            else:
+                checks['enhanced_solver'] = False
+                checks['math_service'] = False
+                checks['hybrid_verification'] = False
+                
+        except Exception as e:
+            checks['error'] = str(e)
+        
+        # Calculate percentage
+        total_checks = 5 if CAV_NLP_AVAILABLE else 1
+        passed = sum([
+            checks.get('cav_nlp_available', False),
+            checks.get('enhanced_solver', False),
+            checks.get('math_service', False),
+            checks.get('hybrid_verification', False),
+            checks.get('verification_response', False)
+        ])
+        percentage = (passed / total_checks) * 100 if total_checks > 0 else 0
+        
+        checks['percentage'] = percentage
+        checks['passed'] = passed
+        checks['total'] = total_checks
+        
+        print(f"  - CAV-NLP Available: {'PASS' if checks.get('cav_nlp_available') else 'FAIL'}")
+        if CAV_NLP_AVAILABLE:
+            print(f"  - Enhanced Solver: {'PASS' if checks.get('enhanced_solver') else 'FAIL'}")
+            print(f"  - Math Service: {'PASS' if checks.get('math_service') else 'FAIL'}")
+            print(f"  - Hybrid Verification: {'PASS' if checks.get('hybrid_verification') else 'FAIL'}")
+            print(f"  - Verification Response: {'PASS' if checks.get('verification_response') else 'FAIL'}")
+        print(f"  Status: {percentage:.0f}% ({passed}/{total_checks})")
+        
+        return checks
+    
     async def _verify_crewai_research(self) -> Dict[str, Any]:
         """Verify CrewAI Research is at TRUE 100%."""
         checks = {}
@@ -286,6 +360,12 @@ class TRUE100Verifier:
                     if value is False and not key.endswith('_error'):
                         print(f"  - Missing: {key}")
         
+        # Print CAV-NLP status
+        if self.use_cav_nlp:
+            print("\nCAV-NLP ENHANCED VERIFICATION: ENABLED")
+        else:
+            print("\nCAV-NLP ENHANCED VERIFICATION: NOT AVAILABLE")
+        
         print("\n" + "="*70)
         if all_passed:
             print("ALL SYSTEMS AT TRUE 100%! PASS")
@@ -295,7 +375,14 @@ class TRUE100Verifier:
 
 async def main():
     """Main entry point."""
-    verifier = TRUE100Verifier()
+    import argparse
+    parser = argparse.ArgumentParser(description='TRUE 100% Verification')
+    parser.add_argument('--use-cav-nlp', action='store_true', default=True, help='Enable CAV-NLP verification')
+    parser.add_argument('--no-cav-nlp', action='store_true', help='Disable CAV-NLP verification')
+    args = parser.parse_args()
+    
+    use_cav_nlp = args.use_cav_nlp and not args.no_cav_nlp
+    verifier = TRUE100Verifier(use_cav_nlp=use_cav_nlp)
     await verifier.verify_all()
 
 if __name__ == "__main__":

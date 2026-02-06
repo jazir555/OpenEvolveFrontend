@@ -37,6 +37,14 @@ except ImportError:
     SOLVER_POOL_AVAILABLE = False
     logger.debug("Z3 solver pool not available for metrics")
 
+# CAV-NLP metrics support
+try:
+    from openevolve.cav_nlp_integration import Z3LeanAideBridge
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logger.debug("CAV-NLP not available for metrics")
+
 
 # =============================================================================
 # Metric Types
@@ -99,6 +107,11 @@ class OperationMetrics:
     
     # Detailed timing
     times: deque = field(default_factory=lambda: deque(maxlen=100))
+    
+    # CAV-NLP specific metrics
+    cav_nlp_count: int = 0
+    cav_nlp_success_count: int = 0
+    cav_nlp_total_time: float = 0.0
     
     def add_execution(self, duration: float, success: bool = True, timeout: bool = False):
         """Record operation execution."""
@@ -176,6 +189,8 @@ class PerformanceSnapshot:
     queue_depth: int
     memory_usage_mb: float
     cpu_percent: float
+    cav_nlp_operations: int = 0
+    cav_nlp_success_rate: float = 0.0
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -187,7 +202,11 @@ class PerformanceSnapshot:
             "active_solvers": self.active_solvers,
             "queue_depth": self.queue_depth,
             "memory_mb": f"{self.memory_usage_mb:.2f}",
-            "cpu_percent": f"{self.cpu_percent:.1f}%"
+            "cpu_percent": f"{self.cpu_percent:.1f}%",
+            "cav_nlp": {
+                "operations": self.cav_nlp_operations,
+                "success_rate": f"{self.cav_nlp_success_rate:.1%}"
+            }
         }
 
 
@@ -205,6 +224,7 @@ class Z3PerformanceMonitor:
     - Automatic alerting
     - Performance trending
     - Resource usage tracking
+    - CAV-NLP operation monitoring
     """
     
     def __init__(self, history_window: int = 3600):
@@ -214,6 +234,11 @@ class Z3PerformanceMonitor:
         self._metrics_history: deque = deque(maxlen=10000)
         self._alerts: List[Alert] = []
         self._snapshots: deque = deque(maxlen=1000)
+        
+        # CAV-NLP specific metrics storage
+        self._cav_nlp_metrics: List[Dict[str, Any]] = []
+        self._cav_nlp_operation_count: int = 0
+        self._cav_nlp_success_count: int = 0
         
         self._lock = threading.RLock()
         self._running = False
@@ -226,7 +251,8 @@ class Z3PerformanceMonitor:
             "error_rate": (0.1, Severity.WARNING),
             "error_rate_critical": (0.25, Severity.ERROR),
             "memory_mb": (1024, Severity.WARNING),
-            "queue_depth": (10, Severity.WARNING)
+            "queue_depth": (10, Severity.WARNING),
+            "cav_nlp_time": (5.0, Severity.WARNING)  # CAV-NLP formalization timeout warning
         }
         
         # Callbacks
@@ -276,6 +302,96 @@ class Z3PerformanceMonitor:
         
         with self._lock:
             self._metrics_history.append(metric)
+    
+    def record_cav_nlp_metrics(
+        self,
+        operation: str,
+        duration: float,
+        success: bool,
+        formalization_quality: Optional[float] = None,
+        tags: Optional[Dict[str, str]] = None
+    ):
+        """
+        Record CAV-NLP operation metrics.
+        
+        Args:
+            operation: Type of CAV-NLP operation (e.g., 'formalize', 'verify', 'translate')
+            duration: Time taken for the operation in seconds
+            success: Whether the operation succeeded
+            formalization_quality: Optional quality score (0-1)
+            tags: Optional tags for categorization
+        """
+        with self._lock:
+            metric_entry = {
+                "operation": operation,
+                "duration": duration,
+                "success": success,
+                "timestamp": time.time(),
+                "tags": tags or {}
+            }
+            
+            if formalization_quality is not None:
+                metric_entry["formalization_quality"] = formalization_quality
+            
+            self._cav_nlp_metrics.append(metric_entry)
+            self._cav_nlp_operation_count += 1
+            
+            if success:
+                self._cav_nlp_success_count += 1
+            
+            # Keep only last 1000 entries
+            if len(self._cav_nlp_metrics) > 1000:
+                self._cav_nlp_metrics = self._cav_nlp_metrics[-1000:]
+            
+            # Check thresholds
+            if duration > self._thresholds.get("cav_nlp_time", (5.0, Severity.WARNING))[0]:
+                self._create_alert(
+                    f"CAV-NLP {operation} took {duration:.2f}s",
+                    "cav_nlp_time",
+                    self._thresholds["cav_nlp_time"][0],
+                    duration,
+                    Severity.WARNING
+                )
+            
+            logger.debug(f"Recorded CAV-NLP {operation}: {duration:.3f}s, success={success}")
+    
+    def get_cav_nlp_summary(self) -> Dict[str, Any]:
+        """Get summary of CAV-NLP operation metrics."""
+        with self._lock:
+            if not self._cav_nlp_metrics:
+                return {
+                    "total_operations": 0,
+                    "success_rate": 0.0,
+                    "avg_duration": 0.0,
+                    "operations_by_type": {}
+                }
+            
+            total_ops = len(self._cav_nlp_metrics)
+            successful_ops = sum(1 for m in self._cav_nlp_metrics if m["success"])
+            avg_duration = statistics.mean(m["duration"] for m in self._cav_nlp_metrics)
+            
+            # Group by operation type
+            ops_by_type: Dict[str, Dict[str, Any]] = {}
+            for m in self._cav_nlp_metrics:
+                op_type = m["operation"]
+                if op_type not in ops_by_type:
+                    ops_by_type[op_type] = {"count": 0, "success": 0, "total_time": 0.0}
+                ops_by_type[op_type]["count"] += 1
+                if m["success"]:
+                    ops_by_type[op_type]["success"] += 1
+                ops_by_type[op_type]["total_time"] += m["duration"]
+            
+            # Calculate success rates for each type
+            for op_type, data in ops_by_type.items():
+                data["success_rate"] = data["success"] / data["count"] if data["count"] > 0 else 0.0
+                data["avg_time"] = data["total_time"] / data["count"] if data["count"] > 0 else 0.0
+            
+            return {
+                "total_operations": total_ops,
+                "success_rate": successful_ops / total_ops if total_ops > 0 else 0.0,
+                "avg_duration": avg_duration,
+                "operations_by_type": ops_by_type
+            }
     
     # =====================================================================
     # Threshold Checking and Alerting
@@ -433,13 +549,20 @@ class Z3PerformanceMonitor:
                 logger.debug(f"Failed to get solver pool metrics: {e}")
         
         with self._lock:
+            # Calculate CAV-NLP success rate
+            cav_nlp_success_rate = 0.0
+            if self._cav_nlp_operation_count > 0:
+                cav_nlp_success_rate = self._cav_nlp_success_count / self._cav_nlp_operation_count
+            
             return PerformanceSnapshot(
                 timestamp=time.time(),
                 operations=dict(self._operation_metrics),
                 active_solvers=active_solvers,  # Real metrics from solver pool
                 queue_depth=queue_depth,        # Real metrics from solver pool
                 memory_usage_mb=memory_mb,
-                cpu_percent=cpu_percent
+                cpu_percent=cpu_percent,
+                cav_nlp_operations=self._cav_nlp_operation_count,
+                cav_nlp_success_rate=cav_nlp_success_rate
             )
     
     # =====================================================================
@@ -527,6 +650,9 @@ class Z3PerformanceMonitor:
                 s.to_dict() for s in list(self._snapshots)[-10:]
             ]
             
+            # CAV-NLP summary
+            cav_nlp_summary = self.get_cav_nlp_summary()
+            
             return {
                 "timestamp": datetime.utcnow().isoformat(),
                 "summary": {
@@ -538,7 +664,8 @@ class Z3PerformanceMonitor:
                 "operations": self.get_operation_summary(),
                 "bottlenecks": bottlenecks,
                 "recent_alerts": recent_alerts,
-                "recent_snapshots": recent_snapshots
+                "recent_snapshots": recent_snapshots,
+                "cav_nlp": cav_nlp_summary
             }
     
     def _calculate_overall_success_rate(self) -> float:

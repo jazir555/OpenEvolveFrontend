@@ -10,6 +10,9 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 
+# Define the credit rating order (higher index = worse rating)
+_CREDIT_RATING_ORDER = ["AAA", "AA", "A", "BBB", "BB", "B", "CCC", "CC", "C", "D"]
+
 
 class CreditRating(Enum):
     """Credit rating scale with ordering support"""
@@ -24,30 +27,32 @@ class CreditRating(Enum):
     C = "C"
     D = "D"
 
+    def _get_order_index(self):
+        """Get the order index for this rating"""
+        return _CREDIT_RATING_ORDER.index(self.name)
+
     def __lt__(self, other):
-        """Support comparison for credit quality (AAA is best/worst - higher index = better)"""
+        """Support comparison for credit quality (higher index = worse)"""
         if self.__class__ is not other.__class__:
             return NotImplemented
-        # Order enum members by declaration order (AAA is first)
-        # For credit quality: BBB (index 3) > AAA (index 0)
-        # This way min() returns the WORST rating as expected
-        order = list(CreditRating)
-        return order.index(self) > order.index(other)
+        # For credit quality: worse ratings (higher index) are "less than"
+        return self._get_order_index() > other._get_order_index()
 
     def __le__(self, other):
         if self.__class__ is not other.__class__:
             return NotImplemented
-        return self == other or self < other
+        return self._get_order_index() >= other._get_order_index()
 
     def __gt__(self, other):
         if self.__class__ is not other.__class__:
             return NotImplemented
-        return not self <= other
+        # Better ratings (lower index) are "greater than"
+        return self._get_order_index() < other._get_order_index()
 
     def __ge__(self, other):
         if self.__class__ is not other.__class__:
             return NotImplemented
-        return not self < other
+        return self._get_order_index() <= other._get_order_index()
 
     @classmethod
     def from_string(cls, rating: str) -> 'CreditRating':

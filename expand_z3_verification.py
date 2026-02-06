@@ -6,12 +6,14 @@ Applies Z3 formal verification to critical decision points across:
 - Decomposition validity
 - Knowledge graph consistency
 - Workflow state verification
+- CAV-NLP enhanced verification
 
 This ensures mathematical correctness and formal guarantees for
 critical system operations.
 """
 
 import logging
+import time
 from typing import Any, Dict, List, Optional, Tuple
 from datetime import datetime
 
@@ -26,6 +28,16 @@ from verification_engine import VerificationEngine
 
 logger = logging.getLogger(__name__)
 
+# CAV-NLP Integration
+try:
+    from openevolve.cav_nlp_integration import Z3LeanAideBridge
+    from openevolve.cav_nlp_integration.verification import Z3LeanVerificationBridge
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    Z3LeanAideBridge = None
+    Z3LeanVerificationBridge = None
+
 
 class ExpandedZ3Verification:
     """
@@ -36,10 +48,16 @@ class ExpandedZ3Verification:
     - Decision validation
     - State consistency
     - Invariant checking
+    - CAV-NLP enhanced verification
     """
 
-    def __init__(self):
-        """Initialize expanded Z3 verification."""
+    def __init__(self, use_cav_nlp: bool = True):
+        """
+        Initialize expanded Z3 verification.
+        
+        Args:
+            use_cav_nlp: Enable CAV-NLP enhancement (default: True)
+        """
         self.verification_engine = VerificationEngine()
         self.verification_cache: Dict[str, Any] = {}
         self.stats = {
@@ -47,7 +65,22 @@ class ExpandedZ3Verification:
             'verifications_passed': 0,
             'verifications_failed': 0,
             'verifications_unknown': 0,
+            'cav_nlp_enhanced': 0,
         }
+        
+        # CAV-NLP integration
+        self.use_cav_nlp = use_cav_nlp and CAV_NLP_AVAILABLE
+        self.cav_nlp_bridge = None
+        self.cav_nlp_verifier = None
+        
+        if self.use_cav_nlp:
+            try:
+                self.cav_nlp_bridge = Z3LeanAideBridge()
+                self.cav_nlp_verifier = Z3LeanVerificationBridge()
+                logger.info("CAV-NLP verification enhancement enabled")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP for verification: {e}")
+                self.use_cav_nlp = False
 
     def verify_roma_decision(
         self,
@@ -392,6 +425,101 @@ class ExpandedZ3Verification:
                 'message': f'Verification error: {str(e)}'
             }
 
+    def verify_with_cav_nlp(
+        self,
+        statement: str,
+        verification_type: str = "auto"
+    ) -> Dict[str, Any]:
+        """
+        Verify a statement using CAV-NLP enhancement.
+        
+        Automatically formalizes natural language or informal mathematical
+        statements before verification.
+        
+        Args:
+            statement: The statement to verify (can be natural language)
+            verification_type: Type of verification ('auto', 'theorem', 'constraint')
+            
+        Returns:
+            Verification result with formalization details
+        """
+        if not self.use_cav_nlp:
+            return {
+                'verified': False,
+                'status': 'CAV_NLP_UNAVAILABLE',
+                'message': 'CAV-NLP not available for verification'
+            }
+        
+        start_time = time.time()
+        self.stats['verifications_performed'] += 1
+        
+        try:
+            logger.info(f"CAV-NLP: Formalizing and verifying statement")
+            
+            # Step 1: Formalize the statement
+            formalized = self.cav_nlp_bridge.formalize_text(statement)
+            
+            if not formalized or not hasattr(formalized, 'code'):
+                return {
+                    'verified': False,
+                    'status': 'FORMALIZATION_FAILED',
+                    'message': 'Failed to formalize statement',
+                    'statement': statement[:100]
+                }
+            
+            formalization_time = time.time() - start_time
+            
+            # Step 2: Verify using the appropriate method
+            if verification_type == 'theorem' or verification_type == 'auto':
+                # Use hybrid Z3-Lean verification
+                result = self.cav_nlp_verifier.hybrid_verify(
+                    formalized.code,
+                    original_statement=statement
+                )
+                
+                # Update stats
+                self.stats['cav_nlp_enhanced'] += 1
+                
+                # Parse result
+                if result and hasattr(result, 'verified'):
+                    if result.verified:
+                        self.stats['verifications_passed'] += 1
+                    else:
+                        self.stats['verifications_failed'] += 1
+                    
+                    return {
+                        'verified': result.verified,
+                        'status': 'VERIFIED' if result.verified else 'NOT_VERIFIED',
+                        'message': result.message if hasattr(result, 'message') else 'Verification complete',
+                        'formalized_code': formalized.code,
+                        'formalization_time': formalization_time,
+                        'total_time': time.time() - start_time,
+                        'verification_time': getattr(result, 'verification_time', 0.0),
+                        'confidence': getattr(result, 'confidence', 0.0),
+                        'verification_time': datetime.now().isoformat()
+                    }
+            
+            # Default: return formalized but not verified
+            return {
+                'verified': False,
+                'status': 'FORMALIZED_ONLY',
+                'message': 'Statement formalized but verification not completed',
+                'formalized_code': formalized.code,
+                'formalization_time': formalization_time,
+                'total_time': time.time() - start_time,
+                'verification_time': datetime.now().isoformat()
+            }
+            
+        except Exception as e:
+            logger.error(f"CAV-NLP verification failed: {e}")
+            self.stats['verifications_failed'] += 1
+            return {
+                'verified': False,
+                'status': 'ERROR',
+                'message': f'CAV-NLP verification error: {str(e)}',
+                'verification_time': datetime.now().isoformat()
+            }
+    
     def get_stats(self) -> Dict[str, int]:
         """Get verification statistics."""
         return self.stats.copy()
@@ -403,6 +531,7 @@ class ExpandedZ3Verification:
             'verifications_passed': 0,
             'verifications_failed': 0,
             'verifications_unknown': 0,
+            'cav_nlp_enhanced': 0,
         }
 
 

@@ -103,6 +103,15 @@ SECURITY_PATTERNS = {
         "security_framework",
         "SECURITY_AVAILABLE",
         "Security framework"
+    ],
+    "cav_nlp": [
+        "cav_nlp",
+        "CAV_NLP",
+        "CAV-NLP",
+        "Z3LeanAideBridge",
+        "formalize_text",
+        "MathematicalTextParser",
+        "CAV_NLP_AVAILABLE"
     ]
 }
 

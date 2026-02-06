@@ -7,6 +7,7 @@ Connects Z3 SMT solver and LeanAIDE theorem prover knowledge bases:
 - Hybrid solving strategies
 - Translation between SMT-LIB and Lean
 - Combined verification workflows
+- CAV-NLP integration for natural language formalization
 
 Author: OpenEvolve
 Created: 2026-01-31
@@ -20,6 +21,25 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass, field
 from enum import Enum
 from collections import defaultdict
+
+# CAV-NLP Integration
+CAV_NLP_AVAILABLE = False
+UnifiedMathService = None
+try:
+    from openevolve.unified_math_service import UnifiedMathService as _UnifiedMathService
+    UnifiedMathService = _UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    try:
+        from unified_math_service import UnifiedMathService as _UnifiedMathService
+        UnifiedMathService = _UnifiedMathService
+        CAV_NLP_AVAILABLE = True
+    except ImportError:
+        pass
+
+logger = logging.getLogger(__name__)
+if CAV_NLP_AVAILABLE:
+    logger.info("CAV-NLP UnifiedMathService available for unified math knowledge bridge")
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -271,19 +291,33 @@ class UnifiedMathKnowledgeBridge:
     - Hybrid solving workflows
     - Optimal solver selection
     - Knowledge transfer between systems
+    - CAV-NLP natural language formalization
     """
     
     def __init__(
         self,
         z3_integration: Optional[Any] = None,
-        leanaide_integration: Optional[Any] = None
+        leanaide_integration: Optional[Any] = None,
+        config: Optional[Dict[str, Any]] = None
     ):
+        self.config = config or {}
         self.problem_classifier = ProblemClassifier()
         self.knowledge_transfer = CrossSystemKnowledgeTransfer()
         
         # System integrations
         self.z3_integration = z3_integration
         self.leanaide_integration = leanaide_integration
+        
+        # CAV-NLP Integration
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True)
+        self.math_service = None
+        if self.use_cav_nlp and CAV_NLP_AVAILABLE and UnifiedMathService:
+            try:
+                self.math_service = UnifiedMathService()
+                logger.info("CAV-NLP math service initialized for unified bridge")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP math service: {e}")
+                self.use_cav_nlp = False
         
         # Knowledge bases
         self.unified_patterns: Dict[str, UnifiedKnowledgePattern] = {}
@@ -295,7 +329,10 @@ class UnifiedMathKnowledgeBridge:
             "z3_successes": 0,
             "leanaide_successes": 0,
             "hybrid_successes": 0,
-            "knowledge_transfers": 0
+            "knowledge_transfers": 0,
+            "cav_nlp_formalizations": 0,
+            "cav_nlp_verifications": 0,
+            "cav_nlp_exports": 0
         }
         
         logger.info("UnifiedMathKnowledgeBridge initialized")
@@ -541,6 +578,325 @@ class UnifiedMathKnowledgeBridge:
             summary["leanaide_knowledge"] = self.leanaide_integration.get_knowledge_summary()
         
         return summary
+    
+    # ========================================================================
+    # CAV-NLP Integration Methods
+    # ========================================================================
+    
+    async def formalize_nl_problem(self, natural_language: str, domain: str = "general") -> UnifiedMathProblem:
+        """
+        Formalize natural language problem to unified representation.
+        
+        Args:
+            natural_language: Natural language problem description
+            domain: Problem domain
+            
+        Returns:
+            UnifiedMathProblem with formalization
+        """
+        problem_id = f"nl_problem_{datetime.utcnow().strftime('%Y%m%d_%H%M%S_%f')}"
+        
+        problem = UnifiedMathProblem(
+            problem_id=problem_id,
+            statement=natural_language,
+            classification=ProblemClassification.UNKNOWN,
+            domain=domain
+        )
+        
+        if not self.use_cav_nlp or not self.math_service:
+            logger.debug("CAV-NLP not available for NL formalization")
+            return problem
+        
+        try:
+            result = await self.math_service.formalize(natural_language, domain_hint=domain)
+            self.stats["cav_nlp_formalizations"] += 1
+            
+            # Update problem with formalization
+            problem.formalization = result.code if hasattr(result, 'code') else str(result)
+            
+            # Extract metadata
+            metadata = {
+                "confidence": result.confidence if hasattr(result, 'confidence') else 0.5,
+                "lean_code": result.lean_code if hasattr(result, 'lean_code') else None,
+                "z3_constraints": result.z3_constraints if hasattr(result, 'z3_constraints') else None,
+                "formalized_by": "cav_nlp"
+            }
+            problem.metadata.update(metadata)
+            
+            # Re-classify based on formalization
+            if metadata.get("z3_constraints") and metadata.get("lean_code"):
+                problem.classification = ProblemClassification.HYBRID
+            elif metadata.get("lean_code"):
+                problem.classification = ProblemClassification.THEOREM_PROVING
+            elif metadata.get("z3_constraints"):
+                problem.classification = ProblemClassification.CONSTRAINT_SOLVING
+            
+            logger.info({
+                "msg": "NL problem formalized with CAV-NLP",
+                "problem_id": problem_id,
+                "classification": problem.classification.value,
+                "confidence": metadata["confidence"]
+            })
+            
+        except Exception as e:
+            logger.error({
+                "msg": "CAV-NLP formalization failed",
+                "error": str(e),
+                "problem_id": problem_id
+            })
+        
+        return problem
+    
+    async def verify_with_hybrid_approach(
+        self,
+        problem: UnifiedMathProblem,
+        use_cav_nlp: bool = True
+    ) -> Dict[str, Any]:
+        """
+        Verify problem using hybrid Z3 + Lean + CAV-NLP approach.
+        
+        Args:
+            problem: UnifiedMathProblem to verify
+            use_cav_nlp: Whether to use CAV-NLP for verification
+            
+        Returns:
+            Combined verification result
+        """
+        results = {
+            "z3_verified": False,
+            "lean_verified": False,
+            "cav_nlp_verified": False,
+            "consensus": False,
+            "proofs": {},
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+        # Verify with Z3 if constraints available
+        if problem.metadata.get("z3_constraints") and self.z3_integration:
+            try:
+                z3_result = await self.z3_integration._solve_with_z3(
+                    problem.statement, 
+                    timeout=60.0
+                )
+                results["z3_verified"] = z3_result.get("success", False)
+                results["proofs"]["z3"] = z3_result.get("solution")
+            except Exception as e:
+                logger.warning(f"Z3 verification failed: {e}")
+        
+        # Verify with LeanAIDE if available
+        if problem.metadata.get("lean_code") and self.leanaide_integration:
+            try:
+                lean_result = await self._solve_with_leanaide(
+                    problem.statement,
+                    timeout=60.0
+                )
+                results["lean_verified"] = lean_result.get("success", False)
+                results["proofs"]["lean"] = lean_result.get("proof")
+            except Exception as e:
+                logger.warning(f"Lean verification failed: {e}")
+        
+        # Verify with CAV-NLP if available
+        if use_cav_nlp and self.use_cav_nlp and self.math_service:
+            try:
+                formal_code = problem.formalization or problem.metadata.get("lean_code")
+                if formal_code:
+                    cav_result = await self.math_service.verify(formal_code)
+                    results["cav_nlp_verified"] = cav_result.success if hasattr(cav_result, 'success') else False
+                    results["proofs"]["cav_nlp"] = cav_result.proof if hasattr(cav_result, 'proof') else None
+                    results["cav_nlp_confidence"] = cav_result.confidence if hasattr(cav_result, 'confidence') else 0.0
+                    self.stats["cav_nlp_verifications"] += 1
+            except Exception as e:
+                logger.warning(f"CAV-NLP verification failed: {e}")
+        
+        # Determine consensus
+        verifications = [results["z3_verified"], results["lean_verified"], results["cav_nlp_verified"]]
+        true_count = sum(verifications)
+        false_count = len(verifications) - true_count
+        
+        results["consensus"] = true_count > false_count
+        results["verification_count"] = true_count
+        
+        # Store in problem
+        problem.hybrid_result = results
+        
+        logger.info({
+            "msg": "Hybrid verification completed",
+            "problem_id": problem.problem_id,
+            "consensus": results["consensus"],
+            "verification_count": true_count
+        })
+        
+        return results
+    
+    async def canonicalize_unified_knowledge(self, knowledge: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Canonicalize knowledge to unified standard form.
+        
+        Args:
+            knowledge: Knowledge structure to canonicalize
+            
+        Returns:
+            Canonicalized knowledge
+        """
+        if not self.use_cav_nlp or not self.math_service:
+            return knowledge
+        
+        try:
+            formal_code = knowledge.get("formal_code") or knowledge.get("lean_code")
+            if not formal_code:
+                return knowledge
+            
+            result = await self.math_service.canonicalize(formal_code)
+            
+            canonicalized = knowledge.copy()
+            canonicalized.update({
+                "canonical_form": result.code if hasattr(result, 'code') else str(result),
+                "simplified": result.simplified if hasattr(result, 'simplified') else False,
+                "normalized": True,
+                "canonicalized_at": datetime.utcnow().isoformat()
+            })
+            
+            logger.info("Knowledge canonicalized with CAV-NLP")
+            return canonicalized
+            
+        except Exception as e:
+            logger.warning(f"CAV-NLP canonicalization failed: {e}")
+            return knowledge
+    
+    async def export_proof_to_lean(self, problem: UnifiedMathProblem, output_path: Optional[str] = None) -> Optional[str]:
+        """
+        Export problem proof to Lean 4 format.
+        
+        Args:
+            problem: UnifiedMathProblem with solution
+            output_path: Optional output file path
+            
+        Returns:
+            Lean code string
+        """
+        # Try CAV-NLP first
+        if self.use_cav_nlp and self.math_service:
+            try:
+                formal_code = problem.formalization or problem.metadata.get("lean_code")
+                if formal_code:
+                    result = await self.math_service.export_to_lean(formal_code)
+                    lean_code = result.lean_code if hasattr(result, 'lean_code') else str(result)
+                    
+                    # Add metadata header
+                    lean_code = f"""-- Unified Math Knowledge Bridge Export
+-- Problem ID: {problem.problem_id}
+-- Domain: {problem.domain}
+-- Classification: {problem.classification.value}
+-- Generated: {datetime.utcnow().isoformat()}
+
+import Mathlib
+
+{lean_code}
+"""
+                    
+                    if output_path:
+                        with open(output_path, 'w') as f:
+                            f.write(lean_code)
+                        logger.info(f"Proof exported to Lean: {output_path}")
+                    
+                    self.stats["cav_nlp_exports"] += 1
+                    return lean_code
+                    
+            except Exception as e:
+                logger.warning(f"CAV-NLP export failed, using fallback: {e}")
+        
+        # Fallback: generate basic Lean code
+        lean_code = self._generate_fallback_lean_export(problem)
+        if output_path and lean_code:
+            with open(output_path, 'w') as f:
+                f.write(lean_code)
+        
+        return lean_code
+    
+    def _generate_fallback_lean_export(self, problem: UnifiedMathProblem) -> str:
+        """Generate basic Lean code as fallback."""
+        lean_code = f"""-- Unified Math Knowledge Bridge Export (Fallback)
+-- Problem ID: {problem.problem_id}
+-- Domain: {problem.domain}
+-- Classification: {problem.classification.value}
+-- Generated: {datetime.utcnow().isoformat()}
+
+import Mathlib
+
+-- Problem Statement
+-- {problem.statement[:200]}...
+
+"""
+        if problem.formalization:
+            lean_code += f"\n-- Formalization:\n-- {problem.formalization[:500]}...\n"
+        
+        if problem.metadata.get("lean_code"):
+            lean_code += f"\n-- Original Lean Code:\n{problem.metadata['lean_code']}\n"
+        
+        lean_code += """
+-- Theorem placeholder
+theorem unified_knowledge_theorem : True := by
+  trivial
+"""
+        return lean_code
+    
+    async def solve_nl_problem(
+        self,
+        natural_language: str,
+        use_hybrid: bool = True,
+        timeout: float = 60.0
+    ) -> Dict[str, Any]:
+        """
+        Solve natural language problem end-to-end using CAV-NLP.
+        
+        Args:
+            natural_language: Natural language problem description
+            use_hybrid: Whether to use hybrid solving
+            timeout: Timeout in seconds
+            
+        Returns:
+            Complete solution result
+        """
+        # Step 1: Formalize
+        problem = await self.formalize_nl_problem(natural_language)
+        
+        # Step 2: Solve with appropriate system
+        if problem.classification == ProblemClassification.HYBRID and use_hybrid:
+            solution = await self.verify_with_hybrid_approach(problem)
+        elif problem.classification in [ProblemClassification.THEOREM_PROVING, ProblemClassification.INDUCTIVE_PROOF]:
+            lean_result = await self._solve_with_leanaide(natural_language, timeout)
+            solution = {"lean_verified": lean_result.get("success", False), "result": lean_result}
+        else:
+            z3_result = await self._solve_with_z3(natural_language, timeout)
+            solution = {"z3_verified": z3_result.get("success", False), "result": z3_result}
+        
+        # Step 3: Canonicalize knowledge
+        if problem.metadata:
+            canonicalized = await self.canonicalize_unified_knowledge(problem.metadata)
+            problem.metadata.update(canonicalized)
+        
+        self.problem_history.append(problem)
+        self.stats["problems_processed"] += 1
+        
+        return {
+            "problem_id": problem.problem_id,
+            "classification": problem.classification.value,
+            "formalization": problem.formalization,
+            "solution": solution,
+            "metadata": problem.metadata,
+            "success": solution.get("consensus", False) or solution.get("z3_verified", False) or solution.get("lean_verified", False)
+        }
+    
+    def get_cav_nlp_status(self) -> Dict[str, Any]:
+        """Get CAV-NLP integration status."""
+        return {
+            "available": CAV_NLP_AVAILABLE,
+            "enabled": self.use_cav_nlp,
+            "initialized": self.math_service is not None,
+            "formalizations": self.stats["cav_nlp_formalizations"],
+            "verifications": self.stats["cav_nlp_verifications"],
+            "exports": self.stats["cav_nlp_exports"]
+        }
     
     def export_unified_knowledge(self, filepath: str):
         """Export unified knowledge to file."""

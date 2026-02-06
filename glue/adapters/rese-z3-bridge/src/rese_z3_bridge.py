@@ -9,6 +9,7 @@ Bridge Features:
 3. Canonical schema transformation
 4. Performance monitoring
 5. Structured logging with correlation IDs
+6. CAV-NLP integration for enhanced formalization and hybrid verification
 
 API Methods:
 - solve_constraints(): For SCE constraint solving
@@ -16,6 +17,8 @@ API Methods:
 - verify_anomaly(): For ACI constraint checking
 - prove_theorem(): For formal verification
 - translate_to_lean4(): For Lean 4 integration
+- formalize_rese_query(): CAV-NLP enhanced query formalization
+- verify_hybrid(): Hybrid Z3 + Lean verification
 
 Following CLAUDE.md principles:
 - Law of the "Air Gap": No imports from core-projects
@@ -52,6 +55,8 @@ try:
         Z3ClientConfig,
         CircuitBreakerConfig,
         LeanAideClientConfig,
+        CAVNLPConfig,
+        CAV_NLP_AVAILABLE,
     )
     from .rese_z3_schema import (
         CanonicalSolverRequest,
@@ -93,6 +98,8 @@ except ImportError:
         Z3ClientConfig,
         CircuitBreakerConfig,
         LeanAideClientConfig,
+        CAVNLPConfig,
+        CAV_NLP_AVAILABLE,
     )
     from rese_z3_schema import (
         CanonicalSolverRequest,
@@ -214,6 +221,8 @@ class RESEZ3BridgeConfig:
             enable_cache=os.getenv("Z3_ENABLE_CACHE", "true").lower() == "true",
             cache_ttl_ms=int(os.getenv("Z3_CACHE_TTL_MS", "300000")),
             enable_monitoring=os.getenv("Z3_ENABLE_MONITORING", "true").lower() == "true",
+            use_cav_nlp=os.getenv("RESE_USE_CAV_NLP", "true").lower() == "true",
+            cav_nlp_config=CAVNLPConfig.from_env(),
         )
 
 
@@ -456,10 +465,12 @@ class RESEZ3Bridge:
             "level": "info",
             "component": "RESEZ3Bridge",
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "message": "RESE-Z3 Bridge initialized with LeanAide support",
+            "message": "RESE-Z3 Bridge initialized with LeanAide and CAV-NLP support",
             "config": asdict(self.config),
             "leanaide_enabled": self.config.leanaide_enable,
             "leanaide_bridge_available": self.z3_leanaide_bridge is not None,
+            "cav_nlp_enabled": self.config.use_cav_nlp and CAV_NLP_AVAILABLE,
+            "cav_nlp_available": CAV_NLP_AVAILABLE,
         }))
 
     # ========================================================================
@@ -830,6 +841,221 @@ class RESEZ3Bridge:
                 "error": str(e),
             }))
             raise
+
+    # ========================================================================
+    # CAV-NLP INTEGRATION METHODS
+    # ========================================================================
+
+    async def formalize_rese_query(
+        self,
+        query: str,
+        correlation_id: Optional[str] = None,
+        timeout_ms: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """
+        Formalize RESE natural language query using CAV-NLP.
+        
+        Uses the Unified Math Service to convert natural language mathematical
+        statements into formal representations suitable for Z3 or Lean.
+        
+        Args:
+            query: Natural language query to formalize
+            correlation_id: Correlation ID for tracing
+            timeout_ms: Optional timeout override
+            
+        Returns:
+            Dictionary containing:
+            - success: Whether formalization succeeded
+            - formalized_code: The formalized representation
+            - confidence: Confidence score for the formalization
+            - original_query: The original query
+            
+        Example:
+            >>> result = await bridge.formalize_rese_query(
+            ...     "For all x, if x > 0 then x + 1 > 0"
+            ... )
+            >>> print(result['formalized_code'])
+            '(forall ((x Real)) (implies (> x 0) (> (+ x 1) 0)))'
+        """
+        correlation_id = correlation_id or str(uuid.uuid4())
+        timeout_ms = timeout_ms or self.config.cav_nlp_config.timeout_ms
+        
+        metrics = self.monitor.start_operation("formalize_rese_query")
+        
+        try:
+            # Check if CAV-NLP is available
+            if not self.config.use_cav_nlp or not CAV_NLP_AVAILABLE:
+                self.monitor.record_success(metrics, cached=False, fallback=True)
+                return {
+                    "success": False,
+                    "formalized": False,
+                    "original_query": query,
+                    "formalized_code": None,
+                    "confidence": 0.0,
+                    "reason": "CAV-NLP not available (use_cav_nlp={self.config.use_cav_nlp}, available={CAV_NLP_AVAILABLE})",
+                }
+            
+            # Use CAV-NLP client for formalization
+            formalization_result = await self.client.formalize_query(query, correlation_id)
+            
+            if formalization_result.get("success"):
+                self.monitor.record_success(
+                    metrics,
+                    confidence=formalization_result.get("confidence", 0.0),
+                )
+            else:
+                self.monitor.record_failure(
+                    metrics,
+                    error=formalization_result.get("reason", "Unknown error"),
+                )
+            
+            return formalization_result
+            
+        except Exception as e:
+            self.monitor.record_failure(metrics, str(e))
+            self.logger.error(json.dumps({
+                "level": "error",
+                "component": "RESEZ3Bridge",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "message": "formalize_rese_query failed",
+                "correlation_id": correlation_id,
+                "error": str(e),
+            }))
+            return {
+                "success": False,
+                "formalized": False,
+                "original_query": query,
+                "formalized_code": None,
+                "confidence": 0.0,
+                "reason": str(e),
+            }
+
+    async def verify_hybrid(
+        self,
+        constraint: str,
+        correlation_id: Optional[str] = None,
+        timeout_ms: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """
+        Verify constraint using hybrid Z3 + Lean approach via CAV-NLP.
+        
+        Combines Z3's efficient SMT solving with Lean 4's powerful theorem proving
+        capabilities through the CAV-NLP unified math service.
+        
+        Args:
+            constraint: Constraint to verify (can be natural language or formal)
+            correlation_id: Correlation ID for tracing
+            timeout_ms: Optional timeout override
+            
+        Returns:
+            Dictionary containing:
+            - verified: Whether the constraint was verified
+            - confidence: Confidence score (0.0 to 1.0)
+            - proof: Optional proof object
+            - tactics: Optional list of tactics used
+            - z3_result: Optional Z3-specific results
+            - lean_result: Optional Lean-specific results
+            
+        Example:
+            >>> result = await bridge.verify_hybrid("forall x, x > 0 -> x + 1 > 1")
+            >>> print(result['verified'], result['confidence'])
+            True 0.95
+        """
+        correlation_id = correlation_id or str(uuid.uuid4())
+        timeout_ms = timeout_ms or self.config.cav_nlp_config.timeout_ms
+        
+        metrics = self.monitor.start_operation("verify_hybrid")
+        
+        try:
+            # Check if CAV-NLP is available
+            if not self.config.use_cav_nlp or not CAV_NLP_AVAILABLE:
+                self.monitor.record_success(metrics, fallback=True)
+                return {
+                    "verified": False,
+                    "confidence": 0.0,
+                    "reason": "CAV-NLP not available for hybrid verification",
+                    "z3_result": None,
+                    "lean_result": None,
+                }
+            
+            # First try Z3 verification
+            z3_result = None
+            try:
+                z3_response = await self._verify_with_z3(constraint, correlation_id, timeout_ms)
+                z3_result = {
+                    "status": z3_response.get("status"),
+                    "satisfied": z3_response.get("status") == "sat",
+                }
+            except Exception as z3_error:
+                self.logger.debug(json.dumps({
+                    "level": "debug",
+                    "component": "RESEZ3Bridge",
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "message": "Z3 verification in hybrid mode failed, proceeding to CAV-NLP",
+                    "correlation_id": correlation_id,
+                    "error": str(z3_error),
+                }))
+            
+            # Use CAV-NLP for hybrid verification
+            hybrid_result = await self.client.verify_hybrid(constraint, correlation_id)
+            
+            # Combine results
+            combined_confidence = hybrid_result.get("confidence", 0.0)
+            if z3_result and z3_result.get("satisfied"):
+                # Boost confidence if Z3 also verified
+                combined_confidence = min(1.0, combined_confidence + 0.1)
+            
+            self.monitor.record_success(
+                metrics,
+                verified=hybrid_result.get("verified", False),
+                confidence=combined_confidence,
+            )
+            
+            return {
+                "verified": hybrid_result.get("verified", False),
+                "confidence": combined_confidence,
+                "proof": hybrid_result.get("proof"),
+                "tactics": hybrid_result.get("tactics"),
+                "z3_result": z3_result,
+                "lean_result": {
+                    "verified": hybrid_result.get("verified", False),
+                    "confidence": hybrid_result.get("confidence", 0.0),
+                },
+                "correlation_id": correlation_id,
+            }
+            
+        except Exception as e:
+            self.monitor.record_failure(metrics, str(e))
+            self.logger.error(json.dumps({
+                "level": "error",
+                "component": "RESEZ3Bridge",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "message": "verify_hybrid failed",
+                "correlation_id": correlation_id,
+                "error": str(e),
+            }))
+            return {
+                "verified": False,
+                "confidence": 0.0,
+                "reason": str(e),
+                "correlation_id": correlation_id,
+            }
+
+    async def _verify_with_z3(
+        self,
+        constraint: str,
+        correlation_id: str,
+        timeout_ms: int,
+    ) -> Dict[str, Any]:
+        """Internal method to verify constraint with Z3."""
+        # Build a simple SMT-LIB query
+        smtlib = f"""(set-logic ALL)
+(set-option :produce-models true)
+(declare-fun x () Real)
+(assert {constraint})
+(check-sat)
+"""
+        return self.client.solve(smtlib, correlation_id, timeout_ms)
 
     # ========================================================================
     # LEANAIDE INTEGRATION METHODS

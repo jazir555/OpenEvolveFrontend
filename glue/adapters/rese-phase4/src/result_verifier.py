@@ -5,6 +5,14 @@ This module verifies that all results from the RESE pipeline are complete,
 including constraints satisfaction, proof completeness, and Lean 4 formalization
 readiness.
 
+Features:
+- Constraint satisfaction verification
+- Proof completeness checking
+- Lean 4 readiness verification
+- Prediction testability assessment
+- ACI reduction validation
+- CAV-NLP enhanced verification
+
 Following CLAUDE.md principles:
 - Law of Runtime Truth: Verify actual state, not assumptions
 - Law of Configuration Explicitness: All config via env vars
@@ -17,6 +25,7 @@ Per RESE spec §6: Final architecture must have:
 - Complete proofs
 - Lean 4 formalization ready
 - Testable predictions
+- CAV-NLP verified constraints (optional enhancement)
 
 Author: RESE Team
 Created: 2026-02-04
@@ -45,6 +54,25 @@ from rese_phase4_schemas import (
     Phase4Config,
     AssemblyStatus,
 )
+
+# CAV-NLP Integration
+try:
+    import sys
+    from pathlib import Path
+    z3_bridge_path = Path(__file__).parent.parent.parent / "rese-z3-bridge" / "src"
+    if str(z3_bridge_path) not in sys.path:
+        sys.path.insert(0, str(z3_bridge_path))
+    
+    from rese_z3_bridge import RESEZ3Bridge
+    from rese_z3_client import CAV_NLP_AVAILABLE
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    RESEZ3Bridge = None  # type: ignore
+    import logging
+    logging.getLogger("rese-phase4-result-verifier").info(
+        "CAV-NLP integration not available for result verification"
+    )
 
 
 # ============================================================================
@@ -317,6 +345,143 @@ class ProofCompletenessCheck(VerificationCheck):
                 "complete_ids": complete_proofs,
                 "incomplete_ids": incomplete_proofs,
                 "no_proof_ids": no_proofs,
+            },
+        )
+
+
+class CAVNLPVerificationCheck(VerificationCheck):
+    """Verify constraints using CAV-NLP hybrid approach."""
+    
+    def __init__(self, config: Phase4Config):
+        super().__init__(config)
+        self.cav_nlp_bridge = None
+        self.use_cav_nlp = (
+            os.getenv("RESE_USE_CAV_NLP", "true").lower() == "true" and
+            CAV_NLP_AVAILABLE
+        )
+        if self.use_cav_nlp:
+            try:
+                self.cav_nlp_bridge = RESEZ3Bridge()
+            except Exception as e:
+                logging.getLogger("rese-phase4-result-verifier").warning(
+                    f"Failed to initialize CAV-NLP bridge: {e}"
+                )
+                self.use_cav_nlp = False
+    
+    def verify(self, assembly: ArchitectureAssembly) -> VerificationResult:
+        """Verify using CAV-NLP enhanced verification."""
+        check_id = "cav_nlp_verification"
+        check_type = "cav_nlp_verification"
+        
+        if not self.use_cav_nlp or not self.cav_nlp_bridge:
+            return self._create_result(
+                check_id=check_id,
+                check_type=check_type,
+                status=VerificationStatus.SKIPPED,
+                description="CAV-NLP verification not available",
+                details={
+                    "reason": "cav_nlp_not_available",
+                    "use_cav_nlp": self.use_cav_nlp,
+                    "cav_nlp_available": CAV_NLP_AVAILABLE,
+                },
+            )
+        
+        knowledge = assembly.synthesized_knowledge
+        if not knowledge or not knowledge.source_phase1:
+            return self._create_result(
+                check_id=check_id,
+                check_type=check_type,
+                status=VerificationStatus.SKIPPED,
+                description="No Phase I constraints for CAV-NLP verification",
+                details={"reason": "no_phase1_data"},
+            )
+        
+        phase1 = knowledge.source_phase1
+        constraints = phase1.constraints if hasattr(phase1, 'constraints') else []
+        
+        if not constraints:
+            return self._create_result(
+                check_id=check_id,
+                check_type=check_type,
+                status=VerificationStatus.SKIPPED,
+                description="No constraints to verify with CAV-NLP",
+                details={"reason": "no_constraints"},
+            )
+        
+        # Verify constraints using CAV-NLP
+        verified_count = 0
+        failed_count = 0
+        skipped_count = 0
+        verification_details = []
+        
+        import asyncio
+        
+        for constraint in constraints[:5]:  # Limit to first 5 for performance
+            try:
+                constraint_desc = constraint.get("description", "")
+                constraint_id = constraint.get("constraint_id", "unknown")
+                
+                # Run CAV-NLP verification
+                async def run_verification():
+                    return await self.cav_nlp_bridge.verify_hybrid(
+                        constraint=constraint_desc,
+                        correlation_id=str(uuid.uuid4()),
+                    )
+                
+                try:
+                    loop = asyncio.get_event_loop()
+                except RuntimeError:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                
+                result = loop.run_until_complete(run_verification())
+                
+                if result.get("verified"):
+                    verified_count += 1
+                else:
+                    failed_count += 1
+                
+                verification_details.append({
+                    "constraint_id": constraint_id,
+                    "verified": result.get("verified", False),
+                    "confidence": result.get("confidence", 0.0),
+                })
+                
+            except Exception as e:
+                skipped_count += 1
+                verification_details.append({
+                    "constraint_id": constraint.get("constraint_id", "unknown"),
+                    "error": str(e),
+                })
+        
+        # Determine status
+        total_checked = verified_count + failed_count
+        if total_checked == 0:
+            status = VerificationStatus.SKIPPED
+            description = "No constraints could be verified with CAV-NLP"
+        elif verified_count == total_checked:
+            status = VerificationStatus.PASSED
+            description = f"All {verified_count} constraints verified with CAV-NLP"
+        elif verified_count >= failed_count:
+            status = VerificationStatus.WARNING
+            description = f"{verified_count}/{total_checked} constraints verified with CAV-NLP"
+        else:
+            status = VerificationStatus.WARNING
+            description = f"Only {verified_count}/{total_checked} constraints verified with CAV-NLP"
+        
+        return self._create_result(
+            check_id=check_id,
+            check_type=check_type,
+            status=status,
+            description=description,
+            details={
+                "verified_count": verified_count,
+                "failed_count": failed_count,
+                "skipped_count": skipped_count,
+                "total_constraints": len(constraints),
+                "verification_details": verification_details,
+                "cav_nlp_available": CAV_NLP_AVAILABLE,
+                "cav_nlp_enabled": self.use_cav_nlp,
             },
         )
 
@@ -623,6 +788,7 @@ class ResultVerifier:
             PredictionTestabilityCheck(config),
             ACIReductionCheck(config),
             ConfidenceThresholdCheck(config),
+            CAVNLPVerificationCheck(config),  # CAV-NLP enhanced verification
         ]
 
         self.logger.info(

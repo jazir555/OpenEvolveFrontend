@@ -5,6 +5,7 @@ Main orchestrator for the 3-tier verification system:
 - Tier 1: Z3 Fast Verification (<1 second, 0-100 constraints)
 - Tier 2: LeanAide AI-Assisted Proving (<1 minute, 100-1000 constraints)
 - Tier 3: Lean 4 Formal Verification (any time, 1000+ constraints)
+- Tier Hybrid: CAV-NLP Enhanced Verification (hybrid Z3 + Lean approach)
 
 The orchestrator:
 1. Classifies problems using ProblemClassifier
@@ -12,6 +13,7 @@ The orchestrator:
 3. Executes verification with automatic tier escalation
 4. Combines results from multiple tiers
 5. Provides unified API for all RESE phases
+6. Supports CAV-NLP hybrid verification for enhanced accuracy
 
 Following CLAUDE.md principles:
 - Law of Configuration Explicitness: All config via env vars
@@ -66,6 +68,24 @@ except ImportError:
     from problem_classifier import ProblemClassifier, ClassifierConfig
     from solver_selector import SolverSelector, SolverSelectorConfig, SelectionStrategy
 
+# Import CAV-NLP components
+try:
+    # Try importing from rese-z3-bridge
+    import sys
+    from pathlib import Path
+    z3_bridge_path = Path(__file__).parent.parent.parent / "rese-z3-bridge" / "src"
+    if str(z3_bridge_path) not in sys.path:
+        sys.path.insert(0, str(z3_bridge_path))
+    
+    from rese_z3_bridge import RESEZ3Bridge
+    from rese_z3_client import CAVNLPConfig, CAV_NLP_AVAILABLE
+    CAV_NLP_CLIENT_AVAILABLE = True
+except ImportError:
+    CAV_NLP_CLIENT_AVAILABLE = False
+    logging.getLogger("rese.verification.tiered_verifier").info(
+        "CAV-NLP integration not available for tiered verification"
+    )
+
 
 # =============================================================================
 # CONFIGURATION
@@ -96,10 +116,14 @@ class TieredVerifierConfig:
 
         # Auto-escalation configuration
         self.auto_escalate = os.getenv("AUTO_ESCALATE", "true").lower() == "true"
-        self.max_tier = int(os.getenv("MAX_TIER", "3"))  # 1, 2, or 3
+        self.max_tier = int(os.getenv("MAX_TIER", "3"))  # 1, 2, 3, or hybrid
+        
+        # CAV-NLP configuration
+        self.use_cav_nlp = os.getenv("RESE_USE_CAV_NLP", "true").lower() == "true"
+        self.cav_nlp_config = CAVNLPConfig.from_env() if CAV_NLP_CLIENT_AVAILABLE else None
 
         # Selection strategy
-        self.selection_strategy = os.getenv("SELECTION_STRATEGY", "adaptive")  # fast_first, accurate_first, parallel, adaptive
+        self.selection_strategy = os.getenv("SELECTION_STRATEGY", "adaptive")  # fast_first, accurate_first, parallel, adaptive, hybrid_first
 
         # Performance monitoring
         self.enable_monitoring = os.getenv("ENABLE_MONITORING", "true").lower() == "true"
@@ -151,6 +175,7 @@ class TieredVerifier:
         self._z3_client = None
         self._leanaide_client = None
         self._lean4_interface = None
+        self._cav_nlp_bridge = None  # CAV-NLP bridge for hybrid verification
 
         self.logger.info(json.dumps({
             "level": "info",
@@ -164,6 +189,8 @@ class TieredVerifier:
                 "auto_escalate": self.config.auto_escalate,
                 "max_tier": self.config.max_tier,
                 "selection_strategy": self.config.selection_strategy,
+                "use_cav_nlp": self.config.use_cav_nlp,
+                "cav_nlp_available": CAV_NLP_CLIENT_AVAILABLE,
             },
         }))
 
@@ -289,6 +316,7 @@ class TieredVerifier:
         constraints: Optional[List[Any]] = None,
         variables: Optional[List[Any]] = None,
         correlation_id: Optional[str] = None,
+        use_cav_nlp: bool = True,
     ) -> Union[Z3VerificationResult, LeanAideVerificationResult, Lean4VerificationResult]:
         """
         Verify with a specific tier.
@@ -299,6 +327,7 @@ class TieredVerifier:
             constraints: Optional list of constraints
             variables: Optional list of variables
             correlation_id: Optional correlation ID
+            use_cav_nlp: Whether to use CAV-NLP enhancement if available
 
         Returns:
             Tier-specific verification result
@@ -311,6 +340,7 @@ class TieredVerifier:
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "message": f"Starting verification with {tier.value}",
             "correlation_id": correlation_id,
+            "use_cav_nlp": use_cav_nlp and self.config.use_cav_nlp,
         }))
 
         if tier == VerificationTier.TIER1_Z3:
@@ -319,6 +349,9 @@ class TieredVerifier:
             return self._verify_tier2(problem, constraints, variables, correlation_id)
         elif tier == VerificationTier.TIER3_LEAN4:
             return self._verify_tier3(problem, constraints, variables, correlation_id)
+        elif tier == VerificationTier.HYBRID or str(tier).lower() == "hybrid":
+            # Use CAV-NLP hybrid verification
+            return self._verify_hybrid(problem, constraints, variables, correlation_id, use_cav_nlp)
         else:
             raise ValueError(f"Unknown tier: {tier}")
 
@@ -473,6 +506,9 @@ class TieredVerifier:
                     current_tier = VerificationTier.TIER2_LEANAIDE
                 elif current_tier == VerificationTier.TIER2_LEANAIDE:
                     current_tier = VerificationTier.TIER3_LEAN4
+                elif current_tier == VerificationTier.TIER3_LEAN4 and self.config.use_cav_nlp:
+                    # Try hybrid CAV-NLP verification as final escalation
+                    current_tier = "hybrid"
                 else:
                     # No more tiers to escalate
                     result.final_status = VerificationStatus.REFUTED
@@ -749,6 +785,128 @@ class TieredVerifier:
                 "component": "TieredVerifier",
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "message": "Tier 3 verification failed",
+                "correlation_id": correlation_id,
+                "error": str(e),
+            }))
+
+            execution_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+
+            return Lean4VerificationResult(
+                status=VerificationStatus.ERROR,
+                verification_status="errors",
+                execution_time_ms=execution_time_ms,
+                correlation_id=correlation_id,
+                errors=[str(e)],
+            )
+
+    def _verify_hybrid(
+        self,
+        problem: str,
+        constraints: Optional[List[Any]],
+        variables: Optional[List[Any]],
+        correlation_id: str,
+        use_cav_nlp: bool = True,
+    ) -> Union[Z3VerificationResult, Lean4VerificationResult]:
+        """
+        Verify using CAV-NLP hybrid approach (Z3 + Lean).
+        
+        This tier uses the CAV-NLP unified math service to combine
+        Z3's efficient SMT solving with Lean's powerful theorem proving.
+        """
+        import asyncio
+        start_time = datetime.now(timezone.utc)
+
+        self.logger.info(json.dumps({
+            "level": "info",
+            "component": "TieredVerifier",
+            "timestamp": start_time.isoformat(),
+            "message": "Starting CAV-NLP hybrid verification",
+            "correlation_id": correlation_id,
+        }))
+
+        try:
+            # Check if CAV-NLP is available
+            if not self.config.use_cav_nlp or not CAV_NLP_CLIENT_AVAILABLE or not use_cav_nlp:
+                self.logger.warning(json.dumps({
+                    "level": "warn",
+                    "component": "TieredVerifier",
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "message": "CAV-NLP not available for hybrid verification",
+                    "correlation_id": correlation_id,
+                    "reason": f"use_cav_nlp={self.config.use_cav_nlp}, available={CAV_NLP_CLIENT_AVAILABLE}, requested={use_cav_nlp}",
+                }))
+
+                execution_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+
+                return Lean4VerificationResult(
+                    status=VerificationStatus.SKIPPED,
+                    verification_status="skipped",
+                    execution_time_ms=execution_time_ms,
+                    constraints_checked=len(constraints) if constraints else 0,
+                    correlation_id=correlation_id,
+                    errors=["CAV-NLP not available for hybrid verification"],
+                )
+
+            # Initialize CAV-NLP bridge if needed
+            if self._cav_nlp_bridge is None:
+                self._cav_nlp_bridge = RESEZ3Bridge()
+
+            # Build constraint string from problem and constraints
+            constraint_str = problem
+            if constraints:
+                constraint_str += f" with constraints: {constraints}"
+
+            # Run hybrid verification
+            async def run_hybrid():
+                return await self._cav_nlp_bridge.verify_hybrid(
+                    constraint=constraint_str,
+                    correlation_id=correlation_id,
+                )
+
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            hybrid_result = loop.run_until_complete(run_hybrid())
+            loop.close()
+
+            execution_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+
+            # Determine status based on hybrid result
+            if hybrid_result.get("verified"):
+                status = VerificationStatus.VERIFIED
+                verification_status = "verified"
+            else:
+                status = VerificationStatus.REFUTED
+                verification_status = "failed"
+
+            self.logger.info(json.dumps({
+                "level": "info",
+                "component": "TieredVerifier",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "message": "CAV-NLP hybrid verification completed",
+                "correlation_id": correlation_id,
+                "verified": hybrid_result.get("verified", False),
+                "confidence": hybrid_result.get("confidence", 0.0),
+            }))
+
+            # Return as Lean4VerificationResult (closest match for hybrid)
+            return Lean4VerificationResult(
+                status=status,
+                verification_status=verification_status,
+                lean4_code=hybrid_result.get("proof"),
+                theorem_name="hybrid_verification",
+                execution_time_ms=execution_time_ms,
+                constraints_checked=len(constraints) if constraints else 0,
+                lean_version="4.x (CAV-NLP hybrid)",
+                correlation_id=correlation_id,
+                errors=[hybrid_result.get("reason")] if not hybrid_result.get("verified") else [],
+            )
+
+        except Exception as e:
+            self.logger.error(json.dumps({
+                "level": "error",
+                "component": "TieredVerifier",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "message": "CAV-NLP hybrid verification failed",
                 "correlation_id": correlation_id,
                 "error": str(e),
             }))

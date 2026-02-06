@@ -37,6 +37,16 @@ try:
 except ImportError:
     Z3_ADVANCED_AVAILABLE = False
 
+# CAV-NLP Integration
+try:
+    from openevolve.cav_nlp_integration import Z3LeanAideBridge
+    from openevolve.cav_nlp_integration.adapter import MathematicalTextParser
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    Z3LeanAideBridge = None
+    MathematicalTextParser = None
+
 
 class Z3StageType(Enum):
     """Types of Z3 workflow stages."""
@@ -57,6 +67,7 @@ class Z3StageConfig:
     constraints: List[str] = field(default_factory=list)
     objective: Optional[Dict[str, Any]] = None
     smtlib_input: Optional[str] = None
+    use_cav_nlp: bool = True  # Enable CAV-NLP enhancement
 
 
 @dataclass
@@ -90,6 +101,19 @@ class Z3WorkflowStage:
         self.solver = Z3SolverEngine(self.z3_config) if Z3_AVAILABLE and self.z3_config else None
         self.prover = Z3TheoremProver(self.z3_config) if Z3_AVAILABLE and self.z3_config else None
         self.advanced = Z3AdvancedSolver(self.z3_config) if Z3_ADVANCED_AVAILABLE and self.z3_config else None
+        
+        # CAV-NLP integration
+        self.use_cav_nlp = config.use_cav_nlp and CAV_NLP_AVAILABLE
+        self.cav_nlp_bridge = None
+        self.math_parser = None
+        if self.use_cav_nlp:
+            try:
+                self.cav_nlp_bridge = Z3LeanAideBridge()
+                self.math_parser = MathematicalTextParser()
+                logger.info("CAV-NLP integration enabled for Z3 workflow stage")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP: {e}")
+                self.use_cav_nlp = False
     
     def execute(self, context: Dict[str, Any]) -> Z3StageResult:
         """Execute the Z3 workflow stage."""
@@ -299,6 +323,79 @@ class Z3WorkflowStage:
             Z3Constraint(expr, Z3ConstraintType.BOOLEAN)
             for expr in constraint_exprs
         ]
+    
+    def _is_natural_language(self, text: str) -> bool:
+        """Check if input appears to be natural language rather than formal code."""
+        if not text or not isinstance(text, str):
+            return False
+        # Heuristics for natural language detection
+        nl_indicators = [
+            ' ',  # Contains spaces (sentences)
+            '.',  # Sentence endings
+            '?',  # Questions
+            'the ', 'a ', 'an ',  # Articles
+            'is ', 'are ', 'has ', 'have ',  # Common verbs
+        ]
+        formal_indicators = [
+            '(declare-',  # SMT-LIB declarations
+            '(assert',    # SMT-LIB assertions
+            '(check-sat)', # SMT-LIB commands
+            '(>', '(<', '(=',  # SMT-LIB operators
+        ]
+        
+        # Check for formal indicators first (strong signal)
+        for indicator in formal_indicators:
+            if indicator in text:
+                return False
+        
+        # Check for natural language indicators
+        nl_score = sum(1 for ind in nl_indicators if ind in text.lower())
+        return nl_score >= 2
+    
+    def execute_with_cav_nlp(self, stage_input: Any, context: Dict[str, Any] = None) -> Z3StageResult:
+        """
+        Execute workflow stage with CAV-NLP enhancement.
+        
+        Automatically formalizes natural language input before execution.
+        
+        Args:
+            stage_input: Input to the stage (can be natural language or formal)
+            context: Execution context
+            
+        Returns:
+            Z3StageResult with execution results
+        """
+        context = context or {}
+        
+        # Check if CAV-NLP is enabled and input is natural language
+        if self.use_cav_nlp and self._is_natural_language(str(stage_input)):
+            try:
+                logger.info("CAV-NLP: Formalizing natural language input")
+                start_time = time.time()
+                
+                # Formalize using CAV-NLP
+                formalized = self.cav_nlp_bridge.formalize_text(str(stage_input))
+                
+                if formalized and hasattr(formalized, 'code'):
+                    # Update context with formalized code
+                    context['formalized_input'] = formalized.code
+                    context['original_input'] = stage_input
+                    context['cav_nlp_time'] = time.time() - start_time
+                    
+                    logger.debug(f"CAV-NLP formalization successful in {context['cav_nlp_time']:.3f}s")
+                    
+                    # Execute with formalized input
+                    return self.execute(context)
+                else:
+                    logger.warning("CAV-NLP formalization returned empty result, using original input")
+            except Exception as e:
+                logger.error(f"CAV-NLP formalization failed: {e}")
+                # Fall through to execute with original input
+        
+        # Default: execute normally
+        if isinstance(stage_input, dict):
+            context.update(stage_input)
+        return self.execute(context or {})
 
 
 class Z3StageRegistry:

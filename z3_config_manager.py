@@ -332,6 +332,7 @@ class FeaturesConfig:
     mcp_tools: bool = True
     crewai_agents: bool = True
     knowledge_extraction: bool = True
+    cav_nlp: bool = True  # CAV-NLP integration enabled by default
     experimental: Dict[str, bool] = field(default_factory=dict)
     
     def __post_init__(self):
@@ -341,6 +342,29 @@ class FeaturesConfig:
                 "gpu_acceleration": False,
                 "quantum_optimization": False
             }
+
+
+@dataclass
+class CAVNLPConfig:
+    """CAV-NLP (Canonical Arithmetic Verification via NLP) configuration."""
+    enabled: bool = True
+    timeout: float = 30.0
+    hybrid_mode: bool = True
+    auto_formalization: bool = True
+    confidence_threshold: float = 0.7
+    max_retries: int = 2
+    enable_canonicalization: bool = True
+    enable_semantic_parsing: bool = True
+    enable_verification_bridge: bool = True
+    cache_formalizations: bool = True
+    default_language: str = "auto"  # auto, english, latex
+    
+    def __post_init__(self):
+        """Validate configuration."""
+        if self.timeout <= 0:
+            self.timeout = 30.0
+        if not (0.0 <= self.confidence_threshold <= 1.0):
+            self.confidence_threshold = 0.7
 
 
 @dataclass
@@ -357,6 +381,7 @@ class IntegrationConfig:
     logging: LoggingConfig = field(default_factory=LoggingConfig)
     database: DatabaseConfig = field(default_factory=DatabaseConfig)
     features: FeaturesConfig = field(default_factory=FeaturesConfig)
+    cav_nlp: CAVNLPConfig = field(default_factory=CAVNLPConfig)
     development: Dict[str, Any] = field(default_factory=dict)
     
     def __post_init__(self):
@@ -372,6 +397,7 @@ class IntegrationConfig:
                 "testing": {
                     "mock_z3": False,
                     "mock_leanaide": False,
+                    "mock_cav_nlp": False,
                     "test_timeout": 60.0
                 }
             }
@@ -508,6 +534,8 @@ class ConfigManager:
             config.database = DatabaseConfig(**data['database'])
         if 'features' in data:
             config.features = FeaturesConfig(**data['features'])
+        if 'cav_nlp' in data:
+            config.cav_nlp = CAVNLPConfig(**data['cav_nlp'])
         if 'development' in data:
             config.development = data['development']
         
@@ -587,6 +615,12 @@ class ConfigManager:
         if self.config.server.port < 1 or self.config.server.port > 65535:
             errors.append("server.port must be between 1 and 65535")
         
+        # Validate CAV-NLP config
+        if self.config.cav_nlp.timeout <= 0:
+            errors.append("cav_nlp.timeout must be positive")
+        if not (0.0 <= self.config.cav_nlp.confidence_threshold <= 1.0):
+            errors.append("cav_nlp.confidence_threshold must be between 0.0 and 1.0")
+        
         # Run custom validators
         for validator in self._validators:
             try:
@@ -659,6 +693,13 @@ def example_config_usage():
     # Convert to dict
     config_dict = manager.to_dict()
     print(f"Config keys: {list(config_dict.keys())}")
+    
+    # Show CAV-NLP config
+    print(f"\nCAV-NLP Configuration:")
+    print(f"  Enabled: {manager.get('cav_nlp.enabled')}")
+    print(f"  Timeout: {manager.get('cav_nlp.timeout')}s")
+    print(f"  Hybrid Mode: {manager.get('cav_nlp.hybrid_mode')}")
+    print(f"  Confidence Threshold: {manager.get('cav_nlp.confidence_threshold')}")
 
 
 if __name__ == "__main__":

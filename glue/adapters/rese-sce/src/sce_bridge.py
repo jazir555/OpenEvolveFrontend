@@ -5,6 +5,12 @@ RESE Symbolic Constraint Engine (SCE) - Python Bridge
 This module provides a Python implementation of the Symbolic Constraint Engine,
 serving as a bridge for Phase I executor to use.
 
+Features:
+- Constraint management and contradiction detection
+- Z3 and DITO optimizer integration
+- CAV-NLP enhanced constraint formalization
+- Hybrid verification support
+
 Follows CLAUDE.md Laws:
 - Law of Idempotency: All operations safe to run 100x
 - Law of Configuration Explicitness: All config via env vars
@@ -16,6 +22,7 @@ Technical Manual Reference:
 - Section 2.1: Symbolic Constraint Engine (SCE)
 - Section 3.3: Formal Logic Audit and Contradiction Detection (Φ₃)
 - Section 3.1.5: Tacit Assumption Mining (Φ₁.₅)
+- Section 4.2: CAV-NLP Integration for Constraint Formalization
 """
 
 import os
@@ -36,6 +43,11 @@ _current_dir = os.path.dirname(os.path.abspath(__file__))
 _root_dir = os.path.abspath(os.path.join(_current_dir, '..', '..', '..', '..'))
 if _root_dir not in sys.path:
     sys.path.insert(0, _root_dir)
+
+# Add rese-z3-bridge to path for CAV-NLP integration
+_z3_bridge_path = os.path.abspath(os.path.join(_current_dir, '..', '..', 'rese-z3-bridge', 'src'))
+if _z3_bridge_path not in sys.path:
+    sys.path.insert(0, _z3_bridge_path)
 
 # Z3 Integration (Law of Air Gap: Use root-level integration, not core-projects)
 try:
@@ -60,6 +72,16 @@ except ImportError:
     Z3ResultStatus = None  # type: ignore
     Z3Config = None  # type: ignore
     logging.warning("Z3 integration not available - will use naive contradiction detection")
+
+# CAV-NLP Integration for constraint formalization
+try:
+    from rese_z3_bridge import RESEZ3Bridge
+    from rese_z3_client import CAV_NLP_AVAILABLE
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    RESEZ3Bridge = None  # type: ignore
+    logging.warning("CAV-NLP integration not available - constraint formalization disabled")
 
 # DITO Integration
 try:
@@ -97,6 +119,7 @@ class SCEConfig:
     ENABLE_TACIT_ASSUMPTION_MINING: bool
     ENABLE_Z3_SCE: bool  # Enable Z3 SMT solver for contradiction detection
     ENABLE_DITO: bool  # Enable DITO optimizer
+    ENABLE_CAV_NLP: bool  # Enable CAV-NLP for constraint formalization
 
     # Z3 Configuration
     Z3_TIMEOUT_MS: int
@@ -138,6 +161,9 @@ class SCEConfig:
             ENABLE_DITO=os.getenv('RESE_DITO_ENABLED', 'true').lower() == 'true',
             DITO_ACTIVATION_STRATEGY=os.getenv('RESE_DITO_ACTIVATION_STRATEGY', 'selective_bfs'),
             DITO_ENABLE_LEAN4=os.getenv('RESE_DITO_ENABLE_LEAN4', 'false').lower() == 'true',
+            
+            # CAV-NLP Configuration
+            ENABLE_CAV_NLP=os.getenv('RESE_ENABLE_CAV_NLP', 'true').lower() == 'true',
         )
 
         # Validate configuration
@@ -152,6 +178,9 @@ class SCEConfig:
 
         if config.ENABLE_DITO and not DITO_AVAILABLE:
             logging.warning("DITO_ENABLED=true but DITO not available - falling back to Z3 or naive detection")
+        
+        if config.ENABLE_CAV_NLP and not CAV_NLP_AVAILABLE:
+            logging.warning("ENABLE_CAV_NLP=true but CAV-NLP not available - constraint formalization disabled")
 
         # Validate DITO activation strategy
         valid_strategies = ['selective_bfs', 'selective_dfs', 'minimal_subgraph', 'full']
@@ -328,6 +357,31 @@ class SymbolicConstraintEngine:
             self._initialize_dito_optimizer()
         )
 
+        # Initialize CAV-NLP bridge if enabled
+        self.cav_nlp_enabled = (
+            self.config.ENABLE_CAV_NLP and
+            CAV_NLP_AVAILABLE
+        )
+        self.cav_nlp_bridge = None
+        if self.cav_nlp_enabled:
+            try:
+                self.cav_nlp_bridge = RESEZ3Bridge()
+                self.logger.info(json.dumps({
+                    'level': 'info',
+                    'component': 'SymbolicConstraintEngine',
+                    'timestamp': datetime.now(timezone.utc).isoformat(),
+                    'message': 'CAV-NLP bridge initialized successfully',
+                }))
+            except Exception as e:
+                self.logger.warning(json.dumps({
+                    'level': 'warn',
+                    'component': 'SymbolicConstraintEngine',
+                    'timestamp': datetime.now(timezone.utc).isoformat(),
+                    'message': 'CAV-NLP bridge initialization failed',
+                    'error': str(e),
+                }))
+                self.cav_nlp_enabled = False
+
         self.logger.info(json.dumps({
             'level': 'info',
             'component': 'SymbolicConstraintEngine',
@@ -341,6 +395,8 @@ class SymbolicConstraintEngine:
             'dito_enabled': self.dito_enabled,
             'dito_available': DITO_AVAILABLE,
             'dito_strategy': self.config.DITO_ACTIVATION_STRATEGY if self.dito_enabled else None,
+            'cav_nlp_enabled': self.cav_nlp_enabled,
+            'cav_nlp_available': CAV_NLP_AVAILABLE,
         }))
 
     # ========================================================================
@@ -719,13 +775,137 @@ class SymbolicConstraintEngine:
         return None
 
     # ========================================================================
+    # CAV-NLP ENHANCED CONSTRAINT FORMALIZATION
+    # ========================================================================
+
+    async def formalize_constraint(
+        self,
+        constraint_id: str,
+        correlation_id: str,
+    ) -> Dict[str, Any]:
+        """
+        Formalize an existing constraint using CAV-NLP.
+        
+        Args:
+            constraint_id: ID of constraint to formalize
+            correlation_id: Distributed tracing correlation ID
+            
+        Returns:
+            Dictionary with formalization results
+        """
+        constraint = self.get_constraint(constraint_id)
+        if not constraint:
+            return {
+                'success': False,
+                'reason': f'Constraint {constraint_id} not found',
+            }
+        
+        if not self.cav_nlp_enabled:
+            return {
+                'success': False,
+                'reason': 'CAV-NLP not available',
+            }
+        
+        result = await self._formalize_constraint_with_cav_nlp(
+            constraint, correlation_id
+        )
+        
+        if result.get('success'):
+            constraint.formalized_in_lean4 = True
+            constraint.lean4_theorem = result.get('formalized_code')
+        
+        return result
+
+    async def verify_constraint_hybrid(
+        self,
+        constraint_id: str,
+        correlation_id: str,
+    ) -> Dict[str, Any]:
+        """
+        Verify a constraint using hybrid Z3 + Lean approach via CAV-NLP.
+        
+        Args:
+            constraint_id: ID of constraint to verify
+            correlation_id: Distributed tracing correlation ID
+            
+        Returns:
+            Dictionary with verification results
+        """
+        constraint = self.get_constraint(constraint_id)
+        if not constraint:
+            return {
+                'verified': False,
+                'confidence': 0.0,
+                'reason': f'Constraint {constraint_id} not found',
+            }
+        
+        if not self.cav_nlp_enabled or not self.cav_nlp_bridge:
+            return {
+                'verified': False,
+                'confidence': 0.0,
+                'reason': 'CAV-NLP not available for hybrid verification',
+            }
+        
+        import asyncio
+        
+        # Build constraint string
+        constraint_str = constraint.description
+        if constraint.expression:
+            constraint_str += f" ({constraint.expression})"
+        
+        # Use CAV-NLP bridge for hybrid verification
+        try:
+            verification_task = self.cav_nlp_bridge.verify_hybrid(
+                constraint=constraint_str,
+                correlation_id=correlation_id,
+            )
+            
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+            
+            result = await verification_task
+            
+            self.logger.info(json.dumps({
+                'level': 'info',
+                'component': 'SymbolicConstraintEngine',
+                'timestamp': datetime.now(timezone.utc).isoformat(),
+                'message': 'Constraint hybrid verification completed',
+                'correlation_id': correlation_id,
+                'constraint_id': constraint_id,
+                'verified': result.get('verified', False),
+                'confidence': result.get('confidence', 0.0),
+            }))
+            
+            return result
+            
+        except Exception as e:
+            self.logger.error(json.dumps({
+                'level': 'error',
+                'component': 'SymbolicConstraintEngine',
+                'timestamp': datetime.now(timezone.utc).isoformat(),
+                'message': 'Hybrid verification failed',
+                'correlation_id': correlation_id,
+                'constraint_id': constraint_id,
+                'error': str(e),
+            }))
+            return {
+                'verified': False,
+                'confidence': 0.0,
+                'reason': str(e),
+            }
+
+    # ========================================================================
     # CONSTRAINT MANAGEMENT
     # ========================================================================
 
     async def add_constraint(
         self,
         constraint: Constraint,
-        correlation_id: str
+        correlation_id: str,
+        formalize_with_cav_nlp: bool = True,
     ) -> Dict[str, bool]:
         """Add a constraint to the engine
 
@@ -734,6 +914,7 @@ class SymbolicConstraintEngine:
         Args:
             constraint: Constraint to add
             correlation_id: Distributed tracing correlation ID
+            formalize_with_cav_nlp: Whether to use CAV-NLP for constraint formalization
 
         Returns:
             Dict with 'added' and 'updated' flags
@@ -747,6 +928,7 @@ class SymbolicConstraintEngine:
             'constraint_id': constraint.constraint_id,
             'type': constraint.type.value,
             'category': constraint.category.value,
+            'formalize_with_cav_nlp': formalize_with_cav_nlp and self.cav_nlp_enabled,
         }))
 
         # Check constraint count limit
@@ -755,10 +937,77 @@ class SymbolicConstraintEngine:
                 f"Cannot add constraint: maximum limit {self.config.MAX_CONSTRAINTS} reached"
             )
 
+        # Try to formalize constraint using CAV-NLP if enabled
+        if formalize_with_cav_nlp and self.cav_nlp_enabled and constraint.description:
+            try:
+                formalized = await self._formalize_constraint_with_cav_nlp(
+                    constraint, correlation_id
+                )
+                if formalized.get('success'):
+                    constraint.formalized_in_lean4 = True
+                    constraint.lean4_theorem = formalized.get('formalized_code')
+                    self.logger.debug(json.dumps({
+                        'level': 'debug',
+                        'component': 'SymbolicConstraintEngine',
+                        'timestamp': datetime.now(timezone.utc).isoformat(),
+                        'message': 'Constraint formalized with CAV-NLP',
+                        'correlation_id': correlation_id,
+                        'constraint_id': constraint.constraint_id,
+                        'confidence': formalized.get('confidence'),
+                    }))
+            except Exception as e:
+                self.logger.warning(json.dumps({
+                    'level': 'warn',
+                    'component': 'SymbolicConstraintEngine',
+                    'timestamp': datetime.now(timezone.utc).isoformat(),
+                    'message': 'CAV-NLP formalization failed',
+                    'correlation_id': correlation_id,
+                    'constraint_id': constraint.constraint_id,
+                    'error': str(e),
+                }))
+
         exists = constraint.constraint_id in self.constraints
         self.constraints[constraint.constraint_id] = constraint
 
         return {'added': not exists, 'updated': exists}
+
+    async def _formalize_constraint_with_cav_nlp(
+        self,
+        constraint: Constraint,
+        correlation_id: str,
+    ) -> Dict[str, Any]:
+        """
+        Formalize constraint using CAV-NLP.
+        
+        Args:
+            constraint: Constraint to formalize
+            correlation_id: Distributed tracing correlation ID
+            
+        Returns:
+            Dictionary with formalization results
+        """
+        if not self.cav_nlp_enabled or not self.cav_nlp_bridge:
+            return {
+                'success': False,
+                'reason': 'CAV-NLP not available',
+            }
+        
+        import asyncio
+        
+        # Use the CAV-NLP bridge to formalize
+        formalization_task = self.cav_nlp_bridge.formalize_rese_query(
+            query=constraint.description,
+            correlation_id=correlation_id,
+        )
+        
+        # Run the async formalization
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        
+        return await formalization_task
 
     async def remove_constraint(
         self,

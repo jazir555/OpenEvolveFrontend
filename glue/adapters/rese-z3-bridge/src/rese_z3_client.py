@@ -9,6 +9,11 @@ Following CLAUDE.md principles:
 - Timeout Enforcement: All requests bounded
 - Structured Logging: JSON with correlation_id
 
+CAV-NLP Integration:
+- Natural language query formalization
+- Hybrid Z3 + Lean verification support
+- Enhanced constraint extraction
+
 Author: RESE Team
 Created: 2026-02-04
 """
@@ -24,6 +29,41 @@ from enum import Enum
 import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
+
+# =============================================================================
+# CAV-NLP INTEGRATION
+# =============================================================================
+
+try:
+    from unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logging.getLogger("rese.z3.client").info(
+        "CAV-NLP (UnifiedMathService) not available - formalization features disabled"
+    )
+
+
+@dataclass
+class CAVNLPConfig:
+    """CAV-NLP client configuration"""
+    base_url: str = "http://localhost:7654"
+    timeout_ms: int = 60000
+    enable_formalization: bool = True
+    enable_hybrid_verification: bool = True
+    confidence_threshold: float = 0.8
+    
+    @classmethod
+    def from_env(cls) -> 'CAVNLPConfig':
+        """Create configuration from environment variables"""
+        import os
+        return cls(
+            base_url=os.environ.get("CAV_NLP_BASE_URL", "http://localhost:7654"),
+            timeout_ms=int(os.environ.get("CAV_NLP_TIMEOUT_MS", "60000")),
+            enable_formalization=os.environ.get("CAV_NLP_ENABLE_FORMALIZATION", "true").lower() == "true",
+            enable_hybrid_verification=os.environ.get("CAV_NLP_ENABLE_HYBRID", "true").lower() == "true",
+            confidence_threshold=float(os.environ.get("CAV_NLP_CONFIDENCE_THRESHOLD", "0.8")),
+        )
 
 
 # =============================================================================
@@ -207,6 +247,7 @@ class Z3ClientConfig:
     max_retries: int = 3
     retry_backoff_ms: int = 1000
     circuit_breaker: CircuitBreakerConfig = field(default_factory=CircuitBreakerConfig)
+    cav_nlp: CAVNLPConfig = field(default_factory=CAVNLPConfig)
 
     @classmethod
     def from_env(cls) -> 'Z3ClientConfig':
@@ -223,6 +264,7 @@ class Z3ClientConfig:
             timeout_ms=timeout_ms,
             max_retries=max_retries,
             retry_backoff_ms=retry_backoff_ms,
+            cav_nlp=CAVNLPConfig.from_env(),
         )
 
 
@@ -246,6 +288,7 @@ class Z3Client:
     - Request timeout enforcement
     - Structured logging with correlation_id
     - Connection pooling
+    - CAV-NLP integration for query formalization
 
     Law of Runtime Truth: Execute actual HTTP calls to Z3
     Law of Timeout: All requests bounded by timeout
@@ -264,6 +307,29 @@ class Z3Client:
         # Setup HTTP session with retry
         self.session = self._create_session()
 
+        # Initialize CAV-NLP client if enabled
+        self.cav_nlp_client = None
+        self.use_cav_nlp = config.cav_nlp.enable_formalization and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            try:
+                self.cav_nlp_client = UnifiedMathService()
+                self.logger.info(json.dumps({
+                    "level": "info",
+                    "component": "Z3Client",
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "message": "CAV-NLP client initialized",
+                    "base_url": config.cav_nlp.base_url,
+                }))
+            except Exception as e:
+                self.logger.warning(json.dumps({
+                    "level": "warn",
+                    "component": "Z3Client",
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "message": "Failed to initialize CAV-NLP client",
+                    "error": str(e),
+                }))
+                self.use_cav_nlp = False
+
         self.logger.info(json.dumps({
             "level": "info",
             "component": "Z3Client",
@@ -274,6 +340,7 @@ class Z3Client:
                 "timeout_ms": config.timeout_ms,
                 "max_retries": config.max_retries,
             },
+            "cav_nlp_enabled": self.use_cav_nlp,
         }))
 
     def _create_session(self) -> requests.Session:
@@ -457,6 +524,119 @@ class Z3Client:
                 "max_retries": self.config.max_retries,
             },
         }
+
+    async def formalize_query(self, query: str, correlation_id: str) -> Dict[str, Any]:
+        """
+        Formalize natural language query using CAV-NLP.
+        
+        Args:
+            query: Natural language query
+            correlation_id: Correlation ID for tracing
+            
+        Returns:
+            Dictionary with formalized query and metadata
+        """
+        if not self.use_cav_nlp or not self.cav_nlp_client:
+            self.logger.debug(json.dumps({
+                "level": "debug",
+                "component": "Z3Client",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "message": "CAV-NLP not available, returning original query",
+                "correlation_id": correlation_id,
+            }))
+            return {
+                "success": False,
+                "query": query,
+                "formalized": False,
+                "reason": "CAV-NLP not available",
+            }
+        
+        try:
+            result = await self.cav_nlp_client.formalize(query)
+            
+            self.logger.debug(json.dumps({
+                "level": "debug",
+                "component": "Z3Client",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "message": "Query formalized via CAV-NLP",
+                "correlation_id": correlation_id,
+                "confidence": result.confidence if hasattr(result, 'confidence') else None,
+            }))
+            
+            return {
+                "success": True,
+                "query": query,
+                "formalized_code": result.code if hasattr(result, 'code') else str(result),
+                "confidence": result.confidence if hasattr(result, 'confidence') else 1.0,
+                "formalized": True,
+            }
+        except Exception as e:
+            self.logger.warning(json.dumps({
+                "level": "warn",
+                "component": "Z3Client",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "message": "CAV-NLP formalization failed",
+                "correlation_id": correlation_id,
+                "error": str(e),
+            }))
+            return {
+                "success": False,
+                "query": query,
+                "formalized": False,
+                "reason": str(e),
+            }
+    
+    async def verify_hybrid(self, constraint: str, correlation_id: str) -> Dict[str, Any]:
+        """
+        Verify constraint using hybrid Z3 + Lean approach via CAV-NLP.
+        
+        Args:
+            constraint: Constraint to verify (can be natural language or formal)
+            correlation_id: Correlation ID for tracing
+            
+        Returns:
+            Dictionary with verification results
+        """
+        if not self.use_cav_nlp or not self.cav_nlp_client:
+            return {
+                "verified": False,
+                "confidence": 0.0,
+                "reason": "CAV-NLP not available",
+            }
+        
+        try:
+            verification = await self.cav_nlp_client.verify(constraint)
+            
+            self.logger.debug(json.dumps({
+                "level": "debug",
+                "component": "Z3Client",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "message": "Hybrid verification completed",
+                "correlation_id": correlation_id,
+                "verified": verification.success if hasattr(verification, 'success') else False,
+                "confidence": verification.confidence if hasattr(verification, 'confidence') else 0.0,
+            }))
+            
+            return {
+                "verified": verification.success if hasattr(verification, 'success') else False,
+                "confidence": verification.confidence if hasattr(verification, 'confidence') else 0.0,
+                "proof": verification.proof if hasattr(verification, 'proof') else None,
+                "tactics": verification.tactics if hasattr(verification, 'tactics') else None,
+            }
+        except Exception as e:
+            self.logger.warning(json.dumps({
+                "level": "warn",
+                "component": "Z3Client",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "message": "Hybrid verification failed",
+                "correlation_id": correlation_id,
+                "error": str(e),
+            }))
+            return {
+                "verified": False,
+                "confidence": 0.0,
+                "reason": str(e),
+            }
 
     def close(self):
         """Close HTTP session"""

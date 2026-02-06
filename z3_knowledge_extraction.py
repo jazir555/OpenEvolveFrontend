@@ -40,6 +40,16 @@ except ImportError:
     ExtractedProof = Any
     ProofStep = Any
 
+# CAV-NLP Integration
+try:
+    from openevolve.cav_nlp_integration import Z3LeanAideBridge
+    from openevolve.cav_nlp_integration.adapter import MathematicalTextParser
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    Z3LeanAideBridge = None
+    MathematicalTextParser = None
+
 
 # =============================================================================
 # Knowledge Data Classes
@@ -158,9 +168,10 @@ class Z3KnowledgeExtractor:
     - Constraint analysis
     - Strategy learning
     - Insight extraction
+    - CAV-NLP enhanced formalization
     """
     
-    def __init__(self):
+    def __init__(self, use_cav_nlp: bool = True):
         self.proof_patterns: Dict[str, ProofPattern] = {}
         self.constraint_patterns: Dict[str, ConstraintPattern] = {}
         self.strategies: Dict[str, SolutionStrategy] = {}
@@ -169,6 +180,20 @@ class Z3KnowledgeExtractor:
         # Statistics
         self.extraction_count = 0
         self.pattern_matches = 0
+        
+        # CAV-NLP integration
+        self.use_cav_nlp = use_cav_nlp and CAV_NLP_AVAILABLE
+        self.cav_nlp_bridge = None
+        self.math_parser = None
+        
+        if self.use_cav_nlp:
+            try:
+                self.cav_nlp_bridge = Z3LeanAideBridge()
+                self.math_parser = MathematicalTextParser()
+                logger.info("CAV-NLP integration enabled for knowledge extraction")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP for knowledge extraction: {e}")
+                self.use_cav_nlp = False
     
     # =====================================================================
     # Proof Pattern Extraction
@@ -485,6 +510,96 @@ class Z3KnowledgeExtractor:
         
         return insights
     
+    def extract_with_formalization(self, text: str) -> MathematicalInsight:
+        """
+        Extract knowledge and formalize with CAV-NLP.
+        
+        Takes natural language text describing mathematical concepts,
+        extracts structured knowledge, and generates formal representation.
+        
+        Args:
+            text: Natural language description of mathematical knowledge
+            
+        Returns:
+            MathematicalInsight with formal representation
+        """
+        import time
+        start_time = time.time()
+        
+        # Create base insight
+        insight_id = f"insight_cav_nlp_{len(self.insights)}"
+        
+        insight = MathematicalInsight(
+            insight_id=insight_id,
+            category="extracted",
+            statement=text[:200],  # Truncate long descriptions
+            confidence=0.7,
+            derived_from=["cav_nlp_extraction"]
+        )
+        
+        # Enhance with CAV-NLP formalization
+        if self.use_cav_nlp and self.cav_nlp_bridge:
+            try:
+                logger.info(f"CAV-NLP: Formalizing knowledge extraction")
+                
+                # Use CAV-NLP to formalize the text
+                formalized = self.cav_nlp_bridge.formalize_text(text)
+                
+                if formalized and hasattr(formalized, 'code'):
+                    insight.formal_representation = formalized.code
+                    insight.confidence = min(0.95, insight.confidence + 0.1)
+                    
+                    # Add metadata
+                    formalization_time = time.time() - start_time
+                    insight.derived_from.append(f"cav_nlp_formalization:{formalization_time:.2f}s")
+                    
+                    logger.debug(f"CAV-NLP formalization successful in {formalization_time:.3f}s")
+                else:
+                    logger.warning("CAV-NLP formalization returned empty result")
+                    insight.formal_representation = f"-- Unable to formalize: {text[:100]}"
+            except Exception as e:
+                logger.error(f"CAV-NLP formalization failed: {e}")
+                insight.formal_representation = f"-- Formalization error: {str(e)[:100]}"
+        else:
+            # Fallback: mark as not formalized
+            insight.formal_representation = f"-- CAV-NLP not available: {text[:100]}"
+        
+        self.insights[insight_id] = insight
+        self.extraction_count += 1
+        
+        return insight
+    
+    def formalize_insight(self, insight_id: str) -> bool:
+        """
+        Formalize an existing insight using CAV-NLP.
+        
+        Args:
+            insight_id: ID of the insight to formalize
+            
+        Returns:
+            True if formalization succeeded
+        """
+        if not self.use_cav_nlp:
+            logger.warning("CAV-NLP not available for insight formalization")
+            return False
+        
+        insight = self.insights.get(insight_id)
+        if not insight:
+            logger.warning(f"Insight {insight_id} not found")
+            return False
+        
+        try:
+            formalized = self.cav_nlp_bridge.formalize_text(insight.statement)
+            if formalized and hasattr(formalized, 'code'):
+                insight.formal_representation = formalized.code
+                insight.confidence = min(0.95, insight.confidence + 0.1)
+                logger.info(f"Successfully formalized insight {insight_id}")
+                return True
+        except Exception as e:
+            logger.error(f"Failed to formalize insight {insight_id}: {e}")
+        
+        return False
+    
     def find_related_insights(
         self,
         category: Optional[str] = None,
@@ -606,11 +721,16 @@ class Z3KnowledgeExtractor:
 _knowledge_extractor: Optional[Z3KnowledgeExtractor] = None
 
 
-def get_z3_knowledge_extractor() -> Z3KnowledgeExtractor:
-    """Get global knowledge extractor."""
+def get_z3_knowledge_extractor(use_cav_nlp: bool = True) -> Z3KnowledgeExtractor:
+    """
+    Get global knowledge extractor.
+    
+    Args:
+        use_cav_nlp: Enable CAV-NLP enhancement (default: True)
+    """
     global _knowledge_extractor
     if _knowledge_extractor is None:
-        _knowledge_extractor = Z3KnowledgeExtractor()
+        _knowledge_extractor = Z3KnowledgeExtractor(use_cav_nlp=use_cav_nlp)
     return _knowledge_extractor
 
 

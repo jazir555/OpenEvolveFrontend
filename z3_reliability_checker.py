@@ -52,6 +52,15 @@ try:
 except ImportError:
     SOLVER_POOL_AVAILABLE = False
 
+# CAV-NLP integration for enhanced verification
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logger.warning("CAV-NLP integration not available")
+
 # Import ROMA components
 try:
     from roma_recomposition_config import Component, EntanglementConstraint
@@ -220,6 +229,15 @@ class Z3ReliabilityChecker:
             self.solver = Z3SolverEngine(self.config)
             self.prover = Z3TheoremProver(self.config)
         
+        # CAV-NLP enhanced verification
+        self.use_cav_nlp = True
+        if isinstance(config, dict):
+            self.use_cav_nlp = config.get("use_cav_nlp", True)
+        self.use_cav_nlp = self.use_cav_nlp and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            self.enhanced_solver = EnhancedZ3Solver()
+            self.math_service = UnifiedMathService()
+        
         # Cache for verification results
         self._verification_cache: Dict[str, VerificationResult] = {}
         
@@ -232,10 +250,12 @@ class Z3ReliabilityChecker:
         }
     
     def get_status(self) -> Dict[str, Any]:
-        """Get checker status with solver pool metrics."""
+        """Get checker status with solver pool metrics and CAV-NLP."""
         status = {
             "z3_available": Z3_AVAILABLE,
             "z3_advanced_available": Z3_ADVANCED_AVAILABLE,
+            "cav_nlp_available": CAV_NLP_AVAILABLE,
+            "cav_nlp_enabled": self.use_cav_nlp,
             "roma_available": ROMA_AVAILABLE,
             "reliability_available": RELIABILITY_AVAILABLE,
             "statistics": self._stats.copy(),
@@ -354,6 +374,156 @@ class Z3ReliabilityChecker:
                 verified=False,
                 violations=[{"error": str(e)}],
                 execution_time_ms=(time.time() - start_time) * 1000
+            )
+    
+    async def verify_hybrid_reliability(
+        self,
+        component: Union[ComponentReliabilityModel, Any],
+        requirements: List[ReliabilityConstraint],
+        context: Optional[Dict[str, Any]] = None
+    ) -> VerificationResult:
+        """
+        Verify component reliability using hybrid Z3 + CAV-NLP approach.
+        
+        Args:
+            component: Component model or ROMA Component
+            requirements: List of reliability constraints to verify
+            context: Additional context for verification
+            
+        Returns:
+            VerificationResult from hybrid verification
+        """
+        start_time = time.time()
+        
+        if not Z3_AVAILABLE:
+            return VerificationResult(
+                success=False,
+                verified=False,
+                violations=[{"error": "Z3 not available"}],
+                execution_time_ms=(time.time() - start_time) * 1000
+            )
+        
+        try:
+            # Convert to reliability model if needed
+            if ROMA_AVAILABLE and isinstance(component, Component):
+                model = self._component_to_model(component)
+            else:
+                model = component
+            
+            # Build verification problem
+            variables = model.to_z3_variables()
+            constraints = model.to_z3_constraints()
+            
+            # Add requirement constraints
+            for req in requirements:
+                req_constraint = self._reliability_constraint_to_z3(req, model.component_id)
+                if req_constraint:
+                    constraints.append(req_constraint)
+            
+            # Add context constraints if provided
+            if context:
+                context_constraints = self._extract_context_constraints(context, model.component_id)
+                constraints.extend(context_constraints)
+            
+            # Z3 validation
+            z3_result = self.solver.solve_constraints(variables, constraints)
+            
+            # CAV-NLP verification
+            if self.use_cav_nlp and CAV_NLP_AVAILABLE:
+                try:
+                    # Convert constraints to format for CAV-NLP
+                    cav_constraints = [c.expression for c in constraints if hasattr(c, 'expression')]
+                    cav_result = await self.math_service.verify(cav_constraints)
+                    return self._combine_reliability_results(
+                        z3_result, cav_result, model, requirements,
+                        execution_time=(time.time() - start_time) * 1000
+                    )
+                except Exception as e:
+                    logger.warning(f"CAV-NLP verification failed, using Z3 only: {e}")
+            
+            # Return Z3-only result
+            execution_time = (time.time() - start_time) * 1000
+            if z3_result.is_sat():
+                return VerificationResult(
+                    success=True,
+                    verified=True,
+                    execution_time_ms=execution_time,
+                    recommendations=self._generate_recommendations(model, requirements, satisfied=True)
+                )
+            elif z3_result.is_unsat():
+                violations = self._analyze_violations(model, requirements, z3_result)
+                counterexample = self._extract_counterexample(z3_result, variables)
+                return VerificationResult(
+                    success=True,
+                    verified=False,
+                    violations=violations,
+                    counterexample=counterexample,
+                    execution_time_ms=execution_time,
+                    recommendations=self._generate_recommendations(model, requirements, satisfied=False)
+                )
+            else:
+                return VerificationResult(
+                    success=False,
+                    verified=False,
+                    violations=[{"error": "Unknown result"}],
+                    execution_time_ms=execution_time
+                )
+                
+        except Exception as e:
+            logger.error(f"Hybrid reliability verification failed: {e}")
+            return VerificationResult(
+                success=False,
+                verified=False,
+                violations=[{"error": str(e)}],
+                execution_time_ms=(time.time() - start_time) * 1000
+            )
+    
+    def _combine_reliability_results(
+        self,
+        z3_result,
+        cav_result,
+        model: ComponentReliabilityModel,
+        requirements: List[ReliabilityConstraint],
+        execution_time: float
+    ) -> VerificationResult:
+        """Combine Z3 and CAV-NLP reliability results."""
+        z3_sat = hasattr(z3_result, 'is_sat') and z3_result.is_sat()
+        cav_verified = isinstance(cav_result, dict) and cav_result.get('verified', False)
+        
+        if z3_sat and cav_verified:
+            # Both agree: constraints satisfiable
+            return VerificationResult(
+                success=True,
+                verified=True,
+                execution_time_ms=execution_time,
+                recommendations=[
+                    "Z3: Reliability constraints satisfied",
+                    "CAV-NLP: Mathematically verified"
+                ]
+            )
+        elif not z3_sat:
+            # Z3 says unsat - reliability violation
+            violations = self._analyze_violations(model, requirements, z3_result)
+            counterexample = self._extract_counterexample(z3_result, [])
+            return VerificationResult(
+                success=True,
+                verified=False,
+                violations=violations,
+                counterexample=counterexample,
+                execution_time_ms=execution_time,
+                recommendations=self._generate_recommendations(model, requirements, satisfied=False)
+            )
+        else:
+            # Z3 says sat but CAV may have issues
+            recommendations = ["Z3: Reliability constraints satisfied"]
+            if isinstance(cav_result, dict) and cav_result.get('recommendations'):
+                recommendations.extend(cav_result['recommendations'])
+            
+            return VerificationResult(
+                success=True,
+                verified=z3_sat,
+                execution_time_ms=execution_time,
+                recommendations=recommendations
             )
     
     def verify_system_reliability(

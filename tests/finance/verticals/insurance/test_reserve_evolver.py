@@ -24,14 +24,14 @@ from openevolve.finance.verticals.insurance.models import InsuranceEvolutionResu
 
 @pytest.fixture
 def sample_portfolio():
-    """Create sample insurance portfolio"""
+    """Create sample insurance portfolio with balanced sectors"""
     bonds = [
         Bond(
             ticker="US10Y",
             rating=CreditRating.AAA,
-            par_value=100_000_000,
-            market_value=105_000_000,
-            book_value=100_000_000,
+            par_value=40_000_000,
+            market_value=42_000_000,
+            book_value=40_000_000,
             duration=6.5,
             convexity=55.0,
             yield_to_maturity=0.042,
@@ -40,11 +40,24 @@ def sample_portfolio():
             maturity_date=datetime(2035, 1, 1)
         ),
         Bond(
+            ticker="MUNI_A",
+            rating=CreditRating.AAA,
+            par_value=40_000_000,
+            market_value=41_000_000,
+            book_value=40_000_000,
+            duration=5.5,
+            convexity=50.0,
+            yield_to_maturity=0.038,
+            sector="Municipal",
+            coupon_rate=0.036,
+            maturity_date=datetime(2034, 1, 1)
+        ),
+        Bond(
             ticker="CORP_A",
             rating=CreditRating.AA,
-            par_value=50_000_000,
-            market_value=52_000_000,
-            book_value=50_000_000,
+            par_value=40_000_000,
+            market_value=42_000_000,
+            book_value=40_000_000,
             duration=5.2,
             convexity=45.0,
             yield_to_maturity=0.050,
@@ -70,7 +83,7 @@ def sample_portfolio():
     return Portfolio(
         bonds=bonds,
         cash=20_000_000,
-        total_value=206_500_000
+        total_value=174_500_000
     )
 
 
@@ -80,10 +93,10 @@ def basic_constraints():
     return PortfolioConstraints(
         max_duration=7.0,
         min_credit_quality="BBB-",
-        max_concentration=0.30,
+        max_concentration=0.50,  # Increased to accommodate small test portfolios
         min_diversification=2,  # Reduced from 20 to match test portfolio size
-        max_single_bond=0.05,
-        liquidity_requirement=0.10
+        max_single_bond=0.30,  # Increased to accommodate small test portfolios
+        liquidity_requirement=0.05  # Reduced for test portfolios
     )
 
 

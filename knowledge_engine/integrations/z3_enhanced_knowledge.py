@@ -7,6 +7,7 @@ Advanced features:
 - Cross-domain knowledge transfer
 - Real-time performance analytics
 - Adaptive learning rates
+- CAV-NLP integration for formalization and verification
 
 Author: OpenEvolve
 Created: 2026-01-31
@@ -21,6 +22,25 @@ from dataclasses import dataclass, field
 from collections import defaultdict
 import asyncio
 import numpy as np
+
+# CAV-NLP Integration
+CAV_NLP_AVAILABLE = False
+UnifiedMathService = None
+try:
+    from openevolve.unified_math_service import UnifiedMathService as _UnifiedMathService
+    UnifiedMathService = _UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    try:
+        from unified_math_service import UnifiedMathService as _UnifiedMathService
+        UnifiedMathService = _UnifiedMathService
+        CAV_NLP_AVAILABLE = True
+    except ImportError:
+        pass
+
+logger = logging.getLogger(__name__)
+if CAV_NLP_AVAILABLE:
+    logger.info("CAV-NLP UnifiedMathService available for enhanced Z3 knowledge integration")
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -445,26 +465,42 @@ class EnhancedZ3KnowledgeIntegration:
     - Adaptive strategy optimization
     - Cross-domain knowledge transfer
     - Real-time analytics
+    - CAV-NLP formalization and hybrid verification
     """
     
-    def __init__(self, storage_engine: Optional[Any] = None):
+    def __init__(self, storage_engine: Optional[Any] = None, config: Optional[Dict[str, Any]] = None):
         """Initialize enhanced integration."""
+        self.config = config or {}
         self.base_integration = None
         if BASE_AVAILABLE:
             from knowledge_engine.integrations.z3_knowledge_integration import Z3KnowledgeIntegration
-            self.base_integration = Z3KnowledgeIntegration(storage_engine)
+            self.base_integration = Z3KnowledgeIntegration(storage_engine, config)
         
         self.z3_extractor = get_z3_knowledge_extractor() if Z3_KE_AVAILABLE else None
         self.pattern_matcher = MLPoweredPatternMatcher()
         self.strategy_optimizer = AdaptiveStrategyOptimizer()
         self.knowledge_transfer = CrossDomainKnowledgeTransfer()
         
+        # CAV-NLP Integration
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True)
+        self.math_service = None
+        if self.use_cav_nlp and CAV_NLP_AVAILABLE and UnifiedMathService:
+            try:
+                self.math_service = UnifiedMathService()
+                logger.info("CAV-NLP math service initialized for enhanced integration")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP math service: {e}")
+                self.use_cav_nlp = False
+        
         # Analytics
         self.analytics = {
             "extractions": 0,
             "successful_matches": 0,
             "strategy_optimizations": 0,
-            "domain_transfers": 0
+            "domain_transfers": 0,
+            "cav_nlp_formalizations": 0,
+            "cav_nlp_verifications": 0,
+            "cav_nlp_canonicalizations": 0
         }
         
         logger.info("Enhanced Z3 Knowledge Integration initialized")
@@ -607,6 +643,245 @@ class EnhancedZ3KnowledgeIntegration:
             "total_strategies_analyzed": len(self.strategy_optimizer.strategy_performances)
         }
     
+    async def formalize_to_z3_knowledge(self, natural_language: str, domain: str = "general") -> Optional[Dict[str, Any]]:
+        """
+        Formalize natural language to Z3-compatible knowledge using CAV-NLP.
+        
+        Args:
+            natural_language: Natural language description
+            domain: Problem domain
+            
+        Returns:
+            Formalized knowledge structure
+        """
+        if not self.use_cav_nlp or not self.math_service:
+            return None
+        
+        try:
+            result = await self.math_service.formalize(natural_language, domain_hint=domain)
+            self.analytics["cav_nlp_formalizations"] += 1
+            
+            knowledge = {
+                "source_text": natural_language,
+                "formal_code": result.code if hasattr(result, 'code') else str(result),
+                "lean_code": result.lean_code if hasattr(result, 'lean_code') else None,
+                "z3_constraints": result.z3_constraints if hasattr(result, 'z3_constraints') else None,
+                "confidence": result.confidence if hasattr(result, 'confidence') else 0.5,
+                "domain": domain,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            # Create pattern embedding for the formalized knowledge
+            self.pattern_matcher.create_embedding(
+                pattern_id=f"cav_nlp_{hash(natural_language) % 1000000}",
+                pattern_content=json.dumps(knowledge),
+                pattern_type=domain,
+                metadata=knowledge
+            )
+            
+            logger.info({
+                "msg": "Knowledge formalized with CAV-NLP",
+                "domain": domain,
+                "confidence": knowledge["confidence"]
+            })
+            
+            return knowledge
+            
+        except Exception as e:
+            logger.error(f"CAV-NLP formalization failed: {e}")
+            return None
+    
+    async def verify_knowledge_hybrid(self, knowledge: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Verify knowledge using hybrid Z3 + Lean approach.
+        
+        Args:
+            knowledge: Knowledge structure to verify
+            
+        Returns:
+            Verification result
+        """
+        if not self.use_cav_nlp or not self.math_service:
+            return {"verified": False, "error": "CAV-NLP not available"}
+        
+        try:
+            formal_code = knowledge.get("lean_code") or knowledge.get("formal_code")
+            if not formal_code:
+                return {"verified": False, "error": "No formal code available"}
+            
+            result = await self.math_service.verify(formal_code)
+            self.analytics["cav_nlp_verifications"] += 1
+            
+            verification = {
+                "verified": result.success if hasattr(result, 'success') else False,
+                "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
+                "proof": result.proof if hasattr(result, 'proof') else None,
+                "z3_result": result.z3_result if hasattr(result, 'z3_result') else None,
+                "lean_result": result.lean_result if hasattr(result, 'lean_result') else None,
+                "method": "hybrid_z3_lean",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+            
+            logger.info({
+                "msg": "Knowledge verified with hybrid approach",
+                "verified": verification["verified"],
+                "confidence": verification["confidence"]
+            })
+            
+            return verification
+            
+        except Exception as e:
+            logger.error(f"Hybrid verification failed: {e}")
+            return {"verified": False, "error": str(e)}
+    
+    async def canonicalize_knowledge_representation(self, knowledge: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Canonicalize knowledge representation to standard form.
+        
+        Args:
+            knowledge: Knowledge structure to canonicalize
+            
+        Returns:
+            Canonicalized knowledge
+        """
+        if not self.use_cav_nlp or not self.math_service:
+            return knowledge
+        
+        try:
+            formal_code = knowledge.get("formal_code") or knowledge.get("lean_code")
+            if not formal_code:
+                return knowledge
+            
+            result = await self.math_service.canonicalize(formal_code)
+            self.analytics["cav_nlp_canonicalizations"] += 1
+            
+            canonicalized = knowledge.copy()
+            canonicalized.update({
+                "canonical_form": result.code if hasattr(result, 'code') else str(result),
+                "simplified": result.simplified if hasattr(result, 'simplified') else False,
+                "normalized": True,
+                "canonicalized_at": datetime.now(timezone.utc).isoformat()
+            })
+            
+            logger.info("Knowledge canonicalized with CAV-NLP")
+            return canonicalized
+            
+        except Exception as e:
+            logger.warning(f"Canonicalization failed: {e}")
+            return knowledge
+    
+    async def export_knowledge_to_lean(self, knowledge: Dict[str, Any], output_path: Optional[str] = None) -> Optional[str]:
+        """
+        Export knowledge to Lean 4 format.
+        
+        Args:
+            knowledge: Knowledge structure
+            output_path: Optional output file path
+            
+        Returns:
+            Lean code string
+        """
+        # Try CAV-NLP first
+        if self.use_cav_nlp and self.math_service:
+            try:
+                formal_code = knowledge.get("formal_code") or knowledge.get("lean_code")
+                if formal_code:
+                    result = await self.math_service.export_to_lean(formal_code)
+                    lean_code = result.lean_code if hasattr(result, 'lean_code') else str(result)
+                    
+                    if output_path:
+                        with open(output_path, 'w') as f:
+                            f.write(lean_code)
+                        logger.info(f"Knowledge exported to Lean: {output_path}")
+                    
+                    return lean_code
+            except Exception as e:
+                logger.warning(f"CAV-NLP export failed, using fallback: {e}")
+        
+        # Fallback: generate basic Lean code
+        lean_code = self._generate_lean_export(knowledge)
+        if output_path and lean_code:
+            with open(output_path, 'w') as f:
+                f.write(lean_code)
+        
+        return lean_code
+    
+    def _generate_lean_export(self, knowledge: Dict[str, Any]) -> str:
+        """Generate basic Lean code from knowledge."""
+        lean_code = knowledge.get("lean_code", "")
+        if lean_code:
+            return lean_code
+        
+        source = knowledge.get("source_text", "Extracted Knowledge")
+        formal = knowledge.get("formal_code", "")
+        
+        lean_code = f"""-- Auto-generated Lean 4 code from Z3 Knowledge
+-- Source: {source[:100]}...
+-- Generated: {datetime.now(timezone.utc).isoformat()}
+
+import Mathlib
+
+-- Formalized Knowledge
+"""
+        if formal:
+            lean_code += f"\n-- Original formal code:\n-- {formal[:500]}\n"
+        
+        lean_code += """
+-- Theorem placeholder
+theorem extracted_knowledge : True := by
+  trivial
+"""
+        return lean_code
+    
+    async def extract_with_cav_nlp_enhancement(
+        self,
+        result: Any,
+        problem_statement: str,
+        problem_type: str = "general"
+    ) -> Dict[str, Any]:
+        """
+        Extract knowledge with CAV-NLP enhancement.
+        
+        Combines ML-enhanced extraction with CAV-NLP formalization.
+        """
+        # Get base ML-enhanced extraction
+        base_result = await self.extract_with_ml_enhancement(result, problem_statement, problem_type)
+        
+        # Add CAV-NLP enhancement
+        cav_nlp_result = None
+        if self.use_cav_nlp and self.math_service:
+            try:
+                # Formalize the problem statement
+                cav_nlp_result = await self.formalize_to_z3_knowledge(problem_statement, problem_type)
+                
+                # If we have formalized knowledge, verify it
+                if cav_nlp_result:
+                    verification = await self.verify_knowledge_hybrid(cav_nlp_result)
+                    cav_nlp_result["verification"] = verification
+                    
+                    # Canonicalize
+                    cav_nlp_result = await self.canonicalize_knowledge_representation(cav_nlp_result)
+                    
+            except Exception as e:
+                logger.warning(f"CAV-NLP enhancement failed: {e}")
+        
+        return {
+            **base_result,
+            "cav_nlp_enhancement": cav_nlp_result,
+            "enhanced": cav_nlp_result is not None
+        }
+    
+    def get_cav_nlp_analytics(self) -> Dict[str, Any]:
+        """Get CAV-NLP specific analytics."""
+        return {
+            "available": CAV_NLP_AVAILABLE,
+            "enabled": self.use_cav_nlp,
+            "initialized": self.math_service is not None,
+            "formalizations": self.analytics["cav_nlp_formalizations"],
+            "verifications": self.analytics["cav_nlp_verifications"],
+            "canonicalizations": self.analytics["cav_nlp_canonicalizations"]
+        }
+    
     def get_analytics(self) -> Dict[str, Any]:
         """Get integration analytics."""
         return {
@@ -614,6 +889,7 @@ class EnhancedZ3KnowledgeIntegration:
             "pattern_embeddings": len(self.pattern_matcher.pattern_embeddings),
             "strategies_tracked": len(self.strategy_optimizer.strategy_performances),
             "domain_mappings": len(self.knowledge_transfer.domain_mappings),
+            "cav_nlp": self.get_cav_nlp_analytics(),
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
 

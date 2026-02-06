@@ -143,7 +143,11 @@ export const WorkflowLifecycleTab: React.FC = () => {
         restart: openevolveApi.restartWorkflowInstance,
       };
       const response = await callMap[action](selectedInstanceId, apiConfig);
-      setStatusMessage(response?.message ?? `Action ${action} executed.`);
+      if (response && typeof response === "object" && "error" in response) {
+        setErrorMessage(String((response as { error?: string }).error ?? "Action failed."));
+        return;
+      }
+      setStatusMessage((response as { message?: string })?.message ?? `Action ${action} executed.`);
       await refresh();
       await loadInstanceDetail(selectedInstanceId);
     } catch (error: any) {
@@ -198,7 +202,10 @@ export const WorkflowLifecycleTab: React.FC = () => {
       );
       const instanceId = response.instance_id;
       if (instanceForm.start_after_create) {
-        await openevolveApi.startWorkflowInstance(instanceId, apiConfig);
+        const startResponse = await openevolveApi.startWorkflowInstance(instanceId, apiConfig);
+        if (startResponse && typeof startResponse === "object" && "error" in startResponse) {
+          setErrorMessage(String((startResponse as { error?: string }).error ?? "Failed to start instance."));
+        }
       }
       setStatusMessage(`Instance created: ${instanceId}`);
       await refresh();

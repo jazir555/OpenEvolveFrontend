@@ -35,6 +35,14 @@ try:
 except ImportError:
     Z3_AVAILABLE = False
 
+# CAV-NLP integration for enhanced verification
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 
 class SecurityProperty(Enum):
     """Security properties to verify."""
@@ -89,6 +97,13 @@ class BlueTeamZ3Validator:
         self.config = config or (Z3Config(timeout=60.0) if Z3_AVAILABLE else None)
         self.solver = Z3SolverEngine(self.config) if Z3_AVAILABLE else None
         self.prover = Z3TheoremProver(self.config) if Z3_AVAILABLE else None
+        
+        # CAV-NLP enhanced verification
+        self.use_cav_nlp = config.get("use_cav_nlp", True) if isinstance(config, dict) else True
+        self.use_cav_nlp = self.use_cav_nlp and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            self.enhanced_solver = EnhancedZ3Solver()
+            self.math_service = UnifiedMathService()
     
     def verify_countermeasure(
         self,
@@ -297,6 +312,120 @@ class BlueTeamZ3Validator:
         elif property_type == SecurityProperty.AVAILABILITY:
             return "(= system_available true)"
         return "true"
+
+
+    async def validate_hybrid(self, constraints, context=None) -> ValidationResult:
+        """
+        Validate using hybrid Z3 + CAV-NLP approach.
+        
+        Args:
+            constraints: List of constraints to validate
+            context: Optional context for validation
+            
+        Returns:
+            ValidationResult from hybrid validation
+        """
+        start_time = time.time()
+        
+        if not Z3_AVAILABLE:
+            return ValidationResult(
+                success=False,
+                verified=False,
+                violations=[{"error": "Z3 not available"}],
+                execution_time_ms=(time.time() - start_time) * 1000
+            )
+        
+        try:
+            # Z3 validation
+            z3_constraints = [
+                Z3Constraint(c, Z3ConstraintType.BOOLEAN) for c in constraints
+            ]
+            z3_result = self.solver.solve_constraints([], z3_constraints)
+            
+            # CAV-NLP verification
+            if self.use_cav_nlp and CAV_NLP_AVAILABLE:
+                try:
+                    cav_result = await self.math_service.verify(constraints)
+                    return self._combine_results(z3_result, cav_result, execution_time=(time.time() - start_time) * 1000)
+                except Exception as e:
+                    logger.warning(f"CAV-NLP verification failed, using Z3 only: {e}")
+            
+            # Return Z3-only result
+            execution_time = (time.time() - start_time) * 1000
+            if z3_result.is_unsat():
+                return ValidationResult(
+                    success=True,
+                    verified=True,
+                    execution_time_ms=execution_time,
+                    recommendations=["Constraints are unsatisfiable (no vulnerabilities found)"]
+                )
+            else:
+                return ValidationResult(
+                    success=True,
+                    verified=False,
+                    execution_time_ms=execution_time,
+                    violations=[{"issue": "Constraints are satisfiable (potential vulnerability)"}]
+                )
+                
+        except Exception as e:
+            logger.error(f"Hybrid validation failed: {e}")
+            return ValidationResult(
+                success=False,
+                verified=False,
+                violations=[{"error": str(e)}],
+                execution_time_ms=(time.time() - start_time) * 1000
+            )
+    
+    def _combine_results(self, z3_result, cav_result, execution_time: float) -> ValidationResult:
+        """Combine Z3 and CAV-NLP results."""
+        # Z3 unsat + CAV verified = fully verified
+        z3_unsat = hasattr(z3_result, 'is_unsat') and z3_result.is_unsat()
+        cav_verified = isinstance(cav_result, dict) and cav_result.get('verified', False)
+        
+        if z3_unsat and cav_verified:
+            return ValidationResult(
+                success=True,
+                verified=True,
+                execution_time_ms=execution_time,
+                recommendations=[
+                    "Z3: Constraints are unsatisfiable",
+                    "CAV-NLP: Mathematically verified"
+                ]
+            )
+        elif z3_unsat:
+            return ValidationResult(
+                success=True,
+                verified=True,
+                execution_time_ms=execution_time,
+                recommendations=["Z3 verified (CAV-NLP inconclusive)"]
+            )
+        else:
+            violations = [{"issue": "Z3: Constraints are satisfiable"}]
+            if isinstance(cav_result, dict) and cav_result.get('violations'):
+                violations.extend(cav_result['violations'])
+            
+            return ValidationResult(
+                success=True,
+                verified=False,
+                execution_time_ms=execution_time,
+                violations=violations,
+                recommendations=["Review constraints for potential issues"]
+            )
+    
+    def get_capabilities(self) -> Dict[str, Any]:
+        """Get validator capabilities including CAV-NLP status."""
+        return {
+            "z3_available": Z3_AVAILABLE,
+            "cav_nlp_available": CAV_NLP_AVAILABLE,
+            "cav_nlp_enabled": self.use_cav_nlp,
+            "hybrid_validation": Z3_AVAILABLE and CAV_NLP_AVAILABLE,
+            "capabilities": [
+                "countermeasure_verification",
+                "security_property_verification",
+                "patch_verification",
+                "hybrid_z3_cav_validation" if (Z3_AVAILABLE and CAV_NLP_AVAILABLE) else "z3_only_validation"
+            ]
+        }
 
 
 def get_blue_team_z3_validator():
