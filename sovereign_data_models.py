@@ -793,3 +793,34 @@ class CritiqueReport:
     improvements: List[str] = field(default_factory=list)
     timestamp: datetime = field(default_factory=datetime.now)
     metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class IntegratedSolution:
+    """Represents an integrated solution ready for final delivery."""
+    solution_id: str
+    problem_id: str
+    solution_type: str = "integrated"
+    components: List[Dict[str, Any]] = field(default_factory=list)
+    integration_metadata: Dict[str, Any] = field(default_factory=dict)
+    validation_results: List[ValidationResult] = field(default_factory=list)
+    quality_score: float = 0.0
+    created_at: datetime = field(default_factory=datetime.now)
+    status: str = "pending_validation"  # pending_validation, validated, rejected, delivered
+    lean_verified: bool = False
+    lean_proof: Optional[str] = None
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary representation."""
+        return {
+            "solution_id": self.solution_id,
+            "problem_id": self.problem_id,
+            "solution_type": self.solution_type,
+            "components": self.components,
+            "integration_metadata": self.integration_metadata,
+            "quality_score": self.quality_score,
+            "created_at": self.created_at.isoformat(),
+            "status": self.status,
+            "lean_verified": self.lean_verified,
+            "lean_proof": self.lean_proof
+        }

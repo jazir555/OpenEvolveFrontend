@@ -231,9 +231,11 @@ def test_z3_mcp_server_registers_web3_formal_tools():
 
     server = get_z3_mcp_server()
     tool_names = {tool["name"] for tool in server.list_tools()}
-    assert {"z3_translate_solidity_invariant", "z3_solve_smart_contract_exploit_witness"}.issubset(
-        tool_names
-    )
+    assert {
+        "z3_translate_solidity_invariant",
+        "z3_solve_smart_contract_exploit_witness",
+        "z3_web3_audit_exploit_verification",
+    }.issubset(tool_names)
 
 
 def test_z3_leanaide_classifier_detects_web3_audit_as_hybrid():

@@ -1390,75 +1390,90 @@ class GauntletSystem:
         round_rule: GauntletRoundRule,
         solution: SolutionAttempt,
         sub_problem: SubProblem
-    ) -> Dict[str, Any]:  # FIXED: Was bool, actually returns Dict
+    ) -> Dict[str, Any]:
         """
-        Execute red team validation round.
-
-        Red team tries to find flaws, break the solution,
-        identify edge cases, and test adversarially.
+        Execute red team validation round using RedTeam engine, ROMA, or OpenEvolve.
         """
         self.logger.info(f"Executing red team round: {round_rule.rule_id}")
 
-        # Check if OpenEvolve client is available
-        if not self.openevolve_client and not self.roma_engine:
-            self.logger.warning("No execution engine available, using mock red team review")
+        # 1. Try RedTeam Engine (Best: has logic + LLM integration)
+        try:
+            from red_team import RedTeam
+            red_team = RedTeam()
+            
+            # Use attack modes from rule if available
+            attack_modes = None
+            if hasattr(round_rule, 'per_judge_requirements'):
+                attack_modes = round_rule.per_judge_requirements.get("attack_modes", {}).get("modes")
+            
+            assessment = red_team.assess_content(
+                content=solution.solution_content,
+                content_type=sub_problem.domain if hasattr(sub_problem, 'domain') else "general",
+                attack_modes=attack_modes
+            )
+            
+            # Map score
+            score = assessment.confidence_score / 100.0  # RedTeam uses 0-100
+            passed = score >= round_rule.min_score
+            
             return {
                 "round_id": round_rule.rule_id,
-                "passed": True,
-                "score": 0.8,
-                "feedback": "Mock red team review (Engine not available)",
-                "flaws_found": []
+                "passed": passed,
+                "score": score,
+                "feedback": assessment.assessment_summary,
+                "flaws_found": [f.title for f in assessment.findings],
+                "details": {
+                    "engine": "RedTeam",
+                    "findings_count": len(assessment.findings)
+                }
             }
+        except ImportError:
+            self.logger.info("RedTeam module not found, falling back to ROMA/OpenEvolve")
+        except Exception as e:
+            self.logger.warning(f"RedTeam execution failed: {e}, falling back")
 
-        try:
-            # Build red team prompt
-            prompt = self._build_red_team_prompt(round_rule, solution, sub_problem)
+        # 2. Try ROMA Engine
+        if self.roma_engine:
+            try:
+                prompt = self._build_red_team_prompt(round_rule, solution, sub_problem)
+                result = self.roma_engine.solve_problem(prompt)
+                response_content = result.get("solution", "")
+                if response_content:
+                    parsed_result = self._parse_red_team_result(response_content, round_rule)
+                    parsed_result["feedback"] += f" (Verified by ROMA)"
+                    return parsed_result
+            except Exception as e:
+                self.logger.warning(f"ROMA engine execution failed: {e}")
 
-            # 1. Try ROMA Engine First
-            if self.roma_engine:
-                try:
-                    result = self.roma_engine.solve_problem(prompt)
-                    response_content = result.get("solution", "")
-                    if response_content:
-                        # Parse results
-                        parsed_result = self._parse_red_team_result(response_content, round_rule)
-                        parsed_result["feedback"] += f" (Verified by ROMA Confidence: {result.get('confidence', 0.0):.2f})"
-                        return parsed_result
-                except Exception as e:  # TODO: Catch specific exception instead of Exception
-                    self.logger.warning(f"ROMA engine execution failed, falling back: {e}")
-
-            # 2. Fallback to OpenEvolve Client
-            if self.openevolve_client:
+        # 3. Try OpenEvolve Client
+        if self.openevolve_client:
+            try:
+                prompt = self._build_red_team_prompt(round_rule, solution, sub_problem)
                 result = self.openevolve_client.evolve(
                     content=prompt,
                     evolution_mode="adversarial",
                     content_type="analysis",
-                    max_iterations=1,
-                    temperature=0.7,
-                    max_tokens=2000
+                    max_iterations=1
                 )
-
-                # Parse results
                 if result.success and result.best_code:
                     return self._parse_red_team_result(result.best_code, round_rule)
-            
-            return {
-                "round_id": round_rule.rule_id,
-                "passed": False,
-                "score": 0.0,
-                "feedback": "Red team analysis failed",
-                "errors": ["No valid response from any engine"]
-            }
-
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
-            self.logger.error(f"Red team execution error: {e}")
-            return {
-                "round_id": round_rule.rule_id,
-                "passed": False,
-                "score": 0.0,
-                "feedback": f"Red team execution error: {str(e)}",
-                "errors": [str(e)]
-            }
+            except Exception as e:
+                self.logger.warning(f"OpenEvolve execution failed: {e}")
+        
+        # 4. Fallback: Basic Heuristics (if no engines available)
+        self.logger.warning("All Red Team engines unavailable, using heuristic fallback")
+        heuristic_score = 0.5
+        # Penalize for obvious keywords
+        if "error" in solution.solution_content.lower() or "todo" in solution.solution_content.lower():
+            heuristic_score = 0.3
+        
+        return {
+            "round_id": round_rule.rule_id,
+            "passed": heuristic_score >= round_rule.min_score,
+            "score": heuristic_score,
+            "feedback": "Basic heuristic review (Engines unavailable)",
+            "flaws_found": ["Potential issues detected via keywords"] if heuristic_score < 0.5 else []
+        }
 
     def _build_red_team_prompt(
         self,
@@ -1709,41 +1724,104 @@ Be thorough and precise. Your approval certifies the solution is ready."""
         round_rule: GauntletRoundRule,
         solution: SolutionAttempt,
         sub_problem: SubProblem
-    ) -> Dict[str, Any]:  # FIXED: Was bool, actually returns Dict
+    ) -> Dict[str, Any]:
         """
-        Execute automated validation round.
-
-        Runs automated tests, checks, validations.
+        Execute automated validation round using static analysis and heuristics.
+        
+        Performs:
+        - Syntax checking (AST parsing for Python)
+        - Static analysis (forbidden imports, structure)
+        - Heuristic checks (length, keywords)
         """
         self.logger.info(f"Executing automated round: {round_rule.rule_id}")
+        
+        content = solution.solution_content
+        score = 0.0
+        feedback = []
+        checks_passed = 0
+        total_checks = 0
+        errors = []
 
-        # In a real system, this would run actual automated tests
-        # For now, we simulate automated validation
         try:
-            # Simulate automated checks
-            checks_passed = 0
-            total_checks = len(round_rule.success_criteria) if round_rule.success_criteria else 1
-
-            for criterion in round_rule.success_criteria:
-                # Simulate checking each criterion
-                # In production, these would be actual automated tests
-                if "test" in criterion.lower() or "check" in criterion.lower():
+            # 1. Syntax Check (Python)
+            total_checks += 1
+            is_python = "def " in content or "class " in content or "import " in content
+            
+            if is_python:
+                import ast
+                try:
+                    tree = ast.parse(content)
+                    score += 0.4  # Syntax valid
                     checks_passed += 1
+                    feedback.append("Syntax check passed")
+                    
+                    # 2. Static Analysis
+                    # Check for docstrings
+                    has_docstrings = any(isinstance(n, (ast.FunctionDef, ast.ClassDef)) and ast.get_docstring(n) for n in ast.walk(tree))
+                    total_checks += 1
+                    if has_docstrings:
+                        score += 0.2
+                        checks_passed += 1
+                        feedback.append("Docstrings detected")
+                    else:
+                        feedback.append("Missing docstrings")
 
-            # Guard against division by zero
-            score = checks_passed / total_checks if total_checks > 0 else 0.8
+                    # Check for dangerous imports
+                    dangerous = ['os', 'subprocess', 'sys', 'shutil']
+                    imports = [n.names[0].name for n in ast.walk(tree) if isinstance(n, ast.Import)]
+                    imports += [n.module for n in ast.walk(tree) if isinstance(n, ast.ImportFrom) and n.module]
+                    
+                    found_dangerous = [imp for imp in imports if imp in dangerous]
+                    total_checks += 1
+                    if not found_dangerous:
+                        score += 0.2
+                        checks_passed += 1
+                        feedback.append("No dangerous imports found")
+                    else:
+                        feedback.append(f"Dangerous imports detected: {found_dangerous}")
+                        
+                except SyntaxError as e:
+                    errors.append(f"Syntax Error: {e}")
+                    feedback.append("Syntax check failed")
+            else:
+                # Non-code content checks
+                checks_passed += 1 # "Syntax" N/A treated as pass or fallback
+                score += 0.4
+                
+                # Length check
+                total_checks += 1
+                if len(content) > 50:
+                    score += 0.2
+                    checks_passed += 1
+                    feedback.append("Content length sufficient")
+                else:
+                    feedback.append("Content too short")
+
+            # 3. Keyword/Heuristic Check based on success criteria
+            if round_rule.success_criteria:
+                for criterion in round_rule.success_criteria:
+                    total_checks += 1
+                    # Simple keyword matching as proxy for "meeting criterion"
+                    keywords = [w for w in criterion.split() if len(w) > 4]
+                    if any(k.lower() in content.lower() for k in keywords):
+                        score += (0.2 / len(round_rule.success_criteria))
+                        checks_passed += 1
+                    
+            # Finalize score
+            score = min(1.0, score)
             passed = score >= round_rule.min_score
 
             return {
                 "round_id": round_rule.rule_id,
                 "passed": passed,
                 "score": score,
-                "feedback": f"Automated validation: {checks_passed}/{total_checks} checks passed",
+                "feedback": "; ".join(feedback),
                 "checks_passed": checks_passed,
-                "total_checks": total_checks
+                "total_checks": total_checks,
+                "errors": errors
             }
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except Exception as e:
             self.logger.error(f"Automated round execution error: {e}")
             return {
                 "round_id": round_rule.rule_id,

@@ -481,18 +481,81 @@ class EnhancedGauntletSystem:
         solution: Any,
         context: Dict[str, Any]
     ) -> GauntletRoundResult:
-        """Mock red team evaluation (replace with actual implementation)."""
-        # This is a placeholder - integrate with your actual red team system
+        """
+        Execute Red Team evaluation using the actual RedTeam engine.
+        Performs adversarial attacks and vulnerability scanning.
+        """
         rule_id = round_rule.per_judge_requirements.get("rule_id", "red_team_attack")
-        return GauntletRoundResult(
-            rule_id=rule_id,
-            round_number=round_rule.round_number,
-            status=GauntletRoundStatus.PASSED,
-            score=0.85,
-            feedback="Red team evaluation (mock): No critical issues found",
-            details={"mock": True, "evaluator": "red_team"},
-            execution_time=5.0
-        )
+        solution_content = str(solution)
+        
+        try:
+            # Initialize Red Team if not present (lazy loading)
+            if not self.red_team_evaluator:
+                try:
+                    from red_team import RedTeam, RedTeamStrategy
+                    self.red_team_evaluator = RedTeam()
+                except ImportError:
+                    logger.error("RedTeam module not found")
+                    raise RuntimeError("RedTeam capability unavailable")
+
+            # Determine strategy from rule configuration or default to SYSTEMATIC
+            strategy_name = round_rule.per_judge_requirements.get("attack_modes", {}).get("strategy", "SYSTEMATIC")
+            try:
+                from red_team import RedTeamStrategy
+                strategy = getattr(RedTeamStrategy, strategy_name.upper(), RedTeamStrategy.SYSTEMATIC)
+            except (ImportError, AttributeError):
+                strategy = None
+
+            # Execute assessment
+            assessment = self.red_team_evaluator.assess_content(
+                content=solution_content,
+                content_type=context.get("content_type", "general"),
+                strategy=strategy,
+                attack_modes=round_rule.per_judge_requirements.get("attack_modes", {}).get("modes")
+            )
+            
+            # Calculate score (1.0 - weighted penalty of findings)
+            # High confidence score from assessment means high confidence in FINDINGS (bad for solution)
+            # So we need to inverse the logic: fewer findings = higher score
+            issue_count = len(assessment.findings)
+            critical_issues = assessment.issues_by_severity.get("critical", 0) + \
+                              assessment.issues_by_severity.get("CRITICAL", 0)
+            
+            # Simple scoring: starts at 1.0, penalties for issues
+            base_score = 1.0
+            base_score -= (critical_issues * 0.3)
+            base_score -= (issue_count * 0.05)
+            score = max(0.0, base_score)
+            
+            # Determine pass/fail
+            passed = score >= round_rule.min_overall_confidence
+            
+            return GauntletRoundResult(
+                rule_id=rule_id,
+                round_number=round_rule.round_number,
+                status=GauntletRoundStatus.PASSED if passed else GauntletRoundStatus.FAILED,
+                score=score,
+                feedback=assessment.assessment_summary,
+                details={
+                    "findings_count": issue_count,
+                    "critical_issues": critical_issues,
+                    "strategy": str(strategy),
+                    "full_findings": [f.title for f in assessment.findings]
+                },
+                execution_time=assessment.time_taken
+            )
+            
+        except Exception as e:
+            logger.error(f"Red Team evaluation failed: {e}", exc_info=True)
+            return GauntletRoundResult(
+                rule_id=rule_id,
+                round_number=round_rule.round_number,
+                status=GauntletRoundStatus.ERROR,
+                score=0.0,
+                feedback=f"Red Team execution error: {str(e)}",
+                details={"error": str(e)},
+                execution_time=0.0
+            )
 
     async def _mock_gold_team_evaluation(
         self,
@@ -500,18 +563,69 @@ class EnhancedGauntletSystem:
         solution: Any,
         context: Dict[str, Any]
     ) -> GauntletRoundResult:
-        """Mock gold team evaluation (replace with actual implementation)."""
-        # This is a placeholder - integrate with your actual gold team system
+        """
+        Execute Gold Team evaluation using the actual EvaluatorTeam engine.
+        Performs rigorous consensus-based verification.
+        """
         rule_id = round_rule.per_judge_requirements.get("rule_id", "gold_team_verify")
-        return GauntletRoundResult(
-            rule_id=rule_id,
-            round_number=round_rule.round_number,
-            status=GauntletRoundStatus.PASSED,
-            score=0.92,
-            feedback="Gold team verification (mock): Solution meets quality standards",
-            details={"mock": True, "evaluator": "gold_team"},
-            execution_time=8.0
-        )
+        solution_content = str(solution)
+        
+        try:
+            # Initialize Gold Team (EvaluatorTeam) if not present
+            if not self.gold_team_evaluator:
+                try:
+                    from evaluator_team import EvaluatorTeam, EvaluationThreshold
+                    self.gold_team_evaluator = EvaluatorTeam()
+                except ImportError:
+                    logger.error("EvaluatorTeam module not found")
+                    raise RuntimeError("GoldTeam capability unavailable")
+
+            # Determine threshold
+            from evaluator_team import EvaluationThreshold
+            threshold_map = {
+                "strict": EvaluationThreshold.EXCEPTIONAL,
+                "standard": EvaluationThreshold.STANDARD_APPROVAL,
+                "lenient": EvaluationThreshold.MINIMAL_ACCEPTANCE
+            }
+            strictness = context.get("strictness", "standard")
+            threshold = threshold_map.get(strictness, EvaluationThreshold.STANDARD_APPROVAL)
+
+            # Execute evaluation
+            evaluation = self.gold_team_evaluator.evaluate_content(
+                content=solution_content,
+                content_type=context.get("content_type", "general"),
+                threshold=threshold
+            )
+            
+            # Extract results
+            score = evaluation.consensus_score / 100.0  # Convert 0-100 to 0.0-1.0
+            passed = evaluation.final_verdict == "APPROVED"
+            
+            return GauntletRoundResult(
+                rule_id=rule_id,
+                round_number=round_rule.round_number,
+                status=GauntletRoundStatus.PASSED if passed else GauntletRoundStatus.FAILED,
+                score=score,
+                feedback=f"Verdict: {evaluation.final_verdict}. {evaluation.recommendations[0] if evaluation.recommendations else ''}",
+                details={
+                    "consensus_reached": evaluation.consensus_reached,
+                    "variance": evaluation.variance_analysis.get("variance", 0),
+                    "verdict": evaluation.final_verdict
+                },
+                execution_time=evaluation.evaluation_metadata.get("evaluation_time_taken", 0.0)
+            )
+            
+        except Exception as e:
+            logger.error(f"Gold Team evaluation failed: {e}", exc_info=True)
+            return GauntletRoundResult(
+                rule_id=rule_id,
+                round_number=round_rule.round_number,
+                status=GauntletRoundStatus.ERROR,
+                score=0.0,
+                feedback=f"Gold Team execution error: {str(e)}",
+                details={"error": str(e)},
+                execution_time=0.0
+            )
 
     def _get_thresholds(self, strictness: str) -> Dict[str, float]:
         """Get score thresholds based on strictness level."""

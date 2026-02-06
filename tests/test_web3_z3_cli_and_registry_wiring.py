@@ -9,6 +9,7 @@ def test_z3_stage_registry_contains_web3_stage_types():
     registry = z3_stage.get_z3_stage_registry()
     assert z3_stage.Z3StageType.WEB3_INVARIANT_TRANSLATE.value in registry.stage_types
     assert z3_stage.Z3StageType.WEB3_EXPLOIT_WITNESS.value in registry.stage_types
+    assert z3_stage.Z3StageType.WEB3_AUDIT_EXPLOIT_VERIFICATION.value in registry.stage_types
 
 
 def test_z3_coordinator_creates_web3_audit_agent():

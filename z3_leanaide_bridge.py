@@ -1059,6 +1059,43 @@ class Z3LeanAideBridge:
             return {"success": True, "result": result}
         except Exception as exc:
             return {"success": False, "error": str(exc)}
+
+    async def web3_audit_exploit_verification(
+        self,
+        statement: str = "balance[msg.sender] -= amount;",
+        non_negative_target: bool = True,
+        max_withdraw_expr: Optional[str] = None,
+        verify_translation: bool = True,
+        assume_non_negative_amount: bool = True,
+        additional_constraints: Optional[List[str]] = None,
+        timeout: float = 10.0,
+    ) -> Dict[str, Any]:
+        """Run combined Web3 formal pass: invariants + witness exploit solving."""
+        translation = await self.translate_solidity_invariant(
+            statement=statement,
+            non_negative_target=non_negative_target,
+            max_withdraw_expr=max_withdraw_expr,
+            verify_translation=verify_translation,
+            assume_non_negative_amount=assume_non_negative_amount,
+        )
+        witness = await self.solve_web3_exploit_witness(
+            additional_constraints=additional_constraints,
+            timeout=timeout,
+        )
+
+        verification = translation.get("verification")
+        witness_result = witness.get("result", {})
+        verified_exploit = bool(witness_result.get("satisfiable", False))
+        if verify_translation and isinstance(verification, dict):
+            verified_exploit = verified_exploit and bool(verification.get("proven", False))
+
+        return {
+            "success": bool(translation.get("success")) and bool(witness.get("success")),
+            "translation": translation.get("translation"),
+            "verification": verification,
+            "exploit_witness": witness_result,
+            "verified_exploit": verified_exploit,
+        }
     
     def get_capabilities(self) -> Dict[str, bool]:
         """Get available capabilities"""
@@ -1074,6 +1111,10 @@ class Z3LeanAideBridge:
             "solidity_invariant_translation": translate_solidity_assignment_to_z3 is not None,
             "solidity_invariant_verification": verify_solidity_invariant_translation is not None,
             "smart_contract_exploit_witness": solve_smart_contract_exploit_witness is not None,
+            "web3_audit_exploit_verification": (
+                translate_solidity_assignment_to_z3 is not None
+                and solve_smart_contract_exploit_witness is not None
+            ),
         }
 
 
@@ -1113,6 +1154,28 @@ async def quick_solve_web3_exploit_witness(
     """Quickly solve canonical Web3 exploit witness predicate."""
     bridge = create_z3_lean_bridge()
     return await bridge.solve_web3_exploit_witness(
+        additional_constraints=additional_constraints,
+        timeout=timeout,
+    )
+
+
+async def quick_web3_audit_exploit_verification(
+    statement: str = "balance[msg.sender] -= amount;",
+    non_negative_target: bool = True,
+    max_withdraw_expr: Optional[str] = None,
+    verify_translation: bool = True,
+    assume_non_negative_amount: bool = True,
+    additional_constraints: Optional[List[str]] = None,
+    timeout: float = 10.0,
+) -> Dict[str, Any]:
+    """Quickly run combined Web3 exploit-verification workflow."""
+    bridge = create_z3_lean_bridge()
+    return await bridge.web3_audit_exploit_verification(
+        statement=statement,
+        non_negative_target=non_negative_target,
+        max_withdraw_expr=max_withdraw_expr,
+        verify_translation=verify_translation,
+        assume_non_negative_amount=assume_non_negative_amount,
         additional_constraints=additional_constraints,
         timeout=timeout,
     )

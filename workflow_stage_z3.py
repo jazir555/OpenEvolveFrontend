@@ -63,6 +63,7 @@ class Z3StageType(Enum):
     TRANSLATE = "z3_translate"
     WEB3_INVARIANT_TRANSLATE = "z3_web3_invariant_translate"
     WEB3_EXPLOIT_WITNESS = "z3_web3_exploit_witness"
+    WEB3_AUDIT_EXPLOIT_VERIFICATION = "z3_web3_audit_exploit_verification"
 
 
 @dataclass
@@ -138,6 +139,7 @@ class Z3WorkflowStage:
             self.config.stage_type in {
                 Z3StageType.WEB3_INVARIANT_TRANSLATE,
                 Z3StageType.WEB3_EXPLOIT_WITNESS,
+                Z3StageType.WEB3_AUDIT_EXPLOIT_VERIFICATION,
             }
             and not WEB3_FORMAL_AVAILABLE
         ):
@@ -151,6 +153,7 @@ class Z3WorkflowStage:
         if not Z3_AVAILABLE and self.config.stage_type not in {
             Z3StageType.WEB3_INVARIANT_TRANSLATE,
             Z3StageType.WEB3_EXPLOIT_WITNESS,
+            Z3StageType.WEB3_AUDIT_EXPLOIT_VERIFICATION,
         }:
             return Z3StageResult(
                 success=False,
@@ -175,6 +178,8 @@ class Z3WorkflowStage:
                 return self._execute_web3_invariant_translate(context)
             elif self.config.stage_type == Z3StageType.WEB3_EXPLOIT_WITNESS:
                 return self._execute_web3_exploit_witness(context)
+            elif self.config.stage_type == Z3StageType.WEB3_AUDIT_EXPLOIT_VERIFICATION:
+                return self._execute_web3_audit_exploit_verification(context)
             else:
                 return Z3StageResult(
                     success=False,
@@ -439,6 +444,43 @@ class Z3WorkflowStage:
                 execution_time_ms=(time.time() - start_time) * 1000,
                 metadata={"error": str(exc)},
             )
+
+    def _execute_web3_audit_exploit_verification(self, context: Dict[str, Any]) -> Z3StageResult:
+        """Execute combined Web3 translation + witness exploit verification stage."""
+        start_time = time.time()
+
+        translation_result = self._execute_web3_invariant_translate(context)
+        witness_result = self._execute_web3_exploit_witness(context)
+
+        translation_metadata = translation_result.metadata if isinstance(translation_result.metadata, dict) else {}
+        witness_metadata = witness_result.metadata if isinstance(witness_result.metadata, dict) else {}
+        witness_payload = witness_metadata.get("result", {})
+        verification = translation_metadata.get("verification")
+
+        verified_exploit = bool(witness_payload.get("satisfiable", False))
+        if context.get("verify_translation", self.config.verify_translation) and isinstance(verification, dict):
+            verified_exploit = verified_exploit and bool(verification.get("proven", False))
+
+        if not translation_result.success:
+            status = "translation_failed"
+        elif not witness_result.success:
+            status = "witness_unsatisfied"
+        else:
+            status = "verified_exploit" if verified_exploit else "unverified"
+
+        return Z3StageResult(
+            success=translation_result.success and witness_result.success and verified_exploit,
+            stage_type=Z3StageType.WEB3_AUDIT_EXPLOIT_VERIFICATION,
+            status=status,
+            model=witness_result.model,
+            execution_time_ms=(time.time() - start_time) * 1000,
+            metadata={
+                "translation": translation_metadata.get("translation"),
+                "verification": verification,
+                "exploit_witness": witness_payload,
+                "verified_exploit": verified_exploit,
+            },
+        )
     
     def _build_variables(self, var_specs: List[Dict[str, Any]]) -> List[Any]:
         """Build Z3 variables from specifications."""

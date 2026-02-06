@@ -715,6 +715,23 @@ class Z3BubbleLabsUIManager:
                 "outputs": ["result"],
                 "icon": "🛡️",
                 "color": "#ef4444"
+            },
+            {
+                "type": "z3_web3_audit_exploit_verification",
+                "category": "z3_web3",
+                "name": "Web3 Exploit Verification",
+                "description": "Run combined invariant translation and symbolic exploit-witness verification",
+                "inputs": [
+                    "statement",
+                    "non_negative_target",
+                    "max_withdraw_expr",
+                    "verify_translation",
+                    "additional_constraints",
+                    "timeout_seconds",
+                ],
+                "outputs": ["translation", "verification", "result", "verified_exploit"],
+                "icon": "🔍",
+                "color": "#dc2626"
             }
         ]
     
@@ -813,6 +830,42 @@ class Z3BubbleLabsUIManager:
                     "status": "success",
                     "node_id": node_id,
                     "result": witness,
+                }
+
+            elif node_type == "z3_web3_audit_exploit_verification":
+                if translate_solidity_assignment_to_z3 is None:
+                    return {"status": "error", "error": "Web3 invariant translator unavailable"}
+                if solve_smart_contract_exploit_witness is None:
+                    return {"status": "error", "error": "Web3 exploit witness solver unavailable"}
+
+                translation = translate_solidity_assignment_to_z3(
+                    statement=inputs.get("statement", ""),
+                    non_negative_target=bool(inputs.get("non_negative_target", True)),
+                    max_withdraw_expr=inputs.get("max_withdraw_expr"),
+                )
+                verification = None
+                if bool(inputs.get("verify_translation", True)) and verify_solidity_invariant_translation is not None:
+                    verification = verify_solidity_invariant_translation(
+                        translation=translation,
+                        assume_non_negative_amount=bool(inputs.get("assume_non_negative_amount", True)),
+                    )
+
+                witness = solve_smart_contract_exploit_witness(
+                    additional_constraints=inputs.get("additional_constraints"),
+                    timeout=float(inputs.get("timeout_seconds", 10.0)),
+                )
+
+                verified_exploit = bool(witness.get("satisfiable", False))
+                if bool(inputs.get("verify_translation", True)) and isinstance(verification, dict):
+                    verified_exploit = verified_exploit and bool(verification.get("proven", False))
+
+                return {
+                    "status": "success",
+                    "node_id": node_id,
+                    "translation": translation,
+                    "verification": verification,
+                    "result": witness,
+                    "verified_exploit": verified_exploit,
                 }
             
             else:

@@ -1292,7 +1292,8 @@ class UnifiedMCPServer:
             
             for tool_name in ["z3_solve_constraints", "z3_solve", "z3_optimize", "z3_prove_theorem",
                              "z3_translate_smt_to_lean", "z3_solve_incremental", "z3_extract_proof",
-                             "z3_analyze_problem", "z3_solve_portfolio", "get_z3_status"]:
+                             "z3_analyze_problem", "z3_solve_portfolio", "get_z3_status",
+                             "z3_web3_audit_exploit_verification"]:
                 self.register_tool(tool_name, ToolCategory.Z3_PROVER,
                                   f"Z3 tool (unavailable)",
                                   z3_unavailable,
@@ -1340,6 +1341,59 @@ class UnifiedMCPServer:
                           "Find symbolic exploit witness for smart contract drain predicates",
                           z3_solve_smart_contract_exploit_witness,
                           {"type": "object", "properties": {
+                              "additional_constraints": {"type": "array", "items": {"type": "string"}},
+                              "timeout": {"type": "number", "default": 10.0},
+                          }})
+
+        async def z3_web3_audit_exploit_verification(args: Dict[str, Any]) -> Dict[str, Any]:
+            """Run full Web3 exploit verification: invariant translation + witness solving."""
+            try:
+                from z3prover_integration import (
+                    solve_smart_contract_exploit_witness,
+                    translate_solidity_assignment_to_z3,
+                    verify_solidity_invariant_translation,
+                )
+
+                translation = translate_solidity_assignment_to_z3(
+                    statement=args.get("statement", "balance[msg.sender] -= amount;"),
+                    non_negative_target=args.get("non_negative_target", True),
+                    max_withdraw_expr=args.get("max_withdraw_expr"),
+                )
+                verification = None
+                if args.get("verify_translation", True):
+                    verification = verify_solidity_invariant_translation(
+                        translation=translation,
+                        assume_non_negative_amount=args.get("assume_non_negative_amount", True),
+                    )
+
+                witness = solve_smart_contract_exploit_witness(
+                    additional_constraints=args.get("additional_constraints"),
+                    timeout=args.get("timeout", 10.0),
+                )
+
+                verified_exploit = bool(witness.get("satisfiable", False))
+                if args.get("verify_translation", True) and isinstance(verification, dict):
+                    verified_exploit = verified_exploit and bool(verification.get("proven", False))
+
+                return {
+                    "success": True,
+                    "translation": translation,
+                    "verification": verification,
+                    "exploit_witness": witness,
+                    "verified_exploit": verified_exploit,
+                }
+            except Exception as e:
+                return {"success": False, "error": str(e)}
+
+        self.register_tool("z3_web3_audit_exploit_verification", ToolCategory.Z3_PROVER,
+                          "Run combined Web3 exploit verification workflow",
+                          z3_web3_audit_exploit_verification,
+                          {"type": "object", "properties": {
+                              "statement": {"type": "string"},
+                              "non_negative_target": {"type": "boolean", "default": True},
+                              "max_withdraw_expr": {"type": "string"},
+                              "verify_translation": {"type": "boolean", "default": True},
+                              "assume_non_negative_amount": {"type": "boolean", "default": True},
                               "additional_constraints": {"type": "array", "items": {"type": "string"}},
                               "timeout": {"type": "number", "default": 10.0},
                           }})

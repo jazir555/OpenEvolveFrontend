@@ -23,13 +23,24 @@ from datetime import datetime, timezone
 import aiohttp
 from aiohttp import ClientTimeout, ClientSession, ClientError, ClientResponseError
 
-# CAV-NLP Integration
-try:
-    from openevolve.unified_math_service import UnifiedMathService, FormalizationResult
-    CAV_NLP_AVAILABLE = True
-except ImportError:
-    CAV_NLP_AVAILABLE = False
-    logging.getLogger(__name__).debug("CAV-NLP not available for leanaide_client")
+# CAV-NLP Integration - Lazy import to avoid circular dependency
+CAV_NLP_AVAILABLE = None  # Will be determined on first use
+
+# Lean availability - always True when client is importable (assumes Lean server available)
+# This flag exists for compatibility with the wider codebase
+LEAN_AVAILABLE = True
+
+def _get_cav_nlp_available() -> bool:
+    """Check CAV-NLP availability lazily to avoid circular imports."""
+    global CAV_NLP_AVAILABLE
+    if CAV_NLP_AVAILABLE is None:
+        try:
+            from openevolve.unified_math_service import UnifiedMathService, FormalizationResult
+            CAV_NLP_AVAILABLE = True
+        except ImportError:
+            CAV_NLP_AVAILABLE = False
+            logging.getLogger(__name__).debug("CAV-NLP not available for leanaide_client")
+    return CAV_NLP_AVAILABLE
 
 
 # Configure logging
@@ -159,7 +170,7 @@ class LeanAideClient:
         self._closed = False
         
         # CAV-NLP Integration
-        self.use_cav_nlp = use_cav_nlp and CAV_NLP_AVAILABLE
+        self.use_cav_nlp = use_cav_nlp and _get_cav_nlp_available()
         self._math_service = None
         if self.use_cav_nlp:
             try:

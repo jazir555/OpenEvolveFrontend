@@ -32,6 +32,10 @@ import shutil
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# Lean 4 availability flag
+# This module provides Lean 4 integration, so LEAN_AVAILABLE is True when imported
+LEAN_AVAILABLE = True
+
 
 # ============================================================================
 # Enums and Data Structures
