@@ -35,8 +35,8 @@ try:
     )
     ROMA_DEEPKE_AVAILABLE = True
 except ImportError:
-    ROMA_DEEPKE_AVAILABLE = False
-    pytestmark = pytest.mark.skip("ROMA-DeepKE integration not available")
+        ROMA_DEEPKE_AVAILABLE = False
+        # Set to None - use @pytest.mark.skipif on test classes instead
 
 
 # =============================================================================

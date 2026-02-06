@@ -1,0 +1,202 @@
+# Test Requirements for OpenEvolve Frontend
+#
+# This file lists all dependencies required for running the test suite.
+# Install with: pip install -r tests/requirements-test.txt
+#
+# Author: OpenEvolve Distinguished Engineer
+# Version: 1.0.0
+
+# ============================================================================
+# CORE TESTING FRAMEWORK
+# ============================================================================
+
+# pytest - The core testing framework
+pytest>=7.4.0
+pytest-cov>=4.1.0          # Coverage reporting
+pytest-xdist>=3.3.0        # Parallel test execution
+pytest-timeout>=2.1.0      # Test timeout enforcement
+pytest-asyncio>=0.21.0     # Async test support
+pytest-mock>=3.11.0        # Mock fixtures
+pytest-benchmark>=4.0.0    # Benchmarking tests
+
+# ============================================================================
+# MOCKING AND FIXTURES
+# ============================================================================
+
+# unittest.mock - Built-in with Python 3.8+
+# Additional mocking utilities
+responses>=0.23.0          # Mock HTTP responses
+freezegun>=1.2.2           # Mock time
+faker>=19.0.0              # Generate fake test data
+
+# ============================================================================
+# CODE QUALITY
+# ============================================================================
+
+# Linting and formatting
+pylint>=2.17.0
+flake8>=6.0.0
+black>=23.7.0
+isort>=5.12.0
+
+# Type checking
+mypy>=1.4.0
+
+# ============================================================================
+# DATABASE TESTING
+# ============================================================================
+
+# In-memory database for testing
+# SQLite is built-in with Python
+
+# For PostgreSQL testing (optional)
+# psycopg2-binary>=2.9.0
+
+# ============================================================================
+# ASYNC TESTING
+# ============================================================================
+
+# Async/await support
+asyncio>=3.4.3             # Built-in with Python 3.8+
+aiohttp>=3.8.0             # Async HTTP client
+aiosqlite>=0.19.0          # Async SQLite support
+
+# ============================================================================
+# KNOWLEDGE ENGINE DEPENDENCIES (Testing)
+# ============================================================================
+
+# These should match the versions in the main requirements.txt
+# but are listed here explicitly for test environment setup
+
+# NetworkX for graph operations
+networkx>=3.0.0
+
+# ============================================================================
+# INTEGRATION-SPECIFIC DEPENDENCIES (Optional)
+# ============================================================================
+
+# Only install these if testing the corresponding integration
+
+# ROMA Integration (Optional)
+# Uncomment if testing ROMA functionality
+# roma-core>=0.1.0
+
+# DSPy Integration (Optional)
+# Uncomment if testing DSPy functionality
+# dspy-ai>=2.0.0
+
+# DeepKE Integration (Optional)
+# Uncomment if testing DeepKE functionality
+# deepke>=0.1.0
+
+# RAGbits Integration (Optional)
+# Uncomment if testing RAGbits functionality
+# ragbits>=0.1.0
+
+# CrewAI Integration (Optional)
+# Uncomment if testing CrewAI functionality
+# crewai>=0.1.0
+
+# ============================================================================
+# MONITORING AND METRICS
+# ============================================================================
+
+# Metrics collection for testing
+prometheus-client>=0.17.0
+
+# ============================================================================
+# LOGGING AND DEBUGGING
+# ============================================================================
+
+# Structured logging
+python-json-logger>=2.0.7
+
+# Debugging
+ipython>=8.14.0            # Enhanced debugging in tests
+ipdb>=0.13.0               # IPython debugger
+
+# ============================================================================
+# PERFORMANCE TESTING
+# ============================================================================
+
+# Memory profiling
+memory-profiler>=0.61.0
+
+# Line profiling
+line-profiler>=4.0.0
+
+# ============================================================================
+# SECURITY TESTING
+# ============================================================================
+
+# Security vulnerability scanning
+bandit>=1.7.5              # Security linter
+safety>=2.3.0              # Check dependencies for vulnerabilities
+
+# ============================================================================
+# DOCUMENTATION
+# ============================================================================
+
+# Test documentation
+pygments>=2.15.0           # Syntax highlighting
+
+# ============================================================================
+# UTILITIES
+# ============================================================================
+
+# Date/time utilities
+python-dateutil>=2.8.2
+
+# JSON schema validation
+jsonschema>=4.19.0
+
+# Environment variable management
+python-dotenv>=1.0.0
+
+# Path utilities
+path.py>=12.6.0
+
+# ============================================================================
+# CI/CD INTEGRATION
+# ============================================================================
+
+# JUnit XML output for CI systems
+# pytest-junitxml is built into pytest
+
+# HTML test reports
+pytest-html>=3.2.0
+
+# Last execution time tracking
+pytest-testmon>=2.0.0
+
+# ============================================================================
+# DEVELOPMENT DEPENDENCIES
+# ============================================================================
+
+# Interactive test runner
+ptpython>=3.0.0
+
+# Test discovery and execution
+tox>=4.6.0                 # Multi-environment testing
+
+# ============================================================================
+# NOTES
+# ============================================================================
+
+# 1. Install with: pip install -r tests/requirements-test.txt
+# 2. For a minimal test environment, install only:
+#    - pytest
+#    - pytest-cov
+#    - pytest-asyncio
+#    - pytest-mock
+#    - responses
+#    - freezegun
+#
+# 3. Integration-specific dependencies are commented out by default.
+#    Uncomment them only if you're testing that specific integration.
+#
+# 4. Versions are specified as minimum required versions.
+#    Newer versions should work unless there's a breaking change.
+#
+# 5. Always run tests in a virtual environment to avoid conflicts
+#    with project dependencies.

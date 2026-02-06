@@ -52,6 +52,9 @@ from unittest.mock import Mock, AsyncMock, MagicMock, patch
 from dataclasses import asdict
 
 # Import ROMA integration components
+# NOTE: We don't use pytestmark here because setting it multiple times causes issues
+# Instead, we check availability and skip individual test classes as needed
+
 try:
     from knowledge_engine.integrations.roma_integration import (
         ROMAIntegration,
@@ -63,7 +66,12 @@ try:
     ROMA_AVAILABLE = True
 except ImportError:
     ROMA_AVAILABLE = False
-    pytestmark = pytest.mark.skip("ROMA integration not available")
+    # Mock classes for testing when not available
+    ROMAIntegration = None
+    ROMAResult = None
+    ROMADecomposition = None
+    ROMASolution = None
+    ROMAVerification = None
 
 try:
     from knowledge_engine.integrations.roma_knowledge_pipeline import (
@@ -74,7 +82,9 @@ try:
     ROMA_PIPELINE_AVAILABLE = True
 except ImportError:
     ROMA_PIPELINE_AVAILABLE = False
-    pytestmark = pytest.mark.skip("ROMA knowledge pipeline not available")
+    ROMAKnowledgePipeline = None
+    EntityExtractionResult = None
+    KnowledgeArtifact = None
 
 try:
     from knowledge_engine.integrations.roma_entity_kg_integration import (
@@ -91,7 +101,15 @@ try:
     ROMA_EKG_AVAILABLE = True
 except ImportError:
     ROMA_EKG_AVAILABLE = False
-    pytestmark = pytest.mark.skip("ROMA EKG integration not available")
+    ROMAEntityExtractor = None
+    ROMAKnowledgeWriter = None
+    ROMAKnowledgeReader = None
+    ROMAEntity = None
+    ROMARelationship = None
+    ROMAKnowledgeResult = None
+    ROMAEntityType = None
+    ROMARelationshipType = None
+    SimilarDecomposition = None
 
 try:
     from knowledge_engine.integrations.roma_dspy_integration import (
@@ -102,7 +120,9 @@ try:
     ROMA_DSPY_AVAILABLE = True
 except ImportError:
     ROMA_DSPY_AVAILABLE = False
-    pytestmark = pytest.mark.skip("ROMA-DSPy integration not available")
+    ROMADSPyIntegration = None
+    ReasoningTrace = None
+    EnhancedSubproblem = None
 
 try:
     from knowledge_engine.integrations.roma_deepke_integration import (
@@ -112,7 +132,8 @@ try:
     ROMA_DEEPKE_AVAILABLE = True
 except ImportError:
     ROMA_DEEPKE_AVAILABLE = False
-    pytestmark = pytest.mark.skip("ROMA-DeepKE integration not available")
+    ROMADeepKEIntegration = None
+    EntityExtraction = None
 
 try:
     from knowledge_engine.integrations.roma_ragbits_integration import (
@@ -126,7 +147,12 @@ try:
     ROMA_RAGBITS_AVAILABLE = True
 except ImportError:
     ROMA_RAGBITS_AVAILABLE = False
-    pytestmark = pytest.mark.skip("ROMA-RAGbits integration not available")
+    ROMARagbitsIntegration = None
+    IndexedSolution = None
+    SimilarSolution = None
+    SolutionReuseResult = None
+    IndexStatistics = None
+    SolutionReuseStatus = None
 
 
 # =============================================================================

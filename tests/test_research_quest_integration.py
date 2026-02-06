@@ -55,8 +55,8 @@ try:
     )
     RESEARCH_QUEST_AVAILABLE = True
 except ImportError:
-    RESEARCH_QUEST_AVAILABLE = False
-    pytestmark = pytest.mark.skip("ResearchQuest integration not available")
+        RESEARCH_QUEST_AVAILABLE = False
+        # Set to None - use @pytest.mark.skipif on test classes instead
 
 
 # =============================================================================

@@ -50,8 +50,8 @@ try:
     )
     LAGRANGE_MAPPER_AVAILABLE = True
 except ImportError:
-    LAGRANGE_MAPPER_AVAILABLE = False
-    pytestmark = pytest.mark.skip("Lagrange Mapper integration not available")
+        LAGRANGE_MAPPER_AVAILABLE = False
+        # Set to None - use @pytest.mark.skipif on test classes instead
 
 
 # =============================================================================

@@ -20,11 +20,14 @@ class EvolutionResult:
     """Result of an evolution operation."""
     success: bool = False
     best_score: float = 0.0
+    best_code: Optional[str] = None
+    best_program: Optional[Any] = None
     iterations: int = 0
     best_individual: Optional[Any] = None
     population: List[Any] = field(default_factory=list)
     metrics: Dict[str, Any] = field(default_factory=dict)
     error_message: Optional[str] = None
+    output_dir: Optional[str] = None
 
 
 @dataclass

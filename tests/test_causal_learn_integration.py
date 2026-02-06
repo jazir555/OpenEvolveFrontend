@@ -50,8 +50,8 @@ try:
     )
     CAUSAL_LEARN_AVAILABLE = True
 except ImportError:
-    CAUSAL_LEARN_AVAILABLE = False
-    pytestmark = pytest.mark.skip("Causal-Learn integration not available")
+        CAUSAL_LEARN_AVAILABLE = False
+        # Set to None - use @pytest.mark.skipif on test classes instead
 
 
 # =============================================================================

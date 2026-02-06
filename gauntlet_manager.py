@@ -95,10 +95,9 @@ except ImportError:
 try:
     from gauntlet_types import (
         BaseGauntlet, GauntletResult, GauntletType,
-        AdversarialGauntlet, FormalVerificationGauntlet, StatisticalGauntlet,
-        DomainSpecificGauntlet, MultiObjectiveGauntlet, EvolutionaryGauntlet,
-        TemporalGauntlet, CrossValidationGauntlet,
-        create_gauntlet
+            AdversarialGauntlet, FormalVerificationGauntlet, LogicalSandboxGauntlet,
+            StatisticalGauntlet, DomainSpecificGauntlet, MultiObjectiveGauntlet, 
+            EvolutionaryGauntlet, TemporalGauntlet, CrossValidationGauntlet,        create_gauntlet
     )
     GAUNTLET_TYPES_AVAILABLE = True
 except ImportError:
@@ -1571,7 +1570,51 @@ Suggest improvements to make the gauntlet more effective. Return JSON with sugge
                 "score": 0.0,
                 "error": str(e)
             }
-    
+
+    def create_logical_sandbox_gauntlet(
+        self,
+        name: str,
+        solution: Any,
+        safety_invariants: List[str]
+    ) -> Dict[str, Any]:
+        """
+        Create and execute a logical sandbox gauntlet.
+        
+        Validates solutions against safety invariants using Digital Twin Sandbox.
+        
+        Args:
+            name: Gauntlet name
+            solution: Solution/fix to validate
+            safety_invariants: List of safety invariant SMT expressions
+            
+        Returns:
+            Dict with logical sandbox validation results
+        """
+        try:
+            from gauntlet_types import LogicalSandboxGauntlet
+            
+            gauntlet = LogicalSandboxGauntlet(name)
+            context = {"safety_invariants": safety_invariants}
+            
+            result = gauntlet.execute(solution, context)
+            
+            return {
+                "passed": result.passed,
+                "score": result.score,
+                "confidence": result.confidence,
+                "feedback": result.feedback,
+                "execution_time": result.execution_time,
+                "details": result.details
+            }
+            
+        except Exception as e:
+            logger.error(f"Logical sandbox gauntlet failed: {e}")
+            return {
+                "passed": False,
+                "score": 0.0,
+                "error": str(e)
+            }
+
     def create_statistical_gauntlet(
         self,
         name: str,

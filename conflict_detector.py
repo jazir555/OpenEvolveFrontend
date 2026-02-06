@@ -64,6 +64,8 @@ class ConflictType(Enum):
     STRUCTURAL_CONFLICT = "structural_conflict"
     API_CONFLICT = "api_conflict"
     RESOURCE_CONFLICT = "resource_conflict"
+    VERSION_CONFLICT = "version_conflict"
+    DATA_CONFLICT = "data_conflict"
 
 
 class ConflictSeverity(Enum):
@@ -348,19 +350,59 @@ class ConflictDetector:
 
     def detect_conflicts(
         self,
-        sub_solutions: List[str],
-        metadata: Optional[List[Dict]] = None
+        sub_solutions: Optional[List[str]] = None,
+        metadata: Optional[List[Dict]] = None,
+        resource_a: Optional[Dict[str, Any]] = None,
+        resource_b: Optional[Dict[str, Any]] = None
     ) -> List[Conflict]:
         """
-        Detect all conflicts between sub-solutions
+        Detect all conflicts between sub-solutions or resources
 
         Args:
-            sub_solutions: List of solution code strings
+            sub_solutions: List of solution code strings (optional)
             metadata: Optional metadata for each solution
+            resource_a: First resource dict for simple conflict detection (optional)
+            resource_b: Second resource dict for simple conflict detection (optional)
 
         Returns:
             List of detected conflicts
         """
+        # Support simple two-resource conflict detection
+        if resource_a is not None and resource_b is not None:
+            conflicts = []
+
+            # Check for version conflicts
+            if 'version' in resource_a and 'version' in resource_b:
+                if resource_a['version'] != resource_b['version']:
+                    conflicts.append(Conflict(
+                        conflict_type=ConflictType.VERSION_CONFLICT,
+                        severity=ConflictSeverity.HIGH,
+                        description=f"Version mismatch: {resource_a['version']} vs {resource_b['version']}",
+                        affected_solutions=['resource_a', 'resource_b'],
+                        source_locations=[],
+                        suggested_resolution={'strategy': 'resolve_version'},
+                        confidence=1.0
+                    ))
+
+            # Check for data conflicts
+            if 'data' in resource_a and 'data' in resource_b:
+                if resource_a['data'] != resource_b['data']:
+                    conflicts.append(Conflict(
+                        conflict_type=ConflictType.DATA_CONFLICT,
+                        severity=ConflictSeverity.MEDIUM,
+                        description=f"Data mismatch between resources",
+                        affected_solutions=['resource_a', 'resource_b'],
+                        source_locations=[],
+                        suggested_resolution={'strategy': 'merge_data'},
+                        confidence=0.8
+                    ))
+
+            return conflicts
+
+        # Standard conflict detection for sub_solutions
+        if sub_solutions is None:
+            return []
+
         logger.info(f"Starting conflict detection for {len(sub_solutions)} solutions")
 
         conflicts: List[Conflict] = []
@@ -1556,21 +1598,61 @@ class ConflictReporter:
 
 # Convenience functions
 def detect_conflicts(
-    sub_solutions: List[str],
+    sub_solutions: Optional[List[str]] = None,
     metadata: Optional[List[Dict]] = None,
-    strict_mode: bool = False
+    strict_mode: bool = False,
+    resource_a: Optional[Dict[str, Any]] = None,
+    resource_b: Optional[Dict[str, Any]] = None
 ) -> List[Conflict]:
     """
     Convenience function to detect conflicts
 
     Args:
-        sub_solutions: List of solution code strings
+        sub_solutions: List of solution code strings (optional)
         metadata: Optional metadata for each solution
         strict_mode: If True, treat all potential conflicts as actual conflicts
+        resource_a: First resource dict for simple conflict detection (optional)
+        resource_b: Second resource dict for simple conflict detection (optional)
 
     Returns:
         List of detected conflicts
     """
+    # Support simple two-resource conflict detection
+    if resource_a is not None and resource_b is not None:
+        conflicts = []
+
+        # Check for version conflicts
+        if 'version' in resource_a and 'version' in resource_b:
+            if resource_a['version'] != resource_b['version']:
+                conflicts.append(Conflict(
+                    conflict_type=ConflictType.VERSION_CONFLICT,
+                    severity=ConflictSeverity.HIGH,
+                    description=f"Version mismatch: {resource_a['version']} vs {resource_b['version']}",
+                    affected_solutions=['resource_a', 'resource_b'],
+                    source_locations=[],
+                    suggested_resolution={'strategy': 'resolve_version'},
+                    confidence=1.0
+                ))
+
+        # Check for data conflicts
+        if 'data' in resource_a and 'data' in resource_b:
+            if resource_a['data'] != resource_b['data']:
+                conflicts.append(Conflict(
+                    conflict_type=ConflictType.DATA_CONFLICT,
+                    severity=ConflictSeverity.MEDIUM,
+                    description=f"Data mismatch between resources",
+                    affected_solutions=['resource_a', 'resource_b'],
+                    source_locations=[],
+                    suggested_resolution={'strategy': 'merge_data'},
+                    confidence=0.8
+                ))
+
+        return conflicts
+
+    # Standard conflict detection for sub_solutions
+    if sub_solutions is None:
+        return []
+
     detector = ConflictDetector(strict_mode=strict_mode)
     return detector.detect_conflicts(sub_solutions, metadata)
 

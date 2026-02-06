@@ -70,8 +70,8 @@ try:
     )
     ROMA_RAGBITS_AVAILABLE = True
 except ImportError:
-    ROMA_RAGBITS_AVAILABLE = False
-    pytestmark = pytest.mark.skip("ROMA-RAGbits integration not available")
+        ROMA_RAGBITS_AVAILABLE = False
+        # Set to None - use @pytest.mark.skipif on test classes instead
 
 # Import ROMA components for mocking
 try:

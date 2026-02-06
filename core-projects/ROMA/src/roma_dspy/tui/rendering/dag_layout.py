@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """DAG layout engine for hierarchical graph visualization.
 
 This module provides algorithms for positioning nodes in a DAG for ASCII rendering.
@@ -14,9 +16,6 @@ except ImportError:
     TaskComplexityClassifier = None
     AdaptiveMDAPAllocator = None
     SubProblem = None
-
-
-from __future__ import annotations
 
 from collections import defaultdict
 from typing import Dict, List, Optional, Set, Tuple

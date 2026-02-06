@@ -485,7 +485,7 @@ class PostgreSQLBackend:
                         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         change_type VARCHAR(50),
                         content TEXT,
-                        metadata JSONB DEFAULT '{}',
+                        metadata JSONB DEFAULT '{{}}',
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     );
@@ -501,7 +501,7 @@ class PostgreSQLBackend:
                         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         modification_type VARCHAR(50),
                         content TEXT,
-                        metadata JSONB DEFAULT '{}',
+                        metadata JSONB DEFAULT '{{}}',
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     );

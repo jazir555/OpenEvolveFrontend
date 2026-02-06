@@ -49,7 +49,7 @@ except ImportError:
         LEAN4_TRUE_100_AVAILABLE = True
     except ImportError:
         LEAN4_TRUE_100_AVAILABLE = False
-        pytestmark = pytest.mark.skip("Lean 4 integration not available")
+        # Set to None - use @pytest.mark.skipif on test classes instead
 
 
 # =============================================================================

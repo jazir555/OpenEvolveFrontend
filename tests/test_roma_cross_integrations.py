@@ -48,6 +48,7 @@ from unittest.mock import Mock, AsyncMock, MagicMock, patch
 from dataclasses import asdict
 
 # Import ROMA cross-integrations
+# NOTE: We don't use pytestmark here because setting it multiple times causes issues
 try:
     from knowledge_engine.integrations.roma_integration import (
         ROMAIntegration,
@@ -59,25 +60,32 @@ try:
     ROMA_AVAILABLE = True
 except ImportError:
     ROMA_AVAILABLE = False
-    pytestmark = pytest.mark.skip("ROMA integration not available")
+    ROMAIntegration = None
+    ROMAResult = None
+    ROMADecomposition = None
+    ROMASolution = None
+    ROMAVerification = None
 
 try:
     from knowledge_engine.integrations.dspy_integration import DSPyIntegration
     DSPY_AVAILABLE = True
 except ImportError:
     DSPY_AVAILABLE = False
+    DSPyIntegration = None
 
 try:
     from knowledge_engine.integrations.deepke_integration import DeepKEIntegration
     DEEPKE_AVAILABLE = True
 except ImportError:
     DEEPKE_AVAILABLE = False
+    DeepKEIntegration = None
 
 try:
     from knowledge_engine.integrations.ragbits_integration import RagbitsIntegration
     RAGBITS_AVAILABLE = True
 except ImportError:
     RAGBITS_AVAILABLE = False
+    RagbitsIntegration = None
 
 try:
     from knowledge_engine.integrations.roma_dspy_integration import (
@@ -89,7 +97,10 @@ try:
     ROMA_DSPY_AVAILABLE = True
 except ImportError:
     ROMA_DSPY_AVAILABLE = False
-    pytestmark = pytest.mark.skip("ROMA-DSPy integration not available")
+    ROMADSPyIntegration = None
+    ReasoningTrace = None
+    EnhancedSubproblem = None
+    create_roma_dspy_integration = None
 
 try:
     from knowledge_engine.integrations.roma_deepke_integration import (
@@ -100,7 +111,9 @@ try:
     ROMA_DEEPKE_AVAILABLE = True
 except ImportError:
     ROMA_DEEPKE_AVAILABLE = False
-    pytestmark = pytest.mark.skip("ROMA-DeepKE integration not available")
+    ROMADeepKEIntegration = None
+    EntityExtraction = None
+    create_roma_deepke_integration = None
 
 try:
     from knowledge_engine.integrations.roma_ragbits_integration import (
@@ -116,7 +129,14 @@ try:
     ROMA_RAGBITS_AVAILABLE = True
 except ImportError:
     ROMA_RAGBITS_AVAILABLE = False
-    pytestmark = pytest.mark.skip("ROMA-RAGbits integration not available")
+    ROMARagbitsIntegration = None
+    IndexedSolution = None
+    SimilarSolution = None
+    SolutionReuseResult = None
+    IndexStatistics = None
+    SolutionReuseStatus = None
+    create_roma_ragbits_integration = None
+    get_roma_ragbits_integration = None
 
 
 # =============================================================================

@@ -1,0 +1,58 @@
+{
+  "files_scanned": 8019,
+  "errors_found": 13,
+  "errors": [
+    {
+      "file": "c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\crew\\crew.py",
+      "error": "  File \"c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\crew\\crew.py\", line 10\n    class {{crew_name}}():\n          ^\nSyntaxError: invalid syntax\n"
+    },
+    {
+      "file": "c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\crew\\main.py",
+      "error": "  File \"c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\crew\\main.py\", line 7\n    from {{folder_name}}.crew import {{crew_name}}\n         ^\nSyntaxError: invalid syntax\n"
+    },
+    {
+      "file": "c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\flow\\main.py",
+      "error": "  File \"c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\flow\\main.py\", line 8\n    from {{folder_name}}.crews.poem_crew.poem_crew import PoemCrew\n         ^\nSyntaxError: invalid syntax\n"
+    },
+    {
+      "file": "c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\tool\\src\\{{folder_name}}\\tool.py",
+      "error": "  File \"c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\tool\\src\\{{folder_name}}\\tool.py\", line 4\n    class {{class_name}}(BaseTool):\n          ^\nSyntaxError: invalid syntax\n"
+    },
+    {
+      "file": "c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\tool\\src\\{{folder_name}}\\__init__.py",
+      "error": "  File \"c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\tool\\src\\{{folder_name}}\\__init__.py\", line 1\n    from .tool import {{class_name}}\n                      ^\nSyntaxError: invalid syntax\n"
+    },
+    {
+      "file": "c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai\\src\\crewai\\cli\\templates\\crew\\crew.py",
+      "error": "  File \"c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai\\src\\crewai\\cli\\templates\\crew\\crew.py\", line 10\n    class {{crew_name}}():\n          ^\nSyntaxError: invalid syntax\n"
+    },
+    {
+      "file": "c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai\\src\\crewai\\cli\\templates\\crew\\main.py",
+      "error": "  File \"c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai\\src\\crewai\\cli\\templates\\crew\\main.py\", line 7\n    from {{folder_name}}.crew import {{crew_name}}\n         ^\nSyntaxError: invalid syntax\n"
+    },
+    {
+      "file": "c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai\\src\\crewai\\cli\\templates\\flow\\main.py",
+      "error": "  File \"c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai\\src\\crewai\\cli\\templates\\flow\\main.py\", line 8\n    from {{folder_name}}.crews.poem_crew.poem_crew import PoemCrew\n         ^\nSyntaxError: invalid syntax\n"
+    },
+    {
+      "file": "c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai\\src\\crewai\\cli\\templates\\tool\\src\\{{folder_name}}\\tool.py",
+      "error": "  File \"c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai\\src\\crewai\\cli\\templates\\tool\\src\\{{folder_name}}\\tool.py\", line 4\n    class {{class_name}}(BaseTool):\n          ^\nSyntaxError: invalid syntax\n"
+    },
+    {
+      "file": "c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai\\src\\crewai\\cli\\templates\\tool\\src\\{{folder_name}}\\__init__.py",
+      "error": "  File \"c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\lib\\crewai\\src\\crewai\\cli\\templates\\tool\\src\\{{folder_name}}\\__init__.py\", line 1\n    from .tool import {{class_name}}\n                      ^\nSyntaxError: invalid syntax\n"
+    },
+    {
+      "file": "c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\datasets\\dataset.py",
+      "error": "  File \"c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\dspy\\dspy\\datasets\\dataset.py\", line 13\n    from __future__ import annotations\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nSyntaxError: from __future__ imports must occur at the beginning of the file\n"
+    },
+    {
+      "file": "c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\ROMA\\src\\roma_dspy\\tui\\rendering\\dag_layout.py",
+      "error": "  File \"c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\ROMA\\src\\roma_dspy\\tui\\rendering\\dag_layout.py\", line 19\n    from __future__ import annotations\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nSyntaxError: from __future__ imports must occur at the beginning of the file\n"
+    },
+    {
+      "file": "c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\ROMA\\src\\roma_dspy\\tui\\screens\\dag_modal.py",
+      "error": "  File \"c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\ROMA\\src\\roma_dspy\\tui\\screens\\dag_modal.py\", line 19\n    from __future__ import annotations\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nSyntaxError: from __future__ imports must occur at the beginning of the file\n"
+    }
+  ]
+}

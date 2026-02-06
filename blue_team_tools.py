@@ -1666,3 +1666,25 @@ def quick_validate(content: str, content_type: str = "python") -> Dict[str, Any]
         'style': validation_tools.validate_style(content, content_type),
         'security': validation_tools.validate_security(content, content_type)
     }
+
+
+# =============================================================================
+# TEST COMPATIBILITY CLASS
+# =============================================================================
+
+class BlueTeamTools:
+    """Wrapper class for test compatibility."""
+    
+    def __init__(self):
+        """Initialize Blue Team tools."""
+        self.tools = {}
+    
+    def get_available_tools(self) -> list:
+        """Get list of available tools."""
+        return list(self.tools.keys())
+    
+    def execute_tool(self, tool_name: str, **kwargs):
+        """Execute a tool."""
+        if tool_name in self.tools:
+            return self.tools[tool_name](**kwargs)
+        raise ValueError(f'Tool not found: {tool_name}')

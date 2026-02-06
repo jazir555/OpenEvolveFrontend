@@ -28,6 +28,7 @@ from gauntlet_types import (
     # Import all 8 gauntlet types
     AdversarialGauntlet,
     FormalVerificationGauntlet,
+    LogicalSandboxGauntlet,
     StatisticalGauntlet,
     DomainSpecificGauntlet,
     MultiObjectiveGauntlet,

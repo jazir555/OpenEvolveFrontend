@@ -47,8 +47,8 @@ try:
     )
     ROMA_DSPY_AVAILABLE = True
 except ImportError:
-    ROMA_DSPY_AVAILABLE = False
-    pytestmark = pytest.mark.skip("ROMA-DSPy integration not available")
+        ROMA_DSPY_AVAILABLE = False
+        # Set to None - use @pytest.mark.skipif on test classes instead
 
 
 # =============================================================================

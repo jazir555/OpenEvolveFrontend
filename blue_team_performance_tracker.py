@@ -1834,3 +1834,28 @@ def quick_performance_report(
             lines.append(f"  - {rec['recommendation']}")
 
     return "\n".join(lines)
+
+
+# =============================================================================
+# TEST COMPATIBILITY CLASS
+# =============================================================================
+
+class PerformanceTracker:
+    """Wrapper class for test compatibility."""
+    
+    def __init__(self):
+        """Initialize performance tracker."""
+        self.metrics = []
+    
+    def track_metric(self, name: str, value: float):
+        """Track a metric."""
+        self.metrics.append({'name': name, 'value': value, 'timestamp': time.time()})
+    
+    def get_metrics(self) -> list:
+        """Get all metrics."""
+        return self.metrics
+    
+    def get_average(self, metric_name: str) -> float:
+        """Get average value for a metric."""
+        values = [m['value'] for m in self.metrics if m['name'] == metric_name]
+        return sum(values) / len(values) if values else 0.0

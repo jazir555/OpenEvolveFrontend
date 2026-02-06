@@ -15,10 +15,14 @@ logger = logging.getLogger(__name__)
 
 class ACEWorkflowKnowledgeExtractor:
     """ACE Workflow Knowledge Extractor class"""
-    
+
     def __init__(self):
         logger.info("ACE Workflow Knowledge Extractor initialized")
-    
+
     def extract(self, workflow: Dict[str, Any]) -> Dict[str, Any]:
         """Extract knowledge from workflow"""
         return {"knowledge": {}, "workflow": workflow}
+
+
+# Alias for compatibility
+WorkflowKnowledgeExtractor = ACEWorkflowKnowledgeExtractor

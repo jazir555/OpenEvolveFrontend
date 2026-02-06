@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """DAG visualization modal for TUI.
 
 Full-screen modal showing hierarchical graph visualization of task dependencies
@@ -14,9 +16,6 @@ except ImportError:
     TaskComplexityClassifier = None
     AdaptiveMDAPAllocator = None
     SubProblem = None
-
-
-from __future__ import annotations
 
 from typing import Callable, Dict, Optional, Set
 

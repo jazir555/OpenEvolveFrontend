@@ -52,6 +52,7 @@ from unittest.mock import Mock, AsyncMock, MagicMock, patch
 from dataclasses import asdict
 
 # Import LoongFlow integration components
+# NOTE: We don't use pytestmark here to avoid multiple assignment issues
 try:
     from knowledge_engine.integrations.loongflow_integration import (
         LoongFlowKnowledgeExtractor,
@@ -65,7 +66,13 @@ try:
     LOONGFLOW_AVAILABLE = True
 except ImportError:
     LOONGFLOW_AVAILABLE = False
-    pytestmark = pytest.mark.skip("LoongFlow integration not available")
+    LoongFlowKnowledgeExtractor = None
+    PESRunResults = None
+    KnowledgeArtifact = None
+    ProblemDomain = None
+    ArtifactType = None
+    create_loongflow_extractor = None
+    LoongFlowIntegration = None
 
 
 # =============================================================================

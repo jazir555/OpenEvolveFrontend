@@ -1883,3 +1883,24 @@ def create_solution_from_template(template_name: str,
         raise ValueError(f"Template not found: {template_name}")
 
     return template.render(variables)
+
+
+# =============================================================================
+# TEST COMPATIBILITY CLASS
+# =============================================================================
+
+class BlueTeamUtilities:
+    """Wrapper class for test compatibility."""
+    
+    def __init__(self):
+        """Initialize Blue Team utilities."""
+        self.validation_tools = ValidationTools()
+        self.template_library = SolutionTemplateLibrary()
+    
+    def validate_content(self, content: str, content_type: str = "python"):
+        """Validate content."""
+        return quick_validate(content, content_type)
+    
+    def create_solution(self, template_name: str, variables: dict) -> str:
+        """Create solution from template."""
+        return create_solution_from_template(template_name, variables)

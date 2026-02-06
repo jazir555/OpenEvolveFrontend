@@ -1,0 +1,88 @@
+{
+  "scan_summary": {
+    "files_scanned_total": 9615,
+    "breakdown": {
+      "core-projects": 8019,
+      "examples_glue_leanaide_tests": 386,
+      "root_directory": 1210
+    },
+    "errors_found_total": 13,
+    "real_errors_fixed": 3,
+    "template_files_skipped": 10
+  },
+  "files_fixed": [
+    "core-projects/dspy/dspy/datasets/dataset.py",
+    "core-projects/ROMA/src/roma_dspy/tui/rendering/dag_layout.py",
+    "core-projects/ROMA/src/roma_dspy/tui/screens/dag_modal.py"
+  ],
+  "details": [
+    {
+      "file": "core-projects/dspy/dspy/datasets/dataset.py",
+      "error": "SyntaxError: from __future__ imports must occur at the beginning of the file (line 13)",
+      "fix": "Moved 'from __future__ import annotations' from line 13 to line 1, before any other imports or comments"
+    },
+    {
+      "file": "core-projects/ROMA/src/roma_dspy/tui/rendering/dag_layout.py",
+      "error": "SyntaxError: from __future__ imports must occur at the beginning of the file (line 19)",
+      "fix": "Moved 'from __future__ import annotations' from line 19 to line 1, before the docstring and other imports"
+    },
+    {
+      "file": "core-projects/ROMA/src/roma_dspy/tui/screens/dag_modal.py",
+      "error": "SyntaxError: from __future__ imports must occur at the beginning of the file (line 19)",
+      "fix": "Moved 'from __future__ import annotations' from line 19 to line 1, before the docstring and other imports"
+    }
+  ],
+  "template_files_intentionally_skipped": [
+    {
+      "file": "core-projects/crewAI/crewAI-main/lib/crewai/src/crewai/cli/templates/crew/crew.py",
+      "reason": "Jinja2 template file with {{crew_name}} placeholders - not meant to be valid Python until processed"
+    },
+    {
+      "file": "core-projects/crewAI/crewAI-main/lib/crewai/src/crewai/cli/templates/crew/main.py",
+      "reason": "Jinja2 template file with {{folder_name}} placeholders - not meant to be valid Python until processed"
+    },
+    {
+      "file": "core-projects/crewAI/crewAI-main/lib/crewai/src/crewai/cli/templates/flow/main.py",
+      "reason": "Jinja2 template file with {{folder_name}} placeholders - not meant to be valid Python until processed"
+    },
+    {
+      "file": "core-projects/crewAI/crewAI-main/lib/crewai/src/crewai/cli/templates/tool/src/{{folder_name}}/tool.py",
+      "reason": "Jinja2 template file with {{class_name}} placeholders - not meant to be valid Python until processed"
+    },
+    {
+      "file": "core-projects/crewAI/crewAI-main/lib/crewai/src/crewai/cli/templates/tool/src/{{folder_name}}/__init__.py",
+      "reason": "Jinja2 template file with {{class_name}} placeholders - not meant to be valid Python until processed"
+    },
+    {
+      "file": "core-projects/crewAI/lib/crewai/src/crewai/cli/templates/crew/crew.py",
+      "reason": "Jinja2 template file with {{crew_name}} placeholders - not meant to be valid Python until processed"
+    },
+    {
+      "file": "core-projects/crewAI/lib/crewai/src/crewai/cli/templates/crew/main.py",
+      "reason": "Jinja2 template file with {{folder_name}} placeholders - not meant to be valid Python until processed"
+    },
+    {
+      "file": "core-projects/crewAI/lib/crewai/src/crewai/cli/templates/flow/main.py",
+      "reason": "Jinja2 template file with {{folder_name}} placeholders - not meant to be valid Python until processed"
+    },
+    {
+      "file": "core-projects/crewAI/lib/crewai/src/crewai/cli/templates/tool/src/{{folder_name}}/tool.py",
+      "reason": "Jinja2 template file with {{class_name}} placeholders - not meant to be valid Python until processed"
+    },
+    {
+      "file": "core-projects/crewAI/lib/crewai/src/crewai/cli/templates/tool/src/{{folder_name}}/__init__.py",
+      "reason": "Jinja2 template file with {{class_name}} placeholders - not meant to be valid Python until processed"
+    }
+  ],
+  "verification": {
+    "all_fixed_files_compile": true,
+    "verification_method": "py_compile.compile() with doraise=True",
+    "verified_on": "2026-02-05T22:32:00"
+  },
+  "notes": [
+    "All 3 fixed files were verified to compile successfully after the fix",
+    "The 10 template files in crewAI are intentionally using Jinja2 syntax and should not be 'fixed' - they are CLI templates",
+    "The examples, glue, leanaide-bubblelab-plugin, and tests directories had 0 syntax errors",
+    "Root directory (1210 Python files) had 0 syntax errors"
+  ]
+}

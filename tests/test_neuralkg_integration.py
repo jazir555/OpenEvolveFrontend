@@ -50,8 +50,8 @@ try:
     )
     NEURALKG_AVAILABLE = True
 except ImportError:
-    NEURALKG_AVAILABLE = False
-    pytestmark = pytest.mark.skip("NeuralKG integration not available")
+        NEURALKG_AVAILABLE = False
+        # Set to None - use @pytest.mark.skipif on test classes instead
 
 
 # =============================================================================

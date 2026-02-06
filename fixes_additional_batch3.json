@@ -1,0 +1,28 @@
+{
+  "scan_date": "2026-02-05T22:32:00",
+  "files_scanned": 556,
+  "target_patterns": [
+    "test_*.py",
+    "demo_*.py", 
+    "validate_*.py",
+    "verify_*.py",
+    "tests/**/*.py"
+  ],
+  "errors_found": 0,
+  "files_fixed": ["bubblelabs_nodes/traceability_storage.py"],
+  "details": [
+    {
+      "file": "bubblelabs_nodes/traceability_storage.py",
+      "error": "f-string: empty expression not allowed",
+      "line": 492,
+      "fix": "Escaped braces in SQL DEFAULT values - changed '{}' to '{{}}' on lines 488 and 504",
+      "status": "fixed"
+    }
+  ],
+  "notes": [
+    "Target files (test_*.py, demo_*.py, validate_*.py, verify_*.py, tests/**/*.py) had no syntax errors",
+    "One fix applied to bubblelabs_nodes/traceability_storage.py for f-string escape issue",
+    "Template files in core-projects/crewAI/ detected but not fixed (Jinja2 templates with {{variable}} syntax are valid as templates)",
+    "Full project scan found 15670+ Python files, most directories clean"
+  ]
+}

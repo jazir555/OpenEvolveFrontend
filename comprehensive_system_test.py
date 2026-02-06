@@ -25,36 +25,36 @@ def comprehensive_system_test():
     
     try:
         # Core components
-        from .content_analyzer import ContentAnalyzer
+        from content_analyzer import ContentAnalyzer
         print("[OK] ContentAnalyzer imported")
         
-        from .prompt_engineering import PromptEngineeringSystem
+        from prompt_engineering import PromptEngineeringSystem
         print("[OK] PromptEngineeringSystem imported")
         
 
         
-        from .quality_assessment import QualityAssessmentEngine
+        from quality_assessment import QualityAssessmentEngine
         print("[OK] QualityAssessmentEngine imported")
         
-        from .red_team import RedTeam
+        from red_team import RedTeam
         print("[OK] RedTeam imported")
         
-        from .blue_team import BlueTeam
+        from blue_team import BlueTeam
         print("[OK] BlueTeam imported")
         
-        from .evaluator_team import EvaluatorTeam
+        from evaluator_team import EvaluatorTeam
         print("[OK] EvaluatorTeam imported")
         
-        from .evolutionary_optimization import EvolutionaryOptimizer, EvolutionConfiguration
+        from evolutionary_optimization import EvolutionaryOptimizer, EvolutionConfiguration
         print("[OK] EvolutionaryOptimizer imported")
         
-        from .configuration_system import ConfigurationManager
+        from configuration_system import ConfigurationManager
         print("[OK] ConfigurationManager imported")
         
-        from .quality_assurance import QualityAssuranceOrchestrator
+        from quality_assurance import QualityAssuranceOrchestrator
         print("[OK] QualityAssuranceOrchestrator imported")
         
-        from .performance_optimization import (
+        from performance_optimization import (
             CachingOptimizer, 
             ParallelizationOptimizer, 
             AsyncProcessingOptimizer, 

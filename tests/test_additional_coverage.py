@@ -59,10 +59,10 @@ class TestConflictDetector(unittest.TestCase):
         """Test conflict type enumeration."""
         try:
             from conflict_detector import ConflictType
-            
-            self.assertIsNotNone(ConflictType.VERSION_CONFLICT)
-            self.assertIsNotNone(ConflictType.DATA_CONFLICT)
+
+            self.assertIsNotNone(ConflictType.NAMING_CONFLICT)
             self.assertIsNotNone(ConflictType.LOGIC_CONFLICT)
+            self.assertIsNotNone(ConflictType.DEPENDENCY_CONFLICT)
         except ImportError:
             self.skipTest("ConflictType not available")
     
@@ -198,7 +198,10 @@ class TestAnalyticsDashboard(unittest.TestCase):
         """Test AnalyticsDashboard can be created."""
         try:
             from analytics_dashboard import AnalyticsDashboard
-            dashboard = AnalyticsDashboard()
+            from unittest.mock import Mock
+            # Mock the knowledge_manager parameter
+            mock_km = Mock()
+            dashboard = AnalyticsDashboard(knowledge_manager=mock_km)
             self.assertIsNotNone(dashboard)
         except ImportError:
             self.skipTest("analytics_dashboard module not available")

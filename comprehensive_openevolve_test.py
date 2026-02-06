@@ -22,7 +22,7 @@ def test_all_openevolve_integrations():
     # Test 1: Evolution module integration
     print("\n1. Testing Evolution Module Integration...")
     try:
-        from .evolution import ContentEvaluator
+        from evolution import ContentEvaluator
         print("[OK] Successfully imported evolution module")
         
         # Test ContentEvaluator

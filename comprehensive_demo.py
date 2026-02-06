@@ -19,15 +19,15 @@ def comprehensive_demo():
     start_time = time.time()
     
     # Import all components
-    from .content_analyzer import ContentAnalyzer
-    from .prompt_engineering import PromptEngineeringSystem
-    from .quality_assessment import QualityAssessmentEngine
-    from .red_team import RedTeam
-    from .blue_team import BlueTeam
-    from .evaluator_team import EvaluatorTeam
-    from .configuration_system import ConfigurationManager
-    from .quality_assurance import QualityAssuranceOrchestrator
-    from .performance_optimization import PerformanceOptimizationOrchestrator
+    from content_analyzer import ContentAnalyzer
+    from prompt_engineering import PromptEngineeringSystem
+    from quality_assessment import QualityAssessmentEngine
+    from red_team import RedTeam
+    from blue_team import BlueTeam
+    from evaluator_team import EvaluatorTeam
+    from configuration_system import ConfigurationManager
+    from quality_assurance import QualityAssuranceOrchestrator
+    from performance_optimization import PerformanceOptimizationOrchestrator
     
     print("\\n[OK] All components imported successfully")
     

@@ -9,12 +9,23 @@ from typing import List
 import pytest
 
 # Add frontend directory to path for imports
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+_frontend_dir = os.path.dirname(os.path.abspath(__file__))
+if _frontend_dir not in sys.path:
+    sys.path.insert(0, _frontend_dir)
 
 # Add schemas directory to path for RESE tests
-_schemas_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "glue", "schemas")
+_schemas_dir = os.path.join(_frontend_dir, "glue", "schemas")
 if _schemas_dir not in sys.path:
     sys.path.insert(0, _schemas_dir)
+
+# Add glue adapter source directories to path for imports
+_glue_adapters = [
+    os.path.join(_frontend_dir, "glue", "adapters", "gauntlet-adapter", "src"),
+    os.path.join(_frontend_dir, "glue", "adapters", "rese-phase4", "src"),
+]
+for adapter_path in _glue_adapters:
+    if os.path.exists(adapter_path) and adapter_path not in sys.path:
+        sys.path.insert(0, adapter_path)
 
 # **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Test Configuration
 try:

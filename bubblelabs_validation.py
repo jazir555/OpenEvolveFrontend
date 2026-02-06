@@ -720,3 +720,63 @@ if __name__ == "__main__":
         print(f"Workflow action validation works: {e}")
 
     print("\nAll validation tests passed!")
+
+
+# =============================================================================
+# TEST COMPATIBILITY CLASS
+# =============================================================================
+
+class BubbleLabsValidator:
+    """
+    Wrapper class for test compatibility.
+
+    This class provides a simple interface for tests to validate BubbleLabs
+    functionality without requiring the full module infrastructure.
+    """
+
+    def __init__(self):
+        """Initialize the validator."""
+        self.validation_errors = []
+
+    def validate_input(self, value: Any, param_name: str = "value") -> Dict[str, Any]:
+        """
+        Validate an input value.
+
+        Args:
+            value: The value to validate
+            param_name: Name of the parameter
+
+        Returns:
+            Dict with validation result
+        """
+        try:
+            if isinstance(value, str):
+                validate_non_empty_string(value, param_name)
+            elif isinstance(value, int):
+                validate_integer(value, param_name)
+            elif isinstance(value, float):
+                validate_float(value, param_name)
+            elif isinstance(value, dict):
+                validate_dict(value, param_name)
+            elif isinstance(value, list):
+                validate_list(value, param_name)
+
+            return {"valid": True, "errors": []}
+        except ValueError as e:
+            return {"valid": False, "errors": [str(e)]}
+
+    def validate_workflow_type(self, workflow_type: str) -> Dict[str, Any]:
+        """Validate workflow type."""
+        try:
+            validate_workflow_type(workflow_type)
+            return {"valid": True}
+        except ValueError as e:
+            return {"valid": False, "error": str(e)}
+
+    def validate_node_config(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate node configuration."""
+        try:
+            validate_dict(config, "config")
+            return {"valid": True}
+        except ValueError as e:
+            return {"valid": False, "error": str(e)}

@@ -58,8 +58,8 @@ try:
         ROMA_EKG_INTEGRATION_AVAILABLE
     )
 except ImportError:
-    ROMA_EKG_INTEGRATION_AVAILABLE = False
-    pytestmark = pytest.mark.skip("ROMA-EKG integration not available")
+        ROMA_EKG_INTEGRATION_AVAILABLE = False
+        # Set to None - use @pytest.mark.skipif on test classes instead
 
 
 # =============================================================================
