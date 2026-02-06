@@ -128,6 +128,10 @@ class Z3API:
             "solidity_invariant_translation_available": translate_solidity_assignment_to_z3 is not None,
             "invariant_translation_verification_available": verify_solidity_invariant_translation is not None,
             "exploit_witness_available": solve_smart_contract_exploit_witness is not None,
+            "audit_exploit_verification_available": (
+                translate_solidity_assignment_to_z3 is not None
+                and solve_smart_contract_exploit_witness is not None
+            ),
         }
 
     def translate_solidity_invariant(

@@ -85,7 +85,8 @@ class GauntletDecompositionMixin:
         self._init_roma_engine()
 
         # Perform standard decomposition
-        plan = self.decompose(problem, strategy=strategy, **kwargs)
+        # Use super() to call the next implementation in MRO (the base engine)
+        plan = super().decompose(problem, strategy=strategy, **kwargs)
 
         # Assign gauntlets to sub-problems if requested
         if use_gauntlets:

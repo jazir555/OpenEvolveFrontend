@@ -745,9 +745,14 @@ class BubbleLabsExtendedIntegration:
                 "forge_fuzz_ingestion",
                 "solidity_invariant_translation",
                 "symbolic_exploit_witness",
+                "composite_exploit_verification",
             ],
             "ingestion_available": WEB3_INGESTION_AVAILABLE,
             "formal_available": WEB3_FORMAL_AVAILABLE,
+            "audit_exploit_verification_available": (
+                translate_solidity_assignment_to_z3 is not None
+                and solve_smart_contract_exploit_witness is not None
+            ),
             "web3_tools": web3_tools,
             "web3_ingestion_tools": web3_ingestion_tools,
             "web3_formal_tools": web3_formal_tools,
@@ -909,11 +914,21 @@ class BubbleLabsExtendedIntegration:
             timeout_seconds=timeout_seconds,
         )
 
+        verification = translation.get("verification") if isinstance(translation, dict) else None
+        witness_payload = None
+        if isinstance(exploit_witness, dict):
+            witness_payload = exploit_witness.get("result")
+
+        verified_exploit = bool((witness_payload or {}).get("satisfiable", False))
+        if verify_translation and isinstance(verification, dict):
+            verified_exploit = verified_exploit and bool(verification.get("proven", False))
+
         return {
-            "success": True,
+            "success": bool(ingestion) and bool(exploit_witness),
             "ingestion": ingestion,
             "translation": translation,
             "exploit_witness": exploit_witness,
+            "verified_exploit": verified_exploit,
         }
     
     # =========================================================================

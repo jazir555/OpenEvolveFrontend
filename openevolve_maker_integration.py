@@ -259,9 +259,51 @@ class OpenEvolveVoteCollector(VoteCollector):
         temperature: float
     ) -> str:
         """Call LLM via OpenEvolveAPI HTTP endpoint."""
-        # This would use the OpenEvolveAPI's start_evolution method
-        # For now, fall back to direct call
-        raise NotImplementedError("OpenEvolveAPI HTTP calls not yet implemented for MAKER")
+        if not self.openevolve_api:
+            raise RuntimeError("OpenEvolveAPI not available")
+        
+        try:
+            # Prepare the request payload
+            payload = {
+                "content": prompt,
+                "system_prompt": system_prompt,
+                "model_config": {
+                    "model_id": agent.model_id,
+                    "provider": agent.provider,
+                    "temperature": temperature,
+                    "max_tokens": self.max_token_length
+                },
+                "evolution_mode": "standard",
+                "content_type": "analysis"
+            }
+            
+            # Make the API call
+            result = self.openevolve_api.start_evolution(payload)
+            
+            if result and hasattr(result, 'best_code') and result.best_code:
+                return result.best_code
+            elif result and hasattr(result, 'content') and result.content:
+                return result.content
+            else:
+                logger.warning("OpenEvolveAPI returned empty result")
+                return ""
+                
+        except Exception as e:
+            logger.error(f"OpenEvolveAPI call failed: {e}")
+            # Fall back to direct call
+            from llm_utils import _compose_messages, _request_openai_compatible_chat
+            
+            messages = _compose_messages(system_prompt, prompt)
+            response = _request_openai_compatible_chat(
+                api_key=agent.api_key,
+                base_url=agent.api_base,
+                model=agent.model_id,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=self.max_token_length
+            )
+            
+            return response or ""
 
 
 class OpenEvolveMAKEREngine(MAKEREngine):

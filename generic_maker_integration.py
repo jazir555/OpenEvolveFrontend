@@ -1,681 +1,418 @@
 """
-Generic MAKER/MDAP Integration
+Generic MAKER Integration Module
 
-This module provides a COMPLETELY GENERIC implementation of the MAKER framework
-(arXiv:2511.09030) that works with ANY task type - not just math proofs.
-
-MAKER provides zero-error guarantees through:
-1. First-to-ahead-by-k voting for selection
-2. MDAP task decomposition for complex problems
-3. Red-flagging of unreliable outputs
-4. Statistical convergence guarantees
-
-Applicable to:
-- Code generation/refactoring
-- Document processing/summarization
-- Data pipeline orchestration
-- Multi-agent systems
-- ANY evolutionary/optimization task
-- Any multi-step LLM workflow
-
-Author: Generic MAKER Integration
-Version: 1.0.0
-Paper: arXiv:2511.09030
+This module provides a generic implementation of MAKER functionality that can be
+used across different domains and problem types.
 """
 
-
-import asyncio
+import json
 import logging
-import random
-import time
-from abc import ABC, abstractmethod
+from typing import Any, Dict, List, Optional, Tuple, Callable
 from dataclasses import dataclass, field
-from datetime import datetime
-from enum import Enum
-from typing import (
-    Any, Dict, List, Optional, Tuple, Callable, Union, TypeVar, Generic
-)
 
-# Configure logging
+from workflow_structures import ModelConfig, Team
+from mdap_maker_complete import MAKEREngine, RecursiveMAKERSolver
+
 logger = logging.getLogger(__name__)
 
-# Type variables for generic types
-T = TypeVar('T')  # Task/solution type
-E = TypeVar('E')  # Evaluator result type
-
-
-# ============================================================================
-# Core MAKER/MDAP Imports
-# ============================================================================
-
-try:
-    from mdap_maker_complete import (
-        MAKEREngine,
-        RecursiveMAKERSolver,
-        VotingEngine,
-        VoteCollector
-    )
-    MAKER_CORE_AVAILABLE = True
-except ImportError:
-    MAKER_CORE_AVAILABLE = False
-    logger.warning("MAKER core not available - using fallback implementations")
-
-try:
-    from mdap_engine import (
-        MDAPConfig,
-        MDAPTask,
-        MDAPStep,
-        MDAPOrchestrator
-    )
-    MDAP_AVAILABLE = True
-except ImportError:
-    MDAP_AVAILABLE = False
-    logger.warning("MDAP engine not available - using fallback implementations")
-
-
-# ============================================================================
-# Generic Task Types
-# ============================================================================
-
-class TaskType(Enum):
-    """Types of tasks that can be solved with MAKER"""
-    CODE_GENERATION = "code_generation"
-    CODE_REFACTORING = "code_refactoring"
-    DOCUMENT_PROCESSING = "document_processing"
-    TEXT_SUMMARIZATION = "text_summarization"
-    DATA_ANALYSIS = "data_analysis"
-    WORKFLOW_ORCHESTRATION = "workflow_orchestration"
-    OPTIMIZATION = "optimization"
-    CUSTOM = "custom"
-
 
 @dataclass
-class GenericTask:
-    """A generic task that can be solved with MAKER"""
-    task_id: str
-    description: str
-    task_type: TaskType
-    initial_solution: Optional[str] = None
-    context: Dict[str, Any] = field(default_factory=dict)
-    constraints: List[str] = field(default_factory=list)
-    requirements: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    created_at: float = field(default_factory=time.time)
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary"""
-        return {
-            "task_id": self.task_id,
-            "description": self.description,
-            "task_type": self.task_type.value,
-            "initial_solution": self.initial_solution,
-            "context": self.context,
-            "constraints": self.constraints,
-            "requirements": self.requirements,
-            "metadata": self.metadata,
-            "created_at": self.created_at
-        }
-
-
-@dataclass
-class GenericSolution:
-    """A generic solution produced by MAKER"""
-    task_id: str
-    solution: str
-    quality_score: float
-    generation: int = 0
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    steps_taken: List[str] = field(default_factory=list)
-    evaluation_details: Dict[str, Any] = field(default_factory=dict)
-    created_at: float = field(default_factory=time.time)
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary"""
-        return {
-            "task_id": self.task_id,
-            "solution": self.solution,
-            "quality_score": self.quality_score,
-            "generation": self.generation,
-            "metadata": self.metadata,
-            "steps_taken": self.steps_taken,
-            "evaluation_details": self.evaluation_details,
-            "created_at": self.created_at
-        }
-
-
-@dataclass
-class MAKERConfig:
-    """Configuration for MAKER execution"""
-    # Voting parameters
-    enable_voting: bool = True
-    voting_threshold: int = 3  # k for first-to-ahead-by-k
+class GenericMAKERConfig:
+    """Configuration for generic MAKER integration."""
+    k_ahead: int = 3
+    max_depth: int = 5
+    num_candidates: int = 5
     enable_red_flagging: bool = True
-
-    # Decomposition parameters
-    enable_decomposition: bool = True
-    decomposition_depth: int = 3
-    max_subtasks: int = 10
-
-    # Evolution parameters
-    max_generations: int = 50
-    population_size: int = 20
-    mutation_rate: float = 0.1
-    crossover_rate: float = 0.7
-
-    # Convergence parameters
-    convergence_threshold: float = 0.95
-    max_iterations_without_improvement: int = 10
-
-    # Performance parameters
-    parallel_execution: bool = False
-    timeout_seconds: Optional[float] = None
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary"""
-        return {
-            "enable_voting": self.enable_voting,
-            "voting_threshold": self.voting_threshold,
-            "enable_red_flagging": self.enable_red_flagging,
-            "enable_decomposition": self.enable_decomposition,
-            "decomposition_depth": self.decomposition_depth,
-            "max_subtasks": self.max_subtasks,
-            "max_generations": self.max_generations,
-            "population_size": self.population_size,
-            "mutation_rate": self.mutation_rate,
-            "crossover_rate": self.crossover_rate,
-            "convergence_threshold": self.convergence_threshold,
-            "max_iterations_without_improvement": self.max_iterations_without_improvement,
-            "parallel_execution": self.parallel_execution,
-            "timeout_seconds": self.timeout_seconds,
-        }
+    max_token_length: int = 750
+    max_steps: int = 1000
+    timeout_seconds: int = 300
+    enable_caching: bool = True
+    cache_ttl_seconds: int = 3600
+    use_recursive_fallback: bool = True
+    validation_threshold: float = 0.8
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
-# ============================================================================
-# Generic Evaluator Interface
-# ============================================================================
-
-class GenericEvaluator(ABC):
-    """Abstract base class for task evaluators"""
-
-    @abstractmethod
-    def evaluate(self, solution: str, task: GenericTask) -> float:
-        """
-        Evaluate a solution for a task.
-
-        Args:
-            solution: The solution to evaluate
-            task: The task being solved
-
-        Returns:
-            Quality score between 0.0 and 1.0 (higher is better)
-        """
-        pass
-
-    @abstractmethod
-    def get_evaluation_details(self) -> Dict[str, Any]:
-        """Get detailed evaluation metrics"""
-        pass
-
-
-# ============================================================================
-# MAKER Generic Implementation
-# ============================================================================
-
-class GenericMAKERSolver:
+class GenericMAKERIntegration:
     """
-    Generic MAKER solver for any task type.
-
-    Implements the MAKER framework from arXiv:2511.09030 for generic tasks:
-    - First-to-ahead-by-k voting for zero-error selection
-    - MDAP decomposition for complex tasks
-    - Red-flagging of unreliable solutions
+    Generic MAKER integration that can be adapted for different use cases.
+    
+    This class provides a flexible framework for integrating MAKER functionality
+    into various problem domains.
     """
-
+    
     def __init__(
         self,
-        evaluator: GenericEvaluator,
-        config: MAKERConfig = None
+        team: Team,
+        config: GenericMAKERConfig
     ):
-        """
-        Initialize generic MAKER solver.
-
-        Args:
-            evaluator: Evaluator for scoring solutions
-            config: MAKER configuration
-        """
-        self.evaluator = evaluator
-        self.config = config or MAKERConfig()
-        self.statistics = {
-            "total_tasks": 0,
-            "successful_tasks": 0,
-            "average_quality": 0.0,
-            "average_time": 0.0,
-            "voting_rounds": 0
-        }
-
-    async def solve(
+        self.config = config
+        self.team = team
+        
+        # Initialize MAKER components
+        self.maker_engine = MAKEREngine(
+            team=team,
+            k_ahead=config.k_ahead,
+            max_token_length=config.max_token_length,
+            max_steps=config.max_steps,
+            enable_red_flagging=config.enable_red_flagging
+        )
+        
+        self.recursive_solver = RecursiveMAKERSolver(
+            team=team,
+            max_depth=config.max_depth,
+            k_ahead=config.k_ahead,
+            num_candidates=config.num_candidates,
+            max_token_length=config.max_token_length
+        )
+        
+        # Initialize cache if enabled
+        self.cache = {}
+        self.cache_enabled = config.enable_caching
+    
+    def _get_cache_key(self, task: str, context: Dict[str, Any]) -> str:
+        """Generate a cache key for the given task and context."""
+        import hashlib
+        cache_input = f"{task}:{json.dumps(context, sort_keys=True)}"
+        return hashlib.md5(cache_input.encode()).hexdigest()
+    
+    def _get_cached_result(self, cache_key: str) -> Optional[Tuple[Any, Dict[str, Any]]]:
+        """Retrieve result from cache if available and not expired."""
+        if not self.cache_enabled:
+            return None
+            
+        entry = self.cache.get(cache_key)
+        if entry:
+            result, timestamp, ttl = entry
+            import time
+            if time.time() - timestamp < ttl:
+                return result, {"cached": True}
+            else:
+                # Remove expired entry
+                del self.cache[cache_key]
+        return None
+    
+    def _cache_result(self, cache_key: str, result: Any):
+        """Cache the result with TTL."""
+        if not self.cache_enabled:
+            return
+            
+        import time
+        self.cache[cache_key] = (result, time.time(), self.config.cache_ttl_seconds)
+    
+    def solve_task(
         self,
-        task: GenericTask,
-        initial_candidates: Optional[List[str]] = None
-    ) -> GenericSolution:
+        task_description: str,
+        context: Dict[str, Any],
+        use_recursive: bool = True
+    ) -> Tuple[bool, Any, Dict[str, Any]]:
         """
-        Solve a task using MAKER framework.
-
+        Solve a task using MAKER approach.
+        
         Args:
-            task: Task to solve
-            initial_candidates: Optional initial candidate solutions
-
+            task_description: Description of the task to solve
+            context: Context information for the task
+            use_recursive: Whether to use recursive approach
+            
         Returns:
-            Best solution found
+            Tuple of (success, solution, metadata)
         """
-        start_time = time.time()
-        logger.info(f"Solving task {task.task_id}: {task.description}")
-
         try:
-            # Update statistics
-            self.statistics["total_tasks"] += 1
-
-            # Phase 1: Generate initial population
-            if initial_candidates:
-                population = [
-                    GenericSolution(
-                        task_id=task.task_id,
-                        solution=candidate,
-                        quality_score=self.evaluator.evaluate(candidate, task)
-                    )
-                    for candidate in initial_candidates
-                ]
+            # Check cache first
+            cache_key = self._get_cache_key(task_description, context)
+            cached_result = self._get_cached_result(cache_key)
+            if cached_result:
+                return True, cached_result[0], cached_result[1]
+            
+            if use_recursive and self.config.use_recursive_fallback:
+                solution, metadata = self._solve_recursive_task(task_description, context)
             else:
-                population = await self._generate_initial_population(task)
-
-            logger.info(f"Generated {len(population)} initial candidates")
-
-            # Phase 2: Evolution with MAKER voting
-            best_solution = None
-            generations_without_improvement = 0
-
-            for generation in range(self.config.max_generations):
-                # Phase 2a: Voting selection (if enabled)
-                if self.config.enable_voting:
-                    population = await self._apply_voting_selection(population, task)
-
-                # Phase 2b: Decomposition (if enabled)
-                if self.config.enable_decomposition and generation % 5 == 0:
-                    population = await self._apply_decomposition(population, task)
-
-                # Phase 2c: Evolution (mutation + crossover)
-                population = await self._evolve_population(population, task)
-
-                # Evaluate population
-                for solution in population:
-                    solution.quality_score = self.evaluator.evaluate(solution.solution, task)
-                    solution.generation = generation
-
-                # Sort by quality
-                population.sort(key=lambda x: x.quality_score, reverse=True)
-                current_best = population[0]
-
-                # Check if improved
-                if best_solution is None or current_best.quality_score > best_solution.quality_score:
-                    best_solution = current_best
-                    generations_without_improvement = 0
-                    logger.info(f"Generation {generation}: New best quality = {best_solution.quality_score:.3f}")
-                else:
-                    generations_without_improvement += 1
-
-                # Check convergence
-                if current_best.quality_score >= self.config.convergence_threshold:
-                    logger.info(f"Converged at generation {generation} with quality {current_best.quality_score:.3f}")
-                    break
-
-                if generations_without_improvement >= self.config.max_iterations_without_improvement:
-                    logger.info(f"No improvement for {generations_without_improvement} generations")
-                    break
-
-            elapsed_time = time.time() - start_time
-
-            # Update statistics
-            if best_solution:
-                self.statistics["successful_tasks"] += 1
-                n = self.statistics["total_tasks"]
-                prev_avg = self.statistics["average_quality"] * (n - 1)
-                self.statistics["average_quality"] = (prev_avg + best_solution.quality_score) / n
-                prev_time = self.statistics["average_time"] * (n - 1)
-                self.statistics["average_time"] = (prev_time + elapsed_time) / n
-
-                logger.info(f"Task {task.task_id} completed in {elapsed_time:.2f}s with quality {best_solution.quality_score:.3f}")
-
-                return best_solution
-            else:
-                logger.warning(f"Task {task.task_id} failed to produce solution")
-                return GenericSolution(
-                    task_id=task.task_id,
-                    solution="",
-                    quality_score=0.0,
-                    metadata={"error": "No solution found"}
-                )
-
+                solution, metadata = self._solve_sequential_task(task_description, context)
+            
+            # Cache the result
+            self._cache_result(cache_key, solution)
+            
+            success = solution is not None
+            return success, solution, metadata
+            
         except Exception as e:
-            logger.error(f"Error solving task {task.task_id}: {e}", exc_info=True)
-            return GenericSolution(
-                task_id=task.task_id,
-                solution="",
-                quality_score=0.0,
-                metadata={"error": str(e)}
-            )
-
-    async def _generate_initial_population(self, task: GenericTask) -> List[GenericSolution]:
-        """Generate initial population of solutions"""
-        population = []
-
-        for i in range(self.config.population_size):
-            # Generate a random candidate based on task type
-            if task.task_type == TaskType.CODE_GENERATION:
-                candidate = self._generate_code_candidate(task, i)
-            elif task.task_type == TaskType.TEXT_SUMMARIZATION:
-                candidate = self._generate_summary_candidate(task, i)
-            else:
-                candidate = self._generate_generic_candidate(task, i)
-
-            solution = GenericSolution(
-                task_id=task.task_id,
-                solution=candidate,
-                quality_score=0.0,  # Will be evaluated later
-                generation=0,
-                metadata={"candidate_id": i}
-            )
-            population.append(solution)
-
-        return population
-
-    def _generate_code_candidate(self, task: GenericTask, seed: int) -> str:
-        """Generate a code candidate"""
-        random.seed(seed)
-        templates = [
-            f"# Solution for {task.description}\ndef solve():\n    pass",
-            f"class Solution:\n    def execute(self):\n        # {task.description}\n        pass",
-            f"async def process():\n    # {task.description}\n    pass"
-        ]
-        return random.choice(templates)
-
-    def _generate_summary_candidate(self, task: GenericTask, seed: int) -> str:
-        """Generate a summary candidate"""
-        random.seed(seed)
-        templates = [
-            f"Summary: {task.description}",
-            f"This document discusses {task.description}",
-            f"Key points: {task.description}"
-        ]
-        return random.choice(templates)
-
-    def _generate_generic_candidate(self, task: GenericTask, seed: int) -> str:
-        """Generate a generic candidate"""
-        random.seed(seed)
-        return f"Candidate {seed}: {task.description}"
-
-    async def _apply_voting_selection(
+            logger.error(f"Task solving failed: {e}")
+            return False, None, {"error": str(e)}
+    
+    def _solve_sequential_task(
         self,
-        population: List[GenericSolution],
-        task: GenericTask
-    ) -> List[GenericSolution]:
-        """Apply MAKER voting to select best solutions"""
-        k = self.config.voting_threshold
-        num_candidates = min(len(population), 2 * k - 1)
+        task_description: str,
+        context: Dict[str, Any]
+    ) -> Tuple[Any, Dict[str, Any]]:
+        """Solve task using sequential MAKER approach."""
+        try:
+            # Build prompt template
+            def prompt_template(state):
+                return f"""Task: {task_description}
 
-        # Select top candidates
-        top_candidates = sorted(population, key=lambda x: x.quality_score, reverse=True)[:num_candidates]
+Context: {json.dumps(context, indent=2)}
 
-        if not top_candidates:
-            return population
+Current state: {json.dumps(state, indent=2)}
 
-        # Apply voting: each candidate votes for the best
-        votes = {}
-        for voter in top_candidates:
-            # Red-flag low-quality voters
-            if self.config.enable_red_flagging and voter.quality_score < 0.3:
-                continue
+Determine the next action or solution step."""
+            
+            # System prompt
+            system_prompt = f"""You are solving the following task: {task_description}
 
-            # Vote for the best candidate (including self)
-            best = max(top_candidates, key=lambda x: x.quality_score)
-            votes[id(best)] = votes.get(id(best), 0) + 1
+Context: {json.dumps(context, indent=2)}
 
-            # Check if ahead by k
-            if votes[id(best)] >= k + max([v for k, v in votes.items() if k != id(best)], default=0):
-                break
+Follow these guidelines:
+1. Analyze the current state
+2. Determine the appropriate next action
+3. Provide a clear, actionable response
+4. If the task is complete, indicate so explicitly
 
-        # Select winners
-        sorted_votes = sorted(votes.items(), key=lambda x: x[1], reverse=True)
-        winners = [sol for sol in top_candidates if id(sol) in [v[0] for v in sorted_votes[:self.config.population_size]]]
-
-        self.statistics["voting_rounds"] += 1
-
-        return winners if winners else population[:self.config.population_size]
-
-    async def _apply_decomposition(
-        self,
-        population: List[GenericSolution],
-        task: GenericTask
-    ) -> List[GenericSolution]:
-        """Apply MDAP-style decomposition"""
-        if not MDAP_AVAILABLE:
-            return population
-
-        # Decompose task into subtasks
-        subtasks = self._decompose_task(task)
-
-        # Solve each subtask and combine
-        improved_solutions = []
-
-        for solution in population[:5]:  # Decompose top 5
-            improved_parts = []
-            for subtask in subtasks:
-                # Create a sub-task
-                sub_task = GenericTask(
-                    task_id=f"{task.task_id}_{subtask}",
-                    description=subtask,
-                    task_type=task.task_type,
-                    context=task.context,
-                    constraints=task.constraints
-                )
-
-                # Get relevant part of solution
-                part = solution.solution if len(subtasks) == 1 else f"{subtask}: {solution.solution}"
-
-                improved_parts.append(part)
-
-            # Combine parts
-            improved_solution = "\n".join(improved_parts)
-
-            improved = GenericSolution(
-                task_id=task.task_id,
-                solution=improved_solution,
-                quality_score=0.0,  # Will be evaluated
-                generation=solution.generation,
-                metadata={"decomposed_from": solution.solution}
+Respond in the required format."""
+            
+            # Define stop condition
+            def stop_condition(state):
+                # Check if task is completed
+                if isinstance(state, dict):
+                    return state.get("completed", False) or state.get("done", False)
+                return False
+            
+            # Execute with MAKER engine
+            action_list, final_state, metrics = self.maker_engine.generate_solution(
+                initial_state=context.get("initial_state", {}),
+                prompt_template=prompt_template,
+                system_prompt=system_prompt,
+                stop_condition=stop_condition
             )
-            improved_solutions.append(improved)
-
-        # Add decomposed solutions and keep rest of population
-        return improved_solutions + population[5:]
-
-    def _decompose_task(self, task: GenericTask) -> List[str]:
-        """Decompose task into subtasks"""
-        subtasks = []
-
-        # Simple decomposition strategies based on task type
-        if task.task_type == TaskType.CODE_GENERATION:
-            subtasks = [
-                f"Define data structures for {task.description}",
-                f"Implement core logic for {task.description}",
-                f"Add error handling for {task.description}",
-                f"Add tests for {task.description}"
-            ]
-        elif task.task_type == TaskType.TEXT_SUMMARIZATION:
-            subtasks = [
-                f"Extract key points from {task.description}",
-                f"Organize key points logically",
-                f"Generate concise summary"
-            ]
-        else:
-            # Generic decomposition
-            words = task.description.split()
-            chunk_size = max(3, len(words) // 4)
-            for i in range(0, len(words), chunk_size):
-                subtasks.append(" ".join(words[i:i + chunk_size]))
-
-        return subtasks[:self.config.max_subtasks]
-
-    async def _evolve_population(
-        self,
-        population: List[GenericSolution],
-        task: GenericTask
-    ) -> List[GenericSolution]:
-        """Evolve population through mutation and crossover"""
-        new_population = []
-
-        # Elitism: keep best solutions
-        population.sort(key=lambda x: x.quality_score, reverse=True)
-        elite_count = max(1, self.config.population_size // 10)
-        new_population.extend(population[:elite_count])
-
-        # Generate offspring through crossover and mutation
-        while len(new_population) < self.config.population_size:
-            if random.random() < self.config.crossover_rate and len(population) >= 2:
-                # Crossover
-                parent1 = random.choice(population[:self.config.population_size // 2])
-                parent2 = random.choice(population[:self.config.population_size // 2])
-                child = self._crossover(parent1, parent2)
-                new_population.append(child)
+            
+            # Construct solution
+            if action_list:
+                solution = {
+                    "actions": action_list,
+                    "final_state": final_state,
+                    "completed": True
+                }
             else:
-                # Mutation
-                parent = random.choice(population[:self.config.population_size // 2])
-                child = self._mutate(parent, task)
-                new_population.append(child)
-
-        return new_population
-
-    def _crossover(self, parent1: GenericSolution, parent2: GenericSolution) -> GenericSolution:
-        """Crossover two solutions"""
-        # Simple crossover: take parts from each parent
-        parts1 = parent1.solution.split("\n")
-        parts2 = parent2.solution.split("\n")
-
-        child_parts = []
-        for i in range(max(len(parts1), len(parts2))):
-            if i < len(parts1) and i < len(parts2):
-                # Randomly choose from either parent
-                child_parts.append(random.choice([parts1[i], parts2[i]]))
-            elif i < len(parts1):
-                child_parts.append(parts1[i])
-            else:
-                child_parts.append(parts2[i])
-
-        child_solution = "\n".join(child_parts)
-
-        return GenericSolution(
-            task_id=parent1.task_id,
-            solution=child_solution,
-            quality_score=0.0,
-            generation=max(parent1.generation, parent2.generation) + 1,
-            metadata={
-                "parent1_id": id(parent1),
-                "parent2_id": id(parent2),
-                "crossover": True
+                solution = {
+                    "actions": [],
+                    "final_state": final_state,
+                    "completed": False
+                }
+            
+            metadata = {
+                "approach": "sequential",
+                "steps": len(action_list) if action_list else 0,
+                "metrics": metrics.__dict__ if hasattr(metrics, '__dict__') else {}
             }
-        )
+            
+            return solution, metadata
+            
+        except Exception as e:
+            logger.error(f"Sequential task solving failed: {e}")
+            return None, {"error": str(e), "approach": "sequential"}
+    
+    def _solve_recursive_task(
+        self,
+        task_description: str,
+        context: Dict[str, Any]
+    ) -> Tuple[Any, Dict[str, Any]]:
+        """Solve task using recursive MAKER approach."""
+        try:
+            # Prepare task for recursive solver
+            full_task = f"{task_description}\n\nContext: {json.dumps(context, indent=2)}"
+            
+            # Solve using recursive solver
+            solution, metrics = self.recursive_solver.solve(
+                task=full_task,
+                context=context,
+                max_depth=self.config.max_depth
+            )
+            
+            metadata = {
+                "approach": "recursive",
+                "metrics": metrics.__dict__ if hasattr(metrics, '__dict__') else {},
+                "depth_used": self.config.max_depth
+            }
+            
+            return solution, metadata
+            
+        except Exception as e:
+            logger.error(f"Recursive task solving failed: {e}")
+            # Fallback to sequential if recursive fails
+            logger.info("Falling back to sequential approach")
+            return self._solve_sequential_task(task_description, context)
+    
+    def _verify_solution(self, solution: Any, task_description: str) -> Tuple[bool, float, Dict[str, Any]]:
+        """
+        Verify the solution meets the task requirements.
+        
+        Args:
+            solution: The solution to verify
+            task_description: Original task description
+            
+        Returns:
+            Tuple of (is_valid, confidence_score, verification_details)
+        """
+        try:
+            # Convert solution to string for analysis
+            if isinstance(solution, dict):
+                solution_str = json.dumps(solution, indent=2)
+            else:
+                solution_str = str(solution)
+            
+            # Simple verification based on task keywords and solution content
+            task_keywords = task_description.lower().split()
+            solution_lower = solution_str.lower()
+            
+            # Count keyword matches
+            matches = sum(1 for keyword in task_keywords if keyword in solution_lower)
+            match_ratio = matches / len(task_keywords) if task_keywords else 0.0
+            
+            # Additional checks based on solution structure
+            confidence = match_ratio
+            
+            # If solution has specific completion indicators
+            if isinstance(solution, dict):
+                if solution.get("completed", False):
+                    confidence = max(confidence, 0.9)
+                if solution.get("success", False):
+                    confidence = max(confidence, 0.9)
+            
+            # Check if solution is substantial (not just empty or minimal)
+            if len(solution_str.strip()) > 10:
+                confidence += 0.1
+                confidence = min(confidence, 1.0)
+            
+            is_valid = confidence >= self.config.validation_threshold
+            
+            details = {
+                "match_ratio": match_ratio,
+                "confidence": confidence,
+                "validation_threshold": self.config.validation_threshold,
+                "solution_length": len(solution_str)
+            }
+            
+            return is_valid, confidence, details
+            
+        except Exception as e:
+            logger.error(f"Solution verification failed: {e}")
+            return False, 0.0, {"error": str(e)}
+    
+    def solve_and_verify(
+        self,
+        task_description: str,
+        context: Dict[str, Any],
+        max_attempts: int = 3
+    ) -> Tuple[bool, Any, Dict[str, Any]]:
+        """
+        Solve task and verify the solution, with retries if needed.
+        
+        Args:
+            task_description: Description of the task to solve
+            context: Context information for the task
+            max_attempts: Maximum number of attempts to get a valid solution
+            
+        Returns:
+            Tuple of (success, solution, metadata)
+        """
+        for attempt in range(max_attempts):
+            success, solution, metadata = self.solve_task(task_description, context)
+            
+            if not success or solution is None:
+                continue
+            
+            # Verify the solution
+            is_valid, confidence, verification_details = self._verify_solution(
+                solution, task_description
+            )
+            
+            metadata["verification"] = verification_details
+            
+            if is_valid:
+                metadata["attempts"] = attempt + 1
+                return True, solution, metadata
+            elif attempt < max_attempts - 1:
+                # Modify context slightly for next attempt if needed
+                context["attempt_number"] = attempt + 1
+                logger.info(f"Solution not valid, trying again (attempt {attempt + 2})")
+        
+        # If we exhausted attempts
+        metadata["attempts"] = max_attempts
+        return False, solution, metadata
+    
+    def get_evaluation_metrics(self, solution: Any, task_description: str) -> Dict[str, Any]:
+        """
+        Get evaluation metrics for a solution.
+        
+        Args:
+            solution: The solution to evaluate
+            task_description: Original task description
+            
+        Returns:
+            Dictionary of evaluation metrics
+        """
+        try:
+            # Verify the solution first
+            is_valid, confidence, verification_details = self._verify_solution(
+                solution, task_description
+            )
+            
+            # Calculate additional metrics
+            if isinstance(solution, dict):
+                solution_str = json.dumps(solution, indent=2)
+            else:
+                solution_str = str(solution)
+            
+            metrics = {
+                "validity": is_valid,
+                "confidence": confidence,
+                "solution_length": len(solution_str),
+                "word_count": len(solution_str.split()),
+                "character_count": len(solution_str),
+                "verification_details": verification_details
+            }
+            
+            # Add domain-specific metrics if available
+            if isinstance(solution, dict):
+                if "actions" in solution:
+                    metrics["action_count"] = len(solution["actions"])
+                if "steps" in solution:
+                    metrics["step_count"] = len(solution["steps"]) if isinstance(solution["steps"], list) else 0
+                if "completed" in solution:
+                    metrics["completed"] = solution["completed"]
+            
+            return metrics
+            
+        except Exception as e:
+            logger.error(f"Metric calculation failed: {e}")
+            return {"error": str(e)}
 
-    def _mutate(self, parent: GenericSolution, task: GenericTask) -> GenericSolution:
-        """Mutate a solution"""
-        # Simple mutation: add random variation
-        mutations = [
-            f"# Optimized for {task.description}",
-            f"# Improved version",
-            f"# Alternative approach"
-        ]
 
-        if random.random() < 0.5:
-            # Add mutation at beginning
-            mutated_solution = f"{random.choice(mutations)}\n{parent.solution}"
-        else:
-            # Add mutation at end
-            mutated_solution = f"{parent.solution}\n{random.choice(mutations)}"
-
-        return GenericSolution(
-            task_id=parent.task_id,
-            solution=mutated_solution,
-            quality_score=0.0,
-            generation=parent.generation + 1,
-            metadata={"parent_id": id(parent), "mutated": True}
-        )
-
-
-# ============================================================================
-# Main Entry Point
-# ============================================================================
-
-async def run_generic_maker(
-    task_description: str,
-    evaluator: GenericEvaluator,
-    task_type: TaskType = TaskType.CUSTOM,
-    config: MAKERConfig = None,
-    initial_candidates: Optional[List[str]] = None
-) -> GenericSolution:
+def create_generic_maker_integration(
+    team: Team,
+    k_ahead: int = 3,
+    max_depth: int = 5
+) -> GenericMAKERIntegration:
     """
-    Main entry point for generic MAKER execution.
-
+    Factory function to create a generic MAKER integration.
+    
     Args:
-        task_description: Description of the task to solve
-        evaluator: Evaluator for scoring solutions
-        task_type: Type of task
-        config: MAKER configuration
-        initial_candidates: Optional initial candidate solutions
-
+        team: Team of agents to use
+        k_ahead: Voting threshold parameter
+        max_depth: Maximum recursion depth
+        
     Returns:
-        Best solution found
-
-    Example:
-        >>> evaluator = MyEvaluator()
-        >>> result = await run_generic_maker(
-        ...     task_description="Generate a Python function to sort a list",
-        ...     evaluator=evaluator,
-        ...     task_type=TaskType.CODE_GENERATION
-        ... )
-        >>> print(result.solution)
-        >>> print(result.quality_score)
+        GenericMAKERIntegration instance
     """
-    config = config or MAKERConfig()
-
-    # Create task
-    task = GenericTask(
-        task_id=f"task_{int(time.time())}",
-        description=task_description,
-        task_type=task_type
+    config = GenericMAKERConfig(
+        k_ahead=k_ahead,
+        max_depth=max_depth
     )
-
-    # Create solver
-    solver = GenericMAKERSolver(evaluator, config)
-
-    # Solve
-    return await solver.solve(task, initial_candidates)
+    
+    return GenericMAKERIntegration(team, config)
 
 
-def get_generic_maker_capabilities() -> Dict[str, Any]:
-    """Get generic MAKER integration capabilities"""
-    return {
-        "generic_maker_enabled": MAKER_CORE_AVAILABLE,
-        "mdap_available": MDAP_AVAILABLE,
-        "supported_task_types": [t.value for t in TaskType],
-        "features": {
-            "voting": "First-to-ahead-by-k voting for zero-error selection",
-            "decomposition": "MDAP-style task decomposition",
-            "red_flagging": "Filtering of unreliable solutions",
-            "evolution": "Population-based optimization",
-            "convergence": "Statistical convergence guarantees"
-        },
-        "paper": {
-            "title": "Solving a Million-Step LLM Task with Zero Errors",
-            "arxiv": "2511.09030",
-            "url": "https://arxiv.org/abs/2511.09030"
-        },
-        "integration_status": "full" if MAKER_CORE_AVAILABLE else "partial"
-    }
+__all__ = [
+    "GenericMAKERIntegration",
+    "GenericMAKERConfig",
+    "create_generic_maker_integration"
+]

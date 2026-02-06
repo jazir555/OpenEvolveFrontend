@@ -8,6 +8,7 @@ Includes CAV-NLP enhanced formalization demonstration.
 
 import logging
 import os
+from typing import Dict, Any
 
 # CAV-NLP Integration
 try:

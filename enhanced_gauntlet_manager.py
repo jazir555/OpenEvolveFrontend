@@ -431,37 +431,13 @@ class EnhancedGauntletSystem:
 
         # Round 2: Red Team evaluation
         elif rule_id == "red_team_attack":
-            if self.red_team_evaluator:
-                # Call red team evaluator
-                # This would interface with your existing red team system
-                return await self._mock_red_team_evaluation(round_rule, solution, context)
-            else:
-                return GauntletRoundResult(
-                    rule_id=rule_id,
-                    round_number=round_rule.round_number,
-                    status=GauntletRoundStatus.SKIPPED,
-                    score=1.0,
-                    feedback="Red team evaluator not configured - round skipped",
-                    details={"warning": "red_team_unavailable"},
-                    execution_time=0.0
-                )
+            # Always call evaluation method which handles lazy loading
+            return await self._mock_red_team_evaluation(round_rule, solution, context)
 
         # Round 3: Gold Team evaluation
         elif rule_id == "gold_team_verify":
-            if self.gold_team_evaluator:
-                # Call gold team evaluator
-                # This would interface with your existing gold team system
-                return await self._mock_gold_team_evaluation(round_rule, solution, context)
-            else:
-                return GauntletRoundResult(
-                    rule_id=rule_id,
-                    round_number=round_rule.round_number,
-                    status=GauntletRoundStatus.SKIPPED,
-                    score=1.0,
-                    feedback="Gold team evaluator not configured - round skipped",
-                    details={"warning": "gold_team_unavailable"},
-                    execution_time=0.0
-                )
+            # Always call evaluation method which handles lazy loading
+            return await self._mock_gold_team_evaluation(round_rule, solution, context)
 
         # Unknown round type
         else:

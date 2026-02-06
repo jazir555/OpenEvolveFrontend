@@ -167,16 +167,63 @@ class KnowledgeSourceConnector(ABC):
 
 class KnowledgeSource(ABC):
     """Abstract base class for external knowledge sources (legacy compatibility)."""
-    
+
     @abstractmethod
     def query(self, query: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Query the knowledge source."""
         raise NotImplementedError("KnowledgeSource.query must be implemented by subclasses.")
-    
+
     @abstractmethod
     def get_relevant_knowledge(self, problem_statement: str) -> List[Dict[str, Any]]:
         """Get relevant knowledge for a problem."""
         raise NotImplementedError("KnowledgeSource.get_relevant_knowledge must be implemented by subclasses.")
+
+
+class GenericKnowledgeSource(KnowledgeSource):
+    """Generic implementation of KnowledgeSource with basic functionality."""
+    
+    def __init__(self, name: str = "generic", base_url: Optional[str] = None):
+        """
+        Initialize generic knowledge source.
+        
+        Args:
+            name: Name of the knowledge source
+            base_url: Base URL for API calls (optional)
+        """
+        self.name = name
+        self.base_url = base_url
+        self.session = requests.Session()
+        
+    def query(self, query: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Query the knowledge source."""
+        # Default implementation uses web search if no specific API is provided
+        try:
+            # If we have a base URL, try to use it as an API
+            if self.base_url:
+                response = self.session.post(
+                    f"{self.base_url}/query",
+                    json={"query": query, "context": context},
+                    timeout=30
+                )
+                response.raise_for_status()
+                return response.json()
+            else:
+                # Fallback to web search
+                web_search = WebSearchKnowledgeSource()
+                return web_search.query(query, context)
+        except Exception as e:
+            logger.error(f"Generic knowledge source query failed: {e}")
+            return {"source": self.name, "error": str(e), "results": []}
+
+    def get_relevant_knowledge(self, problem_statement: str) -> List[Dict[str, Any]]:
+        """Get relevant knowledge for a problem."""
+        try:
+            # Use the query method with default context
+            result = self.query(problem_statement, {"domain": "general", "limit": 5})
+            return result.get("results", [])
+        except Exception as e:
+            logger.error(f"Getting relevant knowledge failed: {e}")
+            return []
 
 
 class WikipediaKnowledgeSource(KnowledgeSource):

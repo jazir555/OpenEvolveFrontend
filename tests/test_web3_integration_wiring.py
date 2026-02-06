@@ -122,6 +122,8 @@ def test_bubblelabs_web3_status_shape():
     assert "available" in status
     assert "ingestion_available" in status
     assert "formal_available" in status
+    assert "audit_exploit_verification_available" in status
+    assert "composite_exploit_verification" in status.get("capabilities", [])
     assert "tool_inventory" in status
 
 
@@ -222,8 +224,38 @@ def test_api_web3_status_exposes_formal_tools_from_inventory(monkeypatch):
         },
     )
     status = api_server.web3_status()
+    assert "audit_exploit_verification_available" in status
     assert status["web3_formal_tools"] == ["z3_translate_solidity_invariant"]
     assert status["web3_ingestion_tools"] == ["web3_ingest_contract_audit_stack"]
+
+
+def test_api_web3_audit_endpoint_returns_verified_exploit(monkeypatch):
+    monkeypatch.setattr(api_server, "WEB3_INGESTION_AVAILABLE", False)
+    monkeypatch.setattr(api_server, "WEB3_FORMAL_VERIFICATION_AVAILABLE", True)
+    monkeypatch.setattr(
+        api_server,
+        "translate_solidity_assignment_to_z3",
+        lambda **kwargs: {"constraints": ["new_balance == old_balance - amount"], "invariants": ["new_balance >= 0"]},
+    )
+    monkeypatch.setattr(
+        api_server,
+        "verify_solidity_invariant_translation",
+        lambda **kwargs: {"proven": True},
+    )
+    monkeypatch.setattr(
+        api_server,
+        "solve_smart_contract_exploit_witness",
+        lambda **kwargs: {"satisfiable": True, "model": {"amount": 1}},
+    )
+    request = api_server.Web3AuditExploitRequest(
+        project_path="./contracts",
+        run_fuzzing=False,
+        statement="balance[msg.sender] -= amount;",
+        verify_translation=True,
+    )
+    user = api_server.AuthUser(api_key="test-key", role=api_server.UserRole.USER, name="tester")
+    result = api_server.web3_audit_exploit_verification(request=request, user=user)
+    assert result["verified_exploit"] is True
 
 
 def test_z3_mcp_server_registers_web3_formal_tools():
@@ -302,7 +334,12 @@ def test_bubblelabs_extended_integration_web3_audit_orchestration(monkeypatch):
     monkeypatch.setattr(
         integration,
         "web3_solve_exploit_witness",
-        lambda **kwargs: {"success": True, "phase": "witness", "kwargs": kwargs},
+        lambda **kwargs: {
+            "success": True,
+            "phase": "witness",
+            "kwargs": kwargs,
+            "result": {"satisfiable": True, "model": {"amount": 1}},
+        },
     )
 
     result = integration.web3_audit_exploit_verification(
@@ -317,3 +354,4 @@ def test_bubblelabs_extended_integration_web3_audit_orchestration(monkeypatch):
     assert result["ingestion"]["phase"] == "ingestion"
     assert result["translation"]["phase"] == "translation"
     assert result["exploit_witness"]["phase"] == "witness"
+    assert result["verified_exploit"] is True

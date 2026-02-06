@@ -565,7 +565,7 @@ class Z3Web3AuditAgent(Z3BaseAgent):
             action = str(task.parameters.get("action", "full_audit")).strip().lower()
             payload: Dict[str, Any] = {}
 
-            if action in {"translate", "translate_invariant", "full_audit"}:
+            if action in {"translate", "translate_invariant", "full_audit", "audit_exploit_verification"}:
                 statement = (
                     task.parameters.get("statement")
                     or task.problem
@@ -585,7 +585,7 @@ class Z3Web3AuditAgent(Z3BaseAgent):
                         ),
                     )
 
-            if action in {"witness", "exploit_witness", "full_audit"}:
+            if action in {"witness", "exploit_witness", "full_audit", "audit_exploit_verification"}:
                 witness = solve_smart_contract_exploit_witness(
                     additional_constraints=task.parameters.get("additional_constraints"),
                     timeout=float(task.parameters.get("timeout", task.timeout)),
@@ -599,6 +599,14 @@ class Z3Web3AuditAgent(Z3BaseAgent):
                     success = True
             if "exploit_witness" in payload and isinstance(payload["exploit_witness"], dict):
                 success = success and bool(payload["exploit_witness"].get("satisfiable", True))
+
+            if action in {"full_audit", "audit_exploit_verification"}:
+                verification = payload.get("verification")
+                witness = payload.get("exploit_witness", {})
+                verified_exploit = bool(witness.get("satisfiable", False))
+                if isinstance(verification, dict):
+                    verified_exploit = verified_exploit and bool(verification.get("proven", False))
+                payload["verified_exploit"] = verified_exploit
 
             return AgentResult(
                 task_id=task.task_id,
@@ -625,6 +633,7 @@ class Z3Web3AuditAgent(Z3BaseAgent):
             "invariant_verification",
             "symbolic_exploit_witness",
             "smart_contract_audit",
+            "composite_exploit_verification",
         ]
 
 

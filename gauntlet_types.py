@@ -161,7 +161,7 @@ class BaseGauntlet(ABC):
         self.execution_history: List[GauntletResult] = []
         
         # CAV-NLP integration
-        self.use_cav_nlp = config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
         self.enhanced_solver = None
         self.math_service = None
         if self.use_cav_nlp:

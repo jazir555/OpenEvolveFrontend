@@ -7,6 +7,8 @@ def test_root_z3_api_exposes_web3_methods():
     assert hasattr(api, "translate_solidity_invariant")
     assert hasattr(api, "solve_web3_exploit_witness")
     assert hasattr(api, "web3_audit_exploit_verification")
+    status = api.get_web3_status()
+    assert "audit_exploit_verification_available" in status
 
 
 def test_root_z3_api_composite_orchestration(monkeypatch):

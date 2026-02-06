@@ -63,3 +63,53 @@ def detect_domain(text: str) -> ScientificDomain:
         return ScientificDomain.BIOLOGY
     else:
         return ScientificDomain.GENERAL
+
+
+# Additional classes and functions needed by leanaide_continuous_mcp.py
+
+from dataclasses import dataclass
+from typing import Optional
+
+
+@dataclass
+class MathDetectionResult:
+    """Result of math detection."""
+    has_math: bool
+    math_type: MathType
+    domain: ScientificDomain
+    confidence: float = 0.0
+    error: Optional[str] = None
+
+
+class ContinuousMathDetector:
+    """Detector for continuous mathematics problems."""
+    
+    def __init__(self):
+        self.name = "ContinuousMathDetector"
+    
+    def detect(self, text: str) -> MathDetectionResult:
+        """Detect continuous math in text."""
+        math_type = detect_math_type(text)
+        domain = detect_domain(text)
+        
+        # Check for continuous math indicators
+        continuous_indicators = [
+            "ode", "pde", "differential", "integral", "calculus",
+            "continuous", "flow", "dynamics", "rate of change"
+        ]
+        
+        text_lower = text.lower()
+        has_continuous = any(ind in text_lower for ind in continuous_indicators)
+        
+        return MathDetectionResult(
+            has_math=has_continuous,
+            math_type=math_type,
+            domain=domain,
+            confidence=0.8 if has_continuous else 0.3
+        )
+
+
+def detect_continuous_math(text: str) -> MathDetectionResult:
+    """Detect continuous mathematics in text."""
+    detector = ContinuousMathDetector()
+    return detector.detect(text)

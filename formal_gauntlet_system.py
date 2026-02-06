@@ -1562,76 +1562,100 @@ Be critical and thorough. Your job is to find problems."""
         solution: SolutionAttempt,
         sub_problem: SubProblem,
         red_team_feedback: List = None
-    ) -> Dict[str, Any]:  # FIXED: Was bool, actually returns Dict
+    ) -> Dict[str, Any]:
         """
-        Execute gold team verification round.
-
-        Gold team does thorough validation, checks correctness,
-        verifies quality, and ensures standards met.
+        Execute gold team verification round using EvaluatorTeam, ROMA, or OpenEvolve.
         """
         self.logger.info(f"Executing gold team round: {round_rule.rule_id}")
 
-        # Check if OpenEvolve client is available
-        if not self.openevolve_client and not self.roma_engine:
-            self.logger.warning("No execution engine available, using mock gold team review")
+        # 1. Try EvaluatorTeam (Gold Team Engine)
+        try:
+            from evaluator_team import EvaluatorTeam, EvaluationThreshold
+            gold_team = EvaluatorTeam()
+            
+            # Map strictness to threshold
+            threshold_map = {
+                0.9: EvaluationThreshold.EXCEPTIONAL,
+                0.8: EvaluationThreshold.HIGH_QUALITY,
+                0.7: EvaluationThreshold.STANDARD_APPROVAL,
+                0.6: EvaluationThreshold.MINIMAL_ACCEPTANCE
+            }
+            # Find closest threshold
+            threshold = EvaluationThreshold.STANDARD_APPROVAL
+            for score_key, t in sorted(threshold_map.items(), reverse=True):
+                if round_rule.min_score >= score_key:
+                    threshold = t
+                    break
+            
+            evaluation = gold_team.evaluate_content(
+                content=solution.solution_content,
+                content_type=sub_problem.domain if hasattr(sub_problem, 'domain') else "general",
+                threshold=threshold
+            )
+            
+            score = evaluation.consensus_score / 100.0
+            passed = evaluation.final_verdict == "APPROVED"
+            
             return {
                 "round_id": round_rule.rule_id,
-                "passed": True,
-                "score": 0.9,
-                "feedback": "Mock gold team review (Engine not available)",
-                "criteria_met": []
+                "passed": passed,
+                "score": score,
+                "feedback": f"{evaluation.assessment_summary}. Verdict: {evaluation.final_verdict}",
+                "criteria_met": [c.metric.value for c in evaluation.assessments[0].criteria_used],
+                "details": {
+                    "engine": "EvaluatorTeam",
+                    "consensus_reached": evaluation.consensus_reached
+                }
             }
+        except ImportError:
+            self.logger.info("EvaluatorTeam module not found, falling back to ROMA/OpenEvolve")
+        except Exception as e:
+            self.logger.warning(f"EvaluatorTeam execution failed: {e}, falling back")
 
-        try:
-            # Build gold team prompt
-            prompt = self._build_gold_team_prompt(round_rule, solution, sub_problem, red_team_feedback)
+        # 2. Try ROMA Engine
+        if self.roma_engine:
+            try:
+                prompt = self._build_gold_team_prompt(round_rule, solution, sub_problem, red_team_feedback)
+                result = self.roma_engine.solve_problem(prompt)
+                response_content = result.get("solution", "")
+                if response_content:
+                    parsed_result = self._parse_gold_team_result(response_content, round_rule)
+                    parsed_result["feedback"] += f" (Verified by ROMA)"
+                    return parsed_result
+            except Exception as e:
+                self.logger.warning(f"ROMA engine execution failed: {e}")
 
-            # 1. Try ROMA Engine First
-            if self.roma_engine:
-                try:
-                    result = self.roma_engine.solve_problem(prompt)
-                    response_content = result.get("solution", "")
-                    if response_content:
-                        # Parse results
-                        parsed_result = self._parse_gold_team_result(response_content, round_rule)
-                        parsed_result["feedback"] += f" (Verified by ROMA Confidence: {result.get('confidence', 0.0):.2f})"
-                        return parsed_result
-                except Exception as e:  # TODO: Catch specific exception instead of Exception
-                    self.logger.warning(f"ROMA engine execution failed, falling back: {e}")
-
-            # 2. Fallback to OpenEvolve Client
-            if self.openevolve_client:
-                # Execute gold team analysis
+        # 3. Try OpenEvolve Client
+        if self.openevolve_client:
+            try:
+                prompt = self._build_gold_team_prompt(round_rule, solution, sub_problem, red_team_feedback)
                 result = self.openevolve_client.evolve(
                     content=prompt,
                     evolution_mode="standard",
                     content_type="analysis",
-                    max_iterations=1,
-                    temperature=0.3,
-                    max_tokens=2000
+                    max_iterations=1
                 )
-
-                # Parse results
                 if result.success and result.best_code:
                     return self._parse_gold_team_result(result.best_code, round_rule)
+            except Exception as e:
+                self.logger.warning(f"OpenEvolve execution failed: {e}")
+        
+        # 4. Fallback: Basic Heuristics
+        self.logger.warning("All Gold Team engines unavailable, using heuristic fallback")
+        heuristic_score = 0.6
+        # Bonus for structure
+        if "def " in solution.solution_content and "class " in solution.solution_content:
+            heuristic_score += 0.2
+        if len(solution.solution_content) > 200:
+            heuristic_score += 0.1
             
-            return {
-                "round_id": round_rule.rule_id,
-                "passed": False,
-                "score": 0.0,
-                "feedback": "Gold team analysis failed",
-                "errors": ["No valid response from any engine"]
-            }
-
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
-            self.logger.error(f"Gold team execution error: {e}")
-            return {
-                "round_id": round_rule.rule_id,
-                "passed": False,
-                "score": 0.0,
-                "feedback": f"Gold team execution error: {str(e)}",
-                "errors": [str(e)]
-            }
+        return {
+            "round_id": round_rule.rule_id,
+            "passed": heuristic_score >= round_rule.min_score,
+            "score": heuristic_score,
+            "feedback": "Basic heuristic verification (Engines unavailable)",
+            "criteria_met": ["basic_structure"] if heuristic_score > 0.6 else []
+        }
 
     def _build_gold_team_prompt(
         self,

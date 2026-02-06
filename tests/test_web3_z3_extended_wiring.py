@@ -108,6 +108,39 @@ def test_z3_crewai_web3_audit_agent_executes_full_audit(monkeypatch):
     assert result.success is True
     assert "translation" in result.result_data
     assert "exploit_witness" in result.result_data
+    assert result.result_data.get("verified_exploit") is True
+
+
+def test_z3_crewai_web3_audit_agent_supports_composite_action_alias(monkeypatch):
+    monkeypatch.setattr(z3_crewai, "WEB3_FORMAL_AVAILABLE", True)
+    monkeypatch.setattr(
+        z3_crewai,
+        "translate_solidity_assignment_to_z3",
+        lambda **kwargs: {"constraints": ["new_balance == old_balance - amount"], "invariants": ["new_balance >= 0"]},
+    )
+    monkeypatch.setattr(
+        z3_crewai,
+        "verify_solidity_invariant_translation",
+        lambda **kwargs: {"proven": True},
+    )
+    monkeypatch.setattr(
+        z3_crewai,
+        "solve_smart_contract_exploit_witness",
+        lambda **kwargs: {"status": "sat", "satisfiable": True, "model": {"attacker_input": "1"}},
+    )
+
+    agent = z3_crewai.Z3Web3AuditAgent(agent_id="web3_auditor_2")
+    task = z3_crewai.AgentTask(
+        task_id="web3_task_2",
+        role=z3_crewai.AgentRole.WEB3_AUDITOR,
+        problem="balance[msg.sender] -= amount;",
+        parameters={"action": "audit_exploit_verification"},
+    )
+    result = asyncio.run(agent.execute(task))
+
+    assert result.success is True
+    assert result.result_data.get("verified_exploit") is True
+    assert "composite_exploit_verification" in agent.get_capabilities()
 
 
 def test_z3_bubblelabs_ui_exposes_web3_node_types():

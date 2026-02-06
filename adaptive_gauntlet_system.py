@@ -66,29 +66,60 @@ class AdaptiveGauntletSystem(GauntletSystem):
         from sovereign_data_models import GauntletDefinition, GauntletRoundRule, generate_id
         
         gauntlet_id = generate_id("gaunt")
+        avg_score = self.performance_tracker.metrics.average_score
         
-        # Adaptive logic based on problem complexity (mocked)
-        rounds = [
-            GauntletRoundRule(
-                rule_id="syntax_check", 
-                rule_type="automated", 
-                description="Must be valid Python",
-                validation_type="acceptance",
-                min_score=1.0
-            ),
-            GauntletRoundRule(
-                rule_id="logic_check", 
-                rule_type="automated", 
-                description="Must correctly implement Fibonacci",
+        # Adaptive logic based on historical performance
+        rounds = []
+        
+        # Base rounds
+        rounds.append(GauntletRoundRule(
+            rule_id="syntax_check", 
+            rule_type="automated", 
+            description="Basic syntax validation",
+            validation_type="acceptance",
+            min_score=1.0
+        ))
+        
+        # Dynamic difficulty adjustment
+        if avg_score > 0.8:
+            # High performance: Increase difficulty
+            rounds.append(GauntletRoundRule(
+                rule_id="strict_logic",
+                rule_type="red_team",
+                description="Strict logic verification with Red Team",
                 validation_type="quality",
-                min_score=0.8
-            )
-        ]
-        
+                min_score=0.9
+            ))
+            rounds.append(GauntletRoundRule(
+                rule_id="edge_cases",
+                rule_type="automated",
+                description="Comprehensive edge case testing",
+                validation_type="robustness",
+                min_score=0.85
+            ))
+        elif avg_score < 0.5:
+            # Low performance: Lower difficulty, focus on basics
+            rounds.append(GauntletRoundRule(
+                rule_id="basic_logic",
+                rule_type="automated",
+                description="Basic logic check",
+                validation_type="quality",
+                min_score=0.6
+            ))
+        else:
+            # Average performance: Standard checks
+            rounds.append(GauntletRoundRule(
+                rule_id="standard_logic",
+                rule_type="automated",
+                description="Standard logic verification",
+                validation_type="quality",
+                min_score=0.75
+            ))
+            
         gauntlet = GauntletDefinition(
             gauntlet_id=gauntlet_id,
-            name=f"Adaptive Gauntlet for {gauntlet_id}",
-            description=f"Adaptive validation for {sub_problem.id if hasattr(sub_problem, 'id') else 'task'}",
+            name=f"Adaptive Gauntlet ({len(rounds)} rounds)",
+            description=f"Adaptive validation for {sub_problem.id if hasattr(sub_problem, 'id') else 'task'} (History: {avg_score:.2f})",
             rounds=rounds
         )
         

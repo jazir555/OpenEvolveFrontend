@@ -6240,6 +6240,10 @@ def web3_status():
         "foundry_ingestion_available": web3_ingest_foundry_fuzzing is not None,
         "invariant_translation_available": translate_solidity_assignment_to_z3 is not None,
         "exploit_witness_available": solve_smart_contract_exploit_witness is not None,
+        "audit_exploit_verification_available": (
+            translate_solidity_assignment_to_z3 is not None
+            and solve_smart_contract_exploit_witness is not None
+        ),
         "web3_tools": web3_tools,
         "web3_ingestion_tools": web3_ingestion_tools,
         "web3_formal_tools": web3_formal_tools,
@@ -6394,10 +6398,26 @@ def web3_audit_exploit_verification(
             timeout=request.timeout_seconds,
         )
 
+    verification = (
+        translation_result.get("verification")
+        if isinstance(translation_result, dict)
+        else None
+    )
+    witness_payload = None
+    if isinstance(witness_result, dict):
+        witness_payload = witness_result
+
+    verified_exploit = bool((witness_payload or {}).get("satisfiable", False))
+    if request.verify_translation and isinstance(verification, dict):
+        verified_exploit = verified_exploit and bool(verification.get("proven", False))
+
     return {
+        "success": (translation_result is None or bool(translation_result))
+        and (witness_result is None or bool(witness_result)),
         "ingestion": ingestion_result,
         "translation": translation_result,
         "exploit_witness": witness_result,
+        "verified_exploit": verified_exploit,
     }
 
 
