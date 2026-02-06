@@ -1527,7 +1527,7 @@ def web3_ingest_slither_static_analysis(
             "error": f"Project path does not exist: {project_path}",
         }
 
-    cmd = ["slither", project_path, "--json", "-"]
+    cmd = ["slither", ".", "--json", "-"]
     if extra_args:
         cmd.extend(str(arg) for arg in extra_args if arg is not None)
 

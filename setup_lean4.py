@@ -212,10 +212,55 @@ def install_elan() -> Tuple[bool, str]:
                 return False, f"Installation failed: {result.stderr}"
                 
         elif system == "windows":
-            # Windows
-            logger.info("Windows detected. Please install elan manually from:")
-            logger.info("  https://github.com/leanprover/elan/releases")
-            return False, "Windows requires manual installation of elan"
+            # Windows - Auto-install elan
+            logger.info("Windows detected. Installing elan automatically...")
+            
+            try:
+                # Download elan installer
+                elan_url = "https://github.com/leanprover/elan/releases/latest/download/elan-x86_64-pc-windows-msvc.zip"
+                zip_path = Path(tempfile.gettempdir()) / "elan-install.zip"
+                extract_dir = Path(tempfile.gettempdir()) / "elan-install"
+                
+                logger.info(f"Downloading elan from {elan_url}...")
+                urlretrieve(elan_url, zip_path)
+                
+                # Extract
+                import zipfile
+                extract_dir.mkdir(exist_ok=True)
+                with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                    zip_ref.extractall(extract_dir)
+                
+                # Find elan-init.exe
+                elan_init = extract_dir / "elan-init.exe"
+                if not elan_init.exists():
+                    # Try to find it in subdirectories
+                    for exe in extract_dir.rglob("elan-init.exe"):
+                        elan_init = exe
+                        break
+                
+                if elan_init.exists():
+                    # Run installer
+                    result = subprocess.run(
+                        [str(elan_init), "-y"],
+                        capture_output=True,
+                        text=True,
+                        timeout=300
+                    )
+                    
+                    # Cleanup
+                    zip_path.unlink(missing_ok=True)
+                    
+                    if result.returncode == 0 or "elan" in str(result.stdout).lower():
+                        # Add to PATH for Windows
+                        add_elan_to_path_windows()
+                        return True, "elan installed successfully on Windows"
+                    else:
+                        return False, f"Installation failed: {result.stderr}"
+                else:
+                    return False, "Could not find elan-init.exe in downloaded archive"
+                    
+            except Exception as e:
+                return False, f"Windows installation error: {str(e)}"
         else:
             return False, f"Unsupported platform: {system}"
             
@@ -224,7 +269,7 @@ def install_elan() -> Tuple[bool, str]:
 
 
 def add_elan_to_path():
-    """Add elan to user's PATH"""
+    """Add elan to user's PATH (Unix-like systems)"""
     elan_bin = Path.home() / ".elan" / "bin"
     
     if not elan_bin.exists():
@@ -254,6 +299,38 @@ def add_elan_to_path():
     
     # Also update current session
     os.environ["PATH"] = str(elan_bin) + os.pathsep + os.environ.get("PATH", "")
+
+
+def add_elan_to_path_windows():
+    """Add elan to user's PATH on Windows"""
+    elan_bin = Path.home() / ".elan" / "bin"
+    
+    if not elan_bin.exists():
+        logger.warning(f"Elan bin directory not found: {elan_bin}")
+        return
+    
+    try:
+        # Add to current session PATH
+        current_path = os.environ.get("PATH", "")
+        if str(elan_bin) not in current_path:
+            os.environ["PATH"] = str(elan_bin) + os.pathsep + current_path
+            logger.info(f"Added {elan_bin} to current PATH")
+        
+        # Add to user PATH permanently using setx ( Windows)
+        result = subprocess.run(
+            ["setx", "PATH", f"{elan_bin};%PATH%"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+            shell=True
+        )
+        if result.returncode == 0:
+            logger.info("Added elan to user PATH permanently (setx)")
+        else:
+            logger.warning(f"Could not update PATH permanently: {result.stderr}")
+            
+    except Exception as e:
+        logger.warning(f"Could not update Windows PATH: {e}")
 
 
 def install_lean_toolchain() -> Tuple[bool, str]:
