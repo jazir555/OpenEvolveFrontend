@@ -22,6 +22,52 @@ from enum import Enum
 
 
 # =============================================================================
+# CREWAI CLAUDIOMIRO CONFIG
+# =============================================================================
+
+@dataclass
+class CrewAIClaudiomiroConfig:
+    """Configuration for CrewAI-Claudiomiro integration"""
+    provider: str = "claude"
+    backend: str = "local"
+    frontend: str = "cli"
+    model: Optional[str] = None
+    api_key: Optional[str] = None
+    base_url: Optional[str] = None
+    
+    # Execution settings
+    max_iterations: int = 10
+    timeout_seconds: int = 300
+    enable_parallel: bool = True
+    max_workers: int = 4
+    
+    # Feature flags
+    enable_analytics: bool = True
+    enable_logging: bool = True
+    enable_checkpoints: bool = True
+    
+    # Resource limits
+    max_memory_mb: int = 4096
+    max_disk_gb: float = 10.0
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert config to dictionary"""
+        return asdict(self)
+    
+    def validate(self) -> List[str]:
+        """Validate configuration, return list of errors (empty if valid)"""
+        errors = []
+        valid_providers = ["claude", "codex", "gemini", "deep-seek", "glm"]
+        if self.provider not in valid_providers:
+            errors.append(f"Invalid provider: {self.provider}")
+        if self.max_iterations < 1:
+            errors.append(f"max_iterations must be >= 1, got {self.max_iterations}")
+        if self.timeout_seconds < 1:
+            errors.append(f"timeout_seconds must be >= 1, got {self.timeout_seconds}")
+        return errors
+
+
+# =============================================================================
 # CONFIGURATION ENUMS
 # =============================================================================
 

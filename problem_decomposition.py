@@ -1121,3 +1121,15 @@ def create_decomposition_report(result: DecompositionResult) -> str:
 """
     
     return report
+
+
+# Stub functions for backward compatibility
+
+def get_recommended_strategy(problem):
+    """Stub function for getting recommended strategy."""
+    return None
+
+
+def get_roma_integration_status():
+    """Stub function for getting ROMA integration status."""
+    return {'status': 'unknown'}

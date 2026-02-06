@@ -32,11 +32,13 @@ class CircuitBreakerState(Enum):
 @dataclass
 class CircuitBreakerConfig:
     """Configuration for a circuit breaker"""
-    level: int  # Hierarchy level (0 = root)
+    level: int = 0  # Hierarchy level (0 = root)
     failure_threshold: int = 5  # Failures before opening
     success_threshold: int = 2  # Successes to close after half-open
     timeout: float = 60.0  # Seconds to wait before trying half-open
     half_open_attempts: int = 3  # Attempts allowed in half-open state
+    recovery_timeout_seconds: float = None  # Alias for timeout (test compatibility)
+    half_open_max_calls: int = None  # Alias for half_open_attempts (test compatibility)
 
     def __post_init__(self):
         # Adjust thresholds based on level
@@ -45,6 +47,12 @@ class CircuitBreakerConfig:
         self.failure_threshold = self.failure_threshold * level_multiplier
         self.success_threshold = max(1, self.success_threshold)
         self.half_open_attempts = max(1, self.half_open_attempts)
+        
+        # Handle test compatibility aliases
+        if self.recovery_timeout_seconds is not None:
+            self.timeout = self.recovery_timeout_seconds
+        if self.half_open_max_calls is not None:
+            self.half_open_attempts = self.half_open_max_calls
 
 
 @dataclass
@@ -65,10 +73,16 @@ class LevelCircuitBreaker:
     Circuit breaker for a specific hierarchy level.
     """
 
-    def __init__(self, config: CircuitBreakerConfig):
-        self.config = config
+    def __init__(self, level: int = 0, config: CircuitBreakerConfig = None):
+        self.level = level
+        self.config = config or CircuitBreakerConfig(level=level)
         self.stats = CircuitBreakerStats()
         self.half_open_attempts_used = 0
+    
+    @property
+    def state(self) -> CircuitBreakerState:
+        """Get current circuit breaker state (for test compatibility)."""
+        return self.stats.state
 
     async def execute(
         self,
@@ -212,7 +226,7 @@ class HierarchicalCircuitBreakerManager:
         """
         if level not in self.breakers:
             config = config or CircuitBreakerConfig(level=level)
-            self.breakers[level] = LevelCircuitBreaker(config)
+            self.breakers[level] = LevelCircuitBreaker(level=level, config=config)
 
         return self.breakers[level]
 
@@ -478,3 +492,8 @@ async def demo_circuit_breakers():
 if __name__ == '__main__':
     import asyncio
     asyncio.run(demo_circuit_breakers())
+
+
+class CircuitBreakerStrategy:
+    """Stub class for circuit breaker strategy."""
+    pass

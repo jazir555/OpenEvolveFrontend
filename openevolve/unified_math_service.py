@@ -152,6 +152,7 @@ class UnifiedMathService:
         use_cav_nlp: bool = True,
         use_leanaide: bool = True,
         lean_service: Optional[Any] = None,
+        lean_client: Optional[Any] = None,
         cav_nlp_bridge: Optional[Z3LeanAideBridge] = None
     ):
         """
@@ -161,6 +162,7 @@ class UnifiedMathService:
             use_cav_nlp: Whether to use CAV-NLP for formalization
             use_leanaide: Whether to use LeanAide for verification
             lean_service: Optional pre-configured LeanAide service
+            lean_client: Optional pre-configured LeanAide client
             cav_nlp_bridge: Optional pre-configured CAV-NLP bridge
         """
         self.use_cav_nlp = use_cav_nlp and CAV_NLP_AVAILABLE
@@ -178,6 +180,9 @@ class UnifiedMathService:
         if lean_service:
             self.lean_service = lean_service
             self.lean_client = None
+        elif lean_client:
+            self.lean_service = None
+            self.lean_client = lean_client
         elif LEAN4_AVAILABLE:
             self.lean_service = create_lean4_service()
             self.lean_client = None
@@ -1000,6 +1005,7 @@ def create_unified_math_service(
     use_cav_nlp: bool = True,
     use_leanaide: bool = True,
     lean_service: Optional[Any] = None,
+    lean_client: Optional[Any] = None,
     cav_nlp_bridge: Optional[Any] = None
 ) -> UnifiedMathService:
     """Create a UnifiedMathService instance."""
@@ -1007,6 +1013,7 @@ def create_unified_math_service(
         use_cav_nlp=use_cav_nlp, 
         use_leanaide=use_leanaide,
         lean_service=lean_service,
+        lean_client=lean_client,
         cav_nlp_bridge=cav_nlp_bridge
     )
 

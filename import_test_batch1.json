@@ -1,23 +1,19 @@
 {
-  "test_timestamp": "2026-02-06T01:47:00.738205",
-  "total_files": 885,
-  "successful_imports": 650,
-  "failed_imports": 180,
-  "skipped_files_count": 99,
-  "success_rate": "82.7%",
+  "test_timestamp": "2026-02-06T01:19:22.648278",
+  "total_files": 884,
+  "successful_imports": 689,
+  "failed_imports": 195,
+  "success_rate": "77.9%",
   "successful": [
     "__init__.py",
     "ace_analytics.py",
     "ace_api_utils.py",
-    "ace_crewai_bridge.py",
     "ace_knowledge_artifacts.py",
     "ace_mcp_tools.py",
     "ace_security_utils.py",
     "ace_stage6_integration.py",
     "ace_workflow_knowledge_extractor.py",
     "activate_lean_integration.py",
-    "adaptive_decomposition_integration.py",
-    "adaptive_gauntlet_system.py",
     "adaptive_mdap.py",
     "adaptive_mdap_pes_demo.py",
     "adaptive_mdap_pes_integration.py",
@@ -39,8 +35,6 @@
     "analytics_dashboard.py",
     "analytics_data.py",
     "analytics_manager.py",
-    "analytics_monitoring_dashboard.py",
-    "analytics_z3_connector.py",
     "analyze_ke_imports.py",
     "analyze_openevolve_integration.py",
     "analyze_problem_analyzer.py",
@@ -48,16 +42,21 @@
     "api_contract_fixes.py",
     "api_gateway.py",
     "api_key_manager.py",
-    "api_server.py",
     "app.py",
+    "apply_ace_phase4_fixes.py",
+    "apply_ace_security_fixes.py",
+    "apply_api_consistency_fixes.py",
+    "apply_code_quality_fixes.py",
     "apply_component_alerting.py",
+    "apply_phase4_validation.py",
     "associative_recomposition.py",
+    "audit_lean_files.py",
     "audit_logging.py",
     "auth_system.py",
     "auto_approval.py",
-    "automated_proof_engine.py",
     "backup_restore.py",
     "batch_operations.py",
+    "benchmark_improvements.py",
     "benchmark_integrations.py",
     "benchmark_knowledge_artifact_generation.py",
     "benchmark_knowledge_artifacts_extended.py",
@@ -89,17 +88,12 @@
     "bubblelabs_knowledge_integration.py",
     "bubblelabs_leanaide_diagram.py",
     "bubblelabs_leanaide_examples.py",
-    "bubblelabs_leanaide_integration.py",
-    "bubblelabs_leanaide_integration_patch.py",
-    "bubblelabs_leanaide_ui.py",
-    "bubblelabs_maker_integration.py",
     "bubblelabs_mcp_tools.py",
     "bubblelabs_mcp_tools_security_patch.py",
     "bubblelabs_node_completion.py",
     "bubblelabs_plugin_system.py",
     "bubblelabs_security.py",
     "bubblelabs_typescript_export.py",
-    "bubblelabs_ui_component.py",
     "bubblelabs_validation.py",
     "bug_scanner.py",
     "c2c_cache_manager.py",
@@ -108,7 +102,6 @@
     "causal_learn_integration.py",
     "cav_nlp_integration.py",
     "chemistry_validator.py",
-    "chronicle_memory.py",
     "chronicle_memory_z3_integration.py",
     "ci_cd_pipeline.py",
     "claudiomiro_config.py",
@@ -124,6 +117,7 @@
     "compare_simple_ascii.py",
     "complete_continuous_math.py",
     "complete_roma_mdap_maker_integration.py",
+    "comprehensive_demo.py",
     "comprehensive_edge_case_analysis.py",
     "comprehensive_functional_tests.py",
     "comprehensive_gap_audit.py",
@@ -170,6 +164,8 @@
     "datapizza_api_server.py",
     "datapizza_config.py",
     "datapizza_mcp_tools.py",
+    "debug_class.py",
+    "debug_source.py",
     "decomposition_crewai_bridge.py",
     "decomposition_crewai_tools.py",
     "decomposition_dashboard.py",
@@ -180,6 +176,38 @@
     "decomposition_recomposition_integration.py",
     "decomposition_z3_validator.py",
     "deduplication_analysis.py",
+    "demo_adversarial_maker.py",
+    "demo_app.py",
+    "demo_crewai_research_features.py",
+    "demo_e2e_invention_enhanced.py",
+    "demo_end_to_end_invention.py",
+    "demo_enhanced_adversarial.py",
+    "demo_evolution_maker.py",
+    "demo_evolution_mdap.py",
+    "demo_evolutionary_tests.py",
+    "demo_generic_maker.py",
+    "demo_hierarchical_indexing.py",
+    "demo_hybrid_maker.py",
+    "demo_hybrid_mcts.py",
+    "demo_integration.py",
+    "demo_knowledge_extraction_ml.py",
+    "demo_leanaide_config.py",
+    "demo_maker_complete.py",
+    "demo_matryoshka_auto.py",
+    "demo_mcts_mdap.py",
+    "demo_mdap_maker.py",
+    "demo_mdap_maker_matryoshka.py",
+    "demo_mdap_maker_mcts_unified.py",
+    "demo_pes_workflow.py",
+    "demo_pes_workflow_language_agnostic.py",
+    "demo_pes_workflow_universal.py",
+    "demo_quality_calculator.py",
+    "demo_roma_mdap_maker.py",
+    "demo_sop_components.py",
+    "demo_sop_generator.py",
+    "demo_sop_integrated.py",
+    "demo_ui_integration.py",
+    "demo_unified_memory_system.py",
     "demonstrate_benchmark_scoring.py",
     "demonstrate_roma_improvements.py",
     "demonstrate_scoring_simple.py",
@@ -203,11 +231,9 @@
     "end_to_end_invention_planner.py",
     "end_to_end_invention_planner_agent2.py",
     "engineering_validator.py",
-    "enhanced_decomposition_engine.py",
     "enhanced_gauntlet_manager.py",
     "enhanced_math_detector.py",
     "enhanced_quality_methods.py",
-    "enhanced_recomposition_engine.py",
     "enhanced_stages_integration.py",
     "env_helpers.py",
     "error_handler.py",
@@ -225,12 +251,10 @@
     "evolution_workflow_templates.py",
     "evolution_z3_fitness.py",
     "evolutionary_optimization.py",
-    "evolve_sop_facets.py",
     "examples_leanaide_selfplay.py",
     "examples_subproblem_classifier.py",
     "execution_sandbox.py",
     "expand_z3_verification.py",
-    "export_import_manager.py",
     "external_knowledge_integration.py",
     "fallback_handler.py",
     "finance_validator.py",
@@ -251,15 +275,9 @@
     "fix_unicode_characters.py",
     "fixed_crewai_bridges.py",
     "form_handling.py",
-    "formal_gauntlet_system.py",
     "frontend_health_check.py",
     "frontend_utils.py",
-    "gauntlet_decomposition_integration.py",
-    "gauntlet_effectiveness_analyzer.py",
     "gauntlet_evaluator.py",
-    "gauntlet_integration.py",
-    "gauntlet_manager.py",
-    "gauntlet_orchestrator.py",
     "gauntlet_server.py",
     "gauntlet_system.py",
     "gauntlet_tests.py",
@@ -297,8 +315,6 @@
     "integration_test.py",
     "integrations.py",
     "interactive_visualizer.py",
-    "invention_planner_integration_helpers.py",
-    "invention_planner_integrations.py",
     "knowledge_artifact_extractor.py",
     "knowledge_base.py",
     "knowledge_base_ui.py",
@@ -306,24 +322,17 @@
     "knowledge_graph_index.py",
     "knowledge_graph_reasoning_integration.py",
     "knowledge_graph_visualizer.py",
-    "knowledge_graph_visualizer_pygraphistry.py",
-    "knowledge_graph_z3_connector.py",
     "knowledge_hash_index.py",
-    "knowledge_hierarchical_index.py",
     "knowledge_hybrid_retrieval.py",
     "knowledge_indexing_config.py",
     "knowledge_lifecycle_manager.py",
-    "knowledge_manager.py",
     "knowledge_performance_integration.py",
-    "knowledge_semantic_index.py",
     "knowledge_state_manager.py",
-    "knowledge_unified_memory_system.py",
     "knowledge_working_memory.py",
     "lean4_integration.py",
     "lean4_integration_enhanced.py",
     "lean4_true_100_integration.py",
     "lean_bootstrap.py",
-    "leanaide_adversarial.py",
     "leanaide_api_routes.py",
     "leanaide_autoformalization_mdap_maker.py",
     "leanaide_client.py",
@@ -338,7 +347,6 @@
     "leanaide_evolutionary_workflow.py",
     "leanaide_hybrid_maker_enhanced.py",
     "leanaide_hybrid_strategies.py",
-    "leanaide_integration.py",
     "leanaide_maker.py",
     "leanaide_mcp_tools.py",
     "leanaide_mcts.py",
@@ -351,7 +359,6 @@
     "leanaide_mdap_demo.py",
     "leanaide_mdap_workflow.py",
     "leanaide_pes_handler.py",
-    "leanaide_predictive_flagging.py",
     "leanaide_proof_checker.py",
     "leanaide_redflagging_system.py",
     "leanaide_selfplay.py",
@@ -370,16 +377,12 @@
     "maker_integration_bridge.py",
     "maker_workflow_integration.py",
     "master_integration_system.py",
+    "master_test_runner.py",
     "mathlib4_integration.py",
-    "matryoshka_enhanced_client.py",
-    "matryoshka_execution_engine.py",
-    "matryoshka_unified_memory_integration.py",
     "mcp_gateway.py",
     "mcp_import_fix.py",
     "mcts_coevolution.py",
     "mcts_coevolution_mdap.py",
-    "mcts_evolutionary_nodes.py",
-    "mcts_evolutionary_nodes_mdap.py",
     "mcts_evolved_policies.py",
     "mcts_evolved_policies_mdap.py",
     "mdap_coevolution_examples.py",
@@ -389,7 +392,6 @@
     "mdap_maker_complete.py",
     "mdap_maker_matryoshka_integration.py",
     "mdap_maker_mcts_unified.py",
-    "mdap_memory_bridge.py",
     "memory_agent.py",
     "message_display.py",
     "metrics_collector.py",
@@ -397,6 +399,7 @@
     "migrate_phase2_remaining.py",
     "migrate_tests_batch4.py",
     "migrate_to_unified_mcp.py",
+    "migration_report.py",
     "migrations.py",
     "ml_pattern_clustering.py",
     "model_orchestration.py",
@@ -415,18 +418,19 @@
     "openevolve_bubblelabs_plugin.py",
     "openevolve_cli.py",
     "openevolve_client.py",
+    "openevolve_crewai_adapter.py",
+    "openevolve_crewai_bridge.py",
+    "openevolve_crewai_delegation.py",
     "openevolve_dashboard.py",
+    "openevolve_decomposition_adapter.py",
     "openevolve_evolution_integration.py",
     "openevolve_imports.py",
     "openevolve_integration.py",
     "openevolve_knowledge_integration.py",
-    "openevolve_leanaide_bridge.py",
-    "openevolve_leanaide_integration_system.py",
     "openevolve_leanaide_workflow_integration.py",
     "openevolve_maker_integration.py",
     "openevolve_mcp_tools.py",
     "openevolve_orchestrator.py",
-    "openevolve_pes_integration.py",
     "openevolve_structures.py",
     "openevolve_validation.py",
     "openevolve_visualization.py",
@@ -470,6 +474,7 @@
     "quick_pygraphistry_test.py",
     "quick_syntax_fix.py",
     "quick_test.py",
+    "quick_test_integration.py",
     "quick_true_100_check.py",
     "quick_verify.py",
     "ragbits_document_processor_example.py",
@@ -482,6 +487,7 @@
     "real_security_headers_tests.py",
     "real_security_tests.py",
     "real_sql_injection_tests.py",
+    "real_xss_prevention_tests.py",
     "red_team.py",
     "red_team_coordinator.py",
     "red_team_feedback_system.py",
@@ -491,6 +497,7 @@
     "reliability_config.py",
     "report_generator.py",
     "report_templates.py",
+    "reporting_demo.py",
     "resource_manager.py",
     "resource_pool.py",
     "review_utils.py",
@@ -501,6 +508,8 @@
     "robust_z3_leanaide_integration.py",
     "roma_config.py",
     "roma_config_helper.py",
+    "roma_crewai_bridge.py",
+    "roma_crewai_tools.py",
     "roma_decomposition_comparison.py",
     "roma_decomposition_hybrid.py",
     "roma_entity_kg.py",
@@ -509,14 +518,31 @@
     "roma_mcp_tools.py",
     "roma_mdap_maker_associative_integration.py",
     "roma_mdap_maker_config.py",
+    "roma_mdap_maker_crewai_bridge.py",
+    "roma_mdap_maker_crewai_tools.py",
     "roma_mdap_maker_engine.py",
     "roma_mdap_maker_mcp_tools.py",
     "roma_mdap_maker_reliability_ssot.py",
     "roma_openevolve_integration.py",
     "roma_recomposition_config.py",
-    "run_agents_config_tests.py",
+    "run_all_ace_tests.py",
+    "run_all_batch2_tests.py",
+    "run_all_tests.py",
+    "run_evolution_mdap_tests.py",
+    "run_evolutionary_tests.py",
+    "run_full_rese_e2e_pipeline.py",
     "run_import_test_batch3.py",
     "run_import_test_batch4.py",
+    "run_integration_tests.py",
+    "run_leanaide_tests.py",
+    "run_mcts_mdap_tests.py",
+    "run_mcts_tests.py",
+    "run_mdap_tests.py",
+    "run_real_security_tests.py",
+    "run_rese_tests.py",
+    "run_security_tests.py",
+    "run_security_true_100_tests.py",
+    "run_tests.py",
     "scalability_improvements.py",
     "scan_batch_3.py",
     "scan_batch_8.py",
@@ -559,58 +585,43 @@
     "sgd_orchestrator_agent.py",
     "sgd_workflow_orchestrator.py",
     "sidebar.py",
+    "simple_demo.py",
     "simple_dspy_check.py",
+    "simple_dspy_test.py",
+    "simple_test.py",
     "solution_manager.py",
-    "solution_pattern_miner.py",
-    "solution_validation_pipeline.py",
-    "sop_component_system.py",
     "sop_generator.py",
     "sop_generator_enhanced.py",
     "sop_generator_real.py",
-    "sop_integrated_system.py",
-    "sop_templates.py",
     "sovereign_data_models.py",
     "sovereign_database.py",
-    "sovereign_gauntlets.py",
-    "sovereign_integration.py",
     "sovereign_knowledge_manager.py",
     "sovereign_performance.py",
     "sovereign_performance_optimization.py",
     "sovereign_persistence.py",
     "sovereign_quality_assessment.py",
-    "sovereign_refinement.py",
     "sovereign_reliability.py",
-    "sovereign_sidebar_integration.py",
     "sovereign_solution_orchestration.py",
-    "sovereign_team_coordination.py",
-    "sovereign_validation.py",
     "spatial_decomposition.py",
-    "stage6_knowledge_extraction.py",
     "start_bubblelabs_integration.py",
     "start_rese_health_apis.py",
     "state.py",
-    "steer_context_engine.py",
     "steer_crewai_bridge.py",
     "steer_mcp_tools.py",
     "strategy_performance_tracker.py",
     "strategy_templates.py",
-    "sub_problem_solver.py",
     "subproblem_classifier.py",
     "success_criteria.py",
-    "suggestions.py",
+    "symbolic_constraint_engine.py",
     "syntax_checker.py",
     "system1_router.py",
     "system_health.py",
-    "system_test.py",
     "tasks.py",
     "team_base.py",
-    "team_manager.py",
     "team_performance_tracker.py",
     "telemetry.py",
     "template_manager.py",
-    "test_all_imports_batch1.py",
     "test_imports_batch2.py",
-    "test_imports_batch2_final.py",
     "test_imports_batch2_robust.py",
     "thorough_integration_test.py",
     "thorough_verification.py",
@@ -618,8 +629,6 @@
     "todo_tracker.py",
     "tracing.py",
     "TRUE_100_INTEGRATION.py",
-    "true_100_verification.py",
-    "ui_components.py",
     "ui_components_additional.py",
     "ui_config.py",
     "ui_models.py",
@@ -632,595 +641,599 @@
     "uncertainty_propagation_real.py",
     "unified_caching.py",
     "unified_configuration.py",
-    "unified_knowledge_extraction.py",
     "unified_matryoshka_architecture.py",
-    "unified_mcp_server.py",
     "universal_alerting_integration.py",
-    "universal_decomposition_engine.py",
-    "universal_problem_solver.py",
-    "universal_recomposition_engine.py",
     "validate_adversarial_maker_integration.py",
+    "validate_all_fixes.py",
+    "validate_end_to_end_invention.py",
+    "validate_enhanced_adversarial.py",
+    "validate_evolution_maker_integration.py",
+    "validate_generic_maker_integration.py",
+    "validate_hybrid_maker_integration.py",
     "validate_imports.py",
+    "validate_integration.py",
+    "validate_leanaide_tests.py",
+    "validate_maker_integration.py",
+    "validate_phase1_complete.py",
     "validate_production_ready.py",
-    "validate_ragbits_integration.py",
+    "validate_sop_components.py",
+    "validate_sop_generator.py",
+    "validate_sop_integrated.py",
     "validate_task_15.py",
     "validate_task_16.py",
-    "validation_manager.py",
     "validator.py",
     "valkey_integration.py",
     "vector_search.py",
     "vector_store.py",
-    "verification_engine.py",
     "verification_methods.py",
-    "verified_recomposition.py",
     "verify_additional_math_bubbles.py",
     "verify_all_lean_wiring.py",
-    "verify_bubblelabs_integration.py"
+    "verify_bubblelabs_integration.py",
+    "verify_complete_integration.py",
+    "verify_dts_integration.py",
+    "verify_gauntlet_wiring.py",
+    "verify_global_dspy_integration.py",
+    "verify_integration.py",
+    "verify_integrations.py",
+    "verify_knowledge_extraction.py",
+    "verify_lean_wiring.py",
+    "verify_leanaide_true_100.py",
+    "verify_math_bubbles.py",
+    "verify_rese_health_apis.py",
+    "verify_true_100_integration.py",
+    "verify_true_100_knowledge_extraction.py",
+    "version_control.py",
+    "vision_language_monitor.py",
+    "websocket_manager.py",
+    "workflow_enhanced_stages.py",
+    "workflow_orchestrator.py",
+    "workflow_structures.py",
+    "working_integration_bridge.py",
+    "z3_config_manager.py",
+    "z3_database_models.py",
+    "z3_enhanced_knowledge.py",
+    "z3_knowledge_integration.py",
+    "zero_touch_lean_setup.py"
   ],
   "failed": [
     {
-      "file": "additional_unit_tests.py",
-      "error": "ImportError: cannot import name 'InputValidator' f",
+      "file": "ace_crewai_bridge.py",
+      "error": "Timeout (30s)",
       "standalone": false
+    },
+    {
+      "file": "adaptive_decomposition_integration.py",
+      "error": "Timeout (30s)",
+      "standalone": false
+    },
+    {
+      "file": "adaptive_gauntlet_system.py",
+      "error": "Timeout (30s)",
+      "standalone": false
+    },
+    {
+      "file": "additional_unit_tests.py",
+      "error": "DTS integration available for enhanced multi-judge scoring\nERROR: ImportError: cannot import name 'InputValidator' from 'input_validation' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\input_validat",
+      "standalone": true
     },
     {
       "file": "advanced_system_unit_tests.py",
-      "error": "ImportError: cannot import name 'InputValidator' f",
-      "standalone": false
+      "error": "DTS integration available for enhanced multi-judge scoring\nERROR: ImportError: cannot import name 'InputValidator' from 'input_validation' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\input_validat",
+      "standalone": true
     },
     {
       "file": "advanced_unit_tests_comprehensive.py",
-      "error": "ImportError: cannot import name 'InputValidator' f",
+      "error": "DTS integration available for enhanced multi-judge scoring\nERROR: ImportError: cannot import name 'InputValidator' from 'input_validation' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\input_validat",
+      "standalone": true
+    },
+    {
+      "file": "analytics_monitoring_dashboard.py",
+      "error": "Timeout (30s)",
       "standalone": false
     },
     {
-      "file": "apply_ace_phase4_fixes.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "file": "analytics_z3_connector.py",
+      "error": "Timeout (30s)",
+      "standalone": true
     },
     {
-      "file": "apply_ace_security_fixes.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "apply_api_consistency_fixes.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "apply_code_quality_fixes.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "apply_phase4_validation.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "file": "api_server.py",
+      "error": "Timeout (30s)",
+      "standalone": true
     },
     {
       "file": "assess_decomposition.py",
-      "error": "SKIPPED (known to hang/run code)",
+      "error": "=== HONEST ASSESSMENT OF ProblemDecomposer ===\n\nTotal methods: 34\n\nPublic methods: 5\nERROR: UnicodeEncodeError: 'charmap' codec can't encode character '\\u26a1' in position 2: character maps to <undefi",
       "standalone": false
     },
     {
-      "file": "audit_lean_files.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "benchmark_improvements.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "file": "automated_proof_engine.py",
+      "error": "Timeout (30s)",
+      "standalone": true
     },
     {
       "file": "bubblelab-auto-setup.py",
       "error": "ImportError: No module named 'fcntl'",
+      "standalone": true
+    },
+    {
+      "file": "bubblelabs_leanaide_integration.py",
+      "error": "Timeout (30s)",
+      "standalone": true
+    },
+    {
+      "file": "bubblelabs_leanaide_integration_patch.py",
+      "error": "Timeout (30s)",
       "standalone": false
+    },
+    {
+      "file": "bubblelabs_leanaide_ui.py",
+      "error": "Timeout (30s)",
+      "standalone": true
+    },
+    {
+      "file": "bubblelabs_maker_integration.py",
+      "error": "Timeout (30s)",
+      "standalone": false
+    },
+    {
+      "file": "bubblelabs_ui_component.py",
+      "error": "DTS integration available for enhanced multi-judge scoring\nDEBUG: sys.path in providercatalogue.py: ['DTS', 'c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenEvolve\\\\Frontend', 'c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenE",
+      "standalone": true
     },
     {
       "file": "c2c_usage_examples.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "error": "Timeout (30s)",
+      "standalone": true
+    },
+    {
+      "file": "chronicle_memory.py",
+      "error": "Timeout (30s)",
+      "standalone": true
     },
     {
       "file": "complexity_analyzer.py",
-      "error": "AttributeError: 'NoneType' object has no attribute",
-      "standalone": false
+      "error": "AttributeError: 'NoneType' object has no attribute '__dict__'",
+      "standalone": true
     },
     {
       "file": "comprehensive_decomposition_engine.py",
-      "error": "AttributeError: 'NoneType' object has no attribute",
-      "standalone": false
-    },
-    {
-      "file": "comprehensive_demo.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "error": "AttributeError: 'NoneType' object has no attribute '__dict__'",
+      "standalone": true
     },
     {
       "file": "comprehensive_integration_test.py",
-      "error": "ImportError: cannot import name 'CrewAIROMAConfig'",
-      "standalone": false
+      "error": "DTS integration available for enhanced multi-judge scoring\nDEBUG: sys.path in providercatalogue.py: ['DTS', 'c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenEvolve\\\\Frontend', 'c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenE",
+      "standalone": true
     },
     {
       "file": "comprehensive_recomposition_engine.py",
-      "error": "AttributeError: 'NoneType' object has no attribute",
+      "error": "AttributeError: 'NoneType' object has no attribute '__dict__'",
       "standalone": false
     },
     {
       "file": "comprehensive_test_suite.py",
-      "error": "ImportError: cannot import name 'InputValidator' f",
-      "standalone": false
+      "error": "DTS integration available for enhanced multi-judge scoring\nERROR: ImportError: cannot import name 'InputValidator' from 'input_validation' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\input_validat",
+      "standalone": true
     },
     {
       "file": "comprehensive_validation_tests.py",
-      "error": "ImportError: cannot import name 'InputValidator' f",
-      "standalone": false
+      "error": "DTS integration available for enhanced multi-judge scoring\nERROR: ImportError: cannot import name 'InputValidator' from 'input_validation' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\input_validat",
+      "standalone": true
     },
     {
       "file": "crewai_client.py",
-      "error": "ImportError: cannot import name 'CrewAIROMAConfig'",
-      "standalone": false
+      "error": "ImportError: cannot import name 'CrewAIROMAConfig' from 'roma_config' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_config.py)",
+      "standalone": true
     },
     {
       "file": "crewai_enhanced_decomposition_bridge.py",
-      "error": "ImportError: cannot import name 'DecompositionReco",
-      "standalone": false
+      "error": "ImportError: cannot import name 'DecompositionRecompositionPipeline' from 'decomposition_recomposition_integration' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\decomposition_recomposition_integrat",
+      "standalone": true
     },
     {
       "file": "crewai_unified_bridge.py",
-      "error": "ImportError: cannot import name 'CrewAIROMAConfig'",
-      "standalone": false
+      "error": "Timeout (30s)",
+      "standalone": true
     },
     {
       "file": "crewai_unified_flow.py",
-      "error": "ImportError: cannot import name 'CrewAIROMAConfig'",
-      "standalone": false
+      "error": "ImportError: cannot import name 'CrewAIROMAConfig' from 'roma_config' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_config.py)",
+      "standalone": true
     },
     {
       "file": "datapizza_crewai_bridge.py",
-      "error": "ImportError: cannot import name 'CrewAIZeroErrorWo",
-      "standalone": false
-    },
-    {
-      "file": "debug_class.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "debug_source.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "error": "ImportError: cannot import name 'CrewAIZeroErrorWorkflow' from 'crewai_zero_error_workflow' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\crewai_zero_error_workflow.py)",
+      "standalone": true
     },
     {
       "file": "debug_test.py",
-      "error": "SKIPPED (known to hang/run code)",
+      "error": "DTS integration available for enhanced multi-judge scoring\nDEBUG: sys.path in providercatalogue.py: ['DTS', 'c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenEvolve\\\\Frontend', 'c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenE",
       "standalone": false
     },
     {
       "file": "debug_test_wrapper.py",
-      "error": "ImportError: cannot import name 'PythonHandler' fr",
+      "error": "[2026-02-06 01:44:23,601] [ERROR] [knowledge_engine.config_validation] {'msg': 'Configuration validation failed', 'errors': [\"Required environment variable 'OPENAI_API_KEY' is not set\"], 'warnings': [",
       "standalone": false
     },
     {
       "file": "decomposition_engine_adaptive_enhancement.py",
-      "error": "ImportError: cannot import name 'calculate_functio",
+      "error": "ImportError: cannot import name 'calculate_functional_weight' from 'decomposition_engine' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\decomposition_engine.py)",
       "standalone": false
     },
     {
       "file": "decomposition_matryoshka_integration.py",
-      "error": "AttributeError: 'NoneType' object has no attribute",
-      "standalone": false
+      "error": "DTS integration available for enhanced multi-judge scoring\nDEBUG: sys.path in providercatalogue.py: ['DTS', 'c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenEvolve\\\\Frontend', 'c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenE",
+      "standalone": true
     },
     {
       "file": "decomposition_strategy.py",
-      "error": "AttributeError: 'NoneType' object has no attribute",
-      "standalone": false
-    },
-    {
-      "file": "demo_adversarial_maker.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_app.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_crewai_research_features.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "error": "AttributeError: 'NoneType' object has no attribute '__dict__'",
+      "standalone": true
     },
     {
       "file": "demo_database_cleanup.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_e2e_invention_enhanced.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_end_to_end_invention.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_enhanced_adversarial.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "error": "ImportError: cannot import name 'cleanup_all_databases' from 'bubblelabs_analytics' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py)",
+      "standalone": true
     },
     {
       "file": "demo_enhanced_decomposition_recomposition.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_evolution_maker.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_evolution_mdap.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_evolutionary_tests.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_generic_maker.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_hierarchical_indexing.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_hybrid_maker.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_hybrid_mcts.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_integration.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_knowledge_extraction_ml.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "error": "ImportError: cannot import name 'DecompositionRecompositionPipeline' from 'decomposition_recomposition_integration' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\decomposition_recomposition_integrat",
+      "standalone": true
     },
     {
       "file": "demo_leanaide_autoformalization_mdap_maker.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "error": "ImportError: cannot import name 'LeanAideAutoformalizationEngine' from 'leanaide_autoformalization_mdap_maker' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\leanaide_autoformalization_mdap_maker.py)",
+      "standalone": true
     },
     {
       "file": "demo_leanaide_client.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_leanaide_config.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "error": "======================================================================\nLeanAide Client Demo with CAV-NLP Integration\n======================================================================\nERROR: Unico",
+      "standalone": true
     },
     {
       "file": "demo_leanaide_redflagging.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_maker_complete.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_matryoshka_auto.py",
-      "error": "SKIPPED (known to hang/run code)",
+      "error": "NameError: name 'VerificationResult' is not defined",
       "standalone": false
     },
     {
       "file": "demo_matryoshka_unified_memory.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "error": "AttributeError: 'NoneType' object has no attribute '__dict__'",
+      "standalone": true
     },
     {
       "file": "demo_mcts.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_mcts_mdap.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_mdap_maker.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_mdap_maker_matryoshka.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_mdap_maker_mcts_unified.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "error": "ImportError: cannot import name 'LeanProofMCTS' from 'leanaide_mcts' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\leanaide_mcts.py)",
+      "standalone": true
     },
     {
       "file": "demo_openevolve_bubblelabs.py",
-      "error": "SKIPPED (known to hang/run code)",
+      "error": "ImportError: No module named 'openevolve_workflow_manager'",
       "standalone": false
     },
     {
       "file": "demo_openevolve_integration.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "error": "ImportError: cannot import name 'DecompositionRecompositionPipeline' from 'decomposition_recomposition_integration' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\decomposition_recomposition_integrat",
+      "standalone": true
     },
     {
       "file": "demo_openevolve_pes_integration.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_pes_workflow.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_pes_workflow_language_agnostic.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_pes_workflow_universal.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "error": "Timeout (30s)",
+      "standalone": true
     },
     {
       "file": "demo_problem_classifier.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_quality_calculator.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "error": "Timeout (30s)",
+      "standalone": true
     },
     {
       "file": "demo_reliability_system.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_roma_mdap_maker.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_sop_components.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_sop_generator.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_sop_integrated.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "error": "ImportError: cannot import name 'HEALTH_CHECK_CONFIG' from 'reliability_config' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\reliability_config.py)",
+      "standalone": true
     },
     {
       "file": "demo_team_assignment.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_ui_integration.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "demo_unified_memory_system.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "error": "[FAIL] Import error: cannot import name 'SubProblemTeamAssignment' from 'sovereign_data_models' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_data_models.py)\n\nPlease ensure all required mo",
+      "standalone": true
     },
     {
       "file": "demo_z3_leanaide_integration.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "error": "ImportError: cannot import name 'get_z3_leanaide_bridge_sync' from 'z3_leanaide_bridge' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\z3_leanaide_bridge.py)",
+      "standalone": true
     },
     {
       "file": "dependency_builder.py",
-      "error": "AttributeError: 'NoneType' object has no attribute",
-      "standalone": false
+      "error": "AttributeError: 'NoneType' object has no attribute '__dict__'",
+      "standalone": true
     },
     {
       "file": "detailed_audit.py",
       "error": "NameError: name 'Dict' is not defined",
-      "standalone": false
+      "standalone": true
     },
     {
       "file": "domain_optimization_manager.py",
-      "error": "ImportError: cannot import name 'EnhancedDomainCon",
+      "error": "ImportError: cannot import name 'EnhancedDomainContext' from 'sovereign_data_models' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_data_models.py)",
       "standalone": false
     },
     {
       "file": "e2e_invention_validation.py",
       "error": "ImportError: No module named 'rese_pipeline'",
-      "standalone": false
+      "standalone": true
     },
     {
       "file": "edge_case_tests.py",
-      "error": "ImportError: cannot import name 'InputValidator' f",
-      "standalone": false
+      "error": "DTS integration available for enhanced multi-judge scoring\nERROR: ImportError: cannot import name 'InputValidator' from 'input_validation' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\input_validat",
+      "standalone": true
+    },
+    {
+      "file": "enhanced_decomposition_engine.py",
+      "error": "AttributeError: 'NoneType' object has no attribute '__dict__'",
+      "standalone": true
+    },
+    {
+      "file": "enhanced_recomposition_engine.py",
+      "error": "AttributeError: 'NoneType' object has no attribute '__dict__'",
+      "standalone": true
     },
     {
       "file": "evolve_sop.py",
-      "error": "ImportError: cannot import name 'run_ensemble_base",
-      "standalone": false
+      "error": "DTS integration available for enhanced multi-judge scoring\nDEBUG: sys.path in providercatalogue.py: ['DTS', 'c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenEvolve\\\\Frontend', 'c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenE",
+      "standalone": true
+    },
+    {
+      "file": "evolve_sop_facets.py",
+      "error": "Timeout (30s)",
+      "standalone": true
     },
     {
       "file": "example_crewai_delegation.py",
-      "error": "ImportError: cannot import name 'CrewAIROMAConfig'",
-      "standalone": false
+      "error": "Timeout (30s)",
+      "standalone": true
     },
     {
       "file": "example_decomposition_integration.py",
-      "error": "AttributeError: ROMA",
-      "standalone": false
+      "error": "Timeout (30s)",
+      "standalone": true
     },
     {
       "file": "example_enhanced_decomposition.py",
-      "error": "ImportError: cannot import name 'SOVEREIGN_DATA_MO",
-      "standalone": false
+      "error": "Timeout (30s)",
+      "standalone": true
     },
     {
       "file": "example_integration_usage.py",
-      "error": "ImportError: cannot import name 'quick_decompose'",
+      "error": "DTS integration available for enhanced multi-judge scoring\nERROR: ImportError: cannot import name 'quick_decompose' from 'sovereign_integration' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\soverei",
+      "standalone": true
+    },
+    {
+      "file": "export_import_manager.py",
+      "error": "Timeout (30s)",
       "standalone": false
     },
     {
       "file": "extended_unit_tests.py",
-      "error": "ImportError: cannot import name 'InputValidator' f",
-      "standalone": false
+      "error": "Timeout (30s)",
+      "standalone": true
     },
     {
       "file": "extra_comprehensive_tests.py",
-      "error": "ImportError: cannot import name 'InputValidator' f",
+      "error": "Timeout (30s)",
+      "standalone": true
+    },
+    {
+      "file": "formal_gauntlet_system.py",
+      "error": "Timeout (30s)",
       "standalone": false
     },
     {
       "file": "future_enhancements.py",
       "error": "ImportError: No module named 'tensorflow'",
+      "standalone": true
+    },
+    {
+      "file": "gauntlet_decomposition_integration.py",
+      "error": "Timeout (30s)",
+      "standalone": false
+    },
+    {
+      "file": "gauntlet_effectiveness_analyzer.py",
+      "error": "Timeout (30s)",
+      "standalone": false
+    },
+    {
+      "file": "gauntlet_integration.py",
+      "error": "Timeout (30s)",
+      "standalone": false
+    },
+    {
+      "file": "gauntlet_manager.py",
+      "error": "Timeout (30s)",
+      "standalone": false
+    },
+    {
+      "file": "gauntlet_orchestrator.py",
+      "error": "Timeout (30s)",
       "standalone": false
     },
     {
       "file": "graphql_server.py",
       "error": "KeyError: 'graphql_server'",
-      "standalone": false
+      "standalone": true
     },
     {
       "file": "hybrid_maker_workflow.py",
-      "error": "NameError: name 'EvolutionResult' is not defined",
-      "standalone": false
+      "error": "DTS integration available for enhanced multi-judge scoring\nDEBUG: sys.path in providercatalogue.py: ['DTS', 'c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenEvolve\\\\Frontend', 'c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenE",
+      "standalone": true
     },
     {
       "file": "hybrid_types.py",
-      "error": "AttributeError: 'NoneType' object has no attribute",
+      "error": "AttributeError: 'NoneType' object has no attribute '__dict__'",
+      "standalone": true
+    },
+    {
+      "file": "invention_planner_integration_helpers.py",
+      "error": "Timeout (30s)",
+      "standalone": false
+    },
+    {
+      "file": "invention_planner_integrations.py",
+      "error": "Timeout (30s)",
       "standalone": false
     },
     {
       "file": "knowledge_context_assembler.py",
-      "error": "AttributeError: 'NoneType' object has no attribute",
-      "standalone": false
+      "error": "AttributeError: 'NoneType' object has no attribute '__dict__'",
+      "standalone": true
     },
     {
       "file": "knowledge_engine_hierarchical_integration.py",
-      "error": "AttributeError: 'NoneType' object has no attribute",
+      "error": "AttributeError: 'NoneType' object has no attribute '__dict__'",
+      "standalone": true
+    },
+    {
+      "file": "knowledge_graph_visualizer_pygraphistry.py",
+      "error": "Timeout (30s)",
       "standalone": false
     },
     {
+      "file": "knowledge_graph_z3_connector.py",
+      "error": "Timeout (30s)",
+      "standalone": true
+    },
+    {
+      "file": "knowledge_hierarchical_index.py",
+      "error": "AttributeError: 'NoneType' object has no attribute '__dict__'",
+      "standalone": true
+    },
+    {
+      "file": "knowledge_manager.py",
+      "error": "Timeout (30s)",
+      "standalone": false
+    },
+    {
+      "file": "knowledge_semantic_index.py",
+      "error": "Timeout (30s)",
+      "standalone": true
+    },
+    {
+      "file": "knowledge_unified_memory_system.py",
+      "error": "Timeout (30s)",
+      "standalone": true
+    },
+    {
       "file": "langchain_chroma_integration.py",
-      "error": "ImportError: cannot import name 'HybridCache' from",
+      "error": "Timeout (30s)",
+      "standalone": true
+    },
+    {
+      "file": "leanaide_adversarial.py",
+      "error": "Timeout (30s)",
+      "standalone": true
+    },
+    {
+      "file": "leanaide_integration.py",
+      "error": "AttributeError: 'NoneType' object has no attribute '__dict__'",
       "standalone": false
     },
     {
       "file": "leanaide_pes_benchmark.py",
-      "error": "ImportError: cannot import name 'enhance_lean_proo",
-      "standalone": false
+      "error": "ImportError: cannot import name 'verify_lean_code' from 'leanaide_pes_handler' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\leanaide_pes_handler.py)",
+      "standalone": true
+    },
+    {
+      "file": "leanaide_predictive_flagging.py",
+      "error": "Timeout (30s)",
+      "standalone": true
     },
     {
       "file": "leanaide_redflagging.py",
-      "error": "NameError: name 'VerificationResult' is not define",
+      "error": "NameError: name 'VerificationResult' is not defined",
       "standalone": false
     },
     {
       "file": "leanaide_sop_integration.py",
-      "error": "ImportError: cannot import name 'LeanAideAutoforma",
-      "standalone": false
+      "error": "ImportError: cannot import name 'AutoformalizationStrategy' from 'leanaide_autoformalization_mdap_maker' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\leanaide_autoformalization_mdap_maker.py)",
+      "standalone": true
     },
     {
       "file": "learning_loop_manager.py",
-      "error": "ImportError: cannot import name 'KnowledgeArtifact",
+      "error": "ImportError: cannot import name 'KnowledgeArtifact' from 'sovereign_data_models' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_data_models.py)",
       "standalone": false
     },
     {
       "file": "lmql_adapter.py",
-      "error": "AttributeError: 'NoneType' object has no attribute",
-      "standalone": false
+      "error": "AttributeError: 'NoneType' object has no attribute '__dict__'",
+      "standalone": true
     },
     {
       "file": "mainlayout.py",
-      "error": "ImportError: cannot import name 'create_github_bra",
-      "standalone": false
+      "error": "Timeout (30s)",
+      "standalone": true
     },
     {
-      "file": "master_test_runner.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "file": "matryoshka_enhanced_client.py",
+      "error": "AttributeError: 'NoneType' object has no attribute '__dict__'",
+      "standalone": true
     },
     {
-      "file": "migration_report.py",
-      "error": "SKIPPED (known to hang/run code)",
+      "file": "matryoshka_execution_engine.py",
+      "error": "AttributeError: 'NoneType' object has no attribute '__dict__'",
+      "standalone": true
+    },
+    {
+      "file": "matryoshka_unified_memory_integration.py",
+      "error": "Timeout (30s)",
+      "standalone": true
+    },
+    {
+      "file": "mcts_evolutionary_nodes.py",
+      "error": "Timeout (30s)",
+      "standalone": true
+    },
+    {
+      "file": "mcts_evolutionary_nodes_mdap.py",
+      "error": "Timeout (30s)",
+      "standalone": true
+    },
+    {
+      "file": "mdap_memory_bridge.py",
+      "error": "AttributeError: 'NoneType' object has no attribute '__dict__'",
       "standalone": false
     },
     {
       "file": "openevolve_bubblelabs_ui.py",
-      "error": "ImportError: cannot import name 'BubbleLabsCREWAIB",
-      "standalone": false
-    },
-    {
-      "file": "openevolve_crewai_adapter.py",
-      "error": "ImportError: cannot import name 'CrewAIZeroErrorWo",
-      "standalone": false
-    },
-    {
-      "file": "openevolve_crewai_bridge.py",
-      "error": "ImportError: cannot import name 'CrewAIZeroErrorWo",
-      "standalone": false
-    },
-    {
-      "file": "openevolve_crewai_delegation.py",
-      "error": "ImportError: cannot import name 'CrewAIZeroErrorWo",
-      "standalone": false
-    },
-    {
-      "file": "openevolve_decomposition_adapter.py",
-      "error": "ImportError: cannot import name 'DecompositionReco",
-      "standalone": false
+      "error": "DTS integration available for enhanced multi-judge scoring\nDEBUG: sys.path in providercatalogue.py: ['DTS', 'c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenEvolve\\\\Frontend', 'c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenE",
+      "standalone": true
     },
     {
       "file": "openevolve_enhanced_decomposition_integration.py",
-      "error": "ImportError: cannot import name 'DecompositionReco",
-      "standalone": false
+      "error": "AttributeError: 'NoneType' object has no attribute '__dict__'",
+      "standalone": true
+    },
+    {
+      "file": "openevolve_leanaide_bridge.py",
+      "error": "DTS integration available for enhanced multi-judge scoring\nDEBUG: sys.path in providercatalogue.py: ['DTS', 'c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenEvolve\\\\Frontend', 'c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenE",
+      "standalone": true
+    },
+    {
+      "file": "openevolve_leanaide_integration_system.py",
+      "error": "DTS integration available for enhanced multi-judge scoring\nDEBUG: sys.path in providercatalogue.py: ['DTS', 'c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenEvolve\\\\Frontend', 'c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenE",
+      "standalone": true
+    },
+    {
+      "file": "openevolve_pes_integration.py",
+      "error": "SyntaxError: f-string: empty expression not allowed at line 744",
+      "standalone": true
     },
     {
       "file": "openevolve_workflow_manager_integrated.py",
-      "error": "ImportError: cannot import name 'BubbleLabsCREWAIB",
+      "error": "DTS integration available for enhanced multi-judge scoring\nDEBUG: sys.path in providercatalogue.py: ['DTS', 'c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenEvolve\\\\Frontend', 'c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenE",
       "standalone": false
     },
     {
       "file": "persistent_decomposition_engine.py",
-      "error": "ImportError: cannot import name 'WorkflowState' fr",
+      "error": "ImportError: cannot import name 'WorkflowProgress' from 'sovereign_data_models' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_data_models.py)",
       "standalone": false
     },
     {
@@ -1230,38 +1243,23 @@
     },
     {
       "file": "problem_fractal_pipeline.py",
-      "error": "AttributeError: 'NoneType' object has no attribute",
+      "error": "DTS integration available for enhanced multi-judge scoring\nDEBUG: sys.path in providercatalogue.py: ['DTS', 'c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenEvolve\\\\Frontend', 'c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenE",
       "standalone": false
     },
     {
       "file": "quality_control.py",
       "error": "ImportError: No module named 'astor'",
-      "standalone": false
+      "standalone": true
     },
     {
       "file": "quality_control_examples.py",
       "error": "ImportError: No module named 'astor'",
-      "standalone": false
-    },
-    {
-      "file": "quick_test_integration.py",
-      "error": "ImportError: cannot import name 'LeanAideAutoforma",
-      "standalone": false
+      "standalone": true
     },
     {
       "file": "rbac_enhanced.py",
-      "error": "AttributeError: 'NoneType' object has no attribute",
-      "standalone": false
-    },
-    {
-      "file": "real_xss_prevention_tests.py",
-      "error": "ImportError: cannot import name 'InputValidator' f",
-      "standalone": false
-    },
-    {
-      "file": "reporting_demo.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "error": "AttributeError: 'NoneType' object has no attribute '__dict__'",
+      "standalone": true
     },
     {
       "file": "reporting_system.py",
@@ -1270,395 +1268,409 @@
     },
     {
       "file": "resource_estimation_engine.py",
-      "error": "ImportError: cannot import name 'ResourceEstimate'",
+      "error": "ImportError: cannot import name 'ComplexityBreakdown' from 'sovereign_data_models' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_data_models.py)",
       "standalone": false
     },
     {
       "file": "robustness_integration.py",
-      "error": "ImportError: cannot import name 'VisionLanguageMon",
-      "standalone": false
+      "error": "ImportError: cannot import name 'VisionLanguageMonitor' from 'vision_language_monitor' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\vision_language_monitor.py)",
+      "standalone": true
     },
     {
-      "file": "roma_crewai_bridge.py",
-      "error": "ImportError: cannot import name 'CrewAIZeroErrorWo",
-      "standalone": false
-    },
-    {
-      "file": "roma_crewai_tools.py",
-      "error": "ImportError: cannot import name 'CrewAIZeroErrorWo",
-      "standalone": false
-    },
-    {
-      "file": "roma_mdap_maker_crewai_bridge.py",
-      "error": "ImportError: cannot import name 'CrewAIZeroErrorWo",
-      "standalone": false
-    },
-    {
-      "file": "roma_mdap_maker_crewai_tools.py",
-      "error": "ImportError: cannot import name 'CrewAIZeroErrorWo",
-      "standalone": false
-    },
-    {
-      "file": "run_all_ace_tests.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "run_all_batch2_tests.py",
-      "error": "SKIPPED (known to hang/run code)",
+      "file": "run_agents_config_tests.py",
+      "error": "Timeout (30s)",
       "standalone": false
     },
     {
       "file": "run_all_gauntlet_tests.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "run_all_tests.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "run_evolution_mdap_tests.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "run_evolutionary_tests.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "run_full_rese_e2e_pipeline.py",
-      "error": "SKIPPED (known to hang/run code)",
+      "error": "Timeout (30s)",
       "standalone": false
     },
     {
       "file": "run_gauntlet_tests.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "run_integration_tests.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "run_leanaide_tests.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "run_mcts_mdap_tests.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "run_mcts_tests.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "run_mdap_tests.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "run_real_security_tests.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "run_rese_tests.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "run_security_tests.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "run_security_true_100_tests.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "run_tests.py",
-      "error": "SKIPPED (known to hang/run code)",
+      "error": "Timeout (30s)",
       "standalone": false
     },
     {
       "file": "simple_check.py",
-      "error": "FileNotFoundError: [Errno 2] No such file or direc",
-      "standalone": false
-    },
-    {
-      "file": "simple_demo.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "simple_dspy_test.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "simple_test.py",
-      "error": "SKIPPED (known to hang/run code)",
+      "error": "FileNotFoundError: [Errno 2] No such file or directory: 'mainlayout_fixed_newlines.py'",
       "standalone": false
     },
     {
       "file": "simple_test_clean.py",
-      "error": "SKIPPED (known to hang/run code)",
+      "error": "Testing imports...\nChromaDB imported successfully\nSentenceTransformers import failed: cannot import name 'HybridCache' from 'transformers' (C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\Lib",
       "standalone": false
     },
     {
       "file": "simple_verify_implementation.py",
-      "error": "NameError: name 'IntegratedPredictiveFlaggingSyste",
-      "standalone": false
+      "error": "DEBUG: sys.path in providercatalogue.py: ['c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenEvolve\\\\Frontend', '', 'C:\\\\Users\\\\mmeadow\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python311\\\\python311.zip', 'C:\\\\Users\\\\mmead",
+      "standalone": true
     },
     {
       "file": "solution_assembler.py",
-      "error": "AttributeError: 'NoneType' object has no attribute",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
+    },
+    {
+      "file": "solution_pattern_miner.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": false
+    },
+    {
+      "file": "solution_validation_pipeline.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": false
+    },
+    {
+      "file": "sop_component_system.py",
+      "error": "NameError: name 'Statement' is not defined",
       "standalone": false
     },
     {
       "file": "sop_generator_research_quest.py",
-      "error": "AttributeError: 'NoneType' object has no attribute",
+      "error": "AttributeError: 'NoneType' object has no attribute '__dict__'",
+      "standalone": false
+    },
+    {
+      "file": "sop_integrated_system.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": false
+    },
+    {
+      "file": "sop_templates.py",
+      "error": "NameError: name 'Statement' is not defined",
       "standalone": false
     },
     {
       "file": "sovereign_decomposition_crewai_integration.py",
-      "error": "ImportError: cannot import name 'CrewAIZeroErrorWo",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
+    },
+    {
+      "file": "sovereign_gauntlets.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": false
+    },
+    {
+      "file": "sovereign_integration.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": false
+    },
+    {
+      "file": "sovereign_refinement.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": false
+    },
+    {
+      "file": "sovereign_sidebar_integration.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": false
+    },
+    {
+      "file": "sovereign_team_coordination.py",
+      "error": "NameError: name 'Statement' is not defined",
       "standalone": false
     },
     {
       "file": "sovereign_ui.py",
       "error": "ImportError: No module named 'flask_cors'",
-      "standalone": false
+      "standalone": true
     },
     {
       "file": "sovereign_ui_components.py",
-      "error": "ImportError: cannot import name 'EvolutionMonitor'",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
+    },
+    {
+      "file": "sovereign_validation.py",
+      "error": "NameError: name 'Statement' is not defined",
       "standalone": false
     },
     {
-      "file": "symbolic_constraint_engine.py",
-      "error": "ImportError: No module named 'rese.core.symbolic_c",
+      "file": "stage6_knowledge_extraction.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
+    },
+    {
+      "file": "steer_context_engine.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
+    },
+    {
+      "file": "sub_problem_solver.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": false
+    },
+    {
+      "file": "suggestions.py",
+      "error": "DEBUG: sys.path in providercatalogue.py: ['c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenEvolve\\\\Frontend', '', 'C:\\\\Users\\\\mmeadow\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python311\\\\python311.zip', 'C:\\\\Users\\\\mmead",
       "standalone": false
     },
     {
       "file": "system_integration_validation.py",
-      "error": "ImportError: cannot import name 'InputValidator' f",
-      "standalone": false
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
+    },
+    {
+      "file": "system_test.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
     },
     {
       "file": "team_assignment_engine.py",
-      "error": "ImportError: cannot import name 'SubProblemTeamAss",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": false
+    },
+    {
+      "file": "team_manager.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": false
+    },
+    {
+      "file": "test_all_imports_batch1.py",
+      "error": "FileNotFoundError: [Errno 2] No such file or directory: 'c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenEvolve\\\\Frontend\\\\test_all_imports_batch1.py'",
       "standalone": false
     },
     {
       "file": "testing_framework.py",
-      "error": "ImportError: cannot import name 'InputValidator' f",
-      "standalone": false
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
     },
     {
       "file": "tripartite_production.py",
-      "error": "ImportError: cannot import name 'HybridCache' from",
+      "error": "ImportError: cannot import name 'HybridCache' from 'transformers' (C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\transformers\\__init__.py)",
+      "standalone": true
+    },
+    {
+      "file": "true_100_verification.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
+    },
+    {
+      "file": "ui_components.py",
+      "error": "NameError: name 'Statement' is not defined",
       "standalone": false
     },
     {
       "file": "ultimate_comprehensive_tests.py",
-      "error": "ImportError: cannot import name 'InputValidator' f",
-      "standalone": false
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
     },
     {
       "file": "ultra_comprehensive_tests.py",
-      "error": "ImportError: cannot import name 'InputValidator' f",
-      "standalone": false
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
     },
     {
-      "file": "validate_all_fixes.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "file": "unified_knowledge_extraction.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
     },
     {
-      "file": "validate_end_to_end_invention.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "file": "unified_mcp_server.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
     },
     {
-      "file": "validate_enhanced_adversarial.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "file": "universal_decomposition_engine.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
     },
     {
-      "file": "validate_evolution_maker_integration.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "file": "universal_problem_solver.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
     },
     {
-      "file": "validate_generic_maker_integration.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "validate_hybrid_maker_integration.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "validate_integration.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "validate_leanaide_tests.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "validate_maker_integration.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "file": "universal_recomposition_engine.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
     },
     {
       "file": "validate_performance.py",
-      "error": "ImportError: No module named 'rese.gamma1.core.aci",
+      "error": "ImportError: No module named 'rese.phase4'",
+      "standalone": true
+    },
+    {
+      "file": "validate_ragbits_integration.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
+    },
+    {
+      "file": "validation_manager.py",
+      "error": "DEBUG: sys.path in providercatalogue.py: ['c:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenEvolve\\\\Frontend', '', 'C:\\\\Users\\\\mmeadow\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python311\\\\python311.zip', 'C:\\\\Users\\\\mmead",
       "standalone": false
     },
     {
-      "file": "validate_phase1_complete.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
+      "file": "verification_engine.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
     },
     {
-      "file": "validate_sop_components.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "validate_sop_generator.py",
-      "error": "SKIPPED (known to hang/run code)",
-      "standalone": false
-    },
-    {
-      "file": "validate_sop_integrated.py",
-      "error": "SKIPPED (known to hang/run code)",
+      "file": "verified_recomposition.py",
+      "error": "NameError: name 'Statement' is not defined",
       "standalone": false
     },
     {
       "file": "verify_causal_learn_final.py",
-      "error": "SKIPPED (known to hang/run code)",
+      "error": "============================================================\nCAUSAL-LEARN INTEGRATION FINAL VERIFICATION\n============================================================\n\n[FAIL] Integration exports: name ",
       "standalone": false
     },
     {
-      "file": "verify_complete_integration.py",
-      "error": "SKIPPED (known to hang/run code)",
+      "file": "verify_dts_imports.py",
+      "error": "======================================================================\nDTS INTEGRATION IMPORT VERIFICATION\n======================================================================\n\n[1] Primary Import: f",
       "standalone": false
+    },
+    {
+      "file": "verify_leanaide_integration.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": false
+    },
+    {
+      "file": "verify_mcp.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": false
+    },
+    {
+      "file": "verify_roma_fix.py",
+      "error": "================================================================================\nROMA CORE INTEGRATION - FINAL VERIFICATION\n============================================================================",
+      "standalone": false
+    },
+    {
+      "file": "webhook_manager.py",
+      "error": "AttributeError: 'NoneType' object has no attribute '__dict__'",
+      "standalone": true
+    },
+    {
+      "file": "workflow_engine.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": false
+    },
+    {
+      "file": "workflow_history_manager.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": false
+    },
+    {
+      "file": "workflow_knowledge_extractor.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": false
+    },
+    {
+      "file": "workflow_lifecycle_controller.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": false
+    },
+    {
+      "file": "workflow_persistence.py",
+      "error": "ImportError: cannot import name 'CheckpointInfo' from 'sovereign_data_models' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_data_models.py)",
+      "standalone": false
+    },
+    {
+      "file": "workflow_stage_functions.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": false
+    },
+    {
+      "file": "workflow_stage_z3.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
+    },
+    {
+      "file": "workflow_state_manager.py",
+      "error": "ImportError: cannot import name 'CheckpointInfo' from 'sovereign_data_models' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_data_models.py)",
+      "standalone": false
+    },
+    {
+      "file": "workflow_visualization.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": false
+    },
+    {
+      "file": "z3_api.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": false
+    },
+    {
+      "file": "z3_api_server.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
+    },
+    {
+      "file": "z3_bubblelabs_advanced_ui.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
+    },
+    {
+      "file": "z3_cli.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
+    },
+    {
+      "file": "z3_crewai_bridge.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
+    },
+    {
+      "file": "z3_knowledge_extraction.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
+    },
+    {
+      "file": "z3_leanaide_bridge.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
+    },
+    {
+      "file": "z3_leanaide_bubblelabs_ui.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
+    },
+    {
+      "file": "z3_leanaide_bubbles.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
+    },
+    {
+      "file": "z3_leanaide_openevolve_integration.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
+    },
+    {
+      "file": "z3_mcp_tools.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
+    },
+    {
+      "file": "z3_performance_monitor.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
+    },
+    {
+      "file": "z3_reliability_checker.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
+    },
+    {
+      "file": "z3_result_cache.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
+    },
+    {
+      "file": "z3_solver_pool.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": false
+    },
+    {
+      "file": "z3prover_advanced.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
+    },
+    {
+      "file": "z3prover_integration.py",
+      "error": "NameError: name 'Statement' is not defined",
+      "standalone": true
     }
-  ],
-  "skipped": [
-    "apply_ace_phase4_fixes.py",
-    "apply_ace_security_fixes.py",
-    "apply_api_consistency_fixes.py",
-    "apply_code_quality_fixes.py",
-    "apply_phase4_validation.py",
-    "assess_decomposition.py",
-    "audit_lean_files.py",
-    "benchmark_improvements.py",
-    "c2c_usage_examples.py",
-    "comprehensive_demo.py",
-    "debug_class.py",
-    "debug_source.py",
-    "debug_test.py",
-    "demo_adversarial_maker.py",
-    "demo_app.py",
-    "demo_crewai_research_features.py",
-    "demo_database_cleanup.py",
-    "demo_e2e_invention_enhanced.py",
-    "demo_end_to_end_invention.py",
-    "demo_enhanced_adversarial.py",
-    "demo_enhanced_decomposition_recomposition.py",
-    "demo_evolution_maker.py",
-    "demo_evolution_mdap.py",
-    "demo_evolutionary_tests.py",
-    "demo_generic_maker.py",
-    "demo_hierarchical_indexing.py",
-    "demo_hybrid_maker.py",
-    "demo_hybrid_mcts.py",
-    "demo_integration.py",
-    "demo_knowledge_extraction_ml.py",
-    "demo_leanaide_autoformalization_mdap_maker.py",
-    "demo_leanaide_client.py",
-    "demo_leanaide_config.py",
-    "demo_leanaide_redflagging.py",
-    "demo_maker_complete.py",
-    "demo_matryoshka_auto.py",
-    "demo_matryoshka_unified_memory.py",
-    "demo_mcts.py",
-    "demo_mcts_mdap.py",
-    "demo_mdap_maker.py",
-    "demo_mdap_maker_matryoshka.py",
-    "demo_mdap_maker_mcts_unified.py",
-    "demo_openevolve_bubblelabs.py",
-    "demo_openevolve_integration.py",
-    "demo_openevolve_pes_integration.py",
-    "demo_pes_workflow.py",
-    "demo_pes_workflow_language_agnostic.py",
-    "demo_pes_workflow_universal.py",
-    "demo_problem_classifier.py",
-    "demo_quality_calculator.py",
-    "demo_reliability_system.py",
-    "demo_roma_mdap_maker.py",
-    "demo_sop_components.py",
-    "demo_sop_generator.py",
-    "demo_sop_integrated.py",
-    "demo_team_assignment.py",
-    "demo_ui_integration.py",
-    "demo_unified_memory_system.py",
-    "demo_z3_leanaide_integration.py",
-    "master_test_runner.py",
-    "migration_report.py",
-    "reporting_demo.py",
-    "run_all_ace_tests.py",
-    "run_all_batch2_tests.py",
-    "run_all_gauntlet_tests.py",
-    "run_all_tests.py",
-    "run_evolution_mdap_tests.py",
-    "run_evolutionary_tests.py",
-    "run_full_rese_e2e_pipeline.py",
-    "run_gauntlet_tests.py",
-    "run_integration_tests.py",
-    "run_leanaide_tests.py",
-    "run_mcts_mdap_tests.py",
-    "run_mcts_tests.py",
-    "run_mdap_tests.py",
-    "run_real_security_tests.py",
-    "run_rese_tests.py",
-    "run_security_tests.py",
-    "run_security_true_100_tests.py",
-    "run_tests.py",
-    "simple_demo.py",
-    "simple_dspy_test.py",
-    "simple_test.py",
-    "simple_test_clean.py",
-    "validate_all_fixes.py",
-    "validate_end_to_end_invention.py",
-    "validate_enhanced_adversarial.py",
-    "validate_evolution_maker_integration.py",
-    "validate_generic_maker_integration.py",
-    "validate_hybrid_maker_integration.py",
-    "validate_integration.py",
-    "validate_leanaide_tests.py",
-    "validate_maker_integration.py",
-    "validate_phase1_complete.py",
-    "validate_sop_components.py",
-    "validate_sop_generator.py",
-    "validate_sop_integrated.py",
-    "verify_causal_learn_final.py",
-    "verify_complete_integration.py"
   ],
   "standalone_scripts": [
     "ace_mcp_tools.py",
@@ -1670,17 +1682,19 @@
     "adversarial_mdap_mcts.py",
     "adversarial_testing.py",
     "adversarial_unified.py",
-    "analytics_z3_connector.py",
     "analyze_ke_imports.py",
     "analyze_openevolve_integration.py",
     "analyze_problem_analyzer.py",
     "api_contract_fixes.py",
     "api_gateway.py",
     "api_key_manager.py",
-    "api_server.py",
     "app.py",
+    "apply_ace_phase4_fixes.py",
+    "apply_ace_security_fixes.py",
+    "apply_api_consistency_fixes.py",
+    "apply_code_quality_fixes.py",
+    "apply_phase4_validation.py",
     "auth_system.py",
-    "automated_proof_engine.py",
     "benchmark_integrations.py",
     "benchmark_knowledge_artifact_generation.py",
     "benchmark_knowledge_artifacts_extended.py",
@@ -1703,18 +1717,14 @@
     "bubblelabs_knowledge_integration.py",
     "bubblelabs_leanaide_diagram.py",
     "bubblelabs_leanaide_examples.py",
-    "bubblelabs_leanaide_integration.py",
-    "bubblelabs_leanaide_ui.py",
     "bubblelabs_mcp_tools.py",
     "bubblelabs_node_completion.py",
     "bubblelabs_security.py",
     "bubblelabs_typescript_export.py",
-    "bubblelabs_ui_component.py",
     "bubblelabs_validation.py",
     "bug_scanner.py",
     "c2c_mcp_tools.py",
     "categorize_tests.py",
-    "chronicle_memory.py",
     "chronicle_memory_z3_integration.py",
     "ci_cd_pipeline.py",
     "claudiomiro_crewai_bridge.py",
@@ -1727,6 +1737,7 @@
     "compare_simple_ascii.py",
     "complete_continuous_math.py",
     "complete_roma_mdap_maker_integration.py",
+    "comprehensive_demo.py",
     "comprehensive_edge_case_analysis.py",
     "comprehensive_functional_tests.py",
     "comprehensive_gap_audit.py",
@@ -1755,6 +1766,37 @@
     "decomposition_mdap_integration.py",
     "decomposition_z3_validator.py",
     "deduplication_analysis.py",
+    "demo_adversarial_maker.py",
+    "demo_app.py",
+    "demo_crewai_research_features.py",
+    "demo_e2e_invention_enhanced.py",
+    "demo_end_to_end_invention.py",
+    "demo_enhanced_adversarial.py",
+    "demo_evolution_maker.py",
+    "demo_evolution_mdap.py",
+    "demo_evolutionary_tests.py",
+    "demo_generic_maker.py",
+    "demo_hierarchical_indexing.py",
+    "demo_hybrid_maker.py",
+    "demo_hybrid_mcts.py",
+    "demo_integration.py",
+    "demo_knowledge_extraction_ml.py",
+    "demo_leanaide_config.py",
+    "demo_maker_complete.py",
+    "demo_mcts_mdap.py",
+    "demo_mdap_maker.py",
+    "demo_mdap_maker_matryoshka.py",
+    "demo_mdap_maker_mcts_unified.py",
+    "demo_pes_workflow.py",
+    "demo_pes_workflow_language_agnostic.py",
+    "demo_pes_workflow_universal.py",
+    "demo_quality_calculator.py",
+    "demo_roma_mdap_maker.py",
+    "demo_sop_components.py",
+    "demo_sop_generator.py",
+    "demo_sop_integrated.py",
+    "demo_ui_integration.py",
+    "demo_unified_memory_system.py",
     "demonstrate_benchmark_scoring.py",
     "demonstrate_roma_improvements.py",
     "demonstrate_scoring_simple.py",
@@ -1766,16 +1808,13 @@
     "dts_integration.py",
     "edge_case_analyzer.py",
     "edge_case_detector_fixed.py",
-    "enhanced_decomposition_engine.py",
     "enhanced_math_detector.py",
     "enhanced_quality_methods.py",
-    "enhanced_recomposition_engine.py",
     "evaluator_team.py",
     "evaluator_team_coordinator.py",
     "evolution_adversarial_examples.py",
     "evolution_z3_fitness.py",
     "evolutionary_optimization.py",
-    "evolve_sop_facets.py",
     "examples_leanaide_selfplay.py",
     "examples_subproblem_classifier.py",
     "execution_sandbox.py",
@@ -1813,20 +1852,15 @@
     "integration_config.py",
     "integration_test.py",
     "knowledge_graph_index.py",
-    "knowledge_graph_z3_connector.py",
     "knowledge_hash_index.py",
-    "knowledge_hierarchical_index.py",
     "knowledge_hybrid_retrieval.py",
     "knowledge_lifecycle_manager.py",
-    "knowledge_semantic_index.py",
     "knowledge_state_manager.py",
-    "knowledge_unified_memory_system.py",
     "knowledge_working_memory.py",
     "lean4_integration.py",
     "lean4_integration_enhanced.py",
     "lean4_true_100_integration.py",
     "lean_bootstrap.py",
-    "leanaide_adversarial.py",
     "leanaide_api_routes.py",
     "leanaide_autoformalization_mdap_maker.py",
     "leanaide_client.py",
@@ -1848,7 +1882,6 @@
     "leanaide_mdap_demo.py",
     "leanaide_mdap_workflow.py",
     "leanaide_pes_handler.py",
-    "leanaide_predictive_flagging.py",
     "leanaide_redflagging_system.py",
     "leanaide_strategies.py",
     "leanaide_workflow_integration.py",
@@ -1857,14 +1890,10 @@
     "lmql_mcp_tools.py",
     "logging_util.py",
     "main.py",
+    "master_test_runner.py",
     "mathlib4_integration.py",
-    "matryoshka_enhanced_client.py",
-    "matryoshka_execution_engine.py",
-    "matryoshka_unified_memory_integration.py",
     "mcts_coevolution.py",
     "mcts_coevolution_mdap.py",
-    "mcts_evolutionary_nodes.py",
-    "mcts_evolutionary_nodes_mdap.py",
     "mcts_evolved_policies.py",
     "mcts_evolved_policies_mdap.py",
     "mdap_coevolution_examples.py",
@@ -1875,6 +1904,7 @@
     "migrate_phase2_remaining.py",
     "migrate_tests_batch4.py",
     "migrate_to_unified_mcp.py",
+    "migration_report.py",
     "ml_pattern_clustering.py",
     "model_orchestration.py",
     "monitoring.py",
@@ -1884,12 +1914,13 @@
     "openevolve_agnostic_pes.py",
     "openevolve_api.py",
     "openevolve_cli.py",
+    "openevolve_crewai_adapter.py",
+    "openevolve_crewai_bridge.py",
+    "openevolve_crewai_delegation.py",
+    "openevolve_decomposition_adapter.py",
     "openevolve_imports.py",
-    "openevolve_leanaide_bridge.py",
-    "openevolve_leanaide_integration_system.py",
     "openevolve_leanaide_workflow_integration.py",
     "openevolve_orchestrator.py",
-    "openevolve_pes_integration.py",
     "openevolve_validation.py",
     "parallel_processing.py",
     "performance_optimization.py",
@@ -1910,6 +1941,7 @@
     "quick_pygraphistry_test.py",
     "quick_syntax_fix.py",
     "quick_test.py",
+    "quick_test_integration.py",
     "quick_true_100_check.py",
     "ragbits_document_processor_example.py",
     "ragbits_server.py",
@@ -1920,19 +1952,38 @@
     "real_security_headers_tests.py",
     "real_security_tests.py",
     "real_sql_injection_tests.py",
+    "real_xss_prevention_tests.py",
     "red_team.py",
     "red_team_coordinator.py",
     "regression_test_4_files.py",
+    "reporting_demo.py",
     "resource_pool.py",
     "rlm_core_integration.py",
     "rlm_roma_integration.py",
     "rlm_unified_system.py",
     "robust_z3_leanaide_integration.py",
     "roma_config_helper.py",
+    "roma_crewai_bridge.py",
     "roma_decomposition_comparison.py",
     "roma_matryoshka_integration.py",
+    "roma_mdap_maker_crewai_bridge.py",
     "roma_openevolve_integration.py",
     "roma_recomposition_config.py",
+    "run_all_batch2_tests.py",
+    "run_all_tests.py",
+    "run_evolution_mdap_tests.py",
+    "run_evolutionary_tests.py",
+    "run_full_rese_e2e_pipeline.py",
+    "run_integration_tests.py",
+    "run_leanaide_tests.py",
+    "run_mcts_mdap_tests.py",
+    "run_mcts_tests.py",
+    "run_mdap_tests.py",
+    "run_real_security_tests.py",
+    "run_rese_tests.py",
+    "run_security_tests.py",
+    "run_security_true_100_tests.py",
+    "run_tests.py",
     "scalability_improvements.py",
     "scan_batch_3.py",
     "scan_batch_8.py",
@@ -1962,43 +2013,63 @@
     "setup_oneke.py",
     "sgd_orchestrator_agent.py",
     "sgd_workflow_orchestrator.py",
+    "simple_demo.py",
     "simple_dspy_check.py",
+    "simple_dspy_test.py",
     "solution_manager.py",
-    "stage6_knowledge_extraction.py",
     "start_bubblelabs_integration.py",
     "start_rese_health_apis.py",
-    "steer_context_engine.py",
     "steer_crewai_bridge.py",
     "syntax_checker.py",
     "system1_router.py",
     "system_health.py",
-    "system_test.py",
-    "test_all_imports_batch1.py",
     "test_imports_batch2.py",
-    "test_imports_batch2_final.py",
     "test_imports_batch2_robust.py",
     "thorough_integration_test.py",
     "thorough_verification.py",
     "TRUE_100_INTEGRATION.py",
-    "true_100_verification.py",
     "ultimate_integration_bridge.py",
     "ultimate_validation.py",
-    "unified_knowledge_extraction.py",
     "unified_matryoshka_architecture.py",
-    "unified_mcp_server.py",
-    "universal_decomposition_engine.py",
-    "universal_problem_solver.py",
-    "universal_recomposition_engine.py",
     "validate_adversarial_maker_integration.py",
+    "validate_all_fixes.py",
+    "validate_end_to_end_invention.py",
+    "validate_enhanced_adversarial.py",
+    "validate_evolution_maker_integration.py",
+    "validate_generic_maker_integration.py",
+    "validate_hybrid_maker_integration.py",
     "validate_imports.py",
+    "validate_integration.py",
+    "validate_leanaide_tests.py",
+    "validate_maker_integration.py",
+    "validate_phase1_complete.py",
     "validate_production_ready.py",
-    "validate_ragbits_integration.py",
+    "validate_sop_components.py",
+    "validate_sop_generator.py",
+    "validate_sop_integrated.py",
     "validate_task_16.py",
     "valkey_integration.py",
-    "verification_engine.py",
     "verification_methods.py",
     "verify_additional_math_bubbles.py",
     "verify_all_lean_wiring.py",
-    "verify_bubblelabs_integration.py"
+    "verify_bubblelabs_integration.py",
+    "verify_complete_integration.py",
+    "verify_dts_integration.py",
+    "verify_gauntlet_wiring.py",
+    "verify_global_dspy_integration.py",
+    "verify_integration.py",
+    "verify_integrations.py",
+    "verify_knowledge_extraction.py",
+    "verify_lean_wiring.py",
+    "verify_leanaide_true_100.py",
+    "verify_math_bubbles.py",
+    "verify_rese_health_apis.py",
+    "verify_true_100_integration.py",
+    "verify_true_100_knowledge_extraction.py",
+    "workflow_enhanced_stages.py",
+    "working_integration_bridge.py",
+    "z3_config_manager.py",
+    "z3_database_models.py",
+    "zero_touch_lean_setup.py"
   ]
 }

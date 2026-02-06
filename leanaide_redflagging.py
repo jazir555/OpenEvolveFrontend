@@ -39,13 +39,40 @@ try:
         Lean4VerificationEngine,
         Lean4ServerConfig,
         Lean4VerificationConfig,
-        VerificationResult,
         LeanAideClient
     )
     LEAN4_INTEGRATION_AVAILABLE = True
 except ImportError:
     LEAN4_INTEGRATION_AVAILABLE = False
     logging.warning("Lean 4 integration not available, red-flagging will use static analysis only")
+
+# Define VerificationResult if not available from lean4_integration
+if not LEAN4_INTEGRATION_AVAILABLE:
+    @dataclass
+    class VerificationResult:
+        """Result of Lean 4 verification"""
+        success: bool = False
+        verified: bool = False
+        error_message: Optional[str] = None
+        execution_time: float = 0.0
+        output: str = ""
+        errors: List[str] = field(default_factory=list)
+        warnings: List[str] = field(default_factory=list)
+else:
+    # Try to import VerificationResult, define stub if not available
+    try:
+        from lean4_integration import VerificationResult
+    except ImportError:
+        @dataclass
+        class VerificationResult:
+            """Result of Lean 4 verification"""
+            success: bool = False
+            verified: bool = False
+            error_message: Optional[str] = None
+            execution_time: float = 0.0
+            output: str = ""
+            errors: List[str] = field(default_factory=list)
+            warnings: List[str] = field(default_factory=list)
 
 # Import CAV-NLP for enhanced semantic detection
 try:

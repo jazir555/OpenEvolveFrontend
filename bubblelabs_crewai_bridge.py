@@ -39,3 +39,7 @@ class BubbleLabsCrewAIBridge:
 def create_bridge(config: Optional[BubbleLabsCrewAIBridgeConfig] = None) -> BubbleLabsCrewAIBridge:
     """Factory function to create bridge instance"""
     return BubbleLabsCrewAIBridge(config)
+
+
+# Alias for backward compatibility
+BubbleLabsCREWAIBridge = BubbleLabsCrewAIBridge

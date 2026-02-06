@@ -8,17 +8,58 @@ using the full CEGIS pipeline with linguistic foundations.
 
 import sys
 from pathlib import Path
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Any
 import json
 import re
 import argparse
 
+# Define fallback types for circular import avoidance
+Expression = Any  # Use Any to avoid circular imports
+ArxivPaper = Any  # Use Any to avoid circular imports
+
 # Import our components
-from rule_discovery_from_arxiv import ArxivCorpusBuilder, ArxivPaper
-from z3_semantic_synthesis import CEGIS_SemanticLearner, EnhancedCompositionRule
-from flexible_semantic_parsing import SemanticNormalizer
-from ganesalingam_parser import GanesalingamParser, ScopedExpression, Expression
-from z3 import *
+# Lazy imports to avoid circular dependencies
+def _import_arxiv():
+    """Lazy import arxiv corpus builder."""
+    try:
+        from .rule_discovery_from_arxiv import ArxivCorpusBuilder, ArxivPaper
+        return ArxivCorpusBuilder, ArxivPaper
+    except ImportError:
+        return None, None
+
+def _import_semantic_synthesis():
+    """Lazy import semantic synthesis."""
+    try:
+        from .z3_semantic_synthesis import CEGIS_SemanticLearner, EnhancedCompositionRule
+        return CEGIS_SemanticLearner, EnhancedCompositionRule
+    except ImportError:
+        return None, None
+
+def _import_parsing():
+    """Lazy import parsing modules."""
+    try:
+        from .flexible_semantic_parsing import SemanticNormalizer
+        return SemanticNormalizer
+    except ImportError:
+        return None
+
+def _import_ganesalingam():
+    """Lazy import ganesalingam parser."""
+    try:
+        from .ganesalingam_parser import GanesalingamParser, ScopedExpression, Expression
+        return GanesalingamParser, ScopedExpression, Expression
+    except ImportError:
+        return None, None, None
+
+# Runtime fallback for types
+Expression = Any  # Use Any to avoid circular imports
+ArxivPaper = Any  # Use Any to avoid circular imports
+
+# Import z3 with fallback
+try:
+    from z3 import *
+except ImportError:
+    pass
 
 
 class Z3TextCanonicalizer:
@@ -640,7 +681,7 @@ class Z3TextCanonicalizer:
         
         self.parse_success_count += 1
     
-    def _extract_predicates_from_parse(self, parsed_expr: Expression, lean_output: str):
+    def _extract_predicates_from_parse(self, parsed_expr: Any, lean_output: str):
         """Extract predicate patterns from Ganesalingam parse tree."""
         if isinstance(parsed_expr, ScopedExpression):
             # Learn binder patterns (forall, exists, lambda)
@@ -764,10 +805,13 @@ class PaperToTrainingExamples:
     """
     
     def __init__(self):
+        SemanticNormalizer = _import_parsing()
+        if SemanticNormalizer is None:
+            SemanticNormalizer = object  # Fallback
         self.normalizer = SemanticNormalizer()
         self.canonicalizer = Z3TextCanonicalizer()  # Z3-based parser
     
-    def extract_examples(self, papers: List[ArxivPaper]) -> List[Tuple[str, str]]:
+    def extract_examples(self, papers: List[Any]) -> List[Tuple[str, str]]:
         """
         Extract (English, Lean) training pairs from papers.
         

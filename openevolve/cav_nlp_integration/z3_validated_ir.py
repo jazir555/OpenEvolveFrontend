@@ -112,11 +112,72 @@ KEY INNOVATIONS
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any, Union, Tuple, Callable
 from enum import Enum
-from z3 import *
 import json
-from compositional_meta_rules import *
-from advanced_compositional_rules import *
-from latex_to_lean_ir import *
+
+# Import z3 with fallback
+try:
+    from z3 import *
+    Z3_AVAILABLE = True
+except ImportError:
+    Z3_AVAILABLE = False
+    # Define minimal stubs for when Z3 is not available
+    class Solver:
+        def check(self):
+            return 'unknown'
+        def add(self, *args):
+            pass
+        def assertions(self):
+            return []
+    def sat():
+        return 'sat'
+    def unsat():
+        return 'unsat'
+    sat = sat()
+    unsat = unsat()
+
+# Import base IR classes - required for inheritance
+try:
+    from .latex_to_lean_ir import MathIRExpr, IRVar, IRConst, IRUnOp, IRBinOp
+except ImportError:
+    # Define minimal stubs if not available
+    class MathIRExpr:
+        def __init__(self):
+            self.source = None
+            self.inferred_type = None
+    
+    class IRVar(MathIRExpr):
+        def __init__(self, name=""):
+            super().__init__()
+            self.name = name
+    
+    class IRConst(MathIRExpr):
+        def __init__(self, value=None, sort=None):
+            super().__init__()
+            self.value = value
+            self.sort = sort
+    
+    class IRUnOp(MathIRExpr):
+        def __init__(self, operator="", operand=None):
+            super().__init__()
+            self.operator = operator
+            self.operand = operand
+    
+    class IRBinOp(MathIRExpr):
+        def __init__(self, left=None, op="", right=None):
+            super().__init__()
+            self.left = left
+            self.op = op
+            self.right = right
+
+# Lazy imports to avoid circular dependencies
+def _import_compositional_rules():
+    """Lazy import compositional rules."""
+    try:
+        from . import compositional_meta_rules
+        from . import advanced_compositional_rules
+        return compositional_meta_rules, advanced_compositional_rules
+    except ImportError:
+        return None, None
 
 
 # ============================================================================

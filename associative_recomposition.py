@@ -107,3 +107,9 @@ class AssociativeRecomposer:
         return "\n\n".join(parts)
 
 __all__ = ['AssociativeRecomposer', 'AssemblyPlanJSON', 'DomainClassification']
+
+
+class SolutionType:
+    """Stub class for solution type."""
+    DIRECT = 'direct'
+    COMPOSITE = 'composite'

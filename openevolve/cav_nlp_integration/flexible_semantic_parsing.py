@@ -19,7 +19,13 @@ from typing import List, Dict, Set, Optional, Tuple, Callable
 import re
 from collections import defaultdict
 
-from lean_type_theory import LeanType, LeanExpr, Context
+try:
+    from .lean_type_theory import LeanType, LeanExpr, Context
+except ImportError:
+    # Fallback for when running standalone
+    LeanType = None
+    LeanExpr = None
+    Context = None
 
 
 @dataclass

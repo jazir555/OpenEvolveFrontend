@@ -1,0 +1,746 @@
+{
+  "timestamp": "2026-02-06T02:56:14.651657",
+  "summary": {
+    "total_files": 156,
+    "successful": 6,
+    "failed": 66,
+    "timeout": 0,
+    "error": 0,
+    "skipped_known_unfixable": 84,
+    "fixable_files": 72,
+    "success_rate_fixable": "8.33%",
+    "success_rate_overall": "3.85%"
+  },
+  "results_by_category": {
+    "success": [
+      "complexity_analyzer.py",
+      "decomposition_strategy.py",
+      "examples/roma_decomposition_advanced.py",
+      "examples/roma_decomposition_basic.py",
+      "leanaide_integration.py",
+      "symbolic_constraint_engine.py"
+    ],
+    "failed": [
+      "additional_unit_tests.py",
+      "advanced_system_unit_tests.py",
+      "advanced_unit_tests_comprehensive.py",
+      "bubblelabs_nodes/causal_analysis_node.py",
+      "bubblelabs_nodes/gauntlet_complete_example.py",
+      "bubblelabs_nodes/tests/test_cache_integration.py",
+      "bubblelabs_nodes/tests/test_circuit_breakers.py",
+      "bubblelabs_nodes/tests/test_circuit_breakers_integration.py",
+      "bubblelabs_nodes/tests/test_fuzzing.py",
+      "bubblelabs_nodes/tests/test_traceability.py",
+      "comprehensive_decomposition_engine.py",
+      "comprehensive_integration_test.py",
+      "comprehensive_recomposition_engine.py",
+      "comprehensive_test_suite.py",
+      "comprehensive_validation_tests.py",
+      "crewai_client.py",
+      "crewai_enhanced_decomposition_bridge.py",
+      "crewai_unified_bridge.py",
+      "crewai_unified_flow.py",
+      "datapizza_crewai_bridge.py",
+      "debug_test_wrapper.py",
+      "decomposition_engine_adaptive_enhancement.py",
+      "decomposition_matryoshka_integration.py",
+      "docs/knowledge_engine/examples/causal_modeling_quickstart.py",
+      "docs/knowledge_engine/examples/finance/simple_financial_evolution.py",
+      "docs/knowledge_engine/examples/long_horizon_quickstart.py",
+      "docs/knowledge_engine/knowledge_engine/finance/__init__.py",
+      "docs/knowledge_engine/knowledge_engine/finance/crisis_aware_fitness.py",
+      "docs/knowledge_engine/knowledge_engine/finance/financial_evolution_agent.py",
+      "examples/04_python_api.py",
+      "examples/associative_recomposition_example.py",
+      "examples/example_business_process.py",
+      "examples/example_software_architecture.py",
+      "examples/investment_committee_demo.py",
+      "examples/lean4_usage_example.py",
+      "examples/optional_loongflow_demo.py",
+      "examples/unified_evolution_quickstart.py",
+      "examples/verify_optional_loongflow.py",
+      "examples/verify_unified_api.py",
+      "leanaide_pes_benchmark.py",
+      "leanaide_redflagging.py",
+      "leanaide_sop_integration.py",
+      "openevolve/cav_nlp_integration/advanced_compositional_rules.py",
+      "openevolve/cav_nlp_integration/arxiv_corpus_learner.py",
+      "openevolve/cav_nlp_integration/canonical_lean_generator.py",
+      "openevolve/cav_nlp_integration/cegis_learner.py",
+      "openevolve/cav_nlp_integration/compositional_semantics.py",
+      "openevolve/cav_nlp_integration/flexible_semantic_parsing.py",
+      "openevolve/cav_nlp_integration/rule_discovery_from_arxiv.py",
+      "openevolve/cav_nlp_integration/test_cav_nlp.py",
+      "openevolve/cav_nlp_integration/z3_canonicalizer.py",
+      "openevolve/cav_nlp_integration/z3_semantic_synthesis.py",
+      "openevolve/cav_nlp_integration/z3_validated_ir.py",
+      "openevolve_bubblelabs_ui.py",
+      "openevolve_workflow_manager_integrated.py",
+      "persistent_decomposition_engine.py",
+      "resource_estimation_engine.py",
+      "roma_crewai_bridge.py",
+      "roma_crewai_tools.py",
+      "roma_mdap_maker_crewai_bridge.py",
+      "roma_mdap_maker_crewai_tools.py",
+      "team_assignment_engine.py",
+      "validate_performance.py",
+      "workflow_persistence.py",
+      "workflow_state_manager.py",
+      "z3_api.py"
+    ],
+    "timeout": [],
+    "error": [],
+    "skipped_known_unfixable": [
+      "apply_ace_phase4_fixes.py",
+      "apply_ace_security_fixes.py",
+      "apply_api_consistency_fixes.py",
+      "apply_code_quality_fixes.py",
+      "apply_phase4_validation.py",
+      "assess_decomposition.py",
+      "audit_lean_files.py",
+      "benchmark_improvements.py",
+      "bubblelab-auto-setup.py",
+      "c2c_usage_examples.py",
+      "comprehensive_demo.py",
+      "debug_class.py",
+      "debug_source.py",
+      "debug_test.py",
+      "demo_adversarial_maker.py",
+      "demo_app.py",
+      "demo_crewai_research_features.py",
+      "demo_database_cleanup.py",
+      "demo_e2e_invention_enhanced.py",
+      "demo_end_to_end_invention.py",
+      "demo_enhanced_adversarial.py",
+      "demo_enhanced_decomposition_recomposition.py",
+      "demo_evolution_maker.py",
+      "demo_evolution_mdap.py",
+      "demo_evolutionary_tests.py",
+      "demo_generic_maker.py",
+      "demo_hierarchical_indexing.py",
+      "demo_hybrid_maker.py",
+      "demo_hybrid_mcts.py",
+      "demo_integration.py",
+      "demo_knowledge_extraction_ml.py",
+      "demo_leanaide_autoformalization_mdap_maker.py",
+      "demo_leanaide_client.py",
+      "demo_leanaide_config.py",
+      "demo_leanaide_redflagging.py",
+      "demo_maker_complete.py",
+      "demo_matryoshka_auto.py",
+      "demo_matryoshka_unified_memory.py",
+      "demo_mcts.py",
+      "demo_mcts_mdap.py",
+      "demo_mdap_maker.py",
+      "demo_mdap_maker_matryoshka.py",
+      "demo_mdap_maker_mcts_unified.py",
+      "demo_openevolve_bubblelabs.py",
+      "demo_openevolve_integration.py",
+      "demo_openevolve_pes_integration.py",
+      "demo_pes_workflow.py",
+      "demo_pes_workflow_language_agnostic.py",
+      "demo_pes_workflow_universal.py",
+      "demo_problem_classifier.py",
+      "demo_quality_calculator.py",
+      "demo_reliability_system.py",
+      "demo_roma_mdap_maker.py",
+      "demo_sop_components.py",
+      "demo_sop_generator.py",
+      "demo_sop_integrated.py",
+      "demo_team_assignment.py",
+      "demo_ui_integration.py",
+      "demo_unified_memory_system.py",
+      "demo_z3_leanaide_integration.py",
+      "glue/adapters/curie-globalchem-integration/src/curie_globalchem_adapter.py",
+      "glue/adapters/curie-globalchem-integration/test_adapter.py",
+      "glue/adapters/curie-globalchem-integration/test_anti_corruption.py",
+      "glue/adapters/gauntlet-adapter/monitoring/example_usage.py",
+      "glue/adapters/gauntlet-adapter/monitoring/quick_start.py",
+      "glue/adapters/leanaide-adapter/tests/test_phase1_lean4_integration.py",
+      "glue/adapters/pami-research-quest-curie-globalchem-integration/src/pami_research_quest_curie_globalchem_adapter.py",
+      "glue/adapters/pami-research-quest-curie-globalchem-integration/test_integration.py",
+      "glue/adapters/rese-integration/config_example.py",
+      "glue/adapters/rese-integration/config_loader.py",
+      "glue/adapters/rese-leanaide-workflow/tests/test_leanaide_rese_workflow.py",
+      "glue/adapters/rese-phase4/tests/test_output_generator.py",
+      "glue/adapters/rese-phase4/tests/test_phase4_comprehensive.py",
+      "glue/adapters/rese-phase4/tests/test_phase4_integration.py",
+      "glue/adapters/rese-phase4/tests/test_predictive_validator.py",
+      "glue/adapters/rese-sce/src/lean4_atp_bridge.py",
+      "glue/adapters/rese-sce/tests/test_dito_optimizer.py",
+      "glue/adapters/rese-sce/tests/test_dito_z3_atp.py",
+      "glue/adapters/rese-sce/tests/test_sce_comprehensive.py",
+      "glue/adapters/rese-sce/tests/test_z3_integration.py",
+      "glue/adapters/rese-verification/tests/test_basic.py",
+      "glue/adapters/research-quest-curie-globalchem-integration/src/research_quest_curie_globalchem_adapter.py",
+      "glue/adapters/research-quest-curie-globalchem-integration/test_integration.py",
+      "openevolve/__init__.py"
+    ]
+  },
+  "failure_details": [
+    {
+      "file": "additional_unit_tests.py",
+      "batch": "Batch 1",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "advanced_system_unit_tests.py",
+      "batch": "Batch 1",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "advanced_unit_tests_comprehensive.py",
+      "batch": "Batch 1",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "bubblelabs_nodes/causal_analysis_node.py",
+      "batch": "Batch 9",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "bubblelabs_nodes/gauntlet_complete_example.py",
+      "batch": "Batch 9",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "bubblelabs_nodes/tests/test_cache_integration.py",
+      "batch": "Batch 9",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "bubblelabs_nodes/tests/test_circuit_breakers.py",
+      "batch": "Batch 9",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "bubblelabs_nodes/tests/test_circuit_breakers_integration.py",
+      "batch": "Batch 9",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "bubblelabs_nodes/tests/test_fuzzing.py",
+      "batch": "Batch 9",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "bubblelabs_nodes/tests/test_traceability.py",
+      "batch": "Batch 9",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "comprehensive_decomposition_engine.py",
+      "batch": "Batch 1",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "comprehensive_integration_test.py",
+      "batch": "Batch 1",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "comprehensive_recomposition_engine.py",
+      "batch": "Batch 1",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "comprehensive_test_suite.py",
+      "batch": "Batch 1",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "comprehensive_validation_tests.py",
+      "batch": "Batch 1",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "crewai_client.py",
+      "batch": "Batch 1",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "crewai_enhanced_decomposition_bridge.py",
+      "batch": "Batch 1",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "crewai_unified_bridge.py",
+      "batch": "Batch 1",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "crewai_unified_flow.py",
+      "batch": "Batch 1",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "datapizza_crewai_bridge.py",
+      "batch": "Batch 1",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "debug_test_wrapper.py",
+      "batch": "Batch 1",
+      "status": "FAILED",
+      "error": "[2026-02-06 02:55:38,971] [ERROR] [knowledge_engine.config_validation] {'msg': 'Configuration validation failed', 'errors': [\"Required environment variable 'OPENAI_API_KEY' is not set\"], 'warnings': ["
+    },
+    {
+      "file": "decomposition_engine_adaptive_enhancement.py",
+      "batch": "Batch 1",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "decomposition_matryoshka_integration.py",
+      "batch": "Batch 1",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "docs/knowledge_engine/examples/causal_modeling_quickstart.py",
+      "batch": "Batch 8",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "docs/knowledge_engine/examples/finance/simple_financial_evolution.py",
+      "batch": "Batch 8",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "docs/knowledge_engine/examples/long_horizon_quickstart.py",
+      "batch": "Batch 8",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "docs/knowledge_engine/knowledge_engine/finance/__init__.py",
+      "batch": "Batch 8",
+      "status": "FAILED",
+      "error": "FAILED: name 'Optional' is not defined"
+    },
+    {
+      "file": "docs/knowledge_engine/knowledge_engine/finance/crisis_aware_fitness.py",
+      "batch": "Batch 8",
+      "status": "FAILED",
+      "error": "FAILED: name 'Optional' is not defined"
+    },
+    {
+      "file": "docs/knowledge_engine/knowledge_engine/finance/financial_evolution_agent.py",
+      "batch": "Batch 8",
+      "status": "FAILED",
+      "error": "FAILED: name 'Optional' is not defined"
+    },
+    {
+      "file": "examples/04_python_api.py",
+      "batch": "Batch 8",
+      "status": "FAILED",
+      "error": "File \"<string>\", line 5\n    import examples.04_python_api\n                      ^\nSyntaxError: invalid decimal literal"
+    },
+    {
+      "file": "examples/associative_recomposition_example.py",
+      "batch": "Batch 8",
+      "status": "FAILED",
+      "error": "FAILED: cannot import name 'ProblemDomain' from 'associative_recomposition' (C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\associative_recomposition.py)"
+    },
+    {
+      "file": "examples/example_business_process.py",
+      "batch": "Batch 8",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "examples/example_software_architecture.py",
+      "batch": "Batch 8",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "examples/investment_committee_demo.py",
+      "batch": "Batch 8",
+      "status": "FAILED",
+      "error": "FAILED: No module named 'openevolve.agents.investment_committee'"
+    },
+    {
+      "file": "examples/lean4_usage_example.py",
+      "batch": "Batch 8",
+      "status": "FAILED",
+      "error": "FAILED: cannot import name 'AutoformalizationEngine' from 'lean4_integration' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\lean4_integration.py)"
+    },
+    {
+      "file": "examples/optional_loongflow_demo.py",
+      "batch": "Batch 8",
+      "status": "FAILED",
+      "error": "FAILED: No module named 'unified.config'"
+    },
+    {
+      "file": "examples/unified_evolution_quickstart.py",
+      "batch": "Batch 8",
+      "status": "FAILED",
+      "error": "FAILED: cannot import name 'evolve' from 'openevolve.unified.unified_evolution_api' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve\\unified\\unified_evolution_api.py)"
+    },
+    {
+      "file": "examples/verify_optional_loongflow.py",
+      "batch": "Batch 8",
+      "status": "FAILED",
+      "error": "FAILED: No module named 'unified.config'"
+    },
+    {
+      "file": "examples/verify_unified_api.py",
+      "batch": "Batch 8",
+      "status": "FAILED",
+      "error": "FAILED: cannot import name 'evolve' from 'openevolve.unified.unified_evolution_api' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve\\unified\\unified_evolution_api.py)"
+    },
+    {
+      "file": "glue/adapters/curie-globalchem-integration/src/curie_globalchem_adapter.py",
+      "batch": "Batch 8",
+      "status": "SKIPPED",
+      "error": "Invalid module name (contains dash)"
+    },
+    {
+      "file": "glue/adapters/curie-globalchem-integration/test_adapter.py",
+      "batch": "Batch 8",
+      "status": "SKIPPED",
+      "error": "Invalid module name (contains dash)"
+    },
+    {
+      "file": "glue/adapters/curie-globalchem-integration/test_anti_corruption.py",
+      "batch": "Batch 8",
+      "status": "SKIPPED",
+      "error": "Invalid module name (contains dash)"
+    },
+    {
+      "file": "glue/adapters/gauntlet-adapter/monitoring/example_usage.py",
+      "batch": "Batch 8",
+      "status": "SKIPPED",
+      "error": "Invalid module name (contains dash)"
+    },
+    {
+      "file": "glue/adapters/gauntlet-adapter/monitoring/quick_start.py",
+      "batch": "Batch 8",
+      "status": "SKIPPED",
+      "error": "Invalid module name (contains dash)"
+    },
+    {
+      "file": "glue/adapters/leanaide-adapter/tests/test_phase1_lean4_integration.py",
+      "batch": "Batch 8",
+      "status": "SKIPPED",
+      "error": "Invalid module name (contains dash)"
+    },
+    {
+      "file": "glue/adapters/pami-research-quest-curie-globalchem-integration/src/pami_research_quest_curie_globalchem_adapter.py",
+      "batch": "Batch 8",
+      "status": "SKIPPED",
+      "error": "Invalid module name (contains dash)"
+    },
+    {
+      "file": "glue/adapters/pami-research-quest-curie-globalchem-integration/test_integration.py",
+      "batch": "Batch 8",
+      "status": "SKIPPED",
+      "error": "Invalid module name (contains dash)"
+    },
+    {
+      "file": "glue/adapters/rese-integration/config_example.py",
+      "batch": "Batch 8",
+      "status": "SKIPPED",
+      "error": "Invalid module name (contains dash)"
+    },
+    {
+      "file": "glue/adapters/rese-integration/config_loader.py",
+      "batch": "Batch 8",
+      "status": "SKIPPED",
+      "error": "Invalid module name (contains dash)"
+    },
+    {
+      "file": "glue/adapters/rese-leanaide-workflow/tests/test_leanaide_rese_workflow.py",
+      "batch": "Batch 8",
+      "status": "SKIPPED",
+      "error": "Invalid module name (contains dash)"
+    },
+    {
+      "file": "glue/adapters/rese-phase4/tests/test_output_generator.py",
+      "batch": "Batch 8",
+      "status": "SKIPPED",
+      "error": "Invalid module name (contains dash)"
+    },
+    {
+      "file": "glue/adapters/rese-phase4/tests/test_phase4_comprehensive.py",
+      "batch": "Batch 8",
+      "status": "SKIPPED",
+      "error": "Invalid module name (contains dash)"
+    },
+    {
+      "file": "glue/adapters/rese-phase4/tests/test_phase4_integration.py",
+      "batch": "Batch 8",
+      "status": "SKIPPED",
+      "error": "Invalid module name (contains dash)"
+    },
+    {
+      "file": "glue/adapters/rese-phase4/tests/test_predictive_validator.py",
+      "batch": "Batch 8",
+      "status": "SKIPPED",
+      "error": "Invalid module name (contains dash)"
+    },
+    {
+      "file": "glue/adapters/rese-sce/src/lean4_atp_bridge.py",
+      "batch": "Batch 8",
+      "status": "SKIPPED",
+      "error": "Invalid module name (contains dash)"
+    },
+    {
+      "file": "glue/adapters/rese-sce/tests/test_dito_optimizer.py",
+      "batch": "Batch 8",
+      "status": "SKIPPED",
+      "error": "Invalid module name (contains dash)"
+    },
+    {
+      "file": "glue/adapters/rese-sce/tests/test_dito_z3_atp.py",
+      "batch": "Batch 8",
+      "status": "SKIPPED",
+      "error": "Invalid module name (contains dash)"
+    },
+    {
+      "file": "glue/adapters/rese-sce/tests/test_sce_comprehensive.py",
+      "batch": "Batch 8",
+      "status": "SKIPPED",
+      "error": "Invalid module name (contains dash)"
+    },
+    {
+      "file": "glue/adapters/rese-sce/tests/test_z3_integration.py",
+      "batch": "Batch 8",
+      "status": "SKIPPED",
+      "error": "Invalid module name (contains dash)"
+    },
+    {
+      "file": "glue/adapters/rese-verification/tests/test_basic.py",
+      "batch": "Batch 8",
+      "status": "SKIPPED",
+      "error": "Invalid module name (contains dash)"
+    },
+    {
+      "file": "glue/adapters/research-quest-curie-globalchem-integration/src/research_quest_curie_globalchem_adapter.py",
+      "batch": "Batch 8",
+      "status": "SKIPPED",
+      "error": "Invalid module name (contains dash)"
+    },
+    {
+      "file": "glue/adapters/research-quest-curie-globalchem-integration/test_integration.py",
+      "batch": "Batch 8",
+      "status": "SKIPPED",
+      "error": "Invalid module name (contains dash)"
+    },
+    {
+      "file": "leanaide_pes_benchmark.py",
+      "batch": "Batch 5",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "leanaide_redflagging.py",
+      "batch": "Batch 5",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "leanaide_sop_integration.py",
+      "batch": "Batch 5",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "openevolve/cav_nlp_integration/advanced_compositional_rules.py",
+      "batch": "Batch 3",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "openevolve/cav_nlp_integration/arxiv_corpus_learner.py",
+      "batch": "Batch 3",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "openevolve/cav_nlp_integration/canonical_lean_generator.py",
+      "batch": "Batch 3",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "openevolve/cav_nlp_integration/cegis_learner.py",
+      "batch": "Batch 3",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "openevolve/cav_nlp_integration/compositional_semantics.py",
+      "batch": "Batch 3",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "openevolve/cav_nlp_integration/flexible_semantic_parsing.py",
+      "batch": "Batch 3",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "openevolve/cav_nlp_integration/rule_discovery_from_arxiv.py",
+      "batch": "Batch 3",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "openevolve/cav_nlp_integration/test_cav_nlp.py",
+      "batch": "Batch 3",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "openevolve/cav_nlp_integration/z3_canonicalizer.py",
+      "batch": "Batch 3",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "openevolve/cav_nlp_integration/z3_semantic_synthesis.py",
+      "batch": "Batch 3",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "openevolve/cav_nlp_integration/z3_validated_ir.py",
+      "batch": "Batch 3",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "openevolve_bubblelabs_ui.py",
+      "batch": "Batch 3",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "openevolve_workflow_manager_integrated.py",
+      "batch": "Batch 3",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "persistent_decomposition_engine.py",
+      "batch": "Batch 6",
+      "status": "FAILED",
+      "error": "FAILED: cannot import name 'WorkflowProgress' from 'sovereign_data_models' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_data_models.py)"
+    },
+    {
+      "file": "resource_estimation_engine.py",
+      "batch": "Batch 6",
+      "status": "FAILED",
+      "error": "FAILED: cannot import name 'ComplexityBreakdown' from 'sovereign_data_models' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_data_models.py)"
+    },
+    {
+      "file": "roma_crewai_bridge.py",
+      "batch": "Batch 5",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "roma_crewai_tools.py",
+      "batch": "Batch 5",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "roma_mdap_maker_crewai_bridge.py",
+      "batch": "Batch 5",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "roma_mdap_maker_crewai_tools.py",
+      "batch": "Batch 5",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "team_assignment_engine.py",
+      "batch": "Batch 6",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    },
+    {
+      "file": "validate_performance.py",
+      "batch": "Batch 7",
+      "status": "FAILED",
+      "error": "FAILED: No module named 'rese.phase4'"
+    },
+    {
+      "file": "workflow_persistence.py",
+      "batch": "Batch 6",
+      "status": "FAILED",
+      "error": "FAILED: cannot import name 'CheckpointInfo' from 'sovereign_data_models' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_data_models.py)"
+    },
+    {
+      "file": "workflow_state_manager.py",
+      "batch": "Batch 6",
+      "status": "FAILED",
+      "error": "FAILED: cannot import name 'CheckpointInfo' from 'sovereign_data_models' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_data_models.py)"
+    },
+    {
+      "file": "z3_api.py",
+      "batch": "Batch 5",
+      "status": "FAILED",
+      "error": "FAILED: name 'Statement' is not defined"
+    }
+  ],
+  "batch_breakdown": {
+    "batch1": {
+      "total": 78,
+      "success": 2
+    },
+    "batch3": {
+      "total": 14,
+      "success": 0
+    },
+    "batch5": {
+      "total": 9,
+      "success": 1
+    },
+    "batch6": {
+      "total": 8,
+      "success": 1
+    },
+    "batch7": {
+      "total": 6,
+      "success": 0
+    },
+    "batch8": {
+      "total": 41,
+      "success": 2
+    },
+    "batch9": {
+      "total": 13,
+      "success": 0
+    }
+  }
+}

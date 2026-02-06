@@ -14,7 +14,30 @@ from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Set, Callable, Any, Tuple
 from enum import Enum
 import re
-from lean_type_theory import *
+# Lazy import to avoid circular dependencies
+try:
+    from .lean_type_theory import (
+        UniverseLevel, LeanType, LeanExpr, Context, LeanTypeChecker,
+        LeanVariable, LeanProp, LeanArrow, create_forall_type, 
+        create_exists_type, create_and_type, LeanVarExpr
+    )
+except ImportError:
+    # Stubs for type checking
+    UniverseLevel = None
+    LeanType = None
+    LeanExpr = None
+    Context = None
+    LeanTypeChecker = None
+    LeanVariable = None
+    LeanProp = None
+    LeanArrow = None
+    def create_forall_type(*args, **kwargs):
+        return None
+    def create_exists_type(*args, **kwargs):
+        return None
+    def create_and_type(*args, **kwargs):
+        return None
+    LeanVarExpr = None
 
 
 class Category(Enum):

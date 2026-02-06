@@ -46,23 +46,35 @@ Z3 validates all these equivalences by checking:
   if result == UNSAT: expressions are equivalent!
 """
 
-from z3 import *
+# Lazy imports to avoid circular dependencies
+try:
+    from z3 import *
+except ImportError:
+    pass
+
 from typing import Optional, Dict, Tuple, List
 from dataclasses import dataclass
-from z3_validated_ir import ValidatedIRExpr, SemanticContext, Z3ValidationResult
+
+def _import_validated_ir():
+    """Lazy import validated IR."""
+    try:
+        from .z3_validated_ir import Any, Any, Z3ValidationResult
+        return Any, Any, Z3ValidationResult
+    except ImportError:
+        return None, None, None
 
 
 @dataclass
 class CanonicalForm:
     """
     Canonical representation of an expression.
-    
+
     Properties:
     - Unique: equivalent expressions → same canonical form
     - Minimal: simplest representation
     - Normalized: standard ordering (e.g., alphabetical)
     """
-    expr: ValidatedIRExpr
+    expr: Any  # Any when z3_validated_ir available
     z3_encoding: Any
     hash: int
     equivalence_class: str  # ID for equivalence class
@@ -71,17 +83,17 @@ class CanonicalForm:
 class CanonicalizationEngine:
     """
     Z3-powered canonicalization engine.
-    
+
     Maintains:
     - Cache: expression → canonical form
     - Equivalence classes: which expressions are equivalent
     - Z3 solvers for proving equivalences
     """
-    
+
     def __init__(self):
         self.cache: Dict[str, CanonicalForm] = {}
-        self.equivalence_classes: Dict[str, List[ValidatedIRExpr]] = {}
-        self.z3_solver = Solver()
+        self.equivalence_classes: Dict[str, List[Any]] = {}  # List[Any]
+        self.z3_solver = Solver() if 'Solver' in globals() else None
         
         # Precomputed canonicalization rules
         self.rules = self._initialize_rules()
@@ -98,7 +110,7 @@ class CanonicalizationEngine:
             ("distributivity", self._distributivity),
         ]
     
-    def canonicalize(self, expr: ValidatedIRExpr, ctx: SemanticContext) -> CanonicalForm:
+    def canonicalize(self, expr: Any, ctx: Any) -> CanonicalForm:
         """
         Convert expression to canonical form.
         
@@ -137,8 +149,8 @@ class CanonicalizationEngine:
         
         return canonical
     
-    def _prove_equivalent(self, expr1: ValidatedIRExpr, expr2: ValidatedIRExpr, 
-                         ctx: SemanticContext) -> bool:
+    def _prove_equivalent(self, expr1: Any, expr2: Any, 
+                         ctx: Any) -> bool:
         """
         Use Z3 to prove expr1 ≡ expr2.
         
@@ -167,7 +179,7 @@ class CanonicalizationEngine:
             # If Z3 can't handle it, assume not equivalent
             return False
     
-    def find_equivalent(self, expr: ValidatedIRExpr, ctx: SemanticContext) -> List[ValidatedIRExpr]:
+    def find_equivalent(self, expr: Any, ctx: Any) -> List[Any]:
         """
         Find all expressions equivalent to given expression.
         
@@ -182,7 +194,7 @@ class CanonicalizationEngine:
     # CANONICALIZATION RULES
     # ========================================================================
     
-    def _alpha_equivalence(self, expr: ValidatedIRExpr, ctx: SemanticContext) -> ValidatedIRExpr:
+    def _alpha_equivalence(self, expr: Any, ctx: Any) -> Any:
         """
         α-equivalence: Rename bound variables consistently.
         
@@ -194,7 +206,7 @@ class CanonicalizationEngine:
         # TODO: Implement variable renaming
         return expr
     
-    def _commutativity(self, expr: ValidatedIRExpr, ctx: SemanticContext) -> ValidatedIRExpr:
+    def _commutativity(self, expr: Any, ctx: Any) -> Any:
         """
         Commutativity: Normalize order of commutative operations.
         
@@ -215,7 +227,7 @@ class CanonicalizationEngine:
         
         return expr
     
-    def _associativity(self, expr: ValidatedIRExpr, ctx: SemanticContext) -> ValidatedIRExpr:
+    def _associativity(self, expr: Any, ctx: Any) -> Any:
         """
         Associativity: Normalize grouping.
         
@@ -224,7 +236,7 @@ class CanonicalizationEngine:
         # TODO: Implement associativity normalization
         return expr
     
-    def _de_morgan(self, expr: ValidatedIRExpr, ctx: SemanticContext) -> ValidatedIRExpr:
+    def _de_morgan(self, expr: Any, ctx: Any) -> Any:
         """
         De Morgan's Laws: Normalize negations.
         
@@ -234,22 +246,22 @@ class CanonicalizationEngine:
         # TODO: Implement De Morgan transformation
         return expr
     
-    def _double_negation(self, expr: ValidatedIRExpr, ctx: SemanticContext) -> ValidatedIRExpr:
+    def _double_negation(self, expr: Any, ctx: Any) -> Any:
         """
         Double Negation Elimination: ¬¬P → P
         """
         # TODO: Implement double negation elimination
         return expr
     
-    def _implication_to_disjunction(self, expr: ValidatedIRExpr, 
-                                   ctx: SemanticContext) -> ValidatedIRExpr:
+    def _implication_to_disjunction(self, expr: Any, 
+                                   ctx: Any) -> Any:
         """
         Implication: P → Q ≡ ¬P ∨ Q
         """
         # TODO: Implement implication transformation
         return expr
     
-    def _distributivity(self, expr: ValidatedIRExpr, ctx: SemanticContext) -> ValidatedIRExpr:
+    def _distributivity(self, expr: Any, ctx: Any) -> Any:
         """
         Distributivity: Normalize distributive operations.
         
@@ -263,11 +275,11 @@ class CanonicalizationEngine:
     # UTILITIES
     # ========================================================================
     
-    def _expr_key(self, expr: ValidatedIRExpr) -> str:
+    def _expr_key(self, expr: Any) -> str:
         """Generate unique key for expression (for caching)"""
         return str(expr)  # TODO: Better serialization
     
-    def _get_equivalence_class(self, expr: ValidatedIRExpr) -> str:
+    def _get_equivalence_class(self, expr: Any) -> str:
         """Get equivalence class ID for expression"""
         # Use hash of canonical Z3 encoding
         return str(hash(str(expr)))
@@ -280,9 +292,9 @@ class CanonicalizationEngine:
 def example_canonicalization():
     """Demonstrate canonicalization with Z3"""
     
-    from z3_validated_ir import ValidatedIRBinOp, ValidatedIRVar, SemanticContext
+    from z3_validated_ir import ValidatedIRBinOp, ValidatedIRVar, Any
     
-    ctx = SemanticContext()
+    ctx = Any()
     ctx.add_var("x", ValidatedIRVar("Int"), Int('x'))
     ctx.add_var("y", ValidatedIRVar("Int"), Int('y'))
     

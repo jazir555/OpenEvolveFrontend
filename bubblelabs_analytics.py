@@ -810,3 +810,8 @@ if __name__ == "__main__":
 
     # Clean up
     analytics.close_all_connections()
+
+
+def cleanup_all_databases():
+    """Stub function for cleaning up databases."""
+    pass

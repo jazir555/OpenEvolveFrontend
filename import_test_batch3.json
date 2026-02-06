@@ -1,8 +1,8 @@
 {
-  "total_files": 58,
-  "successful_imports": 39,
-  "failed_imports": 19,
-  "success_rate": "67.2%",
+  "total_files": 61,
+  "successful_imports": 47,
+  "failed_imports": 14,
+  "success_rate": "77.0%",
   "successful": [
     "openevolve\\api.py",
     "openevolve\\cav_nlp_integration\\__init__.py",
@@ -18,6 +18,8 @@
     "openevolve\\cav_nlp_integration\\verification.py",
     "openevolve\\config.py",
     "openevolve\\leanaide_cav_nlp_bridge.py",
+    "openevolve\\unified\\__init__.py",
+    "openevolve\\unified\\unified_evolution_api.py",
     "openevolve\\unified_math_service.py",
     "openevolve\\z3_cav_nlp_integration.py",
     "openevolve\\z3_leanaide_bridge.py",
@@ -28,7 +30,12 @@
     "openevolve_bubblelabs_plugin.py",
     "openevolve_cli.py",
     "openevolve_client.py",
+    "openevolve_crewai_adapter.py",
+    "openevolve_crewai_bridge.py",
+    "openevolve_crewai_delegation.py",
     "openevolve_dashboard.py",
+    "openevolve_decomposition_adapter.py",
+    "openevolve_enhanced_decomposition_integration.py",
     "openevolve_evolution_integration.py",
     "openevolve_imports.py",
     "openevolve_integration.py",
@@ -42,7 +49,8 @@
     "openevolve_pes_integration.py",
     "openevolve_structures.py",
     "openevolve_validation.py",
-    "openevolve_visualization.py"
+    "openevolve_visualization.py",
+    "openevolve_workflow_manager.py"
   ],
   "failed": [
     {
@@ -51,11 +59,11 @@
     },
     {
       "file": "openevolve\\cav_nlp_integration\\advanced_compositional_rules.py",
-      "error": "ModuleNotFoundError: No module named 'compositional_meta_rules'"
+      "error": "NameError: name 'field' is not defined"
     },
     {
       "file": "openevolve\\cav_nlp_integration\\arxiv_corpus_learner.py",
-      "error": "ModuleNotFoundError: No module named 'flexible_semantic_parsing'"
+      "error": "ImportError: cannot import name 'SemanticPrimitive' from 'flexible_semantic_parsing' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\flexible_semantic_parsing.py)"
     },
     {
       "file": "openevolve\\cav_nlp_integration\\canonical_lean_generator.py",
@@ -67,15 +75,15 @@
     },
     {
       "file": "openevolve\\cav_nlp_integration\\compositional_semantics.py",
-      "error": "ModuleNotFoundError: No module named 'lean_type_theory'"
+      "error": "NameError: name 'Context' is not defined"
     },
     {
       "file": "openevolve\\cav_nlp_integration\\flexible_semantic_parsing.py",
-      "error": "ModuleNotFoundError: No module named 'lean_type_theory'"
+      "error": "ImportError: cannot import name 'LeanExpr' from 'lean_type_theory' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\lean_type_theory.py)"
     },
     {
       "file": "openevolve\\cav_nlp_integration\\rule_discovery_from_arxiv.py",
-      "error": "ModuleNotFoundError: No module named 'flexible_semantic_parsing'"
+      "error": "ImportError: cannot import name 'SemanticPrimitive' from 'flexible_semantic_parsing' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\flexible_semantic_parsing.py)"
     },
     {
       "file": "openevolve\\cav_nlp_integration\\test_cav_nlp.py",
@@ -87,39 +95,19 @@
     },
     {
       "file": "openevolve\\cav_nlp_integration\\z3_semantic_synthesis.py",
-      "error": "ModuleNotFoundError: No module named 'lean_type_theory'"
+      "error": "ImportError: cannot import name 'UniverseLevel' from 'lean_type_theory' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\lean_type_theory.py)"
     },
     {
       "file": "openevolve\\cav_nlp_integration\\z3_validated_ir.py",
-      "error": "ModuleNotFoundError: No module named 'compositional_meta_rules'"
+      "error": "ModuleNotFoundError: No module named 'advanced_compositional_rules'"
     },
     {
       "file": "openevolve_bubblelabs_ui.py",
-      "error": "ImportError: cannot import name 'BubbleLabsCREWAIBridge' from 'bubblelabs_crewai_bridge' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py)"
-    },
-    {
-      "file": "openevolve_crewai_adapter.py",
-      "error": "ImportError: cannot import name 'CrewAIZeroErrorWorkflow' from 'crewai_zero_error_workflow' (C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\crewai_zero_error_workflow.py)"
-    },
-    {
-      "file": "openevolve_crewai_bridge.py",
-      "error": "ImportError: cannot import name 'CrewAIZeroErrorWorkflow' from 'crewai_zero_error_workflow' (C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\crewai_zero_error_workflow.py)"
-    },
-    {
-      "file": "openevolve_crewai_delegation.py",
-      "error": "ImportError: cannot import name 'CrewAIZeroErrorWorkflow' from 'crewai_zero_error_workflow' (C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\crewai_zero_error_workflow.py)"
-    },
-    {
-      "file": "openevolve_decomposition_adapter.py",
-      "error": "ImportError: cannot import name 'DecompositionRecompositionPipeline' from 'decomposition_recomposition_integration' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\decomposition_recomposition_integration.py)"
-    },
-    {
-      "file": "openevolve_enhanced_decomposition_integration.py",
-      "error": "ImportError: cannot import name 'DecompositionRecompositionPipeline' from 'decomposition_recomposition_integration' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\decomposition_recomposition_integration.py)"
+      "error": "ImportError: cannot import name 'BubbleLabsTicketConfig' from 'bubblelabs_crewai_bridge' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py)"
     },
     {
       "file": "openevolve_workflow_manager_integrated.py",
-      "error": "ImportError: cannot import name 'BubbleLabsCREWAIBridge' from 'bubblelabs_crewai_bridge' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py)"
+      "error": "ImportError: cannot import name 'BubbleLabsTicketConfig' from 'bubblelabs_crewai_bridge' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py)"
     }
   ]
 }

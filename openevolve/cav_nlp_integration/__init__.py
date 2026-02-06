@@ -59,56 +59,69 @@ from .verification import (
 )
 
 # CAV-NLP Core Components (re-exported for convenience)
-# These may fail if dependencies are missing - that's ok
+# These use lazy imports to avoid circular dependency issues
 
-try:
-    from .flexible_semantic_parsing import (
-        MathematicalTextParser,
-        SemanticPrimitive,
-        SemanticNormalizer,
-    )
-except ImportError:
-    MathematicalTextParser = None
-    SemanticPrimitive = None
-    SemanticNormalizer = None
+def _import_flexible_semantic_parsing():
+    """Lazy import flexible_semantic_parsing components."""
+    try:
+        from .flexible_semantic_parsing import (
+            MathematicalTextParser,
+            SemanticPrimitive,
+            SemanticNormalizer,
+        )
+        return MathematicalTextParser, SemanticPrimitive, SemanticNormalizer
+    except ImportError:
+        return None, None, None
 
-try:
-    from .dependency_dag import (
-        DependencyDAG,
-        Statement,
-        StatementKind,
-    )
-except ImportError:
-    DependencyDAG = None
-    Statement = None
-    StatementKind = None
+def _import_dependency_dag():
+    """Lazy import dependency DAG components."""
+    try:
+        from .dependency_dag import (
+            DependencyDAG,
+            Statement,
+            StatementKind,
+        )
+        return DependencyDAG, Statement, StatementKind
+    except ImportError:
+        return None, None, None
 
-try:
-    from .z3_semantic_synthesis import (
-        Z3SemanticSynthesis,
-        SemanticSketch,
-        SemanticHole,
-    )
-except ImportError:
-    Z3SemanticSynthesis = None
-    SemanticSketch = None
-    SemanticHole = None
+def _import_z3_semantic_synthesis():
+    """Lazy import Z3 semantic synthesis components."""
+    try:
+        from .z3_semantic_synthesis import (
+            Z3SemanticSynthesis,
+            SemanticSketch,
+            SemanticHole,
+        )
+        return Z3SemanticSynthesis, SemanticSketch, SemanticHole
+    except ImportError:
+        return None, None, None
 
-try:
-    from .canonical_lean_generator import (
-        CanonicalLeanGenerator,
-        SemanticGrammar,
-    )
-except ImportError:
-    CanonicalLeanGenerator = None
-    SemanticGrammar = None
+def _import_canonical_lean_generator():
+    """Lazy import canonical lean generator components."""
+    try:
+        from .canonical_lean_generator import (
+            CanonicalLeanGenerator,
+            SemanticGrammar,
+        )
+        return CanonicalLeanGenerator, SemanticGrammar
+    except ImportError:
+        return None, None
 
-try:
-    from .z3_canonicalizer import (
-        Z3Canonicalizer,
-    )
-except ImportError:
-    Z3Canonicalizer = None
+def _import_z3_canonicalizer():
+    """Lazy import Z3 canonicalizer components."""
+    try:
+        from .z3_canonicalizer import Z3Canonicalizer
+        return Z3Canonicalizer
+    except ImportError:
+        return None
+
+# Initialize lazy imports on first access
+MathematicalTextParser, SemanticPrimitive, SemanticNormalizer = _import_flexible_semantic_parsing()
+DependencyDAG, Statement, StatementKind = _import_dependency_dag()
+Z3SemanticSynthesis, SemanticSketch, SemanticHole = _import_z3_semantic_synthesis()
+CanonicalLeanGenerator, SemanticGrammar = _import_canonical_lean_generator()
+Z3Canonicalizer = _import_z3_canonicalizer()
 
 __all__ = [
     # Version

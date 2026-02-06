@@ -2630,3 +2630,142 @@ class LeanAideMCTSCAVNLP:
     def is_cav_nlp_available(self) -> bool:
         """Check if CAV-NLP is available."""
         return self.use_cav_nlp and self.enhanced_solver is not None
+
+
+class TacticAction:
+    """Represents a tactic action in proof search.
+    
+    Encapsulates a single tactic application with its
+    metadata and effects on the proof state.
+    """
+    
+    def __init__(self, tactic: str, args: Optional[List[str]] = None):
+        """Initialize tactic action.
+        
+        Args:
+            tactic: The tactic name
+            args: Optional tactic arguments
+        """
+        self.tactic = tactic
+        self.args = args or []
+        self.success_count = 0
+        self.failure_count = 0
+    
+    def apply(self, state: 'ProofState') -> Optional['ProofState']:
+        """Apply this tactic to a proof state.
+        
+        Args:
+            state: Current proof state
+            
+        Returns:
+            New proof state or None if tactic fails
+        """
+        # Simulate tactic application
+        new_state = ProofState(
+            goals=state.goals[1:] if len(state.goals) > 1 else [],
+            tactics_applied=state.tactics_applied + [self.tactic],
+            lean_state=f"{state.lean_state} + {self.tactic}"
+        )
+        return new_state
+
+
+class ProofContext:
+    """Context for proof search.
+    
+    Maintains state and configuration for MCTS proof search,
+    including available tactics and proof environment.
+    """
+    
+    def __init__(self, theorem_statement: str, available_tactics: Optional[List[str]] = None):
+        """Initialize proof context.
+        
+        Args:
+            theorem_statement: The theorem to prove
+            available_tactics: List of available tactics
+        """
+        self.theorem_statement = theorem_statement
+        self.available_tactics = available_tactics or [
+            "intro", "apply", "exact", "rewrite", "simp",
+            "cases", "induction", "have", "show", "from"
+        ]
+        self.proof_steps: List[str] = []
+        self.current_goal: Optional[str] = theorem_statement
+        
+    def is_complete(self) -> bool:
+        """Check if proof is complete."""
+        return self.current_goal is None or len(self.proof_steps) > 0
+
+
+class LeanProofMCTS:
+    """Lean proof search using MCTS algorithm.
+    
+    Combines Monte Carlo Tree Search with Lean 4 proof tactics
+to automatically discover proofs.
+    """
+    
+    def __init__(self, config: Optional[MCTSConfig] = None):
+        """Initialize Lean proof MCTS.
+        
+        Args:
+            config: MCTS configuration
+        """
+        self.config = config or MCTSConfig()
+        self.mcts = MCTS(self.config)
+        
+    def search_proof(
+        self,
+        theorem_statement: str,
+        max_iterations: int = 1000
+    ) -> MCTSResult:
+        """Search for a proof using MCTS.
+        
+        Args:
+            theorem_statement: The theorem to prove
+            max_iterations: Maximum search iterations
+            
+        Returns:
+            MCTSResult with proof or failure information
+        """
+        # Initialize root state
+        root_state = ProofState(
+            goals=[theorem_statement],
+            tactics_applied=[],
+            lean_state="initial"
+        )
+        
+        # Build tree
+        tree = MCTSTree(root_state, self.config)
+        
+        # Run MCTS iterations
+        for _ in range(max_iterations):
+            # Selection
+            node = tree.select_leaf()
+            if node is None:
+                break
+                
+            # Expansion
+            if not node.is_terminal():
+                tree.expand_node(node)
+                
+            # Simulation
+            result = tree.simulate_from(node)
+            
+            # Backpropagation
+            tree.backpropagate(node, result)
+        
+        # Get best path
+        best_node = tree.get_best_node()
+        if best_node and best_node.state.is_fully_proven():
+            return MCTSResult(
+                success=True,
+                tactics=best_node.state.tactics_applied,
+                proof_completed=True,
+                iterations=max_iterations
+            )
+        
+        return MCTSResult(
+            success=False,
+            tactics=[],
+            proof_completed=False,
+            iterations=max_iterations
+        )

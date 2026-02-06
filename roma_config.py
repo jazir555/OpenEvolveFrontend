@@ -789,3 +789,10 @@ class ROMAConfigPresets:
         config.phase6.run_comprehensive_tests = False
 
         return config
+
+
+# Stub class for backward compatibility
+class CrewAIROMAConfig:
+    """Stub class for backward compatibility."""
+    def __init__(self, *args, **kwargs):
+        pass

@@ -1311,5 +1311,44 @@ theorem false_claim (x : ℝ) : x > 0 := by
     print("=" * 70)
 
 
+class VerificationStrategy:
+    """Strategy for verification operations.
+    
+    Defines different approaches to verification:
+    - Z3_ONLY: Use only Z3 solver
+    - LEAN_ONLY: Use only Lean 4 proof assistant
+    - HYBRID: Use both Z3 and Lean
+    """
+    Z3_ONLY = "z3_only"
+    LEAN_ONLY = "lean_only"
+    HYBRID = "hybrid"
+
+
+def get_z3_leanaide_bridge_sync(**kwargs) -> 'Z3LeanAideBridge':
+    """Get a synchronous Z3-LeanAide bridge instance.
+    
+    This is a convenience function for getting a bridge
+    without needing to use async/await.
+    
+    Args:
+        **kwargs: Configuration options for the bridge
+        
+    Returns:
+        Z3LeanAideBridge instance
+    """
+    return Z3LeanAideBridge(**kwargs)
+
+
+__all__ = [
+    "Z3LeanAideBridge",
+    "ProofResult",
+    "VerificationResult",
+    "TheoremTranslation",
+    "SMTLibTranslation",
+    "LeanTranslation",
+    "get_z3_leanaide_bridge_sync"
+]
+
+
 if __name__ == "__main__":
     asyncio.run(main())

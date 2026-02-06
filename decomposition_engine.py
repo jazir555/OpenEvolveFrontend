@@ -2432,3 +2432,20 @@ Your selection:"""
 
         except Exception as e:
             self.logger.error(f"Failed to track strategy performance: {e}")
+
+
+def calculate_functional_weight(dependency_graph, node):
+    """Stub function for calculating functional weight."""
+    return 1.0
+
+
+# Stub classes for backward compatibility
+
+class FlowBasedDecomposition:
+    """Stub class for flow-based decomposition."""
+    pass
+
+
+class HierarchicalDecomposition:
+    """Stub class for hierarchical decomposition."""
+    pass

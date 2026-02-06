@@ -317,9 +317,28 @@ class LeanVerificationGauntlet(BaseGauntlet):
                 # 2. Verify the formalized content
                 verification = loop.run_until_complete(self.lean_client.verify(formalized))
                 
-                # Determine result
-                verified = verification.verified if hasattr(verification, 'verified') else verification.get("success", False)
-                errors = verification.errors if hasattr(verification, 'errors') else verification.get("errors", [])
+                # Determine result from LeanAideResult
+                verified = False
+                errors = []
+                
+                if hasattr(verification, 'success'):
+                    # It's a LeanAideResult
+                    verified = verification.success
+                    if verification.data and isinstance(verification.data, dict):
+                        # Some tasks return 'verified' in data
+                        if "verified" in verification.data:
+                            verified = verification.data["verified"]
+                        
+                        # Check for errors in data
+                        if "errors" in verification.data:
+                            errors.extend(verification.data["errors"])
+                    
+                    if not verified and verification.error:
+                        errors.append(verification.error)
+                else:
+                    # Fallback for dict response
+                    verified = verification.get("success", verification.get("verified", False))
+                    errors = verification.get("errors", [])
                 
                 # Calculate score
                 score = 1.0 if verified else 0.0
@@ -335,9 +354,10 @@ class LeanVerificationGauntlet(BaseGauntlet):
                     confidence=0.9,
                     execution_time=execution_time,
                     details={
-                        "formalized": formalized,
+                        "formalized": formalized.data.get("result", "") if hasattr(formalized, 'data') else str(formalized),
                         "errors": errors,
-                        "verified": verified
+                        "verified": verified,
+                        "raw_result": verification.to_dict() if hasattr(verification, 'to_dict') else str(verification)
                     },
                     feedback=f"Lean verification: {'Passed' if verified else 'Failed'} with {len(errors)} errors"
                 )

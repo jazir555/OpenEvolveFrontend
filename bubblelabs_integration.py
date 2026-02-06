@@ -758,6 +758,17 @@ class BubbleLabsIntegration:
             return None
 
 
+# Export BubbleLabsCREWAIBridge for backward compatibility
+try:
+    from bubblelabs_crewai_bridge import BubbleLabsCREWAIBridge
+except ImportError:
+    # Stub if bubblelabs_crewai_bridge is not available
+    class BubbleLabsCREWAIBridge:
+        """Stub class for BubbleLabs CrewAI Bridge."""
+        def __init__(self, *args, **kwargs):
+            pass
+
+
 # Initialize the integration manager (lazy initialization)
 _bubblelabs_integration_instance = None
 

@@ -55,6 +55,40 @@ class DataPizzaWorkflow(Enum):
 
 
 # =============================================================================
+# CREWAI DATAPizza CONFIG
+# =============================================================================
+
+@dataclass
+class CrewAIDataPizzaConfig:
+    """Configuration for CrewAI-DataPizza integration"""
+    provider: str = "openai"
+    model: Optional[str] = None
+    api_key: Optional[str] = None
+    max_steps: int = 20
+    planning_interval: int = 3
+    enable_planning: bool = True
+    tools: Optional[List[str]] = None
+    timeout_seconds: int = 300
+    max_concurrency: int = 5
+    enable_tracing: bool = False
+    enable_logging: bool = False
+    workflow_type: str = "blue_red_gold"  # parallel, blue_red_gold, auto
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert config to dictionary"""
+        return asdict(self)
+    
+    def validate(self) -> List[str]:
+        """Validate configuration, return list of errors (empty if valid)"""
+        errors = []
+        if self.provider not in ["openai", "anthropic", "google"]:
+            errors.append(f"Invalid provider: {self.provider}")
+        if self.max_steps < 1 or self.max_steps > 100:
+            errors.append(f"max_steps must be between 1 and 100, got {self.max_steps}")
+        return errors
+
+
+# =============================================================================
 # BASE CONFIGURATION
 # =============================================================================
 

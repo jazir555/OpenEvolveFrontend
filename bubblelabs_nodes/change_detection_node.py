@@ -1128,3 +1128,80 @@ class ChangeDetectionNode(BubbleLabsNode):
             self.logger.info("ChangeDetectionNode cleanup complete")
         except Exception as e:
             self.logger.warning(f"Cleanup error: {e}")
+
+
+class ChangeTracker:
+    """
+    Tracks changes in knowledge graphs over time.
+    
+    Provides a simple interface for recording and retrieving changes
+    between knowledge states. Used for backward compatibility and
+    testing purposes.
+    """
+    
+    def __init__(self, *args, **kwargs):
+        self.changes = []
+        self.snapshots = {}
+    
+    def track(self, change_type: str, entity_id: str = None, 
+              old_value: Any = None, new_value: Any = None,
+              details: Dict[str, Any] = None) -> KnowledgeChange:
+        """
+        Track a change.
+        
+        Args:
+            change_type: Type of change (added, removed, modified, etc.)
+            entity_id: Optional entity identifier
+            old_value: Previous value
+            new_value: New value
+            details: Additional details about the change
+            
+        Returns:
+            KnowledgeChange object representing the tracked change
+        """
+        change = KnowledgeChange(
+            change_type=change_type,
+            entity_id=entity_id,
+            property_name=None,
+            old_value=old_value,
+            new_value=new_value,
+            details=details or {}
+        )
+        self.changes.append(change)
+        return change
+    
+    def get_changes(self, *args, **kwargs) -> List[KnowledgeChange]:
+        """
+        Get all tracked changes.
+        
+        Returns:
+            List of KnowledgeChange objects
+        """
+        return self.changes
+    
+    def snapshot(self, snapshot_id: str, state: Dict[str, Any]) -> None:
+        """
+        Store a snapshot of a state.
+        
+        Args:
+            snapshot_id: Identifier for the snapshot
+            state: State data to store
+        """
+        self.snapshots[snapshot_id] = state
+    
+    def get_snapshot(self, snapshot_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Retrieve a stored snapshot.
+        
+        Args:
+            snapshot_id: Identifier for the snapshot
+            
+        Returns:
+            Stored state data or None if not found
+        """
+        return self.snapshots.get(snapshot_id)
+    
+    def clear(self) -> None:
+        """Clear all tracked changes and snapshots."""
+        self.changes = []
+        self.snapshots = {}

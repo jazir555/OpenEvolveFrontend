@@ -26,9 +26,37 @@ import re
 from collections import defaultdict
 import numpy as np
 
-from z3 import *
-from flexible_semantic_parsing import SemanticPrimitive, SemanticNormalizer
-from z3_semantic_synthesis import Z3SemanticAlgebra
+# Lazy imports to avoid circular dependencies
+try:
+    from z3 import *
+except ImportError:
+    pass
+
+def _import_flexible_parsing():
+    """Lazy import flexible semantic parsing."""
+    try:
+        from .flexible_semantic_parsing import SemanticPrimitive, SemanticNormalizer
+        return SemanticPrimitive, SemanticNormalizer
+    except ImportError:
+        # Define minimal stub classes
+        class SemanticPrimitive:
+            def __init__(self, kind="", value=""):
+                self.kind = kind
+                self.value = value
+        
+        class SemanticNormalizer:
+            def normalize(self, text):
+                return []
+        
+        return SemanticPrimitive, SemanticNormalizer
+
+def _import_semantic_synthesis():
+    """Lazy import semantic synthesis."""
+    try:
+        from .z3_semantic_synthesis import Z3SemanticAlgebra
+        return Z3SemanticAlgebra
+    except ImportError:
+        return None
 
 
 @dataclass
@@ -369,7 +397,18 @@ class RuleDiscoveryAgent:
     """
     
     def __init__(self):
+        Z3SemanticAlgebra = _import_semantic_synthesis()
+        if Z3SemanticAlgebra is None:
+            # Create minimal stub
+            class Z3SemanticAlgebra:
+                pass
         self.z3_algebra = Z3SemanticAlgebra()
+        
+        SemanticPrimitive, SemanticNormalizer = _import_flexible_parsing()
+        if SemanticNormalizer is None:
+            class SemanticNormalizer:
+                def normalize(self, text):
+                    return []
         self.normalizer = SemanticNormalizer()
         
         # Grammar state

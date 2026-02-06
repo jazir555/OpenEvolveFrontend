@@ -12,10 +12,61 @@ linguistic constructions from mathematical texts, based on:
 5. Presupposition (Heim 1983, van der Sandt 1992)
 """
 
-from compositional_meta_rules import *
 from typing import Dict, List, Any, Optional, Tuple
-from dataclasses import dataclass
+from dataclasses import field, dataclass
 import re
+
+# Import Z3 with fallback
+try:
+    from z3 import (
+        Const, DeclareSort, Bool, And, Or, Not, Implies, 
+        Exists, ForAll, IntSort, RealSort, BoolSort,
+        Int, Real, Array, Select, ArraySort
+    )
+except ImportError:
+    pass
+
+# Import compositional meta rules with fallback
+try:
+    from .compositional_meta_rules import (
+        MetaRule, SemanticTerm, SemanticType, CompositionEngine,
+        validate_all_rules
+    )
+except ImportError:
+    # Fallback: create minimal stub classes
+    from enum import Enum
+    
+    class SemanticType(Enum):
+        ENTITY = "e"
+        TRUTH = "t"
+        PROP = "t"
+        PRED = "<e,t>"
+        REL = "<e,<e,t>>"
+        QUANT = "<<e,t>,t>"
+        MOD = "<<e,t>,<e,t>>"
+        FUNC = "<e,e>"
+    
+    class SemanticTerm:
+        def __init__(self, term_type, z3_expr, free_vars=None):
+            self.term_type = term_type
+            self.z3_expr = z3_expr
+            self.free_vars = free_vars or []
+    
+    class MetaRule:
+        def __init__(self, name="", linguistic_pattern="", semantic_builder=None, 
+                     papers=None, z3_tests=None, **kwargs):
+            self.name = name
+            self.linguistic_pattern = linguistic_pattern
+            self.semantic_builder = semantic_builder
+            self.papers = papers or []
+            self.z3_tests = z3_tests or []
+    
+    class CompositionEngine:
+        def __init__(self):
+            self.atomic_rules = {}
+    
+    def validate_all_rules(engine):
+        return {'rule_results': {}, 'total_passed': 0, 'total_tests': 0}
 
 
 # ============================================================================

@@ -175,7 +175,7 @@ class LeanAideClient:
         if self.use_cav_nlp:
             try:
                 from openevolve.unified_math_service import UnifiedMathService
-                self._math_service = UnifiedMathService(use_cav_nlp=True, use_leanaide=True)
+                self._math_service = UnifiedMathService(use_cav_nlp=True, use_leanaide=True, lean_client=self)
                 logger.info("CAV-NLP enhanced formalization enabled")
             except Exception as e:
                 logger.warning(f"Failed to initialize CAV-NLP math service: {e}")

@@ -38,6 +38,12 @@ project_root = Path(__file__).parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
+# Add core-projects/openevolve to path for OpenEvolve imports
+# The structure is: core-projects/openevolve/openevolve/
+core_projects_openevolve = project_root / "core-projects" / "openevolve"
+if str(core_projects_openevolve) not in sys.path:
+    sys.path.insert(0, str(core_projects_openevolve))
+
 # Add knowledge_engine to path
 knowledge_engine_path = project_root / "knowledge_engine"
 if str(knowledge_engine_path) not in sys.path:

@@ -86,7 +86,7 @@ except ImportError as e:
 try:
     from .cegis_learner import Z3TextCanonicalizer
     CAV_NLP_TEXT_CANONICALIZER_AVAILABLE = True
-except ImportError as e:
+except (ImportError, NameError, SyntaxError) as e:
     CAV_NLP_TEXT_CANONICALIZER_AVAILABLE = False
     logger.warning(f"CAV-NLP text canonicalizer not available: {e}")
     Z3TextCanonicalizer = None

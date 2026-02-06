@@ -24,7 +24,14 @@ from enum import Enum
 import re
 import numpy as np
 
-from lean_type_theory import UniverseLevel, LeanType, LeanExpr, Context
+# Lazy import to avoid circular dependencies
+try:
+    from .lean_type_theory import UniverseLevel, LeanType, LeanExpr, Context
+except ImportError:
+    UniverseLevel = None
+    LeanType = None
+    LeanExpr = None
+    Context = None
 
 
 class SemanticHole(Enum):

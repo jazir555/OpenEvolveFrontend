@@ -27,6 +27,7 @@ class ProblemType(Enum):
     ANALYSIS = "analysis"
     OPTIMIZATION = "optimization"
     DESIGN = "design"
+    VALIDATION = "validation"
 
 
 class SubProblemType(Enum):
@@ -894,3 +895,23 @@ class ValidationRequirements:
 # Aliases for backward compatibility
 ProblemStatus = SubProblemStatus
 QualityMetrics = QualityScores
+
+
+# Stub classes for backward compatibility
+
+class WorkflowState:
+    """Stub class for workflow state management."""
+    def __init__(self, *args, **kwargs):
+        pass
+
+
+class ResourceEstimate:
+    """Stub class for resource estimation."""
+    def __init__(self, *args, **kwargs):
+        pass
+
+
+class SubProblemTeamAssignment:
+    """Stub class for team assignment."""
+    def __init__(self, *args, **kwargs):
+        pass

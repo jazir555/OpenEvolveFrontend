@@ -26,9 +26,27 @@ import re
 from collections import defaultdict
 import numpy as np
 
-from z3 import *
-from flexible_semantic_parsing import SemanticPrimitive, SemanticNormalizer
-from z3_semantic_synthesis import Z3SemanticAlgebra
+# Lazy imports to avoid circular dependencies
+try:
+    from z3 import *
+except ImportError:
+    pass
+
+def _import_flexible_parsing():
+    """Lazy import flexible semantic parsing."""
+    try:
+        from .flexible_semantic_parsing import SemanticPrimitive, SemanticNormalizer
+        return SemanticPrimitive, SemanticNormalizer
+    except ImportError:
+        return None, None
+
+def _import_semantic_synthesis():
+    """Lazy import semantic synthesis."""
+    try:
+        from .z3_semantic_synthesis import Z3SemanticAlgebra
+        return Z3SemanticAlgebra
+    except ImportError:
+        return None
 
 
 @dataclass

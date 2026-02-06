@@ -98,6 +98,44 @@ class WorkflowStatus(Enum):
     RUNNING = "running"
     PAUSED = "paused"
     COMPLETED = "completed"
+
+
+@dataclass
+class ZeroErrorConfig:
+    """Configuration for zero-error workflow"""
+    max_retries: int = 3
+    timeout_seconds: int = 300
+    enable_auto_correction: bool = True
+    enable_logging: bool = True
+    log_level: str = "INFO"
+    checkpoint_interval: int = 10
+    enable_parallel_execution: bool = True
+    max_concurrent_tasks: int = 5
+    error_recovery_strategy: str = "retry"  # retry, fallback, abort
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class ZeroErrorResult:
+    """Result from zero-error workflow execution"""
+    success: bool = False
+    result: Any = None
+    error_message: Optional[str] = None
+    retry_count: int = 0
+    execution_time_seconds: float = 0.0
+    checkpoints: List[Dict[str, Any]] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class ZeroErrorMetrics:
+    """Metrics for zero-error workflow"""
+    total_executions: int = 0
+    successful_executions: int = 0
+    failed_executions: int = 0
+    total_retries: int = 0
+    average_execution_time: float = 0.0
+    error_counts: Dict[str, int] = field(default_factory=dict)
     FAILED = "failed"
     ROLLED_BACK = "rolled_back"
     CANCELLED = "cancelled"
@@ -1932,3 +1970,10 @@ if __name__ == "__main__":
     print("  )")
     print("\nFor unit tests, run:")
     print("  python -m unittest crewai_zero_error_workflow")
+
+
+# Stub class for backward compatibility
+class CrewAIZeroErrorWorkflow:
+    """Stub class for backward compatibility."""
+    def __init__(self, *args, **kwargs):
+        pass
