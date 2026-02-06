@@ -148,7 +148,8 @@ class EntityKnowledgeGraph:
             if entity is not None:
                 if not isinstance(entity, Entity):
                     raise ValueError("entity parameter must be an Entity instance")
-                name = entity.entity_id
+                # Use entity.name (the human-readable name) as the key, not entity_id
+                name = entity.name if entity.name else entity.entity_id
                 entity_type = entity.entity_type.value if isinstance(entity.entity_type, Enum) else entity.entity_type
                 attributes = entity.properties
             elif name is None:

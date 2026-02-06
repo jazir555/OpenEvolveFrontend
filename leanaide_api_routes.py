@@ -19,7 +19,11 @@ from typing import Optional, Dict, Any, List
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from typing import Optional
-from leanaide_web3_status import collect_web3_formal_status, default_web3_formal_status
+from leanaide_web3_status import (
+    collect_web3_formal_status,
+    default_web3_formal_status,
+    merge_web3_formal_status,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -51,6 +55,11 @@ class LeanAideVerifyResponse(BaseModel):
     confidence: float
     error: Optional[str] = None
     metadata: Dict[str, Any] = {}
+    web3_formal_available: bool = False
+    web3_formal_verification_available: bool = False
+    web3_formal_tools: List[str] = []
+    formal_capabilities: Dict[str, bool] = {}
+    audit_exploit_verification_available: bool = False
 
 
 class LeanAideProveRequest(BaseModel):
@@ -69,6 +78,11 @@ class LeanAideProveResponse(BaseModel):
     confidence: float = 0.0
     error: Optional[str] = None
     metadata: Dict[str, Any] = {}
+    web3_formal_available: bool = False
+    web3_formal_verification_available: bool = False
+    web3_formal_tools: List[str] = []
+    formal_capabilities: Dict[str, bool] = {}
+    audit_exploit_verification_available: bool = False
 
 
 class LeanAideTranslateRequest(BaseModel):
@@ -85,6 +99,11 @@ class LeanAideTranslateResponse(BaseModel):
     code: Optional[str] = None
     error: Optional[str] = None
     metadata: Dict[str, Any] = {}
+    web3_formal_available: bool = False
+    web3_formal_verification_available: bool = False
+    web3_formal_tools: List[str] = []
+    formal_capabilities: Dict[str, bool] = {}
+    audit_exploit_verification_available: bool = False
 
 
 class LeanAideQualityGateRequest(BaseModel):
@@ -104,6 +123,11 @@ class LeanAideQualityGateResponse(BaseModel):
     critical_issues: List[str] = []
     recommendations: List[str] = []
     error: Optional[str] = None
+    web3_formal_available: bool = False
+    web3_formal_verification_available: bool = False
+    web3_formal_tools: List[str] = []
+    formal_capabilities: Dict[str, bool] = {}
+    audit_exploit_verification_available: bool = False
 
 
 class LeanAideStatusResponse(BaseModel):
@@ -145,6 +169,11 @@ class CAVNLPFormalizeResponse(BaseModel):
     verification_status: str = "pending"
     error: Optional[str] = None
     metadata: Dict[str, Any] = {}
+    web3_formal_available: bool = False
+    web3_formal_verification_available: bool = False
+    web3_formal_tools: List[str] = []
+    formal_capabilities: Dict[str, bool] = {}
+    audit_exploit_verification_available: bool = False
 
 
 class CAVNLPVerifyRequest(BaseModel):
@@ -165,6 +194,11 @@ class CAVNLPVerifyResponse(BaseModel):
     suggestions: List[str] = []
     error: Optional[str] = None
     metadata: Dict[str, Any] = {}
+    web3_formal_available: bool = False
+    web3_formal_verification_available: bool = False
+    web3_formal_tools: List[str] = []
+    formal_capabilities: Dict[str, bool] = {}
+    audit_exploit_verification_available: bool = False
 
 
 # =============================================================================
@@ -436,6 +470,7 @@ async def leanaide_verify(request: LeanAideVerifyRequest):
         )
     
     try:
+        web3_status = collect_web3_formal_status()
         result = await leanaide_verify_solution_async(
             request.code,
             timeout=request.timeout
@@ -446,7 +481,19 @@ async def leanaide_verify(request: LeanAideVerifyRequest):
             verified=result.get("success", False),
             confidence=result.get("confidence", 0.0),
             error=result.get("error"),
-            metadata=result.get("metadata", {})
+            metadata={
+                **result.get("metadata", {}),
+                "web3_formal_status": web3_status,
+            },
+            web3_formal_available=web3_status["web3_formal_available"],
+            web3_formal_verification_available=web3_status[
+                "web3_formal_verification_available"
+            ],
+            web3_formal_tools=web3_status["web3_formal_tools"],
+            formal_capabilities=web3_status["formal_capabilities"],
+            audit_exploit_verification_available=web3_status[
+                "audit_exploit_verification_available"
+            ],
         )
     except Exception as e:
         logger.error(f"LeanAide verification failed: {e}")
@@ -474,6 +521,7 @@ async def leanaide_prove(request: LeanAideProveRequest):
         )
     
     try:
+        web3_status = collect_web3_formal_status()
         # Translate theorem first
         translate_result = await leanaide_translate_theorem_async(
             request.theorem_text,
@@ -485,7 +533,17 @@ async def leanaide_prove(request: LeanAideProveRequest):
             return LeanAideProveResponse(
                 success=False,
                 theorem_name=request.theorem_name or "unknown",
-                error=translate_result.get("error", "Translation failed")
+                error=translate_result.get("error", "Translation failed"),
+                metadata={"web3_formal_status": web3_status},
+                web3_formal_available=web3_status["web3_formal_available"],
+                web3_formal_verification_available=web3_status[
+                    "web3_formal_verification_available"
+                ],
+                web3_formal_tools=web3_status["web3_formal_tools"],
+                formal_capabilities=web3_status["formal_capabilities"],
+                audit_exploit_verification_available=web3_status[
+                    "audit_exploit_verification_available"
+                ],
             )
         
         # Generate proof
@@ -504,8 +562,18 @@ async def leanaide_prove(request: LeanAideProveRequest):
             error=proof_result.get("error"),
             metadata={
                 "translate_result": translate_result,
-                "proof_result": proof_result
-            }
+                "proof_result": proof_result,
+                "web3_formal_status": web3_status,
+            },
+            web3_formal_available=web3_status["web3_formal_available"],
+            web3_formal_verification_available=web3_status[
+                "web3_formal_verification_available"
+            ],
+            web3_formal_tools=web3_status["web3_formal_tools"],
+            formal_capabilities=web3_status["formal_capabilities"],
+            audit_exploit_verification_available=web3_status[
+                "audit_exploit_verification_available"
+            ],
         )
     except Exception as e:
         logger.error(f"LeanAide proof generation failed: {e}")
@@ -533,6 +601,7 @@ async def leanaide_translate(request: LeanAideTranslateRequest):
         )
     
     try:
+        web3_status = collect_web3_formal_status()
         result = await leanaide_translate_theorem_async(
             request.theorem_text,
             theorem_name=request.name,
@@ -544,7 +613,19 @@ async def leanaide_translate(request: LeanAideTranslateRequest):
             name=result.get("name", request.name or "unknown"),
             code=result.get("lean_code"),
             error=result.get("error"),
-            metadata=result.get("metadata", {})
+            metadata={
+                **result.get("metadata", {}),
+                "web3_formal_status": web3_status,
+            },
+            web3_formal_available=web3_status["web3_formal_available"],
+            web3_formal_verification_available=web3_status[
+                "web3_formal_verification_available"
+            ],
+            web3_formal_tools=web3_status["web3_formal_tools"],
+            formal_capabilities=web3_status["formal_capabilities"],
+            audit_exploit_verification_available=web3_status[
+                "audit_exploit_verification_available"
+            ],
         )
     except Exception as e:
         logger.error(f"LeanAide translation failed: {e}")
@@ -572,6 +653,7 @@ async def leanaide_quality_gate(request: LeanAideQualityGateRequest):
         )
     
     try:
+        web3_status = collect_web3_formal_status()
         verifier = get_quality_gate_verifier()
         
         # Map verification level
@@ -607,7 +689,16 @@ async def leanaide_quality_gate(request: LeanAideQualityGateRequest):
             confidence_score=result.confidence_score,
             critical_issues=result.errors,
             recommendations=[],
-            error=None
+            error=None,
+            web3_formal_available=web3_status["web3_formal_available"],
+            web3_formal_verification_available=web3_status[
+                "web3_formal_verification_available"
+            ],
+            web3_formal_tools=web3_status["web3_formal_tools"],
+            formal_capabilities=web3_status["formal_capabilities"],
+            audit_exploit_verification_available=web3_status[
+                "audit_exploit_verification_available"
+            ],
         )
     except Exception as e:
         logger.error(f"LeanAide quality gate failed: {e}")
@@ -648,7 +739,7 @@ async def leanaide_rag_retrieve(
             "query": query,
             "retrieved_count": len(proofs),
             "proofs": [p.to_dict() for p in proofs]
-        }
+        } | collect_web3_formal_status()
     except Exception as e:
         logger.error(f"RAG retrieval failed: {e}")
         raise HTTPException(
@@ -686,7 +777,7 @@ async def leanaide_rag_prove(
             theorem_name=theorem_name
         )
         
-        return result.to_dict()
+        return merge_web3_formal_status(result.to_dict())
     except Exception as e:
         logger.error(f"RAG proof generation failed: {e}")
         raise HTTPException(
@@ -713,6 +804,7 @@ async def cav_nlp_formalize(request: CAVNLPFormalizeRequest):
         )
     
     try:
+        web3_status = collect_web3_formal_status()
         math_service = get_math_service()
         if not math_service:
             raise HTTPException(
@@ -738,7 +830,19 @@ async def cav_nlp_formalize(request: CAVNLPFormalizeRequest):
             constraints_used=result.get("constraints_used", []),
             verification_status=result.get("verification_status", "pending"),
             error=result.get("error"),
-            metadata=result.get("metadata", {})
+            metadata={
+                **result.get("metadata", {}),
+                "web3_formal_status": web3_status,
+            },
+            web3_formal_available=web3_status["web3_formal_available"],
+            web3_formal_verification_available=web3_status[
+                "web3_formal_verification_available"
+            ],
+            web3_formal_tools=web3_status["web3_formal_tools"],
+            formal_capabilities=web3_status["formal_capabilities"],
+            audit_exploit_verification_available=web3_status[
+                "audit_exploit_verification_available"
+            ],
         )
     except Exception as e:
         logger.error(f"CAV-NLP formalization failed: {e}")
@@ -766,6 +870,7 @@ async def cav_nlp_verify(request: CAVNLPVerifyRequest):
         )
     
     try:
+        web3_status = collect_web3_formal_status()
         enhanced_solver = get_enhanced_solver()
         math_service = get_math_service()
         
@@ -802,8 +907,18 @@ async def cav_nlp_verify(request: CAVNLPVerifyRequest):
             suggestions=[],
             metadata={
                 "semantic_analysis_used": request.use_semantic_analysis,
-                "constraint_checking_used": request.use_constraint_checking
-            }
+                "constraint_checking_used": request.use_constraint_checking,
+                "web3_formal_status": web3_status,
+            },
+            web3_formal_available=web3_status["web3_formal_available"],
+            web3_formal_verification_available=web3_status[
+                "web3_formal_verification_available"
+            ],
+            web3_formal_tools=web3_status["web3_formal_tools"],
+            formal_capabilities=web3_status["formal_capabilities"],
+            audit_exploit_verification_available=web3_status[
+                "audit_exploit_verification_available"
+            ],
         )
     except Exception as e:
         logger.error(f"CAV-NLP verification failed: {e}")

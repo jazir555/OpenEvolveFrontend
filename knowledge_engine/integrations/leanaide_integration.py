@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional, Union
 from dataclasses import dataclass
 import uuid
-from leanaide_web3_status import collect_web3_formal_status
+from leanaide_web3_status import collect_web3_formal_status, merge_web3_formal_status
 
 
 logger = logging.getLogger(__name__)
@@ -31,7 +31,7 @@ class LeanAideResult:
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary representation."""
-        return {
+        return merge_web3_formal_status({
             'success': self.success,
             'verified': self.verified,
             'proof': self.proof,
@@ -40,7 +40,7 @@ class LeanAideResult:
             'metadata': self.metadata,
             'processing_time_ms': self.processing_time_ms,
             'error': self.error
-        }
+        })
 
 
 class LeanAideIntegration:

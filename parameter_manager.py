@@ -970,16 +970,25 @@ class ParameterPersistence:
 
 class ParameterManager:
     """Main parameter management class"""
-    
+
     def __init__(self, config_dir: str = ".openevolve"):
         self.schema = ParameterSchema()
         self.validator = ParameterValidator(self.schema)
         self.preset_manager = PresetManager()
         self.persistence = ParameterPersistence(config_dir)
-    
+        self._params = self.get_defaults()
+
     def get_parameter(self, name: str) -> Optional[Parameter]:
         """Get parameter definition"""
         return self.schema.get_parameter(name)
+
+    def get(self, name: str, default: Any = None) -> Any:
+        """Get parameter value with optional default"""
+        return self._params.get(name, default)
+
+    def set(self, name: str, value: Any) -> None:
+        """Set parameter value"""
+        self._params[name] = value
     
     def validate(self, params: Dict[str, Any]) -> ValidationResult:
         """Validate parameters"""
@@ -1031,3 +1040,8 @@ class ParameterManager:
         defaults = self.get_defaults()
         defaults.update(params)
         return defaults
+
+    def export_to_json(self, filepath: str) -> None:
+        """Export current parameters to JSON file"""
+        with open(filepath, 'w') as f:
+            json.dump(self._params, f, indent=2)

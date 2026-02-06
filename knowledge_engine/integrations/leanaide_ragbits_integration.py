@@ -23,6 +23,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 import hashlib
 import json
+from leanaide_web3_status import merge_web3_formal_status
 
 
 logger = logging.getLogger(__name__)
@@ -182,7 +183,7 @@ class RAGProofResult:
     error: Optional[str] = None
     
     def to_dict(self) -> Dict[str, Any]:
-        return {
+        return merge_web3_formal_status({
             "success": self.success,
             "theorem_name": self.theorem_name,
             "informal_statement": self.informal_statement,
@@ -193,7 +194,7 @@ class RAGProofResult:
             "processing_time_ms": self.processing_time_ms,
             "metadata": self.metadata,
             "error": self.error
-        }
+        })
 
 
 # =============================================================================

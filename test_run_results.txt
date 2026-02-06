@@ -13,4 +13,22 @@ collecting ... collected 165 items
 
 tests/test_performance.py::TestKnowledgeIngestion::test_import_time PASSED [  0%]
 tests/test_performance.py::TestKnowledgeIngestion::test_ingest_100_entities FAILED [  1%]
-tests/test_performance.py::TestKnowledgeIngestion::test_ingest_1000_entities 
+tests/test_performance.py::TestKnowledgeIngestion::test_ingest_1000_entities PASSED [  1%]
+tests/test_performance.py::TestKnowledgeIngestion::test_ingest_5000_relationships PASSED [  2%]
+tests/test_performance.py::TestKnowledgeIngestion::test_batch_entity_ingestion PASSED [  3%]
+tests/test_performance.py::TestKnowledgeIngestion::test_entity_update_performance PASSED [  3%]
+tests/test_performance.py::TestKnowledgeIngestion::test_duplicate_relationship_detection PASSED [  4%]
+tests/test_performance.py::TestQueryPerformance::test_get_entity_performance PASSED [  4%]
+tests/test_performance.py::TestQueryPerformance::test_find_entities_by_type_performance PASSED [  5%]
+tests/test_performance.py::TestQueryPerformance::test_find_entities_by_attributes_performance PASSED [  6%]
+tests/test_performance.py::TestQueryPerformance::test_search_entities_performance PASSED [  6%]
+tests/test_performance.py::TestQueryPerformance::test_get_relationships_performance PASSED [  7%]
+tests/test_performance.py::TestQueryPerformance::test_graph_statistics_performance PASSED [  7%]
+tests/test_performance.py::TestQueryPerformance::test_json_serialization_performance PASSED [  8%]
+tests/test_performance.py::TestQueryPerformance::test_json_deserialization_performance PASSED [  9%]
+tests/test_performance.py::TestConcurrencyPerformance::test_concurrent_entity_ingestion PASSED [  9%]
+tests/test_performance.py::TestConcurrencyPerformance::test_concurrent_reads PASSED [ 10%]
+tests/test_performance.py::TestConcurrencyPerformance::test_mixed_read_write_workload PASSED [ 10%]
+tests/test_performance.py::TestConcurrencyPerformance::test_async_entity_ingestion FAILED [ 11%]
+tests/test_performance.py::TestMemoryUsage::test_initial_memory_footprint PASSED [ 12%]
+tests/test_performance.py::TestMemoryUsage::test_memory_per_entity 

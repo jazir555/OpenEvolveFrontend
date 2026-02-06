@@ -85,3 +85,18 @@ tests/test_leanaide_systems.py::TestMathematicalSystems::test_linear_algebra SKI
 tests/test_leanaide_systems.py::TestMathematicalSystems::test_probability SKIPPED [ 78%]
 tests/test_leanaide_systems.py::TestMathematicalSystems::test_statistics SKIPPED [ 79%]
 tests/test_leanaide_systems.py::TestProofSystems::test_automated_prover SKIPPED [ 81%]
+tests/test_leanaide_systems.py::TestProofSystems::test_proof_checker SKIPPED [ 82%]
+tests/test_leanaide_systems.py::TestProofSystems::test_proof_reconstruction SKIPPED [ 84%]
+tests/test_leanaide_systems.py::TestProofSystems::test_proof_search SKIPPED [ 85%]
+tests/test_leanaide_systems.py::TestProofSystems::test_tactic_generator SKIPPED [ 86%]
+tests/test_leanaide_systems.py::TestMathlibIntegration::test_definition_lookup SKIPPED [ 88%]
+tests/test_leanaide_systems.py::TestMathlibIntegration::test_mathlib_loader SKIPPED [ 89%]
+tests/test_leanaide_systems.py::TestMathlibIntegration::test_mathlib_search SKIPPED [ 91%]
+tests/test_leanaide_systems.py::TestMathlibIntegration::test_theorem_finder SKIPPED [ 92%]
+tests/test_leanaide_systems.py::TestMCTSSystem::test_mcts_backpropagation SKIPPED [ 94%]
+tests/test_leanaide_systems.py::TestMCTSSystem::test_mcts_engine SKIPPED [ 95%]
+tests/test_leanaide_systems.py::TestMCTSSystem::test_mcts_expansion SKIPPED [ 97%]
+tests/test_leanaide_systems.py::TestMCTSSystem::test_mcts_selection SKIPPED [ 98%]
+tests/test_leanaide_systems.py::TestMCTSSystem::test_mcts_simulation SKIPPED [100%]
+
+================== 42 passed, 27 skipped in 95.64s (0:01:35) ==================

@@ -725,6 +725,38 @@ class KnowledgeArtifact:
 
 
 # ============================================================================
+# PERFORMANCE METRICS
+# ============================================================================
+
+@dataclass
+class PerformanceMetrics:
+    """Performance metrics for workflow execution and evaluation."""
+    workflow_id: str = ""
+    execution_time: float = 0.0
+    resource_usage: Dict[str, Any] = field(default_factory=dict)
+    success_rate: float = 0.0
+    error_count: int = 0
+    throughput: float = 0.0
+    latency: float = 0.0
+    accuracy: float = 0.0
+    efficiency: float = 0.0
+    quality_score: float = 0.0
+    reliability: float = 0.0
+    scalability: float = 0.0
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        data = asdict(self)
+        if self.start_time:
+            data['start_time'] = self.start_time.isoformat()
+        if self.end_time:
+            data['end_time'] = self.end_time.isoformat()
+        return data
+
+
+# ============================================================================
 # WORKFLOW STATE
 # ============================================================================
 
@@ -748,12 +780,12 @@ class WorkflowState:
     rejected_sub_problems: Dict[str, Any] = field(default_factory=dict)
     final_solution: Optional[SolutionAttempt] = None
     refinement_loop_count: int = 0
-    
+
     # Advanced features
     auto_refine_enabled: bool = False
     entanglement_matrix: Dict[str, Set[str]] = field(default_factory=dict)
     entanglement_strict_mode: bool = False
-    
+
     # Teams & Gauntlets
     content_analyzer_team: Optional[Team] = None
     planner_team: Optional[Team] = None
@@ -765,7 +797,7 @@ class WorkflowState:
     solver_generation_gauntlet: Optional[GauntletDefinition] = None
     final_red_gauntlet: Optional[GauntletDefinition] = None
     final_gold_gauntlet: Optional[GauntletDefinition] = None
-    
+
     max_refinement_loops: int = 3
     all_critique_reports: List[CritiqueReport] = field(default_factory=list)
     all_verification_reports: List[VerificationReport] = field(default_factory=list)
@@ -773,7 +805,7 @@ class WorkflowState:
     performance_metrics: Dict[str, float] = field(default_factory=dict)
     knowledge_artifacts: List[KnowledgeArtifact] = field(default_factory=list)
     openevolve_metrics: Dict[str, Any] = field(default_factory=dict)
-    
+
     mdap_enabled: bool = False
     mdap_config: Dict[str, Any] = field(default_factory=dict)
     maker_enabled: bool = False
@@ -781,7 +813,7 @@ class WorkflowState:
 
     # Configs
     openevolve_parameters: Dict[str, Any] = field(default_factory=dict)
-    
+
     # LeanAide
     leanaide_enabled: bool = False
     leanaide_host: str = "localhost"

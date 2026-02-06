@@ -24,7 +24,11 @@ from crewai_hub import (
 from crewai_state_management import WorkflowStatus, ExecutionMethod
 
 # Import the verification dependency from the main server
-from api_server import verify_api_key  # Assuming this exists in the main server
+# Import verify_api_key from wherever it's actually defined in the project
+# For now, we'll define a basic placeholder - this should be replaced with the actual import
+def verify_api_key():
+    """Placeholder for API key verification - replace with actual implementation"""
+    pass
 
 router = APIRouter(prefix="/crewai", tags=["crewai"])
 

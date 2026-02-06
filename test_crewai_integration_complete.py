@@ -397,19 +397,19 @@ async def run_all_tests():
     
     try:
         await test_instance.test_hub_initialization()
-        print("✓ Hub initialization test passed")
+        print("[PASS] Hub initialization test passed")
         
         await test_instance.test_execute_workflow()
-        print("✓ Workflow execution test passed")
+        print("[PASS] Workflow execution test passed")
         
         await test_instance.test_get_workflow_state()
-        print("✓ Get workflow state test passed")
+        print("[PASS] Get workflow state test passed")
         
         await test_instance.test_list_workflows()
-        print("✓ List workflows test passed")
+        print("[PASS] List workflows test passed")
         
         await test_instance.test_get_workflow_metrics()
-        print("✓ Get workflow metrics test passed")
+        print("[PASS] Get workflow metrics test passed")
         
     finally:
         test_instance.teardown_method()
@@ -420,10 +420,10 @@ async def run_all_tests():
     
     try:
         state_test.test_create_and_save_state()
-        print("✓ State creation and save test passed")
+        print("[PASS] State creation and save test passed")
         
         state_test.test_list_workflows_by_status()
-        print("✓ List workflows by status test passed")
+        print("[PASS] List workflows by status test passed")
         
     finally:
         state_test.teardown_method()
@@ -434,10 +434,10 @@ async def run_all_tests():
     
     try:
         await client_test.test_client_initialization()
-        print("✓ Client initialization test passed")
+        print("[PASS] Client initialization test passed")
         
         await client_test.test_execute_workflow()
-        print("✓ Client workflow execution test passed")
+        print("[PASS] Client workflow execution test passed")
         
     finally:
         client_test.teardown_method()
@@ -448,10 +448,10 @@ async def run_all_tests():
     
     try:
         await flow_test.test_phase_1_setup()
-        print("✓ Phase 1 setup test passed")
+        print("[PASS] Phase 1 setup test passed")
         
         await flow_test.test_execute_full_workflow()
-        print("✓ Full workflow execution test passed")
+        print("[PASS] Full workflow execution test passed")
         
     finally:
         flow_test.teardown_method()
@@ -460,13 +460,13 @@ async def run_all_tests():
     api_test = TestCrewAIAPIRoutes()
     
     await api_test.test_execute_crewai_task_endpoint()
-    print("✓ API execute task endpoint test passed")
+    print("[PASS] API execute task endpoint test passed")
     
     await api_test.test_list_workflows_endpoint()
-    print("✓ API list workflows endpoint test passed")
+    print("[PASS] API list workflows endpoint test passed")
     
     await api_test.test_get_status_endpoint()
-    print("✓ API status endpoint test passed")
+    print("[PASS] API status endpoint test passed")
     
     # Test integration scenarios
     scenario_test = TestIntegrationScenarios()
@@ -474,15 +474,15 @@ async def run_all_tests():
     
     try:
         await scenario_test.test_complete_workflow_scenario()
-        print("✓ Complete workflow scenario test passed")
+        print("[PASS] Complete workflow scenario test passed")
         
         await scenario_test.test_state_persistence_scenario()
-        print("✓ State persistence scenario test passed")
+        print("[PASS] State persistence scenario test passed")
         
     finally:
         scenario_test.teardown_method()
     
-    print("\n🎉 All CrewAI integration tests passed!")
+    print("\n[SUCCESS] All CrewAI integration tests passed!")
 
 
 if __name__ == "__main__":

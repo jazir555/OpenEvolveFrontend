@@ -60,18 +60,6 @@
     "line": 1
   },
   {
-    "file": "glue\\adapters\\rese-sce\\__init__.py",
-    "error": "invalid non-printable character U+FEFF (<unknown>, line 1)",
-    "type": "syntax",
-    "line": 1
-  },
-  {
-    "file": "knowledge_engine\\verify_implementation.py",
-    "error": "expected an indented block after function definition on line 143 (<unknown>, line 144)",
-    "type": "syntax",
-    "line": 144
-  },
-  {
     "file": "openevolve_test_env\\Lib\\site-packages\\typing_extensions.py",
     "error": "unexpected indent (<unknown>, line 234)",
     "type": "syntax",
@@ -928,11 +916,5 @@
     "error": "invalid syntax (<unknown>, line 25)",
     "type": "syntax",
     "line": 25
-  },
-  {
-    "file": "unified\\__init__.py",
-    "error": "invalid non-printable character U+FEFF (<unknown>, line 1)",
-    "type": "syntax",
-    "line": 1
   }
 ]

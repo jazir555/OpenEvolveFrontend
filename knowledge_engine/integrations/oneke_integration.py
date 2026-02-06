@@ -939,7 +939,7 @@ class OneKEIntegration:
         schema: Optional[str] = None,
         correlation_id: Optional[str] = None,
         languages: Optional[List[str]] = None
-    ) -> List[Dict[str, Any]]:
+    ) -> 'EnhancedExtractionResult':
         """
         Extract entities from text using OneKE.
 
@@ -954,7 +954,7 @@ class OneKEIntegration:
             languages: Optional list of languages (for multilingual support)
 
         Returns:
-            List of extracted entity dictionaries
+            EnhancedExtractionResult with success flag and entities/relations lists
         """
         start_time = datetime.now(timezone.utc)
 
@@ -992,13 +992,22 @@ class OneKEIntegration:
                     for entity in result.entities:
                         entity["languages"] = languages
 
-                return result.entities
+                # Return the result object instead of just entities for backward compatibility
+                return result
             else:
                 logger.warning({
                     "msg": "Entity extraction failed or returned no results",
                     "correlation_id": correlation_id
                 })
-                return []
+                # Return an empty result object with success=False
+                from dataclasses import dataclass, field
+                @dataclass
+                class EmptyResult:
+                    success: bool = False
+                    entities: list = field(default_factory=list)
+                    relations: list = field(default_factory=list)
+                    error: Optional[str] = None
+                return EmptyResult(success=False, error="Extraction failed or returned no results")
 
         except Exception as e:
             logger.error({
@@ -1006,7 +1015,15 @@ class OneKEIntegration:
                 "error": str(e),
                 "correlation_id": correlation_id
             })
-            return []
+            # Return an empty result object with success=False
+            from dataclasses import dataclass, field
+            @dataclass
+            class ErrorResult:
+                success: bool = False
+                entities: list = field(default_factory=list)
+                relations: list = field(default_factory=list)
+                error: Optional[str] = None
+            return ErrorResult(success=False, error=str(e))
 
         # No specific cleanup needed for OneKE at the moment
         logger.info({

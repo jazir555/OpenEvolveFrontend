@@ -19,4 +19,79 @@ tests/test_core_modules.py::TestParameterManager::test_parameter_defaults FAILED
 tests/test_core_modules.py::TestParameterManager::test_parameter_export FAILED [ 20%]
 tests/test_core_modules.py::TestParameterManager::test_parameter_get_set FAILED [ 24%]
 tests/test_core_modules.py::TestParameterManager::test_parameter_manager_creation PASSED [ 28%]
-tests/test_core_modules.py::TestWorkflowEngine::test_workflow_definition 
+tests/test_core_modules.py::TestWorkflowEngine::test_workflow_definition SKIPPED [ 32%]
+tests/test_core_modules.py::TestWorkflowEngine::test_workflow_engine_creation SKIPPED [ 36%]
+tests/test_core_modules.py::TestWorkflowEngine::test_workflow_execution SKIPPED [ 40%]
+tests/test_core_modules.py::TestWorkflowEngine::test_workflow_state_persistence SKIPPED [ 44%]
+tests/test_core_modules.py::TestAlertingSystem::test_alert_creation SKIPPED [ 48%]
+tests/test_core_modules.py::TestAlertingSystem::test_alert_dispatch SKIPPED [ 52%]
+tests/test_core_modules.py::TestAlertingSystem::test_alert_manager PASSED [ 56%]
+tests/test_core_modules.py::TestAlertingSystem::test_alert_persistence FAILED [ 60%]
+tests/test_core_modules.py::TestAnalyticsManager::test_analytics_manager_creation PASSED [ 64%]
+tests/test_core_modules.py::TestAnalyticsManager::test_metrics_collection SKIPPED [ 68%]
+tests/test_core_modules.py::TestAnalyticsManager::test_report_generation SKIPPED [ 72%]
+tests/test_core_modules.py::TestAnalyticsManager::test_track_event SKIPPED [ 76%]
+tests/test_core_modules.py::TestBackupRestore::test_backup_creation FAILED [ 80%]
+tests/test_core_modules.py::TestBackupRestore::test_backup_list FAILED   [ 84%]
+tests/test_core_modules.py::TestBackupRestore::test_backup_restore FAILED [ 88%]
+tests/test_core_modules.py::TestBatchOperations::test_batch_error_handling SKIPPED [ 92%]
+tests/test_core_modules.py::TestBatchOperations::test_batch_parallel SKIPPED [ 96%]
+tests/test_core_modules.py::TestBatchOperations::test_batch_processor SKIPPED [100%]
+
+================================== FAILURES ===================================
+_________________ TestConfigModule.test_config_load_from_yaml _________________
+tests\test_core_modules.py:60: in test_config_load_from_yaml
+    config = load_config(self.config_file)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+config_loader.py:875: in load_config
+    _config_loader = ConfigLoader(config_dir)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+config_loader.py:285: in __init__
+    self.config_file = self.config_dir / "config.yaml"
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: unsupported operand type(s) for /: 'str' and 'str'
+________________ TestParameterManager.test_parameter_defaults _________________
+tests\test_core_modules.py:117: in test_parameter_defaults
+    result = manager.get('nonexistent', default='default_value')
+             ^^^^^^^^^^^
+E   AttributeError: 'ParameterManager' object has no attribute 'get'
+_________________ TestParameterManager.test_parameter_export __________________
+tests\test_core_modules.py:127: in test_parameter_export
+    manager.set('export.test', 'value')
+    ^^^^^^^^^^^
+E   AttributeError: 'ParameterManager' object has no attribute 'set'
+_________________ TestParameterManager.test_parameter_get_set _________________
+tests\test_core_modules.py:104: in test_parameter_get_set
+    manager.set('test.param', 'value')
+    ^^^^^^^^^^^
+E   AttributeError: 'ParameterManager' object has no attribute 'set'
+__________________ TestAlertingSystem.test_alert_persistence __________________
+tests\test_core_modules.py:269: in test_alert_persistence
+    store = AlertStore(db_path=os.path.join(self.temp_dir, 'alerts.db'))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: AlertStore() takes no arguments
+___________________ TestBackupRestore.test_backup_creation ____________________
+tests\test_core_modules.py:369: in test_backup_creation
+    manager = BackupManager(backup_dir=self.backup_dir)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: BackupManager.__init__() got an unexpected keyword argument 'backup_dir'
+_____________________ TestBackupRestore.test_backup_list ______________________
+tests\test_core_modules.py:406: in test_backup_list
+    manager = BackupManager(backup_dir=self.backup_dir)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: BackupManager.__init__() got an unexpected keyword argument 'backup_dir'
+____________________ TestBackupRestore.test_backup_restore ____________________
+tests\test_core_modules.py:387: in test_backup_restore
+    manager = BackupManager(backup_dir=self.backup_dir)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: BackupManager.__init__() got an unexpected keyword argument 'backup_dir'
+=========================== short test summary info ===========================
+FAILED tests/test_core_modules.py::TestConfigModule::test_config_load_from_yaml - TypeError: unsupported operand type(s) for /: 'str' and 'str'
+FAILED tests/test_core_modules.py::TestParameterManager::test_parameter_defaults - AttributeError: 'ParameterManager' object has no attribute 'get'
+FAILED tests/test_core_modules.py::TestParameterManager::test_parameter_export - AttributeError: 'ParameterManager' object has no attribute 'set'
+FAILED tests/test_core_modules.py::TestParameterManager::test_parameter_get_set - AttributeError: 'ParameterManager' object has no attribute 'set'
+FAILED tests/test_core_modules.py::TestAlertingSystem::test_alert_persistence - TypeError: AlertStore() takes no arguments
+FAILED tests/test_core_modules.py::TestBackupRestore::test_backup_creation - TypeError: BackupManager.__init__() got an unexpected keyword argument 'backup_dir'
+FAILED tests/test_core_modules.py::TestBackupRestore::test_backup_list - TypeError: BackupManager.__init__() got an unexpected keyword argument 'backup_dir'
+FAILED tests/test_core_modules.py::TestBackupRestore::test_backup_restore - TypeError: BackupManager.__init__() got an unexpected keyword argument 'backup_dir'
+================== 8 failed, 4 passed, 13 skipped in 41.77s ===================

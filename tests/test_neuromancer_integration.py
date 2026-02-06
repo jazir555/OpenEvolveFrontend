@@ -731,17 +731,18 @@ class TestNeuromancerDynamicsModelerUtilities:
         assert isinstance(models, list)
         assert len(models) == 0
 
-    def test_get_available_models_with_trained_models(self, neuromancer_modeler, sample_time_series_data):
+    def test_get_available_models_with_trained_models(self, neuromancer_modeler, sample_time_series_data, mock_neuromancer):
         """Test getting available models after training."""
         # Train two models
-        result1 = neuromancer_modeler.train_neural_ode(
-            sample_time_series_data['data'],
-            sample_time_series_data['time_points']
-        )
-        result2 = neuromancer_modeler.train_neural_ode(
-            sample_time_series_data['data'],
-            sample_time_series_data['time_points']
-        )
+        with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+            result1 = neuromancer_modeler.train_neural_ode(
+                sample_time_series_data['data'],
+                sample_time_series_data['time_points']
+            )
+            result2 = neuromancer_modeler.train_neural_ode(
+                sample_time_series_data['data'],
+                sample_time_series_data['time_points']
+            )
 
         models = neuromancer_modeler.get_available_models()
         assert len(models) == 2
@@ -764,12 +765,13 @@ class TestNeuromancerDynamicsModelerUtilities:
         assert status['available'] is False
         assert status['models_count'] == 0
 
-    def test_get_status_with_models(self, neuromancer_modeler, sample_time_series_data):
+    def test_get_status_with_models(self, neuromancer_modeler, sample_time_series_data, mock_neuromancer):
         """Test status after training models."""
-        neuromancer_modeler.train_neural_ode(
-            sample_time_series_data['data'],
-            sample_time_series_data['time_points']
-        )
+        with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+            neuromancer_modeler.train_neural_ode(
+                sample_time_series_data['data'],
+                sample_time_series_data['time_points']
+            )
 
         status = neuromancer_modeler.get_status()
         assert status['models_count'] == 1

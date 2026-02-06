@@ -1,0 +1,5 @@
+"""ROMA Types stub."""
+from typing import Any, Dict, List, Optional
+
+class RomaType:
+    pass

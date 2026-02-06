@@ -374,7 +374,7 @@ def test_parse_targeted_feedback():
 @patch('workflow_engine.run_ai_decomposition')
 @patch('workflow_engine.run_gauntlet')
 @patch('workflow_engine.generate_solution_for_sub_problem')
-def test_run_sovereign_workflow_full_cycle(
+async def test_run_sovereign_workflow_full_cycle(
     mock_generate_solution, mock_run_gauntlet, mock_run_ai_decomposition,
     mock_run_content_analysis, mock_render_manual_review_panel, mock_request_chat
 ):
@@ -415,7 +415,8 @@ def test_run_sovereign_workflow_full_cycle(
         mdap_enabled=False,
         maker_enabled=False
     )
-    mock_render_manual_review_panel.return_value = (approved_plan, True) # Approved
+    # Return "pending" first to make workflow pause, then "approved" on subsequent calls
+    mock_render_manual_review_panel.side_effect = [("pending", approved_plan), ("approved", approved_plan)]
 
     # Mock solution generation
     mock_generate_solution.side_effect = [
@@ -487,7 +488,7 @@ def test_run_sovereign_workflow_full_cycle(
 @patch('workflow_engine.run_ai_decomposition')
 @patch('workflow_engine.run_gauntlet')
 @patch('workflow_engine.generate_solution_for_sub_problem')
-def test_run_sovereign_workflow_self_healing(
+async def test_run_sovereign_workflow_self_healing(
     mock_generate_solution, mock_run_gauntlet, mock_run_ai_decomposition,
     mock_run_content_analysis, mock_render_manual_review_panel, mock_request_chat
 ):
@@ -531,7 +532,8 @@ def test_run_sovereign_workflow_self_healing(
         mdap_enabled=False,
         maker_enabled=False
     )
-    mock_render_manual_review_panel.return_value = (approved_plan, True) # Approved
+    # Return "pending" first to make workflow pause, then "approved" on subsequent calls
+    mock_render_manual_review_panel.side_effect = [("pending", approved_plan), ("approved", approved_plan)]
 
     # Mock solution generation
     mock_generate_solution.side_effect = [

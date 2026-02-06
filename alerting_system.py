@@ -137,26 +137,54 @@ class NotificationConfig:
 class AlertStore:
     """Base class for alert storage."""
 
+    def __init__(self, db_path: Optional[str] = None):
+        """Initialize AlertStore.
+
+        Args:
+            db_path: Optional path to database file for persistent storage
+        """
+        self._alerts = {}
+        self.db_path = db_path
+        if db_path:
+            # Load from database if path provided
+            self._load_from_db()
+
+    def _load_from_db(self):
+        """Load alerts from database file."""
+        if self.db_path and Path(self.db_path).exists():
+            try:
+                with open(self.db_path, 'r') as f:
+                    data = json.load(f)
+                    for alert_data in data:
+                        alert = Alert.from_dict(alert_data)
+                        self._alerts[alert.id] = alert
+            except Exception as e:
+                logger.warning(f"Failed to load alerts from {self.db_path}: {e}")
+
+    def _save_to_db(self):
+        """Save alerts to database file."""
+        if self.db_path:
+            try:
+                with open(self.db_path, 'w') as f:
+                    alerts_data = [alert.to_dict() for alert in self._alerts.values()]
+                    json.dump(alerts_data, f, indent=2)
+            except Exception as e:
+                logger.error(f"Failed to save alerts to {self.db_path}: {e}")
+
     def save_alert(self, alert: Alert) -> bool:
         """Save an alert."""
         # Default implementation using in-memory storage
-        if not hasattr(self, '_alerts'):
-            self._alerts = {}
         self._alerts[alert.id] = alert
+        if self.db_path:
+            self._save_to_db()
         return True
 
     def get_alert(self, alert_id: str) -> Optional[Alert]:
         """Get an alert by ID."""
-        # Default implementation using in-memory storage
-        if not hasattr(self, '_alerts'):
-            self._alerts = {}
         return self._alerts.get(alert_id)
 
     def get_all_alerts(self) -> List[Alert]:
         """Get all alerts."""
-        # Default implementation using in-memory storage
-        if not hasattr(self, '_alerts'):
-            self._alerts = {}
         return list(self._alerts.values())
 
     def update_alert(self, alert: Alert) -> bool:

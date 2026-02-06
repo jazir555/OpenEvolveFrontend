@@ -337,11 +337,14 @@ class NeuromancerDynamicsModeler:
             
             # Fit linear model: y = A * x
             A, residuals, rank, s = lstsq(input_data, output_data)
-            
+
+            # Handle residuals (could be scalar or array)
+            residuals_sum = float(np.sum(residuals)) if hasattr(residuals, '__len__') else float(residuals)
+
             return {
                 'status': 'success',
                 'system_matrix': A.tolist(),
-                'residuals': float(residuals),
+                'residuals': residuals_sum,
                 'rank': rank,
                 'model_order': model_order
             }

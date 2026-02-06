@@ -18,7 +18,7 @@ import warnings
 import logging
 import re
 from typing import Any, Dict, List, Optional
-from leanaide_web3_status import collect_web3_formal_status
+from leanaide_web3_status import collect_web3_formal_status, merge_web3_formal_status
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -203,24 +203,24 @@ class LeanAideCAVNLPBridge:
         
         if self.use_unified_service and self.unified_service:
             result = await self.unified_service.formalize(text)
-            return {
+            return merge_web3_formal_status({
                 "success": result.success,
                 "lean_code": result.code,
                 "elaborated_code": result.elaborated_code,
                 "source": result.source,
                 "warnings": result.warnings
-            }
+            })
         elif self.use_cav_nlp and self.cav_nlp_bridge:
             # Use CAV-NLP pipeline directly
-            return self._translate_with_cav_nlp(text, is_theorem=True)
+            return merge_web3_formal_status(self._translate_with_cav_nlp(text, is_theorem=True))
         else:
             # Fallback
-            return {
+            return merge_web3_formal_status({
                 "success": True,
                 "lean_code": self._generate_fallback_code(text),
                 "source": "fallback",
                 "warnings": ["CAV-NLP not available - using basic template"]
-            }
+            })
     
     async def translate_def(self, text: str, **kwargs) -> Dict[str, Any]:
         """
@@ -243,24 +243,26 @@ class LeanAideCAVNLPBridge:
         
         if self.use_unified_service and self.unified_service:
             result = await self.unified_service.formalize(text)
-            return {
+            return merge_web3_formal_status({
                 "success": result.success,
                 "lean_code": result.code,
                 "elaborated_code": result.elaborated_code,
                 "source": result.source,
                 "warnings": result.warnings
-            }
+            })
         elif self.use_cav_nlp and self.cav_nlp_bridge:
             # Use CAV-NLP pipeline for definition
-            return self._translate_with_cav_nlp(text, is_theorem=False, is_definition=True)
+            return merge_web3_formal_status(
+                self._translate_with_cav_nlp(text, is_theorem=False, is_definition=True)
+            )
         else:
             # Fallback
-            return {
+            return merge_web3_formal_status({
                 "success": True,
                 "lean_code": self._generate_fallback_definition(text),
                 "source": "fallback",
                 "warnings": ["CAV-NLP not available - using basic template"]
-            }
+            })
     
     async def translate_thm_detailed(self, text: str, **kwargs) -> Dict[str, Any]:
         """
@@ -287,10 +289,12 @@ class LeanAideCAVNLPBridge:
         
         if self.use_cav_nlp and self.cav_nlp_bridge:
             # Use CAV-NLP pipeline with full details
-            return self._translate_with_cav_nlp(
-                text, 
-                is_theorem=True, 
-                detailed=True
+            return merge_web3_formal_status(
+                self._translate_with_cav_nlp(
+                    text,
+                    is_theorem=True,
+                    detailed=True
+                )
             )
         
         # Fallback to basic translation
@@ -300,7 +304,7 @@ class LeanAideCAVNLPBridge:
         result["semantic_primitives"] = []
         result["dependency_dag"] = None
         result["canonical_form"] = None
-        return result
+        return merge_web3_formal_status(result)
     
     # ========================================================================
     # Elaboration Methods (Delegated to LeanAide)
@@ -321,18 +325,18 @@ class LeanAideCAVNLPBridge:
         """
         if self.use_unified_service and self.unified_service:
             result = await self.unified_service.elaborate(code)
-            return {
+            return merge_web3_formal_status({
                 "success": result.success,
                 "elaborated_code": result.elaborated_code,
                 "info": result.info
-            }
+            })
         elif self.lean_client:
-            return await self.lean_client.elaborate(code, **kwargs)
+            return merge_web3_formal_status(await self.lean_client.elaborate(code, **kwargs))
         else:
-            return {
+            return merge_web3_formal_status({
                 "success": False,
                 "error": "Elaboration not available"
-            }
+            })
     
     # ========================================================================
     # Documentation Methods (Delegated to LeanAide)
@@ -353,18 +357,20 @@ class LeanAideCAVNLPBridge:
         """
         if self.use_unified_service and self.unified_service:
             result = await self.unified_service.generate_documentation(code)
-            return {
+            return merge_web3_formal_status({
                 "success": result.success,
                 "documentation": result.documentation,
                 "theorem_name": result.theorem_name
-            }
+            })
         elif self.lean_client:
-            return await self.lean_client.generate_documentation(code, **kwargs)
+            return merge_web3_formal_status(
+                await self.lean_client.generate_documentation(code, **kwargs)
+            )
         else:
-            return {
+            return merge_web3_formal_status({
                 "success": False,
                 "error": "Documentation generation not available"
-            }
+            })
     
     # ========================================================================
     # Verification Methods (Delegated to LeanAide)
@@ -386,20 +392,22 @@ class LeanAideCAVNLPBridge:
         if self.use_unified_service and self.unified_service:
             result = await self.unified_service.verify(code)
             if result:
-                return {
+                return merge_web3_formal_status({
                     "success": result.success,
                     "message": result.message if hasattr(result, 'message') else str(result.status),
                     "verified": result.success
-                }
+                })
             else:
-                return {"success": False, "error": "Verification returned None"}
+                return merge_web3_formal_status(
+                    {"success": False, "error": "Verification returned None"}
+                )
         elif self.lean_client:
-            return await self.lean_client.check_elaboration(code, **kwargs)
+            return merge_web3_formal_status(await self.lean_client.check_elaboration(code, **kwargs))
         else:
-            return {
+            return merge_web3_formal_status({
                 "success": False,
                 "error": "Verification not available"
-            }
+            })
     
     # ========================================================================
     # Utility Methods
