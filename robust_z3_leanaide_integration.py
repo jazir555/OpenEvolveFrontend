@@ -91,6 +91,16 @@ except ImportError:
         DSPY_AVAILABLE = False
         logger.warning("DSPy not available - using standard Z3-LeanAIDE bridging")
 
+# CAV-NLP imports
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+    logger.info("CAV-NLP integration available for enhanced verification")
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logger.warning("CAV-NLP integration not available")
+
 
 class VerificationStrategy(Enum):
     """Strategy for combined verification."""
@@ -151,9 +161,11 @@ class RobustZ3LeanAideBridge:
     - Cross-validation
     - Comprehensive error handling
     - Performance optimization
+    - CAV-NLP integration for hybrid verification
     """
 
-    def __init__(self):
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        self.config = config or {}
         self.z3_solver = None
         self.z3_prover = None
         self.lean_integrator = None
@@ -161,6 +173,19 @@ class RobustZ3LeanAideBridge:
         self.translation_cache = {}
         self.verification_cache = {}
         self.lock = threading.Lock()
+        
+        # CAV-NLP integration
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            try:
+                self.enhanced_solver = EnhancedZ3Solver()
+                self.math_service = UnifiedMathService()
+                logger.info("CAV-NLP components initialized successfully")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP components: {e}")
+                self.use_cav_nlp = False
+                self.enhanced_solver = None
+                self.math_service = None
         
         # Initialize Z3 components if available
         if Z3_INTEGRATION_AVAILABLE:
@@ -666,6 +691,20 @@ class RobustZ3LeanAideBridge:
             return True  # If only one result, consider valid
         except:
             return False
+
+    def robust_integrate_with_cav_nlp(self, z3_expr, lean_code):
+        """Robust integration with CAV-NLP fallback."""
+        if self.use_cav_nlp and self.enhanced_solver:
+            # Use CAV-NLP for hybrid verification
+            result = self.enhanced_solver.verify_with_lean([z3_expr])
+            return result
+        # Fallback to standard integration
+        return self.robust_translate_with_validation(
+            source_content=str(z3_expr),
+            source_format="smtlib",
+            target_format="lean",
+            validate_translation=True
+        )
 
     def robust_translate_with_validation(
         self,

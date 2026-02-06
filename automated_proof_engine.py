@@ -45,6 +45,15 @@ except ImportError:
     LEAN_AVAILABLE = False
     logging.warning("Lean4 integration not available - Lean strategies disabled")
 
+# Try to import CAV-NLP components
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logging.warning("CAV-NLP integration not available - CAV-NLP strategy disabled")
+
 try:
     from mathlib4_integration import Mathlib4Integration, ProofHint
     from mathlib4_integration import create_mathlib_integration

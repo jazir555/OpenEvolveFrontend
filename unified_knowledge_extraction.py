@@ -85,6 +85,16 @@ try:
 except ImportError:
     Z3_AVAILABLE = False
 
+# CAV-NLP imports
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+    logger.info("CAV-NLP integration available for enhanced knowledge extraction")
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logger.warning("CAV-NLP integration not available")
+
 # NetworkX
 try:
     import networkx as nx
@@ -901,6 +911,7 @@ class UnifiedKnowledgeExtractionEngine:
     - ML Pattern Clustering for pattern discovery
     - AI-Knowledge-Graph for graph storage
     - Temporal Persistence for versioning
+    - CAV-NLP for formalized knowledge extraction
     """
     
     def __init__(
@@ -934,6 +945,19 @@ class UnifiedKnowledgeExtractionEngine:
             self.config.get('temporal_storage_path'),
             self.config.get('temporal_backend', 'sqlite')
         ) if enable_temporal else None
+        
+        # CAV-NLP integration
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            try:
+                self.enhanced_solver = EnhancedZ3Solver()
+                self.math_service = UnifiedMathService()
+                logger.info("CAV-NLP components initialized successfully")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP components: {e}")
+                self.use_cav_nlp = False
+                self.enhanced_solver = None
+                self.math_service = None
         
         logger.info("UnifiedKnowledgeExtractionEngine initialized")
     
@@ -1099,6 +1123,54 @@ class UnifiedKnowledgeExtractionEngine:
         if self.aikg:
             self.aikg.shutdown()
         logger.info("UnifiedKnowledgeExtractionEngine shutdown")
+    
+    def extract_with_cav_nlp(self, text: str) -> Dict[str, Any]:
+        """Extract knowledge using CAV-NLP formalization."""
+        if self.use_cav_nlp and self.math_service:
+            formalized = self.math_service.formalize(text)
+            # Extract from formalized code
+            return self.extract_from_code(formalized.code)
+        # Fallback to standard extraction
+        result = self.extract(text)
+        return {
+            'entities': result.entities,
+            'relations': result.relations,
+            'patterns': result.patterns,
+            'source': 'standard_extraction'
+        }
+    
+    def extract_from_code(self, code: str) -> Dict[str, Any]:
+        """Extract knowledge from formalized code."""
+        # Pattern-based extraction from formalized code
+        import re
+        
+        entities = []
+        relations = []
+        
+        # Extract theorems/definitions as entities
+        theorem_pattern = r'theorem\s+(\w+)'
+        def_pattern = r'def\s+(\w+)'
+        
+        for match in re.finditer(theorem_pattern, code):
+            entities.append({
+                'text': match.group(1),
+                'type': 'THEOREM',
+                'source': 'cav_nlp_formalized'
+            })
+        
+        for match in re.finditer(def_pattern, code):
+            entities.append({
+                'text': match.group(1),
+                'type': 'DEFINITION',
+                'source': 'cav_nlp_formalized'
+            })
+        
+        return {
+            'entities': entities,
+            'relations': relations,
+            'source': 'cav_nlp',
+            'success': True
+        }
 
 
 # =============================================================================

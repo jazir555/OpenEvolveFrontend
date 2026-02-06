@@ -51,6 +51,16 @@ except ImportError:
     Z3_AVAILABLE = False
     logger.warning("Z3 integration not available")
 
+# CAV-NLP imports
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+    logger.info("CAV-NLP integration available for BubbleLabs UI")
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logger.warning("CAV-NLP integration not available")
+
 try:
     from z3_leanaide_bridge import (
         Z3LeanAideBridge, CombinedVerificationResult,
@@ -281,9 +291,11 @@ class Z3BubbleLabsUIManager:
     - Real-time updates
     - Visualization data generation
     - Event handling
+    - CAV-NLP enhanced UI components
     """
     
-    def __init__(self):
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        self.config = config or {}
         self._solver_states: Dict[str, Z3SolverNodeState] = {}
         self._prover_states: Dict[str, Z3TheoremProverNodeState] = {}
         self._cross_verify_states: Dict[str, CrossVerificationNodeState] = {}
@@ -297,6 +309,19 @@ class Z3BubbleLabsUIManager:
         self.z3_bridge = get_z3_leanaide_bridge_sync() if Z3_LEANAIDE_AVAILABLE else None
         self.full_integration = get_z3_leanaide_openevolve_integration() if FULL_INTEGRATION_AVAILABLE else None
         self.leanaide_bridge = get_leanaide_bridge() if BUBBLELABS_LEANAIDE_AVAILABLE else None
+        
+        # CAV-NLP integration
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            try:
+                self.enhanced_solver = EnhancedZ3Solver()
+                self.math_service = UnifiedMathService()
+                logger.info("CAV-NLP UI components initialized successfully")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP components: {e}")
+                self.use_cav_nlp = False
+                self.enhanced_solver = None
+                self.math_service = None
     
     def get_status(self) -> Dict[str, Any]:
         """Get UI manager status."""
@@ -761,6 +786,52 @@ class Z3BubbleLabsUIManager:
                 node_id: state.to_dict()
                 for node_id, state in self._cross_verify_states.items()
             }
+        }
+    
+    def create_cav_nlp_ui(self) -> Optional[Dict[str, Any]]:
+        """Create CAV-NLP enhanced UI components."""
+        if self.use_cav_nlp:
+            return {
+                "formalize_panel": self._create_formalize_panel(),
+                "verify_panel": self._create_verify_panel(),
+                "export_panel": self._create_export_panel()
+            }
+        return None
+    
+    def _create_formalize_panel(self) -> Dict[str, Any]:
+        """Create CAV-NLP formalization panel."""
+        return {
+            "type": "formalize_panel",
+            "title": "CAV-NLP Formalization",
+            "description": "Formalize natural language to Lean 4 code",
+            "inputs": ["natural_language_text"],
+            "outputs": ["formalized_code", "confidence_score"],
+            "icon": "📝",
+            "color": "#4f46e5"
+        }
+    
+    def _create_verify_panel(self) -> Dict[str, Any]:
+        """Create CAV-NLP verification panel."""
+        return {
+            "type": "verify_panel",
+            "title": "CAV-NLP Verification",
+            "description": "Verify constraints using enhanced Z3 solver",
+            "inputs": ["constraints", "expected_result"],
+            "outputs": ["verification_result", "proof", "counterexample"],
+            "icon": "✓",
+            "color": "#059669"
+        }
+    
+    def _create_export_panel(self) -> Dict[str, Any]:
+        """Create CAV-NLP export panel."""
+        return {
+            "type": "export_panel",
+            "title": "CAV-NLP Export",
+            "description": "Export formalized code to various formats",
+            "inputs": ["code", "target_format"],
+            "outputs": ["exported_code", "download_link"],
+            "icon": "📤",
+            "color": "#7c3aed"
         }
 
 

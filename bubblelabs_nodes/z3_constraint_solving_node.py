@@ -26,6 +26,14 @@ from bubblelabs_nodes.base_node import BubbleLabsNode, NodeExecutionError
 
 logger = logging.getLogger(__name__)
 
+# CAV-NLP imports
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 
 class Z3ConstraintSolvingNode(BubbleLabsNode):
     """

@@ -57,6 +57,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# CAV-NLP imports
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+    logger.info("CAV-NLP integration available for MCP server")
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logger.warning("CAV-NLP integration not available")
+
 # Try to import official MCP package
 try:
     original_path = sys.path.copy()
@@ -229,6 +239,28 @@ class MCPToolRegistry:
             logger.error(f"Error executing tool {name}: {e}")
             raise
     
+    def handle_z3_tool_with_cav_nlp(self, tool_name: str, params: Dict[str, Any]) -> Any:
+        """Handle Z3 tool with CAV-NLP enhancement."""
+        if self.use_cav_nlp and tool_name in ["z3_formalize", "z3_verify"]:
+            # Use CAV-NLP for formalization/verification
+            if tool_name == "z3_formalize":
+                result = self.math_service.formalize(params.get("text", ""))
+                return result.code
+            elif tool_name == "z3_verify":
+                result = self.enhanced_solver.verify_with_lean(params.get("constraints", []))
+                return result
+        # Standard handling - delegate to registered handler
+        handler = self._handlers.get(tool_name)
+        if handler:
+            import asyncio
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+            return loop.run_until_complete(handler(params))
+        raise ValueError(f"Tool '{tool_name}' not found")
+    
     async def execute(self, name: str, params: Dict[str, Any]) -> Any:
         """Execute a registered MCP tool (alias for execute_tool)."""
         try:
@@ -302,12 +334,29 @@ class UnifiedMCPServer:
     MODES:
     - Native: Uses official mcp>=1.0.0
     - Fallback: Native HTTP implementation
+    
+    FEATURES:
+    - CAV-NLP integration for enhanced Z3 tools
     """
     
-    def __init__(self, name: str = "OpenEvolve-Unified", mode: Optional[str] = None):
+    def __init__(self, name: str = "OpenEvolve-Unified", mode: Optional[str] = None, config: Optional[Dict[str, Any]] = None):
         self.name = name
         self.mode = mode or ("native" if MCP_AVAILABLE else "fallback")
+        self.config = config or {}
         self.registry = MCPToolRegistry()
+        
+        # CAV-NLP integration
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            try:
+                self.enhanced_solver = EnhancedZ3Solver()
+                self.math_service = UnifiedMathService()
+                logger.info("CAV-NLP components initialized successfully")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP components: {e}")
+                self.use_cav_nlp = False
+                self.enhanced_solver = None
+                self.math_service = None
         
         if self.mode == "native" and MCP_AVAILABLE:
             self.server = Server(name)
