@@ -1,7 +1,7 @@
 /**
  * OpenEvolve Main Dashboard Component for BubbleLab
  * 
- * This component replaces the Streamlit-based main dashboard UI
+ * This component replaces the BubbleLab UI-based main dashboard UI
  * with a React-based component for the BubbleLab plugin system.
  */
 

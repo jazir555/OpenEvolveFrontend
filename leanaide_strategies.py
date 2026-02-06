@@ -9,6 +9,7 @@ exploration and automated proof search. This library provides:
 - Strategy selection based on theorem characteristics
 - Strategy mutation and combination for evolution
 - Success rate tracking and learning
+- CAV-NLP enhanced strategies
 
 Author: LeanAide Evolutionary System
 Version: 1.0.0
@@ -28,6 +29,15 @@ import logging
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+# Add CAV-NLP imports with graceful fallback
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logger.warning("CAV-NLP integration not available - strategies will use standard methods")
 
 # ============================================================================
 # Enums and Data Structures
@@ -2308,6 +2318,192 @@ class EvolutionaryStrategyManagerMDAP(EvolutionaryStrategyManager):
             },
             "improvement": mdap_rate - pure_rate if pure_rate > 0 else 0.0
         }
+
+
+# ============================================================================
+# CAV-NLP Enhanced Strategy
+# ============================================================================
+
+class CAVNLPEnhancedStrategy(LeanProofStrategy):
+    """
+    CAV-NLP enhanced proof strategy.
+    
+    Uses CAV-NLP (Computer Algebra Verification + Natural Language Processing)
+    for enhanced proof generation and verification.
+    
+    Features:
+    - Semantic analysis of theorem statements
+    - Constraint-based proof guidance
+    - Enhanced formalization assistance
+    - Automated verification feedback
+    """
+
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        super().__init__(
+            name="cav_nlp_enhanced",
+            category=StrategyCategory.HYBRID,
+            description="CAV-NLP enhanced proof strategy with semantic analysis"
+        )
+        self.config = config or {}
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        
+        # Initialize CAV-NLP components if available
+        if self.use_cav_nlp:
+            try:
+                self.enhanced_solver = EnhancedZ3Solver()
+                self.math_service = UnifiedMathService()
+                logger.info("CAV-NLP components initialized for strategy")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP components: {e}")
+                self.use_cav_nlp = False
+
+    def is_applicable(self, context: ProofContext) -> float:
+        """
+        Check if CAV-NLP enhanced strategy is applicable.
+        
+        Returns higher scores for theorems that benefit from
+        semantic analysis and constraint-based reasoning.
+        """
+        if not self.use_cav_nlp:
+            return 0.0
+        
+        score = 0.3  # Base score when CAV-NLP is available
+        stmt_lower = context.theorem_statement.lower()
+        
+        # Complex mathematical statements benefit from CAV-NLP
+        if any(kw in stmt_lower for kw in ["forall", "exists", "implies", "iff"]):
+            score += 0.2
+        
+        # Algebraic domains
+        if context.domain in ["algebra", "analysis", "linear_algebra"]:
+            score += 0.2
+        
+        # Constraints and inequalities
+        if any(op in context.theorem_statement for op in ["≤", "≥", "<", ">", "="]):
+            score += 0.15
+        
+        # Difficulty-based
+        if context.difficulty in [ProofDifficulty.HARD, ProofDifficulty.VERY_HARD, ProofDifficulty.RESEARCH]:
+            score += 0.15
+        
+        return min(score, 1.0)
+
+    def generate_proof(self, context: ProofContext, params: Dict[str, Any] = None) -> LeanProof:
+        """
+        Generate proof using CAV-NLP enhancement.
+        
+        Uses semantic analysis to guide proof generation and
+        constraint checking to validate proof structure.
+        """
+        params = params or {}
+        
+        if not self.use_cav_nlp or not hasattr(self, 'math_service'):
+            # Fallback to basic strategy
+            return LeanProof(
+                tactic_sequence=["intro", "sorry"],
+                strategy_used=self,
+                error_message="CAV-NLP not available"
+            )
+        
+        try:
+            # Use math service for semantic analysis
+            analysis = self.math_service.analyze_theorem(
+                statement=context.theorem_statement,
+                context={
+                    "domain": context.domain,
+                    "difficulty": context.difficulty.value,
+                    "hypotheses": context.hypotheses
+                }
+            )
+            
+            # Generate tactics based on semantic analysis
+            suggested_tactics = analysis.get("suggested_tactics", [])
+            
+            if suggested_tactics:
+                tactics = suggested_tactics
+            else:
+                # Default CAV-NLP guided approach
+                tactics = self._generate_cav_nlp_guided_proof(context, analysis)
+            
+            return LeanProof(
+                tactic_sequence=tactics,
+                strategy_used=self,
+                success=True
+            )
+        
+        except Exception as e:
+            logger.error(f"CAV-NLP proof generation failed: {e}")
+            return LeanProof(
+                tactic_sequence=["intro", "sorry"],
+                strategy_used=self,
+                error_message=str(e)
+            )
+
+    def _generate_cav_nlp_guided_proof(self, context: ProofContext, analysis: Dict[str, Any]) -> List[str]:
+        """Generate proof tactics based on CAV-NLP analysis."""
+        tactics = []
+        
+        # Extract semantic features
+        features = analysis.get("features", {})
+        
+        # Add intro tactics if needed
+        if features.get("has_quantifiers", False):
+            tactics.append("intro x")
+        
+        # Add domain-specific tactics
+        if context.domain == "algebra":
+            if features.get("has_equality", False):
+                tactics.append("ring_nf")
+        
+        # Add verification tactic
+        if features.get("is_decidable", False):
+            tactics.append("decide")
+        else:
+            tactics.append("aesop")
+        
+        return tactics
+
+    def verify_with_cav_nlp(self, proof: LeanProof, context: ProofContext) -> Dict[str, Any]:
+        """
+        Verify a proof using CAV-NLP.
+        
+        Args:
+            proof: The proof to verify
+            context: The proof context
+            
+        Returns:
+            Verification results with confidence scores
+        """
+        if not self.use_cav_nlp or not hasattr(self, 'enhanced_solver'):
+            return {
+                "verified": False,
+                "cav_nlp_available": False,
+                "confidence": 0.0
+            }
+        
+        try:
+            # Use enhanced solver for verification
+            result = self.enhanced_solver.verify_proof(
+                proof_code="\n".join(proof.tactic_sequence),
+                theorem_statement=context.theorem_statement,
+                timeout_ms=self.config.get("solver_timeout", 5000)
+            )
+            
+            return {
+                "verified": result.get("verified", False),
+                "cav_nlp_available": True,
+                "confidence": result.get("confidence", 0.5),
+                "details": result.get("details", {})
+            }
+        
+        except Exception as e:
+            logger.error(f"CAV-NLP verification failed: {e}")
+            return {
+                "verified": False,
+                "cav_nlp_available": True,
+                "error": str(e),
+                "confidence": 0.0
+            }
 
 
 # ============================================================================

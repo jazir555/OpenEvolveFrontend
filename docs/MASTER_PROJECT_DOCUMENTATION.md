@@ -102,7 +102,7 @@ OpenEvolve exists to **tackle humanity's most challenging problems** through:
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                        USER INTERFACE LAYER                                  │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │
-│  │  Streamlit   │  │   BubbleLab  │  │     CLI      │  │   REST API   │    │
+│  │  BubbleLab UI   │  │   BubbleLab  │  │     CLI      │  │   REST API   │    │
 │  │     UI       │  │  (Visual)    │  │  Interface   │  │   Gateway    │    │
 │  └──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘    │
 └──────────────────────────────────┬──────────────────────────────────────────┘
@@ -533,7 +533,7 @@ p_full = p_sub^(s/m)            # Full workflow success
 | Component | Technology | Version |
 |-----------|------------|---------|
 | **Language** | Python | >=3.10 |
-| **Web UI** | Streamlit | Latest |
+| **Web UI** | BubbleLab UI | Latest |
 | **API Framework** | FastAPI | >=0.104.0 |
 | **Database** | SQLite/PostgreSQL | - |
 | **Cache** | Redis | 7.x |
@@ -566,7 +566,7 @@ z3-solver>=4.12.0
 fastapi>=0.104.0
 uvicorn[standard]>=0.24.0
 sqlalchemy>=2.0.0
-streamlit
+BubbleLab UI
 numpy>=1.24.0
 pandas>=2.0.0
 pyyaml>=6.0.1
@@ -585,7 +585,7 @@ langchain>=1.2.0
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        Client Layer                             │
-│  (Streamlit UI, External Apps, CLI, SDKs)                       │
+│  (BubbleLab UI UI, External Apps, CLI, SDKs)                       │
 └────────────────────────────┬────────────────────────────────────┘
                              │
         ┌────────────────────┼────────────────────┐
@@ -904,3 +904,4 @@ The system is **ready for enterprise deployment** after addressing the identifie
 ---
 
 *This master document provides a complete accounting of all OpenEvolve components, architecture, tech stack, and integration points. For detailed implementation guidance, refer to the specific system documentation in the respective directories.*
+

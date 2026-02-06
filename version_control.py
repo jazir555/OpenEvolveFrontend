@@ -350,7 +350,7 @@ version_control = VersionControl()
 
 def render_version_control():
     """
-    Renders the version control section in the Streamlit UI.
+    Renders the version control section in the UI UI.
     Allows users to view history, load versions, branch, and compare.
     """
     st.header("📜 Version Control")
@@ -487,3 +487,4 @@ def render_version_control():
             st.write(f"**Comment:** {current['comment']}")
     else:
         st.info("No current version loaded")
+

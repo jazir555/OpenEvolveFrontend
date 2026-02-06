@@ -5,7 +5,7 @@ This document provides an overview of all Python files in the OpenEvolve fronten
 ## Core Application Files
 
 ### `main.py`
-**Purpose**: Main entry point for the Streamlit application. Sets up the UI configuration, initializes session state, starts backend services, and renders the main layout.
+**Purpose**: Main entry point for the BubbleLab UI application. Sets up the UI configuration, initializes session state, starts backend services, and renders the main layout.
 
 ### `app.py`
 **Purpose**: Demo application that demonstrates OpenEvolve functionality with a simple content analysis and improvement workflow.
@@ -20,7 +20,7 @@ This document provides an overview of all Python files in the OpenEvolve fronten
 **Purpose**: Manages the application's sidebar UI elements, including parameter settings, provider selection, and evolution configuration options. Handles hierarchical settings (Global -> Provider -> Model) and provides default parameters for generation and evolution.
 
 ### `mainlayout.py`
-**Purpose**: Renders the main layout of the Streamlit application, including content display areas, control panels, and evolution visualization components. Contains the primary UI rendering logic.
+**Purpose**: Renders the main layout of the BubbleLab UI application, including content display areas, control panels, and evolution visualization components. Contains the primary UI rendering logic.
 
 ### `adversarial.py`
 **Purpose**: Implements the adversarial generation functionality with "AI peer review" concept. Manages red team (critique), blue team (improve), and evaluator AI roles for iterative content improvement. Includes functions for running adversarial testing and integrated adversarial evolution, along with report generation capabilities.

@@ -115,7 +115,7 @@ gantt
 **Recommendation**: ❌ **DEFER** (Score: -2)
 **Rationale**:
 - 60-70% overlap with existing systems (ROMA, ACE, Steer, Knowledge Engine)
-- Architectural mismatch (Electron+React+TS vs Python+Streamlit)
+- Architectural mismatch (Electron+React+TS vs Python+BubbleLab UI)
 - 3-5 weeks integration overhead for niche value
 - LeanAide already integrated and can be enhanced for 80% of FRM's value
 
@@ -202,14 +202,14 @@ gantt
 - **Strong Fit for Component 3**: 95% coverage of SolutionPatternMiner (UMAP + DBSCAN)
 - **Saves 6+ Weeks**: Professional-grade visualization and ML pipeline
 - **GPU Acceleration**: 100X+ speedup with cuML
-- **Production-Ready**: Battle-tested, BSD license, Streamlit-compatible
+- **Production-Ready**: Battle-tested, BSD license, BubbleLab UI-compatible
 
 **Value Proposition**:
 - Interactive web-based graph visualization (millions of nodes)
 - UMAP embeddings + DBSCAN clustering with GPU support
 - DataFrame-native Graph Query Language (GFQL)
 - 20+ database connectors (Neo4j, Neptune, PostgreSQL)
-- Direct iframe embedding for Streamlit
+- Direct iframe embedding for BubbleLab UI
 
 **Components Provided**:
 - Component 3 (SolutionPatternMiner): 95% - UMAP embeddings, DBSCAN clustering, nearest neighbor search
@@ -217,7 +217,7 @@ gantt
 
 **Effort**: 2-3 weeks
 - Week 1: Component 3 (UMAP + DBSCAN integration)
-- Week 2: Component 6 (KnowledgeGraphVisualizer + Streamlit)
+- Week 2: Component 6 (KnowledgeGraphVisualizer + BubbleLab UI)
 - Week 3: Testing, documentation, GPU acceleration
 
 ---
@@ -491,7 +491,7 @@ FRM Reassessment (P5) - LOWEST PRIORITY
    - NetworkX graph building
    - PyVis/Plotly visualization
    - Community detection (Louvain)
-   - Streamlit UI integration
+   - BubbleLab UI UI integration
 
 #### Success Criteria
 
@@ -1500,7 +1500,7 @@ gantt
 **Recommendation**: ❌ **DEFER** (Score: -2)
 **Rationale**:
 - 60-70% overlap with existing systems (ROMA, ACE, Steer, Knowledge Engine)
-- Architectural mismatch (Electron+React+TS vs Python+Streamlit)
+- Architectural mismatch (Electron+React+TS vs Python+BubbleLab UI)
 - 3-5 weeks integration overhead for niche value
 - LeanAide already integrated and can be enhanced for 80% of FRM's value
 
@@ -1587,14 +1587,14 @@ gantt
 - **Strong Fit for Component 3**: 95% coverage of SolutionPatternMiner (UMAP + DBSCAN)
 - **Saves 6+ Weeks**: Professional-grade visualization and ML pipeline
 - **GPU Acceleration**: 100X+ speedup with cuML
-- **Production-Ready**: Battle-tested, BSD license, Streamlit-compatible
+- **Production-Ready**: Battle-tested, BSD license, BubbleLab UI-compatible
 
 **Value Proposition**:
 - Interactive web-based graph visualization (millions of nodes)
 - UMAP embeddings + DBSCAN clustering with GPU support
 - DataFrame-native Graph Query Language (GFQL)
 - 20+ database connectors (Neo4j, Neptune, PostgreSQL)
-- Direct iframe embedding for Streamlit
+- Direct iframe embedding for BubbleLab UI
 
 **Components Provided**:
 - Component 3 (SolutionPatternMiner): 95% - UMAP embeddings, DBSCAN clustering, nearest neighbor search
@@ -1602,7 +1602,7 @@ gantt
 
 **Effort**: 2-3 weeks
 - Week 1: Component 3 (UMAP + DBSCAN integration)
-- Week 2: Component 6 (KnowledgeGraphVisualizer + Streamlit)
+- Week 2: Component 6 (KnowledgeGraphVisualizer + BubbleLab UI)
 - Week 3: Testing, documentation, GPU acceleration
 
 ---
@@ -1876,7 +1876,7 @@ FRM Reassessment (P5) - LOWEST PRIORITY
    - NetworkX graph building
    - PyVis/Plotly visualization
    - Community detection (Louvain)
-   - Streamlit UI integration
+   - BubbleLab UI UI integration
 
 #### Success Criteria
 
@@ -2769,3 +2769,4 @@ Detailed task breakdowns are in:
 **Version History**:
 - 1.0 (2025-12-31): Initial roadmap creation
 >>>>>>> 1cb9c5e35 (update)
+

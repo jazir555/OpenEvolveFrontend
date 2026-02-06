@@ -150,10 +150,10 @@ async def example_3_graph_visualization():
         show_labels=True
     )
 
-    # In Streamlit, you would do:
+    # In UI, you would do:
     # st.plotly_chart(fig, use_container_width=True)
 
-    print("\nVisualization created (use Streamlit to display)")
+    print("\nVisualization created (use UI to display)")
 
     # Find shortest path
     path = visualizer.find_shortest_path("MCTS", "Decomposition")
@@ -411,3 +411,4 @@ if __name__ == "__main__":
     # asyncio.run(example_1_basic_query())
     # asyncio.run(example_2_knowledge_extraction())
     # etc.
+

@@ -320,7 +320,7 @@ class KnowledgeArtifact:
   - PyVis HTML
 
 - **UI Integration**:
-  - Streamlit-compatible
+  - BubbleLab UI-compatible
   - Web-based interface
   - Zoom/pan controls
   - Node detail view
@@ -471,8 +471,8 @@ When you find potential projects, evaluate them using this scoring system:
   - 5 points: Python bindings for another language
   - 0 points: Other language only
 
-- [ ] **Streamlit-compatible** (5 points)
-  - Can it integrate with Streamlit UI?
+- [ ] **BubbleLab UI-compatible** (5 points)
+  - Can it integrate with BubbleLab UI UI?
 
 - [ ] **API/Extensibility** (5 points)
   - 5 points: Well-documented API, easy to extend
@@ -712,7 +712,7 @@ Copy this template for each project you find:
 
 ### Architectural Fit (___/20)
 - Python-based: [yes/no/partial]
-- Streamlit-compatible: [yes/no]
+- BubbleLab UI-compatible: [yes/no]
 - API/Extensibility: [score]
 
 ### Integration Complexity (___/15)
@@ -763,4 +763,5 @@ If you meet these criteria, you've successfully found projects to accelerate Kno
 **Last Updated**: 2025-12-31
 **Status**: Ready for Project Search
 **Next Action**: Begin GitHub search using provided queries
+
 

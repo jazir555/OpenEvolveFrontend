@@ -266,7 +266,7 @@ All 7 external projects have been successfully integrated into OpenEvolve using 
 - GPU acceleration with cuML (RAPIDS)
 - UMAP dimensionality reduction
 - DBSCAN clustering
-- Streamlit iframe embedding
+- BubbleLab UI iframe embedding
 - Graph analytics (centrality, community detection)
 
 **Impact**:
@@ -518,7 +518,7 @@ viz_url = await visualizer.visualize_knowledge_graph(
     gpu_acceleration=True
 )
 
-# Embed in Streamlit
+# Embed in BubbleLab UI
 st.pyplot(viz_url)
 ```
 
@@ -976,3 +976,4 @@ All integrations are **production-ready** and follow best practices for maintain
 **Agents**: 8 Specialist Agents (1 Orchestrator + 7 Integration Specialists)
 
 **END OF MASTER INTEGRATION REPORT**
+

@@ -666,7 +666,7 @@ class KnowledgeExtractionWorkflow:
 
 class BubbleLabsKnowledgeUI:
     """
-    Streamlit UI components for knowledge exploration in BubbleLabs.
+    UI UI components for knowledge exploration in BubbleLabs.
 
     Provides:
     - Knowledge graph visualization
@@ -1139,3 +1139,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -230,7 +230,7 @@ The integration ensures:
 ### Complete Workflow:
 
 ```
-1. User opens Streamlit app
+1. User opens BubbleLab UI app
    ↓
 2. Navigates to "BubbleLabs Workflows" tab
    ↓
@@ -357,3 +357,4 @@ All 272 OpenEvolve parameters are properly configured in the BubbleLabs UI, pass
 ---
 
 *End of Integration Documentation*
+

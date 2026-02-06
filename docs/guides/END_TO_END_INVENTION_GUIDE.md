@@ -955,7 +955,7 @@ Professional-grade graph visualization and ML for knowledge graphs.
 - GPU acceleration (100X+ speedup via cuGraph)
 - UMAP embeddings for vector representations
 - DBSCAN clustering for pattern discovery
-- Streamlit iframe embedding for dashboards
+- BubbleLab UI iframe embedding for dashboards
 - Filtering, styling, and exploration tools
 
 **Used in:**
@@ -3383,5 +3383,6 @@ This document itself is the proof:
 19. DeepKE - Named Entity Recognition/Relation Extraction
 20. ai-knowledge-graph - Graph Processing
 21. [... See MASTER_INTEGRATION_ROADMAP.md for complete list]
+
 
 

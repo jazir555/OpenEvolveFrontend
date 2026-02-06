@@ -273,7 +273,7 @@ flask
 ```
 
 ### Project Dependencies That Use OpenEvolve
-- streamlit==1.36.0
+- BubbleLab UI==1.36.0
 - openai==1.35.11
 - optillm>=0.3.0
 
@@ -315,3 +315,4 @@ See `OPENEVOLVE_INTEGRATION_TODO.md` for detailed fix steps.
 
 **Last Updated:** 2025-12-29
 **Status:** 🔴 CRITICAL ISSUES FOUND - IMMEDIATE ACTION REQUIRED
+

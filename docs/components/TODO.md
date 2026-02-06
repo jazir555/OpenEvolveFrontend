@@ -7,7 +7,7 @@ This document tracks the implementation of the workflow detailed in `SOVEREIGN_G
 - [x] Create `workflow_structures.py` to define core data objects (Team, GauntletDefinition, etc.).
 - [x] Create `team_manager.py` to handle the logic for creating, reading, updating, and deleting Teams.
 - [x] Create `gauntlet_manager.py` to handle the logic for managing Gauntlet definitions.
-- [x] Create `ui_components.py` to house the Streamlit UI components for the Team Manager and Gauntlet Designer.
+- [x] Create `ui_components.py` to house the BubbleLab UI UI components for the Team Manager and Gauntlet Designer.
 - [x] Modify `openevolve_orchestrator.py` to integrate the new UI components for team and gauntlet management under the "Configuration" tab.
 
 ## Phase 2: Workflow Engine Implementation
@@ -34,3 +34,4 @@ This document tracks the implementation of the workflow detailed in `SOVEREIGN_G
 - [ ] Perform comprehensive integration testing to ensure all components work together as described in the design document. A placeholder test file `comprehensive_integration_test.py` has been created as a guide for manual/UI-driven testing.
 - [ ] Consider implementing LLM response caching for performance optimization.
 - [ ] Remove any remaining placeholder code and finalize the implementation.
+

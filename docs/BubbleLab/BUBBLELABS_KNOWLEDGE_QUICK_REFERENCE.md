@@ -2,14 +2,14 @@
 
 ## 🚀 Quick Start (5 minutes)
 
-### Python (Streamlit)
+### Python (BubbleLab UI)
 ```bash
 # 1. Install
-pip install streamlit plotly networkx pandas boto3
+pip install BubbleLab UI plotly networkx pandas boto3
 
 # 2. Configure API keys in mcp_agent.secrets.yaml
 # 3. Run
-streamlit run bubblelabs_knowledge_integration.py
+BubbleLab UI run bubblelabs_knowledge_integration.py
 ```
 
 ### TypeScript (React)
@@ -89,7 +89,7 @@ results = await ui.query_interface.unified_query(
 
 ## 🎨 UI Components
 
-### Streamlit Tabs
+### BubbleLab UI Tabs
 1. **🔍 Query Knowledge** - Multi-source querying interface
 2. **📊 Knowledge Graph** - Interactive visualization
 3. **📄 Extract Knowledge** - Document processing
@@ -278,3 +278,4 @@ KnowledgeQueryInterface     # Query interface
 ---
 
 **Quick Reference v1.0** - Last Updated: 2026-01-03
+

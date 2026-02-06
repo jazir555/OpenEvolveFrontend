@@ -89,7 +89,7 @@ Failed: 0 (0%)
 **UI Component:**
 - ✅ BubbleLabsWorkflowUI class functional
 - ✅ render_workflow_visualizer method available
-- ✅ Streamlit integration verified
+- ✅ BubbleLab UI integration verified
 
 **Data Structures:**
 - ✅ Nodes are dictionaries with proper structure
@@ -115,7 +115,7 @@ Failed: 0 (0%)
 ### Integration Files
 ```
 ✅ bubblelabs_integration.py          - Core integration logic
-✅ bubblelabs_ui_component.py        - Streamlit UI component
+✅ bubblelabs_ui_component.py        - BubbleLab UI UI component
 ✅ openevolve_bubblelabs_api.py      - API bridge
 ✅ start_bubblelabs_integration.py   - Launcher script
 ✅ main.py                            - Integrated in "BubbleLabs Workflows" tab
@@ -257,7 +257,7 @@ api.resume_workflow_instance(instance_id)
 api.cancel_workflow_instance(instance_id)
 ```
 
-### Use in Streamlit UI
+### Use in BubbleLab UI UI
 ```python
 from bubblelabs_ui_component import BubbleLabsWorkflowUI
 
@@ -281,7 +281,7 @@ python test_bubblelabs_complete_validation.py
 
 ### Start OpenEvolve with BubbleLabs
 ```bash
-python -m streamlit run main.py --server.port 8501
+python -m BubbleLab UI run main.py --server.port 8501
 ```
 
 Then navigate to "BubbleLabs Workflows" tab in the UI.
@@ -404,7 +404,7 @@ The following are **OPTIONAL** enhancements that could be added if needed:
 ### ✅ Ready to Use
 ```bash
 # Start using BubbleLabs integration now
-python -m streamlit run main.py --server.port 8501
+python -m BubbleLab UI run main.py --server.port 8501
 # Navigate to "BubbleLabs Workflows" tab
 ```
 
@@ -429,3 +429,4 @@ All requested tasks have been completed:
 ---
 
 **End of Validation Report**
+

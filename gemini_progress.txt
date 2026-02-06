@@ -1,4 +1,4 @@
-# Task: Fix all blank tabs in the Streamlit application.
+# Task: Fix all blank tabs in the BubbleLab UI application.
 
 ## Progress:
 
@@ -25,3 +25,4 @@
         - [ ] Remove the redundant `with tabs[X]:` blocks from the end of `render_main_layout()`. This includes the `with tabs[8]` and `with tabs[9]` blocks that contain the more extensive analytics and openevolve dashboard implementations.
     - [ ] Ensure that the `else` block in `render_main_layout()` correctly calls the now-updated `render_*_tab()` functions for all tabs from `tabs[1]` to `tabs[10]`.
     - [ ] Verify the content for `tabs[0]` (Evolution) is correctly rendered within its `with tabs[0]:` block in the `else` statement.
+

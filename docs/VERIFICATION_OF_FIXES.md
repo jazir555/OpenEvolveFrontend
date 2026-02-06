@@ -704,13 +704,13 @@ def _control_workflow_local(self, instance_id: str, action: str):
         action: Action to perform
 
     Side Effects:
-        - Updates Streamlit session state (st.session_state.active_sovereign_workflow)
+        - Updates BubbleLab UI session state (st.session_state.active_sovereign_workflow)
         - Calls st.success(), st.warning(), st.error()
         - Calls st.rerun() to refresh UI
         - May delete workflow from session state on cancel
 
     Note:
-        This method directly manipulates Streamlit session state and triggers UI refresh.
+        This method directly manipulates BubbleLab UI session state and triggers UI refresh.
     """
     # Check for the active sovereign workflow (primary OpenEvolve pattern)
     if "active_sovereign_workflow" in st.session_state:
@@ -792,3 +792,4 @@ To complete all fixes:
 
 **Verification Document Generated:** 2025-12-29
 **Status:** Complete documentation of all 23 fixes
+

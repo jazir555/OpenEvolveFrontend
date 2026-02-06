@@ -1,7 +1,7 @@
 /**
  * OpenEvolve UI Components Page for BubbleLab
  * 
- * This component replaces the Streamlit-based UI components page
+ * This component replaces the BubbleLab UI-based UI components page
  * with a React-based component for the BubbleLab plugin system.
  */
 

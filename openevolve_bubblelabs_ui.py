@@ -26,7 +26,7 @@ from bubblelabs_crewai_bridge import BubbleLabsTicketConfig
 # =============================================================================
 
 def init_session_state():
-    """Initialize Streamlit session state for OpenEvolve workflows."""
+    """Initialize UI session state for OpenEvolve workflows."""
     if 'openevolve_workflow_manager' not in st.session_state:
         st.session_state.openevolve_workflow_manager = OpenEvolveWorkflowManager(
             analytics_db_path='openevolve_analytics.db',
@@ -595,7 +595,7 @@ def add_openevolve_to_sidebar():
 # =============================================================================
 
 def main():
-    """Run as standalone Streamlit app."""
+    """Run as standalone UI app."""
     st.set_page_config(
         page_title="OpenEvolve Workflow Manager",
         page_icon="🔬",
@@ -612,3 +612,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

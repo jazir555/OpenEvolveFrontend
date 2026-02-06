@@ -135,7 +135,7 @@ Analyze FRM's potential across the ENTIRE 7-stage Decomposition Workflow, not ju
   - Does FRM's equation modeling approach complement ROMA's recursive decomposition?
 
 **Stage 2: Manual Review & Override**
-- Current integrations: Streamlit UI
+- Current integrations: BubbleLab UI UI
 - Current capabilities: Human review interface, edit controls
 - Potential FRM contributions:
   - Schema-driven validation interface
@@ -240,7 +240,7 @@ Assess technical feasibility of integration:
 **Architecture Mismatch**:
 - FRM: Electron + React + TypeScript (JavaScript ecosystem)
 - LeanAide: Python + Lean 4
-- OpenEvolve: Python + Streamlit
+- OpenEvolve: Python + BubbleLab UI
 
 **Questions to Answer**:
 1. Can FRM be integrated without major architectural changes?
@@ -420,3 +420,4 @@ For questions about this task:
 **Assigned To**: Agent Team (Unassigned)
 **Reviewers**: OpenEvolve Integration Team
 **Status**: **OPEN** - Awaiting Assignment
+

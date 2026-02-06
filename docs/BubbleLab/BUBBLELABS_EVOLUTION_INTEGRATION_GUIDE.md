@@ -189,7 +189,7 @@ The BubbleLabs Evolution & Adversarial Integration provides a comprehensive UI f
 
 ```bash
 # Core dependencies
-pip install streamlit plotly pandas numpy
+pip install BubbleLab UI plotly pandas numpy
 
 # OpenEvolve dependencies
 pip install openai anthropic
@@ -218,7 +218,7 @@ export ANTHROPIC_API_KEY="your-api-key"
 3. Run the integration:
 
 ```bash
-streamlit run bubblelabs_evolution_integration.py
+BubbleLab UI run bubblelabs_evolution_integration.py
 ```
 
 ---
@@ -229,7 +229,7 @@ streamlit run bubblelabs_evolution_integration.py
 
 1. **Launch the Dashboard**:
    ```bash
-   streamlit run bubblelabs_evolution_integration.py
+   BubbleLab UI run bubblelabs_evolution_integration.py
    ```
 
 2. **Navigate to Evolution Workflows**:
@@ -978,3 +978,4 @@ For issues, questions, or contributions:
 **Authors:** OpenEvolve Frontend Team
 
 **Last Updated:** 2025-01-03
+

@@ -1048,11 +1048,11 @@ class BubbleLabsEvolutionIntegration:
 
 
 # =============================================================================
-# STREAMLIT PAGE FUNCTIONS
+# UI PAGE FUNCTIONS
 # =============================================================================
 
 def main():
-    """Main Streamlit page function"""
+    """Main UI page function"""
     st.set_page_config(
         page_title="BubbleLabs Evolution Integration",
         page_icon="🧬",
@@ -1073,3 +1073,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

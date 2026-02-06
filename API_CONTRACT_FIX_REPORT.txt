@@ -92,7 +92,7 @@ CATEGORY 3: BEHAVIORAL CONTRACT VIOLATIONS (5 fixes)
 
 19. [FIXED] bubblelabs_ui_component.py:778 - Side effects not documented
     _control_workflow_local() calls st.success(), st.warning(), st.rerun()
-    FIX: Added "Side Effects:" section documenting Streamlit calls
+    FIX: Added "Side Effects:" section documenting BubbleLab UI calls
 
 20. [FIXED] bubblelabs_mcp_tools.py:445 - Performance not documented
     list_bubblelabs_workflows() - generator use not mentioned
@@ -278,3 +278,4 @@ MAINTENANCE NOTES
 ================================================================================
 END OF REPORT
 ================================================================================
+

@@ -624,7 +624,7 @@ workflow_data = {
 
 ### Caching
 
-Use Streamlit's caching for expensive operations:
+Use BubbleLab UI's caching for expensive operations:
 
 ```python
 @st.cache_data(ttl=300)
@@ -698,3 +698,4 @@ For issues or questions:
 ## License
 
 This implementation is part of the OpenEvolve Decomposition Workflow system.
+

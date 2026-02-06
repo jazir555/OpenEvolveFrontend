@@ -187,7 +187,7 @@ User Input (Problem Statement)
 │  - Human reviews and adjusts plan                           │
 │  - Can approve, modify, or reject                           │
 │  - Configurable via UI                                      │
-│  Components: Streamlit UI                                   │
+│  Components: BubbleLab UI UI                                   │
 └─────────────────────────────────────────────────────────────┘
          │
          ▼ Approved Plan
@@ -316,7 +316,7 @@ class TicketType(Enum):
 **Location:** `main.py`, `openevolve_orchestrator.py`, `openevolve_dashboard.py`
 
 **Key Capabilities:**
-- ✅ Streamlit-based UI for all workflow stages
+- ✅ BubbleLab UI-based UI for all workflow stages
 - ✅ Team configuration and management
 - ✅ Gauntlet definition and execution
 - ✅ Real-time monitoring and progress tracking
@@ -326,7 +326,7 @@ class TicketType(Enum):
 **Core Components:**
 ```python
 # Main entry point
-main.py                               # Streamlit application
+main.py                               # BubbleLab UI application
 
 # Orchestration
 openevolve_orchestrator.py            # Service management
@@ -1190,7 +1190,7 @@ ClaraVerse = Clara Agent Studio (GUI) + Clara Flow SDK (Node.js)
 |-------|-------------------|----------------------|---------|
 | **Stage 0: Content Analysis** | ROMA, Knowledge Engine, ACE | RAGbits, DataPizza, LeanAide | Analyze problem context and extract requirements |
 | **Stage 1: AI-Assisted Decomposition** | ROMA, ACE, Claudiomiro | LeanAide, DataPizza | Generate sub-problems with dependencies |
-| **Stage 2: Manual Review** | OpenEvolve UI, Hephaestus | Streamlit | Human oversight and approval |
+| **Stage 2: Manual Review** | OpenEvolve UI, Hephaestus | BubbleLab UI | Human oversight and approval |
 | **Stage 3A: Solution Generation** | Claudiomiro, ROMA, DataPizza | Knowledge Engine, ACE, LeanAide | Generate solutions for each sub-problem |
 | **Stage 3B: Critique (Red Team)** | ACE, Steer, DataPizza | ROMA, LeanAide | Critique solutions for flaws |
 | **Stage 3C: Verification (Gold Team)** | Steer, Knowledge Engine, DataPizza | ACE, LeanAide | Verify solution quality |
@@ -1665,7 +1665,7 @@ By Stage:
 ```
 OpenEvolve/Frontend/
 ├── Main System
-│   ├── main.py                           # Streamlit entry point
+│   ├── main.py                           # BubbleLab UI entry point
 │   ├── workflow_structures.py             # Core data structures
 │   ├── problem_analyzer.py               # Problem analysis
 │   ├── decomposition_engine.py           # Decomposition logic
@@ -1828,4 +1828,5 @@ The MCTS-MDAP system integrates with the decomposition workflow:
 5. **Stage 5**: Validate with Lean 4 server
 
 This hybrid approach enables automated proving of complex theorems that would be intractable for pure MCTS or pure decomposition approaches.
+
 

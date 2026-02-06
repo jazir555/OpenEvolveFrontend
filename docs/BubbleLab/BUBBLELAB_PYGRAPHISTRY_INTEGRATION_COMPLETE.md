@@ -80,7 +80,7 @@ const url = await pygraphistryPlugin.generateVisualization({
 
 ✅ **GPU-Accelerated Visualization**: Uses cuML for fast UMAP embeddings and DBSCAN clustering
 ✅ **Clustering Pipeline**: Automated UMAP + DBSCAN clustering for pattern detection
-✅ **Interactive Dashboards**: Rich, interactive visualizations with Streamlit embedding
+✅ **Interactive Dashboards**: Rich, interactive visualizations with BubbleLab UI embedding
 ✅ **Fallback Support**: Graceful degradation to Plotly when PyGraphistry unavailable
 ✅ **API Integration**: Seamless connection between frontend and backend
 ✅ **BubbleLab Plugin**: TypeScript plugin for BubbleLab UI integration

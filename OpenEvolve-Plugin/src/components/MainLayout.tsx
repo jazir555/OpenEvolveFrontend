@@ -1,7 +1,7 @@
 /**
  * OpenEvolve Main Layout Component for BubbleLab
  * 
- * This component replaces the Streamlit-based main layout
+ * This component replaces the BubbleLab UI-based main layout
  * with a React-based component for the BubbleLab plugin system.
  */
 

@@ -1591,7 +1591,7 @@ class RBACSystem:
 
 
 # ============================================================================
-# STREAMLIT INTEGRATION
+# UI INTEGRATION
 # ============================================================================
 
 class UIRBAC:
@@ -2010,3 +2010,4 @@ if __name__ == "__main__":
 
     # Run examples
     example_basic_usage()
+

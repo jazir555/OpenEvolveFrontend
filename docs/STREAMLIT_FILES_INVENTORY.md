@@ -1,15 +1,15 @@
-# STREAMLIT FILES INVENTORY
-## Complete Catalog of All Streamlit UI Files for Migration to BubbleLab
+# BubbleLab UI FILES INVENTORY
+## Complete Catalog of All BubbleLab UI UI Files for Migration to BubbleLab
 
 **Generated:** 2025-01-05
 **Agent:** Discovery & Audit Agent
-**Mission:** Catalog all Streamlit code for migration to TypeScript/React BubbleLab UI
+**Mission:** Catalog all BubbleLab UI code for migration to TypeScript/React BubbleLab UI
 
 ---
 
 ## EXECUTIVE SUMMARY
 
-**Total Streamlit Files Found:** 96 application files (excluding library dependencies)
+**Total BubbleLab UI Files Found:** 96 application files (excluding library dependencies)
 
 ### Breakdown by Module:
 - **Core OpenEvolve UI:** 42 files
@@ -36,7 +36,7 @@
 
 **Purpose:** Primary application entry point. Initializes backend services, manages session state, and renders main UI layout.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.set_page_config()` - Page configuration (wide layout)
 - `st.markdown(custom_css, unsafe_allow_html=True)` - Custom CSS injection
 - `st.info()`, `st.warning()`, `st.error()` - Status messages
@@ -95,7 +95,7 @@
 
 **Purpose:** Main layout renderer. Handles all core UI components including evolution, adversarial testing, content management, and analytics.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.form()` - Form containers for user input
 - `st.text_area()`, `st.text_input()` - Content and parameter input
 - `st.number_input()` - Numeric parameters
@@ -113,7 +113,7 @@
 - `st.session_state` - Extensive state management
 - `st_autorefresh` - Auto-refresh for real-time updates
 - `st_tags` - Tag input for feature dimensions
-- `html()` from `streamlit.components.v1` - Custom HTML injection
+- `html()` from `BubbleLab UI.components.v1` - Custom HTML injection
 
 **Backend Functions Called:**
 - `OpenEvolveAPI` - Main API client for backend communication
@@ -179,7 +179,7 @@
 
 **Purpose:** Sidebar configuration UI for LLM providers, API keys, model selection, and parameter tuning.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.sidebar` - All sidebar-specific components
 - `st.selectbox()` - Provider and model selection
 - `st.text_input()` - API key input (type="password")
@@ -234,7 +234,7 @@
 
 **Purpose:** Reusable UI components for team management, gauntlet configuration, and workflow visualization.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.header()`, `st.subheader()` - Section headings
 - `st.form()` - Team/Gauntlet creation forms
 - `st.text_input()`, `st.text_area()` - Configuration input
@@ -289,7 +289,7 @@
 
 **Purpose:** Evolutionary optimization UI for content improvement using genetic algorithms and multi-model ensembles.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.tabs()` - Evolution modes (Standard, Quality-Diversity, Island Model)
 - `st.form()` - Evolution parameter input
 - `st.text_area()` - Initial content input
@@ -345,7 +345,7 @@
 
 **Purpose:** Adversarial testing UI with red team/blue team methodology for content hardening.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.columns()` - Red team / Blue team layout
 - `st.form()` - Attack mode and defense configuration
 - `st.text_area()` - Content input for testing
@@ -403,7 +403,7 @@
 
 **Purpose:** Unified workflow UI combining evolution, adversarial testing, and quality assessment.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.tabs()` - Workflow stages (Plan → Evolve → Test → Evaluate)
 - `st.form()` - Workflow configuration
 - `st.text_area()` - Problem statement and content input
@@ -463,7 +463,7 @@
 
 **Purpose:** Main dashboard UI showing system status, performance metrics, and recent activity.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.metrics()` - Key metric cards (evolutions run, tests passed, etc.)
 - `st.plotly_chart()` - Performance trend charts
 - `st.dataframe()` - Recent activity table
@@ -511,7 +511,7 @@
 
 **Purpose:** Detailed analytics UI with custom reports, filtering, and data export.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.selectbox()`, `st.multiselect()` - Filter controls
 - `st.date_input()` - Date range selection
 - `st.button()` - Apply filters, export data
@@ -554,7 +554,7 @@
 
 **Purpose:** Real-time system monitoring with logs, resource usage, and service health.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.status()` - Service health indicators
 - `st.progress()` - CPU, memory, disk usage
 - `st.log_viewer` - Custom log viewer (if available)
@@ -607,7 +607,7 @@
 
 **Purpose:** Real-time collaboration UI for multi-user editing, commenting, and project sharing.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.chat()` - Real-time chat (if available)
 - `st.text_area()` - Collaborative editing
 - `st.text_input()` - Comment input
@@ -655,7 +655,7 @@
 
 **Purpose:** Version control UI for content history, branching, and tagging.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.selectbox()` - Version/branch selection
 - `st.button()` - Create branch, create tag, revert
 - `st.diff_viewer()` - Version diff display (custom component)
@@ -707,7 +707,7 @@
 
 **Purpose:** Main LeanAide application UI for Lean 4 proof generation and verification.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.Page()` - Multi-page application navigation
 - `st.navigation()` - Page routing
 - `st.sidebar` - LLM credentials and configuration
@@ -757,7 +757,7 @@
 
 **Purpose:** Home page tab for LeanAide with main proof generation interface.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.text_area()` - Theorem and proof input
 - `st.button()` - Generate proof, verify proof
 - `st.columns()` - Input/output layout
@@ -795,7 +795,7 @@
 
 **Purpose:** Benchmarking tab for evaluating Lean 4 proof generation performance.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.file_uploader()` - Benchmark dataset upload
 - `st.selectbox()` - Benchmark selection
 - `st.button()` - Run benchmark
@@ -835,7 +835,7 @@
 
 **Purpose:** Structured JSON output tab for proof generation results.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.json()` - JSON display
 - `st.code()` - JSON code block
 - `st.download_button()` - Download JSON
@@ -868,7 +868,7 @@
 
 **Purpose:** Server response viewer for debugging API interactions.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.code()` - API response display
 - `st.text_area()` - Request/response body
 - `st.json()` - JSON response
@@ -900,7 +900,7 @@
 
 **Purpose:** Log viewer tab for application logs.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.text_area()` - Log display (read-only)
 - `st.selectbox()` - Log level filtering
 - `st.button()` - Refresh, clear, download logs
@@ -931,7 +931,7 @@
 
 **Purpose:** Token response viewer for LLM token streaming.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.text_area()` - Token stream display
 - `st.code()` - Token code display
 - `st.button()` - Start/stop streaming
@@ -968,7 +968,7 @@
 
 **Purpose:** OneKE knowledge extraction application UI for schema-guided extraction.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.set_page_config()` - Page configuration
 - `st.markdown()` - Rich text/HTML content
 - `st.sidebar` - Configuration sidebar
@@ -1007,7 +1007,7 @@
 - `neo4j` - Graph database driver
 - `pyvis.network` - Network visualization
 - `networkx` - Graph manipulation
-- `streamlit.components.v1` - Custom components
+- `BubbleLab UI.components.v1` - Custom components
 
 **Migration Notes:**
 - Knowledge extraction becomes React form + API call
@@ -1028,7 +1028,7 @@
 
 **Purpose:** OneKE sidebar for configuration and settings.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.sidebar` - All sidebar components
 - `st.selectbox()` - Model and provider selection
 - `st.text_input()` - API keys and endpoints
@@ -1066,7 +1066,7 @@
 
 **Purpose:** Results display component for extracted knowledge.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.tabs()` - Results views (JSON, Graph, Tables)
 - `st.json()` - JSON results
 - `st.plotly_chart()` - Graph visualization
@@ -1102,7 +1102,7 @@
 
 **Purpose:** Proxy configuration component for network settings.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.checkbox()` - Enable/disable proxy
 - `st.text_input()` - Proxy host and port
 - `st.button()` - Apply proxy settings
@@ -1138,7 +1138,7 @@
 
 **Purpose:** BubbleLab workflow integration UI for visual workflow creation.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.tabs()` - Workflow sections
 - `st.form()` - Workflow configuration
 - `st.text_area()` - Node configuration
@@ -1174,7 +1174,7 @@
 
 **Purpose:** n8n workflow integration UI for visual automation.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.iframe()` - n8n UI embedding
 - `st.form()` - Workflow configuration
 - `st.text_input()` - n8n instance URL
@@ -1208,7 +1208,7 @@
 
 **Purpose:** Demo application showcasing OpenEvolve features.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.tabs()` - Feature demos
 - `st.text_area()` - Demo input
 - `st.button()` - Run demo
@@ -1239,7 +1239,7 @@
 
 **Purpose:** OpenEvolve BubbleLab integration UI.
 
-**Streamlit Components Used:**
+**BubbleLab UI Components Used:**
 - `st.columns()` - Layout
 - `st.form()` - Integration configuration
 - `st.selectbox()` - Integration type
@@ -1287,7 +1287,7 @@
 
 ---
 
-## SECTION 9: STREAMLIT COMPONENT USAGE SUMMARY
+## SECTION 9: BubbleLab UI COMPONENT USAGE SUMMARY
 
 ### 9.1 Most Commonly Used Components
 
@@ -1502,7 +1502,7 @@ Frontend/
 
 ---
 
-## APPENDIX B: STREAMLIT TO REACT COMPONENT MAPPING
+## APPENDIX B: BubbleLab UI TO REACT COMPONENT MAPPING
 
 **See COMPONENT_MAPPING_MATRIX.md for detailed mapping.**
 
@@ -1512,3 +1512,4 @@ Frontend/
 
 **Last Updated:** 2025-01-05
 **Status:** COMPLETE - Ready for Agent 2 (Backend API Design)
+

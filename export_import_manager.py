@@ -416,7 +416,7 @@ export_import_manager = ExportImportManager()
 
 def render_export_import_manager():
     """
-    Renders the export/import manager section in the Streamlit UI.
+    Renders the export/import manager section in the UI UI.
     Allows users to export project data or import existing projects.
     """
     st.header("📦 Export/Import Manager")
@@ -629,3 +629,4 @@ def render_export_import_manager():
                     st.error("Invalid backup file format.")
     
     st.info("💡 Pro Tip: Regularly backup your projects to prevent data loss. Export your work before major changes.")
+

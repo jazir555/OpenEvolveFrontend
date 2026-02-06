@@ -210,7 +210,7 @@ openevolve/
 - Interactive web-based graph visualization
 - GPU acceleration with cuML
 - UMAP embeddings + DBSCAN clustering
-- Streamlit iframe embedding
+- BubbleLab UI iframe embedding
 - Zero modifications to pygraphistry source
 
 ---
@@ -543,3 +543,4 @@ Each agent should:
 ---
 
 **END OF TASK SPECIFICATION**
+

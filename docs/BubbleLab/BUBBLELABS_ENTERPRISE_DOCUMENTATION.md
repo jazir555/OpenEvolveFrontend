@@ -4,7 +4,7 @@
 
 The OpenEvolve BubbleLabs Integration represents a paradigm shift in AI workflow management, providing unprecedented control and visualization capabilities for enterprise AI operations. This integration seamlessly connects the OpenEvolve platform's sophisticated evolutionary computing capabilities with BubbleLabs' advanced workflow visualization and control systems.
 
-The integration delivers a unified interface where every configuration parameter, control knob, and workflow component available in the OpenEvolve Streamlit UI is fully accessible, manageable, and controllable through the enhanced BubbleLabs interface. This creates an enterprise-grade solution for managing complex AI workflows with superior visualization, monitoring, and control capabilities.
+The integration delivers a unified interface where every configuration parameter, control knob, and workflow component available in the OpenEvolve BubbleLab UI UI is fully accessible, manageable, and controllable through the enhanced BubbleLabs interface. This creates an enterprise-grade solution for managing complex AI workflows with superior visualization, monitoring, and control capabilities.
 
 ## Business Value Proposition
 
@@ -64,7 +64,7 @@ The integration implements a distributed architecture connecting multiple layers
 ### Core Components
 
 #### 1. Parameter Synchronization Engine
-**Purpose**: Maintains perfect synchronization between Streamlit UI and BubbleLabs UI
+**Purpose**: Maintains perfect synchronization between BubbleLab UI UI and BubbleLabs UI
 **Key Features**:
 - Bi-directional real-time parameter sync
 - Conflict detection and intelligent resolution
@@ -124,7 +124,7 @@ The integration implements a comprehensive API layer that ensures seamless commu
 
 ### Provider Configuration Parameters
 
-| Streamlit Control | BubbleLabs Control | Type | Range/Options | Default | Synchronization |
+| BubbleLab UI Control | BubbleLabs Control | Type | Range/Options | Default | Synchronization |
 |------------------|-------------------|------|---------------|---------|-----------------|
 | Provider Selection | Provider Dropdown | Dropdown | All available providers | First available | Real-time bidirectional |
 | API Key | Secure Text Input | Password | Valid API key format | "" | Real-time bidirectional |
@@ -138,7 +138,7 @@ The integration implements a comprehensive API layer that ensures seamless commu
 
 ### Generation Parameters
 
-| Streamlit Control | BubbleLabs Control | Type | Range/Options | Default | Synchronization |
+| BubbleLab UI Control | BubbleLabs Control | Type | Range/Options | Default | Synchronization |
 |------------------|-------------------|------|---------------|---------|-----------------|
 | Temperature | Temperature Slider | Slider | 0.0-2.0 (0.1 steps) | 0.7 | Real-time bidirectional |
 | Top-P | Top-P Slider | Slider | 0.0-1.0 (0.1 steps) | 1.0 | Real-time bidirectional |
@@ -150,7 +150,7 @@ The integration implements a comprehensive API layer that ensures seamless commu
 
 ### Evolution Parameters
 
-| Streamlit Control | BubbleLabs Control | Type | Range/Options | Default | Synchronization |
+| BubbleLab UI Control | BubbleLabs Control | Type | Range/Options | Default | Synchronization |
 |------------------|-------------------|------|---------------|---------|-----------------|
 | Max Iterations | Max Iterations Input | Number | 1-200 | 100 | Real-time bidirectional |
 | Population Size | Population Size Input | Number | 1-100 | 50 | Real-time bidirectional |
@@ -170,7 +170,7 @@ The integration implements a comprehensive API layer that ensures seamless commu
 
 ### Advanced Evolution Parameters
 
-| Streamlit Control | BubbleLabs Control | Type | Range/Options | Default | Synchronization |
+| BubbleLab UI Control | BubbleLabs Control | Type | Range/Options | Default | Synchronization |
 |------------------|-------------------|------|---------------|---------|-----------------|
 | Quality-Diversity Evolution | QD Evolution Checkbox | Checkbox | True/False | False | Real-time bidirectional |
 | Multi-Objective Optimization | MO Optimization Checkbox | Checkbox | True/False | False | Real-time bidirectional |
@@ -197,7 +197,7 @@ The integration implements a comprehensive API layer that ensures seamless commu
 
 ### Performance Optimization Parameters
 
-| Streamlit Control | BubbleLabs Control | Type | Range/Options | Default | Synchronization |
+| BubbleLab UI Control | BubbleLabs Control | Type | Range/Options | Default | Synchronization |
 |------------------|-------------------|------|---------------|---------|-----------------|
 | Memory Limit (MB) | Memory Limit Input | Number | 100-32768 | 2048 | Real-time bidirectional |
 | CPU Limit | CPU Limit Slider | Slider | 0.1-32.0 (0.1 steps) | 4.0 | Real-time bidirectional |
@@ -208,7 +208,7 @@ The integration implements a comprehensive API layer that ensures seamless commu
 
 ### Adversarial Testing Parameters
 
-| Streamlit Control | BubbleLabs Control | Type | Range/Options | Default | Synchronization |
+| BubbleLab UI Control | BubbleLabs Control | Type | Range/Options | Default | Synchronization |
 |------------------|-------------------|------|---------------|---------|-----------------|
 | Red Team Models | Red Team Multiselect | Multi-select | All available models | ["claude-3-sonnet"] | Real-time bidirectional |
 | Blue Team Models | Blue Team Multiselect | Multi-select | All available models | ["gpt-4o"] | Real-time bidirectional |
@@ -563,6 +563,6 @@ Plain Text    AES-256     TLS 1.3/HTTPS    AES-256 at Rest
 
 ## Conclusion
 
-The OpenEvolve BubbleLabs Integration represents a significant advancement in enterprise AI workflow management, providing complete, total, and seamless control over every aspect of the OpenEvolve platform through an intuitive and powerful BubbleLabs interface. The integration ensures that every configuration knob, control, and parameter available in the Streamlit UI is fully accessible and manageable through the BubbleLabs UI, while providing enhanced visualization, monitoring, and control capabilities.
+The OpenEvolve BubbleLabs Integration represents a significant advancement in enterprise AI workflow management, providing complete, total, and seamless control over every aspect of the OpenEvolve platform through an intuitive and powerful BubbleLabs interface. The integration ensures that every configuration knob, control, and parameter available in the BubbleLab UI UI is fully accessible and manageable through the BubbleLabs UI, while providing enhanced visualization, monitoring, and control capabilities.
 
 The comprehensive architecture, detailed parameter mapping, advanced workflow control system, and enterprise-grade security and performance features make this integration a powerful tool for managing complex AI workflows at enterprise scale. The system is designed for extensibility, maintainability, and continuous evolution to meet future enterprise AI management needs.

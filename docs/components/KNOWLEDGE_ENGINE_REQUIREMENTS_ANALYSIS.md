@@ -772,7 +772,7 @@ pandas                    # Data manipulation
 # Visualization
 networkx                  # Graph algorithms
 plotly                    # Interactive visualizations
-streamlit                 # UI (if using Streamlit)
+BubbleLab UI                 # UI (if using BubbleLab UI)
 
 # Storage
 qdrant-client             # Vector database (via RAGbits)
@@ -887,3 +887,4 @@ The combination of **agentic-context-engine + ragbits + existing knowledge_engin
 **Last Updated:** 2025-12-29
 **Author:** Claude Code Analysis
 **Status:** Draft for Review
+

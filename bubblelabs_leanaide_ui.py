@@ -45,7 +45,7 @@ except ImportError:
 
 class LeanAideUIComponent:
     """
-    Streamlit UI component for LeanAide integration in BubbleLabs.
+    UI UI component for LeanAide integration in BubbleLabs.
 
     Provides panels and controls for:
     - LeanAide task execution
@@ -657,3 +657,4 @@ if __name__ == "__main__":
     print(f"MCTS Available: {MCTS_AVAILABLE}")
     print(f"MDAP Available: {MDAP_AVAILABLE}")
     print(f"Lean4 Available: {LEAN4_AVAILABLE}")
+

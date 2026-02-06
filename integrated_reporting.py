@@ -225,7 +225,7 @@ def generate_integrated_report(integrated_results: Dict[str, Any]) -> str:
 
 def render_integrated_analytics_dashboard():
     """
-    Render an analytics dashboard for the integrated workflow in Streamlit.
+    Render an analytics dashboard for the integrated workflow in UI.
     """
     st.header("📊 Integrated Workflow Analytics Dashboard")
     
@@ -459,3 +459,4 @@ def calculate_detailed_metrics(integrated_results: Dict[str, Any]) -> Dict[str, 
     metrics["cost_per_char_improvement"] = cost_per_char_improvement
     
     return metrics
+

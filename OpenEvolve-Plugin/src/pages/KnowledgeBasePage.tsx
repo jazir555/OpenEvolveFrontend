@@ -1,7 +1,7 @@
 /**
  * OpenEvolve Knowledge Base Component for BubbleLab
  * 
- * This component replaces the Streamlit-based knowledge base UI
+ * This component replaces the BubbleLab UI-based knowledge base UI
  * with a React-based component for the BubbleLab plugin system.
  */
 

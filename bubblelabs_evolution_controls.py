@@ -47,7 +47,7 @@ class EvolutionControlState:
 
 class EvolutionControlPanel:
     """
-    Streamlit component for evolution parameter controls.
+    UI component for evolution parameter controls.
 
     Provides organized controls for all evolution parameters with
     real-time validation and preset configurations.
@@ -96,7 +96,7 @@ class EvolutionControlPanel:
         Render the evolution control panel.
 
         Args:
-            key_prefix: Prefix for Streamlit keys to avoid conflicts
+            key_prefix: Prefix for UI keys to avoid conflicts
 
         Returns:
             EvolutionControlState with current parameter values
@@ -693,3 +693,4 @@ class AdversarialControlPanel:
                     st.markdown(f"**Description:** {fix.get('description', 'N/A')}")
                     if fix.get('code_changes'):
                         st.code(fix['code_changes'], language="python")
+

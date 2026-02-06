@@ -221,7 +221,7 @@ leanclient                     # Lean 4 integration
 pandas==2.3.3                  # Data manipulation
 matplotlib==3.10.7             # Plotting
 seaborn==0.13.2                # Statistical visualization
-streamlit==1.36.0              # Web UI
+BubbleLab UI==1.36.0              # Web UI
 plotly==5.22.0                 # Interactive plots
 boto3==1.34.140                # AWS SDK
 google-cloud-aiplatform==1.59.0  # Google AI
@@ -473,7 +473,7 @@ except ValueError as e:
 
 **Critical third-party packages:**
 
-1. **streamlit** (Required)
+1. **BubbleLab UI** (Required)
    - Used: UI components
    - Graceful degradation: ❌ No
    - Issue: Core UI dependency
@@ -543,8 +543,8 @@ except ValueError as e:
    - Issue: Code uses both old and new API patterns
    - Status: ⚠️ Inconsistent usage
 
-3. **Streamlit Version:**
-   - Required: `streamlit==1.36.0`
+3. **BubbleLab UI Version:**
+   - Required: `BubbleLab UI==1.36.0`
    - Current: Latest is 1.40.0
    - Issue: May be missing bug fixes
    - Status: ⚠️ Consider updating
@@ -553,7 +553,7 @@ except ValueError as e:
 
 **No major conflicts detected**, but potential issues:
 - `matplotlib` and `seaborn` version alignment
-- `plotly` version compatibility with streamlit
+- `plotly` version compatibility with BubbleLab UI
 - `boto3` and `botocore` version sync
 
 ---
@@ -758,7 +758,7 @@ optillm>=0.3.0
 # =============================================================================
 # Web Framework (Required for UI)
 # =============================================================================
-streamlit>=1.36.0,<2.0.0
+BubbleLab UI>=1.36.0,<2.0.0
 plotly>=5.22.0,<6.0.0
 
 # =============================================================================
@@ -1013,3 +1013,4 @@ However, there are **critical areas requiring immediate attention**:
 *End of Analysis*
 *Generated: 2025-12-29*
 *Analyzer: Claude (Anthropic)*
+

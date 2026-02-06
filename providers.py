@@ -17,7 +17,7 @@ PROVIDERS: Dict[str, Dict[str, Any]] = {
 
 def render_provider_settings():
     """
-    Renders the provider settings section in the Streamlit UI.
+    Renders the provider settings section in the UI UI.
     Allows users to configure API keys, select models, etc., for various AI providers.
     """
 
@@ -137,3 +137,4 @@ def render_provider_settings():
                 st.success("Provider settings updated!")
     
     st.info("💡 Pro Tip: Always keep your API keys secure and never share them publicly.")
+

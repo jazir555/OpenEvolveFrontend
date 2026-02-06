@@ -4,10 +4,10 @@
 
 ```bash
 # Run the integration
-streamlit run bubblelabs_evolution_integration.py
+BubbleLab UI run bubblelabs_evolution_integration.py
 
 # Run with specific port
-streamlit run bubblelabs_evolution_integration.py --server.port 8502
+BubbleLab UI run bubblelabs_evolution_integration.py --server.port 8502
 ```
 
 ## Common Workflows
@@ -196,7 +196,7 @@ def performance_fitness(code: str) -> float:
 - Clear task history
 - Disable fitness_history tracking
 
-## Keyboard Shortcuts (Streamlit)
+## Keyboard Shortcuts (BubbleLab UI)
 
 | Action | Shortcut |
 |--------|----------|
@@ -344,3 +344,4 @@ integration.render_evolution_dashboard()
 ### Examples
 - See GUIDE.md for detailed examples
 - Template system has working examples
+

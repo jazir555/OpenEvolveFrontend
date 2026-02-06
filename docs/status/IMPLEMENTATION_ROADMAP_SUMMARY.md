@@ -14,7 +14,7 @@
 - Highest priority gap (Stage 6) not addressed by FRM
 - LeanAide is underutilized and can be enhanced for 80% of FRM's value
 - 60-70% redundancy with existing integrations (ROMA, ACE, Steer, KE)
-- Architectural mismatch (Electron+React vs Python+Streamlit)
+- Architectural mismatch (Electron+React vs Python+BubbleLab UI)
 - 3-5 weeks integration effort with high maintenance burden
 
 ---
@@ -282,3 +282,4 @@ Reconsider FRM integration **ONLY after**:
 **Status**: Ready for Implementation
 **Next Action**: Start Phase 1 (KnowledgeArtifact Schema) and Phase 2 (Continuous Math Detection)
 **Review Date**: After Phase 1 and Phase 2 complete (~15-18 weeks)
+

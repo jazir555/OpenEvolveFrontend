@@ -19,7 +19,7 @@ Based on the Decomposition_Workflow.md design document (Section 4.0), the follow
 **Implementation Needed**:
 - `render_analytics_dashboard()` in ui_components.py
 - Integration with analytics_dashboard.py and analytics_data.py
-- Charts using Plotly/Streamlit charts
+- Charts using Plotly/BubbleLab UI charts
 - Data aggregation from workflow history
 
 ### 2. Knowledge Base Interface (Section 4.7) ❌
@@ -193,7 +193,8 @@ Based on the Decomposition_Workflow.md design document (Section 4.0), the follow
 ## Notes
 
 - All backend functionality already exists
-- Main work is creating Streamlit UI wrappers
+- Main work is creating BubbleLab UI UI wrappers
 - Integration is straightforward
 - Testing will be primarily manual/UI-driven
 - Documentation should be updated after implementation
+

@@ -29,7 +29,7 @@
       "file": "evolution.py",
       "line": 1621,
       "function": "create_evolution_configuration_from_session",
-      "import": "streamlit"
+      "import": "BubbleLab UI"
     },
     {
       "file": "evolution.py",
@@ -95,7 +95,7 @@
       "file": "adversarial.py",
       "line": 945,
       "function": "create_adversarial_configuration_from_session",
-      "import": "streamlit"
+      "import": "BubbleLab UI"
     },
     {
       "file": "adversarial.py",

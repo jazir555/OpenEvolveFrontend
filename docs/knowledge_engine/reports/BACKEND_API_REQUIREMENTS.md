@@ -1,5 +1,5 @@
 # BACKEND API REQUIREMENTS
-## Complete API Specification for Streamlit to BubbleLab Migration
+## Complete API Specification for BubbleLab UI to BubbleLab Migration
 
 **Generated:** 2025-01-05
 **Agent:** Discovery & Audit Agent
@@ -9,7 +9,7 @@
 
 ## EXECUTIVE SUMMARY
 
-This document specifies all backend API endpoints required to support the BubbleLab UI migration from Streamlit. The backend engines remain unchanged (Python), but new REST APIs and WebSocket connections must be exposed for the React/TypeScript frontend.
+This document specifies all backend API endpoints required to support the BubbleLab UI migration from BubbleLab UI. The backend engines remain unchanged (Python), but new REST APIs and WebSocket connections must be exposed for the React/TypeScript frontend.
 
 **Total API Endpoints Required:** 87 endpoints
 **WebSocket Channels Required:** 12 channels
@@ -23,7 +23,7 @@ This document specifies all backend API endpoints required to support the Bubble
 
 ```
 ┌─────────────────┐
-│  Streamlit UI   │
+│  BubbleLab UI UI   │
 │   (Python)      │
 └────────┬────────┘
          │ Direct Python imports
@@ -1301,7 +1301,7 @@ List endpoints support pagination with these query parameters:
 
 - Authentication guide
 - Quick start guide
-- Migration guide from Streamlit
+- Migration guide from BubbleLab UI
 - Best practices and patterns
 
 ---
@@ -1432,3 +1432,4 @@ class EvolutionStatus(BaseModel):
 
 **Last Updated:** 2025-01-05
 **Status:** COMPLETE - Ready for Agent 2 (Backend API Implementation)
+

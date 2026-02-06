@@ -65,7 +65,7 @@ def _update_adv_log_and_status(message: str) -> None:
 # In logging_util.py - IDENTICAL
 def _update_adv_log_and_status(message: str) -> None:
     """Update adversarial log and status message in a thread-safe manner."""
-    import streamlit as st
+    import BubbleLab UI as st
     with st.session_state.thread_lock:
         if "adversarial_log" not in st.session_state:
             st.session_state.adversarial_log = []
@@ -1516,3 +1516,4 @@ For questions or clarification on any consolidation opportunity, contact:
 ---
 
 **END OF REPORT**
+

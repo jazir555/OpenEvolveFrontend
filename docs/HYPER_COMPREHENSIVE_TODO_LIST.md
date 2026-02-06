@@ -728,7 +728,7 @@
   - Estimated Time: 2 hours
   - Success Criteria: Exports to Graphviz format
 
-#### 6.2 Implement Streamlit Visualization
+#### 6.2 Implement BubbleLab UI Visualization
 
 - [ ] Task 6.2.1: Add render_knowledge_graph_viz() to ui_components.py
   - Subtasks:
@@ -738,7 +738,7 @@
     - [ ] 6.2.1.4: Render using st.graphviz_chart()
   - Dependencies: Task 6.1.4
   - Estimated Time: 3 hours
-  - Success Criteria: Renders in Streamlit
+  - Success Criteria: Renders in BubbleLab UI
 
 - [ ] Task 6.2.2: Add interactive features
   - Subtasks:
@@ -2476,3 +2476,4 @@ Reconsider FRM integration **ONLY after**:
 **Last Updated**: 2025-12-31
 **Total Tasks**: 500+ tasks documented
 **Status**: READY FOR IMPLEMENTATION
+

@@ -11,7 +11,7 @@
 The BubbleLab integration in the OpenEvolve Frontend is a **substantially implemented but incomplete workflow automation system**. The overall integration consists of two distinct components:
 
 1. **Embedded BubbleLab Monorepo** (75% complete) - A full-featured, standalone workflow builder
-2. **OpenEvolve Integration Layer** (70% complete) - Python-based Streamlit integration
+2. **OpenEvolve Integration Layer** (70% complete) - Python-based BubbleLab UI integration
 
 ### Overall Completion: 72.5%
 
@@ -108,14 +108,14 @@ userName: 'User', // TODO: Get from auth context
 
 ### 2.1 Integration Architecture
 
-The OpenEvolve application (Python/Streamlit) integrates with BubbleLab through a **parallel UI system** rather than deep architectural integration.
+The OpenEvolve application (Python/BubbleLab UI) integrates with BubbleLab through a **parallel UI system** rather than deep architectural integration.
 
 #### **Integration Files (Outside BubbleLab Folder)**
 
 | File | Purpose | Integration Level |
 |------|---------|-------------------|
 | `main.py` | Entry point, tabbed navigation | **Medium** |
-| `bubblelabs_ui_component.py` | Streamlit UI wrapper for BubbleLab | **High** |
+| `bubblelabs_ui_component.py` | BubbleLab UI UI wrapper for BubbleLab | **High** |
 | `openevolve_bubblelabs_api.py` | API integration layer | **High** |
 | `parameter_sync_manager.py` | Bi-directional parameter sync | **High** |
 | `workflow_visualization.py` | Visualization components | **Medium** |
@@ -127,7 +127,7 @@ The OpenEvolve application (Python/Streamlit) integrates with BubbleLab through 
 #### **What Works (70-75% Complete)**
 
 ✅ **Tabbed Navigation:** BubbleLab accessible via dedicated tab in main app
-✅ **Parameter Synchronization:** Bi-directional sync between Streamlit and BubbleLab UIs
+✅ **Parameter Synchronization:** Bi-directional sync between BubbleLab UI and BubbleLab UIs
 ✅ **API Endpoints:** RESTful API connecting OpenEvolve backend to BubbleLab
 ✅ **Security Measures:** XSS prevention, parameter whitelisting
 ✅ **State Machine Validation:** Workflow transition validation
@@ -144,7 +144,7 @@ The OpenEvolve application (Python/Streamlit) integrates with BubbleLab through 
 ❌ **Parallel Systems Rather Than Integration:**
 - BubbleLab exists as separate UI layer, not deeply integrated
 - Parameter management duplicated in both UIs
-- No deep integration with core Streamlit components
+- No deep integration with core BubbleLab UI components
 - Creates confusion for users (which UI to use?)
 
 ❌ **Missing Deep Integration:**
@@ -168,7 +168,7 @@ The OpenEvolve application (Python/Streamlit) integrates with BubbleLab through 
 #### **1. Separation Concerns**
 ```
 OpenEvolve App
-├── Streamlit UI (Primary)
+├── BubbleLab UI UI (Primary)
 ├── ─────────────────────
 └── BubbleLab UI (Parallel System)
 ```
@@ -192,7 +192,7 @@ except Exception as e:
 **Problem:** Integration failures default to legacy UI, suggesting instability
 
 #### **3. Parameter Duplication**
-- Streamlit sidebar parameters
+- BubbleLab UI sidebar parameters
 - BubbleLab UI parameters
 - Requires bi-directional sync (complexity source)
 - Risk of synchronization conflicts
@@ -285,7 +285,7 @@ except Exception as e:
 Proposed Architecture:
 OpenEvolve App
 └── Unified UI Layer
-    ├── Streamlit Components (for simple forms)
+    ├── BubbleLab UI Components (for simple forms)
     └── BubbleLab Components (for complex workflows)
         └── Shared state management
         └── Unified routing
@@ -595,7 +595,7 @@ BubbleLab/
 ```
 C:\Users\mmeadow\Documents\OpenEvolve\Frontend\
 ├── main.py                              # Main entry point
-├── bubblelabs_ui_component.py          # Streamlit UI wrapper
+├── bubblelabs_ui_component.py          # BubbleLab UI UI wrapper
 ├── openevolve_bubblelabs_api.py        # API integration layer
 ├── parameter_sync_manager.py           # Parameter synchronization
 ├── workflow_visualization.py           # Visualization components
@@ -730,4 +730,5 @@ C:\Users\mmeadow\Documents\OpenEvolve\Frontend\
 **Analysis Method:** Multi-agent parallel exploration
 **Confidence Level:** High (comprehensive coverage of codebase)
 **Recommendation:** Proceed with Phase 1 (Stabilization) immediately
+
 

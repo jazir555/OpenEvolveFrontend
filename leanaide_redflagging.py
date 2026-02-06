@@ -607,7 +607,79 @@ class LeanRedFlagger(RedFlagger):
         if proof.tactic_count > 50 and len(set(proof.tactics)) < 5:
             errors.append("likely_low_elegance")
 
+        # 6. CAV-NLP enhanced semantic detection
+        if self.use_cav_nlp:
+            cav_nlp_issues = self._cav_nlp_semantic_detection(proof)
+            errors.extend(cav_nlp_issues)
+
         return errors
+
+    def _cav_nlp_semantic_detection(self, proof: LeanProof) -> List[str]:
+        """
+        Use CAV-NLP for enhanced semantic redflag detection.
+        
+        Detects subtle semantic issues that may not be caught by
+        standard validation methods.
+        
+        Args:
+            proof: LeanProof to analyze
+            
+        Returns:
+            List of semantic issues detected
+        """
+        issues = []
+        
+        if not self.use_cav_nlp or not hasattr(self, 'math_service'):
+            return issues
+        
+        try:
+            # Use math service for semantic analysis
+            result = self.math_service.analyze_semantics(
+                lean_code=proof.code,
+                context={
+                    "proof_name": proof.name,
+                    "proof_type": proof.proof_type.value,
+                    "tactics": proof.tactics
+                }
+            )
+            
+            # Check for semantic issues
+            if result.get("semantic_score", 1.0) < 0.5:
+                issues.append(f"cav_nlp_low_semantic_score:{result['semantic_score']:.2f}")
+            
+            # Add specific semantic issues
+            for issue in result.get("issues", []):
+                issues.append(f"cav_nlp_semantic:{issue}")
+            
+            # Check for constraint violations
+            if hasattr(self, 'enhanced_solver') and self.enhanced_solver:
+                constraints = self._extract_proof_constraints(proof)
+                if constraints:
+                    constraint_result = self.enhanced_solver.check_constraints(
+                        constraints=constraints,
+                        timeout_ms=3000
+                    )
+                    if not constraint_result.get("satisfiable", True):
+                        issues.append("cav_nlp_constraint_violation")
+        
+        except Exception as e:
+            logger.debug(f"CAV-NLP semantic detection failed: {e}")
+        
+        return issues
+
+    def _extract_proof_constraints(self, proof: LeanProof) -> List[Dict[str, Any]]:
+        """Extract constraints from proof code for CAV-NLP analysis."""
+        constraints = []
+        
+        # Extract hypotheses as constraints
+        hyp_pattern = r'have\s+\w+\s*:\s*([^\n]+)'
+        for match in re.finditer(hyp_pattern, proof.code):
+            constraints.append({
+                "type": "hypothesis",
+                "expression": match.group(1).strip()
+            })
+        
+        return constraints
 
     def check_verification(self, proof: LeanProof) -> List[str]:
         """

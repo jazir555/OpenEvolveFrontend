@@ -281,7 +281,7 @@ def render_evolution_controls_standalone():
     """
     Render standalone evolution controls.
 
-    Use this to embed evolution controls in any Streamlit app.
+    Use this to embed evolution controls in any UI app.
     """
     from bubblelabs_evolution_controls import EvolutionControlPanel
 
@@ -298,7 +298,7 @@ def render_adversarial_controls_standalone():
     """
     Render standalone adversarial controls.
 
-    Use this to embed adversarial controls in any Streamlit app.
+    Use this to embed adversarial controls in any UI app.
     """
     from bubblelabs_evolution_controls import AdversarialControlPanel
 
@@ -349,11 +349,11 @@ def example_embedded_evolution():
 
 
 # =============================================================================
-# STREAMLIT PAGE FUNCTIONS
+# UI PAGE FUNCTIONS
 # =============================================================================
 
 def page_extended_bubblelabs():
-    """Streamlit page for extended BubbleLabs"""
+    """UI page for extended BubbleLabs"""
     st.set_page_config(
         page_title="Extended BubbleLabs",
         page_icon="🧬",
@@ -364,7 +364,7 @@ def page_extended_bubblelabs():
 
 
 def page_evolution_standalone():
-    """Streamlit page for standalone evolution dashboard"""
+    """UI page for standalone evolution dashboard"""
     st.set_page_config(
         page_title="Evolution Dashboard",
         page_icon="🧬",
@@ -394,3 +394,4 @@ if __name__ == "__main__":
     else:
         # Default to extended BubbleLabs
         page_extended_bubblelabs()
+

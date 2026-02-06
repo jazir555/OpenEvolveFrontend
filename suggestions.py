@@ -135,7 +135,7 @@ def check_security_vulnerabilities(content: str) -> List[str]:
 
 def render_suggestions():
     """
-    Renders the suggestions section in the Streamlit UI.
+    Renders the suggestions section in the UI UI.
     Displays AI-powered content suggestions, classifications, improvement potential, etc.
     """
     st.header("💡 AI-Powered Suggestions")
@@ -301,3 +301,4 @@ def render_suggestions():
                     st.write("**Tags:** " + ", ".join(classification["tags"]))
         
         st.session_state.suggestions_run_all = False
+

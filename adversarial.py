@@ -1041,7 +1041,7 @@ def create_adversarial_configuration(
 
 def create_adversarial_configuration_from_session() -> AdversarialConfiguration:
     """
-    Create comprehensive adversarial configuration from Streamlit session state.
+    Create comprehensive adversarial configuration from UI session state.
     This is the legacy version for backward compatibility.
     """
     try:
@@ -1064,8 +1064,8 @@ def create_adversarial_configuration_from_session() -> AdversarialConfiguration:
         
         return config
     except ImportError:
-        # Streamlit not available, use standalone version with defaults
-        logger.warning("Streamlit not available, using default configuration")
+        # UI not available, use standalone version with defaults
+        logger.warning("UI not available, using default configuration")
         return create_adversarial_configuration()
 
 def get_adversarial_capabilities_summary() -> Dict[str, Any]:
@@ -2645,3 +2645,4 @@ def get_maker_adversarial_capabilities() -> Dict[str, Any]:
         capabilities["integration_status"] = f"unavailable: {str(e)}"
     
     return capabilities
+

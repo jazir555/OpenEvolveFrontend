@@ -19,7 +19,7 @@
 |--------|---------|--------|
 | **Domain Mismatch** | Research-Quest focuses on scientific research (immunology/dermatology); OpenEvolve focuses on software engineering problems | **CRITICAL** - Different use cases |
 | **Complementarity** | Research-Quest's 8-stage methodology overlaps with OpenEvolve's 7-stage decomposition workflow | **HIGH** - 60-70% conceptual overlap |
-| **Architecture Mismatch** | Research-Quest is Node.js MCP server; OpenEvolve is Python+Streamlit web app | **HIGH** - Desktop vs Web architecture |
+| **Architecture Mismatch** | Research-Quest is Node.js MCP server; OpenEvolve is Python+BubbleLab UI web app | **HIGH** - Desktop vs Web architecture |
 | **Value Proposition** | Research-Quest provides research methodology, not software development tools | **MEDIUM** - Valuable concepts but not directly applicable |
 | **Redundancy** | Hypothesis generation ~ ROMA decomposition; Evidence integration ~ Stage 6 knowledge extraction; Bias detection ~ Steer validation | **HIGH** - 70% redundant with existing components |
 | **Stage 6 Fit** | Research-Quest's evidence integration and knowledge gap identification could inform Stage 6 design | **MEDIUM** - Conceptual value only |
@@ -392,7 +392,7 @@ Represented as **probability distributions** (Beta distributions) with Bayesian 
 | Aspect | OpenEvolve | Research-Quest | Compatibility |
 |--------|-----------|----------------|----------------|
 | **Language** | Python 3.10+ | Node.js 18+ | ❌ **INCOMPATIBLE** (requires bridge) |
-| **UI Framework** | Streamlit (web) | React + Electron (desktop) | ❌ **INCOMPATIBLE** (different paradigms) |
+| **UI Framework** | BubbleLab UI (web) | React + Electron (desktop) | ❌ **INCOMPATIBLE** (different paradigms) |
 | **Architecture** | Web application (server-client) | Desktop extension (local) | ❌ **INCOMPATIBLE** (deployment mismatch) |
 | **State Management** | WorkflowState (Python dataclass) | ResearchQuestGraph (JavaScript class) | ⚠️ **REQUIRES ADAPTATION** |
 | **Storage** | SQLite + file system | In-memory + JSON export | ⚠️ **REQUIRES ADAPTATION** |
@@ -723,7 +723,7 @@ OpenEvolve is designed for **software engineering**:
 **2. Architectural Mismatch (HIGH)**
 
 - **Research-Quest:** Node.js MCP Server + Electron Desktop Extension
-- **OpenEvolve:** Python + Streamlit Web Application
+- **OpenEvolve:** Python + BubbleLab UI Web Application
 
 Integration requires:
 - Separate Node.js service deployment
@@ -1012,3 +1012,4 @@ Research-Quest provides **significant value as a reference** even without integr
 - **Status:** COMPLETE
 - **Reviewed:** Pending user review
 - **Approved:** Pending user approval
+

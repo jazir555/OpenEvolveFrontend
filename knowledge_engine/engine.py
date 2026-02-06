@@ -510,7 +510,7 @@ class KnowledgeEngine:
         self,
         input_source: str,
         enable_indexing: bool = True,
-        progress_callback: Optional[Any] = None # Streamlit needs progress_callback
+        progress_callback: Optional[Any] = None # UI needs progress_callback
     ) -> Dict[str, Any]:
         """
         Runs the DeepCode Multi-Agent Research Pipeline.
@@ -554,7 +554,7 @@ class KnowledgeEngine:
         self,
         user_input: str,
         enable_indexing: bool = True,
-        progress_callback: Optional[Any] = None # Streamlit needs progress_callback
+        progress_callback: Optional[Any] = None # UI needs progress_callback
     ) -> Dict[str, Any]:
         """
         Runs the DeepCode Chat-Based Planning & Implementation Pipeline.
@@ -1022,3 +1022,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+

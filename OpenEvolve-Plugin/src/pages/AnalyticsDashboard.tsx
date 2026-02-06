@@ -1,7 +1,7 @@
 /**
  * OpenEvolve Analytics Dashboard Component for BubbleLab
  * 
- * This component replaces the Streamlit-based analytics dashboard UI
+ * This component replaces the BubbleLab UI-based analytics dashboard UI
  * with a React-based component for the BubbleLab plugin system.
  */
 

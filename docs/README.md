@@ -167,7 +167,7 @@ The OpenEvolve Frontend is a comprehensive, general-purpose content improvement 
 2. **Code Evolution Mode**: Integration with OpenEvolve backend for specialized code improvements
 
 ### Component Structure
-- **Frontend**: Streamlit-based UI with modular components
+- **Frontend**: BubbleLab UI-based UI with modular components
 - **Backend Integration**: Direct API calls and OpenEvolve library integration
 - **Storage**: In-memory session state with export capabilities
 - **Analytics**: Real-time metrics and reporting engine
@@ -190,8 +190,8 @@ pip install -r requirements.txt
 
 ### Running the Application
 ```bash
-# Start the Streamlit application
-streamlit run main.py
+# Start the BubbleLab UI application
+BubbleLab UI run main.py
 ```
 
 ### First-Time Setup
@@ -277,3 +277,4 @@ Apache 2.0
 ---
 
 *OpenEvolve: Making content smarter, safer, and stronger through AI-powered evolution.*
+

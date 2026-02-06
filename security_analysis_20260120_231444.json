@@ -4325,35 +4325,35 @@
     "hardcoded_tmp": 8,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\openevolve_test_env\\Lib\\site-packages\\streamlit\\material_icon_names.py": {
+  "OpenEvolveFrontend\\openevolve_test_env\\Lib\\site-packages\\BubbleLab UI\\material_icon_names.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 1,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\openevolve_test_env\\Lib\\site-packages\\streamlit\\runtime\\caching\\cache_data_api.py": {
+  "OpenEvolveFrontend\\openevolve_test_env\\Lib\\site-packages\\BubbleLab UI\\runtime\\caching\\cache_data_api.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 5,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\openevolve_test_env\\Lib\\site-packages\\streamlit\\runtime\\caching\\cache_errors.py": {
+  "OpenEvolveFrontend\\openevolve_test_env\\Lib\\site-packages\\BubbleLab UI\\runtime\\caching\\cache_errors.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 1,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\openevolve_test_env\\Lib\\site-packages\\streamlit\\runtime\\caching\\hashing.py": {
+  "OpenEvolveFrontend\\openevolve_test_env\\Lib\\site-packages\\BubbleLab UI\\runtime\\caching\\hashing.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 6,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\openevolve_test_env\\Lib\\site-packages\\streamlit\\runtime\\state\\session_state.py": {
+  "OpenEvolveFrontend\\openevolve_test_env\\Lib\\site-packages\\BubbleLab UI\\runtime\\state\\session_state.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 3,
@@ -5851,35 +5851,35 @@
     "hardcoded_tmp": 8,
     "certificate_issues": 0
   },
-  "openevolve_test_env\\Lib\\site-packages\\streamlit\\material_icon_names.py": {
+  "openevolve_test_env\\Lib\\site-packages\\BubbleLab UI\\material_icon_names.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 1,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "openevolve_test_env\\Lib\\site-packages\\streamlit\\runtime\\caching\\cache_data_api.py": {
+  "openevolve_test_env\\Lib\\site-packages\\BubbleLab UI\\runtime\\caching\\cache_data_api.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 5,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "openevolve_test_env\\Lib\\site-packages\\streamlit\\runtime\\caching\\cache_errors.py": {
+  "openevolve_test_env\\Lib\\site-packages\\BubbleLab UI\\runtime\\caching\\cache_errors.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 1,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "openevolve_test_env\\Lib\\site-packages\\streamlit\\runtime\\caching\\hashing.py": {
+  "openevolve_test_env\\Lib\\site-packages\\BubbleLab UI\\runtime\\caching\\hashing.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 6,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "openevolve_test_env\\Lib\\site-packages\\streamlit\\runtime\\state\\session_state.py": {
+  "openevolve_test_env\\Lib\\site-packages\\BubbleLab UI\\runtime\\state\\session_state.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 3,

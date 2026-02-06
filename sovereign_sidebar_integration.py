@@ -1,6 +1,6 @@
 """
 Sovereign-Grade Problem Decomposition System - Sidebar Integration
-Integrates sovereign decomposition controls into the Streamlit sidebar.
+Integrates sovereign decomposition controls into the UI sidebar.
 """
 
 from ui_shim import ui as st
@@ -249,3 +249,4 @@ def render_sovereign_actions() -> Optional[str]:
             return "clear"
     
     return None
+

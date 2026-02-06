@@ -2,7 +2,7 @@
 Thread Safety Utilities for OpenEvolve Frontend
 
 This module provides thread-safe utilities for accessing shared mutable state,
-particularly Streamlit session state which is not thread-safe by default.
+particularly UI session state which is not thread-safe by default.
 
 Thread Safety Guidelines:
 =========================
@@ -581,3 +581,4 @@ def init_session_state_safely(defaults: Dict[str, Any]) -> None:
         for key, value in defaults.items():
             if key not in st.session_state:
                 st.session_state[key] = value
+

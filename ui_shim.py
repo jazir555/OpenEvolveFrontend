@@ -1,5 +1,5 @@
 """
-UI shim to replace Streamlit in non-UI runtime.
+UI shim to replace UI in non-UI runtime.
 Provides a minimal, no-op interface plus session_state storage.
 """
 
@@ -38,7 +38,7 @@ class _UIContainer:
 
 
 class UIShim:
-    """Minimal Streamlit-like API surface for non-UI execution."""
+    """Minimal UI-like API surface for non-UI execution."""
 
     def __init__(self) -> None:
         self.session_state = SessionState()
@@ -238,3 +238,4 @@ def st_autorefresh(*args, **kwargs):
 
 def st_tags(*args, **kwargs):
     return []
+

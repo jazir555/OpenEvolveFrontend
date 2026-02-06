@@ -1993,7 +1993,7 @@ def create_evolution_configuration(
 
 def create_evolution_configuration_from_session() -> EvolutionConfiguration:
     """
-    Create a comprehensive evolution configuration from Streamlit session state.
+    Create a comprehensive evolution configuration from UI session state.
     This is the legacy version for backward compatibility.
     """
     try:
@@ -2016,8 +2016,8 @@ def create_evolution_configuration_from_session() -> EvolutionConfiguration:
         
         return config
     except ImportError:
-        # Streamlit not available, use standalone version with defaults
-        logger.warning("Streamlit not available, using default configuration")
+        # UI not available, use standalone version with defaults
+        logger.warning("UI not available, using default configuration")
         return create_evolution_configuration()
 
 
@@ -2061,7 +2061,7 @@ def run_comprehensive_evolution(
         config = create_evolution_configuration(parameters=custom_config, **kwargs)
     else:
         try:
-            # Try session-based configuration first (for Streamlit compatibility)
+            # Try session-based configuration first (for UI compatibility)
             config = create_evolution_configuration_from_session()
         except (AttributeError, KeyError, RuntimeError):
             # Fall back to standalone configuration
@@ -4754,3 +4754,4 @@ def get_z3_evolution_capabilities() -> Dict[str, Any]:
         capabilities["integration_status"] = f"unavailable: {str(e)}"
     
     return capabilities
+

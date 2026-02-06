@@ -547,7 +547,7 @@ content_manager = ContentManagement()
 
 def render_content_manager():
     """
-    Renders the content manager section in the Streamlit UI.
+    Renders the content manager section in the UI UI.
     Allows users to manage protocols, templates, and view content-related analytics.
     """
     st.header("📝 Content Manager")
@@ -696,3 +696,4 @@ def render_content_manager():
                     st.caption(f"* {details.get('name')} - {details.get('timestamp', '')[:19].replace('T', ' ')}")
     
     st.info("💡 Pro Tip: Use the content manager to organize, save, and reuse your protocols and templates efficiently.")
+

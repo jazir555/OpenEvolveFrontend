@@ -76,7 +76,7 @@ class EvolutionWorkflow(str, Enum):
   - Reject plan to terminate
 
 **State Management**:
-- Uses Streamlit session state for persistence
+- Uses BubbleLab UI session state for persistence
 - Handles workflow pause during manual review
 - Resumes workflow after approval
 - Updates `WorkflowState` with approved plan
@@ -148,7 +148,7 @@ if "active_sovereign_workflow" in st.session_state:
 - Properly passes all required parameters
 - Maintains workflow state across reruns
 - Handles workflow lifecycle (start, pause, resume, complete)
-- Integrates with Streamlit's reactive model
+- Integrates with BubbleLab UI's reactive model
 
 **State Management**:
 - Workflow state stored in `st.session_state.active_sovereign_workflow`
@@ -280,3 +280,4 @@ All required UI components have been implemented and integrated:
 The UI provides a complete, user-friendly interface for creating, configuring, monitoring, and managing Sovereign-Grade Decomposition workflows. All components integrate seamlessly with the workflow engine and provide real-time feedback to users.
 
 No additional implementation work is required for Phase 3.
+

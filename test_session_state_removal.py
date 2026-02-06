@@ -4,7 +4,7 @@ Test script to verify session state dependencies have been removed
 """
 
 def test_session_state_removal():
-    """Test that core functions work without Streamlit session state"""
+    """Test that core functions work without UI session state"""
     try:
         # Test evolution configuration creation without session state
         from evolution import create_evolution_configuration, create_evolution_configuration_from_session
@@ -42,7 +42,7 @@ def test_session_state_removal():
             print(f"[FAIL] Standalone adversarial configuration failed: {e}")
             return False
         
-        # Test session-based configuration fallback (should work without Streamlit)
+        # Test session-based configuration fallback (should work without UI)
         try:
             evolution_config_session = create_evolution_configuration_from_session()
             print("[OK] Session-based evolution configuration fallback works!")

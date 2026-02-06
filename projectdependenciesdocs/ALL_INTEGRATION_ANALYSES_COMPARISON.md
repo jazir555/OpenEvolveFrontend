@@ -100,7 +100,7 @@ These projects are already part of OpenEvolve:
 │  Phase 3: Integrate pygraphistry (2-3 weeks) ← P2 HIGH VALUE  │
 │  ├─ Week 1: Component 3 (SolutionPatternMiner with UMAP+DBSCAN)│
 │  ├─ Week 2: Component 6 (KnowledgeGraphVisualizer)            │
-│  └─ Week 3: Streamlit integration + testing                   │
+│  └─ Week 3: BubbleLab UI integration + testing                   │
 │                                                                 │
 │  Phase 4: Integrate kg-gen (6-7 weeks) ← P2.5 HIGH VALUE     │
 │  ├─ Week 1: Direct integration (extraction + viz)             │
@@ -233,7 +233,7 @@ DeepKE (Extraction) → AI-KG (Processing/Enrichment) → Visualization
 1. **Highest Priority Gap Not Addressed**: Stage 6 is P0, FRM doesn't help
 2. **LeanAide Alternative**: 80% of FRM value at 20% effort
 3. **Redundancy**: 60-70% overlap with ROMA, ACE, Steer, KE
-4. **Architectural Mismatch**: Electron+React vs Python+Streamlit
+4. **Architectural Mismatch**: Electron+React vs Python+BubbleLab UI
 5. **Effort vs. Value**: 3-5 weeks integration for limited value
 
 **When to Reconsider**:
@@ -295,7 +295,7 @@ DeepKE (Extraction) → AI-KG (Processing/Enrichment) → Visualization
 2. **Strong Fit for Component 3**: 95% coverage of SolutionPatternMiner (UMAP embeddings + DBSCAN)
 3. **Saves 6+ Weeks**: Professional-grade visualization and ML pipeline
 4. **GPU Acceleration**: 100X+ speedup with cuML
-5. **Streamlit Compatible**: Direct iframe embedding
+5. **BubbleLab UI Compatible**: Direct iframe embedding
 6. **Production-Ready**: Battle-tested, comprehensive documentation
 
 **Components Provided**:
@@ -310,7 +310,7 @@ DeepKE (Extraction) → AI-KG (Processing/Enrichment) → Visualization
   - Node/edge filtering by attributes
   - Community detection visualization
   - Path finding and subgraph extraction
-  - HTML iframe embedding for Streamlit
+  - HTML iframe embedding for BubbleLab UI
 
 **Integration Architecture**:
 ```
@@ -319,7 +319,7 @@ KnowledgeArtifacts → Graphistry Pluggable → UMAP + DBSCAN → Interactive Vi
 
 **Integration Time**: 2-3 weeks
 - Week 1: Component 3 (SolutionPatternMiner with UMAP + DBSCAN)
-- Week 2: Component 6 (KnowledgeGraphVisualizer with Streamlit)
+- Week 2: Component 6 (KnowledgeGraphVisualizer with BubbleLab UI)
 - Week 3: Testing and documentation
 
 **Files**:
@@ -496,7 +496,7 @@ Week 16-18: Phase 2 - Enhance LeanAide
 
 Week 19-21: Phase 3 - Integrate pygraphistry
 ├─ Week 19: Component 3 (UMAP + DBSCAN integration)
-├─ Week 20: Component 6 (KnowledgeGraphVisualizer + Streamlit)
+├─ Week 20: Component 6 (KnowledgeGraphVisualizer + BubbleLab UI)
 └─ Week 21: Testing, documentation, GPU acceleration
 
 Week 22-28: Phase 4 - Integrate kg-gen
@@ -557,7 +557,7 @@ Projects were evaluated on:
    - Is it synergistic with existing components?
 
 3. **Architectural Fit** (15% weight)
-   - Compatible with Python+Streamlit?
+   - Compatible with Python+BubbleLab UI?
    - Requires separate deployment?
 
 4. **Effort vs. Value** (20% weight)
@@ -778,7 +778,7 @@ These projects are already part of OpenEvolve:
 │  Phase 3: Integrate pygraphistry (2-3 weeks) ← P2 HIGH VALUE  │
 │  ├─ Week 1: Component 3 (SolutionPatternMiner with UMAP+DBSCAN)│
 │  ├─ Week 2: Component 6 (KnowledgeGraphVisualizer)            │
-│  └─ Week 3: Streamlit integration + testing                   │
+│  └─ Week 3: BubbleLab UI integration + testing                   │
 │                                                                 │
 │  Phase 4: Integrate kg-gen (6-7 weeks) ← P2.5 HIGH VALUE     │
 │  ├─ Week 1: Direct integration (extraction + viz)             │
@@ -911,7 +911,7 @@ DeepKE (Extraction) → AI-KG (Processing/Enrichment) → Visualization
 1. **Highest Priority Gap Not Addressed**: Stage 6 is P0, FRM doesn't help
 2. **LeanAide Alternative**: 80% of FRM value at 20% effort
 3. **Redundancy**: 60-70% overlap with ROMA, ACE, Steer, KE
-4. **Architectural Mismatch**: Electron+React vs Python+Streamlit
+4. **Architectural Mismatch**: Electron+React vs Python+BubbleLab UI
 5. **Effort vs. Value**: 3-5 weeks integration for limited value
 
 **When to Reconsider**:
@@ -973,7 +973,7 @@ DeepKE (Extraction) → AI-KG (Processing/Enrichment) → Visualization
 2. **Strong Fit for Component 3**: 95% coverage of SolutionPatternMiner (UMAP embeddings + DBSCAN)
 3. **Saves 6+ Weeks**: Professional-grade visualization and ML pipeline
 4. **GPU Acceleration**: 100X+ speedup with cuML
-5. **Streamlit Compatible**: Direct iframe embedding
+5. **BubbleLab UI Compatible**: Direct iframe embedding
 6. **Production-Ready**: Battle-tested, comprehensive documentation
 
 **Components Provided**:
@@ -988,7 +988,7 @@ DeepKE (Extraction) → AI-KG (Processing/Enrichment) → Visualization
   - Node/edge filtering by attributes
   - Community detection visualization
   - Path finding and subgraph extraction
-  - HTML iframe embedding for Streamlit
+  - HTML iframe embedding for BubbleLab UI
 
 **Integration Architecture**:
 ```
@@ -997,7 +997,7 @@ KnowledgeArtifacts → Graphistry Pluggable → UMAP + DBSCAN → Interactive Vi
 
 **Integration Time**: 2-3 weeks
 - Week 1: Component 3 (SolutionPatternMiner with UMAP + DBSCAN)
-- Week 2: Component 6 (KnowledgeGraphVisualizer with Streamlit)
+- Week 2: Component 6 (KnowledgeGraphVisualizer with BubbleLab UI)
 - Week 3: Testing and documentation
 
 **Files**:
@@ -1174,7 +1174,7 @@ Week 16-18: Phase 2 - Enhance LeanAide
 
 Week 19-21: Phase 3 - Integrate pygraphistry
 ├─ Week 19: Component 3 (UMAP + DBSCAN integration)
-├─ Week 20: Component 6 (KnowledgeGraphVisualizer + Streamlit)
+├─ Week 20: Component 6 (KnowledgeGraphVisualizer + BubbleLab UI)
 └─ Week 21: Testing, documentation, GPU acceleration
 
 Week 22-28: Phase 4 - Integrate kg-gen
@@ -1235,7 +1235,7 @@ Projects were evaluated on:
    - Is it synergistic with existing components?
 
 3. **Architectural Fit** (15% weight)
-   - Compatible with Python+Streamlit?
+   - Compatible with Python+BubbleLab UI?
    - Requires separate deployment?
 
 4. **Effort vs. Value** (20% weight)
@@ -1355,3 +1355,4 @@ All analysis files are in `C:\Users\mmeadow\Documents\OpenEvolve\Frontend\`:
 **Review Date**: After Phase 1-3 completion (~18-21 weeks)
 
 >>>>>>> 1cb9c5e35 (update)
+

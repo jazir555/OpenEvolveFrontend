@@ -40,7 +40,7 @@
 - ?? **Maker Engine**: Automated code generation and optimization
 - ?? **Evolution Configuration**: EvolutionConfiguration + 272-parameter manager
 - ?? **Evolution Adapter/Optimizer**: Adapter + EvolutionaryOptimizer wrappers
-- ?? **Evolution UI Integration**: BubbleLabs Streamlit dashboard + controls
+- ?? **Evolution UI Integration**: BubbleLabs BubbleLab UI dashboard + controls
 - ?? **Gold Team Verification**: Gold team agent for verification workflows
 
 **Integration Note**: `OpenEvolve-Plugin` schema patterns are now wired into bubble-studio (`BubbleLab/apps/bubble-studio/src/lib/evolution/schemas.ts`, `BubbleLab/apps/bubble-studio/src/stores/evolutionSettingsStore.ts`, `/routes/evolution*`). `bubblelabs-mitosis-plugin` remains standalone and still needs UI wiring for the evolution tree.
@@ -1005,7 +1005,7 @@ By leveraging **BubbleLab** and **OpenEvolve**, the following components are **a
 ?? **Maker Engine** (Automated code generation and optimization)
 ?? **Evolution Configuration** (EvolutionConfiguration + 272-parameter manager)
 ?? **Evolution Adapter/Optimizer** (Adapter + EvolutionaryOptimizer wrappers)
-?? **Evolution UI Integration** (BubbleLabs Streamlit dashboard + controls)
+?? **Evolution UI Integration** (BubbleLabs BubbleLab UI dashboard + controls)
 ?? **Gold Team Verification** (Gold team agent for verification workflows)
 
 ### Revised Tasks by Priority (with BubbleLab + OpenEvolve)
@@ -3401,3 +3401,4 @@ Afternoon (1pm-5pm): Complete 20 subtasks
 ---
 
 **Let's execute hyper-granularly! ???**
+

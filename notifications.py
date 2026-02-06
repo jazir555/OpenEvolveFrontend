@@ -42,7 +42,7 @@ def send_notification(
 
 def render_notifications():
     """
-    Renders notifications in the Streamlit UI.
+    Renders notifications in the UI UI.
     Displays a list of recent notifications to the user.
     """
     from ui_shim import ui as st
@@ -173,3 +173,4 @@ def render_notifications():
         st.metric("Unread", unread_count)
     
     st.info(f"You have {unread_count} unread notification{'s' if unread_count != 1 else ''}.")
+

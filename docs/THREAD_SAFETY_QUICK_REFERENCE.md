@@ -8,7 +8,7 @@
 
 ## TL;DR
 
-**Problem:** Streamlit session state (`st.session_state`) is NOT thread-safe by default
+**Problem:** BubbleLab UI session state (`st.session_state`) is NOT thread-safe by default
 **Solution:** Use `thread_safety_utils.py` for all concurrent access
 **Files Created:** 3 (utilities, tests, documentation)
 **Total Lines:** 1,700+
@@ -400,7 +400,7 @@ Tested up to:
 
 ### What Was Fixed
 
-✅ Streamlit session state is now thread-safe
+✅ BubbleLab UI session state is now thread-safe
 ✅ All concurrent access patterns are protected
 ✅ Locks prevent race conditions and data corruption
 ✅ Deadlocks prevented with reentrant locks
@@ -445,3 +445,4 @@ All thread safety issues in the OpenEvolve Frontend have been identified, fixed,
 *Generated: 2026-01-03*
 *Author: Claude Code*
 *Total Time: Comprehensive thread safety audit and fixes*
+

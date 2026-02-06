@@ -11,6 +11,7 @@ Key Components:
 - LeanSelfPlayGame: Single self-play game episode
 - LeanProofExperienceBuffer: Stores and samples proof experiences
 - LeanProofNetwork: Neural network for proof strategy prediction (optional)
+- CAV-NLP verification: Enhanced proof verification
 
 Based on:
 - PSV (Propose-Solve-Verify) self-play framework
@@ -43,6 +44,15 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Add CAV-NLP imports with graceful fallback
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logger.warning("CAV-NLP integration not available - self-play will use standard verification")
 
 # ============================================================================
 # Data Structures
@@ -920,6 +930,8 @@ class LeanSelfPlayEngine:
 
     Orchestrates self-play games, manages experience buffer,
     and drives continuous improvement through iteration.
+    
+    With CAV-NLP integration for enhanced proof verification.
     """
 
     def __init__(
@@ -927,10 +939,12 @@ class LeanSelfPlayEngine:
         leanaide_url: str = "http://localhost:7654",
         llm_config: Optional[Dict[str, Any]] = None,
         buffer_capacity: int = 10000,
-        max_concurrent_games: int = 4
+        max_concurrent_games: int = 4,
+        config: Optional[Dict[str, Any]] = None
     ):
         self.leanaide_url = leanaide_url
         self.llm_config = llm_config or {}
+        self.config = config or {}
 
         # Initialize components
         self.verifier = Lean4Verifier(leanaide_url)
@@ -954,7 +968,18 @@ class LeanSelfPlayEngine:
         self.iteration_count = 0
         self.metrics_history: List[TrainingMetrics] = []
 
-        logger.info("LeanSelfPlayEngine initialized")
+        # Initialize CAV-NLP components for enhanced verification
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            try:
+                self.enhanced_solver = EnhancedZ3Solver()
+                self.math_service = UnifiedMathService()
+                logger.info("CAV-NLP components initialized for self-play")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP components: {e}")
+                self.use_cav_nlp = False
+
+        logger.info(f"LeanSelfPlayEngine initialized (CAV-NLP: {self.use_cav_nlp})")
 
     async def run_self_play(
         self,
@@ -1212,6 +1237,81 @@ class LeanSelfPlayEngine:
         self.agent.performance_history = checkpoint["agent_performance"]
 
         logger.info(f"Checkpoint loaded from {filepath}")
+
+    async def cav_nlp_verify_proof(
+        self,
+        proof: LeanProof,
+        theorem: LeanTheorem
+    ) -> Dict[str, Any]:
+        """
+        Verify a proof using CAV-NLP enhanced verification.
+        
+        Uses the EnhancedZ3Solver and UnifiedMathService for:
+        - Semantic analysis of proof structure
+        - Constraint-based verification
+        - Enhanced error detection
+        
+        Args:
+            proof: The proof to verify
+            theorem: The theorem being proved
+            
+        Returns:
+            Dictionary with verification results
+        """
+        if not self.use_cav_nlp:
+            return {
+                "verified": proof.is_valid,
+                "cav_nlp_available": False,
+                "confidence": 0.5
+            }
+        
+        try:
+            # Use math service for semantic analysis
+            semantic_result = await self.math_service.analyze_semantics_async(
+                lean_code=proof.lean_code,
+                context={
+                    "theorem": theorem.statement,
+                    "domain": theorem.domain,
+                    "difficulty": theorem.difficulty.value
+                }
+            )
+            
+            semantic_score = semantic_result.get("semantic_score", 0.0)
+            issues = semantic_result.get("issues", [])
+            
+            # Use enhanced solver for constraint checking
+            constraint_result = await self.enhanced_solver.verify_proof_async(
+                proof_code=proof.lean_code,
+                theorem_statement=theorem.statement,
+                timeout_ms=self.config.get("solver_timeout", 5000)
+            )
+            
+            constraint_verified = constraint_result.get("verified", False)
+            constraint_confidence = constraint_result.get("confidence", 0.5)
+            
+            # Combine results
+            combined_confidence = (semantic_score + constraint_confidence) / 2
+            
+            return {
+                "verified": proof.is_valid and constraint_verified and semantic_score > 0.6,
+                "cav_nlp_available": True,
+                "semantic_score": semantic_score,
+                "constraint_verified": constraint_verified,
+                "issues": issues,
+                "confidence": combined_confidence,
+                "semantic_analysis": semantic_result.get("analysis", {}),
+                "constraint_details": constraint_result.get("details", {})
+            }
+        
+        except Exception as e:
+            logger.warning(f"CAV-NLP verification failed: {e}")
+            return {
+                "verified": proof.is_valid,
+                "cav_nlp_available": True,
+                "error": str(e),
+                "confidence": 0.5,
+                "fallback": True
+            }
 
 
 # ============================================================================

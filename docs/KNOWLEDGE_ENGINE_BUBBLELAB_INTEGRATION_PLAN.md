@@ -23,7 +23,7 @@ This document outlines the integration plan between the OpenEvolve Knowledge Eng
 - **MCP Gateway for Tool Orchestration** - Standardized tool orchestration
 
 ### BubbleLab Components
-- **Workflow Visualization Component** - Streamlit UI for workflow control
+- **Workflow Visualization Component** - BubbleLab UI UI for workflow control
 - **Team Manager** - Agent team management
 - **Gauntlet Manager** - Workflow execution management
 - **Workflow Engine** - Core workflow execution

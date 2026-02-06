@@ -263,7 +263,7 @@ class BatchOperations:
 
 def render_batch_operations_ui(sub_problems: Dict[str, SubProblem]) -> Dict[str, SubProblem]:
     """
-    Render batch operations UI in Streamlit.
+    Render batch operations UI in UI.
     
     Args:
         sub_problems: Dictionary of sub-problem ID to SubProblem
@@ -506,3 +506,4 @@ def batch_evolve_solutions(problems: List[str], api_key: str) -> List[Dict[str, 
         return results
     except (ImportError, ConnectionError, TimeoutError, ValueError) as e:
         return [{'error': str(e)} for _ in problems]
+

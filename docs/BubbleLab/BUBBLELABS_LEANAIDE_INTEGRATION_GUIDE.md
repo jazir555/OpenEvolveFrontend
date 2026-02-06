@@ -77,7 +77,7 @@ This integration connects **BubbleLabs** workflow visualization with **LeanAide*
 
 ```bash
 # Python dependencies
-pip install streamlit pandas asyncio aiohttp
+pip install BubbleLab UI pandas asyncio aiohttp
 
 # LeanAide components (optional but recommended)
 pip install leanaide-client
@@ -110,7 +110,7 @@ pip install leanaide-mcts-mdap
 ### Basic Usage
 
 ```python
-import streamlit as st
+import BubbleLab UI as st
 from bubblelabs_leanaide_ui import render_leanaide_in_bubblelabs
 
 # In your BubbleLabs app
@@ -186,7 +186,7 @@ Get recent execution history.
 
 ### LeanAideUIComponent
 
-Streamlit UI component for LeanAide integration.
+BubbleLab UI UI component for LeanAide integration.
 
 #### Methods
 
@@ -303,10 +303,10 @@ if result.success:
         print(f"Answer {i}: {answer}")
 ```
 
-### Example 5: Streamlit UI Integration
+### Example 5: BubbleLab UI UI Integration
 
 ```python
-import streamlit as st
+import BubbleLab UI as st
 from bubblelabs_leanaide_ui import LeanAideUIComponent
 
 def main():
@@ -610,3 +610,4 @@ For issues or questions:
 - Check troubleshooting section above
 - Review LeanAide documentation
 - Open an issue on the OpenEvolve repository
+

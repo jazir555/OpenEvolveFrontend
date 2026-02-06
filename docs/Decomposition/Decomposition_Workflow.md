@@ -1993,7 +1993,7 @@ The workflow proceeds through the following stages, with detailed inputs, proces
 *   **Input**: `DecompositionPlan` object.
 
 *   **Process**:
-    1.  **UI Rendering**: The `DecompositionPlan` is rendered in an interactive Streamlit UI panel (`render_manual_review_panel`) with the following components:
+    1.  **UI Rendering**: The `DecompositionPlan` is rendered in an interactive BubbleLab UI UI panel (`render_manual_review_panel`) with the following components:
         ```python
         def render_manual_review_panel(decomposition_plan: DecompositionPlan):
             # Main layout with tabs for different review aspects
@@ -2211,7 +2211,7 @@ The workflow proceeds through the following stages, with detailed inputs, proces
         - **Resource Conflict Detection**: Identifies when multiple sub-problems request the same scarce resources
         - **Team Capability Verification**: Ensures assigned teams have required expertise
         - **Timeline Feasibility Checks**: Validates that resource estimates align with project constraints
-    5.  **State Management**: The workflow pauses using Streamlit's session state with:
+    5.  **State Management**: The workflow pauses using BubbleLab UI's session state with:
         ```python
         def manage_review_state(decomposition_plan: DecompositionPlan):
             # Initialize session state if not present
@@ -4426,7 +4426,7 @@ The following components and functionalities have been successfully implemented:
     *   **`workflow_structures.py`**: Created and refined. This file defines all the core data objects (`ModelConfig`, `Team`, `GauntletRoundRule`, `GauntletDefinition`, `SubProblem`, `DecompositionPlan`, `SolutionAttempt`, `CritiqueReport`, `VerificationReport`, `WorkflowState`) that underpin the entire workflow. Docstrings and comments have been added for clarity.
     *   **`team_manager.py`**: Created and refined. This module provides the logic for persistent storage (using JSON files) and management (CRUD operations) of `Team` objects. Docstrings and comments have been added.
     *   **`gauntlet_manager.py`**: Created and refined. Similar to `team_manager.py`, this module handles the persistent storage and management of `GauntletDefinition` objects. Docstrings and comments have been added.
-    *   **`ui_components.py`**: Created. This file houses the Streamlit UI functions for:
+    *   **`ui_components.py`**: Created. This file houses the BubbleLab UI UI functions for:
         *   `render_team_manager()`: Allows users to create, view, edit, and delete `Team` configurations.
         *   `render_gauntlet_designer()`: Allows users to create, view, edit, and delete `GauntletDefinition` objects, including defining complex round rules.
         *   `render_manual_review_panel()`: Provides an interactive UI for users to review and override AI-generated `DecompositionPlan`s.
@@ -4434,7 +4434,7 @@ The following components and functionalities have been successfully implemented:
         *   Integrate `render_team_manager()` and `render_gauntlet_designer()` under the "Configuration" tab.
         *   Add the "👑 Sovereign-Grade Decomposition" workflow type to the `EvolutionWorkflow` enum and its UI representation.
         *   Include the UI for configuring a new Sovereign-Grade workflow, featuring dropdowns to select pre-configured Teams and Gauntlets for each stage.
-        *   Update the "Start Workflow" button logic to correctly initiate the Sovereign-Grade workflow, storing its `WorkflowState` in Streamlit's session.
+        *   Update the "Start Workflow" button logic to correctly initiate the Sovereign-Grade workflow, storing its `WorkflowState` in BubbleLab UI's session.
 
 *   **Phase 2: Workflow Engine Implementation**
     *   **`workflow_engine.py`**: Created. This file contains the core logic for executing the workflow.
@@ -4456,14 +4456,14 @@ The following components and functionalities have been successfully implemented:
 
 The following tasks are crucial for completing the full implementation:
 
-*   **Implement the "Manual Review" panel's dynamic invocation**: The `run_sovereign_workflow` currently simulates approval for Stage 2. The orchestrator needs to dynamically render `render_manual_review_panel` and pause execution until the user approves the plan. This requires careful Streamlit state management to handle the interactive pause.
+*   **Implement the "Manual Review" panel's dynamic invocation**: The `run_sovereign_workflow` currently simulates approval for Stage 2. The orchestrator needs to dynamically render `render_manual_review_panel` and pause execution until the user approves the plan. This requires careful BubbleLab UI state management to handle the interactive pause.
 *   **Refine `generate_solution_for_sub_problem`**: The current implementation is a placeholder. This needs to be replaced with actual logic for generating solutions, potentially integrating with existing OpenEvolve evolution loops or other generation mechanisms based on the `SubProblem`'s `ai_suggested_evolution_mode` and `evolution_params`.
 *   **Refine `parse_targeted_feedback`**: The current implementation uses a simple regex. This needs to be enhanced to robustly parse structured feedback (e.g., JSON) from LLM reports to accurately identify problematic sub-problem IDs for the self-healing loop.
 *   **Implement Blue Team Gauntlet for Generation/Peer Review**: The `run_gauntlet` function has a placeholder for Blue Team gauntlets. This needs to be fully implemented to support `single_candidate` and `multi_candidate_peer_review` generation modes.
 *   **Full Review of Docstrings and Comments**: While initial docstrings and comments are present, a final pass is needed to ensure every function, class, and complex logic block is thoroughly documented.
 *   **Comprehensive Integration Testing**: End-to-end testing of the entire workflow, including all gauntlets, self-healing loops, and UI interactions, is essential.
 *   **Error Handling and Edge Cases**: Implement more robust error handling and consider edge cases (e.g., no teams/gauntlets defined, circular dependencies in sub-problems).
-*   **Performance Optimization**: As a "Sovereign-Grade" system, performance will be critical. This includes optimizing LLM calls (parallelization, caching), Streamlit rendering, and data persistence.
+*   **Performance Optimization**: As a "Sovereign-Grade" system, performance will be critical. This includes optimizing LLM calls (parallelization, caching), BubbleLab UI rendering, and data persistence.
 *   **Remove Placeholders**: All `st.warning("Placeholder: ...")` and similar temporary code must be replaced with production-ready implementations.
 
 ---
@@ -6891,3 +6891,4 @@ The SGDW integrates the PSV (Propose, Solve, Verify) self-play framework to enab
 * **Verified Solutions**: All solutions are formally verified, preventing error propagation
 * **Scalable Training**: Generates unlimited training data through self-play
 * **Rigorous Standards**: Maintains high mathematical rigor through formal verification
+

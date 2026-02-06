@@ -4,7 +4,7 @@
 
 The OpenEvolve BubbleLabs Integration provides **complete and total control** over the OpenEvolve workflow system through the BubbleLabs user interface. This enterprise-grade integration enables comprehensive visualization, management, and orchestration of complex AI workflows, making it easier to understand, monitor, and control sophisticated evolutionary computing processes.
 
-Every single configuration knob, control element, and parameter available in the main Streamlit UI application (including both sidebar and main area components) is fully accessible, configurable, and controllable from within the BubbleLabs UI. This includes:
+Every single configuration knob, control element, and parameter available in the main BubbleLab UI UI application (including both sidebar and main area components) is fully accessible, configurable, and controllable from within the BubbleLabs UI. This includes:
 
 - **Provider Configuration**: All API provider settings, model selections, and multi-model ensemble configurations
 - **Generation Parameters**: Temperature, top-p, frequency penalty, presence penalty, max tokens, seed, and reasoning effort controls
@@ -18,7 +18,7 @@ Every single configuration knob, control element, and parameter available in the
 
 ## Complete Feature Matrix
 
-### All Streamlit UI Controls Available in BubbleLabs
+### All BubbleLab UI UI Controls Available in BubbleLabs
 
 #### Sidebar Configuration Knobs
 - **Provider Configuration**
@@ -192,10 +192,10 @@ Every single configuration knob, control element, and parameter available in the
 
 ### Parameter Synchronization Architecture
 
-Every configuration knob from the Streamlit UI is mapped to the BubbleLabs UI through a sophisticated synchronization system:
+Every configuration knob from the BubbleLab UI UI is mapped to the BubbleLabs UI through a sophisticated synchronization system:
 
 ```
-Streamlit UI ↔ Sync Engine ↔ Session State ↔ Validation ↔ BubbleLabs UI
+BubbleLab UI UI ↔ Sync Engine ↔ Session State ↔ Validation ↔ BubbleLabs UI
 ```
 
 #### Bi-Directional Sync Mechanism
@@ -248,7 +248,7 @@ The integration maps OpenEvolve's sophisticated workflow concepts to BubbleLabs 
 
 ### Parameter Synchronization Matrix
 
-| OpenEvolve Parameter | Streamlit Control | BubbleLabs Control | Sync Behavior | Validation |
+| OpenEvolve Parameter | BubbleLab UI Control | BubbleLabs Control | Sync Behavior | Validation |
 |---------------------|-------------------|-------------------|---------------|------------|
 | temperature | Slider 0.0-2.0 | Slider 0.0-2.0 | Real-time bidirectional | 0.0-2.0 range validation |
 | top_p | Slider 0.0-1.0 | Slider 0.0-1.0 | Real-time bidirectional | 0.0-1.0 range validation |
@@ -301,7 +301,7 @@ This will start:
 
 #### Start the Main UI with BubbleLabs Integration
 ```bash
-streamlit run main.py -- --bubblelabs-mode
+BubbleLab UI run main.py -- --bubblelabs-mode
 ```
 
 #### Start Backend Services Separately
@@ -314,19 +314,19 @@ python -m Backend.bubblelabs_service
 #### Initial Setup
 1. Navigate to http://localhost:8501
 2. Go to the "BubbleLabs Workflows" tab
-3. Configure your provider settings (these sync with Streamlit UI instantly)
+3. Configure your provider settings (these sync with BubbleLab UI UI instantly)
 
 #### Workflow Creation
 1. Use the "Workflow Designer" to create new workflows
 2. Select appropriate teams and gauntlets for your workflow
-3. Configure all evolution parameters (all Streamlit controls are available)
+3. Configure all evolution parameters (all BubbleLab UI controls are available)
 4. Configure adversarial testing parameters if needed
 5. Set performance optimization parameters
 6. Review all settings and click "Create Workflow"
 
 #### Parameter Management
 1. Navigate to "Parameter Manager" tab
-2. Access all OpenEvolve parameters from Streamlit sidebar
+2. Access all OpenEvolve parameters from BubbleLab UI sidebar
 3. Configure generation, evolution, and advanced parameters
 4. Save parameter presets for future use
 5. Import/export parameter configurations
@@ -495,6 +495,6 @@ python -m Backend.bubblelabs_service
 
 ## Conclusion
 
-The OpenEvolve BubbleLabs Integration provides **complete and total control** over every aspect of the OpenEvolve workflow system through an intuitive and powerful BubbleLabs interface. Every configuration knob, control element, and parameter from the main Streamlit application is fully accessible and manageable from within the BubbleLabs UI, providing enhanced visualization, monitoring, and control capabilities for complex AI workflows.
+The OpenEvolve BubbleLabs Integration provides **complete and total control** over every aspect of the OpenEvolve workflow system through an intuitive and powerful BubbleLabs interface. Every configuration knob, control element, and parameter from the main BubbleLab UI application is fully accessible and manageable from within the BubbleLabs UI, providing enhanced visualization, monitoring, and control capabilities for complex AI workflows.
 
 This integration maintains full compatibility with existing OpenEvolve functionality while delivering the advanced visualization and control capabilities that make complex workflows easier to understand, manage, and optimize for enterprise-scale operations.

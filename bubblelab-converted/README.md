@@ -1,10 +1,10 @@
 # OpenEvolve BubbleLab Components
 
-This package contains the converted OpenEvolve Streamlit components to BubbleLab-compatible TypeScript/React components.
+This package contains the converted OpenEvolve BubbleLab UI components to BubbleLab-compatible TypeScript/React components.
 
 ## Overview
 
-The original OpenEvolve application was built using Streamlit, a Python-based web framework. This conversion project transforms those components into modern TypeScript/React components that can be integrated into the BubbleLab ecosystem.
+The original OpenEvolve application was built using BubbleLab UI, a Python-based web framework. This conversion project transforms those components into modern TypeScript/React components that can be integrated into the BubbleLab ecosystem.
 
 ## Converted Components
 
@@ -28,7 +28,7 @@ The following major components have been converted:
 
 ## Features Preserved
 
-- Full tabbed interface matching the original Streamlit application
+- Full tabbed interface matching the original BubbleLab UI application
 - State management using React hooks and localStorage
 - Responsive design compatible with BubbleLab
 - All major functionality from the original application

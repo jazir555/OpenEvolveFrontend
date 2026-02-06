@@ -99,7 +99,7 @@ def main():
         - Control with pause/resume/cancel
 
         [OK] **Visual Interface:**
-        - Streamlit-based UI
+        - UI-based UI
         - Team and gauntlet selection
         - Progress tracking
         - Results display
@@ -141,3 +141,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -1,6 +1,6 @@
 # OpenEvolve Testing Documentation
 
-Comprehensive testing guide for the Streamlit to BubbleLab migration project.
+Comprehensive testing guide for the BubbleLab UI to BubbleLab migration project.
 
 ---
 
@@ -440,3 +440,4 @@ afterEach(() => {
 
 **Last Updated**: 2026-01-06
 **Maintained By**: Agent 4 (Integration & Test Engineer)
+

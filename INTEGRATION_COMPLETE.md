@@ -72,7 +72,7 @@ test_integrations_comprehensive.py  620 lines  - 32 test cases
 ### Monitoring & Migration (2 files, ~1,000 lines)
 
 ```
-monitoring_dashboard.py       490 lines  - Streamlit monitoring UI
+monitoring_dashboard.py       490 lines  - BubbleLab UI monitoring UI
 migrate_to_unified_mcp.py     520 lines  - MCP migration tool
 ```
 
@@ -407,3 +407,4 @@ The OpenEvolve Integration System is **production-ready** with:
 **License**: Apache 2.0  
 **Status**: ✅ Complete  
 **Date**: 2026-02-02
+

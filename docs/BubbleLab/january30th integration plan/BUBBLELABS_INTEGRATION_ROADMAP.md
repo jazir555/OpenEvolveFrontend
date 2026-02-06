@@ -53,7 +53,7 @@ To transform the **OpenEvolve Mega-Structure** from a collection of high-density
 *   **Visualization:** Show the "Team Red" attack vectors (Edges, Assumptions, Boundaries) vs "Team Blue" defenses in real-time as they co-evolve toward a proof.
 
 ### 3.3. Formal Truth Monitor (Lean 4)
-*   **Feature:** A specialized Streamlit component to monitor `leanaide_evolution.py`.
+*   **Feature:** A specialized BubbleLab UI component to monitor `leanaide_evolution.py`.
 *   **Visualization:** Display the Genetic Algorithm's progress: Population fitness, crossover success, and the final Lean 4 proof string once found.
 
 ---
@@ -88,3 +88,4 @@ To transform the **OpenEvolve Mega-Structure** from a collection of high-density
 
 ## **The End-State Vision**
 OpenEvolve will function as a **Sovereign Research Command Center**. A user defines a new technology goal in **BubbleLabs**, the **Decomposition Engine** architectures the path, and the **30+ Expert Engines** execute and verify it until a **Binary Proof of Success** is delivered.
+

@@ -1,7 +1,7 @@
 /**
  * OpenEvolve Sidebar Component for BubbleLab
  * 
- * This component replaces the Streamlit-based sidebar UI
+ * This component replaces the BubbleLab UI-based sidebar UI
  * with a React-based component for the BubbleLab plugin system.
  */
 

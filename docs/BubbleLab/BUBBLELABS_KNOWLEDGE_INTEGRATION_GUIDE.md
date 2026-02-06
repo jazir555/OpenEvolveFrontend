@@ -56,7 +56,7 @@ This integration connects BubbleLabs UI with the OpenEvolve Knowledge Engine, pr
 ### Requirements
 
 ```bash
-pip install streamlit plotly networkx pandas
+pip install BubbleLab UI plotly networkx pandas
 pip install boto3  # For Bedrock
 pip install elasticsearch  # For Elasticsearch
 ```
@@ -95,7 +95,7 @@ pip install elasticsearch  # For Elasticsearch
 3. **Run the Application:**
 
    ```bash
-   streamlit run bubblelabs_knowledge_integration.py
+   BubbleLab UI run bubblelabs_knowledge_integration.py
    ```
 
 ---
@@ -172,7 +172,7 @@ fig = visualizer.create_interactive_plot(
     show_labels=True
 )
 
-# Display in Streamlit
+# Display in BubbleLab UI
 st.plotly_chart(fig, use_container_width=True)
 ```
 
@@ -237,7 +237,7 @@ for rel in relationships:
 
 ---
 
-## Streamlit UI Components
+## BubbleLab UI UI Components
 
 ### Main Interface
 
@@ -801,3 +801,4 @@ For questions or issues, please contact the OpenEvolve integration team.
 
 **Last Updated:** 2026-01-03
 **Documentation Version:** 1.0.0
+

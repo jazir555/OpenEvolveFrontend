@@ -509,7 +509,7 @@ class ResourceLimitExceeded(Exception):
 
 def render_resource_dashboard(resource_manager: ResourceManager):
     """
-    Render resource usage dashboard in Streamlit.
+    Render resource usage dashboard in UI.
     
     Args:
         resource_manager: ResourceManager instance to display
@@ -667,3 +667,4 @@ def track_openevolve_resources(
     resource_manager.tokens_used += tokens
     resource_manager.cost_incurred += cost
     resource_manager.memory_used_mb = max(resource_manager.memory_used_mb, memory)
+

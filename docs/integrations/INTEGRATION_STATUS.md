@@ -184,7 +184,7 @@ All base interfaces have been created and are ready for adapter implementation.
 - Interactive web-based visualization
 - GPU acceleration with cuML
 - UMAP embeddings + DBSCAN clustering
-- Streamlit iframe embedding
+- BubbleLab UI iframe embedding
 - Graph analytics
 
 ---
@@ -465,7 +465,7 @@ await factory.shutdown_all()
 - Interactive web-based graph visualization
 - GPU acceleration with cuML
 - UMAP embeddings + DBSCAN clustering
-- Streamlit iframe embedding
+- BubbleLab UI iframe embedding
 
 ---
 
@@ -719,3 +719,4 @@ conda install pytorch torchvision torchaudio
 ---
 
 **Last Updated**: 2026-01-02 by Agent 8 (Integration Orchestrator)
+

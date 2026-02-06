@@ -620,13 +620,13 @@ class KnowledgeGraphVisualizer:
         pass
 ```
 
-#### 6.2 Implement Streamlit Visualization
+#### 6.2 Implement BubbleLab UI Visualization
 **File**: `ui_components.py`
 
 ```python
 def render_knowledge_graph_viz():
-    """Render knowledge graph in Streamlit UI"""
-    import streamlit as st
+    """Render knowledge graph in BubbleLab UI UI"""
+    import BubbleLab UI as st
     import graphviz
 
     # Load graph
@@ -670,7 +670,7 @@ class WorkflowEngine:
 ```python
 def render_knowledge_base_interface():
     """Enhanced knowledge base UI"""
-    import streamlit as st
+    import BubbleLab UI as st
 
     # Artifact browser
     st.subheader("Knowledge Artifacts")
@@ -813,3 +813,4 @@ numpy>=1.24.0
 **Task File Created**: 2025-12-31
 **Source**: FRM Integration Analysis Recommendation
 **Status**: READY FOR IMPLEMENTATION
+

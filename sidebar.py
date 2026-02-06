@@ -252,7 +252,7 @@ def display_sidebar() -> None:
 
         /* Fix for st.radio background and appearance */
         .stRadio > label > div {
-            background-color: #f0f2f6; /* Streamlit's default light gray */
+            background-color: #f0f2f6; /* UI's default light gray */
             border-radius: 0.25rem;
             padding: 0.5rem;
             border: 1px solid #ccc; /* Add a border around the group */
@@ -1446,3 +1446,4 @@ def display_sidebar() -> None:
             st.caption(f"Adaptive MDAP: Enabled [{adaptive_profile}]")
         else:
             st.caption("Adaptive MDAP: Disabled")
+

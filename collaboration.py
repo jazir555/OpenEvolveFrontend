@@ -178,7 +178,7 @@ def get_local_ip():
 
 
 def display_collaboration_panel():
-    """Display the collaboration panel in Streamlit."""
+    """Display the collaboration panel in UI."""
     st.subheader("Real-time Collaboration")
     
     if not WEBSOCKETS_AVAILABLE:
@@ -207,3 +207,4 @@ def display_collaboration_panel():
                 st.info("Server stopping... (restart app for clean state)")
             else:
                 st.warning("No server running")
+

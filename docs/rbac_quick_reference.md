@@ -21,10 +21,10 @@ st_rbac = StreamlitRBAC(rbac)
 admin = rbac.create_user("admin", "admin@example.com", "secure_password", roles=["admin"])
 ```
 
-## Streamlit App Template
+## BubbleLab UI App Template
 
 ```python
-import streamlit as st
+import BubbleLab UI as st
 from rbac_enhanced import create_rbac_system, StreamlitRBAC, Permission
 
 # Initialize
@@ -108,7 +108,7 @@ def admin_function():
     pass
 ```
 
-### Streamlit Permission Checks
+### BubbleLab UI Permission Checks
 ```python
 # Method 1: Direct check
 if st_rbac.permission_check(Permission.MANAGE_USERS):
@@ -389,3 +389,4 @@ Part of the OpenEvolve project.
 **Version:** 2.0.0
 **Status:** Production Ready
 **Tests:** 39/39 Passing ✅
+

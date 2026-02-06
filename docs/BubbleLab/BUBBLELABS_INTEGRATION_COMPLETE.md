@@ -36,7 +36,7 @@
 
 ```bash
 # Start OpenEvolve with BubbleLabs integration
-python -m streamlit run main.py --server.port 8501
+python -m BubbleLab UI run main.py --server.port 8501
 
 # Access BubbleLabs interface at:
 # http://localhost:8501
@@ -93,7 +93,7 @@ BubbleLab/                              # Full TypeScript application
 
 Integration files (Python):
 ├── bubblelabs_integration.py          # Core integration logic
-├── bubblelabs_ui_component.py        # Streamlit UI component
+├── bubblelabs_ui_component.py        # BubbleLab UI UI component
 ├── openevolve_bubblelabs_api.py      # API bridge
 └── start_bubblelabs_integration.py   # Launcher script
 ```
@@ -143,7 +143,7 @@ BubbleLabs serves as the **n8n-style visual workflow interface** for OpenEvolve,
 │                    User Interface Layer                         │
 ├─────────────────────────────────────────────────────────────────┤
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
-│  │ Streamlit UI │  │ BubbleLabs   │  │ ReactFlow    │          │
+│  │ BubbleLab UI UI │  │ BubbleLabs   │  │ ReactFlow    │          │
 │  │ (main.py)    │  │ (React 19)   │  │ Visualization│          │
 │  └──────────────┘  └──────────────┘  └──────────────┘          │
 └─────────────────────────────────────────────────────────────────┘
@@ -201,7 +201,7 @@ BubbleLabs serves as the **n8n-style visual workflow interface** for OpenEvolve,
 **Files Verified:**
 ```
 ✅ bubblelabs_integration.py          - Core integration logic
-✅ bubblelabs_ui_component.py        - Streamlit UI component
+✅ bubblelabs_ui_component.py        - BubbleLab UI UI component
 ✅ openevolve_bubblelabs_api.py      - API bridge
 ✅ start_bubblelabs_integration.py   - Launcher script
 ✅ main.py                            - Integrated in tab "BubbleLabs Workflows"
@@ -246,7 +246,7 @@ BubbleLabs serves as the **n8n-style visual workflow interface** for OpenEvolve,
 ### Workflow Creation Flow
 
 ```python
-# 1. User creates workflow through Streamlit UI
+# 1. User creates workflow through BubbleLab UI UI
 from bubblelabs_ui_component import BubbleLabsWorkflowUI
 
 ui = BubbleLabsWorkflowUI()
@@ -402,7 +402,7 @@ python start_bubblelabs_integration.py
 ```
 
 **What it starts:**
-1. Main Streamlit UI (port 8501)
+1. Main BubbleLab UI UI (port 8501)
 2. Analytics server (optional)
 3. Background monitoring threads
 
@@ -414,7 +414,7 @@ python start_bubblelabs_integration.py
 
 1. **Start the Application**
    ```bash
-   python -m streamlit run main.py --server.port 8501
+   python -m BubbleLab UI run main.py --server.port 8501
    ```
 
 2. **Access BubbleLabs**
@@ -699,7 +699,7 @@ st.write(f"Value: {value}")
 **Solution:**
 - Check team and gauntlet names exist
 - Verify all required parameters are set
-- Check logs in Streamlit: `print(instance.data)`
+- Check logs in BubbleLab UI: `print(instance.data)`
 - Use debug mode: Add `import logging; logging.basicConfig(level=logging.DEBUG)`
 
 #### 4. BubbleLabs Tab Not Showing
@@ -710,7 +710,7 @@ st.write(f"Value: {value}")
 - Verify `bubblelabs_ui_component.py` exists
 - Check main.py imports around line 179
 - Ensure no import errors (check terminal)
-- Try restarting Streamlit
+- Try restarting BubbleLab UI
 
 ### Verification Script
 
@@ -743,7 +743,7 @@ Verifying OpenEvolve-BubbleLabs Integration...
 ### What Works ✅
 
 - ✅ **Fully integrated** into OpenEvolve SGDW
-- ✅ **Visual workflow designer** integrated into Streamlit
+- ✅ **Visual workflow designer** integrated into BubbleLab UI
 - ✅ **Complete parameter control** (all SGDW parameters)
 - ✅ **Workflow execution** with real-time monitoring
 - ✅ **Team and Gauntlet configuration**
@@ -760,7 +760,7 @@ Verifying OpenEvolve-BubbleLabs Integration...
 ### Next Steps
 
 1. **Use it now** - It's already integrated and working
-2. **Start the app** - `python -m streamlit run main.py --server.port 8501`
+2. **Start the app** - `python -m BubbleLab UI run main.py --server.port 8501`
 3. **Navigate to "BubbleLabs Workflows" tab**
 4. **Design your first workflow**
 5. **Execute and monitor**
@@ -793,3 +793,4 @@ The integration is verified, tested, and working. ClaraVerse has been removed as
 - `BUBBLELABS_INTEGRATION.md` - Original integration spec
 - `DECOMPOSITION_WORKFLOW_INTEGRATION_ARCHITECTURE.md` - Overall architecture
 - `CLAURAVERSE_VS_BUBBLELABS_COMPARISON.md` - Comparison analysis
+

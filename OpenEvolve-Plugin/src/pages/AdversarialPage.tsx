@@ -1,7 +1,7 @@
 /**
  * OpenEvolve Adversarial Testing Component for BubbleLab
  * 
- * This component replaces the Streamlit-based adversarial UI
+ * This component replaces the BubbleLab UI-based adversarial UI
  * with a React-based component for the BubbleLab plugin system.
  */
 

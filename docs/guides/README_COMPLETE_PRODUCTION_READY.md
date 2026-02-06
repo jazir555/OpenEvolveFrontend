@@ -137,7 +137,7 @@ The BubbleLabs integration is now:
 
 ```bash
 # Start using BubbleLabs integration
-python -m streamlit run main.py --server.port 8501
+python -m BubbleLab UI run main.py --server.port 8501
 # Navigate to "BubbleLabs Workflows" tab
 ```
 
@@ -266,3 +266,4 @@ The BubbleLabs integration is now a **fully-featured, enterprise-grade** workflo
 ---
 
 *End of Final Report*
+

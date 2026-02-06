@@ -129,7 +129,7 @@ A comprehensive listing of the physical files that constitute the Gauntlet Syste
 | `gauntlet_server.py` | **API** | FastAPI implementation exposing the system over HTTP. |
 | `gauntlets.json` | **Database** | JSON storage for all active Gauntlet definitions. |
 | `gauntlet_decomposition_integration.py` | **Mixin** | Utilities to attach Gauntlets to the Decomposition Engine. |
-| `ui_components.py` | **Frontend** | Streamlit UI components for the Gauntlet Designer/Runner. |
+| `ui_components.py` | **Frontend** | BubbleLab UI UI components for the Gauntlet Designer/Runner. |
 
 ---
 
@@ -297,7 +297,7 @@ The system exposes a REST API via `api/gauntlets.py`.
     *   Body: `{"gauntlet_name": "...", "content": "..."}`
 *   **Get Effectiveness:** `GET /api/gauntlets/{id}/effectiveness`
 
-### 6.3 Using the Streamlit UI
+### 6.3 Using the BubbleLab UI UI
 The `render_gauntlet_designer()` function in `ui_components.py` provides a full visual IDE.
 1.  **Team Selection:** Dropdown filters valid Teams (Red/Gold).
 2.  **Round Builder:** Dynamic form to add/remove rounds.
@@ -816,3 +816,4 @@ graph TD
     
     PASS_GOLD --> APPROVED[Mark as Elite]
 ```
+

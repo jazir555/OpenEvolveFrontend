@@ -1,7 +1,7 @@
 """
 BubbleLabs Extended UI Components
 
-Streamlit UI components for the extended BubbleLabs integration,
+UI UI components for the extended BubbleLabs integration,
 providing visualization and control for all OpenEvolve components.
 
 License: MIT
@@ -476,3 +476,4 @@ if __name__ == "__main__":
     else:
         # Run UI
         render_extended_ui()
+

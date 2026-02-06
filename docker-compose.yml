@@ -106,7 +106,7 @@ services:
       - "8000:8000"   # REST API
       - "8001:8001"   # GraphQL API
       - "8080:8080"   # Orchestrator / Gateway
-      - "8501:8501"   # Streamlit Dashboard
+      - "8501:8501"   # BubbleLab UI Dashboard
     environment:
       # Core Configuration
       - OPENEVOLVE_LOG_LEVEL=INFO
@@ -213,3 +213,4 @@ volumes:
     driver: local
   openevolve_data:
     driver: local
+

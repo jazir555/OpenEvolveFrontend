@@ -1537,7 +1537,7 @@ async def run_sovereign_workflow(
             return # Terminate workflow.
         else: # review_status == "pending"
             # If the plan is still pending review, we need to stop execution here
-            # and wait for the next Streamlit rerun triggered by user interaction in the UI.
+            # and wait for the next UI rerun triggered by user interaction in the UI.
             return
 
     # STAGE 3: DELEGATE TO crewai
@@ -2311,7 +2311,7 @@ async def run_sovereign_workflow(
                         return
                 
                 workflow_state.current_stage = "Sub-Problem Solving Loop" # Go back to solve problematic sub-problems.
-                return # Exit current run, Streamlit will re-run and and continue from Stage 3.
+                return # Exit current run, UI will re-run and and continue from Stage 3.
             else:
                 add_metric(
                     "gauntlet_success_total",
@@ -2395,7 +2395,7 @@ async def run_sovereign_workflow(
                         return
                 
                 workflow_state.current_stage = "Sub-Problem Solving Loop" # Go back to solve problematic sub-problems.
-                return # Exit current run, Streamlit will re-run and continue from Stage 3.
+                return # Exit current run, UI will re-run and continue from Stage 3.
 
             # Optional formal verification on final solution
             formal_report = None
@@ -6553,3 +6553,4 @@ Expected improvements:
 - <1ms allocation latency
 - ±1% quality variance from baseline
 """
+

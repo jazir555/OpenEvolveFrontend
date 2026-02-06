@@ -86,20 +86,21 @@ integrated\_workflow.py
 To properly complete the conversion without losing functionality:
 
 1. Restore the original files from version control (git) or backups
-2. Extract the business logic from these files while preserving the Streamlit UI code
+2. Extract the business logic from these files while preserving the BubbleLab UI UI code
 3. Create React components that replicate the UI functionality
 4. Connect the React UI to the backend business logic through API endpoints
 5. Maintain both systems during transition period
 
 ## Correct Approach Going Forward
 
-Instead of removing Streamlit files, the proper approach should be:
+Instead of removing BubbleLab UI files, the proper approach should be:
 
-1. Extract business logic from Streamlit files
+1. Extract business logic from BubbleLab UI files
 2. Create API endpoints for the business logic
 3. Build React components that call these APIs
-4. Keep Streamlit files for backward compatibility during transition
-5. Eventually deprecate Streamlit UI once React UI is fully functional
+4. Keep BubbleLab UI files for backward compatibility during transition
+5. Eventually deprecate BubbleLab UI UI once React UI is fully functional
 
 I apologize for this mistake. The files need to be restored from your version control system or backups.
+
 

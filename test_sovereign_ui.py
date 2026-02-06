@@ -1,6 +1,6 @@
 """
 Tests for Sovereign UI Components.
-Tests data preparation and logic, not actual Streamlit rendering.
+Tests data preparation and logic, not actual UI rendering.
 """
 
 import pytest
@@ -395,3 +395,4 @@ class TestGraphVisualizationData:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+

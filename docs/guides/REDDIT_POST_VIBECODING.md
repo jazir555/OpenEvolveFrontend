@@ -192,7 +192,7 @@ And outputs a complete "build bible" - a turnkey experimental plan that:
 **Typical Pattern:**
 1. "We wrapped GPT-4 in a chatbot"
 2. "Added RAG for document retrieval"
-3. "Built simple UI with Streamlit"
+3. "Built simple UI with BubbleLab UI"
 4. "Hope it magically solves problems"
 5. No formal verification
 6. No error analysis
@@ -304,7 +304,7 @@ And outputs a complete "build bible" - a turnkey experimental plan that:
      - DBSCAN clustering (pattern discovery)
      - Interactive visualization (millions of nodes)
      - GPU acceleration (100X+ speedup)
-     - Streamlit integration
+     - BubbleLab UI integration
    - Why P2: Saves 6+ weeks, professional visualization
 
 4. **kg-gen Integration** (P2.5 - HIGH VALUE)
@@ -445,7 +445,7 @@ Already 100% complete and integrated: Steer (Active Reliability Layer), ROMA (Re
 
 #### Priority 2 (HIGH VALUE)
 
-**4. pygraphistry Integration** - 2-3 weeks. GPU-accelerated graph visualization + ML with 100X+ speedup. Saves 6+ weeks. UMAP embeddings, DBSCAN clustering, interactive visualization (millions of nodes), GPU acceleration, Streamlit integration.
+**4. pygraphistry Integration** - 2-3 weeks. GPU-accelerated graph visualization + ML with 100X+ speedup. Saves 6+ weeks. UMAP embeddings, DBSCAN clustering, interactive visualization (millions of nodes), GPU acceleration, BubbleLab UI integration.
 
 **5. kg-gen Integration** - 6-7 weeks. LLM-based knowledge extraction providing 3 components, saves 6-8 weeks. Direct integration, schema extension, workflow integration with stage-specific prompts, pattern mining (scikit-learn), UI integration.
 
@@ -1058,4 +1058,5 @@ Before reaching out, READ our specification documents (available upon request if
 **P.S.** Still skeptical? Read the specs. They're honest about what works and what doesn't. If you think this is revolutionary after reading them, let's talk. If you think it's impossible, read them again and ask us questions. We're happy to explain.
 
 **P.P.S.** This is not a "maybe someday" project. Funding is secured. Specs are written. 9/18 projects are complete. We're building this now. Join us.
+
 

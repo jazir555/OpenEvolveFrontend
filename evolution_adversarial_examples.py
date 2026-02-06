@@ -682,7 +682,7 @@ def example_8_comparison():
 # =============================================================================
 
 def main():
-    """Main Streamlit app for examples"""
+    """Main UI app for examples"""
     st.set_page_config(
         page_title="Evolution & Adversarial Examples",
         page_icon="📚",
@@ -750,3 +750,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -943,7 +943,7 @@ def render_openevolve_orchestrator_ui():
 
 
 def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
-    """Renders the 'Create Workflow' tab in the Streamlit UI, allowing users to configure and start new evolution workflows.
+    """Renders the 'Create Workflow' tab in the UI UI, allowing users to configure and start new evolution workflows.
 
     Args:
         orchestrator (OpenEvolveOrchestrator): The orchestrator instance to interact with.
@@ -2054,12 +2054,12 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
                     coevolutionary_approach=sg_config["coevolutionary_approach"],
                 )
                 
-                # Store the workflow_state in Streamlit's session state
+                # Store the workflow_state in UI's session state
                 st.session_state.active_sovereign_workflow = workflow_state
                 st.session_state.current_workflow_id = workflow_id # For monitoring
                 
                 st.success(f"[OK] Sovereign-Grade Workflow '{workflow_id}' initialized. Starting execution...")
-                # The actual execution will be triggered by Streamlit's rerun mechanism
+                # The actual execution will be triggered by UI's rerun mechanism
                 # when the UI renders the monitoring tab.
                 st.rerun() # Trigger rerun to start execution in monitoring tab
                 
@@ -2196,7 +2196,7 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
 
 
 def render_monitoring_tab(orchestrator: OpenEvolveOrchestrator):
-    """Renders the 'Monitoring Panel' tab in the Streamlit UI, displaying real-time status and progress of active workflows.
+    """Renders the 'Monitoring Panel' tab in the UI UI, displaying real-time status and progress of active workflows.
 
     Args:
         orchestrator (OpenEvolveOrchestrator): The orchestrator instance to interact with.
@@ -2425,7 +2425,7 @@ def render_monitoring_tab(orchestrator: OpenEvolveOrchestrator):
 
 
 def render_history_tab(orchestrator: OpenEvolveOrchestrator):
-    """Renders the 'History' tab in the Streamlit UI, displaying completed, failed, or cancelled workflows.
+    """Renders the 'History' tab in the UI UI, displaying completed, failed, or cancelled workflows.
 
     Args:
         orchestrator (OpenEvolveOrchestrator): The orchestrator instance to interact with.
@@ -2545,7 +2545,7 @@ def render_history_tab(orchestrator: OpenEvolveOrchestrator):
                                 st.json(dataclasses.asdict(report))
 
 def render_configuration_tab(orchestrator: OpenEvolveOrchestrator):
-    """Renders the 'Configuration' tab in the Streamlit UI, allowing users to manage workflow templates, parameter presets, and global settings.
+    """Renders the 'Configuration' tab in the UI UI, allowing users to manage workflow templates, parameter presets, and global settings.
 
     Args:
         orchestrator (OpenEvolveOrchestrator): The orchestrator instance to interact with.
@@ -2914,8 +2914,8 @@ def render_configuration_tab(orchestrator: OpenEvolveOrchestrator):
 
 # Initialize session state
 def initialize_orchestrator_session():
-    """Initializes the OpenEvolveOrchestrator instance in Streamlit's session state if it doesn't already exist.
-    This ensures that the orchestrator state persists across Streamlit reruns.
+    """Initializes the OpenEvolveOrchestrator instance in UI's session state if it doesn't already exist.
+    This ensures that the orchestrator state persists across UI reruns.
     """
     if "orchestrator" not in st.session_state:
         st.session_state.orchestrator = OpenEvolveOrchestrator()
@@ -2969,7 +2969,7 @@ def start_openevolve_services():
         backend_err_log = os.path.join(os.path.dirname(__file__), "backend_stderr.log")
         
         with open(backend_out_log, "w") as stdout_file, open(backend_err_log, "w") as stderr_file:
-            # We use a separate thread to run this to ensure it doesn't interfere with Streamlit's main loop
+            # We use a separate thread to run this to ensure it doesn't interfere with UI's main loop
             process = subprocess.Popen(
                 command,
                 stdout=stdout_file,
@@ -3028,3 +3028,4 @@ def restart_openevolve_services():
     stop_openevolve_services()
     time.sleep(2)
     start_openevolve_services()
+

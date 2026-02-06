@@ -11,7 +11,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Initialize managers lazily (can be done once in the main app or passed via session state)
-# These managers handle persistence of Teams and Gauntlets across Streamlit reruns.
+# These managers handle persistence of Teams and Gauntlets across UI reruns.
 def _ensure_managers_initialized():
     """Ensure team and gauntlet managers are initialized in session state."""
     if not hasattr(st, 'session_state') or st.session_state is None:
@@ -27,7 +27,7 @@ def _ensure_managers_initialized():
         setattr(st.session_state, 'gauntlet_manager', GauntletManager())
 
 def render_team_manager():
-    """Renders the Streamlit UI for managing AI teams. Allows users to create, view, edit, and delete teams."""
+    """Renders the UI UI for managing AI teams. Allows users to create, view, edit, and delete teams."""
     _ensure_managers_initialized()
     st.header("👥 Team Manager")
     st.write("Create, view, edit, and delete your AI teams.")
@@ -637,7 +637,7 @@ def render_team_manager():
                             st.error(f"Failed to delete team '{team.name}'.")
 
 def render_gauntlet_designer():
-    """Renders the Streamlit UI for designing and managing Gauntlet definitions. Allows users to create, view, edit, and delete gauntlets."""
+    """Renders the UI UI for designing and managing Gauntlet definitions. Allows users to create, view, edit, and delete gauntlets."""
     st.header("🛡️ Gauntlet Designer")
     st.write("Create, view, edit, and delete your programmable Gauntlet definitions.")
 
@@ -990,7 +990,7 @@ def render_manual_review_panel(decomposition_plan: DecompositionPlan) -> tuple[s
     st.info("Review the AI-generated decomposition plan. You can edit any aspect of the plan before approving it.")
 
     # Use a session state object to hold edits, preventing loss on rerun.
-    # This ensures that user modifications persist across Streamlit reruns until the plan is approved or rejected.
+    # This ensures that user modifications persist across UI reruns until the plan is approved or rejected.
     if 'edited_sub_problems' not in st.session_state:
         st.session_state.edited_sub_problems = {sp.id: sp for sp in decomposition_plan.sub_problems}
 
@@ -4900,3 +4900,4 @@ UI_FUNCTIONS_TO_ADD = [
     render_workflow_orchestrator,
     render_realtime_monitoring,
 ]
+

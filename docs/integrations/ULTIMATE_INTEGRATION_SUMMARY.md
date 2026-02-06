@@ -186,7 +186,7 @@ All other phases can run in parallel
 2. Week 2: Component 6 (KnowledgeGraphVisualizer)
    - Day 1-2: Build graph binding from artifacts
    - Day 3: Style and filter implementation
-   - Day 4-5: Streamlit integration and testing
+   - Day 4-5: BubbleLab UI integration and testing
 
 3. Week 3: Testing and documentation
 
@@ -195,7 +195,7 @@ All other phases can run in parallel
 - [ ] DBSCAN clustering for pattern discovery
 - [ ] Interactive graph visualization (millions of nodes)
 - [ ] GPU acceleration working (100X+ speedup)
-- [ ] Streamlit iframe embedding functional
+- [ ] BubbleLab UI iframe embedding functional
 - [ ] Component 3 at 95%, Component 6 at 100%
 
 ---
@@ -226,7 +226,7 @@ All other phases can run in parallel
    - Add pattern extraction and summarization
 
 5. Week 7: UI Integration
-   - Integrate visualization into Streamlit dashboard
+   - Integrate visualization into BubbleLab UI dashboard
    - Add filters and interactivity
    - Documentation
 
@@ -570,3 +570,4 @@ All analysis is complete. You now have comprehensive analysis of **18 projects**
 
 **Last Updated**: 2025-12-31
 **Version**: 2.0 (18 Projects Complete)
+

@@ -1,6 +1,6 @@
 # Enhanced RBAC System - Production-Ready Access Control
 
-A comprehensive, production-ready Role-Based Access Control (RBAC) system for Python applications with Streamlit integration.
+A comprehensive, production-ready Role-Based Access Control (RBAC) system for Python applications with BubbleLab UI integration.
 
 ## Table of Contents
 
@@ -12,7 +12,7 @@ A comprehensive, production-ready Role-Based Access Control (RBAC) system for Py
 - [Storage Backends](#storage-backends)
 - [Authentication](#authentication)
 - [Authorization](#authorization)
-- [Streamlit Integration](#streamlit-integration)
+- [BubbleLab UI Integration](#BubbleLab UI-integration)
 - [API Reference](#api-reference)
 - [Examples](#examples)
 - [Testing](#testing)
@@ -31,7 +31,7 @@ A comprehensive, production-ready Role-Based Access Control (RBAC) system for Py
 - ✅ **Comprehensive Error Handling** - Specific exception types
 - ✅ **Production Logging** - Structured logging with contextual information
 
-### Streamlit Integration
+### BubbleLab UI Integration
 - ✅ Built-in login form
 - ✅ Permission-based UI rendering
 - ✅ Session management
@@ -50,7 +50,7 @@ A comprehensive, production-ready Role-Based Access Control (RBAC) system for Py
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     Application Layer                        │
-│  (FastAPI, Flask, Streamlit, or custom Python app)           │
+│  (FastAPI, Flask, BubbleLab UI, or custom Python app)           │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -77,7 +77,7 @@ A comprehensive, production-ready Role-Based Access Control (RBAC) system for Py
 ### Requirements
 
 ```bash
-pip install streamlit
+pip install BubbleLab UI
 ```
 
 ### Optional Dependencies
@@ -130,10 +130,10 @@ if rbac.has_permission(user, Permission.MANAGE_USERS):
     print("Admin can manage users")
 ```
 
-### Streamlit Integration
+### BubbleLab UI Integration
 
 ```python
-import streamlit as st
+import BubbleLab UI as st
 from rbac_enhanced import create_rbac_system, StreamlitRBAC
 
 # Create RBAC system
@@ -176,7 +176,7 @@ rbac = RBACSystem(
     }
 )
 
-# Using Streamlit session state (development only)
+# Using BubbleLab UI session state (development only)
 rbac = RBACSystem(
     storage_backend='session',
     storage_config={
@@ -340,7 +340,7 @@ except AuthorizationError:
     print("Access denied")
 ```
 
-### Streamlit Permission Checks
+### BubbleLab UI Permission Checks
 
 ```python
 from rbac_enhanced import StreamlitRBAC, Permission
@@ -359,12 +359,12 @@ def render_admin_panel():
     st.write("Admin Panel")
 ```
 
-## Streamlit Integration
+## BubbleLab UI Integration
 
-### Complete Streamlit App Example
+### Complete BubbleLab UI App Example
 
 ```python
-import streamlit as st
+import BubbleLab UI as st
 from rbac_enhanced import create_rbac_system, StreamlitRBAC, Permission
 
 # Page config
@@ -508,7 +508,7 @@ Generate an API key for a user.
 #### Methods
 
 ##### `login_form(key="login_form")`
-Render a login form in Streamlit.
+Render a login form in BubbleLab UI.
 
 **Parameters:**
 - `key` (str): Unique form key
@@ -532,7 +532,7 @@ Check if current user has permission.
 **Returns:** `bool`
 
 ##### `require_permission(permission)`
-Streamlit decorator to require permission.
+BubbleLab UI decorator to require permission.
 
 **Parameters:**
 - `permission` (str | Permission): Required permission
@@ -548,7 +548,7 @@ Render the complete RBAC management UI.
 
 ```python
 from rbac_enhanced import create_rbac_system, StreamlitRBAC, Permission
-import streamlit as st
+import BubbleLab UI as st
 
 # Initialize
 rbac = create_rbac_system()
@@ -688,7 +688,7 @@ runner.run(suite)
 
 ```python
 # Old rbac.py
-import streamlit as st
+import BubbleLab UI as st
 
 ROLES = {
     "admin": {"permissions": ["manage_users"]},
@@ -808,11 +808,12 @@ For issues, questions, or contributions, please refer to the main OpenEvolve doc
 - Comprehensive audit logging
 - Type hints throughout
 - Production-ready error handling
-- Streamlit integration
+- BubbleLab UI integration
 - JWT and API key support
 - Full test suite
 
 ### Version 1.0.0 (Basic)
-- Streamlit session state storage
+- BubbleLab UI session state storage
 - Basic role/permission checking
 - Simple user management
+

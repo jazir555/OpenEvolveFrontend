@@ -7,7 +7,7 @@ This document summarizes the dependency management work completed for the OpenEv
 
 All required packages listed in `requirements.txt` are properly installed and functional:
 
-1. **streamlit>=1.27.0** (Installed version: 1.49.1)
+1. **BubbleLab UI>=1.27.0** (Installed version: 1.49.1)
    - Core web framework for the application
    - Successfully imports and runs without issues
 
@@ -15,8 +15,8 @@ All required packages listed in `requirements.txt` are properly installed and fu
    - HTTP library for API calls
    - Working correctly for all network operations
 
-3. **streamlit-tags>=0.1.0** (Installed version: 1.2.8)
-   - Tag input component for Streamlit
+3. **BubbleLab UI-tags>=0.1.0** (Installed version: 1.2.8)
+   - Tag input component for BubbleLab UI
    - Successfully integrated into the UI
 
 4. **fpdf>=1.7.2** (Installed version: 1.7.2)
@@ -47,13 +47,13 @@ The installation process completed without errors, downloading and installing al
 
 ### Version Compatibility
 All installed package versions are compatible with each other:
-- Streamlit 1.49.1 works correctly with all other packages
+- BubbleLab UI 1.49.1 works correctly with all other packages
 - Requests 2.32.5 is compatible with current HTTP standards
 - All other packages are at versions that work well together
 
 ### Functional Testing
 Each dependency was tested for proper functionality:
-- Streamlit components render correctly
+- BubbleLab UI components render correctly
 - HTTP requests execute successfully
 - Tag inputs work as expected
 - PDF and DOCX generation functions properly
@@ -87,7 +87,7 @@ The installation process is straightforward and documented:
 
 3. **Run the application**:
    ```bash
-   streamlit run app.py
+   BubbleLab UI run app.py
    ```
 
 ## Dependency Analysis Results
@@ -95,7 +95,7 @@ The installation process is straightforward and documented:
 ### Package Imports
 All required packages import successfully without conflicts:
 ```python
-import streamlit
+import BubbleLab UI
 import requests
 import streamlit_tags
 import fpdf
@@ -104,9 +104,9 @@ import docx
 
 ### Version Information
 Key package versions confirmed:
-- Streamlit: 1.49.1
+- BubbleLab UI: 1.49.1
 - Requests: 2.32.5
-- Streamlit-tags: 1.2.8
+- BubbleLab UI-tags: 1.2.8
 - FPDF: 1.7.2
 - Python-docx: 1.2.0
 

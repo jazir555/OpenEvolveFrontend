@@ -1,7 +1,7 @@
 {
   "name": "@openevolve/bubblelab-components",
   "version": "1.0.0",
-  "description": "Converted OpenEvolve Streamlit components to BubbleLab TypeScript components",
+  "description": "Converted OpenEvolve BubbleLab UI components to BubbleLab TypeScript components",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -21,7 +21,7 @@
   "keywords": [
     "openevolve",
     "bubblelab",
-    "streamlit",
+    "BubbleLab UI",
     "conversion",
     "typescript",
     "react"

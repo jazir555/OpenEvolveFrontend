@@ -152,7 +152,7 @@ if EVOLUTION_AVAILABLE:
 **Actions:**
 - Replace `st.session_state[]` with `UnifiedConfiguration.from_session()`
 - Update UI components (mainlayout.py, sidebar.py)
-- Test Streamlit app thoroughly
+- Test BubbleLab UI app thoroughly
 
 **Example:**
 ```python
@@ -366,3 +366,4 @@ See `COMPLETE_FILE_INVENTORY.md` for detailed risk ratings per file
 *Generated: 2026-01-03*
 *Analysis Tool: Claude (Anthropic)*
 *Confidence: HIGH (95%+)*
+

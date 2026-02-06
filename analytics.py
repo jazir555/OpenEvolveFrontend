@@ -1165,7 +1165,7 @@ def generate_advanced_analytics(results: Dict) -> Dict:
 
 def render_analytics_settings():
     """
-    Renders the analytics settings section in the Streamlit UI.
+    Renders the analytics settings section in the UI UI.
     Allows users to configure what data to collect, how to display it, etc.
     """
     st.header("📊 Analytics Settings")
@@ -1236,3 +1236,4 @@ def render_analytics_settings():
             st.write(f"**Personal Info Included:** {'Yes' if include_personal_info else 'No'}")
     
     st.info("💡 Analytics help improve the application. You can change these settings anytime in this panel.")
+

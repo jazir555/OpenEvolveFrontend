@@ -20,7 +20,7 @@
 |-----------|----------------|----------------|------------|
 | **Knowledge Extraction** | LLM-based (variable quality) | ML + LLM (production-grade) | DeepKE better |
 | **Target Domain** | Business documents | General knowledge | Different focus |
-| **Architecture Match** | Streamlit UI (standalone) | Python library (integrable) | DeepKE better |
+| **Architecture Match** | BubbleLab UI UI (standalone) | Python library (integrable) | DeepKE better |
 | **Integration Effort** | High (UI tightly coupled) | Medium | DeepKE easier |
 | **Value for KE** | Low (wrong use case) | High (fills gaps) | DeepKE preferred |
 
@@ -32,7 +32,7 @@
 - -1: Architectural mismatch (standalone UI vs. library integration)
 - +1: Valuable design patterns to learn from
 - -1: Redundant LLM-based extraction (we have this with ACE)
-- -1: High integration complexity (Streamlit dependency)
+- -1: High integration complexity (BubbleLab UI dependency)
 - +1: Interesting hierarchical extraction concept
 - -1: No workflow-specific features
 
@@ -44,9 +44,9 @@
 
 ### 1.1 Generic-Knowledge-Extraction-Tool Overview
 
-**Project Type:** Streamlit-based document extraction web application
+**Project Type:** BubbleLab UI-based document extraction web application
 **Core Purpose:** Extract structured data from business documents (PDFs, DOCX, DOC)
-**Technology Stack:** Python, Streamlit, Pydantic, LLM APIs (Claude/OpenAI)
+**Technology Stack:** Python, BubbleLab UI, Pydantic, LLM APIs (Claude/OpenAI)
 
 #### **Key Features (from README):**
 
@@ -132,11 +132,11 @@ openai                    # OpenAI API
 PyMuPDF                   # PDF parsing
 python-docx               # DOCX parsing
 docling                   # AI parsing (optional)
-streamlit                 # Web UI
+BubbleLab UI                 # Web UI
 python-dotenv             # Environment
 ```
 
-**Assessment:** Lightweight, no ML training dependencies, but Streamlit coupling limits integration.
+**Assessment:** Lightweight, no ML training dependencies, but BubbleLab UI coupling limits integration.
 
 ---
 
@@ -178,7 +178,7 @@ python-dotenv             # Environment
 | **Entity Standardization** | ⚠️ Basic (Pydantic) | ✅ Rule-based | ✅ Sophisticated multi-pass | **AI-KG** |
 | **Relationship Inference** | ⚠️ Hierarchical only | ❌ None | ✅ Multi-strategy + LLM | **AI-KG** |
 | **MCP Integration** | ❌ None | ✅ Native MCP | ❌ None | **DeepKE** |
-| **Dependencies** | ⚠️ Streamlit | ⚠️ Heavy (torch) | ✅ Light (networkx) | **AI-KG** |
+| **Dependencies** | ⚠️ BubbleLab UI | ⚠️ Heavy (torch) | ✅ Light (networkx) | **AI-KG** |
 | **Integration Style** | Standalone UI | Library | Library | **DeepKE/AI-KG** |
 | **Workflow-Specific** | ❌ No | ❌ No | ❌ No | **None** |
 | **Hierarchical Extraction** | ✅ Advanced (Case 2) | ❌ None | ❌ None | **Generic-KE** |
@@ -220,7 +220,7 @@ python-dotenv             # Environment
 
 **Generic-KE-Tool Architecture:**
 ```
-Streamlit Web App (UI-driven)
+BubbleLab UI Web App (UI-driven)
     ↓
 Text Description Parser (LLM)
     ↓
@@ -287,7 +287,7 @@ Learning Loop (ACE)
 - ❌ Wrong domain (business docs vs. workflows)
 
 **Risk Assessment:** **HIGH**
-- Architectural mismatch (Streamlit UI)
+- Architectural mismatch (BubbleLab UI UI)
 - Wrong problem domain
 - High integration effort
 - Low value for Knowledge Engine needs
@@ -309,7 +309,7 @@ Learning Loop (ACE)
 - But high integration cost for niche benefit
 
 **Integration Complexity:** **HIGH**
-- Streamlit UI must be stripped out
+- BubbleLab UI UI must be stripped out
 - Core extraction logic tightly coupled to UI
 - Must refactor to library architecture
 - Estimated 3-4 weeks
@@ -476,7 +476,7 @@ Learning Loop (ACE)
 ### 4.1 OpenEvolve Stack Compatibility
 
 **OpenEvolve Components:**
-- Python + Streamlit (web UI) ← **COMPATIBLE**
+- Python + BubbleLab UI (web UI) ← **COMPATIBLE**
 - Hephaestus (delegation) ← **COMPATIBLE**
 - ROMA (decomposition) ← **NOT RELEVANT**
 - RAGbits (knowledge retrieval) ← **SEPARATE CONCERN**
@@ -486,7 +486,7 @@ Learning Loop (ACE)
 
 **Compatibility Analysis:**
 - ✅ Python: Yes (same language)
-- ✅ Streamlit: Yes (both use Streamlit)
+- ✅ BubbleLab UI: Yes (both use BubbleLab UI)
 - ⚠️ Architecture: Different (Generic-KE-Tool is standalone app, OpenEvolve is system)
 - ❌ Integration: No (Generic-KE-Tool is UI-centric, OpenEvolve needs API-centric)
 
@@ -495,7 +495,7 @@ Learning Loop (ACE)
 **Generic-KE-Tool Dependencies:**
 ```
 pandas, openpyxl, pydantic, anthropic, openai,
-PyMuPDF, python-docx, docling, streamlit, python-dotenv
+PyMuPDF, python-docx, docling, BubbleLab UI, python-dotenv
 ```
 
 **OpenEvolve Dependencies (from requirements.txt):**
@@ -504,7 +504,7 @@ PyMuPDF, python-docx, docling, streamlit, python-dotenv
 ```
 
 **Conflicts:**
-- ⚠️ **Streamlit:** OpenEvolve uses Streamlit for UI, but Generic-KE-Tool is a full Streamlit app
+- ⚠️ **BubbleLab UI:** OpenEvolve uses BubbleLab UI for UI, but Generic-KE-Tool is a full BubbleLab UI app
 - ⚠️ **Pydantic:** Both use Pydantic (compatible)
 - ✅ **Anthropic/OpenAI:** Both use these (compatible)
 - ❌ **PyMuPDF/python-docx:** New dependencies for document parsing (not needed for KE)
@@ -618,7 +618,7 @@ PyMuPDF, python-docx, docling, streamlit, python-dotenv
 |-----------|-------|-----------|
 | **Fills critical gaps** | -1 | Does NOT fill KnowledgeArtifact schema, pattern mining, analytics |
 | **Complementary to DeepKE+AI-KG** | -1 | Redundant LLM extraction, adds minimal unique value |
-| **Low integration complexity** | -1 | High complexity (Streamlit UI coupling, requires refactor) |
+| **Low integration complexity** | -1 | High complexity (BubbleLab UI UI coupling, requires refactor) |
 | **High value for OpenEvolve** | -1 | Wrong domain (business docs vs. workflow knowledge) |
 | **Redundant with existing** | -1 | ACE already does LLM extraction |
 | **Architectural mismatch** | -1 | Standalone UI app vs. library integration needed |
@@ -649,7 +649,7 @@ PyMuPDF, python-docx, docling, streamlit, python-dotenv
    - **Zero overlap** in use cases
 
 2. **Architectural Mismatch** (-2)
-   - Generic-KE-Tool is a standalone Streamlit web application
+   - Generic-KE-Tool is a standalone BubbleLab UI web application
    - Knowledge Engine needs library-style integration (no UI)
    - Would require **complete refactor** to remove UI coupling
 
@@ -792,7 +792,7 @@ PyMuPDF, python-docx, docling, streamlit, python-dotenv
 |--------|--------|----------------|--------|
 | **Extraction Quality** | 80-90% F1 (ML) | 60-80% (LLM) | **DeepKE** |
 | **Domain** | General | Business docs | **DeepKE** |
-| **Integration** | MCP (easy) | Streamlit UI (hard) | **DeepKE** |
+| **Integration** | MCP (easy) | BubbleLab UI UI (hard) | **DeepKE** |
 | **Visualization** | None | None | **Tie** |
 | **Knowledge Engine Fit** | Medium | Low | **DeepKE** |
 
@@ -804,7 +804,7 @@ PyMuPDF, python-docx, docling, streamlit, python-dotenv
 | **Visualization** | PyVis interactive | None | **AI-KG** |
 | **Entity Standardization** | Sophisticated | Basic | **AI-KG** |
 | **Relationship Inference** | Multi-strategy | Hierarchical only | **AI-KG** |
-| **Integration** | Library (easy) | Streamlit UI (hard) | **AI-KG** |
+| **Integration** | Library (easy) | BubbleLab UI UI (hard) | **AI-KG** |
 | **Knowledge Engine Fit** | High | Low | **AI-KG** |
 
 ### 9.3 Combined Verdict
@@ -824,3 +824,4 @@ PyMuPDF, python-docx, docling, streamlit, python-dotenv
 **Last Updated:** 2025-12-31
 **Status:** Complete Analysis
 **Next Step:** Proceed with DeepKE + AI-KG integration (Phase 1)
+

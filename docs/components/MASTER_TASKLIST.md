@@ -392,7 +392,7 @@ This document contains a comprehensive list of all necessary tasks for integrati
 - [ ] **Install optional dependencies**:
   - [ ] cuML for GPU acceleration (if CUDA available)
   - [ ] NetworkX for graph manipulation
-  - [ ] Streamlit for UI integration
+  - [ ] BubbleLab UI for UI integration
 - [ ] **Create configuration module**: Centralized config for pygraphistry
 
 **Deliverables**:
@@ -422,7 +422,7 @@ This document contains a comprehensive list of all necessary tasks for integrati
   - [ ] Extract key features per cluster
   - [ ] Track pattern evolution over time
   - [ ] LLM-assisted pattern naming
-- [ ] **Create Streamlit integration**:
+- [ ] **Create BubbleLab UI integration**:
   - [ ] Display cluster visualization
   - [ ] Interactive pattern exploration
   - [ ] Filter by attributes
@@ -430,7 +430,7 @@ This document contains a comprehensive list of all necessary tasks for integrati
 **Deliverables**:
 - `solution_pattern_miner_pygraphistry.py` - NEW
 - `tests/test_pattern_miner_pygraphistry.py` - Test suite
-- `streamlit/components/pattern_clusters.py` - Streamlit component
+- `BubbleLab UI/components/pattern_clusters.py` - BubbleLab UI component
 - `docs/PATTERN_MINING_WITH_PYGRAPHISTRY.md` - Documentation
 
 ### C.3 Component 6: KnowledgeGraphVisualizer (Days 10-14)
@@ -448,7 +448,7 @@ This document contains a comprehensive list of all necessary tasks for integrati
 - [ ] **GPU acceleration**:
   - [ ] cuML for large-scale clustering
   - [ ] Benchmark CPU vs. GPU performance
-- [ ] **Streamlit integration**:
+- [ ] **BubbleLab UI integration**:
   - [ ] iframe embedding for interactive graph
   - [ ] Control panel for filters
   - [ ] Zoom/pan controls
@@ -456,7 +456,7 @@ This document contains a comprehensive list of all necessary tasks for integrati
 **Deliverables**:
 - `knowledge_graph_visualizer_pygraphistry.py` - NEW
 - `tests/test_graph_visualizer_pygraphistry.py` - Test suite
-- `streamlit/components/graph_viz.py` - Streamlit component
+- `BubbleLab UI/components/graph_viz.py` - BubbleLab UI component
 - `docs/GRAPH_VIZ_WITH_PYGRAPHISTRY.md` - Documentation
 
 ### C.4 Integration & Testing (Days 15-21)
@@ -580,7 +580,7 @@ This document contains a comprehensive list of all necessary tasks for integrati
 **Deliverables**:
 - `solution_pattern_miner_kggen_sklearn.py` - NEW
 - `tests/test_pattern_miner_kggen_sklearn.py` - Test suite
-- `streamlit/components/pattern_clusters_kggen.py` - Streamlit component
+- `BubbleLab UI/components/pattern_clusters_kggen.py` - BubbleLab UI component
 - `docs/KGGEN_PATTERN_MINING.md` - Pattern mining guide
 
 ### D.5 Component 6: KnowledgeGraphVisualizer (Days 22-25)
@@ -595,14 +595,14 @@ This document contains a comprehensive list of all necessary tasks for integrati
   - [ ] Filter by artifact type
   - [ ] Highlight by team performance
   - [ ] Color by success rate
-- [ ] **Streamlit integration**:
+- [ ] **BubbleLab UI integration**:
   - [ ] Embed D3.js visualization in iframe
   - [ ] Add control panel
   - [ ] Export functionality
 
 **Deliverables**:
 - `knowledge_graph_visualizer_kggen.py` - NEW
-- `streamlit/components/graph_viz_kggen.py` - Streamlit component
+- `BubbleLab UI/components/graph_viz_kggen.py` - BubbleLab UI component
 - `docs/KGGEN_GRAPH_VIZ.md` - Visualization guide
 
 ### D.6 Integration & Testing (Days 26-35)
@@ -699,12 +699,12 @@ This document contains a comprehensive list of all necessary tasks for integrati
   - [ ] Use AI-KG's PyVis integration
   - [ ] Interactive graph visualization
   - [ ] Filter by entity type, relation type
-  - [ ] Streamlit integration
+  - [ ] BubbleLab UI integration
 
 **Deliverables**:
 - `workflow_knowledge_extractor_deepke.py` - NEW
 - `knowledge_graph_visualizer_pyvis.py` - NEW
-- `streamlit/components/deepke_viz.py` - Streamlit component
+- `BubbleLab UI/components/deepke_viz.py` - BubbleLab UI component
 - `tests/test_deepke_aikg_integration.py` - Integration tests
 
 ### E.4 Testing and Documentation (Days 16-21)

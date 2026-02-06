@@ -49,7 +49,7 @@ A test script [`test_backend_startup.py`](test_backend_startup.py:1) has been up
 
 ## Usage
 
-When the Streamlit application starts, it will automatically:
+When the BubbleLab UI application starts, it will automatically:
 1. Check if an LLM server is available on port 8000
 2. Provide clear logging about the backend status
 3. Inform users if LLM server is required but not available

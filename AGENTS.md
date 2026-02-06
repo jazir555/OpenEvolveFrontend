@@ -26,7 +26,7 @@
 | Component | Technology | Version |
 |-----------|------------|---------|
 | Language | Python | >=3.10 |
-| Web UI | Streamlit | Latest |
+| Web UI | BubbleLab UI | Latest |
 | API Framework | FastAPI | >=0.104.0 |
 | Database | SQLite/PostgreSQL | - |
 | Cache | Redis | 7.x |
@@ -46,7 +46,7 @@ z3-solver>=4.12.0
 fastapi>=0.104.0
 uvicorn[standard]>=0.24.0
 sqlalchemy>=2.0.0
-streamlit
+BubbleLab UI
 numpy>=1.24.0
 pandas>=2.0.0
 pyyaml>=6.0.1
@@ -60,7 +60,7 @@ pydantic>=2.5.0
 ```
 c:\Users\mmeadow\Documents\OpenEvolve\Frontend/
 ├── Core Application Files
-│   ├── main.py                    # Streamlit UI entry point
+│   ├── main.py                    # BubbleLab UI UI entry point
 │   ├── app.py                     # Demo application
 │   ├── api_server.py              # FastAPI server
 │   ├── evolution.py               # Core evolution engine
@@ -135,8 +135,8 @@ pip install -e ".[dev]"  # With development dependencies
 
 ### Running the Application
 ```bash
-# Start Streamlit UI
-streamlit run main.py
+# Start BubbleLab UI UI
+BubbleLab UI run main.py
 
 # Start API server
 python api_server.py
@@ -383,7 +383,7 @@ import json
 from typing import List, Dict, Optional
 
 # Third-party packages
-import streamlit as st
+import BubbleLab UI as st
 import numpy as np
 from fastapi import FastAPI
 
@@ -592,3 +592,4 @@ Located in `docs/knowledge_engine/domains/`:
 **Project Status**: Production Ready
 
 **License**: Apache-2.0 (pyproject.toml) / MIT (README.md)
+

@@ -19,7 +19,7 @@ The OpenEvolve BubbleLabs integration provides complete and total control over t
 The system leverages BubbleLabs' advanced workflow visualization capabilities to provide a comprehensive dashboard for managing every aspect of the OpenEvolve platform, from basic content evolution to advanced adversarial testing and multi-objective optimization.
 
 ### Key Benefits
-- **Complete Control**: Every configuration knob available in the Streamlit UI is accessible through BubbleLabs
+- **Complete Control**: Every configuration knob available in the BubbleLab UI UI is accessible through BubbleLabs
 - **Enhanced Visualization**: Advanced workflow visualization and monitoring capabilities
 - **Centralized Management**: Single interface for all OpenEvolve features and parameters
 - **Enterprise Scalability**: Robust architecture supporting complex multi-node workflows
@@ -62,7 +62,7 @@ The system leverages BubbleLabs' advanced workflow visualization capabilities to
   - Session state coordination
 
 #### 2. Parameter Synchronization Engine
-- **Purpose**: Ensures all configuration knobs in Streamlit UI are mirrored in BubbleLabs UI
+- **Purpose**: Ensures all configuration knobs in BubbleLab UI UI are mirrored in BubbleLabs UI
 - **Responsibilities**:
   - Bidirectional parameter updates
   - Validation and conflict resolution
@@ -86,7 +86,7 @@ The system leverages BubbleLabs' advanced workflow visualization capabilities to
 
 ### Sidebar Configuration Knobs in BubbleLabs
 
-All configuration controls currently available in the Streamlit sidebar will be fully accessible and controllable through the BubbleLabs UI:
+All configuration controls currently available in the BubbleLab UI sidebar will be fully accessible and controllable through the BubbleLabs UI:
 
 #### Provider Configuration
 - **Provider Selection**: Dropdown to select LLM provider
@@ -196,10 +196,10 @@ The integration implements a sophisticated synchronization system that ensures a
 
 #### Bi-Directional Sync Mechanism
 ```
-Streamlit UI ←→ Sync Engine ←→ BubbleLabs UI
+BubbleLab UI UI ←→ Sync Engine ←→ BubbleLabs UI
 ```
 
-When a parameter is changed in the Streamlit UI, the sync engine:
+When a parameter is changed in the BubbleLab UI UI, the sync engine:
 1. Detects the change in session state
 2. Propagates the change to the BubbleLabs interface
 3. Updates the corresponding control in the BubbleLabs UI
@@ -207,7 +207,7 @@ When a parameter is changed in the Streamlit UI, the sync engine:
 When a parameter is changed in the BubbleLabs UI:
 1. The change is captured in real-time
 2. Session state is updated across both UIs
-3. The Streamlit UI reflects the change immediately
+3. The BubbleLab UI UI reflects the change immediately
 
 #### Parameter Mapping Structure
 
@@ -634,6 +634,6 @@ Comprehensive analytics capabilities:
 
 ## Conclusion
 
-This comprehensive integration specification provides a complete framework for achieving full control of OpenEvolve workflows through the BubbleLabs UI. The system ensures that every configuration knob, control, and parameter available in the Streamlit UI is fully accessible and manageable through the BubbleLabs interface, providing enhanced visualization and control capabilities for complex AI workflows.
+This comprehensive integration specification provides a complete framework for achieving full control of OpenEvolve workflows through the BubbleLabs UI. The system ensures that every configuration knob, control, and parameter available in the BubbleLab UI UI is fully accessible and manageable through the BubbleLabs interface, providing enhanced visualization and control capabilities for complex AI workflows.
 
 The integration maintains full compatibility with existing OpenEvolve functionality while providing the enhanced visualization and control capabilities that make complex workflows easier to understand and manage. The sophisticated parameter synchronization system ensures that changes made in either UI are immediately reflected in both, providing a seamless user experience.

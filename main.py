@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 OpenEvolve Content Improver - Main Entry Point
-A Streamlit application for content improvement using LLMs.
+A UI application for content improvement using LLMs.
 
 This is the main entry point that ties together all the components of the OpenEvolve application.
 """
@@ -189,7 +189,7 @@ except ImportError as e:
 if "backend_started" not in st.session_state:
     st.session_state["backend_started"] = False
 
-# Start the backend in a separate thread to avoid blocking Streamlit's startup
+# Start the backend in a separate thread to avoid blocking UI's startup
 if not st.session_state["backend_started"]:
     print("Starting backend thread")
     backend_thread = threading.Thread(target=start_openevolve_services)
@@ -374,14 +374,14 @@ def main():
         if "feature_dimensions" not in st.session_state:
             st.session_state["feature_dimensions"] = ["complexity", "diversity"]
 
-        # Replace entire Streamlit UI with complete n8n visual workflow system
+        # Replace entire UI UI with complete n8n visual workflow system
         try:
             from complete_n8n_integration import render_complete_n8n_integration
             render_complete_n8n_integration()
             return  # Skip the rest of the old UI rendering
         except ImportError as e:
             st.error(f"Failed to load complete n8n integration: {e}")
-            st.info("Falling back to legacy Streamlit UI...")
+            st.info("Falling back to legacy UI UI...")
             
             # Fallback to old tab-based UI if n8n integration fails
             tabs = st.tabs(["Dashboard", "BubbleLabs Workflows", "n8n Visual Workflows"])
@@ -413,4 +413,5 @@ if __name__ == "__main__":
         st.session_state._session_state_initialized = True
 
     main()
+
 

@@ -78,7 +78,7 @@ Five projects were analyzed for integration with OpenEvolve's Knowledge Engine (
 - **ML Pipeline**: UMAP embeddings + DBSCAN clustering with GPU acceleration (100X+ speedup)
 - **Graph Query Language (GFQL)**: DataFrame-native graph querying
 - **Database Connectors**: 20+ integrations (Neo4j, Neptune, PostgreSQL, etc.)
-- **Streamlit Compatible**: Direct iframe embedding
+- **BubbleLab UI Compatible**: Direct iframe embedding
 
 #### Knowledge Engine Components Match
 
@@ -94,7 +94,7 @@ Five projects were analyzed for integration with OpenEvolve's Knowledge Engine (
 - Node/edge filtering by attributes
 - Community detection visualization
 - Path finding and subgraph extraction
-- HTML iframe embedding for Streamlit
+- HTML iframe embedding for BubbleLab UI
 - Export to Graphviz DOT/Mermaid
 
 **Component 2: WorkflowKnowledgeExtractor** ⚠️ 40%
@@ -107,7 +107,7 @@ Five projects were analyzed for integration with OpenEvolve's Knowledge Engine (
 | Criteria | Score | Notes |
 |----------|-------|-------|
 | Capability Coverage | 35/40 | 2+ components with high completeness |
-| Architectural Fit | 20/20 | Pure Python, Streamlit-compatible, well-documented API |
+| Architectural Fit | 20/20 | Pure Python, BubbleLab UI-compatible, well-documented API |
 | Integration Complexity | 12/15 | 3-7 days (plug-and-play with adapters) |
 | Code Quality | 9/10 | Active maintenance, comprehensive docs, tests |
 | Dependencies | 7/10 | 10 core dependencies, optional AI extras |
@@ -124,7 +124,7 @@ Five projects were analyzed for integration with OpenEvolve's Knowledge Engine (
 **Week 2: Component 6 (KnowledgeGraphVisualizer)**
 - Day 1-2: Build graph binding from artifacts
 - Day 3: Style and filter implementation
-- Day 4-5: Streamlit integration and testing
+- Day 4-5: BubbleLab UI integration and testing
 
 **Total**: 2-3 weeks vs. 6-8 weeks from scratch
 
@@ -137,7 +137,7 @@ Five projects were analyzed for integration with OpenEvolve's Knowledge Engine (
 - ✅ Perfect match for Component 6 (100%)
 - ✅ Strong fit for Component 3 (95%)
 - ✅ Permissive BSD license
-- ✅ Streamlit compatible
+- ✅ BubbleLab UI compatible
 
 **Cons**:
 - ❌ Requires free Graphistry Hub account or self-hosted server
@@ -196,7 +196,7 @@ Five projects were analyzed for integration with OpenEvolve's Knowledge Engine (
 | Criteria | Score | Notes |
 |----------|-------|-------|
 | Capability Coverage | 35/40 | 3 components (1, 2, 6) + partial 3 |
-| Architectural Fit | 18/20 | Pure Python, Streamlit-compatible, well-documented |
+| Architectural Fit | 18/20 | Pure Python, BubbleLab UI-compatible, well-documented |
 | Integration Complexity | 12/15 | 1-2 weeks basic, 6-7 weeks full |
 | Code Quality | 9/10 | Peer-reviewed, comprehensive docs, tests, MIT license |
 | Dependencies | 7/10 | 18 dependencies (acceptable range) |
@@ -224,7 +224,7 @@ Five projects were analyzed for integration with OpenEvolve's Knowledge Engine (
 - Add pattern extraction and summarization
 
 **Phase 5: UI Integration (Week 7)**
-- Integrate visualization into Streamlit dashboard
+- Integrate visualization into BubbleLab UI dashboard
 - Add filters and interactivity
 
 **Total**: 6-7 weeks vs. 12-15 weeks from scratch (40-50% reduction)
@@ -282,7 +282,7 @@ Five projects were analyzed for integration with OpenEvolve's Knowledge Engine (
 | Criteria | Score | Notes |
 |----------|-------|-------|
 | Capability Coverage | 22/40 | Partial Component 3 only |
-| Architectural Fit | 18/20 | Pure Python, Streamlit-compatible |
+| Architectural Fit | 18/20 | Pure Python, BubbleLab UI-compatible |
 | Integration Complexity | 10/15 | 1-2 weeks (graph construction challenge) |
 | Code Quality | 7/10 | Good docs, GPL v3 license, last commit 6mo ago |
 | Dependencies | 9/10 | 13 dependencies (lightweight) |
@@ -366,7 +366,7 @@ Five projects were analyzed for integration with OpenEvolve's Knowledge Engine (
 | Criteria | Score | Notes |
 |----------|-------|-------|
 | Capability Coverage | 20/40 | Partial Components 2, 3 |
-| Architectural Fit | 15/20 | Python, Streamlit-compatible, limited extensibility |
+| Architectural Fit | 15/20 | Python, BubbleLab UI-compatible, limited extensibility |
 | Integration Complexity | 7/15 | 4-6 weeks (needs ML layer) |
 | Code Quality | 7/10 | Active maintenance, comprehensive docs, GPLv3 license |
 | Dependencies | 10/10 | 11 lightweight dependencies |
@@ -451,7 +451,7 @@ Five projects were analyzed for integration with OpenEvolve's Knowledge Engine (
 | Criteria | Score | Notes |
 |----------|-------|-------|
 | Capability Coverage | 10/40 | Partial Component 3 (embeddings only) |
-| Architectural Fit | 15/20 | Python-based, Streamlit-compatible |
+| Architectural Fit | 15/20 | Python-based, BubbleLab UI-compatible |
 | Integration Complexity | 5/15 | 2-3 weeks (significant adaptations) |
 | Code Quality | 8/10 | Active maintenance, comprehensive docs, Apache license |
 | Dependencies | 4/10 | Heavy ML frameworks (PyTorch, PyTorch Lightning, DGL) |
@@ -574,7 +574,7 @@ Five projects were analyzed for integration with OpenEvolve's Knowledge Engine (
 
 **Phase 1 (Immediate - Weeks 1-3)**: Integrate pygraphistry
 - Week 1: Component 3 (SolutionPatternMiner with UMAP + DBSCAN)
-- Week 2: Component 6 (KnowledgeGraphVisualizer with Streamlit)
+- Week 2: Component 6 (KnowledgeGraphVisualizer with BubbleLab UI)
 - Week 3: Testing and documentation
 - **Value**: Immediate visualization and pattern mining capabilities
 
@@ -705,7 +705,7 @@ From our earlier integration analysis:
 - Day 3-4: Build OpenEvolve-specific adapters
 - Day 5: Integrate with KnowledgeArtifact schema
 - Week 2: Build graph binding, style and filter
-- Week 3: Streamlit integration and testing
+- Week 3: BubbleLab UI integration and testing
 
 ### Week 4-10 Priorities
 
@@ -757,3 +757,4 @@ Integration is successful when:
 **Analysis Date**: 2025-12-31
 **Status**: Ready for Integration Decision
 **Next Action**: Approve and begin Phase 1 (pygraphistry integration)
+

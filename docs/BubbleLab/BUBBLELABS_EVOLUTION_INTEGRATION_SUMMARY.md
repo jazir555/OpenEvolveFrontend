@@ -146,7 +146,7 @@ This implementation successfully integrates BubbleLabs UI components with OpenEv
 
 ### Threading Model
 ```
-Main Thread (Streamlit UI)
+Main Thread (BubbleLab UI UI)
     │
     ├── Background Thread 1 (Evolution Task)
     ├── Background Thread 2 (Adversarial Task)
@@ -267,7 +267,7 @@ evolution.py adversarial.py  evolution_*  adversarial_*
 
 ### Core Technologies
 - **Python 3.8+**: Core language
-- **Streamlit**: UI framework
+- **BubbleLab UI**: UI framework
 - **Plotly**: Interactive visualizations
 - **Pandas**: Data manipulation
 - **NumPy**: Numerical operations
@@ -379,7 +379,7 @@ def test_adversarial_workflow():
 
 ### UI Tests
 ```python
-# Test Streamlit components
+# Test BubbleLab UI components
 def test_evolution_controls():
     1. Render control panel
     2. Adjust parameters
@@ -437,7 +437,7 @@ def test_fitness_plots():
 5. **UI Problems**: Clear cache, rerun app
 
 ### Updates and Upgrades
-1. **Dependencies**: Keep Streamlit and Plotly updated
+1. **Dependencies**: Keep BubbleLab UI and Plotly updated
 2. **OpenEvolve**: Sync with upstream changes
 3. **MAKER/MDAP**: Update with new features
 4. **Security**: Regular security audits
@@ -464,10 +464,10 @@ The integration is ready for use in research, development, and production enviro
 
 ```bash
 # Run the main integration
-streamlit run bubblelabs_evolution_integration.py
+BubbleLab UI run bubblelabs_evolution_integration.py
 
 # Run the examples
-streamlit run evolution_adversarial_examples.py
+BubbleLab UI run evolution_adversarial_examples.py
 
 # View documentation
 cat BUBBLELABS_EVOLUTION_INTEGRATION_GUIDE.md
@@ -486,3 +486,4 @@ cat BUBBLELABS_EVOLUTION_QUICK_REFERENCE.md
 **Lines of Code:** ~3,700+
 **Documentation Pages:** 3
 **Examples:** 8 working examples
+

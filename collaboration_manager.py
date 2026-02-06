@@ -958,7 +958,7 @@ collaboration_manager = CollaborationManager()
 
 def render_collaboration_section():
     """
-    Renders the collaboration section in the Streamlit UI.
+    Renders the collaboration section in the UI UI.
     Displays active sessions, comments, notifications, and collaborative editing interfaces.
     """
     st.header("🤝 Collaboration Hub")
@@ -1087,3 +1087,4 @@ def render_collaboration_section():
     st.write(f"[OK] {current_user} (You)")
     
     st.info("Real-time collaboration features are active. Changes made by team members will appear instantly.")
+

@@ -128,7 +128,7 @@ class LogStreaming:
         return pd.DataFrame(self.log_history)
 
     def display_log_dashboard(self):
-        """Display the log dashboard in Streamlit."""
+        """Display the log dashboard in UI."""
         st.subheader("Log Streaming Dashboard")
         
         if not FLASK_AVAILABLE:
@@ -144,7 +144,7 @@ class LogStreaming:
         
         with col2:
             if st.button("Stop Log Streaming Service"):
-                st.info("Service will stop when app closes. Restart Streamlit for clean state.")
+                st.info("Service will stop when app closes. Restart UI for clean state.")
         
         # Display recent logs
         st.subheader("Recent Logs")
@@ -161,3 +161,4 @@ class LogStreaming:
             st.metric("Queue Size", self.log_queue.qsize())
         with metrics_col2:
             st.metric("History Count", len(self.log_history))
+

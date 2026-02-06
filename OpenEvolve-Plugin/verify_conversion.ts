@@ -1,7 +1,7 @@
 /**
  * OpenEvolve BubbleLab Plugin Verification Script
  * 
- * This script verifies that all Streamlit UI components have been properly
+ * This script verifies that all BubbleLab UI UI components have been properly
  * converted to BubbleLab-compatible React components and are correctly
  * integrated into the plugin system.
  */
@@ -173,9 +173,9 @@ if (fs.existsSync(mainAppPath)) {
   console.error('❌ Main application page does not exist');
 }
 
-console.log('\n✅ Verification complete! All major components have been converted from Streamlit to BubbleLab format.');
+console.log('\n✅ Verification complete! All major components have been converted from BubbleLab UI to BubbleLab format.');
 console.log('\n📋 Summary of converted components:');
-console.log('- Streamlit UI components → React components for BubbleLab');
+console.log('- BubbleLab UI UI components → React components for BubbleLab');
 console.log('- Main application → MainApplicationPage.tsx');
 console.log('- Analytics dashboard → AnalyticsDashboard.tsx'); 
 console.log('- Monitoring system → AdvancedMonitoringDashboard.tsx');

@@ -441,10 +441,10 @@ docker-compose logs -f
 
 ## Monitoring
 
-### Streamlit Dashboard
+### BubbleLab UI Dashboard
 
 ```bash
-streamlit run monitoring_dashboard.py
+BubbleLab UI run monitoring_dashboard.py
 ```
 
 Access at: http://localhost:8501
@@ -572,3 +572,4 @@ See individual component documentation:
 **Maintained by**: OpenEvolve Team  
 **Issues**: Report on GitHub Issues  
 **License**: Apache 2.0
+

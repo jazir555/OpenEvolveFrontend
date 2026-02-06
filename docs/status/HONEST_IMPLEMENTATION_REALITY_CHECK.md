@@ -97,7 +97,7 @@
 #### Critical Issues:
 1. **Team System Import Errors** - `TEAM_SYSTEM_AVAILABLE = False` due to import issues
 2. **OpenEvolve Configuration** - Missing proper model configuration
-3. **Session State Dependencies** - Functions depend on Streamlit session state
+3. **Session State Dependencies** - Functions depend on BubbleLab UI session state
 4. **Missing Dependencies** - Several imports fail or are mocked
 5. **Incomplete Integration** - Functions exist but don't actually integrate systems
 
@@ -108,7 +108,7 @@
 ### **Phase 1: Fix Core Issues (High Priority)**
 1. **Fix Team System Imports** - Resolve import errors preventing team system from working
 2. **Fix OpenEvolve Configuration** - Proper model configuration and API setup
-3. **Remove Session State Dependencies** - Make functions work without Streamlit
+3. **Remove Session State Dependencies** - Make functions work without BubbleLab UI
 4. **Fix Missing Dependencies** - Resolve all import issues
 5. **Implement Proper Error Handling** - Comprehensive error handling and fallbacks
 
@@ -139,7 +139,7 @@
 ### **Week 1: Core Fixes**
 1. Fix team system import errors
 2. Fix OpenEvolve configuration issues
-3. Remove Streamlit dependencies from core functions
+3. Remove BubbleLab UI dependencies from core functions
 4. Implement proper error handling
 5. Create working basic integration tests
 
@@ -171,7 +171,7 @@
 ### **Technical Blockers**
 1. **Team System Import Errors** - Prevents team system from working
 2. **OpenEvolve Backend Configuration** - No proper API key/model setup
-3. **Session State Dependencies** - Functions can't work outside Streamlit
+3. **Session State Dependencies** - Functions can't work outside BubbleLab UI
 4. **Missing Dependencies** - Several imports fail
 
 ### **Design Blockers**

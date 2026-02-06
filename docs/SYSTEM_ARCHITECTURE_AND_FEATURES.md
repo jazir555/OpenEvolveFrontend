@@ -111,7 +111,7 @@ The system follows a layered architecture with clear separation of concerns:
 
 ### UI Components (`ui_components.py`)
 **Responsibilities:**
-- Streamlit-based user interface rendering
+- BubbleLab UI-based user interface rendering
 - Team management UI
 - Gauntlet design UI
 - Manual review panel

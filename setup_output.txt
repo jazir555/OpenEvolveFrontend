@@ -33,8 +33,8 @@ Collecting matplotlib>=3.9.0
   Using cached matplotlib-3.10.7-cp311-cp311-win_amd64.whl (8.1 MB)
 Collecting seaborn>=0.13.0
   Using cached seaborn-0.13.2-py3-none-any.whl (294 kB)
-Collecting streamlit>=1.38.0
-  Using cached streamlit-1.50.0-py3-none-any.whl (10.1 MB)
+Collecting BubbleLab UI>=1.38.0
+  Using cached BubbleLab UI-1.50.0-py3-none-any.whl (10.1 MB)
 Collecting plotly>=5.24.0
   Using cached plotly-6.3.1-py3-none-any.whl (9.8 MB)
 Collecting openevolve>=0.1.0

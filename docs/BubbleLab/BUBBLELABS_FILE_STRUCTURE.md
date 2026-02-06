@@ -590,7 +590,7 @@ OpenEvolve/
 - Configuration integration through parameter manager system
 
 ### BubbleLabs Integration Points
-- UI rendering through Streamlit components
+- UI rendering through BubbleLab UI components
 - Real-time updates through event system
 - API communication through HTTP requests
 - Data persistence through configuration files

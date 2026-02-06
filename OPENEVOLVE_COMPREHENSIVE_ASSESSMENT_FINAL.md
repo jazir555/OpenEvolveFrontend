@@ -35,7 +35,7 @@ The OpenEvolve system is an **architecturally ambitious** but **functionally inc
 | **Infrastructure** | 15% | 🔴 Critical | Won't start, configs missing |
 | **Orchestration** | 65% | 🟡 Fair | Stub implementations |
 | **Docker Services** | 40% | 🔴 Poor | Port conflicts, services broken |
-| **State Management** | 30% | 🔴 Critical | No persistence, Streamlit only |
+| **State Management** | 30% | 🔴 Critical | No persistence, BubbleLab UI only |
 | **Authentication** | 50% | 🔴 Poor | Security vulnerabilities |
 | **Monitoring** | 0% | 🔴 Critical | No instrumentation |
 | **Error Handling** | 72% | 🟡 Fair | Inconsistent implementation |
@@ -281,7 +281,7 @@ The OpenEvolve system is an **architecturally ambitious** but **functionally inc
 **Lost on Restart:**
 - ❌ Active evolution runs (in-memory dict)
 - ❌ Workflow executions (in-memory dict)
-- ❌ Session state (Streamlit memory)
+- ❌ Session state (BubbleLab UI memory)
 - ❌ Monitoring data (in-memory)
 
 **Critical Quote:** "In-memory storage for workflows (replace with database in production)"
@@ -318,7 +318,7 @@ The OpenEvolve system is an **architecturally ambitious** but **functionally inc
 ### **6. Memory Analysis**
 
 **Critical Hotspots:**
-- 30+ Streamlit session state files (each holds state in RAM)
+- 30+ BubbleLab UI session state files (each holds state in RAM)
 - Unbounded vector embedding cache
 - Unbounded LLM response cache
 - Knowledge graph data in memory
@@ -566,3 +566,4 @@ This is a **proof-of-concept system** with enterprise aspirations. The architect
 **Agent Reports:** 50+
 **Assessment Confidence:** Very High
 **Next Review:** After Phase 1 completion
+

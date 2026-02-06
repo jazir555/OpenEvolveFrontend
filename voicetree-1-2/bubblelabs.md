@@ -24,8 +24,9 @@ flowchart LR
 ```
 
 ## Notable Gotchas & Tech Debt
-- **State Sync**: Maintaining synchronization between the Streamlit-based UI state and the background execution engines (CrewAI, MDAP) requires careful handling of session states.
+- **State Sync**: Maintaining synchronization between the BubbleLab UI-based UI state and the background execution engines (CrewAI, MDAP) requires careful handling of session states.
 - **Frontend/Backend Coupling**: Some logic for creating workflow definitions is duplicated between the UI components and the integration layers.
 - **XSS Risks**: Extensive use of `escape_html` and `escape_json_for_js` indicates a potential attack surface in the visualizer's custom JS components.
 
 [[run_me.md]]
+

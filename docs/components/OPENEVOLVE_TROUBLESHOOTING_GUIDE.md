@@ -348,20 +348,20 @@ config = {
 
 ### 8. UI and Visualization Issues
 
-#### Problem: Streamlit warnings in tests
-**Cause**: Streamlit components used outside Streamlit app
+#### Problem: BubbleLab UI warnings in tests
+**Cause**: BubbleLab UI components used outside BubbleLab UI app
 
 **Solution**:
 ```python
-# Mock Streamlit for testing
+# Mock BubbleLab UI for testing
 from unittest.mock import patch
 
-with patch('streamlit.session_state', {}):
+with patch('BubbleLab UI.session_state', {}):
     # Run your test code here
     pass
 
-# Or skip UI tests when not in Streamlit environment
-import streamlit as st
+# Or skip UI tests when not in BubbleLab UI environment
+import BubbleLab UI as st
 if hasattr(st, 'session_state'):
     # Run UI code
     pass

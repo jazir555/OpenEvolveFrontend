@@ -398,7 +398,7 @@ class KnowledgeArtifact:
 
 **Implementation Files:**
 - `bubblelabs_integration.py` - Core integration logic
-- `bubblelabs_ui_component.py` - Streamlit UI component
+- `bubblelabs_ui_component.py` - BubbleLab UI UI component
 - `openevolve_bubblelabs_api.py` - API integration
 - `openevolve_bubblelabs_api.py` - Full API bridge
 
@@ -412,7 +412,7 @@ class KnowledgeArtifact:
 5. ✅ Parameter synchronization (all sidebar + main area controls)
 6. ✅ Team and gauntlet configuration
 7. ✅ Complete parameter control (evolution, advanced, performance)
-8. ✅ Streamlit UI integration
+8. ✅ BubbleLab UI UI integration
 
 ### 5.2 BubbleLabs as n8n-Style Interface
 
@@ -443,7 +443,7 @@ class KnowledgeArtifact:
 
 **1. Language Alignment:**
 ```
-SGDW: Python (FastAPI, Streamlit)
+SGDW: Python (FastAPI, BubbleLab UI)
        ↓
 BubbleLabs Backend: TypeScript (Bun + Hono)
        ↓ HTTP API
@@ -615,3 +615,4 @@ Follow the roadmap in `KNOWLEDGE_ENGINE_REQUIREMENTS_ANALYSIS.md`:
 - `KNOWLEDGE_ENGINE_REQUIREMENTS_ANALYSIS.md` - Knowledge Engine gap analysis
 - `BUBBLELABS_INTEGRATION.md` - BubbleLabs integration documentation
 - `DECOMPOSITION_WORKFLOW_INTEGRATION_ARCHITECTURE.md` - Overall integration architecture
+

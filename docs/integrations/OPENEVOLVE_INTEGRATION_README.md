@@ -155,7 +155,7 @@ print(f"Success rate: {metrics['success_rate']}")
 Visualize evolution progress and results:
 
 ```python
-import streamlit as st
+import BubbleLab UI as st
 from analytics_dashboard import (
     render_openevolve_metrics_dashboard,
     render_fitness_evolution_plot,
@@ -365,7 +365,7 @@ if not within_limits:
 ### Real-Time Monitoring
 
 ```python
-import streamlit as st
+import BubbleLab UI as st
 from ui_components import render_openevolve_progress_monitor
 
 # Monitor active operation
@@ -524,7 +524,7 @@ for source, items in results.items():
 ### Configuration Panel
 
 ```python
-import streamlit as st
+import BubbleLab UI as st
 from ui_components import render_openevolve_config_panel
 
 # Render configuration panel
@@ -805,3 +805,4 @@ This integration implements comprehensive OpenEvolve capabilities including:
 - Template management
 
 For questions or issues, please refer to the test suite and example code provided throughout this guide.
+

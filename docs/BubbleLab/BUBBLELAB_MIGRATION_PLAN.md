@@ -1,8 +1,8 @@
-# BubbleLab Migration Plan: Streamlit to Native React UI
+# BubbleLab Migration Plan: BubbleLab UI to Native React UI
 
 ## Executive Summary
 
-**Objective:** Migrate OpenEvolve Frontend from Streamlit (Python) to BubbleLab's native React/TypeScript UI while preserving 100% functionality.
+**Objective:** Migrate OpenEvolve Frontend from BubbleLab UI (Python) to BubbleLab's native React/TypeScript UI while preserving 100% functionality.
 
 **Timeline:** 6 weeks
 **Approach:** Phased migration with parallel systems during transition
@@ -14,7 +14,7 @@
 
 ```
 ┌─────────────────────┐
-│  Streamlit UI (Py)  │
+│  BubbleLab UI UI (Py)  │
 │  - st.session_state │
 │  - st.* components  │
 │  - Linear pages     │
@@ -89,10 +89,10 @@
 
 ## Component Mapping
 
-### Streamlit → React Component Equivalents
+### BubbleLab UI → React Component Equivalents
 
 #### Layout Components
-| Streamlit | BubbleLab React | Implementation |
+| BubbleLab UI | BubbleLab React | Implementation |
 |-----------|-----------------|----------------|
 | `st.tabs()` | TanStack Router | File-based routing |
 | `st.sidebar` | `<Sidebar />` | Custom component |
@@ -101,7 +101,7 @@
 | `st.expander()` | `<details>` / Accordion | Native or shadcn/ui |
 
 #### Input Components
-| Streamlit | BubbleLab React | Implementation |
+| BubbleLab UI | BubbleLab React | Implementation |
 |-----------|-----------------|----------------|
 | `st.text_input()` | `<input type="text">` | HTML input |
 | `st.text_area()` | `<textarea>` | HTML textarea |
@@ -114,7 +114,7 @@
 | `st.file_uploader()` | `<FileUpload />` | Custom component |
 
 #### Display Components
-| Streamlit | BubbleLab React | Implementation |
+| BubbleLab UI | BubbleLab React | Implementation |
 |-----------|-----------------|----------------|
 | `st.title()` | `<h1>` | HTML heading |
 | `st.header()` | `<h2>` | HTML heading |
@@ -126,14 +126,14 @@
 | `st.dataframe()` | `<DataTable />` | TanStack Table |
 
 #### Action Components
-| Streamlit | BubbleLab React | Implementation |
+| BubbleLab UI | BubbleLab React | Implementation |
 |-----------|-----------------|----------------|
 | `st.button()` | `<Button />` | BubbleLab existing |
 | `st.form_submit_button()` | Form submit | React Hook Form |
 | `st.download_button()` | `<DownloadButton />` | Custom component |
 
 #### Status Components
-| Streamlit | BubbleLab React | Implementation |
+| BubbleLab UI | BubbleLab React | Implementation |
 |-----------|-----------------|----------------|
 | `st.info()` | Info alert | Custom or shadcn/ui |
 | `st.warning()` | Warning alert | Custom or shadcn/ui |
@@ -141,7 +141,7 @@
 | `st.success()` | Success alert | Custom or shadcn/ui |
 
 #### Chart Components
-| Streamlit | BubbleLab React | Implementation |
+| BubbleLab UI | BubbleLab React | Implementation |
 |-----------|-----------------|----------------|
 | `st.plotly_chart()` | Plotly chart | react-plotly.js |
 | `st.altair_chart()` | Vega-Lite | vega-lite |
@@ -189,7 +189,7 @@
 
 ### Session State Migration
 
-**From Streamlit:**
+**From BubbleLab UI:**
 ```python
 st.session_state.llm_provider = "openai"
 st.session_state.model_leanaide = "gpt-4"
@@ -322,13 +322,13 @@ export function useExecutionStream(workflowId: string) {
 | **Authentication complexity** | High | Low | Clerk pre-built components, API key fallback |
 | **State synchronization issues** | High | Medium | Zustand persistence, optimistic updates |
 | **Performance degradation** | Medium | Medium | Virtualization, caching, lazy loading |
-| **Lost Streamlit features** | High | Medium | Feature parity checklist, user testing |
+| **Lost BubbleLab UI features** | High | Medium | Feature parity checklist, user testing |
 
 ### Rollback Strategy
 
-1. Run Streamlit and BubbleLab in parallel
+1. Run BubbleLab UI and BubbleLab in parallel
 2. Feature flags to control UI
-3. Keep Streamlit fallback for 30 days
+3. Keep BubbleLab UI fallback for 30 days
 4. Quick rollback via DNS/proxy switch
 5. Monitor error rates and user feedback
 
@@ -345,7 +345,7 @@ export function useExecutionStream(workflowId: string) {
 - Uptime > 99.5%
 
 ### User Experience Metrics
-- 100% feature parity with Streamlit
+- 100% feature parity with BubbleLab UI
 - User migration rate > 80% in 30 days
 - Support tickets < 5 per week
 - NPS score > 50
@@ -359,7 +359,7 @@ export function useExecutionStream(workflowId: string) {
 3. **Beta Launch:** 10% of users
 4. **Monitor:** Error rates, performance, feedback
 5. **Gradual Rollout:** Ramp to 100%
-6. **Stabilization:** Keep Streamlit fallback for 30 days
+6. **Stabilization:** Keep BubbleLab UI fallback for 30 days
 
 ---
 
@@ -375,4 +375,5 @@ export function useExecutionStream(workflowId: string) {
 - Weekly: Review error logs and feedback
 - Monthly: Performance optimization
 - Quarterly: User surveys and features
+
 

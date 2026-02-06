@@ -742,7 +742,7 @@ class MakerWorkflowManager:
 
 class BubbleLabsMakerUI:
     """
-    Streamlit UI components for BubbleLabs + Maker + CrewAI integration.
+    UI UI components for BubbleLabs + Maker + CrewAI integration.
 
     Provides:
     - Tool creation wizard
@@ -1301,3 +1301,4 @@ __all__ = [
     "create_bubblelabs_maker_integration",
     "get_integration_status"
 ]
+

@@ -52,7 +52,7 @@
 | Node Centrality | ❌ No | ❌ No | ✅ Degree/Betweenness | AI-KG |
 | **INTEGRATION** |
 | MCP Support | ❌ No | ✅ Native | ❌ No | DeepKE |
-| Python Library | ❌ Streamlit app | ✅ Library | ✅ Library | DeepKE/AI-KG |
+| Python Library | ❌ BubbleLab UI app | ✅ Library | ✅ Library | DeepKE/AI-KG |
 | API-First | ❌ UI-first | ✅ API-first | ✅ API-first | DeepKE/AI-KG |
 | Dependencies | Light | Heavy (torch) | Light | AI-KG |
 | **UNIQUE FEATURES** |
@@ -152,7 +152,7 @@
 **Generic-KE-Tool:**
 ```
 ┌─────────────────────────────────────┐
-│     Streamlit Web Application       │
+│     BubbleLab UI Web Application       │
 │         (UI-driven system)          │
 └──────────────┬──────────────────────┘
                │
@@ -263,7 +263,7 @@
 | Aspect | Generic-KE-Tool | DeepKE | AI-KG |
 |--------|----------------|--------|-------|
 | **Language** | Python ✅ | Python ✅ | Python ✅ |
-| **UI Framework** | Streamlit ✅ | None ✅ | None ✅ |
+| **UI Framework** | BubbleLab UI ✅ | None ✅ | None ✅ |
 | **Architecture** | Standalone App | Library | Library |
 | **API Style** | UI-driven | API-driven | API-driven |
 | **Integration Point** | None (would need refactor) | MCP tools | Direct import |
@@ -419,3 +419,4 @@ START: Knowledge Engine Enhancement
 **Last Updated:** 2025-12-31
 **Status:** Decision Complete
 **Recommendation:** DeepKE + AI-KG Integration + Learn from Generic-KE-Tool Patterns
+

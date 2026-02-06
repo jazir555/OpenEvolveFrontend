@@ -188,7 +188,7 @@ class OpenEvolveConfigManager:
         return config
 
     def apply_config_to_session(self, config_name: str = "default", custom_params: Optional[Dict[str, Any]] = None):
-        """Apply configuration to Streamlit session state"""
+        """Apply configuration to UI session state"""
         if config_name not in self.config_presets:
             config_name = "default"
         
@@ -225,7 +225,7 @@ class OpenEvolveConfigManager:
 
 
 def render_config_ui():
-    """Render configuration UI in Streamlit"""
+    """Render configuration UI in UI"""
     st.header("⚙️ OpenEvolve Configuration System")
     
     # Initialize config manager
@@ -513,3 +513,4 @@ ConfigurationManager = OpenEvolveConfigManager
 if __name__ == "__main__":
     initialize_config()
     st.write("OpenEvolve Configuration System initialized.")
+

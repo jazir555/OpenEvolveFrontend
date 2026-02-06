@@ -321,7 +321,7 @@ print(f"Available: {ADAPTIVE_MDAP_AVAILABLE}")
 
 3. **Check Session State:**
 ```python
-import streamlit as st
+import BubbleLab UI as st
 print(st.session_state.get("enable_adaptive_mdap"))
 ```
 
@@ -408,3 +408,4 @@ precomputed = {s: allocator.allocate_resources(s) for s in common_scores}
 ---
 
 **Still having issues?** Check the integration guide or run the verification script.
+

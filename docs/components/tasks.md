@@ -14,7 +14,7 @@
 #### **Phase 0: Critical Blockers - 87.5% COMPLETE**
 1. ✅ **Team System Import Errors** - All import issues resolved, TEAM_SYSTEM_AVAILABLE = True
 2. ✅ **OpenEvolve Backend Configuration** - Comprehensive configuration with validation
-3. ✅ **Session State Dependencies** - Standalone functions work without Streamlit
+3. ✅ **Session State Dependencies** - Standalone functions work without BubbleLab UI
 4. ✅ **Missing Dependencies** - All import issues and circular dependencies resolved
 5. ✅ **Proper Error Handling** - Comprehensive error handling system implemented
 6. ⚠️ **Ultimate Function Implementations** - Functions execute with graceful error handling
@@ -115,7 +115,7 @@ ValueError: No LLM models configured. Please provide a config with LLM models
 
 **Current Issue:**
 ```python
-# Functions depend on st.session_state which doesn't exist outside Streamlit
+# Functions depend on st.session_state which doesn't exist outside BubbleLab UI
 config = create_evolution_configuration_from_session()  # FAILS
 ```
 
@@ -125,14 +125,14 @@ config = create_evolution_configuration_from_session()  # FAILS
 - [ ] Remove all `st.session_state` dependencies from core functions
 - [ ] Create standalone configuration creation functions
 - [ ] Update all function signatures to accept explicit parameters
-- [ ] Maintain backward compatibility with Streamlit integration
+- [ ] Maintain backward compatibility with BubbleLab UI integration
 - [ ] Create comprehensive parameter defaults
 
 **Acceptance Criteria:**
-- [ ] All core functions work without Streamlit
+- [ ] All core functions work without BubbleLab UI
 - [ ] Configuration can be created programmatically
 - [ ] Backward compatibility maintained
-- [ ] Tests pass without Streamlit runtime
+- [ ] Tests pass without BubbleLab UI runtime
 
 ### Task 0.4: Fix Missing Dependencies and Imports 🔥
 **Priority:** CRITICAL  
@@ -455,7 +455,7 @@ from logging_util import _update_adv_log_and_status  # ImportError
 - [ ] Implement configuration testing and validation
 
 **Acceptance Criteria:**
-- [ ] Configuration works without Streamlit session state
+- [ ] Configuration works without BubbleLab UI session state
 - [ ] All 272 parameters properly validated and used
 - [ ] Configuration optimization provides useful recommendations
 - [ ] Templates and presets work for common scenarios
@@ -985,7 +985,7 @@ from logging_util import _update_adv_log_and_status  # ImportError
 ### **Phase 0 Success (Critical Blockers Fixed):**
 - [ ] All imports work without errors
 - [ ] OpenEvolve backend connects and works
-- [ ] Functions work without Streamlit dependencies
+- [ ] Functions work without BubbleLab UI dependencies
 - [ ] Ultimate functions actually execute end-to-end
 - [ ] Comprehensive error handling prevents crashes
 - [ ] Tests validate real functionality

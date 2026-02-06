@@ -1,7 +1,7 @@
 /**
  * OpenEvolve Workflow Builder Component for BubbleLab
  * 
- * This component replaces the Streamlit-based workflow builder UI
+ * This component replaces the BubbleLab UI-based workflow builder UI
  * with a React-based component for the BubbleLab plugin system.
  */
 

@@ -362,7 +362,7 @@ solution_attempt.metadata = {
 Add MAKER status to workflow UI:
 
 ```python
-import streamlit as st
+import BubbleLab UI as st
 from maker_workflow_integration import get_maker_integration_info
 
 # In workflow status section
@@ -564,3 +564,4 @@ For issues or questions:
 **Status**: ✓ Complete Integration Ready
 **Last Updated**: 2025-12-30
 **Maker Version**: 2.0 (Complete arXiv:2511.09030 Implementation)
+

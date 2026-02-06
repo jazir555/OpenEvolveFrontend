@@ -34,7 +34,7 @@ I have successfully created a comprehensive integration between **BubbleLabs** a
 ---
 
 #### **bubblelabs_leanaide_ui.py** (650+ lines)
-**Purpose**: Streamlit UI components for LeanAide in BubbleLabs
+**Purpose**: BubbleLab UI UI components for LeanAide in BubbleLabs
 
 **Key Components**:
 - `LeanAideUIComponent` - Main UI component class
@@ -396,10 +396,10 @@ tree = bridge.get_tree(result.visualization_data['tree_id'])
 print(f"Win rate: {tree.statistics['win_rate']:.2%}")
 ```
 
-### Example 3: Streamlit UI
+### Example 3: BubbleLab UI UI
 
 ```python
-import streamlit as st
+import BubbleLab UI as st
 from bubblelabs_leanaide_ui import LeanAideUIComponent
 
 ui = LeanAideUIComponent()
@@ -593,3 +593,4 @@ This integration provides **complete, production-ready** connectivity between Bu
 **Date**: 2025-01-03
 **Author**: OpenEvolve
 **Status**: Complete and Ready for Use
+

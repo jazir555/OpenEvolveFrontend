@@ -155,7 +155,7 @@ To transform the **OpenEvolve Mega-Structure** from a collection of high-density
     ```
 
 ### 3.3. Formal Truth Monitor (Lean 4)
-*   **Feature:** A specialized Streamlit component to monitor `leanaide_evolution.py`.
+*   **Feature:** A specialized BubbleLab UI component to monitor `leanaide_evolution.py`.
 *   **Visualization:** Display the Genetic Algorithm's progress: Population fitness, crossover success, and the final Lean 4 proof string once found.
 *   **NEW:** Stream evolution progress for live updates.
 *   **Implementation:**
@@ -256,3 +256,4 @@ OpenEvolve will function as a **Sovereign Research Command Center** with:
 5. **Production Ready:** Health checks, metrics, and fault tolerance
 
 A user defines a new technology goal in **BubbleLabs**, the **Decomposition Engine** architectures the path, and the **30+ Expert Engines** execute and verify it until a **Binary Proof of Success** is delivered—all with real-time visual feedback via gRPC streaming.
+

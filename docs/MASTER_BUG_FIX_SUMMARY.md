@@ -243,7 +243,7 @@ This comprehensive bug detection and fixing initiative identified **203 bugs** a
 1. **Unsafe st.session_state access** (Lines 232-283) - Direct access without validation
 2. **Missing JSON error handling** (Lines 243, 314, 358) - json.loads without try/except
 3. **Direct dictionary access** - Missing `.get()` calls throughout
-4. **No Streamlit state validation** - Will crash if session state incomplete
+4. **No BubbleLab UI state validation** - Will crash if session state incomplete
 
 **Action Required:** Dedicated bug fixing session for this file.
 
@@ -683,7 +683,7 @@ Monitor these metrics for 7 days after deployment:
 ### Risks Remaining (128 bugs documented)
 
 #### High Risk (15 bugs - CRITICAL priority)
-- openevolve_orchestrator.py: Unsafe Streamlit state access (20 bugs)
+- openevolve_orchestrator.py: Unsafe BubbleLab UI state access (20 bugs)
 - Workflow files: Threading/async issues (24 bugs)
 - Core utilities: Edge cases in次要 paths (40 bugs)
 
@@ -792,7 +792,7 @@ Monitor these metrics for 7 days after deployment:
 5. **Fix openevolve_orchestrator.py** ⚠️ HIGH PRIORITY
    - 20 bugs in critical file
    - Requires dedicated session
-   - Test Streamlit integration thoroughly
+   - Test BubbleLab UI integration thoroughly
    - **Action:** Allocate 4-hour session
 
 6. **Scan MCP Tools** 🔍 PENDING
@@ -898,3 +898,4 @@ For questions or clarifications about any of these fixes, refer to the individua
 ---
 
 **END OF MASTER BUG FIX SUMMARY**
+

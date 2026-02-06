@@ -1,4 +1,4 @@
-# 🚨 STREAMLIT EXCISION & BUBBLELAB UI MIGRATION - MASTER TASK LIST
+# 🚨 BubbleLab UI EXCISION & BUBBLELAB UI MIGRATION - MASTER TASK LIST
 
 **Status**: 🟡 IN PROGRESS
 **Priority**: CRITICAL
@@ -9,11 +9,11 @@
 
 ## 📋 EXECUTIVE SUMMARY
 
-**Objective**: Complete removal of Streamlit as the UI layer and migration to BubbleLab TypeScript/React UI.
+**Objective**: Complete removal of BubbleLab UI as the UI layer and migration to BubbleLab TypeScript/React UI.
 
 **Scope**:
-- **10+ major Streamlit applications** identified
-- **399 Streamlit imports** across the codebase
+- **10+ major BubbleLab UI applications** identified
+- **399 BubbleLab UI imports** across the codebase
 - **0 Python backend rewrites** - all business logic preserved
 - **100% TypeScript/React frontend** replacement
 
@@ -25,7 +25,7 @@
 
 ### Current State
 ```
-User → Streamlit (Python) → Backend Engines (Python)
+User → BubbleLab UI (Python) → Backend Engines (Python)
 ```
 
 ### Target State
@@ -35,19 +35,19 @@ User → BubbleLab UI (TypeScript/React) → API Gateway → Backend Engines (Py
 
 ### Architecture Patterns
 
-1. **API First**: Every Streamlit UI component maps to a REST/GraphQL API endpoint
+1. **API First**: Every BubbleLab UI UI component maps to a REST/GraphQL API endpoint
 2. **State Management**: React Query/Zustand replaces `st.session_state`
 3. **Real-time Updates**: WebSockets replace `st.empty()` and `st.progress()`
-4. **Form Validation**: Zod/react-hook-form replaces Streamlit form handling
-5. **Visualization**: Recharts/D3.js replace Plotly/Streamlit charts
+4. **Form Validation**: Zod/react-hook-form replaces BubbleLab UI form handling
+5. **Visualization**: Recharts/D3.js replace Plotly/BubbleLab UI charts
 
 ---
 
 ## 📊 PHASE 1: DISCOVERY & AUDIT (Week 1)
 
-### 1.1 Complete Streamlit Inventory
-- [ ] **Document all Streamlit files** (399 imports identified)
-- [ ] **Map each Streamlit component** to its backend logic
+### 1.1 Complete BubbleLab UI Inventory
+- [ ] **Document all BubbleLab UI files** (399 imports identified)
+- [ ] **Map each BubbleLab UI component** to its backend logic
 - [ ] **Identify state dependencies** (session_state usage patterns)
 - [ ] **Catalog all custom components** (HTML/CSS/JavaScript injections)
 - [ ] **Audit external dependencies** (Plotly, Chart.js, custom libraries)
@@ -55,7 +55,7 @@ User → BubbleLab UI (TypeScript/React) → API Gateway → Backend Engines (Py
 **Deliverable**: `STREAMLIT_AUDIT_REPORT.md` with complete component inventory
 
 ### 1.2 Backend API Extraction
-For each Streamlit file:
+For each BubbleLab UI file:
 - [ ] **Extract business logic** from UI code
 - [ ] **Create API endpoint specifications**
 - [ ] **Document data contracts** (request/response schemas)
@@ -66,7 +66,7 @@ For each Streamlit file:
 
 ### 1.3 BubbleLab UI Capacity Assessment
 - [ ] **Audit existing BubbleLab components** (90+ .tsx files identified)
-- [ ] **Map Streamlit widgets** to React equivalents
+- [ ] **Map BubbleLab UI widgets** to React equivalents
 - [ ] **Identify gaps** in BubbleLab component library
 - [ ] **Plan new component development**
 - [ ] **Design integration points** for OpenEvolve engines
@@ -249,7 +249,7 @@ BubbleLab/apps/bubble-studio/src/lib/
 - [ ] `EvolutionControl.tsx` - Evolution engine controls
 - [ ] `AdversarialTesting.tsx` - Adversarial testing interface
 
-**Streamlit → React Mapping**:
+**BubbleLab UI → React Mapping**:
 ```
 st.text_area() → <Textarea />
 st.selectbox() → <Select />
@@ -506,7 +506,7 @@ export function PerformanceChart({ data }: Props) {
 - [ ] **Deploy BubbleLab UI** to production
 - [ ] **Switch DNS** to new UI
 - [ ] **Monitor health** and performance
-- [ ] **Keep Streamlit available** as fallback (1 week)
+- [ ] **Keep BubbleLab UI available** as fallback (1 week)
 
 ### 5.4 Post-Deployment
 - [ ] **Monitor error rates** and user feedback
@@ -519,10 +519,10 @@ export function PerformanceChart({ data }: Props) {
 
 ## 📊 PHASE 6: CLEANUP & DECOMMISSION (Weeks 19-20)
 
-### 6.1 Streamlit Removal
-- [ ] **Archive Streamlit code** (move to `deprecated/` directory)
-- [ ] **Remove Streamlit dependencies** from requirements.txt
-- [ ] **Delete Streamlit configuration files**
+### 6.1 BubbleLab UI Removal
+- [ ] **Archive BubbleLab UI code** (move to `deprecated/` directory)
+- [ ] **Remove BubbleLab UI dependencies** from requirements.txt
+- [ ] **Delete BubbleLab UI configuration files**
 - [ ] **Update all documentation** references
 - [ ] **Communicate deprecation** to users
 
@@ -626,11 +626,11 @@ C:\Users\mmeadow\Documents\OpenEvolve\Frontend\
 │                   ├── knowledge.ts                    # NEW
 │                   └── openevolve.ts                   # NEW
 │
-├── deprecated/                   # NEW: Archived Streamlit code
+├── deprecated/                   # NEW: Archived BubbleLab UI code
 │   ├── demo_app.py
 │   ├── mainlayout.py
 │   ├── ui_components.py
-│   └── ... (all Streamlit files)
+│   └── ... (all BubbleLab UI files)
 │
 └── (existing Python backend engines - UNCHANGED)
     ├── evolution.py
@@ -676,7 +676,7 @@ C:\Users\mmeadow\Documents\OpenEvolve\Frontend\
 ## ✅ SUCCESS CRITERIA
 
 ### Functional Requirements
-- [x] All Streamlit features accessible in new UI
+- [x] All BubbleLab UI features accessible in new UI
 - [x] Real-time updates working (progress, logs, notifications)
 - [x] Authentication and authorization working
 - [x] All visualizations rendering correctly
@@ -703,7 +703,7 @@ C:\Users\mmeadow\Documents\OpenEvolve\Frontend\
 ## 🚨 RISKS & MITIGATIONS
 
 ### Risk 1: State Management Complexity
-**Risk**: Streamlit's `st.session_state` is simple; React state management is more complex.
+**Risk**: BubbleLab UI's `st.session_state` is simple; React state management is more complex.
 
 **Mitigation**:
 - Use Zustand for simple global state
@@ -712,7 +712,7 @@ C:\Users\mmeadow\Documents\OpenEvolve\Frontend\
 - Document state flow diagrams
 
 ### Risk 2: Real-time Updates
-**Risk**: Streamlit's `st.empty()` auto-refresh is seamless; WebSockets are more complex.
+**Risk**: BubbleLab UI's `st.empty()` auto-refresh is seamless; WebSockets are more complex.
 
 **Mitigation**:
 - Implement robust WebSocket reconnection logic
@@ -721,7 +721,7 @@ C:\Users\mmeadow\Documents\OpenEvolve\Frontend\
 - Implement fallback polling for unreliable connections
 
 ### Risk 3: Form Validation
-**Risk**: Streamlit forms are simple; React forms require more boilerplate.
+**Risk**: BubbleLab UI forms are simple; React forms require more boilerplate.
 
 **Mitigation**:
 - Use react-hook-form for minimal boilerplate
@@ -730,7 +730,7 @@ C:\Users\mmeadow\Documents\OpenEvolve\Frontend\
 - Build form component library for common patterns
 
 ### Risk 4: Performance Regression
-**Risk**: New UI might be slower than Streamlit's server-side rendering.
+**Risk**: New UI might be slower than BubbleLab UI's server-side rendering.
 
 **Mitigation**:
 - Implement aggressive caching (React Query)
@@ -739,7 +739,7 @@ C:\Users\mmeadow\Documents\OpenEvolve\Frontend\
 - Monitor performance metrics and optimize bottlenecks
 
 ### Risk 5: Feature Parity Gaps
-**Risk**: Some Streamlit features may not have React equivalents.
+**Risk**: Some BubbleLab UI features may not have React equivalents.
 
 **Mitigation**:
 - Conduct thorough feature audit early
@@ -751,9 +751,9 @@ C:\Users\mmeadow\Documents\OpenEvolve\Frontend\
 
 ## 📚 REFERENCE MATERIALS
 
-### Streamlit Documentation
-- [Streamlit API Reference](https://docs.streamlit.io/library/api-reference)
-- [Session State](https://docs.streamlit.io/library/api-reference/session-state)
+### BubbleLab UI Documentation
+- [BubbleLab UI API Reference](https://docs.BubbleLab UI.io/library/api-reference)
+- [Session State](https://docs.BubbleLab UI.io/library/api-reference/session-state)
 
 ### BubbleLab Codebase
 - `BubbleLab/apps/bubble-studio/src/` - Existing React components
@@ -823,9 +823,9 @@ C:\Users\mmeadow\Documents\OpenEvolve\Frontend\
 
 ---
 
-## 🎉 APPENDIX: STREAMLIT → REACT CHEAT SHEET
+## 🎉 APPENDIX: BubbleLab UI → REACT CHEAT SHEET
 
-| Streamlit Component | React Equivalent | Library |
+| BubbleLab UI Component | React Equivalent | Library |
 |---------------------|------------------|---------|
 | `st.text_input()` | `<Input />` | shadcn/ui |
 | `st.text_area()` | `<Textarea />` | shadcn/ui |
@@ -852,3 +852,4 @@ C:\Users\mmeadow\Documents\OpenEvolve\Frontend\
 ---
 
 **END OF MIGRATION PLAN**
+

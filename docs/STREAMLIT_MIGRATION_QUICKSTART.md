@@ -1,4 +1,4 @@
-# 🚀 STREAMLIT EXCISION - AGENT TASK QUICKSTART
+# 🚀 BubbleLab UI EXCISION - AGENT TASK QUICKSTART
 
 **For Agent Execution & Task Management**
 
@@ -10,9 +10,9 @@
 - [x] **Read**: `STREAMLIT_TO_BUBBLELAB_MIGRATION.md` (full migration plan)
 - [x] **Read**: `.claude/CLAUDE.md` (project constitution)
 - [x] **Read**: `BubbleLab/.cursor/rules/bubblelab.mdc` (BubbleLab patterns)
-- [ ] **Grep**: Find all Streamlit imports: `grep -r "import streamlit\|import st\|from streamlit" --include="*.py"`
+- [ ] **Grep**: Find all BubbleLab UI imports: `grep -r "import BubbleLab UI\|import st\|from BubbleLab UI" --include="*.py"`
 - [ ] **Create**: Migration tracking spreadsheet (Google Sheets/Notion)
-- [ ] **Set up**: Git branch `feature/streamlit-excision`
+- [ ] **Set up**: Git branch `feature/BubbleLab UI-excision`
 
 ---
 
@@ -23,18 +23,18 @@
 **Priority**: CRITICAL
 
 **Tasks**:
-1. **Catalog ALL Streamlit files** (399 imports identified)
-   - Run: `find . -name "*.py" -exec grep -l "streamlit\|st\." {} \;`
+1. **Catalog ALL BubbleLab UI files** (399 imports identified)
+   - Run: `find . -name "*.py" -exec grep -l "BubbleLab UI\|st\." {} \;`
    - Document each file's purpose in `STREAMLIT_FILES_INVENTORY.md`
    - Identify dependencies between files
 
-2. **Map backend logic for each Streamlit file**
+2. **Map backend logic for each BubbleLab UI file**
    - Extract class/function names called by UI
    - Document data flow from UI → Backend
    - Identify session state usage patterns
 
 3. **Create component mapping matrix**
-   - Streamlit widget → React component mapping
+   - BubbleLab UI widget → React component mapping
    - Identify gaps in BubbleLab component library
    - Prioritize component development
 
@@ -65,7 +65,7 @@
    - Implement room-based subscriptions
    - Add connection pool management
 
-4. **Extract business logic** from Streamlit files
+4. **Extract business logic** from BubbleLab UI files
    - Keep Python engines intact
    - Create service layer for API calls
    - Add error handling and logging
@@ -211,7 +211,7 @@ export function WorkflowList() {
 4. **Execute production cutover**
    - Deploy to production
    - Monitor health metrics
-   - Keep Streamlit as fallback
+   - Keep BubbleLab UI as fallback
 
 **Deliverables**:
 - `DEPLOYMENT_GUIDE.md`
@@ -298,7 +298,7 @@ BubbleLab/apps/bubble-studio/src/
     ├── knowledge.ts
     └── openevolve.ts
 
-deprecated/                          # NEW - Archive Streamlit files
+deprecated/                          # NEW - Archive BubbleLab UI files
 ├── demo_app.py
 ├── mainlayout.py
 ├── ui_components.py
@@ -327,7 +327,7 @@ BubbleLab/apps/bubble-studio/src/components/Sidebar.tsx  # Add navigation links
 **Step 1: Extract Backend Logic**
 ```python
 # demo_app.py (original)
-import streamlit as st
+import BubbleLab UI as st
 from content_analyzer import ContentAnalyzer
 
 def main():
@@ -394,7 +394,7 @@ export function useAnalyzeContent() {
 ## ✅ WEEKLY CHECKPOINTS
 
 ### Week 1 Checkpoint
-- [ ] All Streamlit files catalogued
+- [ ] All BubbleLab UI files catalogued
 - [ ] Component mapping complete
 - [ ] API requirements documented
 
@@ -416,7 +416,7 @@ export function useAnalyzeContent() {
 ### Week 18 Checkpoint
 - [ ] Production deployment complete
 - [ ] Monitoring in place
-- [ ] Streamlit decommissioned
+- [ ] BubbleLab UI decommissioned
 
 ---
 
@@ -424,7 +424,7 @@ export function useAnalyzeContent() {
 
 These tasks MUST be completed in order. Do not skip.
 
-1. ✅ **Discovery**: Catalog all Streamlit files
+1. ✅ **Discovery**: Catalog all BubbleLab UI files
 2. ✅ **API Design**: Create OpenAPI specification
 3. ✅ **API Gateway**: Implement authentication and core endpoints
 4. ✅ **WebSocket**: Build real-time infrastructure
@@ -432,8 +432,8 @@ These tasks MUST be completed in order. Do not skip.
 6. ✅ **Integration**: Connect frontend to backend
 7. ✅ **Testing**: Comprehensive test coverage
 8. ✅ **Deployment**: Staging and production
-9. ✅ **Cutover**: Switch from Streamlit to BubbleLab
-10. ✅ **Cleanup**: Archive Streamlit code
+9. ✅ **Cutover**: Switch from BubbleLab UI to BubbleLab
+10. ✅ **Cleanup**: Archive BubbleLab UI code
 
 ---
 
@@ -442,7 +442,7 @@ These tasks MUST be completed in order. Do not skip.
 ### Agent Communication
 - **Daily Standup**: Sync on progress and blockers
 - **Weekly Review**: Demo completed work
-- **Slack/Discord**: #streamlit-excision channel
+- **Slack/Discord**: #BubbleLab UI-excision channel
 - **GitHub Issues**: Track tasks and bugs
 
 ### Handoff Process
@@ -457,7 +457,7 @@ These tasks MUST be completed in order. Do not skip.
 ## 🎯 SUCCESS METRICS
 
 ### Phase Completion Criteria
-- **Discovery**: 100% of Streamlit files catalogued
+- **Discovery**: 100% of BubbleLab UI files catalogued
 - **API Gateway**: All endpoints returning 200 OK
 - **React Components**: All components rendering without errors
 - **Integration**: End-to-end workflows working
@@ -475,6 +475,7 @@ These tasks MUST be completed in order. Do not skip.
 
 **START EXECUTION**: Begin with Agent 1 - Discovery & Audit
 
-**FIRST TASK**: Run `find . -name "*.py" -exec grep -l "streamlit" {} \;` and catalog results
+**FIRST TASK**: Run `find . -name "*.py" -exec grep -l "BubbleLab UI" {} \;` and catalog results
 
 **GOOD LUCK! 🚀**
+

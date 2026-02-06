@@ -24,7 +24,7 @@ Successfully connected the **properly integrated** OpenEvolve workflow manager t
 
 ### 2. openevolve_bubblelabs_ui.py
 - **Lines:** ~500
-- **Purpose:** Streamlit UI component for OpenEvolve workflows
+- **Purpose:** BubbleLab UI UI component for OpenEvolve workflows
 - **Features:**
   - ✅ Create Workflow tab
   - ✅ Execute Workflow tab
@@ -95,10 +95,10 @@ def BubbleLabs_Workflows():
 
 ### Option 3: Standalone App
 
-Run as a separate Streamlit app:
+Run as a separate BubbleLab UI app:
 
 ```bash
-streamlit run openevolve_bubblelabs_ui.py
+BubbleLab UI run openevolve_bubblelabs_ui.py
 ```
 
 ---
@@ -262,7 +262,7 @@ To integrate OpenEvolve workflows into your BubbleLabs UI:
 
 ```bash
 # Run as standalone app
-streamlit run openevolve_bubblelabs_ui.py
+BubbleLab UI run openevolve_bubblelabs_ui.py
 ```
 
 ### 2. Integrate Into main.py
@@ -447,7 +447,7 @@ if st.button("🔄 Restart Workflow"):
 
 ```bash
 # Run standalone
-streamlit run openevolve_bubblelabs_ui.py
+BubbleLab UI run openevolve_bubblelabs_ui.py
 
 # Navigate to http://localhost:8501
 # Try creating a workflow
@@ -509,3 +509,4 @@ The OpenEvolve workflow manager is now connected to BubbleLabs UI and ready for 
 ---
 
 *End of UI Integration Guide*
+

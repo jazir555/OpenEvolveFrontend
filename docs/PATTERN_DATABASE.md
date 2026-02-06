@@ -392,10 +392,10 @@ if len(results) > MAX_RESULTS:
 **Example:**
 ```python
 # BAD - Direct session access
-import streamlit as st
+import BubbleLab UI as st
 
 def process():
-    value = st.session_state["some_value"]  # Ties to Streamlit
+    value = st.session_state["some_value"]  # Ties to BubbleLab UI
     # ... processing
 ```
 
@@ -1006,3 +1006,4 @@ This pattern database provides a comprehensive inventory of all patterns in the 
 
 **Status:** Database complete. Remediation in progress.
 **Next Steps:** Execute migration scripts in priority order.
+

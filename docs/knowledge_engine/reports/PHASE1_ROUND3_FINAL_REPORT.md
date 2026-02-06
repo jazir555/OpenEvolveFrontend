@@ -1812,7 +1812,7 @@ export LOG_LEVEL="DEBUG"
 export DEBUG="true"
 
 # Run application with hot reload
-streamlit run main.py
+BubbleLab UI run main.py
 ```
 
 ### Monitoring

@@ -1,7 +1,7 @@
 """
 React UI Migration Helper - License: Apache 2.0
 
-Utilities for migrating Streamlit UI to React.
+Utilities for migrating UI UI to React.
 Generates React components, hooks, and API clients.
 
 Usage:
@@ -558,3 +558,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

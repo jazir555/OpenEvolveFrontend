@@ -9,7 +9,7 @@
    - Handles workflow execution with proper thread management
 
 2. **bubblelabs_ui_component.py**
-   - Streamlit UI component for BubbleLabs workflow visualization
+   - BubbleLab UI UI component for BubbleLabs workflow visualization
    - Provides workflow designer, active workflows view, and workflow control
    - Integrates with the main OpenEvolve application via session state
    - Includes visualization of workflow graphs
@@ -44,12 +44,12 @@
 - Progress tracking
 
 ### Local Integration
-- Fully integrated within the Streamlit application
+- Fully integrated within the BubbleLab UI application
 - Uses session state for workflow management
 - No external API dependencies required
 
 ### UI Integration
-- Seamless integration with existing Streamlit UI
+- Seamless integration with existing BubbleLab UI UI
 - Tab-based interface for easy navigation
 - Consistent styling with the rest of the application
 

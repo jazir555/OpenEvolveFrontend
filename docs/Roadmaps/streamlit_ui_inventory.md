@@ -1,11 +1,11 @@
-# Streamlit UI Inventory → BubbleLab Mapping
+# BubbleLab UI UI Inventory → BubbleLab Mapping
 
-Goal: enumerate all Streamlit UI surfaces, the data they touch, and the BubbleLab targets / backend endpoints for 1:1 parity.
+Goal: enumerate all BubbleLab UI UI surfaces, the data they touch, and the BubbleLab targets / backend endpoints for 1:1 parity.
 
 ## Primary Entry Points
 
 1) `main.py`
-   - Purpose: Streamlit app shell, backend service control, startup thread, global CSS tweaks, entry navigation.
+   - Purpose: BubbleLab UI app shell, backend service control, startup thread, global CSS tweaks, entry navigation.
    - Data: orchestrator status, backend health, sidebar selections, session state flags.
    - Backend: `openevolve_orchestrator` start/stop/restart, `/health` in `api_server.py`.
    - BubbleLab target: App shell + top‑level routing + service control panel.
@@ -22,7 +22,7 @@ Goal: enumerate all Streamlit UI surfaces, the data they touch, and the BubbleLa
    - Backend: `/teams`, `/gauntlets`, `/workflows`, `/statistics`, knowledge engine APIs.
    - BubbleLab target: dedicated TS tabs (Admin, Monitoring, Analytics, Workflow, Knowledge).
 
-## Streamlit Screens & Components (Mapping)
+## BubbleLab UI Screens & Components (Mapping)
 
 ### Admin / Setup
 
@@ -157,5 +157,6 @@ New/updated tabs started:
 
 ## Notes
 
-- BubbleLab UI must replace Streamlit `st.session_state` with explicit app state + persistence (localStorage or backend).
-- All Streamlit‑only dependencies should be removed after porting.
+- BubbleLab UI must replace BubbleLab UI `st.session_state` with explicit app state + persistence (localStorage or backend).
+- All BubbleLab UI‑only dependencies should be removed after porting.
+

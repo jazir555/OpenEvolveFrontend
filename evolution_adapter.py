@@ -162,7 +162,7 @@ class EvolutionAdapter:
             # Calculate metrics
             duration = time.time() - start_time
 
-            # Extract metrics from session state if available (Streamlit)
+            # Extract metrics from session state if available (UI)
             metrics = self._extract_metrics()
 
             # Create result
@@ -215,14 +215,14 @@ class EvolutionAdapter:
         """
         metrics = {}
 
-        # Try to extract from Streamlit session state if available
+        # Try to extract from UI session state if available
         try:
             from ui_shim import ui as st
 
             if 'evolution_metrics' in st.session_state:
                 metrics = st.session_state.evolution_metrics.copy()
         except (ImportError, AttributeError):
-            # Streamlit not available or no session state
+            # UI not available or no session state
             pass
 
         return metrics
@@ -458,3 +458,4 @@ async def run_evolution_async(
     """
     adapter = EvolutionAdapter(config)
     return adapter.run_evolution(initial_content, content_type, **kwargs)
+

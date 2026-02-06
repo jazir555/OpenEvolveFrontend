@@ -349,7 +349,7 @@ BubbleLab provides a robust foundation with:
    - Pattern-based optimization
 
 7. **Evolution UI Integration** (`bubblelabs_evolution_integration.py`, `bubblelabs_evolution_controls.py`)
-   - Streamlit dashboard for progress, metrics, and controls
+   - BubbleLab UI dashboard for progress, metrics, and controls
    - BubbleLab web UI wired for settings + insights (`BubbleLab/apps/bubble-studio/src/pages/EvolutionSettingsPage.tsx`, `BubbleLab/apps/bubble-studio/src/pages/EvolutionInsightsPage.tsx`, `/stores/evolutionSettingsStore.ts`)
    - Continue porting advanced insights panels (adversarial/gauntlet/decomposition)
 
@@ -1994,7 +1994,7 @@ class TimelineScrubber {
 - `BubbleLab/apps/bubble-studio/src/lib/evolution/schemas.ts` + `BubbleLab/apps/bubble-studio/src/stores/evolutionSettingsStore.ts` mirror schemas/store for the BubbleLab UI.
 - `BubbleLab/apps/bubble-studio/src/services/evolutionApi.ts` + `BubbleLab/apps/bubble-studio/src/hooks/useEvolutionWebSocket.ts` wire `/evolution/start` and WebSocket progress into the settings UI.
 - `BubbleLab/apps/bubble-studio/src/pages/EvolutionSettingsPage.tsx`, `BubbleLab/apps/bubble-studio/src/pages/EvolutionInsightsPage.tsx`, `/routes/evolution*.tsx` provide the wired settings/insights shells.
-- `bubblelabs_integration.py` defines workflow graph structures and UI data models (Streamlit reference).
+- `bubblelabs_integration.py` defines workflow graph structures and UI data models (BubbleLab UI reference).
 
 **BubbleLab Wiring Files (Current)**:
 - `BubbleLab/apps/bubble-studio/package.json` (cross-platform dev/build scripts)
@@ -2821,3 +2821,4 @@ The next step is to begin execution with the **7-day sprint to MVP**:
 7. Day 7: Launch!
 
 Let's build this. 🚀
+

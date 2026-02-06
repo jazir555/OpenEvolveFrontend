@@ -1178,7 +1178,7 @@ def create_openevolve_model_orchestrator(
 
 
 def render_model_orchestration_ui():
-    """Render the model orchestration UI in Streamlit"""
+    """Render the model orchestration UI in UI"""
     st.header("🤖 OpenEvolve Model Orchestration")
     
     # Initialize orchestrator in session state
@@ -1498,3 +1498,4 @@ Return a JSON array of {num_models} model names."""
     except Exception as e:
         logger.error(f"Error in model selection: {e}")
         return available_models[:num_models]
+

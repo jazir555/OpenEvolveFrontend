@@ -370,7 +370,7 @@ from parameter_definitions import DEFAULT_PARAMETER_DEFINITIONS
 
 ### Step 1: Open BubbleLabs UI
 ```bash
-streamlit run main.py
+BubbleLab UI run main.py
 ```
 Navigate to **"BubbleLabs Workflows"** tab
 
@@ -498,3 +498,4 @@ Users have complete control over their OpenEvolve Sovereign Decomposition workfl
 ---
 
 *End of Documentation*
+

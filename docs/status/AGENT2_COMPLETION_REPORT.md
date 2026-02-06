@@ -241,7 +241,7 @@ To integrate these changes into the main planner, the following replacements sho
 4. **`adversarial.py`** and `adversarial_testing.py`**:
    - Comprehensive adversarial testing framework
    - Red team, blue team, and evaluator team coordination
-   - Streamlit UI integration
+   - BubbleLab UI UI integration
 
 ## Key Differences from Original Implementation
 
@@ -378,3 +378,4 @@ The implementation provides a significant improvement over the original LLM-only
 **Total Lines of Code Added**: ~1300 lines
 **Files Created**: 2
 **Integration Points**: 6 existing systems
+

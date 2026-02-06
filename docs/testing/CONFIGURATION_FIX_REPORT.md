@@ -707,7 +707,7 @@ python -c "from config_loader import load_config; print(load_config())"
 openevolve
 
 # Or directly
-streamlit run main.py
+BubbleLab UI run main.py
 ```
 
 ---
@@ -965,3 +965,4 @@ This comprehensive fix addresses all identified configuration and dependency sec
 - Comprehensive validation
 
 **The OpenEvolve Frontend is now production-ready from a configuration and security perspective.**
+

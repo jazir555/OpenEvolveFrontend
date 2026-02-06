@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-OpenEvolve Content Improver: A Streamlit application for AI-powered content hardening
+OpenEvolve Content Improver: A UI application for AI-powered content hardening
 and evolution using multi-LLM consensus.
 """
 
@@ -1061,7 +1061,7 @@ def render_adversarial_testing_tab():
                     finally:
                         st.session_state.adversarial_running = False
                         st.session_state.adversarial_status_message = "Ultimate testing finished."
-                        # Don't trigger rerun here, let the normal Streamlit flow continue
+                        # Don't trigger rerun here, let the normal UI flow continue
 
     with col3:
         if st.session_state.adversarial_running and st.button("⏹️ Stop Testing", use_container_width=True):
@@ -1818,7 +1818,7 @@ def render_openevolve_dashboard_tab():
 # --- Main Application Layout ---
 
 def render_main_layout():
-    """Renders the main layout of the Streamlit application."""
+    """Renders the main layout of the UI application."""
     _initialize_session_state()
 
     # --- Initialize Managers ---
@@ -1851,11 +1851,11 @@ def render_main_layout():
     ]
     
     # Simple approach: Use traditional tabs without complex state management
-    # Streamlit's tabs should work correctly if we avoid interfering with their state
+    # UI's tabs should work correctly if we avoid interfering with their state
     tabs = st.tabs(tab_titles)
     
     # Render all tab content using the traditional approach
-    # This is the most reliable method that works in most Streamlit applications
+    # This is the most reliable method that works in most UI applications
     with tabs[0]:
         render_evolution_tab()
 
@@ -1900,3 +1900,4 @@ if __name__ == "__main__":
     # But when imported by main.py, it's already set there
     from ui_shim import ui as st
     render_main_layout()
+

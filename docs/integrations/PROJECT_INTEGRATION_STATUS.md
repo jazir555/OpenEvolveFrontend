@@ -357,7 +357,7 @@ Phase 6: FRM Reassessment (P5)
 
 **Rationale**:
 - 60-70% overlap with existing systems (ROMA, ACE, Steer, Knowledge Engine)
-- Architectural mismatch (Electron+React+TS vs Python+Streamlit)
+- Architectural mismatch (Electron+React+TS vs Python+BubbleLab UI)
 - 3-5 weeks integration overhead for niche value
 - LeanAide can provide 80% of FRM's value with 20% effort
 
@@ -658,3 +658,4 @@ Phase 6: FRM Reassessment (P5)
 **Last Updated**: 2025-12-31
 **Status**: READY FOR IMPLEMENTATION
 **Next Review**: After Week 1 of Phase 1
+

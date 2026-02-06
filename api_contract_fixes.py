@@ -477,13 +477,13 @@ UI_FIXES = '''
             action: Action to perform
 
         Side Effects:
-            - Updates Streamlit session state (st.session_state.active_sovereign_workflow)
+            - Updates UI session state (st.session_state.active_sovereign_workflow)
             - Calls st.success(), st.warning(), st.error()
             - Calls st.rerun() to refresh UI
             - May delete workflow from session state on cancel
 
         Note:
-            This method directly manipulates Streamlit session state and triggers UI refresh.
+            This method directly manipulates UI session state and triggers UI refresh.
         """
         # ... implementation
 '''
@@ -491,7 +491,7 @@ UI_FIXES = '''
 def fix_ui_component():
     """Apply fixes to bubblelabs_ui_component.py"""
     fixes = [
-        "_control_workflow_local() - Added Side Effects: section documenting Streamlit calls"
+        "_control_workflow_local() - Added Side Effects: section documenting UI calls"
     ]
     return fixes
 
@@ -653,3 +653,4 @@ if __name__ == "__main__":
             f.write(f"{i}. {fix}\n")
 
     print(f"\nReport saved to: API_CONTRACT_FIX_REPORT.txt")
+

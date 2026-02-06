@@ -132,7 +132,7 @@ class BubbleWorkflowInstance:
 class BubbleLabsIntegration:
     """
     Manages integration between OpenEvolve workflows and BubbleLabs UI.
-    This is a local integration that works within the Streamlit application.
+    This is a local integration that works within the UI application.
 
     CONCURRENCY FIX (Issues #3, #4): Thread-safe with proper locking hierarchy.
 
@@ -686,3 +686,4 @@ bubblelabs_integration = _LazyIntegrationProxy()
 if __name__ == "__main__":
     # This module is primarily a library, but can be used for testing
     print("BubbleLabs Integration module loaded successfully")
+

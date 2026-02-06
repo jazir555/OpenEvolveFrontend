@@ -62,7 +62,7 @@ The platform integrates **100+ external systems** across **9 major categories**:
 ┌─────────────────────────────────────────────────────────────────────┐
 │                       PRESENTATION LAYER                             │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐              │
-│  │  BubbleLabs  │  │  Streamlit   │  │  Claudiomiro │              │
+│  │  BubbleLabs  │  │  BubbleLab UI   │  │  Claudiomiro │              │
 │  │  (Platform)  │  │    (Web UI)  │  │ (Dev Agent)  │              │
 │  └──────────────┘  └──────────────┘  └──────────────┘              │
 │                                                                       │
@@ -261,7 +261,7 @@ The OpenEvolve Platform consists of **9 major architectural layers**:
 
 #### Layer 1: Presentation Layer (12 Systems)
 - **Purpose:** User interaction, visualization, and control
-- **Systems:** BubbleLabs, Streamlit, Claudiomiro, DataPizza, MainLayout, Sidebar
+- **Systems:** BubbleLabs, BubbleLab UI, Claudiomiro, DataPizza, MainLayout, Sidebar
 - **Pattern:** MVC with reactive state management
 
 #### Layer 2: Orchestration Layer (6 Systems)
@@ -310,7 +310,7 @@ The OpenEvolve Platform consists of **9 major architectural layers**:
 
 ### Layer 1: Presentation Layer
 
-**Systems:** BubbleLabs, Streamlit, Claudiomiro, DataPizza, MainLayout, Sidebar
+**Systems:** BubbleLabs, BubbleLab UI, Claudiomiro, DataPizza, MainLayout, Sidebar
 
 **Responsibilities:**
 - User interface rendering
@@ -323,14 +323,14 @@ The OpenEvolve Platform consists of **9 major architectural layers**:
 class PresentationLayer:
     def __init__(self):
         self.bubblelabs = BubbleLabsAdapter()
-        self.streamlit = StreamlitUI()
+        self.BubbleLab UI = StreamlitUI()
         self.claudiomiro = ClaudiomiroAgent()
         self.datapizza = DataPizzaCoordinator()
 
     def render_dashboard(self, workflow_result):
         # Transform canonical schema to UI format
         ui_data = self.transform_to_ui_format(workflow_result)
-        return self.streamlit.render(ui_data)
+        return self.BubbleLab UI.render(ui_data)
 ```
 
 **Anti-Corruption Pattern:**
@@ -772,7 +772,7 @@ class CausalDiscovery:
 **Status:** All Complete ✅
 
 - **BubbleLabs** - Workflow automation
-- **Streamlit** - Web interface
+- **BubbleLab UI** - Web interface
 - **Claudiomiro** - Development agent
 - **DataPizza** - Coordination
 - **MainLayout** - Application frame
@@ -988,7 +988,7 @@ class ConsensusVoting(VotingStrategy):
 ```
 User Input
     ↓
-Presentation Layer (BubbleLabs/Streamlit)
+Presentation Layer (BubbleLabs/BubbleLab UI)
     ↓ (Canonical Schema)
 Orchestration Layer (ROMA/Hephaestus)
     ↓ (Decomposed Tasks)
@@ -1231,12 +1231,12 @@ def get_data(key):
 
 ### Languages
 - **Python:** Primary language (95%+)
-- **TypeScript:** Frontend (Streamlit custom components)
+- **TypeScript:** Frontend (BubbleLab UI custom components)
 - **Lean 4:** Formal verification
 - **SQL:** Database queries
 
 ### Frameworks
-- **Streamlit:** UI framework
+- **BubbleLab UI:** UI framework
 - **FastAPI:** API framework
 - **Celery:** Task queue
 - **Pydantic:** Data validation
@@ -1325,3 +1325,4 @@ Traffic Switch
 **Maintained By:** OpenEvolve Architecture Team
 
 For implementation details, see individual integration guides and the master integration registry in `MASTER_INTEGRATIONS_GUIDE.md`.
+

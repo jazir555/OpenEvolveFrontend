@@ -64,7 +64,7 @@ def get_evolution_performance_data(session_state: Dict[str, Any]) -> pd.DataFram
     """Get evolution performance data for visualization.
     
     Args:
-        session_state (Dict[str, Any]): Streamlit session state
+        session_state (Dict[str, Any]): UI session state
         
     Returns:
         pd.DataFrame: DataFrame with performance data
@@ -98,7 +98,7 @@ def get_adversarial_performance_data(session_state: Dict[str, Any]) -> pd.DataFr
     """Get adversarial performance data for visualization.
     
     Args:
-        session_state (Dict[str, Any]): Streamlit session state
+        session_state (Dict[str, Any]): UI session state
         
     Returns:
         pd.DataFrame: DataFrame with adversarial performance data
@@ -141,7 +141,7 @@ def get_model_performance_data(session_state: Dict[str, Any]) -> pd.DataFrame:
     """Get model performance data for visualization.
     
     Args:
-        session_state (Dict[str, Any]): Streamlit session state
+        session_state (Dict[str, Any]): UI session state
         
     Returns:
         pd.DataFrame: DataFrame with model performance data
@@ -170,7 +170,7 @@ def get_cost_and_resource_data(session_state: Dict[str, Any]) -> pd.DataFrame:
     """Get cost and resource usage data for visualization.
     
     Args:
-        session_state (Dict[str, Any]): Streamlit session state
+        session_state (Dict[str, Any]): UI session state
         
     Returns:
         pd.DataFrame: DataFrame with cost and resource data
@@ -222,7 +222,7 @@ def get_content_quality_data(session_state: Dict[str, Any]) -> pd.DataFrame:
     """Get content quality metrics data for visualization.
     
     Args:
-        session_state (Dict[str, Any]): Streamlit session state
+        session_state (Dict[str, Any]): UI session state
         
     Returns:
         pd.DataFrame: DataFrame with content quality data
@@ -279,7 +279,7 @@ def get_issue_resolution_data(session_state: Dict[str, Any]) -> pd.DataFrame:
     """Get issue resolution data for visualization.
     
     Args:
-        session_state (Dict[str, Any]): Streamlit session state
+        session_state (Dict[str, Any]): UI session state
         
     Returns:
         pd.DataFrame: DataFrame with issue resolution data
@@ -336,7 +336,7 @@ def get_compliance_analysis_data(session_state: Dict[str, Any]) -> pd.DataFrame:
     """Get compliance analysis data for visualization.
     
     Args:
-        session_state (Dict[str, Any]): Streamlit session state
+        session_state (Dict[str, Any]): UI session state
         
     Returns:
         pd.DataFrame: DataFrame with compliance analysis data
@@ -380,7 +380,7 @@ def get_performance_trends_data(session_state: Dict[str, Any]) -> pd.DataFrame:
     """Get performance trends data for visualization.
     
     Args:
-        session_state (Dict[str, Any]): Streamlit session state
+        session_state (Dict[str, Any]): UI session state
         
     Returns:
         pd.DataFrame: DataFrame with performance trends data
@@ -691,3 +691,4 @@ def calculate_diversity_metrics(diversity_history: list) -> Dict[str, float]:
         'diversity_range': max_diversity - min_diversity,
         'diversity_trend': diversity_trend
     }
+

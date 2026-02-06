@@ -4,6 +4,8 @@ LeanAide Autoformalization Integration for SOP Generator
 This module provides integration between the LeanAide autoformalization system
 and the SOP generator, enabling formal verification of mathematical components
 in SOPs using Lean 4 theorem proving.
+
+With CAV-NLP integration for enhanced SOP compliance verification.
 """
 
 import asyncio
@@ -44,6 +46,15 @@ from leanaide_predictive_flagging import (
     PredictiveFlagConfig
 )
 
+# Add CAV-NLP imports with graceful fallback
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logging.warning("CAV-NLP integration not available - SOP integration will use standard methods")
+
 logger = logging.getLogger(__name__)
 
 
@@ -79,13 +90,15 @@ class LeanAideSOPIntegration:
     - Formal verification of mathematical claims
     - Integration with SOP generation workflow
     - Quality control for mathematical components
+    - CAV-NLP enhanced SOP compliance verification
     """
     
     def __init__(
         self,
         leanaide_client: Any,  # LeanAide client
         enable_predictive_flagging: bool = True,
-        enable_red_flagging: bool = True
+        enable_red_flagging: bool = True,
+        config: Optional[Dict[str, Any]] = None
     ):
         """
         Initialize the LeanAide-SOP integration.
@@ -94,10 +107,12 @@ class LeanAideSOPIntegration:
             leanaide_client: Initialized LeanAide client
             enable_predictive_flagging: Whether to enable predictive quality control
             enable_red_flagging: Whether to enable red-flagging
+            config: Optional configuration dictionary
         """
         self.leanaide_client = leanaide_client
         self.enable_predictive_flagging = enable_predictive_flagging
         self.enable_red_flagging = enable_red_flagging
+        self.config = config or {}
 
         # Initialize autoformalization engine
         try:
@@ -136,6 +151,17 @@ class LeanAideSOPIntegration:
             except ImportError:
                 self.predictive_flagging_system = None
                 print("Warning: Predictive flagging system not available")
+        
+        # Initialize CAV-NLP components for SOP compliance
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            try:
+                self.enhanced_solver = EnhancedZ3Solver()
+                self.math_service = UnifiedMathService()
+                logger.info("CAV-NLP components initialized for SOP integration")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP components: {e}")
+                self.use_cav_nlp = False
     
     async def extract_mathematical_components(
         self,
@@ -438,6 +464,80 @@ class LeanAideSOPIntegration:
         enhanced_sop += verification_summary
         
         return enhanced_sop
+
+    async def verify_sop_compliance_cav_nlp(
+        self,
+        sop_content: str,
+        compliance_requirements: List[str]
+    ) -> Dict[str, Any]:
+        """
+        Verify SOP compliance using CAV-NLP enhanced analysis.
+        
+        Uses CAV-NLP for:
+        - Semantic analysis of SOP requirements
+        - Constraint-based compliance checking
+        - Enhanced mathematical verification
+        
+        Args:
+            sop_content: Content of the SOP to verify
+            compliance_requirements: List of compliance requirements to check
+            
+        Returns:
+            Dictionary with CAV-NLP compliance verification results
+        """
+        if not self.use_cav_nlp:
+            return {
+                "available": False,
+                "error": "CAV-NLP not available",
+                "compliant": None
+            }
+        
+        start_time = time.time()
+        
+        try:
+            # Use math service for semantic compliance analysis
+            semantic_result = await self.math_service.analyze_compliance_async(
+                content=sop_content,
+                requirements=compliance_requirements,
+                context={"verification_type": "sop_compliance"}
+            )
+            
+            # Use enhanced solver for constraint-based compliance
+            constraint_result = await self.enhanced_solver.check_compliance_async(
+                content=sop_content,
+                requirements=compliance_requirements,
+                timeout_ms=self.config.get("solver_timeout", 5000)
+            )
+            
+            execution_time = time.time() - start_time
+            
+            # Determine overall compliance
+            semantic_compliant = semantic_result.get("compliance_score", 0) > 0.7
+            constraint_compliant = constraint_result.get("compliant", True)
+            
+            return {
+                "available": True,
+                "compliant": semantic_compliant and constraint_compliant,
+                "semantic_compliance": {
+                    "score": semantic_result.get("compliance_score", 0),
+                    "issues": semantic_result.get("issues", [])
+                },
+                "constraint_compliance": {
+                    "satisfied": constraint_compliant,
+                    "violations": constraint_result.get("violations", [])
+                },
+                "execution_time": execution_time,
+                "cav_nlp_version": "1.0"
+            }
+        
+        except Exception as e:
+            logger.error(f"CAV-NLP SOP compliance verification failed: {e}")
+            return {
+                "available": True,
+                "error": str(e),
+                "compliant": None,
+                "execution_time": time.time() - start_time
+            }
 
 
 # Integration with SOP Generator

@@ -38,7 +38,7 @@ def test_missing_dependencies():
             from logging_util import _update_adv_log_and_status
             print("[OK] Logging util imported successfully!")
             
-            # Test functionality (should work without Streamlit)
+            # Test functionality (should work without UI)
             _update_adv_log_and_status("Test adversarial log message")
             print("   - Adversarial logging function works!")
         except ImportError as e:

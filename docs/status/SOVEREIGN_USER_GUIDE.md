@@ -189,10 +189,10 @@ print(f"Average decomposition time: {stats['decomposition']['avg_duration']:.2f}
 
 ## UI Components
 
-### Streamlit Integration
+### BubbleLab UI Integration
 
 ```python
-import streamlit as st
+import BubbleLab UI as st
 from sovereign_ui_components import (
     render_problem_input_form,
     render_decomposition_plan,
@@ -364,3 +364,4 @@ For issues or questions:
 5. Monitor performance and optimize as needed
 
 Happy problem solving!
+

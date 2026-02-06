@@ -349,13 +349,13 @@ def get_github_commit_history(
 
 
 # Note: This function is deprecated as GitHub functionality has been moved to the GitHub tab in mainlayout.py
-# The functionality is now implemented using Streamlit native components instead of HTML/JS
+# The functionality is now implemented using UI native components instead of HTML/JS
 def render_github_integration_ui():
     """Deprecated: GitHub integration UI. Use the GitHub tab in mainlayout.py instead."""
     from ui_shim import ui as st
     st.warning("GitHub integration is now available in the GitHub tab.")
     if st.button("Go to GitHub Tab"):
-        # This requires Streamlit's experimental feature which might not work as expected
+        # This requires UI's experimental feature which might not work as expected
         st.info("Navigate to the GitHub tab (🐙) in the main interface")
     return ""
 
@@ -572,7 +572,7 @@ def get_protocol_generations_from_github(repo_name: str) -> List[Dict]:
 
 
 # Note: This function is deprecated as GitHub branching functionality has been moved to the GitHub tab in mainlayout.py
-# The functionality is now implemented using Streamlit native components instead of HTML/JS
+# The functionality is now implemented using UI native components instead of HTML/JS
 def render_github_branching_ui():
     """Deprecated: GitHub branching UI. Use the GitHub tab in mainlayout.py instead."""
     from ui_shim import ui as st
@@ -621,3 +621,4 @@ def sync_content_to_github(
     except Exception as e:
         st.error(f"Error syncing content to GitHub: {e}")
         return False
+

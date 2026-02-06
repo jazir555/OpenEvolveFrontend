@@ -396,7 +396,7 @@ validation_manager = ValidationManager()
 
 def render_validation_manager():
     """
-    Renders the validation manager section in the Streamlit UI.
+    Renders the validation manager section in the UI UI.
     Allows users to define, manage, and apply validation rules.
     """
     st.header("[OK] Validation Manager")
@@ -519,3 +519,4 @@ def render_validation_manager():
                             st.write(f"- {suggestion}")
         else:
             st.info("Run validation first to see results here.")
+

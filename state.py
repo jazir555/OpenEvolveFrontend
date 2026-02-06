@@ -45,5 +45,6 @@ class State:
             st.session_state[key] = value
 
     def sync(self):
-        # This method is mostly for conceptual completeness, as Streamlit's session_state is inherently synced.
+        # This method is mostly for conceptual completeness, as UI's session_state is inherently synced.
         st.session_state["_last_sync"] = time.time()
+

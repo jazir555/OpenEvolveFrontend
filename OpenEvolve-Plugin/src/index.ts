@@ -2,7 +2,7 @@
  * OpenEvolve BubbleLab Plugin - Main Export Index
  * 
  * This file exports all components and functions needed for the BubbleLab plugin system.
- * It consolidates all the converted Streamlit UI components into a single import point.
+ * It consolidates all the converted BubbleLab UI UI components into a single import point.
  */
 
 // Export main application components

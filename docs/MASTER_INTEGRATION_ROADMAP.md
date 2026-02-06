@@ -72,7 +72,7 @@ gantt
 **Recommendation**: ❌ **DEFER** (Score: -2)
 **Rationale**:
 - 60-70% overlap with existing systems (ROMA, ACE, Steer, Knowledge Engine)
-- Architectural mismatch (Electron+React+TS vs Python+Streamlit)
+- Architectural mismatch (Electron+React+TS vs Python+BubbleLab UI)
 - 3-5 weeks integration overhead for niche value
 - LeanAide already integrated and can be enhanced for 80% of FRM's value
 
@@ -297,7 +297,7 @@ FRM Reassessment (P5) - LOWEST PRIORITY
    - NetworkX graph building
    - PyVis/Plotly visualization
    - Community detection (Louvain)
-   - Streamlit UI integration
+   - BubbleLab UI UI integration
 
 #### Success Criteria
 
@@ -1189,3 +1189,4 @@ Detailed task breakdowns are in:
 
 **Version History**:
 - 1.0 (2025-12-31): Initial roadmap creation
+

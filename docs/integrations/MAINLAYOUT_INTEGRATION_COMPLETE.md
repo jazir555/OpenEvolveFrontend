@@ -179,7 +179,7 @@ config["adversarial_settings"] = {
 
 ## Adaptation Approach
 
-### Key Principle: **Don't Copy Streamlit Code - Adapt to BubbleLabs Model**
+### Key Principle: **Don't Copy BubbleLab UI Code - Adapt to BubbleLabs Model**
 
 The mainlayout.py code was **adapted**, not copied, to work within BubbleLabs:
 
@@ -506,7 +506,7 @@ config["adversarial_settings"] = {
 
 ## Adaptation Approach
 
-### Key Principle: **Don't Copy Streamlit Code - Adapt to BubbleLabs Model**
+### Key Principle: **Don't Copy BubbleLab UI Code - Adapt to BubbleLabs Model**
 
 The mainlayout.py code was **adapted**, not copied, to work within BubbleLabs:
 
@@ -653,3 +653,4 @@ All functionality from mainlayout.py Evolution and Adversarial Testing tabs has 
 
 *End of Integration Report*
 >>>>>>> 1cb9c5e35 (update)
+

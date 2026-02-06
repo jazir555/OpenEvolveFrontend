@@ -337,7 +337,7 @@ Success = Δ(ACI) > threshold (statistically significant)
 - **pygraphistry** (P2): 100% of KnowledgeGraphVisualizer + 95% of SolutionPatternMiner
   - GPU-accelerated UMAP + DBSCAN
   - Interactive web-based visualization (millions of nodes)
-  - Streamlit iframe embedding
+  - BubbleLab UI iframe embedding
   - Timeline: 2-3 weeks
 
 - **kg-gen** (P2.5): 90% Schema + 80% Extraction + 95% Visualization
@@ -409,7 +409,7 @@ Success = Δ(ACI) > threshold (statistically significant)
 - GPU acceleration with cuML (100X+ speedup)
 - DataFrame-native Graph Query Language (GFQL)
 - 20+ database connectors (Neo4j, Neptune, PostgreSQL)
-- Direct iframe embedding for Streamlit
+- Direct iframe embedding for BubbleLab UI
 
 **RESE Integration**:
 - **Phase II**: Ψ₂ (Ontology Mapping) - Cross-domain knowledge visualization
@@ -426,7 +426,7 @@ Success = Δ(ACI) > threshold (statistically significant)
 **Week 2**: Component 6 (KnowledgeGraphVisualizer)
 - Day 1-2: Build graph binding from artifacts
 - Day 3: Style and filter implementation
-- Day 4-5: Streamlit integration and testing
+- Day 4-5: BubbleLab UI integration and testing
 
 **Week 3**: Testing and documentation
 
@@ -483,7 +483,7 @@ Success = Δ(ACI) > threshold (statistically significant)
 - Add pattern extraction and summarization
 
 **Week 7**: UI Integration
-- Integrate visualization into Streamlit dashboard
+- Integrate visualization into BubbleLab UI dashboard
 - Add filters and interactivity
 - Documentation
 
@@ -784,7 +784,7 @@ All other phases can run in parallel
 **Week 2**: Component 6 (KnowledgeGraphVisualizer)
 - Day 1-2: Build graph binding from artifacts
 - Day 3: Style and filter implementation
-- Day 4-5: Streamlit integration and testing
+- Day 4-5: BubbleLab UI integration and testing
 
 **Week 3**: Testing and documentation
 
@@ -793,7 +793,7 @@ All other phases can run in parallel
 - [ ] DBSCAN clustering for pattern discovery
 - [ ] Interactive graph visualization (millions of nodes)
 - [ ] GPU acceleration working (100X+ speedup)
-- [ ] Streamlit iframe embedding functional
+- [ ] BubbleLab UI iframe embedding functional
 - [ ] Component 3 at 95%, Component 6 at 100%
 
 ---
@@ -823,7 +823,7 @@ All other phases can run in parallel
 - Add pattern extraction and summarization
 
 **Week 7**: UI Integration
-- Integrate visualization into Streamlit dashboard
+- Integrate visualization into BubbleLab UI dashboard
 - Add filters and interactivity
 - Documentation
 
@@ -1491,3 +1491,4 @@ For questions or clarifications about this roadmap, refer to:
 **Version**: 1.0
 **Last Updated**: 2025-12-31
 **Next Action**: BEGIN PHASE 1 (Stage 6 Knowledge Extraction) 🚀
+

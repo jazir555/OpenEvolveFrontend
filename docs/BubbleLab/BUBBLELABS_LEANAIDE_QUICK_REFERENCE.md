@@ -17,7 +17,7 @@ render_leanaide_in_bubblelabs()
 | File | Purpose |
 |------|---------|
 | `bubblelabs_leanaide_integration.py` | Core integration bridge |
-| `bubblelabs_leanaide_ui.py` | Streamlit UI components |
+| `bubblelabs_leanaide_ui.py` | BubbleLab UI UI components |
 | `bubblelabs_leanaide_examples.py` | Example workflows |
 | `BUBBLELABS_LEANAIDE_INTEGRATION_GUIDE.md` | Complete documentation |
 | `BUBBLELABS_LEANAIDE_IMPLEMENTATION_SUMMARY.md` | Implementation summary |
@@ -168,7 +168,7 @@ bridge.enable_mcts = True
 ## 🎨 UI Integration
 
 ```python
-import streamlit as st
+import BubbleLab UI as st
 from bubblelabs_leanaide_ui import LeanAideUIComponent
 
 # In BubbleLabs app
@@ -261,7 +261,7 @@ python bubblelabs_leanaide_examples.py complete   # Full workflow
 ## ✅ Requirements
 
 ```
-streamlit>=1.20.0
+BubbleLab UI>=1.20.0
 pandas>=1.5.0
 asyncio
 aiohttp>=3.8.0
@@ -306,3 +306,4 @@ logging.basicConfig(level=logging.DEBUG)
 **Date**: 2025-01-03
 **Author**: OpenEvolve
 **License**: See main project LICENSE
+

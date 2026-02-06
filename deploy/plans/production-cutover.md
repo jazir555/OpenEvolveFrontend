@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-This document outlines the production cutover plan for migrating from Streamlit to BubbleLab React UI. The cutover will be executed with zero-downtime using a blue-green deployment strategy.
+This document outlines the production cutover plan for migrating from BubbleLab UI to BubbleLab React UI. The cutover will be executed with zero-downtime using a blue-green deployment strategy.
 
 **Timeline:** Approximately 2 hours
 **Risk Level:** Medium (mitigated by comprehensive testing and rollback plan)
@@ -60,7 +60,7 @@ This document outlines the production cutover plan for migrating from Streamlit 
 
 **Objectives:**
 - Verify staging environment stability
-- Create final backup of production Streamlit
+- Create final backup of production BubbleLab UI
 - Prepare rollback plan
 - Notify team of impending cutover
 
@@ -205,7 +205,7 @@ This document outlines the production cutover plan for migrating from Streamlit 
 
 2. **T+5: Feature Flag Enablement**
    - Enable BubbleLab UI feature flag
-   - Disable Streamlit UI feature flag
+   - Disable BubbleLab UI UI feature flag
    - Verify routing
 
 3. **T+10: Traffic Verification**
@@ -240,7 +240,7 @@ This document outlines the production cutover plan for migrating from Streamlit 
 - Verify all systems operational
 - Check error rates and response times
 - Verify WebSocket connections stable
-- Keep Streamlit available as fallback
+- Keep BubbleLab UI available as fallback
 
 **Tasks:**
 1. Run comprehensive smoke tests
@@ -280,8 +280,8 @@ This document outlines the production cutover plan for migrating from Streamlit 
 **Objectives:**
 - Monitor for issues
 - Address any problems
-- Keep Streamlit available as fallback
-- Prepare for Streamlit decommissioning
+- Keep BubbleLab UI available as fallback
+- Prepare for BubbleLab UI decommissioning
 
 **Tasks:**
 1. Continuous monitoring
@@ -300,9 +300,9 @@ This document outlines the production cutover plan for migrating from Streamlit 
    - Tune WebSocket configuration
 
 4. Prepare for decommissioning
-   - Final verification of Streamlit replacement
-   - Plan Streamlit shutdown
-   - Archive Streamlit code
+   - Final verification of BubbleLab UI replacement
+   - Plan BubbleLab UI shutdown
+   - Archive BubbleLab UI code
 
 **Success Criteria:**
 - System stable for 60+ minutes
@@ -316,19 +316,19 @@ This document outlines the production cutover plan for migrating from Streamlit 
 **Time: T+120 minutes**
 
 **Objectives:**
-- Decommission Streamlit
+- Decommission BubbleLab UI
 - Archive old code
 - Update documentation
 - Send user notification
 
 **Tasks:**
-1. Decommission Streamlit
+1. Decommission BubbleLab UI
    ```bash
-   bash deploy/scripts/decommission-streamlit.sh
+   bash deploy/scripts/decommission-BubbleLab UI.sh
    ```
 
 2. Archive old code
-   - Move Streamlit files to archive
+   - Move BubbleLab UI files to archive
    - Update repository structure
    - Commit changes
 
@@ -348,7 +348,7 @@ This document outlines the production cutover plan for migrating from Streamlit 
    - Update runbooks
 
 **Success Criteria:**
-- Streamlit decommissioned
+- BubbleLab UI decommissioned
 - All documentation updated
 - Users notified
 - Retrospective completed
@@ -370,13 +370,13 @@ If critical issues detected at any point:
 **Actions:**
 1. Revert DNS changes
    ```bash
-   # Revert DNS A record to point to Streamlit
+   # Revert DNS A record to point to BubbleLab UI
    ```
 
-2. Re-enable Streamlit
+2. Re-enable BubbleLab UI
    ```bash
    cd deploy/production
-   docker-compose -f docker-compose.production.yml up -d streamlit
+   docker-compose -f docker-compose.production.yml up -d BubbleLab UI
    ```
 
 3. Stop BubbleLab services
@@ -384,7 +384,7 @@ If critical issues detected at any point:
    docker-compose -f docker-compose.production.yml stop api-gateway bubblelab-frontend
    ```
 
-4. Verify Streamlit operational
+4. Verify BubbleLab UI operational
    ```bash
    bash deploy/scripts/health-check.sh production https://openevolve.ai
    ```
@@ -471,7 +471,7 @@ If critical issues detected at any point:
 - ✅ Response time p95 < 500ms
 - ✅ WebSocket connections stable
 - ✅ Zero data loss
-- ✅ Streamlit decommissioned
+- ✅ BubbleLab UI decommissioned
 - ✅ User satisfaction > 90%
 
 ---
@@ -491,3 +491,4 @@ If critical issues detected at any point:
 
 ### C. Change History
 - 2026-01-06: Initial document creation (Agent 5)
+

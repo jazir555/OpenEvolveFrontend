@@ -201,7 +201,7 @@ const response = await ollama.chat({
 | Aspect | ClaraVerse | SGDW | Compatibility |
 |--------|-----------|------|---------------|
 | **Language** | JavaScript/Node.js | Python | ❌ **MISMATCH** |
-| **Runtime** | Node.js | Python (Streamlit) | ❌ **MISMATCH** |
+| **Runtime** | Node.js | Python (BubbleLab UI) | ❌ **MISMATCH** |
 | **Integration Style** | SDK/Import | Hephaestus Bridge | ⚠️ **Different** |
 | **Data Format** | JSON | Python dataclasses | ⚠️ **Convertible** |
 | **LLM Access** | Ollama/Remote | DataPizza (multi-provider) | ⚠️ **Different** |
@@ -688,10 +688,11 @@ Missing Files:
 | Multi-provider LLM | ⚠️ Ollama/remote only | Medium |
 | Hephaestus ticketing | ❌ None | **Major** |
 | MCP tools | ❌ None | **Major** |
-| Streamlit UI | ❌ None | **Major** |
+| BubbleLab UI UI | ❌ None | **Major** |
 
 ---
 
 **Assessment Complete**
 
 *For questions about this assessment, refer to the Integration Architecture document (`DECOMPOSITION_WORKFLOW_INTEGRATION_ARCHITECTURE.md`) for context on SGDW requirements.*
+

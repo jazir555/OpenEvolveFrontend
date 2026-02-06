@@ -1117,7 +1117,7 @@ def tool_function(...):
 | Component | Technology | Version |
 |-----------|------------|---------|
 | Language | Python | >=3.10 |
-| Web UI | Streamlit | Latest |
+| Web UI | BubbleLab UI | Latest |
 | API Framework | FastAPI | >=0.104.0 |
 | Database | SQLite/PostgreSQL | - |
 | Cache | Redis | 7.x |
@@ -1143,7 +1143,7 @@ z3-solver>=4.12.0
 fastapi>=0.104.0
 uvicorn[standard]>=0.24.0
 sqlalchemy>=2.0.0
-streamlit
+BubbleLab UI
 numpy>=1.24.0
 pandas>=2.0.0
 pyyaml>=6.0.1
@@ -1282,3 +1282,4 @@ The OpenEvolve project represents a **mature, production-grade AI problem-solvin
 ---
 
 *This master document provides a complete accounting of all OpenEvolve components, architecture, tech stack, and integration points with granular technical detail. For specific implementation guidance, refer to the respective system documentation.*
+

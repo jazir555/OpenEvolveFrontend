@@ -23,7 +23,7 @@
 |--------|---------|--------|
 | **Complementarity** | FRM focuses on continuous math (ODE/PDE); LeanAide on discrete math (proofs) | **HIGH** - They address different mathematical domains |
 | **Workflow Gaps** | FRM could enhance Stages 0, 1, 3, 6 with domain-specific capabilities | **MEDIUM** - Some value but overlaps with existing integrations |
-| **Architecture Mismatch** | FRM is Electron+React+TS; OpenEvolve is Python+Streamlit | **CRITICAL** - 3-5 weeks integration overhead |
+| **Architecture Mismatch** | FRM is Electron+React+TS; OpenEvolve is Python+BubbleLab UI | **CRITICAL** - 3-5 weeks integration overhead |
 | **Redundancy** | FRM's novelty assurance ~ ACE learning; domain detection ~ ROMA/KE | **HIGH** - 60-70% overlap with existing systems |
 | **LeanAide Status** | Fully integrated but underutilized (only used in 5 stages for math problems) | **HIGH** - Better ROI from enhancing existing integration |
 
@@ -68,7 +68,7 @@ From `DECOMPOSITION_WORKFLOW_INTEGRATION_ARCHITECTURE.md`:
 |-------|-------------------|----------------------|
 | **Stage 0** | ROMA, Knowledge Engine, ACE | RAGbits, DataPizza, **LeanAide** |
 | **Stage 1** | ROMA, ACE, Claudiomiro | **LeanAide**, DataPizza |
-| **Stage 2** | OpenEvolve UI, Hephaestus | Streamlit |
+| **Stage 2** | OpenEvolve UI, Hephaestus | BubbleLab UI |
 | **Stage 3A** | Claudiomiro, ROMA, DataPizza | Knowledge Engine, ACE, **LeanAide** |
 | **Stage 3B** | ACE, Steer, DataPizza | ROMA, **LeanAide** |
 | **Stage 3C** | Steer, Knowledge Engine, DataPizza | ACE, **LeanAide** |
@@ -193,7 +193,7 @@ From `DECOMPOSITION_WORKFLOW_INTEGRATION_ARCHITECTURE.md`:
 ### Stage 2: Manual Review & Override
 
 **Current Capabilities:**
-- Streamlit UI: Human review interface
+- BubbleLab UI UI: Human review interface
 - Edit controls for sub-problems
 - Team/Gauntlet assignment
 
@@ -205,18 +205,18 @@ From `DECOMPOSITION_WORKFLOW_INTEGRATION_ARCHITECTURE.md`:
 **Complementarity Analysis:**
 | FRM Feature | Existing Equivalent | Overlap? |
 |-------------|-------------------|----------|
-| Real-time validation | Streamlit form validation | **60%** - Different tech stack |
+| Real-time validation | BubbleLab UI form validation | **60%** - Different tech stack |
 | Domain guidance | Manual (user knowledge) | **20%** - Would add value |
 | Math visualization | **NONE** | **0%** - UNIQUE VALUE |
 
 **Gap Filled:** ⚠️ **LOW-MEDIUM** - UI enhancements are nice but not critical
 
 **Recommendation:** Don't integrate FRM for Stage 2. The value is:
-- UI-specific (FRM is desktop Electron app; OpenEvolve is Streamlit web)
+- UI-specific (FRM is desktop Electron app; OpenEvolve is BubbleLab UI web)
 - Non-critical (current manual review works)
-- Architectural mismatch (can't reuse React components in Streamlit)
+- Architectural mismatch (can't reuse React components in BubbleLab UI)
 
-**Alternative:** Add KaTeX to Streamlit for math rendering (1 day effort)
+**Alternative:** Add KaTeX to BubbleLab UI for math rendering (1 day effort)
 
 ---
 
@@ -422,7 +422,7 @@ FRM's citation management is a **nice-to-have** but not critical for Stage 6 com
 | Aspect | FRM | LeanAide |
 |--------|-----|----------|
 | **Language** | TypeScript/JavaScript | Python |
-| **UI Framework** | React + Electron | Streamlit |
+| **UI Framework** | React + Electron | BubbleLab UI |
 | **Integration Points** | REST API (via MCP) | REST API + direct Python |
 | **Bridge Required** | ✅ Yes (TypeScript → Python) | ✅ Yes (already exists) |
 | **Integration Effort** | 3-5 weeks (architectural mismatch) | 0 weeks (already complete) |
@@ -556,13 +556,13 @@ FRM's citation management is a **nice-to-have** but not critical for Stage 6 com
 │                                                                 │
 │  FRM Desktop:                   OpenEvolve:                     │
 │  ├─ Electron 38                 ├─ Python 3.10+                 │
-│  ├─ React 18                    ├─ Streamlit                    │
+│  ├─ React 18                    ├─ BubbleLab UI                    │
 │  ├─ TypeScript 5.3.3            ├─ Asyncio                      │
 │  ├─ Node.js backend             ├─ Multi-processing             │
 │  └─ Desktop application         └─ Web application              │
 │                                                                 │
 │  Integration Challenge:                                           │
-│  ❌ Cannot share UI components (React ≠ Streamlit)               │
+│  ❌ Cannot share UI components (React ≠ BubbleLab UI)               │
 │  ❌ Cannot share backend logic (TypeScript ≠ Python)             │
 │  ⚠️  Need REST API or MCP bridge                                │
 │  ⚠️  Need to serialize/deserialize data across language boundary │
@@ -675,14 +675,14 @@ class FRMValidator:
 2. **Add FRM bridge** - New module: `frm_hephaestus_bridge.py`
 3. **Add FRM MCP tools** - New module: `frm_mcp_tools.py`
 4. **Update workflow** - Invoke FRM in Stages 0, 1, 3, 5, 6
-5. **Update UI** - Add FRM validation panels (Streamlit, not React)
+5. **Update UI** - Add FRM validation panels (BubbleLab UI, not React)
 
 ### 5.4 Risk Assessment
 
 | Risk | Probability | Impact | Mitigation |
 |------|-------------|--------|------------|
 | **Language mismatch** | HIGH | HIGH | Extract FRM logic to Python (4-6 weeks) |
-| **UI incompatibility** | HIGH | MEDIUM | Don't use FRM UI (build Streamlit panels) |
+| **UI incompatibility** | HIGH | MEDIUM | Don't use FRM UI (build BubbleLab UI panels) |
 | **Maintenance burden** | MEDIUM | HIGH | MCP integration reduces burden |
 | **Performance overhead** | LOW | MEDIUM | Caching, async calls |
 | **Feature overlap** | HIGH | MEDIUM | Careful scope definition |
@@ -801,7 +801,7 @@ LeanAide is **fully integrated but underutilized**:
 
 **3. Architectural Mismatch**
 
-FRM is Electron+React+TypeScript; OpenEvolve is Python+Streamlit. Integration requires:
+FRM is Electron+React+TypeScript; OpenEvolve is Python+BubbleLab UI. Integration requires:
 - REST API or MCP bridge (2-3 weeks)
 - Separate service deployment
 - Ongoing maintenance burden
@@ -1139,3 +1139,4 @@ Reconsider FRM **only after** these are complete and user demand exists for scie
 - **Status:** COMPLETE
 - **Reviewed:** Pending user review
 - **Approved:** Pending user approval
+

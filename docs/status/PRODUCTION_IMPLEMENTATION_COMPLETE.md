@@ -471,7 +471,7 @@ CUSTOM_API_KEY=...
 ### Dependencies
 - httpx for async HTTP
 - requests for sync HTTP
-- streamlit for UI
+- BubbleLab UI for UI
 - asyncio for async operations
 - standard library modules (json, logging, time, uuid, etc.)
 
@@ -507,3 +507,4 @@ This implementation is **100% production-ready** with:
 ---
 
 **NO PLACEHOLDERS. NO STUBS. NO TOY IMPLEMENTATIONS. EVERYTHING IS PRODUCTION-READY CODE.**
+

@@ -44,7 +44,7 @@ bridge.get_status()
 **File:** `bubblelabs_leanaide_ui.py`
 
 **Features:**
-- Streamlit-based UI components for BubbleLabs
+- BubbleLab UI-based UI components for BubbleLabs
 - Tabbed interface with multiple LeanAide functions
 - Real-time MCTS tree visualization
 - Lean4 proof step tracking
@@ -182,7 +182,7 @@ python bubblelabs_leanaide_examples.py complete
 ### Adding LeanAide to BubbleLabs UI
 
 ```python
-import streamlit as st
+import BubbleLab UI as st
 from bubblelabs_leanaide_ui import LeanAideUIComponent
 
 # In BubbleLabs workflow designer
@@ -287,10 +287,10 @@ print(f"Win rate: {tree.statistics['win_rate']:.2%}")
 print(f"Best path: {[tree.nodes[nid].action for nid in tree.best_path]}")
 ```
 
-### Example 3: Streamlit UI
+### Example 3: BubbleLab UI UI
 
 ```python
-import streamlit as st
+import BubbleLab UI as st
 from bubblelabs_leanaide_ui import LeanAideUIComponent
 
 st.title("My Workflow Designer")
@@ -523,3 +523,4 @@ For questions or issues:
 ## License
 
 Part of the OpenEvolve project. See main project LICENSE for details.
+

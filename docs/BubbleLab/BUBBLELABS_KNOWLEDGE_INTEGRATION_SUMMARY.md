@@ -2,7 +2,7 @@
 
 ## Overview
 
-This integration successfully connects **BubbleLabs UI** with the **OpenEvolve Knowledge Engine**, providing comprehensive knowledge exploration, visualization, and extraction capabilities. The integration includes both Python (Streamlit) and TypeScript (React) components for maximum flexibility.
+This integration successfully connects **BubbleLabs UI** with the **OpenEvolve Knowledge Engine**, providing comprehensive knowledge exploration, visualization, and extraction capabilities. The integration includes both Python (BubbleLab UI) and TypeScript (React) components for maximum flexibility.
 
 **Project:** OpenEvolve BubbleLabs Knowledge Integration
 **Date:** 2026-01-03
@@ -45,7 +45,7 @@ A comprehensive Python module providing:
 - Extraction history
 
 #### BubbleLabsKnowledgeUI
-- Complete Streamlit UI implementation
+- Complete BubbleLab UI UI implementation
 - Four main tabs:
   - 🔍 Query Knowledge - Multi-source querying
   - 📊 Knowledge Graph - Interactive visualization
@@ -148,7 +148,7 @@ Complete 400+ line guide covering:
 ┌─────────────────────────────────────────────────────────────┐
 │                    BubbleLabs UI Layer                      │
 ├─────────────────────────────────────────────────────────────┤
-│  Streamlit (Python)           │  React/TypeScript           │
+│  BubbleLab UI (Python)           │  React/TypeScript           │
 │  - Knowledge Explorer          │  - Graph Viewer             │
 │  - Query Interface             │  - Query Interface          │
 │  - Extraction Workflow         │  - Extraction Controls      │
@@ -210,7 +210,7 @@ C:\Users\mmeadow\Documents\OpenEvolve\Frontend\
 
 ## Usage Examples
 
-### Python (Streamlit)
+### Python (BubbleLab UI)
 
 ```python
 from bubblelabs_knowledge_integration import BubbleLabsKnowledgeUI
@@ -313,7 +313,7 @@ Automated entity and relationship extraction from unstructured documents with co
 Graphiti integration for tracking knowledge evolution over time with provenance metadata.
 
 ### 5. Dual Framework Support
-Both Streamlit (Python) and React (TypeScript) implementations for maximum flexibility.
+Both BubbleLab UI (Python) and React (TypeScript) implementations for maximum flexibility.
 
 ---
 
@@ -382,7 +382,7 @@ describe('KnowledgeGraphViewer', () => {
 
 ## Deployment
 
-### Streamlit Deployment
+### BubbleLab UI Deployment
 ```bash
 # Install dependencies
 pip install -r requirements.txt
@@ -392,7 +392,7 @@ cp mcp_agent.secrets.example.yaml mcp_agent.secrets.yaml
 # Edit mcp_agent.secrets.yaml with your credentials
 
 # Run
-streamlit run bubblelabs_knowledge_integration.py
+BubbleLab UI run bubblelabs_knowledge_integration.py
 ```
 
 ### React Integration
@@ -482,7 +482,7 @@ npm run build
 ### 1. Install Dependencies
 ```bash
 # Python
-pip install streamlit plotly networkx pandas boto3
+pip install BubbleLab UI plotly networkx pandas boto3
 
 # TypeScript
 npm install reactflow lucide-react
@@ -497,8 +497,8 @@ vim knowledge_engine/indexer_config.yaml
 
 ### 3. Run
 ```bash
-# Streamlit version
-streamlit run bubblelabs_knowledge_integration.py
+# BubbleLab UI version
+BubbleLab UI run bubblelabs_knowledge_integration.py
 
 # Or integrate into BubbleLab React app
 import { KnowledgeGraphViewer } from '@/components/knowledge/KnowledgeGraphViewer';
@@ -548,3 +548,4 @@ The system is ready for immediate use and can handle real-world knowledge explor
 **Last Updated:** 2026-01-03
 **Version:** 1.0.0
 **Status:** ✅ Production Ready
+

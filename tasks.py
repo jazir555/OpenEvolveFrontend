@@ -71,7 +71,7 @@ def update_task(
 
 def render_tasks():
     """
-    Renders the tasks section in the Streamlit UI.
+    Renders the tasks section in the UI UI.
     Displays a list of tasks, allows creation, updates, and management.
     """
     st.header("[OK] Task Management")
@@ -211,3 +211,4 @@ def render_tasks():
                 st.session_state.tasks = [t for t in st.session_state.tasks if t["status"] != "Completed"]
                 st.success("Cleared all completed tasks!")
                 st.rerun()
+

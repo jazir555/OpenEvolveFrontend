@@ -29,7 +29,7 @@
 |--------|-----|--------------|----------------|-----------------|
 | **Domain** | Continuous mathematics | General knowledge extraction | Scientific research | Software engineering |
 | **Primary Value** | ODE/PDE/DAE/SDE modeling | NER/RE/EE + visualization | Hypothesis-driven research | Problem decomposition |
-| **Architecture** | Electron+React+TS | Python (both) | Node.js MCP | Python+Streamlit |
+| **Architecture** | Electron+React+TS | Python (both) | Node.js MCP | Python+BubbleLab UI |
 | **Integration Effort** | 3-5 weeks | 3 weeks | 4-8 weeks | Varies |
 | **Recommendation** | **DEFER** | **INTEGRATE** (Phase 3) | **USE AS REFERENCE** | - |
 | **Priority** | P3 (reconsider later) | P2 (high value) | P4 (low priority) | - |
@@ -69,7 +69,7 @@
 | Aspect | OpenEvolve | Research-Quest | Compatibility | Integration Effort |
 |--------|-----------|----------------|---------------|-------------------|
 | **Language** | Python 3.10+ | Node.js 18+ | ❌ Incompatible | High (bridge required) |
-| **UI Framework** | Streamlit (web) | React + Electron (desktop) | ❌ Incompatible | Very High (paradigm mismatch) |
+| **UI Framework** | BubbleLab UI (web) | React + Electron (desktop) | ❌ Incompatible | Very High (paradigm mismatch) |
 | **Deployment** | Web server | Desktop extension | ❌ Incompatible | High (separate deployments) |
 | **State Management** | WorkflowState (dataclass) | ResearchQuestGraph (JS class) | ⚠️ Requires adaptation | Medium |
 | **Storage** | SQLite + files | In-memory + JSON export | ⚠️ Requires adaptation | Medium |
@@ -440,3 +440,4 @@
 **Last Updated:** 2025-12-31
 **Status:** Quick Reference for Decision Makers
 **Next Review:** After Stage 6, LeanAide, and DeepKE+AI-KG complete (~18-21 weeks)
+

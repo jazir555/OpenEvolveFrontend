@@ -113,7 +113,7 @@ Map Research-Quest to OpenEvolve's 7-stage Decomposition Workflow:
 Compare with previous recommendations:
 
 **vs. FRM**:
-- Both are desktop extensions (vs. OpenEvolve's Python+Streamlit)
+- Both are desktop extensions (vs. OpenEvolve's Python+BubbleLab UI)
 - FRM: Equation modeling | Research-Quest: Scientific reasoning
 - Are they addressing the same problems?
 
@@ -305,3 +305,4 @@ Include:
 
 **Status**: Ready for Agent Launch
 **Next Action**: Launch comprehensive Research-Quest analysis
+

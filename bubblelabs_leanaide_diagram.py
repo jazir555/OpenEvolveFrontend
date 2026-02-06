@@ -267,7 +267,7 @@ result = bridge.execute_task(LeanAideTaskType.MCTS_SEARCH, ...)
 tree = bridge.get_tree(result.visualization_data['tree_id'])
 print(tree.statistics['win_rate'])
 
-Pattern 3: Streamlit UI
+Pattern 3: UI UI
 ──────────────────────
 ui = LeanAideUIComponent()
 ui.render_leanaide_control_panel()
@@ -396,3 +396,4 @@ if not result.success:
 
 if __name__ == "__main__":
     print(INTEGRATION_ARCHITECTURE)
+

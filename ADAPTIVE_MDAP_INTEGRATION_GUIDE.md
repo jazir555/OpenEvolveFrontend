@@ -58,7 +58,7 @@ Configuration parameters for evolution workflows.
 Workflow-level adaptive configuration.
 
 ### 6. Sidebar UI (`sidebar.py`)
-Streamlit UI controls for adaptive settings.
+BubbleLab UI UI controls for adaptive settings.
 
 ### 7. Demo Application (`app.py`)
 Demo section showing adaptive allocation.
@@ -422,3 +422,4 @@ For issues and feature requests, refer to:
 ---
 
 **Integration Complete** 🎉
+

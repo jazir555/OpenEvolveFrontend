@@ -6,12 +6,12 @@
 
 ```python
 from bubblelabs_maker_integration import create_bubblelabs_maker_integration
-import streamlit as st
+import BubbleLab UI as st
 
 # Create UI
 ui = create_bubblelabs_maker_integration()
 
-# Render in Streamlit
+# Render in BubbleLab UI
 ui.render_maker_studio()
 ```
 
@@ -593,3 +593,4 @@ if result.hephaestus_ticket_id:
 
 **Quick Reference Version**: 1.0.0
 **Last Updated**: 2025-01-03
+
