@@ -104,6 +104,14 @@ def _get_web3_formal_tools() -> List[str]:
     return sorted(set(tools))
 
 
+def _is_web3_formal_available() -> bool:
+    """Infer whether any Web3 formal capability is currently available."""
+    caps = _get_web3_formal_capabilities()
+    return bool(_get_web3_formal_tools()) or any(bool(v) for v in caps.values()) or bool(
+        WEB3_FORMAL_AVAILABLE
+    )
+
+
 # =============================================================================
 # Data Classes
 # =============================================================================
@@ -580,7 +588,7 @@ class Z3Web3AuditAgent(Z3BaseAgent):
         import time
 
         start = time.time()
-        if not WEB3_FORMAL_AVAILABLE:
+        if not _is_web3_formal_available():
             return AgentResult(
                 task_id=task.task_id,
                 success=False,
@@ -592,9 +600,59 @@ class Z3Web3AuditAgent(Z3BaseAgent):
 
         try:
             action = str(task.parameters.get("action", "full_audit")).strip().lower()
+            translate_actions = {
+                "translate",
+                "translate_invariant",
+                "full_audit",
+                "audit_exploit_verification",
+            }
+            witness_actions = {
+                "witness",
+                "exploit_witness",
+                "full_audit",
+                "audit_exploit_verification",
+            }
+            supported_actions = translate_actions | witness_actions
+            if action not in supported_actions:
+                return AgentResult(
+                    task_id=task.task_id,
+                    success=False,
+                    role=self.role,
+                    errors=[f"Unsupported Web3 audit action: {action}"],
+                    execution_time=time.time() - start,
+                    agent_id=self.agent_id,
+                )
+
+            formal_capabilities = _get_web3_formal_capabilities()
+            verify_translation = bool(task.parameters.get("verify_translation", True))
+            required_capabilities: List[str] = []
+            if action in translate_actions:
+                required_capabilities.append("solidity_invariant_translation")
+                if verify_translation:
+                    required_capabilities.append("invariant_translation_verification")
+            if action in witness_actions:
+                required_capabilities.append("symbolic_exploit_witness")
+            if action in {"full_audit", "audit_exploit_verification"}:
+                required_capabilities.append("composite_exploit_verification")
+            missing_capabilities = sorted(
+                {cap for cap in required_capabilities if not formal_capabilities.get(cap, False)}
+            )
+            if missing_capabilities:
+                return AgentResult(
+                    task_id=task.task_id,
+                    success=False,
+                    role=self.role,
+                    errors=[
+                        "Missing Web3 formal capabilities: "
+                        + ", ".join(missing_capabilities)
+                    ],
+                    execution_time=time.time() - start,
+                    agent_id=self.agent_id,
+                )
+
             payload: Dict[str, Any] = {}
 
-            if action in {"translate", "translate_invariant", "full_audit", "audit_exploit_verification"}:
+            if action in translate_actions:
                 statement = (
                     task.parameters.get("statement")
                     or task.problem
@@ -606,7 +664,7 @@ class Z3Web3AuditAgent(Z3BaseAgent):
                     max_withdraw_expr=task.parameters.get("max_withdraw_expr"),
                 )
                 payload["translation"] = translation
-                if bool(task.parameters.get("verify_translation", True)):
+                if verify_translation and verify_solidity_invariant_translation is not None:
                     payload["verification"] = verify_solidity_invariant_translation(
                         translation=translation,
                         assume_non_negative_amount=bool(
@@ -614,7 +672,7 @@ class Z3Web3AuditAgent(Z3BaseAgent):
                         ),
                     )
 
-            if action in {"witness", "exploit_witness", "full_audit", "audit_exploit_verification"}:
+            if action in witness_actions:
                 witness = solve_smart_contract_exploit_witness(
                     additional_constraints=task.parameters.get("additional_constraints"),
                     timeout=float(task.parameters.get("timeout", task.timeout)),
@@ -757,9 +815,12 @@ class Z3AgentCoordinator:
             role_counts[agent.role.value] = role_counts.get(agent.role.value, 0) + 1
         formal_capabilities = _get_web3_formal_capabilities()
         web3_formal_tools = _get_web3_formal_tools()
+        inferred_formal_available = bool(web3_formal_tools) or any(
+            bool(v) for v in formal_capabilities.values()
+        )
         return {
             "z3_available": Z3_AVAILABLE,
-            "web3_formal_available": bool(web3_formal_tools),
+            "web3_formal_available": inferred_formal_available or bool(WEB3_FORMAL_AVAILABLE),
             "formal_capabilities": formal_capabilities,
             "web3_formal_tools": web3_formal_tools,
             "registered_agents": len(self.agents),
@@ -918,9 +979,12 @@ def get_web3_formal_status() -> Dict[str, Any]:
     """Get normalized Web3 formal capability status for CrewAI bridge."""
     formal_capabilities = _get_web3_formal_capabilities()
     web3_formal_tools = _get_web3_formal_tools()
+    inferred_formal_available = bool(web3_formal_tools) or any(
+        bool(v) for v in formal_capabilities.values()
+    )
     return {
-        "available": bool(web3_formal_tools),
-        "web3_formal_available": WEB3_FORMAL_AVAILABLE,
+        "available": inferred_formal_available or bool(WEB3_FORMAL_AVAILABLE),
+        "web3_formal_available": inferred_formal_available or bool(WEB3_FORMAL_AVAILABLE),
         "web3_formal_tools": web3_formal_tools,
         "formal_capabilities": formal_capabilities,
     }

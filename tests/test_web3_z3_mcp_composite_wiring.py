@@ -12,6 +12,32 @@ def test_web3_inventory_includes_composite_exploit_verification_tool():
     assert "composite_exploit_verification" in inventory.get("formal_capabilities", {})
 
 
+def test_web3_inventory_infers_available_when_flag_false(monkeypatch):
+    monkeypatch.setattr(z3_mcp_tools, "WEB3_FORMAL_AVAILABLE", False)
+    monkeypatch.setattr(
+        z3_mcp_tools,
+        "translate_solidity_assignment_to_z3",
+        lambda **kwargs: {"constraints": ["new_balance == old_balance - amount"]},
+    )
+    monkeypatch.setattr(
+        z3_mcp_tools,
+        "verify_solidity_invariant_translation",
+        lambda **kwargs: {"proven": True},
+    )
+    monkeypatch.setattr(
+        z3_mcp_tools,
+        "solve_smart_contract_exploit_witness",
+        lambda **kwargs: {"satisfiable": True, "model": {"amount": 1}},
+    )
+    inventory = z3_mcp_tools.get_web3_formal_tool_inventory()
+    assert inventory["available"] is True
+    assert {
+        "z3_translate_solidity_invariant",
+        "z3_solve_smart_contract_exploit_witness",
+        "z3_web3_audit_exploit_verification",
+    }.issubset(set(inventory.get("web3_formal_tools", [])))
+
+
 def test_web3_composite_tool_orchestrates_translation_and_witness(monkeypatch):
     monkeypatch.setattr(
         z3_mcp_tools,

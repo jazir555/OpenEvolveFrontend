@@ -49,7 +49,10 @@ try:
         solve_smart_contract_exploit_witness
     )
     Z3_AVAILABLE = True
-    WEB3_FORMAL_AVAILABLE = True
+    WEB3_FORMAL_AVAILABLE = (
+        translate_solidity_assignment_to_z3 is not None
+        and solve_smart_contract_exploit_witness is not None
+    )
 except ImportError:
     Z3_AVAILABLE = False
     WEB3_FORMAL_AVAILABLE = False
@@ -351,7 +354,7 @@ class Z3BubbleLabsUIManager:
 
         return {
             "z3_available": Z3_AVAILABLE and self.z3_engine is not None,
-            "web3_formal_available": WEB3_FORMAL_AVAILABLE,
+            "web3_formal_available": bool(web3_formal_tools),
             "web3_formal_tools": web3_formal_tools,
             "formal_capabilities": formal_capabilities,
             "z3_leanaide_available": Z3_LEANAIDE_AVAILABLE and self.z3_bridge is not None,

@@ -149,8 +149,11 @@ def _normalize_web3_formal_inventory(
 ) -> Dict[str, Any]:
     """Normalize Web3 formal inventory to a consistent API schema."""
     default_formal_capabilities = _default_web3_formal_capabilities()
+    default_available = bool(WEB3_FORMAL_AVAILABLE) or any(
+        bool(value) for value in default_formal_capabilities.values()
+    )
     inventory: Dict[str, Any] = {
-        "available": WEB3_FORMAL_AVAILABLE,
+        "available": default_available,
         "tools": [],
         "formal_capabilities": dict(default_formal_capabilities),
     }
@@ -199,11 +202,10 @@ def _normalize_web3_formal_inventory(
     inventory["web3_formal_tools"] = normalized_tools
 
     available = bool(inventory.get("available"))
-    if not available:
-        available = bool(normalized_tools) or any(
-            bool(value) for value in merged_formal_capabilities.values()
-        )
-    inventory["available"] = available
+    inferred_available = bool(normalized_tools) or any(
+        bool(value) for value in merged_formal_capabilities.values()
+    )
+    inventory["available"] = available or inferred_available
 
     return inventory
 

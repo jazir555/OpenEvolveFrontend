@@ -100,6 +100,45 @@ def test_workflow_stage_web3_formal_status_schema(monkeypatch):
     assert "z3_web3_audit_exploit_verification" in status["web3_formal_tools"]
 
 
+def test_workflow_stage_web3_status_infers_available_when_flag_false(monkeypatch):
+    monkeypatch.setattr(z3_stage, "WEB3_FORMAL_AVAILABLE", False)
+    monkeypatch.setattr(
+        z3_stage,
+        "translate_solidity_assignment_to_z3",
+        lambda **kwargs: {"constraints": ["new_balance == old_balance - amount"]},
+    )
+    monkeypatch.setattr(
+        z3_stage,
+        "verify_solidity_invariant_translation",
+        lambda **kwargs: {"proven": True},
+    )
+    monkeypatch.setattr(
+        z3_stage,
+        "solve_smart_contract_exploit_witness",
+        lambda **kwargs: {"status": "sat", "satisfiable": True},
+    )
+    status = z3_stage.get_web3_formal_status()
+    assert status["available"] is True
+    assert status["web3_formal_available"] is True
+
+
+def test_workflow_stage_invariant_translate_does_not_require_witness(monkeypatch):
+    monkeypatch.setattr(z3_stage, "WEB3_FORMAL_AVAILABLE", False)
+    monkeypatch.setattr(
+        z3_stage,
+        "translate_solidity_assignment_to_z3",
+        lambda **kwargs: {"constraints": ["new_balance == old_balance - amount"]},
+    )
+    monkeypatch.setattr(z3_stage, "solve_smart_contract_exploit_witness", None)
+    config = z3_stage.Z3StageConfig(
+        stage_type=z3_stage.Z3StageType.WEB3_INVARIANT_TRANSLATE,
+        statement="balance[msg.sender] -= amount;",
+    )
+    result = z3_stage.Z3WorkflowStage(config).execute({})
+    assert result.success is True
+    assert result.status == "translated"
+
+
 def test_z3_crewai_web3_audit_agent_executes_full_audit(monkeypatch):
     monkeypatch.setattr(z3_crewai, "WEB3_FORMAL_AVAILABLE", True)
     monkeypatch.setattr(
@@ -163,6 +202,28 @@ def test_z3_crewai_web3_audit_agent_supports_composite_action_alias(monkeypatch)
     assert result.success is True
     assert result.result_data.get("verified_exploit") is True
     assert "composite_exploit_verification" in agent.get_capabilities()
+
+
+def test_z3_crewai_module_status_infers_available_when_flag_false(monkeypatch):
+    monkeypatch.setattr(z3_crewai, "WEB3_FORMAL_AVAILABLE", False)
+    monkeypatch.setattr(
+        z3_crewai,
+        "translate_solidity_assignment_to_z3",
+        lambda **kwargs: {"constraints": ["new_balance == old_balance - amount"]},
+    )
+    monkeypatch.setattr(
+        z3_crewai,
+        "verify_solidity_invariant_translation",
+        lambda **kwargs: {"proven": True},
+    )
+    monkeypatch.setattr(
+        z3_crewai,
+        "solve_smart_contract_exploit_witness",
+        lambda **kwargs: {"status": "sat", "satisfiable": True},
+    )
+    status = z3_crewai.get_web3_formal_status()
+    assert status["available"] is True
+    assert status["web3_formal_available"] is True
 
 
 def test_z3_bubblelabs_ui_exposes_web3_node_types():

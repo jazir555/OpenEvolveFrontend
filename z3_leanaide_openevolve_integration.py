@@ -521,6 +521,10 @@ class Z3LeanAideOpenEvolveIntegration:
             web3_formal_tools.append("z3_solve_smart_contract_exploit_witness")
         if formal_capabilities["composite_exploit_verification"]:
             web3_formal_tools.append("z3_web3_audit_exploit_verification")
+        web3_formal_tools = sorted(set(web3_formal_tools))
+        inferred_formal_available = bool(web3_formal_tools) or any(
+            bool(v) for v in formal_capabilities.values()
+        )
 
         self._integration_status = IntegrationStatus(
             z3_available=Z3_AVAILABLE and self.z3_solver is not None,
@@ -529,7 +533,7 @@ class Z3LeanAideOpenEvolveIntegration:
             openevolve_available=OPENEVOLVE_AVAILABLE,
             bubblelabs_available=BUBBLELABS_AVAILABLE and self.bubblelabs is not None,
             cav_nlp_available=CAV_NLP_AVAILABLE,
-            web3_formal_available=WEB3_FORMAL_AVAILABLE,
+            web3_formal_available=inferred_formal_available or bool(WEB3_FORMAL_AVAILABLE),
             web3_formal_tools=web3_formal_tools,
             formal_capabilities=formal_capabilities,
             ready=self._check_ready(),

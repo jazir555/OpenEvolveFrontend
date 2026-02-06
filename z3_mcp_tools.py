@@ -1488,11 +1488,6 @@ async def z3_web3_audit_exploit_verification(
 
 def get_web3_formal_tool_inventory() -> Dict[str, Any]:
     """Return Web3 formal-verification MCP tool inventory from the Z3 service."""
-    tools = sorted([
-        "z3_translate_solidity_invariant",
-        "z3_solve_smart_contract_exploit_witness",
-        "z3_web3_audit_exploit_verification",
-    ])
     formal_capabilities = {
         "solidity_invariant_translation": translate_solidity_assignment_to_z3 is not None,
         "invariant_translation_verification": verify_solidity_invariant_translation is not None,
@@ -1502,9 +1497,17 @@ def get_web3_formal_tool_inventory() -> Dict[str, Any]:
             and solve_smart_contract_exploit_witness is not None
         ),
     }
-    available = bool(WEB3_FORMAL_AVAILABLE)
+    tools: List[str] = []
+    if formal_capabilities["solidity_invariant_translation"]:
+        tools.append("z3_translate_solidity_invariant")
+    if formal_capabilities["symbolic_exploit_witness"]:
+        tools.append("z3_solve_smart_contract_exploit_witness")
+    if formal_capabilities["composite_exploit_verification"]:
+        tools.append("z3_web3_audit_exploit_verification")
+    tools = sorted(set(tools))
+    available = bool(tools) or any(bool(v) for v in formal_capabilities.values())
     if not available:
-        available = any(bool(v) for v in formal_capabilities.values())
+        available = bool(WEB3_FORMAL_AVAILABLE)
     return {
         "available": available,
         "tools": tools,

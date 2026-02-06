@@ -70,7 +70,10 @@ try:
         verify_solidity_invariant_translation,
         solve_smart_contract_exploit_witness,
     )
-    WEB3_FORMAL_AVAILABLE = True
+    WEB3_FORMAL_AVAILABLE = (
+        translate_solidity_assignment_to_z3 is not None
+        and solve_smart_contract_exploit_witness is not None
+    )
 except ImportError:
     WEB3_FORMAL_AVAILABLE = False
     translate_solidity_assignment_to_z3 = None
@@ -1119,7 +1122,7 @@ class Z3LeanAideBridge:
         return {
             "z3_available": Z3_AVAILABLE,
             "lean_available": LEAN4_AVAILABLE,
-            "web3_formal_available": WEB3_FORMAL_AVAILABLE,
+            "web3_formal_available": bool(web3_formal_tools),
             "translation_z3_to_lean": True,
             "translation_lean_to_z3": Z3_AVAILABLE,
             "hybrid_verification": Z3_AVAILABLE and LEAN4_AVAILABLE,

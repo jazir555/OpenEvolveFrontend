@@ -75,4 +75,7 @@ tests\knowledge_engine\test_memory_fusion.py ........................... [ 34%]
 .....                                                                    [ 34%]
 tests\knowledge_engine\test_strategy_recommender.py .......sssssssssss.s [ 35%]
 s..FF.F...F                                                              [ 35%]
-tests\test_ace_integrations.py ................F......
+tests\test_ace_integrations.py ................F......ssss....           [ 36%]
+tests\test_adaptive_maker_evolution.py ..                                [ 36%]
+tests\test_additional_coverage.py FsFs..sssssFssssssssssssss.ssEEEEEEEEE [ 37%]
+EE

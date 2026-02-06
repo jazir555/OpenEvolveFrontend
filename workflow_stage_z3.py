@@ -80,10 +80,14 @@ def get_web3_formal_status() -> Dict[str, Any]:
         web3_formal_tools.append("z3_solve_smart_contract_exploit_witness")
     if formal_capabilities["composite_exploit_verification"]:
         web3_formal_tools.append("z3_web3_audit_exploit_verification")
+    web3_formal_tools = sorted(set(web3_formal_tools))
+    inferred_formal_available = bool(web3_formal_tools) or any(
+        bool(v) for v in formal_capabilities.values()
+    )
     return {
-        "available": bool(web3_formal_tools),
-        "web3_formal_available": WEB3_FORMAL_AVAILABLE,
-        "web3_formal_tools": sorted(set(web3_formal_tools)),
+        "available": inferred_formal_available or bool(WEB3_FORMAL_AVAILABLE),
+        "web3_formal_available": inferred_formal_available or bool(WEB3_FORMAL_AVAILABLE),
+        "web3_formal_tools": web3_formal_tools,
         "formal_capabilities": formal_capabilities,
     }
 
@@ -169,32 +173,40 @@ class Z3WorkflowStage:
         """Execute the Z3 workflow stage."""
         start_time = time.time()
 
+        required_web3_capability = {
+            Z3StageType.WEB3_INVARIANT_TRANSLATE: "solidity_invariant_translation",
+            Z3StageType.WEB3_EXPLOIT_WITNESS: "symbolic_exploit_witness",
+            Z3StageType.WEB3_AUDIT_EXPLOIT_VERIFICATION: "composite_exploit_verification",
+        }.get(self.config.stage_type)
+        if required_web3_capability:
+            formal_capabilities = _get_web3_formal_capabilities()
+            if not formal_capabilities.get(required_web3_capability, False):
+                return Z3StageResult(
+                    success=False,
+                    stage_type=self.config.stage_type,
+                    status="error",
+                    metadata={
+                        "reason": "web3_formal_unavailable",
+                        "required_capability": required_web3_capability,
+                        "formal_capabilities": formal_capabilities,
+                    },
+                    execution_time_ms=(time.time() - start_time) * 1000,
+                )
+
         if (
-            self.config.stage_type in {
+            self.config.stage_type not in {
                 Z3StageType.WEB3_INVARIANT_TRANSLATE,
                 Z3StageType.WEB3_EXPLOIT_WITNESS,
                 Z3StageType.WEB3_AUDIT_EXPLOIT_VERIFICATION,
             }
-            and not WEB3_FORMAL_AVAILABLE
+            and not Z3_AVAILABLE
         ):
             return Z3StageResult(
                 success=False,
                 stage_type=self.config.stage_type,
                 status="error",
-                metadata={"reason": "web3_formal_unavailable"},
-                execution_time_ms=(time.time() - start_time) * 1000
-            )
-        if not Z3_AVAILABLE and self.config.stage_type not in {
-            Z3StageType.WEB3_INVARIANT_TRANSLATE,
-            Z3StageType.WEB3_EXPLOIT_WITNESS,
-            Z3StageType.WEB3_AUDIT_EXPLOIT_VERIFICATION,
-        }:
-            return Z3StageResult(
-                success=False,
-                stage_type=self.config.stage_type,
-                status="error",
                 metadata={"reason": "z3_unavailable"},
-                execution_time_ms=(time.time() - start_time) * 1000
+                execution_time_ms=(time.time() - start_time) * 1000,
             )
         
         try:

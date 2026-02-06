@@ -51,6 +51,26 @@ def test_z3_api_web3_status_infers_tools_when_inventory_tools_missing(monkeypatc
     assert status["formal_capabilities"]["composite_exploit_verification"] is True
 
 
+def test_z3_api_web3_status_infers_available_when_inventory_flag_false(monkeypatch):
+    z3_mcp_tools = pytest.importorskip("z3_mcp_tools")
+    monkeypatch.setattr(
+        z3_mcp_tools,
+        "get_web3_formal_tool_inventory",
+        lambda: {
+            "available": False,
+            "tools": [],
+            "formal_capabilities": {
+                "solidity_invariant_translation": True,
+                "symbolic_exploit_witness": True,
+                "composite_exploit_verification": True,
+            },
+        },
+    )
+    status = asyncio.run(z3_api_server.get_web3_formal_status())
+    assert status["available"] is True
+    assert status["audit_exploit_verification_available"] is True
+
+
 def test_z3_service_bubble_status_exposes_web3_formal_inventory(monkeypatch):
     monkeypatch.setattr(
         z3_api_server,
