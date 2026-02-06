@@ -10,7 +10,7 @@ This module provides a comprehensive, persistent RBAC system with:
 - Comprehensive error handling with specific exceptions
 - Type hints throughout
 - Production-ready logging
-- Streamlit UI integration
+- UI integration
 
 Author: Enhanced from basic stub
 Version: 2.0.0
@@ -285,7 +285,7 @@ class RBACStorage:
     Supports multiple storage backends:
     - SQLite/PostgreSQL via sovereign_persistence
     - File-based JSON storage (fallback)
-    - Streamlit session state (development only)
+    - UI session state (development only)
     """
 
     def __init__(
@@ -302,7 +302,7 @@ class RBACStorage:
             backend: Storage backend ('auto', 'database', 'file', 'session')
             db_path: Database path (for database backend)
             file_path: JSON file path (for file backend)
-            use_session_state: Use Streamlit session state (development only)
+            use_session_state: Use UI session state (development only)
         """
         self.logger = logging.getLogger(__name__)
         self.backend_type = backend
@@ -396,7 +396,7 @@ class RBACStorage:
             raise PersistenceError(f"Database initialization failed: {e}")
 
     def _init_session_state(self):
-        """Initialize Streamlit session state storage."""
+        """Initialize UI session state storage."""
         if 'rbac_users' not in st.session_state:
             st.session_state.rbac_users = {}
         if 'rbac_roles' not in st.session_state:
@@ -1509,10 +1509,10 @@ class RBACSystem:
         """Get the current authenticated user from context.
 
         This is a placeholder - implementation depends on your framework.
-        For Streamlit, you might use session_state.
+        For UI runtimes, you might use session_state.
         For FastAPI, you'd use dependency injection.
         """
-        # Try Streamlit session state
+        # Try UI session state
         if hasattr(st, 'session_state') and 'current_user' in st.session_state:
             user_data = st.session_state.current_user
             if isinstance(user_data, dict):
@@ -1594,11 +1594,11 @@ class RBACSystem:
 # STREAMLIT INTEGRATION
 # ============================================================================
 
-class StreamlitRBAC:
-    """Streamlit-specific RBAC integration."""
+class UIRBAC:
+    """UI-specific RBAC integration."""
 
     def __init__(self, rbac: RBACSystem):
-        """Initialize Streamlit RBAC integration.
+        """Initialize UI RBAC integration.
 
         Args:
             rbac: RBAC system instance
@@ -1607,7 +1607,7 @@ class StreamlitRBAC:
         self.logger = logging.getLogger(__name__)
 
     def login_form(self, key: str = "login_form") -> Optional[User]:
-        """Render a login form in Streamlit.
+        """Render a login form in UI.
 
         Args:
             key: Unique key for the form
@@ -1659,7 +1659,7 @@ class StreamlitRBAC:
         return None
 
     def require_permission(self, permission: Union[str, Permission]):
-        """Streamlit decorator to require permission.
+        """UI decorator to require permission.
 
         Usage:
             @st_rbac.require_permission(Permission.MANAGE_USERS)
@@ -1899,7 +1899,7 @@ def create_rbac_system(
         storage_backend: Storage backend type
         use_database: Use database storage if available
         database_path: Path to database file
-        use_session_state: Use Streamlit session state
+        use_session_state: Use UI session state
 
     Returns:
         Initialized RBACSystem instance
@@ -1952,13 +1952,13 @@ def example_basic_usage():
         print("Viewer cannot manage users")
 
 
-def example_streamlit_integration():
-    """Example: Streamlit integration."""
+def example_ui_integration():
+    """Example: UI integration."""
     from ui_shim import ui as st
 
     # Create RBAC system
     rbac = create_rbac_system()
-    st_rbac = StreamlitRBAC(rbac)
+    st_rbac = UIRBAC(rbac)
 
     # Get current user or show login form
     user = st_rbac.get_current_user()

@@ -43,13 +43,26 @@ class MathKnowledgeIntegrationDemo:
     
     This class shows how all components work together to provide
     a unified mathematical problem-solving experience.
+    
+    Includes CAV-NLP enhanced demonstrations.
     """
     
-    def __init__(self):
+    def __init__(self, config: Optional[Dict] = None):
         self.z3_connector = None
         self.leanaide_connector = None
         self.unified_bridge = None
         self.knowledge_manager = None
+        # CAV-NLP configuration
+        self.config = config or {}
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        self.math_service = None
+        self.enhanced_solver = None
+        if self.use_cav_nlp:
+            try:
+                self.math_service = UnifiedMathService()
+                self.enhanced_solver = EnhancedZ3Solver()
+            except Exception:
+                self.use_cav_nlp = False
     
     async def initialize(self):
         """Initialize all components."""
@@ -86,6 +99,12 @@ class MathKnowledgeIntegrationDemo:
             logger.info("[OK] Knowledge manager initialized")
         except Exception as e:
             logger.warning(f"[FAIL] Knowledge manager failed: {e}")
+        
+        # Log CAV-NLP status
+        if self.use_cav_nlp:
+            logger.info("[OK] CAV-NLP enhancement available")
+        else:
+            logger.info("[INFO] CAV-NLP not available")
         
         logger.info("Initialization complete")
     
@@ -532,6 +551,80 @@ class MathKnowledgeIntegrationDemo:
             ("Cross-System Learning", self.demo_5_cross_system_learning),
             ("Workflow Integration", self.demo_6_workflow_integration),
             ("BubbleLabs UI", self.demo_7_bubblelabs_ui),
+            ("CAV-NLP Enhancement", self.demo_8_cav_nlp),
+        ]
+        
+        for name, demo_func in demos:
+            try:
+                await demo_func()
+            except Exception as e:
+                logger.error(f"Demo '{name}' failed: {e}")
+        
+    async def demo_8_cav_nlp(self):
+        """
+        Demo 8: CAV-NLP Enhancement
+        
+        Shows how CAV-NLP enhances natural language formalization.
+        """
+        print("\n" + "="*70)
+        print("DEMO 8: CAV-NLP Natural Language Formalization")
+        print("="*70)
+        
+        if not self.use_cav_nlp:
+            print("\nCAV-NLP not available, skipping demo")
+            print("Install openevolve package to enable CAV-NLP")
+            return
+        
+        examples = [
+            "x is greater than zero and less than ten",
+            "for all natural numbers n, n plus zero equals n",
+            "there exists an integer x such that x squared equals 25",
+        ]
+        
+        print("\nCAV-NLP Formalization Examples:")
+        for text in examples:
+            print(f"\n  Input:  '{text}'")
+            try:
+                formalized = self.math_service.formalize(text)
+                code = getattr(formalized, 'code', str(formalized))
+                lang = getattr(formalized, 'language', 'unknown')
+                print(f"  Output: {code}")
+                print(f"  Language: {lang}")
+            except Exception as e:
+                print(f"  Error: {e}")
+        
+        print("\nCAV-NLP capabilities:")
+        print("  * Natural language to formal code translation")
+        print("  * Automatic language detection (Lean, Z3, etc.)")
+        print("  * Confidence scoring for formalizations")
+        print("  * Enhanced knowledge extraction from text")
+    
+    async def run_all_demos(self):
+        """Run all demonstrations."""
+        print("\n" + "="*70)
+        print("MATHEMATICAL KNOWLEDGE INTEGRATION - COMPLETE DEMO")
+        print("="*70)
+        print("\nThis demo showcases the full integration between:")
+        print("  * Z3 SMT Solver (constraint satisfaction)")
+        print("  * LeanAIDE (theorem proving)")
+        print("  * Knowledge extraction and learning")
+        print("  * Pattern matching and strategy recommendation")
+        print("  * OpenEvolve workflow integration")
+        print("  * BubbleLabs UI components")
+        print("  * CAV-NLP natural language processing")
+        
+        # Initialize
+        await self.initialize()
+        
+        demos = [
+            ("Basic Solving", self.demo_1_basic_solving),
+            ("Unified Solving", self.demo_2_unified_solving),
+            ("Knowledge Extraction", self.demo_3_knowledge_extraction),
+            ("Pattern Matching", self.demo_4_pattern_matching),
+            ("Cross-System Learning", self.demo_5_cross_system_learning),
+            ("Workflow Integration", self.demo_6_workflow_integration),
+            ("BubbleLabs UI", self.demo_7_bubblelabs_ui),
+            ("CAV-NLP Enhancement", self.demo_8_cav_nlp),
         ]
         
         for name, demo_func in demos:
@@ -550,11 +643,13 @@ class MathKnowledgeIntegrationDemo:
         print(f"  * LeanAIDE available: {self.leanaide_connector is not None}")
         print(f"  * Unified bridge available: {self.unified_bridge is not None}")
         print(f"  * Knowledge manager available: {self.knowledge_manager is not None}")
+        print(f"  * CAV-NLP available: {self.use_cav_nlp}")
         print("\nNext steps:")
         print("  1. Deploy with Docker: docker-compose up -d")
         print("  2. Access API at: http://localhost:8765")
         print("  3. View metrics at: http://localhost:9090")
         print("  4. Explore knowledge base via MCP tools")
+        print("  5. Use CAV-NLP for natural language formalization")
 
 
 async def main():

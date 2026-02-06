@@ -206,7 +206,8 @@ def create_math_api() -> Optional["FastAPI"]:
                 "z3": Z3_AVAILABLE,
                 "leanaide": LEANAIDE_AVAILABLE,
                 "bridge": BRIDGE_AVAILABLE,
-                "knowledge": KNOWLEDGE_AVAILABLE
+                "knowledge": KNOWLEDGE_AVAILABLE,
+                "cav_nlp": CAV_NLP_AVAILABLE
             },
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
@@ -217,6 +218,7 @@ def create_math_api() -> Optional["FastAPI"]:
         return {
             "name": "Mathematical Knowledge API",
             "version": "1.1.0",
+            "cav_nlp": CAV_NLP_AVAILABLE,
             "endpoints": [
                 "/health",
                 "/solve/z3",
@@ -224,7 +226,8 @@ def create_math_api() -> Optional["FastAPI"]:
                 "/solve/unified",
                 "/knowledge/learn",
                 "/knowledge/search",
-                "/knowledge/strategy"
+                "/knowledge/strategy",
+                "/cav-nlp/formalize"
             ]
         }
     
@@ -407,6 +410,52 @@ def create_math_api() -> Optional["FastAPI"]:
         except Exception as e:
             logger.error(f"Failed to get stats: {e}")
             raise HTTPException(status_code=500, detail=str(e))
+    
+    # ==================================================================
+    # CAV-NLP Endpoints
+    # ==================================================================
+    
+    class FormalizeRequest(BaseModel):
+        """Request to formalize natural language."""
+        text: str = Field(..., description="Natural language text to formalize")
+    
+    class FormalizeResponse(BaseModel):
+        """Response from CAV-NLP formalization."""
+        success: bool
+        original: str
+        formalized: Optional[str]
+        language: Optional[str]
+        confidence: float
+        error: Optional[str]
+    
+    @app.post("/cav-nlp/formalize", response_model=FormalizeResponse)
+    async def formalize_text(request: FormalizeRequest):
+        """Formalize natural language text using CAV-NLP."""
+        if not CAV_NLP_AVAILABLE:
+            raise HTTPException(status_code=503, detail="CAV-NLP not available")
+        
+        try:
+            math_service = UnifiedMathService()
+            result = math_service.formalize(request.text)
+            
+            return FormalizeResponse(
+                success=True,
+                original=request.text,
+                formalized=getattr(result, 'code', str(result)),
+                language=getattr(result, 'language', 'unknown'),
+                confidence=getattr(result, 'confidence', 0.0),
+                error=None
+            )
+        except Exception as e:
+            logger.error(f"CAV-NLP formalization failed: {e}")
+            return FormalizeResponse(
+                success=False,
+                original=request.text,
+                formalized=None,
+                language=None,
+                confidence=0.0,
+                error=str(e)
+            )
     
     return app
 

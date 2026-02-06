@@ -63,7 +63,7 @@ class PygraphistryAdapter(VisualizationInterface):
     - GPU-accelerated analytics with cuML (optional)
     - UMAP dimensionality reduction
     - DBSCAN clustering
-    - Streamlit iframe embedding support
+    - iframe embedding support for UI clients
 
     Gracefully degrades if pygraphistry or ML libraries are unavailable.
 
@@ -95,7 +95,7 @@ class PygraphistryAdapter(VisualizationInterface):
                 - gpu_acceleration: Enable GPU with cuML (default: False)
                 - umap_clustering: Enable UMAP embeddings (default: True)
                 - dbscan_clustering: Enable DBSCAN clustering (default: True)
-                - streamlit_embedding: Enable Streamlit iframe support (default: True)
+                - ui_embedding: Enable iframe support for UI clients (default: True)
                 - auto_start: Auto-start visualization server (default: True)
                 - cache_enabled: Cache visualization results (default: True)
                 - cache_ttl: Cache TTL in seconds (default: 3600)

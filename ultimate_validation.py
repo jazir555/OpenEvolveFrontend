@@ -603,7 +603,7 @@ class UltimateValidator:
 
         # Common external dependencies
         known_dependencies = {
-            'streamlit', 'pandas', 'numpy', 'matplotlib', 'plotly',
+            'pandas', 'numpy', 'matplotlib', 'plotly',
             'pytest', 'pydantic', 'requests', 'yaml', 'toml', 'asyncio'
         }
 

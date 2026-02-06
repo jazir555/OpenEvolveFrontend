@@ -25,7 +25,7 @@ class PygraphistryBridge:
     - Automated clustering pipeline (UMAP + DBSCAN)
     - GPU-accelerated analytics
     - Interactive dashboard generation
-    - Streamlit iframe embedding
+    - iframe embedding for UI clients
 
     Attributes:
         adapter: PygraphistryAdapter instance
@@ -319,20 +319,20 @@ class PygraphistryBridge:
             logger.error(f"Failed to analyze patterns: {e}")
             return None
 
-    async def export_to_streamlit(
+    async def export_to_ui(
         self,
         visualization_url: str,
         iframe_height: int = 600
     ) -> str:
         """
-        Generate Streamlit iframe embedding code.
+        Generate iframe embedding code for UI clients.
 
         Args:
             visualization_url: URL from pygraphistry visualization
             iframe_height: Height of iframe in pixels
 
         Returns:
-            Streamlit component code as string
+            UI component code as string
         """
         code = f"""
 from ui_shim import components

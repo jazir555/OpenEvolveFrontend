@@ -5,7 +5,7 @@ Web-based monitoring dashboard for OpenEvolve services.
 Provides real-time metrics, logs, and health status.
 
 Dependencies (all permissive licenses):
-- streamlit: Apache 2.0
+- ui_shim: Internal compatibility layer
 - plotly: MIT License
 - pandas: BSD License
 

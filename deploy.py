@@ -38,7 +38,7 @@ class DeploymentManager:
         return {
             "python_version": "3.11",
             "required_packages": [
-                "streamlit",
+                "uvicorn",
                 "pytest",
                 "psutil",
                 "requests"
@@ -252,13 +252,13 @@ class DeploymentManager:
                 script_name = "start_sovereign.bat"
                 script_content = f"""@echo off
 echo Starting Sovereign-Grade Problem Decomposition System...
-python -m streamlit run api_server.py --server.port {self.config['api_port']}
+python -m uvicorn api_server:app --host 0.0.0.0 --port {self.config['api_port']}
 """
             else:  # Unix-like
                 script_name = "start_sovereign.sh"
                 script_content = f"""#!/bin/bash
 echo "Starting Sovereign-Grade Problem Decomposition System..."
-python -m streamlit run api_server.py --server.port {self.config['api_port']}
+python -m uvicorn api_server:app --host 0.0.0.0 --port {self.config['api_port']}
 """
             
             script_path = self.project_root / script_name

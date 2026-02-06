@@ -2,8 +2,8 @@
 OpenEvolve BubbleLabs Integration Startup Script
 
 This script starts the complete OpenEvolve platform with BubbleLabs integration:
-- The main Streamlit UI (on port 8501, default)
-- The BubbleLabs UI component integrated directly in the Streamlit app
+- OpenEvolve FastAPI backend (on port 8001, default)
+- BubbleLab UI integration endpoints served by the backend
 - Enhanced workflow management with lifecycle controls
 - Real-time analytics and monitoring dashboard
 - Parameter synchronization between UIs
@@ -42,20 +42,18 @@ class OpenEvolveBubbleLabsLauncher:
 
     def start_main_ui(self):
         """
-        Start the main Streamlit UI which includes the BubbleLabs component.
+        Start the OpenEvolve API backend for BubbleLab clients.
         """
         def run_ui():
             try:
-                # Start the main Streamlit UI with enhanced configuration
+                # Start FastAPI backend used by BubbleLab TypeScript UI
                 cmd = [
-                    sys.executable, "-m", "streamlit", "run", "main.py",
-                    "--server.address", "0.0.0.0", 
-                    "--server.port", "8501",
-                    "--server.enableCORS", "false",
-                    "--server.enableXsrfProtection", "false"
+                    sys.executable, "-m", "uvicorn", "api_server:app",
+                    "--host", "0.0.0.0",
+                    "--port", "8001"
                 ]
 
-                logger.info("Starting main UI with BubbleLabs integration...")
+                logger.info("Starting OpenEvolve API backend for BubbleLab integration...")
                 process = subprocess.Popen(
                     cmd,
                     stdout=subprocess.PIPE,
@@ -65,19 +63,19 @@ class OpenEvolveBubbleLabsLauncher:
                 )
 
                 self.processes.append(process)
-                logger.info(f"Started main UI with BubbleLabs integration on port 8501 with PID {process.pid}")
+                logger.info(f"Started API backend on port 8001 with PID {process.pid}")
 
                 # Wait for the process to complete
                 stdout, stderr = process.communicate()
 
                 if process.returncode != 0:
-                    logger.error(f"Main UI exited with code {process.returncode}")
+                    logger.error(f"API backend exited with code {process.returncode}")
                     logger.error(f"Error: {stderr}")
                 else:
-                    logger.info("Main UI exited normally")
+                    logger.info("API backend exited normally")
 
             except (subprocess.SubprocessError, OSError, ValueError) as e:
-                logger.error(f"Error starting main UI: {e}")
+                logger.error(f"Error starting API backend: {e}")
 
         # Start the UI in a background thread
         ui_thread = threading.Thread(target=run_ui, daemon=True)
@@ -123,13 +121,13 @@ class OpenEvolveBubbleLabsLauncher:
         self.start_analytics_server()
 
         # Start main UI which includes BubbleLabs tab
-        print("Starting main UI with integrated BubbleLabs workflow tab...")
+        print("Starting OpenEvolve API backend for BubbleLabs...")
         self.start_main_ui()
 
         print("=" * 60)
         print("🎉 All services started successfully!")
-        print("🌐 Main UI with BubbleLabs tab: http://localhost:8501")
-        print("🔧 Navigate to the 'BubbleLabs Workflows' tab to use the workflow tools")
+        print("🌐 OpenEvolve API: http://localhost:8001")
+        print("🔧 Configure BubbleLab frontend to use the OpenEvolve API endpoints")
         print("📊 Use the 'Parameter Sync' tab to synchronize settings between UIs")
         print("📈 Access the 'Analytics Dashboard' for monitoring and reporting")
         print("🔄 Full workflow lifecycle controls available in 'Workflow Control' tab")

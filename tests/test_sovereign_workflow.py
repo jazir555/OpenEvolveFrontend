@@ -1,5 +1,5 @@
 import pytest
-import streamlit as st
+from ui_shim import ui as st
 from unittest.mock import MagicMock, patch
 import json
 import time
@@ -235,7 +235,7 @@ def test_run_gauntlet_with_lean4_verification(
     context = {"solution_id": "sol_lean", "evaluation_prompt": "Evaluate for correctness."}
 
     # 2. Execution
-    # Note: We call the non-streamlit version for testing business logic
+    # Note: We call the non-UI version for testing business logic
     result = run_gauntlet(solution_content, lean_gauntlet, gold_team, context)
 
     # 3. Assertions
@@ -594,7 +594,7 @@ def test_run_gauntlet_with_lean4_verification(
     context = {"solution_id": "sol_lean", "evaluation_prompt": "Evaluate for correctness."}
 
     # 2. Execution
-    # Note: We call the non-streamlit version for testing business logic
+    # Note: We call the non-UI version for testing business logic
     result = run_gauntlet(solution_content, lean_gauntlet, gold_team, context)
 
     # 3. Assertions

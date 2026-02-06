@@ -98,6 +98,19 @@ except ImportError:
     Z3ResultStatus = None
     Z3SolverResult = None
 
+# Try to import CAV-NLP for enhanced verification
+try:
+    from openevolve.cav_nlp_integration import Z3LeanAideBridge
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    try:
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
+        from openevolve.cav_nlp_integration import Z3LeanAideBridge
+        CAV_NLP_AVAILABLE = True
+    except ImportError:
+        CAV_NLP_AVAILABLE = False
+        Z3LeanAideBridge = None
+
 
 # ============================================================================
 # DATA STRUCTURES
@@ -674,6 +687,23 @@ class AnomalyCharacterizationIndex:
         # Initialize Z3 anomaly detector
         self.z3_detector = z3_detector or Z3AnomalyDetector(self.config, self.logger)
 
+        # Initialize CAV-NLP bridge for enhanced verification
+        self.cav_nlp_bridge = None
+        self.use_cav_nlp = os.getenv('PHASE3_ACI_USE_CAV_NLP', 'false').lower() == 'true'
+        if self.use_cav_nlp and CAV_NLP_AVAILABLE:
+            try:
+                self.cav_nlp_bridge = Z3LeanAideBridge()
+                self.logger.info("CAV-NLP bridge initialized for ACI Calculator",
+                    cav_nlp_available=True,
+                )
+            except Exception as e:
+                self.logger.warning("Failed to initialize CAV-NLP bridge",
+                    error=str(e),
+                )
+                self.use_cav_nlp = False
+        else:
+            self.use_cav_nlp = False
+
         self.logger.info(
             "ACI Calculator initialized",
             config={
@@ -682,6 +712,7 @@ class AnomalyCharacterizationIndex:
                 'coherence_threshold': self.config.coherence_threshold,
                 'timeout_ms': self.config.timeout_ms,
                 'z3_enabled': self.z3_detector.z3_enabled,
+                'cav_nlp_enabled': self.use_cav_nlp,
             }
         )
 
@@ -1255,3 +1286,115 @@ __all__ = [
     'Z3AnomalyDetector',
     'Z3_AVAILABLE',
 ]
+
+
+# ============================================================================
+# CAV-NLP ENHANCED VERIFICATION METHODS
+# ============================================================================
+
+async def verify_with_cav_nlp(
+    self,
+    solution: Any,
+    solution_type: str = "aci_result",
+    correlation_id: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Verify ACI solution using CAV-NLP hybrid verification
+
+    Performs hybrid verification using CAV-NLP bridge, combining
+    Z3 SMT solving with formal verification for anomaly detection
+    results.
+
+    Args:
+        solution: ACI result or solution to verify
+        solution_type: Type of solution ('aci_result', 'constraint', 'hypothesis')
+        correlation_id: Distributed tracing ID
+
+    Returns:
+        Dict with verification results:
+        - verified: bool, whether solution is verified
+        - z3_result: Z3 verification result
+        - lean_result: Lean verification result
+        - agreement: bool, whether Z3 and Lean agree
+        - confidence: float, confidence score
+        - proof: Optional[str], proof if available
+        - counterexample: Optional[Dict], counterexample if found
+        - cav_nlp_used: bool, whether CAV-NLP was used
+    """
+    import asyncio
+
+    correlation_id = correlation_id or str(uuid.uuid4())
+
+    result = {
+        'verified': False,
+        'z3_result': None,
+        'lean_result': None,
+        'agreement': False,
+        'confidence': 0.0,
+        'proof': None,
+        'counterexample': None,
+        'error': None,
+        'cav_nlp_used': False,
+    }
+
+    # Check if CAV-NLP is available
+    if not hasattr(self, 'use_cav_nlp') or not self.use_cav_nlp:
+        result['error'] = "CAV-NLP not enabled"
+        return result
+
+    if not hasattr(self, 'cav_nlp_bridge') or self.cav_nlp_bridge is None:
+        result['error'] = "CAV-NLP bridge not available"
+        return result
+
+    try:
+        # Extract constraint/theorem from solution
+        if solution_type == "aci_result" and hasattr(solution, 'to_dict'):
+            # Convert ACI result to verifiable constraint
+            aci_dict = solution.to_dict()
+            constraint_str = f"entropy={aci_dict.get('disorder_entropy', 0):.4f} AND coherence={aci_dict.get('causal_coherence', 0):.4f}"
+        elif solution_type == "constraint" and isinstance(solution, str):
+            constraint_str = solution
+        else:
+            constraint_str = str(solution)
+
+        # Run hybrid verification using CAV-NLP bridge
+        bridge_result = await self.cav_nlp_bridge.verify(
+            constraint=constraint_str,
+            use_counterexamples=True,
+        )
+
+        # Extract results
+        result['z3_result'] = bridge_result.z3_result
+        result['lean_result'] = bridge_result.lean_result
+        result['agreement'] = bridge_result.agreed
+        result['confidence'] = bridge_result.confidence
+        result['counterexample'] = bridge_result.counterexample
+        result['cav_nlp_used'] = True
+
+        # Determine overall verification status
+        if bridge_result.agreed and bridge_result.z3_result == "unsat":
+            result['verified'] = True
+            result['proof'] = bridge_result.lean_proof or "Verified by consensus"
+        elif bridge_result.z3_result == "sat":
+            result['verified'] = True
+        elif bridge_result.confidence >= 0.8:
+            result['verified'] = True
+
+        self.logger.info("CAV-NLP verification complete for ACI",
+            correlation_id=correlation_id,
+            verified=result['verified'],
+            agreement=result['agreement'],
+            confidence=result['confidence'],
+        )
+
+    except Exception as e:
+        result['error'] = str(e)
+        self.logger.error("CAV-NLP verification failed for ACI",
+            correlation_id=correlation_id,
+            error=str(e),
+        )
+
+    return result
+
+
+# Attach method to AnomalyCharacterizationIndex class
+AnomalyCharacterizationIndex.verify_with_cav_nlp = verify_with_cav_nlp

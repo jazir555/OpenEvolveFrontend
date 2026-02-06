@@ -7,7 +7,7 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__)))
 
-import streamlit as st
+from ui_shim import ui as st
 from integrated_workflow import run_fully_integrated_adversarial_evolution
 from integrated_reporting import generate_integrated_report, calculate_detailed_metrics
 from session_utils import DEFAULTS

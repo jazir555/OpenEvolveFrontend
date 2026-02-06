@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import asyncio
 import time
 import traceback
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 # CAV-NLP integration imports
 try:
@@ -32,12 +32,23 @@ except ImportError:
 
 
 class DeepVerifier:
-    """Comprehensive verification suite."""
+    """Comprehensive verification suite with CAV-NLP testing."""
     
-    def __init__(self):
+    def __init__(self, config: Optional[Dict] = None):
         self.passed = 0
         self.failed = 0
         self.warnings = 0
+        # CAV-NLP configuration
+        self.config = config or {}
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        self.math_service = None
+        self.enhanced_solver = None
+        if self.use_cav_nlp:
+            try:
+                self.math_service = UnifiedMathService()
+                self.enhanced_solver = EnhancedZ3Solver()
+            except Exception:
+                self.use_cav_nlp = False
     
     def test(self, name: str, condition: bool, error_msg: str = ""):
         """Record test result."""
@@ -67,6 +78,7 @@ class DeepVerifier:
         await self.verify_edge_cases()
         await self.verify_performance()
         await self.verify_data_consistency()
+        await self.verify_cav_nlp_integration()
         
         self.print_summary()
     
@@ -460,6 +472,38 @@ class DeepVerifier:
         except Exception as e:
             self.test("Statistics consistency", False, str(e))
     
+    async def verify_cav_nlp_integration(self):
+        """Verify CAV-NLP integration."""
+        print("\n9. CAV-NLP Integration Verification")
+        
+        if not self.use_cav_nlp:
+            self.warn("CAV-NLP Integration", "CAV-NLP not available, skipping tests")
+            return
+        
+        # Test 9.1: Formalization
+        try:
+            result = self.math_service.formalize("x is greater than zero")
+            has_code = hasattr(result, 'code') or isinstance(result, str)
+            self.test("CAV-NLP formalization", has_code, "CAV-NLP should formalize text")
+        except Exception as e:
+            self.test("CAV-NLP formalization", False, str(e))
+        
+        # Test 9.2: Enhanced solver
+        try:
+            has_enhanced = self.enhanced_solver is not None
+            self.test("CAV-NLP enhanced solver", has_enhanced, "Enhanced solver should exist")
+        except Exception as e:
+            self.test("CAV-NLP enhanced solver", False, str(e))
+        
+        # Test 9.3: Integration with knowledge manager
+        try:
+            from z3_knowledge_complete import get_z3_knowledge_manager
+            manager = await get_z3_knowledge_manager()
+            has_cav_nlp = hasattr(manager, 'use_cav_nlp')
+            self.test("CAV-NLP in knowledge manager", has_cav_nlp, "Knowledge manager should support CAV-NLP")
+        except Exception as e:
+            self.test("CAV-NLP in knowledge manager", False, str(e))
+    
     def print_summary(self):
         """Print verification summary."""
         print("\n" + "="*70)
@@ -468,6 +512,7 @@ class DeepVerifier:
         print(f"\nPassed:   {self.passed}")
         print(f"Failed:   {self.failed}")
         print(f"Warnings: {self.warnings}")
+        print(f"CAV-NLP:  {'available' if self.use_cav_nlp else 'not available'}")
         
         total = self.passed + self.failed
         if total > 0:

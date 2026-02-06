@@ -81,14 +81,26 @@ class MathematicalInsight:
 
 
 class Z3KnowledgeExtractor:
-    """Extract knowledge from Z3 solutions."""
+    """Extract knowledge from Z3 solutions with CAV-NLP enhancement."""
     
-    def __init__(self):
+    def __init__(self, config: Optional[Dict] = None):
         self.extraction_stats = {
             "total_extractions": 0,
             "patterns_found": 0,
-            "insights_extracted": 0
+            "insights_extracted": 0,
+            "cav_nlp_formalizations": 0
         }
+        # CAV-NLP configuration
+        self.config = config or {}
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        self.math_service = None
+        self.enhanced_solver = None
+        if self.use_cav_nlp:
+            try:
+                self.math_service = UnifiedMathService()
+                self.enhanced_solver = EnhancedZ3Solver()
+            except Exception:
+                self.use_cav_nlp = False
     
     def extract_proof_pattern(self, proof: str, problem_type: str = "general") -> Optional[ProofPattern]:
         """Extract proof pattern from a proof."""
@@ -120,12 +132,37 @@ class Z3KnowledgeExtractor:
         """Extract mathematical insight."""
         self.extraction_stats["insights_extracted"] += 1
         
+        # CAV-NLP enhanced insight extraction
+        if self.use_cav_nlp and self.math_service:
+            try:
+                formalized = self.math_service.formalize(problem)
+                self.extraction_stats["cav_nlp_formalizations"] += 1
+            except Exception:
+                pass
+        
         return MathematicalInsight(
             insight_id=f"insight_{self.extraction_stats['insights_extracted']}",
             category="general",
             statement=f"Solution found for: {problem[:50]}...",
             confidence=0.8
         )
+    
+    def formalize_with_cav_nlp(self, text: str) -> Dict[str, Any]:
+        """Formalize natural language using CAV-NLP."""
+        if not self.use_cav_nlp or not self.math_service:
+            return {"error": "CAV-NLP not available"}
+        
+        try:
+            formalized = self.math_service.formalize(text)
+            self.extraction_stats["cav_nlp_formalizations"] += 1
+            return {
+                "success": True,
+                "original": text,
+                "formalized": getattr(formalized, 'code', str(formalized)),
+                "language": getattr(formalized, 'language', 'unknown')
+            }
+        except Exception as e:
+            return {"error": str(e)}
     
     def _parse_tactics(self, proof: str) -> List[str]:
         """Parse tactics from proof string."""

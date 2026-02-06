@@ -71,12 +71,23 @@ class BenchmarkSuite:
 
 
 class MathKnowledgeBenchmarks:
-    """Comprehensive benchmarking for mathematical knowledge system."""
+    """Comprehensive benchmarking for mathematical knowledge system with CAV-NLP."""
     
-    def __init__(self, iterations: int = 10, warmup: int = 3):
+    def __init__(self, iterations: int = 10, warmup: int = 3, config: Optional[Dict] = None):
         self.iterations = iterations
         self.warmup = warmup
         self.results: List[BenchmarkResult] = []
+        # CAV-NLP configuration
+        self.config = config or {}
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        self.math_service = None
+        self.enhanced_solver = None
+        if self.use_cav_nlp:
+            try:
+                self.math_service = UnifiedMathService()
+                self.enhanced_solver = EnhancedZ3Solver()
+            except Exception:
+                self.use_cav_nlp = False
     
     async def run_all(self, suite: str = "basic") -> BenchmarkSuite:
         """Run all benchmarks."""
@@ -102,6 +113,10 @@ class MathKnowledgeBenchmarks:
         if suite == "stress":
             await self.benchmark_concurrent_solving()
             await self.benchmark_large_knowledge_base()
+        
+        # CAV-NLP benchmarks
+        if self.use_cav_nlp:
+            await self.benchmark_cav_nlp_formalization()
         
         # Create suite results
         return BenchmarkSuite(
@@ -388,6 +403,23 @@ class MathKnowledgeBenchmarks:
             )
         
         await self._run_benchmark("Large KB Search (100 entries)", "stress", search)
+    
+    async def benchmark_cav_nlp_formalization(self):
+        """Benchmark CAV-NLP formalization."""
+        if not self.use_cav_nlp or not self.math_service:
+            return
+        
+        text_samples = [
+            "x is greater than zero",
+            "forall natural numbers n, n plus zero equals n",
+            "there exists a prime number between 10 and 20"
+        ]
+        
+        async def formalize():
+            for text in text_samples:
+                self.math_service.formalize(text)
+        
+        await self._run_benchmark("CAV-NLP Formalization", "cav_nlp", formalize)
 
 
 def visualize_results(suite: BenchmarkSuite):

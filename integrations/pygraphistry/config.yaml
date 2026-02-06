@@ -29,8 +29,8 @@ features:
   # Enable DBSCAN clustering
   dbscan_clustering: true
 
-  # Enable Streamlit iframe embedding
-  streamlit_embedding: true
+  # Enable iframe embedding for UI clients
+  ui_embedding: true
 
 # Integration settings
 integration:

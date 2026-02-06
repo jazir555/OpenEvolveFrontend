@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import asyncio
 import inspect
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, List, Optional, Set
 
 # CAV-NLP integration imports
 try:
@@ -33,12 +33,23 @@ except ImportError:
 
 
 class SecondPassAnalyzer:
-    """Deep analyzer for remaining gaps."""
+    """Deep analyzer for remaining gaps including CAV-NLP."""
     
-    def __init__(self):
+    def __init__(self, config: Optional[Dict] = None):
         self.issues = []
         self.warnings = []
         self.ok_count = 0
+        # CAV-NLP configuration
+        self.config = config or {}
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        self.math_service = None
+        self.enhanced_solver = None
+        if self.use_cav_nlp:
+            try:
+                self.math_service = UnifiedMathService()
+                self.enhanced_solver = EnhancedZ3Solver()
+            except Exception:
+                self.use_cav_nlp = False
     
     def report(self, category: str, status: str, message: str):
         """Report a finding."""
@@ -67,6 +78,7 @@ class SecondPassAnalyzer:
         await self.check_documentation()
         await self.check_type_hints()
         await self.check_logging()
+        await self.check_cav_nlp_integration()
         
         self.print_summary()
     
@@ -298,6 +310,49 @@ class SecondPassAnalyzer:
             except Exception as e:
                 self.report("Logging", "FAIL", f"{logger_name}: {e}")
     
+    async def check_cav_nlp_integration(self):
+        """Check CAV-NLP integration completeness."""
+        print("\n10. CAV-NLP Integration")
+        
+        # Check availability
+        self.report("CAV-NLP", "OK" if self.use_cav_nlp else "WARN", 
+                   f"CAV-NLP available: {self.use_cav_nlp}")
+        
+        if not self.use_cav_nlp:
+            return
+        
+        # Check math service
+        try:
+            has_service = self.math_service is not None
+            self.report("CAV-NLP", "OK" if has_service else "FAIL", 
+                       f"Math service initialized: {has_service}")
+        except Exception as e:
+            self.report("CAV-NLP", "FAIL", f"Math service error: {e}")
+        
+        # Check enhanced solver
+        try:
+            has_solver = self.enhanced_solver is not None
+            self.report("CAV-NLP", "OK" if has_solver else "FAIL", 
+                       f"Enhanced solver initialized: {has_solver}")
+        except Exception as e:
+            self.report("CAV-NLP", "FAIL", f"Enhanced solver error: {e}")
+        
+        # Check key modules have CAV-NLP
+        modules_with_cav_nlp = [
+            "z3_knowledge_complete",
+            "z3_auto_extraction", 
+            "unified_math_bridge_complete"
+        ]
+        
+        for module in modules_with_cav_nlp:
+            try:
+                mod = __import__(module)
+                has_cav_nlp = hasattr(mod, 'CAV_NLP_AVAILABLE')
+                self.report("CAV-NLP", "OK" if has_cav_nlp else "WARN", 
+                           f"{module} has CAV-NLP flag: {has_cav_nlp}")
+            except Exception as e:
+                self.report("CAV-NLP", "WARN", f"{module}: {e}")
+    
     def print_summary(self):
         """Print analysis summary."""
         print("\n" + "="*70)
@@ -306,6 +361,7 @@ class SecondPassAnalyzer:
         print(f"\nPassed: {self.ok_count}")
         print(f"Warnings: {len(self.warnings)}")
         print(f"Issues: {len(self.issues)}")
+        print(f"CAV-NLP: {'available' if self.use_cav_nlp else 'not available'}")
         
         if self.warnings:
             print("\nWarnings:")

@@ -43,10 +43,21 @@ except ImportError:
 
 
 class MathKnowledgeCLI:
-    """Command-line interface for mathematical knowledge system."""
+    """Command-line interface for mathematical knowledge system with CAV-NLP support."""
     
-    def __init__(self):
+    def __init__(self, config: Optional[Dict] = None):
         self.parser = self._create_parser()
+        # CAV-NLP configuration
+        self.config = config or {}
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        self.math_service = None
+        self.enhanced_solver = None
+        if self.use_cav_nlp:
+            try:
+                self.math_service = UnifiedMathService()
+                self.enhanced_solver = EnhancedZ3Solver()
+            except Exception:
+                self.use_cav_nlp = False
     
     def _create_parser(self) -> argparse.ArgumentParser:
         """Create argument parser."""
@@ -124,6 +135,11 @@ Examples:
         knowledge_parser.add_argument("--import-file", dest="import_file", help="Import from file")
         knowledge_parser.add_argument("--clear", action="store_true", help="Clear knowledge base")
         
+        # Formalize command (CAV-NLP)
+        formalize_parser = subparsers.add_parser("formalize", help="Formalize natural language using CAV-NLP")
+        formalize_parser.add_argument("--text", "-t", required=True, help="Text to formalize")
+        formalize_parser.add_argument("--output", "-o", help="Output file")
+        
         # Health command
         subparsers.add_parser("health", help="Check system health")
         
@@ -148,6 +164,7 @@ Examples:
             "benchmark": self._cmd_benchmark,
             "server": self._cmd_server,
             "knowledge": self._cmd_knowledge,
+            "formalize": self._cmd_formalize,
             "health": self._cmd_health,
             "version": self._cmd_version,
         }
@@ -422,12 +439,43 @@ Examples:
         
         return 0
     
+    async def _cmd_formalize(self, args) -> int:
+        """Handle formalize command using CAV-NLP."""
+        if not self.use_cav_nlp or not self.math_service:
+            print("Error: CAV-NLP not available. Install openevolve package.", file=sys.stderr)
+            return 1
+        
+        print(f"Formalizing: {args.text}")
+        try:
+            formalized = self.math_service.formalize(args.text)
+            result = {
+                "original": args.text,
+                "formalized": getattr(formalized, 'code', str(formalized)),
+                "language": getattr(formalized, 'language', 'unknown'),
+                "confidence": getattr(formalized, 'confidence', 0.0)
+            }
+            print(f"\nFormalized result:")
+            print(f"  Code: {result['formalized']}")
+            print(f"  Language: {result['language']}")
+            print(f"  Confidence: {result['confidence']:.2f}")
+            
+            if args.output:
+                with open(args.output, 'w') as f:
+                    json.dump(result, f, indent=2)
+                print(f"\nSaved to {args.output}")
+            
+            return 0
+        except Exception as e:
+            print(f"Error: {e}", file=sys.stderr)
+            return 1
+    
     async def _cmd_version(self, args) -> int:
         """Handle version command."""
         print("Mathematical Knowledge Integration")
         print("Version: 1.0.0")
         print("Author: OpenEvolve")
         print("License: MIT")
+        print(f"CAV-NLP: {'available' if CAV_NLP_AVAILABLE else 'not available'}")
         
         # Check component versions
         try:

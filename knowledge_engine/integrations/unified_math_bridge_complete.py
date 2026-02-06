@@ -346,7 +346,7 @@ class ConsensusEngine:
 
 class UnifiedMathBridgeComplete:
     """
-    Complete unified mathematical knowledge bridge.
+    Complete unified mathematical knowledge bridge with CAV-NLP enhancement.
     
     Provides:
     - Deep semantic translation
@@ -355,17 +355,33 @@ class UnifiedMathBridgeComplete:
     - Consensus building
     - Performance optimization
     - Comprehensive monitoring
+    - CAV-NLP enhanced formalization
     """
     
     def __init__(
         self,
         z3_manager: Optional[Z3KnowledgeManager] = None,
-        leanaide_integration: Optional[LeanAideIntegrationComplete] = None
+        leanaide_integration: Optional[LeanAideIntegrationComplete] = None,
+        config: Optional[Dict] = None
     ):
         self.z3_manager = z3_manager
         self.leanaide_integration = leanaide_integration
         self.translator = SemanticTranslator()
         self.consensus = ConsensusEngine()
+        
+        # CAV-NLP configuration
+        self.config = config or {}
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        self.math_service = None
+        self.enhanced_solver = None
+        if self.use_cav_nlp:
+            try:
+                self.math_service = UnifiedMathService()
+                self.enhanced_solver = EnhancedZ3Solver()
+                logger.info("CAV-NLP enhanced bridge initialized")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP: {e}")
+                self.use_cav_nlp = False
         
         # Caching
         self.problem_cache: Dict[str, SolverResult] = {}
@@ -379,7 +395,8 @@ class UnifiedMathBridgeComplete:
             "hybrid_successes": 0,
             "conflicts_detected": 0,
             "cache_hits": 0,
-            "translations": 0
+            "translations": 0,
+            "cav_nlp_formalizations": 0
         }
     
     async def initialize(self):
@@ -419,7 +436,8 @@ class UnifiedMathBridgeComplete:
         logger.info({
             "msg": "Starting unified solution",
             "problem_id": problem_id,
-            "preferred_solver": preferred_solver.value
+            "preferred_solver": preferred_solver.value,
+            "cav_nlp": self.use_cav_nlp
         })
         
         # Check cache
@@ -438,6 +456,16 @@ class UnifiedMathBridgeComplete:
             problem_id=problem_id,
             statement=problem_statement
         )
+        
+        # CAV-NLP enhanced formalization
+        cav_nlp_formalization = None
+        if self.use_cav_nlp and self.math_service:
+            try:
+                cav_nlp_formalization = self.math_service.formalize(problem_statement)
+                self.stats["cav_nlp_formalizations"] += 1
+                logger.debug(f"CAV-NLP formalized: {cav_nlp_formalization}")
+            except Exception as e:
+                logger.debug(f"CAV-NLP formalization skipped: {e}")
         
         # Translate to both formalizations
         problem.formalization_z3 = self.translator.translate_lean_to_smt(problem_statement)
@@ -504,10 +532,12 @@ class UnifiedMathBridgeComplete:
                 "consensus": consensus_meta,
                 "formalizations": {
                     "z3": problem.formalization_z3,
-                    "lean": problem.formalization_lean
+                    "lean": problem.formalization_lean,
+                    "cav_nlp": getattr(cav_nlp_formalization, 'code', None) if cav_nlp_formalization else None
                 },
                 "features": problem.features,
-                "execution_time_ms": execution_time
+                "execution_time_ms": execution_time,
+                "cav_nlp_used": self.use_cav_nlp
             }
             
         except Exception as e:
@@ -612,8 +642,28 @@ class UnifiedMathBridgeComplete:
             "cache_hit_rate": self.stats["cache_hits"] / total,
             "z3_success_rate": self.stats["z3_successes"] / total,
             "lean_success_rate": self.stats["lean_successes"] / total,
-            "cache_size": len(self.problem_cache)
+            "cache_size": len(self.problem_cache),
+            "cav_nlp_available": self.use_cav_nlp
         }
+    
+    async def formalize_with_cav_nlp(self, text: str) -> Dict[str, Any]:
+        """Formalize natural language text using CAV-NLP."""
+        if not self.use_cav_nlp or not self.math_service:
+            return {"error": "CAV-NLP not available"}
+        
+        try:
+            formalized = self.math_service.formalize(text)
+            self.stats["cav_nlp_formalizations"] += 1
+            return {
+                "success": True,
+                "original": text,
+                "formalized": getattr(formalized, 'code', str(formalized)),
+                "language": getattr(formalized, 'language', 'unknown'),
+                "confidence": getattr(formalized, 'confidence', 0.0)
+            }
+        except Exception as e:
+            logger.error(f"CAV-NLP formalization failed: {e}")
+            return {"error": str(e)}
     
     def clear_cache(self):
         """Clear result cache."""

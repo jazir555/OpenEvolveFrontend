@@ -91,7 +91,7 @@ class TodoScanner:
         'datapizza': r'datapizza|pipeline|chunk',
         'bubblelabs': r'bubblelab|grpc|knowledge',
         'c2c': r'c2c|cache|ensemble',
-        'ui': r'ui|streamlit|react|frontend',
+        'ui': r'ui|react|frontend',
         'testing': r'test|spec|mock',
     }
 

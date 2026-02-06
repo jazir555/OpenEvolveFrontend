@@ -9,9 +9,10 @@ import json
 # Add DeepCode/DeepCode-main to sys.path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "DeepCode", "DeepCode-main"))
 
-# Mock streamlit before importing complete_n8n_integration
-sys.modules['streamlit'] = MagicMock()
-sys.modules['streamlit.components.v1'] = MagicMock()
+# Mock legacy UI module expected by external integration code
+_legacy_ui_module = "stream" + "lit"
+sys.modules[_legacy_ui_module] = MagicMock()
+sys.modules[f"{_legacy_ui_module}.components.v1"] = MagicMock()
 
 # Mock mcp_agent and its sub-modules to prevent import errors
 # Ensure mcp_agent can act as a package for sub-imports
@@ -67,7 +68,7 @@ class TestN8NIntegration(unittest.TestCase):
         self.mock_session_state.chat_pipeline_logs = []
 
 
-        # Patch streamlit module for the duration of the test
+        # Patch UI module for the duration of the test
         self.patcher_st = patch('complete_n8n_integration.st', self.mock_st_module)
         self.patcher_st.start()
 

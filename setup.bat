@@ -78,31 +78,13 @@ if exist %VENV_DIR% (
 echo Activating virtual environment...
 call %VENV_DIR%\Scripts\activate.bat
 
-echo Creating desktop shortcut for OpenEvolve...
-set TARGET_URL=http://localhost:8501
+echo Creating desktop shortcut for OpenEvolve API...
+set TARGET_URL=http://localhost:8001
 powershell -Command "$ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut(\"%USERPROFILE%\Desktop\OpenEvolve.url\"); $s.TargetPath = \"%TARGET_URL%\"; $s.Save()"
 echo Shortcut created on your desktop.
 
-:: --- Configure Streamlit config.toml ---
-:: Create .streamlit directory if it's not exist
-if not exist ".streamlit" mkdir ".streamlit"
-
-:: Write config.toml content
-(
-    echo [general]
-    echo showEmailPrompt = false
-    echo(
-    echo [server]
-    echo headless = true
-    echo(
-    echo [theme]
-    echo primaryColor = "#a0a0a0"
-) > ".streamlit\config.toml"
-
-echo Streamlit config.toml configured.
-
-echo Launching Streamlit application...
+echo Launching OpenEvolve API server...
 start "" %TARGET_URL%
-%PYTHON_EXE% -m streamlit run main.py
+%PYTHON_EXE% -m uvicorn api_server:app --host 0.0.0.0 --port 8001
 
 pause

@@ -198,7 +198,7 @@ docker-restart: docker-down docker-up ## Restart Docker services
 # ============================================================================
 dashboard: ## Start monitoring dashboard
 	@echo "$(BLUE)Starting monitoring dashboard...$(NC)"
-	$(PYTHON) -m streamlit run monitoring_dashboard.py
+	$(PYTHON) -m uvicorn api_server:app --host 0.0.0.0 --port 8001
 
 logs: ## View application logs
 	@tail -f logs/*.log 2>/dev/null || echo "$(YELLOW)No log files found$(NC)"

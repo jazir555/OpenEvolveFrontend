@@ -1036,17 +1036,33 @@ class Z3KnowledgeManager:
     - Online learning
     - Conflict detection
     - Performance monitoring
+    - CAV-NLP enhanced knowledge extraction
     """
     
     def __init__(
         self,
         database_url: str = "sqlite:///z3_knowledge_complete.db",
-        redis_url: Optional[str] = None
+        redis_url: Optional[str] = None,
+        config: Optional[Dict] = None
     ):
         self.persistence = Z3KnowledgePersistence(database_url, redis_url)
         self.feature_pipeline = FeatureExtractionPipeline()
         self.conflict_detector = ConflictDetector()
         self.knowledge_extractor = Z3KnowledgeExtractor()
+        
+        # CAV-NLP configuration
+        self.config = config or {}
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        self.math_service = None
+        self.enhanced_solver = None
+        if self.use_cav_nlp:
+            try:
+                self.math_service = UnifiedMathService()
+                self.enhanced_solver = EnhancedZ3Solver()
+                logger.info("CAV-NLP enhanced knowledge manager initialized")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP: {e}")
+                self.use_cav_nlp = False
         
         # Metrics
         self.metrics = {
@@ -1055,7 +1071,8 @@ class Z3KnowledgeManager:
             "conflicts_detected": 0,
             "conflicts_resolved": 0,
             "cache_hits": 0,
-            "cache_misses": 0
+            "cache_misses": 0,
+            "cav_nlp_extractions": 0
         }
     
     async def initialize(self):
@@ -1085,6 +1102,16 @@ class Z3KnowledgeManager:
             Learning results
         """
         try:
+            # CAV-NLP enhanced formalization
+            cav_nlp_result = None
+            if self.use_cav_nlp and self.math_service:
+                try:
+                    cav_nlp_result = self.math_service.formalize(problem_statement)
+                    self.metrics["cav_nlp_extractions"] += 1
+                    logger.debug(f"CAV-NLP formalized: {cav_nlp_result}")
+                except Exception as e:
+                    logger.debug(f"CAV-NLP formalization skipped: {e}")
+            
             # Extract features
             features = self.feature_pipeline.extract_features(
                 problem_statement, constraints, result, proof
@@ -1169,12 +1196,40 @@ class Z3KnowledgeManager:
                 "success": True,
                 "items_learned": len(learned_items),
                 "items": learned_items,
-                "features": asdict(features)
+                "features": asdict(features),
+                "cav_nlp_formalization": getattr(cav_nlp_result, 'code', None) if cav_nlp_result else None
             }
             
         except Exception as e:
             logger.error(f"Learning failed: {e}")
             return {"success": False, "error": str(e)}
+    
+    async def extract_with_cav_nlp(self, text: str) -> Dict[str, Any]:
+        """
+        Extract knowledge using CAV-NLP enhancement.
+        
+        Args:
+            text: Natural language text to formalize
+            
+        Returns:
+            Dictionary with formalized result
+        """
+        if not self.use_cav_nlp or not self.math_service:
+            return {"error": "CAV-NLP not available"}
+        
+        try:
+            formalized = self.math_service.formalize(text)
+            self.metrics["cav_nlp_extractions"] += 1
+            return {
+                "success": True,
+                "original": text,
+                "formalized": getattr(formalized, 'code', str(formalized)),
+                "language": getattr(formalized, 'language', 'unknown'),
+                "confidence": getattr(formalized, 'confidence', 0.0)
+            }
+        except Exception as e:
+            logger.error(f"CAV-NLP extraction failed: {e}")
+            return {"error": str(e)}
     
     async def _store_with_conflict_check(
         self,

