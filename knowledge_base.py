@@ -27,6 +27,13 @@ from sovereign_data_models import (
     generate_id
 )
 
+# **LEAN INTEGRATION**: Formal verification with Lean
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 

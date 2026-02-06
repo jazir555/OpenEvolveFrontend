@@ -49,6 +49,60 @@ except ImportError:
     logger.warning("LeanAide client not available - formal fix verification disabled")
 
 
+async def verify_fix_with_lean(fix_content: str, original_issue: str = None) -> Dict[str, Any]:
+    """Verify a fix using Lean theorem prover.
+    
+    Args:
+        fix_content: The fix/proof content to verify
+        original_issue: Optional description of the original issue
+        
+    Returns:
+        Dictionary with verification results
+    """
+    if not LEAN_AVAILABLE:
+        return {"verified": False, "reason": "Lean unavailable"}
+    
+    try:
+        client = LeanAideClient()
+        
+        # Translate fix to formal statement
+        formalized = await client.translate_thm(fix_content)
+        
+        # Verify the fix
+        result = await client.verify(formalized)
+        
+        return {
+            "verified": result.verified if hasattr(result, 'verified') else False,
+            "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
+            "proof": result.proof_code if hasattr(result, 'proof_code') else None,
+            "original_issue": original_issue,
+            "formalized_fix": formalized
+        }
+    except Exception as e:
+        logger.warning(f"Lean fix verification failed: {e}")
+        return {"verified": False, "reason": str(e), "original_issue": original_issue}
+
+
+class LeanFixVerificationMixin:
+    """Mixin class adding Lean verification capabilities to BlueTeam members."""
+    
+    async def _verify_fix_with_lean(
+        self, 
+        fix_content: str, 
+        original_issue: str = None
+    ) -> Dict[str, Any]:
+        """Verify a fix using Lean theorem prover.
+        
+        Args:
+            fix_content: The fix content to verify
+            original_issue: Optional description of original issue
+            
+        Returns:
+            Dictionary with verification results
+        """
+        return await verify_fix_with_lean(fix_content, original_issue)
+
+
 # **ACTUAL INTEGRATION HELPER METHODS**: Blue Team
 def _trigger_blue_team_alerts(operation, success, fix_id=None, error=None, metadata=None):
     """Trigger alerts for blue team operations"""

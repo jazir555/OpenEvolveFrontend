@@ -39,16 +39,6 @@ from typing import (
 )
 import threading
 
-# REAL Lean integration
-try:
-    from leanaide_client import LeanAideClient
-    from lean4_integration import Lean4VerificationEngine
-    LEAN_AVAILABLE = True
-    logger.info("REAL Lean integration available in evolution_mdap")
-except ImportError:
-    LEAN_AVAILABLE = False
-    logger.debug("REAL Lean integration not available in evolution_mdap")
-
 # Import evolution components
 try:
     from leanaide_evolution import (
@@ -86,6 +76,16 @@ except ImportError:
     logging.warning("MDAP engine not available")
 
 logger = logging.getLogger(__name__)
+
+# REAL Lean integration
+try:
+    from leanaide_client import LeanAideClient
+    from lean4_integration import Lean4VerificationEngine
+    LEAN_AVAILABLE = True
+    logger.info("REAL Lean integration available in evolution_mdap")
+except ImportError:
+    LEAN_AVAILABLE = False
+    logger.debug("REAL Lean integration not available in evolution_mdap")
 
 # REAL Lean verification function
 def verify_with_lean(lean_code: str) -> Dict[str, Any]:

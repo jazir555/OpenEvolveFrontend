@@ -105,6 +105,13 @@ try:
 except ImportError:
     CAV_NLP_AVAILABLE = False
 
+# **LEAN INTEGRATION**: Real Lean proof verification for gauntlets
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -2569,6 +2576,125 @@ class CrossValidationGauntlet(BaseGauntlet):
         return matches / len(data)
 
 
+class LeanVerificationGauntlet(BaseGauntlet):
+    """
+    Gauntlet that uses Lean theorem prover for formal verification.
+    
+    This gauntlet formalizes mathematical content into Lean 4 and verifies
+    the proofs, providing rigorous correctness guarantees.
+    """
+    
+    def __init__(self, name: str = "lean_verification", config: Optional[Dict] = None):
+        super().__init__(GauntletType.FORMAL_VERIFICATION, name, config)
+        self.lean_client: Optional[LeanAideClient] = None
+        self.verification_timeout = config.get("verification_timeout", 300) if config else 300
+        
+        if LEAN_AVAILABLE:
+            try:
+                self.lean_client = LeanAideClient()
+                logger.info("LeanVerificationGauntlet initialized with LeanAideClient")
+            except Exception as e:
+                logger.warning(f"Failed to initialize LeanAideClient: {e}")
+    
+    def execute(self, solution: Any, context: Optional[Dict] = None) -> GauntletResult:
+        """
+        Execute Lean verification gauntlet.
+        
+        Args:
+            solution: Solution to verify (should contain mathematical content)
+            context: Optional context with theorem statement
+            
+        Returns:
+            GauntletResult with verification outcome
+        """
+        start_time = time.time()
+        context = context or {}
+        
+        # Extract content to verify
+        if isinstance(solution, str):
+            content = solution
+        elif hasattr(solution, 'content'):
+            content = solution.content
+        elif hasattr(solution, 'theorem_statement'):
+            content = solution.theorem_statement
+        else:
+            content = str(solution)
+        
+        logger.info(f"Starting Lean verification gauntlet for: {content[:100]}...")
+        
+        if not LEAN_AVAILABLE or not self.lean_client:
+            logger.warning("Lean not available, returning failed result")
+            return GauntletResult(
+                gauntlet_type=self.gauntlet_type,
+                gauntlet_name=self.name,
+                solution_id=getattr(solution, 'id', 'unknown'),
+                passed=False,
+                score=0.0,
+                execution_time=time.time() - start_time,
+                details={"error": "Lean verification not available"},
+                timestamp=datetime.now()
+            )
+        
+        try:
+            # Auto-formalize the content
+            formalized = self.lean_client.autoformalize(content)
+            
+            # Verify the formalized content
+            verification = self.lean_client.verify(formalized)
+            
+            # Determine result
+            verified = verification.get("success", False)
+            errors = verification.get("errors", [])
+            
+            # Calculate score based on verification
+            score = 1.0 if verified else 0.0
+            if errors:
+                # Partial credit if some errors but proof structure is sound
+                score = max(0.0, 1.0 - len(errors) * 0.1)
+            
+            execution_time = time.time() - start_time
+            
+            # Trigger alert if verification failed critically
+            if not verified and ALERTING_AVAILABLE:
+                alert_mgr = get_alert_manager()
+                alert_mgr.trigger_alert(
+                    title=f"Lean Verification Failed: {self.name}",
+                    message=f"Lean verification failed with {len(errors)} errors",
+                    severity=AlertSeverity.MEDIUM,
+                    source="LeanVerificationGauntlet",
+                    metadata={"errors": errors[:5]}  # First 5 errors
+                )
+            
+            return GauntletResult(
+                gauntlet_type=self.gauntlet_type,
+                gauntlet_name=self.name,
+                solution_id=getattr(solution, 'id', 'unknown'),
+                passed=verified,
+                score=score,
+                execution_time=execution_time,
+                details={
+                    "formalized": formalized,
+                    "proof_status": verification.get("status", "unknown"),
+                    "errors": errors,
+                    "verified": verified
+                },
+                timestamp=datetime.now()
+            )
+            
+        except Exception as e:
+            logger.error(f"Lean verification failed: {e}")
+            return GauntletResult(
+                gauntlet_type=self.gauntlet_type,
+                gauntlet_name=self.name,
+                solution_id=getattr(solution, 'id', 'unknown'),
+                passed=False,
+                score=0.0,
+                execution_time=time.time() - start_time,
+                details={"error": str(e)},
+                timestamp=datetime.now()
+            )
+
+
 # Factory function for creating gauntlets
 def create_gauntlet(gauntlet_type: str, name: Optional[str] = None, config: Optional[Dict] = None) -> BaseGauntlet:
     """
@@ -2592,6 +2718,8 @@ def create_gauntlet(gauntlet_type: str, name: Optional[str] = None, config: Opti
         "adversarial": AdversarialGauntlet,
         "formal": FormalVerificationGauntlet,
         "formal_verification": FormalVerificationGauntlet,
+        "lean": LeanVerificationGauntlet,
+        "lean_verification": LeanVerificationGauntlet,
         "statistical": StatisticalGauntlet,
         "domain": DomainSpecificGauntlet,
         "physics": lambda n, c: DomainSpecificGauntlet("physics", n, c),
@@ -2619,6 +2747,7 @@ def list_available_gauntlets() -> Dict[str, str]:
     return {
         "adversarial": "Red team attacks and robustness testing",
         "formal_verification": "Z3-based formal proofs and property verification (REAL Z3)",
+        "lean_verification": "Lean 4 theorem prover verification (REAL LeanAide)",
         "statistical": "Monte Carlo validation and hypothesis testing",
         "physics": "Domain-specific validation for physics problems (REAL PhysicsValidator)",
         "finance": "Domain-specific validation for finance problems (REAL validation)",

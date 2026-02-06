@@ -32,16 +32,6 @@ import logging
 import time
 from collections import defaultdict
 
-# REAL Lean integration
-try:
-    from leanaide_client import LeanAideClient
-    from lean4_integration import Lean4VerificationEngine
-    LEAN_AVAILABLE = True
-    logger.info("REAL Lean integration available in mcts_strategies")
-except ImportError:
-    LEAN_AVAILABLE = False
-    logger.debug("REAL Lean integration not available in mcts_strategies")
-
 # CAV-NLP Integration
 try:
     from openevolve.unified_math_service import UnifiedMathService
@@ -64,6 +54,16 @@ except ImportError:
     LeanTacticLibrary = None
 
 logger = logging.getLogger(__name__)
+
+# REAL Lean integration
+try:
+    from leanaide_client import LeanAideClient
+    from lean4_integration import Lean4VerificationEngine
+    LEAN_AVAILABLE = True
+    logger.info("REAL Lean integration available in mcts_strategies")
+except ImportError:
+    LEAN_AVAILABLE = False
+    logger.debug("REAL Lean integration not available in mcts_strategies")
 
 
 # REAL Lean verification function

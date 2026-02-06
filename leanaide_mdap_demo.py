@@ -9,16 +9,6 @@ Includes CAV-NLP enhanced formalization demonstration.
 import logging
 import os
 
-# REAL Lean integration
-try:
-    from leanaide_client import LeanAideClient
-    from lean4_integration import Lean4VerificationEngine
-    LEAN_AVAILABLE = True
-    logger.info("REAL Lean integration available in mdap_demo")
-except ImportError:
-    LEAN_AVAILABLE = False
-    logger.debug("REAL Lean integration not available in mdap_demo")
-
 # CAV-NLP Integration
 try:
     from openevolve.unified_math_service import UnifiedMathService
@@ -32,6 +22,16 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# REAL Lean integration
+try:
+    from leanaide_client import LeanAideClient
+    from lean4_integration import Lean4VerificationEngine
+    LEAN_AVAILABLE = True
+    logger.info("REAL Lean integration available in mdap_demo")
+except ImportError:
+    LEAN_AVAILABLE = False
+    logger.debug("REAL Lean integration not available in mdap_demo")
 
 # REAL Lean verification function
 def verify_with_lean(lean_code: str) -> Dict[str, Any]:

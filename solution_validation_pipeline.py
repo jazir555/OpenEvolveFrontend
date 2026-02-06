@@ -652,6 +652,86 @@ class SolutionValidationPipeline:
 
         return "\n".join(guidance_parts)
 
+    async def run_formal_verification(
+        self,
+        solution: SolutionAttempt,
+        sub_problem: SubProblem
+    ) -> Dict[str, Any]:
+        """
+        **LEAN INTEGRATION**: Stage 4 - Formal Verification with Lean.
+        
+        Performs formal mathematical verification of solution content using
+        the Lean theorem prover.
+        
+        Args:
+            solution: Solution attempt to verify
+            sub_problem: Sub-problem context
+            
+        Returns:
+            Dict with formal verification results
+        """
+        if not LEAN_AVAILABLE or not self._lean_client:
+            return {
+                "verified": False,
+                "reason": "Lean unavailable",
+                "stage": "formal_verification"
+            }
+        
+        try:
+            logger.info(f"Running formal verification for solution {solution.id}")
+            
+            # Extract mathematical content from solution
+            content = solution.solution_content
+            
+            # Use Lean to verify
+            result = await self.verify_with_lean(
+                content,
+                {"problem_type": sub_problem.domain or "general"}
+            )
+            
+            result["stage"] = "formal_verification"
+            result["solution_id"] = solution.id
+            
+            logger.info(f"Formal verification result: verified={result.get('verified', False)}")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Formal verification error: {e}")
+            return {
+                "verified": False,
+                "reason": str(e),
+                "stage": "formal_verification"
+            }
+    
+    async def verify_with_lean(self, content: str, criteria: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Verify content using Lean theorem prover.
+        
+        **LEAN INTEGRATION**: Standardized verification interface.
+        
+        Args:
+            content: Content to verify
+            criteria: Verification criteria
+            
+        Returns:
+            Dict with verification results
+        """
+        if not LEAN_AVAILABLE or not self._lean_client:
+            return {"verified": False, "reason": "Lean unavailable"}
+        
+        try:
+            formalized = await self._lean_client.translate_thm(content)
+            result = await self._lean_client.verify(formalized)
+            
+            return {
+                "verified": result.verified if hasattr(result, 'verified') else False,
+                "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
+                "proof": result.proof_code if hasattr(result, 'proof_code') else None
+            }
+        except Exception as e:
+            logger.error(f"Lean verification error: {e}")
+            return {"verified": False, "reason": str(e)}
+
     def _collect_critical_issues(
         self,
         validation_results: SolutionValidationResults

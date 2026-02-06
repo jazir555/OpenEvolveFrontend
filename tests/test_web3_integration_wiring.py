@@ -4,6 +4,7 @@ from bubblelabs_security import validate_workflow_type as validate_sec_workflow_
 from bubblelabs_validation import validate_workflow_type as validate_val_workflow_type
 from bubblelabs_extended_integration import BubbleLabsExtendedIntegration
 from bubblelabs_integration import BubbleLabsIntegration
+import decomposition_mcp_tools as decomp_mcp_tools
 import bubblelabs_mcp_tools as mcp_tools
 
 
@@ -182,3 +183,68 @@ def test_mcp_create_workflow_forwards_web3_type_and_config(monkeypatch):
     assert result["success"] is True
     assert captured.get("workflow_type") == "web3"
     assert captured.get("web3_config", {}).get("project_path") == "./contracts"
+
+
+def test_mcp_inventory_exposes_web3_formal_tools(monkeypatch):
+    monkeypatch.setattr(
+        decomp_mcp_tools,
+        "_get_web3_formal_inventory",
+        lambda: {
+            "available": True,
+            "tools": [
+                "z3_translate_solidity_invariant",
+                "z3_solve_smart_contract_exploit_witness",
+            ],
+            "formal_capabilities": {
+                "solidity_invariant_translation": True,
+                "symbolic_exploit_witness": True,
+            },
+        },
+    )
+    inventory = decomp_mcp_tools.get_mcp_tool_inventory()
+    assert {"z3_translate_solidity_invariant", "z3_solve_smart_contract_exploit_witness"}.issubset(
+        set(inventory.get("web3_formal_tools", []))
+    )
+    assert {"z3_translate_solidity_invariant", "z3_solve_smart_contract_exploit_witness"}.issubset(
+        set(inventory.get("web3_tools", []))
+    )
+
+
+def test_api_web3_status_exposes_formal_tools_from_inventory(monkeypatch):
+    monkeypatch.setattr(
+        api_server,
+        "get_mcp_tool_inventory",
+        lambda: {
+            "web3_tools": ["web3_ingest_contract_audit_stack", "z3_translate_solidity_invariant"],
+            "web3_ingestion_tools": ["web3_ingest_contract_audit_stack"],
+            "web3_formal_tools": ["z3_translate_solidity_invariant"],
+        },
+    )
+    status = api_server.web3_status()
+    assert status["web3_formal_tools"] == ["z3_translate_solidity_invariant"]
+    assert status["web3_ingestion_tools"] == ["web3_ingest_contract_audit_stack"]
+
+
+def test_z3_mcp_server_registers_web3_formal_tools():
+    from z3_mcp_tools import get_z3_mcp_server
+
+    server = get_z3_mcp_server()
+    tool_names = {tool["name"] for tool in server.list_tools()}
+    assert {"z3_translate_solidity_invariant", "z3_solve_smart_contract_exploit_witness"}.issubset(
+        tool_names
+    )
+
+
+def test_z3_leanaide_classifier_detects_web3_audit_as_hybrid():
+    from z3_leanaide_openevolve_integration import (
+        IntegratedProblemClassifier,
+        ProblemCategory,
+        WorkflowIntegrationConfig,
+    )
+
+    classifier = IntegratedProblemClassifier(WorkflowIntegrationConfig())
+    result = classifier.classify(
+        "Audit this Solidity vault for flash-loan and reentrancy exploits and verify invariants in Lean."
+    )
+    assert result.category == ProblemCategory.HYBRID
+    assert result.recommended_solver == "combined"

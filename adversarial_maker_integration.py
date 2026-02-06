@@ -107,6 +107,40 @@ except ImportError:
     LEAN_AVAILABLE = False
     logger.warning("LeanAide client not available - formal verification disabled")
 
+
+async def verify_with_lean_maker(content: str, attack_vector: str = None) -> Dict[str, Any]:
+    """Verify content using Lean theorem prover for MAKER integration.
+    
+    Args:
+        content: The content to verify (theorem, proof, or attack)
+        attack_vector: Optional attack vector identifier
+        
+    Returns:
+        Dictionary with verification results
+    """
+    if not LEAN_AVAILABLE:
+        return {"verified": False, "reason": "Lean unavailable"}
+    
+    try:
+        client = LeanAideClient()
+        
+        # Attempt to translate content to formal theorem statement
+        formalized = await client.translate_thm(content)
+        
+        # Verify the formalized content
+        result = await client.verify(formalized)
+        
+        return {
+            "verified": result.verified if hasattr(result, 'verified') else False,
+            "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
+            "proof": result.proof_code if hasattr(result, 'proof_code') else None,
+            "attack_vector": attack_vector,
+            "formalized_statement": formalized
+        }
+    except Exception as e:
+        logger.warning(f"Lean verification failed: {e}")
+        return {"verified": False, "reason": str(e), "attack_vector": attack_vector}
+
 try:
     from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
     ADAPTIVE_AVAILABLE = True

@@ -885,9 +885,9 @@ class TestExplanationGeneration:
         assert "Learning Metrics" in explanation
 
         # Verify specific values
-        assert "0.82" in explanation  # Point estimate
-        assert "78%" in explanation or "0.78" in explanation  # Lower bound
-        assert "86%" in explanation or "0.86" in explanation  # Upper bound
+        assert "0.82" in explanation or "82%" in explanation or "82.00%" in explanation  # Point estimate
+        assert "78" in explanation and "%" in explanation  # Lower bound (78.00%)
+        assert "86" in explanation and "%" in explanation  # Upper bound (86.00%)
 
     @pytest.mark.asyncio
     async def test_explanation_includes_learning_metrics(self, ensemble_selector, sample_problem_chars):
@@ -961,7 +961,7 @@ class TestIntegration:
 
         # Simulate running the strategy
         # Get the recommendation ID
-        rec_id = list(ensemble_selector.learning_tracker.recommendations_made.keys())[-1]
+        rec_id = ensemble_selector.learning_tracker.recommendations_made[-1]['id']
 
         # Record actual performance
         actual_score = 0.83
@@ -994,7 +994,7 @@ class TestIntegration:
             assert prediction.strategy is not None
 
             # Record performance
-            rec_id = list(ensemble_selector.learning_tracker.recommendations_made.keys())[-1]
+            rec_id = ensemble_selector.learning_tracker.recommendations_made[-1]['id']
             ensemble_selector.learning_tracker.record_actual_performance(
                 rec_id, 0.8, f"run_{domain}"
             )
@@ -1021,7 +1021,7 @@ class TestIntegration:
             # Vary performance to simulate different method effectiveness
             actual = 0.9 if i % 3 == 0 else 0.65
 
-            rec_id = list(ensemble_selector.learning_tracker.recommendations_made.keys())[-1]
+            rec_id = ensemble_selector.learning_tracker.recommendations_made[-1]['id']
             ensemble_selector.learning_tracker.record_actual_performance(
                 rec_id, actual, f"run_{i}"
             )

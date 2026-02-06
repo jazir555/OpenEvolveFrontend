@@ -42,6 +42,16 @@ from typing import (
 )
 from pathlib import Path
 
+# CAV-NLP Integration
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logging.getLogger(__name__).debug("CAV-NLP not available for MCTS-MDAP")
+
+logger = logging.getLogger(__name__)
+
 # REAL Lean integration
 try:
     from leanaide_client import LeanAideClient
@@ -51,14 +61,6 @@ try:
 except ImportError:
     LEAN_AVAILABLE = False
     logger.debug("REAL Lean integration not available in mcts_mdap_complete")
-
-# CAV-NLP Integration
-try:
-    from openevolve.unified_math_service import UnifiedMathService
-    CAV_NLP_AVAILABLE = True
-except ImportError:
-    CAV_NLP_AVAILABLE = False
-    logging.getLogger(__name__).debug("CAV-NLP not available for MCTS-MDAP")
 
 # Import MCTS components
 try:

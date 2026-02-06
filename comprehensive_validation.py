@@ -16,6 +16,13 @@ from enum import Enum
 
 logger = logging.getLogger(__name__)
 
+# **LEAN INTEGRATION**: Formal verification with Lean
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 
 # ============================================================================
 # Types and Enums
@@ -41,6 +48,7 @@ class ValidationCategory(Enum):
     CONSISTENCY = "consistency"
     COMPLETENESS = "completeness"
     EXECUTABILITY = "executability"
+    FORMAL_VERIFICATION = "formal_verification"  # **LEAN INTEGRATION**
 
 
 @dataclass
@@ -1035,6 +1043,83 @@ def validate_comprehensive(bulletproof_sop: Dict[str, Any]) -> ValidationReport:
 # ============================================================================
 # Quick Validation (for development/testing)
 # ============================================================================
+
+async def check_formal_verification(bulletproof_sop: Dict[str, Any]) -> ValidationResult:
+    """
+    **LEAN INTEGRATION**: Check formal verification using Lean theorem prover.
+    
+    Verifies mathematical claims in the SOP using formal methods.
+    
+    Args:
+        bulletproof_sop: Complete bulletproof SOP
+        
+    Returns:
+        Validation result
+    """
+    sop = bulletproof_sop.get('sop', {})
+    
+    # Extract mathematical content
+    math_content = bulletproof_sop.get('mathematical_formalization', '')
+    if not math_content and isinstance(sop, dict):
+        # Try to extract from SOP description
+        math_content = sop.get('description', '')
+    
+    if not math_content:
+        return ValidationResult(
+            category=ValidationCategory.FORMAL_VERIFICATION,
+            passed=True,  # Pass if no mathematical content
+            severity=ValidationSeverity.LOW,
+            message="No mathematical content to verify",
+            details={'skipped': True}
+        )
+    
+    # Verify with Lean
+    lean_result = await verify_with_lean(math_content, {})
+    
+    verified = lean_result.get('verified', False)
+    
+    return ValidationResult(
+        category=ValidationCategory.FORMAL_VERIFICATION,
+        passed=verified,
+        severity=ValidationSeverity.CRITICAL if not verified else ValidationSeverity.LOW,
+        message=f"Formal verification: {'VERIFIED' if verified else 'NOT VERIFIED'}",
+        details={
+            'verified': verified,
+            'confidence': lean_result.get('confidence', 0.0),
+            'proof': lean_result.get('proof')
+        },
+        suggestions=[] if verified else ["Provide formal proof for mathematical claims"]
+    )
+
+
+async def verify_with_lean(content: str, criteria: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    **LEAN INTEGRATION**: Verify content using Lean theorem prover.
+    
+    Args:
+        content: Content to verify
+        criteria: Verification criteria
+        
+    Returns:
+        Dict with verification results
+    """
+    if not LEAN_AVAILABLE:
+        return {"verified": False, "reason": "Lean unavailable"}
+    
+    try:
+        client = LeanAideClient()
+        formalized = await client.translate_thm(content)
+        result = await client.verify(formalized)
+        
+        return {
+            "verified": result.verified if hasattr(result, 'verified') else False,
+            "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
+            "proof": result.proof_code if hasattr(result, 'proof_code') else None
+        }
+    except Exception as e:
+        logger.error(f"Lean verification error: {e}")
+        return {"verified": False, "reason": str(e)}
+
 
 def quick_validate(bulletproof_sop: Dict[str, Any]) -> Tuple[bool, str]:
     """Quick validation check

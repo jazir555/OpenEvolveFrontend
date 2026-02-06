@@ -109,6 +109,63 @@ except ImportError:
     LEAN_AVAILABLE = False
     logger.warning("LeanAide client not available - formal verification disabled")
 
+
+async def verify_with_lean(content: str, attack_vector: str = None) -> Dict[str, Any]:
+    """Verify content using Lean theorem prover for formal logic attacks.
+    
+    Args:
+        content: The content to verify (typically a theorem or proof)
+        attack_vector: Optional attack vector identifier for tracking
+        
+    Returns:
+        Dictionary with verification results including:
+        - verified: bool indicating if proof/theorem is valid
+        - confidence: float confidence score
+        - proof: str containing the proof code if available
+        - attack_vector: str identifier of the attack vector used
+    """
+    if not LEAN_AVAILABLE:
+        return {"verified": False, "reason": "Lean unavailable"}
+    
+    try:
+        client = LeanAideClient()
+        
+        # Translate content to formal theorem statement
+        formalized = await client.translate_thm(content)
+        
+        # Verify the formalized content
+        result = await client.verify(formalized)
+        
+        return {
+            "verified": result.verified if hasattr(result, 'verified') else False,
+            "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
+            "proof": result.proof_code if hasattr(result, 'proof_code') else None,
+            "attack_vector": attack_vector
+        }
+    except Exception as e:
+        logger.warning(f"Lean verification failed: {e}")
+        return {"verified": False, "reason": str(e), "attack_vector": attack_vector}
+
+
+class LeanVerificationMixin:
+    """Mixin class adding Lean verification capabilities to RedTeam members."""
+    
+    async def _verify_with_lean(
+        self, 
+        content: str, 
+        attack_vector: str = None
+    ) -> Dict[str, Any]:
+        """Verify content using Lean theorem prover.
+        
+        Args:
+            content: The content to verify
+            attack_vector: Optional attack vector identifier
+            
+        Returns:
+            Dictionary with verification results
+        """
+        return await verify_with_lean(content, attack_vector)
+
 from prompt_engineering import PromptEngineeringSystem
 from model_orchestration import ModelOrchestrator, OrchestrationRequest, ModelTeam
 from quality_assessment import QualityAssessmentEngine, SeverityLevel

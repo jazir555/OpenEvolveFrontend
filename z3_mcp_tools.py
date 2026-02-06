@@ -16,6 +16,8 @@ Tools Provided:
 - z3_formalize_constraint: Formalize natural language to Z3 using CAV-NLP
 - z3_verify_hybrid: Verify using hybrid Z3 + Lean approach
 - z3_canonicalize_constraint: Return canonical form using CAV-NLP
+- z3_translate_solidity_invariant: Translate Solidity state updates to Z3/Lean invariants
+- z3_solve_smart_contract_exploit_witness: Solve symbolic exploit witness predicates
 
 Author: OpenEvolve
 Created: 2026-01-31

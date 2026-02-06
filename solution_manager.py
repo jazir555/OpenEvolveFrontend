@@ -33,6 +33,13 @@ import hashlib
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# **LEAN INTEGRATION**: Formal verification with Lean
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 
 # ============================================================================
 # ENUMS AND CONSTANTS

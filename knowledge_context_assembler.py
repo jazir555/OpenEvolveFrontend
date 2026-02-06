@@ -126,6 +126,13 @@ except ImportError:
     SemanticIndexConfig = None
     SemanticIndex = None
 
+# **LEAN INTEGRATION**: Formal verification context
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 
 # =============================================================================
 # ENUMS AND CONSTANTS

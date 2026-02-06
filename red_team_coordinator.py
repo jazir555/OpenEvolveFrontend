@@ -59,6 +59,7 @@ try:
     LEAN_AVAILABLE = True
 except ImportError:
     LEAN_AVAILABLE = False
+    logger = logging.getLogger(__name__)
     logger.warning("LeanAide client not available - formal verification disabled")
 
 # Import existing Red Team components

@@ -121,8 +121,10 @@ except ImportError:
 try:
     from leanaide_client import LeanAideClient, LeanAideConfig, LeanAideResult
     LEANAIDE_AVAILABLE = True
+    LEAN_AVAILABLE = True
 except ImportError:
     LEANAIDE_AVAILABLE = False
+    LEAN_AVAILABLE = False
     logger.warning("LeanAide client not available")
 
 # Import workflow structures

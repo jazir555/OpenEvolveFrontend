@@ -22,6 +22,7 @@ Updated: 2026-02-04 - Service Bubble Complete
 import asyncio
 import json
 import logging
+import os
 from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Union
@@ -55,11 +56,15 @@ except ImportError:
 try:
     from z3prover_integration import (
         get_z3_solver_engine, Z3Variable, Z3Constraint, Z3ConstraintType,
-        get_z3_theorem_prover, Z3Config
+        get_z3_theorem_prover, Z3Config, translate_solidity_assignment_to_z3,
+        verify_solidity_invariant_translation, solve_smart_contract_exploit_witness
     )
     Z3_AVAILABLE = True
 except ImportError:
     Z3_AVAILABLE = False
+    translate_solidity_assignment_to_z3 = None
+    verify_solidity_invariant_translation = None
+    solve_smart_contract_exploit_witness = None
 
 try:
     from z3prover_advanced import (
@@ -109,6 +114,10 @@ except ImportError:
 
 # CAV-NLP Configuration
 USE_CAV_NLP = os.getenv("USE_CAV_NLP", "true").lower() == "true"
+WEB3_FORMAL_AVAILABLE = (
+    translate_solidity_assignment_to_z3 is not None
+    and solve_smart_contract_exploit_witness is not None
+)
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -404,6 +413,30 @@ class HybridVerifyResponse(BaseModel):
     proof_sketch: Optional[str] = None
     cegis_iterations: Optional[int] = None
     execution_time_ms: float
+
+
+class Web3InvariantTranslateRequest(BaseModel):
+    """Request model for Solidity invariant translation."""
+    statement: str = Field(..., description="Solidity assignment/update statement")
+    non_negative_target: bool = Field(True, description="Add non-negative target invariant")
+    max_withdraw_expr: Optional[str] = Field(
+        None,
+        description="Optional max-withdraw expression for withdrawal-bound invariants",
+    )
+    verify_translation: bool = Field(True, description="Run Z3 check against translated invariants")
+    assume_non_negative_amount: bool = Field(
+        True,
+        description="When verifying, assume amount >= 0",
+    )
+
+
+class Web3ExploitWitnessRequest(BaseModel):
+    """Request model for symbolic exploit witness solving."""
+    additional_constraints: Optional[List[str]] = Field(
+        None,
+        description="Optional extra SMT constraints for witness search",
+    )
+    timeout_seconds: float = Field(10.0, ge=0.1, le=120.0)
 
 
 # =============================================================================
@@ -1636,6 +1669,76 @@ async def canonicalize_constraint(request: CanonicalizeRequest):
     except Exception as e:
         logger.error(f"Canonicalization error: {e}")
         raise HTTPException(status_code=500, detail=f"Canonicalization failed: {str(e)}")
+
+
+@app.get("/web3/status")
+async def get_web3_formal_status():
+    """Get Web3 formal verification status for the Z3 service bubble."""
+    inventory = {
+        "available": WEB3_FORMAL_AVAILABLE,
+        "tools": [],
+        "formal_capabilities": {},
+    }
+    try:
+        from z3_mcp_tools import get_web3_formal_tool_inventory
+        loaded_inventory = get_web3_formal_tool_inventory()
+        if isinstance(loaded_inventory, dict):
+            inventory = loaded_inventory
+    except Exception as exc:
+        inventory["error"] = str(exc)
+
+    return {
+        "available": WEB3_FORMAL_AVAILABLE,
+        "solidity_invariant_translation_available": translate_solidity_assignment_to_z3 is not None,
+        "invariant_translation_verification_available": verify_solidity_invariant_translation is not None,
+        "exploit_witness_available": solve_smart_contract_exploit_witness is not None,
+        "tool_inventory": inventory,
+    }
+
+
+@app.post("/web3/invariants/translate")
+async def web3_translate_invariant(request: Web3InvariantTranslateRequest):
+    """Translate Solidity invariant statements to Z3 constraints/Lean spec."""
+    if translate_solidity_assignment_to_z3 is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Solidity invariant translation unavailable",
+        )
+
+    try:
+        translation = translate_solidity_assignment_to_z3(
+            statement=request.statement,
+            non_negative_target=request.non_negative_target,
+            max_withdraw_expr=request.max_withdraw_expr,
+        )
+        response: Dict[str, Any] = {"success": True, "translation": translation}
+        if request.verify_translation and verify_solidity_invariant_translation is not None:
+            response["verification"] = verify_solidity_invariant_translation(
+                translation=translation,
+                assume_non_negative_amount=request.assume_non_negative_amount,
+            )
+        return response
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/web3/exploits/symbolic-witness")
+async def web3_symbolic_witness(request: Web3ExploitWitnessRequest):
+    """Solve canonical smart-contract exploit witness predicates with Z3."""
+    if solve_smart_contract_exploit_witness is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Smart contract exploit witness solver unavailable",
+        )
+
+    try:
+        witness = solve_smart_contract_exploit_witness(
+            additional_constraints=request.additional_constraints,
+            timeout=request.timeout_seconds,
+        )
+        return {"success": True, "result": witness}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
 
 
 @app.get("/cav-nlp/status")

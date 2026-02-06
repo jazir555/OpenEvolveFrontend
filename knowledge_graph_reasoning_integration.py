@@ -30,6 +30,13 @@ try:
 except ImportError:
     VERIFICATION_AVAILABLE = False
 
+# **LEAN INTEGRATION**: Formal verification with Lean alongside Z3
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 class VerificationStatus(Enum):

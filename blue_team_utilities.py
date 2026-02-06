@@ -29,6 +29,7 @@ try:
     LEAN_AVAILABLE = True
 except ImportError:
     LEAN_AVAILABLE = False
+    logger = logging.getLogger(__name__)
     logger.warning("LeanAide client not available - formal validation utilities disabled")
 
 
@@ -1824,6 +1825,43 @@ def get_quick_validation(content: str) -> Dict[str, bool]:
         'no_syntax_errors': True,  # Simplified
         'reasonable_length': len(content) < 1000000
     }
+
+
+def verify_with_lean(content: str, properties: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """
+    Verify content using Lean theorem prover as a validation utility.
+    
+    Args:
+        content: The content to verify (theorem statement or proof)
+        properties: Optional properties for verification
+        
+    Returns:
+        Dict with verification results including:
+        - verified: bool
+        - formalized: str (Lean code)
+        - proof_status: str
+        - errors: list
+    """
+    if not LEAN_AVAILABLE:
+        return {"verified": False, "error": "Lean verification not available"}
+    
+    try:
+        client = LeanAideClient()
+        # Auto-formalize the content
+        formalized = client.autoformalize(content)
+        # Verify the formalized content
+        verification = client.verify(formalized)
+        
+        return {
+            "verified": verification.get("success", False),
+            "formalized": formalized,
+            "proof_status": verification.get("status", "unknown"),
+            "errors": verification.get("errors", []),
+            "metadata": properties or {}
+        }
+    except Exception as e:
+        logger.error(f"Lean verification failed: {e}")
+        return {"verified": False, "error": str(e)}
 
 
 def create_solution_from_template(template_name: str,

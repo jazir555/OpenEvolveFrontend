@@ -31,6 +31,60 @@ except ImportError:
     LEAN_AVAILABLE = False
     logger.warning("LeanAide client not available - formal verification tools disabled")
 
+
+async def verify_with_lean_tools(content: str, tool_context: str = None) -> Dict[str, Any]:
+    """Verify content using Lean theorem prover for blue team tools.
+    
+    Args:
+        content: The content to verify (patch, fix, or solution)
+        tool_context: Optional context about which tool is using verification
+        
+    Returns:
+        Dictionary with verification results
+    """
+    if not LEAN_AVAILABLE:
+        return {"verified": False, "reason": "Lean unavailable"}
+    
+    try:
+        client = LeanAideClient()
+        
+        # Translate content to formal theorem statement
+        formalized = await client.translate_thm(content)
+        
+        # Verify the formalized content
+        result = await client.verify(formalized)
+        
+        return {
+            "verified": result.verified if hasattr(result, 'verified') else False,
+            "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
+            "proof": result.proof_code if hasattr(result, 'proof_code') else None,
+            "tool_context": tool_context,
+            "formalized_content": formalized
+        }
+    except Exception as e:
+        logger.warning(f"Lean tool verification failed: {e}")
+        return {"verified": False, "reason": str(e), "tool_context": tool_context}
+
+
+class LeanVerificationToolsMixin:
+    """Mixin class providing Lean verification tools."""
+    
+    async def _verify_with_lean(
+        self, 
+        content: str, 
+        tool_context: str = None
+    ) -> Dict[str, Any]:
+        """Verify content using Lean theorem prover.
+        
+        Args:
+            content: The content to verify
+            tool_context: Optional context about the tool
+            
+        Returns:
+            Dictionary with verification results
+        """
+        return await verify_with_lean_tools(content, tool_context)
+
 class AnalysisType(Enum):
     """Types of analysis supported"""
     COMPLEXITY = "complexity"

@@ -64,6 +64,15 @@ from blue_team import BlueTeam, BlueTeamAssessment
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# **LEAN INTEGRATION**: Real Lean proof verification for evaluator team
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+    logger = logging.getLogger(__name__)
+    logger.warning("LeanAide client not available - formal evaluation disabled")
+
 class EvaluationMetric(Enum):
     """Metrics used for evaluation"""
     OVERALL_QUALITY = "overall_quality"
@@ -2132,6 +2141,42 @@ class EvaluatorTeam:
                 "error": str(e),
                 "assessment_result": standard_result
             }
+
+    def verify_with_lean(self, content: str, properties: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Verify content using Lean theorem prover for Lean-based evaluation.
+        
+        Args:
+            content: The content to verify (theorem statement or proof)
+            properties: Optional properties for verification
+            
+        Returns:
+            Dict with verification results including:
+            - verified: bool
+            - formalized: str (Lean code)
+            - proof_status: str
+            - errors: list
+        """
+        if not LEAN_AVAILABLE:
+            return {"verified": False, "error": "Lean verification not available"}
+        
+        try:
+            client = LeanAideClient()
+            # Auto-formalize the content
+            formalized = client.autoformalize(content)
+            # Verify the formalized content
+            verification = client.verify(formalized)
+            
+            return {
+                "verified": verification.get("success", False),
+                "formalized": formalized,
+                "proof_status": verification.get("status", "unknown"),
+                "errors": verification.get("errors", []),
+                "metadata": properties or {}
+            }
+        except Exception as e:
+            logger.error(f"Lean verification failed: {e}")
+            return {"verified": False, "error": str(e)}
 
 # Example usage and testing
 def test_evaluator_team():

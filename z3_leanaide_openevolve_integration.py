@@ -261,7 +261,14 @@ class IntegratedProblemClassifier:
     def __init__(self, config: WorkflowIntegrationConfig):
         self.config = config
         self.z3_detector = Z3ProblemDetector() if Z3_AVAILABLE else None
-        self.lean_detector = MathematicalProblemDetector() if LEANAIDE_WORKFLOW_AVAILABLE else None
+        self.lean_detector = None
+        if LEANAIDE_WORKFLOW_AVAILABLE:
+            try:
+                self.lean_detector = MathematicalProblemDetector(self.config.leanaide_config)
+            except TypeError:
+                self.lean_detector = MathematicalProblemDetector()
+            except Exception as exc:
+                logger.warning("Lean mathematical detector unavailable: %s", exc)
         
         # Keywords for classification
         self.constraint_keywords = [

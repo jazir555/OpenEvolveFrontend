@@ -1877,7 +1877,7 @@ class EnsembleStrategySelector(StrategyRecommender):
         else:
             agreement = 0.0
 
-        return (winner[0], winner[1]), agreement
+        return winner[0], agreement
 
     async def _calculate_confidence_interval(
         self,

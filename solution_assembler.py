@@ -60,6 +60,13 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
+# **LEAN INTEGRATION**: Formal verification with Lean
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 # Import from sovereign_data_models with fallbacks
 try:
     from sovereign_data_models import (

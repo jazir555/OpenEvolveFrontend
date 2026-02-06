@@ -108,8 +108,6 @@ try:
 except ImportError:
     LEAN_AVAILABLE = False
     logger.warning("LeanAide client not available - formal verification disabled")
-except ImportError:
-    ADAPTIVE_AVAILABLE = False
 
 @dataclass
 class AdversarialConfiguration:

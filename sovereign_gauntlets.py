@@ -14,6 +14,15 @@ from sovereign_data_models import (
 
 logger = logging.getLogger(__name__)
 
+# **LEAN INTEGRATION**: Real Lean proof verification for sovereign gauntlets
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+    logger = logging.getLogger(__name__)
+    logger.warning("LeanAide client not available - formal verification disabled")
+
 # Import DTS integration
 try:
     from dts_integration import DTSIntegration, DTSIntegrationConfig, DTS_AVAILABLE
@@ -978,10 +987,133 @@ Justification: <Explanation of why the new solution is superior>
         }
 
 
-
-
+class FormalSovereignGauntlet(DecompositionGauntlet):
+    """
+    Sovereign-grade gauntlet with Lean theorem prover formal verification.
     
-
+    This gauntlet formalizes decomposition plans into Lean 4 and verifies
+    their mathematical correctness, providing rigorous guarantees.
+    """
+    
+    def __init__(self, openevolve_client=None):
+        super().__init__("formal_sovereign_gauntlet")
+        self.openevolve_client = openevolve_client
+        self.lean_client: Optional[LeanAideClient] = None
+        
+        if LEAN_AVAILABLE:
+            try:
+                self.lean_client = LeanAideClient()
+                self.logger.info("FormalSovereignGauntlet initialized with LeanAideClient")
+            except Exception as e:
+                self.logger.warning(f"Failed to initialize LeanAideClient: {e}")
+    
+    def run(self, plan: DecompositionPlan) -> ValidationResult:
+        """
+        Run formal verification on decomposition plan using Lean.
+        
+        Args:
+            plan: The decomposition plan to validate
+            
+        Returns:
+            ValidationResult with formal verification outcome
+        """
+        self.logger.info(f"Running formal sovereign gauntlet on plan: {plan.id}")
+        
+        if not LEAN_AVAILABLE or not self.lean_client:
+            return self._create_validation_result(
+                passed=False,
+                score=0.0,
+                feedback="Lean formal verification not available",
+                improvements=["Install LeanAide for formal verification"]
+            )
+        
+        try:
+            # Convert plan to verifiable format
+            plan_text = self._plan_to_verifiable_text(plan)
+            
+            # Auto-formalize the plan
+            formalized = self.lean_client.autoformalize(plan_text)
+            
+            # Verify the formalized plan
+            verification = self.lean_client.verify(formalized)
+            
+            verified = verification.get("success", False)
+            errors = verification.get("errors", [])
+            
+            # Calculate score
+            score = 1.0 if verified else 0.0
+            if errors:
+                score = max(0.0, 1.0 - len(errors) * 0.1)
+            
+            if verified:
+                return self._create_validation_result(
+                    passed=True,
+                    score=score,
+                    feedback=f"Formal verification passed. Plan is mathematically sound.",
+                    improvements=[]
+                )
+            else:
+                return self._create_validation_result(
+                    passed=False,
+                    score=score,
+                    feedback=f"Formal verification failed with {len(errors)} errors",
+                    improvements=[f"Fix: {error}" for error in errors[:5]]
+                )
+                
+        except Exception as e:
+            self.logger.error(f"Formal verification failed: {e}")
+            return self._create_validation_result(
+                passed=False,
+                score=0.0,
+                feedback=f"Formal verification error: {str(e)}",
+                improvements=["Check plan structure and retry"]
+            )
+    
+    def _plan_to_verifiable_text(self, plan: DecompositionPlan) -> str:
+        """Convert decomposition plan to text suitable for formalization."""
+        lines = [
+            f"Decomposition Plan: {plan.id}",
+            f"Problem: {plan.problem_description}",
+            f"Success Criteria: {plan.success_criteria}",
+            "",
+            "Sub-problems:"
+        ]
+        
+        for i, sub in enumerate(plan.sub_problems, 1):
+            lines.append(f"  {i}. {sub.description} (Complexity: {sub.complexity})")
+        
+        return "\n".join(lines)
+    
+    def verify_with_lean(self, content: str, properties: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Verify content using Lean theorem prover.
+        
+        Args:
+            content: The content to verify
+            properties: Optional properties for verification
+            
+        Returns:
+            Dict with verification results
+        """
+        if not LEAN_AVAILABLE or not self.lean_client:
+            return {"verified": False, "error": "Lean verification not available"}
+        
+        try:
+            # Auto-formalize the content
+            formalized = self.lean_client.autoformalize(content)
+            # Verify the formalized content
+            verification = self.lean_client.verify(formalized)
+            
+            return {
+                "verified": verification.get("success", False),
+                "formalized": formalized,
+                "proof_status": verification.get("status", "unknown"),
+                "errors": verification.get("errors", []),
+                "metadata": properties or {}
+            }
+        except Exception as e:
+            self.logger.error(f"Lean verification failed: {e}")
+            return {"verified": False, "error": str(e)}
 
 
 class GauntletSystem:

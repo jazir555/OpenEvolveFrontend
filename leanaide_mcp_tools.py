@@ -28,6 +28,10 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
+# Configure logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
 # REAL Lean integration
 try:
     from leanaide_client import LeanAideClient
@@ -47,10 +51,6 @@ from ace_security_utils import (
     sanitize_for_logging,
     get_global_lock,
 )
-
-# Configure logging
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 # ============================================================================
 # Configuration
