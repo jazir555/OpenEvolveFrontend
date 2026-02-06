@@ -1692,6 +1692,45 @@ def generate_refutation_narrative(
 
 
 # =============================================================================
+# Z3 Prover Integration Facade
+# =============================================================================
+
+class Z3ProverIntegration:
+    """
+    Facade class for Z3 integration, providing a unified interface for
+    constraint solving, theorem proving, and logical sandboxing.
+    """
+    
+    def __init__(self, config: Optional[Z3Config] = None, timeout: float = 30.0):
+        self.config = config or Z3Config(timeout=timeout)
+        self.solver_engine = Z3SolverEngine(self.config)
+        self.theorem_prover = Z3TheoremProver(self.config)
+        self.sandbox = DigitalTwinSandbox(self.solver_engine)
+        self.logger = logging.getLogger(__name__ + ".Z3ProverIntegration")
+        
+    def solve_constraints(self, variables: List[Z3Variable], constraints: List[Z3Constraint]) -> Z3SolverResult:
+        """Unified entry point for constraint solving."""
+        return self.solver_engine.solve_constraints(variables, constraints)
+        
+    def prove_theorem(self, theorem: str, assumptions: List[str] = None) -> Z3TheoremResult:
+        """Unified entry point for theorem proving."""
+        return self.theorem_prover.prove_theorem(theorem, assumptions)
+        
+    def verify_safety(self, fix_text: str, safety_invariants: List[str]) -> Tuple[bool, Optional[Dict[str, Any]]]:
+        """Unified entry point for safety invariant verification."""
+        return self.sandbox.verify_fix_with_invariants(fix_text, safety_invariants)
+        
+    def get_status(self) -> Dict[str, Any]:
+        """Get status of all Z3 components."""
+        return {
+            "engine": self.solver_engine.get_status(),
+            "prover_available": self.theorem_prover is not None,
+            "sandbox_available": self.sandbox is not None,
+            "z3_available": Z3_AVAILABLE
+        }
+
+
+# =============================================================================
 # SMART CONTRACT INVARIANT TRANSLATION
 # =============================================================================
 
@@ -3528,6 +3567,7 @@ __all__ = [
     'Z3ProblemDetector',
     'Z3SolverEngine',
     'Z3TheoremProver',
+    'Z3ProverIntegration',
     'DigitalTwinSandbox',
     'Z3LogicCompressor',
     'Z3DSPyIntegration',

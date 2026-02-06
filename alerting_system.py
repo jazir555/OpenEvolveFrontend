@@ -139,31 +139,59 @@ class AlertStore:
 
     def save_alert(self, alert: Alert) -> bool:
         """Save an alert."""
-        raise NotImplementedError
+        # Default implementation using in-memory storage
+        if not hasattr(self, '_alerts'):
+            self._alerts = {}
+        self._alerts[alert.id] = alert
+        return True
 
     def get_alert(self, alert_id: str) -> Optional[Alert]:
         """Get an alert by ID."""
-        raise NotImplementedError
+        # Default implementation using in-memory storage
+        if not hasattr(self, '_alerts'):
+            self._alerts = {}
+        return self._alerts.get(alert_id)
 
     def get_all_alerts(self) -> List[Alert]:
         """Get all alerts."""
-        raise NotImplementedError
+        # Default implementation using in-memory storage
+        if not hasattr(self, '_alerts'):
+            self._alerts = {}
+        return list(self._alerts.values())
 
     def update_alert(self, alert: Alert) -> bool:
         """Update an alert."""
-        raise NotImplementedError
+        # Default implementation using in-memory storage
+        if not hasattr(self, '_alerts'):
+            self._alerts = {}
+        if alert.id in self._alerts:
+            self._alerts[alert.id] = alert
+            return True
+        return False
 
     def delete_alert(self, alert_id: str) -> bool:
         """Delete an alert."""
-        raise NotImplementedError
+        # Default implementation using in-memory storage
+        if not hasattr(self, '_alerts'):
+            self._alerts = {}
+        if alert_id in self._alerts:
+            del self._alerts[alert_id]
+            return True
+        return False
 
     def get_alerts_by_severity(self, severity: str) -> List[Alert]:
         """Get alerts by severity."""
-        raise NotImplementedError
+        # Default implementation using in-memory storage
+        if not hasattr(self, '_alerts'):
+            self._alerts = {}
+        return [alert for alert in self._alerts.values() if alert.severity == severity]
 
     def get_alerts_by_component(self, component: str) -> List[Alert]:
         """Get alerts by component."""
-        raise NotImplementedError
+        # Default implementation using in-memory storage
+        if not hasattr(self, '_alerts'):
+            self._alerts = {}
+        return [alert for alert in self._alerts.values() if alert.component == component]
 
 
 class InMemoryAlertStore(AlertStore):

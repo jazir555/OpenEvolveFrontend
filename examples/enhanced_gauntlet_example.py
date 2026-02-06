@@ -88,7 +88,7 @@ async def example_1_basic_loongflow_evaluation():
             return quicksort(left) + middle + quicksort(right)
 
         def median_of_three(arr):
-            """Select median of first, middle, last elements."""
+            '''Select median of first, middle, last elements.'''
             first, middle, last = arr[0], arr[len(arr)//2], arr[-1]
             return sorted([first, middle, last])[1]
         ```

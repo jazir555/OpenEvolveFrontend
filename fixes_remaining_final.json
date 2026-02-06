@@ -1,0 +1,60 @@
+{
+  "timestamp": "2026-02-05T22:32:00",
+  "total_files_fixed": 6,
+  "files_fixed": [
+    {
+      "file": "core-projects/lmql/src/lmql/ui/playground/ref.py",
+      "issue": "expected ':'",
+      "fix": "Added missing colon after function definition and added 'pass' as function body",
+      "original": "def compare_field(a=12,\n                  window_size=[1,2,3])",
+      "fixed": "def compare_field(a=12,\n                  window_size=[1,2,3]):\n    pass"
+    },
+    {
+      "file": "examples/enhanced_gauntlet_example.py",
+      "issue": "invalid syntax - nested triple-quoted strings",
+      "fix": "Changed inner triple-quoted docstring to single quotes to avoid premature string termination",
+      "original": "def median_of_three(arr):\n            \"\"\"Select median of first, middle, last elements.\"\"\"",
+      "fixed": "def median_of_three(arr):\n            '''Select median of first, middle, last elements.'''"
+    },
+    {
+      "file": "examples/finance/insurance_example.py",
+      "issue": "unclosed parenthesis",
+      "fix": "Added missing closing parenthesis ')' to the import statement",
+      "original": "from openevolve.finance.verticals.insurance import (\n    ...\n    CreditRating\n\n\nasync def example_1_basic_evolution():",
+      "fixed": "from openevolve.finance.verticals.insurance import (\n    ...\n    CreditRating\n)\n\n\nasync def example_1_basic_evolution():"
+    },
+    {
+      "file": "glue/adapters/rese-leanaide-workflow/tests/test_leanaide_rese_workflow.py",
+      "issue": "invalid syntax - hyphens in module path",
+      "fix": "Replaced hyphens with underscores in module import paths",
+      "original": "from glue.adapters.rese-leanaide-workflow.src.autoformalization_service import",
+      "fixed": "from glue.adapters.rese_leanaide_workflow.src.autoformalization_service import"
+    },
+    {
+      "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_bridge.py",
+      "issue": "unexpected indent",
+      "fix": "Fixed indentation of schema imports - converted orphaned indented lines to proper import statement",
+      "original": "CircuitBreakerState = rese_z3_client.CircuitBreakerState\n    CanonicalSolverRequest,\n    ...\n)",
+      "fixed": "CircuitBreakerState = rese_z3_client.CircuitBreakerState\n\n# Import canonical schema types\nfrom rese_z3_schema import (\n    CanonicalSolverRequest,\n    ...\n)"
+    },
+    {
+      "file": "leanaide-bubblelab-plugin/test_final_verification.py",
+      "issue": "invalid syntax - malformed try-except block",
+      "fix": "Restructured the malformed try-except block with proper indentation and exception handling",
+      "original": "from PluginSystem import pluginRegistry\n# OpenEvolve imports with backward compatibility\ntry:\n    from openevolve_imports import (\n    LEANAIDE_MCTS_MDAP_AVAILABLE = True\nexcept ImportError:\n    try:\n        from leanaide_mcts_mdap import (\n        LEANAIDE_MCTS_MDAP_AVAILABLE = True\n    except ImportError:\n        LEANAIDE_MCTS_MDAP_AVAILABLE = False",
+      "fixed": "from PluginSystem import pluginRegistry\n        \n        # OpenEvolve imports with backward compatibility\n        try:\n            from openevolve_imports import LEANAIDE_MCTS_MDAP_AVAILABLE\n        except ImportError:\n            try:\n                from leanaide_mcts_mdap import LEANAIDE_MCTS_MDAP_AVAILABLE\n            except ImportError:\n                LEANAIDE_MCTS_MDAP_AVAILABLE = False"
+    }
+  ],
+  "verification": {
+    "all_files_compile": true,
+    "py_compile_check": "passed",
+    "files_verified": [
+      "core-projects/lmql/src/lmql/ui/playground/ref.py",
+      "examples/enhanced_gauntlet_example.py",
+      "examples/finance/insurance_example.py",
+      "glue/adapters/rese-leanaide-workflow/tests/test_leanaide_rese_workflow.py",
+      "glue/adapters/rese-z3-bridge/tests/test_rese_z3_bridge.py",
+      "leanaide-bubblelab-plugin/test_final_verification.py"
+    ]
+  }
+}

@@ -79,7 +79,13 @@ class HealthChecker:
     
     async def check(self) -> HealthCheckResult:
         """Perform health check."""
-        raise NotImplementedError
+        # Default implementation returns unknown status
+        return HealthCheckResult(
+            component=self.name,
+            status="unknown",
+            message="Health check not implemented",
+            details={}
+        )
 
 
 class PythonVersionChecker(HealthChecker):

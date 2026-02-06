@@ -1,0 +1,430 @@
+{
+  "report_metadata": {
+    "title": "OpenEvolve Import Fixes - Final Summary",
+    "generated_at": "2026-02-05T22:32:11-08:00",
+    "total_files_fixed": 30,
+    "verification_status": "COMPLETE",
+    "verification_method": "py_compile",
+    "success_rate": "100%"
+  },
+  "summary_by_batch": {
+    "batch_1_dspy_adapters": {
+      "file_count": 6,
+      "description": "DSPy Adapters & Clients",
+      "files": [
+        "core-projects/dspy/dspy/adapters/json_adapter.py",
+        "core-projects/dspy/dspy/adapters/types/audio.py",
+        "core-projects/dspy/dspy/adapters/types/image.py",
+        "core-projects/dspy/dspy/adapters/utils.py",
+        "core-projects/dspy/dspy/adapters/xml_adapter.py",
+        "core-projects/dspy/dspy/clients/lm_local.py"
+      ],
+      "status": "COMPLETE"
+    },
+    "batch_2_dspy_evaluate_predict": {
+      "file_count": 7,
+      "description": "DSPy Evaluate & Predict Modules",
+      "files": [
+        "core-projects/dspy/dspy/evaluate/evaluate.py",
+        "core-projects/dspy/dspy/evaluate/metrics.py",
+        "core-projects/dspy/dspy/predict/aggregation.py",
+        "core-projects/dspy/dspy/predict/best_of_n.py",
+        "core-projects/dspy/dspy/predict/chain_of_thought.py",
+        "core-projects/dspy/dspy/predict/knn.py",
+        "core-projects/dspy/dspy/predict/react.py"
+      ],
+      "status": "COMPLETE"
+    },
+    "batch_3_dspy_primitives": {
+      "file_count": 6,
+      "description": "DSPy Primitives, Propose & Streaming",
+      "files": [
+        "core-projects/dspy/dspy/primitives/base_module.py",
+        "core-projects/dspy/dspy/propose/dataset_summary_generator.py",
+        "core-projects/dspy/dspy/propose/grounded_proposer.py",
+        "core-projects/dspy/dspy/retrievers/embeddings.py",
+        "core-projects/dspy/dspy/signatures/field.py",
+        "core-projects/dspy/dspy/streaming/streamify.py"
+      ],
+      "status": "COMPLETE"
+    },
+    "batch_4_dspy_teleprompt": {
+      "file_count": 5,
+      "description": "DSPy Teleprompt Modules",
+      "files": [
+        "core-projects/dspy/dspy/teleprompt/bootstrap.py",
+        "core-projects/dspy/dspy/teleprompt/bootstrap_finetune.py",
+        "core-projects/dspy/dspy/teleprompt/gepa/gepa.py",
+        "core-projects/dspy/dspy/teleprompt/knn_fewshot.py",
+        "core-projects/dspy/dspy/teleprompt/teleprompt.py"
+      ],
+      "status": "COMPLETE"
+    },
+    "batch_5_remaining_final": {
+      "file_count": 6,
+      "description": "LMQL, Examples, Glue Adapters, Leanaide",
+      "files": [
+        "core-projects/lmql/src/lmql/ui/playground/ref.py",
+        "examples/enhanced_gauntlet_example.py",
+        "examples/finance/insurance_example.py",
+        "glue/adapters/rese-leanaide-workflow/tests/test_leanaide_rese_workflow.py",
+        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_bridge.py",
+        "leanaide-bubblelab-plugin/test_final_verification.py"
+      ],
+      "status": "COMPLETE"
+    }
+  },
+  "summary_by_category": {
+    "adaptive_mdap_import_misplacement": {
+      "count": 18,
+      "percentage": 60.0,
+      "description": "Import blocks incorrectly inserted inside function/method definitions",
+      "error_types": ["unexpected indent", "return outside function"],
+      "fix_strategy": "Moved import blocks to module level, restored displaced code"
+    },
+    "import_path_issues": {
+      "count": 3,
+      "percentage": 10.0,
+      "description": "Invalid import paths, hyphens in module names, malformed try-except",
+      "error_types": ["invalid syntax", "unexpected indent"],
+      "fix_strategy": "Corrected import paths, replaced hyphens with underscores, restructured try-except blocks"
+    },
+    "syntax_errors_other": {
+      "count": 3,
+      "percentage": 10.0,
+      "description": "Missing colons, unclosed parentheses, nested triple-quoted strings",
+      "error_types": ["expected ':'", "invalid syntax"],
+      "fix_strategy": "Added missing syntax elements, corrected string nesting"
+    },
+    "various_other": {
+      "count": 6,
+      "percentage": 20.0,
+      "description": "Various syntax and import issues in DSPy adapters and primitives",
+      "error_types": ["various"],
+      "fix_strategy": "Applied appropriate fixes per file"
+    }
+  },
+  "files_by_project": {
+    "dspy_framework": {
+      "count": 24,
+      "files": [
+        "core-projects/dspy/dspy/adapters/json_adapter.py",
+        "core-projects/dspy/dspy/adapters/types/audio.py",
+        "core-projects/dspy/dspy/adapters/types/image.py",
+        "core-projects/dspy/dspy/adapters/utils.py",
+        "core-projects/dspy/dspy/adapters/xml_adapter.py",
+        "core-projects/dspy/dspy/clients/lm_local.py",
+        "core-projects/dspy/dspy/evaluate/evaluate.py",
+        "core-projects/dspy/dspy/evaluate/metrics.py",
+        "core-projects/dspy/dspy/predict/aggregation.py",
+        "core-projects/dspy/dspy/predict/best_of_n.py",
+        "core-projects/dspy/dspy/predict/chain_of_thought.py",
+        "core-projects/dspy/dspy/predict/knn.py",
+        "core-projects/dspy/dspy/predict/react.py",
+        "core-projects/dspy/dspy/primitives/base_module.py",
+        "core-projects/dspy/dspy/propose/dataset_summary_generator.py",
+        "core-projects/dspy/dspy/propose/grounded_proposer.py",
+        "core-projects/dspy/dspy/retrievers/embeddings.py",
+        "core-projects/dspy/dspy/signatures/field.py",
+        "core-projects/dspy/dspy/streaming/streamify.py",
+        "core-projects/dspy/dspy/teleprompt/bootstrap.py",
+        "core-projects/dspy/dspy/teleprompt/bootstrap_finetune.py",
+        "core-projects/dspy/dspy/teleprompt/gepa/gepa.py",
+        "core-projects/dspy/dspy/teleprompt/knn_fewshot.py",
+        "core-projects/dspy/dspy/teleprompt/teleprompt.py"
+      ]
+    },
+    "lmql": {
+      "count": 1,
+      "files": [
+        "core-projects/lmql/src/lmql/ui/playground/ref.py"
+      ]
+    },
+    "examples": {
+      "count": 2,
+      "files": [
+        "examples/enhanced_gauntlet_example.py",
+        "examples/finance/insurance_example.py"
+      ]
+    },
+    "glue_adapters": {
+      "count": 2,
+      "files": [
+        "glue/adapters/rese-leanaide-workflow/tests/test_leanaide_rese_workflow.py",
+        "glue/adapters/rese-z3-bridge/tests/test_rese_z3_bridge.py"
+      ]
+    },
+    "leanaide_plugin": {
+      "count": 1,
+      "files": [
+        "leanaide-bubblelab-plugin/test_final_verification.py"
+      ]
+    }
+  },
+  "common_patterns": {
+    "adaptive_mdap_import_block": {
+      "description": "Standard adaptive_mdap integration import block",
+      "content": "try:\n    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator\n    from adaptive_mdap.core.types import SubProblem\n    ADAPTIVE_MDAP_AVAILABLE = True\nexcept ImportError:\n    ADAPTIVE_MDAP_AVAILABLE = False\n    TaskComplexityClassifier = None\n    AdaptiveMDAPAllocator = None\n    SubProblem = None",
+      "correct_placement": "Module level, after other imports, before class/function definitions",
+      "incorrect_placement": "Inside function/method definitions (between docstring and body)"
+    }
+  },
+  "verification_results": {
+    "total_checked": 30,
+    "successful": 30,
+    "failed": 0,
+    "timestamp": "2026-02-05T22:32:11-08:00"
+  },
+  "source_reports": [
+    "fixes_dspy_batch1.json",
+    "fixes_dspy_batch2.json",
+    "fixes_dspy_batch3.json",
+    "fixes_dspy_batch4.json",
+    "fixes_remaining_final.json"
+  ],
+  "recommendations": [
+    "Always verify automated code modifications with py_compile before committing",
+    "Use AST-based code manipulation libraries instead of string insertion",
+    "Implement pre-commit hooks to prevent syntax errors from being committed",
+    "Never use hyphens in Python package directory names",
+    "Always place optional integration imports at module level, never inside functions",
+    "Add syntax checking to CI/CD pipeline",
+    "Run flake8 or similar linter as part of code review process"
+  ],
+  "detailed_fixes": [
+    {
+      "file": "core-projects/dspy/dspy/adapters/json_adapter.py",
+      "batch": "batch_1",
+      "issue": "Syntax/import error",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "core-projects/dspy/dspy/adapters/types/audio.py",
+      "batch": "batch_1",
+      "issue": "Syntax/import error",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "core-projects/dspy/dspy/adapters/types/image.py",
+      "batch": "batch_1",
+      "issue": "Syntax/import error",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "core-projects/dspy/dspy/adapters/utils.py",
+      "batch": "batch_1",
+      "issue": "Syntax/import error",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "core-projects/dspy/dspy/adapters/xml_adapter.py",
+      "batch": "batch_1",
+      "issue": "Syntax/import error",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "core-projects/dspy/dspy/clients/lm_local.py",
+      "batch": "batch_1",
+      "issue": "Syntax/import error",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "core-projects/dspy/dspy/evaluate/evaluate.py",
+      "batch": "batch_2",
+      "issue": "unexpected indent",
+      "root_cause": "Adaptive MDAP import block inserted between function definition and body",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "core-projects/dspy/dspy/evaluate/metrics.py",
+      "batch": "batch_2",
+      "issue": "return outside function",
+      "root_cause": "Adaptive MDAP import block inserted inside EM() function",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "core-projects/dspy/dspy/predict/aggregation.py",
+      "batch": "batch_2",
+      "issue": "return outside function",
+      "root_cause": "Adaptive MDAP import block inserted inside majority() function",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "core-projects/dspy/dspy/predict/best_of_n.py",
+      "batch": "batch_2",
+      "issue": "unexpected indent",
+      "root_cause": "Adaptive MDAP import block inserted inside __init__() method",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "core-projects/dspy/dspy/predict/chain_of_thought.py",
+      "batch": "batch_2",
+      "issue": "unexpected indent",
+      "root_cause": "Adaptive MDAP import block inserted inside __init__() method",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "core-projects/dspy/dspy/predict/knn.py",
+      "batch": "batch_2",
+      "issue": "unexpected indent",
+      "root_cause": "Adaptive MDAP import block inserted inside __init__() method",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "core-projects/dspy/dspy/predict/react.py",
+      "batch": "batch_2",
+      "issue": "unexpected indent",
+      "root_cause": "Adaptive MDAP import block inserted inside __init__() method",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "core-projects/dspy/dspy/primitives/base_module.py",
+      "batch": "batch_3",
+      "issue": "Syntax/import error",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "core-projects/dspy/dspy/propose/dataset_summary_generator.py",
+      "batch": "batch_3",
+      "issue": "Syntax/import error",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "core-projects/dspy/dspy/propose/grounded_proposer.py",
+      "batch": "batch_3",
+      "issue": "Syntax/import error",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "core-projects/dspy/dspy/retrievers/embeddings.py",
+      "batch": "batch_3",
+      "issue": "Syntax/import error",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "core-projects/dspy/dspy/signatures/field.py",
+      "batch": "batch_3",
+      "issue": "Syntax/import error",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "core-projects/dspy/dspy/streaming/streamify.py",
+      "batch": "batch_3",
+      "issue": "Syntax/import error",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "core-projects/dspy/dspy/teleprompt/bootstrap.py",
+      "batch": "batch_4",
+      "issue": "unexpected indent",
+      "root_cause": "Import block inserted between __init__ method definition and body",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "core-projects/dspy/dspy/teleprompt/bootstrap_finetune.py",
+      "batch": "batch_4",
+      "issue": "return outside function",
+      "root_cause": "Import block inserted inside all_predictors_have_lms function",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "core-projects/dspy/dspy/teleprompt/gepa/gepa.py",
+      "batch": "batch_4",
+      "issue": "unexpected indent",
+      "root_cause": "Import block inserted inside Protocol class with orphaned placeholder",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "core-projects/dspy/dspy/teleprompt/knn_fewshot.py",
+      "batch": "batch_4",
+      "issue": "unexpected indent",
+      "root_cause": "Import block inserted between __init__ method definition and body",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "core-projects/dspy/dspy/teleprompt/teleprompt.py",
+      "batch": "batch_4",
+      "issue": "unexpected indent",
+      "root_cause": "Import block inserted between compile method definition and body",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "core-projects/lmql/src/lmql/ui/playground/ref.py",
+      "batch": "remaining_final",
+      "issue": "expected ':'",
+      "root_cause": "Missing colon after function definition",
+      "fix": "Added colon and pass statement",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "examples/enhanced_gauntlet_example.py",
+      "batch": "remaining_final",
+      "issue": "invalid syntax - nested triple-quoted strings",
+      "root_cause": "Inner triple-quoted docstring caused premature termination",
+      "fix": "Changed inner docstring to single quotes",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "examples/finance/insurance_example.py",
+      "batch": "remaining_final",
+      "issue": "unclosed parenthesis",
+      "root_cause": "Missing closing parenthesis in multi-line import",
+      "fix": "Added missing closing parenthesis",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "glue/adapters/rese-leanaide-workflow/tests/test_leanaide_rese_workflow.py",
+      "batch": "remaining_final",
+      "issue": "invalid syntax - hyphens in module path",
+      "root_cause": "Python module paths cannot contain hyphens",
+      "fix": "Replaced hyphens with underscores in import paths",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "glue/adapters/rese-z3-bridge/tests/test_rese_z3_bridge.py",
+      "batch": "remaining_final",
+      "issue": "unexpected indent",
+      "root_cause": "Orphaned indented import lines",
+      "fix": "Restructured to proper import statement",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    },
+    {
+      "file": "leanaide-bubblelab-plugin/test_final_verification.py",
+      "batch": "remaining_final",
+      "issue": "invalid syntax - malformed try-except block",
+      "root_cause": "Improper indentation and incomplete statements",
+      "fix": "Restructured try-except block with proper indentation",
+      "status": "FIXED",
+      "verification": "py_compile OK"
+    }
+  ]
+}
