@@ -977,6 +977,46 @@ class SolutionManager:
             self._sub_problem_index.clear()
             logger.info("Cleared all solutions from memory")
 
+    async def verify_solution_with_lean(self, solution: Dict) -> Dict:
+        """
+        **LEAN INTEGRATION**: Solution verification using Lean theorem prover.
+        
+        Args:
+            solution: Solution dictionary to verify
+            
+        Returns:
+            Dict with verification results
+        """
+        if not LEAN_AVAILABLE:
+            return {"verified": False, "reason": "Lean unavailable"}
+        
+        try:
+            client = LeanAideClient()
+            content = solution.get('content', str(solution))
+            
+            # Autoformalize and verify
+            formalized = await client.translate_thm(content)
+            
+            if formalized.success and formalized.data:
+                result = await client.elaborate(formalized.data.get('result', ''))
+                
+                return {
+                    "verified": result.success,
+                    "confidence": 1.0 if result.success else 0.0,
+                    "proof": result.data.get('result') if result.data else None,
+                    "solution_valid": result.success,
+                    "timestamp": datetime.now().isoformat()
+                }
+            else:
+                return {
+                    "verified": False,
+                    "reason": "Autoformalization failed",
+                    "timestamp": datetime.now().isoformat()
+                }
+        except Exception as e:
+            logger.error(f"Lean verification error: {e}")
+            return {"verified": False, "reason": str(e)}
+
     async def validate_solution_attempt_with_lean(
         self,
         attempt: SolutionAttempt,
@@ -1007,21 +1047,29 @@ class SolutionManager:
             client = LeanAideClient()
             content = attempt.content if hasattr(attempt, 'content') else str(attempt)
             
-            # Autoformalize the solution content
-            formalized = await client.autoformalize(content)
+            # Autoformalize the solution content using translate_thm
+            formalized = await client.translate_thm(content)
             
-            # Verify with Lean
-            result = await client.verify(formalized)
-            
-            validation_result = {
-                "verified": result.verified if hasattr(result, 'verified') else False,
-                "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
-                "proof": result.proof_code if hasattr(result, 'proof_code') else None,
-                "attempt_id": attempt.id if hasattr(attempt, 'id') else None,
-                "stored_in_knowledge_base": True,
-                "verification_method": "lean_autoformalize",
-                "timestamp": datetime.now().isoformat()
-            }
+            if formalized.success and formalized.data:
+                # Verify with Lean using elaborate
+                result = await client.elaborate(formalized.data.get('result', ''))
+                
+                validation_result = {
+                    "verified": result.success,
+                    "confidence": 1.0 if result.success else 0.0,
+                    "proof": result.data.get('result') if result.data else None,
+                    "attempt_id": attempt.id if hasattr(attempt, 'id') else None,
+                    "stored_in_knowledge_base": True,
+                    "verification_method": "lean_translate_thm_elaborate",
+                    "timestamp": datetime.now().isoformat()
+                }
+            else:
+                validation_result = {
+                    "verified": False,
+                    "reason": "Autoformalization failed",
+                    "error": formalized.error,
+                    "attempt_id": attempt.id if hasattr(attempt, 'id') else None
+                }
             
             # Update attempt metadata with verification result
             if hasattr(attempt, 'metadata'):

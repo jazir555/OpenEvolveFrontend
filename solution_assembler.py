@@ -67,6 +67,59 @@ try:
 except ImportError:
     LEAN_AVAILABLE = False
 
+
+# ============================================================================
+# LEAN VERIFICATION HELPERS
+# ============================================================================
+
+async def verify_solution_with_lean(solution: Dict) -> Dict:
+    """
+    **LEAN INTEGRATION**: Verify solution using Lean theorem prover.
+    
+    Performs formal mathematical verification of solution content.
+    
+    Args:
+        solution: Solution dictionary with content to verify
+        
+    Returns:
+        Dict with verification results
+    """
+    if not LEAN_AVAILABLE:
+        return {"verified": False, "reason": "Lean unavailable"}
+    
+    try:
+        client = LeanAideClient()
+        content = solution.get('assembled_content', str(solution))
+        
+        # Autoformalize and verify
+        formalized = await client.translate_thm(content)
+        
+        if formalized.success and formalized.data:
+            result = await client.elaborate(formalized.data.get('result', ''))
+            
+            return {
+                "verified": result.success,
+                "confidence": 1.0 if result.success else 0.0,
+                "proof": result.data.get('result') if result.data else None,
+                "solution_valid": result.success,
+                "formalized_code": formalized.data.get('result'),
+                "timestamp": datetime.now().isoformat()
+            }
+        else:
+            return {
+                "verified": False,
+                "reason": "Autoformalization failed",
+                "error": formalized.error,
+                "timestamp": datetime.now().isoformat()
+            }
+    except Exception as e:
+        logger.error(f"Lean verification error: {e}")
+        return {
+            "verified": False,
+            "reason": str(e),
+            "timestamp": datetime.now().isoformat()
+        }
+
 # Import from sovereign_data_models with fallbacks
 try:
     from sovereign_data_models import (

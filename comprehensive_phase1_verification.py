@@ -9,6 +9,13 @@ import tempfile
 import inspect
 from typing import Dict, List, Tuple, Any
 
+# **LEAN INTEGRATION**: Real Lean client for formal verification
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 # Track verification results
 verification_results = {
     "A.1": {"total": 0, "passed": 0, "failed": 0, "details": []},
@@ -19,6 +26,17 @@ verification_results = {
     "A.6": {"total": 0, "passed": 0, "failed": 0, "details": []},
     "A.7": {"total": 0, "passed": 0, "failed": 0, "details": []},
 }
+
+
+def verify_with_lean(target: str, criteria: Dict) -> Dict:
+    """Verify target using Lean theorem prover."""
+    if not LEAN_AVAILABLE:
+        return {'verified': False}
+    try:
+        client = LeanAideClient()
+        return client.verify(target)
+    except Exception:
+        return {'verified': False}
 
 
 def verify(component: str, check_name: str, result: bool, details: str = ""):

@@ -29,6 +29,42 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+# **LEAN INTEGRATION**: Verify at each stage
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
+
+def _contains_mathematics(content: Any) -> bool:
+    """Check if content contains mathematical expressions."""
+    content_str = str(content).lower()
+    math_indicators = [
+        'theorem', 'lemma', 'proof', 'forall', 'exists', 'implies',
+        '¬', '∧', '∨', '→', '↔', '∀', '∃', 'λ', '≡', '≠', '≤', '≥',
+        'def ', 'inductive ', 'structure ', 'class ', 'instance '
+    ]
+    return any(indicator in content_str for indicator in math_indicators)
+
+
+async def verify_stage_with_lean(stage_output: Dict, stage_name: str) -> Dict:
+    """Verify stage output with Lean if applicable."""
+    if not LEAN_AVAILABLE:
+        return {"verified": False, "reason": "Lean not available"}
+    
+    # Check if output contains mathematical content
+    if _contains_mathematics(stage_output):
+        try:
+            client = LeanAideClient()
+            result = await client.verify(stage_output)
+            logger.info(f"Lean verification for stage '{stage_name}': {result}")
+            return result
+        except Exception as e:
+            logger.warning(f"Lean verification failed for stage '{stage_name}': {e}")
+            return {"verified": False, "reason": f"Verification error: {e}"}
+    return {"verified": True, "reason": "No mathematics to verify"}
+
 
 # =============================================================================
 # SOPHISTICATED DEPENDENCY GRAPH ALGORITHMS
@@ -181,6 +217,27 @@ class DependencyGraph:
 # =============================================================================
 # STAGE 4: CONFIGURABLE REASSEMBLY - COMPREHENSIVE
 # =============================================================================
+
+async def stage4_with_lean_verification(
+    sub_problem_solutions: Dict[str, 'SolutionAttempt'],
+    problem_statement: str,
+    analyzed_context: Dict[str, Any]
+) -> Tuple[str, Dict]:
+    """
+    Stage 4: Configurable Reassembly with Lean verification.
+    
+    Returns:
+        Tuple of (strategy, verification_result)
+    """
+    strategy = select_integration_strategy(sub_problem_solutions, problem_statement, analyzed_context)
+    
+    # **LEAN INTEGRATION**: Verify stage 4 output
+    verification_result = await verify_stage_with_lean(
+        {"strategy": strategy, "solutions": {k: str(v)[:100] for k, v in sub_problem_solutions.items()}},
+        "stage4_reassembly"
+    )
+    
+    return strategy, verification_result
 
 def select_integration_strategy(
     sub_problem_solutions: Dict[str, 'SolutionAttempt'],

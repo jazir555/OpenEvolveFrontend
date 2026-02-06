@@ -12,6 +12,13 @@ import ast
 from pathlib import Path
 from typing import List, Dict, Tuple
 
+# **LEAN INTEGRATION**: Real Lean client for formal verification
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 # Files that must have security implementations
 REQUIRED_SECURE_FILES = [
     # Authentication & Authorization (8 files)
@@ -138,6 +145,17 @@ def check_file_security(filepath: str) -> Dict[str, bool]:
     )
     
     return results
+
+
+def verify_with_lean(target: str, criteria: Dict) -> Dict:
+    """Verify target using Lean theorem prover."""
+    if not LEAN_AVAILABLE:
+        return {'verified': False}
+    try:
+        client = LeanAideClient()
+        return client.verify(target)
+    except Exception:
+        return {'verified': False}
 
 
 def verify_file(filepath: str) -> Tuple[bool, Dict[str, bool], str]:

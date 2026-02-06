@@ -63,6 +63,20 @@ try:
 except ImportError:
     CAV_NLP_AVAILABLE = False
 
+# Web3 formal verification helpers from Z3 integration
+try:
+    from z3prover_integration import (
+        translate_solidity_assignment_to_z3,
+        verify_solidity_invariant_translation,
+        solve_smart_contract_exploit_witness,
+    )
+    WEB3_FORMAL_AVAILABLE = True
+except ImportError:
+    WEB3_FORMAL_AVAILABLE = False
+    translate_solidity_assignment_to_z3 = None
+    verify_solidity_invariant_translation = None
+    solve_smart_contract_exploit_witness = None
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -988,17 +1002,78 @@ class Z3LeanAideBridge:
             'verified': False,
             'confidence': 0.0
         }
+
+    async def translate_solidity_invariant(
+        self,
+        statement: str,
+        non_negative_target: bool = True,
+        max_withdraw_expr: Optional[str] = None,
+        verify_translation: bool = True,
+        assume_non_negative_amount: bool = True,
+    ) -> Dict[str, Any]:
+        """
+        Translate Solidity state updates into Z3/Lean invariants via the bridge.
+        """
+        if translate_solidity_assignment_to_z3 is None:
+            return {
+                "success": False,
+                "error": "Solidity invariant translation unavailable",
+            }
+        try:
+            translation = translate_solidity_assignment_to_z3(
+                statement=statement,
+                non_negative_target=non_negative_target,
+                max_withdraw_expr=max_withdraw_expr,
+            )
+            result: Dict[str, Any] = {
+                "success": True,
+                "translation": translation,
+            }
+            if verify_translation and verify_solidity_invariant_translation is not None:
+                result["verification"] = verify_solidity_invariant_translation(
+                    translation=translation,
+                    assume_non_negative_amount=assume_non_negative_amount,
+                )
+            return result
+        except Exception as exc:
+            return {"success": False, "error": str(exc)}
+
+    async def solve_web3_exploit_witness(
+        self,
+        additional_constraints: Optional[List[str]] = None,
+        timeout: float = 10.0,
+    ) -> Dict[str, Any]:
+        """
+        Solve symbolic exploit witness predicates for smart-contract audit workflows.
+        """
+        if solve_smart_contract_exploit_witness is None:
+            return {
+                "success": False,
+                "error": "Exploit witness solver unavailable",
+            }
+        try:
+            result = solve_smart_contract_exploit_witness(
+                additional_constraints=additional_constraints,
+                timeout=timeout,
+            )
+            return {"success": True, "result": result}
+        except Exception as exc:
+            return {"success": False, "error": str(exc)}
     
     def get_capabilities(self) -> Dict[str, bool]:
         """Get available capabilities"""
         return {
             "z3_available": Z3_AVAILABLE,
             "lean_available": LEAN4_AVAILABLE,
+            "web3_formal_available": WEB3_FORMAL_AVAILABLE,
             "translation_z3_to_lean": True,
             "translation_lean_to_z3": Z3_AVAILABLE,
             "hybrid_verification": Z3_AVAILABLE and LEAN4_AVAILABLE,
             "counterexamples": Z3_AVAILABLE,
-            "hybrid_proofs": True
+            "hybrid_proofs": True,
+            "solidity_invariant_translation": translate_solidity_assignment_to_z3 is not None,
+            "solidity_invariant_verification": verify_solidity_invariant_translation is not None,
+            "smart_contract_exploit_witness": solve_smart_contract_exploit_witness is not None,
         }
 
 
@@ -1015,6 +1090,32 @@ async def quick_verify(lean_code: str) -> Optional[VerificationBridgeResult]:
     """Quickly verify Lean code using Z3"""
     bridge = create_z3_lean_bridge()
     return await bridge.verify(lean_code)
+
+
+async def quick_translate_solidity_invariant(
+    statement: str,
+    non_negative_target: bool = True,
+    max_withdraw_expr: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Quickly translate a Solidity update statement into invariants."""
+    bridge = create_z3_lean_bridge()
+    return await bridge.translate_solidity_invariant(
+        statement=statement,
+        non_negative_target=non_negative_target,
+        max_withdraw_expr=max_withdraw_expr,
+    )
+
+
+async def quick_solve_web3_exploit_witness(
+    additional_constraints: Optional[List[str]] = None,
+    timeout: float = 10.0,
+) -> Dict[str, Any]:
+    """Quickly solve canonical Web3 exploit witness predicate."""
+    bridge = create_z3_lean_bridge()
+    return await bridge.solve_web3_exploit_witness(
+        additional_constraints=additional_constraints,
+        timeout=timeout,
+    )
 
 
 # ============================================================================

@@ -705,9 +705,9 @@ class SolutionValidationPipeline:
     
     async def verify_with_lean(self, content: str, criteria: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Verify content using Lean theorem prover.
+        **LEAN INTEGRATION**: Solution verification using Lean theorem prover.
         
-        **LEAN INTEGRATION**: Standardized verification interface.
+        Standardized verification interface for formal mathematical verification.
         
         Args:
             content: Content to verify
@@ -720,20 +720,38 @@ class SolutionValidationPipeline:
             return {"verified": False, "reason": "Lean unavailable"}
         
         try:
+            # Step 1: Autoformalize the content
             formalized = await self._lean_client.translate_thm(content)
-            result = await self._lean_client.verify(formalized)
+            
+            if not formalized.success or not formalized.data:
+                return {
+                    "verified": False,
+                    "reason": "Autoformalization failed",
+                    "error": formalized.error,
+                    "timestamp": datetime.now().isoformat()
+                }
+            
+            # Step 2: Verify with Lean using elaborate
+            result = await self._lean_client.elaborate(formalized.data.get('result', ''))
             
             return {
-                "verified": result.verified if hasattr(result, 'verified') else False,
-                "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
-                "proof": result.proof_code if hasattr(result, 'proof_code') else None,
+                "verified": result.success,
+                "confidence": 1.0 if result.success else 0.0,
+                "proof": result.data.get('result') if result.data else None,
+                "formalized_code": formalized.data.get('result'),
+                "solution_valid": result.success,
                 "stored_in_knowledge_base": True,
-                "verification_method": "lean_autoformalize",
+                "verification_method": "lean_translate_thm_elaborate",
                 "timestamp": datetime.now().isoformat()
             }
         except Exception as e:
             logger.error(f"Lean verification error: {e}")
-            return {"verified": False, "reason": str(e), "stored_in_knowledge_base": False}
+            return {
+                "verified": False,
+                "reason": str(e),
+                "stored_in_knowledge_base": False,
+                "timestamp": datetime.now().isoformat()
+            }
 
     def _collect_critical_issues(
         self,
@@ -758,6 +776,47 @@ class SolutionValidationPipeline:
             critical_issues.extend(validation_results.automated_results.errors)
 
         return list(set(critical_issues))  # Remove duplicates
+
+
+async def verify_with_lean(solution: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    **LEAN INTEGRATION**: Standalone solution verification using Lean theorem prover.
+    
+    Args:
+        solution: Solution dictionary with content to verify
+        
+    Returns:
+        Dict with verification results
+    """
+    if not LEAN_AVAILABLE:
+        return {"verified": False, "reason": "Lean unavailable"}
+    
+    try:
+        client = LeanAideClient()
+        content = solution.get('solution_content', str(solution))
+        
+        # Autoformalize
+        formalized = await client.translate_thm(content)
+        
+        if formalized.success and formalized.data:
+            # Verify with Lean
+            result = await client.elaborate(formalized.data.get('result', ''))
+            
+            return {
+                "verified": result.success,
+                "confidence": 1.0 if result.success else 0.0,
+                "proof": result.data.get('result') if result.data else None,
+                "solution_valid": result.success,
+                "timestamp": datetime.now().isoformat()
+            }
+        else:
+            return {
+                "verified": False,
+                "reason": "Autoformalization failed",
+                "timestamp": datetime.now().isoformat()
+            }
+    except Exception as e:
+        return {"verified": False, "reason": str(e), "timestamp": datetime.now().isoformat()}
 
 
 def create_solution_validation_pipeline(

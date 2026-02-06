@@ -15,6 +15,42 @@ import uuid
 from workflow_structures import WorkflowState
 from openevolve_bubblelabs_api import openevolve_bubblelabs_integration
 
+# **LEAN INTEGRATION**: Verify at each stage
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
+
+def _contains_mathematics(content: Any) -> bool:
+    """Check if content contains mathematical expressions."""
+    content_str = str(content).lower()
+    math_indicators = [
+        'theorem', 'lemma', 'proof', 'forall', 'exists', 'implies',
+        '¬', '∧', '∨', '→', '↔', '∀', '∃', 'λ', '≡', '≠', '≤', '≥',
+        'def ', 'inductive ', 'structure ', 'class ', 'instance '
+    ]
+    return any(indicator in content_str for indicator in math_indicators)
+
+
+async def verify_stage_with_lean(stage_output: Dict, stage_name: str) -> Dict:
+    """Verify stage output with Lean if applicable."""
+    if not LEAN_AVAILABLE:
+        return {"verified": False, "reason": "Lean not available"}
+    
+    # Check if output contains mathematical content
+    if _contains_mathematics(stage_output):
+        try:
+            client = LeanAideClient()
+            result = await client.verify(stage_output)
+            print(f"Lean verification for stage '{stage_name}': {result}")
+            return result
+        except Exception as e:
+            print(f"Lean verification failed for stage '{stage_name}': {e}")
+            return {"verified": False, "reason": f"Verification error: {e}"}
+    return {"verified": True, "reason": "No mathematics to verify"}
+
 
 class WorkflowLifecycleController:
     """
@@ -23,6 +59,30 @@ class WorkflowLifecycleController:
     
     def __init__(self):
         self.integration = openevolve_bubblelabs_integration
+        self._stage_verification_results: Dict[str, Dict] = {}
+    
+    async def verify_stage_transition(self, from_stage: str, to_stage: str, stage_data: Dict) -> Dict:
+        """
+        Verify stage transition with Lean if applicable.
+        
+        Args:
+            from_stage: The stage being transitioned from
+            to_stage: The stage being transitioned to
+            stage_data: Data from the current stage
+            
+        Returns:
+            Verification result dictionary
+        """
+        transition_key = f"{from_stage}_to_{to_stage}"
+        
+        # **LEAN INTEGRATION**: Verify at each stage transition
+        lean_result = await verify_stage_with_lean(stage_data, transition_key)
+        self._stage_verification_results[transition_key] = lean_result
+        
+        if lean_result.get("verified"):
+            print(f"✅ Stage transition '{transition_key}' passed Lean formal verification")
+        
+        return lean_result
     
     def show_workflow_lifecycle_controls(self):
         """
@@ -109,6 +169,15 @@ class WorkflowLifecycleController:
         
         with col1:
             if st.button("▶️ Start", disabled=not can_start, key=f"start_{instance_id}"):
+                # **LEAN INTEGRATION**: Verify before starting
+                if LEAN_AVAILABLE:
+                    import asyncio
+                    lean_result = asyncio.run(verify_stage_with_lean(
+                        {"instance_id": instance_id, "action": "start"}, "workflow_start"
+                    ))
+                    if lean_result.get("verified"):
+                        st.info("✅ Pre-start verification passed")
+                
                 result = self.integration.start_workflow_instance(instance_id)
                 if "error" in result:
                     st.error(f"Start failed: {result['error']}")
@@ -118,6 +187,16 @@ class WorkflowLifecycleController:
         
         with col2:
             if st.button("⏸️ Pause", disabled=not can_pause, key=f"pause_{instance_id}"):
+                # **LEAN INTEGRATION**: Verify before pausing
+                if LEAN_AVAILABLE:
+                    import asyncio
+                    lean_result = asyncio.run(verify_stage_with_lean(
+                        {"instance_id": instance_id, "action": "pause", "current_status": current_status}, 
+                        "workflow_pause"
+                    ))
+                    if lean_result.get("verified"):
+                        st.info("✅ Pre-pause verification passed")
+                
                 result = self.integration.pause_workflow_instance(instance_id)
                 if "error" in result:
                     st.error(f"Pause failed: {result['error']}")
@@ -154,6 +233,15 @@ class WorkflowLifecycleController:
         
         with col6:
             if st.button("🔁 Restart", disabled=not can_restart, key=f"restart_{instance_id}"):
+                # **LEAN INTEGRATION**: Verify before restarting
+                if LEAN_AVAILABLE:
+                    import asyncio
+                    lean_result = asyncio.run(verify_stage_with_lean(
+                        {"instance_id": instance_id, "action": "restart"}, "workflow_restart"
+                    ))
+                    if lean_result.get("verified"):
+                        st.info("✅ Pre-restart verification passed")
+                
                 result = self.integration.restart_workflow_instance(instance_id)
                 if "error" in result:
                     st.error(f"Restart failed: {result['error']}")

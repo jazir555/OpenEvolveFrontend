@@ -34,6 +34,13 @@ except ImportError:
 
 console = Console() if RICH_AVAILABLE else None
 
+# **LEAN INTEGRATION**: Real Lean client for formal verification
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 
 @dataclass
 class ValidationResult:
@@ -57,6 +64,16 @@ class IntegrationValidator:
         self.ci_mode = ci_mode
         self.results: List[ValidationResult] = []
         self.project_root = Path.cwd()
+    
+    def verify_with_lean(self, target: str, criteria: Dict) -> Dict:
+        """Verify target using Lean theorem prover."""
+        if not LEAN_AVAILABLE:
+            return {'verified': False}
+        try:
+            client = LeanAideClient()
+            return client.verify(target)
+        except Exception:
+            return {'verified': False}
         
     def print_header(self):
         """Print validation header."""

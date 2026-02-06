@@ -23,6 +23,7 @@ def test_web3_api_routes_are_registered():
         "/bubblelabs/web3/ingest",
         "/bubblelabs/web3/invariants/translate",
         "/bubblelabs/web3/exploits/symbolic-witness",
+        "/bubblelabs/web3/audit/exploit-verification",
     }
     assert expected_paths.issubset(paths)
 
@@ -248,3 +249,69 @@ def test_z3_leanaide_classifier_detects_web3_audit_as_hybrid():
     )
     assert result.category == ProblemCategory.HYBRID
     assert result.recommended_solver == "combined"
+
+
+def test_bubblelabs_web3_audit_endpoint_forwards_request(monkeypatch):
+    captured = {}
+
+    class _StubIntegration:
+        def web3_audit_exploit_verification(self, **kwargs):
+            captured.update(kwargs)
+            return {"success": True, "source": "bubblelabs_stub"}
+
+    monkeypatch.setattr(api_server, "BUBBLELABS_AVAILABLE", True)
+    monkeypatch.setattr(api_server, "get_extended_integration", lambda: _StubIntegration())
+
+    request = api_server.Web3AuditExploitRequest(
+        project_path="./contracts",
+        run_fuzzing=False,
+        statement="balance[msg.sender] -= amount;",
+        non_negative_target=True,
+        max_withdraw_expr="deposits[msg.sender] + yield[msg.sender]",
+        verify_translation=True,
+        assume_non_negative_amount=True,
+        additional_constraints=["contract_balance_post < contract_balance_pre"],
+        timeout_seconds=12.0,
+    )
+    user = api_server.AuthUser(api_key="test-key", role=api_server.UserRole.USER, name="tester")
+    result = api_server.bubblelabs_web3_audit_exploit_verification(request=request, user=user)
+
+    assert result["success"] is True
+    assert result["source"] == "bubblelabs_stub"
+    assert captured["project_path"] == "./contracts"
+    assert captured["run_fuzzing"] is False
+    assert captured["statement"] == "balance[msg.sender] -= amount;"
+    assert captured["timeout_seconds"] == 12.0
+
+
+def test_bubblelabs_extended_integration_web3_audit_orchestration(monkeypatch):
+    integration = BubbleLabsExtendedIntegration(config={"use_cav_nlp": False})
+
+    monkeypatch.setattr(
+        integration,
+        "web3_ingest_contract_stack",
+        lambda **kwargs: {"success": True, "phase": "ingestion", "kwargs": kwargs},
+    )
+    monkeypatch.setattr(
+        integration,
+        "web3_translate_solidity_invariant",
+        lambda **kwargs: {"success": True, "phase": "translation", "kwargs": kwargs},
+    )
+    monkeypatch.setattr(
+        integration,
+        "web3_solve_exploit_witness",
+        lambda **kwargs: {"success": True, "phase": "witness", "kwargs": kwargs},
+    )
+
+    result = integration.web3_audit_exploit_verification(
+        project_path="./contracts",
+        run_fuzzing=False,
+        statement="balance[msg.sender] -= amount;",
+        additional_constraints=["user_deposit == 0"],
+        timeout_seconds=9.5,
+    )
+
+    assert result["success"] is True
+    assert result["ingestion"]["phase"] == "ingestion"
+    assert result["translation"]["phase"] == "translation"
+    assert result["exploit_witness"]["phase"] == "witness"

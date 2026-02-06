@@ -193,6 +193,13 @@ except ImportError:
     LeanAideTaskType = None
     LeanAideIntegrationBridge = None
 
+# **LEAN INTEGRATION**: Real Lean client for formal verification
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 try:
     from decomposition_mcp_tools import (
         get_mcp_tool_inventory,
@@ -3046,6 +3053,16 @@ class WebhookManager:
         self.webhooks: Dict[str, WebhookRegistration] = {}
         self.max_retries = 3
         self.retry_delay = 2  # seconds
+    
+    def verify_with_lean(self, target: str, criteria: Dict) -> Dict:
+        """Verify target using Lean theorem prover."""
+        if not LEAN_AVAILABLE:
+            return {'verified': False}
+        try:
+            client = LeanAideClient()
+            return client.verify(target)
+        except Exception:
+            return {'verified': False}
     
     def register(self, webhook_id: str, registration: WebhookRegistration) -> None:
         """Register a webhook."""
@@ -6434,6 +6451,27 @@ def bubblelabs_web3_symbolic_witness(
         raise HTTPException(status_code=503, detail="BubbleLabs integration not available")
     integration = get_extended_integration()
     return integration.web3_solve_exploit_witness(
+        additional_constraints=request.additional_constraints,
+        timeout_seconds=request.timeout_seconds,
+    )
+
+
+@app.post("/bubblelabs/web3/audit/exploit-verification", dependencies=[Depends(require_role(UserRole.USER))])
+def bubblelabs_web3_audit_exploit_verification(
+    request: Web3AuditExploitRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    if not BUBBLELABS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="BubbleLabs integration not available")
+    integration = get_extended_integration()
+    return integration.web3_audit_exploit_verification(
+        project_path=request.project_path,
+        run_fuzzing=request.run_fuzzing,
+        statement=request.statement,
+        non_negative_target=request.non_negative_target,
+        max_withdraw_expr=request.max_withdraw_expr,
+        verify_translation=request.verify_translation,
+        assume_non_negative_amount=request.assume_non_negative_amount,
         additional_constraints=request.additional_constraints,
         timeout_seconds=request.timeout_seconds,
     )

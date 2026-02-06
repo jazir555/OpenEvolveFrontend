@@ -16,7 +16,7 @@ Usage:
 """
 
 import logging
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 
 from sovereign_data_models import (
@@ -24,6 +24,14 @@ from sovereign_data_models import (
     IntegratedSolution,
     ValidationResult
 )
+
+# **LEAN INTEGRATION**: Formal verification
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+    LeanAideClient = None  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +84,28 @@ class SolutionValidator:
             except Exception as e:  # TODO: Catch specific exception instead of Exception
                 logger.warning(f"Failed to instantiate OpenEvolve client: {e}")
                 self.openevolve_client = None
+
+    async def verify_with_lean(self, content: str) -> Dict[str, Any]:
+        """Verify content using Lean theorem prover.
+        
+        **LEAN INTEGRATION**: Formal verification before delivery.
+        """
+        if not LEAN_AVAILABLE:
+            return {"verified": False, "reason": "Lean unavailable"}
+        
+        try:
+            lean_client = LeanAideClient()
+            formalized = await lean_client.translate_thm(content)
+            result = await lean_client.verify(formalized)
+            
+            return {
+                "verified": result.success if hasattr(result, 'success') else False,
+                "confidence": getattr(result, 'confidence', 0.0),
+                "proof": getattr(result, 'data', {}).get('result', '') if hasattr(result, 'data') else str(result)
+            }
+        except Exception as e:
+            logger.warning(f"Lean verification failed: {e}")
+            return {"verified": False, "reason": str(e)}
 
     def validate_solution(
         self,
@@ -314,6 +344,28 @@ class FinalSolutionManager:
         self.validator = validator or SolutionValidator()
         self.delivery_format = delivery_format
         logger.info("FinalSolutionManager initialized")
+
+    async def verify_with_lean(self, content: str) -> Dict[str, Any]:
+        """Verify content using Lean theorem prover.
+        
+        **LEAN INTEGRATION**: Formal verification before delivery.
+        """
+        if not LEAN_AVAILABLE:
+            return {"verified": False, "reason": "Lean unavailable"}
+        
+        try:
+            lean_client = LeanAideClient()
+            formalized = await lean_client.translate_thm(content)
+            result = await lean_client.verify(formalized)
+            
+            return {
+                "verified": result.success if hasattr(result, 'success') else False,
+                "confidence": getattr(result, 'confidence', 0.0),
+                "proof": getattr(result, 'data', {}).get('result', '') if hasattr(result, 'data') else str(result)
+            }
+        except Exception as e:
+            logger.warning(f"Lean verification failed: {e}")
+            return {"verified": False, "reason": str(e)}
 
     def prepare_for_delivery(
         self,

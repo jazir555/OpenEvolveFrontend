@@ -20,6 +20,14 @@ import re
 
 from ground_truth_store import GroundTruthStore, get_ground_truth_store
 
+# **LEAN INTEGRATION**: Formal verification
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+    LeanAideClient = None  # type: ignore
+
 # ROMA-MDAP-MAKER (Robust Execution)
 try:
     from roma_mdap_maker_associative_integration import (
@@ -200,6 +208,28 @@ class VerifiedRecomposer:
                 logger.info("ROMAMDAPMakerAssociativeEngine initialized for VerifiedRecomposer")
             except Exception as e:  # TODO: Catch specific exception instead of Exception
                 logger.error(f"Failed to initialize ROMA engine: {e}")
+
+    async def verify_with_lean(self, content: str) -> Dict[str, Any]:
+        """Verify content using Lean theorem prover.
+        
+        **LEAN INTEGRATION**: Formal verification - actually verify!
+        """
+        if not LEAN_AVAILABLE:
+            return {"verified": False, "reason": "Lean unavailable"}
+        
+        try:
+            lean_client = LeanAideClient()
+            formalized = await lean_client.translate_thm(content)
+            result = await lean_client.verify(formalized)
+            
+            return {
+                "verified": result.success if hasattr(result, 'success') else False,
+                "confidence": getattr(result, 'confidence', 0.0),
+                "proof": getattr(result, 'data', {}).get('result', '') if hasattr(result, 'data') else str(result)
+            }
+        except Exception as e:
+            logger.warning(f"Lean verification failed: {e}")
+            return {"verified": False, "reason": str(e)}
 
     def store_ground_truth(
         self,

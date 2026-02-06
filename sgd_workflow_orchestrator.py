@@ -45,6 +45,42 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+# **LEAN INTEGRATION**: Verify at each stage
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
+
+def _contains_mathematics(content: Any) -> bool:
+    """Check if content contains mathematical expressions."""
+    content_str = str(content).lower()
+    math_indicators = [
+        'theorem', 'lemma', 'proof', 'forall', 'exists', 'implies',
+        '¬', '∧', '∨', '→', '↔', '∀', '∃', 'λ', '≡', '≠', '≤', '≥',
+        'def ', 'inductive ', 'structure ', 'class ', 'instance '
+    ]
+    return any(indicator in content_str for indicator in math_indicators)
+
+
+async def verify_stage_with_lean(stage_output: Dict, stage_name: str) -> Dict:
+    """Verify stage output with Lean if applicable."""
+    if not LEAN_AVAILABLE:
+        return {"verified": False, "reason": "Lean not available"}
+    
+    # Check if output contains mathematical content
+    if _contains_mathematics(stage_output):
+        try:
+            client = LeanAideClient()
+            result = await client.verify(stage_output)
+            logger.info(f"Lean verification for stage '{stage_name}': {result}")
+            return result
+        except Exception as e:
+            logger.warning(f"Lean verification failed for stage '{stage_name}': {e}")
+            return {"verified": False, "reason": f"Verification error: {e}"}
+    return {"verified": True, "reason": "No mathematics to verify"}
+
 class SGDWorkflowStatus(Enum):
     """Status values for SGD workflows"""
     PENDING = "pending"
@@ -165,6 +201,11 @@ class SGDWorkflowOrchestrator:
                 workflow_state.status = "failed"
                 workflow_state.current_stage = SGDWorkflowStatus.FAILED.value
                 return False
+            
+            # **LEAN INTEGRATION**: Verify content analysis stage
+            lean_result = await verify_stage_with_lean(analyzed_context, "content_analysis")
+            if lean_result.get("verified"):
+                logger.info("Content analysis passed Lean formal verification")
 
             # Update workflow state with analyzed context
             # (In a real implementation, we'd call the OpenEvolve content analyzer here)
@@ -179,6 +220,13 @@ class SGDWorkflowOrchestrator:
                 return False
 
             workflow_state.decomposition_plan = decomposition_plan
+            
+            # **LEAN INTEGRATION**: Verify decomposition planning stage
+            lean_result = await verify_stage_with_lean(
+                {"decomposition_plan": str(decomposition_plan)[:500]}, "decomposition_planning"
+            )
+            if lean_result.get("verified"):
+                logger.info("Decomposition planning passed Lean formal verification")
 
             # Stage 2: Manual Review (In a real implementation, this would have UI interaction)
             logger.info(f"Manual review stage for workflow {workflow_id}")
@@ -195,6 +243,13 @@ class SGDWorkflowOrchestrator:
                 return False
 
             workflow_state.sub_problem_solutions = sub_problem_solutions
+            
+            # **LEAN INTEGRATION**: Verify sub-problem solving stage
+            lean_result = await verify_stage_with_lean(
+                {"solutions": {k: str(v)[:200] for k, v in sub_problem_solutions.items()}}, "sub_problem_solving"
+            )
+            if lean_result.get("verified"):
+                logger.info("Sub-problem solving passed Lean formal verification")
 
             # Stage 4: Reassembly
             logger.info(f"Starting reassembly for workflow {workflow_id}")
@@ -206,10 +261,26 @@ class SGDWorkflowOrchestrator:
                 return False
 
             workflow_state.final_solution = final_solution
+            
+            # **LEAN INTEGRATION**: Verify reassembly stage
+            lean_result = await verify_stage_with_lean(
+                {"final_solution": final_solution.content[:500] if final_solution else ""}, "reassembly"
+            )
+            if lean_result.get("verified"):
+                logger.info("Reassembly passed Lean formal verification")
 
             # Stage 5: Final Verification
             logger.info(f"Starting final verification for workflow {workflow_id}")
             workflow_state.current_stage = SGDWorkflowStatus.FINAL_VERIFICATION.value
+            
+            # **LEAN INTEGRATION**: Verify before final verification
+            lean_result = await verify_stage_with_lean(
+                {"final_solution_pre_verify": workflow_state.final_solution.content[:500] if workflow_state.final_solution else ""}, 
+                "pre_final_verification"
+            )
+            if lean_result.get("verified"):
+                logger.info("Pre-final verification passed Lean formal verification")
+            
             verification_passed = await self._verify_final_solution(workflow_state)
             
             if verification_passed:

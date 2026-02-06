@@ -118,9 +118,11 @@ except ImportError:
 try:
     from leanaide_client import LeanAideClient
     LEAN_CLIENT_AVAILABLE = True
+    LEAN_AVAILABLE = True
     logger.info("LeanAideClient available for formal verification")
 except ImportError:
     LEAN_CLIENT_AVAILABLE = False
+    LEAN_AVAILABLE = False
     logger.warning("LeanAideClient not available")
 
 # CAV-NLP Integration (Hybrid Z3 + Lean verification)

@@ -39,6 +39,13 @@ try:
 except ImportError:
     CAV_NLP_AVAILABLE = False
 
+# **LEAN INTEGRATION**: Verify at each stage
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -565,6 +572,33 @@ class ZeroErrorWorkflow:
             return result.agreed and result.confidence > 0.95
         return False
 
+    def _contains_mathematics(self, content: Any) -> bool:
+        """Check if content contains mathematical expressions."""
+        content_str = str(content).lower()
+        math_indicators = [
+            'theorem', 'lemma', 'proof', 'forall', 'exists', 'implies',
+            '¬', '∧', '∨', '→', '↔', '∀', '∃', 'λ', '≡', '≠', '≤', '≥',
+            'def ', 'inductive ', 'structure ', 'class ', 'instance '
+        ]
+        return any(indicator in content_str for indicator in math_indicators)
+
+    async def verify_stage_with_lean(self, stage_output: Dict, stage_name: str) -> Dict:
+        """Verify stage output with Lean if applicable."""
+        if not LEAN_AVAILABLE:
+            return {"verified": False, "reason": "Lean not available"}
+        
+        # Check if output contains mathematical content
+        if self._contains_mathematics(stage_output):
+            try:
+                client = LeanAideClient()
+                result = await client.verify(stage_output)
+                logger.info(f"Lean verification for stage '{stage_name}': {result}")
+                return result
+            except Exception as e:
+                logger.warning(f"Lean verification failed for stage '{stage_name}': {e}")
+                return {"verified": False, "reason": f"Verification error: {e}"}
+        return {"verified": True, "reason": "No mathematics to verify"}
+
     def _check_crewai_availability(self) -> bool:
         """Check if CrewAI is available and import it"""
         if self._crewai_imported:
@@ -642,10 +676,18 @@ class ZeroErrorWorkflow:
             )
 
             # Phase 5: Verification
-            await self._execute_phase(
+            verification_result = await self._execute_phase(
                 WorkflowPhase.VERIFICATION,
                 self._verify_results
             )
+            
+            # **LEAN INTEGRATION**: Verify verification phase output
+            lean_result = await self.verify_stage_with_lean(
+                {"verification_result": verification_result, "phase": "verification"},
+                "verification"
+            )
+            if lean_result.get("verified"):
+                logger.info("Verification phase passed Lean formal verification")
 
             # Phase 6: Completion
             result = await self._complete(start_time)

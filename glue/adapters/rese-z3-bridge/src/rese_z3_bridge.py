@@ -16,7 +16,7 @@ API Methods:
 - detect_contradictions(): For DITO ATP
 - verify_anomaly(): For ACI constraint checking
 - prove_theorem(): For formal verification
-- translate_to_lean4(): For Lean 4 integration
+- translate_to_lean4(): For Lean 4 integration (REAL implementation)
 - formalize_rese_query(): CAV-NLP enhanced query formalization
 - verify_hybrid(): Hybrid Z3 + Lean verification
 
@@ -36,6 +36,7 @@ Created: 2026-02-04
 import json
 import logging
 import os
+import sys
 import time
 import uuid
 from datetime import datetime, timezone
@@ -43,6 +44,16 @@ from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass, field, asdict
 from concurrent.futures import ThreadPoolExecutor
 import functools
+from pathlib import Path
+
+# Import real Lean interface for translation
+try:
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "lib" / "lean4_bridge"))
+    from lean4_bridge import Lean4Interface, Lean4Error, Lean4TimeoutError
+    LEAN4_AVAILABLE = True
+except ImportError:
+    LEAN4_AVAILABLE = False
+    Lean4Interface = None  # type: ignore
 
 # Import bridge components
 try:
@@ -805,9 +816,10 @@ class RESEZ3Bridge:
         correlation_id: Optional[str] = None,
     ) -> str:
         """
-        Translate SMT-LIB to Lean 4 format
+        Translate SMT-LIB to Lean 4 format using REAL Lean4Interface.
 
-        For integration with Lean 4 theorem prover.
+        Uses the Lean4Interface constraint translator for proper SMT-LIB to
+        Lean 4 translation with formal verification support.
 
         Args:
             smtlib_content: SMT-LIB2 content
@@ -821,13 +833,73 @@ class RESEZ3Bridge:
         metrics = self.monitor.start_operation("translate_to_lean4")
 
         try:
-            # Simple translation (placeholder for more sophisticated translation)
-            lean4_content = f"-- Translated from SMT-LIB\n"
-            lean4_content += f"-- Correlation ID: {correlation_id}\n\n"
-            lean4_content += f"{smtlib_content}\n\n"
-            lean4_content += f"-- TODO: Implement proper SMT-LIB to Lean 4 translation\n"
+            # Check if Lean4Interface is available
+            if LEAN4_AVAILABLE and Lean4Interface is not None:
+                # Use REAL Lean4Interface for translation
+                lean = Lean4Interface()
 
-            self.monitor.record_success(metrics)
+                # Parse SMT-LIB content into constraints
+                constraints = self._parse_smtlib_constraints(smtlib_content)
+
+                # Translate each constraint to Lean 4
+                lean4_parts = [
+                    "-- Translated from SMT-LIB using Lean4Interface",
+                    f"-- Correlation ID: {correlation_id}",
+                    "",
+                    "import Mathlib",
+                    "",
+                    "namespace RESE",
+                    "",
+                ]
+
+                for i, constraint in enumerate(constraints):
+                    try:
+                        result = lean.formalize_constraint(
+                            constraint=constraint,
+                            constraint_type="theorem",
+                            correlation_id=correlation_id,
+                        )
+                        lean_code = result.get("lean4_code", "-- Failed to translate")
+                        lean4_parts.append(f"-- Constraint {i+1}: {constraint[:60]}...")
+                        lean4_parts.append(lean_code)
+                        lean4_parts.append("")
+                    except Exception as e:
+                        lean4_parts.append(f"-- Error translating constraint {i+1}: {e}")
+                        lean4_parts.append("")
+
+                lean4_parts.extend([
+                    "end RESE",
+                    "",
+                ])
+
+                lean4_content = "\n".join(lean4_parts)
+
+                self.logger.info(json.dumps({
+                    "level": "info",
+                    "component": "RESEZ3Bridge",
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "message": "SMT-LIB to Lean 4 translation completed (REAL)",
+                    "correlation_id": correlation_id,
+                    "constraints_translated": len(constraints),
+                }))
+
+            else:
+                # Fallback to basic translation if Lean4Interface not available
+                self.logger.warning(json.dumps({
+                    "level": "warn",
+                    "component": "RESEZ3Bridge",
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "message": "Lean4Interface not available, using basic translation",
+                    "correlation_id": correlation_id,
+                }))
+
+                lean4_content = f"-- Translated from SMT-LIB (basic mode)\n"
+                lean4_content += f"-- Correlation ID: {correlation_id}\n\n"
+                lean4_content += f"-- Lean4Interface not available\n"
+                lean4_content += f"-- Install glue.lib.lean4_bridge for full translation\n\n"
+                lean4_content += f"{smtlib_content}\n"
+
+            self.monitor.record_success(metrics, lean4_available=LEAN4_AVAILABLE)
             return lean4_content
 
         except Exception as e:
@@ -841,6 +913,35 @@ class RESEZ3Bridge:
                 "error": str(e),
             }))
             raise
+
+    def _parse_smtlib_constraints(self, smtlib_content: str) -> List[str]:
+        """Parse SMT-LIB content into individual constraint strings."""
+        constraints = []
+        lines = smtlib_content.split('\n')
+
+        current_constraint = []
+        paren_depth = 0
+
+        for line in lines:
+            line = line.strip()
+            if not line or line.startswith(';'):
+                continue
+
+            for char in line:
+                if char == '(':
+                    paren_depth += 1
+                elif char == ')':
+                    paren_depth -= 1
+
+            current_constraint.append(line)
+
+            if paren_depth == 0 and current_constraint:
+                constraint = ' '.join(current_constraint)
+                if constraint:
+                    constraints.append(constraint)
+                current_constraint = []
+
+        return constraints if constraints else [smtlib_content]
 
     # ========================================================================
     # CAV-NLP INTEGRATION METHODS

@@ -16,6 +16,13 @@ import sys
 import subprocess
 from pathlib import Path
 
+# Import real Lean interface for verification
+try:
+    from lean4_interface import Lean4Interface, Lean4Error
+    LEAN4_INTERFACE_AVAILABLE = True
+except ImportError:
+    LEAN4_INTERFACE_AVAILABLE = False
+
 # Colors
 RED = '\033[0;31m'
 GREEN = '\033[0;32m'
@@ -205,6 +212,75 @@ def verify_python_dependencies():
 
     return all_ok
 
+def verify_lean_installation():
+    """Verify REAL Lean 4 installation."""
+    print_header("Lean 4 Installation Verification")
+
+    all_ok = True
+
+    # Check if Lean4Interface is available
+    if LEAN4_INTERFACE_AVAILABLE:
+        print_success("Lean4Interface module available")
+
+        try:
+            # Try to initialize Lean4Interface (this verifies lean executable)
+            lean = Lean4Interface()
+            print_success("Lean4Interface initialized successfully")
+            print_success(f"  Lean path: {lean.lean_path}")
+            print_success(f"  Lake path: {lean.lake_path}")
+            print_success(f"  Workspace: {lean.workspace_dir}")
+            print_success(f"  Timeout: {lean.timeout_ms}ms")
+        except Exception as e:
+            print_error(f"Lean4Interface initialization failed: {e}")
+            all_ok = False
+    else:
+        print_error("Lean4Interface module not available")
+        print_warning("  Cannot import lean4_interface - check Python path")
+        all_ok = False
+
+    # Check for lean executable in PATH
+    try:
+        result = subprocess.run(
+            ["lean", "--version"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode == 0:
+            print_success(f"Lean executable found: {result.stdout.strip()}")
+        else:
+            print_error("Lean executable returned error")
+            all_ok = False
+    except FileNotFoundError:
+        print_error("Lean executable not found in PATH")
+        print_warning("  Install Lean 4 or set LEAN4_PATH environment variable")
+        all_ok = False
+    except subprocess.TimeoutExpired:
+        print_error("Lean version check timed out")
+        all_ok = False
+    except Exception as e:
+        print_error(f"Lean version check failed: {e}")
+        all_ok = False
+
+    # Check for lake executable
+    try:
+        result = subprocess.run(
+            ["lake", "--version"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode == 0:
+            print_success(f"Lake executable found: {result.stdout.strip()}")
+        else:
+            print_warning("Lake executable returned error (may be OK if not using lake)")
+    except FileNotFoundError:
+        print_warning("Lake executable not found in PATH")
+    except Exception as e:
+        print_warning(f"Lake version check failed: {e}")
+
+    return all_ok
+
 def verify_docker_integration():
     """Verify Docker integration in main stack."""
     print_header("Docker Integration Verification")
@@ -276,6 +352,7 @@ def main():
     all_ok &= verify_tests()
     all_ok &= verify_python_dependencies()
     all_ok &= verify_docker_integration()
+    all_ok &= verify_lean_installation()  # NEW: Real Lean installation check
 
     # Count lines of code
     count_lines_of_code()
@@ -285,7 +362,7 @@ def main():
 
     if all_ok:
         print_success("All verifications passed!")
-        print("\nLean 4 Bridge is ready for use.")
+        print("\nLean 4 Bridge is ready for use with REAL Lean 4 integration.")
         print("\nNext steps:")
         print("  1. Build Docker image:")
         print("     cd infra/lean4-docker")
@@ -298,6 +375,8 @@ def main():
         print("\n  4. Run probe:")
         print("     cd probes")
         print("     ./check_lean4.sh")
+        print("\n  5. Test Lean4Interface:")
+        print("     python -c \"from glue.lib.lean4_bridge import Lean4Interface; li = Lean4Interface(); print(li)\"")
         return 0
     else:
         print_error("Some verifications failed!")

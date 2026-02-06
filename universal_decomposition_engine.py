@@ -88,6 +88,14 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
+# **LEAN INTEGRATION**: Formal verification
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+    LeanAideClient = None  # type: ignore
+
 
 # ============================================================================
 # ENUMS - Core Type Definitions
@@ -1088,6 +1096,28 @@ class UniversalDecompositionEngine:
         self.default_strategy = default_strategy
         self.logger = logging.getLogger(self.__class__.__name__)
         self.decomposition_history: List[DecompositionPlan] = []
+
+    async def verify_with_lean(self, content: str) -> Dict[str, Any]:
+        """Verify content using Lean theorem prover.
+        
+        **LEAN INTEGRATION**: Formal verification of problem structure.
+        """
+        if not LEAN_AVAILABLE:
+            return {"verified": False, "reason": "Lean unavailable"}
+        
+        try:
+            lean_client = LeanAideClient()
+            formalized = await lean_client.translate_thm(content)
+            result = await lean_client.verify(formalized)
+            
+            return {
+                "verified": result.success if hasattr(result, 'success') else False,
+                "confidence": getattr(result, 'confidence', 0.0),
+                "proof": getattr(result, 'data', {}).get('result', '') if hasattr(result, 'data') else str(result)
+            }
+        except Exception as e:
+            self.logger.warning(f"Lean verification failed: {e}")
+            return {"verified": False, "reason": str(e)}
     
     def decompose(
         self,

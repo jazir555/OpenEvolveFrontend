@@ -25,6 +25,14 @@ import uuid
 import json
 import time
 
+# Import real Lean interface
+try:
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "lib" / "lean4_bridge"))
+    from lean4_bridge import Lean4Interface, Lean4Error, Lean4TimeoutError
+    LEAN4_AVAILABLE = True
+except ImportError:
+    LEAN4_AVAILABLE = False
+
 # Add schemas to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "schemas"))
 
@@ -719,21 +727,138 @@ class ArchitectureValidator:
 
     def _validate_formal(self, assembly: ArchitectureAssembly) -> List[Dict[str, Any]]:
         """
-        Perform formal verification (Lean 4).
+        Perform formal verification using REAL Lean 4 integration.
 
-        NOTE: This is a placeholder for formal verification integration.
-        In production, this would invoke Lean 4 proofs.
+        Uses the Lean4Interface to verify architecture assembly constraints
+        and paradigm shifts with formal proof verification.
         """
         results = []
+        correlation_id = str(uuid.uuid4())
 
-        # Placeholder for formal verification
-        results.append({
-            "validation_type": "formal_verification",
-            "passed": True,  # Placeholder
-            "note": "Formal verification not yet implemented",
-        })
+        # Check if Lean 4 is available
+        if not LEAN4_AVAILABLE:
+            results.append({
+                "validation_type": "formal_verification",
+                "passed": False,
+                "note": "Lean 4 interface not available",
+                "error": "LEAN4_AVAILABLE is False - check Lean4Bridge installation",
+            })
+            return results
+
+        try:
+            # Initialize Lean 4 interface
+            lean = Lean4Interface()
+
+            # Build formal constraints from assembly
+            constraints = self._build_formal_constraints(assembly)
+
+            formal_verification_passed = True
+            verification_details = []
+
+            # Verify each constraint
+            for constraint in constraints:
+                try:
+                    # Use Lean4Interface to formalize and verify
+                    result = lean.formalize_constraint(
+                        constraint=constraint,
+                        constraint_type="theorem",
+                        correlation_id=correlation_id,
+                    )
+
+                    is_verified = result.get("verification_status") == "verified"
+                    formal_verification_passed = formal_verification_passed and is_verified
+
+                    verification_details.append({
+                        "constraint": constraint[:100],
+                        "status": result.get("verification_status"),
+                        "theorem_name": result.get("theorem_name"),
+                        "execution_time_ms": result.get("execution_time_ms"),
+                    })
+
+                except Lean4TimeoutError:
+                    formal_verification_passed = False
+                    verification_details.append({
+                        "constraint": constraint[:100],
+                        "status": "timeout",
+                        "error": "Lean 4 verification timed out",
+                    })
+                except Lean4Error as e:
+                    formal_verification_passed = False
+                    verification_details.append({
+                        "constraint": constraint[:100],
+                        "status": "error",
+                        "error": str(e),
+                    })
+
+            # Verify paradigm shifts with formal proofs if available
+            paradigm_results = []
+            if assembly.paradigm_shifts:
+                for shift in assembly.paradigm_shifts:
+                    # Create a formal statement about the paradigm shift
+                    shift_statement = f"paradigm_shift_{shift.shift_type.value}_valid"
+                    try:
+                        proof_result = lean.prove_theorem(
+                            theorem_name=shift_statement,
+                            tactics=["intro", "simp", "exact"],
+                            correlation_id=correlation_id,
+                        )
+                        paradigm_results.append({
+                            "shift_type": shift.shift_type.value,
+                            "proof_status": proof_result.get("proof_status"),
+                            "confidence": shift.confidence,
+                        })
+                    except Exception as e:
+                        paradigm_results.append({
+                            "shift_type": shift.shift_type.value,
+                            "proof_status": "failed",
+                            "error": str(e),
+                        })
+
+            results.append({
+                "validation_type": "formal_verification",
+                "passed": formal_verification_passed,
+                "lean4_available": True,
+                "constraints_verified": len(verification_details),
+                "verification_details": verification_details,
+                "paradigm_results": paradigm_results,
+                "correlation_id": correlation_id,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            })
+
+        except Exception as e:
+            results.append({
+                "validation_type": "formal_verification",
+                "passed": False,
+                "error": str(e),
+                "error_type": type(e).__name__,
+                "correlation_id": correlation_id,
+            })
 
         return results
+
+    def _build_formal_constraints(self, assembly: ArchitectureAssembly) -> List[str]:
+        """Build formal constraints from architecture assembly for Lean verification."""
+        constraints = []
+
+        # Add confidence constraint
+        if assembly.synthesized_knowledge:
+            confidence = assembly.synthesized_knowledge.confidence
+            constraints.append(f"confidence >= {confidence}")
+
+            # Add consistency constraint
+            consistency = assembly.synthesized_knowledge.consistency
+            constraints.append(f"consistency >= {consistency}")
+
+        # Add ACI reduction constraint
+        if hasattr(assembly, 'aci_reduction_achieved'):
+            aci = assembly.aci_reduction_achieved
+            constraints.append(f"aci_reduction >= {aci}")
+
+        # Add paradigm shift constraints
+        for shift in assembly.paradigm_shifts:
+            constraints.append(f"paradigm_shift_{shift.shift_type.value}_confidence >= {shift.confidence}")
+
+        return constraints
 
 
 # ============================================================================

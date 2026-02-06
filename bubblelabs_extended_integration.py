@@ -870,6 +870,51 @@ class BubbleLabsExtendedIntegration:
             }
         except Exception as exc:
             return {"success": False, "error": str(exc)}
+
+    def web3_audit_exploit_verification(
+        self,
+        project_path: str = ".",
+        run_fuzzing: bool = True,
+        statement: Optional[str] = None,
+        non_negative_target: bool = True,
+        max_withdraw_expr: Optional[str] = None,
+        verify_translation: bool = True,
+        assume_non_negative_amount: bool = True,
+        additional_constraints: Optional[List[str]] = None,
+        timeout_seconds: float = 10.0,
+    ) -> Dict[str, Any]:
+        """
+        Run one-shot BubbleLabs Web3 audit orchestration:
+        ingestion + optional invariant translation + exploit witness.
+        """
+        ingestion = self.web3_ingest_contract_stack(
+            project_path=project_path,
+            run_fuzzing=run_fuzzing,
+            slither_timeout_seconds=240,
+            forge_timeout_seconds=420,
+        )
+
+        translation = None
+        if statement:
+            translation = self.web3_translate_solidity_invariant(
+                statement=statement,
+                non_negative_target=non_negative_target,
+                max_withdraw_expr=max_withdraw_expr,
+                verify_translation=verify_translation,
+                assume_non_negative_amount=assume_non_negative_amount,
+            )
+
+        exploit_witness = self.web3_solve_exploit_witness(
+            additional_constraints=additional_constraints,
+            timeout_seconds=timeout_seconds,
+        )
+
+        return {
+            "success": True,
+            "ingestion": ingestion,
+            "translation": translation,
+            "exploit_witness": exploit_witness,
+        }
     
     # =========================================================================
     # ROMA Methods

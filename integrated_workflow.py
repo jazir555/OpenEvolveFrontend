@@ -36,6 +36,42 @@ except ImportError:
     OPENEVOLVE_AVAILABLE = False
     print("OpenEvolve backend not available - using API-based evolution only")
 
+# **LEAN INTEGRATION**: Verify at each stage
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
+
+def _contains_mathematics(content: Any) -> bool:
+    """Check if content contains mathematical expressions."""
+    content_str = str(content).lower()
+    math_indicators = [
+        'theorem', 'lemma', 'proof', 'forall', 'exists', 'implies',
+        '¬', '∧', '∨', '→', '↔', '∀', '∃', 'λ', '≡', '≠', '≤', '≥',
+        'def ', 'inductive ', 'structure ', 'class ', 'instance '
+    ]
+    return any(indicator in content_str for indicator in math_indicators)
+
+
+async def verify_stage_with_lean(stage_output: Dict, stage_name: str) -> Dict:
+    """Verify stage output with Lean if applicable."""
+    if not LEAN_AVAILABLE:
+        return {"verified": False, "reason": "Lean not available"}
+    
+    # Check if output contains mathematical content
+    if _contains_mathematics(stage_output):
+        try:
+            client = LeanAideClient()
+            result = await client.verify(stage_output)
+            print(f"Lean verification for stage '{stage_name}': {result}")
+            return result
+        except Exception as e:
+            print(f"Lean verification failed for stage '{stage_name}': {e}")
+            return {"verified": False, "reason": f"Verification error: {e}"}
+    return {"verified": True, "reason": "No mathematics to verify"}
+
 
 def run_fully_integrated_adversarial_evolution(
     current_content: str,
@@ -1590,3 +1626,46 @@ def _aggregate_red_risk(critiques: List[Dict]) -> Dict[str, Any]:
         "total_critiques": total_critiques,
         "average_risk_per_critique": total_risk_score / total_critiques if total_critiques > 0 else 0
     }
+
+
+async def verify_solution_with_lean(solution: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    **LEAN INTEGRATION**: Solution verification using Lean theorem prover.
+    
+    Verifies solution content at each stage of adversarial/evolution workflow.
+    
+    Args:
+        solution: Solution dictionary with content to verify
+        
+    Returns:
+        Dict with verification results
+    """
+    if not LEAN_AVAILABLE:
+        return {"verified": False, "reason": "Lean unavailable"}
+    
+    try:
+        client = LeanAideClient()
+        content = solution.get('content', solution.get('final_content', str(solution)))
+        
+        # Autoformalize
+        formalized = await client.translate_thm(content)
+        
+        if formalized.success and formalized.data:
+            # Verify with Lean
+            result = await client.elaborate(formalized.data.get('result', ''))
+            
+            return {
+                "verified": result.success,
+                "confidence": 1.0 if result.success else 0.0,
+                "proof": result.data.get('result') if result.data else None,
+                "solution_valid": result.success,
+                "timestamp": time.time()
+            }
+        else:
+            return {
+                "verified": False,
+                "reason": "Autoformalization failed",
+                "timestamp": time.time()
+            }
+    except Exception as e:
+        return {"verified": False, "reason": str(e), "timestamp": time.time()}

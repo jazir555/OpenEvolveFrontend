@@ -24,8 +24,26 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# **LEAN INTEGRATION**: Real Lean client for formal verification
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 # Type variables for generic validation
 T = TypeVar('T')
+
+
+def verify_with_lean(target: str, criteria: Dict) -> Dict:
+    """Verify target using Lean theorem prover."""
+    if not LEAN_AVAILABLE:
+        return {'verified': False}
+    try:
+        client = LeanAideClient()
+        return client.verify(target)
+    except Exception:
+        return {'verified': False}
 
 
 # =============================================================================

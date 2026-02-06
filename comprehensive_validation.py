@@ -1096,6 +1096,8 @@ async def verify_with_lean(content: str, criteria: Dict[str, Any]) -> Dict[str, 
     """
     **LEAN INTEGRATION**: Verify content using Lean theorem prover.
     
+    Standardized interface for formal verification across all solution files.
+    
     Args:
         content: Content to verify
         criteria: Verification criteria

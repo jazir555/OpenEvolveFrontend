@@ -14,6 +14,13 @@ from sovereign_data_models import (
 )
 from sovereign_reliability import with_retry, with_error_handling, ValidationError, ErrorSeverity
 
+# **LEAN INTEGRATION**: Formal verification for orchestration
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -625,3 +632,87 @@ Provide the merged solution:"""
         except Exception as e:
             self.logger.error(f"LLM merging failed: {e}")
             raise RuntimeError(f"Failed to merge solutions intelligently using LLM: {e}") from e
+
+    async def verify_solution_with_lean(self, solution: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        **LEAN INTEGRATION**: Solution verification using Lean theorem prover.
+        
+        Verifies solution content with formal mathematical methods.
+        
+        Args:
+            solution: Solution dictionary to verify
+            
+        Returns:
+            Dict with verification results
+        """
+        if not LEAN_AVAILABLE:
+            return {"verified": False, "reason": "Lean unavailable"}
+        
+        try:
+            client = LeanAideClient()
+            content = solution.get('final_content', solution.get('solution_content', str(solution)))
+            
+            # Autoformalize
+            formalized = await client.translate_thm(content)
+            
+            if formalized.success and formalized.data:
+                # Verify with Lean
+                result = await client.elaborate(formalized.data.get('result', ''))
+                
+                return {
+                    "verified": result.success,
+                    "confidence": 1.0 if result.success else 0.0,
+                    "proof": result.data.get('result') if result.data else None,
+                    "solution_valid": result.success,
+                    "timestamp": datetime.now().isoformat()
+                }
+            else:
+                return {
+                    "verified": False,
+                    "reason": "Autoformalization failed",
+                    "timestamp": datetime.now().isoformat()
+                }
+        except Exception as e:
+            self.logger.error(f"Lean verification error: {e}")
+            return {"verified": False, "reason": str(e), "timestamp": datetime.now().isoformat()}
+
+
+async def verify_with_lean(solution: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    **LEAN INTEGRATION**: Standalone solution verification using Lean theorem prover.
+    
+    Args:
+        solution: Solution dictionary to verify
+        
+    Returns:
+        Dict with verification results
+    """
+    if not LEAN_AVAILABLE:
+        return {"verified": False, "reason": "Lean unavailable"}
+    
+    try:
+        client = LeanAideClient()
+        content = solution.get('final_content', solution.get('solution_content', str(solution)))
+        
+        # Autoformalize
+        formalized = await client.translate_thm(content)
+        
+        if formalized.success and formalized.data:
+            # Verify with Lean
+            result = await client.elaborate(formalized.data.get('result', ''))
+            
+            return {
+                "verified": result.success,
+                "confidence": 1.0 if result.success else 0.0,
+                "proof": result.data.get('result') if result.data else None,
+                "solution_valid": result.success,
+                "timestamp": datetime.now().isoformat()
+            }
+        else:
+            return {
+                "verified": False,
+                "reason": "Autoformalization failed",
+                "timestamp": datetime.now().isoformat()
+            }
+    except Exception as e:
+        return {"verified": False, "reason": str(e), "timestamp": datetime.now().isoformat()}

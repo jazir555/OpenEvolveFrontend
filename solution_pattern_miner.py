@@ -8,6 +8,7 @@ It supports multiple clustering algorithms and dimensionality reduction techniqu
 import time
 import uuid
 from typing import Dict, List, Any, Optional, Tuple
+from datetime import datetime
 import json
 import numpy as np
 import logging
@@ -38,6 +39,13 @@ from workflow_structures import (
     SolutionPatternArtifact,
     KnowledgeArtifactManager,
 )
+
+# **LEAN INTEGRATION**: Formal verification for patterns
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
 
 
 
@@ -928,6 +936,63 @@ class SolutionPatternMiner:
         fig.write_html(output_path)
         print(f"Visualization saved to {output_path}")
 
+    async def verify_pattern_with_lean(self, pattern: SolutionPatternArtifact) -> Dict[str, Any]:
+        """
+        **LEAN INTEGRATION**: Verify a solution pattern using Lean theorem prover.
+        
+        Performs formal verification of the pattern's mathematical correctness.
+        
+        Args:
+            pattern: Solution pattern to verify
+            
+        Returns:
+            Dict with verification results
+        """
+        if not LEAN_AVAILABLE:
+            return {"verified": False, "reason": "Lean unavailable"}
+        
+        try:
+            client = LeanAideClient()
+            
+            # Combine pattern text for verification
+            content = f"""
+            Approach: {pattern.solution_approach}
+            Characteristics: {' '.join(pattern.problem_characteristics)}
+            Patterns: {' '.join(pattern.code_patterns)}
+            Optimizations: {' '.join(pattern.optimization_techniques)}
+            """
+            
+            # Autoformalize
+            formalized = await client.translate_thm(content)
+            
+            if formalized.success and formalized.data:
+                # Verify with Lean
+                result = await client.elaborate(formalized.data.get('result', ''))
+                
+                return {
+                    "verified": result.success,
+                    "confidence": 1.0 if result.success else 0.0,
+                    "proof": result.data.get('result') if result.data else None,
+                    "solution_valid": result.success,
+                    "pattern_id": pattern.artifact_id,
+                    "timestamp": datetime.now().isoformat()
+                }
+            else:
+                return {
+                    "verified": False,
+                    "reason": "Autoformalization failed",
+                    "pattern_id": pattern.artifact_id,
+                    "timestamp": datetime.now().isoformat()
+                }
+        except Exception as e:
+            logging.getLogger(__name__).error(f"Lean verification error: {e}")
+            return {
+                "verified": False,
+                "reason": str(e),
+                "pattern_id": pattern.artifact_id,
+                "timestamp": datetime.now().isoformat()
+            }
+
 
 # ========== Convenience Functions ==========
 
@@ -980,3 +1045,47 @@ def find_similar_patterns(
     similar = miner.find_similar_patterns(pattern, n_neighbors)
 
     return [{"artifact_id": p.artifact_id, "similarity": score} for p, score in similar]
+
+
+async def verify_with_lean(solution: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    **LEAN INTEGRATION**: Solution verification using Lean theorem prover.
+    
+    Standalone function for verifying solution content with formal methods.
+    
+    Args:
+        solution: Solution dictionary with content to verify
+        
+    Returns:
+        Dict with verification results
+    """
+    if not LEAN_AVAILABLE:
+        return {"verified": False, "reason": "Lean unavailable"}
+    
+    try:
+        client = LeanAideClient()
+        content = solution.get('solution_approach', str(solution))
+        
+        # Autoformalize
+        formalized = await client.translate_thm(content)
+        
+        if formalized.success and formalized.data:
+            # Verify with Lean
+            result = await client.elaborate(formalized.data.get('result', ''))
+            
+            return {
+                "verified": result.success,
+                "confidence": 1.0 if result.success else 0.0,
+                "proof": result.data.get('result') if result.data else None,
+                "solution_valid": result.success,
+                "timestamp": datetime.now().isoformat()
+            }
+        else:
+            return {
+                "verified": False,
+                "reason": "Autoformalization failed",
+                "timestamp": datetime.now().isoformat()
+            }
+    except Exception as e:
+        logging.getLogger(__name__).error(f"Lean verification error: {e}")
+        return {"verified": False, "reason": str(e), "timestamp": datetime.now().isoformat()}
