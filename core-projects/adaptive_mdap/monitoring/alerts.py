@@ -6,11 +6,13 @@ from dataclasses import dataclass, field
 from enum import Enum
 from datetime import datetime
 from threading import Lock
-import logging
 
-from adaptive_mdap.utils.logger import get_logger
-
-logger = get_logger("monitoring.alerts")
+try:
+    from adaptive_mdap.utils.logger import get_logger
+    logger = get_logger("monitoring.alerts")
+except ImportError:
+    import logging
+    logger = logging.getLogger("monitoring.alerts")
 
 
 class AlertSeverity(Enum):
@@ -276,3 +278,15 @@ def check_and_alert(metrics: Dict[str, Any]) -> List[Alert]:
 def get_active_alerts() -> List[Alert]:
     """Get all active alerts."""
     return get_alerting_engine().get_active_alerts()
+
+
+__all__ = [
+    "AlertingEngine",
+    "Alert",
+    "AlertRule",
+    "AlertSeverity",
+    "AlertStatus",
+    "get_alerting_engine",
+    "check_and_alert",
+    "get_active_alerts",
+]

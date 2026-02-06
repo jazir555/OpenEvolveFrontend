@@ -12,9 +12,12 @@ try:
 except ImportError:
     PSUTIL_AVAILABLE = False
 
-from adaptive_mdap.utils.logger import get_logger
-
-logger = get_logger("monitoring.health")
+try:
+    from adaptive_mdap.utils.logger import get_logger
+    logger = get_logger("monitoring.health")
+except ImportError:
+    import logging
+    logger = logging.getLogger("monitoring.health")
 
 
 class ComponentStatus(Enum):
@@ -290,3 +293,12 @@ def get_health_checker() -> HealthChecker:
 def check_health() -> Dict[str, Any]:
     """Quick health check for API endpoints."""
     return get_health_checker().get_status_report()
+
+
+__all__ = [
+    "HealthChecker",
+    "HealthCheckResult",
+    "ComponentStatus",
+    "get_health_checker",
+    "check_health",
+]

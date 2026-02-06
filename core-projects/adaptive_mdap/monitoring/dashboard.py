@@ -5,10 +5,18 @@ from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
-from adaptive_mdap.utils.logger import get_logger
-from adaptive_mdap.utils.metrics import get_metrics
+try:
+    from adaptive_mdap.utils.logger import get_logger
+    logger = get_logger("monitoring.dashboard")
+except ImportError:
+    import logging
+    logger = logging.getLogger("monitoring.dashboard")
 
-logger = get_logger("monitoring.dashboard")
+try:
+    from adaptive_mdap.utils.metrics import get_metrics
+except ImportError:
+    def get_metrics():
+        return None
 
 
 @dataclass
@@ -36,6 +44,12 @@ class DashboardGenerator:
     
     def generate_summary(self) -> Dict[str, Any]:
         """Generate summary dashboard."""
+        if self.metrics is None:
+            return {
+                "generated_at": datetime.utcnow().isoformat(),
+                "error": "Metrics not available",
+            }
+            
         all_metrics = self.metrics.get_all_metrics()
         
         return {
@@ -62,6 +76,12 @@ class DashboardGenerator:
     
     def generate_execution_metrics(self) -> Dict[str, Any]:
         """Generate execution metrics dashboard."""
+        if self.metrics is None:
+            return {
+                "generated_at": datetime.utcnow().isoformat(),
+                "error": "Metrics not available",
+            }
+            
         all_metrics = self.metrics.get_all_metrics()
         timers = all_metrics.get("timers", {})
         counters = all_metrics.get("counters", {})
@@ -93,6 +113,12 @@ class DashboardGenerator:
     
     def generate_cost_dashboard(self) -> Dict[str, Any]:
         """Generate cost metrics dashboard."""
+        if self.metrics is None:
+            return {
+                "generated_at": datetime.utcnow().isoformat(),
+                "error": "Metrics not available",
+            }
+            
         all_metrics = self.metrics.get_all_metrics()
         histograms = all_metrics.get("histograms", {})
         
@@ -115,6 +141,12 @@ class DashboardGenerator:
     
     def generate_allocations_dashboard(self) -> Dict[str, Any]:
         """Generate allocation metrics dashboard."""
+        if self.metrics is None:
+            return {
+                "generated_at": datetime.utcnow().isoformat(),
+                "error": "Metrics not available",
+            }
+            
         all_metrics = self.metrics.get_all_metrics()
         counters = all_metrics.get("counters", {})
         histograms = all_metrics.get("histograms", {})
@@ -138,15 +170,17 @@ class DashboardGenerator:
         """Generate complete dashboard with all sections."""
         return {
             "generated_at": datetime.utcnow().isoformat(),
-            "summary": self.generate_summary()["summary"],
-            "execution": self.generate_execution_metrics()["strategies"],
-            "costs": self.generate_cost_dashboard()["costs"],
-            "allocations": self.generate_allocations_dashboard()["allocation_counts"],
-            "complexity_distribution": self.generate_allocations_dashboard()["complexity_distribution"],
+            "summary": self.generate_summary().get("summary", {}),
+            "execution": self.generate_execution_metrics().get("strategies", {}),
+            "costs": self.generate_cost_dashboard().get("costs", {}),
+            "allocations": self.generate_allocations_dashboard().get("allocation_counts", {}),
+            "complexity_distribution": self.generate_allocations_dashboard().get("complexity_distribution", {}),
         }
     
     def export_prometheus(self) -> str:
         """Export all metrics in Prometheus format."""
+        if self.metrics is None:
+            return "# Metrics not available\n"
         return self.metrics.export_prometheus()
 
 
@@ -172,3 +206,14 @@ def get_full_dashboard() -> Dict[str, Any]:
 def get_prometheus_metrics() -> str:
     """Get Prometheus-format metrics."""
     return get_dashboard().export_prometheus()
+
+
+__all__ = [
+    "DashboardGenerator",
+    "DashboardPanel",
+    "DashboardConfig",
+    "get_dashboard",
+    "get_summary",
+    "get_full_dashboard",
+    "get_prometheus_metrics",
+]

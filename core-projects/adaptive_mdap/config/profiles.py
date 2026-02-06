@@ -1,9 +1,17 @@
 """Configuration profiles for different use cases."""
 
-import yaml
+import os
 from enum import Enum
 from typing import Dict, Any
 from pathlib import Path
+
+# Try to import yaml, fallback to JSON if not available
+try:
+    import yaml
+    YAML_AVAILABLE = True
+except ImportError:
+    YAML_AVAILABLE = False
+    import json
 
 
 class ConfigProfile(Enum):
@@ -70,7 +78,7 @@ def get_profile_config(profile: ConfigProfile) -> Dict[str, Any]:
         }
         # Extend timeouts for cloud
         for s in base["strategies"]:
-            base["strategies"][s]["timeout_ms"] *= 1.5
+            base["strategies"][s]["timeout_ms"] = int(base["strategies"][s]["timeout_ms"] * 1.5)
     elif profile == ConfigProfile.CLOUD_BALANCED:
         base["allocator"] = {
             "thresholds": [0.2, 0.4, 0.6, 0.8],
@@ -92,6 +100,12 @@ def load_profile(profile: ConfigProfile, save_to: Path = None) -> Dict[str, Any]
     if save_to:
         save_to.parent.mkdir(parents=True, exist_ok=True)
         with open(save_to, 'w') as f:
-            yaml.dump(config, f, default_flow_style=False)
+            if YAML_AVAILABLE:
+                yaml.dump(config, f, default_flow_style=False)
+            else:
+                json.dump(config, f, indent=2)
     
     return config
+
+
+__all__ = ["ConfigProfile", "get_profile_config", "load_profile"]

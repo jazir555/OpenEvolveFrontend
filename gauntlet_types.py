@@ -348,17 +348,7 @@ class LeanVerificationGauntlet(BaseGauntlet):
                 details={"error": str(e)},
                 feedback=f"Lean verification error: {str(e)}"
             )
-                confidence=confidence,
-                execution_time=execution_time,
-                details={
-                    "verification_result": verification_result,
-                    "lean_available": LEAN_AVAILABLE,
-                    "formalized_statement": verification_result.get("formalized_statement")
-                },
-                feedback="Formal verification passed" if verified else "Formal verification failed",
-                improvements=[] if verified else ["Review formal statement", "Check proof logic"]
-            )
-            
+
         except Exception as e:
             self.logger.error(f"Lean verification gauntlet failed: {e}")
             execution_time = time.time() - start_time

@@ -5,8 +5,6 @@ This package implements the Adaptive-MAKER integration, combining the MAKER fram
 (MDAP - Massively Decomposed Agentic Processes) with adaptive resource allocation
 to achieve 30-50% cost reduction while maintaining quality within ±1% of baseline.
 
-Based on: "Solving a Million-Step LLM Task with Zero Errors" by Meyerson et al.
-
 Example:
     >>> from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
     >>> from adaptive_mdap.core.types import SubProblem
@@ -35,7 +33,7 @@ __version__ = "1.0.0"
 __author__ = "OpenEvolve Integration Team"
 __license__ = "MIT"
 
-# Core components - import first as they're dependencies for others
+# Core components (safe to import - no external deps)
 from adaptive_mdap.core.types import (
     SubProblem,
     ComplexityScore,
@@ -54,44 +52,58 @@ from adaptive_mdap.core.errors import (
     CacheError,
 )
 
-# Utilities - needed by other modules
+# Utilities (safe to import)
 from adaptive_mdap.utils.logger import get_logger, setup_logging
 from adaptive_mdap.utils.metrics import get_metrics, MetricsCollector
-from adaptive_mdap.utils.cache import (
-    EmbeddingCache,
-    FeatureCache,
-    get_cache_stats,
-)
+from adaptive_mdap.utils.cache import EmbeddingCache, FeatureCache, get_cache_stats
 
-# Classifiers
-from adaptive_mdap.classifiers.task_complexity_classifier import (
-    TaskComplexityClassifier,
-    ClassifierConfig,
-)
+# Main components with error handling
+try:
+    from adaptive_mdap.classifiers.task_complexity_classifier import (
+        TaskComplexityClassifier,
+        ClassifierConfig,
+    )
+except ImportError as _e:
+    TaskComplexityClassifier = None
+    ClassifierConfig = None
 
-# Allocators
-from adaptive_mdap.allocators.resource_allocator import (
-    AdaptiveMDAPAllocator,
-    AllocationContext,
-    AllocationStats,
-)
+try:
+    from adaptive_mdap.allocators.resource_allocator import (
+        AdaptiveMDAPAllocator,
+        AllocationContext,
+        AllocationStats,
+    )
+except ImportError as _e:
+    AdaptiveMDAPAllocator = None
+    AllocationContext = None
+    AllocationStats = None
 
-# Controllers
-from adaptive_mdap.controllers.execution_controller import (
-    AdaptiveExecutionController,
-    SolutionAttempt,
-    SolutionStatus,
-    ExecutionMetrics,
-)
+try:
+    from adaptive_mdap.controllers.execution_controller import (
+        AdaptiveExecutionController,
+        SolutionAttempt,
+        SolutionStatus,
+        ExecutionMetrics,
+    )
+except ImportError as _e:
+    AdaptiveExecutionController = None
+    SolutionAttempt = None
+    SolutionStatus = None
+    ExecutionMetrics = None
 
 # Configuration
-from adaptive_mdap.config.profiles import (
-    ConfigProfile,
-    get_profile_config,
-    load_profile,
-)
+try:
+    from adaptive_mdap.config.profiles import (
+        ConfigProfile,
+        get_profile_config,
+        load_profile,
+    )
+except ImportError as _e:
+    ConfigProfile = None
+    get_profile_config = None
+    load_profile = None
 
-# Monitoring - with error handling
+# Monitoring
 try:
     from adaptive_mdap.monitoring.health import (
         HealthChecker,
@@ -147,13 +159,13 @@ except ImportError as _e:
     check_and_alert = None
     get_active_alerts = None
 
-# Integrations - with error handling
+# Integrations (optional, may fail if dependencies not installed)
 try:
     from adaptive_mdap.integrations.crewai_integration import (
         CrewAIIntegration,
         AdaptiveCrewConfig,
     )
-except ImportError as _e:
+except ImportError:
     CrewAIIntegration = None
     AdaptiveCrewConfig = None
 
@@ -163,7 +175,7 @@ try:
         AdaptiveSolverConfig,
         create_adaptive_solver,
     )
-except ImportError as _e:
+except ImportError:
     AdaptiveSubProblemSolver = None
     AdaptiveSolverConfig = None
     create_adaptive_solver = None
@@ -185,7 +197,7 @@ except ImportError:
     configure_adaptive_workflow = None
     adaptive_solve_subproblem = None
 
-# Tools - with error handling
+# Tools
 try:
     from adaptive_mdap.tools.cost_calculator import (
         CostCalculator,
@@ -194,7 +206,7 @@ try:
         WorkloadDistribution,
         StrategyCost,
     )
-except ImportError as _e:
+except ImportError:
     CostCalculator = None
     APIPricing = None
     TokenUsage = None

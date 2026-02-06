@@ -14,13 +14,8 @@ from universal_recomposition_engine import (
     Constraint,
     SubProblemSolution,
 )
-from enhanced_decomposition_engine import (
-    SubProblem as EnhancedSubProblem,
-    SubProblemType,
-    ComplexityScore as EnhancedComplexityScore,
-)
 from decomposition_recomposition_integration import SolutionSolver, SolverConfig
-from workflow_structures import Team
+from workflow_structures import Team, ModelConfig
 
 
 @dataclass
@@ -120,29 +115,18 @@ def test_entanglement_invalidation_propagates():
 
 
 def test_simple_solver_propagates_entanglement_metadata():
-    sub_problem = EnhancedSubProblem(
-        id="sp-alpha",
-        parent_id="prob1",
-        title="Auth API",
-        description="Expose authentication interface for client integrations.",
-        type=SubProblemType.IMPLEMENTATION,
-        complexity_score=ComplexityScore(1, 1, 1, 1, 1),
-        dependencies=["sp-beta"],
-        success_criteria=[],
-        metadata={
-            "entangled_with": ["sp-beta"],
-            "entanglement_symbols": ["auth", "token"],
-            "entanglement_source": "symbolic_overlap",
-            "input_contracts": ["User credentials"],
-            "output_contracts": ["Access token"],
-        },
+    # Create a minimal ModelConfig for the team
+    model_config = ModelConfig(
+        model_id="test-model",
+        api_key="test-key"
     )
 
+    # Create solver with properly configured Team
     solver = SolutionSolver(
         team=Team(
             name="test_team",
-            members=[],
-            capabilities=["problem_solving"]
+            role="Blue",
+            members=[model_config]
         ),
         config=SolverConfig(
             mode="decomposition_first",
@@ -150,9 +134,23 @@ def test_simple_solver_propagates_entanglement_metadata():
             max_subproblems=5
         )
     )
-    solution = solver.solve(sub_problem)
 
-    assert solution.metadata.get("entangled_with") == ["sp-beta"]
-    assert solution.metadata.get("entanglement_symbols") == ["auth", "token"]
-    assert solution.metadata.get("entanglement_source") == "symbolic_overlap"
-    assert "inputs" in solution.metadata and "outputs" in solution.metadata
+    # The solve method expects a string problem description and context dict,
+    # not a SubProblem object. Pass entanglement metadata in context.
+    problem_description = "Expose authentication interface for client integrations."
+    context = {
+        "entangled_with": ["sp-beta"],
+        "entanglement_symbols": ["auth", "token"],
+        "entanglement_source": "symbolic_overlap",
+        "input_contracts": ["User credentials"],
+        "output_contracts": ["Access token"],
+    }
+
+    solution_text, metadata = solver.solve(problem_description, context)
+
+    # Verify entanglement metadata is propagated in the returned metadata
+    assert metadata.get("entangled_with") == ["sp-beta"]
+    assert metadata.get("entanglement_symbols") == ["auth", "token"]
+    assert metadata.get("entanglement_source") == "symbolic_overlap"
+    assert metadata.get("input_contracts") == ["User credentials"]
+    assert metadata.get("output_contracts") == ["Access token"]

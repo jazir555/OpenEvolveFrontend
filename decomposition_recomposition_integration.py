@@ -7,6 +7,7 @@ to enable solving complex problems by breaking them down and reassembling soluti
 
 import json
 import logging
+import time
 from typing import Any, Dict, List, Optional, Tuple, Callable
 from dataclasses import dataclass, field
 from enum import Enum
@@ -127,33 +128,24 @@ Return as a structured response."""
             for i, subproblem_data in enumerate(decomposition_result):
                 subproblem = SubProblem(
                     id=f"subprob_{i+1}_{hash(problem_description) % 1000}",
-                    title=subproblem_data.get("title", f"Subproblem {i+1}"),
-                    description=subproblem_data.get("description", ""),
-                    type=subproblem_data.get("type", "general"),
-                    estimated_effort=subproblem_data.get("effort", 1),
-                    priority=subproblem_data.get("priority", 1),
-                    dependencies=subproblem_data.get("dependencies", []),
-                    success_criteria=subproblem_data.get("success_criteria", [])
+                    description=subproblem_data.get("description", problem_description),
+                    dependencies=subproblem_data.get("dependencies", [])
                 )
                 subproblems.append(subproblem)
-            
+
             # Limit number of subproblems if needed
             if len(subproblems) > self.config.max_subproblems:
                 subproblems = subproblems[:self.config.max_subproblems]
-            
+
             logger.info(f"Decomposed problem into {len(subproblems)} subproblems")
             return subproblems
-            
+
         except Exception as e:
             logger.error(f"Problem decomposition failed: {e}")
             # Return a single subproblem with the original problem if decomposition fails
             return [SubProblem(
                 id=f"subprob_direct_{hash(problem_description) % 1000}",
-                title="Direct Solution",
-                description=problem_description,
-                type="general",
-                estimated_effort=5,
-                priority=1
+                description=problem_description
             )]
     
     def solve_subproblem(
@@ -175,14 +167,14 @@ Return as a structured response."""
             # Build solution prompt
             prompt = f"""Solve the following subproblem:
 
-Title: {subproblem.title}
+ID: {subproblem.id}
 Description: {subproblem.description}
 
 Context: {json.dumps(context, indent=2)}
 
 Provide a detailed solution to this subproblem."""
-            
-            system_prompt = f"""You are solving a subproblem: {subproblem.title}
+
+            system_prompt = f"""You are solving a subproblem: {subproblem.id}
 
 Description: {subproblem.description}
 
@@ -208,34 +200,37 @@ Provide a comprehensive solution that addresses the subproblem requirements."""
             
             if not solution_content.strip():
                 solution_content = json.dumps(final_state, indent=2)
-            
+
             # Create solution attempt
             solution_attempt = SolutionAttempt(
                 sub_problem_id=subproblem.id,
-                team_id=self.team.team_id,
+                team_id=self.team.name,  # Use team.name as team identifier
                 content=solution_content,
+                generated_by_model=self.team.members[0].model_id if self.team.members else "unknown",
+                timestamp=time.time(),
                 metadata={
-                    "subproblem_title": subproblem.title,
-                    "subproblem_type": subproblem.type,
-                    "effort_estimate": subproblem.estimated_effort,
+                    "subproblem_id": subproblem.id,
+                    "subproblem_description": subproblem.description,
                     "solution_metrics": metrics.__dict__ if hasattr(metrics, '__dict__') else {},
                     "context_used": context
                 }
             )
-            
-            logger.info(f"Solved subproblem: {subproblem.title}")
+
+            logger.info(f"Solved subproblem: {subproblem.id}")
             return solution_attempt
-            
+
         except Exception as e:
-            logger.error(f"Subproblem solving failed for {subproblem.title}: {e}")
+            logger.error(f"Subproblem solving failed for {subproblem.id}: {e}")
             # Return a failed solution attempt
             return SolutionAttempt(
                 sub_problem_id=subproblem.id,
-                team_id=self.team.team_id,
+                team_id=self.team.name,  # Use team.name as team identifier
                 content="",
+                generated_by_model=self.team.members[0].model_id if self.team.members else "unknown",
+                timestamp=time.time(),
                 metadata={
                     "error": str(e),
-                    "subproblem_title": subproblem.title,
+                    "subproblem_id": subproblem.id,
                     "status": "failed"
                 }
             )
@@ -261,7 +256,8 @@ Provide a comprehensive solution that addresses the subproblem requirements."""
             # Build solution content from individual subproblem solutions
             solution_parts = []
             for sol in subproblem_solutions:
-                solution_parts.append(f"Solution to '{sol.metadata.get('subproblem_title', 'Unknown')}':\n{sol.content}\n")
+                subproblem_id = sol.metadata.get('subproblem_id', 'Unknown')
+                solution_parts.append(f"Solution to subproblem '{subproblem_id}':\n{sol.content}\n")
             
             all_solutions = "\n".join(solution_parts)
             
@@ -329,7 +325,8 @@ Create a unified solution that:
             # Fallback: concatenate all solutions
             fallback_solution = ""
             for sol in subproblem_solutions:
-                fallback_solution += f"Subproblem: {sol.metadata.get('subproblem_title', 'Unknown')}\n"
+                subproblem_id = sol.metadata.get('subproblem_id', 'Unknown')
+                fallback_solution += f"Subproblem: {subproblem_id}\n"
                 fallback_solution += f"Solution: {sol.content}\n\n"
             
             return fallback_solution, {
@@ -376,6 +373,12 @@ Create a unified solution that:
                 "decomposition_depth": len(subproblems),
                 "subproblem_solutions_count": len(solutions)
             })
+
+            # Preserve context metadata in the return value
+            # This allows entanglement and other metadata to propagate through the solver
+            for key, value in context.items():
+                if key not in metadata:  # Don't override existing metadata
+                    metadata[key] = value
             
             logger.info(f"Completed decomposition-recomposition with {len(subproblems)} subproblems")
             return final_solution, metadata
@@ -426,20 +429,38 @@ Provide a detailed, comprehensive solution."""
             
             if not solution_content.strip():
                 solution_content = json.dumps(final_state, indent=2)
-            
-            return solution_content, {
+
+            # Build metadata, preserving context metadata
+            metadata = {
                 "direct_solution": True,
                 "fallback_used": True,
                 "metrics": metrics.__dict__ if hasattr(metrics, '__dict__') else {}
             }
-            
+
+            # Preserve context metadata in the return value
+            # This allows entanglement and other metadata to propagate through the solver
+            for key, value in context.items():
+                if key not in metadata:  # Don't override existing metadata
+                    metadata[key] = value
+
+            return solution_content, metadata
+
         except Exception as e:
             logger.error(f"Direct solving also failed: {e}")
-            return f"Unable to solve problem: {str(e)}", {
+
+            # Even on error, preserve context metadata
+            metadata = {
                 "error": str(e),
                 "direct_solution": False,
                 "fallback_used": True
             }
+
+            # Preserve context metadata even on error
+            for key, value in context.items():
+                if key not in metadata:
+                    metadata[key] = value
+
+            return f"Unable to solve problem: {str(e)}", metadata
     
     def _parse_decomposition_result(
         self,

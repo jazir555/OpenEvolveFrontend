@@ -1,0 +1,275 @@
+{
+  "scan_summary": {
+    "total_files_scanned": 15683,
+    "total_errors_found": 4129,
+    "critical_errors": 385,
+    "files_fixed": 31,
+    "files_verified": 31,
+    "fix_success_rate": "100%",
+    "verification_success_rate": "100%",
+    "fix_timestamp": "2026-02-05T22:32:00"
+  },
+  "fixes_by_category": {
+    "syntax_errors": {
+      "count": 16,
+      "files": [
+        {
+          "file": "comprehensive_security_test_coverage.py",
+          "line": 530,
+          "error_type": "unterminated string literal",
+          "fix": "Fixed quote mismatch: changed {\"data': to {\"data\":"
+        },
+        {
+          "file": "core-projects/Curie/benchmark/exp_bench/evaluation/eval.py",
+          "line": 273,
+          "error_type": "f-string unmatched '['",
+          "fix": "Fixed f-string bracket matching"
+        },
+        {
+          "file": "core-projects/Curie/benchmark/exp_bench/evaluation/judge.py",
+          "line": 481,
+          "error_type": "f-string unmatched '['",
+          "fix": "Fixed f-string bracket matching"
+        },
+        {
+          "file": "core-projects/Curie/benchmark/exp_bench/evaluation/main_eval.py",
+          "line": 65,
+          "error_type": "f-string unmatched '['",
+          "fix": "Fixed f-string bracket matching"
+        },
+        {
+          "file": "core-projects/Curie/benchmark/exp_bench/evaluation/parallel_eval.py",
+          "line": 177,
+          "error_type": "f-string unmatched '('",
+          "fix": "Fixed f-string parenthesis matching"
+        },
+        {
+          "file": "core-projects/Curie/benchmark/exp_bench/evaluation/utils.py",
+          "line": 3,
+          "error_type": "f-string unmatched '['",
+          "fix": "Fixed f-string bracket matching"
+        },
+        {
+          "file": "core-projects/Curie/evaluation/error_stats.py",
+          "line": 5,
+          "error_type": "unexpected indent",
+          "fix": "Fixed indentation"
+        },
+        {
+          "file": "core-projects/Generic-Knowledge-Extraction-Tool/ai/clients/claude_client.py",
+          "line": 33,
+          "error_type": "unexpected indent",
+          "fix": "Moved imports to module level"
+        },
+        {
+          "file": "core-projects/Generic-Knowledge-Extraction-Tool/parsers/docling_parser.py",
+          "line": 105,
+          "error_type": "unexpected indent",
+          "fix": "Moved imports to module level"
+        },
+        {
+          "file": "core-projects/Generic-Knowledge-Extraction-Tool/templates/PoDataExtraction/PoDataExtraction_strategy.py",
+          "line": 4,
+          "error_type": "unterminated string literal",
+          "fix": "Changed to triple quotes for multi-line string"
+        },
+        {
+          "file": "core-projects/Lean4-LLM-Ai-Agent-Mooc/src/main.py",
+          "line": 7,
+          "error_type": "invalid syntax",
+          "fix": "Fixed type alias syntax"
+        },
+        {
+          "file": "core-projects/LeanAide/server/tabs/server_response.py",
+          "line": 301,
+          "error_type": "f-string unmatched '['",
+          "fix": "Fixed f-string bracket matching"
+        },
+        {
+          "file": "automated_proof_engine.py",
+          "line": 1321,
+          "error_type": "Python 2 style print statement",
+          "fix": "Converted to Python 3 print() function"
+        },
+        {
+          "file": "benchmark_ultra_comprehensive_artifacts.py",
+          "line": 572,
+          "error_type": "Python 2 style print statement",
+          "fix": "Converted to Python 3 print() function"
+        },
+        {
+          "file": "ml_pattern_clustering.py",
+          "line": 64,
+          "error_type": "unexpected indent",
+          "fix": "Removed extra leading space"
+        },
+        {
+          "file": "core-projects/cognitive-hydraulics/example/sort.py",
+          "line": 34,
+          "error_type": "duplicate argument",
+          "fix": "Changed second 'l' to 'r' in function definition"
+        }
+      ]
+    },
+    "import_errors": {
+      "count": 9,
+      "files": [
+        {
+          "file": "openevolve/api.py",
+          "action": "created_stub_module",
+          "description": "Created new stub module with EvolutionResult dataclass"
+        },
+        {
+          "file": "openevolve/config.py",
+          "action": "created_stub_module",
+          "description": "Created new stub module with Config dataclasses"
+        },
+        {
+          "file": "secure_api.py",
+          "action": "wrapped_imports",
+          "description": "Wrapped cryptography imports with try/except fallback"
+        },
+        {
+          "file": "physics_validator_real.py",
+          "action": "wrapped_imports",
+          "description": "Wrapped scipy/sympy imports with availability flags"
+        },
+        {
+          "file": "openevolve_cli.py",
+          "action": "wrapped_imports",
+          "description": "Wrapped rich imports with RICH_AVAILABLE flag"
+        }
+      ]
+    },
+    "stub_modules_created": [
+      {
+        "file": "openevolve/api.py",
+        "exports": ["run_evolution", "evolve_function", "evolve_algorithm", "evolve_code", "EvolutionResult", "Config", "IS_STUB"]
+      },
+      {
+        "file": "openevolve/config.py",
+        "exports": ["LLMModelConfig", "DatabaseConfig", "EvaluatorConfig", "PromptConfig", "EvolutionTraceConfig", "Config", "IS_STUB"]
+      }
+    ],
+    "adaptive_mdap_enhancements": {
+      "count": 7,
+      "modules": [
+        {
+          "module": "adaptive_mdap.__init__",
+          "action": "lazy_imports",
+          "description": "Modified to use lazy imports with try/except blocks"
+        },
+        {
+          "module": "adaptive_mdap.utils.__init__",
+          "action": "fixed_exports",
+          "description": "Added missing exports: get_metrics, get_cache_stats, MetricsCollector"
+        },
+        {
+          "module": "adaptive_mdap.classifiers.task_complexity_classifier",
+          "action": "enhanced_with_fallbacks",
+          "description": "Added fallback implementations for dependencies"
+        },
+        {
+          "module": "adaptive_mdap.config.profiles",
+          "action": "enhanced_with_fallbacks",
+          "description": "Added YAML/JSON fallback for config serialization"
+        },
+        {
+          "module": "adaptive_mdap.monitoring.health",
+          "action": "enhanced_with_psutil_fallback",
+          "description": "Added graceful handling for missing psutil"
+        },
+        {
+          "module": "adaptive_mdap.monitoring.dashboard",
+          "action": "enhanced_with_fallbacks",
+          "description": "Added fallback for missing metrics dependency"
+        },
+        {
+          "module": "adaptive_mdap.monitoring.alerts",
+          "action": "enhanced_with_fallbacks",
+          "description": "Added fallback logger for when utils.logger unavailable"
+        }
+      ]
+    }
+  },
+  "remaining_issues": {
+    "count": 28,
+    "categories": [
+      {
+        "category": "DSPy Framework",
+        "count": 22,
+        "pattern": "import blocks breaking method bodies",
+        "files": [
+          "core-projects/dspy/dspy/adapters/json_adapter.py",
+          "core-projects/dspy/dspy/adapters/types/audio.py",
+          "core-projects/dspy/dspy/adapters/types/image.py",
+          "core-projects/dspy/dspy/adapters/utils.py",
+          "core-projects/dspy/dspy/adapters/xml_adapter.py",
+          "core-projects/dspy/dspy/clients/lm_local.py",
+          "core-projects/dspy/dspy/evaluate/evaluate.py",
+          "core-projects/dspy/dspy/evaluate/metrics.py",
+          "core-projects/dspy/dspy/predict/aggregation.py",
+          "core-projects/dspy/dspy/predict/best_of_n.py",
+          "core-projects/dspy/dspy/predict/chain_of_thought.py",
+          "core-projects/dspy/dspy/predict/knn.py",
+          "core-projects/dspy/dspy/predict/react.py",
+          "core-projects/dspy/dspy/primitives/base_module.py",
+          "core-projects/dspy/dspy/propose/dataset_summary_generator.py",
+          "core-projects/dspy/dspy/propose/grounded_proposer.py",
+          "core-projects/dspy/dspy/retrievers/embeddings.py",
+          "core-projects/dspy/dspy/signatures/field.py",
+          "core-projects/dspy/dspy/streaming/streamify.py",
+          "core-projects/dspy/dspy/teleprompt/bootstrap.py",
+          "core-projects/dspy/dspy/teleprompt/bootstrap_finetune.py",
+          "core-projects/dspy/dspy/teleprompt/gepa/gepa.py",
+          "core-projects/dspy/dspy/teleprompt/knn_fewshot.py",
+          "core-projects/dspy/dspy/teleprompt/teleprompt.py"
+        ]
+      },
+      {
+        "category": "Other Files",
+        "count": 6,
+        "files": [
+          "core-projects/lmql/src/lmql/ui/playground/ref.py",
+          "examples/enhanced_gauntlet_example.py",
+          "examples/finance/insurance_example.py",
+          "glue/adapters/rese-leanaide-workflow/tests/test_leanaide_rese_workflow.py",
+          "glue/adapters/rese-z3-bridge/tests/test_rese_z3_bridge.py",
+          "leanaide-bubblelab-plugin/test_final_verification.py"
+        ]
+      }
+    ],
+    "recommendations": [
+      "Run systematic fix on DSPy files to move import blocks to module level",
+      "Consider excluding core-projects/dspy/ from auto-fixes if external dependency",
+      "Address remaining 6 misc files individually",
+      "Add pre-commit hooks for syntax checking"
+    ]
+  },
+  "verification_results": {
+    "total_files_checked": 31,
+    "success": 31,
+    "failed": 0,
+    "not_found": 0,
+    "permission_error": 0,
+    "method": "py_compile.compile(filepath, doraise=True)"
+  },
+  "files_already_protected": [
+    "security_performance_tests.py",
+    "physics_validator_enhanced.py",
+    "solution_pattern_miner.py",
+    "telemetry.py",
+    "openevolve_integration.py",
+    "red_team.py"
+  ],
+  "metadata": {
+    "reports_processed": [
+      "fixes_syntax_batch1.json",
+      "fixes_adaptive_mdap.json",
+      "fixes_toplevel.json",
+      "fixes_remaining.json"
+    ],
+    "generated_at": "2026-02-05T22:32:00",
+    "generated_by": "Import Fix Verification System"
+  }
+}

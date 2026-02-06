@@ -866,6 +866,7 @@ def create_all_gauntlets(config: Optional[Dict] = None, **kwargs) -> List[BaseGa
     return [
         create_gauntlet("adversarial", "adversarial", config.get("adversarial", {}), **kwargs),
         create_gauntlet("formal_verification", "formal_verification", config.get("formal", {}), **kwargs),
+        create_gauntlet("logical_sandbox", "logical_sandbox", config.get("sandbox", {}), **kwargs),
         create_gauntlet("statistical", "statistical", config.get("statistical", {}), **kwargs),
         create_gauntlet("physics", "physics_domain", config.get("physics", {}), **kwargs),
         create_gauntlet("finance", "finance_domain", config.get("finance", {}), **kwargs),
