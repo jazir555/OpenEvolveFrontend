@@ -977,6 +977,67 @@ class SolutionManager:
             self._sub_problem_index.clear()
             logger.info("Cleared all solutions from memory")
 
+    async def validate_solution_attempt_with_lean(
+        self,
+        attempt: SolutionAttempt,
+        criteria: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        **LEAN INTEGRATION**: Validate solution attempt using Lean theorem prover.
+        
+        Performs formal mathematical verification of the solution content.
+        
+        Args:
+            attempt: The solution attempt to validate
+            criteria: Optional validation criteria
+            
+        Returns:
+            Dict with formal validation results
+        """
+        if not LEAN_AVAILABLE:
+            return {
+                "verified": False,
+                "reason": "Lean unavailable",
+                "attempt_id": attempt.id if hasattr(attempt, 'id') else None
+            }
+        
+        try:
+            logger.info(f"Running Lean validation for solution attempt {attempt.id}")
+            
+            client = LeanAideClient()
+            content = attempt.content if hasattr(attempt, 'content') else str(attempt)
+            
+            # Autoformalize the solution content
+            formalized = await client.autoformalize(content)
+            
+            # Verify with Lean
+            result = await client.verify(formalized)
+            
+            validation_result = {
+                "verified": result.verified if hasattr(result, 'verified') else False,
+                "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
+                "proof": result.proof_code if hasattr(result, 'proof_code') else None,
+                "attempt_id": attempt.id if hasattr(attempt, 'id') else None,
+                "stored_in_knowledge_base": True,
+                "verification_method": "lean_autoformalize",
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            # Update attempt metadata with verification result
+            if hasattr(attempt, 'metadata'):
+                attempt.metadata["lean_verification"] = validation_result
+            
+            logger.info(f"Lean validation result: verified={validation_result['verified']}")
+            return validation_result
+            
+        except Exception as e:
+            logger.error(f"Lean validation error: {e}")
+            return {
+                "verified": False,
+                "reason": str(e),
+                "attempt_id": attempt.id if hasattr(attempt, 'id') else None
+            }
+
 
 # ============================================================================
 # UTILITY FUNCTIONS

@@ -78,6 +78,13 @@ except ImportError:
     LEANAIDE_AVAILABLE = False
     logging.warning("LeanAide integration not available")
 
+# REAL Lean Integration
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -1973,6 +1980,27 @@ class EvolutionaryMCTSWithLeanAide(EvolutionaryMCTS):
         except Exception as e:
             logger.warning(f"Proof verification failed: {e}")
             return False
+
+    def verify_with_lean(self, node_or_sequence) -> Dict[str, Any]:
+        """
+        REAL Lean verification for evolved nodes.
+        
+        Args:
+            node_or_sequence: EvolutionaryNode or ActionSequence to verify
+            
+        Returns:
+            Dictionary with verification results
+        """
+        if not LEAN_AVAILABLE:
+            return {"verified": False, "error": "Lean not available"}
+        
+        try:
+            client = LeanAideClient()
+            formalized = client.autoformalize(str(node_or_sequence))
+            return client.verify(formalized)
+        except Exception as e:
+            logger.warning(f"Lean verification failed: {e}")
+            return {"verified": False, "error": str(e)}
 
 
 # =============================================================================

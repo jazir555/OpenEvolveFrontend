@@ -112,7 +112,6 @@ try:
 except ImportError:
     LEAN_AVAILABLE = False
 
-logger = logging.getLogger(__name__)
 
 
 class GauntletType(Enum):
@@ -147,6 +146,8 @@ class GauntletResult:
     feedback: str = ""
     improvements: List[str] = field(default_factory=list)
     artifacts: List[Any] = field(default_factory=list)
+
+
 
 
 class BaseGauntlet(ABC):
@@ -226,6 +227,137 @@ class BaseGauntlet(ABC):
         
         # Fallback to simple type checking
         return isinstance(value, (int, float, str, bool, list, dict))
+
+
+class LeanVerificationGauntlet(BaseGauntlet):
+    """Lean verification gauntlet: Formal verification using Lean theorem prover.
+    
+    Uses Lean 4 to formally verify mathematical statements, theorems, and proofs.
+    Supports translation from natural language to formal statements.
+    """
+    
+    def __init__(self, name: str = "lean_verification_gauntlet", config: Optional[Dict] = None):
+        config = config or {}
+        super().__init__(name, GauntletType.FORMAL_VERIFICATION, config)
+        self.lean_client: Optional[LeanAideClient] = None
+        self._init_lean_client()
+    
+    def _init_lean_client(self):
+        """Initialize LeanAide client if available."""
+        if LEAN_AVAILABLE:
+            try:
+                self.lean_client = LeanAideClient()
+                self.logger.info("LeanAide client initialized for formal verification gauntlet")
+            except Exception as e:
+                self.logger.warning(f"Failed to initialize LeanAide client: {e}")
+                self.lean_client = None
+    
+    async def verify_with_lean(
+        self, 
+        content: str, 
+        attack_vector: str = None
+    ) -> Dict[str, Any]:
+        """Verify content using Lean theorem prover.
+        
+        Args:
+            content: The content to verify (theorem, proof, or statement)
+            attack_vector: Optional attack vector identifier
+            
+        Returns:
+            Dictionary with verification results
+        """
+        if not LEAN_AVAILABLE or self.lean_client is None:
+            return {"verified": False, "reason": "Lean unavailable"}
+        
+        try:
+            # Translate content to formal theorem statement
+            formalized = await self.lean_client.translate_thm(content)
+            
+            # Verify the formalized content
+            result = await self.lean_client.verify(formalized)
+            
+            return {
+                "verified": result.verified if hasattr(result, 'verified') else False,
+                "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
+                "proof": result.proof_code if hasattr(result, 'proof_code') else None,
+                "attack_vector": attack_vector,
+                "formalized_statement": formalized
+            }
+        except Exception as e:
+            self.logger.warning(f"Lean verification failed: {e}")
+            return {"verified": False, "reason": str(e), "attack_vector": attack_vector}
+    
+    def execute(self, solution: Any, context: Dict[str, Any]) -> GauntletResult:
+        """Execute Lean verification gauntlet.
+        
+        Args:
+            solution: Solution to verify
+            context: Must contain 'content' (str) to verify
+            
+        Returns:
+            GauntletResult with verification status
+        """
+        import asyncio
+        start_time = time.time()
+        solution_id = getattr(solution, 'id', str(hash(str(solution))))
+        
+        try:
+            content = context.get("content", str(solution))
+            attack_vector = context.get("attack_vector")
+            
+            # Run Lean verification
+            if LEAN_AVAILABLE and self.lean_client:
+                # Use async verification
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                try:
+                    verification_result = loop.run_until_complete(
+                        self.verify_with_lean(content, attack_vector)
+                    )
+                finally:
+                    loop.close()
+            else:
+                verification_result = {"verified": False, "reason": "Lean unavailable"}
+            
+            execution_time = time.time() - start_time
+            
+            verified = verification_result.get("verified", False)
+            confidence = verification_result.get("confidence", 0.0)
+            
+            return self._create_result(
+                solution_id=solution_id,
+                passed=verified,
+                score=confidence,
+                confidence=confidence,
+                execution_time=execution_time,
+                details={
+                    "verification_result": verification_result,
+                    "lean_available": LEAN_AVAILABLE,
+                    "formalized_statement": verification_result.get("formalized_statement")
+                },
+                feedback="Formal verification passed" if verified else "Formal verification failed",
+                improvements=[] if verified else ["Review formal statement", "Check proof logic"]
+            )
+            
+        except Exception as e:
+            self.logger.error(f"Lean verification gauntlet failed: {e}")
+            execution_time = time.time() - start_time
+            return self._create_result(
+                solution_id=solution_id,
+                passed=False,
+                score=0.0,
+                confidence=0.0,
+                execution_time=execution_time,
+                details={"error": str(e)},
+                feedback=f"Verification error: {e}",
+                improvements=["Fix verification setup"]
+            )
+
+logger = logging.getLogger(__name__)
+
+
+
+
 
 
 class AdversarialGauntlet(BaseGauntlet):

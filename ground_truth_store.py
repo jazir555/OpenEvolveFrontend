@@ -64,6 +64,13 @@ try:
 except ImportError:
     SOVEREIGN_AVAILABLE = False
 
+# **LEAN INTEGRATION**: Formal verification with Lean
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 # ============================================================================
 # EXCEPTIONS
 # ============================================================================
@@ -1741,6 +1748,127 @@ class GroundTruthStore:
         if self.database:
             self.database.close()
             self.logger.info("Database connection closed")
+
+    async def verify_with_lean_and_store_proof(
+        self,
+        sub_problem_id: str,
+        store_proof: bool = True
+    ) -> Dict[str, Any]:
+        """
+        **LEAN INTEGRATION**: Verify ground truth with Lean and optionally store proof.
+        
+        Args:
+            sub_problem_id: Sub-problem identifier
+            store_proof: Whether to store the proof in metadata
+            
+        Returns:
+            Dict with verification results including stored proof info
+        """
+        if not LEAN_AVAILABLE:
+            return {
+                "verified": False,
+                "reason": "Lean unavailable",
+                "sub_problem_id": sub_problem_id,
+                "proof_stored": False
+            }
+        
+        try:
+            ground_truth = self.get_sub_solution(sub_problem_id)
+            if not ground_truth:
+                return {
+                    "verified": False,
+                    "reason": f"No ground truth found for {sub_problem_id}",
+                    "sub_problem_id": sub_problem_id,
+                    "proof_stored": False
+                }
+            
+            logger.info(f"Running Lean verification for ground truth {sub_problem_id}")
+            
+            client = LeanAideClient()
+            content = ground_truth.solution_content
+            
+            # Autoformalize the solution content
+            formalized = await client.autoformalize(content)
+            
+            # Verify with Lean
+            result = await client.verify(formalized)
+            
+            verified = result.verified if hasattr(result, 'verified') else False
+            proof_code = result.proof_code if hasattr(result, 'proof_code') else None
+            confidence = result.confidence if hasattr(result, 'confidence') else 0.0
+            
+            # Store proof in metadata if requested
+            if store_proof and proof_code:
+                if 'formal_proofs' not in ground_truth.metadata:
+                    ground_truth.metadata['formal_proofs'] = []
+                
+                proof_record = {
+                    "proof_code": proof_code,
+                    "verification_method": "lean_autoformalize",
+                    "verified": verified,
+                    "confidence": confidence,
+                    "timestamp": time.time(),
+                    "formalized_content": formalized
+                }
+                
+                ground_truth.metadata['formal_proofs'].append(proof_record)
+                ground_truth.metadata['latest_lean_verification'] = {
+                    "verified": verified,
+                    "confidence": confidence,
+                    "timestamp": time.time()
+                }
+                
+                # Persist the updated metadata
+                if self.backend == StorageBackend.FILE:
+                    self._save_to_file()
+                elif self.database:
+                    self._save_to_database(ground_truth)
+                
+                self.logger.info(f"Proof stored for {sub_problem_id}")
+            
+            verification_result = {
+                "verified": verified,
+                "confidence": confidence,
+                "proof": proof_code,
+                "sub_problem_id": sub_problem_id,
+                "stored_in_knowledge_base": store_proof and proof_code is not None,
+                "proof_stored": store_proof and proof_code is not None,
+                "verification_method": "lean_autoformalize",
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            logger.info(f"Lean verification result: verified={verified}, proof_stored={verification_result['proof_stored']}")
+            return verification_result
+            
+        except Exception as e:
+            logger.error(f"Lean verification error: {e}")
+            return {
+                "verified": False,
+                "reason": str(e),
+                "sub_problem_id": sub_problem_id,
+                "proof_stored": False
+            }
+
+    def get_stored_proofs(self, sub_problem_id: str) -> List[Dict[str, Any]]:
+        """
+        Get all stored formal proofs for a sub-problem.
+        
+        Args:
+            sub_problem_id: Sub-problem identifier
+            
+        Returns:
+            List of stored proof records
+        """
+        try:
+            ground_truth = self.get_sub_solution(sub_problem_id)
+            if not ground_truth:
+                return []
+            
+            return ground_truth.metadata.get('formal_proofs', [])
+            
+        except Exception as e:
+            self.logger.error(f"Failed to get stored proofs: {e}")
+            return []
 
 
 # ============================================================================

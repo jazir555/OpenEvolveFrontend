@@ -345,6 +345,72 @@ class KnowledgeReasoningIntegration:
 
         return context
 
+    async def verify_with_lean(
+        self,
+        statement: str,
+        context: Optional[Dict[str, Any]] = None
+    ) -> KnowledgeVerification:
+        """
+        **LEAN INTEGRATION**: Verify a statement using Lean theorem prover.
+        
+        Adds Lean alongside Z3 for formal verification.
+        
+        Args:
+            statement: Statement to verify
+            context: Optional context
+            
+        Returns:
+            Verification result with Lean
+        """
+        if not LEAN_AVAILABLE:
+            # Fall back to Z3 verification
+            return self.verify_statement(statement, context)
+        
+        try:
+            from leanaide_client import LeanAideClient
+            client = LeanAideClient()
+            
+            # Autoformalize and verify
+            formalized = await client.autoformalize(statement)
+            result = await client.verify(formalized)
+            
+            # Determine verification status
+            verified = result.verified if hasattr(result, 'verified') else False
+            confidence = result.confidence if hasattr(result, 'confidence') else 0.0
+            
+            if verified:
+                status = VerificationStatus.VERIFIED
+            else:
+                # Try Z3 as fallback
+                z3_result = self.verify_statement(statement, context)
+                if z3_result.status == VerificationStatus.VERIFIED:
+                    return z3_result
+                status = VerificationStatus.UNKNOWN
+            
+            verification = KnowledgeVerification(
+                entity=context.get('entity', 'unknown') if context else 'unknown',
+                statement=statement,
+                status=status,
+                confidence=confidence,
+                verification_method="lean_formal",
+                timestamp=datetime.now(),
+                metadata={
+                    "proof": result.proof_code if hasattr(result, 'proof_code') else None,
+                    "stored_in_knowledge_base": True,
+                    "verification_method": "lean_autoformalize"
+                }
+            )
+            
+            # Cache verification
+            key = self._statement_key(statement)
+            self.verified_knowledge[key] = verification
+            
+            return verification
+            
+        except Exception as e:
+            logger.error(f"Lean verification failed: {e}, falling back to Z3")
+            return self.verify_statement(statement, context)
+
     def learn_from_verification(
         self,
         result: Dict[str, Any],

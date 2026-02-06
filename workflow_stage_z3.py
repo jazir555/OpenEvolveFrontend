@@ -25,11 +25,17 @@ logger = logging.getLogger(__name__)
 try:
     from z3prover_integration import (
         Z3SolverEngine, Z3TheoremProver, Z3Variable, Z3Constraint,
-        Z3ConstraintType, Z3Config, Z3SolverResult
+        Z3ConstraintType, Z3Config, Z3SolverResult, translate_solidity_assignment_to_z3,
+        verify_solidity_invariant_translation, solve_smart_contract_exploit_witness
     )
     Z3_AVAILABLE = True
+    WEB3_FORMAL_AVAILABLE = True
 except ImportError:
     Z3_AVAILABLE = False
+    WEB3_FORMAL_AVAILABLE = False
+    translate_solidity_assignment_to_z3 = None
+    verify_solidity_invariant_translation = None
+    solve_smart_contract_exploit_witness = None
 
 try:
     from z3prover_advanced import Z3AdvancedSolver, OptimizationObjective
@@ -55,6 +61,8 @@ class Z3StageType(Enum):
     PROVE = "z3_prove"
     VERIFY = "z3_verify"
     TRANSLATE = "z3_translate"
+    WEB3_INVARIANT_TRANSLATE = "z3_web3_invariant_translate"
+    WEB3_EXPLOIT_WITNESS = "z3_web3_exploit_witness"
 
 
 @dataclass
@@ -68,6 +76,12 @@ class Z3StageConfig:
     objective: Optional[Dict[str, Any]] = None
     smtlib_input: Optional[str] = None
     use_cav_nlp: bool = True  # Enable CAV-NLP enhancement
+    statement: Optional[str] = None
+    non_negative_target: bool = True
+    max_withdraw_expr: Optional[str] = None
+    verify_translation: bool = True
+    assume_non_negative_amount: bool = True
+    additional_constraints: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -80,6 +94,7 @@ class Z3StageResult:
     proof: Optional[str] = None
     execution_time_ms: float = 0.0
     z3_output: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 class Z3WorkflowStage:
@@ -118,12 +133,30 @@ class Z3WorkflowStage:
     def execute(self, context: Dict[str, Any]) -> Z3StageResult:
         """Execute the Z3 workflow stage."""
         start_time = time.time()
-        
-        if not Z3_AVAILABLE:
+
+        if (
+            self.config.stage_type in {
+                Z3StageType.WEB3_INVARIANT_TRANSLATE,
+                Z3StageType.WEB3_EXPLOIT_WITNESS,
+            }
+            and not WEB3_FORMAL_AVAILABLE
+        ):
             return Z3StageResult(
                 success=False,
                 stage_type=self.config.stage_type,
                 status="error",
+                metadata={"reason": "web3_formal_unavailable"},
+                execution_time_ms=(time.time() - start_time) * 1000
+            )
+        if not Z3_AVAILABLE and self.config.stage_type not in {
+            Z3StageType.WEB3_INVARIANT_TRANSLATE,
+            Z3StageType.WEB3_EXPLOIT_WITNESS,
+        }:
+            return Z3StageResult(
+                success=False,
+                stage_type=self.config.stage_type,
+                status="error",
+                metadata={"reason": "z3_unavailable"},
                 execution_time_ms=(time.time() - start_time) * 1000
             )
         
@@ -138,6 +171,10 @@ class Z3WorkflowStage:
                 return self._execute_verify(context)
             elif self.config.stage_type == Z3StageType.TRANSLATE:
                 return self._execute_translate(context)
+            elif self.config.stage_type == Z3StageType.WEB3_INVARIANT_TRANSLATE:
+                return self._execute_web3_invariant_translate(context)
+            elif self.config.stage_type == Z3StageType.WEB3_EXPLOIT_WITNESS:
+                return self._execute_web3_exploit_witness(context)
             else:
                 return Z3StageResult(
                     success=False,
@@ -307,6 +344,100 @@ class Z3WorkflowStage:
                 stage_type=Z3StageType.TRANSLATE,
                 status="error",
                 execution_time_ms=(time.time() - start_time) * 1000
+            )
+
+    def _execute_web3_invariant_translate(self, context: Dict[str, Any]) -> Z3StageResult:
+        """Execute Web3 Solidity invariant translation stage."""
+        start_time = time.time()
+        if translate_solidity_assignment_to_z3 is None:
+            return Z3StageResult(
+                success=False,
+                stage_type=Z3StageType.WEB3_INVARIANT_TRANSLATE,
+                status="translator_unavailable",
+                execution_time_ms=(time.time() - start_time) * 1000,
+            )
+
+        try:
+            statement = (
+                self.config.statement
+                or context.get("statement")
+                or context.get("solidity_statement")
+                or self.config.smtlib_input
+                or ""
+            )
+            translation = translate_solidity_assignment_to_z3(
+                statement=statement,
+                non_negative_target=bool(
+                    context.get("non_negative_target", self.config.non_negative_target)
+                ),
+                max_withdraw_expr=context.get("max_withdraw_expr", self.config.max_withdraw_expr),
+            )
+            metadata: Dict[str, Any] = {"translation": translation}
+            if (
+                context.get("verify_translation", self.config.verify_translation)
+                and verify_solidity_invariant_translation is not None
+            ):
+                metadata["verification"] = verify_solidity_invariant_translation(
+                    translation=translation,
+                    assume_non_negative_amount=bool(
+                        context.get(
+                            "assume_non_negative_amount",
+                            self.config.assume_non_negative_amount,
+                        )
+                    ),
+                )
+            return Z3StageResult(
+                success=True,
+                stage_type=Z3StageType.WEB3_INVARIANT_TRANSLATE,
+                status="translated",
+                execution_time_ms=(time.time() - start_time) * 1000,
+                metadata=metadata,
+            )
+        except Exception as exc:
+            logger.error("Web3 invariant translation stage failed: %s", exc)
+            return Z3StageResult(
+                success=False,
+                stage_type=Z3StageType.WEB3_INVARIANT_TRANSLATE,
+                status="error",
+                execution_time_ms=(time.time() - start_time) * 1000,
+                metadata={"error": str(exc)},
+            )
+
+    def _execute_web3_exploit_witness(self, context: Dict[str, Any]) -> Z3StageResult:
+        """Execute Web3 symbolic exploit witness stage."""
+        start_time = time.time()
+        if solve_smart_contract_exploit_witness is None:
+            return Z3StageResult(
+                success=False,
+                stage_type=Z3StageType.WEB3_EXPLOIT_WITNESS,
+                status="solver_unavailable",
+                execution_time_ms=(time.time() - start_time) * 1000,
+            )
+
+        try:
+            additional_constraints = context.get(
+                "additional_constraints", self.config.additional_constraints
+            )
+            result = solve_smart_contract_exploit_witness(
+                additional_constraints=additional_constraints,
+                timeout=float(context.get("timeout_seconds", self.config.timeout_seconds)),
+            )
+            return Z3StageResult(
+                success=bool(result.get("satisfiable")),
+                stage_type=Z3StageType.WEB3_EXPLOIT_WITNESS,
+                status=result.get("status", "unknown"),
+                model=result.get("model"),
+                execution_time_ms=(time.time() - start_time) * 1000,
+                metadata={"result": result},
+            )
+        except Exception as exc:
+            logger.error("Web3 exploit witness stage failed: %s", exc)
+            return Z3StageResult(
+                success=False,
+                stage_type=Z3StageType.WEB3_EXPLOIT_WITNESS,
+                status="error",
+                execution_time_ms=(time.time() - start_time) * 1000,
+                metadata={"error": str(exc)},
             )
     
     def _build_variables(self, var_specs: List[Dict[str, Any]]) -> List[Any]:

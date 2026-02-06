@@ -66,6 +66,13 @@ except ImportError:
     logger.warning("LeanAIDE autoformalization engine not available")
     LEANAIDE_AUTOFORMALIZATION_AVAILABLE = False
 
+# REAL Lean Integration
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
     # Fallback AutoformalizationStrategy if not available
     class AutoformalizationStrategy(Enum):
         """Fallback autoformalization strategy enum."""
@@ -691,6 +698,27 @@ if __name__ == "__main__":
     # Example usage
     import asyncio
     
+    def verify_with_lean(self, workflow_or_node) -> Dict[str, Any]:
+        """
+        REAL Lean verification for OpenEvolve workflow components.
+        
+        Args:
+            workflow_or_node: Workflow component or node to verify
+            
+        Returns:
+            Dictionary with verification results
+        """
+        if not LEAN_AVAILABLE:
+            return {"verified": False, "error": "Lean not available"}
+        
+        try:
+            client = LeanAideClient()
+            formalized = client.autoformalize(str(workflow_or_node))
+            return client.verify(formalized)
+        except Exception as e:
+            logger.warning(f"Lean verification failed: {e}")
+            return {"verified": False, "error": str(e)}
+
     async def main():
         # Initialize the bridge
         bridge = get_openevolve_leanaide_bridge()

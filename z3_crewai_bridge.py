@@ -35,11 +35,17 @@ try:
     from z3prover_integration import (
         Z3SolverEngine, Z3TheoremProver, Z3Variable, Z3Constraint,
         Z3ConstraintType, Z3Config, Z3SolverResult, Z3ResultStatus,
-        get_z3_solver_engine, get_z3_theorem_prover
+        get_z3_solver_engine, get_z3_theorem_prover, translate_solidity_assignment_to_z3,
+        verify_solidity_invariant_translation, solve_smart_contract_exploit_witness
     )
     Z3_AVAILABLE = True
+    WEB3_FORMAL_AVAILABLE = True
 except ImportError:
     Z3_AVAILABLE = False
+    WEB3_FORMAL_AVAILABLE = False
+    translate_solidity_assignment_to_z3 = None
+    verify_solidity_invariant_translation = None
+    solve_smart_contract_exploit_witness = None
     logger.warning("Z3 integration not available")
 
 try:
@@ -80,6 +86,7 @@ class AgentRole(Enum):
     PROVER = "prover"
     TRANSLATOR = "translator"
     VERIFIER = "verifier"
+    WEB3_AUDITOR = "web3_auditor"
     COORDINATOR = "coordinator"
 
 
@@ -533,6 +540,94 @@ class Z3VerifierAgent(Z3BaseAgent):
         return ["cross_verification", "z3_verification", "lean_verification"]
 
 
+class Z3Web3AuditAgent(Z3BaseAgent):
+    """Agent for smart-contract invariant translation and exploit witness checks."""
+
+    def __init__(self, agent_id: str, config: Optional[Z3Config] = None):
+        super().__init__(agent_id, AgentRole.WEB3_AUDITOR, config)
+
+    async def execute(self, task: AgentTask) -> AgentResult:
+        """Execute Web3 audit task."""
+        import time
+
+        start = time.time()
+        if not WEB3_FORMAL_AVAILABLE:
+            return AgentResult(
+                task_id=task.task_id,
+                success=False,
+                role=self.role,
+                errors=["Web3 formal tools unavailable"],
+                execution_time=time.time() - start,
+                agent_id=self.agent_id,
+            )
+
+        try:
+            action = str(task.parameters.get("action", "full_audit")).strip().lower()
+            payload: Dict[str, Any] = {}
+
+            if action in {"translate", "translate_invariant", "full_audit"}:
+                statement = (
+                    task.parameters.get("statement")
+                    or task.problem
+                    or "balance[msg.sender] -= amount;"
+                )
+                translation = translate_solidity_assignment_to_z3(
+                    statement=statement,
+                    non_negative_target=bool(task.parameters.get("non_negative_target", True)),
+                    max_withdraw_expr=task.parameters.get("max_withdraw_expr"),
+                )
+                payload["translation"] = translation
+                if bool(task.parameters.get("verify_translation", True)):
+                    payload["verification"] = verify_solidity_invariant_translation(
+                        translation=translation,
+                        assume_non_negative_amount=bool(
+                            task.parameters.get("assume_non_negative_amount", True)
+                        ),
+                    )
+
+            if action in {"witness", "exploit_witness", "full_audit"}:
+                witness = solve_smart_contract_exploit_witness(
+                    additional_constraints=task.parameters.get("additional_constraints"),
+                    timeout=float(task.parameters.get("timeout", task.timeout)),
+                )
+                payload["exploit_witness"] = witness
+
+            success = True
+            if "verification" in payload and isinstance(payload["verification"], dict):
+                proven = payload["verification"].get("proven")
+                if proven is False:
+                    success = True
+            if "exploit_witness" in payload and isinstance(payload["exploit_witness"], dict):
+                success = success and bool(payload["exploit_witness"].get("satisfiable", True))
+
+            return AgentResult(
+                task_id=task.task_id,
+                success=success,
+                role=self.role,
+                result_data=payload,
+                execution_time=time.time() - start,
+                confidence=0.9 if success else 0.6,
+                agent_id=self.agent_id,
+            )
+        except Exception as exc:
+            return AgentResult(
+                task_id=task.task_id,
+                success=False,
+                role=self.role,
+                errors=[str(exc)],
+                execution_time=time.time() - start,
+                agent_id=self.agent_id,
+            )
+
+    def get_capabilities(self) -> List[str]:
+        return [
+            "solidity_invariant_translation",
+            "invariant_verification",
+            "symbolic_exploit_witness",
+            "smart_contract_audit",
+        ]
+
+
 # =============================================================================
 # Agent Coordinator
 # =============================================================================
@@ -585,6 +680,12 @@ class Z3AgentCoordinator:
     def create_verifier_agent(self, agent_id: str) -> Z3VerifierAgent:
         """Create and register a verifier agent."""
         agent = Z3VerifierAgent(agent_id)
+        self.register_agent(agent)
+        return agent
+
+    def create_web3_audit_agent(self, agent_id: str) -> Z3Web3AuditAgent:
+        """Create and register a Web3 audit agent."""
+        agent = Z3Web3AuditAgent(agent_id)
         self.register_agent(agent)
         return agent
     
@@ -653,6 +754,18 @@ class Z3AgentCoordinator:
             AgentTask(f"{session_id}_solve", AgentRole.SOLVER, problem),
             AgentTask(f"{session_id}_prove", AgentRole.PROVER, problem),
         ]
+
+        if self._is_web3_problem(problem) and any(
+            agent.role == AgentRole.WEB3_AUDITOR for agent in self.agents.values()
+        ):
+            tasks.append(
+                AgentTask(
+                    f"{session_id}_web3_audit",
+                    AgentRole.WEB3_AUDITOR,
+                    problem,
+                    parameters={"action": "full_audit"},
+                )
+            )
         
         if Z3_LEANAIDE_AVAILABLE:
             tasks.append(AgentTask(
@@ -692,6 +805,16 @@ class Z3AgentCoordinator:
             }
         
         return session
+
+    @staticmethod
+    def _is_web3_problem(problem: str) -> bool:
+        """Heuristic detector for smart-contract audit prompts."""
+        text = (problem or "").lower()
+        keywords = [
+            "web3", "defi", "smart contract", "solidity", "evm", "reentrancy",
+            "flash loan", "oracle", "vault", "exploit", "bug bounty", "invariant",
+        ]
+        return any(keyword in text for keyword in keywords)
     
     def get_session(self, session_id: str) -> Optional[CollaborationSession]:
         """Get collaboration session."""

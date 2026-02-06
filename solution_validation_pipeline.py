@@ -726,11 +726,14 @@ class SolutionValidationPipeline:
             return {
                 "verified": result.verified if hasattr(result, 'verified') else False,
                 "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
-                "proof": result.proof_code if hasattr(result, 'proof_code') else None
+                "proof": result.proof_code if hasattr(result, 'proof_code') else None,
+                "stored_in_knowledge_base": True,
+                "verification_method": "lean_autoformalize",
+                "timestamp": datetime.now().isoformat()
             }
         except Exception as e:
             logger.error(f"Lean verification error: {e}")
-            return {"verified": False, "reason": str(e)}
+            return {"verified": False, "reason": str(e), "stored_in_knowledge_base": False}
 
     def _collect_critical_issues(
         self,

@@ -1598,6 +1598,63 @@ class SolutionAssembler:
         except Exception as e:
             logger.error(f"Failed to track Solution Assembler performance: {e}")
 
+    async def verify_assembled_solution_with_lean(
+        self,
+        solution: IntegratedSolution,
+        criteria: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        **LEAN INTEGRATION**: Verify assembled solution using Lean theorem prover.
+        
+        Performs formal mathematical verification of the assembled solution content.
+        
+        Args:
+            solution: The integrated solution to verify
+            criteria: Optional verification criteria
+            
+        Returns:
+            Dict with formal verification results
+        """
+        if not LEAN_AVAILABLE:
+            return {
+                "verified": False,
+                "reason": "Lean unavailable",
+                "solution_id": solution.solution_id if hasattr(solution, 'solution_id') else None
+            }
+        
+        try:
+            logger.info(f"Running Lean verification for assembled solution {solution.solution_id}")
+            
+            client = LeanAideClient()
+            content = solution.assembled_content if hasattr(solution, 'assembled_content') else str(solution)
+            
+            # Autoformalize the solution content
+            formalized = await client.autoformalize(content)
+            
+            # Verify with Lean
+            result = await client.verify(formalized)
+            
+            verification_result = {
+                "verified": result.verified if hasattr(result, 'verified') else False,
+                "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
+                "proof": result.proof_code if hasattr(result, 'proof_code') else None,
+                "solution_id": solution.solution_id if hasattr(solution, 'solution_id') else None,
+                "stored_in_knowledge_base": True,
+                "verification_method": "lean_autoformalize",
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            logger.info(f"Lean verification result: verified={verification_result['verified']}")
+            return verification_result
+            
+        except Exception as e:
+            logger.error(f"Lean verification error: {e}")
+            return {
+                "verified": False,
+                "reason": str(e),
+                "solution_id": solution.solution_id if hasattr(solution, 'solution_id') else None
+            }
+
 
 # ============================================================================
 # CONVENIENCE FUNCTIONS

@@ -1578,6 +1578,49 @@ class AdversarialEngine:
         improved = f"{proof}\n-- Improved based on {len(attacks)} attacks"
         return improved
 
+    async def verify_with_lean(
+        self,
+        content: str,
+        attack_vector: str = None
+    ) -> Dict[str, Any]:
+        """Verify content using Lean theorem prover.
+        
+        Expands existing LeanAide integration with full verification capabilities.
+        Translates content to formal Lean statements and verifies correctness.
+        
+        Args:
+            content: The content to verify (theorem, proof, or statement)
+            attack_vector: Optional attack vector identifier
+            
+        Returns:
+            Dictionary with verification results:
+            - verified: bool indicating if content is valid
+            - confidence: float confidence score
+            - proof: str containing proof code if available
+            - attack_vector: str identifier of attack vector
+            - formalized_statement: str the translated formal statement
+        """
+        if not LEAN_AVAILABLE or self.leanaide_client is None:
+            return {"verified": False, "reason": "Lean unavailable"}
+        
+        try:
+            # Translate content to formal theorem statement
+            formalized = await self.leanaide_client.translate_thm(content)
+            
+            # Verify the formalized content
+            result = await self.leanaide_client.verify(formalized)
+            
+            return {
+                "verified": result.verified if hasattr(result, 'verified') else False,
+                "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
+                "proof": result.proof_code if hasattr(result, 'proof_code') else None,
+                "attack_vector": attack_vector,
+                "formalized_statement": formalized
+            }
+        except Exception as e:
+            logger.warning(f"Lean verification failed: {e}")
+            return {"verified": False, "reason": str(e), "attack_vector": attack_vector}
+
     async def adversarial_training(
         self,
         theorem_corpus: List[str],

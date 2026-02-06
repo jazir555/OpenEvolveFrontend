@@ -111,6 +111,13 @@ except ImportError:
     WorkflowIntegrationAPI = None
     MathematicalVerificationAPI = None
 
+# REAL Lean Integration
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 try:
     from adaptive_mdap_pes_integration import get_adaptive_workflow, AdaptiveWorkflow
     ADAPTIVE_MDAP_AVAILABLE = True
@@ -6667,3 +6674,25 @@ Expected improvements:
 - ±1% quality variance from baseline
 """
 
+
+
+def verify_with_lean(workflow_or_node) -> Dict[str, Any]:
+    """
+    REAL Lean verification for workflow components.
+    
+    Args:
+        workflow_or_node: Workflow component or node to verify
+        
+    Returns:
+        Dictionary with verification results
+    """
+    if not LEAN_AVAILABLE:
+        return {"verified": False, "error": "Lean not available"}
+    
+    try:
+        client = LeanAideClient()
+        formalized = client.autoformalize(str(workflow_or_node))
+        return client.verify(formalized)
+    except Exception as e:
+        logger.warning(f"Lean verification failed: {e}")
+        return {"verified": False, "error": str(e)}

@@ -76,6 +76,13 @@ try:
 except (ImportError, AttributeError) as e:
     logger.warning(f"LeanAide not available for workflow integration: {e}")
 
+# REAL Lean Integration
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 # Quality Gate imports
 try:
     from quality_gate_leanaide_verifier import (
@@ -541,6 +548,27 @@ class OpenEvolveLeanAideIntegrator:
             },
             "evolution_summary": self.get_evolution_summary()
         }
+
+    def verify_with_lean(self, workflow_or_node) -> Dict[str, Any]:
+        """
+        REAL Lean verification for workflow components.
+        
+        Args:
+            workflow_or_node: Workflow component or node to verify
+            
+        Returns:
+            Dictionary with verification results
+        """
+        if not LEAN_AVAILABLE:
+            return {"verified": False, "error": "Lean not available"}
+        
+        try:
+            client = LeanAideClient()
+            formalized = client.autoformalize(str(workflow_or_node))
+            return client.verify(formalized)
+        except Exception as e:
+            logger.warning(f"Lean verification failed: {e}")
+            return {"verified": False, "error": str(e)}
 
 
 # =============================================================================

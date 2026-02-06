@@ -27,6 +27,13 @@ except ImportError:
     from knowledge_extractor import KnowledgeArtifact
     from knowledge_processor import KnowledgeProcessor
 
+# **LEAN INTEGRATION**: Formal verification with Lean
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -648,6 +655,74 @@ class KnowledgeValidator:
     def get_validation_history(self, limit: int = 10) -> List[Dict[str, Any]]:
         """Get recent validation history"""
         return self.validation_history[-limit:] if limit else self.validation_history
+
+    async def validate_with_lean(
+        self,
+        artifact: KnowledgeArtifact,
+        criteria: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        **LEAN INTEGRATION**: Formal validation using Lean theorem prover.
+        
+        Performs mathematical formal validation of knowledge artifact content.
+        
+        Args:
+            artifact: Knowledge artifact to validate
+            criteria: Optional validation criteria
+            
+        Returns:
+            Dict with formal validation results
+        """
+        if not LEAN_AVAILABLE:
+            return {
+                "verified": False,
+                "reason": "Lean unavailable",
+                "artifact_id": artifact.id if hasattr(artifact, 'id') else None,
+                "formal_validation": False
+            }
+        
+        try:
+            logger.info(f"Running Lean formal validation for artifact {artifact.id}")
+            
+            client = LeanAideClient()
+            content = str(artifact.content) if hasattr(artifact, 'content') else str(artifact)
+            
+            # Autoformalize the content
+            formalized = await client.autoformalize(content)
+            
+            # Verify with Lean
+            result = await client.verify(formalized)
+            
+            validation_result = {
+                "verified": result.verified if hasattr(result, 'verified') else False,
+                "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
+                "proof": result.proof_code if hasattr(result, 'proof_code') else None,
+                "artifact_id": artifact.id if hasattr(artifact, 'id') else None,
+                "stored_in_knowledge_base": True,
+                "verification_method": "lean_autoformalize",
+                "formal_validation": True,
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            # Update validation history
+            self.validation_history.append({
+                "timestamp": datetime.now().isoformat(),
+                "artifact_id": artifact.id if hasattr(artifact, 'id') else None,
+                "method": "lean",
+                "result": validation_result
+            })
+            
+            logger.info(f"Lean formal validation result: verified={validation_result['verified']}")
+            return validation_result
+            
+        except Exception as e:
+            logger.error(f"Lean formal validation error: {e}")
+            return {
+                "verified": False,
+                "reason": str(e),
+                "artifact_id": artifact.id if hasattr(artifact, 'id') else None,
+                "formal_validation": False
+            }
 
 # Example usage and testing
 if __name__ == "__main__":

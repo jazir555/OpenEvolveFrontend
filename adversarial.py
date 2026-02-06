@@ -366,6 +366,70 @@ def _track_adversarial_performance(operation, success, duration_seconds, defense
         logger.warning(f"Failed to track adversarial performance: {e}")
 
 
+# **LEAN INTEGRATION**: Adversarial attack verification with Lean
+async def _verify_attack_with_lean(content: str, attack_vector: str = None) -> Dict[str, Any]:
+    """Verify an attack using Lean theorem prover.
+    
+    This function formalizes the attack content and attempts to verify it
+    using Lean 4 theorem prover. Useful for verifying formal logic attacks
+    and mathematical counterexamples.
+    
+    Args:
+        content: The attack content to verify (theorem, proof, or statement)
+        attack_vector: Optional attack vector identifier for tracking
+        
+    Returns:
+        Dictionary with verification results:
+        - verified: bool indicating if the attack logic is valid
+        - confidence: float confidence score
+        - proof: str containing the proof code if available
+        - attack_vector: str identifier of the attack vector
+        - reason: str explanation if verification failed
+    """
+    if not LEAN_AVAILABLE:
+        return {"verified": False, "reason": "Lean unavailable"}
+    
+    try:
+        client = LeanAideClient()
+        
+        # Translate attack content to formal theorem statement
+        formalized = await client.translate_thm(content)
+        
+        # Verify the formalized attack
+        result = await client.verify(formalized)
+        
+        return {
+            "verified": result.verified if hasattr(result, 'verified') else False,
+            "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
+            "proof": result.proof_code if hasattr(result, 'proof_code') else None,
+            "attack_vector": attack_vector,
+            "formalized_attack": formalized
+        }
+    except Exception as e:
+        logger.warning(f"Lean attack verification failed: {e}")
+        return {"verified": False, "reason": str(e), "attack_vector": attack_vector}
+
+
+class LeanAdversarialMixin:
+    """Mixin class adding Lean verification capabilities to adversarial components."""
+    
+    async def verify_attack_with_lean(
+        self, 
+        content: str, 
+        attack_vector: str = None
+    ) -> Dict[str, Any]:
+        """Verify attack using Lean theorem prover.
+        
+        Args:
+            content: The attack content to verify
+            attack_vector: Optional attack vector identifier
+            
+        Returns:
+            Dictionary with verification results
+        """
+        return await _verify_attack_with_lean(content, attack_vector)
+
+
 def run_comprehensive_adversarial_testing(
     current_content: str,
     content_type: str = "document_general",

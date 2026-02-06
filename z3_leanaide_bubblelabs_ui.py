@@ -44,11 +44,18 @@ logger = logging.getLogger(__name__)
 try:
     from z3prover_integration import (
         Z3SolverResult, Z3TheoremResult, Z3ResultStatus,
-        Z3Variable, Z3Constraint, get_z3_solver_engine, get_z3_theorem_prover
+        Z3Variable, Z3Constraint, get_z3_solver_engine, get_z3_theorem_prover,
+        translate_solidity_assignment_to_z3, verify_solidity_invariant_translation,
+        solve_smart_contract_exploit_witness
     )
     Z3_AVAILABLE = True
+    WEB3_FORMAL_AVAILABLE = True
 except ImportError:
     Z3_AVAILABLE = False
+    WEB3_FORMAL_AVAILABLE = False
+    translate_solidity_assignment_to_z3 = None
+    verify_solidity_invariant_translation = None
+    solve_smart_contract_exploit_witness = None
     logger.warning("Z3 integration not available")
 
 # CAV-NLP imports
@@ -327,6 +334,7 @@ class Z3BubbleLabsUIManager:
         """Get UI manager status."""
         return {
             "z3_available": Z3_AVAILABLE and self.z3_engine is not None,
+            "web3_formal_available": WEB3_FORMAL_AVAILABLE,
             "z3_leanaide_available": Z3_LEANAIDE_AVAILABLE and self.z3_bridge is not None,
             "full_integration_available": FULL_INTEGRATION_AVAILABLE and self.full_integration is not None,
             "bubblelabs_leanaide_available": BUBBLELABS_LEANAIDE_AVAILABLE and self.leanaide_bridge is not None,
@@ -687,6 +695,26 @@ class Z3BubbleLabsUIManager:
                 "outputs": ["result", "model", "proof"],
                 "icon": "⚙️",
                 "color": "#06b6d4"
+            },
+            {
+                "type": "z3_web3_invariant_translate",
+                "category": "z3_web3",
+                "name": "Web3 Invariant Translation",
+                "description": "Translate Solidity state updates to Z3/Lean invariants",
+                "inputs": ["statement", "non_negative_target", "max_withdraw_expr", "verify_translation"],
+                "outputs": ["translation", "verification"],
+                "icon": "⛓️",
+                "color": "#0ea5e9"
+            },
+            {
+                "type": "z3_web3_exploit_witness",
+                "category": "z3_web3",
+                "name": "Web3 Exploit Witness",
+                "description": "Solve symbolic exploit-witness predicates for smart contracts",
+                "inputs": ["additional_constraints", "timeout_seconds"],
+                "outputs": ["result"],
+                "icon": "🛡️",
+                "color": "#ef4444"
             }
         ]
     
@@ -751,6 +779,41 @@ class Z3BubbleLabsUIManager:
                     node_id=node_id
                 )
                 return state.to_dict()
+
+            elif node_type == "z3_web3_invariant_translate":
+                if translate_solidity_assignment_to_z3 is None:
+                    return {"status": "error", "error": "Web3 invariant translator unavailable"}
+                translation = translate_solidity_assignment_to_z3(
+                    statement=inputs.get("statement", ""),
+                    non_negative_target=bool(inputs.get("non_negative_target", True)),
+                    max_withdraw_expr=inputs.get("max_withdraw_expr"),
+                )
+                result: Dict[str, Any] = {
+                    "status": "success",
+                    "node_id": node_id,
+                    "translation": translation,
+                }
+                if bool(inputs.get("verify_translation", True)) and verify_solidity_invariant_translation is not None:
+                    result["verification"] = verify_solidity_invariant_translation(
+                        translation=translation,
+                        assume_non_negative_amount=bool(
+                            inputs.get("assume_non_negative_amount", True)
+                        ),
+                    )
+                return result
+
+            elif node_type == "z3_web3_exploit_witness":
+                if solve_smart_contract_exploit_witness is None:
+                    return {"status": "error", "error": "Web3 exploit witness solver unavailable"}
+                witness = solve_smart_contract_exploit_witness(
+                    additional_constraints=inputs.get("additional_constraints"),
+                    timeout=float(inputs.get("timeout_seconds", 10.0)),
+                )
+                return {
+                    "status": "success",
+                    "node_id": node_id,
+                    "result": witness,
+                }
             
             else:
                 return {

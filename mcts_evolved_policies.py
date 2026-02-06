@@ -82,6 +82,13 @@ except ImportError:
     LEANAIDE_AVAILABLE = False
     logging.warning("LeanAide client not available")
 
+# REAL Lean Integration
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 # Import evolution components
 try:
     from leanaide_evolution import (
@@ -1992,6 +1999,27 @@ class LeanAidePolicyEvaluator(PolicyEvaluator):
         # Placeholder: simulate verification
         verified_rate = random.uniform(0.5, 1.0)  # Assume 50-100% verification
         return verified_rate * self.verification_bonus
+
+    def verify_with_lean(self, policy_genome) -> Dict[str, Any]:
+        """
+        REAL Lean verification for evolved policies.
+        
+        Args:
+            policy_genome: RolloutPolicyGenome to verify
+            
+        Returns:
+            Dictionary with verification results
+        """
+        if not LEAN_AVAILABLE:
+            return {"verified": False, "error": "Lean not available"}
+        
+        try:
+            client = LeanAideClient()
+            formalized = client.autoformalize(str(policy_genome))
+            return client.verify(formalized)
+        except Exception as e:
+            logger.warning(f"Lean verification failed: {e}")
+            return {"verified": False, "error": str(e)}
 
 
 # =============================================================================

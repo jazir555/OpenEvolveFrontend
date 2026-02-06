@@ -70,6 +70,92 @@ except ImportError:
     logger.warning("LeanAide client not available - formal verification disabled")
 
 
+async def verify_with_lean_gauntlet(
+    content: str, 
+    attack_vector: str = None,
+    gauntlet_context: Dict[str, Any] = None
+) -> Dict[str, Any]:
+    """Verify content using Lean theorem prover for formal gauntlet system.
+    
+    Args:
+        content: The content to verify (theorem, proof, or formal statement)
+        attack_vector: Optional attack vector identifier
+        gauntlet_context: Additional context from the gauntlet execution
+        
+    Returns:
+        Dictionary with verification results including:
+        - verified: bool indicating if proof/theorem is valid
+        - confidence: float confidence score
+        - proof: str containing the proof code if available
+        - attack_vector: str identifier of the attack vector used
+        - gauntlet_context: dict with additional execution context
+    """
+    if not LEAN_AVAILABLE:
+        return {"verified": False, "reason": "Lean unavailable"}
+    
+    try:
+        client = LeanAideClient()
+        
+        # Translate content to formal theorem statement
+        formalized = await client.translate_thm(content)
+        
+        # Verify the formalized content
+        result = await client.verify(formalized)
+        
+        return {
+            "verified": result.verified if hasattr(result, 'verified') else False,
+            "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
+            "proof": result.proof_code if hasattr(result, 'proof_code') else None,
+            "attack_vector": attack_vector,
+            "gauntlet_context": gauntlet_context or {},
+            "formalized_statement": formalized
+        }
+    except Exception as e:
+        logger.warning(f"Lean gauntlet verification failed: {e}")
+        return {
+            "verified": False, 
+            "reason": str(e), 
+            "attack_vector": attack_vector,
+            "gauntlet_context": gauntlet_context or {}
+        }
+
+
+class LeanFormalVerificationMixin:
+    """Mixin class adding Lean verification to formal gauntlet system."""
+    
+    def __init__(self):
+        self.lean_client: Optional[LeanAideClient] = None
+        self._init_lean()
+    
+    def _init_lean(self):
+        """Initialize Lean client if available."""
+        if LEAN_AVAILABLE:
+            try:
+                self.lean_client = LeanAideClient()
+                logger.info("LeanAide client initialized for formal gauntlet system")
+            except Exception as e:
+                logger.warning(f"Failed to initialize LeanAide: {e}")
+                self.lean_client = None
+    
+    async def verify_with_lean(
+        self, 
+        content: str, 
+        attack_vector: str = None,
+        gauntlet_context: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
+        """Verify content using Lean theorem prover.
+        
+        Args:
+            content: The content to verify
+            attack_vector: Optional attack vector identifier
+            gauntlet_context: Additional context from gauntlet execution
+            
+        Returns:
+            Dictionary with verification results
+        """
+        return await verify_with_lean_gauntlet(content, attack_vector, gauntlet_context)
+
+
 # **ACTUAL INTEGRATION HELPER METHODS**: Formal Gauntlet System
 def _trigger_gauntlet_system_alerts(operation, success, execution_id=None, error=None, metadata=None):
     """Trigger alerts for gauntlet system operations"""

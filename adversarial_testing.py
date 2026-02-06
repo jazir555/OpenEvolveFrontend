@@ -23,6 +23,7 @@ try:
     LEAN_AVAILABLE = True
 except ImportError:
     LEAN_AVAILABLE = False
+    logger = logging.getLogger(__name__)
 
 
 def verify_with_lean(content: str, properties: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:

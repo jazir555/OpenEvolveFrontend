@@ -768,6 +768,69 @@ class KnowledgeBase:
             "average_quality": avg_quality
         }
 
+    async def verify_knowledge_artifact_with_lean(
+        self,
+        artifact: KnowledgeArtifact,
+        criteria: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        **LEAN INTEGRATION**: Verify knowledge artifact using Lean theorem prover.
+        
+        Performs formal mathematical verification of the artifact content.
+        
+        Args:
+            artifact: The knowledge artifact to verify
+            criteria: Optional verification criteria
+            
+        Returns:
+            Dict with formal verification results
+        """
+        if not LEAN_AVAILABLE:
+            return {
+                "verified": False,
+                "reason": "Lean unavailable",
+                "artifact_id": artifact.artifact_id if hasattr(artifact, 'artifact_id') else None
+            }
+        
+        try:
+            logger.info(f"Running Lean verification for knowledge artifact {artifact.artifact_id}")
+            
+            client = LeanAideClient()
+            content = str(artifact.content) if hasattr(artifact, 'content') else str(artifact)
+            
+            # Autoformalize the artifact content
+            formalized = await client.autoformalize(content)
+            
+            # Verify with Lean
+            result = await client.verify(formalized)
+            
+            verification_result = {
+                "verified": result.verified if hasattr(result, 'verified') else False,
+                "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
+                "proof": result.proof_code if hasattr(result, 'proof_code') else None,
+                "artifact_id": artifact.artifact_id if hasattr(artifact, 'artifact_id') else None,
+                "stored_in_knowledge_base": True,
+                "verification_method": "lean_autoformalize",
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            # Update artifact metadata with verification result
+            if hasattr(artifact, 'metadata'):
+                if 'verification' not in artifact.metadata:
+                    artifact.metadata['verification'] = {}
+                artifact.metadata['verification']['lean'] = verification_result
+            
+            logger.info(f"Lean verification result: verified={verification_result['verified']}")
+            return verification_result
+            
+        except Exception as e:
+            logger.error(f"Lean verification error: {e}")
+            return {
+                "verified": False,
+                "reason": str(e),
+                "artifact_id": artifact.artifact_id if hasattr(artifact, 'artifact_id') else None
+            }
+
     def _find_similar_artifact(self, artifact: KnowledgeArtifact) -> Optional[KnowledgeArtifact]:
         """Find similar existing artifact."""
         for existing in self.artifacts:

@@ -984,6 +984,96 @@ class SemanticStage(PipelineStage):
 
 
 # =============================================================================
+# **LEAN INTEGRATION**: Verification Context Stage
+# =============================================================================
+
+class VerificationContextStage:
+    """
+    **LEAN INTEGRATION**: Verification context stage.
+    
+    Adds formal verification context to assembled context using Lean.
+    """
+    
+    def __init__(self, config: ContextAssemblerConfig):
+        self.config = config
+        self.stage_type = ContextAssemblyStage.FORMATTING
+        self._lean_client = None
+        if LEAN_AVAILABLE:
+            try:
+                self._lean_client = LeanAideClient()
+            except Exception as e:
+                logger.warning(f"Failed to initialize Lean client: {e}")
+    
+    async def add_verification_context(
+        self,
+        context: AssembledContext,
+        query: str
+    ) -> AssembledContext:
+        """
+        Add formal verification context to assembled context.
+        
+        Args:
+            context: The assembled context
+            query: Current query string
+            
+        Returns:
+            Context enhanced with verification information
+        """
+        if not LEAN_AVAILABLE or not self._lean_client:
+            context.connection_summary += "\n[Formal verification not available]"
+            return context
+        
+        try:
+            # Extract mathematical content from context
+            content_to_verify = self._extract_verifiable_content(context)
+            
+            if content_to_verify:
+                # Autoformalize and verify
+                formalized = await self._lean_client.autoformalize(content_to_verify)
+                result = await self._lean_client.verify(formalized)
+                
+                # Add verification context
+                verification_summary = f"""
+\n=== FORMAL VERIFICATION CONTEXT ===
+Verifiable content detected in context.
+Formalization status: {'Verified' if result.verified else 'Unverified'}
+Confidence: {result.confidence if hasattr(result, 'confidence') else 0.0:.2f}
+Proof available: {'Yes' if hasattr(result, 'proof_code') and result.proof_code else 'No'}
+====================================
+"""
+                context.connection_summary += verification_summary
+                
+                # Add verification metadata
+                context.pipeline_stats["formal_verification"] = {
+                    "verified": result.verified if hasattr(result, 'verified') else False,
+                    "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
+                    "method": "lean_autoformalize"
+                }
+            
+            return context
+            
+        except Exception as e:
+            logger.warning(f"Failed to add verification context: {e}")
+            context.connection_summary += "\n[Formal verification error: check logs]"
+            return context
+    
+    def _extract_verifiable_content(self, context: AssembledContext) -> str:
+        """Extract content that can be formally verified."""
+        # Combine core principles for verification
+        verifiable_parts = []
+        for item in context.core_principles[:3]:  # Top 3 core items
+            content = item.content
+            # Look for mathematical statements, theorems, proofs
+            if any(keyword in content.lower() for keyword in [
+                'theorem', 'proof', 'lemma', 'proposition', 'definition',
+                'forall', 'exists', 'implies', 'iff', '->', '∀', '∃'
+            ]):
+                verifiable_parts.append(content)
+        
+        return "\n".join(verifiable_parts) if verifiable_parts else ""
+
+
+# =============================================================================
 # CONTEXT ASSEMBLY PIPELINE
 # =============================================================================
 

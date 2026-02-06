@@ -22,6 +22,10 @@ CAV-NLP Commands:
 - verify: Verify constraint with optional hybrid Z3+Lean
 - canonicalize: Canonicalize constraint to standard form
 
+Web3 Formal Commands:
+- web3-translate-invariant: Translate Solidity updates to Z3/Lean invariants
+- web3-solve-witness: Solve symbolic exploit witness predicates
+
 Author: OpenEvolve
 Created: 2026-01-31
 """
@@ -369,6 +373,71 @@ if CLICK_AVAILABLE:
             if not output:
                 echo(json.dumps(output_data, indent=2))
                 
+        except Exception as e:
+            echo(style(f"Error: {e}", fg='red'), err=True)
+            sys.exit(1)
+
+
+    @cli.command('web3-translate-invariant')
+    @click.argument('statement', type=str)
+    @click.option('--non-negative-target/--allow-negative-target', default=True)
+    @click.option('--max-withdraw-expr', help='Optional withdrawal upper-bound expression')
+    @click.option('--verify/--no-verify', default=True)
+    @click.option('--output', '-o', help='Output file')
+    @click.option('--format', 'output_format', default='json', type=click.Choice(['json', 'yaml', 'text']))
+    def web3_translate_invariant(statement, non_negative_target, max_withdraw_expr, verify, output, output_format):
+        """Translate Solidity assignment/update semantics into Z3/Lean invariants."""
+        try:
+            from z3prover_integration import (
+                translate_solidity_assignment_to_z3,
+                verify_solidity_invariant_translation,
+            )
+
+            translation = translate_solidity_assignment_to_z3(
+                statement=statement,
+                non_negative_target=non_negative_target,
+                max_withdraw_expr=max_withdraw_expr,
+            )
+            result = {"success": True, "translation": translation}
+            if verify:
+                result["verification"] = verify_solidity_invariant_translation(
+                    translation=translation,
+                    assume_non_negative_amount=True,
+                )
+
+            _output_result(result, output, output_format)
+            echo(style("[OK] Web3 invariant translation complete", fg='green'))
+        except Exception as e:
+            echo(style(f"Error: {e}", fg='red'), err=True)
+            sys.exit(1)
+
+
+    @cli.command('web3-solve-witness')
+    @click.option('--constraints', '-c', help='JSON array of additional constraints')
+    @click.option('--timeout', '-t', default=10.0, type=float)
+    @click.option('--output', '-o', help='Output file')
+    @click.option('--format', 'output_format', default='json', type=click.Choice(['json', 'yaml', 'text']))
+    def web3_solve_witness(constraints, timeout, output, output_format):
+        """Solve symbolic exploit witness query for smart-contract balance drain predicates."""
+        try:
+            from z3prover_integration import solve_smart_contract_exploit_witness
+
+            parsed_constraints = []
+            if constraints:
+                parsed_constraints = json.loads(constraints)
+                if not isinstance(parsed_constraints, list):
+                    raise ValueError("--constraints must be a JSON list of strings")
+
+            result = solve_smart_contract_exploit_witness(
+                additional_constraints=parsed_constraints,
+                timeout=timeout,
+            )
+            wrapped = {"success": True, "result": result}
+            _output_result(wrapped, output, output_format)
+            if result.get("satisfiable"):
+                echo(style("[OK] Exploit witness found (SAT)", fg='green'))
+            else:
+                echo(style("[FAIL] No exploit witness found", fg='yellow'))
         except Exception as e:
             echo(style(f"Error: {e}", fg='red'), err=True)
             sys.exit(1)
@@ -1292,6 +1361,9 @@ else:
         print("  z3 formalize <text> [--elaborate]")
         print("  z3 verify <constraint> [--hybrid]")
         print("  z3 canonicalize <constraint>")
+        print("\nWeb3 Formal Commands:")
+        print("  z3 web3-translate-invariant <statement> [--verify]")
+        print("  z3 web3-solve-witness [--constraints '[]'] [--timeout 10]")
 
 
 if __name__ == "__main__":
