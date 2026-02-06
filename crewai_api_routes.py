@@ -1,486 +1,331 @@
 """
-CrewAI API Routes
+CrewAI API Routes - Enhanced API Endpoints for CrewAI Integration
 
-This module provides the FastAPI router for CrewAI orchestration endpoints,
-enabling external systems (like BubbleLab) to control CrewAI workflows.
-
-Endpoints:
-- GET /api/crewai/health
-- GET /api/crewai/capabilities
-- POST /api/crewai/workflows
-- GET /api/crewai/workflows
-- GET /api/crewai/workflows/{workflow_id}/status
-- GET /api/crewai/workflows/{workflow_id}/results
-- POST /api/crewai/workflows/{workflow_id}/phases/{phase_number}
-- POST /api/crewai/tasks
-
-Integration:
-- Uses CrewAIClient for state management and metrics
-- Uses CrewAIUnifiedBridge for workflow execution
+This module provides comprehensive API endpoints for CrewAI integration
+that can be plugged into the main API server.
 """
 
-
-import logging
+import asyncio
+import json
 from typing import Dict, Any, List, Optional
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends, status
-from pydantic import BaseModel, Field
-import uuid
+from fastapi import APIRouter, HTTPException, Depends
+from pydantic import BaseModel
+from datetime import datetime
 
-# SECURITY: Import security framework
-try:
-    from security_framework import (
-        Permission, UserContext, get_current_user, require_auth, require_permission,
-        InputValidator, get_rate_limiter, get_audit_logger
-    )
-    SECURITY_AVAILABLE = True
-    logging.info("SECURITY: CrewAI API routes security enabled")
-except ImportError as e:
-    SECURITY_AVAILABLE = False
-    logging.warning(f"SECURITY: CrewAI API routes security not available: {e}")
-    
-    # Define stubs
-    def get_current_user(): return None
-    def require_auth(): return None
-    def require_permission(permission): return None
+from crewai_hub import (
+    execute_crewai_task,
+    get_crewai_workflow_state,
+    list_crewai_workflows,
+    get_crewai_workflow_metrics,
+    delegate_to_crewai,
+    sync_crewai_delegations,
+    get_crewai_status
+)
+from crewai_state_management import WorkflowStatus, ExecutionMethod
 
-# Import CrewAI components
-try:
-    from crewai_client import create_crewai_client, ExecutionMethod, ExecutionResult
-    from crewai_unified_bridge import (
-        execute_full_workflow,
-        get_unified_bridge_status
-    )
-    # Ensure openevolve_crewai_bridge is imported to register it if needed,
-    # though usually handled by the unified flow routing.
-    CREWAI_AVAILABLE = True
-except ImportError as e:
-    logging.warning(f"CrewAI dependencies not found: {e}")
-    CREWAI_AVAILABLE = False
+# Import the verification dependency from the main server
+from api_server import verify_api_key  # Assuming this exists in the main server
 
-# Lean 4 Integration
-try:
-    from leanaide_client import LeanAideClient
-    LEAN_AVAILABLE = True
-    logging.info("Lean 4 integration available for CrewAI API routes")
-except ImportError as e:
-    LEAN_AVAILABLE = False
-    logging.debug(f"Lean 4 integration not available for API routes: {e}")
+router = APIRouter(prefix="/crewai", tags=["crewai"])
 
-logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/crewai", tags=["CrewAI"])
+# Request/Response Models
+class CrewAITaskRequest(BaseModel):
+    problem_statement: str
+    execution_method: str = "auto"
+    agents_config: Optional[List[Dict[str, Any]]] = None
+    tasks_config: Optional[List[Dict[str, Any]]] = None
+    enable_learning: bool = True
+    enable_zero_error: bool = True
 
-# ============================================================================
-# Lean 4 Verification Helper
-# ============================================================================
 
-async def verify_with_lean_before_sync(
-    verification_data: Dict[str, Any],
-    ticket_id: str
-) -> Dict[str, Any]:
+class CrewAIDelegateRequest(BaseModel):
+    task_name: str
+    task_description: str
+    workflow_epic_id: Optional[str] = None
+
+
+class CrewAIWorkflowResponse(BaseModel):
+    success: bool
+    workflow_id: Optional[str] = None
+    result: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None
+    created_at: str = datetime.now().isoformat()
+
+
+@router.post("/execute", dependencies=[Depends(verify_api_key)])
+async def execute_crewai_task_endpoint(request: CrewAITaskRequest):
     """
-    Verify proof using Lean 4 before syncing to ticket.
+    Execute a CrewAI task with the specified configuration.
     
-    This function provides formal verification of research results
-    or solution proofs before they are marked as verified in the
-    ticket system.
-    
-    Args:
-        verification_data: The verification data to check
-        ticket_id: The ticket ID being verified
-        
-    Returns:
-        Dictionary with Lean verification results
+    This endpoint allows clients to execute complex multi-agent workflows
+    using CrewAI with various execution methods and configurations.
     """
-    if not LEAN_AVAILABLE:
-        return {
-            "verified": False,
-            "reason": "Lean 4 verification not available",
-            "ticket_id": ticket_id,
-            "can_sync": True  # Allow sync even without Lean
-        }
-    
     try:
-        client = LeanAideClient()
+        # Convert execution method string to enum
+        try:
+            execution_method = ExecutionMethod(request.execution_method.lower())
+        except ValueError:
+            execution_method = ExecutionMethod.AUTO
         
-        # Extract proof or statement from verification data
-        statement = verification_data.get("statement", "")
-        proof = verification_data.get("proof", "")
-        claim = verification_data.get("claim", statement)
+        # Execute the task
+        result = await execute_crewai_task(
+            problem_statement=request.problem_statement,
+            execution_method=execution_method,
+            agents_config=request.agents_config,
+            tasks_config=request.tasks_config
+        )
         
-        if not claim and not proof:
-            return {
-                "verified": False,
-                "reason": "No claim or proof provided for verification",
-                "ticket_id": ticket_id,
-                "can_sync": False
-            }
+        response = CrewAIWorkflowResponse(
+            success=result.get('success', True),
+            workflow_id=result.get('workflow_id'),
+            result=result,
+            created_at=datetime.now().isoformat()
+        )
         
-        # Attempt to formalize the claim/statement
-        if claim:
-            formalization = client.translate_thm(claim)
-            
-            if not formalization.success:
-                logger.warning(f"Lean formalization failed for ticket {ticket_id}: {formalization.error}")
-                return {
-                    "verified": False,
-                    "reason": f"Formalization failed: {formalization.error}",
-                    "ticket_id": ticket_id,
-                    "can_sync": True  # Allow sync with warning
-                }
-            
-            # If formalization succeeded, we have a valid formal statement
-            formalized = formalization.data.get("result", "") if formalization.data else ""
-            
-            return {
-                "verified": True,
-                "confidence": 0.9,
-                "proof": formalization.data.get("proof", "") if formalization.data else "",
-                "formalized_statement": formalized,
-                "ticket_id": ticket_id,
-                "can_sync": True,
-                "verification_method": "lean4"
-            }
-        
-        # If only proof provided without claim
-        return {
-            "verified": True,
-            "confidence": 0.7,
-            "proof": proof,
-            "ticket_id": ticket_id,
-            "can_sync": True,
-            "verification_method": "manual"
-        }
+        return response
         
     except Exception as e:
-        logger.error(f"Lean verification error for ticket {ticket_id}: {e}")
-        return {
-            "verified": False,
-            "reason": f"Verification error: {str(e)}",
-            "ticket_id": ticket_id,
-            "can_sync": True  # Allow sync on error to avoid blocking
-        }
+        raise HTTPException(status_code=500, detail=f"Task execution failed: {str(e)}")
 
 
-def sync_verification_to_ticket(
-    ticket_id: str,
-    verification_result: Dict[str, Any],
-    lean_verification: Optional[Dict[str, Any]] = None
-) -> Dict[str, Any]:
+@router.post("/delegate", dependencies=[Depends(verify_api_key)])
+def delegate_task_to_crewai_endpoint(request: CrewAIDelegateRequest):
     """
-    Sync verification result to ticket with optional Lean verification.
+    Delegate a task to the CrewAI workflow system.
     
-    Args:
-        ticket_id: The ticket ID to sync to
-        verification_result: The verification result from CrewAI workflow
-        lean_verification: Optional Lean 4 verification results
-        
-    Returns:
-        Sync result with combined verification status
+    This endpoint allows clients to delegate tasks to be handled by the
+    CrewAI workflow system with proper tracking and status management.
     """
-    sync_result = {
-        "ticket_id": ticket_id,
-        "synced": True,
-        "timestamp": datetime.now().isoformat(),
-        "crewai_verification": verification_result,
-        "lean_verification": lean_verification or {"verified": False, "reason": "Not performed"}
-    }
-    
-    # Combined verification status
-    crewai_verified = verification_result.get("verified", False)
-    lean_verified = lean_verification.get("verified", False) if lean_verification else False
-    
-    if crewai_verified and lean_verified:
-        sync_result["combined_status"] = "fully_verified"
-        sync_result["confidence"] = 0.95
-    elif crewai_verified:
-        sync_result["combined_status"] = "crewai_verified"
-        sync_result["confidence"] = verification_result.get("confidence", 0.8)
-    elif lean_verified:
-        sync_result["combined_status"] = "lean_verified"
-        sync_result["confidence"] = lean_verification.get("confidence", 0.9)
-    else:
-        sync_result["combined_status"] = "unverified"
-        sync_result["confidence"] = 0.0
-    
-    logger.info(f"Synced verification to ticket {ticket_id}: {sync_result['combined_status']}")
-    return sync_result
-
-# ============================================================================
-# Pydantic Models
-# ============================================================================
-
-class WorkflowCreateRequest(BaseModel):
-    problem_statement: str = Field(..., description="Problem description")
-    execution_method: str = Field("auto", description="Execution method (traditional, roma, etc.)")
-    parameters: Dict[str, Any] = Field(default_factory=dict, description="Additional parameters")
-
-class PhaseExecuteRequest(BaseModel):
-    phase_input: Dict[str, Any] = Field(..., description="Input data for the phase")
-    parameters: Dict[str, Any] = Field(default_factory=dict, description="Additional parameters")
-
-class TaskDelegateRequest(BaseModel):
-    task_name: str = Field(..., description="Name of the task")
-    task_description: str = Field(..., description="Description of the task")
-    team_name: Optional[str] = Field(None, description="Target team")
-    context: Dict[str, Any] = Field(default_factory=dict, description="Task context")
-
-# ============================================================================
-# Dependency Injection
-# ============================================================================
-
-def get_crewai_client():
-    """Get or create a CrewAI client instance."""
-    if not CREWAI_AVAILABLE:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="CrewAI backend not available"
-        )
-    return create_crewai_client()
-
-# ============================================================================
-# Routes
-# ============================================================================
-
-@router.get("/health")
-async def health_check():
-    """Check CrewAI service health."""
-    if not CREWAI_AVAILABLE:
-        return {"status": "unavailable", "message": "CrewAI dependencies missing"}
-    
-    return {
-        "status": "healthy",
-        "service": "CrewAI Orchestrator",
-        "bridge_status": get_unified_bridge_status()
-    }
-
-@router.get("/capabilities")
-async def get_capabilities():
-    """Get available execution methods and capabilities."""
-    if not CREWAI_AVAILABLE:
-        return {"error": "CrewAI unavailable"}
-        
-    status = get_unified_bridge_status()
-    return {
-        "execution_methods": status.get("execution_methods", []),
-        "features": [
-            "full_workflow_execution",
-            "phase_by_phase_execution",
-            "state_persistence",
-            "evolutionary_optimization"
-        ],
-        "version": status.get("version", "1.0.0")
-    }
-
-@router.post("/workflows")
-async def execute_workflow(
-    request: WorkflowCreateRequest,
-    background_tasks: BackgroundTasks,
-    client = Depends(get_crewai_client)
-):
-    """
-    Execute a full CrewAI workflow.
-    
-    This endpoint starts the workflow. For long-running workflows, 
-    it returns immediately with a workflow_id.
-    """
-    workflow_id = f"workflow_{uuid.uuid4().hex[:8]}"
-    
-    # We run this in background to avoid blocking
-    # However, the client.execute_workflow is currently synchronous in the provided code.
-    # For a true async API, we'd wrap it or use the background_tasks.
-    # Given the existing client code is sync, we'll run it directly or wrap if needed.
-    # For now, we'll execute it synchronously to ensure the ID matches the one returned,
-    # or pass the ID to the client.
-    
-    # NOTE: The current CrewAIClient.execute_workflow accepts a workflow_id.
-    
     try:
-        # Running synchronously for now to return immediate results for simpler cases,
-        # or we could make the client async. 
-        # Assuming the BubbleLab bubble expects a response with status.
-        
-        # If the request parameters contain 'async': True, we could offload.
-        # But let's stick to the simplest integration first.
-        
-        # Mapping execution method string to enum happens inside client
-        
-        # Inject the workflow_id so we can track it
-        result = client.execute_workflow(
-            problem_statement=request.problem_statement,
-            execution_method=request.execution_method,
-            workflow_id=workflow_id,
-            **request.parameters
+        result = delegate_to_crewai(
+            task_name=request.task_name,
+            task_description=request.task_description,
+            workflow_epic_id=request.workflow_epic_id
         )
         
-        return {
-            "success": True,
-            "workflow_id": result.workflow_id,
-            "status": result.status,
-            "data": result.to_dict()
-        }
-        
-    except ValueError as e:
-        logger.error(f"Workflow validation failed: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
-    except RuntimeError as e:
-        logger.error(f"Workflow execution failed: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
-        )
+        if result and result.get("success"):
+            return result
+        else:
+            raise HTTPException(status_code=500, detail=result.get("error", "Delegation failed"))
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Task delegation failed: {str(e)}")
 
-@router.get("/workflows")
-async def list_workflows(client = Depends(get_crewai_client)):
-    """List all active and persisted workflows."""
-    workflows = client.list_workflows()
-    return {
-        "workflows": workflows,
-        "count": len(workflows)
-    }
 
-@router.get("/workflows/{workflow_id}/status")
-async def get_workflow_status(workflow_id: str, client = Depends(get_crewai_client)):
-    """Get status of a specific workflow."""
-    state = client.get_workflow_state(workflow_id)
-    if not state:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Workflow {workflow_id} not found"
-        )
-        
-    return {
-        "workflow_id": workflow_id,
-        "status": state.status,
-        "phase": state.phase,
-        "execution_method": state.execution_method,
-        "updated_at": state.updated_at
-    }
-
-@router.get("/workflows/{workflow_id}/results")
-async def get_workflow_results(workflow_id: str, client = Depends(get_crewai_client)):
-    """Get results of a specific workflow."""
-    state = client.get_workflow_state(workflow_id)
-    if not state:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Workflow {workflow_id} not found"
-        )
+@router.get("/workflows", dependencies=[Depends(verify_api_key)])
+def list_crewai_workflows_endpoint(status: Optional[str] = None):
+    """
+    List all CrewAI workflows, optionally filtered by status.
     
-    # Construct result object from state
-    # This aligns with ExecutionResult.to_dict()
-    return {
-        "workflow_id": workflow_id,
-        "status": state.status,
-        "final_solution": state.reassembly_result or state.final_validation,
-        "phase_results": {
-            "phase1": state.metadata,
-            "phase2": state.sub_solutions,
-            "phase3": state.critique_reports,
-            "phase4": state.verification_results,
-            "phase5": state.reassembly_result,
-            "phase6": state.final_validation
-        }
-    }
-
-@router.post("/workflows/{workflow_id}/phases/{phase_number}")
-async def execute_phase(
-    workflow_id: str,
-    phase_number: int,
-    request: PhaseExecuteRequest,
-    client = Depends(get_crewai_client)
-):
-    """Execute a specific phase for a workflow."""
+    This endpoint provides visibility into all active and historical
+    CrewAI workflows in the system.
+    """
     try:
-        result = client.execute_phase(
-            workflow_id=workflow_id,
-            phase_number=phase_number,
-            phase_input=request.phase_input,
-            execution_method=request.parameters.get("execution_method", "auto")
-        )
+        status_enum = None
+        if status:
+            try:
+                status_enum = WorkflowStatus(status.lower())
+            except ValueError:
+                raise HTTPException(status_code=400, detail=f"Invalid status: {status}")
+        
+        workflow_ids = list_crewai_workflows(status=status_enum)
+        return {
+            "workflows": workflow_ids,
+            "count": len(workflow_ids),
+            "filter": status
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list workflows: {str(e)}")
+
+
+@router.get("/workflows/{workflow_id}", dependencies=[Depends(verify_api_key)])
+def get_crewai_workflow_endpoint(workflow_id: str):
+    """
+    Get the state of a specific CrewAI workflow.
+    
+    This endpoint provides detailed information about a specific workflow
+    including its current phase, status, and execution details.
+    """
+    try:
+        state = get_crewai_workflow_state(workflow_id)
+        if not state:
+            raise HTTPException(status_code=404, detail=f"Workflow {workflow_id} not found")
         
         return {
-            "success": result.get("status") == "completed",
             "workflow_id": workflow_id,
-            "phase": phase_number,
-            "data": result
+            "state": state.model_dump()
         }
-    except ValueError as e:
-        logger.error(f"Phase validation failed: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
-    except RuntimeError as e:
-        logger.error(f"Phase execution failed: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
-        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get workflow: {str(e)}")
 
-@router.post("/tasks")
-async def delegate_task(
-    request: TaskDelegateRequest,
-    client = Depends(get_crewai_client)
-):
-    """Delegate a single task to a team/agent."""
-    # Maps to a simplified workflow or a specific single-phase execution
-    # For now, we'll treat it as a mini-workflow using the traditional method
+
+@router.get("/workflows/{workflow_id}/metrics", dependencies=[Depends(verify_api_key)])
+def get_crewai_workflow_metrics_endpoint(workflow_id: str):
+    """
+    Get comprehensive metrics for a specific CrewAI workflow.
     
-    workflow_id = f"task_{uuid.uuid4().hex[:8]}"
-    
+    This endpoint provides detailed metrics and analytics for a workflow
+    including performance indicators, resource usage, and execution details.
+    """
     try:
-        # We can use the DataPizza method for task delegation if available,
-        # otherwise fallback to traditional Phase 2 execution.
+        metrics = get_crewai_workflow_metrics(workflow_id)
+        if "error" in metrics and "not found" in metrics.get("error", "").lower():
+            raise HTTPException(status_code=404, detail=f"Workflow {workflow_id} not found")
         
-        if request.team_name:
-            # Construct a decomposition plan with a single task
-            decomposition_plan = {
-                "sub_problems": [{
-                    "id": "task_1",
-                    "description": request.task_description,
-                    "title": request.task_name
-                }]
-            }
-            
-            # Execute Phase 2 directly
-            result = client.execute_phase(
-                workflow_id=workflow_id,
-                phase_number=2,
-                phase_input=decomposition_plan,
-                execution_method="traditional" # or datapizza if preferred
-            )
-            
+        return metrics
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get workflow metrics: {str(e)}")
+
+
+@router.get("/workflows/{workflow_id}/tickets", dependencies=[Depends(verify_api_key)])
+def get_crewai_workflow_tickets_endpoint(workflow_id: str):
+    """
+    Get ticket-like entries derived from a CrewAI workflow.
+    
+    This endpoint provides a ticket-based view of a workflow's sub-tasks
+    and their current status, compatible with project management tools.
+    """
+    try:
+        # Get the client to access the ticket functionality
+        from crewai_hub import get_crewai_hub
+        hub = get_crewai_hub()
+        
+        tickets = hub.client.get_workflow_tickets(workflow_id)
+        if not tickets and not hub.get_workflow_state(workflow_id):
+            raise HTTPException(status_code=404, detail=f"Workflow {workflow_id} not found")
+        
+        return {
+            "workflow_id": workflow_id,
+            "tickets": tickets,
+            "count": len(tickets)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get workflow tickets: {str(e)}")
+
+
+@router.post("/sync", dependencies=[Depends(verify_api_key)])
+def sync_crewai_delegations_endpoint():
+    """
+    Sync all delegations with the CrewAI workflow system.
+    
+    This endpoint forces synchronization of all delegated tasks with
+    the CrewAI system to ensure status consistency.
+    """
+    try:
+        synced_count = sync_crewai_delegations()
+        return {
+            "synced_count": synced_count,
+            "message": f"Successfully synced {synced_count} delegations"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to sync delegations: {str(e)}")
+
+
+@router.get("/status", dependencies=[Depends(verify_api_key)])
+def get_crewai_status_endpoint():
+    """
+    Get the status of all CrewAI components.
+    
+    This endpoint provides a comprehensive health check of all CrewAI
+    integration components and their availability.
+    """
+    try:
+        status = get_crewai_status()
+        return status
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get status: {str(e)}")
+
+
+@router.post("/workflows/{workflow_id}/cancel", dependencies=[Depends(verify_api_key)])
+def cancel_crewai_workflow_endpoint(workflow_id: str):
+    """
+    Cancel a running CrewAI workflow.
+    
+    This endpoint allows for cancellation of long-running workflows
+    that are no longer needed.
+    """
+    try:
+        from crewai_hub import get_crewai_hub
+        hub = get_crewai_hub()
+        
+        # Try to cancel the workflow
+        success = hub.integration.cancel_workflow(workflow_id)
+        
+        if success:
             return {
-                "success": True,
                 "workflow_id": workflow_id,
-                "data": result
+                "status": "cancelled",
+                "message": f"Workflow {workflow_id} cancelled successfully"
             }
         else:
-            # Fallback to full workflow if no team specified
-            result = client.execute_workflow(
-                problem_statement=request.task_description,
-                execution_method="auto",
-                workflow_id=workflow_id
-            )
-            return {
-                "success": True,
-                "workflow_id": result.workflow_id,
-                "data": result.to_dict()
-            }
-            
-    except ValueError as e:
-        logger.error(f"Task validation failed: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
-    except RuntimeError as e:
-        logger.error(f"Task delegation failed: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
-        )
+            raise HTTPException(status_code=404, detail=f"Workflow {workflow_id} not found or could not be cancelled")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to cancel workflow: {str(e)}")
+
+
+# Health check endpoint
+@router.get("/health", include_in_schema=False)
+def crewai_health_check():
+    """
+    Health check for CrewAI integration endpoints.
+    
+    This endpoint provides a lightweight health check for the CrewAI
+    integration without performing heavy operations.
+    """
+    try:
+        from crewai_hub import get_crewai_hub
+        hub = get_crewai_hub()
+        
+        # Just check if the hub is accessible
+        status = hub.get_crewai_status()
+        
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now().isoformat(),
+            "components": len(status.get("components", {}))
+        }
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"CrewAI integration unhealthy: {str(e)}")
+
+
+# Utility function to register these routes with the main app
+def register_crewai_routes(app):
+    """
+    Register CrewAI API routes with the main FastAPI application.
+    
+    Args:
+        app: The main FastAPI application instance
+    """
+    app.include_router(router)
+    print("CrewAI API routes registered successfully")
+
+
+# Example usage for testing
+async def test_crewai_endpoints():
+    """
+    Test function to verify the CrewAI endpoints work correctly.
+    """
+    print("Testing CrewAI API Endpoints...")
+    
+    # Test basic status
+    try:
+        status = get_crewai_status()
+        print(f"CrewAI Status: {status['hub']['initialized']}")
+        print(f"Components: {len(status['components'])}")
+    except Exception as e:
+        print(f"Status check failed: {e}")
+    
+    # Test workflow listing
+    try:
+        workflows = list_crewai_workflows()
+        print(f"Workflows found: {len(workflows)}")
+    except Exception as e:
+        print(f"Workflow listing failed: {e}")
+    
+    print("CrewAI endpoint testing completed.")
+
+
+if __name__ == "__main__":
+    # Run tests
+    asyncio.run(test_crewai_endpoints())

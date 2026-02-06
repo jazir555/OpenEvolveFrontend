@@ -47,4 +47,8 @@ def test_leanaide_verifier_status_contract():
     status = verifier.get_status()
     assert "timeout_seconds" in status
     assert "require_real_lean" in status
+    assert "web3_formal_available" in status
+    assert "web3_formal_verification_available" in status
+    assert "web3_formal_tools" in status
     assert "formal_capabilities" in status
+    assert "audit_exploit_verification_available" in status

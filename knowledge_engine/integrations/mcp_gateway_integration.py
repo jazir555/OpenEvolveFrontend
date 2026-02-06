@@ -484,14 +484,20 @@ class MCPGatewayIntegration:
             # Aggregate results
             aggregated_output = {}
             success_count = 0
-            
+            errors = []
+
             for ext_type, result in workflow_results.items():
                 if result.success:
                     aggregated_output[ext_type] = result.output
                     success_count += 1
                 else:
                     aggregated_output[ext_type] = None
-            
+                    if result.error:
+                        errors.append(f"{ext_type}: {result.error}")
+
+            # If all extractions failed, include error message
+            error_msg = "; ".join(errors) if errors else None
+
             mcp_result = MCPResult(
                 success=success_count > 0,  # Success if at least one extraction succeeded
                 output=aggregated_output,
@@ -501,7 +507,8 @@ class MCPGatewayIntegration:
                     "total_extractions": len(workflow_results),
                     "processing_time_ms": processing_time_ms
                 },
-                processing_time_ms=processing_time_ms
+                processing_time_ms=processing_time_ms,
+                error=error_msg if success_count == 0 else None
             )
             
             logger.info({
@@ -583,7 +590,7 @@ class MCPGatewayIntegration:
             )
             
             processing_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
-            
+
             mcp_result = MCPResult(
                 success=coordination_result.success,
                 output=coordination_result.output,
@@ -591,7 +598,8 @@ class MCPGatewayIntegration:
                     "task_description_length": len(task_description),
                     "processing_time_ms": processing_time_ms
                 },
-                processing_time_ms=processing_time_ms
+                processing_time_ms=processing_time_ms,
+                error=coordination_result.error if not coordination_result.success else None
             )
             
             logger.info({
@@ -675,7 +683,7 @@ class MCPGatewayIntegration:
             )
             
             processing_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
-            
+
             mcp_result = MCPResult(
                 success=verification_result.success,
                 output=verification_result.output,
@@ -684,7 +692,8 @@ class MCPGatewayIntegration:
                     "proof_provided": proof is not None,
                     "processing_time_ms": processing_time_ms
                 },
-                processing_time_ms=processing_time_ms
+                processing_time_ms=processing_time_ms,
+                error=verification_result.error if not verification_result.success else None
             )
             
             logger.info({

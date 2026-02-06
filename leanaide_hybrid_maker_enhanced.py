@@ -40,6 +40,7 @@ from typing import (
 from collections import defaultdict
 import threading
 import queue
+from leanaide_web3_status import collect_web3_formal_status
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -1671,11 +1672,21 @@ def get_leanaide_maker_capabilities() -> Dict[str, Any]:
     Returns:
         Dictionary with capability information
     """
+    web3_status = collect_web3_formal_status()
     return {
         "leanaide_available": LEANAIDE_AVAILABLE,
         "maker_available": MAKER_CORE_AVAILABLE,
         "maker_evolution_available": MAKER_EVOLUTION_AVAILABLE,
         "mcts_available": MCTS_AVAILABLE,
+        "web3_formal_available": web3_status["web3_formal_available"],
+        "web3_formal_verification_available": web3_status[
+            "web3_formal_verification_available"
+        ],
+        "web3_formal_tools": web3_status["web3_formal_tools"],
+        "formal_capabilities": web3_status["formal_capabilities"],
+        "audit_exploit_verification_available": web3_status[
+            "audit_exploit_verification_available"
+        ],
 
         "strategies": [
             "LeanAideThenMAKER",

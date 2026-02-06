@@ -42,6 +42,7 @@ from typing import (
     Any, Dict, List, Optional, Tuple, Union, Callable
 )
 import threading
+from leanaide_web3_status import collect_web3_formal_status
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -1313,10 +1314,20 @@ class LeanMDAPMonitor:
             Dict with progress information
         """
         if not self.monitoring_active or not self.current_task:
+            web3_status = collect_web3_formal_status()
             return {
                 "status": "not_monitoring",
                 "task_id": None,
-                "elapsed_time": 0.0
+                "elapsed_time": 0.0,
+                "web3_formal_available": web3_status["web3_formal_available"],
+                "web3_formal_verification_available": web3_status[
+                    "web3_formal_verification_available"
+                ],
+                "web3_formal_tools": web3_status["web3_formal_tools"],
+                "formal_capabilities": web3_status["formal_capabilities"],
+                "audit_exploit_verification_available": web3_status[
+                    "audit_exploit_verification_available"
+                ],
             }
 
         elapsed = time.time() - self.start_time
@@ -1326,13 +1337,23 @@ class LeanMDAPMonitor:
         if self.mdap_integrator:
             agent_status = self.mdap_integrator.agent_status
 
+        web3_status = collect_web3_formal_status()
         return {
             "status": "monitoring",
             "task_id": self.current_task.task_id,
             "strategy": self.current_task.strategy_type.value,
             "agent": self.current_task.agent_id,
             "elapsed_time": elapsed,
-            "agent_status": agent_status
+            "agent_status": agent_status,
+            "web3_formal_available": web3_status["web3_formal_available"],
+            "web3_formal_verification_available": web3_status[
+                "web3_formal_verification_available"
+            ],
+            "web3_formal_tools": web3_status["web3_formal_tools"],
+            "formal_capabilities": web3_status["formal_capabilities"],
+            "audit_exploit_verification_available": web3_status[
+                "audit_exploit_verification_available"
+            ],
         }
 
     def get_agent_status(self) -> Dict[str, Any]:

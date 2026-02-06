@@ -40,9 +40,9 @@ class TestBubblelabsCrewaiBridge:
         assert bubblelabs_crewai_bridge is not None
 
     def test_bubblelabs_crewai_bridge_has_class(self):
-        """Test bubblelabs_crewai_bridge has CrewaiBridge class"""
-        from bubblelabs_crewai_bridge import BubbleLabsCrewaiBridge
-        assert BubbleLabsCrewaiBridge is not None
+        """Test bubblelabs_crewai_bridge has BubbleLabsCrewAIBridge class"""
+        from bubblelabs_crewai_bridge import BubbleLabsCrewAIBridge
+        assert BubbleLabsCrewAIBridge is not None
 
 
 class TestBubblelabsExtendedIntegration:

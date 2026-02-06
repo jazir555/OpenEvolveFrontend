@@ -46,6 +46,7 @@ from dataclasses import dataclass, field, asdict
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
+from leanaide_web3_status import collect_web3_formal_status
 
 # Import MDAP core components
 try:
@@ -935,6 +936,7 @@ Provide the complete proof code."""
         Returns:
             Dict with capability information
         """
+        web3_status = collect_web3_formal_status()
         return {
             "agent_id": self.agent_id,
             "agent_type": self.agent_type.value,
@@ -949,7 +951,16 @@ Provide the complete proof code."""
             "avg_generation_time": (
                 self.total_generation_time / self.total_proofs_generated
                 if self.total_proofs_generated > 0 else 0.0
-            )
+            ),
+            "web3_formal_available": web3_status["web3_formal_available"],
+            "web3_formal_verification_available": web3_status[
+                "web3_formal_verification_available"
+            ],
+            "web3_formal_tools": web3_status["web3_formal_tools"],
+            "formal_capabilities": web3_status["formal_capabilities"],
+            "audit_exploit_verification_available": web3_status[
+                "audit_exploit_verification_available"
+            ],
         }
 
 
@@ -2209,13 +2220,23 @@ def get_lean_mdap_status() -> Dict[str, Any]:
     Returns:
         Dict with availability and configuration info
     """
+    web3_status = collect_web3_formal_status()
     return {
         "mdap_available": MDAP_AVAILABLE,
         "lean_mdap_available": MDAP_AVAILABLE,
         "available_strategies": [s.value for s in ProofStrategy],
         "available_domains": [d.value for d in LeanDomain],
         "voting_strategies": [s.value for s in VotingStrategy],
-        "description": "Lean MDAP: Multi-agent, voting-based Lean 4 proof generation"
+        "description": "Lean MDAP: Multi-agent, voting-based Lean 4 proof generation",
+        "web3_formal_available": web3_status["web3_formal_available"],
+        "web3_formal_verification_available": web3_status[
+            "web3_formal_verification_available"
+        ],
+        "web3_formal_tools": web3_status["web3_formal_tools"],
+        "formal_capabilities": web3_status["formal_capabilities"],
+        "audit_exploit_verification_available": web3_status[
+            "audit_exploit_verification_available"
+        ],
     }
 
 

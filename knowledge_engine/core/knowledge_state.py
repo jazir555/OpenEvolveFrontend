@@ -154,7 +154,35 @@ class KnowledgeState:
         # Correlation ID for structured logging
         self._correlation_id = correlation_id or str(uuid.uuid4())
 
+        # Backward compatibility: add search_history attribute
+        self._search_history: List[Dict[str, Any]] = []
+        self._current_understanding: str = ""
+
         self._log("info", "KnowledgeState initialized", query=query)
+
+    # Backward compatibility properties
+    @property
+    def search_history(self) -> List[Dict[str, Any]]:
+        """Get search history (backward compatibility)."""
+        with self._lock:
+            return self._search_history.copy()
+
+    @property
+    def current_understanding(self) -> str:
+        """Get current understanding (backward compatibility)."""
+        with self._lock:
+            return self._current_understanding
+
+    def set_current_understanding(self, understanding: str) -> None:
+        """
+        Set current understanding (backward compatibility).
+
+        Args:
+            understanding: Current understanding text
+        """
+        with self._lock:
+            self._current_understanding = understanding
+            self._log("debug", "Current understanding updated", understanding=understanding[:100])
 
     def _log(self, level: str, message: str, **kwargs):
         """

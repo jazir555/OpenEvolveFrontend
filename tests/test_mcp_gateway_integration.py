@@ -388,20 +388,21 @@ class TestMCPGatewayIntegrationInitialization:
 
             mock_gateway_class.return_value = mock_gateway_instance
 
-            with patch('asyncio.run', return_value=None):
+            # Patch the actual import location
+            with patch('knowledge_engine.integrations.mcp_gateway_integration.asyncio.run', return_value=None):
                 integration = MCPGatewayIntegration(config={})
 
             assert integration.unified_gateway is not None
 
     def test_initialize_components_import_error(self):
         """Test component initialization with import error (mock mode)."""
-        with patch_mcp_gateway() as mock_gateway_class:
-            mock_gateway_class.side_effect = ImportError("mcp-gateway not installed")
+        # Patch the import at the module level
+        with patch('knowledge_engine.optional_imports.create_failing_mock') as mock_create:
+            mock_failing_class = Mock()
+            mock_create.return_value = mock_failing_class
 
-            with patch('knowledge_engine.integrations.mcp_gateway_integration.create_failing_mock') as mock_create:
-                mock_failing_class = Mock()
-                mock_create.return_value = mock_failing_class
-
+            # Force ImportError when importing from mcp
+            with patch('knowledge_engine.integrations.mcp_gateway_integration.UnifiedMCPGateway', side_effect=ImportError("mcp-gateway not installed")):
                 integration = MCPGatewayIntegration(config={})
 
             assert integration.unified_gateway is None

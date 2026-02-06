@@ -19,6 +19,7 @@ from typing import Optional, Dict, Any, List
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from typing import Optional
+from leanaide_web3_status import collect_web3_formal_status, default_web3_formal_status
 
 
 logger = logging.getLogger(__name__)
@@ -112,6 +113,12 @@ class LeanAideStatusResponse(BaseModel):
     version: Optional[str] = None
     components: Dict[str, bool] = {}
     config: Dict[str, Any] = {}
+    error: Optional[str] = None
+    web3_formal_available: bool = False
+    web3_formal_verification_available: bool = False
+    web3_formal_tools: List[str] = []
+    formal_capabilities: Dict[str, bool] = {}
+    audit_exploit_verification_available: bool = False
 
 
 # =============================================================================
@@ -324,15 +331,26 @@ async def leanaide_status():
         LeanAideStatusResponse with server status
     """
     if not LEANAIDE_AVAILABLE:
+        web3_status = default_web3_formal_status()
         return LeanAideStatusResponse(
             available=False,
             server_status="unavailable",
-            components={}
+            components={},
+            web3_formal_available=web3_status["web3_formal_available"],
+            web3_formal_verification_available=web3_status[
+                "web3_formal_verification_available"
+            ],
+            web3_formal_tools=web3_status["web3_formal_tools"],
+            formal_capabilities=web3_status["formal_capabilities"],
+            audit_exploit_verification_available=web3_status[
+                "audit_exploit_verification_available"
+            ],
         )
     
     try:
         # Get status from MCP tools
         mcp_status = get_mcp_status() if hasattr(get_mcp_status, '__call__') else {}
+        web3_status = collect_web3_formal_status()
         
         return LeanAideStatusResponse(
             available=True,
@@ -349,13 +367,54 @@ async def leanaide_status():
                 "host": "localhost",
                 "port": 7654,
                 "timeout": 300
-            }
+            },
+            web3_formal_available=bool(
+                mcp_status.get("web3_formal_available", web3_status["web3_formal_available"])
+            ),
+            web3_formal_verification_available=bool(
+                mcp_status.get(
+                    "web3_formal_verification_available",
+                    web3_status["web3_formal_verification_available"],
+                )
+            ),
+            web3_formal_tools=(
+                mcp_status.get("web3_formal_tools", web3_status["web3_formal_tools"])
+                if isinstance(
+                    mcp_status.get("web3_formal_tools", web3_status["web3_formal_tools"]),
+                    list,
+                )
+                else web3_status["web3_formal_tools"]
+            ),
+            formal_capabilities=(
+                mcp_status.get("formal_capabilities", web3_status["formal_capabilities"])
+                if isinstance(
+                    mcp_status.get("formal_capabilities", web3_status["formal_capabilities"]),
+                    dict,
+                )
+                else web3_status["formal_capabilities"]
+            ),
+            audit_exploit_verification_available=bool(
+                mcp_status.get(
+                    "audit_exploit_verification_available",
+                    web3_status["audit_exploit_verification_available"],
+                )
+            ),
         )
     except Exception as e:
+        web3_status = default_web3_formal_status()
         return LeanAideStatusResponse(
             available=False,
             server_status="error",
-            error=str(e)
+            error=str(e),
+            web3_formal_available=web3_status["web3_formal_available"],
+            web3_formal_verification_available=web3_status[
+                "web3_formal_verification_available"
+            ],
+            web3_formal_tools=web3_status["web3_formal_tools"],
+            formal_capabilities=web3_status["formal_capabilities"],
+            audit_exploit_verification_available=web3_status[
+                "audit_exploit_verification_available"
+            ],
         )
 
 

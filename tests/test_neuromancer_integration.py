@@ -139,17 +139,20 @@ def sample_dynamics_function():
 @pytest.fixture
 def neuromancer_modeler(mock_torch, mock_neuromancer):
     """Create NeuromancerDynamicsModeler with mocked dependencies."""
-    # Create modeler first (it will try to import but might fail)
-    modeler = NeuromancerDynamicsModeler(device='cpu')
+    # Patch the imports inside the neuromancer_integration module
+    with patch('knowledge_engine.integrations.neuromancer_integration.torch', mock_torch):
+        with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+            # Create modeler (it will use the patched imports)
+            modeler = NeuromancerDynamicsModeler(device='cpu')
 
-    # Manually set the mock dependencies regardless of import success
-    modeler._neuromancer_available = True
-    modeler.torch = mock_torch
-    modeler.dynamics = mock_neuromancer['dynamics']
-    modeler.modules = mock_neuromancer['modules']
-    modeler.system = mock_neuromancer['system']
+            # Manually set the mock dependencies regardless of import success
+            modeler._neuromancer_available = True
+            modeler.torch = mock_torch
+            modeler.dynamics = mock_neuromancer['dynamics']
+            modeler.modules = mock_neuromancer['modules']
+            modeler.system = mock_neuromancer['system']
 
-    return modeler
+            yield modeler
 
 
 @pytest.fixture
@@ -263,22 +266,34 @@ class TestNeuromancerDynamicsModelerInit:
 
     def test_initialization_cpu_device(self):
         """Test initialization with CPU device."""
-        with patch('knowledge_engine.integrations.neuromancer_integration.torch', MagicMock()):
-            with patch('knowledge_engine.integrations.neuromancer_integration.dynamics', MagicMock()):
-                with patch('knowledge_engine.integrations.neuromancer_integration.modules', MagicMock()):
-                    with patch('knowledge_engine.integrations.neuromancer_integration.system', MagicMock()):
-                        modeler = NeuromancerDynamicsModeler(device='cpu')
-                        assert modeler.device == 'cpu'
-                        assert modeler.models == {}
+        # Mock torch and neuromancer imports
+        mock_torch = MagicMock()
+        mock_dynamics = MagicMock()
+        mock_modules = MagicMock()
+        mock_system = MagicMock()
+
+        with patch('builtins.__import__', side_effect=lambda name, *args, **kwargs: {
+            'torch': mock_torch,
+            'neuromancer': MagicMock(dynamics=mock_dynamics, modules=mock_modules, system=mock_system),
+        }.get(name, MagicMock())):
+            modeler = NeuromancerDynamicsModeler(device='cpu')
+            assert modeler.device == 'cpu'
+            assert modeler.models == {}
 
     def test_initialization_cuda_device(self):
         """Test initialization with CUDA device."""
-        with patch('knowledge_engine.integrations.neuromancer_integration.torch', MagicMock()):
-            with patch('knowledge_engine.integrations.neuromancer_integration.dynamics', MagicMock()):
-                with patch('knowledge_engine.integrations.neuromancer_integration.modules', MagicMock()):
-                    with patch('knowledge_engine.integrations.neuromancer_integration.system', MagicMock()):
-                        modeler = NeuromancerDynamicsModeler(device='cuda')
-                        assert modeler.device == 'cuda'
+        # Mock torch and neuromancer imports
+        mock_torch = MagicMock()
+        mock_dynamics = MagicMock()
+        mock_modules = MagicMock()
+        mock_system = MagicMock()
+
+        with patch('builtins.__import__', side_effect=lambda name, *args, **kwargs: {
+            'torch': mock_torch,
+            'neuromancer': MagicMock(dynamics=mock_dynamics, modules=mock_modules, system=mock_system),
+        }.get(name, MagicMock())):
+            modeler = NeuromancerDynamicsModeler(device='cuda')
+            assert modeler.device == 'cuda'
 
     def test_initialization_import_error(self):
         """Test initialization when Neuromancer import fails."""
@@ -311,26 +326,29 @@ class TestNeuromancerDynamicsModelerInit:
 class TestNeuromancerDynamicsModelerNeuralODE:
     """Test suite for Neural ODE functionality."""
 
-    def test_train_neural_ode_success(self, neuromancer_modeler, sample_time_series_data, mock_torch):
+    def test_train_neural_ode_success(self, neuromancer_modeler, sample_time_series_data, mock_torch, mock_neuromancer):
         """Test successful neural ODE training."""
-        result = neuromancer_modeler.train_neural_ode(
-            sample_time_series_data['data'],
-            sample_time_series_data['time_points']
-        )
+        # Patch the import statements inside the method
+        with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+            result = neuromancer_modeler.train_neural_ode(
+                sample_time_series_data['data'],
+                sample_time_series_data['time_points']
+            )
         assert result['status'] == 'success'
         assert 'model_id' in result
         assert result['model_type'] == 'neural_ode'
         assert result['input_dim'] == sample_time_series_data['n_features']
         assert 'hidden_dim' in result
 
-    def test_train_neural_ode_custom_config(self, neuromancer_modeler, sample_time_series_data):
+    def test_train_neural_ode_custom_config(self, neuromancer_modeler, sample_time_series_data, mock_neuromancer):
         """Test neural ODE training with custom configuration."""
         config = {'hidden_dim': 128, 'batch_size': 32}
-        result = neuromancer_modeler.train_neural_ode(
-            sample_time_series_data['data'],
-            sample_time_series_data['time_points'],
-            config=config
-        )
+        with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+            result = neuromancer_modeler.train_neural_ode(
+                sample_time_series_data['data'],
+                sample_time_series_data['time_points'],
+                config=config
+            )
         assert result['status'] == 'success'
         assert result['hidden_dim'] == 128
 

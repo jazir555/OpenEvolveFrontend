@@ -12,6 +12,7 @@ from typing import Dict, List, Optional, Any
 from enum import Enum
 import sys
 import os
+from leanaide_web3_status import collect_web3_formal_status
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -256,12 +257,22 @@ class MathematicalVerificationAPI:
         Returns:
             Health status dictionary
         """
+        web3_status = collect_web3_formal_status()
         return {
             "status": "healthy" if self._real_available else "degraded",
             "real_implementation": self._real_available,
             "base_url": self.base_url,
             "pending_requests": len(self._pending_requests),
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "web3_formal_available": web3_status["web3_formal_available"],
+            "web3_formal_verification_available": web3_status[
+                "web3_formal_verification_available"
+            ],
+            "web3_formal_tools": web3_status["web3_formal_tools"],
+            "formal_capabilities": web3_status["formal_capabilities"],
+            "audit_exploit_verification_available": web3_status[
+                "audit_exploit_verification_available"
+            ],
         }
 
 

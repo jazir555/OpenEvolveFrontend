@@ -1,0 +1,26 @@
+[
+  {
+    "file": "glue\\adapters\\rese-sce\\__init__.py",
+    "error": "invalid non-printable character U+FEFF (<unknown>, line 1)",
+    "type": "syntax",
+    "line": 1
+  },
+  {
+    "file": "knowledge_engine\\verify_implementation.py",
+    "error": "expected an indented block after function definition on line 143 (<unknown>, line 144)",
+    "type": "syntax",
+    "line": 144
+  },
+  {
+    "file": "projects to analyze\\pygraphistry\\demos\\demos_databases_apis\\databricks_pyspark\\graphistry-notebook-dashboard.py",
+    "error": "invalid syntax (<unknown>, line 25)",
+    "type": "syntax",
+    "line": 25
+  },
+  {
+    "file": "unified\\__init__.py",
+    "error": "invalid non-printable character U+FEFF (<unknown>, line 1)",
+    "type": "syntax",
+    "line": 1
+  }
+]

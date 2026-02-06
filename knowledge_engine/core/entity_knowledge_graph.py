@@ -111,11 +111,23 @@ class EntityKnowledgeGraph:
         log_func = getattr(logger, level, logger.info)
         log_func(json.dumps(log_data))
 
+    @property
+    def entities(self) -> Dict[str, Entity]:
+        """
+        Get all entities (backward compatibility property).
+
+        Returns:
+            Dictionary mapping entity names to Entity objects
+        """
+        with self._lock:
+            return self._entities.copy()
+
     def add_entity(
         self,
-        name: str,
-        entity_type: str,
-        attributes: Optional[Dict[str, Any]] = None
+        name: Optional[str] = None,
+        entity_type: Optional[str] = None,
+        attributes: Optional[Dict[str, Any]] = None,
+        entity: Optional[Entity] = None  # Support passing Entity object directly
     ) -> bool:
         """
         Add an entity to the graph (synchronous).
@@ -124,19 +136,38 @@ class EntityKnowledgeGraph:
 
         Args:
             name: Unique entity identifier (maps to entity_id in unified model)
-            entity_type: Type/category of entity
+            entity_type: Type/category of entity (defaults to "Entity" if not provided)
             attributes: Optional key-value pairs (maps to properties in unified model)
+            entity: Optional Entity object to add directly (takes precedence if provided)
 
         Returns:
             True if entity was added or updated, False on error
         """
         try:
+            # Support passing Entity object directly
+            if entity is not None:
+                if not isinstance(entity, Entity):
+                    raise ValueError("entity parameter must be an Entity instance")
+                name = entity.entity_id
+                entity_type = entity.entity_type.value if isinstance(entity.entity_type, Enum) else entity.entity_type
+                attributes = entity.properties
+            elif name is None:
+                raise ValueError("Either name or entity parameter must be provided")
+
             # Validate inputs
             if not name or not isinstance(name, str):
                 raise ValueError("Entity name must be a non-empty string")
 
-            if not entity_type or not isinstance(entity_type, str):
-                raise ValueError("Entity type must be a non-empty string")
+            # Default entity_type if not provided
+            if not entity_type:
+                entity_type = "Entity"
+
+            if not isinstance(entity_type, str):
+                # Convert enum to string if needed
+                if isinstance(entity_type, Enum):
+                    entity_type = entity_type.value
+                else:
+                    raise ValueError("Entity type must be a string")
 
             attributes = attributes or {}
 
@@ -152,7 +183,7 @@ class EntityKnowledgeGraph:
                     return True
                 else:
                     # Create new entity using unified model
-                    entity = Entity(
+                    new_entity = Entity(
                         entity_id=name,
                         name=name,
                         entity_type=entity_type,
@@ -160,7 +191,7 @@ class EntityKnowledgeGraph:
                         created_at=datetime.now(timezone.utc),
                         updated_at=datetime.now(timezone.utc)
                     )
-                    self._entities[name] = entity
+                    self._entities[name] = new_entity
 
                     # Update type index
                     if entity_type not in self._entity_types:
@@ -171,13 +202,13 @@ class EntityKnowledgeGraph:
                     return True
 
         except Exception as e:
-            self._log("error", f"Failed to add entity: {name}", error=str(e))
+            self._log("error", f"Failed to add entity: {name if name else 'unknown'}", error=str(e))
             return False
 
     async def add_entity_async(
         self,
         name: str,
-        entity_type: str,
+        entity_type: Optional[str] = None,
         attributes: Optional[Dict[str, Any]] = None
     ) -> bool:
         """
@@ -187,7 +218,7 @@ class EntityKnowledgeGraph:
 
         Args:
             name: Unique entity identifier
-            entity_type: Type/category of entity
+            entity_type: Type/category of entity (defaults to "Entity" if not provided)
             attributes: Optional key-value pairs
 
         Returns:
@@ -198,8 +229,12 @@ class EntityKnowledgeGraph:
             if not name or not isinstance(name, str):
                 raise ValueError("Entity name must be a non-empty string")
 
-            if not entity_type or not isinstance(entity_type, str):
-                raise ValueError("Entity type must be a non-empty string")
+            # Default entity_type if not provided
+            if not entity_type:
+                entity_type = "Entity"
+
+            if not isinstance(entity_type, str):
+                raise ValueError("Entity type must be a string")
 
             attributes = attributes or {}
 

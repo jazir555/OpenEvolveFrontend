@@ -32,23 +32,23 @@ try:
 except ImportError:
     pass
 
+# Define fallback types at module level for type annotations
+try:
+    from .flexible_semantic_parsing import SemanticPrimitive, SemanticNormalizer
+except ImportError:
+    # Define minimal stub classes at module level
+    class SemanticPrimitive:
+        def __init__(self, kind="", value=""):
+            self.kind = kind
+            self.value = value
+    
+    class SemanticNormalizer:
+        def normalize(self, text):
+            return []
+
 def _import_flexible_parsing():
     """Lazy import flexible semantic parsing."""
-    try:
-        from .flexible_semantic_parsing import SemanticPrimitive, SemanticNormalizer
-        return SemanticPrimitive, SemanticNormalizer
-    except ImportError:
-        # Define minimal stub classes
-        class SemanticPrimitive:
-            def __init__(self, kind="", value=""):
-                self.kind = kind
-                self.value = value
-        
-        class SemanticNormalizer:
-            def normalize(self, text):
-                return []
-        
-        return SemanticPrimitive, SemanticNormalizer
+    return SemanticPrimitive, SemanticNormalizer
 
 def _import_semantic_synthesis():
     """Lazy import semantic synthesis."""

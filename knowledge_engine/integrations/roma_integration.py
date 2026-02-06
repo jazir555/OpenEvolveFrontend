@@ -41,6 +41,22 @@ class ROMADecomposition:
     metadata: Dict[str, Any] = field(default_factory=dict)
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
+    # Backward compatibility properties
+    @property
+    def subproblems(self) -> List['ROMADecomposition']:
+        """Backward compatibility alias for sub_problems."""
+        return self.sub_problems
+
+    @property
+    def title(self) -> str:
+        """Backward compatibility property for title (returns problem text)."""
+        return self.problem
+
+    @property
+    def description(self) -> str:
+        """Backward compatibility property for description (returns problem text)."""
+        return self.problem
+
 
 @dataclass
 class ROMASolution:
@@ -77,6 +93,13 @@ class ROMAResult:
     metadata: Dict[str, Any]
     processing_time_ms: float = 0.0
     error: Optional[str] = None
+
+    @property
+    def subproblems(self) -> List[ROMADecomposition]:
+        """Backward compatibility property - returns subproblems from decomposition."""
+        if self.decomposition:
+            return self.decomposition.subproblems
+        return []
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary representation."""

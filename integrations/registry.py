@@ -69,6 +69,7 @@ class IntegrationInfo:
         version: Integration version
         description: Human-readable description
         interface: Base interface class
+        grpc_target: Optional gRPC target (host:port) for health checks
     """
     name: str
     type: IntegrationType
@@ -81,6 +82,7 @@ class IntegrationInfo:
     description: str = ""
     interface: Optional[Type] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
+    grpc_target: Optional[str] = None
 
 
 class IntegrationRegistry:
@@ -111,6 +113,60 @@ class IntegrationRegistry:
 
         # Register built-in integrations
         self._register_builtin_integrations()
+
+    async def check_health(self, name: str) -> Dict[str, Any]:
+        """
+        Check the health of an integration via gRPC or fallback.
+        
+        Args:
+            name: Integration name
+            
+        Returns:
+            Dictionary with health status and metrics
+        """
+        integration = self._integrations.get(name)
+        if not integration:
+            return {"status": "unknown", "error": "Integration not found"}
+
+        # Dependency check first
+        deps = await self.check_dependencies(name)
+        if not all(deps.values()):
+             return {
+                 "status": "unhealthy",
+                 "details": "Missing dependencies",
+                 "dependencies": deps
+             }
+
+        # gRPC Health Check
+        if integration.grpc_target:
+            try:
+                import grpc
+                # Simple connectivity check
+                channel = grpc.aio.insecure_channel(integration.grpc_target)
+                try:
+                    # Try to connect with a short timeout
+                    await asyncio.wait_for(channel.channel_ready(), timeout=2.0)
+                    return {"status": "healthy", "method": "grpc", "target": integration.grpc_target}
+                except asyncio.TimeoutError:
+                    return {"status": "unhealthy", "error": "gRPC connection timeout", "target": integration.grpc_target}
+                except Exception as e:
+                     return {"status": "unhealthy", "error": str(e), "target": integration.grpc_target}
+                finally:
+                    await channel.close()
+            except ImportError:
+                 logger.warning("grpc module not found, skipping gRPC health check")
+                 return {"status": "unknown", "error": "grpc module missing"}
+        
+        # Fallback to instance check if loaded
+        if name in self._instances:
+             instance = self._instances[name]
+             if hasattr(instance, 'check_health'):
+                 try:
+                     return await instance.check_health()
+                 except Exception as e:
+                     return {"status": "unhealthy", "error": str(e)}
+        
+        return {"status": "healthy", "method": "dependency_check_only"}
 
     def _register_builtin_integrations(self):
         """Register built-in integrations."""

@@ -27,6 +27,7 @@ from functools import wraps
 import urllib.request
 import urllib.parse
 import urllib.error
+from leanaide_web3_status import collect_web3_formal_status
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -1253,6 +1254,7 @@ def get_leanaide_status() -> Dict[str, Any]:
     host = DEFAULT_LEANAIDE_HOST
     port = DEFAULT_LEANAIDE_PORT
     timeout = DEFAULT_TIMEOUT
+    web3_status = collect_web3_formal_status()
 
     try:
         # Try to connect with a simple timeout
@@ -1273,6 +1275,15 @@ def get_leanaide_status() -> Dict[str, Any]:
                 "port": port,
                 "timeout": timeout,
                 "message": f"LeanAide server is reachable at {host}:{port}",
+                "web3_formal_available": web3_status["web3_formal_available"],
+                "web3_formal_verification_available": web3_status[
+                    "web3_formal_verification_available"
+                ],
+                "web3_formal_tools": web3_status["web3_formal_tools"],
+                "formal_capabilities": web3_status["formal_capabilities"],
+                "audit_exploit_verification_available": web3_status[
+                    "audit_exploit_verification_available"
+                ],
             }
         else:
             return {
@@ -1281,6 +1292,15 @@ def get_leanaide_status() -> Dict[str, Any]:
                 "port": port,
                 "timeout": timeout,
                 "message": f"LeanAide server is not responding at {host}:{port}",
+                "web3_formal_available": web3_status["web3_formal_available"],
+                "web3_formal_verification_available": web3_status[
+                    "web3_formal_verification_available"
+                ],
+                "web3_formal_tools": web3_status["web3_formal_tools"],
+                "formal_capabilities": web3_status["formal_capabilities"],
+                "audit_exploit_verification_available": web3_status[
+                    "audit_exploit_verification_available"
+                ],
             }
 
     except (IOError, ConnectionError, TimeoutError) as e:
@@ -1292,6 +1312,15 @@ def get_leanaide_status() -> Dict[str, Any]:
             "timeout": timeout,
             "error": str(e),
             "message": f"Cannot reach LeanAide server at {host}:{port}",
+            "web3_formal_available": web3_status["web3_formal_available"],
+            "web3_formal_verification_available": web3_status[
+                "web3_formal_verification_available"
+            ],
+            "web3_formal_tools": web3_status["web3_formal_tools"],
+            "formal_capabilities": web3_status["formal_capabilities"],
+            "audit_exploit_verification_available": web3_status[
+                "audit_exploit_verification_available"
+            ],
         }
 
 

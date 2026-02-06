@@ -30,10 +30,31 @@ class KnowledgeBaseConfig:
 
 class KnowledgeBase:
     """Knowledge Base class"""
-    
-    def __init__(self, config: Optional[KnowledgeBaseConfig] = None):
+
+    def __init__(
+        self,
+        config: Optional[KnowledgeBaseConfig] = None,
+        db_path: Optional[str] = None,  # DEPRECATED - use config.storage_path instead
+        **kwargs  # Catch any other deprecated parameters
+    ):
+        """
+        Initialize knowledge base.
+
+        Args:
+            config: Knowledge base configuration
+            db_path: DEPRECATED - Database path (use config.storage_path instead)
+            **kwargs: Additional deprecated parameters
+        """
+        # Handle deprecated db_path parameter
+        if db_path is not None:
+            if config is None:
+                config = KnowledgeBaseConfig(storage_path=db_path)
+            else:
+                # db_path takes precedence over config.storage_path for backward compatibility
+                config.storage_path = db_path
+
         self.config = config or KnowledgeBaseConfig()
-        logger.info("Knowledge Base initialized")
+        logger.info(f"Knowledge Base initialized with storage_path={self.config.storage_path}")
     
     def store(self, knowledge: Dict[str, Any]) -> str:
         """Store knowledge item"""

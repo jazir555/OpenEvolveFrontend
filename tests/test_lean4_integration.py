@@ -265,6 +265,11 @@ class TestLean4True100Service:
         assert isinstance(status, dict)
         assert "lean_available" in status
         assert "llm_available" in status
+        assert "web3_formal_available" in status
+        assert "web3_formal_verification_available" in status
+        assert "web3_formal_tools" in status
+        assert "formal_capabilities" in status
+        assert "audit_exploit_verification_available" in status
 
     def test_verify_theorem(self, lean4_service, sample_lean_code):
         """Test verifying a theorem."""

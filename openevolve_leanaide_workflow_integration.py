@@ -99,6 +99,70 @@ except ImportError:
     logger.warning("LeanAide quality gate not available")
 
 
+try:
+    from leanaide_integration import create_integration as _create_root_leanaide_integration
+    ROOT_LEANAIDE_STATUS_AVAILABLE = True
+except ImportError:
+    _create_root_leanaide_integration = None
+    ROOT_LEANAIDE_STATUS_AVAILABLE = False
+    logger.warning("Root LeanAide status provider not available")
+
+
+def _default_web3_formal_status() -> Dict[str, Any]:
+    """Return a stable Web3 formal-status payload."""
+    formal_capabilities = {
+        "solidity_invariant_translation": False,
+        "invariant_translation_verification": False,
+        "symbolic_exploit_witness": False,
+        "composite_exploit_verification": False,
+    }
+    return {
+        "web3_formal_available": False,
+        "web3_formal_verification_available": False,
+        "web3_formal_tools": [],
+        "formal_capabilities": formal_capabilities,
+        "audit_exploit_verification_available": False,
+    }
+
+
+def _collect_web3_formal_status() -> Dict[str, Any]:
+    """Collect Web3 formal status from root LeanAide integration when available."""
+    if not ROOT_LEANAIDE_STATUS_AVAILABLE or _create_root_leanaide_integration is None:
+        return _default_web3_formal_status()
+
+    try:
+        status = _create_root_leanaide_integration().get_web3_formal_status()
+        if not isinstance(status, dict):
+            return _default_web3_formal_status()
+        default_status = _default_web3_formal_status()
+        formal_capabilities = status.get("formal_capabilities")
+        if not isinstance(formal_capabilities, dict):
+            formal_capabilities = default_status["formal_capabilities"]
+        web3_formal_tools = status.get("web3_formal_tools")
+        if not isinstance(web3_formal_tools, list):
+            web3_formal_tools = []
+        web3_formal_tools = sorted(set(str(tool) for tool in web3_formal_tools if tool))
+        inferred_formal_available = bool(web3_formal_tools) or any(
+            bool(value) for value in formal_capabilities.values()
+        )
+        return {
+            "web3_formal_available": bool(
+                status.get("web3_formal_available", inferred_formal_available)
+            ),
+            "web3_formal_verification_available": bool(
+                status.get("web3_formal_verification_available", inferred_formal_available)
+            ),
+            "web3_formal_tools": web3_formal_tools,
+            "formal_capabilities": formal_capabilities,
+            "audit_exploit_verification_available": bool(
+                status.get("audit_exploit_verification_available")
+            ),
+        }
+    except Exception:
+        logger.debug("Failed to collect root LeanAide Web3 status", exc_info=True)
+        return _default_web3_formal_status()
+
+
 
 
 # =============================================================================
@@ -536,10 +600,20 @@ class OpenEvolveLeanAideIntegrator:
     
     def get_status(self) -> Dict[str, Any]:
         """Get integration status."""
+        web3_status = _collect_web3_formal_status()
         return {
             "leanaide_available": LEANAIDE_AVAILABLE,
             "workflow_integrator_available": self.workflow_integrator is not None,
             "quality_gate_available": self.quality_gate is not None,
+            "web3_formal_available": web3_status["web3_formal_available"],
+            "web3_formal_verification_available": web3_status[
+                "web3_formal_verification_available"
+            ],
+            "web3_formal_tools": web3_status["web3_formal_tools"],
+            "formal_capabilities": web3_status["formal_capabilities"],
+            "audit_exploit_verification_available": web3_status[
+                "audit_exploit_verification_available"
+            ],
             "config": {
                 "leanaide_enabled": self.config.leanaide_enabled,
                 "optimization_objective": self.config.optimization_objective,

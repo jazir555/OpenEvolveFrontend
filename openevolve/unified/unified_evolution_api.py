@@ -152,14 +152,34 @@ class UnifiedEvolutionAPI:
     and strategies.
     """
     
-    def __init__(self, config: Optional[UnifiedEvolutionConfig] = None):
+    def __init__(
+        self,
+        config: Optional[UnifiedEvolutionConfig] = None,
+        knowledge_engine: Optional[Any] = None,  # DEPRECATED - not used in unified API
+        strategy_recommender: Optional[Any] = None,  # DEPRECATED - use config instead
+        enable_gauntlets: Optional[bool] = None,  # DEPRECATED - use config.run_gauntlet instead
+        **kwargs  # Catch any other deprecated parameters
+    ):
         """Initialize unified evolution API.
-        
+
         Args:
             config: Evolution configuration
+            knowledge_engine: DEPRECATED - Knowledge engine integration (not directly supported)
+            strategy_recommender: DEPRECATED - Strategy recommender (use config instead)
+            enable_gauntlets: DEPRECATED - Enable gauntlet tests (use config.run_gauntlet instead)
+            **kwargs: Additional deprecated parameters
         """
         self.config = config or UnifiedEvolutionConfig()
+
+        # Handle deprecated enable_gauntlets parameter
+        if enable_gauntlets is not None:
+            self.config.run_gauntlet = enable_gauntlets
+
         self._history: List[EvolutionResult] = []
+
+        # Deprecated parameters are stored but not used (for backward compatibility)
+        self._knowledge_engine = knowledge_engine
+        self._strategy_recommender = strategy_recommender
     
     async def evolve(
         self,

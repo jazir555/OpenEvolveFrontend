@@ -155,8 +155,12 @@ class TestTheoremProving:
             integration = LeanAideIntegration()
             integration.formal_verifier = MagicMock()
 
+            # Create a proper async mock for run_in_executor
+            async def mock_run_in_executor(executor, func, *args):
+                return {"verified": True, "errors": []}
+
             with patch('asyncio.get_event_loop') as mock_loop:
-                mock_loop.return_value.run_in_executor.return_value = mock_leanaide_result
+                mock_loop.return_value.run_in_executor = mock_run_in_executor
 
                 result = await integration.prove_theorem(
                     theorem=sample_theorem,
@@ -188,8 +192,12 @@ class TestTheoremProving:
             integration = LeanAideIntegration()
             integration.formal_verifier = MagicMock()
 
+            # Create a proper async mock for run_in_executor
+            async def mock_run_in_executor(executor, func, *args):
+                return {"verified": True, "errors": []}
+
             with patch('asyncio.get_event_loop') as mock_loop:
-                mock_loop.return_value.run_in_executor.return_value = mock_leanaide_result
+                mock_loop.return_value.run_in_executor = mock_run_in_executor
 
                 result = await integration.prove_theorem(
                     theorem=sample_theorem,
@@ -207,8 +215,12 @@ class TestTheoremProving:
 
             invalid_theorem = "invalid theorem syntax here"
 
+            # Create a proper async mock for run_in_executor that raises exception
+            async def mock_run_in_executor_error(executor, func, *args):
+                raise Exception("Syntax error")
+
             with patch('asyncio.get_event_loop') as mock_loop:
-                mock_loop.return_value.run_in_executor.side_effect = Exception("Syntax error")
+                mock_loop.return_value.run_in_executor = mock_run_in_executor_error
 
                 result = await integration.prove_theorem(theorem=invalid_theorem)
 
@@ -231,8 +243,12 @@ class TestProofSearch:
             integration = LeanAideIntegration()
             integration.proof_searcher = MagicMock()
 
+            # Create a proper async mock for run_in_executor
+            async def mock_run_in_executor(executor, func, *args):
+                return {"success": True, "proof": "Proof generated", "steps": ["step1", "step2"]}
+
             with patch('asyncio.get_event_loop') as mock_loop:
-                mock_loop.return_value.run_in_executor.return_value = mock_leanaide_result
+                mock_loop.return_value.run_in_executor = mock_run_in_executor
 
                 result = await integration.search_proof(
                     theorem=sample_theorem,
@@ -250,8 +266,12 @@ class TestProofSearch:
             integration = LeanAideIntegration()
             integration.proof_searcher = MagicMock()
 
+            # Create a proper async mock for run_in_executor
+            async def mock_run_in_executor(executor, func, *args):
+                return {"success": True, "proof": "Proof with tactics", "steps": ["simp", "induction"]}
+
             with patch('asyncio.get_event_loop') as mock_loop:
-                mock_loop.return_value.run_in_executor.return_value = mock_leanaide_result
+                mock_loop.return_value.run_in_executor = mock_run_in_executor
 
                 result = await integration.search_proof(
                     theorem=sample_theorem,
@@ -267,8 +287,12 @@ class TestProofSearch:
             integration = LeanAideIntegration()
             integration.proof_searcher = MagicMock()
 
+            # Create a proper async mock for run_in_executor that raises timeout
+            async def mock_run_in_executor_timeout(executor, func, *args):
+                raise asyncio.TimeoutError()
+
             with patch('asyncio.get_event_loop') as mock_loop:
-                mock_loop.return_value.run_in_executor.side_effect = asyncio.TimeoutError()
+                mock_loop.return_value.run_in_executor = mock_run_in_executor_timeout
 
                 result = await integration.search_proof(
                     theorem=sample_theorem,
@@ -377,11 +401,12 @@ class TestConfigurationAndErrors:
             integration = LeanAideIntegration()
             integration.formal_verifier = MagicMock()
 
-            mock_result = MagicMock()
-            mock_result.verified = False
+            # Create a proper async mock for run_in_executor
+            async def mock_run_in_executor(executor, func, *args):
+                return {"verified": False, "errors": []}
 
             with patch('asyncio.get_event_loop') as mock_loop:
-                mock_loop.return_value.run_in_executor.return_value = mock_result
+                mock_loop.return_value.run_in_executor = mock_run_in_executor
 
                 result = await integration.prove_theorem(theorem="")
 
@@ -394,8 +419,12 @@ class TestConfigurationAndErrors:
             integration = LeanAideIntegration()
             integration.formal_verifier = MagicMock()
 
+            # Create a proper async mock for run_in_executor that raises exception
+            async def mock_run_in_executor_error(executor, func, *args):
+                raise Exception("Lean error")
+
             with patch('asyncio.get_event_loop') as mock_loop:
-                mock_loop.return_value.run_in_executor.side_effect = Exception("Lean error")
+                mock_loop.return_value.run_in_executor = mock_run_in_executor_error
 
                 result = await integration.prove_theorem(theorem=sample_theorem)
 

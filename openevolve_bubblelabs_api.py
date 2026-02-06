@@ -17,7 +17,7 @@ import uuid
 
 logger = logging.getLogger(__name__)
 
-from workflow_structures import WorkflowState
+from openevolve.kernel.schema import WorkflowState, PlanStatus, Team, GauntletDefinition
 from team_manager import TeamManager
 from gauntlet_manager import GauntletManager
 from workflow_engine import run_sovereign_workflow
@@ -26,6 +26,7 @@ from evolution import run_evolution_loop
 from api_server import team_manager, gauntlet_manager  # Import managers only
 from parameter_manager import ParameterManager
 from analytics_manager import AnalyticsManager
+from ace_crewai_bridge import ACECrewAIWorkflowBridge
 
 # Import state machine validation
 try:
@@ -93,6 +94,17 @@ SAFE_PARAMETERS: Set[str] = {
     "error_message",
     "execution_time"
 }
+
+
+class InventionState(Enum):
+    """Global State Machine for Invention Plan."""
+    IDLE = "IDLE"
+    DECOMPOSING = "DECOMPOSING"
+    GAUNTLET_RUNNING = "GAUNTLET_RUNNING"
+    RESE_SOLVING = "RESE_SOLVING"
+    PROVING = "PROVING"
+    COMPLETE = "COMPLETE"
+    FAILED = "FAILED"
 
 
 def validate_workflow_type(workflow_type: str) -> str:
@@ -233,6 +245,39 @@ class OpenEvolveBubbleLabsIntegration:
         self.parameter_manager = ParameterManager()
         self.analytics_manager = AnalyticsManager()
         self.event_callbacks: Dict[str, List[Callable]] = {}
+        # ACE Bridge for Recursive Feedback
+        self.ace_bridge = ACECrewAIWorkflowBridge(enable_learning=True)
+
+    def trigger_ace_reflection(self, workflow_state: WorkflowState, failure_details: str):
+        """
+        Trigger ACE reflection on workflow failure.
+        
+        Args:
+            workflow_state: Current workflow state
+            failure_details: Description of the failure
+        """
+        logger.info(f"Triggering ACE Reflection for workflow {workflow_state.workflow_id}")
+        try:
+            # Create a sample describing the failure
+            context = f"Workflow ID: {workflow_state.workflow_id}\nType: {workflow_state.workflow_type}\nStage: {workflow_state.current_stage}\nFailure: {failure_details}"
+            
+            # Use ACE to learn from this failure
+            # We map this to Phase 3 (Critique) logic roughly, or generic learning
+            
+            self.ace_bridge.execute_phase_3_critique(
+                solutions=[{"solution": f"FAILED EXECUTION: {context}", "critique": "Self-Reflection on Failure"}],
+                critique_criteria=["Robustness", "Error Handling"],
+                context={"description": "Failure Recovery Analysis"},
+                enable_learning=True
+            )
+            
+            self._trigger_event("ace_reflection_triggered", {
+                "instance_id": workflow_state.workflow_id,
+                "failure_details": failure_details
+            })
+            
+        except Exception as e:
+            logger.error(f"Failed to trigger ACE reflection: {e}")
 
     def register_event_callback(self, event_type: str, callback: Callable):
         """Register a callback for specific events."""
@@ -901,6 +946,9 @@ class OpenEvolveBubbleLabsIntegration:
         except (RuntimeError, ValueError, TypeError, KeyError) as e:
             workflow_state.status = WorkflowStatus.FAILED.value
             workflow_state.error_message = str(e)
+            
+            # Trigger ACE Reflection
+            self.trigger_ace_reflection(workflow_state, str(e))
             
             # Trigger failure event
             self._trigger_event("workflow_instance_failed", {

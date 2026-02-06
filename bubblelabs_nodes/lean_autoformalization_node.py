@@ -19,6 +19,7 @@ import logging
 import time
 from typing import Dict, Any, List, Optional, Union
 from datetime import datetime
+from leanaide_web3_status import collect_web3_formal_status
 
 from bubblelabs_nodes.base_node import BubbleLabsNode, NodeExecutionError
 
@@ -515,10 +516,20 @@ end Autoformalized
     
     def get_lean_status(self) -> Dict[str, Any]:
         """Get Lean integration status."""
+        web3_status = collect_web3_formal_status()
         return {
             "lean_available": LEAN_AVAILABLE,
             "cav_nlp_available": CAV_NLP_AVAILABLE,
             "client_initialized": self._client is not None,
             "engine_initialized": self._engine is not None,
-            "can_autoformalize": LEAN_AVAILABLE and self._client is not None
+            "can_autoformalize": LEAN_AVAILABLE and self._client is not None,
+            "web3_formal_available": web3_status["web3_formal_available"],
+            "web3_formal_verification_available": web3_status[
+                "web3_formal_verification_available"
+            ],
+            "web3_formal_tools": web3_status["web3_formal_tools"],
+            "formal_capabilities": web3_status["formal_capabilities"],
+            "audit_exploit_verification_available": web3_status[
+                "audit_exploit_verification_available"
+            ],
         }

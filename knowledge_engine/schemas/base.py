@@ -610,6 +610,76 @@ class Entity:
         # If name not set but entity_id is, use entity_id as name
         if not self.name and self.entity_id:
             self.name = self.entity_id
+
+    def __init__(
+        self,
+        entity_id: Optional[str] = None,
+        entity_type: Union[EntityType, str] = EntityType.ENTITY,
+        name: Optional[str] = None,
+        properties: Optional[Dict[str, Any]] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        source: Optional[str] = None,
+        confidence: float = 1.0,
+        created_at: Optional[datetime] = None,
+        updated_at: Optional[datetime] = None,
+        attributes: Optional[Dict[str, Any]] = None,  # Backward compatibility
+        **kwargs  # Catch any other deprecated parameters
+    ):
+        """
+        Initialize Entity with backward compatibility support.
+
+        Args:
+            entity_id: Unique entity identifier
+            entity_type: Type/category of entity
+            name: Human-readable name
+            properties: Entity properties (new name for attributes)
+            metadata: Additional metadata
+            source: Source of entity
+            confidence: Confidence score
+            created_at: Creation timestamp
+            updated_at: Last update timestamp
+            attributes: DEPRECATED - use properties instead (mapped to properties for compatibility)
+            **kwargs: Additional deprecated parameters
+        """
+        # Handle entity_id generation
+        if entity_id is None:
+            entity_id = str(uuid.uuid4())
+
+        # Handle name defaults
+        if name is None:
+            name = entity_id
+
+        # Handle attributes -> properties mapping for backward compatibility
+        if attributes is not None:
+            if properties is None:
+                properties = attributes
+            else:
+                # Merge both, with properties taking precedence
+                properties = {**attributes, **properties}
+
+        # Set defaults
+        if properties is None:
+            properties = {}
+        if metadata is None:
+            metadata = {}
+        if created_at is None:
+            created_at = datetime.now(timezone.utc)
+        if updated_at is None:
+            updated_at = datetime.now(timezone.utc)
+
+        # Validate confidence
+        confidence = max(0.0, min(1.0, float(confidence)))
+
+        # Set all attributes
+        self.entity_id = entity_id
+        self.entity_type = entity_type
+        self.name = name
+        self.properties = properties
+        self.metadata = metadata
+        self.source = source
+        self.confidence = confidence
+        self.created_at = created_at
+        self.updated_at = updated_at
     
     @property
     def attributes(self) -> Dict[str, Any]:

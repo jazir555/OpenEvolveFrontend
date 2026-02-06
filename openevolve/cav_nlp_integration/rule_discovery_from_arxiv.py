@@ -32,13 +32,16 @@ try:
 except ImportError:
     pass
 
+# Import SemanticPrimitive at module level to fix NameError
+try:
+    from .flexible_semantic_parsing import SemanticPrimitive, SemanticNormalizer
+except ImportError:
+    SemanticPrimitive = None
+    SemanticNormalizer = None
+
 def _import_flexible_parsing():
     """Lazy import flexible semantic parsing."""
-    try:
-        from .flexible_semantic_parsing import SemanticPrimitive, SemanticNormalizer
-        return SemanticPrimitive, SemanticNormalizer
-    except ImportError:
-        return None, None
+    return SemanticPrimitive, SemanticNormalizer
 
 def _import_semantic_synthesis():
     """Lazy import semantic synthesis."""

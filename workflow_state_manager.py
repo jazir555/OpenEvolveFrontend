@@ -70,6 +70,7 @@ class WorkflowStateManager:
         """
         self.persistence = WorkflowPersistence(storage_backend, storage_path)
         self.branches: Dict[str, Dict[str, WorkflowState]] = {}  # workflow_id -> {branch_name -> state}
+        self.current_states: Dict[str, WorkflowState] = {}  # workflow_id -> current state
 
     def save_state(
         self,

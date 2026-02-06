@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional, Union
 from dataclasses import dataclass
 import uuid
+from leanaide_web3_status import collect_web3_formal_status
 
 
 logger = logging.getLogger(__name__)
@@ -938,6 +939,7 @@ class LeanAideIntegration:
         Returns:
             Dictionary with integration status
         """
+        web3_status = collect_web3_formal_status()
         return {
             "available": self.formal_verifier is not None,
             "lean_version": self.config.get("lean_version", "unknown"),
@@ -949,7 +951,16 @@ class LeanAideIntegration:
                 self.auto_tactic is not None,
                 self.formal_verifier is not None
             ]),
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "web3_formal_available": web3_status["web3_formal_available"],
+            "web3_formal_verification_available": web3_status[
+                "web3_formal_verification_available"
+            ],
+            "web3_formal_tools": web3_status["web3_formal_tools"],
+            "formal_capabilities": web3_status["formal_capabilities"],
+            "audit_exploit_verification_available": web3_status[
+                "audit_exploit_verification_available"
+            ],
         }
     
     async def prove_theorem(
