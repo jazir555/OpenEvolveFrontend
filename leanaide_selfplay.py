@@ -254,16 +254,48 @@ class Lean4Verifier:
         proof: LeanProof
     ) -> Tuple[ProofStatus, str, str]:
         """
-        Verify a Lean 4 proof using LeanAide server.
+        Verify a Lean 4 proof using REAL Lean 4 verification.
 
         Returns:
             Tuple of (status, output, error_message)
         """
+        # Construct complete Lean file
+        lean_file = self._construct_lean_file(theorem, proof)
+        
+        # First try REAL Lean 4 verification
         try:
-            # Construct complete Lean file
-            lean_file = self._construct_lean_file(theorem, proof)
-
-            # Send to LeanAide for verification
+            from lean4_integration import (
+                Lean4VerificationEngine,
+                Lean4ServerConfig,
+                Lean4VerificationConfig
+            )
+            server_config = Lean4ServerConfig(enable_simulation_fallback=False)
+            verification_config = Lean4VerificationConfig(enable_caching=True)
+            engine = Lean4VerificationEngine(
+                server_url="http://localhost:7654",
+                server_config=server_config,
+                config=verification_config
+            )
+            
+            result = await engine.verify_mathematical_solution(
+                lean_file, timeout=self.timeout
+            )
+            
+            if result.success:
+                return (
+                    ProofStatus.VERIFIED,
+                    getattr(result, 'output', 'Proof verified by Lean 4'),
+                    ""
+                )
+            else:
+                errors = getattr(result, 'errors', ['Verification failed'])
+                return ProofStatus.FAILED, "", "; ".join(errors)
+                
+        except Exception as e:
+            logger.debug(f"Real Lean verification not available: {e}")
+        
+        # Fallback to LeanAide server
+        try:
             response = await self.client.post(
                 f"{self.leanaide_url}/verify",
                 json={

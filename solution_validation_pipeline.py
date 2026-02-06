@@ -28,6 +28,13 @@ try:
 except ImportError:
     RED_TEAM_SYSTEM_AVAILABLE = False
 
+# **LEAN INTEGRATION**: Stage 4 Formal Verification
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -50,6 +57,15 @@ class SolutionValidationPipeline:
         self.red_team_system = red_team_system or (RedTeamFeedbackSystem() if RED_TEAM_SYSTEM_AVAILABLE else None)
         self.gold_team_system = gold_team_system
         self.validation_history: List[Dict[str, Any]] = []
+        
+        # **LEAN INTEGRATION**: Initialize Lean client for Stage 4
+        self._lean_client = None
+        if LEAN_AVAILABLE:
+            try:
+                self._lean_client = LeanAideClient()
+                logger.info("LeanAide client initialized for formal verification")
+            except Exception as e:
+                logger.warning(f"Failed to initialize LeanAide client: {e}")
 
     def validate_solution(
         self,
@@ -112,8 +128,20 @@ class SolutionValidationPipeline:
                 validation_results.red_team_report,
                 sub_problem
             )
+        
+        # **LEAN INTEGRATION**: Stage 4: Formal Verification
+        if validation_requirements.use_formal_verification or getattr(validation_requirements, 'verify_with_lean', False):
+            logger.info("Running Stage 4: Formal verification with Lean...")
+            formal_result = await self.run_formal_verification(solution, sub_problem)
+            validation_results.formal_verification_result = formal_result
+            
+            # Adjust final score based on formal verification
+            if formal_result.get('verified'):
+                validation_results.formal_verification_boost = 0.05  # 5% boost for verified solutions
+            else:
+                validation_results.formal_verification_penalty = 0.10  # 10% penalty for unverified claims
 
-        # Stage 4: Calculate Final Score
+        # Stage 5: Calculate Final Score
         validation_results.final_score = self.calculate_final_score(
             validation_results.automated_results,
             validation_results.red_team_report,
@@ -157,6 +185,11 @@ class SolutionValidationPipeline:
         validation_results.validation_duration = time.time() - start_time
         logger.info(f"Validation completed in {validation_results.validation_duration:.2f}s")
         logger.info(f"Final score: {validation_results.final_score:.3f}, Recommendation: {validation_results.recommendation}")
+        
+        # Log formal verification result if performed
+        if hasattr(validation_results, 'formal_verification_result'):
+            verified = validation_results.formal_verification_result.get('verified', False)
+            logger.info(f"Formal verification: {'VERIFIED' if verified else 'NOT VERIFIED'}")
 
         # Store in history
         self.validation_history.append({

@@ -6204,9 +6204,16 @@ def bubblelabs_leanaide_prove(
 def web3_status():
     """Get Web3 audit stack availability and MCP tool inventory."""
     inventory = {}
+    web3_tools: List[str] = []
+    web3_ingestion_tools: List[str] = []
+    web3_formal_tools: List[str] = []
     if get_mcp_tool_inventory is not None:
         try:
             inventory = get_mcp_tool_inventory()
+            if isinstance(inventory, dict):
+                web3_tools = list(inventory.get("web3_tools", []) or [])
+                web3_ingestion_tools = list(inventory.get("web3_ingestion_tools", []) or [])
+                web3_formal_tools = list(inventory.get("web3_formal_tools", []) or [])
         except Exception as exc:
             inventory = {"error": str(exc)}
     return {
@@ -6216,6 +6223,9 @@ def web3_status():
         "foundry_ingestion_available": web3_ingest_foundry_fuzzing is not None,
         "invariant_translation_available": translate_solidity_assignment_to_z3 is not None,
         "exploit_witness_available": solve_smart_contract_exploit_witness is not None,
+        "web3_tools": web3_tools,
+        "web3_ingestion_tools": web3_ingestion_tools,
+        "web3_formal_tools": web3_formal_tools,
         "mcp_tool_inventory": inventory,
     }
 

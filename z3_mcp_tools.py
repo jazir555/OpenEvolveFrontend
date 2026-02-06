@@ -1273,6 +1273,137 @@ async def z3_enhanced_prove(
         return await z3_prove_theorem(theorem, [], extract_proof=generate_proof)
 
 
+@MCPTool(
+    name="z3_translate_solidity_invariant",
+    description="Translate Solidity state transitions into Z3 constraints and Lean invariants",
+    parameters={
+        "statement": {
+            "type": "string",
+            "description": "Solidity assignment/update statement to translate"
+        },
+        "non_negative_target": {
+            "type": "boolean",
+            "description": "Add non-negative target invariant",
+            "optional": True,
+            "default": True
+        },
+        "max_withdraw_expr": {
+            "type": "string",
+            "description": "Optional max-withdraw invariant expression",
+            "optional": True
+        },
+        "verify_translation": {
+            "type": "boolean",
+            "description": "Run Z3 validation for translated invariants",
+            "optional": True,
+            "default": True
+        },
+        "assume_non_negative_amount": {
+            "type": "boolean",
+            "description": "When verifying, assume amount >= 0",
+            "optional": True,
+            "default": True
+        },
+    }
+)
+async def z3_translate_solidity_invariant(
+    statement: str,
+    non_negative_target: bool = True,
+    max_withdraw_expr: Optional[str] = None,
+    verify_translation: bool = True,
+    assume_non_negative_amount: bool = True,
+) -> Dict[str, Any]:
+    """Translate Solidity assignment semantics and optionally verify invariants."""
+    if translate_solidity_assignment_to_z3 is None:
+        return {
+            "success": False,
+            "error": "Solidity invariant translation is unavailable"
+        }
+
+    try:
+        translation = translate_solidity_assignment_to_z3(
+            statement=statement,
+            non_negative_target=non_negative_target,
+            max_withdraw_expr=max_withdraw_expr,
+        )
+        result: Dict[str, Any] = {
+            "success": True,
+            "translation": translation,
+        }
+        if verify_translation and verify_solidity_invariant_translation is not None:
+            result["verification"] = verify_solidity_invariant_translation(
+                translation=translation,
+                assume_non_negative_amount=assume_non_negative_amount,
+            )
+        return result
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@MCPTool(
+    name="z3_solve_smart_contract_exploit_witness",
+    description="Solve symbolic exploit witness predicates for smart-contract balance drain conditions",
+    parameters={
+        "additional_constraints": {
+            "type": "array",
+            "description": "Optional additional SMT constraints",
+            "items": {"type": "string"},
+            "optional": True
+        },
+        "timeout": {
+            "type": "number",
+            "description": "Solver timeout in seconds",
+            "optional": True,
+            "default": 10.0
+        },
+    }
+)
+async def z3_solve_smart_contract_exploit_witness(
+    additional_constraints: Optional[List[str]] = None,
+    timeout: float = 10.0,
+) -> Dict[str, Any]:
+    """Solve canonical exploit witness query for Web3 audit workflows."""
+    if solve_smart_contract_exploit_witness is None:
+        return {
+            "success": False,
+            "error": "Smart contract exploit witness solver is unavailable"
+        }
+    try:
+        witness = solve_smart_contract_exploit_witness(
+            additional_constraints=additional_constraints,
+            timeout=timeout,
+        )
+        return {
+            "success": True,
+            "witness": witness,
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+def get_web3_formal_tool_inventory() -> Dict[str, Any]:
+    """Return Web3 formal-verification MCP tool inventory from the Z3 service."""
+    tools = sorted([
+        "z3_translate_solidity_invariant",
+        "z3_solve_smart_contract_exploit_witness",
+    ])
+    return {
+        "available": WEB3_FORMAL_AVAILABLE,
+        "tools": tools,
+        "formal_capabilities": {
+            "solidity_invariant_translation": translate_solidity_assignment_to_z3 is not None,
+            "invariant_translation_verification": verify_solidity_invariant_translation is not None,
+            "symbolic_exploit_witness": solve_smart_contract_exploit_witness is not None,
+        },
+    }
+
+
 # =============================================================================
 # MCP Server Interface
 # =============================================================================

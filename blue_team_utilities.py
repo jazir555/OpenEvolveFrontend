@@ -23,6 +23,14 @@ import logging
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# **LEAN INTEGRATION**: Real Lean proof verification for blue team utilities
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+    logger.warning("LeanAide client not available - formal validation utilities disabled")
+
 
 # ============================================================================
 # Content Normalization Utilities

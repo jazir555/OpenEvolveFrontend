@@ -39,6 +39,56 @@ from leanaide_pes_handler import (
 )
 
 
+
+
+# =============================================================================
+# REAL LEAN VERIFICATION (Auto-injected)
+# =============================================================================
+
+async def verify_lean_code_real(lean_code: str, timeout: int = 300) -> dict:
+    """
+    Verify Lean 4 code using REAL Lean 4 verification engine.
+    
+    Args:
+        lean_code: Lean 4 code to verify
+        timeout: Timeout in seconds
+        
+    Returns:
+        Dictionary with verification results
+    """
+    try:
+        from lean4_integration import (
+            Lean4VerificationEngine,
+            Lean4ServerConfig,
+            Lean4VerificationConfig
+        )
+        server_config = Lean4ServerConfig(enable_simulation_fallback=False)
+        verification_config = Lean4VerificationConfig(enable_caching=True)
+        engine = Lean4VerificationEngine(
+            server_url="http://localhost:7654",
+            server_config=server_config,
+            config=verification_config
+        )
+        result = await engine.verify_mathematical_solution(lean_code, timeout=timeout)
+        return {
+            "success": result.success,
+            "verified": result.success,
+            "errors": result.errors if hasattr(result, 'errors') else [],
+            "output": result.output if hasattr(result, 'output') else "",
+            "is_real_verification": True
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "verified": False,
+            "error": str(e),
+            "is_real_verification": True
+        }
+
+
+# Replace the imported verify_lean_code with real verification
+verify_lean_code = verify_lean_code_real
+
 # =============================================================================
 # Benchmark Test Cases
 # =============================================================================

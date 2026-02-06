@@ -54,6 +54,51 @@ logger = logging.getLogger(__name__)
 
 
 # =============================================================================
+# REAL LEAN INTEGRATION FOR PREDICTIVE FLAGGING (Auto-injected)
+# =============================================================================
+
+async def _verify_lean_with_real_engine(lean_code: str) -> Dict[str, Any]:
+    """
+    Verify Lean code using real Lean 4 engine for predictive flagging.
+    
+    Args:
+        lean_code: Lean 4 code to verify
+        
+    Returns:
+        Verification result dictionary
+    """
+    try:
+        from lean4_integration import (
+            Lean4VerificationEngine,
+            Lean4ServerConfig,
+            Lean4VerificationConfig
+        )
+        server_config = Lean4ServerConfig(enable_simulation_fallback=False)
+        verification_config = Lean4VerificationConfig(enable_caching=True)
+        engine = Lean4VerificationEngine(
+            server_url="http://localhost:7654",
+            server_config=server_config,
+            config=verification_config
+        )
+        result = await engine.verify_mathematical_solution(lean_code)
+        return {
+            "success": result.success,
+            "verified": result.success,
+            "errors": getattr(result, 'errors', []),
+            "output": getattr(result, 'output', ''),
+            "is_real_lean": True
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "verified": False,
+            "error": str(e),
+            "is_real_lean": True
+        }
+
+
+
+# =============================================================================
 # Predictive Flagging Configuration
 # =============================================================================
 

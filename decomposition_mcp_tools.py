@@ -207,6 +207,22 @@ def list_mcp_tools() -> List[str]:
     return list(_MCP_TOOLS.keys())
 
 
+def _get_web3_formal_inventory() -> Dict[str, Any]:
+    """Fetch Web3 formal-verification tool inventory from Z3 MCP tools."""
+    try:
+        from z3_mcp_tools import get_web3_formal_tool_inventory
+        inventory = get_web3_formal_tool_inventory()
+        if isinstance(inventory, dict):
+            return inventory
+    except Exception as exc:
+        logger.debug("Unable to load Z3 Web3 formal inventory: %s", exc)
+    return {
+        "available": False,
+        "tools": [],
+        "formal_capabilities": {},
+    }
+
+
 # =============================================================================
 # WEB3 INGESTION HELPERS
 # =============================================================================
@@ -1719,20 +1735,27 @@ def web3_ingest_contract_audit_stack(
 def get_mcp_tool_inventory() -> Dict[str, Any]:
     """Return MCP tool inventory with Web3 ingestion capability status."""
     all_tools = sorted(list_mcp_tools())
-    web3_tools = sorted([
+    web3_ingestion_tools = sorted([
         "web3_ingest_slither_static_analysis",
         "web3_ingest_foundry_fuzzing",
         "web3_ingest_contract_audit_stack",
     ])
+    formal_inventory = _get_web3_formal_inventory()
+    formal_tools = sorted(formal_inventory.get("tools", []))
+    web3_tools = sorted(set(web3_ingestion_tools + formal_tools))
     return {
         "total_tools": len(all_tools),
         "tools": all_tools,
+        "web3_ingestion_tools": web3_ingestion_tools,
+        "web3_formal_tools": formal_tools,
         "web3_tools": web3_tools,
         "availability": {
             "slither": SLITHER_AVAILABLE,
             "forge": FORGE_AVAILABLE,
             "foundry": FOUNDRY_AVAILABLE,
+            "web3_formal": bool(formal_inventory.get("available")),
         },
+        "formal_capabilities": formal_inventory.get("formal_capabilities", {}),
     }
 
 
@@ -1795,11 +1818,14 @@ def list_available_gauntlets() -> Dict[str, Any]:
 @mcp_tool("get_decomposition_status")
 def get_decomposition_status() -> Dict[str, Any]:
     """Get the status of the decomposition workflow system"""
-    web3_tools = [
+    web3_ingestion_tools = [
         "web3_ingest_slither_static_analysis",
         "web3_ingest_foundry_fuzzing",
         "web3_ingest_contract_audit_stack",
     ]
+    formal_inventory = _get_web3_formal_inventory()
+    web3_formal_tools = formal_inventory.get("tools", [])
+    web3_tools = sorted(set(web3_ingestion_tools + web3_formal_tools))
     return {
         "available": DECOMPOSITION_AVAILABLE,
         "openevolve_available": OPENEVOLVE_AVAILABLE,
@@ -1833,10 +1859,14 @@ def get_decomposition_status() -> Dict[str, Any]:
             "slither_static_analysis": SLITHER_AVAILABLE,
             "foundry_fuzzing": FORGE_AVAILABLE,
             "web3_ingestion_stack": SLITHER_AVAILABLE or FORGE_AVAILABLE,
+            "web3_formal_stack": bool(formal_inventory.get("available")),
         },
         "mcp_tool_inventory": {
             "registered_tools": len(list_mcp_tools()),
+            "web3_ingestion_tools": web3_ingestion_tools,
+            "web3_formal_tools": web3_formal_tools,
             "web3_tools": web3_tools,
+            "formal_capabilities": formal_inventory.get("formal_capabilities", {}),
         },
     }
 

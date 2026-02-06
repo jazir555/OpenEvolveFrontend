@@ -1006,7 +1006,7 @@ class LeanProofValidator:
 
     def verify_with_leanaide(self, code: str) -> Tuple[bool, List[str]]:
         """
-        Verify proof with LeanAide
+        Verify proof with REAL Lean 4 verification.
 
         Args:
             code: Lean code to verify
@@ -1014,6 +1014,45 @@ class LeanProofValidator:
         Returns:
             Tuple of (is_valid, list_of_errors)
         """
+        # Try real Lean verification first
+        try:
+            from lean4_integration import (
+                Lean4VerificationEngine,
+                Lean4ServerConfig,
+                Lean4VerificationConfig
+            )
+            server_config = Lean4ServerConfig(enable_simulation_fallback=False)
+            verification_config = Lean4VerificationConfig(enable_caching=True)
+            engine = Lean4VerificationEngine(
+                server_url="http://localhost:7654",
+                server_config=server_config,
+                config=verification_config
+            )
+            
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # Create new event loop for sync context
+                import asyncio
+                new_loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(new_loop)
+                result = new_loop.run_until_complete(
+                    engine.verify_mathematical_solution(code)
+                )
+                new_loop.close()
+            else:
+                result = loop.run_until_complete(
+                    engine.verify_mathematical_solution(code)
+                )
+
+            if result.success:
+                return True, []
+            else:
+                return False, getattr(result, 'errors', ["verification_failed"])
+
+        except Exception as e:
+            logger.debug(f"Real Lean verification attempt failed: {e}")
+        
+        # Fallback to standard integration if available
         if not LEAN4_INTEGRATION_AVAILABLE:
             return False, ["lean4_integration_unavailable"]
 

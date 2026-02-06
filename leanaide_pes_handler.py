@@ -622,34 +622,56 @@ class LeanPESHandler:
     
     def _cav_nlp_verify_proof(self, lean_code: str) -> Dict[str, Any]:
         """
-        Verify completed proof using CAV-NLP.
+        Verify completed proof using CAV-NLP and REAL Lean.
         
         Args:
             lean_code: Completed Lean code
             
         Returns:
-            CAV-NLP verification results
+            CAV-NLP and real Lean verification results
         """
-        if not self.use_cav_nlp or not hasattr(self, 'math_service'):
-            return {"available": False}
+        result = {"available": True}
         
+        # First try REAL Lean verification
         try:
-            # Use math service for semantic analysis
-            result = self.math_service.analyze_semantics(
-                lean_code=lean_code,
-                context={"pes_verification": True}
+            from lean4_integration import (
+                Lean4VerificationEngine,
+                Lean4ServerConfig,
+                Lean4VerificationConfig
             )
+            server_config = Lean4ServerConfig(enable_simulation_fallback=False)
+            verification_config = Lean4VerificationConfig(enable_caching=True)
+            engine = Lean4VerificationEngine(
+                server_url="http://localhost:7654",
+                server_config=server_config,
+                config=verification_config
+            )
+            import asyncio
+            lean_result = asyncio.run(engine.verify_mathematical_solution(lean_code))
             
-            return {
-                "available": True,
-                "semantic_score": result.get("semantic_score", 0.0),
-                "issues": result.get("issues", []),
-                "suggestions": result.get("suggestions", []),
-                "confidence": result.get("confidence", 0.5)
-            }
+            result["real_lean_available"] = True
+            result["real_lean_verified"] = lean_result.success
+            result["real_lean_errors"] = lean_result.errors if hasattr(lean_result, 'errors') else []
+            result["real_lean_output"] = lean_result.output if hasattr(lean_result, 'output') else ""
         except Exception as e:
-            logger.debug(f"CAV-NLP proof verification failed: {e}")
-            return {"available": True, "error": str(e)}
+            logger.debug(f"Real Lean verification not available in PES: {e}")
+            result["real_lean_available"] = False
+        
+        # Then add CAV-NLP analysis if available
+        if self.use_cav_nlp and hasattr(self, 'math_service'):
+            try:
+                cav_result = self.math_service.analyze_semantics(
+                    lean_code=lean_code,
+                    context={"pes_verification": True}
+                )
+                result["semantic_score"] = cav_result.get("semantic_score", 0.0)
+                result["issues"] = cav_result.get("issues", [])
+                result["suggestions"] = cav_result.get("suggestions", [])
+                result["confidence"] = cav_result.get("confidence", 0.5)
+            except Exception as e:
+                logger.debug(f"CAV-NLP proof verification failed: {e}")
+        
+        return result
 
 
 # =============================================================================

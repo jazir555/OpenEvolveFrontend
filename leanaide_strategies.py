@@ -2465,45 +2465,64 @@ class CAVNLPEnhancedStrategy(LeanProofStrategy):
 
     def verify_with_cav_nlp(self, proof: LeanProof, context: ProofContext) -> Dict[str, Any]:
         """
-        Verify a proof using CAV-NLP.
+        Verify a proof using REAL Lean 4 and CAV-NLP.
         
         Args:
             proof: The proof to verify
             context: The proof context
             
         Returns:
-            Verification results with confidence scores
+            Verification results with confidence scores including real Lean status
         """
-        if not self.use_cav_nlp or not hasattr(self, 'enhanced_solver'):
-            return {
-                "verified": False,
-                "cav_nlp_available": False,
-                "confidence": 0.0
-            }
+        result = {
+            "verified": False,
+            "cav_nlp_available": False,
+            "real_lean_available": False,
+            "confidence": 0.0
+        }
         
+        # First try REAL Lean 4 verification
         try:
-            # Use enhanced solver for verification
-            result = self.enhanced_solver.verify_proof(
-                proof_code="\n".join(proof.tactic_sequence),
-                theorem_statement=context.theorem_statement,
-                timeout_ms=self.config.get("solver_timeout", 5000)
+            from lean4_integration import (
+                Lean4VerificationEngine,
+                Lean4ServerConfig,
+                Lean4VerificationConfig
             )
-            
-            return {
-                "verified": result.get("verified", False),
-                "cav_nlp_available": True,
-                "confidence": result.get("confidence", 0.5),
-                "details": result.get("details", {})
-            }
-        
+            server_config = Lean4ServerConfig(enable_simulation_fallback=False)
+            verification_config = Lean4VerificationConfig(enable_caching=True)
+            engine = Lean4VerificationEngine(
+                server_url="http://localhost:7654",
+                server_config=server_config,
+                config=verification_config
+            )
+            import asyncio
+            lean_result = asyncio.run(engine.verify_mathematical_solution(
+                proof.proof_script if proof.proof_script else "\n".join(proof.tactic_sequence)
+            ))
+            result["real_lean_available"] = True
+            result["real_lean_verified"] = lean_result.success
+            result["verified"] = lean_result.success
+            result["errors"] = getattr(lean_result, 'errors', [])
         except Exception as e:
-            logger.error(f"CAV-NLP verification failed: {e}")
-            return {
-                "verified": False,
-                "cav_nlp_available": True,
-                "error": str(e),
-                "confidence": 0.0
-            }
+            logger.debug(f"Real Lean verification not available: {e}")
+        
+        # Then try CAV-NLP if available
+        if self.use_cav_nlp and hasattr(self, 'enhanced_solver'):
+            try:
+                cav_result = self.enhanced_solver.verify_proof(
+                    proof_code="\n".join(proof.tactic_sequence),
+                    theorem_statement=context.theorem_statement,
+                    timeout_ms=self.config.get("solver_timeout", 5000)
+                )
+                result["cav_nlp_available"] = True
+                result["cav_nlp_verified"] = cav_result.get("verified", False)
+                result["confidence"] = cav_result.get("confidence", 0.5)
+                result["details"] = cav_result.get("details", {})
+            except Exception as e:
+                logger.error(f"CAV-NLP verification failed: {e}")
+                result["cav_nlp_error"] = str(e)
+        
+        return result
 
 
 # ============================================================================

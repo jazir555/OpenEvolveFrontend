@@ -2288,6 +2288,42 @@ Provide your evaluation."""
         
         return "".join(diff) if diff else "No changes detected."
 
+    def verify_with_lean(self, content: str, properties: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Verify generated fixes using Lean theorem prover.
+        
+        Args:
+            content: The fix content to verify
+            properties: Optional properties for verification
+            
+        Returns:
+            Dict with verification results including:
+            - verified: bool
+            - formalized: str (Lean code)
+            - proof_status: str
+            - errors: list
+        """
+        if not LEAN_AVAILABLE:
+            return {"verified": False, "error": "Lean verification not available"}
+        
+        try:
+            client = LeanAideClient()
+            # Auto-formalize the content
+            formalized = client.autoformalize(content)
+            # Verify the formalized content
+            verification = client.verify(formalized)
+            
+            return {
+                "verified": verification.get("success", False),
+                "formalized": formalized,
+                "proof_status": verification.get("status", "unknown"),
+                "errors": verification.get("errors", []),
+                "metadata": properties or {}
+            }
+        except Exception as e:
+            logger.error(f"Lean verification failed: {e}")
+            return {"verified": False, "error": str(e)}
+
 # Example usage and testing
 def test_blue_team():
     """Test function for the Blue Team functionality"""

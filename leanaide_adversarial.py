@@ -80,6 +80,102 @@ except ImportError:
     ADVERSARIAL_AVAILABLE = False
     logger.warning("Adversarial teams not available - using simplified implementation")
 
+# =============================================================================
+# REAL LEAN VERIFICATION HELPERS (Auto-injected)
+# =============================================================================
+
+def _get_real_lean_verification_engine():
+    """Get a real Lean 4 verification engine if available."""
+    try:
+        from lean4_integration import (
+            Lean4VerificationEngine,
+            Lean4ServerConfig,
+            Lean4VerificationConfig
+        )
+        server_config = Lean4ServerConfig(
+            host="localhost",
+            port=7654,
+            enable_simulation_fallback=False  # Use real Lean
+        )
+        verification_config = Lean4VerificationConfig(
+            enable_caching=True,
+            default_timeout=300
+        )
+        return Lean4VerificationEngine(
+            server_url="http://localhost:7654",
+            server_config=server_config,
+            config=verification_config
+        )
+    except Exception as e:
+        logger.debug(f"Could not create real Lean verification engine: {e}")
+        return None
+
+
+async def _verify_with_real_lean(lean_code: str, timeout: int = 300) -> dict:
+    """
+    Verify Lean 4 code using real Lean verification.
+    
+    Args:
+        lean_code: Lean 4 code to verify
+        timeout: Timeout in seconds
+        
+    Returns:
+        Dictionary with verification results
+    """
+    engine = _get_real_lean_verification_engine()
+    
+    if engine is None:
+        return {
+            "success": False,
+            "verified": False,
+            "error": "Real Lean verification engine not available",
+            "engine_available": False
+        }
+    
+    try:
+        result = await engine.verify_mathematical_solution(lean_code, timeout=timeout)
+        return {
+            "success": result.success,
+            "verified": result.success,
+            "errors": result.errors if hasattr(result, 'errors') else [],
+            "output": result.output if hasattr(result, 'output') else "",
+            "engine_available": True,
+            "is_real_verification": True
+        }
+    except Exception as e:
+        logger.error(f"Real Lean verification failed: {e}")
+        return {
+            "success": False,
+            "verified": False,
+            "error": str(e),
+            "engine_available": True,
+            "is_real_verification": True
+        }
+
+
+def _verify_with_real_lean_sync(lean_code: str, timeout: int = 300) -> dict:
+    """
+    Synchronous version of real Lean verification.
+    
+    Args:
+        lean_code: Lean 4 code to verify
+        timeout: Timeout in seconds
+        
+    Returns:
+        Dictionary with verification results
+    """
+    import asyncio
+    try:
+        return asyncio.run(_verify_with_real_lean(lean_code, timeout))
+    except Exception as e:
+        logger.error(f"Sync verification failed: {e}")
+        return {
+            "success": False,
+            "verified": False,
+            "error": str(e),
+            "engine_available": False
+        }
+
 class ProofApproach(Enum):
     """Different approaches to generating proofs"""
     CONSTRUCTIVE = "constructive"  # Build proof explicitly
@@ -1621,13 +1717,35 @@ class LeanAdversarialEvolution:
         return strategy.lean_code
 
     def verify_proof(self, lean_code: str, context: ProofContext) -> bool:
-        """Verify a proof using Lean"""
+        """Verify a proof using REAL Lean 4 verification."""
+        # First try real Lean verification
+        try:
+            from lean4_integration import (
+                Lean4VerificationEngine,
+                Lean4ServerConfig,
+                Lean4VerificationConfig
+            )
+            server_config = Lean4ServerConfig(enable_simulation_fallback=False)
+            verification_config = Lean4VerificationConfig(enable_caching=True)
+            engine = Lean4VerificationEngine(
+                server_url="http://localhost:7654",
+                server_config=server_config,
+                config=verification_config
+            )
+            import asyncio
+            result = asyncio.run(engine.verify_mathematical_solution(lean_code))
+            return result.success
+        except Exception as e:
+            logger.debug(f"Real Lean verification not available: {e}")
+        
+        # Fallback to LeanAide client if available
         if LEANAIDE_AVAILABLE and self.leanaide_client:
             try:
                 result = self.leanaide_client.verify_proof(lean_code, context)
                 return result.is_valid
             except Exception as e:
-                logger.error(f"Proof verification failed: {e}")
+                logger.error(f"LeanAide proof verification failed: {e}")
+        
         return False
 
     def store_learned_pattern(self, pattern: Dict[str, Any]):

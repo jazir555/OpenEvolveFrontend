@@ -279,6 +279,13 @@ class IntegratedProblemClassifier:
             'smt', 'smt-lib', 'bitvector', 'array', 'quantifier',
             'decision procedure', 'model checking'
         ]
+
+        self.web3_keywords = [
+            "web3", "defi", "smart contract", "solidity", "evm", "onchain",
+            "reentrancy", "flash loan", "oracle", "amm", "vault", "bridge",
+            "slither", "foundry", "forge", "bug bounty", "exploit",
+            "invariant", "symbolic execution",
+        ]
     
     def classify(self, problem_statement: str) -> ProblemClassification:
         """
@@ -308,6 +315,20 @@ class IntegratedProblemClassifier:
                 confidence=0.95,
                 recommended_solver="z3",
                 reasoning="Explicit SMT-LIB format detected"
+            )
+
+        web3_confidence = self._detect_web3_audit_confidence(problem_statement)
+        if web3_confidence >= 0.45:
+            return ProblemClassification(
+                category=ProblemCategory.HYBRID,
+                confidence=web3_confidence,
+                recommended_solver="combined",
+                alternative_solver="z3",
+                reasoning=(
+                    "Web3 smart-contract audit detected; route to combined Z3/Lean "
+                    "verification with invariant and exploit-witness analysis"
+                ),
+                suggested_strategy=VerificationStrategy.PARALLEL,
             )
         
         # Determine category based on scores
@@ -373,6 +394,16 @@ class IntegratedProblemClassifier:
         if not self.z3_detector:
             return "unknown", 0.0
         return self.z3_detector.detect_problem_type(problem)
+
+    def _detect_web3_audit_confidence(self, problem: str) -> float:
+        """Score whether a prompt is a Web3 smart-contract audit workflow."""
+        text = (problem or "").lower()
+        if not text:
+            return 0.0
+        hits = sum(1 for kw in self.web3_keywords if kw in text)
+        if "smart contract" in text and ("exploit" in text or "audit" in text):
+            hits += 2
+        return min(1.0, hits / 6.0)
 
 
 # =============================================================================
@@ -1086,6 +1117,24 @@ class Z3LeanAideOpenEvolveIntegration:
         
         try:
             # Create workflow definition
+            is_web3_workflow = (
+                self.classifier._detect_web3_audit_confidence(problem) >= 0.45
+            )
+            web3_payload: Dict[str, Any] = {}
+            if is_web3_workflow:
+                web3_payload = {"enabled": True}
+                if isinstance(entanglement_context, dict):
+                    web3_ctx = entanglement_context.get("web3", {})
+                    if isinstance(web3_ctx, dict):
+                        for key in (
+                            "project_path",
+                            "run_fuzzing",
+                            "slither_timeout_seconds",
+                            "forge_timeout_seconds",
+                        ):
+                            if key in web3_ctx:
+                                web3_payload[key] = web3_ctx[key]
+
             team_config = {
                 "classifier_team": "z3_lean_classifier",
                 "solver_team": classification.recommended_solver,
@@ -1100,7 +1149,9 @@ class Z3LeanAideOpenEvolveIntegration:
             definition = self.bubblelabs.create_workflow_definition_from_openevolve(
                 problem_statement=problem,
                 team_config=team_config,
-                gauntlet_config=gauntlet_config
+                gauntlet_config=gauntlet_config,
+                workflow_type="web3" if is_web3_workflow else "sovereign_decomposition",
+                web3_config=web3_payload if is_web3_workflow else None,
             )
             
             # Create instance
@@ -1114,6 +1165,8 @@ class Z3LeanAideOpenEvolveIntegration:
                 data={
                     "classification": classification.to_dict(),
                     "current_stage": "problem_classification",
+                    "workflow_type": "web3" if is_web3_workflow else "sovereign_decomposition",
+                    "web3": web3_payload if is_web3_workflow else {},
                     "entanglement_context": entanglement_context or {}
                 }
             )

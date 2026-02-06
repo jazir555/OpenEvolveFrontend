@@ -51,6 +51,52 @@ logger = logging.getLogger(__name__)
 
 
 # =============================================================================
+# REAL LEAN VERIFICATION FOR REDFLAGGING SYSTEM (Auto-injected)
+# =============================================================================
+
+async def _verify_with_real_lean_redflag(lean_code: str) -> Dict[str, Any]:
+    """
+    Verify Lean code using real Lean 4 for redflagging system.
+    
+    Args:
+        lean_code: Lean 4 code to verify
+        
+    Returns:
+        Verification result with real Lean status
+    """
+    try:
+        from lean4_integration import (
+            Lean4VerificationEngine,
+            Lean4ServerConfig,
+            Lean4VerificationConfig
+        )
+        server_config = Lean4ServerConfig(enable_simulation_fallback=False)
+        verification_config = Lean4VerificationConfig(enable_caching=True)
+        engine = Lean4VerificationEngine(
+            server_url="http://localhost:7654",
+            server_config=server_config,
+            config=verification_config
+        )
+        result = await engine.verify_mathematical_solution(lean_code)
+        return {
+            "verified": result.success,
+            "success": result.success,
+            "errors": getattr(result, 'errors', []),
+            "is_real_lean": True,
+            "engine": "Lean4VerificationEngine"
+        }
+    except Exception as e:
+        return {
+            "verified": False,
+            "success": False,
+            "error": str(e),
+            "is_real_lean": True,
+            "engine": "Lean4VerificationEngine"
+        }
+
+
+
+# =============================================================================
 # Red-Flagging Configuration
 # =============================================================================
 

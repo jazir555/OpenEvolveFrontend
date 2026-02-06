@@ -114,6 +114,15 @@ except ImportError:
         LeanAIDEVerifier = None
         logger.warning("LeanAIDE verifier not available - theorem proving limited")
 
+# **LEAN INTEGRATION**: Real Lean client for standardized verification
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_CLIENT_AVAILABLE = True
+    logger.info("LeanAideClient available for formal verification")
+except ImportError:
+    LEAN_CLIENT_AVAILABLE = False
+    logger.warning("LeanAideClient not available")
+
 # CAV-NLP Integration (Hybrid Z3 + Lean verification)
 try:
     from openevolve.unified_math_service import UnifiedMathService
@@ -1415,6 +1424,50 @@ class VerificationEngine:
                 'lean_code': solution_content[:200] + '...' if len(solution_content) > 200 else solution_content
             }
 
+    async def verify_with_lean(self, content: str, criteria: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Verify content using Lean theorem prover with standardized interface.
+        
+        **LEAN INTEGRATION**: Enables Lean by default for mathematical verification.
+        
+        Args:
+            content: Content to verify (mathematical statements, theorems, etc.)
+            criteria: Verification criteria including:
+                - problem_type: Type of mathematical problem
+                - timeout: Verification timeout in seconds
+                - require_proof: Whether to require a complete proof
+            
+        Returns:
+            Dict with verification results:
+                - verified: bool indicating if content was verified
+                - confidence: float confidence score (0-1)
+                - proof: Optional proof code
+                - reason: Explanation if verification failed
+        """
+        if not LEAN_CLIENT_AVAILABLE and not LEANAIDE_AVAILABLE:
+            return {"verified": False, "reason": "Lean unavailable", "confidence": 0.0}
+        
+        try:
+            # Prefer LeanAideClient if available
+            if LEAN_CLIENT_AVAILABLE:
+                client = LeanAideClient()
+                formalized = await client.translate_thm(content)
+                result = await client.verify(formalized)
+                
+                return {
+                    "verified": result.verified if hasattr(result, 'verified') else False,
+                    "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
+                    "proof": result.proof_code if hasattr(result, 'proof_code') else None,
+                    "formalized": formalized
+                }
+            else:
+                # Fallback to existing LeanAIDE integration
+                return await self.verify_with_leanaide(content, criteria)
+                
+        except Exception as e:
+            logger.error(f"Lean verification error: {e}")
+            return {"verified": False, "reason": str(e), "confidence": 0.0}
+    
     def verify_formal(
         self,
         solution: Any,

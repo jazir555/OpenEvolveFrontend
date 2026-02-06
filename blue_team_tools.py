@@ -23,6 +23,14 @@ import logging
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# **LEAN INTEGRATION**: Real Lean proof verification for blue team tools
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+    logger.warning("LeanAide client not available - formal verification tools disabled")
+
 class AnalysisType(Enum):
     """Types of analysis supported"""
     COMPLEXITY = "complexity"
@@ -1485,6 +1493,42 @@ class ValidationTools:
         }
 
         return summary
+
+    def verify_with_lean(self, content: str, properties: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Verify content using Lean theorem prover as a validation tool.
+        
+        Args:
+            content: The content to verify (theorem statement or proof)
+            properties: Optional properties for verification
+            
+        Returns:
+            Dict with verification results including:
+            - verified: bool
+            - formalized: str (Lean code)
+            - proof_status: str
+            - errors: list
+        """
+        if not LEAN_AVAILABLE:
+            return {"verified": False, "error": "Lean verification not available"}
+        
+        try:
+            client = LeanAideClient()
+            # Auto-formalize the content
+            formalized = client.autoformalize(content)
+            # Verify the formalized content
+            verification = client.verify(formalized)
+            
+            return {
+                "verified": verification.get("success", False),
+                "formalized": formalized,
+                "proof_status": verification.get("status", "unknown"),
+                "errors": verification.get("errors", []),
+                "metadata": properties or {}
+            }
+        except Exception as e:
+            logger.error(f"Lean verification failed: {e}")
+            return {"verified": False, "error": str(e)}
 
 
 # ============================================================================

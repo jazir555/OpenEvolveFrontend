@@ -41,16 +41,6 @@ from enum import Enum
 from datetime import datetime, timezone
 from pathlib import Path
 
-# REAL Lean integration
-try:
-    from leanaide_client import LeanAideClient
-    from lean4_integration import Lean4VerificationEngine
-    LEAN_AVAILABLE = True
-    logger.info("REAL Lean integration available in crewai_bridge")
-except ImportError:
-    LEAN_AVAILABLE = False
-    logger.debug("REAL Lean integration not available in crewai_bridge")
-
 # **ACTUAL INTEGRATION**: Knowledge and alerting for LeanAide
 try:
     from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
@@ -89,6 +79,16 @@ from crewai_state_management import (
 # Logging configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# REAL Lean integration
+try:
+    from leanaide_client import LeanAideClient
+    from lean4_integration import Lean4VerificationEngine
+    LEAN_AVAILABLE = True
+    logger.info("REAL Lean integration available in crewai_bridge")
+except ImportError:
+    LEAN_AVAILABLE = False
+    logger.debug("REAL Lean integration not available in crewai_bridge")
 
 
 # =============================================================================

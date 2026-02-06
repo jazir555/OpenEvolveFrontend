@@ -724,9 +724,16 @@ class BubbleLabsExtendedIntegration:
     def get_web3_status(self) -> Dict[str, Any]:
         """Get Web3 audit integration status."""
         inventory = {}
+        web3_tools: List[str] = []
+        web3_ingestion_tools: List[str] = []
+        web3_formal_tools: List[str] = []
         if get_mcp_tool_inventory is not None:
             try:
                 inventory = get_mcp_tool_inventory()
+                if isinstance(inventory, dict):
+                    web3_tools = list(inventory.get("web3_tools", []) or [])
+                    web3_ingestion_tools = list(inventory.get("web3_ingestion_tools", []) or [])
+                    web3_formal_tools = list(inventory.get("web3_formal_tools", []) or [])
             except Exception as exc:
                 inventory = {"error": str(exc)}
         return {
@@ -741,6 +748,9 @@ class BubbleLabsExtendedIntegration:
             ],
             "ingestion_available": WEB3_INGESTION_AVAILABLE,
             "formal_available": WEB3_FORMAL_AVAILABLE,
+            "web3_tools": web3_tools,
+            "web3_ingestion_tools": web3_ingestion_tools,
+            "web3_formal_tools": web3_formal_tools,
             "tool_inventory": inventory,
         }
 
