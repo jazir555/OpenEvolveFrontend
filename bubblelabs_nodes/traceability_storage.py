@@ -446,25 +446,253 @@ class SQLiteBackend:
 
 
 class PostgreSQLBackend:
-    """PostgreSQL storage backend (placeholder)"""
+    """PostgreSQL storage backend"""
 
     def __init__(self, config: StorageConfig):
-        raise NotImplementedError("PostgreSQL backend not yet implemented")
+        try:
+            import psycopg2
+            from psycopg2.extras import RealDictCursor
+        except ImportError:
+            raise ImportError("psycopg2 is required for PostgreSQL backend. Install with: pip install psycopg2-binary")
+        
+        self.config = config
+        self.connection_string = config.connection_string
+        self.table_prefix = config.table_prefix
+        self._conn_pool = None
+        
+        # Initialize database tables if requested
+        if config.create_tables:
+            self._create_tables()
+
+    def _get_connection(self):
+        """Get a database connection"""
+        import psycopg2
+        from psycopg2.extras import RealDictCursor
+        return psycopg2.connect(self.connection_string, cursor_factory=RealDictCursor)
+
+    def _create_tables(self):
+        """Create required tables if they don't exist"""
+        conn = self._get_connection()
+        try:
+            with conn.cursor() as cur:
+                # Create changes table
+                cur.execute(f"""
+                    CREATE TABLE IF NOT EXISTS {self.table_prefix}_changes (
+                        id SERIAL PRIMARY KEY,
+                        problem_id VARCHAR(255) NOT NULL,
+                        change_id VARCHAR(255) NOT NULL UNIQUE,
+                        team VARCHAR(100),
+                        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        change_type VARCHAR(50),
+                        content TEXT,
+                        metadata JSONB DEFAULT '{}',
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    );
+                """)
+                
+                # Create modifications table
+                cur.execute(f"""
+                    CREATE TABLE IF NOT EXISTS {self.table_prefix}_modifications (
+                        id SERIAL PRIMARY KEY,
+                        problem_id VARCHAR(255) NOT NULL,
+                        modification_id VARCHAR(255) NOT NULL UNIQUE,
+                        change_id VARCHAR(255),
+                        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        modification_type VARCHAR(50),
+                        content TEXT,
+                        metadata JSONB DEFAULT '{}',
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    );
+                """)
+                
+                # Create indexes
+                cur.execute(f"""
+                    CREATE INDEX IF NOT EXISTS idx_changes_problem_id ON {self.table_prefix}_changes(problem_id);
+                    CREATE INDEX IF NOT EXISTS idx_changes_team ON {self.table_prefix}_changes(team);
+                    CREATE INDEX IF NOT EXISTS idx_changes_timestamp ON {self.table_prefix}_changes(timestamp);
+                    CREATE INDEX IF NOT EXISTS idx_modifications_problem_id ON {self.table_prefix}_modifications(problem_id);
+                    CREATE INDEX IF NOT EXISTS idx_modifications_change_id ON {self.table_prefix}_modifications(change_id);
+                """)
+                
+                conn.commit()
+        except Exception as e:
+            conn.rollback()
+            raise e
+        finally:
+            conn.close()
 
     def save_change(self, change: Change, problem_id: str) -> bool:
-        raise NotImplementedError()
+        """Save a change to the database"""
+        conn = self._get_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(f"""
+                    INSERT INTO {self.table_prefix}_changes 
+                    (problem_id, change_id, team, timestamp, change_type, content, metadata)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (change_id) DO UPDATE SET
+                        team = EXCLUDED.team,
+                        timestamp = EXCLUDED.timestamp,
+                        change_type = EXCLUDED.change_type,
+                        content = EXCLUDED.content,
+                        metadata = EXCLUDED.metadata,
+                        updated_at = CURRENT_TIMESTAMP;
+                """, (
+                    problem_id,
+                    change.id,
+                    getattr(change, 'team', ''),
+                    getattr(change, 'timestamp', datetime.now()),
+                    getattr(change, 'type', ''),
+                    json.dumps(asdict(change)) if hasattr(change, '__dataclass_fields__') else str(change),
+                    json.dumps(getattr(change, 'metadata', {}))
+                ))
+                conn.commit()
+                return True
+        except Exception as e:
+            logger.error(f"Failed to save change: {e}")
+            conn.rollback()
+            return False
+        finally:
+            conn.close()
 
     def save_modification(self, modification: Modification, problem_id: str) -> bool:
-        raise NotImplementedError()
+        """Save a modification to the database"""
+        conn = self._get_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(f"""
+                    INSERT INTO {self.table_prefix}_modifications 
+                    (problem_id, modification_id, change_id, timestamp, modification_type, content, metadata)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (modification_id) DO UPDATE SET
+                        change_id = EXCLUDED.change_id,
+                        timestamp = EXCLUDED.timestamp,
+                        modification_type = EXCLUDED.modification_type,
+                        content = EXCLUDED.content,
+                        metadata = EXCLUDED.metadata,
+                        updated_at = CURRENT_TIMESTAMP;
+                """, (
+                    problem_id,
+                    modification.id,
+                    getattr(modification, 'change_id', ''),
+                    getattr(modification, 'timestamp', datetime.now()),
+                    getattr(modification, 'type', ''),
+                    json.dumps(asdict(modification)) if hasattr(modification, '__dataclass_fields__') else str(modification),
+                    json.dumps(getattr(modification, 'metadata', {}))
+                ))
+                conn.commit()
+                return True
+        except Exception as e:
+            logger.error(f"Failed to save modification: {e}")
+            conn.rollback()
+            return False
+        finally:
+            conn.close()
 
     def get_trace(self, problem_id: str) -> Optional[ChangeTrace]:
-        raise NotImplementedError()
+        """Get trace for a specific problem"""
+        conn = self._get_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(f"""
+                    SELECT * FROM {self.table_prefix}_changes 
+                    WHERE problem_id = %s 
+                    ORDER BY timestamp ASC;
+                """, (problem_id,))
+                
+                rows = cur.fetchall()
+                if not rows:
+                    return None
+                
+                # Reconstruct ChangeTrace object from stored changes
+                changes = []
+                for row in rows:
+                    # Parse the stored JSON back to a Change object
+                    change_data = json.loads(row['content'])
+                    # Create a basic Change-like object from the stored data
+                    change_obj = Change(
+                        id=row['change_id'],
+                        timestamp=row['timestamp'],
+                        type=row['change_type'],
+                        content=change_data.get('content', ''),
+                        metadata=row['metadata']
+                    )
+                    changes.append(change_obj)
+                
+                # Create a basic ChangeTrace object
+                trace = ChangeTrace(changes=changes)
+                return trace
+        except Exception as e:
+            logger.error(f"Failed to get trace: {e}")
+            return None
+        finally:
+            conn.close()
 
     def get_changes_by_problem(self, problem_id: str) -> List[Change]:
-        raise NotImplementedError()
+        """Get all changes for a specific problem"""
+        conn = self._get_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(f"""
+                    SELECT * FROM {self.table_prefix}_changes 
+                    WHERE problem_id = %s 
+                    ORDER BY timestamp ASC;
+                """, (problem_id,))
+                
+                rows = cur.fetchall()
+                changes = []
+                for row in rows:
+                    # Parse the stored JSON back to a Change object
+                    change_data = json.loads(row['content'])
+                    change_obj = Change(
+                        id=row['change_id'],
+                        timestamp=row['timestamp'],
+                        type=row['change_type'],
+                        content=change_data.get('content', ''),
+                        metadata=row['metadata']
+                    )
+                    changes.append(change_obj)
+                
+                return changes
+        except Exception as e:
+            logger.error(f"Failed to get changes by problem: {e}")
+            return []
+        finally:
+            conn.close()
 
     def get_changes_by_team(self, problem_id: str, team: str) -> List[Change]:
-        raise NotImplementedError()
+        """Get all changes for a specific problem and team"""
+        conn = self._get_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(f"""
+                    SELECT * FROM {self.table_prefix}_changes 
+                    WHERE problem_id = %s AND team = %s
+                    ORDER BY timestamp ASC;
+                """, (problem_id, team))
+                
+                rows = cur.fetchall()
+                changes = []
+                for row in rows:
+                    # Parse the stored JSON back to a Change object
+                    change_data = json.loads(row['content'])
+                    change_obj = Change(
+                        id=row['change_id'],
+                        timestamp=row['timestamp'],
+                        type=row['change_type'],
+                        content=change_data.get('content', ''),
+                        metadata=row['metadata']
+                    )
+                    changes.append(change_obj)
+                
+                return changes
+        except Exception as e:
+            logger.error(f"Failed to get changes by team: {e}")
+            return []
+        finally:
+            conn.close()
 
     def get_changes_by_time_range(
         self,
@@ -472,20 +700,123 @@ class PostgreSQLBackend:
         start: datetime,
         end: datetime
     ) -> List[Change]:
-        raise NotImplementedError()
+        """Get changes for a problem within a time range"""
+        conn = self._get_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(f"""
+                    SELECT * FROM {self.table_prefix}_changes 
+                    WHERE problem_id = %s 
+                      AND timestamp >= %s 
+                      AND timestamp <= %s
+                    ORDER BY timestamp ASC;
+                """, (problem_id, start, end))
+                
+                rows = cur.fetchall()
+                changes = []
+                for row in rows:
+                    # Parse the stored JSON back to a Change object
+                    change_data = json.loads(row['content'])
+                    change_obj = Change(
+                        id=row['change_id'],
+                        timestamp=row['timestamp'],
+                        type=row['change_type'],
+                        content=change_data.get('content', ''),
+                        metadata=row['metadata']
+                    )
+                    changes.append(change_obj)
+                
+                return changes
+        except Exception as e:
+            logger.error(f"Failed to get changes by time range: {e}")
+            return []
+        finally:
+            conn.close()
 
     def get_all_traces(self) -> Dict[str, ChangeTrace]:
-        raise NotImplementedError()
+        """Get all traces from the database"""
+        conn = self._get_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(f"""
+                    SELECT DISTINCT problem_id FROM {self.table_prefix}_changes;
+                """)
+                
+                problem_ids = [row['problem_id'] for row in cur.fetchall()]
+                all_traces = {}
+                
+                for problem_id in problem_ids:
+                    trace = self.get_trace(problem_id)
+                    if trace:
+                        all_traces[problem_id] = trace
+                
+                return all_traces
+        except Exception as e:
+            logger.error(f"Failed to get all traces: {e}")
+            return {}
+        finally:
+            conn.close()
 
     def delete_trace(self, problem_id: str) -> bool:
-        raise NotImplementedError()
+        """Delete trace for a specific problem"""
+        conn = self._get_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(f"""
+                    DELETE FROM {self.table_prefix}_changes 
+                    WHERE problem_id = %s;
+                """, (problem_id,))
+                
+                deleted_rows = cur.rowcount
+                conn.commit()
+                
+                # Also delete associated modifications
+                cur.execute(f"""
+                    DELETE FROM {self.table_prefix}_modifications 
+                    WHERE problem_id = %s;
+                """, (problem_id,))
+                
+                conn.commit()
+                return deleted_rows > 0
+        except Exception as e:
+            logger.error(f"Failed to delete trace: {e}")
+            conn.rollback()
+            return False
+        finally:
+            conn.close()
 
     def clear_all(self) -> bool:
-        raise NotImplementedError()
+        """Clear all traces from the database"""
+        conn = self._get_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(f"DELETE FROM {self.table_prefix}_changes;")
+                changes_deleted = cur.rowcount
+                cur.execute(f"DELETE FROM {self.table_prefix}_modifications;")
+                modifications_deleted = cur.rowcount
+                conn.commit()
+                
+                logger.info(f"Cleared {changes_deleted} changes and {modifications_deleted} modifications")
+                return True
+        except Exception as e:
+            logger.error(f"Failed to clear all: {e}")
+            conn.rollback()
+            return False
+        finally:
+            conn.close()
 
     @contextmanager
     def transaction(self):
-        raise NotImplementedError()
+        """PostgreSQL transaction context"""
+        conn = self._get_connection()
+        try:
+            yield conn
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
 
 
 # Convenience functions

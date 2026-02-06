@@ -653,6 +653,7 @@ def list_available_gauntlets() -> Dict[str, Any]:
 def get_decomposition_status() -> Dict[str, Any]:
     """Get decomposition workflow status (CrewAI version)"""
     web3_tools: List[str] = []
+    web3_ingestion_tools: List[str] = []
     web3_formal_tools: List[str] = []
     formal_capabilities: Dict[str, bool] = {
         "solidity_invariant_translation": False,
@@ -665,12 +666,26 @@ def get_decomposition_status() -> Dict[str, Any]:
         try:
             inventory = _get_mcp_tool_inventory() or {}
             web3_tools = list(inventory.get("web3_tools", []) or [])
+            web3_ingestion_tools = list(inventory.get("web3_ingestion_tools", []) or [])
             web3_formal_tools = list(inventory.get("web3_formal_tools", []) or [])
             existing_capabilities = inventory.get("formal_capabilities")
             if isinstance(existing_capabilities, dict):
                 formal_capabilities.update(existing_capabilities)
         except Exception as exc:
             logger.debug("Unable to load MCP tool inventory for CrewAI tools status: %s", exc)
+
+    if not web3_ingestion_tools:
+        inferred_ingestion_tools = sorted(
+            tool
+            for tool in web3_tools
+            if tool
+            in {
+                "web3_ingest_contract_audit_stack",
+                "web3_ingest_slither_static_analysis",
+                "web3_ingest_foundry_fuzzing",
+            }
+        )
+        web3_ingestion_tools = inferred_ingestion_tools
 
     if not web3_formal_tools:
         if formal_capabilities.get("solidity_invariant_translation"):
@@ -681,15 +696,24 @@ def get_decomposition_status() -> Dict[str, Any]:
             web3_formal_tools.append("z3_web3_audit_exploit_verification")
     web3_formal_tools = sorted(set(web3_formal_tools))
 
-    if not web3_tools:
-        web3_tools = sorted(
+    if not web3_ingestion_tools:
+        web3_ingestion_tools = sorted(
             {
                 "web3_ingest_contract_audit_stack",
                 "web3_ingest_slither_static_analysis",
                 "web3_ingest_foundry_fuzzing",
+            }
+        )
+    web3_ingestion_tools = sorted(set(web3_ingestion_tools))
+
+    if not web3_tools:
+        web3_tools = sorted(
+            {
+                *web3_ingestion_tools,
                 *web3_formal_tools,
             }
         )
+    web3_tools = sorted(set(web3_tools + web3_ingestion_tools + web3_formal_tools))
     web3_formal_available = bool(web3_formal_tools) or any(
         bool(v) for v in formal_capabilities.values()
     )
@@ -719,8 +743,10 @@ def get_decomposition_status() -> Dict[str, Any]:
             "validation",
         ],
         "web3_tools": web3_tools,
+        "web3_ingestion_tools": web3_ingestion_tools,
         "web3_formal_tools": web3_formal_tools,
         "formal_capabilities": formal_capabilities,
+        "web3_ingestion_available": bool(web3_ingestion_tools),
         "web3_formal_available": web3_formal_available,
         "audit_exploit_verification_available": bool(
             formal_capabilities.get("composite_exploit_verification")

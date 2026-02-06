@@ -820,6 +820,10 @@ class BubbleLabsExtendedIntegration:
             ],
             "ingestion_available": WEB3_INGESTION_AVAILABLE or bool(web3_ingestion_tools),
             "formal_available": WEB3_FORMAL_AVAILABLE or inferred_formal_available,
+            "web3_formal_available": WEB3_FORMAL_AVAILABLE or inferred_formal_available,
+            "web3_formal_verification_available": (
+                WEB3_FORMAL_AVAILABLE or inferred_formal_available
+            ),
             "audit_exploit_verification_available": bool(
                 formal_capabilities.get("composite_exploit_verification")
             ),

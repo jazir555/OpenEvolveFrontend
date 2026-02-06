@@ -1,0 +1,4024 @@
+{
+  "total_files": 500,
+  "errors_found": 574,
+  "errors": [
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\mcts_coevolution_mdap.py",
+      "error_type": "import_error",
+      "line_number": 41,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\mcts_evolutionary_nodes.py",
+      "error_type": "import_error",
+      "line_number": 37,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\mcts_evolutionary_nodes_mdap.py",
+      "error_type": "import_error",
+      "line_number": 39,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\mcts_evolved_policies.py",
+      "error_type": "import_error",
+      "line_number": 49,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\mcts_evolved_policies_mdap.py",
+      "error_type": "import_error",
+      "line_number": 41,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\mdap_engine.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\mdap_enhanced_client.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\mdap_maker_associative_integration.py",
+      "error_type": "import_error",
+      "line_number": 25,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\mdap_maker_complete.py",
+      "error_type": "import_error",
+      "line_number": 27,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\mdap_maker_matryoshka_integration.py",
+      "error_type": "import_error",
+      "line_number": 42,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\mdap_maker_mcts_unified.py",
+      "error_type": "import_error",
+      "line_number": 44,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\mdap_memory_bridge.py",
+      "error_type": "import_error",
+      "line_number": 39,
+      "message": "Module '__future__' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\mdap_memory_bridge.py",
+      "error_type": "import_error",
+      "line_number": 46,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\memory_agent.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Module '__future__' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\memory_agent.py",
+      "error_type": "import_error",
+      "line_number": 12,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\metrics_collector.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\migrate_adversarial.py",
+      "error_type": "import_error",
+      "line_number": 60,
+      "message": "Module 'adversarial_advanced' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\migrate_adversarial.py",
+      "error_type": "import_error",
+      "line_number": 280,
+      "message": "Module 'adversarial_advanced' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\migrate_adversarial.py",
+      "error_type": "import_error",
+      "line_number": 388,
+      "message": "Module 'adversarial_advanced' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\migrate_to_unified_mcp.py",
+      "error_type": "import_error",
+      "line_number": 26,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ml_pattern_clustering.py",
+      "error_type": "syntax_error",
+      "line_number": 64,
+      "message": "Syntax error: unindent does not match any outer indentation level",
+      "suggested_fix": "Check line 64: try:"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\monitoring.py",
+      "error_type": "import_error",
+      "line_number": 10,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\monitoring.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Module 'psutil' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\monitoring.py",
+      "error_type": "import_error",
+      "line_number": 20,
+      "message": "Module 'atexit' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\monitoring.py",
+      "error_type": "import_error",
+      "line_number": 265,
+      "message": "Module 'psutil' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\monitoring.py",
+      "error_type": "import_error",
+      "line_number": 523,
+      "message": "Module 'psutil' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\monitoring_dashboard.py",
+      "error_type": "import_error",
+      "line_number": 20,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\monitoring_dashboard.py",
+      "error_type": "import_error",
+      "line_number": 26,
+      "message": "Module 'plotly.graph_objects' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\monitoring_dashboard.py",
+      "error_type": "import_error",
+      "line_number": 27,
+      "message": "Module 'plotly.express' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\monitoring_system.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\monitoring_system.py",
+      "error_type": "import_error",
+      "line_number": 18,
+      "message": "Module 'psutil' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\monitoring_system.py",
+      "error_type": "import_error",
+      "line_number": 44,
+      "message": "Module 'adaptive_mdap.utils.metrics' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\monitoring_system.py",
+      "error_type": "import_error",
+      "line_number": 921,
+      "message": "Module 'adaptive_mdap.utils.metrics' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\monitoring_system.py",
+      "error_type": "import_error",
+      "line_number": 922,
+      "message": "Module 'adaptive_mdap.utils.cache' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\multi_round_testing.py",
+      "error_type": "import_error",
+      "line_number": 10,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ode_pde_translator.py",
+      "error_type": "import_error",
+      "line_number": 25,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ode_pde_translator.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Module 'sympy' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ode_pde_translator.py",
+      "error_type": "import_error",
+      "line_number": 29,
+      "message": "Module 'sympy.parsing.sympy_parser' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_agnostic_pes.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_analytics.py",
+      "error_type": "import_error",
+      "line_number": 12,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_api.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module 'uvicorn' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_bubblelabs_api.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_bubblelabs_plugin.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_cli.py",
+      "error_type": "import_error",
+      "line_number": 38,
+      "message": "Module 'rich.console' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_cli.py",
+      "error_type": "import_error",
+      "line_number": 39,
+      "message": "Module 'rich.table' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_cli.py",
+      "error_type": "import_error",
+      "line_number": 40,
+      "message": "Module 'rich.panel' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_cli.py",
+      "error_type": "import_error",
+      "line_number": 41,
+      "message": "Module 'rich.progress' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_cli.py",
+      "error_type": "import_error",
+      "line_number": 42,
+      "message": "Module 'rich.tree' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_cli.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module 'adaptive_mdap.core.types' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_cli.py",
+      "error_type": "import_error",
+      "line_number": 708,
+      "message": "Module 'adaptive_mdap.core.types' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_cli.py",
+      "error_type": "import_error",
+      "line_number": 765,
+      "message": "Module 'adaptive_mdap.config.profiles' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_cli.py",
+      "error_type": "import_error",
+      "line_number": 806,
+      "message": "Module 'adaptive_mdap.utils.cache' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_cli.py",
+      "error_type": "import_error",
+      "line_number": 845,
+      "message": "Module 'adaptive_mdap.config.profiles' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_client.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_client.py",
+      "error_type": "import_error",
+      "line_number": 15,
+      "message": "Module 'openevolve.api' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_client.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Module 'openevolve.config' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_crewai_delegation.py",
+      "error_type": "import_error",
+      "line_number": 45,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_dashboard.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Module 'plotly.express' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_decomposition_adapter.py",
+      "error_type": "import_error",
+      "line_number": 15,
+      "message": "Module '__future__' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_decomposition_adapter.py",
+      "error_type": "import_error",
+      "line_number": 21,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_enhanced_decomposition_integration.py",
+      "error_type": "import_error",
+      "line_number": 22,
+      "message": "Module '__future__' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_enhanced_decomposition_integration.py",
+      "error_type": "import_error",
+      "line_number": 30,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_evolution_integration.py",
+      "error_type": "import_error",
+      "line_number": 12,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_imports.py",
+      "error_type": "import_error",
+      "line_number": 69,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_integration.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_integration.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Module 'openevolve.api' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_integration.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Module 'openevolve.config' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_integration.py",
+      "error_type": "import_error",
+      "line_number": 37,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_integration.py",
+      "error_type": "import_error",
+      "line_number": 1567,
+      "message": "Module 'openevolve.config' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_integration.py",
+      "error_type": "import_error",
+      "line_number": 1360,
+      "message": "Module 'openevolve.api' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_integration.py",
+      "error_type": "import_error",
+      "line_number": 1701,
+      "message": "Module 'openevolve.api' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_integration.py",
+      "error_type": "import_error",
+      "line_number": 1889,
+      "message": "Module 'pylint.lint' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_integration.py",
+      "error_type": "import_error",
+      "line_number": 1890,
+      "message": "Module 'pylint.reporters.text' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_knowledge_integration.py",
+      "error_type": "import_error",
+      "line_number": 12,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_leanaide_bridge.py",
+      "error_type": "import_error",
+      "line_number": 25,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_leanaide_integration_system.py",
+      "error_type": "import_error",
+      "line_number": 25,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_leanaide_workflow_integration.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_maker_integration.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_mcp_tools.py",
+      "error_type": "import_error",
+      "line_number": 27,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_mcp_tools.py",
+      "error_type": "import_error",
+      "line_number": 33,
+      "message": "Module 'openevolve.api' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_mcp_tools.py",
+      "error_type": "import_error",
+      "line_number": 396,
+      "message": "Module 'openevolve.config' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_mcp_tools.py",
+      "error_type": "import_error",
+      "line_number": 548,
+      "message": "Module 'openevolve._version' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_orchestrator.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_pes_integration.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_structures.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_validation.py",
+      "error_type": "import_error",
+      "line_number": 44,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_visualization.py",
+      "error_type": "import_error",
+      "line_number": 6,
+      "message": "Module 'plotly.express' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_visualization.py",
+      "error_type": "import_error",
+      "line_number": 7,
+      "message": "Module 'plotly.graph_objects' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_visualization.py",
+      "error_type": "import_error",
+      "line_number": 646,
+      "message": "Module 'networkx' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_workflow_manager_integrated.py",
+      "error_type": "import_error",
+      "line_number": 17,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\parallel_processing.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\parallel_processing.py",
+      "error_type": "import_error",
+      "line_number": 464,
+      "message": "Module 'psutil' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\parallel_processing.py",
+      "error_type": "import_error",
+      "line_number": 505,
+      "message": "Module 'psutil' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\parallel_processing.py",
+      "error_type": "import_error",
+      "line_number": 630,
+      "message": "Module 'psutil' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\parameter_manager.py",
+      "error_type": "import_error",
+      "line_number": 10,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\parameter_sync_manager.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\performance_metrics_tracker.py",
+      "error_type": "import_error",
+      "line_number": 26,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\performance_optimization.py",
+      "error_type": "import_error",
+      "line_number": 15,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\performance_optimizations.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\performance_profiler.py",
+      "error_type": "import_error",
+      "line_number": 20,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\performance_profiler.py",
+      "error_type": "import_error",
+      "line_number": 203,
+      "message": "Module 'psutil' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\performance_profiler.py",
+      "error_type": "import_error",
+      "line_number": 537,
+      "message": "Module 'psutil' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\performance_profiler.py",
+      "error_type": "import_error",
+      "line_number": 554,
+      "message": "Module 'psutil' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\performance_profiler.py",
+      "error_type": "import_error",
+      "line_number": 236,
+      "message": "Module 'psutil' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\persistent_decomposition_engine.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Module '__future__' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_knowledge_engine.py",
+      "error_type": "import_error",
+      "line_number": 17,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator.py",
+      "error_type": "import_error",
+      "line_number": 24,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator.py",
+      "error_type": "import_error",
+      "line_number": 30,
+      "message": "Module 'scipy' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_enhanced.py",
+      "error_type": "import_error",
+      "line_number": 20,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_enhanced.py",
+      "error_type": "import_error",
+      "line_number": 30,
+      "message": "Module 'scipy.integrate' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_enhanced.py",
+      "error_type": "import_error",
+      "line_number": 31,
+      "message": "Module 'scipy.optimize' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_enhanced.py",
+      "error_type": "import_error",
+      "line_number": 32,
+      "message": "Module 'scipy.interpolate' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_enhanced.py",
+      "error_type": "import_error",
+      "line_number": 39,
+      "message": "Module 'sympy' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_enhanced.py",
+      "error_type": "import_error",
+      "line_number": 40,
+      "message": "Module 'sympy' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_enhanced.py",
+      "error_type": "import_error",
+      "line_number": 252,
+      "message": "Module 'scipy.integrate' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_enhanced.py",
+      "error_type": "import_error",
+      "line_number": 314,
+      "message": "Module 'scipy.integrate' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_real.py",
+      "error_type": "import_error",
+      "line_number": 20,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_real.py",
+      "error_type": "import_error",
+      "line_number": 30,
+      "message": "Module 'scipy.sparse' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_real.py",
+      "error_type": "import_error",
+      "line_number": 31,
+      "message": "Module 'scipy.sparse.linalg' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_real.py",
+      "error_type": "import_error",
+      "line_number": 32,
+      "message": "Module 'scipy.integrate' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_real.py",
+      "error_type": "import_error",
+      "line_number": 33,
+      "message": "Module 'scipy.linalg' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_real.py",
+      "error_type": "import_error",
+      "line_number": 34,
+      "message": "Module 'scipy.spatial' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_real.py",
+      "error_type": "import_error",
+      "line_number": 35,
+      "message": "Module 'sympy' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_real.py",
+      "error_type": "import_error",
+      "line_number": 36,
+      "message": "Module 'sympy' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\physics_validator_real.py",
+      "error_type": "import_error",
+      "line_number": 40,
+      "message": "Module 'physicsnemo' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\plugin_registry.py",
+      "error_type": "import_error",
+      "line_number": 21,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\plugin_system.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\problem_classifier.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\problem_classifier.py",
+      "error_type": "import_error",
+      "line_number": 404,
+      "message": "Module 'openevolve.api' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\problem_classifier.py",
+      "error_type": "import_error",
+      "line_number": 405,
+      "message": "Module 'openevolve.config' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\problem_decomposition.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\problem_fractal_pipeline.py",
+      "error_type": "import_error",
+      "line_number": 1,
+      "message": "Module '__future__' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\problem_fractal_pipeline.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\problem_recomposition.py",
+      "error_type": "import_error",
+      "line_number": 31,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\problem_recomposition.py",
+      "error_type": "import_error",
+      "line_number": 276,
+      "message": "Module 'sentence_transformers' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\progress_visualizer.py",
+      "error_type": "import_error",
+      "line_number": 34,
+      "message": "Module 'networkx' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\prompt_engineering.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\prompt_engineering.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Module 'openevolve.api' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\prompt_engineering.py",
+      "error_type": "import_error",
+      "line_number": 24,
+      "message": "Module 'openevolve.config' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\providercatalogue.py",
+      "error_type": "import_error",
+      "line_number": 29,
+      "message": "Module 'langchain_nvidia_ai_endpoints' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\providercatalogue.py",
+      "error_type": "import_error",
+      "line_number": 36,
+      "message": "Module 'replicate' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\providercatalogue.py",
+      "error_type": "import_error",
+      "line_number": 43,
+      "message": "Module 'aleph_alpha_client' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\providercatalogue.py",
+      "error_type": "import_error",
+      "line_number": 50,
+      "message": "Module 'runpod' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\providercatalogue.py",
+      "error_type": "import_error",
+      "line_number": 398,
+      "message": "Module 'langchain_nvidia_ai_endpoints' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\providercatalogue.py",
+      "error_type": "import_error",
+      "line_number": 405,
+      "message": "Module 'replicate' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\providercatalogue.py",
+      "error_type": "import_error",
+      "line_number": 412,
+      "message": "Module 'aleph_alpha_client' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\providercatalogue.py",
+      "error_type": "import_error",
+      "line_number": 419,
+      "message": "Module 'runpod' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\psv_selfplay.py",
+      "error_type": "import_error",
+      "line_number": 20,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_assessment.py",
+      "error_type": "import_error",
+      "line_number": 10,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_assessment.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Module 'textstat' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_assessment.py",
+      "error_type": "import_error",
+      "line_number": 48,
+      "message": "Module 'openevolve.api' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_assessment.py",
+      "error_type": "import_error",
+      "line_number": 49,
+      "message": "Module 'openevolve.config' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_assessment.py",
+      "error_type": "import_error",
+      "line_number": 67,
+      "message": "Module 'dspy' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_assessment.py",
+      "error_type": "import_error",
+      "line_number": 68,
+      "message": "Module 'dspy.teleprompt' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_assessment.py",
+      "error_type": "import_error",
+      "line_number": 69,
+      "message": "Module 'dspy.predict' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_assessment.py",
+      "error_type": "import_error",
+      "line_number": 74,
+      "message": "Module 'dspy' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_assessment.py",
+      "error_type": "import_error",
+      "line_number": 75,
+      "message": "Module 'dspy.teleprompt' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_assessment.py",
+      "error_type": "import_error",
+      "line_number": 76,
+      "message": "Module 'dspy.predict' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_assurance.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_calculator.py",
+      "error_type": "import_error",
+      "line_number": 22,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_calculator.py",
+      "error_type": "import_error",
+      "line_number": 1098,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_control.py",
+      "error_type": "import_error",
+      "line_number": 7,
+      "message": "Module 'astor' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_control.py",
+      "error_type": "import_error",
+      "line_number": 10,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_gate_engine.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_gate_leanaide_verifier.py",
+      "error_type": "import_error",
+      "line_number": 21,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_gate_z3_verifier.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_metrics.py",
+      "error_type": "import_error",
+      "line_number": 12,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_tracker.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\query_optimizer.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ragbits_server.py",
+      "error_type": "import_error",
+      "line_number": 25,
+      "message": "Module 'uvicorn' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rbac_enhanced.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module '__future__' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rbac_enhanced.py",
+      "error_type": "import_error",
+      "line_number": 25,
+      "message": "Module 'secrets' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rbac_enhanced.py",
+      "error_type": "import_error",
+      "line_number": 27,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rbac_enhanced.py",
+      "error_type": "import_error",
+      "line_number": 39,
+      "message": "Module 'jwt' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\react_ui_migration.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\real_rate_limiting_tests.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Module 'starlette.middleware.base' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\real_security_headers_tests.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module 'starlette.middleware.base' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\real_security_headers_tests.py",
+      "error_type": "import_error",
+      "line_number": 251,
+      "message": "Module 'starlette.middleware.base' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team.py",
+      "error_type": "import_error",
+      "line_number": 37,
+      "message": "Module 'openevolve.api' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team.py",
+      "error_type": "import_error",
+      "line_number": 38,
+      "message": "Module 'openevolve.config' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team.py",
+      "error_type": "import_error",
+      "line_number": 56,
+      "message": "Module 'dspy' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team.py",
+      "error_type": "import_error",
+      "line_number": 57,
+      "message": "Module 'dspy.teleprompt' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team.py",
+      "error_type": "import_error",
+      "line_number": 58,
+      "message": "Module 'dspy.predict' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team.py",
+      "error_type": "import_error",
+      "line_number": 78,
+      "message": "Module 'adaptive_mdap.core.types' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team.py",
+      "error_type": "import_error",
+      "line_number": 63,
+      "message": "Module 'dspy' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team.py",
+      "error_type": "import_error",
+      "line_number": 64,
+      "message": "Module 'dspy.teleprompt' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team.py",
+      "error_type": "import_error",
+      "line_number": 65,
+      "message": "Module 'dspy.predict' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team_coordinator.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team_coordinator.py",
+      "error_type": "import_error",
+      "line_number": 78,
+      "message": "Module 'openevolve.llm.ensemble' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team_coordinator.py",
+      "error_type": "import_error",
+      "line_number": 79,
+      "message": "Module 'openevolve.config' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team_feedback_system.py",
+      "error_type": "import_error",
+      "line_number": 15,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\regression_test_4_files.py",
+      "error_type": "import_error",
+      "line_number": 25,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\reporting_system.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module 'plotly.express' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\reporting_system.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\report_generator.py",
+      "error_type": "import_error",
+      "line_number": 74,
+      "message": "Module 'reportlab.lib.pagesizes' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\report_generator.py",
+      "error_type": "import_error",
+      "line_number": 75,
+      "message": "Module 'reportlab.lib.styles' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\report_generator.py",
+      "error_type": "import_error",
+      "line_number": 76,
+      "message": "Module 'reportlab.lib.units' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\report_generator.py",
+      "error_type": "import_error",
+      "line_number": 77,
+      "message": "Module 'reportlab.platypus' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\report_generator.py",
+      "error_type": "import_error",
+      "line_number": 78,
+      "message": "Module 'reportlab.platypus' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\report_generator.py",
+      "error_type": "import_error",
+      "line_number": 79,
+      "message": "Module 'reportlab.lib' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\report_generator.py",
+      "error_type": "import_error",
+      "line_number": 80,
+      "message": "Module 'reportlab.lib.enums' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\report_generator.py",
+      "error_type": "import_error",
+      "line_number": 88,
+      "message": "Module 'openpyxl' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\report_generator.py",
+      "error_type": "import_error",
+      "line_number": 89,
+      "message": "Module 'openpyxl' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\report_generator.py",
+      "error_type": "import_error",
+      "line_number": 90,
+      "message": "Module 'openpyxl.styles' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\report_generator.py",
+      "error_type": "import_error",
+      "line_number": 91,
+      "message": "Module 'openpyxl.chart' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\resource_estimation_engine.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\resource_manager.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\resource_manager.py",
+      "error_type": "import_error",
+      "line_number": 518,
+      "message": "Module 'plotly.graph_objects' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\resource_pool.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rlm_core_integration.py",
+      "error_type": "import_error",
+      "line_number": 17,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rlm_core_integration.py",
+      "error_type": "import_error",
+      "line_number": 27,
+      "message": "Module 'rlm' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rlm_core_integration.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Module 'rlm.core.types' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rlm_core_integration.py",
+      "error_type": "import_error",
+      "line_number": 29,
+      "message": "Module 'rlm.environments' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rlm_core_integration.py",
+      "error_type": "import_error",
+      "line_number": 30,
+      "message": "Module 'rlm.clients' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rlm_core_integration.py",
+      "error_type": "import_error",
+      "line_number": 412,
+      "message": "Module 'rlm' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rlm_core_integration.py",
+      "error_type": "import_error",
+      "line_number": 433,
+      "message": "Module 'rlm.environments' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rlm_core_integration.py",
+      "error_type": "import_error",
+      "line_number": 439,
+      "message": "Module 'rlm.environments' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rlm_decomposition_integration.py",
+      "error_type": "import_error",
+      "line_number": 12,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rlm_roma_integration.py",
+      "error_type": "import_error",
+      "line_number": 22,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rlm_unified_system.py",
+      "error_type": "import_error",
+      "line_number": 17,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\robustness_integration.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\robust_z3_leanaide_integration.py",
+      "error_type": "import_error",
+      "line_number": 25,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\robust_z3_leanaide_integration.py",
+      "error_type": "import_error",
+      "line_number": 75,
+      "message": "Module 'dspy' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\robust_z3_leanaide_integration.py",
+      "error_type": "import_error",
+      "line_number": 76,
+      "message": "Module 'dspy.teleprompt' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\robust_z3_leanaide_integration.py",
+      "error_type": "import_error",
+      "line_number": 77,
+      "message": "Module 'dspy.predict' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\robust_z3_leanaide_integration.py",
+      "error_type": "import_error",
+      "line_number": 82,
+      "message": "Module 'dspy' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\robust_z3_leanaide_integration.py",
+      "error_type": "import_error",
+      "line_number": 83,
+      "message": "Module 'dspy.teleprompt' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\robust_z3_leanaide_integration.py",
+      "error_type": "import_error",
+      "line_number": 84,
+      "message": "Module 'dspy.predict' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_config.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_config_helper.py",
+      "error_type": "import_error",
+      "line_number": 10,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_crewai_tools.py",
+      "error_type": "import_error",
+      "line_number": 44,
+      "message": "Module 'ace_steer_integration' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_decomposition_comparison.py",
+      "error_type": "import_error",
+      "line_number": 10,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_decomposition_hybrid.py",
+      "error_type": "import_error",
+      "line_number": 29,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_decomposition_hybrid.py",
+      "error_type": "import_error",
+      "line_number": 49,
+      "message": "Module 'roma_dspy.core.engine.solve' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_decomposition_hybrid.py",
+      "error_type": "import_error",
+      "line_number": 50,
+      "message": "Module 'roma_dspy.config.schemas.root' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_decomposition_hybrid.py",
+      "error_type": "import_error",
+      "line_number": 51,
+      "message": "Module 'roma_dspy.core.engine' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_matryoshka_integration.py",
+      "error_type": "import_error",
+      "line_number": 17,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_matryoshka_integration.py",
+      "error_type": "import_error",
+      "line_number": 77,
+      "message": "Module 'roma_dspy.core.engine.solve' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_matryoshka_integration.py",
+      "error_type": "import_error",
+      "line_number": 78,
+      "message": "Module 'roma_dspy.core.engine' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_mcp_tools.py",
+      "error_type": "import_error",
+      "line_number": 41,
+      "message": "Module 'roma_dspy.core.engine.solve' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_mcp_tools.py",
+      "error_type": "import_error",
+      "line_number": 42,
+      "message": "Module 'roma_dspy.core.signatures' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_mcp_tools.py",
+      "error_type": "import_error",
+      "line_number": 43,
+      "message": "Module 'roma_dspy.config.schemas.root' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_mcp_tools.py",
+      "error_type": "import_error",
+      "line_number": 44,
+      "message": "Module 'roma_dspy.core.engine' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_mcp_tools.py",
+      "error_type": "import_error",
+      "line_number": 538,
+      "message": "Module 'roma_dspy' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_mcp_tools.py",
+      "error_type": "import_error",
+      "line_number": 545,
+      "message": "Module 'dspy' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_mcp_tools.py",
+      "error_type": "import_error",
+      "line_number": 551,
+      "message": "Module 'roma_dspy.core.storage' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_mcp_tools.py",
+      "error_type": "import_error",
+      "line_number": 557,
+      "message": "Module 'roma_dspy.core.observability' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_mdap_maker_associative_integration.py",
+      "error_type": "import_error",
+      "line_number": 30,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_mdap_maker_config.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_mdap_maker_crewai_tools.py",
+      "error_type": "import_error",
+      "line_number": 26,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_mdap_maker_engine.py",
+      "error_type": "import_error",
+      "line_number": 31,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_mdap_maker_engine.py",
+      "error_type": "import_error",
+      "line_number": 75,
+      "message": "Module 'roma_dspy.core.engine.solve' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_mdap_maker_engine.py",
+      "error_type": "import_error",
+      "line_number": 76,
+      "message": "Module 'roma_dspy.config.schemas.root' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_mdap_maker_engine.py",
+      "error_type": "import_error",
+      "line_number": 77,
+      "message": "Module 'roma_dspy.core.engine' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_mdap_maker_engine.py",
+      "error_type": "import_error",
+      "line_number": 78,
+      "message": "Module 'roma_dspy.core.signatures' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_openevolve_integration.py",
+      "error_type": "import_error",
+      "line_number": 27,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_recomposition_config.py",
+      "error_type": "import_error",
+      "line_number": 10,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\run_integration_tests.py",
+      "error_type": "import_error",
+      "line_number": 21,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\run_integration_tests.py",
+      "error_type": "import_error",
+      "line_number": 25,
+      "message": "Module 'rich.console' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\run_integration_tests.py",
+      "error_type": "import_error",
+      "line_number": 26,
+      "message": "Module 'rich.table' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\run_integration_tests.py",
+      "error_type": "import_error",
+      "line_number": 27,
+      "message": "Module 'rich.panel' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\run_integration_tests.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Module 'rich.progress' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\run_integration_tests.py",
+      "error_type": "import_error",
+      "line_number": 29,
+      "message": "Module 'rich.tree' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\run_integration_tests.py",
+      "error_type": "import_error",
+      "line_number": 30,
+      "message": "Module 'rich.syntax' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\run_mcts_mdap_tests.py",
+      "error_type": "import_error",
+      "line_number": 224,
+      "message": "Module 'coverage' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\run_mdap_tests.py",
+      "error_type": "import_error",
+      "line_number": 196,
+      "message": "Module 'coverage' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\scalability_improvements.py",
+      "error_type": "import_error",
+      "line_number": 17,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\scalability_improvements.py",
+      "error_type": "import_error",
+      "line_number": 21,
+      "message": "Module 'psutil' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\scheduled_reports.py",
+      "error_type": "import_error",
+      "line_number": 41,
+      "message": "Module 'croniter' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\scheduled_reports.py",
+      "error_type": "import_error",
+      "line_number": 48,
+      "message": "Module 'schedule' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\scheduled_reports.py",
+      "error_type": "import_error",
+      "line_number": 56,
+      "message": "Module 'smtplib' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\scheduled_reports.py",
+      "error_type": "import_error",
+      "line_number": 57,
+      "message": "Module 'email.mime.text' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\scheduled_reports.py",
+      "error_type": "import_error",
+      "line_number": 58,
+      "message": "Module 'email.mime.multipart' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\scheduled_reports.py",
+      "error_type": "import_error",
+      "line_number": 59,
+      "message": "Module 'email.mime.application' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\scientific_domain_patterns.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\secure_api.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\secure_api.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Module 'cryptography.hazmat.primitives' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\secure_api.py",
+      "error_type": "import_error",
+      "line_number": 15,
+      "message": "Module 'cryptography.hazmat.primitives.kdf.pbkdf2' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\secure_api.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Module 'cryptography.hazmat.primitives.asymmetric' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\secure_api.py",
+      "error_type": "import_error",
+      "line_number": 18,
+      "message": "Module 'secrets' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\secure_api.py",
+      "error_type": "import_error",
+      "line_number": 103,
+      "message": "Module 'urllib3.util.retry' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\secure_api.py",
+      "error_type": "import_error",
+      "line_number": 297,
+      "message": "Module 'cryptography' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\secure_api.py",
+      "error_type": "import_error",
+      "line_number": 298,
+      "message": "Module 'cryptography.x509.oid' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\secure_api.py",
+      "error_type": "import_error",
+      "line_number": 370,
+      "message": "Module 'cryptography.x509.oid' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_framework.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module 'secrets' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_framework.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_framework.py",
+      "error_type": "import_error",
+      "line_number": 31,
+      "message": "Module 'jwt' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_framework.py",
+      "error_type": "import_error",
+      "line_number": 37,
+      "message": "Module 'starlette.middleware.base' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_framework.py",
+      "error_type": "import_error",
+      "line_number": 1533,
+      "message": "Module 'cryptography' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_framework.py",
+      "error_type": "import_error",
+      "line_number": 1534,
+      "message": "Module 'cryptography.x509.oid' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_framework.py",
+      "error_type": "import_error",
+      "line_number": 1535,
+      "message": "Module 'cryptography.hazmat.primitives' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_framework.py",
+      "error_type": "import_error",
+      "line_number": 1536,
+      "message": "Module 'cryptography.hazmat.primitives.asymmetric' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_helpers.py",
+      "error_type": "import_error",
+      "line_number": 15,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_helpers.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Module 'cryptography.hazmat.primitives' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_helpers.py",
+      "error_type": "import_error",
+      "line_number": 17,
+      "message": "Module 'cryptography.hazmat.primitives.kdf.pbkdf2' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_integration_tests.py",
+      "error_type": "import_error",
+      "line_number": 25,
+      "message": "Module 'secrets' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_integration_tests.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 24,
+      "message": "Module 'secrets' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 29,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 181,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 218,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 294,
+      "message": "Module 'cryptography.hazmat.primitives' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 295,
+      "message": "Module 'cryptography.hazmat.primitives.asymmetric' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 335,
+      "message": "Module 'cryptography.hazmat.primitives' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 336,
+      "message": "Module 'cryptography.hazmat.primitives.asymmetric' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 421,
+      "message": "Module 'bcrypt' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 461,
+      "message": "Module 'jwt' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 492,
+      "message": "Module 'jwt' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 894,
+      "message": "Module 'cryptography.hazmat.primitives' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 895,
+      "message": "Module 'cryptography.hazmat.primitives.asymmetric' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 896,
+      "message": "Module 'cryptography' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 897,
+      "message": "Module 'cryptography.x509.oid' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 944,
+      "message": "Module 'cryptography.hazmat.primitives' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 945,
+      "message": "Module 'cryptography.hazmat.primitives.asymmetric' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 946,
+      "message": "Module 'cryptography' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 947,
+      "message": "Module 'cryptography.x509.oid' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 948,
+      "message": "Module 'cryptography.hazmat.primitives.serialization' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 1010,
+      "message": "Module 'cryptography.hazmat.primitives.asymmetric' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\security_performance_tests.py",
+      "error_type": "import_error",
+      "line_number": 1044,
+      "message": "Module 'cryptography.hazmat.primitives.asymmetric' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\semantic_decomposition.py",
+      "error_type": "import_error",
+      "line_number": 12,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\service_orchestrator.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\service_orchestrator.py",
+      "error_type": "import_error",
+      "line_number": 39,
+      "message": "Module 'uvicorn' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_deepke.py",
+      "error_type": "import_error",
+      "line_number": 218,
+      "message": "Module 'deepke' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_deepke.py",
+      "error_type": "import_error",
+      "line_number": 219,
+      "message": "Module 'deepke' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_deepke.py",
+      "error_type": "import_error",
+      "line_number": 236,
+      "message": "Module 'deepke' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_deepke.py",
+      "error_type": "import_error",
+      "line_number": 244,
+      "message": "Module 'deepke' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_deepke.py",
+      "error_type": "import_error",
+      "line_number": 252,
+      "message": "Module 'deepke' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_deepke.py",
+      "error_type": "import_error",
+      "line_number": 269,
+      "message": "Module 'transformers' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_deepke_fixed.py",
+      "error_type": "import_error",
+      "line_number": 20,
+      "message": "Module 'venv' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_deepke_fixed.py",
+      "error_type": "import_error",
+      "line_number": 144,
+      "message": "Module 'deepke' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_integration.py",
+      "error_type": "import_error",
+      "line_number": 25,
+      "message": "Module 'rich.console' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_integration.py",
+      "error_type": "import_error",
+      "line_number": 26,
+      "message": "Module 'rich.panel' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_integration.py",
+      "error_type": "import_error",
+      "line_number": 27,
+      "message": "Module 'rich.progress' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_integration.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Module 'rich.table' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_integration.py",
+      "error_type": "import_error",
+      "line_number": 29,
+      "message": "Module 'rich.prompt' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_lean4.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_lean4_enhanced.py",
+      "error_type": "import_error",
+      "line_number": 35,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_oneke.py",
+      "error_type": "import_error",
+      "line_number": 220,
+      "message": "Module 'src.oneke' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\setup_oneke.py",
+      "error_type": "import_error",
+      "line_number": 228,
+      "message": "Module 'oneke' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sgd_orchestrator_agent.py",
+      "error_type": "import_error",
+      "line_number": 12,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\simple_dspy_check.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module 'dspy' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\simple_dspy_check.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Module 'dspy.teleprompt' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\simple_dspy_check.py",
+      "error_type": "import_error",
+      "line_number": 24,
+      "message": "Module 'dspy.predict' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\simple_dspy_test.py",
+      "error_type": "import_error",
+      "line_number": 18,
+      "message": "Module 'dspy' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\simple_test_clean.py",
+      "error_type": "import_error",
+      "line_number": 15,
+      "message": "Module 'chromadb' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\simple_test_clean.py",
+      "error_type": "import_error",
+      "line_number": 22,
+      "message": "Module 'sentence_transformers' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\simple_test_clean.py",
+      "error_type": "import_error",
+      "line_number": 29,
+      "message": "Module 'ace_steer_integration' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\solution_assembler.py",
+      "error_type": "import_error",
+      "line_number": 30,
+      "message": "Module '__future__' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\solution_assembler.py",
+      "error_type": "import_error",
+      "line_number": 37,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\solution_manager.py",
+      "error_type": "import_error",
+      "line_number": 26,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\solution_pattern_miner.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module 'dspy' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\solution_pattern_miner.py",
+      "error_type": "import_error",
+      "line_number": 20,
+      "message": "Module 'dspy.teleprompt' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\solution_pattern_miner.py",
+      "error_type": "import_error",
+      "line_number": 21,
+      "message": "Module 'dspy.predict' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\solution_pattern_miner.py",
+      "error_type": "import_error",
+      "line_number": 26,
+      "message": "Module 'dspy' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\solution_pattern_miner.py",
+      "error_type": "import_error",
+      "line_number": 27,
+      "message": "Module 'dspy.teleprompt' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\solution_pattern_miner.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Module 'dspy.predict' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\solution_pattern_miner.py",
+      "error_type": "import_error",
+      "line_number": 334,
+      "message": "Module 'umap' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\solution_pattern_miner.py",
+      "error_type": "import_error",
+      "line_number": 885,
+      "message": "Module 'networkx' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\solution_pattern_miner.py",
+      "error_type": "import_error",
+      "line_number": 886,
+      "message": "Module 'plotly.graph_objects' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\solution_pattern_miner.py",
+      "error_type": "import_error",
+      "line_number": 201,
+      "message": "Module 'umap' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sop_component_system.py",
+      "error_type": "import_error",
+      "line_number": 34,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sop_generator.py",
+      "error_type": "import_error",
+      "line_number": 27,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sop_generator_enhanced.py",
+      "error_type": "import_error",
+      "line_number": 21,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sop_generator_real.py",
+      "error_type": "import_error",
+      "line_number": 24,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sop_generator_real.py",
+      "error_type": "import_error",
+      "line_number": 35,
+      "message": "Module 'llm4ias' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sop_generator_research_quest.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Module '__future__' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sop_generator_research_quest.py",
+      "error_type": "import_error",
+      "line_number": 12,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sop_integrated_system.py",
+      "error_type": "import_error",
+      "line_number": 27,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sop_templates.py",
+      "error_type": "import_error",
+      "line_number": 21,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_data_models.py",
+      "error_type": "import_error",
+      "line_number": 6,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_decomposition_crewai_integration.py",
+      "error_type": "import_error",
+      "line_number": 27,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_integration.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_integration.py",
+      "error_type": "import_error",
+      "line_number": 90,
+      "message": "Module 'adaptive_mdap.config.profiles' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_quality_assessment.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_refinement.py",
+      "error_type": "import_error",
+      "line_number": 10,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_solution_orchestration.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_team_coordination.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_ui.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Module 'flask_cors' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_ui_components.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module 'plotly.express' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_ui_components.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Module 'plotly.graph_objects' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_ui_components.py",
+      "error_type": "import_error",
+      "line_number": 10,
+      "message": "Module 'plotly.subplots' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_validation.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\spatial_decomposition.py",
+      "error_type": "import_error",
+      "line_number": 12,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\stage6_knowledge_extraction.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\stage6_knowledge_extraction.py",
+      "error_type": "import_error",
+      "line_number": 39,
+      "message": "Module 'networkx' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\stage6_knowledge_extraction.py",
+      "error_type": "import_error",
+      "line_number": 72,
+      "message": "Module 'sentence_transformers' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\start_bubblelabs_integration.py",
+      "error_type": "import_error",
+      "line_number": 21,
+      "message": "Module 'atexit' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\steer_context_engine.py",
+      "error_type": "import_error",
+      "line_number": 35,
+      "message": "Module 'steer.core' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\steer_context_engine.py",
+      "error_type": "import_error",
+      "line_number": 36,
+      "message": "Module 'steer.judges' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\steer_context_engine.py",
+      "error_type": "import_error",
+      "line_number": 47,
+      "message": "Module 'steer.schemas' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\steer_context_engine.py",
+      "error_type": "import_error",
+      "line_number": 48,
+      "message": "Module 'steer.utils' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\steer_context_engine.py",
+      "error_type": "import_error",
+      "line_number": 49,
+      "message": "Module 'steer.storage' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\steer_context_engine.py",
+      "error_type": "import_error",
+      "line_number": 104,
+      "message": "Module 'ace_steer_config' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\steer_mcp_tools.py",
+      "error_type": "import_error",
+      "line_number": 34,
+      "message": "Module 'steer.core' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\steer_mcp_tools.py",
+      "error_type": "import_error",
+      "line_number": 35,
+      "message": "Module 'steer.judges' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\steer_mcp_tools.py",
+      "error_type": "import_error",
+      "line_number": 46,
+      "message": "Module 'steer.schemas' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\subproblem_classifier.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sub_problem_solver.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Module 'adaptive_mdap.integrations.subproblem_solver_integration' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sub_problem_solver.py",
+      "error_type": "import_error",
+      "line_number": 15,
+      "message": "Module 'adaptive_mdap.core.types' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\success_criteria.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\symbolic_constraint_engine.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module 'rese.core.symbolic_constraint_engine' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\symbolic_constraint_engine.py",
+      "error_type": "syntax_error",
+      "line_number": 5,
+      "message": "Possible import typo: Invalid import syntax",
+      "suggested_fix": "Check import statement syntax"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\system1_router.py",
+      "error_type": "import_error",
+      "line_number": 27,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\system1_router.py",
+      "error_type": "import_error",
+      "line_number": 153,
+      "message": "Module 'sentence_transformers' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\system_health.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\system_health.py",
+      "error_type": "import_error",
+      "line_number": 22,
+      "message": "Module 'rich.console' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\system_health.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Module 'rich.table' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\system_health.py",
+      "error_type": "import_error",
+      "line_number": 24,
+      "message": "Module 'rich.panel' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\system_health.py",
+      "error_type": "import_error",
+      "line_number": 25,
+      "message": "Module 'rich.tree' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\system_health.py",
+      "error_type": "import_error",
+      "line_number": 26,
+      "message": "Module 'rich.progress' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\team_assignment_engine.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\team_base.py",
+      "error_type": "import_error",
+      "line_number": 12,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\team_manager.py",
+      "error_type": "import_error",
+      "line_number": 6,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\telemetry.py",
+      "error_type": "import_error",
+      "line_number": 27,
+      "message": "Module 'opentelemetry' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\telemetry.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Module 'opentelemetry.trace' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\telemetry.py",
+      "error_type": "import_error",
+      "line_number": 29,
+      "message": "Module 'opentelemetry.metrics' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\telemetry.py",
+      "error_type": "import_error",
+      "line_number": 30,
+      "message": "Module 'opentelemetry.sdk.trace' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\telemetry.py",
+      "error_type": "import_error",
+      "line_number": 31,
+      "message": "Module 'opentelemetry.sdk.trace.export' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\telemetry.py",
+      "error_type": "import_error",
+      "line_number": 32,
+      "message": "Module 'opentelemetry.sdk.metrics' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\telemetry.py",
+      "error_type": "import_error",
+      "line_number": 33,
+      "message": "Module 'opentelemetry.sdk.metrics.export' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\telemetry.py",
+      "error_type": "import_error",
+      "line_number": 34,
+      "message": "Module 'opentelemetry.sdk.resources' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\telemetry.py",
+      "error_type": "import_error",
+      "line_number": 35,
+      "message": "Module 'opentelemetry.exporter.otlp.proto.grpc.trace_exporter' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\telemetry.py",
+      "error_type": "import_error",
+      "line_number": 36,
+      "message": "Module 'opentelemetry.exporter.otlp.proto.grpc.metric_exporter' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\telemetry.py",
+      "error_type": "import_error",
+      "line_number": 37,
+      "message": "Module 'opentelemetry.instrumentation.fastapi' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\testing_framework.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Module 'psutil' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\testing_framework.py",
+      "error_type": "import_error",
+      "line_number": 26,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\testing_framework.py",
+      "error_type": "import_error",
+      "line_number": 546,
+      "message": "Module 'psutil' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_ace_integration.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module 'ace_context_engine' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_ace_resource_leaks.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Module 'tracemalloc' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_ace_steer_unified.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module 'ace_steer_unified' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_adversarial_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 17,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_adversarial_mdap_mcts_complete.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_adversarial_simple.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_all_bugs_fixed.py",
+      "error_type": "import_error",
+      "line_number": 2179,
+      "message": "Module 'atexit' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_all_imports.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_authentication_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module 'jwt' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_authentication_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 10,
+      "message": "Module 'secrets' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_authentication_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 451,
+      "message": "Module 'pyotp' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_authentication_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 464,
+      "message": "Module 'pyotp' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_cache_benchmarks.py",
+      "error_type": "import_error",
+      "line_number": 12,
+      "message": "Module 'tracemalloc' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_complexity_analyzer.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_compliance.py",
+      "error_type": "import_error",
+      "line_number": 44,
+      "message": "Module 'bcrypt' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_compliance.py",
+      "error_type": "import_error",
+      "line_number": 73,
+      "message": "Module 'secrets' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_compliance.py",
+      "error_type": "import_error",
+      "line_number": 109,
+      "message": "Module 'secrets' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_compliance.py",
+      "error_type": "import_error",
+      "line_number": 153,
+      "message": "Module 'secrets' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_comprehensive_mcp.py",
+      "error_type": "import_error",
+      "line_number": 5,
+      "message": "Module 'unified_mcp_server_comprehensive' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_comprehensive_verification.py",
+      "error_type": "import_error",
+      "line_number": 263,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_comprehensive_verification.py",
+      "error_type": "import_error",
+      "line_number": 275,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_crewai_research_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 588,
+      "message": "Module 'PIL' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_deployment_readiness.py",
+      "error_type": "import_error",
+      "line_number": 24,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_deployment_readiness.py",
+      "error_type": "import_error",
+      "line_number": 321,
+      "message": "Module 'psutil' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_dspy_integration.py",
+      "error_type": "import_error",
+      "line_number": 22,
+      "message": "Module 'dspy' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_e2e_full_workflow.py",
+      "error_type": "import_error",
+      "line_number": 26,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption.py",
+      "error_type": "import_error",
+      "line_number": 41,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption.py",
+      "error_type": "import_error",
+      "line_number": 51,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption.py",
+      "error_type": "import_error",
+      "line_number": 113,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption.py",
+      "error_type": "import_error",
+      "line_number": 128,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption.py",
+      "error_type": "import_error",
+      "line_number": 150,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption.py",
+      "error_type": "import_error",
+      "line_number": 516,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption.py",
+      "error_type": "import_error",
+      "line_number": 535,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Module 'secrets' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Module 'cryptography.hazmat.primitives' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 15,
+      "message": "Module 'cryptography.hazmat.primitives.asymmetric' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Module 'cryptography.hazmat.primitives.ciphers' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 17,
+      "message": "Module 'cryptography.hazmat.primitives.kdf.pbkdf2' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 18,
+      "message": "Module 'cryptography.hazmat.primitives.kdf.scrypt' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module 'cryptography.hazmat.backends' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 87,
+      "message": "Module 'cryptography.fernet' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 144,
+      "message": "Module 'cryptography.exceptions' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_encryption_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 276,
+      "message": "Module 'cryptography.exceptions' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_error_handling_integration.py",
+      "error_type": "import_error",
+      "line_number": 21,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_error_handling_integration.py",
+      "error_type": "import_error",
+      "line_number": 39,
+      "message": "Module 'graceful_degradation' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_evolution_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 17,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_full_system_integration.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_fuzzing.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Module 'hypothesis' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_guardrails_integration.py",
+      "error_type": "import_error",
+      "line_number": 29,
+      "message": "Module 'reliability.guardrails_adapter' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_guardrails_integration.py",
+      "error_type": "import_error",
+      "line_number": 56,
+      "message": "Module 'reliability.guardrails_adapter' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_guardrails_integration.py",
+      "error_type": "import_error",
+      "line_number": 88,
+      "message": "Module 'reliability.guardrails_adapter' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_guardrails_integration.py",
+      "error_type": "import_error",
+      "line_number": 147,
+      "message": "Module 'reliability.guardrails_adapter' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_guardrails_integration.py",
+      "error_type": "import_error",
+      "line_number": 197,
+      "message": "Module 'reliability.guardrails_adapter' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_guardrails_integration.py",
+      "error_type": "import_error",
+      "line_number": 248,
+      "message": "Module 'reliability.guardrails_adapter' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_hybrid_maker_strategies.py",
+      "error_type": "import_error",
+      "line_number": 21,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_hybrid_mcts.py",
+      "error_type": "import_error",
+      "line_number": 34,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_hybrid_mcts.py",
+      "error_type": "import_error",
+      "line_number": 43,
+      "message": "Module 'pytest_asyncio' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_icr_gauntlet_mdap_integration.py",
+      "error_type": "import_error",
+      "line_number": 304,
+      "message": "Module 'adaptive_mdap.allocators.resource_allocator' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_icr_gauntlet_mdap_integration.py",
+      "error_type": "import_error",
+      "line_number": 305,
+      "message": "Module 'adaptive_mdap.core.types' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_icr_gauntlet_mdap_integration.py",
+      "error_type": "import_error",
+      "line_number": 321,
+      "message": "Module 'adaptive_mdap.core.types' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_icr_gauntlet_mdap_integration.py",
+      "error_type": "import_error",
+      "line_number": 344,
+      "message": "Module 'adaptive_mdap.core.types' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_icr_gauntlet_mdap_integration.py",
+      "error_type": "import_error",
+      "line_number": 367,
+      "message": "Module 'adaptive_mdap.core.types' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_icr_gauntlet_mdap_integration.py",
+      "error_type": "import_error",
+      "line_number": 401,
+      "message": "Module 'adaptive_mdap.core.types' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_icr_gauntlet_mdap_integration.py",
+      "error_type": "import_error",
+      "line_number": 422,
+      "message": "Module 'adaptive_mdap.core.types' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_icr_gauntlet_mdap_integration.py",
+      "error_type": "import_error",
+      "line_number": 453,
+      "message": "Module 'adaptive_mdap.core.types' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_icr_gauntlet_mdap_integration.py",
+      "error_type": "import_error",
+      "line_number": 477,
+      "message": "Module 'adaptive_mdap.allocators.resource_allocator' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_icr_gauntlet_mdap_integration.py",
+      "error_type": "import_error",
+      "line_number": 478,
+      "message": "Module 'adaptive_mdap.core.types' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_icr_gauntlet_mdap_integration.py",
+      "error_type": "import_error",
+      "line_number": 534,
+      "message": "Module 'adaptive_mdap.allocators.resource_allocator' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_icr_gauntlet_mdap_integration.py",
+      "error_type": "import_error",
+      "line_number": 535,
+      "message": "Module 'adaptive_mdap.core.types' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_input_validation.py",
+      "error_type": "import_error",
+      "line_number": 459,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_input_validation_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 598,
+      "message": "Module 'defusedxml' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_input_validation_fixed.py",
+      "error_type": "import_error",
+      "line_number": 482,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_insurance_fixes.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Module 'openevolve.finance.verticals.insurance' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_integrations.py",
+      "error_type": "import_error",
+      "line_number": 22,
+      "message": "Module 'pytest_asyncio' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_integrations_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Module 'strawberry' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_integration_all_systems.py",
+      "error_type": "import_error",
+      "line_number": 21,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_integration_openevolve.py",
+      "error_type": "import_error",
+      "line_number": 496,
+      "message": "Module 'psutil' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_integration_security.py",
+      "error_type": "import_error",
+      "line_number": 163,
+      "message": "Module 'jwt' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_knowledge_engine_simple.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Module 'knowledge_extractor' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_knowledge_engine_simple.py",
+      "error_type": "import_error",
+      "line_number": 17,
+      "message": "Module 'knowledge_storage' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_knowledge_engine_simple.py",
+      "error_type": "import_error",
+      "line_number": 18,
+      "message": "Module 'knowledge_retriever' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_knowledge_engine_simple.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module 'integrated_engine' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_knowledge_extraction_comprehensive.py",
+      "error_type": "import_error",
+      "line_number": 49,
+      "message": "Module 'sentence_transformers' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_knowledge_unified_system_complete.py",
+      "error_type": "import_error",
+      "line_number": 35,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_knowledge_unified_system_complete.py",
+      "error_type": "import_error",
+      "line_number": 1259,
+      "message": "Module 'psutil' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_leanaide_config.py",
+      "error_type": "import_error",
+      "line_number": 18,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_leanaide_evolutionary.py",
+      "error_type": "import_error",
+      "line_number": 22,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_leanaide_evolutionary.py",
+      "error_type": "import_error",
+      "line_number": 33,
+      "message": "Module 'pytest_asyncio' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_leanaide_evolutionary_workflow.py",
+      "error_type": "import_error",
+      "line_number": 10,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_leanaide_evolution_mdap.py",
+      "error_type": "import_error",
+      "line_number": 25,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_leanaide_integration.py",
+      "error_type": "import_error",
+      "line_number": 26,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_leanaide_integration.py",
+      "error_type": "import_error",
+      "line_number": 33,
+      "message": "Module 'pytest_asyncio' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_leanaide_mcts_mdap.py",
+      "error_type": "import_error",
+      "line_number": 25,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_leanaide_mdap.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_loongflow_simple.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module 'openevolve.unified.unified_evolution_api' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_loongflow_simple.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module 'openevolve.integrations.loongflow_checker' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_matryoshka_unified_memory.py",
+      "error_type": "import_error",
+      "line_number": 43,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_matryoshka_unified_memory_integration.py",
+      "error_type": "import_error",
+      "line_number": 18,
+      "message": "Module '__future__' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_matryoshka_unified_memory_integration.py",
+      "error_type": "import_error",
+      "line_number": 33,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_mcp_server.py",
+      "error_type": "import_error",
+      "line_number": 18,
+      "message": "Module 'py_compile' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_mcp_server.py",
+      "error_type": "import_error",
+      "line_number": 35,
+      "message": "Module 'py_compile' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_mcp_server.py",
+      "error_type": "import_error",
+      "line_number": 52,
+      "message": "Module 'py_compile' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_mdap_enhanced_integration.py",
+      "error_type": "import_error",
+      "line_number": 24,
+      "message": "Module 'reliability_plugin.adapters.mdap.mdap_reliability_adapter' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_mdap_enhanced_integration.py",
+      "error_type": "import_error",
+      "line_number": 43,
+      "message": "Module 'reliability_plugin.adapters.mdap.mdap_reliability_adapter' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_mdap_enhanced_integration.py",
+      "error_type": "import_error",
+      "line_number": 72,
+      "message": "Module 'reliability_plugin.adapters.mdap.mdap_reliability_adapter' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_mdap_enhanced_integration.py",
+      "error_type": "import_error",
+      "line_number": 154,
+      "message": "Module 'reliability_plugin.adapters.mdap.mdap_reliability_adapter' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_mdap_maker_matryoshka_integration.py",
+      "error_type": "import_error",
+      "line_number": 41,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_memory_leaks.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Module 'tracemalloc' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_memory_leaks.py",
+      "error_type": "import_error",
+      "line_number": 31,
+      "message": "Module 'psutil' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_memory_leak_fixes.py",
+      "error_type": "import_error",
+      "line_number": 20,
+      "message": "Module 'tracemalloc' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_memory_leak_fixes.py",
+      "error_type": "import_error",
+      "line_number": 346,
+      "message": "Module 'atexit' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_n8n_integration.py",
+      "error_type": "import_error",
+      "line_number": 33,
+      "message": "Module 'complete_n8n_integration' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_openevolve_integration_verification.py",
+      "error_type": "import_error",
+      "line_number": 47,
+      "message": "Module 'openevolve.api' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_openevolve_integration_verification.py",
+      "error_type": "import_error",
+      "line_number": 48,
+      "message": "Module 'openevolve.config' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_openevolve_integration_verification.py",
+      "error_type": "import_error",
+      "line_number": 49,
+      "message": "Module 'openevolve._version' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_openevolve_integration_verification.py",
+      "error_type": "import_error",
+      "line_number": 59,
+      "message": "Module 'openevolve._version' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_openevolve_integration_verification.py",
+      "error_type": "import_error",
+      "line_number": 190,
+      "message": "Module 'openevolve.api' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_openevolve_truly_thorough.py",
+      "error_type": "import_error",
+      "line_number": 56,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_openevolve_truly_thorough.py",
+      "error_type": "import_error",
+      "line_number": 62,
+      "message": "Module 'codecs' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_openevolve_truly_thorough.py",
+      "error_type": "import_error",
+      "line_number": 282,
+      "message": "Module 'openevolve.api' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_openevolve_truly_thorough.py",
+      "error_type": "import_error",
+      "line_number": 283,
+      "message": "Module 'openevolve.config' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_openevolve_truly_thorough.py",
+      "error_type": "import_error",
+      "line_number": 289,
+      "message": "Module 'openevolve.api' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_openevolve_truly_thorough.py",
+      "error_type": "import_error",
+      "line_number": 290,
+      "message": "Module 'openevolve.config' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_performance_integration.py",
+      "error_type": "import_error",
+      "line_number": 18,
+      "message": "Module 'tracemalloc' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_performance_integration.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module 'psutil' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_performance_integration.py",
+      "error_type": "import_error",
+      "line_number": 24,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_pes_enhanced_integration.py",
+      "error_type": "import_error",
+      "line_number": 21,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_phase4_simple.py",
+      "error_type": "import_error",
+      "line_number": 17,
+      "message": "Module 'rese_phase4_schemas' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_phase4_simple.py",
+      "error_type": "import_error",
+      "line_number": 65,
+      "message": "Module 'phase4_executor' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_phase4_simple.py",
+      "error_type": "import_error",
+      "line_number": 100,
+      "message": "Module 'adapter' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_proofgpt_issue.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Module 'transformers' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_proofgpt_issue.py",
+      "error_type": "import_error",
+      "line_number": 32,
+      "message": "Module 'transformers' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_proofgpt_issue.py",
+      "error_type": "import_error",
+      "line_number": 56,
+      "message": "Module 'transformers' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_quality_integration.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module 'dataclasses' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_reproduction.py",
+      "error_type": "import_error",
+      "line_number": 17,
+      "message": "Module 'transformers' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_reproduction.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Module 'transformers' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\test_reproduction.py",
+      "error_type": "import_error",
+      "line_number": 52,
+      "message": "Module 'transformers' not found in project",
+      "suggested_fix": "Check if module name is correct or file exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_bubblelabs_plugin.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with 'bubblelabs_nodes'",
+      "suggested_fix": "Refactor to break circular dependency, consider using TYPE_CHECKING or lazy imports"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\quality_assessment.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with 'dts_integration'",
+      "suggested_fix": "Refactor to break circular dependency, consider using TYPE_CHECKING or lazy imports"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rbac_enhanced.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with 'logging'",
+      "suggested_fix": "Refactor to break circular dependency, consider using TYPE_CHECKING or lazy imports"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\red_team.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with 'dts_integration'",
+      "suggested_fix": "Refactor to break circular dependency, consider using TYPE_CHECKING or lazy imports"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_crewai_bridge.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with 'roma_crewai_tools'",
+      "suggested_fix": "Refactor to break circular dependency, consider using TYPE_CHECKING or lazy imports"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_crewai_tools.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with 'roma_crewai_bridge'",
+      "suggested_fix": "Refactor to break circular dependency, consider using TYPE_CHECKING or lazy imports"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_mdap_maker_crewai_bridge.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with 'roma_mdap_maker_crewai_tools'",
+      "suggested_fix": "Refactor to break circular dependency, consider using TYPE_CHECKING or lazy imports"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\roma_mdap_maker_crewai_tools.py",
+      "error_type": "circular_import",
+      "line_number": 0,
+      "message": "Potential circular import with 'roma_mdap_maker_crewai_bridge'",
+      "suggested_fix": "Refactor to break circular dependency, consider using TYPE_CHECKING or lazy imports"
+    }
+  ]
+}

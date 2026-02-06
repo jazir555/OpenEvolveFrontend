@@ -122,6 +122,8 @@ def test_bubblelabs_web3_status_shape():
     assert "available" in status
     assert "ingestion_available" in status
     assert "formal_available" in status
+    assert "web3_formal_available" in status
+    assert "web3_formal_verification_available" in status
     assert "audit_exploit_verification_available" in status
     assert "composite_exploit_verification" in status.get("capabilities", [])
     assert "formal_capabilities" in status
@@ -263,6 +265,10 @@ def test_mcp_inventory_infers_formal_tools_from_capabilities(monkeypatch):
     status = decomp_mcp_tools.get_decomposition_status()
     formal_tools = set(status["mcp_tool_inventory"].get("web3_formal_tools", []))
     assert "z3_web3_audit_exploit_verification" in formal_tools
+    assert status["web3_ingestion_available"] is True
+    assert status["web3_formal_available"] is True
+    assert status["audit_exploit_verification_available"] is True
+    assert "web3_ingest_contract_audit_stack" in status["web3_ingestion_tools"]
     assert status["mcp_tool_inventory"]["web3_formal_available"] is True
     assert status["mcp_tool_inventory"]["audit_exploit_verification_available"] is True
     assert status["mcp_tool_inventory"]["formal_capabilities"]["composite_exploit_verification"] is True
@@ -290,6 +296,7 @@ def test_api_web3_status_exposes_formal_tools_from_inventory(monkeypatch):
     )
     status = api_server.web3_status()
     assert "audit_exploit_verification_available" in status
+    assert "web3_formal_available" in status
     assert status["web3_formal_tools"] == [
         "z3_translate_solidity_invariant",
         "z3_web3_audit_exploit_verification",
@@ -339,6 +346,7 @@ def test_api_web3_status_infers_available_flag_from_formal_capabilities(monkeypa
     status = api_server.web3_status()
     assert status["available"] is True
     assert status["web3_formal_verification_available"] is True
+    assert status["web3_formal_available"] is True
     assert status["audit_exploit_verification_available"] is True
 
 

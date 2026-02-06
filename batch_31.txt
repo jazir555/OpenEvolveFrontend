@@ -1,0 +1,500 @@
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\correlatedPattern\basic\automated_test_CoMine.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\correlatedPattern\basic\automated_test_CoMinePlus.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\correlatedPattern\basic\CoMineTest.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\correlatedPattern\basic\gen.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\coveragePattern\basic\abstract.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\coveragePattern\basic\automated_test_case_CMine.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\coveragePattern\basic\automated_test_case_CPPG.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\coveragePattern\basic\automated_test_CMine.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\coveragePattern\basic\automated_test_CPPG.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\coveragePattern\basic\gen.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\frequentPattern\basic\abstract.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\frequentPattern\basic\automated_test_Apriori.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\frequentPattern\basic\automated_test_case_apriori.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\frequentPattern\basic\automated_test_case_ECLAT.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\frequentPattern\basic\automated_test_case_ECLATDiffset.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\frequentPattern\basic\automated_test_case_fpgrowth.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\frequentPattern\basic\automated_test_ECLAT.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\frequentPattern\basic\automated_test_ECLATDiffset.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\frequentPattern\basic\automated_test_FPGrowth.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\frequentPattern\basic\gen.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\frequentPattern\basic\test_apriori.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\frequentPattern\basic\test_aprioribitset.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\frequentPattern\basic\test_eclat.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\frequentPattern\basic\test_ECLATbitset.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\frequentPattern\basic\test_eclatdiffset.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\frequentPattern\basic\test_fpgrowth.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\frequentPattern\closed\test_CHARM.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\frequentPattern\topk\test_FAE.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\fuzzyCorrelatedPattern\basic\test_fcpgrowth.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\fuzzyFrequentPattern\basic\FFIMiner.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\fuzzyGeoreferencedFrequentPattern\basic\FFSPMiner.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\georeferencedFrequentPattern\basic\test_spatialeclat.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\georeferencedPartialPeriodicPattern\basic\test_steclat.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\geoReferencedPeriodicFrequentPattern\basic\test_gpfpminer.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\graphTransactionalCoveragePatterns\basic\graph_gen.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\highUtilityFrequentPattern\basic\test_HUFIM.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\highUtilityGeoreferencedFrequentPattern\basic\test_SHUFIM.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\highUtilityPattern\basic\test_EFIM.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\multipleMinimumFrequentPatterns\basic\test_CFPGrowth.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\multipleMinimumFrequentPatterns\basic\test_CFPGrowthPlus.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\recurringPattern\basic\abstract.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\recurringPattern\basic\automated_test_case_RPGrowth.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\recurringPattern\basic\automated_test_RPGrowth.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\recurringPattern\basic\gen.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\sequentialPattren\basic\prefixSpan\gen.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\sequentialPattren\basic\prefixSpan\prefixSpan.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\sequentialPattren\basic\prefixSpan\test_prefixSpan.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\sequentialPattren\basic\SPADE\gen.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\sequentialPattren\basic\SPADE\SPADE.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\sequentialPattren\basic\SPADE\test_SPADE.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\sequentialPattren\basic\SPAM\gen.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\sequentialPattren\basic\SPAM\SPAM.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\sequentialPattren\basic\SPAM\test_SPAM.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\subgraphMining\basic\generate.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\subgraphMining\basic\test_gspan.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\subgraphMining\basic\test_gspan_generic.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\subgraphMining\topK\generate.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\subgraphMining\topK\test_tkg.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\subgraphMining\topK\test_tkg_generic.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\uncertainFrequentPattern\basic\test_pufgrowth.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\weightedFrequentPatterns\basic\test_WFIM.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\tests\weightedUncertainFrequentPattern\basic\test_WUFIM.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\peirce\critique\abstract.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\peirce\critique\coherence.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\peirce\critique\ilp.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\peirce\critique\isabelle.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\peirce\critique\parsimony.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\peirce\critique\uncertainty.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\peirce\critique\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\peirce\evaluation\evaluation_model.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\peirce\formalisation\abstract.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\peirce\formalisation\ilp_formaliser.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\peirce\formalisation\isabelle_formaliser.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\peirce\generation\abstract.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\peirce\generation\causal.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\peirce\generation\gpt.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\peirce\prompt\prompt_model.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\peirce\refinement\refinement_model.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\peirce\retrieval\abstract.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\peirce\retrieval\bm25.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\peirce\retrieval\ensemble.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\peirce\retrieval\retrieval_model.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\peirce\retrieval\sentence_transformer.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\peirce\retrieval\unification.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\peirce\retrieval\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\setup.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\versioneer.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\ai\assets\pysa_extract_callers.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\demos\demos_databases_apis\alienvault\gotx.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\demos\demos_databases_apis\alienvault\unimatrix.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\demos\demos_databases_apis\databricks_pyspark\graphistry-notebook-dashboard.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\docs\source\conf.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\ai_utils.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\ArrowFileUploader.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\arrow_uploader.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\bolt_util.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\client_session.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\constants.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\dgl_utils.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\embed_utils.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\Engine.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\exceptions.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\features.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\feature_utils.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\gremlin.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\hyper.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\hyper_dask.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\kepler.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layouts.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\messages.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\networks.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\nodexlistry.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\outliers.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\Plottable.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\plotter.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\PlotterBase.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\privacy.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\pygraphistry.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\text_utils.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tigeristry.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\umap_utils.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\util.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\_version.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\ast.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\ASTSerializable.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\ast_temporal.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\calls.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\chain.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\chain_let.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\chain_remote.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\cluster.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\collapse.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\ComputeMixin.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\conditional.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\engine_coercion.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\exceptions.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\execution_context.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\filter_by_dict.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\gfql_unified.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\graph_operation.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\hop.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\python_remote.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\typing.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\validate_schema.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\gfql\call_executor.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\gfql\call_safelist.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\gfql\exceptions.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\gfql\identifiers.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\gfql\validate.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\gfql\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\gfql\policy\exceptions.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\gfql\policy\shortcuts.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\gfql\policy\stats.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\gfql\policy\types.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\gfql\policy\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\gfql_validation\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\predicates\ASTPredicate.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\predicates\categorical.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\predicates\comparison.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\predicates\from_json.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\predicates\is_in.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\predicates\numeric.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\predicates\str.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\predicates\temporal.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\predicates\types.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\predicates\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\util\generate_safe_column_name.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\util\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\validate\validate_schema.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\compute\validate\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\gfql\ref\enumerator.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\io\metadata.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\io\types.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\io\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\circle.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\fa2.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\mercator.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\gib\gib.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\gib\layout_bulk.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\gib\layout_non_bulk.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\gib\partition.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\gib\partitioned_layout.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\gib\style.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\gib\treemap.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\gib\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\graph\edge.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\graph\edgeBase.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\graph\graph.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\graph\graphBase.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\graph\vertex.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\graph\vertexBase.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\graph\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\modularity_weighted\modularity_weighted.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\modularity_weighted\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\ring\categorical.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\ring\continuous.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\ring\time.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\ring\util.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\ring\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\sugiyama\sugiyamaLayout.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\sugiyama\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\utils\dummyVertex.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\utils\geometry.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\utils\layer.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\utils\layoutVertex.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\utils\poset.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\utils\rectangle.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\utils\routing.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\layout\utils\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\models\ModelDict.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\models\types.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\models\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\models\compute\chain_remote.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\models\compute\dbscan.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\models\compute\features.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\models\compute\umap.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\models\compute\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\models\gfql\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\models\gfql\coercions\numeric.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\models\gfql\coercions\temporal.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\models\gfql\coercions\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\models\gfql\types\call.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\models\gfql\types\guards.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\models\gfql\types\numeric.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\models\gfql\types\predicates.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\models\gfql\types\temporal.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\models\gfql\types\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\plugins\cugraph.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\plugins\graphviz.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\plugins\igraph.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\plugins\kusto.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\plugins\spanner.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\plugins\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\plugins_types\cugraph_types.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\plugins_types\embed_types.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\plugins_types\graphviz_types.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\plugins_types\hypergraph.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\plugins_types\kusto_types.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\plugins_types\spanner_types.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\plugins_types\umap_types.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\plugins_types\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\render\resolve_render_mode.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\render\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\common.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_ArrowFileUploader.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_arrow_uploader.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_bolt_util.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_certificate_validation_session.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_chain_remote_auth.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_client_session.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_coerce_col_safe_int32.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_compute.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_compute_chain.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_compute_cluster.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_compute_collapse.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_compute_filter_by_dict.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_compute_hops.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_conditional.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_dataset_id_invalidation.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_dgl_utils.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_embed_utils.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_feature_utils.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_gfql_remote_metadata.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_gfql_remote_persistence.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_gremlin.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_hypergraph.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_hyper_dask.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_ipython.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_kepler.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_kusto.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_layout.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_logging.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_nodexl.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_plotter.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_policy_behavior_modification.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_policy_closure_state.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_policy_exceptions.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_policy_hooks.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_policy_integration.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_policy_recursion.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_policy_remote.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_policy_validation.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_pygraphistry.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_spanner.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_text_utils.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_tigergraph.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\test_umap_utils.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_ast.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_astcall_chains.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_astcall_topology.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_ast_errors.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_ast_serializable_validation.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_call_boundaries.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_call_engine_coercion.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_call_operations.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_call_operations_gpu.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_call_schema_validation.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_chain.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_chain_column_conflicts.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_chain_concat.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_chain_let.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_chain_let_gpu.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_chain_let_remote_integration.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_chain_schema_prevalidation.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_chain_schema_validation.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_chain_validation.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_dataframe_primitives.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_engine_coercion_helper.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_get_degrees_cudf.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_gfql.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_gfql_call_validation.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_gfql_exceptions.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_gfql_hypergraph.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_gfql_validation.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_graph_operation.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_hop.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_hop_column_conflicts.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_hop_column_conflicts_solution.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_hypergraph_opts_validation.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_identifier_conflicts.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_id_column_restriction.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_indegrees_after_umap.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_let.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_let_engine_coercion.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_let_matchers.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\test_validate.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\gfql\test_let_schema_changers.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\gfql\test_policy_shortcuts.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\gfql\test_schema_changers.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\gfql\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\gfql\layouts\test_call_layout_radial.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\gfql\layouts\test_call_layout_radial_gpu.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\gfql\layouts\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\predicates\test_categorical.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\predicates\test_eq_types.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\predicates\test_from_json.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\predicates\test_is_in.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\predicates\test_numeric.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\predicates\test_str.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\predicates\test_temporal.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\compute\predicates\test_temporal_values.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\layout\test_gib.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\layout\modularity_weighted\test_modularity_weighted.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\layout\ring\test_continuous.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\layout\ring\test_ring_categorical.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\layout\ring\test_time.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\layout\sugiyama\test_sugiyama_none_dereference.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\plugins\test_cugraph.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\plugins\test_graphviz.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\plugins\test_igraph.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\render\test_resolve_render_mode.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\typing\gfql\layout_radial_typing.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\typing\gfql\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\utils\test_json.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\tests\validate\test_validate_encodings.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\utils\json.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\utils\lazy_import.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\utils\plottable_memoize.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\utils\requests.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\utils\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\validate\validate_encodings.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\graphistry\validate\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\tests\gfql\ref\test_enumerator_parity.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\pygraphistry\tests\gfql\ref\test_ref_enumerator.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_bubblelab_integration\node_modules\shell-quote\print.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\config.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\hybrid_knowledge.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\run_tests.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\agents\base_agent.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\agents\blue_team_agent.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\agents\gold_team_agent.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\agents\red_team_agent.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\agents\run_phase2_tests.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\agents\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\agents\communication\a2a_protocol.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\agents\communication\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\agents\examples\ragbits_enhanced_blue_team.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\agents\tests\test_agent_coordination.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\agents\tools\knowledge_search_tool.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\agents\tools\pattern_analysis_tool.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\agents\tools\ragbits_enhanced_tools.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\agents\tools\solution_eval_tool.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\agents\tools\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\document_search\knowledge_retriever.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\document_search\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\evaluation\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\evaluation\comparison\historical_comparator.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\evaluation\comparison\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\evaluation\dashboard\evaluation_dashboard.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\evaluation\dashboard\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\evaluation\gauntlets\enhanced_gauntlet.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\evaluation\gauntlets\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\evaluation\metrics\evaluation_metrics.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\evaluation\metrics\metrics_analyzer.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\evaluation\metrics\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\evaluation\tests\test_phase3_evaluation.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\evaluation\tests\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\intermediary_storage\artifact_lifecycle.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\intermediary_storage\context_gatherer.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\intermediary_storage\storage_manager.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\intermediary_storage\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\knowledge_base\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\knowledge_base\enrichment\knowledge_enricher.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\knowledge_base\enrichment\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\knowledge_base\extraction\knowledge_extractor.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\knowledge_base\extraction\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\knowledge_base\indexing\vector_optimizer.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\knowledge_base\indexing\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\knowledge_base\rag_engine\advanced_rag.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\knowledge_base\rag_engine\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\knowledge_base\tests\test_phase4_knowledge_base.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\knowledge_base\tests\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\tests\test_artifact_lifecycle.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\tests\test_config.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\tests\test_context_gatherer.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\tests\test_integration.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\tests\test_storage_manager.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\tests\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\ui_cli\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\ui_cli\cli\ragbits_cli.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\ui_cli\cli\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\ui_cli\exploration\knowledge_explorer.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\ui_cli\exploration\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\ui_cli\interfaces\review_interface.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\ui_cli\interfaces\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\ui_cli\monitoring\dashboard.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\ui_cli\monitoring\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\ui_cli\tests\test_phase5_ui_cli.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ragbits_integration\ui_cli\tests\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese\analyze_bytecode.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_kg_plugin\plugin.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_kg_plugin\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_kg_plugin\commands\kg_commands.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_kg_plugin\commands\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_kg_plugin\examples\plugin_demo.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_kg_plugin\examples\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_kg_plugin\integration\knowledge_integration.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_kg_plugin\integration\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_kg_plugin\interactive\exploration.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_kg_plugin\interactive\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_kg_plugin\menus\kg_menu.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_kg_plugin\menus\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_kg_plugin\panels\analytics_dashboard.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_kg_plugin\panels\knowledge_graph_panel.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_kg_plugin\panels\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_kg_plugin\tests\test_plugin.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_kg_plugin\tests\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_kg_plugin\visualization\ascii_graph.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_kg_plugin\visualization\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_modules\roma_associative_integration.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_modules\roma_config.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_modules\roma_reliability_ssot.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_modules\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_modules\tests\test_roma_associative_integration.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\roma_modules\tests\__init__.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\scripts\verify_fallback_implementation.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_ace_integrations.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_adaptive_maker_evolution.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_additional_coverage.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_agentic_context_integration.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_agentjson_integration.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_alerting_system.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_analytics_manager.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_api_server.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_auth_system.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_backend_startup.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_blue_team.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_bubblelabs_integrations.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_causal_learn_integration.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_collaboration.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_content_analyzer.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_context_manager.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_core_modules.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_coverage_gap_filler.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_coverage_gap_filler_2.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_coverage_gap_filler_3.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_coverage_gap_filler_4.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_coverage_gap_filler_5.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_coverage_gap_filler_6.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_coverage_gap_filler_7.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_crewai_integration.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_database_persistence.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_decomposition_engine.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_deepke_integration.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_domain_optimizers.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_dspy_integration.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_e2e_complete_workflows.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_e2e_knowledge_pipelines.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_enhanced_adversarial.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_entanglement_matrix.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_enterprise_integrations.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_evaluator_team.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_evolution_engine.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_fix.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_gauntlet_manager.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_globalchem_integration.py

@@ -1,0 +1,2414 @@
+{
+  "total_files": 500,
+  "errors_found": 344,
+  "errors": [
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\unified_mcp_server.py",
+      "error_type": "import_error",
+      "line_number": 79,
+      "message": "Module not found: mcp.server",
+      "suggested_fix": "Check if module 'mcp.server' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\unified_mcp_server.py",
+      "error_type": "import_error",
+      "line_number": 80,
+      "message": "Module not found: mcp.server.models",
+      "suggested_fix": "Check if module 'mcp.server.models' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\unified_mcp_server.py",
+      "error_type": "import_error",
+      "line_number": 81,
+      "message": "Module not found: mcp.types",
+      "suggested_fix": "Check if module 'mcp.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\unified_mcp_server.py",
+      "error_type": "import_error",
+      "line_number": 82,
+      "message": "Module not found: mcp.server.stdio",
+      "suggested_fix": "Check if module 'mcp.server.stdio' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\workflow_engine.py",
+      "error_type": "import_error",
+      "line_number": 6664,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ace\\ace\\ace.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Relative import cannot resolve: .core",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ace\\ace\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 49,
+      "message": "Relative import cannot resolve: .core",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ace\\ace\\core\\curator.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Relative import cannot resolve: ..prompts.curator",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ace\\ace\\core\\generator.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Relative import cannot resolve: ..prompts.generator",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ace\\ace\\core\\reflector.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Relative import cannot resolve: ..prompts.reflector",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ace\\ace\\core\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 6,
+      "message": "Relative import cannot resolve: .generator",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ace\\ace\\core\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 7,
+      "message": "Relative import cannot resolve: .reflector",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ace\\ace\\core\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Relative import cannot resolve: .curator",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ace\\ace\\core\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Relative import cannot resolve: .bulletpoint_analyzer",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ace\\ace\\prompts\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 6,
+      "message": "Relative import cannot resolve: .generator",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ace\\ace\\prompts\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 7,
+      "message": "Relative import cannot resolve: .reflector",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ace\\ace\\prompts\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Relative import cannot resolve: .curator",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\ace\\eval\\finance\\run.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Relative import cannot resolve: .data_processor",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\adaptive_mdap\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 106,
+      "message": "Relative import cannot resolve: .integrations.workflow_engine_integration",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\api\\gateway\\BACKEND_INTEGRATION_EXAMPLE.py",
+      "error_type": "import_error",
+      "line_number": 17,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\api\\gateway\\main.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\api\\gateway\\middleware\\auth.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\api\\gateway\\middleware\\cors.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\api\\gateway\\middleware\\rate_limit.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\api\\gateway\\middleware\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 2,
+      "message": "Relative import cannot resolve: .auth",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\api\\gateway\\middleware\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 12,
+      "message": "Relative import cannot resolve: .cors",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\api\\gateway\\middleware\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Relative import cannot resolve: .rate_limit",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\api\\gateway\\models\\icr_schemas.py",
+      "error_type": "import_error",
+      "line_number": 15,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\api\\gateway\\models\\schemas.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\api\\gateway\\models\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 2,
+      "message": "Relative import cannot resolve: .schemas",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\api\\gateway\\models\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 3,
+      "message": "Relative import cannot resolve: .icr_schemas",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\api\\gateway\\realtime\\manager.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\api\\gateway\\realtime\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 2,
+      "message": "Relative import cannot resolve: .manager",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\api\\gateway\\routes\\auth.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\api\\gateway\\routes\\evolution.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\api\\gateway\\routes\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 2,
+      "message": "Relative import cannot resolve: .",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\api\\gateway\\utils\\errors.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\api\\gateway\\utils\\responses.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\api\\gateway\\utils\\validators.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\api\\gateway\\utils\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 2,
+      "message": "Relative import cannot resolve: .errors",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\api\\gateway\\utils\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Relative import cannot resolve: .responses",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\api\\gateway\\utils\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 22,
+      "message": "Relative import cannot resolve: .validators",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\api_server.py",
+      "error_type": "import_error",
+      "line_number": 259,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\assembly_node.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\backup_recovery_node.py",
+      "error_type": "import_error",
+      "line_number": 33,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\bias_detection_node.py",
+      "error_type": "import_error",
+      "line_number": 25,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\cache_monitoring.py",
+      "error_type": "import_error",
+      "line_number": 12,
+      "message": "Relative import cannot resolve: .solution_cache",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\cache_monitoring.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Relative import cannot resolve: .gauntlet_metrics",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\cache_monitoring.py",
+      "error_type": "import_error",
+      "line_number": 234,
+      "message": "Relative import cannot resolve: .solution_cache",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\cache_monitoring.py",
+      "error_type": "import_error",
+      "line_number": 162,
+      "message": "Relative import cannot resolve: .solution_cache",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\cache_monitoring.py",
+      "error_type": "import_error",
+      "line_number": 181,
+      "message": "Relative import cannot resolve: .solution_cache",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\cache_monitoring.py",
+      "error_type": "import_error",
+      "line_number": 197,
+      "message": "Relative import cannot resolve: .solution_cache",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\cache_monitoring.py",
+      "error_type": "import_error",
+      "line_number": 237,
+      "message": "Relative import cannot resolve: .gauntlet_config",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\causal_analysis_node.py",
+      "error_type": "import_error",
+      "line_number": 18,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\change_detection_node.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\circuit_breaker_dashboard.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Relative import cannot resolve: .circuit_breakers",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\contradiction_detection_node.py",
+      "error_type": "import_error",
+      "line_number": 17,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\crash_analyzer.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Relative import cannot resolve: .fuzzing",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\decomposition_node.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\deduplication_node.py",
+      "error_type": "import_error",
+      "line_number": 22,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\entity_profile_node.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\explainability_node.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\feature_flags.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Relative import cannot resolve: .gauntlet_metrics",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\gauntlet_integration_example.py",
+      "error_type": "import_error",
+      "line_number": 18,
+      "message": "Relative import cannot resolve: .parallel_executor",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\gauntlet_integration_example.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Relative import cannot resolve: .solution_cache",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\gauntlet_integration_example.py",
+      "error_type": "import_error",
+      "line_number": 27,
+      "message": "Relative import cannot resolve: .visualization",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\gauntlet_integration_example.py",
+      "error_type": "import_error",
+      "line_number": 31,
+      "message": "Relative import cannot resolve: .checkpoint_manager",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\gauntlet_integration_example.py",
+      "error_type": "import_error",
+      "line_number": 35,
+      "message": "Relative import cannot resolve: .gauntlet_pipeline_checkpointed",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\gauntlet_node.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\gauntlet_pipeline_checkpointed.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Relative import cannot resolve: .checkpoint_manager",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\gauntlet_solver.py",
+      "error_type": "import_error",
+      "line_number": 18,
+      "message": "Relative import cannot resolve: .parallel_executor",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\gauntlet_solver.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Relative import cannot resolve: .worker_pool_executor",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\gauntlet_solver.py",
+      "error_type": "import_error",
+      "line_number": 27,
+      "message": "Relative import cannot resolve: .solution_cache",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\gauntlet_solver.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Relative import cannot resolve: .checkpoint_manager",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\gauntlet_solver.py",
+      "error_type": "import_error",
+      "line_number": 29,
+      "message": "Relative import cannot resolve: .problem_visualization",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\knowledge_alerting_node.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\knowledge_analytics_node.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\knowledge_enrichment_node.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\knowledge_evolution_node.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\knowledge_extraction_node.py",
+      "error_type": "import_error",
+      "line_number": 18,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\knowledge_federation_node.py",
+      "error_type": "import_error",
+      "line_number": 17,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\knowledge_import_export_node.py",
+      "error_type": "import_error",
+      "line_number": 32,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\knowledge_integration_node.py",
+      "error_type": "import_error",
+      "line_number": 10,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\knowledge_learning_node.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\knowledge_query_node.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\knowledge_reasoning_node.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\knowledge_summarization_node.py",
+      "error_type": "import_error",
+      "line_number": 17,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\knowledge_validation_node.py",
+      "error_type": "import_error",
+      "line_number": 18,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\knowledge_visualization_node.py",
+      "error_type": "import_error",
+      "line_number": 22,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\natural_language_interface_node.py",
+      "error_type": "import_error",
+      "line_number": 18,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\output_node.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\parallel_executor.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\pattern_mining_node.py",
+      "error_type": "import_error",
+      "line_number": 20,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\quality_assurance_node.py",
+      "error_type": "import_error",
+      "line_number": 22,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\recommendation_engine_node.py",
+      "error_type": "import_error",
+      "line_number": 22,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\red_team_fuzzing.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Relative import cannot resolve: .fuzzing",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\red_team_fuzzing.py",
+      "error_type": "import_error",
+      "line_number": 20,
+      "message": "Relative import cannot resolve: .crash_analyzer",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\security_compliance_node.py",
+      "error_type": "import_error",
+      "line_number": 21,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\semantic_search_node.py",
+      "error_type": "import_error",
+      "line_number": 18,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\solution_node.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\streaming_ingestion_node.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\subproblem_node.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\temporal_knowledge_node.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\traceability_storage.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Relative import cannot resolve: .traceability",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\uncertainty_quantification_node.py",
+      "error_type": "import_error",
+      "line_number": 17,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\verification_node.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\version_control_node.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\visualization_api.py",
+      "error_type": "import_error",
+      "line_number": 17,
+      "message": "Relative import cannot resolve: .problem_visualization",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\workflow_orchestration_node.py",
+      "error_type": "import_error",
+      "line_number": 18,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Relative import cannot resolve: .base_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 93,
+      "message": "Relative import cannot resolve: .parallel_executor",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 101,
+      "message": "Relative import cannot resolve: .worker_pool_executor",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 109,
+      "message": "Relative import cannot resolve: .gauntlet_solver",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 114,
+      "message": "Relative import cannot resolve: .solution_cache",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 122,
+      "message": "Relative import cannot resolve: .checkpoint_manager",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 131,
+      "message": "Relative import cannot resolve: .change_detection_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 136,
+      "message": "Relative import cannot resolve: .recommendation_engine_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_nodes\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 140,
+      "message": "Relative import cannot resolve: .causal_analysis_node",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 43,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 49,
+      "message": "Module not found: adaptive_mdap.classifiers.task_complexity_classifier",
+      "suggested_fix": "Check if module 'adaptive_mdap.classifiers.task_complexity_classifier' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 55,
+      "message": "Module not found: adaptive_mdap.allocators.resource_allocator",
+      "suggested_fix": "Check if module 'adaptive_mdap.allocators.resource_allocator' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 61,
+      "message": "Module not found: adaptive_mdap.controllers.execution_controller",
+      "suggested_fix": "Check if module 'adaptive_mdap.controllers.execution_controller' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 67,
+      "message": "Module not found: adaptive_mdap.integrations.subproblem_solver_integration",
+      "suggested_fix": "Check if module 'adaptive_mdap.integrations.subproblem_solver_integration' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 73,
+      "message": "Module not found: adaptive_mdap.tools.cost_calculator",
+      "suggested_fix": "Check if module 'adaptive_mdap.tools.cost_calculator' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 79,
+      "message": "Module not found: adaptive_mdap.monitoring.health",
+      "suggested_fix": "Check if module 'adaptive_mdap.monitoring.health' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 85,
+      "message": "Module not found: adaptive_mdap.monitoring.dashboard",
+      "suggested_fix": "Check if module 'adaptive_mdap.monitoring.dashboard' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 109,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 110,
+      "message": "Module not found: adaptive_mdap.classifiers.task_complexity_classifier",
+      "suggested_fix": "Check if module 'adaptive_mdap.classifiers.task_complexity_classifier' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 111,
+      "message": "Module not found: adaptive_mdap.allocators.resource_allocator",
+      "suggested_fix": "Check if module 'adaptive_mdap.allocators.resource_allocator' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 167,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 168,
+      "message": "Module not found: adaptive_mdap.controllers.execution_controller",
+      "suggested_fix": "Check if module 'adaptive_mdap.controllers.execution_controller' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 212,
+      "message": "Module not found: adaptive_mdap.tools.cost_calculator",
+      "suggested_fix": "Check if module 'adaptive_mdap.tools.cost_calculator' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 250,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 251,
+      "message": "Module not found: adaptive_mdap.classifiers.task_complexity_classifier",
+      "suggested_fix": "Check if module 'adaptive_mdap.classifiers.task_complexity_classifier' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 252,
+      "message": "Module not found: adaptive_mdap.allocators.resource_allocator",
+      "suggested_fix": "Check if module 'adaptive_mdap.allocators.resource_allocator' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 311,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 331,
+      "message": "Module not found: adaptive_mdap.allocators.resource_allocator",
+      "suggested_fix": "Check if module 'adaptive_mdap.allocators.resource_allocator' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\verify_integration.py",
+      "error_type": "import_error",
+      "line_number": 350,
+      "message": "Module not found: adaptive_mdap.allocators.resource_allocator",
+      "suggested_fix": "Check if module 'adaptive_mdap.allocators.resource_allocator' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 39,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 48,
+      "message": "Module not found: adaptive_mdap.core.errors",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.errors' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 58,
+      "message": "Module not found: adaptive_mdap.classifiers.task_complexity_classifier",
+      "suggested_fix": "Check if module 'adaptive_mdap.classifiers.task_complexity_classifier' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 63,
+      "message": "Module not found: adaptive_mdap.allocators.resource_allocator",
+      "suggested_fix": "Check if module 'adaptive_mdap.allocators.resource_allocator' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 69,
+      "message": "Module not found: adaptive_mdap.controllers.execution_controller",
+      "suggested_fix": "Check if module 'adaptive_mdap.controllers.execution_controller' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 77,
+      "message": "Module not found: adaptive_mdap.integrations.crewai_integration",
+      "suggested_fix": "Check if module 'adaptive_mdap.integrations.crewai_integration' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 82,
+      "message": "Module not found: adaptive_mdap.integrations.subproblem_solver_integration",
+      "suggested_fix": "Check if module 'adaptive_mdap.integrations.subproblem_solver_integration' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 106,
+      "message": "Module not found: adaptive_mdap.tools.cost_calculator",
+      "suggested_fix": "Check if module 'adaptive_mdap.tools.cost_calculator' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 115,
+      "message": "Module not found: adaptive_mdap.config.profiles",
+      "suggested_fix": "Check if module 'adaptive_mdap.config.profiles' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 122,
+      "message": "Module not found: adaptive_mdap.monitoring.health",
+      "suggested_fix": "Check if module 'adaptive_mdap.monitoring.health' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 130,
+      "message": "Module not found: adaptive_mdap.monitoring.dashboard",
+      "suggested_fix": "Check if module 'adaptive_mdap.monitoring.dashboard' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 140,
+      "message": "Module not found: adaptive_mdap.monitoring.alerts",
+      "suggested_fix": "Check if module 'adaptive_mdap.monitoring.alerts' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 152,
+      "message": "Module not found: adaptive_mdap.utils.metrics",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.metrics' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 153,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 154,
+      "message": "Module not found: adaptive_mdap.utils.cache",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.cache' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\allocators\\resource_allocator.py",
+      "error_type": "import_error",
+      "line_number": 21,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\allocators\\resource_allocator.py",
+      "error_type": "import_error",
+      "line_number": 22,
+      "message": "Module not found: adaptive_mdap.core.errors",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.errors' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\allocators\\resource_allocator.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Module not found: adaptive_mdap.utils.metrics",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.metrics' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\allocators\\resource_allocator.py",
+      "error_type": "import_error",
+      "line_number": 24,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\allocators\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 3,
+      "message": "Module not found: adaptive_mdap.allocators.resource_allocator",
+      "suggested_fix": "Check if module 'adaptive_mdap.allocators.resource_allocator' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\classifiers\\task_complexity_classifier.py",
+      "error_type": "import_error",
+      "line_number": 30,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\classifiers\\task_complexity_classifier.py",
+      "error_type": "import_error",
+      "line_number": 31,
+      "message": "Module not found: adaptive_mdap.core.errors",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.errors' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\classifiers\\task_complexity_classifier.py",
+      "error_type": "import_error",
+      "line_number": 32,
+      "message": "Module not found: adaptive_mdap.utils.cache",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.cache' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\classifiers\\task_complexity_classifier.py",
+      "error_type": "import_error",
+      "line_number": 33,
+      "message": "Module not found: adaptive_mdap.utils.metrics",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.metrics' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\classifiers\\task_complexity_classifier.py",
+      "error_type": "import_error",
+      "line_number": 34,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\classifiers\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 3,
+      "message": "Module not found: adaptive_mdap.classifiers.task_complexity_classifier",
+      "suggested_fix": "Check if module 'adaptive_mdap.classifiers.task_complexity_classifier' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\config\\loader.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Module not found: adaptive_mdap.core.errors",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.errors' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\config\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 3,
+      "message": "Module not found: adaptive_mdap.config.loader",
+      "suggested_fix": "Check if module 'adaptive_mdap.config.loader' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\config\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 4,
+      "message": "Module not found: adaptive_mdap.config.profiles",
+      "suggested_fix": "Check if module 'adaptive_mdap.config.profiles' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\controllers\\execution_controller.py",
+      "error_type": "import_error",
+      "line_number": 20,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\controllers\\execution_controller.py",
+      "error_type": "import_error",
+      "line_number": 26,
+      "message": "Module not found: adaptive_mdap.core.errors",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.errors' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\controllers\\execution_controller.py",
+      "error_type": "import_error",
+      "line_number": 27,
+      "message": "Module not found: adaptive_mdap.classifiers.task_complexity_classifier",
+      "suggested_fix": "Check if module 'adaptive_mdap.classifiers.task_complexity_classifier' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\controllers\\execution_controller.py",
+      "error_type": "import_error",
+      "line_number": 28,
+      "message": "Module not found: adaptive_mdap.allocators.resource_allocator",
+      "suggested_fix": "Check if module 'adaptive_mdap.allocators.resource_allocator' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\controllers\\execution_controller.py",
+      "error_type": "import_error",
+      "line_number": 32,
+      "message": "Module not found: adaptive_mdap.integrations.crewai_integration",
+      "suggested_fix": "Check if module 'adaptive_mdap.integrations.crewai_integration' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\controllers\\execution_controller.py",
+      "error_type": "import_error",
+      "line_number": 36,
+      "message": "Module not found: adaptive_mdap.utils.metrics",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.metrics' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\controllers\\execution_controller.py",
+      "error_type": "import_error",
+      "line_number": 37,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\controllers\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 3,
+      "message": "Module not found: adaptive_mdap.controllers.execution_controller",
+      "suggested_fix": "Check if module 'adaptive_mdap.controllers.execution_controller' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\core\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 3,
+      "message": "Module not found: adaptive_mdap.core.errors",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.errors' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\core\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\cloud_api_client.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\crewai_integration.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\crewai_integration.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\subproblem_solver_integration.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\subproblem_solver_integration.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Module not found: adaptive_mdap.classifiers.task_complexity_classifier",
+      "suggested_fix": "Check if module 'adaptive_mdap.classifiers.task_complexity_classifier' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\subproblem_solver_integration.py",
+      "error_type": "import_error",
+      "line_number": 15,
+      "message": "Module not found: adaptive_mdap.allocators.resource_allocator",
+      "suggested_fix": "Check if module 'adaptive_mdap.allocators.resource_allocator' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\subproblem_solver_integration.py",
+      "error_type": "import_error",
+      "line_number": 18,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\subproblem_solver_integration.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module not found: adaptive_mdap.utils.metrics",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.metrics' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\subproblem_solver_integration.py",
+      "error_type": "import_error",
+      "line_number": 317,
+      "message": "Module not found: adaptive_mdap.config.profiles",
+      "suggested_fix": "Check if module 'adaptive_mdap.config.profiles' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\subproblem_solver_integration.py",
+      "error_type": "import_error",
+      "line_number": 90,
+      "message": "Module not found: adaptive_mdap.controllers.execution_controller",
+      "suggested_fix": "Check if module 'adaptive_mdap.controllers.execution_controller' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\workflow_engine_integration.py",
+      "error_type": "import_error",
+      "line_number": 12,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\workflow_engine_integration.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module not found: adaptive_mdap.classifiers.task_complexity_classifier",
+      "suggested_fix": "Check if module 'adaptive_mdap.classifiers.task_complexity_classifier' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\workflow_engine_integration.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Module not found: adaptive_mdap.allocators.resource_allocator",
+      "suggested_fix": "Check if module 'adaptive_mdap.allocators.resource_allocator' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\workflow_engine_integration.py",
+      "error_type": "import_error",
+      "line_number": 15,
+      "message": "Module not found: adaptive_mdap.controllers.execution_controller",
+      "suggested_fix": "Check if module 'adaptive_mdap.controllers.execution_controller' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\workflow_engine_integration.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Module not found: adaptive_mdap.integrations.crewai_integration",
+      "suggested_fix": "Check if module 'adaptive_mdap.integrations.crewai_integration' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Module not found: adaptive_mdap.integrations.subproblem_solver_integration",
+      "suggested_fix": "Check if module 'adaptive_mdap.integrations.subproblem_solver_integration' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\integrations\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 40,
+      "message": "Module not found: adaptive_mdap.integrations.cloud_api_client",
+      "suggested_fix": "Check if module 'adaptive_mdap.integrations.cloud_api_client' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\monitoring\\alerts.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\monitoring\\dashboard.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\monitoring\\dashboard.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Module not found: adaptive_mdap.utils.metrics",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.metrics' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\monitoring\\health.py",
+      "error_type": "import_error",
+      "line_number": 10,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\monitoring\\health.py",
+      "error_type": "import_error",
+      "line_number": 148,
+      "message": "Module not found: adaptive_mdap.utils.cache",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.cache' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\monitoring\\health.py",
+      "error_type": "import_error",
+      "line_number": 181,
+      "message": "Module not found: adaptive_mdap.utils.metrics",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.metrics' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\monitoring\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 7,
+      "message": "Module not found: adaptive_mdap.monitoring.health",
+      "suggested_fix": "Check if module 'adaptive_mdap.monitoring.health' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\monitoring\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 15,
+      "message": "Module not found: adaptive_mdap.monitoring.dashboard",
+      "suggested_fix": "Check if module 'adaptive_mdap.monitoring.dashboard' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\monitoring\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 25,
+      "message": "Module not found: adaptive_mdap.monitoring.alerts",
+      "suggested_fix": "Check if module 'adaptive_mdap.monitoring.alerts' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\test\\test_allocators.py",
+      "error_type": "import_error",
+      "line_number": 7,
+      "message": "Module not found: adaptive_mdap.allocators.resource_allocator",
+      "suggested_fix": "Check if module 'adaptive_mdap.allocators.resource_allocator' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\test\\test_allocators.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\test\\test_classifiers.py",
+      "error_type": "import_error",
+      "line_number": 7,
+      "message": "Module not found: adaptive_mdap.classifiers.task_complexity_classifier",
+      "suggested_fix": "Check if module 'adaptive_mdap.classifiers.task_complexity_classifier' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\test\\test_classifiers.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\test\\test_controllers.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module not found: adaptive_mdap.controllers.execution_controller",
+      "suggested_fix": "Check if module 'adaptive_mdap.controllers.execution_controller' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\test\\test_controllers.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\test\\test_monitoring.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Module not found: adaptive_mdap.monitoring.health",
+      "suggested_fix": "Check if module 'adaptive_mdap.monitoring.health' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\test\\test_monitoring.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Module not found: adaptive_mdap.monitoring.dashboard",
+      "suggested_fix": "Check if module 'adaptive_mdap.monitoring.dashboard' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\test\\test_monitoring.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Module not found: adaptive_mdap.monitoring.alerts",
+      "suggested_fix": "Check if module 'adaptive_mdap.monitoring.alerts' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\test\\test_monitoring.py",
+      "error_type": "import_error",
+      "line_number": 403,
+      "message": "Module not found: adaptive_mdap.monitoring.alerts",
+      "suggested_fix": "Check if module 'adaptive_mdap.monitoring.alerts' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\tools\\cost_calculator.py",
+      "error_type": "import_error",
+      "line_number": 19,
+      "message": "Module not found: adaptive_mdap.core.types",
+      "suggested_fix": "Check if module 'adaptive_mdap.core.types' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\tools\\cost_calculator.py",
+      "error_type": "import_error",
+      "line_number": 20,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\tools\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 3,
+      "message": "Module not found: adaptive_mdap.tools.cost_calculator",
+      "suggested_fix": "Check if module 'adaptive_mdap.tools.cost_calculator' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\utils\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 3,
+      "message": "Module not found: adaptive_mdap.utils.logger",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.logger' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\utils\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 4,
+      "message": "Module not found: adaptive_mdap.utils.cache",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.cache' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\adaptive_mdap\\utils\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 5,
+      "message": "Module not found: adaptive_mdap.utils.metrics",
+      "suggested_fix": "Check if module 'adaptive_mdap.utils.metrics' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\adaptation.py",
+      "error_type": "import_error",
+      "line_number": 25,
+      "message": "Relative import cannot resolve: .skillbook",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\adaptation.py",
+      "error_type": "import_error",
+      "line_number": 26,
+      "message": "Relative import cannot resolve: .roles",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\adaptation.py",
+      "error_type": "import_error",
+      "line_number": 21,
+      "message": "Relative import cannot resolve: .async_learning",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\adaptation.py",
+      "error_type": "import_error",
+      "line_number": 22,
+      "message": "Relative import cannot resolve: .deduplication",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\adaptation.py",
+      "error_type": "import_error",
+      "line_number": 23,
+      "message": "Relative import cannot resolve: .observability.opik_integration",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\adaptation.py",
+      "error_type": "import_error",
+      "line_number": 304,
+      "message": "Relative import cannot resolve: .async_learning",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\adaptation.py",
+      "error_type": "import_error",
+      "line_number": 494,
+      "message": "Relative import cannot resolve: .async_learning",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\adaptation.py",
+      "error_type": "import_error",
+      "line_number": 202,
+      "message": "Relative import cannot resolve: .deduplication",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\adaptation.py",
+      "error_type": "import_error",
+      "line_number": 214,
+      "message": "Relative import cannot resolve: .observability",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\analytics.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Relative import cannot resolve: .skillbook",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\async_learning.py",
+      "error_type": "import_error",
+      "line_number": 29,
+      "message": "Relative import cannot resolve: .updates",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\async_learning.py",
+      "error_type": "import_error",
+      "line_number": 25,
+      "message": "Relative import cannot resolve: .adaptation",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\async_learning.py",
+      "error_type": "import_error",
+      "line_number": 26,
+      "message": "Relative import cannot resolve: .skillbook",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\async_learning.py",
+      "error_type": "import_error",
+      "line_number": 27,
+      "message": "Relative import cannot resolve: .roles",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\roles.py",
+      "error_type": "import_error",
+      "line_number": 12,
+      "message": "Relative import cannot resolve: .updates",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\roles.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Relative import cannot resolve: .llm",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\roles.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Relative import cannot resolve: .skillbook",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\roles.py",
+      "error_type": "import_error",
+      "line_number": 15,
+      "message": "Relative import cannot resolve: .prompts_v2_1",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\roles.py",
+      "error_type": "import_error",
+      "line_number": 24,
+      "message": "Relative import cannot resolve: .deduplication",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\roles.py",
+      "error_type": "import_error",
+      "line_number": 30,
+      "message": "Relative import cannot resolve: .observability.tracers",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\roles.py",
+      "error_type": "import_error",
+      "line_number": 187,
+      "message": "Relative import cannot resolve: .llm_providers.instructor_client",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\roles.py",
+      "error_type": "import_error",
+      "line_number": 530,
+      "message": "Relative import cannot resolve: .llm_providers.instructor_client",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\roles.py",
+      "error_type": "import_error",
+      "line_number": 687,
+      "message": "Relative import cannot resolve: .llm_providers.instructor_client",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\section_aware_ops.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Relative import cannot resolve: .updates",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\skillbook.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Relative import cannot resolve: .updates",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 4,
+      "message": "Relative import cannot resolve: .skillbook",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 5,
+      "message": "Relative import cannot resolve: .updates",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 6,
+      "message": "Relative import cannot resolve: .llm",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 7,
+      "message": "Relative import cannot resolve: .roles",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 16,
+      "message": "Relative import cannot resolve: .adaptation",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 26,
+      "message": "Relative import cannot resolve: .async_learning",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 34,
+      "message": "Relative import cannot resolve: .features",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 96,
+      "message": "Relative import cannot resolve: .deduplication",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 66,
+      "message": "Relative import cannot resolve: .integrations",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 39,
+      "message": "Relative import cannot resolve: .observability",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 53,
+      "message": "Relative import cannot resolve: .llm_providers",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\deduplication\\detector.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Relative import cannot resolve: ..features",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\deduplication\\detector.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Relative import cannot resolve: .config",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\deduplication\\detector.py",
+      "error_type": "import_error",
+      "line_number": 12,
+      "message": "Relative import cannot resolve: ..skillbook",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\deduplication\\manager.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Relative import cannot resolve: .config",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\deduplication\\manager.py",
+      "error_type": "import_error",
+      "line_number": 10,
+      "message": "Relative import cannot resolve: .detector",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\deduplication\\manager.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Relative import cannot resolve: .operations",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\deduplication\\manager.py",
+      "error_type": "import_error",
+      "line_number": 22,
+      "message": "Relative import cannot resolve: ..skillbook",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\deduplication\\operations.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Relative import cannot resolve: ..skillbook",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\deduplication\\operations.py",
+      "error_type": "import_error",
+      "line_number": 149,
+      "message": "Relative import cannot resolve: ..skillbook",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\deduplication\\prompts.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Relative import cannot resolve: ..skillbook",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\deduplication\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 7,
+      "message": "Relative import cannot resolve: .config",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\deduplication\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Relative import cannot resolve: .detector",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\deduplication\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Relative import cannot resolve: .manager",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\deduplication\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 10,
+      "message": "Relative import cannot resolve: .operations",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\base.py",
+      "error_type": "import_error",
+      "line_number": 99,
+      "message": "Relative import cannot resolve: ..skillbook",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\base.py",
+      "error_type": "import_error",
+      "line_number": 100,
+      "message": "Relative import cannot resolve: ..prompts_v2_1",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\browser_use.py",
+      "error_type": "import_error",
+      "line_number": 35,
+      "message": "Relative import cannot resolve: ..llm_providers",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\browser_use.py",
+      "error_type": "import_error",
+      "line_number": 36,
+      "message": "Relative import cannot resolve: ..skillbook",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\browser_use.py",
+      "error_type": "import_error",
+      "line_number": 37,
+      "message": "Relative import cannot resolve: ..roles",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\browser_use.py",
+      "error_type": "import_error",
+      "line_number": 38,
+      "message": "Relative import cannot resolve: ..prompts_v2_1",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\browser_use.py",
+      "error_type": "import_error",
+      "line_number": 39,
+      "message": "Relative import cannot resolve: .base",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\browser_use.py",
+      "error_type": "import_error",
+      "line_number": 42,
+      "message": "Relative import cannot resolve: ..deduplication",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\browser_use.py",
+      "error_type": "import_error",
+      "line_number": 172,
+      "message": "Relative import cannot resolve: ..deduplication",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\browser_use.py",
+      "error_type": "import_error",
+      "line_number": 477,
+      "message": "Relative import cannot resolve: ..roles",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\claude_code.py",
+      "error_type": "import_error",
+      "line_number": 37,
+      "message": "Relative import cannot resolve: ..llm_providers",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\claude_code.py",
+      "error_type": "import_error",
+      "line_number": 38,
+      "message": "Relative import cannot resolve: ..skillbook",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\claude_code.py",
+      "error_type": "import_error",
+      "line_number": 39,
+      "message": "Relative import cannot resolve: ..roles",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\claude_code.py",
+      "error_type": "import_error",
+      "line_number": 40,
+      "message": "Relative import cannot resolve: ..prompts_v2_1",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\claude_code.py",
+      "error_type": "import_error",
+      "line_number": 41,
+      "message": "Relative import cannot resolve: .base",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\claude_code.py",
+      "error_type": "import_error",
+      "line_number": 44,
+      "message": "Relative import cannot resolve: ..deduplication",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\claude_code.py",
+      "error_type": "import_error",
+      "line_number": 159,
+      "message": "Relative import cannot resolve: ..deduplication",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\langchain.py",
+      "error_type": "import_error",
+      "line_number": 70,
+      "message": "Relative import cannot resolve: ..skillbook",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\langchain.py",
+      "error_type": "import_error",
+      "line_number": 71,
+      "message": "Relative import cannot resolve: ..roles",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\langchain.py",
+      "error_type": "import_error",
+      "line_number": 72,
+      "message": "Relative import cannot resolve: ..prompts_v2_1",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\langchain.py",
+      "error_type": "import_error",
+      "line_number": 73,
+      "message": "Relative import cannot resolve: .base",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\langchain.py",
+      "error_type": "import_error",
+      "line_number": 76,
+      "message": "Relative import cannot resolve: ..deduplication",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\langchain.py",
+      "error_type": "import_error",
+      "line_number": 223,
+      "message": "Relative import cannot resolve: ..llm_providers",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\langchain.py",
+      "error_type": "import_error",
+      "line_number": 241,
+      "message": "Relative import cannot resolve: ..deduplication",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\litellm.py",
+      "error_type": "import_error",
+      "line_number": 44,
+      "message": "Relative import cannot resolve: ..skillbook",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\litellm.py",
+      "error_type": "import_error",
+      "line_number": 45,
+      "message": "Relative import cannot resolve: ..roles",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\litellm.py",
+      "error_type": "import_error",
+      "line_number": 46,
+      "message": "Relative import cannot resolve: ..adaptation",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\litellm.py",
+      "error_type": "import_error",
+      "line_number": 47,
+      "message": "Relative import cannot resolve: ..prompts_v2_1",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\litellm.py",
+      "error_type": "import_error",
+      "line_number": 50,
+      "message": "Relative import cannot resolve: ..deduplication",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\litellm.py",
+      "error_type": "import_error",
+      "line_number": 466,
+      "message": "Relative import cannot resolve: .base",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\litellm.py",
+      "error_type": "import_error",
+      "line_number": 181,
+      "message": "Relative import cannot resolve: ..llm_providers",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 45,
+      "message": "Relative import cannot resolve: .base",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 49,
+      "message": "Relative import cannot resolve: .litellm",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 55,
+      "message": "Relative import cannot resolve: .browser_use",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 62,
+      "message": "Relative import cannot resolve: .langchain",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\integrations\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 69,
+      "message": "Relative import cannot resolve: .claude_code",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\llm_providers\\instructor_client.py",
+      "error_type": "import_error",
+      "line_number": 10,
+      "message": "Relative import cannot resolve: ..llm",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\llm_providers\\instructor_client.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Relative import cannot resolve: .litellm_client",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\llm_providers\\langchain_client.py",
+      "error_type": "import_error",
+      "line_number": 20,
+      "message": "Relative import cannot resolve: ..llm",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\llm_providers\\litellm_client.py",
+      "error_type": "import_error",
+      "line_number": 12,
+      "message": "Relative import cannot resolve: ..llm",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\llm_providers\\litellm_client.py",
+      "error_type": "import_error",
+      "line_number": 287,
+      "message": "Relative import cannot resolve: ..observability",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\llm_providers\\resilient_client.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Relative import cannot resolve: ..llm",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\llm_providers\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 4,
+      "message": "Relative import cannot resolve: .litellm_client",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\llm_providers\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 5,
+      "message": "Relative import cannot resolve: .resilient_client",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\llm_providers\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 10,
+      "message": "Relative import cannot resolve: .langchain_client",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\observability\\tracers.py",
+      "error_type": "import_error",
+      "line_number": 51,
+      "message": "Relative import cannot resolve: .opik_integration",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\observability\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Relative import cannot resolve: .opik_integration",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\ace\\observability\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Relative import cannot resolve: .tracers",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\benchmarks\\environments.py",
+      "error_type": "import_error",
+      "line_number": 17,
+      "message": "Relative import cannot resolve: .base",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\benchmarks\\manager.py",
+      "error_type": "import_error",
+      "line_number": 26,
+      "message": "Relative import cannot resolve: .base",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\benchmarks\\manager.py",
+      "error_type": "import_error",
+      "line_number": 27,
+      "message": "Relative import cannot resolve: .loaders.huggingface",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\benchmarks\\manager.py",
+      "error_type": "import_error",
+      "line_number": 69,
+      "message": "Relative import cannot resolve: .loaders.appworld",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\benchmarks\\manager.py",
+      "error_type": "import_error",
+      "line_number": 169,
+      "message": "Relative import cannot resolve: .environments",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\benchmarks\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 21,
+      "message": "Relative import cannot resolve: .base",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\benchmarks\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 29,
+      "message": "Relative import cannot resolve: .manager",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\benchmarks\\loaders\\huggingface.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Relative import cannot resolve: ..base",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\benchmarks\\loaders\\huggingface.py",
+      "error_type": "import_error",
+      "line_number": 15,
+      "message": "Relative import cannot resolve: ..processors",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\benchmarks\\loaders\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 3,
+      "message": "Relative import cannot resolve: ..base",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\benchmarks\\loaders\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 4,
+      "message": "Relative import cannot resolve: .huggingface",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\benchmarks\\loaders\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Relative import cannot resolve: .appworld",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\benchmarks\\processors\\__init__.py",
+      "error_type": "import_error",
+      "line_number": 8,
+      "message": "Relative import cannot resolve: .finance",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\tests\\test_async_learning.py",
+      "error_type": "import_error",
+      "line_number": 36,
+      "message": "Module not found: tests.conftest",
+      "suggested_fix": "Check if module 'tests.conftest' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\tests\\test_roles.py",
+      "error_type": "import_error",
+      "line_number": 95,
+      "message": "Module not found: tests.conftest",
+      "suggested_fix": "Check if module 'tests.conftest' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\tests\\test_roles.py",
+      "error_type": "import_error",
+      "line_number": 177,
+      "message": "Module not found: tests.conftest",
+      "suggested_fix": "Check if module 'tests.conftest' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentic-context-engine\\tests\\test_roles.py",
+      "error_type": "import_error",
+      "line_number": 305,
+      "message": "Module not found: tests.conftest",
+      "suggested_fix": "Check if module 'tests.conftest' exists"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentjson\\src\\json_prob_parser\\cli.py",
+      "error_type": "import_error",
+      "line_number": 9,
+      "message": "Relative import cannot resolve: .anthropic_provider",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentjson\\src\\json_prob_parser\\cli.py",
+      "error_type": "import_error",
+      "line_number": 10,
+      "message": "Relative import cannot resolve: .pipeline",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentjson\\src\\json_prob_parser\\cli.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Relative import cannot resolve: .types",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentjson\\src\\json_prob_parser\\cli.py",
+      "error_type": "import_error",
+      "line_number": 80,
+      "message": "Relative import cannot resolve: .claude_agent_sdk_provider",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentjson\\src\\json_prob_parser\\pipeline.py",
+      "error_type": "import_error",
+      "line_number": 10,
+      "message": "Relative import cannot resolve: .llm",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentjson\\src\\json_prob_parser\\pipeline.py",
+      "error_type": "import_error",
+      "line_number": 11,
+      "message": "Relative import cannot resolve: .rust_core",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentjson\\src\\json_prob_parser\\pipeline.py",
+      "error_type": "import_error",
+      "line_number": 12,
+      "message": "Relative import cannot resolve: .rust_core",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentjson\\src\\json_prob_parser\\pipeline.py",
+      "error_type": "import_error",
+      "line_number": 13,
+      "message": "Relative import cannot resolve: .rust_core",
+      "suggested_fix": "Check if module exists at expected path"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\agentjson\\src\\json_prob_parser\\pipeline.py",
+      "error_type": "import_error",
+      "line_number": 14,
+      "message": "Relative import cannot resolve: .types",
+      "suggested_fix": "Check if module exists at expected path"
+    }
+  ]
+}

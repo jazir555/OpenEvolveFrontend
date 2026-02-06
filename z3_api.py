@@ -86,8 +86,13 @@ def _normalize_web3_formal_inventory(raw_inventory: Optional[Dict[str, Any]]) ->
 
     return {
         "available": available,
+        "web3_formal_available": available,
         "tools": normalized_tools,
+        "web3_formal_tools": normalized_tools,
         "formal_capabilities": merged_capabilities,
+        "audit_exploit_verification_available": bool(
+            merged_capabilities.get("composite_exploit_verification")
+        ),
     }
 
 
@@ -182,9 +187,10 @@ class Z3API:
 
         inventory = _normalize_web3_formal_inventory(raw_inventory)
         formal_capabilities = inventory["formal_capabilities"]
-        web3_formal_tools = list(inventory["tools"])
+        web3_formal_tools = list(inventory["web3_formal_tools"])
         return {
             "available": bool(inventory["available"]),
+            "web3_formal_available": bool(inventory["web3_formal_available"]),
             "solidity_invariant_translation_available": bool(
                 formal_capabilities.get("solidity_invariant_translation")
             ),
@@ -197,6 +203,7 @@ class Z3API:
             ),
             "web3_formal_tools": web3_formal_tools,
             "formal_capabilities": formal_capabilities,
+            "tool_inventory": inventory,
         }
 
     def translate_solidity_invariant(

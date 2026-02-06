@@ -9,8 +9,10 @@ def test_root_z3_api_exposes_web3_methods():
     assert hasattr(api, "web3_audit_exploit_verification")
     status = api.get_web3_status()
     assert "audit_exploit_verification_available" in status
+    assert "web3_formal_available" in status
     assert "web3_formal_tools" in status
     assert "formal_capabilities" in status
+    assert "tool_inventory" in status
 
 
 def test_root_z3_api_status_infers_formal_tools_from_capabilities(monkeypatch):
@@ -36,6 +38,8 @@ def test_root_z3_api_status_infers_formal_tools_from_capabilities(monkeypatch):
     }.issubset(set(status["web3_formal_tools"]))
     assert status["formal_capabilities"]["composite_exploit_verification"] is True
     assert status["available"] is True
+    assert status["web3_formal_available"] is True
+    assert status["tool_inventory"]["audit_exploit_verification_available"] is True
 
 
 def test_root_z3_api_composite_orchestration(monkeypatch):

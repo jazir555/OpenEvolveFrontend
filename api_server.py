@@ -6286,6 +6286,9 @@ def web3_status():
         "web3_formal_verification_available": (
             WEB3_FORMAL_VERIFICATION_AVAILABLE or inferred_formal_available
         ),
+        "web3_formal_available": (
+            WEB3_FORMAL_VERIFICATION_AVAILABLE or inferred_formal_available
+        ),
         "available": inferred_stack_available,
         "slither_ingestion_available": web3_ingest_slither_static_analysis is not None,
         "foundry_ingestion_available": web3_ingest_foundry_fuzzing is not None,

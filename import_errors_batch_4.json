@@ -1,0 +1,83 @@
+{
+  "total_files": 500,
+  "errors_found": 11,
+  "errors": [
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\cognitive-hydraulics\\example\\sort.py",
+      "error_type": "compile_error",
+      "line_number": 34,
+      "message": "  File \"C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\cognitive-hydraulics\\example\\sort.py\", line 34\n    def mergeSort(arr, l, l):\n                          ^\nSyntaxError: duplicate argument 'l' in function definition\n",
+      "suggested_fix": "Fix compilation error"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\crew\\crew.py",
+      "error_type": "syntax_error",
+      "line_number": 10,
+      "message": "invalid syntax (<unknown>, line 10)",
+      "suggested_fix": "Fix syntax error in file"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\crew\\crew.py",
+      "error_type": "compile_error",
+      "line_number": 10,
+      "message": "  File \"C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\crew\\crew.py\", line 10\n    class {{crew_name}}():\n          ^\nSyntaxError: invalid syntax\n",
+      "suggested_fix": "Fix compilation error"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\crew\\main.py",
+      "error_type": "syntax_error",
+      "line_number": 7,
+      "message": "invalid syntax (<unknown>, line 7)",
+      "suggested_fix": "Fix syntax error in file"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\crew\\main.py",
+      "error_type": "compile_error",
+      "line_number": 7,
+      "message": "  File \"C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\crew\\main.py\", line 7\n    from {{folder_name}}.crew import {{crew_name}}\n         ^\nSyntaxError: invalid syntax\n",
+      "suggested_fix": "Fix compilation error"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\flow\\main.py",
+      "error_type": "syntax_error",
+      "line_number": 8,
+      "message": "invalid syntax (<unknown>, line 8)",
+      "suggested_fix": "Fix syntax error in file"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\flow\\main.py",
+      "error_type": "compile_error",
+      "line_number": 8,
+      "message": "  File \"C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\flow\\main.py\", line 8\n    from {{folder_name}}.crews.poem_crew.poem_crew import PoemCrew\n         ^\nSyntaxError: invalid syntax\n",
+      "suggested_fix": "Fix compilation error"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\tool\\src\\{{folder_name}}\\tool.py",
+      "error_type": "syntax_error",
+      "line_number": 4,
+      "message": "invalid syntax (<unknown>, line 4)",
+      "suggested_fix": "Fix syntax error in file"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\tool\\src\\{{folder_name}}\\tool.py",
+      "error_type": "compile_error",
+      "line_number": 4,
+      "message": "  File \"C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\tool\\src\\{{folder_name}}\\tool.py\", line 4\n    class {{class_name}}(BaseTool):\n          ^\nSyntaxError: invalid syntax\n",
+      "suggested_fix": "Fix compilation error"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\tool\\src\\{{folder_name}}\\__init__.py",
+      "error_type": "syntax_error",
+      "line_number": 1,
+      "message": "invalid syntax (<unknown>, line 1)",
+      "suggested_fix": "Fix syntax error in file"
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\tool\\src\\{{folder_name}}\\__init__.py",
+      "error_type": "compile_error",
+      "line_number": 1,
+      "message": "  File \"C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\core-projects\\crewAI\\crewAI-main\\lib\\crewai\\src\\crewai\\cli\\templates\\tool\\src\\{{folder_name}}\\__init__.py\", line 1\n    from .tool import {{class_name}}\n                      ^\nSyntaxError: invalid syntax\n",
+      "suggested_fix": "Fix compilation error"
+    }
+  ]
+}

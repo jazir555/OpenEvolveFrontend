@@ -25,6 +25,8 @@ def test_crewai_tools_status_infers_web3_formal_tools_from_capabilities(monkeypa
         "z3_solve_smart_contract_exploit_witness",
         "z3_web3_audit_exploit_verification",
     }.issubset(set(status["web3_formal_tools"]))
+    assert "web3_ingest_contract_audit_stack" in status["web3_ingestion_tools"]
+    assert status["web3_ingestion_available"] is True
     assert status["formal_capabilities"]["composite_exploit_verification"] is True
     assert status["web3_formal_available"] is True
     assert status["audit_exploit_verification_available"] is True
@@ -51,6 +53,8 @@ def test_crewai_bridge_status_infers_web3_formal_tools_from_capabilities(monkeyp
         "z3_solve_smart_contract_exploit_witness",
         "z3_web3_audit_exploit_verification",
     }.issubset(set(status["web3_formal_tools"]))
+    assert "web3_ingest_contract_audit_stack" in status["web3_ingestion_tools"]
+    assert status["web3_ingestion_available"] is True
     assert status["formal_capabilities"]["composite_exploit_verification"] is True
     assert status["web3_formal_available"] is True
     assert status["audit_exploit_verification_available"] is True

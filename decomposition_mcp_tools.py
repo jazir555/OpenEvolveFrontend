@@ -1888,6 +1888,14 @@ def get_decomposition_status() -> Dict[str, Any]:
         "hybrid_available": HYBRID_AVAILABLE,
         "roma_mdap_maker_available": ROMA_MDAP_MAKER_AVAILABLE,
         "web3_toolchain_available": SLITHER_AVAILABLE or FORGE_AVAILABLE,
+        "web3_ingestion_available": bool(web3_ingestion_tools),
+        "web3_formal_available": bool(formal_inventory.get("available")),
+        "audit_exploit_verification_available": bool(
+            formal_inventory.get("formal_capabilities", {}).get("composite_exploit_verification")
+        ),
+        "web3_ingestion_tools": web3_ingestion_tools,
+        "web3_formal_tools": web3_formal_tools,
+        "web3_tools": web3_tools,
         "total_execution_methods": 7,  # traditional, claudiomiro, datapizza, roma, hybrid, roma_mdap_maker, auto
         "execution_methods": [
             "traditional",
