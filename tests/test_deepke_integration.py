@@ -197,7 +197,7 @@ def mock_deepke_extractor():
 
 
 @pytest.fixture
-async def deepke_integration(sample_config) -> DeepKEIntegration:
+def deepke_integration(sample_config) -> DeepKEIntegration:
     """Create a DeepKEIntegration instance for testing."""
     return DeepKEIntegration(config=sample_config)
 

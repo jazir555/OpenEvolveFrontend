@@ -3,6 +3,7 @@ import streamlit as st
 from unittest.mock import MagicMock, patch
 import json
 import time
+from lean4_system.lean4_api import VerificationResult
 
 # Mock Streamlit functions to prevent them from running during tests
 # Mock Streamlit functions to prevent them from running during tests
@@ -20,9 +21,12 @@ st.rerun = MagicMock()
 
 from workflow_engine import run_sovereign_workflow, run_content_analysis, run_ai_decomposition, run_gauntlet, parse_targeted_feedback
 # Don't import generate_solution_for_sub_problem at module level - it breaks mocking
-from workflow_structures import WorkflowState, DecompositionPlan, SubProblem, Team, ModelConfig, GauntletDefinition, GauntletRoundRule, SolutionAttempt, CritiqueReport, VerificationReport
+from workflow_structures import WorkflowState, DecompositionPlan, SubProblem, Team, ModelConfig, GauntletDefinition, GauntletRoundRule, SolutionAttempt, CritiqueReport, VerificationReport as WorkflowVerificationReport
 from team_manager import TeamManager
 from gauntlet_manager import GauntletManager
+
+# Alias for clarity
+VerificationReport = WorkflowVerificationReport
 
 # Mock managers
 team_manager = TeamManager()

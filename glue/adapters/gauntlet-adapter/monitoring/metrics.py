@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, UTC
 from enum import Enum
 from collections import defaultdict
-from threading import Lock
+from threading import RLock
 import json
 
 logger = logging.getLogger(__name__)
@@ -158,7 +158,7 @@ class GauntletMetricsCollector:
 
     def __init__(self):
         """Initialize metrics collector"""
-        self._lock = Lock()
+        self._lock = RLock()
 
         # Counters
         self._counters: Dict[str, float] = defaultdict(float)

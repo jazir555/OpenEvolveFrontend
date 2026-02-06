@@ -181,8 +181,9 @@ class TestRiskComponentCalculations:
         c2 = rbc_calculator._calculate_c2_risk(simple_portfolio)
 
         # Should be ~10% of portfolio value * 20% charge = 2% of portfolio
-        expected_range = simple_portfolio.total_value * 0.02 * 0.5  # +/- 50%
-        assert expected_range * 0.5 < c2 < expected_range * 1.5
+        expected_c2 = simple_portfolio.total_value * 0.10 * 0.20  # 2% of portfolio
+        # Allow for reasonable variance (test expects actual calculation to match)
+        assert abs(c2 - expected_c2) < (expected_c2 * 0.01)  # Within 1%
 
     def test_rbc_with_covariance(self, rbc_calculator):
         """Test RBC calculation with covariance adjustment"""

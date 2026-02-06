@@ -13,6 +13,9 @@ Tools Provided:
 - z3_extract_proof: Extract proofs from Z3
 - z3_analyze_problem: Analyze problem characteristics
 - z3_solve_portfolio: Portfolio solving with multiple strategies
+- z3_formalize_constraint: Formalize natural language to Z3 using CAV-NLP
+- z3_verify_hybrid: Verify using hybrid Z3 + Lean approach
+- z3_canonicalize_constraint: Return canonical form using CAV-NLP
 
 Author: OpenEvolve
 Created: 2026-01-31
@@ -58,6 +61,30 @@ try:
 except ImportError:
     Z3_LEANAIDE_AVAILABLE = False
     logger.warning("Z3-LeanAIDE bridge not available")
+
+# Import CAV-NLP / Unified Math Service
+try:
+    from openevolve.unified_math_service import (
+        UnifiedMathService,
+        create_unified_math_service,
+        FormalizationResult,
+    )
+    from openevolve.cav_nlp_integration import (
+        Z3LeanAideBridge as CAVNLPBridge,
+        create_z3_lean_bridge,
+        CanonicalizationResult,
+    )
+    UNIFIED_MATH_AVAILABLE = True
+except ImportError:
+    UNIFIED_MATH_AVAILABLE = False
+    logger.warning("Unified Math Service (CAV-NLP) not available")
+
+# Import CAV-NLP canonicalizer
+try:
+    from openevolve.cav_nlp_integration.z3_canonicalizer import Z3Canonicalizer
+    CANONICALIZER_AVAILABLE = True
+except ImportError:
+    CANONICALIZER_AVAILABLE = False
 
 
 # =============================================================================
@@ -610,21 +637,34 @@ async def z3_extract_proof(
 
 @MCPTool(
     name="z3_analyze_problem",
-    description="Analyze problem characteristics",
+    description="Analyze problem characteristics with optional CAV-NLP enhancement",
     parameters={
         "problem": {
             "type": "string",
             "description": "Problem description or SMT-LIB"
+        },
+        "use_cav_nlp": {
+            "type": "boolean",
+            "description": "Whether to use CAV-NLP for semantic analysis",
+            "optional": True,
+            "default": True
         }
     }
 )
-async def z3_analyze_problem(problem: str) -> Dict[str, Any]:
+async def z3_analyze_problem(
+    problem: str,
+    use_cav_nlp: bool = True
+) -> Dict[str, Any]:
     """
     Analyze problem to determine characteristics.
     
+    When use_cav_nlp is True, uses CAV-NLP to extract semantic primitives
+    and provide deeper analysis of natural language problems.
+    
     Example:
     {
-        "problem": "Find x and y where x + y = 10 and x > 0"
+        "problem": "Find x and y where x + y = 10 and x > 0",
+        "use_cav_nlp": true
     }
     """
     if not Z3_AVAILABLE:
@@ -647,7 +687,7 @@ async def z3_analyze_problem(problem: str) -> Dict[str, Any]:
         has_boolean = any(kw in problem.lower() for kw in ['and', 'or', 'not', 'implies'])
         has_quantifiers = any(kw in problem for kw in ['forall', 'exists', '∀', '∃'])
         
-        return {
+        result = {
             "success": True,
             "detected_type": problem_type,
             "confidence": confidence,
@@ -657,8 +697,46 @@ async def z3_analyze_problem(problem: str) -> Dict[str, Any]:
                 "boolean": has_boolean,
                 "quantifiers": has_quantifiers
             },
-            "recommended_approach": "SMT solver" if is_smt or problem_type != "unknown" else "Standard solver"
+            "recommended_approach": "SMT solver" if is_smt or problem_type != "unknown" else "Standard solver",
+            "cav_nlp_used": False
         }
+        
+        # Enhanced analysis with CAV-NLP
+        if use_cav_nlp and UNIFIED_MATH_AVAILABLE and not is_smt:
+            try:
+                from openevolve.cav_nlp_integration.flexible_semantic_parsing import SemanticNormalizer
+                normalizer = SemanticNormalizer()
+                primitives = normalizer.normalize(problem)
+                
+                result["cav_nlp_used"] = True
+                result["semantic_analysis"] = {
+                    "primitive_count": len(primitives),
+                    "primitives": [
+                        {"kind": p.kind, "confidence": p.confidence, "canonical_form": p.canonical_form}
+                        for p in primitives[:10]  # Limit to first 10
+                    ]
+                }
+                
+                # Try to extract dependency DAG
+                try:
+                    from openevolve.cav_nlp_integration.dependency_dag import PaperStructureExtractor
+                    extractor = PaperStructureExtractor()
+                    dag = extractor.extract_dag(f"Problem: {problem}")
+                    if dag and dag.nodes:
+                        result["semantic_analysis"]["statement_count"] = len(dag.nodes)
+                        result["semantic_analysis"]["has_dependencies"] = len(dag.edges) > 0 if hasattr(dag, 'edges') else False
+                except Exception as e:
+                    logger.debug(f"DAG extraction failed: {e}")
+                
+                # Update recommended approach based on CAV-NLP analysis
+                if primitives:
+                    result["recommended_approach"] = "CAV-NLP formalization + SMT solver"
+                    
+            except Exception as e:
+                logger.debug(f"CAV-NLP analysis failed: {e}")
+                result["cav_nlp_error"] = str(e)
+        
+        return result
     
     except Exception as e:
         return {
@@ -728,6 +806,465 @@ async def z3_solve_portfolio(
             "success": False,
             "error": str(e)
         }
+
+
+# =============================================================================
+# CAV-NLP Enhanced Tools
+# =============================================================================
+
+@MCPTool(
+    name="z3_formalize_constraint",
+    description="Formalize natural language constraint to Z3/SMT-LIB using CAV-NLP",
+    parameters={
+        "natural_language": {
+            "type": "string",
+            "description": "Natural language description of the constraint"
+        },
+        "target_format": {
+            "type": "string",
+            "description": "Target formalization format",
+            "enum": ["z3", "lean", "smtlib"],
+            "optional": True,
+            "default": "lean"
+        },
+        "elaborate": {
+            "type": "boolean",
+            "description": "Whether to elaborate the generated code",
+            "optional": True,
+            "default": True
+        }
+    }
+)
+async def z3_formalize_constraint(
+    natural_language: str,
+    target_format: str = "lean",
+    elaborate: bool = True
+) -> Dict[str, Any]:
+    """
+    Formalize natural language constraint to formal code using CAV-NLP.
+    
+    Uses CAV-NLP (Canonical Arithmetic Verification via NLP) to convert
+    natural language or LaTeX mathematical statements into formal code.
+    
+    Example:
+    {
+        "natural_language": "For all x > 0, x + 1 > 1",
+        "target_format": "lean",
+        "elaborate": true
+    }
+    
+    Returns:
+    {
+        "success": true,
+        "code": "import Mathlib\n\ntheorem ...",
+        "source": "cav_nlp",
+        "elaborated_code": "..."  # if elaboration requested
+    }
+    """
+    if not UNIFIED_MATH_AVAILABLE:
+        return {
+            "success": False,
+            "error": "CAV-NLP/Unified Math Service not available"
+        }
+    
+    try:
+        service = create_unified_math_service()
+        result = await service.formalize(natural_language, elaborate=elaborate)
+        
+        response = {
+            "success": result.success,
+            "code": result.code,
+            "source": result.source,
+            "raw_text": result.raw_text,
+            "warnings": result.warnings
+        }
+        
+        if result.elaborated_code:
+            response["elaborated_code"] = result.elaborated_code
+        
+        if result.documentation:
+            response["documentation"] = result.documentation
+        
+        # Add metadata
+        response["metadata"] = {
+            "timestamp": result.timestamp,
+            "cav_nlp_used": result.source == "cav_nlp"
+        }
+        
+        return response
+    
+    except Exception as e:
+        logger.error(f"CAV-NLP formalization failed: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "source": "error"
+        }
+
+
+@MCPTool(
+    name="z3_verify_hybrid",
+    description="Verify constraint using hybrid Z3 + Lean approach with CAV-NLP",
+    parameters={
+        "constraint": {
+            "type": "string",
+            "description": "Constraint to verify (natural language, SMT-LIB, or Lean code)"
+        },
+        "input_format": {
+            "type": "string",
+            "description": "Format of the input constraint",
+            "enum": ["auto", "natural_language", "smtlib", "lean"],
+            "optional": True,
+            "default": "auto"
+        },
+        "timeout": {
+            "type": "number",
+            "description": "Timeout in seconds",
+            "optional": True,
+            "default": 30
+        }
+    }
+)
+async def z3_verify_hybrid(
+    constraint: str,
+    input_format: str = "auto",
+    timeout: float = 30.0
+) -> Dict[str, Any]:
+    """
+    Verify constraint using hybrid Z3 + Lean approach.
+    
+    Pipeline:
+    1. If natural language: formalize using CAV-NLP
+    2. Quick check using Z3
+    3. Formal verification using Lean/CAV-NLP
+    
+    Example:
+    {
+        "constraint": "For all integers x, x + 0 = x",
+        "input_format": "natural_language"
+    }
+    
+    Returns:
+    {
+        "success": true,
+        "verified": true,
+        "z3_result": {...},
+        "lean_verification": {...},
+        "hybrid_confidence": 0.95
+    }
+    """
+    result = {
+        "success": True,
+        "verified": False,
+        "z3_result": None,
+        "lean_verification": None,
+        "hybrid_confidence": 0.0,
+        "errors": []
+    }
+    
+    lean_code = None
+    
+    # Step 1: Formalize if needed
+    if input_format == "natural_language" or (input_format == "auto" and '(assert' not in constraint):
+        if UNIFIED_MATH_AVAILABLE:
+            try:
+                service = create_unified_math_service()
+                formalization = await service.formalize(constraint, elaborate=True)
+                if formalization.success:
+                    lean_code = formalization.elaborated_code or formalization.code
+                    result["formalization"] = {
+                        "success": True,
+                        "source": formalization.source,
+                        "code": lean_code
+                    }
+                else:
+                    result["errors"].append("Formalization failed")
+            except Exception as e:
+                result["errors"].append(f"Formalization error: {str(e)}")
+        else:
+            result["errors"].append("CAV-NLP not available for natural language input")
+    elif input_format == "lean" or '(theorem' in constraint or '(lemma' in constraint:
+        lean_code = constraint
+    elif input_format == "smtlib" or '(assert' in constraint:
+        # Will use Z3 directly
+        lean_code = None
+    
+    # Step 2: Quick check with Z3
+    if Z3_AVAILABLE and '(assert' in constraint or '(set-logic' in constraint:
+        try:
+            prover = get_z3_theorem_prover()
+            z3_result = prover.prove_theorem(constraint, [])
+            result["z3_result"] = {
+                "proven": z3_result.proven,
+                "status": "verified" if z3_result.proven else "not_proven",
+                "execution_time": z3_result.execution_time
+            }
+            if z3_result.proven:
+                result["verified"] = True
+                result["hybrid_confidence"] += 0.4
+        except Exception as e:
+            result["errors"].append(f"Z3 verification error: {str(e)}")
+    
+    # Step 3: Formal verification with Lean
+    if lean_code and UNIFIED_MATH_AVAILABLE:
+        try:
+            service = create_unified_math_service()
+            verification = await service.verify(lean_code)
+            if verification:
+                result["lean_verification"] = {
+                    "success": verification.success,
+                    "status": str(verification.status) if hasattr(verification, 'status') else "unknown",
+                    "errors": verification.errors if hasattr(verification, 'errors') else []
+                }
+                if verification.success:
+                    result["verified"] = True
+                    result["hybrid_confidence"] += 0.6
+            else:
+                result["lean_verification"] = {"success": False, "error": "Verification returned None"}
+        except Exception as e:
+            result["errors"].append(f"Lean verification error: {str(e)}")
+    
+    # Normalize confidence
+    result["hybrid_confidence"] = min(1.0, result["hybrid_confidence"])
+    
+    return result
+
+
+@MCPTool(
+    name="z3_canonicalize_constraint",
+    description="Return canonical form of constraint using CAV-NLP",
+    parameters={
+        "constraint": {
+            "type": "string",
+            "description": "Constraint to canonicalize (natural language or SMT-LIB)"
+        },
+        "input_type": {
+            "type": "string",
+            "description": "Type of input",
+            "enum": ["auto", "natural_language", "smtlib"],
+            "optional": True,
+            "default": "auto"
+        }
+    }
+)
+async def z3_canonicalize_constraint(
+    constraint: str,
+    input_type: str = "auto"
+) -> Dict[str, Any]:
+    """
+    Return canonical form of constraint using CAV-NLP canonicalization.
+    
+    CAV-NLP canonicalization normalizes mathematical expressions to a
+    standard form that can be compared and analyzed.
+    
+    Example:
+    {
+        "constraint": "x + y = y + x",
+        "input_type": "smtlib"
+    }
+    
+    Returns:
+    {
+        "success": true,
+        "canonical_form": "(= (+ x y) (+ y x))",
+        "semantic_primitives": [...],
+        "complexity_score": 0.5
+    }
+    """
+    if not UNIFIED_MATH_AVAILABLE:
+        return {
+            "success": False,
+            "error": "CAV-NLP not available for canonicalization"
+        }
+    
+    try:
+        # Detect input type if auto
+        if input_type == "auto":
+            if '(assert' in constraint or '(declare' in constraint:
+                input_type = "smtlib"
+            else:
+                input_type = "natural_language"
+        
+        # For natural language, first formalize
+        smtlib_code = constraint
+        if input_type == "natural_language":
+            service = create_unified_math_service()
+            formalization = await service.formalize(constraint, elaborate=False)
+            if formalization.success:
+                # Extract SMT-LIB if embedded in Lean code
+                smtlib_code = formalization.code
+            else:
+                return {
+                    "success": False,
+                    "error": "Failed to formalize natural language input"
+                }
+        
+        # Use CAV-NLP canonicalizer if available
+        if CANONICALIZER_AVAILABLE:
+            try:
+                canonicalizer = Z3Canonicalizer()
+                canonical_form = canonicalizer.canonicalize(smtlib_code)
+                
+                return {
+                    "success": True,
+                    "canonical_form": canonical_form,
+                    "input_type": input_type,
+                    "original": constraint[:200] + "..." if len(constraint) > 200 else constraint
+                }
+            except Exception as e:
+                logger.warning(f"Canonicalizer failed: {e}")
+        
+        # Fallback: Use basic normalization
+        # Extract semantic primitives if available
+        semantic_primitives = []
+        try:
+            from openevolve.cav_nlp_integration.flexible_semantic_parsing import SemanticNormalizer
+            normalizer = SemanticNormalizer()
+            primitives = normalizer.normalize(constraint)
+            semantic_primitives = [
+                {"kind": p.kind, "canonical_form": p.canonical_form}
+                for p in primitives
+            ]
+        except Exception as e:
+            logger.debug(f"Semantic primitive extraction failed: {e}")
+        
+        # Return basic canonicalization result
+        return {
+            "success": True,
+            "canonical_form": smtlib_code.strip(),
+            "semantic_primitives": semantic_primitives,
+            "note": "Fallback canonicalization (canonicalizer unavailable)"
+        }
+    
+    except Exception as e:
+        logger.error(f"Canonicalization failed: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@MCPTool(
+    name="z3_enhanced_prove",
+    description="Prove theorem using CAV-NLP enhanced verification",
+    parameters={
+        "theorem": {
+            "type": "string",
+            "description": "Theorem statement (natural language, SMT-LIB, or Lean)"
+        },
+        "use_cav_nlp": {
+            "type": "boolean",
+            "description": "Whether to use CAV-NLP for enhanced verification",
+            "optional": True,
+            "default": True
+        },
+        "generate_proof": {
+            "type": "boolean",
+            "description": "Whether to generate a proof sketch",
+            "optional": True,
+            "default": True
+        },
+        "input_format": {
+            "type": "string",
+            "description": "Format of input theorem",
+            "enum": ["auto", "natural_language", "smtlib", "lean"],
+            "optional": True,
+            "default": "auto"
+        }
+    }
+)
+async def z3_enhanced_prove(
+    theorem: str,
+    use_cav_nlp: bool = True,
+    generate_proof: bool = True,
+    input_format: str = "auto"
+) -> Dict[str, Any]:
+    """
+    Prove theorem with optional CAV-NLP enhanced verification.
+    
+    When use_cav_nlp is True:
+    - Natural language is formalized using CAV-NLP
+    - Lean code is verified using CAV-NLP/LeanAide
+    - Proof sketch generation uses semantic analysis
+    
+    Example:
+    {
+        "theorem": "For all natural numbers n, n + 0 = n",
+        "use_cav_nlp": true,
+        "generate_proof": true,
+        "input_format": "natural_language"
+    }
+    """
+    if not use_cav_nlp:
+        # Fall back to standard Z3 proving
+        return await z3_prove_theorem(theorem, [], extract_proof=generate_proof)
+    
+    if not UNIFIED_MATH_AVAILABLE:
+        logger.warning("CAV-NLP not available, falling back to standard Z3 proving")
+        return await z3_prove_theorem(theorem, [], extract_proof=generate_proof)
+    
+    try:
+        service = create_unified_math_service()
+        
+        # Detect input format if auto
+        if input_format == "auto":
+            if '(theorem' in theorem or '(lemma' in theorem or 'import Mathlib' in theorem:
+                input_format = "lean"
+            elif '(assert' in theorem or '(set-logic' in theorem:
+                input_format = "smtlib"
+            else:
+                input_format = "natural_language"
+        
+        lean_code = theorem
+        formalization_result = None
+        
+        # Step 1: Formalize if natural language
+        if input_format == "natural_language":
+            formalization_result = await service.formalize(theorem, elaborate=True)
+            if formalization_result.success:
+                lean_code = formalization_result.elaborated_code or formalization_result.code
+            else:
+                return {
+                    "success": False,
+                    "error": "Failed to formalize natural language theorem",
+                    "formalization_warnings": formalization_result.warnings
+                }
+        
+        result = {
+            "success": True,
+            "proven": False,
+            "input_format": input_format,
+            "lean_code": lean_code,
+            "source": formalization_result.source if formalization_result else "input"
+        }
+        
+        # Step 2: Verify with Lean
+        verification = await service.verify(lean_code)
+        if verification:
+            result["proven"] = verification.success
+            result["verification"] = {
+                "success": verification.success,
+                "status": str(verification.status) if hasattr(verification, 'status') else "unknown"
+            }
+        
+        # Step 3: Generate proof if requested
+        if generate_proof and UNIFIED_MATH_AVAILABLE:
+            try:
+                proof_result = await service.prove(theorem)
+                result["proof"] = {
+                    "code": proof_result.proof_code if hasattr(proof_result, 'proof_code') else None,
+                    "sketch": proof_result.sketch if hasattr(proof_result, 'sketch') else None,
+                    "tactics": proof_result.tactics_used if hasattr(proof_result, 'tactics_used') else []
+                }
+            except Exception as e:
+                result["proof_error"] = str(e)
+        
+        return result
+    
+    except Exception as e:
+        logger.error(f"CAV-NLP enhanced proving failed: {e}")
+        # Fallback to standard Z3
+        return await z3_prove_theorem(theorem, [], extract_proof=generate_proof)
 
 
 # =============================================================================
@@ -820,6 +1357,59 @@ def example_mcp_usage():
     print(json.dumps(result, indent=2))
 
 
+async def example_cav_nlp_usage():
+    """Example: Using CAV-NLP enhanced tools."""
+    print("\n" + "=" * 50)
+    print("CAV-NLP Enhanced Tools Examples")
+    print("=" * 50)
+    
+    server = get_z3_mcp_server()
+    
+    # Example 1: Formalize natural language
+    print("\n1. Formalize Natural Language Constraint:")
+    result = server.call_tool("z3_formalize_constraint", {
+        "natural_language": "For all natural numbers n, n + 0 = n",
+        "target_format": "lean",
+        "elaborate": True
+    })
+    print(f"   Success: {result.get('success')}")
+    print(f"   Source: {result.get('source')}")
+    if result.get('code'):
+        print(f"   Code:\n{result['code'][:300]}...")
+    
+    # Example 2: Hybrid verification
+    print("\n2. Hybrid Verification:")
+    result = server.call_tool("z3_verify_hybrid", {
+        "constraint": "For all integers x, x + 0 = x",
+        "input_format": "natural_language"
+    })
+    print(f"   Success: {result.get('success')}")
+    print(f"   Verified: {result.get('verified')}")
+    print(f"   Hybrid Confidence: {result.get('hybrid_confidence')}")
+    
+    # Example 3: Canonicalization
+    print("\n3. Canonicalize Constraint:")
+    result = server.call_tool("z3_canonicalize_constraint", {
+        "constraint": "x + y = y + x",
+        "input_type": "smtlib"
+    })
+    print(f"   Success: {result.get('success')}")
+    if result.get('canonical_form'):
+        print(f"   Canonical Form: {result['canonical_form'][:100]}...")
+    
+    # Example 4: Enhanced proving
+    print("\n4. Enhanced Proving with CAV-NLP:")
+    result = server.call_tool("z3_enhanced_prove", {
+        "theorem": "For all natural numbers n, n + 0 = n",
+        "use_cav_nlp": True,
+        "generate_proof": True,
+        "input_format": "natural_language"
+    })
+    print(f"   Success: {result.get('success')}")
+    print(f"   Proven: {result.get('proven')}")
+    print(f"   Source: {result.get('source')}")
+
+
 def example_mcp_protocol():
     """Example: MCP protocol request/response."""
     server = get_z3_mcp_server()
@@ -852,3 +1442,7 @@ if __name__ == "__main__":
     example_mcp_usage()
     print("\n" + "=" * 50)
     example_mcp_protocol()
+    
+    # Run CAV-NLP examples
+    import asyncio
+    asyncio.run(example_cav_nlp_usage())

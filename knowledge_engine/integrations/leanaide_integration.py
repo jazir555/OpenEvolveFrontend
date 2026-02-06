@@ -872,13 +872,67 @@ class LeanAideIntegration:
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
     
+    async def prove_theorem(
+        self,
+        theorem: str,
+        proof: Optional[str] = None,
+        timeout: Optional[int] = None,
+        correlation_id: Optional[str] = None
+    ) -> LeanAideResult:
+        """
+        Prove a theorem (alias for verify_theorem for backward compatibility).
+
+        Args:
+            theorem: The theorem statement to prove
+            proof: Optional proof to verify
+            timeout: Timeout in seconds
+            correlation_id: Correlation ID for tracking
+
+        Returns:
+            LeanAideResult with proof/verification status
+        """
+        return await self.verify_theorem(
+            theorem=theorem,
+            proof=proof,
+            auto_prove=True,
+            correlation_id=correlation_id
+        )
+
+    async def search_proof(
+        self,
+        theorem: str,
+        max_depth: Optional[int] = None,
+        tactics: Optional[List[str]] = None,
+        timeout: Optional[int] = None,
+        correlation_id: Optional[str] = None
+    ) -> LeanAideResult:
+        """
+        Search for a proof using various tactics (alias for generate_proof).
+
+        Args:
+            theorem: The theorem to find a proof for
+            max_depth: Maximum search depth
+            tactics: Specific tactics to try
+            timeout: Timeout in seconds
+            correlation_id: Correlation ID for tracking
+
+        Returns:
+            LeanAideResult with search results
+        """
+        return await self.generate_proof(
+            theorem=theorem,
+            search_depth=max_depth,
+            timeout=timeout,
+            correlation_id=correlation_id
+        )
+
     async def close(self):
         """Close resources used by the integration."""
         logger.info({
             "msg": "Closing LeanAide integration resources",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-        
+
         # No specific cleanup needed for LeanAide at the moment
         logger.info({
             "msg": "LeanAide integration resources closed",

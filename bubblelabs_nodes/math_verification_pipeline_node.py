@@ -1,15 +1,16 @@
 """
 Math Verification Pipeline Node for BubbleLabs
 
-Complete mathematical verification pipeline combining Lean 4 and Z3.
+Complete mathematical verification pipeline combining Lean 4, Z3, and CAV-NLP.
 Provides end-to-end verification from natural language to formal proof.
 
 Pipeline stages:
-1. Autoformalization (NL -> Lean)
+1. CAV-NLP Autoformalization (NL -> Lean)
 2. Z3 Pre-check (quick validation)
 3. Lean Verification (detailed proof)
 4. Cross-validation (Z3 ↔ Lean)
-5. Report Generation
+5. Hybrid Confidence Scoring (NEW)
+6. Report Generation
 
 Part of the Mathematical Verification Bubble Suite.
 """
@@ -21,6 +22,7 @@ import time
 from typing import Dict, Any, List, Optional, Union
 from datetime import datetime
 from enum import Enum
+from dataclasses import dataclass, field
 
 from bubblelabs_nodes.base_node import BubbleLabsNode, NodeExecutionError
 
@@ -36,9 +38,20 @@ class VerificationStrategy(Enum):
     ADAPTIVE = "adaptive"       # Choose based on problem
 
 
+@dataclass
+class HybridVerificationResult:
+    """Result of hybrid verification with confidence scoring."""
+    verified: bool
+    confidence: float
+    z3_result: Optional[Dict[str, Any]]
+    lean_result: Optional[Dict[str, Any]]
+    agreement: bool
+    recommendation: str
+
+
 class MathVerificationPipelineNode(BubbleLabsNode):
     """
-    Complete mathematical verification pipeline.
+    Complete mathematical verification pipeline with CAV-NLP integration.
     
     Operations:
         - verify: Full verification pipeline
@@ -47,13 +60,15 @@ class MathVerificationPipelineNode(BubbleLabsNode):
         - cross_validate: Cross-check Z3 and Lean
         - batch_verify: Verify multiple statements
         - compare_strategies: Compare verification strategies
+        - hybrid_verify: Enhanced verification with confidence scoring (NEW)
+        - cav_nlp_formalize: Formalize NL to Lean using CAV-NLP (NEW)
     """
     
     DISPLAY_NAME = "Math Verification Pipeline"
-    DESCRIPTION = "Complete mathematical verification combining Lean 4 and Z3"
+    DESCRIPTION = "Complete mathematical verification combining Lean 4, Z3, and CAV-NLP"
     ICON = "math-pipeline"
     CATEGORY = "mathematical_verification"
-    VERSION = "1.0.0"
+    VERSION = "2.0.0"  # Updated for CAV-NLP integration
     
     OPERATIONS = [
         "verify",
@@ -61,7 +76,9 @@ class MathVerificationPipelineNode(BubbleLabsNode):
         "formal_verify",
         "cross_validate",
         "batch_verify",
-        "compare_strategies"
+        "compare_strategies",
+        "hybrid_verify",  # NEW
+        "cav_nlp_formalize"  # NEW
     ]
     
     STAGES = [
@@ -69,6 +86,7 @@ class MathVerificationPipelineNode(BubbleLabsNode):
         "z3_precheck",
         "lean_verification",
         "cross_validation",
+        "hybrid_scoring",  # NEW
         "report_generation"
     ]
     
@@ -77,26 +95,43 @@ class MathVerificationPipelineNode(BubbleLabsNode):
         self._lean_client = None
         self._z3_engine = None
         self._bridge = None
+        self._math_service = None
+        self._initialize_components()
         
     def _initialize_components(self):
-        """Initialize Lean and Z3 components."""
+        """Initialize Lean, Z3, and CAV-NLP components."""
+        # Initialize LeanAide
         try:
             from leanaide_client import LeanAideClient, LeanAideConfig
             self._lean_client = LeanAideClient(LeanAideConfig())
         except Exception as e:
             logger.warning(f"Could not initialize LeanAide: {e}")
         
+        # Initialize Z3
         try:
             from z3prover_integration import Z3SolverEngine, Z3Config
             self._z3_engine = Z3SolverEngine(Z3Config())
         except Exception as e:
             logger.warning(f"Could not initialize Z3: {e}")
         
+        # Initialize bridge
         try:
             from z3_leanaide_bridge import Z3LeanAideBridge
             self._bridge = Z3LeanAideBridge()
         except Exception as e:
             logger.warning(f"Could not initialize bridge: {e}")
+        
+        # Initialize CAV-NLP math service (NEW)
+        if self.config.get("use_cav_nlp", True):
+            try:
+                from openevolve.unified_math_service import UnifiedMathService
+                self._math_service = UnifiedMathService(
+                    use_cav_nlp=True,
+                    use_leanaide=self.config.get("use_lean_verification", True)
+                )
+                logger.info("CAV-NLP math service initialized")
+            except Exception as e:
+                logger.warning(f"Could not initialize CAV-NLP math service: {e}")
 
     def _extract_entanglement_context(self, inputs: Dict[str, Any], context) -> Dict[str, Any]:
         """Extract entanglement context from inputs, context metadata, or artifacts."""
@@ -135,9 +170,12 @@ class MathVerificationPipelineNode(BubbleLabsNode):
         if operation == "batch_verify":
             if "statements" not in inputs and "statements" not in self.config:
                 errors.append("batch_verify requires 'statements' input")
-        elif operation in ["verify", "quick_check", "formal_verify", "cross_validate"]:
+        elif operation in ["verify", "quick_check", "formal_verify", "cross_validate", "hybrid_verify"]:
             if "statement" not in inputs and "statement" not in self.config:
                 errors.append(f"{operation} requires 'statement' input")
+        elif operation == "cav_nlp_formalize":
+            if "statement" not in inputs and "statement" not in self.config:
+                errors.append("cav_nlp_formalize requires 'statement' input")
         
         return errors
     
@@ -226,6 +264,37 @@ class MathVerificationPipelineNode(BubbleLabsNode):
                     "type": "boolean",
                     "default": False,
                     "description": "Compare all strategies (for compare_strategies)"
+                },
+                # NEW: CAV-NLP configuration options
+                "use_cav_nlp": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Use CAV-NLP for autoformalization"
+                },
+                "use_lean_verification": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Enable Lean verification"
+                },
+                "cav_nlp_timeout": {
+                    "type": "number",
+                    "default": 30.0,
+                    "description": "Timeout for CAV-NLP formalization"
+                },
+                "elaborate_formalization": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Elaborate formalization with LeanAide"
+                },
+                "generate_documentation": {
+                    "type": "boolean",
+                    "default": False,
+                    "description": "Generate documentation for formalized code"
+                },
+                "use_hybrid_scoring": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Use hybrid confidence scoring in verification"
                 }
             },
             "required": ["operation"]
@@ -239,7 +308,7 @@ class MathVerificationPipelineNode(BubbleLabsNode):
         
         context.update_progress(5)
         
-        if self._lean_client is None and self._z3_engine is None:
+        if self._lean_client is None and self._z3_engine is None and self._math_service is None:
             self._initialize_components()
         
         context.update_progress(10)
@@ -257,6 +326,10 @@ class MathVerificationPipelineNode(BubbleLabsNode):
                 result = self._batch_verify(inputs, context)
             elif operation == "compare_strategies":
                 result = self._compare_strategies(inputs, context)
+            elif operation == "hybrid_verify":
+                result = asyncio.run(self._hybrid_verify(inputs, context))
+            elif operation == "cav_nlp_formalize":
+                result = asyncio.run(self._cav_nlp_formalize(inputs, context))
             else:
                 raise NodeExecutionError(
                     node_name=self.DISPLAY_NAME,
@@ -267,6 +340,7 @@ class MathVerificationPipelineNode(BubbleLabsNode):
             result["execution_time"] = execution_time
             result["timestamp"] = datetime.utcnow().isoformat()
             result["entanglement_context"] = entanglement_context
+            result["cav_nlp_enabled"] = self.config.get("use_cav_nlp", True)
             
             context.add_artifact("math_verification_result", result)
             
@@ -279,12 +353,250 @@ class MathVerificationPipelineNode(BubbleLabsNode):
                 details={"operation": operation}
             )
     
+    # =======================================================================
+    # NEW: CAV-NLP Enhanced Operations
+    # =======================================================================
+    
+    async def _cav_nlp_formalize(self, inputs: Dict, context) -> Dict[str, Any]:
+        """
+        Formalize natural language to Lean using CAV-NLP.
+        
+        Primary CAV-NLP operation for autoformalization.
+        """
+        statement = inputs.get("statement", self.config.get("statement", ""))
+        elaborate = inputs.get("elaborate_formalization", self.config.get("elaborate_formalization", True))
+        generate_docs = inputs.get("generate_documentation", self.config.get("generate_documentation", False))
+        
+        context.update_progress(30)
+        
+        if not self._math_service:
+            return {
+                "success": False,
+                "error": "CAV-NLP service not available",
+                "cav_nlp_used": False
+            }
+        
+        try:
+            # Use CAV-NLP for formalization
+            formalization = await self._math_service.formalize(
+                text=statement,
+                elaborate=elaborate,
+                generate_docs=generate_docs
+            )
+            
+            context.update_progress(80)
+            
+            if formalization.success:
+                context.update_progress(100)
+                
+                return {
+                    "success": True,
+                    "formalized": True,
+                    "original": statement,
+                    "lean_code": formalization.code,
+                    "elaborated_code": formalization.elaborated_code,
+                    "documentation": formalization.documentation,
+                    "source": formalization.source,
+                    "cav_nlp_used": True,
+                    "warnings": formalization.warnings
+                }
+            else:
+                return {
+                    "success": False,
+                    "error": "Formalization failed",
+                    "cav_nlp_used": True,
+                    "warnings": formalization.warnings
+                }
+                
+        except Exception as e:
+            logger.error(f"CAV-NLP formalization failed: {e}")
+            return {
+                "success": False,
+                "error": f"CAV-NLP formalization error: {e}",
+                "cav_nlp_used": True
+            }
+    
+    async def _hybrid_verify(self, inputs: Dict, context) -> Dict[str, Any]:
+        """
+        Enhanced verification with hybrid confidence scoring.
+        
+        Pipeline:
+        1. Z3 quick check (existing)
+        2. CAV-NLP formalization (NEW)
+        3. Lean verification (NEW)
+        4. Hybrid confidence scoring (NEW)
+        """
+        statement = inputs.get("statement", self.config.get("statement", ""))
+        use_hybrid_scoring = inputs.get("use_hybrid_scoring", self.config.get("use_hybrid_scoring", True))
+        
+        pipeline_results = {}
+        
+        # Step 1: Z3 quick check
+        context.update_progress(20)
+        z3_result = self._z3_check(statement)
+        pipeline_results["z3_precheck"] = z3_result
+        
+        # Step 2: CAV-NLP formalization
+        context.update_progress(40)
+        lean_code = statement
+        formalization = None
+        
+        if self.config.get("use_cav_nlp", True) and self._math_service:
+            try:
+                formalization = await self._math_service.formalize(statement)
+                if formalization.success:
+                    lean_code = formalization.code
+                pipeline_results["autoformalization"] = {
+                    "success": formalization.success,
+                    "source": formalization.source,
+                    "code": formalization.code
+                }
+            except Exception as e:
+                logger.warning(f"CAV-NLP formalization in hybrid verify failed: {e}")
+                pipeline_results["autoformalization"] = {"success": False, "error": str(e)}
+        
+        # Step 3: Lean verification
+        context.update_progress(60)
+        lean_result = None
+        
+        if self.config.get("use_lean_verification", True):
+            if self._math_service:
+                try:
+                    verification = await self._math_service.verify(lean_code)
+                    lean_result = {
+                        "success": verification.success if verification else False,
+                        "status": str(verification.status) if verification else "unknown",
+                        "errors": verification.errors if verification else []
+                    }
+                except Exception as e:
+                    logger.warning(f"Lean verification failed: {e}")
+                    lean_result = {"success": False, "error": str(e)}
+            elif self._bridge:
+                try:
+                    result = self._bridge.verify_with_lean(lean_code)
+                    lean_result = {"success": result.success if hasattr(result, 'success') else False}
+                except Exception as e:
+                    logger.warning(f"Bridge verification failed: {e}")
+                    lean_result = {"success": False, "error": str(e)}
+        
+        pipeline_results["lean_verification"] = lean_result
+        
+        context.update_progress(80)
+        
+        # Step 4: Hybrid confidence scoring
+        context.update_progress(90)
+        
+        if use_hybrid_scoring:
+            hybrid_result = self._calculate_hybrid_confidence_score(z3_result, lean_result)
+        else:
+            # Simple scoring
+            z3_verified = z3_result.get("satisfiable") if z3_result else False
+            lean_verified = lean_result.get("success") if lean_result else False
+            hybrid_result = HybridVerificationResult(
+                verified=z3_verified or lean_verified,
+                confidence=0.7 if (z3_verified or lean_verified) else 0.3,
+                z3_result=z3_result,
+                lean_result=lean_result,
+                agreement=z3_verified == lean_verified if lean_result else None,
+                recommendation="Basic verification completed"
+            )
+        
+        context.update_progress(100)
+        
+        return {
+            "success": True,
+            "verified": hybrid_result.verified,
+            "confidence": hybrid_result.confidence,
+            "agreement": hybrid_result.agreement,
+            "statement": statement,
+            "lean_code": lean_code,
+            "z3_result": hybrid_result.z3_result,
+            "lean_result": hybrid_result.lean_result,
+            "cav_nlp_used": formalization is not None,
+            "recommendation": hybrid_result.recommendation,
+            "pipeline_results": pipeline_results
+        }
+    
+    def _calculate_hybrid_confidence_score(self, z3_result: Dict, 
+                                           lean_result: Optional[Dict]) -> HybridVerificationResult:
+        """
+        Calculate hybrid confidence score from Z3 and Lean results.
+        
+        Scoring algorithm:
+        - Z3 verified: +0.4
+        - Lean verified: +0.6
+        - Both agree: +0.1 bonus
+        - Both disagree: -0.2 penalty
+        """
+        z3_verified = z3_result.get("satisfiable") if z3_result else False
+        lean_verified = lean_result.get("success") if lean_result else False
+        
+        confidence = 0.0
+        
+        # Z3 contribution
+        if z3_verified:
+            confidence += 0.4
+        elif z3_result and z3_result.get("status") == "unsat":
+            confidence += 0.1
+        
+        # Lean contribution
+        if lean_verified:
+            confidence += 0.6
+        elif lean_result:
+            confidence += 0.1
+        
+        # Agreement bonus/penalty
+        if lean_result:
+            agreement = z3_verified == lean_verified
+            if agreement:
+                confidence += 0.1
+            else:
+                confidence -= 0.2
+        else:
+            agreement = None
+        
+        # Cap at 0-1 range
+        confidence = max(0.0, min(1.0, confidence))
+        
+        # Determine verification status
+        verified = z3_verified or lean_verified
+        
+        # Generate recommendation
+        if agreement is True:
+            if z3_verified and lean_verified:
+                recommendation = "High confidence: Both Z3 and Lean verify this statement"
+            else:
+                recommendation = "Both Z3 and Lean agree: statement appears unprovable"
+        elif agreement is False:
+            recommendation = "WARNING: Discrepancy between Z3 and Lean - manual review required"
+        else:
+            if lean_verified:
+                recommendation = "Lean verified (Z3 unavailable)"
+            elif z3_verified:
+                recommendation = "Z3 verified (Lean unavailable)"
+            else:
+                recommendation = "Verification inconclusive"
+        
+        return HybridVerificationResult(
+            verified=verified,
+            confidence=confidence,
+            z3_result=z3_result,
+            lean_result=lean_result,
+            agreement=agreement,
+            recommendation=recommendation
+        )
+    
+    # =======================================================================
+    # Standard Operations
+    # =======================================================================
+    
     def _full_verify(self, inputs: Dict, context) -> Dict[str, Any]:
         """Run full verification pipeline."""
         statement = inputs.get("statement", self.config.get("statement", ""))
         strategy_str = inputs.get("strategy", self.config.get("strategy", "adaptive"))
         stages = inputs.get("stages", self.config.get("stages", self.STAGES))
         autoformalize = inputs.get("autoformalize", self.config.get("autoformalize", True))
+        use_cav_nlp = inputs.get("use_cav_nlp", self.config.get("use_cav_nlp", True))
         
         strategy = VerificationStrategy(strategy_str)
         
@@ -294,9 +606,27 @@ class MathVerificationPipelineNode(BubbleLabsNode):
         # Stage 1: Autoformalization
         if "autoformalization" in stages and autoformalize:
             context.update_progress(15)
-            lean_code = self._autoformalize_statement(statement)
-            pipeline_results["autoformalization"] = lean_code
-            stage_results.append({"stage": "autoformalization", "status": "completed"})
+            
+            # Use CAV-NLP if available
+            if use_cav_nlp and self._math_service:
+                try:
+                    formalization = asyncio.run(self._math_service.formalize(statement))
+                    lean_code = formalization.code if formalization.success else statement
+                    pipeline_results["autoformalization"] = {
+                        "success": formalization.success,
+                        "source": formalization.source,
+                        "code": lean_code
+                    }
+                    stage_results.append({"stage": "autoformalization", "status": "completed", "source": "cav_nlp"})
+                except Exception as e:
+                    logger.warning(f"CAV-NLP formalization failed: {e}")
+                    lean_code = self._autoformalize_statement(statement)
+                    pipeline_results["autoformalization"] = lean_code
+                    stage_results.append({"stage": "autoformalization", "status": "completed"})
+            else:
+                lean_code = self._autoformalize_statement(statement)
+                pipeline_results["autoformalization"] = lean_code
+                stage_results.append({"stage": "autoformalization", "status": "completed"})
         else:
             lean_code = statement
             stage_results.append({"stage": "autoformalization", "status": "skipped"})
@@ -322,6 +652,19 @@ class MathVerificationPipelineNode(BubbleLabsNode):
                                             pipeline_results.get("lean_verification"))
             pipeline_results["cross_validation"] = cross_result
             stage_results.append({"stage": "cross_validation", "status": cross_result.get("agreement", "unknown")})
+        
+        # NEW: Stage 5: Hybrid scoring
+        if "hybrid_scoring" in stages:
+            context.update_progress(90)
+            z3_result = pipeline_results.get("z3_precheck", {})
+            lean_result = pipeline_results.get("lean_verification", {})
+            hybrid = self._calculate_hybrid_confidence_score(z3_result, lean_result)
+            pipeline_results["hybrid_scoring"] = {
+                "confidence": hybrid.confidence,
+                "agreement": hybrid.agreement,
+                "recommendation": hybrid.recommendation
+            }
+            stage_results.append({"stage": "hybrid_scoring", "status": "completed"})
         
         context.update_progress(100)
         
@@ -365,11 +708,21 @@ class MathVerificationPipelineNode(BubbleLabsNode):
         """Lean-only verification."""
         statement = inputs.get("statement", self.config.get("statement", ""))
         autoformalize = inputs.get("autoformalize", self.config.get("autoformalize", True))
+        use_cav_nlp = inputs.get("use_cav_nlp", self.config.get("use_cav_nlp", True))
         
         context.update_progress(30)
         
         if autoformalize:
-            lean_code = self._autoformalize_statement(statement)
+            # Prefer CAV-NLP for formalization
+            if use_cav_nlp and self._math_service:
+                try:
+                    formalization = asyncio.run(self._math_service.formalize(statement))
+                    lean_code = formalization.code if formalization.success else statement
+                except Exception as e:
+                    logger.warning(f"CAV-NLP formalization failed: {e}")
+                    lean_code = self._autoformalize_statement(statement)
+            else:
+                lean_code = self._autoformalize_statement(statement)
         else:
             lean_code = statement
         
@@ -499,6 +852,15 @@ class MathVerificationPipelineNode(BubbleLabsNode):
     
     def _autoformalize_statement(self, statement: str) -> Union[str, Dict]:
         """Autoformalize natural language to Lean."""
+        # Prefer CAV-NLP if available
+        if self._math_service:
+            try:
+                result = asyncio.run(self._math_service.formalize(statement))
+                if result.success:
+                    return result.code
+            except Exception as e:
+                logger.warning(f"CAV-NLP autoformalization failed: {e}")
+        
         if self._lean_client:
             try:
                 result = asyncio.run(self._lean_client.translate_theorem(statement))
@@ -534,12 +896,26 @@ class MathVerificationPipelineNode(BubbleLabsNode):
         """Verify with Lean."""
         lean_code = code if isinstance(code, str) else code.get("lean_code", "")
         
+        # Try CAV-NLP verification first
+        if self._math_service:
+            try:
+                result = asyncio.run(self._math_service.verify(lean_code))
+                if result:
+                    return {
+                        "status": "verified" if result.success else "failed",
+                        "verified": result.success,
+                        "source": "cav_nlp"
+                    }
+            except Exception as e:
+                logger.warning(f"CAV-NLP verification failed: {e}")
+        
         if self._bridge:
             try:
                 result = self._bridge.verify_with_lean(lean_code)
                 return {
                     "status": "verified" if result.success else "failed",
-                    "verified": result.success
+                    "verified": result.success,
+                    "source": "bridge"
                 }
             except Exception as e:
                 logger.warning(f"Lean verification failed: {e}")
@@ -582,4 +958,26 @@ class MathVerificationPipelineNode(BubbleLabsNode):
     
     def is_healthy(self) -> bool:
         """Check node health."""
-        return True
+        health = {
+            "lean_available": self._lean_client is not None,
+            "z3_available": self._z3_engine is not None,
+            "bridge_available": self._bridge is not None,
+            "cav_nlp_available": self._math_service is not None
+        }
+        return any(health.values())
+    
+    def get_capabilities(self) -> Dict[str, Any]:
+        """Get node capabilities."""
+        return {
+            "lean_available": self._lean_client is not None,
+            "z3_available": self._z3_engine is not None,
+            "bridge_available": self._bridge is not None,
+            "cav_nlp_available": self._math_service is not None,
+            "operations": self.OPERATIONS,
+            "stages": self.STAGES,
+            "cav_nlp_config": {
+                "use_cav_nlp": self.config.get("use_cav_nlp", True),
+                "use_lean_verification": self.config.get("use_lean_verification", True),
+                "cav_nlp_timeout": self.config.get("cav_nlp_timeout", 30.0)
+            }
+        }

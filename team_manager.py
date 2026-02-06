@@ -3,6 +3,7 @@ import os
 import logging
 from typing import List, Optional, Dict, Any
 from datetime import datetime
+from dataclasses import dataclass
 from openevolve_structures import Team, ModelConfig
 
 # SECURITY: Import security framework
@@ -38,6 +39,41 @@ except ImportError:
 
 TEAMS_FILE = "teams.json" # Name of the file used for persisting team data.
 logger = logging.getLogger(__name__)
+
+@dataclass
+class TeamMember:
+    """Represents a member of a team"""
+    id: str
+    name: str
+    role: str
+    capabilities: List[str]
+    availability: bool = True
+    current_task: Optional[str] = None
+    metadata: Dict[str, Any] = None
+
+    def __post_init__(self):
+        if self.metadata is None:
+            self.metadata = {}
+
+@dataclass
+class Task:
+    """Represents a task assigned to a team member"""
+    id: str
+    title: str
+    description: str
+    assignee_id: Optional[str] = None
+    status: str = "pending"  # pending, in_progress, completed, blocked
+    priority: str = "medium"  # low, medium, high, critical
+    estimated_hours: Optional[float] = None
+    actual_hours: Optional[float] = None
+    dependencies: List[str] = None
+    metadata: Dict[str, Any] = None
+
+    def __post_init__(self):
+        if self.dependencies is None:
+            self.dependencies = []
+        if self.metadata is None:
+            self.metadata = {}
 
 class TeamManager:
     """
@@ -248,6 +284,134 @@ class TeamManager:
             self.update_team(team)
 
         return True
+
+    def add_member(self, team_name: str, member: TeamMember) -> bool:
+        """
+        Add a member to a team
+
+        Args:
+            team_name: Name of the team
+            member: TeamMember to add
+
+        Returns:
+            True if successful, False if team not found
+        """
+        team = self.get_team(team_name)
+        if not team:
+            return False
+
+        # Initialize members list if not present
+        if not hasattr(team, 'team_members'):
+            team.team_members = []
+
+        # Check if member already exists
+        if any(m.id == member.id for m in team.team_members):
+            return False
+
+        team.team_members.append(member)
+        self.update_team(team)
+        return True
+
+    def assign_task(self, team_name: str, task: Task, member_id: Optional[str] = None) -> bool:
+        """
+        Assign a task to a team member
+
+        Args:
+            team_name: Name of the team
+            task: Task to assign
+            member_id: Optional specific member ID to assign to
+
+        Returns:
+            True if successful, False if team or member not found
+        """
+        team = self.get_team(team_name)
+        if not team:
+            return False
+
+        # Initialize tasks list if not present
+        if not hasattr(team, 'tasks'):
+            team.tasks = []
+
+        # If member_id specified, check if member exists
+        if member_id:
+            if not hasattr(team, 'team_members'):
+                return False
+
+            member = None
+            for m in team.team_members:
+                if m.id == member_id:
+                    member = m
+                    break
+
+            if not member:
+                return False
+
+            # Update member's current task
+            member.current_task = task.id
+            task.assignee_id = member_id
+
+        # Add task to team
+        team.tasks.append(task)
+        self.update_team(team)
+        return True
+
+    def get_status(self, team_name: str) -> Dict[str, Any]:
+        """
+        Get status of a team including members and tasks
+
+        Args:
+            team_name: Name of the team
+
+        Returns:
+            Dictionary with team status information
+        """
+        team = self.get_team(team_name)
+        if not team:
+            return {
+                "error": f"Team '{team_name}' not found",
+                "team_name": team_name
+            }
+
+        status = {
+            "team_name": team_name,
+            "role": team.role if hasattr(team, 'role') else "unknown",
+            "members": [],
+            "tasks": [],
+            "task_summary": {
+                "total": 0,
+                "pending": 0,
+                "in_progress": 0,
+                "completed": 0,
+                "blocked": 0
+            }
+        }
+
+        # Add members
+        if hasattr(team, 'team_members'):
+            for member in team.team_members:
+                status["members"].append({
+                    "id": member.id,
+                    "name": member.name,
+                    "role": member.role,
+                    "availability": member.availability,
+                    "current_task": member.current_task
+                })
+
+        # Add tasks
+        if hasattr(team, 'tasks'):
+            for task in team.tasks:
+                task_info = {
+                    "id": task.id,
+                    "title": task.title,
+                    "status": task.status,
+                    "priority": task.priority,
+                    "assignee_id": task.assignee_id
+                }
+                status["tasks"].append(task_info)
+                status["task_summary"]["total"] += 1
+                status["task_summary"][task.status] = status["task_summary"].get(task.status, 0) + 1
+
+        return status
 
     # =========================================================================
     # ACTUAL INTEGRATION METHODS - Alerting and knowledge for team operations

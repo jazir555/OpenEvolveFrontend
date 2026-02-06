@@ -502,6 +502,43 @@ class ROMAIntegration:
 
         return sub_problems
 
+    async def decompose(
+        self,
+        problem: str,
+        max_depth: Optional[int] = None,
+        extract_entities: Optional[bool] = None,
+        context: Optional[Dict[str, Any]] = None,
+        correlation_id: Optional[str] = None
+    ) -> ROMAResult:
+        """
+        Alias for decompose_problem for backward compatibility.
+
+        Decompose a complex problem into hierarchical sub-problems.
+
+        Args:
+            problem: The complex problem to decompose
+            max_depth: Maximum decomposition depth (overrides config)
+            extract_entities: Whether to extract knowledge entities (overrides config)
+            context: Additional context for decomposition (optional)
+            correlation_id: Correlation ID for tracking
+
+        Returns:
+            ROMAResult with hierarchical decomposition
+        """
+        # Context parameter is stored in metadata for later use
+        result = await self.decompose_problem(
+            problem=problem,
+            max_depth=max_depth,
+            extract_entities=extract_entities,
+            correlation_id=correlation_id
+        )
+
+        # Add context to result metadata if provided
+        if context and result.metadata is not None:
+            result.metadata["context"] = context
+
+        return result
+
     def _count_sub_problems(self, decomposition: ROMADecomposition) -> int:
         """Recursively count all sub-problems in a decomposition tree."""
         count = 1  # Count the decomposition itself

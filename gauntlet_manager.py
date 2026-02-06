@@ -4,6 +4,7 @@ import time
 import logging
 from typing import List, Optional, Dict, Any, Callable
 from datetime import datetime
+from dataclasses import dataclass
 from openevolve_structures import GauntletDefinition, GauntletRoundRule
 
 # SECURITY: Import security framework
@@ -14,9 +15,11 @@ try:
     )
     from input_validation import get_validator
     SECURITY_AVAILABLE = True
+    SECURITY_ENABLED = True
     logging.info("SECURITY: Gauntlet manager security enabled")
 except ImportError as e:
     SECURITY_AVAILABLE = False
+    SECURITY_ENABLED = False
     logging.warning(f"SECURITY: Gauntlet manager security not available: {e}")
 
 # **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for gauntlet operations
@@ -97,6 +100,40 @@ except ImportError:
 
 GAUNTLETS_FILE = "gauntlets.json" # Name of the file used for persisting gauntlet data.
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class RoundResult:
+    """Result of a single gauntlet round"""
+    round_number: int
+    passed: bool
+    score: float
+    feedback: str
+    execution_time: float
+    details: Dict[str, Any] = None
+
+    def __post_init__(self):
+        if self.details is None:
+            self.details = {}
+
+
+@dataclass
+class GauntletResult:
+    """Overall result of a gauntlet execution"""
+    execution_id: str
+    gauntlet_name: str
+    passed: bool
+    score: float
+    rounds_passed: int
+    total_rounds: int
+    round_results: List[RoundResult]
+    feedback: List[str]
+    execution_time: float
+    details: Dict[str, Any] = None
+
+    def __post_init__(self):
+        if self.details is None:
+            self.details = {}
 
 
 class GauntletEvaluator:
@@ -440,6 +477,84 @@ class GauntletEvaluator:
             "round_scores": [r.get("score", 0) for r in round_results],
             "average_round_score": sum(r.get("score", 0) for r in round_results) / total_rounds
         }
+
+    def run_gauntlet(
+        self,
+        gauntlet: Any,
+        solution_content: str,
+        context: Dict[str, Any]
+    ) -> GauntletResult:
+        """
+        Run a full gauntlet evaluation
+
+        Args:
+            gauntlet: Gauntlet definition
+            solution_content: Solution to evaluate
+            context: Additional context
+
+        Returns:
+            GauntletResult with overall results
+        """
+        import uuid
+        from datetime import datetime
+
+        start_time = time.time()
+        execution_id = str(uuid.uuid4())
+
+        # Evaluate all rounds
+        round_results = []
+        for round_num, round_rule in enumerate(gauntlet.rounds, 1):
+            result = self.evaluate_round(round_num, round_rule, solution_content, context)
+            round_results.append(RoundResult(
+                round_number=round_num,
+                passed=result.get("passed", False),
+                score=result.get("score", 0.0),
+                feedback=result.get("feedback", ""),
+                execution_time=result.get("execution_time", 0.0),
+                details=result
+            ))
+
+        # Calculate final score
+        final = self.calculate_final_score([r.details for r in round_results])
+
+        execution_time = time.time() - start_time
+
+        return GauntletResult(
+            execution_id=execution_id,
+            gauntlet_name=gauntlet.name,
+            passed=final.get("passed", False),
+            score=final.get("score", 0.0),
+            rounds_passed=final.get("rounds_passed", 0),
+            total_rounds=len(round_results),
+            round_results=round_results,
+            feedback=[r.feedback for r in round_results],
+            execution_time=execution_time,
+            details=final
+        )
+
+    def aggregate_results(self, round_results: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Aggregate results from multiple rounds
+
+        Args:
+            round_results: List of round result dictionaries
+
+        Returns:
+            Aggregated results dictionary
+        """
+        return self.calculate_final_score(round_results)
+
+    def get_score(self, result: Dict[str, Any]) -> float:
+        """
+        Extract score from a result dictionary
+
+        Args:
+            result: Result dictionary
+
+        Returns:
+            Score as float
+        """
+        return float(result.get("score", 0.0))
 
 
 class GauntletManager:

@@ -525,7 +525,7 @@ class TestScenario2Z3Integration:
                 CanonicalConstraint(
                     constraint_id="c1",
                     constraint_type="arithmetic",
-                    expression "(= x 5)"
+                    expression=" (= x 5)"
                 )
             ]
 

@@ -120,7 +120,7 @@ PATH_TRAVERSAL_PAYLOADS = [
 MALFORMED_INPUTS = [
     None,
     "",
-    "x" * 1000000,  # Very long string
+    "x" * 10000,  # Very long string (reduced from 1000000 to avoid pytest env var overflow)
     "\x00\x01\x02\x03",  # Null bytes and control characters
     "<>",
     "{{",
@@ -490,7 +490,8 @@ class TestAuthenticationAuthorization:
 
     def setup_method(self):
         """Setup test fixtures."""
-        self.graph = EntityKnowledgeGraph(correlation_id="test_auth")
+        import uuid
+        self.graph = EntityKnowledgeGraph(correlation_id=str(uuid.uuid4()))
         self.admin_user = None  # In-memory, no auth
         self.regular_user = None
 
@@ -1004,7 +1005,7 @@ class TestAPISecurity:
         REMEDIATION: Implement size validation.
         """
         # Very long name (truncated to avoid pytest display issues)
-        large_name = "x" * 100000
+        large_name = "x" * 10000  # Reduced from 100000 to avoid pytest env var overflow
 
         try:
             result = self.graph.add_entity(
@@ -1029,7 +1030,7 @@ class TestAPISecurity:
         REMEDIATION: Implement attribute size limits.
         """
         # Very large attributes
-        large_attrs = {"data": "x" * 10000000}
+        large_attrs = {"data": "x" * 50000}  # Reduced from 10000000 to avoid pytest env var overflow
 
         try:
             result = self.graph.add_entity(

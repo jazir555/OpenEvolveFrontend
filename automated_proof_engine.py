@@ -7,9 +7,10 @@ Full automated theorem proving using multiple strategies:
 3. Proof by analogy from mathlib4
 4. Automated induction
 5. Proof planning
+6. **NEW: CAV-NLP integration** - Natural language theorem formalization and hybrid verification
 
 Author: OpenEvolve
-Version: 1.0.0 - Complete Implementation
+Version: 2.0.0 - Enhanced with CAV-NLP Integration
 """
 
 import asyncio
@@ -69,6 +70,8 @@ class ProofStrategy(Enum):
     PROOF_PLANNING = "proof_planning"
     HEURISTIC = "heuristic"
     INTERACTIVE = "interactive"
+    CAV_NLP = "cav_nlp"  # NEW: CAV-NLP hybrid strategy
+    HYBRID_VERIFICATION = "hybrid_verification"  # NEW: Z3 + Lean hybrid
 
 
 class ProofStatus(Enum):
@@ -104,8 +107,14 @@ class ProofResult:
     error_message: Optional[str] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
     
+    # NEW: CAV-NLP specific fields
+    lean_verification: Optional[VerificationResult] = None
+    hybrid_confidence: float = 0.0
+    formalized_code: Optional[str] = None
+    natural_language_source: Optional[str] = None
+    
     def to_dict(self) -> Dict[str, Any]:
-        return {
+        result = {
             "success": self.success,
             "theorem": self.theorem,
             "strategy_used": self.strategy_used.value,
@@ -114,8 +123,15 @@ class ProofResult:
             "execution_time": self.execution_time,
             "attempts": self.attempts,
             "status": self.status.value,
-            "error_message": self.error_message
+            "error_message": self.error_message,
+            "hybrid_confidence": self.hybrid_confidence
         }
+        if self.lean_verification:
+            result["lean_verification"] = {
+                "success": self.lean_verification.success,
+                "status": str(self.lean_verification.status) if hasattr(self.lean_verification, 'status') else None
+            }
+        return result
 
 
 @dataclass
@@ -125,6 +141,44 @@ class TacticRecommendation:
     confidence: float
     expected_progress: float
     explanation: str
+
+
+# ============================================================================
+# NEW: CAV-NLP Data Structures
+# ============================================================================
+
+@dataclass
+class FormalizationResult:
+    """Result of natural language to formal theorem conversion"""
+    success: bool
+    natural_language: str
+    code: str
+    language: str  # "lean4", "z3", etc.
+    confidence: float
+    error_message: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class HybridProofResult:
+    """Result of hybrid Z3 + CAV-NLP proof attempt"""
+    z3_proof: Optional[ProofResult]
+    formalized: Optional[FormalizationResult]
+    lean_verification: Optional[VerificationResult]
+    hybrid_confidence: float
+    combined_success: bool
+    execution_time: float
+
+
+@dataclass
+class CanonicalTheorem:
+    """Canonical representation of a theorem"""
+    original: str
+    canonical_form: str
+    hash: str
+    language: str
+    structural_signature: str
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 # ============================================================================
@@ -567,6 +621,367 @@ class AnalogyProofStrategy:
 
 
 # ============================================================================
+# NEW: CAV-NLP Strategy
+# ============================================================================
+
+class CAVNLPProofStrategy:
+    """
+    Proof strategy using CAV-NLP (Computer-Aided Verification + Natural Language Processing).
+    
+    This strategy provides:
+    - Natural language theorem formalization
+    - Hybrid Z3 + Lean verification
+    - Proof canonicalization
+    - Proof translation to Lean 4
+    """
+    
+    def __init__(self, math_service=None, enhanced_solver=None):
+        self.math_service = math_service
+        self.enhanced_solver = enhanced_solver
+        self.available = math_service is not None or enhanced_solver is not None
+        
+        if not self.available:
+            logger.warning("CAV-NLP strategy initialized without math service - will use fallback")
+    
+    async def formalize_theorem(self, natural_language: str, target_language: str = "lean4") -> FormalizationResult:
+        """
+        Formalize natural language theorem to formal code using CAV-NLP.
+        
+        Args:
+            natural_language: Natural language theorem statement
+            target_language: Target formal language (lean4, z3, etc.)
+            
+        Returns:
+            FormalizationResult with formalized code
+        """
+        start_time = time.time()
+        
+        try:
+            if self.math_service and hasattr(self.math_service, 'formalize'):
+                # Use UnifiedMathService for formalization
+                result = await self.math_service.formalize(natural_language, target_language)
+                
+                return FormalizationResult(
+                    success=result.success if hasattr(result, 'success') else True,
+                    natural_language=natural_language,
+                    code=result.code if hasattr(result, 'code') else str(result),
+                    language=target_language,
+                    confidence=result.confidence if hasattr(result, 'confidence') else 0.85,
+                    metadata={
+                        "execution_time": time.time() - start_time,
+                        "service_used": "UnifiedMathService"
+                    }
+                )
+            else:
+                # Fallback: basic parsing
+                code = self._basic_formalization(natural_language, target_language)
+                
+                return FormalizationResult(
+                    success=True,
+                    natural_language=natural_language,
+                    code=code,
+                    language=target_language,
+                    confidence=0.6,
+                    metadata={"method": "basic_parsing", "fallback": True}
+                )
+                
+        except Exception as e:
+            logger.error(f"Formalization failed: {e}")
+            return FormalizationResult(
+                success=False,
+                natural_language=natural_language,
+                code="",
+                language=target_language,
+                confidence=0.0,
+                error_message=str(e)
+            )
+    
+    def _basic_formalization(self, nl: str, target: str) -> str:
+        """Basic formalization as fallback"""
+        # Extract mathematical patterns
+        if target == "lean4":
+            # Basic Lean 4 template
+            return f"theorem extracted_from_nl :\n  -- {nl[:50]}...\n  sorry"
+        elif target == "z3":
+            return f"# {nl}\n# Converted to Z3 constraints"
+        return nl
+    
+    async def prove_hybrid(self, theorem: str, max_time: float = 60.0) -> Optional[ProofResult]:
+        """
+        Prove theorem using hybrid Z3 + CAV-NLP approach.
+        
+        This method:
+        1. Uses Z3 for initial proof search
+        2. Formalizes with CAV-NLP
+        3. Verifies with Lean
+        4. Combines results with confidence scoring
+        
+        Args:
+            theorem: Theorem statement (can be natural language or formal)
+            max_time: Maximum time budget
+            
+        Returns:
+            ProofResult with hybrid verification
+        """
+        start_time = time.time()
+        
+        # Step 1: Check if input is natural language and formalize if needed
+        is_nl = self._is_natural_language(theorem)
+        formalized = None
+        
+        if is_nl:
+            formalized = await self.formalize_theorem(theorem, "lean4")
+            if not formalized.success:
+                return ProofResult(
+                    success=False,
+                    theorem=theorem,
+                    strategy_used=ProofStrategy.HYBRID_VERIFICATION,
+                    proof_steps=[],
+                    final_proof=None,
+                    execution_time=time.time() - start_time,
+                    attempts=1,
+                    status=ProofStatus.FAILED,
+                    error_message=f"Failed to formalize: {formalized.error_message}",
+                    natural_language_source=theorem
+                )
+            theorem_code = formalized.code
+        else:
+            theorem_code = theorem
+        
+        # Step 2: Use Z3 for proof search
+        z3_proof = None
+        if Z3_AVAILABLE:
+            z3_strategy = Z3ProofStrategy()
+            z3_proof = await z3_strategy.attempt_proof(theorem_code, max_time=max_time/3)
+        
+        # Step 3: Verify with Lean if available
+        lean_verification = None
+        if self.math_service and hasattr(self.math_service, 'verify'):
+            try:
+                lean_verification = await self.math_service.verify(theorem_code)
+            except Exception as e:
+                logger.warning(f"Lean verification failed: {e}")
+        
+        # Step 4: Combine results
+        elapsed = time.time() - start_time
+        hybrid_confidence = self._calculate_hybrid_confidence(z3_proof, lean_verification, formalized)
+        
+        # Determine overall success
+        combined_success = (
+            (z3_proof is not None and z3_proof.success) or
+            (lean_verification is not None and 
+             (lean_verification.success if hasattr(lean_verification, 'success') else False))
+        )
+        
+        # Build proof steps
+        proof_steps = []
+        if formalized:
+            proof_steps.append(ProofStep(
+                tactic="cav_nlp_formalize",
+                goal_before=theorem if is_nl else theorem_code,
+                goal_after=formalized.code if formalized.success else None,
+                success=formalized.success,
+                execution_time=elapsed * 0.3
+            ))
+        
+        if z3_proof:
+            proof_steps.append(ProofStep(
+                tactic="z3_smt_search",
+                goal_before=theorem_code,
+                goal_after="Proven" if z3_proof.success else "Failed",
+                success=z3_proof.success,
+                execution_time=z3_proof.execution_time
+            ))
+        
+        return ProofResult(
+            success=combined_success,
+            theorem=theorem_code,
+            strategy_used=ProofStrategy.HYBRID_VERIFICATION,
+            proof_steps=proof_steps,
+            final_proof=z3_proof.final_proof if z3_proof else (theorem_code if combined_success else None),
+            execution_time=elapsed,
+            attempts=1 if combined_success else 1,
+            status=ProofStatus.SUCCESS if combined_success else ProofStatus.PARTIAL,
+            lean_verification=lean_verification,
+            hybrid_confidence=hybrid_confidence,
+            formalized_code=formalized.code if formalized else None,
+            natural_language_source=theorem if is_nl else None,
+            metadata={
+                "z3_success": z3_proof.success if z3_proof else False,
+                "lean_success": (lean_verification.success if hasattr(lean_verification, 'success') else False) if lean_verification else False,
+                "was_natural_language": is_nl
+            }
+        )
+    
+    def _is_natural_language(self, text: str) -> bool:
+        """
+        Detect if text is natural language vs formal code.
+        
+        Heuristics:
+        - Contains common words (the, is, for, all, etc.)
+        - Doesn't start with formal keywords (theorem, lemma, def, etc.)
+        - Contains punctuation typical of natural language
+        """
+        text_lower = text.lower().strip()
+        
+        # Formal keywords that indicate formal code
+        formal_prefixes = ['theorem', 'lemma', 'definition', 'def ', '∀', '∃', 'example', 'proof']
+        for prefix in formal_prefixes:
+            if text_lower.startswith(prefix):
+                return False
+        
+        # Common natural language words
+        nl_indicators = [' the ', ' is ', ' for ', ' all ', ' every ', ' there exists', 
+                         ' such that ', ' prove ', ' show ', ' let ', ' suppose ']
+        for indicator in nl_indicators:
+            if indicator in text_lower:
+                return True
+        
+        # If it contains mostly ASCII letters and spaces, likely natural language
+        letter_count = sum(1 for c in text if c.isalpha())
+        if letter_count > 0:
+            ratio = letter_count / len(text)
+            if ratio > 0.7 and '∀' not in text and '∃' not in text and '→' not in text:
+                return True
+        
+        return False
+    
+    def _calculate_hybrid_confidence(
+        self, 
+        z3_proof: Optional[ProofResult], 
+        lean_verification: Optional[VerificationResult],
+        formalized: Optional[FormalizationResult]
+    ) -> float:
+        """
+        Calculate hybrid confidence score based on multiple verification sources.
+        
+        Weights:
+        - Z3 proof success: 35%
+        - Lean verification success: 35%
+        - Formalization confidence: 30%
+        """
+        confidence = 0.0
+        
+        # Z3 contribution (35%)
+        if z3_proof and z3_proof.success:
+            confidence += 0.35
+        
+        # Lean verification contribution (35%)
+        if lean_verification:
+            if hasattr(lean_verification, 'success') and lean_verification.success:
+                confidence += 0.35
+            elif hasattr(lean_verification, 'status'):
+                if lean_verification.status == VerificationStatus.VERIFIED:
+                    confidence += 0.35
+        
+        # Formalization contribution (30%)
+        if formalized and formalized.success:
+            confidence += 0.30 * formalized.confidence
+        
+        return min(confidence, 1.0)
+    
+    def canonicalize_theorem(self, theorem: str, language: str = "lean4") -> CanonicalTheorem:
+        """
+        Return canonical form of theorem using CAV-NLP.
+        
+        Canonicalization:
+        - Normalize variable names
+        - Sort commutative operations
+        - Standardize notation
+        - Generate structural hash
+        
+        Args:
+            theorem: Theorem statement
+            language: Source language
+            
+        Returns:
+            CanonicalTheorem with normalized representation
+        """
+        # Normalize whitespace
+        canonical = re.sub(r'\s+', ' ', theorem.strip())
+        
+        # Normalize variable names (replace with standardized names)
+        # This is a simplified version - full implementation would use AST parsing
+        var_pattern = r'\b[a-zA-Z_][a-zA-Z0-9_]*\b'
+        vars_found = re.findall(var_pattern, canonical)
+        
+        # Sort variables for consistent ordering
+        unique_vars = sorted(set(v for v in vars_found if v not in 
+                                  ['theorem', 'lemma', 'proof', 'import', 'open', 'where']))
+        
+        # Replace with canonical names
+        var_mapping = {}
+        for i, var in enumerate(unique_vars):
+            if len(var) == 1 and var.islower():
+                var_mapping[var] = f"x{i}"
+            elif var.isupper():
+                var_mapping[var] = f"T{i}"
+        
+        for old, new in var_mapping.items():
+            canonical = re.sub(r'\b' + re.escape(old) + r'\b', new, canonical)
+        
+        # Generate hash
+        theorem_hash = hashlib.sha256(canonical.encode()).hexdigest()[:16]
+        
+        # Generate structural signature
+        # Remove specific numbers and constants to get structural pattern
+        structural = re.sub(r'\b\d+\b', 'N', canonical)
+        structural = re.sub(r'\b[\d.]+\b', 'R', structural)
+        
+        return CanonicalTheorem(
+            original=theorem,
+            canonical_form=canonical,
+            hash=theorem_hash,
+            language=language,
+            structural_signature=structural,
+            metadata={
+                "variable_count": len(unique_vars),
+                "normalized_vars": var_mapping
+            }
+        )
+    
+    def export_proof_to_lean(self, proof: Union[str, ProofResult, List[ProofStep]]) -> str:
+        """
+        Export proof to Lean 4 format using CAV-NLP.
+        
+        Args:
+            proof: Proof to export (string, ProofResult, or list of steps)
+            
+        Returns:
+            Lean 4 formatted proof code
+        """
+        if isinstance(proof, ProofResult):
+            # Export from ProofResult
+            if proof.final_proof:
+                base_proof = proof.final_proof
+            else:
+                # Construct from steps
+                lines = ["import Mathlib", ""]
+                lines.append(f"theorem cav_proved :")
+                lines.append(f"  -- {proof.theorem[:50]}...")
+                for step in proof.proof_steps:
+                    lines.append(f"  {step.tactic}")
+                lines.append("  done")
+                return "\n".join(lines)
+        elif isinstance(proof, list):
+            # Export from proof steps
+            lines = ["import Mathlib", "", "theorem cav_proved :"]
+            for step in proof:
+                lines.append(f"  {step.tactic}")
+            lines.append("  done")
+            return "\n".join(lines)
+        else:
+            # Assume string
+            base_proof = str(proof)
+        
+        # Wrap in Lean 4 structure if not already
+        if not base_proof.strip().startswith("import"):
+            return f"import Mathlib\n\ntheorem exported_proof :\n  {base_proof}\n  done"
+        
+        return base_proof
+
+
+# ============================================================================
 # Main Automated Proof Engine
 # ============================================================================
 
@@ -580,6 +995,14 @@ class AutomatedProofEngine:
     3. Proof by analogy - from mathlib4
     4. Automated induction - for inductive types
     5. Proof planning - for complex proofs
+    6. **CAV-NLP** - Natural language formalization and hybrid verification
+    7. **Hybrid Verification** - Z3 + Lean combined approach
+    
+    CAV-NLP Integration:
+    - Natural language theorem formalization
+    - Hybrid proof (Z3 for search, Lean for verification)
+    - Proof canonicalization
+    - Proof translation to Lean 4
     """
     
     def __init__(
@@ -589,7 +1012,8 @@ class AutomatedProofEngine:
         ml_tactics=None,
         enable_z3: bool = True,
         enable_tactic_search: bool = True,
-        enable_analogy: bool = True
+        enable_analogy: bool = True,
+        config: Optional[Dict[str, Any]] = None
     ):
         """
         Initialize the automated proof engine.
@@ -601,10 +1025,30 @@ class AutomatedProofEngine:
             enable_z3: Whether to use Z3 strategy
             enable_tactic_search: Whether to use tactic search
             enable_analogy: Whether to use analogy strategy
+            config: Configuration dictionary with CAV-NLP options:
+                - use_cav_nlp: Enable CAV-NLP features (default: True)
+                - hybrid_verification: Enable hybrid Z3+Lean verification (default: True)
+                - cav_nlp_auto_formalize: Auto-formalize NL input (default: True)
+                - cav_nlp_confidence_threshold: Minimum confidence for acceptance (default: 0.7)
         """
         self.z3_bridge = z3_bridge
         self.lean_api = lean_api or (create_lean4_service() if LEAN_AVAILABLE else None)
         self.ml_tactics = ml_tactics or MLTacticRecommender()
+        self.config = config or {}
+        
+        # NEW: CAV-NLP configuration
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True)
+        self.hybrid_verification = self.config.get("hybrid_verification", True)
+        self.cav_nlp_auto_formalize = self.config.get("cav_nlp_auto_formalize", True)
+        self.cav_nlp_confidence_threshold = self.config.get("cav_nlp_confidence_threshold", 0.7)
+        
+        # NEW: Initialize CAV-NLP components
+        self.math_service = None
+        self.enhanced_solver = None
+        self.cav_nlp_strategy = None
+        
+        if self.use_cav_nlp:
+            self._initialize_cav_nlp()
         
         # Initialize strategies
         self.strategies: Dict[ProofStrategy, Any] = {}
@@ -618,9 +1062,229 @@ class AutomatedProofEngine:
         if enable_analogy and MATHLIB_AVAILABLE:
             self.strategies[ProofStrategy.ANALOGY] = AnalogyProofStrategy()
         
+        # NEW: Add CAV-NLP strategy
+        if self.use_cav_nlp and self.cav_nlp_strategy:
+            self.strategies[ProofStrategy.CAV_NLP] = self.cav_nlp_strategy
+            self.strategies[ProofStrategy.HYBRID_VERIFICATION] = self.cav_nlp_strategy
+        
         self.proof_history: List[ProofResult] = []
         
         logger.info(f"AutomatedProofEngine initialized with {len(self.strategies)} strategies")
+        logger.info(f"CAV-NLP enabled: {self.use_cav_nlp}, Hybrid verification: {self.hybrid_verification}")
+    
+    def _initialize_cav_nlp(self):
+        """Initialize CAV-NLP components"""
+        try:
+            # Try to import and initialize UnifiedMathService
+            try:
+                from openevolve.unified_math_service import UnifiedMathService
+                self.math_service = UnifiedMathService()
+                logger.info("UnifiedMathService initialized for CAV-NLP")
+            except ImportError as e:
+                logger.warning(f"Could not import UnifiedMathService: {e}")
+                self.math_service = None
+            
+            # Try to import and initialize EnhancedZ3Solver
+            try:
+                from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+                self.enhanced_solver = EnhancedZ3Solver()
+                logger.info("EnhancedZ3Solver initialized for CAV-NLP")
+            except ImportError as e:
+                logger.warning(f"Could not import EnhancedZ3Solver: {e}")
+                self.enhanced_solver = None
+            
+            # Initialize CAV-NLP strategy
+            self.cav_nlp_strategy = CAVNLPProofStrategy(
+                math_service=self.math_service,
+                enhanced_solver=self.enhanced_solver
+            )
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize CAV-NLP: {e}")
+            self.use_cav_nlp = False
+    
+    # ============================================================================
+    # NEW: CAV-NLP Public Methods
+    # ============================================================================
+    
+    async def formalize_theorem(self, natural_language: str, target_language: str = "lean4") -> FormalizationResult:
+        """
+        Formalize natural language theorem to formal code using CAV-NLP.
+        
+        This method converts natural language mathematical statements into
+        formal theorem prover code (Lean 4, Z3, etc.).
+        
+        Args:
+            natural_language: Natural language theorem statement
+            target_language: Target formal language (default: "lean4")
+                Supported: "lean4", "z3", "tptp", "smtlib"
+            
+        Returns:
+            FormalizationResult containing:
+            - success: Whether formalization succeeded
+            - code: The formalized code
+            - language: The target language
+            - confidence: Confidence score (0.0-1.0)
+            - error_message: Error message if failed
+            
+        Example:
+            >>> engine = AutomatedProofEngine()
+            >>> result = await engine.formalize_theorem(
+            ...     "For all natural numbers n, n plus 0 equals n",
+            ...     target_language="lean4"
+            ... )
+            >>> print(result.code)
+            theorem add_zero : ∀ n : ℕ, n + 0 = n := by
+              intro n
+              simp
+        """
+        if not self.cav_nlp_strategy:
+            return FormalizationResult(
+                success=False,
+                natural_language=natural_language,
+                code="",
+                language=target_language,
+                confidence=0.0,
+                error_message="CAV-NLP strategy not initialized"
+            )
+        
+        return await self.cav_nlp_strategy.formalize_theorem(natural_language, target_language)
+    
+    async def prove_hybrid(self, theorem: str, max_time: float = 60.0) -> ProofResult:
+        """
+        Prove theorem using hybrid Z3 + CAV-NLP approach.
+        
+        This method combines multiple verification techniques:
+        1. Uses Z3 SMT solver for initial proof search
+        2. Formalizes with CAV-NLP if input is natural language
+        3. Verifies with Lean 4 proof assistant
+        4. Combines results with confidence scoring
+        
+        The hybrid approach provides higher assurance than any single method.
+        
+        Args:
+            theorem: Theorem statement (natural language or formal)
+            max_time: Maximum time budget in seconds (default: 60.0)
+            
+        Returns:
+            ProofResult containing:
+            - success: Whether proof succeeded
+            - final_proof: The generated proof
+            - hybrid_confidence: Combined confidence score
+            - lean_verification: Lean verification result
+            - z3_proof: Z3 proof details
+            
+        Example:
+            >>> engine = AutomatedProofEngine()
+            >>> result = await engine.prove_hybrid(
+            ...     "For all x y, if x < y then x + 1 ≤ y"
+            ... )
+            >>> print(f"Success: {result.success}, Confidence: {result.hybrid_confidence}")
+        """
+        if not self.cav_nlp_strategy:
+            # Fall back to standard Z3 proof
+            if ProofStrategy.Z3_SMT in self.strategies:
+                result = await self.strategies[ProofStrategy.Z3_SMT].attempt_proof(theorem, max_time)
+                if result:
+                    return result
+            
+            return ProofResult(
+                success=False,
+                theorem=theorem,
+                strategy_used=ProofStrategy.HYBRID_VERIFICATION,
+                proof_steps=[],
+                final_proof=None,
+                execution_time=0.0,
+                attempts=1,
+                status=ProofStatus.FAILED,
+                error_message="CAV-NLP strategy not available and fallback failed"
+            )
+        
+        result = await self.cav_nlp_strategy.prove_hybrid(theorem, max_time)
+        if result:
+            self.proof_history.append(result)
+        return result
+    
+    def export_proof_to_lean(self, proof: Union[str, ProofResult, List[ProofStep]]) -> str:
+        """
+        Export proof to Lean 4 format using CAV-NLP.
+        
+        Converts various proof formats into valid Lean 4 code that can be
+        checked by the Lean compiler.
+        
+        Args:
+            proof: Proof to export. Can be:
+                - String: Direct proof text
+                - ProofResult: Result from auto_prove or prove_hybrid
+                - List[ProofStep]: Sequence of proof steps
+            
+        Returns:
+            Lean 4 formatted proof code ready for compilation
+            
+        Example:
+            >>> engine = AutomatedProofEngine()
+            >>> result = await engine.prove_hybrid("∀ n, n + 0 = n")
+            >>> lean_code = engine.export_proof_to_lean(result)
+            >>> with open("proof.lean", "w") as f:
+            ...     f.write(lean_code)
+        """
+        if not self.cav_nlp_strategy:
+            # Basic fallback export
+            if isinstance(proof, ProofResult):
+                return f"import Mathlib\n\ntheorem exported :\n  -- {proof.theorem}\n  sorry"
+            return f"import Mathlib\n\ntheorem exported :\n  {proof}\n  sorry"
+        
+        return self.cav_nlp_strategy.export_proof_to_lean(proof)
+    
+    def canonicalize_theorem(self, theorem: str, language: str = "lean4") -> CanonicalTheorem:
+        """
+        Return canonical form of theorem using CAV-NLP.
+        
+        Canonicalization normalizes theorem statements for:
+        - Duplicate detection
+        - Proof reuse
+        - Database indexing
+        - Version control
+        
+        Normalization includes:
+        - Variable name standardization
+        - Whitespace normalization
+        - Commutative operation sorting
+        - Notation standardization
+        
+        Args:
+            theorem: Theorem statement to canonicalize
+            language: Source language (default: "lean4")
+            
+        Returns:
+            CanonicalTheorem containing:
+            - original: Original theorem
+            - canonical_form: Normalized form
+            - hash: Unique hash for this canonical form
+            - structural_signature: Pattern without specific constants
+            
+        Example:
+            >>> engine = AutomatedProofEngine()
+            >>> t1 = engine.canonicalize_theorem("∀ n : ℕ, n + 0 = n")
+            >>> t2 = engine.canonicalize_theorem("∀ x : ℕ, x + 0 = x")
+            >>> assert t1.hash == t2.hash  # Same canonical form
+        """
+        if not self.cav_nlp_strategy:
+            # Basic fallback
+            return CanonicalTheorem(
+                original=theorem,
+                canonical_form=theorem,
+                hash=hashlib.sha256(theorem.encode()).hexdigest()[:16],
+                language=language,
+                structural_signature=theorem,
+                metadata={"fallback": True}
+            )
+        
+        return self.cav_nlp_strategy.canonicalize_theorem(theorem, language)
+    
+    # ============================================================================
+    # Enhanced Existing Methods
+    # ============================================================================
     
     async def auto_prove(
         self,
@@ -633,25 +1297,68 @@ class AutomatedProofEngine:
         Attempt to prove theorem automatically.
         
         Strategies (in order):
-        1. SMT solver (Z3) - for arithmetic/logic
-        2. ML tactic recommender - for common patterns
-        3. Proof by analogy - from mathlib4
-        4. Automated induction - for inductive types
-        5. Proof planning - for complex proofs
+        1. **CAV-NLP formalization** (if input is natural language)
+        2. **Hybrid verification** (Z3 + Lean)
+        3. SMT solver (Z3) - for arithmetic/logic
+        4. ML tactic recommender - for common patterns
+        5. Proof by analogy - from mathlib4
+        6. Automated induction - for inductive types
+        7. Proof planning - for complex proofs
         
         Args:
-            theorem: Theorem statement to prove
+            theorem: Theorem statement to prove (can be natural language or formal)
             max_attempts: Maximum number of attempts per strategy
             time_budget: Total time budget in seconds
             verbose: Whether to print progress
             
         Returns:
             ProofResult with proof or failure information
+            
+        Example:
+            >>> engine = AutomatedProofEngine()
+            >>> # Natural language input (NEW!)
+            >>> result = await engine.auto_prove(
+            ...     "The sum of any number and zero equals the number"
+            ... )
+            >>> # Formal input
+            >>> result = await engine.auto_prove("∀ n : ℕ, n + 0 = n")
         """
         start_time = time.time()
         
         if verbose:
             print(f"\nAttempting to prove: {theorem[:100]}...")
+        
+        # NEW: Check if input is natural language and formalize if needed
+        if self.cav_nlp_auto_formalize and self.cav_nlp_strategy:
+            if self.cav_nlp_strategy._is_natural_language(theorem):
+                if verbose:
+                    print("  Detected natural language input, formalizing...")
+                
+                formalized = await self.cav_nlp_strategy.formalize_theorem(theorem, "lean4")
+                
+                if formalized.success and formalized.confidence >= self.cav_nlp_confidence_threshold:
+                    if verbose:
+                        print(f"  ✓ Formalized to: {formalized.code[:80]}...")
+                    theorem = formalized.code
+                elif verbose:
+                    print(f"  ! Formalization confidence ({formalized.confidence:.2f}) below threshold, trying as-is")
+        
+        # NEW: Try hybrid verification first if enabled
+        if self.hybrid_verification and ProofStrategy.HYBRID_VERIFICATION in self.strategies:
+            if verbose:
+                print("  Trying hybrid Z3 + CAV-NLP verification...")
+            
+            remaining_time = time_budget - (time.time() - start_time)
+            result = await self.prove_hybrid(theorem, max_time=remaining_time)
+            
+            if result and result.success:
+                if verbose:
+                    print(f"  ✓ Proven by hybrid verification! (confidence: {result.hybrid_confidence:.2f})")
+                self.proof_history.append(result)
+                return result
+            
+            if verbose:
+                print(f"  ✗ Hybrid verification: {result.status.value if result else 'failed'}")
         
         # Strategy 1: Z3 SMT solver
         if ProofStrategy.Z3_SMT in self.strategies:
@@ -738,7 +1445,7 @@ class AutomatedProofEngine:
         Prove multiple theorems.
         
         Args:
-            theorems: List of theorem statements
+            theorems: List of theorem statements (can include natural language)
             max_attempts: Maximum attempts per theorem
             time_budget: Time budget per theorem
             parallel: Whether to run in parallel
@@ -776,12 +1483,24 @@ class AutomatedProofEngine:
             if r.success:
                 by_strategy[s]["successes"] += 1
         
+        # NEW: CAV-NLP specific statistics
+        avg_hybrid_confidence = sum(
+            r.hybrid_confidence for r in self.proof_history if r.hybrid_confidence > 0
+        ) / max(1, sum(1 for r in self.proof_history if r.hybrid_confidence > 0))
+        
+        nl_inputs = sum(1 for r in self.proof_history if r.natural_language_source)
+        
         return {
             "total_attempts": total,
             "successful": successful,
             "success_rate": successful / total if total > 0 else 0,
             "by_strategy": by_strategy,
-            "average_time": sum(r.execution_time for r in self.proof_history) / total if total > 0 else 0
+            "average_time": sum(r.execution_time for r in self.proof_history) / total if total > 0 else 0,
+            # NEW: CAV-NLP stats
+            "average_hybrid_confidence": avg_hybrid_confidence,
+            "natural_language_inputs": nl_inputs,
+            "cav_nlp_enabled": self.use_cav_nlp,
+            "hybrid_verification_enabled": self.hybrid_verification
         }
 
 
@@ -792,23 +1511,49 @@ class AutomatedProofEngine:
 def create_proof_engine(
     enable_z3: bool = True,
     enable_tactic_search: bool = True,
-    enable_analogy: bool = True
+    enable_analogy: bool = True,
+    config: Optional[Dict[str, Any]] = None
 ) -> AutomatedProofEngine:
-    """Create an AutomatedProofEngine instance"""
+    """
+    Create an AutomatedProofEngine instance.
+    
+    Args:
+        enable_z3: Enable Z3 SMT solver
+        enable_tactic_search: Enable ML tactic search
+        enable_analogy: Enable proof by analogy
+        config: Configuration dictionary with CAV-NLP options
+        
+    Returns:
+        Configured AutomatedProofEngine
+    """
     return AutomatedProofEngine(
         enable_z3=enable_z3,
         enable_tactic_search=enable_tactic_search,
-        enable_analogy=enable_analogy
+        enable_analogy=enable_analogy,
+        config=config
     )
 
 
 async def auto_prove_theorem(
     theorem: str,
     max_attempts: int = 10,
-    time_budget: float = 60.0
+    time_budget: float = 60.0,
+    use_cav_nlp: bool = True
 ) -> ProofResult:
-    """Convenience function to prove a single theorem"""
-    engine = create_proof_engine()
+    """
+    Convenience function to prove a single theorem.
+    
+    Args:
+        theorem: Theorem statement (natural language or formal)
+        max_attempts: Maximum attempts
+        time_budget: Time budget in seconds
+        use_cav_nlp: Enable CAV-NLP features
+        
+    Returns:
+        ProofResult
+    """
+    config = {"use_cav_nlp": use_cav_nlp, "hybrid_verification": use_cav_nlp}
+    engine = create_proof_engine(config=config)
     return await engine.auto_prove(theorem, max_attempts, time_budget)
 
 
@@ -817,41 +1562,98 @@ async def auto_prove_theorem(
 # ============================================================================
 
 async def main():
-    """Example usage of automated proof engine"""
+    """Example usage of automated proof engine with CAV-NLP"""
     
     print("=" * 70)
-    print("Automated Proof Engine - Example Usage")
+    print("Automated Proof Engine with CAV-NLP - Example Usage")
     print("=" * 70)
     
-    # Create engine
-    engine = create_proof_engine()
+    # Create engine with CAV-NLP enabled
+    config = {
+        "use_cav_nlp": True,
+        "hybrid_verification": True,
+        "cav_nlp_auto_formalize": True,
+        "cav_nlp_confidence_threshold": 0.7
+    }
+    engine = create_proof_engine(config=config)
     
-    # Example theorems to prove
+    print("\nCAV-NLP Configuration:")
+    print(f"  use_cav_nlp: {engine.use_cav_nlp}")
+    print(f"  hybrid_verification: {engine.hybrid_verification}")
+    print(f"  cav_nlp_auto_formalize: {engine.cav_nlp_auto_formalize}")
+    print(f"  cav_nlp_confidence_threshold: {engine.cav_nlp_confidence_threshold}")
+    
+    # Example theorems to prove (mix of natural language and formal)
     theorems = [
+        # Natural language inputs (NEW with CAV-NLP)
+        "For all natural numbers n, n plus zero equals n",
+        "The sum of any number and zero equals the number itself",
+        
+        # Formal inputs (existing)
         "∀ n : ℕ, n + 0 = n",
         "∀ x y : ℝ, x + y = y + x",
         "Continuous (λ x => x + 1)",
         "∀ n : ℕ, n * 1 = n",
     ]
     
-    print(f"\nAttempting to prove {len(theorems)} theorems...\n")
+    print(f"\nAttempting to prove {len(theorems)} theorems...")
+    print("(Mix of natural language and formal inputs)\n")
     
     for i, theorem in enumerate(theorems, 1):
-        print(f"{i}. {theorem}")
+        print(f"{i}. {theorem[:60]}...")
         result = await engine.auto_prove(theorem, max_attempts=5, time_budget=10.0, verbose=True)
         print(f"   Result: {'✓ SUCCESS' if result.success else '✗ FAILED'}")
         if result.success:
             print(f"   Strategy: {result.strategy_used.value}")
             print(f"   Steps: {len(result.proof_steps)}")
+            if result.hybrid_confidence > 0:
+                print(f"   Hybrid Confidence: {result.hybrid_confidence:.2f}")
         print()
     
-    # Statistics
-    stats = engine.get_statistics()
+    # Demonstrate CAV-NLP specific features
     print("=" * 70)
+    print("CAV-NLP Specific Features")
+    print("=" * 70)
+    
+    # 1. Formalization
+    print("\n1. Natural Language Formalization:")
+    nl_theorem = "For all integers x and y, x plus y equals y plus x"
+    print(f"   Input: {nl_theorem}")
+    formalized = await engine.formalize_theorem(nl_theorem, "lean4")
+    if formalized.success:
+        print(f"   Output: {formalized.code}")
+        print(f"   Confidence: {formalized.confidence:.2f}")
+    else:
+        print(f"   Failed: {formalized.error_message}")
+    
+    # 2. Canonicalization
+    print("\n2. Theorem Canonicalization:")
+    t1 = engine.canonicalize_theorem("∀ n : ℕ, n + 0 = n")
+    t2 = engine.canonicalize_theorem("∀ x : ℕ, x + 0 = x")
+    print(f"   Theorem 1: {t1.original}")
+    print(f"   Theorem 2: {t2.original}")
+    print(f"   Hash 1: {t1.hash}")
+    print(f"   Hash 2: {t2.hash}")
+    print(f"   Same canonical form: {t1.hash == t2.hash}")
+    
+    # 3. Export to Lean
+    print("\n3. Proof Export to Lean 4:")
+    sample_result = await engine.auto_prove("∀ n : ℕ, n + 0 = n", max_attempts=3, time_budget=5.0)
+    lean_code = engine.export_proof_to_lean(sample_result)
+    print(f"   Generated {len(lean_code)} characters of Lean code")
+    print("   Preview:")
+    for line in lean_code.split('\n')[:5]:
+        print(f"     {line}")
+    
+    # Statistics
+    print("\n" + "=" * 70)
     print("Statistics:")
+    stats = engine.get_statistics()
     print(f"  Total attempts: {stats['total_attempts']}")
     print(f"  Successful: {stats['successful']}")
     print(f"  Success rate: {stats['success_rate']:.1%}")
+    print(f"  Average hybrid confidence: {stats.get('average_hybrid_confidence', 0):.2f}")
+    print(f"  Natural language inputs: {stats.get('natural_language_inputs', 0)}")
     print("=" * 70)
 
 

@@ -36,23 +36,47 @@ class ConfigurationManager:
     def _load_config(self):
         """
         Loads configuration from the YAML file.
+        Uses default configuration if file is not found.
         """
         if not os.path.exists(self.config_path):
-            logger.error(f"Configuration file not found: {self.config_path}")
-            raise FileNotFoundError(f"Configuration file not found: {self.config_path}")
+            logger.warning(f"Configuration file not found: {self.config_path}, using defaults")
+            self._config = self._get_default_config()
+            return
 
-        with open(self.config_path, 'r') as f:
-            full_config = yaml.safe_load(f)
+        try:
+            with open(self.config_path, 'r') as f:
+                full_config = yaml.safe_load(f) or {}
 
-        # Load default settings
-        self._config = full_config.get("default", {})
+            # Load default settings
+            self._config = full_config.get("default", {})
 
-        # Override with environment-specific settings
-        if self.env != "default":
-            env_config = full_config.get(self.env, {})
-            self._config.update(env_config)
-        
-        logger.info(f"Configuration loaded for environment: {self.env}")
+            # Override with environment-specific settings
+            if self.env != "default":
+                env_config = full_config.get(self.env, {})
+                self._config.update(env_config)
+
+            logger.info(f"Configuration loaded for environment: {self.env}")
+        except Exception as e:
+            logger.warning(f"Failed to load configuration: {e}, using defaults")
+            self._config = self._get_default_config()
+
+    def _get_default_config(self) -> Dict[str, Any]:
+        """
+        Returns default configuration when config file is not available.
+        """
+        return {
+            "performance_optimization": {
+                "enable_caching": True,
+                "cache_ttl_seconds": 300
+            },
+            "reliability": {
+                "enable_retries": True,
+                "max_retries": 3
+            },
+            "openevolve_client": {
+                "timeout_seconds": 30
+            }
+        }
 
     def get_config(self, key: str, default: Any = None) -> Any:
         """

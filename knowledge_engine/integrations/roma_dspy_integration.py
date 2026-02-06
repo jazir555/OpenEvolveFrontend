@@ -112,7 +112,11 @@ class ROMADSPyIntegration:
         """
         self.roma = roma_integration
         self.dspy = dspy_integration
-        self.config = config or self._get_default_config()
+        # Merge provided config with defaults to ensure all required keys exist
+        default_config = self._get_default_config()
+        if config:
+            default_config.update(config)
+        self.config = default_config
 
         # Reasoning cache to avoid regenerating traces
         self._reasoning_cache: Dict[str, ReasoningTrace] = {}

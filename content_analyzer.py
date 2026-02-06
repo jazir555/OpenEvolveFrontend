@@ -434,15 +434,39 @@ class ContentAnalyzer:
         else:
             return 'plain_text'
     
+    def detect_content_type(self, content: str) -> ContentType:
+        """
+        Detect the content type based on pattern matching
+
+        Args:
+            content: The content to classify
+
+        Returns:
+            ContentType enum value
+        """
+        return self._classify_content_type(content)
+
+    def extract_patterns(self, content: str) -> Dict[str, Any]:
+        """
+        Extract patterns from content
+
+        Args:
+            content: The content to extract patterns from
+
+        Returns:
+            Dictionary containing extracted patterns
+        """
+        return self._detect_advanced_patterns(content)
+
     def _classify_content_type(self, content: str) -> ContentType:
         """Classify the content type based on pattern matching"""
         content_lower = content.lower()
-        
+
         for content_type, patterns in self.content_type_patterns.items():
             for pattern in patterns:
                 if re.search(pattern, content_lower):
                     return content_type
-        
+
         return ContentType.GENERAL
     
     def _determine_domain(self, content: str, content_type: ContentType) -> str:

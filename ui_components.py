@@ -10,15 +10,25 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Initialize managers (can be done once in the main app or passed via session state)
+# Initialize managers lazily (can be done once in the main app or passed via session state)
 # These managers handle persistence of Teams and Gauntlets across Streamlit reruns.
-if 'team_manager' not in st.session_state:
-    st.session_state.team_manager = TeamManager()
-if 'gauntlet_manager' not in st.session_state:
-    st.session_state.gauntlet_manager = GauntletManager()
+def _ensure_managers_initialized():
+    """Ensure team and gauntlet managers are initialized in session state."""
+    if not hasattr(st, 'session_state') or st.session_state is None:
+        return
+
+    # Use getattr/setattr to safely access attributes
+    team_manager = getattr(st.session_state, 'team_manager', None)
+    if team_manager is None:
+        setattr(st.session_state, 'team_manager', TeamManager())
+
+    gauntlet_manager = getattr(st.session_state, 'gauntlet_manager', None)
+    if gauntlet_manager is None:
+        setattr(st.session_state, 'gauntlet_manager', GauntletManager())
 
 def render_team_manager():
     """Renders the Streamlit UI for managing AI teams. Allows users to create, view, edit, and delete teams."""
+    _ensure_managers_initialized()
     st.header("👥 Team Manager")
     st.write("Create, view, edit, and delete your AI teams.")
 

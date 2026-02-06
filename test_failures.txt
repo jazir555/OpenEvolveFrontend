@@ -1,0 +1,46 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-9.0.2, pluggy-1.6.0
+rootdir: C:\Users\mmeadow\Documents\OpenEvolve\Frontend
+configfile: pytest.ini (WARNING: ignoring pytest config in pyproject.toml!)
+plugins: anyio-4.12.1, Faker-38.2.0, langsmith-0.5.2, libtmux-0.23.2, pyfakefs-6.0.0, asyncio-1.3.0, cov-4.1.0, html-4.1.1, metadata-3.1.1, timeout-2.4.0, typeguard-4.4.4
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collected 2932 items / 1 skipped
+
+tests\adaptive_mdap\e2e\test_full_system.py ....................         [  0%]
+tests\adaptive_mdap\integration\test_end_to_end.py .........             [  0%]
+tests\adaptive_mdap\performance\test_benchmarks.py ...............       [  1%]
+tests\adaptive_mdap\unit\test_complexity_classifier.py ................. [  2%]
+.....                                                                    [  2%]
+tests\adaptive_mdap\unit\test_resource_allocator.py .................... [  2%]
+.......                                                                  [  3%]
+tests\agents\test_compliance_monitor.py ssssssssssssssssssssssssssssssss [  4%]
+sssss                                                                    [  4%]
+tests\agents\test_investment_committee.py sssssssssssssssssssssssssss    [  5%]
+tests\cli\test_cli.py ssssssssssssssssssssssssssssssssssssssssssssssssss [  7%]
+sssss                                                                    [  7%]
+tests\config\test_config_system.py sssssssssssssssssssssssssssssssssssss [  8%]
+ssssssssssssssssssssssss                                                 [  9%]
+tests\domain\test_domain_optimizers.py ................................. [ 10%]
+..........................................                               [ 11%]
+tests\finance\verticals\insurance\test_rbc_calculator.py ............... [ 12%]
+.....                                                                    [ 12%]
+tests\finance\verticals\insurance\test_reserve_evolver.py ....F
+
+================================== FAILURES ===================================
+____________ TestInsuranceReserveEvolver.test_validate_constraints ____________
+tests\finance\verticals\insurance\test_reserve_evolver.py:183: in test_validate_constraints
+    assert evolver._validate_constraints(sample_portfolio, basic_constraints)
+E   AssertionError: assert False
+E    +  where False = _validate_constraints(Portfolio(bonds=[Bond(ticker='US10Y', rating=<CreditRating.AAA: 'AAA'>, par_value=100000000, market_value=105000000, b...rporate', coupon_rate=0.053, maturity_date=datetime.datetime(2032, 3, 1, 0, 0))], cash=20000000, total_value=206500000), PortfolioConstraints(max_duration=7.0, min_credit_quality='BBB-', max_concentration=0.3, min_diversification=20, max_single_bond=0.05, liquidity_requirement=0.1))
+E    +    where _validate_constraints = <openevolve.finance.verticals.insurance.reserve_evolver.InsuranceReserveEvolver object at 0x000001CD06FE6250>._validate_constraints
+---------------------------- Captured stderr call -----------------------------
+2026-02-05 15:58:17,635 - openevolve.finance.verticals.insurance.reserve_evolver - INFO - InsuranceReserveEvolver initialized with config: {}
+------------------------------ Captured log call ------------------------------
+INFO     openevolve.finance.verticals.insurance.reserve_evolver:reserve_evolver.py:99 InsuranceReserveEvolver initialized with config: {}
+=========================== short test summary info ===========================
+FAILED tests/finance/verticals/insurance/test_reserve_evolver.py::TestInsuranceReserveEvolver::test_validate_constraints
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!
+=========== 1 failed, 192 passed, 181 skipped in 121.64s (0:02:01) ============

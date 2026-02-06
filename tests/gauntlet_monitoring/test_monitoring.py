@@ -7,19 +7,38 @@ Date: 2026-02-03
 
 import pytest
 import time
-from monitoring import (
+import sys
+from pathlib import Path
+
+# Add gauntlet adapter monitoring directory to path
+monitoring_dir = Path(__file__).parent.parent.parent / "glue" / "adapters" / "gauntlet-adapter" / "monitoring"
+sys.path.insert(0, str(monitoring_dir))
+
+from metrics import (
     GauntletMetricsCollector,
+    get_metrics_collector
+)
+from health_checks import (
     HealthChecker,
+    HealthStatus,
+    CheckType,
+    get_health_checker,
+    check_liveness,
+    check_readiness,
+    is_healthy,
+    is_ready
+)
+from alerting import (
     AlertingEngine,
     Alert,
     AlertRule,
     AlertSeverity,
     AlertStatus,
-    HealthStatus,
-    CheckType,
-    get_metrics_collector,
-    get_health_checker,
-    get_alerting_engine
+    get_alerting_engine,
+    evaluate_alerts,
+    get_active_alerts,
+    acknowledge_alert,
+    resolve_alert
 )
 
 

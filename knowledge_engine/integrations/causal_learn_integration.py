@@ -129,7 +129,7 @@ class CausalLearnIntegration:
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """
         Initialize Causal-Learn Integration.
-        
+
         Args:
             config: Configuration dictionary for causal discovery
                    See CausalLearnAdapter for full configuration options
@@ -137,7 +137,9 @@ class CausalLearnIntegration:
         self.config = config or {}
         self._adapter: Optional[CausalLearnAdapter] = None
         self._bridge: Optional[CausalDiscoveryBridge] = None
-        
+        # Create engine with skip_integration_init=True to avoid circular dependency
+        self._engine: CausalDiscoveryEngine = CausalDiscoveryEngine(skip_integration_init=True)
+
         if SSOT_AVAILABLE:
             try:
                 self._adapter = CausalLearnAdapter()
@@ -494,26 +496,43 @@ class CausalDiscoveryEngine:
         'kci': 'Kernel-based conditional independence test'
     }
     
-    def __init__(self):
-        """Initialize causal-learn modules."""
+    def __init__(self, skip_integration_init: bool = False):
+        """
+        Initialize causal-learn modules.
+
+        Args:
+            skip_integration_init: If True, don't initialize CausalLearnIntegration
+                                 to avoid circular dependency
+        """
         logger.warning(
             "CausalDiscoveryEngine is deprecated. "
             "Use CausalLearnIntegration or CausalLearnAdapter directly."
         )
-        self._integration = CausalLearnIntegration()
+        self._integration: Optional[CausalLearnIntegration] = None
+        self._causal_learn_available = CAUSAL_LEARN_AVAILABLE
+        self._algorithms_available = list(self.ALGORITHMS.keys())
+
+        if not skip_integration_init:
+            self._integration = CausalLearnIntegration(config={})
+
+    def _get_integration(self) -> CausalLearnIntegration:
+        """Get or create the integration instance."""
+        if self._integration is None:
+            self._integration = CausalLearnIntegration(config={})
+        return self._integration
     
     def is_available(self) -> bool:
         """Check if causal-learn integration is available."""
-        return self._integration.is_available()
-    
+        return self._get_integration().is_available()
+
     def get_available_algorithms(self) -> List[str]:
         """Get list of available causal discovery algorithms."""
-        return self._integration.get_available_algorithms()
-    
+        return self._get_integration().get_available_algorithms()
+
     def get_algorithm_info(self, algorithm: str) -> Dict[str, Any]:
         """Get information about a specific algorithm."""
-        return self._integration.get_algorithm_info(algorithm)
-    
+        return self._get_integration().get_algorithm_info(algorithm)
+
     def discover_causal_structure(
         self,
         data: Union[np.ndarray, List[List[float]]],
@@ -525,10 +544,13 @@ class CausalDiscoveryEngine:
     ) -> Dict[str, Any]:
         """
         Discover causal structure from data.
-        
+
         DEPRECATED: Use CausalLearnIntegration.discover_structure()
         """
-        return self._integration.discover_structure(
+        if data is None:
+            raise ValueError("Data cannot be None")
+
+        return self._get_integration().discover_structure(
             data=data,
             algorithm=algorithm,
             variable_names=variable_names,
@@ -539,33 +561,33 @@ class CausalDiscoveryEngine:
     
     def _run_pc(self, data, variable_names, alpha, independence_test, **kwargs):
         """Run PC algorithm - delegates to integration."""
-        return self._integration.discover_structure(
+        return self._get_integration().discover_structure(
             data, algorithm='pc', variable_names=variable_names,
             alpha=alpha, independence_test=independence_test, **kwargs
         )
     
     def _run_fci(self, data, variable_names, alpha, independence_test, **kwargs):
         """Run FCI algorithm - delegates to integration."""
-        return self._integration.discover_structure(
+        return self._get_integration().discover_structure(
             data, algorithm='fci', variable_names=variable_names,
             alpha=alpha, independence_test=independence_test, **kwargs
         )
     
     def _run_ges(self, data, variable_names, **kwargs):
         """Run GES algorithm - delegates to integration."""
-        return self._integration.discover_structure(
+        return self._get_integration().discover_structure(
             data, algorithm='ges', variable_names=variable_names, **kwargs
         )
     
     def _run_ica_lingam(self, data, variable_names, **kwargs):
         """Run ICA-LiNGAM algorithm - delegates to integration."""
-        return self._integration.discover_structure(
+        return self._get_integration().discover_structure(
             data, algorithm='ica_lingam', variable_names=variable_names, **kwargs
         )
     
     def _run_direct_lingam(self, data, variable_names, **kwargs):
         """Run DirectLiNGAM algorithm - delegates to integration."""
-        return self._integration.discover_structure(
+        return self._get_integration().discover_structure(
             data, algorithm='direct_lingam', variable_names=variable_names, **kwargs
         )
     
@@ -574,7 +596,7 @@ class CausalDiscoveryEngine:
         edges = []
         if matrix is None or not NUMPY_AVAILABLE:
             return edges
-        
+
         for i in range(len(variable_names)):
             for j in range(len(variable_names)):
                 if matrix[i, j] != 0:
@@ -585,6 +607,138 @@ class CausalDiscoveryEngine:
                         'type': 'directed' if matrix[i, j] > 0 else 'undirected'
                     })
         return edges
+
+    def get_status(self) -> Dict[str, Any]:
+        """
+        Get engine status.
+
+        Returns:
+            Dictionary with status information including available algorithms and tests
+        """
+        return {
+            'available': self.is_available(),
+            'algorithms': list(self.ALGORITHMS.keys()),
+            'algorithm_info': self.ALGORITHMS,
+            'independence_tests': list(self.INDEPENDENCE_TESTS.keys()),
+            'timestamp': datetime.now(timezone.utc).isoformat()
+        }
+
+    def analyze_causal_graph(self, graph_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Analyze a causal graph structure.
+
+        Args:
+            graph_data: Dictionary with 'nodes' and 'edges'
+
+        Returns:
+            Dictionary with graph analysis results
+        """
+        nodes = graph_data.get('nodes', [])
+        edges = graph_data.get('edges', [])
+
+        # Calculate graph metrics
+        num_nodes = len(nodes)
+        num_edges = len(edges)
+
+        # Calculate node degrees
+        node_degrees = {node: 0 for node in nodes}
+        for edge in edges:
+            source = edge.get('source')
+            target = edge.get('target')
+            if source in node_degrees:
+                node_degrees[source] += 1
+            if target in node_degrees:
+                node_degrees[target] += 1
+
+        # Find source and sink nodes (roots and leaves)
+        roots = [node for node in nodes if node_degrees.get(node, 0) == 0 or
+                 not any(e.get('target') == node for e in edges)]
+        leaves = [node for node in nodes if node_degrees.get(node, 0) == 0 or
+                  not any(e.get('source') == node for e in edges)]
+
+        # Calculate density
+        max_possible_edges = num_nodes * (num_nodes - 1) / 2 if num_nodes > 1 else 1
+        density = num_edges / max_possible_edges if max_possible_edges > 0 else 0
+
+        analysis = {
+            'num_nodes': num_nodes,
+            'num_edges': num_edges,
+            'node_degrees': node_degrees,
+            'roots': roots,
+            'leaves': leaves,
+            'sources': roots,  # Alias for compatibility
+            'sinks': leaves,   # Alias for compatibility
+            'avg_degree': sum(node_degrees.values()) / len(node_degrees) if node_degrees else 0,
+            'density': density
+        }
+
+        return {
+            'status': 'success',
+            'analysis': analysis
+        }
+
+    def identify_confounders(
+        self,
+        graph_data: Dict[str, Any],
+        target_x: Optional[str] = None,
+        target_y: Optional[str] = None,
+        treatment: Optional[str] = None,
+        outcome: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Identify potential confounders in a causal graph.
+
+        Args:
+            graph_data: Dictionary with 'nodes' and 'edges'
+            target_x: First target variable name (alias for treatment)
+            target_y: Second target variable name (alias for outcome)
+            treatment: Treatment variable name
+            outcome: Outcome variable name
+
+        Returns:
+            Dictionary with confounder information
+        """
+        # Support both parameter naming conventions
+        treatment = treatment or target_x
+        outcome = outcome or target_y
+
+        nodes = graph_data.get('nodes', [])
+        edges = graph_data.get('edges', [])
+
+        # Find confounders: nodes that affect both treatment and outcome
+        treatment_parents = [e.get('source') for e in edges if e.get('target') == treatment]
+        outcome_parents = [e.get('source') for e in edges if e.get('target') == outcome]
+
+        common_causes = list(set(treatment_parents) & set(outcome_parents))
+
+        # Find mediators: nodes on paths from treatment to outcome
+        mediators = [e.get('target') for e in edges if e.get('source') == treatment and e.get('target') in nodes]
+
+        # Find colliders: nodes with two parents in treatment/outcome paths
+        node_children = {node: [] for node in nodes}
+        for edge in edges:
+            source = edge.get('source')
+            target = edge.get('target')
+            if target in node_children:
+                node_children[target].append(source)
+
+        colliders = [node for node, parents in node_children.items() if len(parents) >= 2]
+
+        # Adjustment set: common causes to adjust for
+        adjustment_set = common_causes
+
+        return {
+            'status': 'success',
+            'confounders': {
+                'common_causes': common_causes,
+                'mediators': mediators,
+                'colliders': colliders,
+                'adjustment_set': adjustment_set
+            },
+            'treatment': treatment,
+            'outcome': outcome,
+            'num_confounders': len(common_causes)
+        }
 
 
 # Convenience functions

@@ -20,23 +20,40 @@ logger = logging.getLogger(__name__)
 
 # Thread lock for safely updating shared session state from background threads.
 # Use a lock to ensure thread-safe initialization of the session state lock
-if "thread_lock" not in st.session_state:
-    with threading.Lock():
-        # Double-checked locking pattern to ensure thread safety
-        if "thread_lock" not in st.session_state:
-            st.session_state.thread_lock = threading.Lock()
+try:
+    if "thread_lock" not in st.session_state:
+        with threading.Lock():
+            # Double-checked locking pattern to ensure thread safety
+            if "thread_lock" not in st.session_state:
+                # Check if session_state supports attribute assignment
+                try:
+                    st.session_state.thread_lock = threading.Lock()
+                except AttributeError:
+                    # session_state is a plain dict, use dict assignment
+                    st.session_state["thread_lock"] = threading.Lock()
+except (AttributeError, TypeError):
+    # st.session_state might not be available or is a plain dict during tests
+    pass
 
 # Real-time collaboration state management
-if "collaboration_session" not in st.session_state:
-    st.session_state.collaboration_session = {
-        "active_users": [],
-        "last_activity": datetime.now().timestamp()
-        * 1000,  # Using datetime.now().timestamp() * 1000 for _now_ms()
-        "chat_messages": [],
-        "notifications": [],
-        "shared_cursor_position": 0,
-        "edit_locks": {},
-    }
+try:
+    if "collaboration_session" not in st.session_state:
+        collaboration_data = {
+            "active_users": [],
+            "last_activity": datetime.now().timestamp() * 1000,
+            "chat_messages": [],
+            "notifications": [],
+            "shared_cursor_position": 0,
+            "edit_locks": {},
+        }
+        try:
+            st.session_state.collaboration_session = collaboration_data
+        except AttributeError:
+            # session_state is a plain dict, use dict assignment
+            st.session_state["collaboration_session"] = collaboration_data
+except (AttributeError, TypeError):
+    # st.session_state might not be available during tests
+    pass
 
 
 def calculate_protocol_complexity(protocol_text: str) -> Dict:

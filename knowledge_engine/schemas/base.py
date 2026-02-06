@@ -587,10 +587,10 @@ class Entity:
     Unified Entity model.
     Consolidates versions from graph/models.py (entity_id, entity_type, properties)
     and core/entity_knowledge_graph.py (name, entity_type, attributes).
-    
+
     Backward compatibility:
     - name property maps to entity_id
-    - attributes property maps to properties
+    - attributes parameter maps to properties (for initialization)
     """
     entity_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     entity_type: Union[EntityType, str] = EntityType.ENTITY
@@ -601,12 +601,12 @@ class Entity:
     confidence: float = 1.0
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    
+
     def __post_init__(self):
         """Post-initialization normalization."""
         # Validate confidence
         self.confidence = max(0.0, min(1.0, float(self.confidence)))
-        
+
         # If name not set but entity_id is, use entity_id as name
         if not self.name and self.entity_id:
             self.name = self.entity_id
@@ -641,30 +641,34 @@ class Entity:
     def from_dict(cls, data: Dict[str, Any]) -> "Entity":
         """Create entity from dictionary with backward compatibility."""
         data = data.copy()
-        
+
         # Handle name -> entity_id mapping
         if "entity_id" not in data and "name" in data:
             data["entity_id"] = data["name"]
         elif "name" not in data and "entity_id" in data:
             data["name"] = data["entity_id"]
-        
+
         # Handle attributes -> properties mapping
         if "properties" not in data and "attributes" in data:
             data["properties"] = data["attributes"]
-        
+        elif "attributes" in data and "properties" in data:
+            # Merge if both exist
+            data["properties"] = {**data["attributes"], **data["properties"]}
+
         # Parse timestamps
         for field_name in ["created_at", "updated_at"]:
             if field_name in data and data[field_name]:
                 if isinstance(data[field_name], str):
                     data[field_name] = datetime.fromisoformat(data[field_name].replace("Z", "+00:00"))
-        
+
         # Parse entity_type enum
         if "entity_type" in data and isinstance(data["entity_type"], str):
             try:
                 data["entity_type"] = EntityType(data["entity_type"])
             except ValueError:
                 pass
-        
+
+        # Filter to only valid fields
         valid_fields = {k: v for k, v in data.items() if k in cls.__dataclass_fields__}
         return cls(**valid_fields)
 

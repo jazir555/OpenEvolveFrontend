@@ -241,7 +241,8 @@ class EntityKnowledgeGraph:
         self,
         source: str,
         target: str,
-        relation_type: str,
+        relation_type: Optional[str] = None,
+        relationship_type: Optional[str] = None,
         attributes: Optional[Dict[str, Any]] = None
     ) -> bool:
         """
@@ -252,16 +253,22 @@ class EntityKnowledgeGraph:
         Args:
             source: Source entity name (maps to source_entity_id)
             target: Target entity name (maps to target_entity_id)
-            relation_type: Type of relationship (maps to relationship_type)
+            relation_type: Type of relationship (deprecated, use relationship_type)
+            relationship_type: Type of relationship
             attributes: Optional relationship properties (maps to properties)
 
         Returns:
             True if relationship was added, False on error or duplicate
         """
         try:
+            # Support both parameter names for backward compatibility
+            rel_type = relationship_type or relation_type
+            if not rel_type:
+                raise ValueError("Either relation_type or relationship_type must be provided")
+
             # Validate inputs
-            if not source or not target or not relation_type:
-                raise ValueError("Source, target, and relation_type must be non-empty strings")
+            if not source or not target:
+                raise ValueError("Source and target must be non-empty strings")
 
             attributes = attributes or {}
 
@@ -276,7 +283,7 @@ class EntityKnowledgeGraph:
                 new_rel = Relationship(
                     source_entity_id=source,
                     target_entity_id=target,
-                    relationship_type=relation_type,
+                    relationship_type=rel_type,
                     properties=attributes
                 )
 
@@ -288,7 +295,7 @@ class EntityKnowledgeGraph:
                 self._relationships.append(new_rel)
 
                 self._log("info", f"Added relationship: {source} -> {target}",
-                          relation_type=relation_type)
+                          relation_type=rel_type)
                 return True
 
         except Exception as e:
@@ -300,7 +307,8 @@ class EntityKnowledgeGraph:
         self,
         source: str,
         target: str,
-        relation_type: str,
+        relation_type: Optional[str] = None,
+        relationship_type: Optional[str] = None,
         attributes: Optional[Dict[str, Any]] = None
     ) -> bool:
         """
@@ -311,16 +319,22 @@ class EntityKnowledgeGraph:
         Args:
             source: Source entity name
             target: Target entity name
-            relation_type: Type of relationship
+            relation_type: Type of relationship (deprecated, use relationship_type)
+            relationship_type: Type of relationship
             attributes: Optional relationship properties
 
         Returns:
             True if relationship was added, False on error or duplicate
         """
         try:
+            # Support both parameter names for backward compatibility
+            rel_type = relationship_type or relation_type
+            if not rel_type:
+                raise ValueError("Either relation_type or relationship_type must be provided")
+
             # Validate inputs
-            if not source or not target or not relation_type:
-                raise ValueError("Source, target, and relation_type must be non-empty strings")
+            if not source or not target:
+                raise ValueError("Source and target must be non-empty strings")
 
             attributes = attributes or {}
 
@@ -335,7 +349,7 @@ class EntityKnowledgeGraph:
                 new_rel = Relationship(
                     source_entity_id=source,
                     target_entity_id=target,
-                    relationship_type=relation_type,
+                    relationship_type=rel_type,
                     properties=attributes
                 )
 
@@ -347,7 +361,7 @@ class EntityKnowledgeGraph:
                 self._relationships.append(new_rel)
 
                 self._log("info", f"Added relationship: {source} -> {target}",
-                          relation_type=relation_type)
+                          relation_type=rel_type)
                 return True
 
         except Exception as e:
@@ -420,6 +434,122 @@ class EntityKnowledgeGraph:
 
             return results
 
+    def get_all_entities(self) -> List[Dict[str, Any]]:
+        """
+        Get all entities in the graph (synchronous).
+
+        Returns:
+            List of all entity dictionaries
+        """
+        with self._lock:
+            return [entity.to_dict() for entity in self._entities.values()]
+
+    async def get_all_entities_async(self) -> List[Dict[str, Any]]:
+        """
+        Get all entities in the graph (asynchronous).
+
+        Returns:
+            List of all entity dictionaries
+        """
+        async with self._get_async_lock():
+            return [entity.to_dict() for entity in self._entities.values()]
+
+    def get_related_entities(
+        self,
+        entity_name: str,
+        relation_type: Optional[str] = None,
+        direction: str = "both"
+    ) -> List[Dict[str, Any]]:
+        """
+        Get entities related to the given entity (synchronous).
+
+        Args:
+            entity_name: Name of the entity
+            relation_type: Optional filter by relationship type
+            direction: "incoming", "outgoing", or "both" (default)
+
+        Returns:
+            List of related entity dictionaries
+        """
+        with self._lock:
+            related = []
+
+            for rel in self._relationships:
+                # Check if this relationship involves the entity
+                source_matches = rel.source_entity_id == entity_name
+                target_matches = rel.target_entity_id == entity_name
+
+                if not (source_matches or target_matches):
+                    continue
+
+                # Filter by relationship type if specified
+                if relation_type:
+                    rel_type = rel.relationship_type.value if isinstance(rel.relationship_type, Enum) else rel.relationship_type
+                    if rel_type != relation_type:
+                        continue
+
+                # Check direction
+                if direction == "outgoing" and not source_matches:
+                    continue
+                if direction == "incoming" and not target_matches:
+                    continue
+
+                # Add the related entity
+                if source_matches and rel.target_entity_id in self._entities:
+                    related.append(self._entities[rel.target_entity_id].to_dict())
+                elif target_matches and rel.source_entity_id in self._entities:
+                    related.append(self._entities[rel.source_entity_id].to_dict())
+
+            return related
+
+    async def get_related_entities_async(
+        self,
+        entity_name: str,
+        relation_type: Optional[str] = None,
+        direction: str = "both"
+    ) -> List[Dict[str, Any]]:
+        """
+        Get entities related to the given entity (asynchronous).
+
+        Args:
+            entity_name: Name of the entity
+            relation_type: Optional filter by relationship type
+            direction: "incoming", "outgoing", or "both" (default)
+
+        Returns:
+            List of related entity dictionaries
+        """
+        async with self._get_async_lock():
+            related = []
+
+            for rel in self._relationships:
+                # Check if this relationship involves the entity
+                source_matches = rel.source_entity_id == entity_name
+                target_matches = rel.target_entity_id == entity_name
+
+                if not (source_matches or target_matches):
+                    continue
+
+                # Filter by relationship type if specified
+                if relation_type:
+                    rel_type = rel.relationship_type.value if isinstance(rel.relationship_type, Enum) else rel.relationship_type
+                    if rel_type != relation_type:
+                        continue
+
+                # Check direction
+                if direction == "outgoing" and not source_matches:
+                    continue
+                if direction == "incoming" and not target_matches:
+                    continue
+
+                # Add the related entity
+                if source_matches and rel.target_entity_id in self._entities:
+                    related.append(self._entities[rel.target_entity_id].to_dict())
+                elif target_matches and rel.source_entity_id in self._entities:
+                    related.append(self._entities[rel.source_entity_id].to_dict())
+
+            return related
+
     async def find_entities_async(
         self,
         entity_type: Optional[str] = None,
@@ -457,13 +587,14 @@ class EntityKnowledgeGraph:
 
             return results
 
-    def search_entities(self, query: str, limit: int = 100) -> List[Dict[str, Any]]:
+    def search_entities(self, query: str, limit: int = 100, entity_type: Optional[str] = None) -> List[Dict[str, Any]]:
         """
         Search entities by name or attributes (synchronous).
 
         Args:
             query: Search query string
             limit: Maximum number of results
+            entity_type: Optional filter by entity type
 
         Returns:
             List of matching entity dictionaries
@@ -473,6 +604,10 @@ class EntityKnowledgeGraph:
             query_lower = query.lower()
 
             for entity in self._entities.values():
+                # Filter by entity type if specified
+                if entity_type and entity.entity_type != entity_type:
+                    continue
+
                 # Search in name (entity_id is the unique identifier)
                 if query_lower in entity.name.lower():
                     results.append(entity.to_dict())
@@ -489,13 +624,14 @@ class EntityKnowledgeGraph:
 
             return results
 
-    async def search_entities_async(self, query: str, limit: int = 100) -> List[Dict[str, Any]]:
+    async def search_entities_async(self, query: str, limit: int = 100, entity_type: Optional[str] = None) -> List[Dict[str, Any]]:
         """
         Search entities by name or attributes (asynchronous).
 
         Args:
             query: Search query string
             limit: Maximum number of results
+            entity_type: Optional filter by entity type
 
         Returns:
             List of matching entity dictionaries
@@ -505,6 +641,10 @@ class EntityKnowledgeGraph:
             query_lower = query.lower()
 
             for entity in self._entities.values():
+                # Filter by entity type if specified
+                if entity_type and entity.entity_type != entity_type:
+                    continue
+
                 # Search in name
                 if query_lower in entity.name.lower():
                     results.append(entity.to_dict())
@@ -748,3 +888,51 @@ class EntityKnowledgeGraph:
             self._entity_types.clear()
 
             self._log("info", "Graph cleared")
+
+    def get_all_relationships(self) -> List[Dict[str, Any]]:
+        """
+        Get all relationships in the graph (synchronous).
+
+        Returns:
+            List of all relationship dictionaries
+        """
+        with self._lock:
+            return [rel.to_dict() for rel in self._relationships]
+
+    async def get_all_relationships_async(self) -> List[Dict[str, Any]]:
+        """
+        Get all relationships in the graph (asynchronous).
+
+        Returns:
+            List of all relationship dictionaries
+        """
+        async with self._get_async_lock():
+            return [rel.to_dict() for rel in self._relationships]
+
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Convert the entire graph to a dictionary representation.
+
+        Returns:
+            Dictionary with entities and relationships
+        """
+        with self._lock:
+            return {
+                "entities": [entity.to_dict() for entity in self._entities.values()],
+                "relationships": [rel.to_dict() for rel in self._relationships],
+                "statistics": self.get_statistics()
+            }
+
+    async def to_dict_async(self) -> Dict[str, Any]:
+        """
+        Convert the entire graph to a dictionary representation (asynchronous).
+
+        Returns:
+            Dictionary with entities and relationships
+        """
+        async with self._get_async_lock():
+            return {
+                "entities": [entity.to_dict() for entity in self._entities.values()],
+                "relationships": [rel.to_dict() for rel in self._relationships],
+                "statistics": await self.get_statistics_async()
+            }

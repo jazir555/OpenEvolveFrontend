@@ -17,6 +17,18 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
+# Import torch for tests to patch
+try:
+    import torch
+except ImportError:
+    torch = None
+
+# Import lstsq for tests to patch
+try:
+    from numpy.linalg import lstsq
+except ImportError:
+    lstsq = None
+
 # Add Neuromancer to path
 neuromancer_path = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),

@@ -81,6 +81,7 @@ class QualityDimension(Enum):
     CORRECTNESS = "correctness"
     COMPLETENESS = "completeness"
     CLARITY = "clarity"
+    CONSISTENCY = "consistency"
     EFFECTIVENESS = "effectiveness"
     EFFICIENCY = "efficiency"
     MAINTAINABILITY = "maintainability"
@@ -127,6 +128,9 @@ class QualityIssue:
     location: Optional[Union[int, str]] = None  # Line number, section, etc.
     suggested_fix: Optional[str] = None
     confidence: float = 1.0  # 0-1 confidence in the issue
+
+# Alias for compatibility
+QualityResult = QualityAssessmentResult
 
 class QualityAssessmentEngine:
     """Main engine for quality assessment"""
@@ -1794,6 +1798,117 @@ class QualityAssessmentEngine:
             report.append(f"  ... and {len(assessment_result.recommendations) - 5} more recommendations")
         
         return "\n".join(report)
+
+    def calculate_score(self, assessment_result: QualityAssessmentResult) -> float:
+        """
+        Calculate overall quality score from assessment result
+
+        Args:
+            assessment_result: Quality assessment result
+
+        Returns:
+            Overall quality score (0.0 to 1.0)
+        """
+        return assessment_result.composite_score
+
+    def identify_issues(self, content: str, content_type: str = "general") -> List[QualityIssue]:
+        """
+        Identify quality issues in content
+
+        Args:
+            content: Content to analyze
+            content_type: Type of content
+
+        Returns:
+            List of QualityIssue objects
+        """
+        # Perform a basic quality assessment to extract issues
+        result = self.assess_quality(content, content_type)
+
+        # Convert issues dict list to QualityIssue objects
+        issues = []
+        for issue_dict in result.issues:
+            if isinstance(issue_dict, dict):
+                issue = QualityIssue(
+                    dimension=issue_dict.get("dimension", QualityDimension.CORRECTNESS),
+                    severity=issue_dict.get("severity", SeverityLevel.MEDIUM),
+                    description=issue_dict.get("description", ""),
+                    location=issue_dict.get("location"),
+                    suggested_fix=issue_dict.get("suggested_fix"),
+                    confidence=issue_dict.get("confidence", 1.0)
+                )
+                issues.append(issue)
+
+        return issues
+
+    def generate_recommendations(
+        self,
+        content: str,
+        issues: List[QualityIssue],
+        content_type: str = "general"
+    ) -> List[str]:
+        """
+        Generate recommendations based on quality issues
+
+        Args:
+            content: Content that was assessed
+            issues: List of identified quality issues
+            content_type: Type of content
+
+        Returns:
+            List of recommendation strings
+        """
+        if not issues:
+            return ["Content quality is good. No major issues found."]
+
+        recommendations = []
+
+        # Group issues by dimension
+        issues_by_dimension = {}
+        for issue in issues:
+            dimension = issue.dimension
+            if dimension not in issues_by_dimension:
+                issues_by_dimension[dimension] = []
+            issues_by_dimension[dimension].append(issue)
+
+        # Generate recommendations for each dimension
+        for dimension, dimension_issues in issues_by_dimension.items():
+            count = len(dimension_issues)
+            critical_count = sum(1 for i in dimension_issues if i.severity == SeverityLevel.CRITICAL)
+
+            if dimension == QualityDimension.CORRECTNESS:
+                if critical_count > 0:
+                    recommendations.append(f"URGENT: Fix {critical_count} critical correctness issues")
+                recommendations.append(f"Review and fix {count} correctness issue(s) identified")
+
+            elif dimension == QualityDimension.COMPLETENESS:
+                recommendations.append(f"Add missing information to address {count} completeness issue(s)")
+
+            elif dimension == QualityDimension.CLARITY:
+                recommendations.append(f"Improve clarity by addressing {count} clarity issue(s)")
+
+            elif dimension == QualityDimension.CONSISTENCY:
+                recommendations.append(f"Ensure consistency across the content to fix {count} consistency issue(s)")
+
+            elif dimension == QualityDimension.MAINTAINABILITY:
+                recommendations.append(f"Refactor code to improve maintainability ({count} issue(s))")
+
+            elif dimension == QualityDimension.SECURITY:
+                if critical_count > 0:
+                    recommendations.append(f"CRITICAL: Address {critical_count} security vulnerability/ies immediately")
+                recommendations.append(f"Review and fix {count} security issue(s)")
+
+            elif dimension == QualityDimension.PERFORMANCE:
+                recommendations.append(f"Optimize performance to address {count} performance issue(s)")
+
+            else:
+                recommendations.append(f"Address {count} {dimension.value} issue(s)")
+
+        # Add general recommendations
+        if len(issues) > 10:
+            recommendations.append("Consider a comprehensive review to address all issues")
+
+        return recommendations
 
     # =========================================================================
     # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Quality Assessment

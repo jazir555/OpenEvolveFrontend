@@ -993,6 +993,92 @@ class ContentEvaluator:
 
         return {"score": score, "length": len(content), "timestamp": time.time()}
 
+    @staticmethod
+    def evaluate_fitness(content: str) -> float:
+        """
+        Evaluate the fitness of content
+
+        Args:
+            content: Content to evaluate
+
+        Returns:
+            Fitness score (0.0 to 1.0)
+        """
+        # Basic fitness evaluation based on content length and quality
+        if not content or not content.strip():
+            return 0.0
+
+        # Length-based fitness (prefer moderate length)
+        length = len(content)
+        if length < 50:
+            length_score = 0.3
+        elif length < 200:
+            length_score = 0.7
+        elif length < 1000:
+            length_score = 1.0
+        else:
+            length_score = 0.8
+
+        # Structure-based fitness
+        structure_score = 0.5
+        if "def " in content or "class " in content:
+            structure_score += 0.2
+        if any(keyword in content for keyword in ["import", "from", "include"]):
+            structure_score += 0.15
+        if "#" in content or '"""' in content or "'''" in content:
+            structure_score += 0.15
+
+        return min(1.0, (length_score + structure_score) / 2)
+
+    @staticmethod
+    def calculate_diversity(population: List[str]) -> float:
+        """
+        Calculate diversity of a population
+
+        Args:
+            population: List of content strings
+
+        Returns:
+            Diversity score (0.0 to 1.0)
+        """
+        if not population or len(population) < 2:
+            return 0.0
+
+        # Calculate pairwise diversity using simple string similarity
+        import difflib
+
+        total_similarity = 0.0
+        comparisons = 0
+
+        for i in range(len(population)):
+            for j in range(i + 1, len(population)):
+                similarity = difflib.SequenceMatcher(None, population[i], population[j]).ratio()
+                total_similarity += similarity
+                comparisons += 1
+
+        if comparisons == 0:
+            return 0.0
+
+        avg_similarity = total_similarity / comparisons
+        diversity = 1.0 - avg_similarity
+
+        return max(0.0, min(1.0, diversity))
+
+
+@dataclass
+class EvolutionMetrics:
+    """
+    Metrics class for evolution operations
+    """
+    iterations: int = 0
+    best_fitness: float = 0.0
+    avg_fitness: float = 0.0
+    convergence_rate: float = 0.0
+    diversity_score: float = 0.0
+    execution_time: float = 0.0
+    success: bool = False
+    error_message: Optional[str] = None
+
 
 def _run_problem_decomposition_enhanced(
     current_content: str,

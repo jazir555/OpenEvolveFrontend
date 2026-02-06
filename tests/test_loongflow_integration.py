@@ -490,9 +490,9 @@ class TestLoongFlowExtractorInitialization:
 
     def test_extractor_backend_initialization_partial(self):
         """Test extractor with partial backend availability."""
-        ke = AsyncMock()
+        # Create a mock that only has graphiti attribute
+        ke = Mock(spec=['graphiti'])  # Only allow graphiti attribute
         ke.graphiti = AsyncMock()
-        # No qdrant, neo4j, mongodb
 
         extractor = LoongFlowKnowledgeExtractor(knowledge_engine=ke)
 

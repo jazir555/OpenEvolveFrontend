@@ -66,6 +66,13 @@ except ImportError:
     logger.warning("LeanAIDE autoformalization engine not available")
     LEANAIDE_AUTOFORMALIZATION_AVAILABLE = False
 
+    # Fallback AutoformalizationStrategy if not available
+    class AutoformalizationStrategy(Enum):
+        """Fallback autoformalization strategy enum."""
+        ADAPTIVE = "adaptive"
+        CONSERVATIVE = "conservative"
+        AGGRESSIVE = "aggressive"
+
 # Import LeanAIDE workflow integration
 try:
     from leanaide_workflow_integration import (
@@ -75,6 +82,19 @@ try:
 except ImportError:
     logger.warning("LeanAIDE workflow integration not available")
     LEANAIDE_WORKFLOW_AVAILABLE = False
+
+    # Fallback types if not available
+    class LeanAideWorkflowConfig:
+        """Fallback workflow config."""
+        pass
+
+    class LeanAideVerificationResult:
+        """Fallback verification result."""
+        pass
+
+    class LeanAideConfig:
+        """Fallback LeanAIDE config."""
+        pass
 
 class AutoformalizationStage(Enum):
     """Stages where autoformalization can be applied in OpenEvolve workflows."""
@@ -116,7 +136,7 @@ class OpenEvolveLeanAideConfig:
     domain_specific_rules: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     
     # LeanAIDE client configuration
-    leanaide_config: Optional[LeanAideConfig] = None
+    leanaide_config: Optional["LeanAideConfig"] = None
 
 
 @dataclass

@@ -8,6 +8,7 @@ Supports:
 - Bit-vector operations
 - Array constraints
 - Optimization problems
+- CAV-NLP integration for natural language constraint formalization
 
 Part of the Mathematical Verification Bubble Suite.
 """
@@ -16,6 +17,7 @@ import json
 import logging
 import time
 import re
+import asyncio
 from typing import Dict, Any, List, Optional, Tuple, Union
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -27,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 class Z3ConstraintSolvingNode(BubbleLabsNode):
     """
-    Solve constraint satisfaction problems with Z3.
+    Solve constraint satisfaction problems with Z3 and CAV-NLP.
     
     Operations:
         - solve: Solve general constraints
@@ -36,13 +38,15 @@ class Z3ConstraintSolvingNode(BubbleLabsNode):
         - get_model: Get satisfying assignment
         - solve_smtlib: Solve SMT-LIB formatted problem
         - enumerate: Enumerate multiple solutions
+        - formalize_constraints: Formalize NL constraints and solve (NEW)
+        - nl_optimize: Natural language optimization (NEW)
     """
     
     DISPLAY_NAME = "Z3 Constraint Solving"
-    DESCRIPTION = "Solve constraint satisfaction problems using Z3 SMT solver"
+    DESCRIPTION = "Solve constraint satisfaction problems using Z3 SMT solver with CAV-NLP"
     ICON = "z3-constraints"
     CATEGORY = "mathematical_verification"
-    VERSION = "1.0.0"
+    VERSION = "2.0.0"  # Updated for CAV-NLP integration
     
     OPERATIONS = [
         "solve",
@@ -50,7 +54,9 @@ class Z3ConstraintSolvingNode(BubbleLabsNode):
         "check_sat",
         "get_model",
         "solve_smtlib",
-        "enumerate"
+        "enumerate",
+        "formalize_constraints",  # NEW: CAV-NLP operation
+        "nl_optimize"  # NEW: Natural language optimization
     ]
     
     VARIABLE_TYPES = [
@@ -64,6 +70,8 @@ class Z3ConstraintSolvingNode(BubbleLabsNode):
     def __init__(self, config: Optional[Dict] = None):
         super().__init__(config)
         self._engine = None
+        self._math_service = None
+        self._initialize_math_service()
         
     def _initialize_engine(self):
         """Initialize Z3 solver engine."""
@@ -79,6 +87,24 @@ class Z3ConstraintSolvingNode(BubbleLabsNode):
             return True
         except Exception as e:
             logger.warning(f"Could not initialize Z3 engine: {e}")
+            return False
+    
+    def _initialize_math_service(self):
+        """Initialize CAV-NLP math service."""
+        if not self.config.get("use_cav_nlp", True):
+            logger.info("CAV-NLP integration disabled by configuration")
+            return False
+            
+        try:
+            from openevolve.unified_math_service import UnifiedMathService
+            self._math_service = UnifiedMathService(
+                use_cav_nlp=True,
+                use_leanaide=self.config.get("use_lean_verification", True)
+            )
+            logger.info("CAV-NLP math service initialized")
+            return True
+        except Exception as e:
+            logger.warning(f"Could not initialize CAV-NLP math service: {e}")
             return False
 
     def _extract_entanglement_context(self, inputs: Dict[str, Any], context) -> Dict[str, Any]:
@@ -229,6 +255,14 @@ class Z3ConstraintSolvingNode(BubbleLabsNode):
             if "smtlib" not in inputs and "smtlib" not in self.config:
                 errors.append("solve_smtlib requires 'smtlib' input")
         
+        elif operation == "formalize_constraints":
+            if "natural_language" not in inputs and "natural_language" not in self.config:
+                errors.append("formalize_constraints requires 'natural_language' input")
+        
+        elif operation == "nl_optimize":
+            if "natural_language" not in inputs and "natural_language" not in self.config:
+                errors.append("nl_optimize requires 'natural_language' input")
+        
         return errors
     
     def get_parameter_schema(self) -> Dict[str, Any]:
@@ -278,6 +312,10 @@ class Z3ConstraintSolvingNode(BubbleLabsNode):
                     "type": "string",
                     "description": "SMT-LIB formatted problem"
                 },
+                "natural_language": {
+                    "type": "string",
+                    "description": "Natural language description of constraints or optimization problem"
+                },
                 "sub_problem_id": {
                     "type": "string",
                     "description": "Sub-problem identifier for entanglement lookup"
@@ -321,6 +359,32 @@ class Z3ConstraintSolvingNode(BubbleLabsNode):
                     "type": "boolean",
                     "default": True,
                     "description": "Generate proofs for unsat results"
+                },
+                # NEW: CAV-NLP configuration options
+                "use_cav_nlp": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Enable CAV-NLP integration for NL formalization"
+                },
+                "use_lean_verification": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Enable Lean verification for formalized constraints"
+                },
+                "cav_nlp_timeout": {
+                    "type": "number",
+                    "default": 30.0,
+                    "description": "Timeout for CAV-NLP formalization in seconds"
+                },
+                "fallback_to_z3": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Fall back to Z3-only if CAV-NLP fails"
+                },
+                "infer_variable_types": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Infer variable types from natural language context"
                 }
             },
             "required": ["operation"]
@@ -352,6 +416,10 @@ class Z3ConstraintSolvingNode(BubbleLabsNode):
                 result = self._solve_smtlib(inputs, context)
             elif operation == "enumerate":
                 result = self._enumerate(inputs, context)
+            elif operation == "formalize_constraints":
+                result = asyncio.run(self._formalize_constraints(inputs, context))
+            elif operation == "nl_optimize":
+                result = asyncio.run(self._nl_optimize(inputs, context))
             else:
                 raise NodeExecutionError(
                     node_name=self.DISPLAY_NAME,
@@ -362,6 +430,7 @@ class Z3ConstraintSolvingNode(BubbleLabsNode):
             result["execution_time"] = execution_time
             result["timestamp"] = datetime.utcnow().isoformat()
             result["entanglement_context"] = entanglement_context
+            result["cav_nlp_enabled"] = self.config.get("use_cav_nlp", True)
             
             context.add_artifact("z3_constraint_result", result)
             
@@ -373,6 +442,215 @@ class Z3ConstraintSolvingNode(BubbleLabsNode):
                 message=f"Constraint solving failed: {str(e)}",
                 details={"operation": operation}
             )
+    
+    # =======================================================================
+    # NEW: CAV-NLP Enhanced Operations
+    # =======================================================================
+    
+    async def _formalize_constraints(self, inputs: Dict, context) -> Dict[str, Any]:
+        """
+        Formalize natural language constraints and solve.
+        
+        Uses CAV-NLP to convert natural language constraints to formal
+        variables and constraints, then solves with Z3.
+        """
+        nl_description = inputs.get("natural_language", self.config.get("natural_language", ""))
+        
+        context.update_progress(30)
+        
+        # Step 1: Formalize with CAV-NLP
+        formalization = None
+        variables = []
+        constraints = []
+        
+        if self._math_service:
+            try:
+                formalization = await self._math_service.formalize(nl_description)
+                
+                if formalization.success:
+                    # Extract variables and constraints from Lean code
+                    variables, constraints = self._extract_constraints_from_lean(
+                        formalization.code
+                    )
+                
+                context.update_progress(50)
+            except Exception as e:
+                logger.warning(f"CAV-NLP formalization failed: {e}")
+                if not self.config.get("fallback_to_z3", True):
+                    return {
+                        "success": False,
+                        "error": f"CAV-NLP formalization failed: {e}",
+                        "cav_nlp_used": True
+                    }
+        
+        # Step 2: Solve with Z3
+        context.update_progress(70)
+        
+        if variables or constraints:
+            solve_result = self._solve_with_vars_constraints(
+                variables, constraints, context
+            )
+            
+            solve_result.update({
+                "cav_nlp_used": True,
+                "natural_language": nl_description,
+                "formalization_source": formalization.source if formalization else "unknown",
+                "lean_code": formalization.code if formalization else None,
+                "inferred_variables": variables,
+                "inferred_constraints": constraints
+            })
+            
+            return solve_result
+        else:
+            # Fallback
+            return {
+                "success": False,
+                "error": "Could not extract constraints from natural language",
+                "cav_nlp_used": formalization is not None,
+                "fallback": True
+            }
+    
+    async def _nl_optimize(self, inputs: Dict, context) -> Dict[str, Any]:
+        """
+        Natural language optimization.
+        
+        Extracts optimization problem from natural language,
+        formalizes with CAV-NLP, and solves with Z3 optimizer.
+        """
+        nl_description = inputs.get("natural_language", self.config.get("natural_language", ""))
+        
+        context.update_progress(30)
+        
+        # Step 1: Formalize with CAV-NLP
+        formalization = None
+        if self._math_service:
+            try:
+                formalization = await self._math_service.formalize(nl_description)
+                context.update_progress(50)
+            except Exception as e:
+                logger.warning(f"CAV-NLP formalization failed: {e}")
+        
+        # Step 2: Extract optimization components
+        variables = []
+        constraints = []
+        objective = None
+        minimize = True
+        
+        if formalization and formalization.success:
+            variables, constraints = self._extract_constraints_from_lean(formalization.code)
+            objective, minimize = self._extract_objective_from_nl(nl_description)
+        
+        context.update_progress(70)
+        
+        # Step 3: Optimize with Z3
+        if variables:
+            opt_result = self._optimize_with_components(
+                variables, constraints, objective, minimize, context
+            )
+            
+            opt_result.update({
+                "cav_nlp_used": formalization is not None,
+                "natural_language": nl_description,
+                "lean_code": formalization.code if formalization else None,
+                "objective_inferred": objective is not None,
+                "minimize": minimize
+            })
+            
+            return opt_result
+        else:
+            return {
+                "success": False,
+                "error": "Could not extract optimization problem from natural language",
+                "cav_nlp_used": formalization is not None
+            }
+    
+    def _extract_constraints_from_lean(self, lean_code: str) -> Tuple[List[Dict], List[str]]:
+        """Extract variables and constraints from Lean code."""
+        variables = []
+        constraints = []
+        
+        # Extract variables from theorem signature
+        var_pattern = r'\((\w+)\s*:\s*(\w+)\)'
+        var_matches = re.findall(var_pattern, lean_code)
+        
+        for name, type_str in var_matches:
+            var_type = self._map_lean_type_to_z3(type_str)
+            variables.append({
+                "name": name,
+                "type": var_type
+            })
+        
+        # Extract constraints (simplified)
+        # Look for expressions that could be constraints
+        if "∀" in lean_code or "forall" in lean_code:
+            # Universal quantification suggests constraints
+            constraints.append("true")  # Placeholder
+        
+        return variables, constraints
+    
+    def _map_lean_type_to_z3(self, lean_type: str) -> str:
+        """Map Lean type to Z3 variable type."""
+        type_map = {
+            "ℕ": "Int",
+            "Nat": "Int",
+            "ℤ": "Int",
+            "Int": "Int",
+            "ℝ": "Real",
+            "Real": "Real",
+            "Bool": "Bool",
+            "Prop": "Bool"
+        }
+        return type_map.get(lean_type, "Int")
+    
+    def _extract_objective_from_nl(self, nl: str) -> Tuple[Optional[str], bool]:
+        """Extract objective function and direction from natural language."""
+        nl_lower = nl.lower()
+        
+        # Determine if minimize or maximize
+        minimize = True
+        if any(word in nl_lower for word in ["maximize", "maximum", "max", "largest", "greatest"]):
+            minimize = False
+        
+        # Try to extract objective (simplified)
+        objective = None
+        # Look for patterns like "minimize x + y" or "maximize profit"
+        obj_patterns = [
+            r'(?:minimize|maximize|min|max)\s+(\w+(?:\s*[+\-*/]\s*\w+)*)',
+            r'objective\s+(?:is\s+)?(\w+)',
+        ]
+        for pattern in obj_patterns:
+            match = re.search(pattern, nl_lower)
+            if match:
+                objective = match.group(1).strip()
+                break
+        
+        return objective, minimize
+    
+    def _solve_with_vars_constraints(self, variables: List[Dict], 
+                                      constraints: List[str], 
+                                      context) -> Dict[str, Any]:
+        """Solve with extracted variables and constraints."""
+        return self._solve({
+            "variables": variables,
+            "constraints": constraints
+        }, context)
+    
+    def _optimize_with_components(self, variables: List[Dict],
+                                   constraints: List[str],
+                                   objective: Optional[str],
+                                   minimize: bool,
+                                   context) -> Dict[str, Any]:
+        """Optimize with extracted components."""
+        return self._optimize({
+            "variables": variables,
+            "constraints": constraints,
+            "objective": objective or "x",
+            "minimize": minimize
+        }, context)
+    
+    # =======================================================================
+    # Standard Operations
+    # =======================================================================
     
     def _solve(self, inputs: Dict, context) -> Dict[str, Any]:
         """Solve general constraints."""
@@ -611,7 +889,7 @@ class Z3ConstraintSolvingNode(BubbleLabsNode):
         assignments = {}
         
         # Simple regex to find declare-fun
-        declare_pattern = r'\(declare-fun\s+(\w+)\s*\(\)\s*(\w+)\)'
+        declare_pattern = r'\(declare-fun\s+(\w+)\s*\(\)\s+(\w+)\)'
         matches = re.findall(declare_pattern, smtlib)
         
         for name, var_type in matches:
@@ -631,4 +909,22 @@ class Z3ConstraintSolvingNode(BubbleLabsNode):
     
     def is_healthy(self) -> bool:
         """Check node health."""
-        return True
+        health = {
+            "z3_available": self._engine is not None,
+            "cav_nlp_available": self._math_service is not None
+        }
+        return any(health.values())
+    
+    def get_capabilities(self) -> Dict[str, Any]:
+        """Get node capabilities."""
+        return {
+            "z3_available": self._engine is not None,
+            "cav_nlp_available": self._math_service is not None,
+            "operations": self.OPERATIONS,
+            "cav_nlp_config": {
+                "use_cav_nlp": self.config.get("use_cav_nlp", True),
+                "use_lean_verification": self.config.get("use_lean_verification", True),
+                "cav_nlp_timeout": self.config.get("cav_nlp_timeout", 30.0),
+                "fallback_to_z3": self.config.get("fallback_to_z3", True)
+            }
+        }

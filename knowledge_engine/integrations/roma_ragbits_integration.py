@@ -933,9 +933,11 @@ class ROMARagbitsIntegration:
         })
 
         try:
-            # Remove from cache
-            if document_id in self._solution_cache:
-                del self._solution_cache[document_id]
+            # Remove from cache (cache maps solution_id -> document_id)
+            # Find and remove any solution_id that maps to this document_id
+            to_remove = [sol_id for sol_id, doc_id in self._solution_cache.items() if doc_id == document_id]
+            for sol_id in to_remove:
+                del self._solution_cache[sol_id]
 
             # Note: Actual deletion would depend on RAGbits vector store implementation
             # This is a placeholder for the deletion logic

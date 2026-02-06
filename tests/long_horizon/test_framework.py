@@ -19,7 +19,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Dict, Any
 import numpy as np
 
-from openvolve.long_horizon import (
+from openevolve.long_horizon import (
     StateManager,
     WorkflowOrchestrator,
     TemporalContextManager,
@@ -29,7 +29,7 @@ from openvolve.long_horizon import (
     create_framework
 )
 
-from openvolve.long_horizon.schemas import (
+from openevolve.long_horizon.schemas import (
     StateLevel,
     WorkflowStatus,
     TemporalEvent,
@@ -303,7 +303,7 @@ class TestTemporalContext:
     @pytest.mark.asyncio
     async def test_causal_links(self, temporal_manager):
         """Test causal relationship tracking"""
-        from openvolve.long_horizon.schemas import CausalLink
+        from openevolve.long_horizon.schemas import CausalLink
 
         # Add events
         event1 = TemporalEvent(
@@ -532,7 +532,7 @@ class TestCheckpointReplay:
     @pytest.mark.asyncio
     async def test_checkpoint_validation(self, state_manager):
         """Test checkpoint integrity validation"""
-        from openvolve.long_horizon.checkpoint_replay import CheckpointValidator
+        from openevolve.long_horizon.checkpoint_replay import CheckpointValidator
 
         # Create snapshot
         snapshot = await state_manager.save_snapshot(
@@ -551,7 +551,7 @@ class TestCheckpointReplay:
     @pytest.mark.asyncio
     async def test_checkpoint_metadata(self, state_manager):
         """Test checkpoint metadata creation"""
-        from openvolve.long_horizon.checkpoint_replay import CheckpointManager
+        from openevolve.long_horizon.checkpoint_replay import CheckpointManager
 
         manager = CheckpointManager(state_manager)
 
@@ -577,7 +577,7 @@ class TestCheckpointReplay:
     @pytest.mark.asyncio
     async def test_replay_session(self, state_manager):
         """Test replay session creation"""
-        from openvolve.long_horizon.checkpoint_replay import ReplayEngine
+        from openevolve.long_horizon.checkpoint_replay import ReplayEngine
 
         # Create checkpoint
         snapshot = await state_manager.save_snapshot(

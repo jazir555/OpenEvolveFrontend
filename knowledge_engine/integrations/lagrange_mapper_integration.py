@@ -128,11 +128,15 @@ class LagrangeAttractorAnalyzer:
                 'message': 'Lagrange-mapper integration not available',
                 'landscape': {}
             }
-        
+
+        # Check for None input before try block to allow exception to propagate
+        if embeddings is None:
+            raise ValueError("Embeddings cannot be None")
+
         try:
             # Ensure embeddings is numpy array
             embeddings = np.array(embeddings)
-            
+
             # Validate input
             if embeddings.ndim != 2:
                 return {

@@ -1999,6 +1999,462 @@ def create_solver_workflow(config: Optional[Dict[str, Any]] = None) -> SolverWor
 
 
 # =============================================================================
+# CAV-NLP INTEGRATION - BLUE TEAM SOLVER ENGINE
+# =============================================================================
+
+# CAV-NLP availability flags
+try:
+    import z3
+    Z3_AVAILABLE = True
+except ImportError:
+    Z3_AVAILABLE = False
+    z3 = None
+
+# Try to import CAV-NLP components (may not exist yet)
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    UnifiedMathService = None
+    EnhancedZ3Solver = None
+
+
+class BlueTeamSolverEngine:
+    """
+    Enhanced Blue Team Solver with CAV-NLP capabilities.
+    
+    This engine extends the standard solver workflow with:
+    - Natural language problem formalization
+    - Hybrid verification (Z3 + Lean)
+    - Canonical constraint representation
+    - Proof export to Lean 4
+    
+    The CAV-NLP integration is opt-in via configuration and gracefully
+    degrades to standard Z3 solving when unavailable.
+    
+    Example:
+        >>> engine = BlueTeamSolverEngine(config={
+        ...     "use_cav_nlp": True,
+        ...     "enable_hybrid_verification": True
+        ... })
+        >>> 
+        >>> # Formalize natural language constraint
+        >>> constraint = engine.formalize_problem(
+        ...     "For all x > 0 and y > 0, x + y > 0"
+        ... )
+        >>> 
+        >>> # Solve with hybrid verification
+        >>> result = engine.solve(
+        ...     [constraint],
+        ...     use_hybrid_verification=True
+        ... )
+        >>> 
+        >>> # Export proof to Lean 4
+        >>> lean_proof = engine.export_proof_to_lean([constraint])
+    """
+    
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        """
+        Initialize the Blue Team Solver Engine with CAV-NLP capabilities.
+        
+        Args:
+            config: Configuration dictionary with options:
+                - use_cav_nlp: Enable CAV-NLP integration (default: True if available)
+                - enable_hybrid_verification: Enable Z3+Lean hybrid verification
+                - enable_canonicalization: Enable constraint canonicalization
+                - enable_lean_export: Enable Lean 4 proof export
+                - api_key: API key for LLM services
+                - base_url: Base URL for LLM API
+                - model: Model name for LLM
+        """
+        self.config = config or {}
+        self.logger = logging.getLogger(__name__)
+        
+        # Initialize base solver workflow
+        self.workflow = SolverWorkflow(config)
+        
+        # Z3 solver initialization
+        self.solver = None
+        if Z3_AVAILABLE:
+            self.solver = z3.Solver()
+        else:
+            self.logger.warning("Z3 not available. Constraint solving disabled.")
+        
+        # CAV-NLP integration initialization
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        self.math_service = None
+        self.enhanced_solver = None
+        
+        if self.use_cav_nlp:
+            try:
+                self.math_service = UnifiedMathService()
+                self.enhanced_solver = EnhancedZ3Solver()
+                self.logger.info("CAV-NLP integration initialized successfully")
+            except Exception as e:
+                self.logger.warning(f"Failed to initialize CAV-NLP: {e}")
+                self.use_cav_nlp = False
+        else:
+            if not CAV_NLP_AVAILABLE:
+                self.logger.info("CAV-NLP modules not available. Running in Z3-only mode.")
+            elif not self.config.get("use_cav_nlp", True):
+                self.logger.info("CAV-NLP disabled by configuration.")
+    
+    def formalize_problem(self, natural_language: str) -> Any:
+        """
+        Formalize natural language problem description to Z3 constraints.
+        
+        Uses CAV-NLP to parse mathematical text and convert it to Z3
+        expressions. Requires CAV-NLP to be enabled.
+        
+        Args:
+            natural_language: Natural language description of the problem
+            
+        Returns:
+            Z3 expression representing the formalized constraint
+            
+        Raises:
+            ValueError: If CAV-NLP is not enabled
+            RuntimeError: If formalization fails
+        """
+        if not self.use_cav_nlp:
+            raise ValueError(
+                "CAV-NLP not enabled. "
+                "Set use_cav_nlp=True in config and ensure CAV-NLP modules are installed."
+            )
+        
+        try:
+            self.logger.info(f"Formalizing problem: {natural_language[:100]}...")
+            
+            # Use enhanced solver to formalize
+            result = self.enhanced_solver.formalize_constraint(natural_language)
+            
+            self.logger.info("Problem formalization completed successfully")
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Problem formalization failed: {e}")
+            raise RuntimeError(f"Failed to formalize problem: {e}")
+    
+    def solve(
+        self, 
+        constraints: List[Any], 
+        use_hybrid_verification: bool = False,
+        timeout: Optional[int] = None
+    ) -> Dict[str, Any]:
+        """
+        Solve constraints with optional hybrid verification.
+        
+        Performs Z3 solving and optionally verifies the result using
+        Lean 4 via CAV-NLP integration for enhanced confidence.
+        
+        Args:
+            constraints: List of Z3 constraints to solve
+            use_hybrid_verification: If True, verify Z3 result with Lean
+            timeout: Optional timeout in seconds for solving
+            
+        Returns:
+            Dictionary containing:
+                - result: Z3 check result (sat/unsat/unknown)
+                - model: Satisfying model if result is sat
+                - verification: Hybrid verification result (if requested)
+                - confidence: Confidence score (0.0-1.0)
+                - proof: Proof object if available
+                - metadata: Additional solving metadata
+                
+        Raises:
+            RuntimeError: If Z3 is not available or solving fails
+        """
+        if not Z3_AVAILABLE:
+            raise RuntimeError("Z3 solver not available")
+        
+        start_time = time.time()
+        
+        try:
+            self.logger.info(f"Solving {len(constraints)} constraints")
+            
+            # Reset solver and add constraints
+            self.solver.reset()
+            for constraint in constraints:
+                self.solver.add(constraint)
+            
+            # Set timeout if specified
+            if timeout:
+                self.solver.set(timeout=timeout * 1000)  # Z3 uses milliseconds
+            
+            # Perform Z3 solving
+            z3_result = self.solver.check()
+            
+            # Build base result
+            result = {
+                "result": z3_result,
+                "confidence": 0.5,  # Base confidence
+                "metadata": {
+                    "constraints_count": len(constraints),
+                    "solve_time": time.time() - start_time,
+                    "hybrid_verification_enabled": use_hybrid_verification,
+                }
+            }
+            
+            # Get model if satisfiable
+            if z3_result == z3.sat:
+                model = self.solver.model()
+                result["model"] = model
+                result["confidence"] = 0.7  # Higher confidence for sat
+            
+            # Perform hybrid verification if requested
+            if use_hybrid_verification and z3_result == z3.sat:
+                if not self.use_cav_nlp:
+                    self.logger.warning(
+                        "Hybrid verification requested but CAV-NLP not available"
+                    )
+                    result["verification"] = None
+                    result["confidence"] = 0.7
+                else:
+                    try:
+                        self.logger.info("Performing hybrid verification with Lean...")
+                        verification = self.enhanced_solver.verify_with_lean(constraints)
+                        
+                        result["verification"] = verification
+                        
+                        # Update confidence based on verification
+                        if verification:
+                            if hasattr(verification, 'confidence'):
+                                result["confidence"] = verification.confidence
+                            elif isinstance(verification, dict):
+                                result["confidence"] = verification.get('confidence', 0.85)
+                            else:
+                                result["confidence"] = 0.85
+                        else:
+                            result["confidence"] = 0.6
+                            
+                        result["metadata"]["verification_time"] = time.time() - start_time
+                        
+                    except Exception as e:
+                        self.logger.warning(f"Hybrid verification failed: {e}")
+                        result["verification"] = None
+                        result["verification_error"] = str(e)
+                        result["confidence"] = 0.6  # Reduced confidence on verification failure
+            
+            self.logger.info(f"Solve completed: {z3_result}, confidence={result['confidence']:.2f}")
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Solving failed: {e}")
+            raise RuntimeError(f"Constraint solving failed: {e}")
+    
+    def export_proof_to_lean(self, constraints: List[Any]) -> str:
+        """
+        Export Z3 constraints to Lean 4 using CAV-NLP.
+        
+        Generates Lean 4 code representing the constraints and any
+        available proofs. Requires CAV-NLP to be enabled.
+        
+        Args:
+            constraints: List of Z3 constraints to export
+            
+        Returns:
+            String containing Lean 4 code
+            
+        Raises:
+            ValueError: If CAV-NLP is not enabled
+            RuntimeError: If export fails
+        """
+        if not self.use_cav_nlp:
+            raise ValueError(
+                "CAV-NLP not enabled. "
+                "Set use_cav_nlp=True in config and ensure CAV-NLP modules are installed."
+            )
+        
+        try:
+            self.logger.info(f"Exporting {len(constraints)} constraints to Lean 4")
+            
+            # Use enhanced solver's proof exporter
+            lean_code = self.enhanced_solver.proof_exporter.export_constraints(constraints)
+            
+            self.logger.info("Lean 4 export completed successfully")
+            return lean_code
+            
+        except Exception as e:
+            self.logger.error(f"Lean export failed: {e}")
+            raise RuntimeError(f"Failed to export proof to Lean: {e}")
+    
+    def canonicalize_constraints(self, constraints: List[Any]) -> List[Any]:
+        """
+        Return canonical form of constraints using CAV-NLP.
+        
+        Canonicalization transforms equivalent constraints into a
+        standard form, enabling deduplication and consistent processing.
+        
+        Args:
+            constraints: List of Z3 constraints to canonicalize
+            
+        Returns:
+            List of canonicalized constraints
+            
+        Raises:
+            ValueError: If CAV-NLP is not enabled
+            RuntimeError: If canonicalization fails
+        """
+        if not self.use_cav_nlp:
+            raise ValueError(
+                "CAV-NLP not enabled. "
+                "Set use_cav_nlp=True in config and ensure CAV-NLP modules are installed."
+            )
+        
+        try:
+            self.logger.info(f"Canonicalizing {len(constraints)} constraints")
+            
+            canonical = self.enhanced_solver.canonical_manager.canonicalize_batch(constraints)
+            
+            self.logger.info("Canonicalization completed")
+            return canonical
+            
+        except Exception as e:
+            self.logger.error(f"Canonicalization failed: {e}")
+            raise RuntimeError(f"Failed to canonicalize constraints: {e}")
+    
+    def find_redundant_constraints(self, constraints: List[Any]) -> List[int]:
+        """
+        Find redundant constraints using CAV-NLP.
+        
+        Identifies constraints that are implied by other constraints
+        in the set, enabling optimization of constraint systems.
+        
+        Args:
+            constraints: List of Z3 constraints to analyze
+            
+        Returns:
+            List of indices of redundant constraints
+            
+        Raises:
+            ValueError: If CAV-NLP is not enabled
+            RuntimeError: If analysis fails
+        """
+        if not self.use_cav_nlp:
+            raise ValueError(
+                "CAV-NLP not enabled. "
+                "Set use_cav_nlp=True in config and ensure CAV-NLP modules are installed."
+            )
+        
+        try:
+            self.logger.info(f"Analyzing {len(constraints)} constraints for redundancy")
+            
+            redundant_indices = self.enhanced_solver.canonical_manager.find_redundant_constraints(
+                constraints
+            )
+            
+            self.logger.info(f"Found {len(redundant_indices)} redundant constraints")
+            return redundant_indices
+            
+        except Exception as e:
+            self.logger.error(f"Redundancy analysis failed: {e}")
+            raise RuntimeError(f"Failed to find redundant constraints: {e}")
+    
+    def solve_sub_problem(
+        self,
+        sub_problem_id: str,
+        description: str,
+        dependencies: Optional[List[str]] = None,
+        complexity_score: int = 5,
+        priority: int = 5,
+        context: Optional[Dict[str, Any]] = None,
+        requirements: Optional[List[str]] = None,
+        constraints: Optional[List[str]] = None,
+        success_criteria: Optional[List[str]] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        strategy: Optional[str] = None,
+        **kwargs
+    ) -> SolutionResult:
+        """
+        Solve a sub-problem using the underlying solver workflow.
+        
+        This method provides the standard SubProblemSolver interface
+        while maintaining access to CAV-NLP capabilities through
+        the engine configuration.
+        
+        Args:
+            sub_problem_id: Unique identifier for the sub-problem
+            description: Detailed problem description
+            dependencies: List of sub-problem IDs this depends on
+            complexity_score: Estimated complexity (1-10)
+            priority: Priority level (1-10, higher = more important)
+            context: Additional context and information
+            requirements: List of requirements the solution must meet
+            constraints: List of constraints on the solution
+            success_criteria: Criteria to measure success
+            metadata: Additional metadata
+            strategy: Preferred solving strategy
+            **kwargs: Additional parameters
+            
+        Returns:
+            SolutionResult with solution and quality metrics
+        """
+        return self.workflow.solve(
+            sub_problem=SubProblemInput(
+                id=sub_problem_id,
+                description=description,
+                dependencies=dependencies or [],
+                complexity_score=complexity_score,
+                priority=priority,
+                context=context or {},
+                requirements=requirements or [],
+                constraints=constraints or [],
+                success_criteria=success_criteria or [],
+                metadata=metadata or {},
+            ),
+            strategy=SolvingStrategy(strategy.lower()) if strategy else None,
+            **kwargs
+        )
+    
+    def is_cav_nlp_available(self) -> bool:
+        """
+        Check if CAV-NLP capabilities are available.
+        
+        Returns:
+            True if CAV-NLP is enabled and available
+        """
+        return self.use_cav_nlp
+    
+    def get_capabilities(self) -> Dict[str, bool]:
+        """
+        Get available capabilities of the engine.
+        
+        Returns:
+            Dictionary mapping capability names to availability
+        """
+        return {
+            "z3_solving": Z3_AVAILABLE,
+            "cav_nlp": self.use_cav_nlp,
+            "hybrid_verification": self.use_cav_nlp and self.config.get(
+                "enable_hybrid_verification", True
+            ),
+            "canonicalization": self.use_cav_nlp and self.config.get(
+                "enable_canonicalization", True
+            ),
+            "lean_export": self.use_cav_nlp and self.config.get(
+                "enable_lean_export", True
+            ),
+        }
+
+
+def create_blue_team_solver_engine(
+    config: Optional[Dict[str, Any]] = None
+) -> BlueTeamSolverEngine:
+    """
+    Factory function to create a BlueTeamSolverEngine instance.
+    
+    Args:
+        config: Configuration dictionary
+        
+    Returns:
+        Configured BlueTeamSolverEngine instance
+    """
+    return BlueTeamSolverEngine(config)
+
+
+# =============================================================================
 # MODULE INITIALIZATION
 # =============================================================================
 
@@ -2020,7 +2476,13 @@ __all__ = [
     "SolverWorkflow",
     "SubProblemSolver",
     "SolutionCache",
+    # CAV-NLP Enhanced Engine
+    "BlueTeamSolverEngine",
     # Factory functions
     "create_solver",
     "create_solver_workflow",
+    "create_blue_team_solver_engine",
+    # Availability flags
+    "Z3_AVAILABLE",
+    "CAV_NLP_AVAILABLE",
 ]

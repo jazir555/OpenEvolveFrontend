@@ -8,6 +8,7 @@ Supports:
 - Inductive proofs
 - Proof generation
 - Counterexample generation
+- CAV-NLP integration for natural language formalization
 
 Part of the Mathematical Verification Bubble Suite.
 """
@@ -16,17 +17,31 @@ import json
 import logging
 import time
 import re
+import asyncio
 from typing import Dict, Any, List, Optional, Union
 from datetime import datetime
+from dataclasses import dataclass, field
 
 from bubblelabs_nodes.base_node import BubbleLabsNode, NodeExecutionError
 
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class CAVNLPFormalizationResult:
+    """Result of CAV-NLP formalization."""
+    success: bool
+    code: str
+    raw_text: str
+    source: str
+    elaborated_code: Optional[str] = None
+    errors: List[str] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)
+
+
 class Z3TheoremProvingNode(BubbleLabsNode):
     """
-    Prove theorems using Z3 SMT solver.
+    Prove theorems using Z3 SMT solver with CAV-NLP enhancement.
     
     Operations:
         - prove: Prove a theorem
@@ -36,13 +51,15 @@ class Z3TheoremProvingNode(BubbleLabsNode):
         - check_validity: Check formula validity
         - find_counterexample: Find counterexamples
         - prove_smtlib: Prove SMT-LIB theorem
+        - formalize_and_prove: Formalize NL theorem and prove it (NEW)
+        - hybrid_verify: Hybrid Z3 + Lean verification (NEW)
     """
     
     DISPLAY_NAME = "Z3 Theorem Proving"
-    DESCRIPTION = "Prove mathematical theorems using Z3 SMT solver"
+    DESCRIPTION = "Prove mathematical theorems using Z3 SMT solver with CAV-NLP integration"
     ICON = "z3-theorem"
     CATEGORY = "mathematical_verification"
-    VERSION = "1.0.0"
+    VERSION = "2.0.0"  # Updated for CAV-NLP integration
     
     OPERATIONS = [
         "prove",
@@ -51,7 +68,9 @@ class Z3TheoremProvingNode(BubbleLabsNode):
         "prove_inductive",
         "check_validity",
         "find_counterexample",
-        "prove_smtlib"
+        "prove_smtlib",
+        "formalize_and_prove",  # NEW: CAV-NLP operation
+        "hybrid_verify"  # NEW: Hybrid verification
     ]
     
     PROOF_TACTICS = [
@@ -68,6 +87,8 @@ class Z3TheoremProvingNode(BubbleLabsNode):
     def __init__(self, config: Optional[Dict] = None):
         super().__init__(config)
         self._prover = None
+        self._math_service = None
+        self._initialize_math_service()
         
     def _initialize_prover(self):
         """Initialize Z3 theorem prover."""
@@ -81,6 +102,24 @@ class Z3TheoremProvingNode(BubbleLabsNode):
             return True
         except Exception as e:
             logger.warning(f"Could not initialize Z3 prover: {e}")
+            return False
+    
+    def _initialize_math_service(self):
+        """Initialize CAV-NLP math service."""
+        if not self.config.get("use_cav_nlp", True):
+            logger.info("CAV-NLP integration disabled by configuration")
+            return False
+            
+        try:
+            from openevolve.unified_math_service import UnifiedMathService
+            self._math_service = UnifiedMathService(
+                use_cav_nlp=True,
+                use_leanaide=self.config.get("use_lean_verification", True)
+            )
+            logger.info("CAV-NLP math service initialized")
+            return True
+        except Exception as e:
+            logger.warning(f"Could not initialize CAV-NLP math service: {e}")
             return False
 
     def _extract_entanglement_context(self, inputs: Dict[str, Any], context) -> Dict[str, Any]:
@@ -237,6 +276,12 @@ class Z3TheoremProvingNode(BubbleLabsNode):
         elif operation in ["check_validity", "find_counterexample"]:
             if "formula" not in inputs and "formula" not in self.config:
                 errors.append(f"{operation} requires 'formula' input")
+        elif operation == "formalize_and_prove":
+            if "natural_language" not in inputs and "natural_language" not in self.config:
+                errors.append("formalize_and_prove requires 'natural_language' input")
+        elif operation == "hybrid_verify":
+            if "theorem" not in inputs and "theorem" not in self.config:
+                errors.append("hybrid_verify requires 'theorem' input")
         
         return errors
     
@@ -262,6 +307,10 @@ class Z3TheoremProvingNode(BubbleLabsNode):
                 "smtlib": {
                     "type": "string",
                     "description": "SMT-LIB formatted theorem"
+                },
+                "natural_language": {
+                    "type": "string",
+                    "description": "Natural language theorem statement (for CAV-NLP formalization)"
                 },
                 "sub_problem_id": {
                     "type": "string",
@@ -323,6 +372,37 @@ class Z3TheoremProvingNode(BubbleLabsNode):
                 "base_case": {
                     "type": "string",
                     "description": "Base case for induction"
+                },
+                # NEW: CAV-NLP configuration options
+                "use_cav_nlp": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Enable CAV-NLP integration for NL formalization"
+                },
+                "use_lean_verification": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Enable Lean verification in hybrid mode"
+                },
+                "cav_nlp_timeout": {
+                    "type": "number",
+                    "default": 30.0,
+                    "description": "Timeout for CAV-NLP formalization in seconds"
+                },
+                "fallback_to_z3": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Fall back to Z3-only if CAV-NLP fails"
+                },
+                "verify_with_lean": {
+                    "type": "boolean",
+                    "default": False,
+                    "description": "Also verify with Lean after Z3 proof"
+                },
+                "elaborate_formalization": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Elaborate CAV-NLP formalization with LeanAide"
                 }
             },
             "required": ["operation"]
@@ -356,6 +436,10 @@ class Z3TheoremProvingNode(BubbleLabsNode):
                 result = self._find_counterexample(inputs, context)
             elif operation == "prove_smtlib":
                 result = self._prove_smtlib(inputs, context)
+            elif operation == "formalize_and_prove":
+                result = asyncio.run(self._formalize_and_prove(inputs, context))
+            elif operation == "hybrid_verify":
+                result = asyncio.run(self._hybrid_verify(inputs, context))
             else:
                 raise NodeExecutionError(
                     node_name=self.DISPLAY_NAME,
@@ -366,6 +450,7 @@ class Z3TheoremProvingNode(BubbleLabsNode):
             result["execution_time"] = execution_time
             result["timestamp"] = datetime.utcnow().isoformat()
             result["entanglement_context"] = entanglement_context
+            result["cav_nlp_enabled"] = self.config.get("use_cav_nlp", True)
             
             context.add_artifact("z3_theorem_result", result)
             
@@ -378,11 +463,247 @@ class Z3TheoremProvingNode(BubbleLabsNode):
                 details={"operation": operation}
             )
     
+    # =======================================================================
+    # NEW: CAV-NLP Enhanced Operations
+    # =======================================================================
+    
+    async def _formalize_and_prove(self, inputs: Dict, context) -> Dict[str, Any]:
+        """
+        Formalize natural language theorem and prove it.
+        
+        Uses CAV-NLP to convert natural language to formal theorem,
+        then proves using Z3.
+        """
+        nl_statement = inputs.get("natural_language", self.config.get("natural_language", ""))
+        elaborate = inputs.get("elaborate_formalization", self.config.get("elaborate_formalization", True))
+        
+        context.update_progress(30)
+        
+        # Step 1: Formalize with CAV-NLP
+        formalization = None
+        if self._math_service:
+            try:
+                formalization = await self._math_service.formalize(
+                    text=nl_statement,
+                    elaborate=elaborate
+                )
+                context.update_progress(50)
+            except Exception as e:
+                logger.warning(f"CAV-NLP formalization failed: {e}")
+                if not self.config.get("fallback_to_z3", True):
+                    return {
+                        "success": False,
+                        "proven": False,
+                        "error": f"CAV-NLP formalization failed: {e}",
+                        "cav_nlp_used": True,
+                        "fallback": False
+                    }
+        
+        if not formalization or not formalization.success:
+            # Fallback: Try Z3-only with NL as is
+            if self.config.get("fallback_to_z3", True):
+                logger.info("Falling back to Z3-only proving")
+                return self._fallback_prove(nl_statement, [], domain="cav_nlp_fallback")
+            else:
+                return {
+                    "success": False,
+                    "proven": False,
+                    "error": "CAV-NLP formalization failed and fallback disabled",
+                    "cav_nlp_used": True
+                }
+        
+        # Step 2: Prove the formalized theorem with Z3
+        context.update_progress(60)
+        
+        lean_code = formalization.code
+        
+        # Try to extract theorem statement from Lean code for Z3
+        # This is a simplified extraction - real implementation would be more sophisticated
+        theorem_for_z3 = self._extract_theorem_from_lean(lean_code)
+        
+        z3_result = None
+        if self._prover:
+            try:
+                z3_result = self._prover.prove(theorem=theorem_for_z3)
+                context.update_progress(80)
+            except Exception as e:
+                logger.warning(f"Z3 proving failed after CAV-NLP formalization: {e}")
+        
+        context.update_progress(90)
+        
+        return {
+            "success": True,
+            "proven": z3_result.proven if z3_result else False,
+            "natural_language": nl_statement,
+            "lean_code": lean_code,
+            "elaborated_code": formalization.elaborated_code,
+            "cav_nlp_used": True,
+            "formalization_source": formalization.source,
+            "z3_result": {
+                "proven": z3_result.proven if z3_result else False,
+                "proof": z3_result.proof if z3_result else None
+            } if z3_result else None,
+            "warnings": formalization.warnings
+        }
+    
+    async def _hybrid_verify(self, inputs: Dict, context) -> Dict[str, Any]:
+        """
+        Hybrid verification using both Z3 and Lean.
+        
+        1. Z3 quick check
+        2. CAV-NLP formalization (if natural language)
+        3. Lean verification
+        4. Cross-validation of results
+        """
+        statement = inputs.get("theorem", self.config.get("theorem", ""))
+        is_nl = inputs.get("natural_language") or not self._looks_formal(statement)
+        
+        context.update_progress(20)
+        
+        # Step 1: Z3 Quick Check
+        z3_result = self._z3_check(statement)
+        context.update_progress(40)
+        
+        # Step 2: CAV-NLP Formalization (if needed)
+        lean_code = statement
+        formalization = None
+        
+        if is_nl and self._math_service:
+            try:
+                formalization = await self._math_service.formalize(statement)
+                if formalization.success:
+                    lean_code = formalization.code
+                context.update_progress(60)
+            except Exception as e:
+                logger.warning(f"CAV-NLP formalization in hybrid verify failed: {e}")
+        
+        # Step 3: Lean Verification
+        lean_result = None
+        if self.config.get("use_lean_verification", True) and self._math_service:
+            try:
+                lean_result = await self._math_service.verify(lean_code)
+                context.update_progress(80)
+            except Exception as e:
+                logger.warning(f"Lean verification failed: {e}")
+        
+        context.update_progress(90)
+        
+        # Step 4: Calculate hybrid confidence
+        confidence = self._calculate_hybrid_confidence(z3_result, lean_result)
+        
+        # Determine overall result
+        z3_verified = z3_result.get("satisfiable") if z3_result else False
+        lean_verified = lean_result.success if lean_result else False
+        
+        # Agreement between Z3 and Lean
+        agreement = z3_verified == lean_verified if lean_result else None
+        
+        return {
+            "success": True,
+            "verified": z3_verified or lean_verified,
+            "confidence": confidence,
+            "z3_result": z3_result,
+            "lean_result": {
+                "success": lean_result.success if lean_result else False,
+                "status": str(lean_result.status) if lean_result else "unknown"
+            } if lean_result else None,
+            "agreement": agreement,
+            "lean_code": lean_code,
+            "cav_nlp_used": formalization is not None,
+            "recommendation": self._generate_recommendation(z3_verified, lean_verified, agreement)
+        }
+    
+    def _calculate_hybrid_confidence(self, z3_result: Optional[Dict], 
+                                     lean_result: Optional[Any]) -> float:
+        """Calculate confidence score from hybrid verification."""
+        confidence = 0.0
+        
+        if z3_result and z3_result.get("satisfiable"):
+            confidence += 0.4
+        elif z3_result and z3_result.get("status") == "unsat":
+            confidence += 0.1  # Z3 unsat still provides some info
+        
+        if lean_result:
+            if lean_result.success:
+                confidence += 0.6
+            else:
+                confidence += 0.1
+        
+        # Bonus for agreement
+        if z3_result and lean_result:
+            z3_verified = z3_result.get("satisfiable", False)
+            lean_verified = lean_result.success
+            if z3_verified == lean_verified:
+                confidence += 0.1
+        
+        return min(confidence, 1.0)
+    
+    def _generate_recommendation(self, z3_verified: bool, lean_verified: bool, 
+                                  agreement: Optional[bool]) -> str:
+        """Generate recommendation based on verification results."""
+        if agreement is True:
+            if z3_verified and lean_verified:
+                return "Both Z3 and Lean agree: theorem is verified"
+            else:
+                return "Both Z3 and Lean agree: theorem appears unprovable"
+        elif agreement is False:
+            return "Discrepancy between Z3 and Lean - manual review recommended"
+        else:
+            if lean_verified:
+                return "Lean verified (Z3 unavailable)"
+            elif z3_verified:
+                return "Z3 verified (Lean unavailable)"
+            else:
+                return "Verification inconclusive"
+    
+    def _extract_theorem_from_lean(self, lean_code: str) -> str:
+        """Extract theorem statement from Lean code for Z3 processing."""
+        # Simple extraction - look for theorem statement
+        match = re.search(r'theorem\s+\w+[^:]+:([^:=]+)', lean_code, re.DOTALL)
+        if match:
+            return match.group(1).strip()
+        return lean_code
+    
+    def _looks_formal(self, statement: str) -> bool:
+        """Check if statement looks like formal notation."""
+        formal_indicators = [
+            r'∀', r'∃', r'→', r'∧', r'∨', r'¬',
+            r'theorem\s+', r'lemma\s+', r'forall\s+', r'exists\s+',
+            r'declare-fun', r'assert', r'check-sat'
+        ]
+        return any(re.search(pattern, statement) for pattern in formal_indicators)
+    
+    def _z3_check(self, statement: str) -> Dict[str, Any]:
+        """Run Z3 check on statement."""
+        if self._prover:
+            try:
+                result = self._prover.check_validity(statement)
+                return {
+                    "satisfiable": result.proven,
+                    "status": "sat" if result.proven else "unsat",
+                    "proof": result.proof if hasattr(result, 'proof') else None
+                }
+            except Exception as e:
+                logger.warning(f"Z3 check failed: {e}")
+        
+        return {"satisfiable": False, "status": "unknown", "error": "Z3 unavailable"}
+    
+    # =======================================================================
+    # Standard Operations
+    # =======================================================================
+    
     def _prove(self, inputs: Dict, context) -> Dict[str, Any]:
         """Prove a general theorem."""
         theorem = inputs.get("theorem", self.config.get("theorem", ""))
         assumptions = inputs.get("assumptions", self.config.get("assumptions", []))
         tactic = inputs.get("tactic", self.config.get("tactic", "default"))
+        
+        # NEW: Check for natural language input
+        if inputs.get("natural_language") or self.config.get("natural_language"):
+            nl = inputs.get("natural_language", self.config.get("natural_language", ""))
+            if nl and self.config.get("use_cav_nlp", True):
+                # Use formalize_and_prove instead
+                return asyncio.run(self._formalize_and_prove(inputs, context))
         
         context.update_progress(40)
         
@@ -621,4 +942,22 @@ class Z3TheoremProvingNode(BubbleLabsNode):
     
     def is_healthy(self) -> bool:
         """Check node health."""
-        return True
+        health = {
+            "z3_available": self._prover is not None,
+            "cav_nlp_available": self._math_service is not None
+        }
+        return any(health.values())
+    
+    def get_capabilities(self) -> Dict[str, Any]:
+        """Get node capabilities."""
+        return {
+            "z3_available": self._prover is not None,
+            "cav_nlp_available": self._math_service is not None,
+            "operations": self.OPERATIONS,
+            "cav_nlp_config": {
+                "use_cav_nlp": self.config.get("use_cav_nlp", True),
+                "use_lean_verification": self.config.get("use_lean_verification", True),
+                "cav_nlp_timeout": self.config.get("cav_nlp_timeout", 30.0),
+                "fallback_to_z3": self.config.get("fallback_to_z3", True)
+            }
+        }

@@ -85,31 +85,42 @@ class GraphitiIntegration:
     - Managing entity lifecycles
     """
     
-    def __init__(self, uri: str, user: str, password: str, llm_client: Optional[LLMClient] = None):
+    def __init__(
+        self,
+        uri: Optional[str] = None,
+        user: Optional[str] = None,
+        password: Optional[str] = None,
+        llm_client: Optional[LLMClient] = None,
+        config: Optional[Dict[str, Any]] = None
+    ):
         """
         Initialize the Graphiti integration.
-        
+
         Args:
-            uri: Neo4j connection URI
-            user: Neo4j username
-            password: Neo4j password
+            uri: Neo4j connection URI (can be provided via config)
+            user: Neo4j username (can be provided via config)
+            password: Neo4j password (can be provided via config)
             llm_client: Optional LLM client for Graphiti
+            config: Optional configuration dictionary (can include uri, user, password)
         """
-        self.uri = uri
-        self.user = user
-        self.password = password
-        self.llm_client = llm_client
-        
+        # Use config values if not explicitly provided
+        self.config = config or {}
+        self.uri = uri or self.config.get("uri", "bolt://localhost:7687")
+        self.user = user or self.config.get("user", "neo4j")
+        self.password = password or self.config.get("password", "")
+        self.llm_client = llm_client or self.config.get("llm_client")
+
         # Graphiti client
         self.client: Optional[Graphiti] = None
-        
+
         # Tracking
         self._initialized = False
-        
+
         logger.info({
             "msg": "GraphitiIntegration initialized",
-            "uri": uri,
-            "user": user,
+            "uri": self.uri,
+            "user": self.user,
+            "config": self.config,
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
     
@@ -526,56 +537,60 @@ class GraphitiIntegration:
         self,
         name: str,
         entity_type: str = "entity",
+        entity_name: Optional[str] = None,  # Alias for backward compatibility
         metadata: Optional[Dict[str, Any]] = None,
         correlation_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Add an entity to the knowledge graph.
-        
+
         Args:
             name: Name of the entity
             entity_type: Type of entity
+            entity_name: Alternative parameter name (alias for name)
             metadata: Additional metadata
             correlation_id: Correlation ID for tracking
-            
+
         Returns:
             Result dictionary
         """
+        # Use entity_name if provided, otherwise use name
+        actual_name = entity_name or name
         correlation_id = correlation_id or f"entity_{uuid.uuid4().hex}"
-        
+
         if not self._initialized or not self.client:
             raise RuntimeError("GraphitiIntegration not initialized")
-        
+
         start_time = datetime.now(timezone.utc)
-        
+
         logger.info({
             "msg": "Adding entity to Graphiti",
-            "entity_name": name,
+            "entity_name": actual_name,
             "entity_type": entity_type,
             "correlation_id": correlation_id,
             "timestamp": start_time.isoformat()
         })
-        
+
         try:
             # Create a minimal episode to establish the entity
             episode_result = await self.client.add_episode(
-                name=f"Entity: {name}",
-                episode_body=f"Entity of type {entity_type} named {name}",
+                name=f"Entity: {actual_name}",
+                episode_body=f"Entity of type {entity_type} named {actual_name}",
                 source_description="knowledge_engine_entity_creation",
                 reference_time=datetime.now(timezone.utc),
                 group_id="entities"
             )
-            
+
             processing_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
-            
+
             result = {
                 "success": True,
-                "entity_name": name,
+                "entity_name": actual_name,
                 "entity_uuid": episode_result.episode.uuid if episode_result.episode else None,
                 "processing_time_ms": processing_time_ms,
                 "correlation_id": correlation_id
             }
-            
+
             logger.info({
                 "msg": "Entity added to Graphiti successfully",
                 "correlation_id": correlation_id,

@@ -79,39 +79,45 @@ class OneKEIntegration:
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
         config_path: Optional[str] = None,
-        enhanced_config_path: Optional[str] = None
+        enhanced_config_path: Optional[str] = None,
+        config: Optional[Dict[str, Any]] = None
     ):
         """
         Initialize the OneKE integration.
-        
+
         Args:
             model_name: Name of the LLM model to use
             api_key: API key for the LLM
             api_base: Base URL for the LLM API
             config_path: Path to basic OneKE configuration
             enhanced_config_path: Path to enhanced configuration
+            config: Optional configuration dictionary (overrides other configs)
         """
         self.model_name = model_name
         self.api_key = api_key
         self.api_base = api_base
         self.config_path = config_path
         self.enhanced_config_path = enhanced_config_path
-        
-        # Load configuration
-        self.config = self._load_config(config_path)
+
+        # Load configuration - config param takes precedence
+        if config:
+            self.config = config
+        else:
+            self.config = self._load_config(config_path)
+
         self.enhanced_config = self._load_config(enhanced_config_path) or self._get_default_enhanced_config()
-        
+
         # Initialize OneKE pipeline
         self.pipeline = None
         self.llm_client = None
-        
+
         # Initialize components
         self._initialize_llm_client()
         self._initialize_pipeline()
-        
+
         # Case repository for learning
         self.case_repository = []
-        
+
         logger.info({
             "msg": "OneKEIntegration initialized",
             "model_name": model_name,
@@ -925,7 +931,83 @@ class OneKEIntegration:
             "msg": "Closing OneKE integration resources",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-        
+
+    async def extract_entities(
+        self,
+        text: str,
+        domain: str = "general",
+        schema: Optional[str] = None,
+        correlation_id: Optional[str] = None,
+        languages: Optional[List[str]] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Extract entities from text using OneKE.
+
+        This is a simplified wrapper around the extraction functionality
+        for backward compatibility with test expectations.
+
+        Args:
+            text: Input text to extract entities from
+            domain: Domain of the text (e.g., "medical", "legal", "general")
+            schema: Optional schema for extraction
+            correlation_id: Optional correlation ID for tracking
+            languages: Optional list of languages (for multilingual support)
+
+        Returns:
+            List of extracted entity dictionaries
+        """
+        start_time = datetime.now(timezone.utc)
+
+        logger.info({
+            "msg": "Extracting entities with OneKE",
+            "text_length": len(text),
+            "domain": domain,
+            "languages": languages,
+            "correlation_id": correlation_id,
+            "timestamp": start_time.isoformat()
+        })
+
+        try:
+            # Use extract_and_learn with minimal learning
+            result = await self.extract_and_learn(
+                text=text,
+                schema=schema or "default",
+                domain=domain,
+                task_type="NER",
+                correlation_id=correlation_id
+            )
+
+            if result and result.success:
+                processing_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+
+                logger.info({
+                    "msg": "Entity extraction completed",
+                    "entity_count": len(result.entities),
+                    "processing_time_ms": processing_time_ms,
+                    "correlation_id": correlation_id
+                })
+
+                # Add language info to entities if provided
+                if languages:
+                    for entity in result.entities:
+                        entity["languages"] = languages
+
+                return result.entities
+            else:
+                logger.warning({
+                    "msg": "Entity extraction failed or returned no results",
+                    "correlation_id": correlation_id
+                })
+                return []
+
+        except Exception as e:
+            logger.error({
+                "msg": "Entity extraction failed with error",
+                "error": str(e),
+                "correlation_id": correlation_id
+            })
+            return []
+
         # No specific cleanup needed for OneKE at the moment
         logger.info({
             "msg": "OneKE integration resources closed",
