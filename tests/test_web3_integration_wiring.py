@@ -136,6 +136,7 @@ def test_bubblelabs_leanaide_bridge_status_exposes_audit_flag():
     bridge = bubblelabs_ext.LeanAideIntegrationBridge()
     status = bridge.get_status()
     assert "web3_formal_available" in status
+    assert "web3_formal_verification_available" in status
     assert "web3_formal_tools" in status
     assert "formal_capabilities" in status
     assert "audit_exploit_verification_available" in status

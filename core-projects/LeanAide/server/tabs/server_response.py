@@ -298,7 +298,7 @@ if submit_response_button or sts.request_button:
             # If server itself gives "error" output, it goes here
             st.error("No output available. Please check the input and try again.")
             try:
-                st.error(f"Error: {sts.result["error"]}")
+                st.error(f"Error: {sts.result['error']}")
                 store_token_responses(sts.token_server, "error_response")
             except Exception as e:
                 st.error(f"Error retrieving error from server: {e}")

@@ -35,13 +35,26 @@ from pathlib import Path
 import click
 
 # Rich - MIT License
-from rich.console import Console
-from rich.table import Table
-from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich.tree import Tree
+try:
+    from rich.console import Console
+    from rich.table import Table
+    from rich.panel import Panel
+    from rich.progress import Progress, SpinnerColumn, TextColumn
+    from rich.tree import Tree
+    RICH_AVAILABLE = True
+except ImportError:
+    RICH_AVAILABLE = False
+    Console = None
+    Table = None
+    Panel = None
+    Progress = None
+    SpinnerColumn = None
+    TextColumn = None
+    Tree = None
+    logging.getLogger(__name__).warning("rich library not installed. CLI will have limited formatting.")
 
-console = Console()
+# Create console only if rich is available
+console = Console() if RICH_AVAILABLE else None
 
 # =============================================================================
 # MAIN CLI GROUP

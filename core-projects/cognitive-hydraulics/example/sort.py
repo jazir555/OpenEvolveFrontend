@@ -31,7 +31,7 @@ def merge(arr, l, m, r):
         j += 1
         k += 1
 
-def mergeSort(arr, l, l):
+def mergeSort(arr, l, r):
     if l < r:
         m = l + (r - l) // 2
         mergeSort(arr, l, m)

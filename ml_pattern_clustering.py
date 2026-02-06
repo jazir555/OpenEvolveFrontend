@@ -61,7 +61,7 @@ except ImportError:
     Z3_AVAILABLE = False
 
 # CAV-NLP Integration
- try:
+try:
     from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
     from openevolve.unified_math_service import UnifiedMathService
     CAV_NLP_AVAILABLE = True

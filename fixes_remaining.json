@@ -1,0 +1,121 @@
+{
+  "total_files_fixed": 9,
+  "syntax_errors_fixed": 9,
+  "import_errors_fixed": 0,
+  "files_fixed": [
+    "comprehensive_security_test_coverage.py",
+    "core-projects/cognitive-hydraulics/example/sort.py",
+    "core-projects/Generic-Knowledge-Extraction-Tool/ai/clients/claude_client.py",
+    "core-projects/Generic-Knowledge-Extraction-Tool/parsers/docling_parser.py",
+    "core-projects/Generic-Knowledge-Extraction-Tool/templates/PoDataExtraction/PoDataExtraction_strategy.py",
+    "ml_pattern_clustering.py",
+    "glue/adapters/leanaide-adapter/src/autoformalization_pipeline.py",
+    "glue/adapters/rese-benchmarks/benchmark_phase2.py",
+    "glue/adapters/rese-benchmarks/run_all_benchmarks.py"
+  ],
+  "files_failed": [],
+  "details": [
+    {
+      "file": "comprehensive_security_test_coverage.py",
+      "line": 530,
+      "issue": "Unterminated string literal - had single quote in dict key",
+      "fix": "Fixed quote mismatch: changed {\"data': to {\"data\":"
+    },
+    {
+      "file": "core-projects/cognitive-hydraulics/example/sort.py",
+      "line": 34,
+      "issue": "Duplicate argument 'l' in function definition mergeSort",
+      "fix": "Changed second l to r: def mergeSort(arr, l, r)"
+    },
+    {
+      "file": "core-projects/Generic-Knowledge-Extraction-Tool/ai/clients/claude_client.py",
+      "line": 33,
+      "issue": "Import block inserted between method def and body causing unexpected indent",
+      "fix": "Moved imports to module level and reconstructed class structure"
+    },
+    {
+      "file": "core-projects/Generic-Knowledge-Extraction-Tool/parsers/docling_parser.py",
+      "line": 105,
+      "issue": "Import block inserted between method def and body",
+      "fix": "Moved imports to module level and reconstructed class structure"
+    },
+    {
+      "file": "core-projects/Generic-Knowledge-Extraction-Tool/templates/PoDataExtraction/PoDataExtraction_strategy.py",
+      "line": 4,
+      "issue": "Multi-line string without triple quotes",
+      "fix": "Changed to triple quotes for multi-line description string"
+    },
+    {
+      "file": "ml_pattern_clustering.py",
+      "line": 64,
+      "issue": "Unexpected indent - extra leading space before try block",
+      "fix": "Removed extra leading space from try statement"
+    },
+    {
+      "file": "glue/adapters/leanaide-adapter/src/autoformalization_pipeline.py",
+      "line": 51,
+      "issue": "Invalid syntax: LEAN4 LAKE_TIMEOUT_MS with space instead of underscore",
+      "fix": "Changed to LEAN4_LAKE_TIMEOUT_MS with underscore"
+    },
+    {
+      "file": "glue/adapters/rese-benchmarks/benchmark_phase2.py",
+      "line": 383,
+      "issue": "Unbalanced parentheses in f-string - extra closing parenthesis",
+      "fix": "Removed extra closing parenthesis from f-string"
+    },
+    {
+      "file": "glue/adapters/rese-benchmarks/run_all_benchmarks.py",
+      "line": 403,
+      "issue": "global declaration used after variable reference in function",
+      "fix": "Moved global BENCHMARK_SCRIPTS to top of main() function"
+    }
+  ],
+  "files_with_permission_errors": [
+    "core-projects/Curie/evaluation/error_stats.py",
+    "core-projects/Curie/benchmark/exp_bench/evaluation/eval.py",
+    "core-projects/Curie/benchmark/exp_bench/evaluation/judge.py",
+    "core-projects/Curie/benchmark/exp_bench/evaluation/main_eval.py",
+    "core-projects/Curie/benchmark/exp_bench/evaluation/parallel_eval.py",
+    "core-projects/Curie/benchmark/exp_bench/evaluation/utils.py",
+    "core-projects/LeanAide/server/tabs/server_response.py"
+  ],
+  "remaining_syntax_errors": [
+    "core-projects/Lean4-LLM-Ai-Agent-Mooc/src/main.py - type alias syntax",
+    "core-projects/dspy/dspy/adapters/json_adapter.py - return outside function",
+    "core-projects/dspy/dspy/adapters/types/audio.py - return outside function",
+    "core-projects/dspy/dspy/adapters/types/image.py - unexpected indent",
+    "core-projects/dspy/dspy/adapters/utils.py - return outside function",
+    "core-projects/dspy/dspy/adapters/xml_adapter.py - unexpected indent",
+    "core-projects/dspy/dspy/clients/lm_local.py - return outside function",
+    "core-projects/dspy/dspy/evaluate/evaluate.py - unexpected indent",
+    "core-projects/dspy/dspy/evaluate/metrics.py - return outside function",
+    "core-projects/dspy/dspy/predict/aggregation.py - return outside function",
+    "core-projects/dspy/dspy/predict/best_of_n.py - unexpected indent",
+    "core-projects/dspy/dspy/predict/chain_of_thought.py - unexpected indent",
+    "core-projects/dspy/dspy/predict/knn.py - unexpected indent",
+    "core-projects/dspy/dspy/predict/react.py - unexpected indent",
+    "core-projects/dspy/dspy/primitives/base_module.py - unexpected indent",
+    "core-projects/dspy/dspy/propose/dataset_summary_generator.py - invalid syntax",
+    "core-projects/dspy/dspy/propose/grounded_proposer.py - invalid syntax",
+    "core-projects/dspy/dspy/retrievers/embeddings.py - unexpected indent",
+    "core-projects/dspy/dspy/signatures/field.py - return outside function",
+    "core-projects/dspy/dspy/streaming/streamify.py - return outside function",
+    "core-projects/dspy/dspy/teleprompt/bootstrap.py - unexpected indent",
+    "core-projects/dspy/dspy/teleprompt/bootstrap_finetune.py - return outside function",
+    "core-projects/dspy/dspy/teleprompt/gepa/gepa.py - unexpected indent",
+    "core-projects/dspy/dspy/teleprompt/knn_fewshot.py - unexpected indent",
+    "core-projects/dspy/dspy/teleprompt/teleprompt.py - unexpected indent",
+    "core-projects/lmql/src/lmql/ui/playground/ref.py - expected colon",
+    "examples/enhanced_gauntlet_example.py - invalid syntax",
+    "examples/finance/insurance_example.py - unclosed parenthesis",
+    "glue/adapters/rese-leanaide-workflow/tests/test_leanaide_rese_workflow.py - invalid syntax",
+    "glue/adapters/rese-z3-bridge/tests/test_rese_z3_bridge.py - unexpected indent",
+    "leanaide-bubblelab-plugin/test_final_verification.py - invalid syntax"
+  ],
+  "verification_status": "All 9 fixed files verified with py_compile - all compile successfully",
+  "notes": [
+    "Permission denied errors on 7 files in core-projects/Curie/ and core-projects/LeanAide/",
+    "Files in core-projects/dspy/ have systematic issues - import blocks breaking method bodies",
+    "Remaining files require similar fixes to what was applied to successfully fixed files"
+  ]
+}

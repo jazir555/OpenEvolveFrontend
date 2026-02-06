@@ -99,9 +99,6 @@ class DoclingParser:
         # Supported file extensions
         self.supported_extensions = self._get_supported_extensions()
     
-    def _detect_device(self):
-        """Detect the best available device (CUDA or CPU)"""
-
 # **ACTUAL INTEGRATION**: Adaptive MDAP for Docling Parser
 try:
     from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
@@ -113,6 +110,23 @@ except ImportError:
     AdaptiveMDAPAllocator = None
     SubProblem = None
 
+
+class DoclingParser:
+    """Parser for extracting content from various document formats using Docling."""
+    
+    def __init__(self):
+        """Initialize the Docling parser with pipeline options."""
+        self.device = self._detect_device()
+        self.pipeline_options = self._create_pipeline_options()
+        # Initialize format options for supported file types
+        self.format_options = self._initialize_format_options()
+        self.converter = DocumentConverter(format_options=self.format_options)
+        
+        # Supported file extensions
+        self.supported_extensions = self._get_supported_extensions()
+    
+    def _detect_device(self):
+        """Detect the best available device (CUDA or CPU)"""
         if HAS_TORCH:
             if torch.cuda.is_available():
                 return AcceleratorDevice.CUDA

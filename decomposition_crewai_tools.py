@@ -748,6 +748,7 @@ def get_decomposition_status() -> Dict[str, Any]:
         "formal_capabilities": formal_capabilities,
         "web3_ingestion_available": bool(web3_ingestion_tools),
         "web3_formal_available": web3_formal_available,
+        "web3_formal_verification_available": web3_formal_available,
         "audit_exploit_verification_available": bool(
             formal_capabilities.get("composite_exploit_verification")
         ),

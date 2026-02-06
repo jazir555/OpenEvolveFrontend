@@ -14,12 +14,24 @@ Features:
 
 import math
 import time
+import hashlib
 from typing import Dict, Any, Optional, List
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
-import numpy as np
-from scipy.spatial.distance import cosine
+# Try to import optional dependencies
+try:
+    import numpy as np
+    NUMPY_AVAILABLE = True
+except ImportError:
+    NUMPY_AVAILABLE = False
+    np = None
+
+try:
+    from scipy.spatial.distance import cosine
+    SCIPY_AVAILABLE = True
+except ImportError:
+    SCIPY_AVAILABLE = False
 
 try:
     from sentence_transformers import SentenceTransformer
@@ -27,13 +39,71 @@ try:
 except ImportError:
     SENTENCE_TRANSFORMERS_AVAILABLE = False
 
-from adaptive_mdap.core.types import SubProblem, ComplexityScore
-from adaptive_mdap.core.errors import ClassificationError
-from adaptive_mdap.utils.cache import EmbeddingCache, FeatureCache
-from adaptive_mdap.utils.metrics import get_metrics
-from adaptive_mdap.utils.logger import get_logger
+# Import from core modules
+try:
+    from adaptive_mdap.core.types import SubProblem, ComplexityScore
+    from adaptive_mdap.core.errors import ClassificationError
+except ImportError:
+    # Fallback definitions if core modules not available
+    class SubProblem:
+        def __init__(self, id="", description="", domain="", depth=0, dependencies=None, metadata=None):
+            self.id = id
+            self.description = description
+            self.domain = domain
+            self.depth = depth
+            self.dependencies = dependencies or []
+            self.metadata = metadata or {}
+    
+    class ComplexityScore:
+        def __init__(self, overall_score=0.0, text_length_score=0.0, domain_rarity_score=0.0,
+                     depth_score=0.0, historical_error_score=0.0, dependency_score=0.0,
+                     feature_weights=None, keyword_score=0.0, constraint_score=0.0):
+            self.overall_score = overall_score
+            self.text_length_score = text_length_score
+            self.domain_rarity_score = domain_rarity_score
+            self.depth_score = depth_score
+            self.historical_error_score = historical_error_score
+            self.dependency_score = dependency_score
+            self.feature_weights = feature_weights or {}
+            self.keyword_score = keyword_score
+            self.constraint_score = constraint_score
+    
+    class ClassificationError(Exception):
+        pass
 
-logger = get_logger("classifiers.task_complexity")
+# Import utils with fallback
+try:
+    from adaptive_mdap.utils.cache import EmbeddingCache, FeatureCache
+    from adaptive_mdap.utils.metrics import get_metrics
+    from adaptive_mdap.utils.logger import get_logger
+    logger = get_logger("classifiers.task_complexity")
+except ImportError:
+    # Fallback logger
+    import logging
+    logger = logging.getLogger("classifiers.task_complexity")
+    
+    class EmbeddingCache:
+        def __init__(self, *args, **kwargs):
+            self._cache = {}
+        def get_embedding(self, text):
+            return self._cache.get(text)
+        def set_embedding(self, text, embedding):
+            self._cache[text] = embedding
+        def get_stats(self):
+            return {"size": len(self._cache)}
+    
+    class FeatureCache:
+        def __init__(self, *args, **kwargs):
+            self._cache = {}
+        def get_features(self, key):
+            return self._cache.get(key)
+        def set_features(self, key, value):
+            self._cache[key] = value
+        def get_stats(self):
+            return {"size": len(self._cache)}
+    
+    def get_metrics():
+        return None
 
 
 @dataclass
@@ -62,6 +132,7 @@ class ClassifierConfig:
         total = sum(self.feature_weights.values())
         if not 0.99 <= total <= 1.01:
             raise ValueError(f"Feature weights must sum to 1.0, got {total}")
+
 
 class TaskComplexityClassifier:
     """
@@ -127,7 +198,8 @@ class TaskComplexityClassifier:
         """Compute text length feature with calibrated sigmoid."""
         description = subproblem.description or ""
         length = len(description)
-        if length == 0: return 0.0
+        if length == 0:
+            return 0.0
         
         length = min(length, self.config.max_text_length)
         midpoint = 800
@@ -137,23 +209,32 @@ class TaskComplexityClassifier:
     def compute_domain_rarity_feature(self, subproblem: SubProblem) -> float:
         """Compute domain rarity using embedding distances."""
         domain = subproblem.domain or ""
-        if not domain: return 0.5
+        if not domain:
+            return 0.5
         
         embedding = self._get_domain_embedding(domain)
-        if embedding is None: return 0.5
+        if embedding is None:
+            return 0.5
         
         self._domain_embeddings[domain] = embedding
-        if len(self._domain_embeddings) <= 1: return 0.3 # Optimistic initial rarity
+        if len(self._domain_embeddings) <= 1:
+            return 0.3  # Optimistic initial rarity
         
         similarities = []
         for other_domain, other_embedding in self._domain_embeddings.items():
             if other_domain != domain:
                 try:
-                    sim = 1 - cosine(embedding, other_embedding)
+                    if SCIPY_AVAILABLE:
+                        sim = 1 - cosine(embedding, other_embedding)
+                    else:
+                        # Fallback: simple dot product
+                        sim = sum(a * b for a, b in zip(embedding, other_embedding))
                     similarities.append(sim)
-                except Exception: pass
+                except Exception:
+                    pass
         
-        if not similarities: return 0.5
+        if not similarities:
+            return 0.5
         avg_similarity = sum(similarities) / len(similarities)
         return 1.0 - avg_similarity
 
@@ -165,11 +246,12 @@ class TaskComplexityClassifier:
         """Compute historical error rate with Bayesian-style smoothing."""
         domain = subproblem.domain or ""
         if not domain or domain not in self._historical_stats:
-            return 0.4 # Default prior: slightly better than average
+            return 0.4  # Default prior: slightly better than average
             
         stats = self._historical_stats[domain]
         total = stats.get("total_count", 0)
-        if total == 0: return 0.4
+        if total == 0:
+            return 0.4
         
         successes = stats.get("success_count", 0)
         raw_error = 1.0 - (successes / total)
@@ -207,7 +289,9 @@ class TaskComplexityClassifier:
             overall = max(0.0, min(1.0, overall))
             
             duration_ms = (time.time() - start_time) * 1000
-            get_metrics().record_classification(duration_ms, success=True)
+            metrics = get_metrics()
+            if metrics:
+                metrics.record_classification(duration_ms, success=True)
             
             logger.info(f"Granular Complexity for {subproblem.id}: {overall:.4f}")
             
@@ -267,7 +351,6 @@ class TaskComplexityClassifier:
     
     def _fallback_embedding(self, text: str) -> List[float]:
         """Create a simple hash-based embedding fallback."""
-        import hashlib
         hash_bytes = hashlib.md5(text.encode()).digest()
         return [(b / 255.0) for b in hash_bytes]
 
@@ -305,3 +388,6 @@ class TaskComplexityClassifier:
             "embedding_cache": self._embedding_cache.get_stats(),
             "feature_cache": self._feature_cache.get_stats(),
         }
+
+
+__all__ = ["TaskComplexityClassifier", "ClassifierConfig"]

@@ -394,6 +394,7 @@ class Z3SolverEngine:
             "solver_id": self._solver_id,
             "pool_registered": self._pool is not None,
             "web3_formal_available": inferred_formal_available,
+            "web3_formal_verification_available": inferred_formal_available,
             "web3_formal_tools": web3_formal_tools,
             "formal_capabilities": web3_formal_capabilities,
             "audit_exploit_verification_available": bool(

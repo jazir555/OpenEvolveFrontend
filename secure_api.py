@@ -10,12 +10,25 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, Union
 from enum import Enum
 import base64
-from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
 import hashlib
 import secrets
+
+# Try to import cryptography libraries with graceful fallback
+try:
+    from cryptography.fernet import Fernet
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+    from cryptography.hazmat.primitives.asymmetric import rsa, padding
+    CRYPTOGRAPHY_AVAILABLE = True
+except ImportError:
+    CRYPTOGRAPHY_AVAILABLE = False
+    Fernet = None
+    hashes = None
+    serialization = None
+    PBKDF2HMAC = None
+    rsa = None
+    padding = None
+    logging.getLogger(__name__).warning("cryptography library not installed. Secure encryption features will be disabled.")
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +43,16 @@ class DataEncryption:
         Args:
             encryption_key: Encryption key (if None, will be generated or retrieved from environment)
             password: Password to derive key from (alternative to encryption_key)
+        
+        Raises:
+            ImportError: If cryptography library is not installed.
         """
+        if not CRYPTOGRAPHY_AVAILABLE:
+            raise ImportError(
+                "cryptography library is required for DataEncryption. "
+                "Install it with: pip install cryptography"
+            )
+        
         if encryption_key is not None:
             self.encryption_key = encryption_key
         elif password is not None:
@@ -287,6 +309,12 @@ class CertificateManager:
     
     def generate_self_signed_cert(self, common_name: str = "localhost") -> tuple[str, str]:
         """Generate a self-signed certificate for testing."""
+        if not CRYPTOGRAPHY_AVAILABLE:
+            raise ImportError(
+                "cryptography library is required for certificate generation. "
+                "Install it with: pip install cryptography"
+            )
+        
         # Generate private key
         private_key = rsa.generate_private_key(
             public_exponent=65537,
@@ -363,6 +391,10 @@ class CertificateManager:
     
     def verify_certificate(self, hostname: str) -> bool:
         """Verify that the certificate is valid for the given hostname."""
+        if not CRYPTOGRAPHY_AVAILABLE:
+            logger.warning("cryptography library not available - certificate verification disabled")
+            return False
+        
         if not self._cert:
             return False
         

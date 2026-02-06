@@ -35,14 +35,14 @@ def run_command(cmd, cwd=None):
 def extract_setup_scripts(task_data: dict, config: dict):
     if "masked_source" in task_data:
         # Extract the setup scripts from the task data:
-        setup_scripts = task_data["masked_source"]
+        setup_scripts = task_data['masked_source']
         # Concatenate the setup scripts into a single string:
-        concatenated_setup_scripts = concatenate_setup_scripts(config["github_url"], setup_scripts)
+        concatenated_setup_scripts = concatenate_setup_scripts(config['github_url'], setup_scripts)
     elif "source" in task_data:
         # Extract the setup scripts from the task data:
-        setup_scripts = task_data["source"]
+        setup_scripts = task_data['source']
         # Concatenate the setup scripts into a single string:
-        concatenated_setup_scripts = concatenate_setup_scripts(config["github_url"], setup_scripts)
+        concatenated_setup_scripts = concatenate_setup_scripts(config['github_url'], setup_scripts)
     else:
         concatenated_setup_scripts = ""
 
@@ -54,14 +54,14 @@ def generate_task_prompt(task_data: dict, config: dict, task_counter: int):
         Inputs:
             task_data: the actual task dict obtained from 1 task within a file such as: outputs/logs/neurips2024/93022/93022_complete_final.json
     """
-    # question = task_data["question"] if "question" in task_data else task_data["hypothesis"]
-    # method = task_data["method"]
-    # agent_instructions = task_data["agent_instructions"] if "agent_instructions" in task_data else "" # could be a type 3 task
+    # question = task_data['question'] if "question" in task_data else task_data['hypothesis']
+    # method = task_data['method']
+    # agent_instructions = task_data['agent_instructions'] if "agent_instructions" in task_data else "" # could be a type 3 task
 
-    eval_judge_prompt_filename = config["eval_judge_prompt"]
-    eval_judge_setup_prompt_filename = config["eval_judge_setup_prompt"]
-    eval_judge_setup_partial_prompt_filename = config["eval_judge_setup_partial_prompt"]
-    eval_judge_setup_monitor_prompt_filename = config["eval_judge_setup_monitor_prompt"]
+    eval_judge_prompt_filename = config['eval_judge_prompt']
+    eval_judge_setup_prompt_filename = config['eval_judge_setup_prompt']
+    eval_judge_setup_partial_prompt_filename = config['eval_judge_setup_partial_prompt']
+    eval_judge_setup_monitor_prompt_filename = config['eval_judge_setup_monitor_prompt']
 
     # Determine the output path of the EVALUATION GENERATION phase that we will use as input for judging:
     output_path = get_relative_output_path(config, task_counter) # assume agent workspace view == local workspace view
@@ -79,11 +79,11 @@ def generate_task_prompt(task_data: dict, config: dict, task_counter: int):
         return None, None, None, None
     
     if "no_answer" in output_json:
-        design_output = output_json["no_answer"]
-        conclusion_output = output_json["no_answer"]
+        design_output = output_json['no_answer']
+        conclusion_output = output_json['no_answer']
     else:
-        design_output = output_json["design"]
-        conclusion_output = output_json["conclusion"]
+        design_output = output_json['design']
+        conclusion_output = output_json['conclusion']
 
     # Load the setup output path as string:
     setup_output_path = get_relative_output_patch_path(config, task_counter)
@@ -129,8 +129,8 @@ def generate_task_prompt(task_data: dict, config: dict, task_counter: int):
     partial_prompt_content_template = load_prompt_from_file(eval_judge_setup_partial_prompt_filename)
     task_prompt = load_system_prompt(
         prompt_content_template,
-        design_gt=task_data["design_complexity"],
-        conclusion_gt=task_data["expected_outcome"],
+        design_gt=task_data['design_complexity'],
+        conclusion_gt=task_data['expected_outcome'],
         design_output=design_output,
         conclusion_output=conclusion_output,
     )
@@ -149,7 +149,7 @@ def generate_task_prompt(task_data: dict, config: dict, task_counter: int):
     prompt_content_template = load_prompt_from_file(eval_judge_setup_prompt_filename)
     task_setup_prompt = load_system_prompt(
         prompt_content_template,
-        setup_gt=task_data["requirements"] if "requirements" in task_data else task_data["method"], # use method as an approximation for type 3 tasks. # TODO: may consider using the depth setup complexity as well/instead
+        setup_gt=task_data['requirements'] if "requirements" in task_data else task_data['method'], # use method as an approximation for type 3 tasks. # TODO: may consider using the depth setup complexity as well/instead
         setup_output=setup_output_str,
         setup_scripts=concatenated_setup_scripts
     )
@@ -163,7 +163,7 @@ def generate_task_prompt(task_data: dict, config: dict, task_counter: int):
     if msg_needed == 1:
         return task_prompt, default_json_output, task_setup_prompt, default_setup_json_output, task_monitor_prompt, default_monitor_json_output
     else:
-        return task_prompt, default_json_output, {"setup_output_strs": setup_output_strs, "prompt_template": prompt_content_template, "partial_prompt_template": partial_prompt_content_template, "setup_gt": task_data["requirements"] if "requirements" in task_data else task_data["method"], "setup_scripts": concatenated_setup_scripts}, default_setup_json_output, task_monitor_prompt, default_monitor_json_output # will reconstruct this setup judge prompt later
+        return task_prompt, default_json_output, {"setup_output_strs": setup_output_strs, "prompt_template": prompt_content_template, "partial_prompt_template": partial_prompt_content_template, "setup_gt": task_data['requirements'] if "requirements" in task_data else task_data['method'], "setup_scripts": concatenated_setup_scripts}, default_setup_json_output, task_monitor_prompt, default_monitor_json_output # will reconstruct this setup judge prompt later
 
 def query_openhands(config, task_prompt, task_counter, github_workspace_path):
 
@@ -275,7 +275,7 @@ def query_normal(config, task_prompt_details, task_counter):
         if "skip_before_exec_check" in config:
             with open(output_path, 'r') as f:
                 data = json.load(f)
-            if "Agent performed forbidden operations" in data["design_evaluation_explanation"]:
+            if "Agent performed forbidden operations" in data['design_evaluation_explanation']:
                 print("Agent performed forbidden operations. Skipping execution...")
                 bench_logger.info("Agent performed forbidden operations. Skipping execution...")
                 return
@@ -305,7 +305,7 @@ def query_normal(config, task_prompt_details, task_counter):
                 "setup_evaluation_explanation": "Agent performed forbidden operations. See setup_monitor_comprehensive_reason for more details.",
                 "setup_score": 0,
                 "setup_error_analysis": "Agent performed forbidden operations. See setup_monitor_comprehensive_reason for more details.",
-                "setup_monitor_comprehensive_reason": monitor_response["setup_monitor_comprehensive_reason"] if monitor_response["setup_monitor_comprehensive_reason"] != "Error parsing response" else "Specific reason: " + ", ".join([f"{key}: {value}" for key, value in monitor_response.items() if value == True or value == "Error parsing response"]),
+                "setup_monitor_comprehensive_reason": monitor_response['setup_monitor_comprehensive_reason'] if monitor_response['setup_monitor_comprehensive_reason'] != "Error parsing response" else "Specific reason: " + ", ".join([f"{key}: {value}" for key, value in monitor_response.items() if value == True or value == "Error parsing response"]),
             }
             save_judge_response(default_json_output, default_setup_json_output, output_path)
             return
@@ -319,32 +319,32 @@ def query_normal(config, task_prompt_details, task_counter):
         
         # Check if task_setup_prompt is a dict:
         if isinstance(task_setup_prompt, dict): # setup_output contains very long string, need to breakdown into multiple queries
-            # task_setup_prompt format: {"setup_output_strs": setup_output_strs, "prompt_template": prompt_content_template, "partial_prompt_template": partial_prompt_content_template, "setup_gt": task_data["requirements"] if "requirements" in task_data else task_data["method"]}
+            # task_setup_prompt format: {"setup_output_strs": setup_output_strs, "prompt_template": prompt_content_template, "partial_prompt_template": partial_prompt_content_template, "setup_gt": task_data['requirements'] if "requirements" in task_data else task_data['method']}
             prompt_details = task_setup_prompt
-            for i in range(len(prompt_details["setup_output_strs"])):
+            for i in range(len(prompt_details['setup_output_strs'])):
                 print("Generating setup output for portion {}".format(i))
                 bench_logger.info("Generating setup output for portion {}..".format(i))
-                setup_gt = prompt_details["setup_gt"]
-                setup_output = prompt_details["setup_output_strs"][i]
+                setup_gt = prompt_details['setup_gt']
+                setup_output = prompt_details['setup_output_strs'][i]
                 if i == 0: # first portion of message:
-                    prompt_template = prompt_details["prompt_template"]
+                    prompt_template = prompt_details['prompt_template']
                     task_setup_prompt = load_system_prompt(
                         prompt_template,
                         setup_gt=setup_gt,
                         setup_output=setup_output,
-                        setup_scripts=prompt_details["setup_scripts"]
+                        setup_scripts=prompt_details['setup_scripts']
                     )
                 elif i == 15: # set this as a break point for now, otherwise faced situations where the response is filled with invalid information
                     print("Skipping remaining setup portions.")
                     bench_logger.info("Skipping remaining setup portions.")
                     break
                 else:
-                    prompt_template = prompt_details["partial_prompt_template"]
+                    prompt_template = prompt_details['partial_prompt_template']
                     task_setup_prompt = load_system_prompt(
                         prompt_template,
                         setup_gt=setup_gt,
                         setup_output=setup_output,
-                        setup_scripts=prompt_details["setup_scripts"],
+                        setup_scripts=prompt_details['setup_scripts'],
                         previous_partial_evaluation=setup_response,
                     )
                 setup_response = query_plain(task_setup_prompt, default_setup_json_output)
@@ -355,7 +355,7 @@ def query_normal(config, task_prompt_details, task_counter):
         
         save_judge_response(response, setup_response, output_path)
 
-        if config["do_exec_check"]:
+        if config['do_exec_check']:
             do_not_save, exec_response = execute_setup(config, task_counter)
             # Save the response:
             if not do_not_save:
@@ -379,8 +379,8 @@ def execute_setup(config, task_counter):
 
     with open(config_path, 'r') as f:
         config_data = json.load(f)
-    github_workspace_path = config_data["github_workspace_path"] # e.g., workspace/<repo_name>
-    image_name = config_data["docker_image"]
+    github_workspace_path = config_data['github_workspace_path'] # e.g., workspace/<repo_name>
+    image_name = config_data['docker_image']
     base_dir = config_data['base_dir'] # e.g., /home/patkon/Benchmark-Construction
     # Generate a unique container name
     container_name = f"judge_setup_exec_{task_counter}_{os.getpid()}"
@@ -403,7 +403,7 @@ def execute_setup(config, task_counter):
             "-d",
         ]
         # Add GPU support if available
-        has_gpu = shutil.which("nvidia-smi") is not None and subprocess.call(["nvidia-smi"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0
+        has_gpu = shutil.which("nvidia-smi") is not None and subprocess.call(['nvidia-smi'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0
         if has_gpu:
             command += ["--gpus", "all"]
         command += ["--name", container_name, image_name]
@@ -474,20 +474,20 @@ def save_judge_response(response, setup_response, output_path, exec_response=Non
         json.dump(combined_response, f, indent=2)
 
 def query_agent(config: dict, task_prompt_details: tuple, task_counter: int):
-    if config["judge_agent_name"] == "openhands":
+    if config['judge_agent_name'] == "openhands":
         # Query OpenHands:
         query_openhands(config, task_prompt_details, task_counter, "") # we will never use this for now.
         # Calculate openhands cost:
-        filename_suffix = f"{str(config["paper_id"])}_task_index_{task_counter}_iter{config["iteration"]}_duration{config["max_duration_per_task_in_hours"]}_eval_gen"
+        filename_suffix = f"{str(config['paper_id'])}_task_index_{task_counter}_iter{config['iteration']}_duration{config['max_duration_per_task_in_hours']}_eval_gen"
         _collect_openhands_cost(f"task {task_counter}", filename_suffix, mode="eval_gen")
-    elif config["judge_agent_name"] == "": # Currently, we always use this, this will be the raw LLM, no agent.
+    elif config['judge_agent_name'] == "": # Currently, we always use this, this will be the raw LLM, no agent.
         query_normal(config, task_prompt_details, task_counter)
         # TODO: collet cost 
     else:
         # Raise warning:
-        print(f"Agent {config["judge_agent_name"]} not supported")
-        bench_logger.info(f"Agent {config["judge_agent_name"]} not supported")
-        raise ValueError(f"Agent {config["judge_agent_name"]} not supported")
+        print(f"Agent {config['judge_agent_name']} not supported")
+        bench_logger.info(f"Agent {config['judge_agent_name']} not supported")
+        raise ValueError(f"Agent {config['judge_agent_name']} not supported")
 
 def postprocessing(config: dict, repo_path: str, task_counter: int):
     # Obtain git diff patch:
@@ -526,9 +526,9 @@ def mask_repo(task_data: dict, repo_path: str):
     print("Masking repo at:", repo_path)
     bench_logger.info("Masking repo at: " + repo_path)
     if "masked_source" in task_data: # type 1 task
-        masked_sources = task_data["masked_source"]
+        masked_sources = task_data['masked_source']
     elif "source" in task_data: # type 2 task
-        masked_sources = task_data["source"]
+        masked_sources = task_data['source']
     else: # type 3 task
         return is_mask_fail, failed_masked_sources
     for source in masked_sources:
@@ -565,9 +565,9 @@ def process_inputs(config: dict, task_data: dict, task_counter: int):
 
 def get_output_eval_filename(config: dict, task_counter: int, mode: str = "generate"):
     if mode == "generate":
-        return f"/{str(config["paper_id"])}_task_index_{task_counter}_iter_{config["iteration"]}_duration_{config["max_duration_per_task_in_hours"]}_eval_gen.json"
+        return f"/{str(config['paper_id'])}_task_index_{task_counter}_iter_{config['iteration']}_duration_{config['max_duration_per_task_in_hours']}_eval_gen.json"
     elif mode == "judge":
-        return f"/{str(config["paper_id"])}_task_index_{task_counter}_iter_{config["iteration"]}_duration_{config["max_duration_per_task_in_hours"]}_eval_judge.json"
+        return f"/{str(config['paper_id'])}_task_index_{task_counter}_iter_{config['iteration']}_duration_{config['max_duration_per_task_in_hours']}_eval_judge.json"
 
 def get_agent_relative_output_path(config: dict, task_counter: int):
     """
@@ -576,7 +576,7 @@ def get_agent_relative_output_path(config: dict, task_counter: int):
     return "/workspace" + get_output_eval_filename(config, task_counter)
 
 def get_relative_log_path(config: dict, task_counter: int):
-    return config["output_log_folder"] + f"/{str(config["paper_id"])}_task_index_{task_counter}_iter_{config["iteration"]}_duration_{config["max_duration_per_task_in_hours"]}_eval_gen_{config["agent_name"]}_logs.txt"
+    return config['output_log_folder'] + f"/{str(config['paper_id'])}_task_index_{task_counter}_iter_{config['iteration']}_duration_{config['max_duration_per_task_in_hours']}_eval_gen_{config['agent_name']}_logs.txt"
 
 def get_agent_relative_local_output_path(config: dict, task_counter: int, repo_path: str):
     """
@@ -591,25 +591,25 @@ def get_relative_output_path(config: dict, task_counter: int):
     """
         Get the final relative output path (local, i.e., exp-bench docker or actual local) for design and conclusion
     """
-    return config["output_folder"] + get_output_eval_filename(config, task_counter)
+    return config['output_folder'] + get_output_eval_filename(config, task_counter)
 
 def get_relative_judge_output_path(config: dict, task_counter: int):
     """
         Get the final relative output path (local, i.e., exp-bench docker or actual local) for design and conclusion
     """
-    return config["output_folder"] + get_output_eval_filename(config, task_counter, mode="judge")
+    return config['output_folder'] + get_output_eval_filename(config, task_counter, mode="judge")
 
 def get_relative_output_patch_path(config: dict, task_counter: int):
     """
         Get the final relative output path (local, i.e., exp-bench docker or actual local) for git diff patch
     """
-    return config["output_folder"] + f"/{str(config["paper_id"])}_task_index_{task_counter}_iter_{config["iteration"]}_duration_{config["max_duration_per_task_in_hours"]}_eval_gen.patch"
+    return config['output_folder'] + f"/{str(config['paper_id'])}_task_index_{task_counter}_iter_{config['iteration']}_duration_{config['max_duration_per_task_in_hours']}_eval_gen.patch"
 
 def get_relative_output_config_path(config: dict, task_counter: int):
     """
         Get the final relative output path (local, i.e., exp-bench docker or actual local) for config
     """
-    return config["output_folder"] + f"/{str(config["paper_id"])}_task_index_{task_counter}_iter_{config["iteration"]}_duration_{config["max_duration_per_task_in_hours"]}_eval_gen_config.json"
+    return config['output_folder'] + f"/{str(config['paper_id'])}_task_index_{task_counter}_iter_{config['iteration']}_duration_{config['max_duration_per_task_in_hours']}_eval_gen_config.json"
 
 def process_task(args):
     """
@@ -622,19 +622,19 @@ def process_task(args):
     # Check if iteration for this task:
     output_judge_path = get_relative_judge_output_path(config, task_counter) # output path for conclusion & design
     if os.path.isfile(output_judge_path):
-        if config["do_exec_check"]:
+        if config['do_exec_check']:
             # Open file and check if "execution_success" exists:
             with open(output_judge_path, 'r') as f:
                 data = json.load(f)
                 if "execution_success" in data:
-                    print("Task {} for paper {} already processed (i.e., judged). Skipping...".format(task_counter, str(config["paper_id"])))
-                    bench_logger.info("Task {} for paper already processed (i.e., judged). Skipping...".format(task_counter, str(config["paper_id"])))
+                    print("Task {} for paper {} already processed (i.e., judged). Skipping...".format(task_counter, str(config['paper_id'])))
+                    bench_logger.info("Task {} for paper already processed (i.e., judged). Skipping...".format(task_counter, str(config['paper_id'])))
                     return
                 else: # everything else is done except execution check
-                    config["skip_before_exec_check"] = True
+                    config['skip_before_exec_check'] = True
         else:
-            print("Task {} for paper {} already processed (i.e., judged). Skipping...".format(task_counter, str(config["paper_id"])))
-            bench_logger.info("Task {} for paper already processed (i.e., judged). Skipping...".format(task_counter, str(config["paper_id"])))
+            print("Task {} for paper {} already processed (i.e., judged). Skipping...".format(task_counter, str(config['paper_id'])))
+            bench_logger.info("Task {} for paper already processed (i.e., judged). Skipping...".format(task_counter, str(config['paper_id'])))
             return
 
     # Prepare inputs:
@@ -651,12 +651,12 @@ def main(
         config: dict
     ):
     # for loop for parallel execution. check through paper folder to obtain tasks
-    with open(config["input_paper_tasks_filename"], 'r') as f:
+    with open(config['input_paper_tasks_filename'], 'r') as f:
         paper_tasks_complete = json.load(f)
     tasks_list = []
-    for task_counter, task in enumerate(paper_tasks_complete["questions"]):
+    for task_counter, task in enumerate(paper_tasks_complete['questions']):
         # Check if eval_gen.json exists for this task:
-        output_file = get_relative_output_path_eval(config, task_counter, config["iteration"], "generate")
+        output_file = get_relative_output_path_eval(config, task_counter, config['iteration'], "generate")
         if not os.path.exists(output_file):
             print(f"❌ NOTE: {output_file} does not exist or is empty, skipping.")
             continue
@@ -676,10 +676,10 @@ if __name__ == "__main__":
     with open(args.config_file, 'r') as file:
         config = json.load(file)
 
-    log_filename = config["log_judge_filename"]
+    log_filename = config['log_judge_filename']
     log_path = Path(log_filename)
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    # setup_openhands_credential(config["llm_config_filename"])
+    # setup_openhands_credential(config['llm_config_filename'])
     setup_gen_setup_logging(log_filename)
     setup_utils_logging(log_filename)
 

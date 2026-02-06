@@ -16,9 +16,6 @@ class ClaudeClient:
         self.model = "claude-sonnet-4-20250514"
         self.temperature = 0.0  # Zero temperature for consistent output
     
-    def generate_pydantic_models(self, field_config: Dict[str, Any]) -> str:
-        """Generate Pydantic models based on field configuration"""
-
 # **ACTUAL INTEGRATION**: Adaptive MDAP for Claude Client
 try:
     from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
@@ -30,6 +27,19 @@ except ImportError:
     AdaptiveMDAPAllocator = None
     SubProblem = None
 
+
+class ClaudeClient:
+    """Client for Anthropic Claude API with Pydantic model generation capabilities."""
+    
+    def __init__(self, api_key: str):
+        """Initialize Claude client with API key."""
+        self.api_key = api_key
+        self.client = anthropic.Anthropic(api_key=self.api_key)
+        self.model = "claude-sonnet-4-20250514"
+        self.temperature = 0.0  # Zero temperature for consistent output
+    
+    def generate_pydantic_models(self, field_config: Dict[str, Any]) -> str:
+        """Generate Pydantic models based on field configuration"""
         
         use_case = field_config.get('use_case', 'Document Analysis')
         description = field_config.get('description', 'Extract structured information from documents')

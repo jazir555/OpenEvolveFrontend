@@ -4,7 +4,7 @@ from src.agents import Reasoning_Agent, LLM_Agent
 from src.lean_runner import execute_lean_code
 from typing import Dict, List, Tuple
 
-type LeanCode = Dict[str, str]
+LeanCode = Dict[str, str]  # Type alias
 
 def main_workflow(problem_description: str, task_lean_code: str = "") -> LeanCode:
     """

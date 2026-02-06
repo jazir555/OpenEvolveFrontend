@@ -36,6 +36,7 @@ def test_leanaide_root_status_exposes_web3_formal_schema():
     integration = create_integration()
     status = integration.get_status()
     assert "web3_formal_available" in status
+    assert "web3_formal_verification_available" in status
     assert "web3_formal_tools" in status
     assert "formal_capabilities" in status
     assert "audit_exploit_verification_available" in status

@@ -26,14 +26,39 @@ import time
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# Core scientific libraries - REQUIRED
-import scipy.sparse as sp
-import scipy.sparse.linalg as spla
-from scipy.integrate import solve_ivp, solve_bvp
-from scipy.linalg import eig, solve
-from scipy.spatial import Delaunay
-import sympy as sym
-from sympy import symbols, Function, dsolve, Eq, diff, solve as sym_solve
+# Core scientific libraries - with graceful fallback
+try:
+    import scipy.sparse as sp
+    import scipy.sparse.linalg as spla
+    from scipy.integrate import solve_ivp, solve_bvp
+    from scipy.linalg import eig, solve
+    from scipy.spatial import Delaunay
+    SCIPY_AVAILABLE = True
+except ImportError:
+    SCIPY_AVAILABLE = False
+    sp = None
+    spla = None
+    solve_ivp = None
+    solve_bvp = None
+    eig = None
+    solve = None
+    Delaunay = None
+    logger.warning("scipy not available - physics simulations will be limited")
+
+try:
+    import sympy as sym
+    from sympy import symbols, Function, dsolve, Eq, diff, solve as sym_solve
+    SYMPY_AVAILABLE = True
+except ImportError:
+    SYMPY_AVAILABLE = False
+    sym = None
+    symbols = None
+    Function = None
+    dsolve = None
+    Eq = None
+    diff = None
+    sym_solve = None
+    logger.warning("sympy not available - symbolic math will be limited")
 
 # Check for optional PhysicsNeMo
 try:

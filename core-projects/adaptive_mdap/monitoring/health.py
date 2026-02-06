@@ -1,11 +1,16 @@
 """Health check system for Adaptive MDAP."""
 
 import time
-import psutil
 from typing import Dict, Any, Optional
 from dataclasses import dataclass
 from enum import Enum
 from datetime import datetime
+
+try:
+    import psutil
+    PSUTIL_AVAILABLE = True
+except ImportError:
+    PSUTIL_AVAILABLE = False
 
 from adaptive_mdap.utils.logger import get_logger
 
@@ -64,6 +69,16 @@ class HealthChecker:
     
     def _check_memory(self) -> None:
         """Check memory usage."""
+        if not PSUTIL_AVAILABLE:
+            self._check_results["memory"] = HealthCheckResult(
+                component="memory",
+                status=ComponentStatus.UNKNOWN,
+                message="psutil not available - cannot check memory",
+                details={},
+                timestamp=time.time(),
+            )
+            return
+            
         memory = psutil.virtual_memory()
         used_percent = memory.percent
         
@@ -91,6 +106,16 @@ class HealthChecker:
     
     def _check_cpu(self) -> None:
         """Check CPU usage."""
+        if not PSUTIL_AVAILABLE:
+            self._check_results["cpu"] = HealthCheckResult(
+                component="cpu",
+                status=ComponentStatus.UNKNOWN,
+                message="psutil not available - cannot check CPU",
+                details={},
+                timestamp=time.time(),
+            )
+            return
+            
         cpu_percent = psutil.cpu_percent(interval=1)
         
         if cpu_percent < 50:
@@ -117,6 +142,16 @@ class HealthChecker:
     
     def _check_disk(self) -> None:
         """Check disk usage."""
+        if not PSUTIL_AVAILABLE:
+            self._check_results["disk"] = HealthCheckResult(
+                component="disk",
+                status=ComponentStatus.UNKNOWN,
+                message="psutil not available - cannot check disk",
+                details={},
+                timestamp=time.time(),
+            )
+            return
+            
         disk = psutil.disk_usage("/")
         used_percent = disk.percent
         

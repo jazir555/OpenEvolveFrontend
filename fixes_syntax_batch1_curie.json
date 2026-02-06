@@ -1,0 +1,40 @@
+{
+  "files_fixed": [
+    "core-projects/Curie/benchmark/exp_bench/evaluation/eval.py",
+    "core-projects/Curie/benchmark/exp_bench/evaluation/judge.py",
+    "core-projects/Curie/benchmark/exp_bench/evaluation/main_eval.py",
+    "core-projects/Curie/benchmark/exp_bench/evaluation/utils.py"
+  ],
+  "files_failed": [
+    {
+      "file": "core-projects/Curie/benchmark/exp_bench/evaluation/parallel_eval.py",
+      "error": "Partial fix: f-string: unmatched '(' (core-projects/Curie/benchmark/exp_bench/evaluation/parallel_eval.py, line 177)"
+    }
+  ],
+  "details": [
+    {
+      "file": "core-projects/Curie/benchmark/exp_bench/evaluation/eval.py",
+      "line": 0,
+      "original": "Double quotes in f-strings",
+      "fixed": "Single quotes in f-strings"
+    },
+    {
+      "file": "core-projects/Curie/benchmark/exp_bench/evaluation/judge.py",
+      "line": 0,
+      "original": "Double quotes in f-strings",
+      "fixed": "Single quotes in f-strings"
+    },
+    {
+      "file": "core-projects/Curie/benchmark/exp_bench/evaluation/main_eval.py",
+      "line": 0,
+      "original": "Double quotes in f-strings",
+      "fixed": "Single quotes in f-strings"
+    },
+    {
+      "file": "core-projects/Curie/benchmark/exp_bench/evaluation/utils.py",
+      "line": 0,
+      "original": "Double quotes in f-strings",
+      "fixed": "Single quotes in f-strings"
+    }
+  ]
+}

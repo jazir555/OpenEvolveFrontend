@@ -35,7 +35,7 @@ __version__ = "1.0.0"
 __author__ = "OpenEvolve Integration Team"
 __license__ = "MIT"
 
-# Core components
+# Core components - import first as they're dependencies for others
 from adaptive_mdap.core.types import (
     SubProblem,
     ComplexityScore,
@@ -54,18 +54,29 @@ from adaptive_mdap.core.errors import (
     CacheError,
 )
 
-# Main components
+# Utilities - needed by other modules
+from adaptive_mdap.utils.logger import get_logger, setup_logging
+from adaptive_mdap.utils.metrics import get_metrics, MetricsCollector
+from adaptive_mdap.utils.cache import (
+    EmbeddingCache,
+    FeatureCache,
+    get_cache_stats,
+)
+
+# Classifiers
 from adaptive_mdap.classifiers.task_complexity_classifier import (
     TaskComplexityClassifier,
     ClassifierConfig,
 )
 
+# Allocators
 from adaptive_mdap.allocators.resource_allocator import (
     AdaptiveMDAPAllocator,
     AllocationContext,
     AllocationStats,
 )
 
+# Controllers
 from adaptive_mdap.controllers.execution_controller import (
     AdaptiveExecutionController,
     SolutionAttempt,
@@ -73,17 +84,89 @@ from adaptive_mdap.controllers.execution_controller import (
     ExecutionMetrics,
 )
 
-# Integrations
-from adaptive_mdap.integrations.crewai_integration import (
-    CrewAIIntegration,
-    AdaptiveCrewConfig,
+# Configuration
+from adaptive_mdap.config.profiles import (
+    ConfigProfile,
+    get_profile_config,
+    load_profile,
 )
 
-from adaptive_mdap.integrations.subproblem_solver_integration import (
-    AdaptiveSubProblemSolver,
-    AdaptiveSolverConfig,
-    create_adaptive_solver,
-)
+# Monitoring - with error handling
+try:
+    from adaptive_mdap.monitoring.health import (
+        HealthChecker,
+        HealthCheckResult,
+        ComponentStatus,
+        get_health_checker,
+        check_health,
+    )
+except ImportError as _e:
+    HealthChecker = None
+    HealthCheckResult = None
+    ComponentStatus = None
+    get_health_checker = None
+    check_health = None
+
+try:
+    from adaptive_mdap.monitoring.dashboard import (
+        DashboardGenerator,
+        DashboardPanel,
+        DashboardConfig,
+        get_dashboard,
+        get_summary,
+        get_full_dashboard,
+        get_prometheus_metrics,
+    )
+except ImportError as _e:
+    DashboardGenerator = None
+    DashboardPanel = None
+    DashboardConfig = None
+    get_dashboard = None
+    get_summary = None
+    get_full_dashboard = None
+    get_prometheus_metrics = None
+
+try:
+    from adaptive_mdap.monitoring.alerts import (
+        AlertingEngine,
+        Alert,
+        AlertRule,
+        AlertSeverity,
+        AlertStatus,
+        get_alerting_engine,
+        check_and_alert,
+        get_active_alerts,
+    )
+except ImportError as _e:
+    AlertingEngine = None
+    Alert = None
+    AlertRule = None
+    AlertSeverity = None
+    AlertStatus = None
+    get_alerting_engine = None
+    check_and_alert = None
+    get_active_alerts = None
+
+# Integrations - with error handling
+try:
+    from adaptive_mdap.integrations.crewai_integration import (
+        CrewAIIntegration,
+        AdaptiveCrewConfig,
+    )
+except ImportError as _e:
+    CrewAIIntegration = None
+    AdaptiveCrewConfig = None
+
+try:
+    from adaptive_mdap.integrations.subproblem_solver_integration import (
+        AdaptiveSubProblemSolver,
+        AdaptiveSolverConfig,
+        create_adaptive_solver,
+    )
+except ImportError as _e:
+    AdaptiveSubProblemSolver = None
+    AdaptiveSolverConfig = None
+    create_adaptive_solver = None
 
 try:
     from adaptive_mdap.integrations.workflow_engine_integration import (
@@ -102,60 +185,22 @@ except ImportError:
     configure_adaptive_workflow = None
     adaptive_solve_subproblem = None
 
-# Tools
-from adaptive_mdap.tools.cost_calculator import (
-    CostCalculator,
-    APIPricing,
-    TokenUsage,
-    WorkloadDistribution,
-    StrategyCost,
-)
+# Tools - with error handling
+try:
+    from adaptive_mdap.tools.cost_calculator import (
+        CostCalculator,
+        APIPricing,
+        TokenUsage,
+        WorkloadDistribution,
+        StrategyCost,
+    )
+except ImportError as _e:
+    CostCalculator = None
+    APIPricing = None
+    TokenUsage = None
+    WorkloadDistribution = None
+    StrategyCost = None
 
-# Configuration
-from adaptive_mdap.config.profiles import (
-    ConfigProfile,
-    get_profile_config,
-    load_profile,
-)
-
-# Monitoring
-from adaptive_mdap.monitoring.health import (
-    HealthChecker,
-    HealthCheckResult,
-    ComponentStatus,
-    get_health_checker,
-    check_health,
-)
-
-from adaptive_mdap.monitoring.dashboard import (
-    DashboardGenerator,
-    DashboardPanel,
-    DashboardConfig,
-    get_dashboard,
-    get_summary,
-    get_full_dashboard,
-    get_prometheus_metrics,
-)
-
-from adaptive_mdap.monitoring.alerts import (
-    AlertingEngine,
-    Alert,
-    AlertRule,
-    AlertSeverity,
-    AlertStatus,
-    get_alerting_engine,
-    check_and_alert,
-    get_active_alerts,
-)
-
-# Utilities
-from adaptive_mdap.utils.metrics import get_metrics
-from adaptive_mdap.utils.logger import get_logger
-from adaptive_mdap.utils.cache import (
-    EmbeddingCache,
-    FeatureCache,
-    get_cache_stats,
-)
 
 __all__ = [
     # Version
@@ -205,6 +250,7 @@ __all__ = [
     "get_adaptive_workflow",
     "configure_adaptive_workflow",
     "adaptive_solve_subproblem",
+    "WORKFLOW_INTEGRATION_AVAILABLE",
     
     # Tools
     "CostCalculator",
@@ -245,8 +291,10 @@ __all__ = [
     "get_active_alerts",
     
     # Utilities
-    "get_metrics",
     "get_logger",
+    "setup_logging",
+    "get_metrics",
+    "MetricsCollector",
     "EmbeddingCache",
     "FeatureCache",
     "get_cache_stats",

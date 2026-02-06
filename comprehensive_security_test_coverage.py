@@ -527,7 +527,7 @@ class TestZeroDayProtection:
         deserialization_payloads = [
             {"data": b'\x80\x04\x95...', "format": "pickle", "risk": "RCE"},
             {"data": "!!python/object/apply:os.system ['id']", "format": "yaml", "risk": "RCE"},
-            {"data': '{"__class__": "evil.Class"}', "format": "json", "risk": "class_loading"},
+            {"data": '{"__class__": "evil.Class"}', "format": "json", "risk": "class_loading"},
             {"data": "<xml><!ENTITY xxe SYSTEM \"file:///etc/passwd\"></xml>", "format": "xml", "risk": "xxe"},
         ]
         

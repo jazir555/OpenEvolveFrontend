@@ -425,6 +425,7 @@ class LeanAideIntegrationBridge:
                 "active_proofs": len(self._active_proofs),
                 "execution_history_count": len(self._execution_history),
                 "web3_formal_available": inferred_formal_available,
+                "web3_formal_verification_available": inferred_formal_available,
                 "web3_formal_tools": web3_formal_tools,
                 "formal_capabilities": formal_capabilities,
                 "audit_exploit_verification_available": bool(

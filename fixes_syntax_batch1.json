@@ -1,0 +1,110 @@
+{
+  "files_fixed": [
+    "comprehensive_security_test_coverage.py",
+    "core-projects/Curie/benchmark/exp_bench/evaluation/eval.py",
+    "core-projects/Curie/benchmark/exp_bench/evaluation/judge.py",
+    "core-projects/Curie/benchmark/exp_bench/evaluation/main_eval.py",
+    "core-projects/Curie/benchmark/exp_bench/evaluation/parallel_eval.py",
+    "core-projects/Curie/benchmark/exp_bench/evaluation/utils.py",
+    "core-projects/Curie/evaluation/error_stats.py",
+    "core-projects/Generic-Knowledge-Extraction-Tool/ai/clients/claude_client.py",
+    "core-projects/Generic-Knowledge-Extraction-Tool/parsers/docling_parser.py",
+    "core-projects/Generic-Knowledge-Extraction-Tool/templates/PoDataExtraction/PoDataExtraction_strategy.py",
+    "core-projects/Lean4-LLM-Ai-Agent-Mooc/src/main.py",
+    "core-projects/LeanAide/server/tabs/server_response.py",
+    "automated_proof_engine.py",
+    "benchmark_ultra_comprehensive_artifacts.py"
+  ],
+  "files_failed": [],
+  "details": [
+    {
+      "file": "comprehensive_security_test_coverage.py",
+      "line": 530,
+      "original_error": "unterminated string literal",
+      "status": "fixed_verified"
+    },
+    {
+      "file": "core-projects/Curie/benchmark/exp_bench/evaluation/eval.py",
+      "line": 273,
+      "original_error": "f-string unmatched '['",
+      "status": "fixed_verified"
+    },
+    {
+      "file": "core-projects/Curie/benchmark/exp_bench/evaluation/judge.py",
+      "line": 481,
+      "original_error": "f-string unmatched '['",
+      "status": "fixed_verified"
+    },
+    {
+      "file": "core-projects/Curie/benchmark/exp_bench/evaluation/main_eval.py",
+      "line": 65,
+      "original_error": "f-string unmatched '['",
+      "status": "fixed_verified"
+    },
+    {
+      "file": "core-projects/Curie/benchmark/exp_bench/evaluation/parallel_eval.py",
+      "line": 177,
+      "original_error": "f-string unmatched '('",
+      "status": "fixed_verified"
+    },
+    {
+      "file": "core-projects/Curie/benchmark/exp_bench/evaluation/utils.py",
+      "line": 3,
+      "original_error": "f-string unmatched '['",
+      "status": "fixed_verified"
+    },
+    {
+      "file": "core-projects/Curie/evaluation/error_stats.py",
+      "line": 5,
+      "original_error": "unexpected indent",
+      "status": "fixed_verified"
+    },
+    {
+      "file": "core-projects/Generic-Knowledge-Extraction-Tool/ai/clients/claude_client.py",
+      "line": 34,
+      "original_error": "unexpected indent",
+      "status": "fixed_verified"
+    },
+    {
+      "file": "core-projects/Generic-Knowledge-Extraction-Tool/parsers/docling_parser.py",
+      "line": 116,
+      "original_error": "unexpected indent",
+      "status": "fixed_verified"
+    },
+    {
+      "file": "core-projects/Generic-Knowledge-Extraction-Tool/templates/PoDataExtraction/PoDataExtraction_strategy.py",
+      "line": 4,
+      "original_error": "unterminated string literal",
+      "status": "fixed_verified"
+    },
+    {
+      "file": "core-projects/Lean4-LLM-Ai-Agent-Mooc/src/main.py",
+      "line": 7,
+      "original_error": "invalid syntax",
+      "status": "fixed_verified"
+    },
+    {
+      "file": "core-projects/LeanAide/server/tabs/server_response.py",
+      "line": 301,
+      "original_error": "f-string unmatched '['",
+      "status": "fixed_verified"
+    },
+    {
+      "file": "automated_proof_engine.py",
+      "line": 1321,
+      "original_error": "Python 2 style print statement",
+      "status": "fixed_verified"
+    },
+    {
+      "file": "benchmark_ultra_comprehensive_artifacts.py",
+      "line": 572,
+      "original_error": "Python 2 style print statement",
+      "status": "fixed_verified"
+    }
+  ],
+  "summary": {
+    "total": 14,
+    "successful": 14,
+    "failed": 0
+  }
+}

@@ -19,7 +19,8 @@ from enhanced_decomposition_engine import (
     SubProblemType,
     ComplexityScore as EnhancedComplexityScore,
 )
-from decomposition_recomposition_integration import SimpleSolutionSolver
+from decomposition_recomposition_integration import SolutionSolver, SolverConfig
+from workflow_structures import Team
 
 
 @dataclass
@@ -137,7 +138,18 @@ def test_simple_solver_propagates_entanglement_metadata():
         },
     )
 
-    solver = SimpleSolutionSolver()
+    solver = SolutionSolver(
+        team=Team(
+            name="test_team",
+            members=[],
+            capabilities=["problem_solving"]
+        ),
+        config=SolverConfig(
+            mode="decomposition_first",
+            max_decomposition_depth=3,
+            max_subproblems=5
+        )
+    )
     solution = solver.solve(sub_problem)
 
     assert solution.metadata.get("entangled_with") == ["sp-beta"]

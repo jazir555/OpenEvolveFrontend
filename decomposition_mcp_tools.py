@@ -1806,6 +1806,7 @@ def get_mcp_tool_inventory() -> Dict[str, Any]:
         },
         "web3_ingestion_available": bool(web3_ingestion_tools),
         "web3_formal_available": bool(formal_inventory.get("available")),
+        "web3_formal_verification_available": bool(formal_inventory.get("available")),
         "audit_exploit_verification_available": bool(
             formal_inventory.get("formal_capabilities", {}).get("composite_exploit_verification")
         ),
@@ -1891,6 +1892,7 @@ def get_decomposition_status() -> Dict[str, Any]:
         "web3_toolchain_available": SLITHER_AVAILABLE or FORGE_AVAILABLE,
         "web3_ingestion_available": bool(web3_ingestion_tools),
         "web3_formal_available": bool(formal_inventory.get("available")),
+        "web3_formal_verification_available": bool(formal_inventory.get("available")),
         "audit_exploit_verification_available": bool(
             formal_inventory.get("formal_capabilities", {}).get("composite_exploit_verification")
         ),
@@ -1929,6 +1931,7 @@ def get_decomposition_status() -> Dict[str, Any]:
             "web3_formal_tools": web3_formal_tools,
             "web3_tools": web3_tools,
             "web3_formal_available": bool(formal_inventory.get("available")),
+            "web3_formal_verification_available": bool(formal_inventory.get("available")),
             "audit_exploit_verification_available": bool(
                 formal_inventory.get("formal_capabilities", {}).get(
                     "composite_exploit_verification"

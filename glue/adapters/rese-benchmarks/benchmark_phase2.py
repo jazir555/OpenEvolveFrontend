@@ -380,7 +380,7 @@ def run_phase2_benchmarks() -> Dict[str, Any]:
     print("=" * 70)
 
     for benchmark in results["benchmarks"]:
-        print(f"\n{benchmark['benchmark'].upper()} ({benchmark.get('target_domains', benchmark.get('node_count', 'N/A')))}):")
+        print(f"\n{benchmark['benchmark'].upper()} ({benchmark.get('target_domains', benchmark.get('node_count', 'N/A'))}):")
         print(f"  Mean Time: {benchmark['timings_ms']['mean'] if 'mean' in benchmark['timings_ms'] else benchmark['timings_us']['mean']}{'ms' if 'mean' in benchmark['timings_ms'] else 'μs'}")
         print(f"  Throughput: {benchmark['throughput']}")
 

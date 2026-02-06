@@ -1,0 +1,83 @@
+{
+  "files_fixed": [
+    "openevolve/api.py",
+    "openevolve/config.py",
+    "secure_api.py",
+    "physics_validator_real.py",
+    "openevolve_cli.py"
+  ],
+  "modules_created": [
+    "openevolve/api.py",
+    "openevolve/config.py"
+  ],
+  "fixes_by_file": [
+    {
+      "file": "openevolve/api.py",
+      "fixes": [
+        "Created new stub module for openevolve.api",
+        "Added stub implementations for run_evolution(), evolve_function(), evolve_algorithm(), evolve_code()",
+        "Added EvolutionResult dataclass with default fields",
+        "Added Config dataclass for configuration",
+        "Added IS_STUB flag to indicate stub implementation"
+      ]
+    },
+    {
+      "file": "openevolve/config.py",
+      "fixes": [
+        "Created new stub module for openevolve.config",
+        "Added LLMModelConfig dataclass with default values",
+        "Added DatabaseConfig dataclass with default feature dimensions",
+        "Added EvaluatorConfig dataclass with evaluation settings",
+        "Added PromptConfig dataclass for prompt configuration",
+        "Added EvolutionTraceConfig dataclass for trace settings",
+        "Added main Config dataclass that composes all configurations",
+        "Added IS_STUB flag to indicate stub implementation"
+      ]
+    },
+    {
+      "file": "secure_api.py",
+      "fixes": [
+        "Wrapped cryptography imports in try/except block with CRYPTOGRAPHY_AVAILABLE flag",
+        "Added fallback None values for Fernet, hashes, serialization, PBKDF2HMAC, rsa, padding when import fails",
+        "Updated DataEncryption.__init__() to raise ImportError with helpful message if cryptography not available",
+        "Updated generate_self_signed_cert() to check CRYPTOGRAPHY_AVAILABLE before proceeding",
+        "Updated verify_certificate() to return False and log warning if cryptography not available"
+      ]
+    },
+    {
+      "file": "physics_validator_real.py",
+      "fixes": [
+        "Wrapped scipy imports (scipy.sparse, scipy.sparse.linalg, scipy.integrate, scipy.linalg, scipy.spatial) in try/except",
+        "Added SCIPY_AVAILABLE flag and fallback None values for scipy modules",
+        "Wrapped sympy imports in try/except with SYMPY_AVAILABLE flag",
+        "Added fallback None values for sympy functions (symbols, Function, dsolve, Eq, diff, sym_solve)"
+      ]
+    },
+    {
+      "file": "openevolve_cli.py",
+      "fixes": [
+        "Wrapped rich imports (Console, Table, Panel, Progress, SpinnerColumn, TextColumn, Tree) in try/except",
+        "Added RICH_AVAILABLE flag and fallback None values for rich classes",
+        "Updated console initialization to check RICH_AVAILABLE before creating Console instance"
+      ]
+    }
+  ],
+  "summary": {
+    "total_files_fixed": 5,
+    "modules_created": 2,
+    "files_already_protected": [
+      "security_performance_tests.py - All cryptography imports already inside function-level try/except blocks",
+      "physics_validator_enhanced.py - All scipy/sympy imports already wrapped in try/except",
+      "solution_pattern_miner.py - All dspy/umap/networkx/plotly imports already wrapped in try/except",
+      "telemetry.py - All opentelemetry imports already wrapped in try/except",
+      "openevolve_integration.py - All openevolve imports already wrapped in try/except",
+      "red_team.py - All openevolve imports already wrapped in try/except"
+    ],
+    "key_improvements": [
+      "Created missing openevolve.api and openevolve.config stub modules to resolve ModuleNotFoundError",
+      "Added graceful fallback handling for optional dependencies (cryptography, scipy, sympy, rich)",
+      "Maintained backward compatibility - existing code will use real modules when available",
+      "All stub modules log warnings when fallback implementations are used"
+    ]
+  }
+}

@@ -62,7 +62,7 @@ def prune_openhands_docker():
 # Function to create a configuration file
 def create_config_file(unique_id, iteration, task_config):
     # log_filename = f"logs/{os.path.basename(question_file).replace('.txt', '')}_{unique_id}_iter{iteration}.log"
-    config_filename = f"outputs/evaluation/configs/{str(task_config["paper_id"])}_{task_config["mode"]}_{unique_id}_config.json"
+    config_filename = f"outputs/evaluation/configs/{str(task_config['paper_id'])}_{task_config['mode']}_{unique_id}_config.json"
     log_filename = get_log_filename_eval_gen(task_config, unique_id, iteration)
     log_judge_filename = get_log_filename_judge_gen(task_config, unique_id, iteration)
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -79,14 +79,14 @@ def create_config_file(unique_id, iteration, task_config):
         json.dump(task_config, f, indent=4)
     
     global bench_logger
-    if task_config["mode"] == "generate":
+    if task_config['mode'] == "generate":
         bench_logger = init_logger(log_filename)
-    elif task_config["mode"] == "judge":
+    elif task_config['mode'] == "judge":
         bench_logger = init_logger(log_judge_filename)
     else:
         bench_logger = init_logger(log_filename)
-        bench_logger.error(f"Invalid mode {task_config["mode"]} provided in the task configuration.")
-        raise ValueError(f"Invalid mode {task_config["mode"]} provided in the task configuration.")
+        bench_logger.error(f"Invalid mode {task_config['mode']} provided in the task configuration.")
+        raise ValueError(f"Invalid mode {task_config['mode']} provided in the task configuration.")
 
     bench_logger.info(f"Config file created: {config_filename}")
     bench_logger.info(f"Check out the log file: {log_filename}")
@@ -111,10 +111,10 @@ def run_docker_container(unique_id, iteration, task_config):
     container_name = f"exp-agent-container-{unique_id}-{rand_uuid}-iter{iteration}"
     bench_logger.info(f"Building Docker image for iteration {iteration}...")
     
-    image_name = task_config["docker_image"]
-    docker_filename = task_config["base_dir"] + task_config["dockerfile_name"]
+    image_name = task_config['docker_image']
+    docker_filename = task_config['base_dir'] + task_config['dockerfile_name']
 
-    context_dir = "." # of task_config["agent_name"] != "inspectai" else "./inspect_agent"
+    context_dir = "." # of task_config['agent_name'] != "inspectai" else "./inspect_agent"
 
     if docker_image_exists(image_name):
         bench_logger.info(f"Using existing Docker image: {image_name}")
@@ -147,7 +147,7 @@ def run_docker_container(unique_id, iteration, task_config):
         "--network=host",
         "-d",
     ]
-    has_gpu = shutil.which("nvidia-smi") is not None and subprocess.call(["nvidia-smi"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0
+    has_gpu = shutil.which("nvidia-smi") is not None and subprocess.call(['nvidia-smi'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0
     if has_gpu:
         command += ["--gpus", "all"]
     command += ["--name", container_name, image_name]
@@ -172,40 +172,40 @@ def execute_experiment_in_container(container_name, task_config, config_filename
     bench_logger.info(f"Starting experiment in container {container_name} with config in {config_filename}")
     try:
         # check for the existence of curie/setup/env.sh
-        if not os.path.exists(task_config["llm_config_filename"]):
+        if not os.path.exists(task_config['llm_config_filename']):
             bench_logger.error(f"{task_config['llm_config_filename']} does not exist under setup. Please input your API credentials.")
             return
-        if task_config["mode"] == "judge" and not os.path.exists(task_config["llm_judge_config_filename"]):
+        if task_config['mode'] == "judge" and not os.path.exists(task_config['llm_judge_config_filename']):
             bench_logger.error(f"{task_config['llm_judge_config_filename']} does not exist under setup. Please input your judge API credentials.")
             return
         
-        if "generate" == task_config["mode"]:
+        if "generate" == task_config['mode']:
             # Run the experiment inside the container  
             subprocess.run([
                 "docker", "exec", "-it", container_name,
                 "bash", "-c", (
                     # "source ~/.bashrc && "
                     # "ls -la exp-bench && "
-                    f"source {task_config["llm_config_filename"]} && "
+                    f"source {task_config['llm_config_filename']} && "
                     '''eval "$(micromamba shell hook --shell bash)" && '''
                     "micromamba activate exp-bench && "
                     f"python3 evaluation/eval.py --config-file={config_filename}"
                 )
             ], check=True)  # This will block until main.py finishes.
-        elif "judge" == task_config["mode"]:
+        elif "judge" == task_config['mode']:
             # Run the experiment inside the container
             subprocess.run([
                 "docker", "exec", "-it", container_name,
                 "bash", "-c", (
                     # "source ~/.bashrc && "
-                    f"source {task_config["llm_judge_config_filename"]} && "
+                    f"source {task_config['llm_judge_config_filename']} && "
                     '''eval "$(micromamba shell hook --shell bash)" && '''
                     "micromamba activate exp-bench && "
                     f"python3 evaluation/judge.py --config-file={config_filename}"
                 )
             ], check=True)  # This will block until main.py finishes.      
         else:
-            bench_logger.error(f"Invalid mode {task_config["mode"]} provided in the task configuration.")
+            bench_logger.error(f"Invalid mode {task_config['mode']} provided in the task configuration.")
             return      
 
     except subprocess.CalledProcessError as e:
@@ -267,12 +267,12 @@ def main():
         return
     
     print(f"EXP-Bench main eval is running with the following configuration: {task_config}")
-    iterations = task_config.get("iterations", 1)
+    iterations = task_config.get('iterations', 1)
     unique_id = datetime.now().strftime("%Y%m%d%H%M%S")
     for iteration in range(1, iterations + 1):
         # Perform the required operation for each iteration (to be provided later)
         # print(f"Iteration {iteration} ")
-        task_id = task_config["paper_id"]
+        task_id = task_config['paper_id']
         start_time = time.time() 
         execute_eval(unique_id, iteration, task_config)
         end_time = time.time()

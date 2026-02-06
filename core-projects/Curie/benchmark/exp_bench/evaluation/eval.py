@@ -203,13 +203,13 @@ def generate_task_prompt(task_data: dict, config: dict, task_counter: int):
         Inputs:
             task_data: the actual task dict obtained from 1 task within a file such as: outputs/logs/neurips2024/93022/93022_complete_final.json
     """
-    question = task_data["question"] if "question" in task_data else task_data["hypothesis"]
-    method = task_data["method"]
-    agent_instructions = task_data["agent_instructions"] if "agent_instructions" in task_data else "" # could be a type 3 task
+    question = task_data['question'] if "question" in task_data else task_data['hypothesis']
+    method = task_data['method']
+    agent_instructions = task_data['agent_instructions'] if "agent_instructions" in task_data else "" # could be a type 3 task
 
-    eval_gen_prompt_filename = config["eval_gen_prompt"]
+    eval_gen_prompt_filename = config['eval_gen_prompt']
 
-    if config["agent_name"] in ["openhands", "inspectai"]:
+    if config['agent_name'] in ["openhands", "inspectai"]:
         output_path = get_agent_relative_output_path(config, task_counter)
         output_script_name = "/workspace/reproduce_exp_bench.sh"
         additional_info = "The code repo is available in /workspace. LLM related credentials (if needed) are available in /workspace/setup_apis_exp/"
@@ -239,14 +239,14 @@ def _query_inspectai(config, task_prompt, task_counter, github_workspace_path, i
     """
     inspect_agent_dir_path = 'inspect_agent'
     # Save model env file to inspect_agent dir:
-    original_env_file_path = config["llm_config_filename"] # contains model creds
+    original_env_file_path = config['llm_config_filename'] # contains model creds
     remote_custom_prompt_filepath = f"{os.getpid()}_{str(config['paper_id'])}_task_index_{task_counter}_iter_{config['iteration']}_duration_{config['max_duration_per_task_in_hours']}_agent_prompt.txt" # this is what the inspectai agent will see, since we cd before running start.sh
     custom_prompt_filepath = f"{inspect_agent_dir_path}/{remote_custom_prompt_filepath}"
     env_file_contents = f"""
 export CODE_DIR=/home/code
 export AGENT_DIR=/home/agent
 export WORKSPACE_BASE=/home/paper
-export MAX_TIME_IN_HOURS={config["max_duration_per_task_in_hours"]}
+export MAX_TIME_IN_HOURS={config['max_duration_per_task_in_hours']}
 export DISALLOW_SUBMIT=False
 export ITERATIVE_AGENT=True
 export PROMPT_FILE_PATH={remote_custom_prompt_filepath}
@@ -270,7 +270,7 @@ export PROMPT_FILE_PATH={remote_custom_prompt_filepath}
     with open(custom_prompt_filepath, "w") as f: # we will be using this within start.py
         f.write(task_prompt)
 
-    command = f"python inspect_agent/entry_point.py --base_dir {config["base_dir"]} --prompt_path {custom_prompt_filepath} --code_repo_path {github_workspace_path} --inspect_agent_dir_path 'inspect_agent' --env_file {unique_env_filename} --max_timeout_in_seconds {config["max_duration_per_task_in_hours"] * 3600} 2>&1 | tee -a {inspectai_log_path}" # prompt_path is the path to the task prompt, code_repo_path is the path to the cloned repo, inspect_path is the path to the inspect_agent
+    command = f"python inspect_agent/entry_point.py --base_dir {config['base_dir']} --prompt_path {custom_prompt_filepath} --code_repo_path {github_workspace_path} --inspect_agent_dir_path 'inspect_agent' --env_file {unique_env_filename} --max_timeout_in_seconds {config['max_duration_per_task_in_hours'] * 3600} 2>&1 | tee -a {inspectai_log_path}" # prompt_path is the path to the task prompt, code_repo_path is the path to the cloned repo, inspect_path is the path to the inspect_agent
 
     bench_logger.info("🤖️ Running command: " + command)
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
@@ -299,9 +299,9 @@ def _query_agent(config, task_prompt, task_counter, github_workspace_path):
         print("Generating Agent output..")
         bench_logger.info("Generating Agent output..")
 
-        if config["agent_name"] == "openhands":
-            call_oh_with_prompt(task_prompt, temp_prompt_path, config, github_workspace_path, agent_log_path, max_duration_per_task_in_seconds=config["max_duration_per_task_in_hours"] * 3600, iterations=30)
-        elif config["agent_name"] == "inspectai":
+        if config['agent_name'] == "openhands":
+            call_oh_with_prompt(task_prompt, temp_prompt_path, config, github_workspace_path, agent_log_path, max_duration_per_task_in_seconds=config['max_duration_per_task_in_hours'] * 3600, iterations=30)
+        elif config['agent_name'] == "inspectai":
             _query_inspectai(config, task_prompt, task_counter, github_workspace_path, agent_log_path)
         else:
             raise ValueError(f"Agent {config['agent_name']} not supported")
@@ -343,21 +343,21 @@ def _query_agent(config, task_prompt, task_counter, github_workspace_path):
 
 def query_agent(config: dict, task_prompt: str, repo_path: str, task_counter: int):
     start_time = time.time()
-    if config["agent_name"] in ["openhands", "inspectai"]:
+    if config['agent_name'] in ["openhands", "inspectai"]:
         _query_agent(config, task_prompt, task_counter, repo_path)
         # Calculate agent cost:
         agent_cost_path = get_agent_cost_relative_log_path(config, task_counter)
         agent_log_filepath = get_relative_log_path(config, task_counter)
-        if config["agent_name"] == "openhands":
-            filename_suffix = f"{str(config["paper_id"])}_task_index_{task_counter}_iter{config["iteration"]}_duration_{config['max_duration_per_task_in_hours']}_eval_gen"
+        if config['agent_name'] == "openhands":
+            filename_suffix = f"{str(config['paper_id'])}_task_index_{task_counter}_iter{config['iteration']}_duration_{config['max_duration_per_task_in_hours']}_eval_gen"
             _collect_openhands_cost(f"task {task_counter}", filename_suffix, filename2=agent_cost_path, mode="eval_gen")
-        elif config["agent_name"] == "inspectai":
+        elif config['agent_name'] == "inspectai":
             _collect_inspectai_cost(agent_log_filepath, agent_cost_path, mode="eval_gen")
     else:
         # Raise warning:
-        print(f"Agent {config["agent_name"]} not supported")
-        bench_logger.info(f"Agent {config["agent_name"]} not supported")
-        raise ValueError(f"Agent {config["agent_name"]} not supported")
+        print(f"Agent {config['agent_name']} not supported")
+        bench_logger.info(f"Agent {config['agent_name']} not supported")
+        raise ValueError(f"Agent {config['agent_name']} not supported")
     end_time = time.time()
     timing_path = get_timing_relative_log_path(config, task_counter)
     with open(timing_path, 'a') as f:
@@ -375,7 +375,7 @@ def postprocessing(config: dict, repo_path: str, task_counter: int):
     # Save config to task specific output config path: (this will be used by exec verifier in the future. Caveat: judge now needs to be executed in the same machine as the eval gen)
     output_config_path = get_relative_output_config_path(config, task_counter)
     with open(output_config_path, 'w') as f:
-        config["github_workspace_path"] = repo_path
+        config['github_workspace_path'] = repo_path
         json.dump(config, f, indent=2)
 
 def strip_workspace_prefix(path: str) -> str:
@@ -420,9 +420,9 @@ def mask_repo(task_data: dict, repo_path: str):
 
     # Then mask the task-specific files
     if "masked_source" in task_data: # type 1 task
-        masked_sources = task_data["masked_source"]
+        masked_sources = task_data['masked_source']
     elif "source" in task_data: # type 2 task
-        masked_sources = task_data["source"]
+        masked_sources = task_data['source']
     else: # type 3 task
         return is_mask_fail, failed_masked_sources
 
@@ -452,7 +452,7 @@ def process_inputs(config: dict, task_data: dict, task_counter: int):
 
     print("Cloning GitHub repo...")
     bench_logger.info("Generating task prompt...")
-    repo_path = git_clone_repo(config["github_url"], suffix=f"_eval_task_index_{task_counter}_iter_{str(config["iteration"])}_duration_{config['max_duration_per_task_in_hours']}")
+    repo_path = git_clone_repo(config['github_url'], suffix=f"_eval_task_index_{task_counter}_iter_{str(config['iteration'])}_duration_{config['max_duration_per_task_in_hours']}")
 
     print("Masking repo...")
     bench_logger.info("Masking repo...")
@@ -475,7 +475,7 @@ def process_inputs(config: dict, task_data: dict, task_counter: int):
     return task_prompt, repo_path, is_mask_fail
 
 def get_output_eval_gen_filename(config: dict, task_counter: int):
-    return f"/{str(config["paper_id"])}_task_index_{task_counter}_iter_{config["iteration"]}_duration_{config["max_duration_per_task_in_hours"]}_eval_gen.json"
+    return f"/{str(config['paper_id'])}_task_index_{task_counter}_iter_{config['iteration']}_duration_{config['max_duration_per_task_in_hours']}_eval_gen.json"
 
 def get_agent_relative_output_path(config: dict, task_counter: int):
     """
@@ -484,10 +484,10 @@ def get_agent_relative_output_path(config: dict, task_counter: int):
     return "/workspace" + get_output_eval_gen_filename(config, task_counter)
 
 def get_relative_log_path(config: dict, task_counter: int):
-    return config["output_log_folder"] + f"/{str(config["paper_id"])}_task_index_{task_counter}_iter_{config["iteration"]}_duration_{config["max_duration_per_task_in_hours"]}_eval_gen_{config["agent_name"]}_logs.txt"
+    return config['output_log_folder'] + f"/{str(config['paper_id'])}_task_index_{task_counter}_iter_{config['iteration']}_duration_{config['max_duration_per_task_in_hours']}_eval_gen_{config['agent_name']}_logs.txt"
 
 def get_agent_cost_relative_log_path(config: dict, task_counter: int):
-    return config["output_log_folder"] + f"/{config['agent_name']}_total_cost_{datetime.datetime.now().strftime('%Y-%m-%d')}_{str(config['paper_id'])}_task_index_{task_counter}_iter{config['iteration']}_duration_{config['max_duration_per_task_in_hours']}_eval_gen.txt" 
+    return config['output_log_folder'] + f"/{config['agent_name']}_total_cost_{datetime.datetime.now().strftime('%Y-%m-%d')}_{str(config['paper_id'])}_task_index_{task_counter}_iter{config['iteration']}_duration_{config['max_duration_per_task_in_hours']}_eval_gen.txt" 
 
 def get_agent_relative_local_output_path(config: dict, task_counter: int, repo_path: str):
     """
@@ -499,25 +499,25 @@ def get_agent_relative_local_output_path(config: dict, task_counter: int, repo_p
     return repo_path + get_output_eval_gen_filename(config, task_counter)
 
 def get_timing_relative_log_path(config: dict, task_counter: int):
-    return config["output_log_folder"] + f"/{str(config["paper_id"])}_task_index_{task_counter}_iter_{config["iteration"]}_duration_{config["max_duration_per_task_in_hours"]}_eval_gen_timing_logs.txt"
+    return config['output_log_folder'] + f"/{str(config['paper_id'])}_task_index_{task_counter}_iter_{config['iteration']}_duration_{config['max_duration_per_task_in_hours']}_eval_gen_timing_logs.txt"
     
 def get_relative_output_path(config: dict, task_counter: int):
     """
         Get the final relative output path (local, i.e., exp-bench docker or actual local) for design and conclusion
     """
-    return config["output_folder"] + get_output_eval_gen_filename(config, task_counter)
+    return config['output_folder'] + get_output_eval_gen_filename(config, task_counter)
 
 def get_relative_output_config_path(config: dict, task_counter: int):
     """
         Get the final relative output path (local, i.e., exp-bench docker or actual local) for config
     """
-    return config["output_folder"] + f"/{str(config["paper_id"])}_task_index_{task_counter}_iter_{config["iteration"]}_duration_{config["max_duration_per_task_in_hours"]}_eval_gen_config.json"
+    return config['output_folder'] + f"/{str(config['paper_id'])}_task_index_{task_counter}_iter_{config['iteration']}_duration_{config['max_duration_per_task_in_hours']}_eval_gen_config.json"
 
 def get_relative_output_patch_path(config: dict, task_counter: int):
     """
         Get the final relative output path (local, i.e., exp-bench docker or actual local) for git diff patch
     """
-    return config["output_folder"] + f"/{str(config["paper_id"])}_task_index_{task_counter}_iter_{config["iteration"]}_duration_{config["max_duration_per_task_in_hours"]}_eval_gen.patch"
+    return config['output_folder'] + f"/{str(config['paper_id'])}_task_index_{task_counter}_iter_{config['iteration']}_duration_{config['max_duration_per_task_in_hours']}_eval_gen.patch"
 
 def process_task(args):
     """
@@ -553,30 +553,30 @@ def main(
         config: dict
     ):
     # for loop for parallel execution. check through paper folder to obtain tasks
-    with open(config["input_paper_tasks_filename"], 'r') as f:
+    with open(config['input_paper_tasks_filename'], 'r') as f:
         paper_tasks_complete = json.load(f)
     tasks_list = []
 
     if "specific_tasks" in config:
         # For specific tasks, create a separate process for each task specification
         # even if they share the same task_index
-        for task_spec in config["specific_tasks"]:
+        for task_spec in config['specific_tasks']:
             paper_id, task_idx, duration = task_spec
-            if task_idx < len(paper_tasks_complete["questions"]):
-                task = paper_tasks_complete["questions"][task_idx]
+            if task_idx < len(paper_tasks_complete['questions']):
+                task = paper_tasks_complete['questions'][task_idx]
                 # Create a new config for this specific duration
                 task_config = config.copy()
-                task_config["max_duration_per_task_in_hours"] = duration
+                task_config['max_duration_per_task_in_hours'] = duration
                 tasks_list.append((task_idx, task, task_config))
             else:
                 print(f"Warning: Task index {task_idx} is out of range for paper {config['paper_id']}")
                 bench_logger.warning(f"Task index {task_idx} is out of range for paper {config['paper_id']}")
     else:
         # Original behavior for non-specific tasks
-        for task_counter, task in enumerate(paper_tasks_complete["questions"]):
+        for task_counter, task in enumerate(paper_tasks_complete['questions']):
             tasks_list.append((task_counter, task, config))
 
-    with ProcessPoolExecutor(max_workers=config["parallelization_factor"]) as executor:
+    with ProcessPoolExecutor(max_workers=config['parallelization_factor']) as executor:
         processed_tasks = list(executor.map(process_task, tasks_list))
 
 if __name__ == "__main__":
@@ -590,10 +590,10 @@ if __name__ == "__main__":
     with open(args.config_file, 'r') as file:
         config = json.load(file)
 
-    log_filename = config["log_filename"]
+    log_filename = config['log_filename']
     log_path = Path(log_filename)
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    setup_openhands_credential(config["llm_config_filename"])
+    setup_openhands_credential(config['llm_config_filename'])
     setup_gen_setup_logging(log_filename)
     setup_utils_logging(log_filename)
 

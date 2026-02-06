@@ -2,13 +2,13 @@ import os
 from openai import AzureOpenAI
 
 # Initialize Azure OpenAI client
-    client = AzureOpenAI(
-        api_key=os.getenv('OPENAI_API_KEY'),
-        azure_endpoint=os.getenv('OPENAI_API_BASE'),
-        # api_version='2023-03-15-preview',
-        api_version=os.getenv('API_VERSION'),
-        organization=os.getenv('OPENAI_ORGANIZATION'),
-    ) 
+client = AzureOpenAI(
+    api_key=os.getenv('OPENAI_API_KEY'),
+    azure_endpoint=os.getenv('OPENAI_API_BASE'),
+    # api_version='2023-03-15-preview',
+    api_version=os.getenv('API_VERSION'),
+    organization=os.getenv('OPENAI_ORGANIZATION'),
+) 
 
 # Step 1: Load the file content
 with open('common_errors_nonbug_report-1738044026.txt', 'r') as file:

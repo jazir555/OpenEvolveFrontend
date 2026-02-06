@@ -48,7 +48,7 @@ class AutoformalizationConfig:
     # Lean 4 settings
     LEAN4_EXECUTABLE: str
     LEAN4_TIMEOUT_MS: int
-    LEAN4 LAKE_TIMEOUT_MS: int
+    LEAN4_LAKE_TIMEOUT_MS: int
 
     # LeanAide settings
     LEANAIDE_ENABLED: bool

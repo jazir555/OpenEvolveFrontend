@@ -82,7 +82,7 @@ def convert_to_paper_dir_path(task_config: dict, paper_id, keep_logs_prefix=Fals
       - if keep_logs_prefix=True: # this is used for logging
           "outputs/evaluation/logs/neurips2024/96264/<agent_name>/<llm_name>"
     """
-    base = Path(task_config["input_conference_tasks_folder"]).resolve()
+    base = Path(task_config['input_conference_tasks_folder']).resolve()
 
     if "logs" not in base.parts:
         raise ValueError("Base directory must contain 'logs'")
@@ -97,11 +97,11 @@ def convert_to_paper_dir_path(task_config: dict, paper_id, keep_logs_prefix=Fals
         # Replace 'logs' with 'evaluation'
         parts[logs_index] = "evaluation"
 
-    model_name = extract_model_identifier(task_config["llm_config_filename"])
+    model_name = extract_model_identifier(task_config['llm_config_filename'])
     if model_name is None:
         raise ValueError(f"Model name could not be extracted from: {task_config['llm_config_filename']}")
 
-    abs_path = Path(*parts) / str(paper_id) / task_config["agent_name"] / model_name
+    abs_path = Path(*parts) / str(paper_id) / task_config['agent_name'] / model_name
 
     # Make it relative to current working directory
     try:
@@ -118,10 +118,10 @@ def get_task_count(task_config: dict):
     Get the task count from the task_config; this refers to a specific paper.
     This is the same as used in eval.py: should convert this to a common utils in future.
     """
-    with open(task_config["input_paper_tasks_filename"], 'r') as f:
+    with open(task_config['input_paper_tasks_filename'], 'r') as f:
         paper_tasks_complete = json.load(f)
     tasks_list = []
-    for task_counter, task in enumerate(paper_tasks_complete["questions"]):
+    for task_counter, task in enumerate(paper_tasks_complete['questions']):
         tasks_list.append((task_counter, task, task_config))
     return len(tasks_list)
 
@@ -131,8 +131,8 @@ def check_if_eval_is_done(task_config: dict, mode: str):
         If mode == "judge": only return true if all tasks are done and all iterations are done.
     """
     task_counts = get_task_count(task_config)
-    iterations = task_config["iterations"] # number of iterations required
-    paper_id = task_config["paper_id"]
+    iterations = task_config['iterations'] # number of iterations required
+    paper_id = task_config['paper_id']
 
     # Check if all iterations for all tasks for the required paper for the requested agent+llm combo are done
     for task_counter in range(task_counts):
@@ -157,7 +157,7 @@ def is_no_eval_gen_is_done(task_config: dict):
     """
     task_counts = get_task_count(task_config)
     for task_counter in range(task_counts):
-        for iteration in range(1, task_config["iterations"] + 1):
+        for iteration in range(1, task_config['iterations'] + 1):
             output_file = get_relative_output_path_eval(task_config, task_counter, iteration, "generate")
             if os.path.exists(output_file) and os.path.getsize(output_file) > 0:
                 return False
@@ -174,35 +174,35 @@ def run_eval(config_filename):
 
 def run_pipeline(config_filename: str, record: dict):
     try:
-        print(f"Processing record: {record.get("paper_id", "unknown")}")
-        bench_logger.info(f"Processing record: {record.get("paper_id", "unknown")}")
+        print(f"Processing record: {record.get('paper_id', 'unknown')}")
+        bench_logger.info(f"Processing record: {record.get('paper_id', 'unknown')}")
         # Check if setup gen is done: complete_all exists:
         if check_if_eval_is_done(record, mode="generate"):
-            if record["mode"] == "generate": # if we are trying to do eval gen, we skip if eval gen is done
-                print(f"✅ Skipping record {record.get("paper_id", "unknown")} as eval {record["mode"]} is already done.")
-                bench_logger.info(f"✅ Skipping record {record.get("paper_id", "unknown")} as eval {record["mode"]} is already done.")
+            if record['mode'] == "generate": # if we are trying to do eval gen, we skip if eval gen is done
+                print(f"✅ Skipping record {record.get('paper_id', 'unknown')} as eval {record['mode']} is already done.")
+                bench_logger.info(f"✅ Skipping record {record.get('paper_id', 'unknown')} as eval {record['mode']} is already done.")
                 return
         else:
-            if record["mode"] == "judge" and is_no_eval_gen_is_done(record) : # if we are trying to do eval judge, we skip if no eval gen at all is done. if at least one eval gen is done, we do not skip.
-                print(f"✅ Skipping record {record.get("paper_id", "unknown")} as eval gen is NOT done yet.")
-                bench_logger.info(f"✅ Skipping record {record.get("paper_id", "unknown")} as eval gen is NOT done yet.")
+            if record['mode'] == "judge" and is_no_eval_gen_is_done(record) : # if we are trying to do eval judge, we skip if no eval gen at all is done. if at least one eval gen is done, we do not skip.
+                print(f"✅ Skipping record {record.get('paper_id', 'unknown')} as eval gen is NOT done yet.")
+                bench_logger.info(f"✅ Skipping record {record.get('paper_id', 'unknown')} as eval gen is NOT done yet.")
                 return
         if check_if_eval_is_done(record, mode="judge"):
-            if record["mode"] == "judge": # if we are trying to do eval judge, we skip if eval judge is done
-                print(f"✅ Skipping record {record.get("paper_id", "unknown")} as eval {record["mode"]} is already done.")
-                bench_logger.info(f"✅ Skipping record {record.get("paper_id", "unknown")} as eval {record["mode"]} is already done.")
+            if record['mode'] == "judge": # if we are trying to do eval judge, we skip if eval judge is done
+                print(f"✅ Skipping record {record.get('paper_id', 'unknown')} as eval {record['mode']} is already done.")
+                bench_logger.info(f"✅ Skipping record {record.get('paper_id', 'unknown')} as eval {record['mode']} is already done.")
                 return
         
         run_eval(config_filename)
 
-        return {"paper_id": record.get("paper_id", "unknown"), "status": "success"}
+        return {"paper_id": record.get('paper_id', 'unknown'), "status": "success"}
 
     except subprocess.CalledProcessError as e:
         print_exception_and_traceback(e, prefix="❌ Error in subprocess")
-        return {"paper_id": record.get("paper_id", "unknown"), "status": "failed", "error": f"Subprocess error: {e}"}
+        return {"paper_id": record.get('paper_id', 'unknown'), "status": "failed", "error": f"Subprocess error: {e}"}
     except Exception as e:
         print_exception_and_traceback(e, prefix="❌ Error processing record")
-        return {"paper_id": record.get("paper_id", "unknown"), "status": "failed", "error": str(e)}
+        return {"paper_id": record.get('paper_id', 'unknown'), "status": "failed", "error": str(e)}
 
 def get_paper_details(paper_id: int, input_conference_paper_details_filename: str, task_config: dict):
     """
@@ -211,11 +211,11 @@ def get_paper_details(paper_id: int, input_conference_paper_details_filename: st
     with open(input_conference_paper_details_filename, 'r') as f:
         for line in f:
             record = json.loads(line)
-            if record["id"] == str(paper_id):
-                pdf_url = record["pdf_url"]
-                github_url = record["code_url"] if record["code_url"] else record["reproduce_eval"]["code"]
-                task_config["pdf_url"] = pdf_url
-                task_config["github_url"] = github_url
+            if record['id'] == str(paper_id):
+                pdf_url = record['pdf_url']
+                github_url = record['code_url'] if record['code_url'] else record['reproduce_eval']['code']
+                task_config['pdf_url'] = pdf_url
+                task_config['github_url'] = github_url
                 return task_config
     raise ValueError(f"Paper ID {paper_id} not found in {input_conference_paper_details_filename}")
 
@@ -224,25 +224,25 @@ def create_main_task_config(task_config: dict, paper_id: int, paper_path: str):
     Creates a main task config for the parallel processing.
     """
     copied_task_config = copy.deepcopy(task_config)
-    copied_task_config["paper_id"] = paper_id
-    copied_task_config["input_paper_tasks_folder"] = paper_path
-    copied_task_config["input_paper_tasks_filename"] = copied_task_config["input_paper_tasks_folder"] + "/" + str(copied_task_config["paper_id"]) + "_complete_final.json"
-    copied_task_config["output_folder"] = convert_to_paper_dir_path(task_config, paper_id) # "output_folder": "output/evaluation/neurips2024/96264/<agent_name>/<llm_name>"
-    copied_task_config["output_log_folder"] = convert_to_paper_dir_path(task_config, paper_id, keep_logs_prefix=True) # "output_log_folder": "output/evaluation/logs/neurips2024/96264/<agent_name>/<llm_name>"
-    os.makedirs(copied_task_config["output_folder"], exist_ok=True)
-    os.makedirs(copied_task_config["output_log_folder"], exist_ok=True)
-    copied_task_config["output_eval_gen_filename"] = copied_task_config["output_folder"] + f"/{str(paper_id)}_eval_gen.json" # won't be used
-    copied_task_config["output_eval_judge_filename"] = copied_task_config["output_folder"] + f"/{str(paper_id)}_eval_judge.json" # won't be used
-    copied_task_config = get_paper_details(paper_id, copied_task_config["input_conference_paper_details_filename"], copied_task_config)
-    config_filename = f"outputs/evaluation/configs/main_{str(paper_id)}_{task_config["mode"]}_config.json"
+    copied_task_config['paper_id'] = paper_id
+    copied_task_config['input_paper_tasks_folder'] = paper_path
+    copied_task_config['input_paper_tasks_filename'] = copied_task_config['input_paper_tasks_folder'] + "/" + str(copied_task_config['paper_id']) + "_complete_final.json"
+    copied_task_config['output_folder'] = convert_to_paper_dir_path(task_config, paper_id) # "output_folder": "output/evaluation/neurips2024/96264/<agent_name>/<llm_name>"
+    copied_task_config['output_log_folder'] = convert_to_paper_dir_path(task_config, paper_id, keep_logs_prefix=True) # "output_log_folder": "output/evaluation/logs/neurips2024/96264/<agent_name>/<llm_name>"
+    os.makedirs(copied_task_config['output_folder'], exist_ok=True)
+    os.makedirs(copied_task_config['output_log_folder'], exist_ok=True)
+    copied_task_config['output_eval_gen_filename'] = copied_task_config['output_folder'] + f"/{str(paper_id)}_eval_gen.json" # won't be used
+    copied_task_config['output_eval_judge_filename'] = copied_task_config['output_folder'] + f"/{str(paper_id)}_eval_judge.json" # won't be used
+    copied_task_config = get_paper_details(paper_id, copied_task_config['input_conference_paper_details_filename'], copied_task_config)
+    config_filename = f"outputs/evaluation/configs/main_{str(paper_id)}_{task_config['mode']}_config.json"
     os.makedirs(os.path.dirname(config_filename), exist_ok=True)
     with open(config_filename, 'w') as f:
         json.dump(copied_task_config, f, indent=2)
     return config_filename, copied_task_config
 
 def process_tasks_file(task_config: dict):
-    input_conference_tasks_folder = task_config["input_conference_tasks_folder"]
-    max_papers = task_config["max_papers"] 
+    input_conference_tasks_folder = task_config['input_conference_tasks_folder']
+    max_papers = task_config['max_papers'] 
     configs = []
 
     # Enumerate through the dirs within input_conference_tasks_folder: 
@@ -259,7 +259,7 @@ def process_tasks_file(task_config: dict):
 
                 # Skip if paper_id is not in specific_tasks (if specific_tasks is provided)
                 if "specific_tasks" in task_config:
-                    paper_ids = [task[0] for task in task_config["specific_tasks"]]
+                    paper_ids = [task[0] for task in task_config['specific_tasks']]
                     if str(paper_id) not in paper_ids:
                         print(f"Skipping paper {paper_id} as it's not in specific_tasks")
                         continue
@@ -268,16 +268,16 @@ def process_tasks_file(task_config: dict):
                 
                 # Pass through specific tasks with their durations if present
                 if "specific_tasks" in task_config:
-                    main_task_config["specific_tasks"] = [
-                        task for task in task_config["specific_tasks"]
+                    main_task_config['specific_tasks'] = [
+                        task for task in task_config['specific_tasks']
                         if task[0] == str(paper_id)
                     ]
 
-                if not main_task_config["pdf_url"] or not main_task_config["github_url"]:
+                if not main_task_config['pdf_url'] or not main_task_config['github_url']:
                     print(f"❌ Skipping record {paper_id} due to missing pdf_url or code_url.")
                     bench_logger.info(f"❌ Skipping record {paper_id} due to missing pdf_url or code_url.")
                     continue
-                if not os.path.exists(main_task_config["input_paper_tasks_filename"]):
+                if not os.path.exists(main_task_config['input_paper_tasks_filename']):
                     print(f"❌ Skipping record {paper_id} due to missing input_paper_tasks_filename.")
                     bench_logger.info(f"❌ Skipping record {paper_id} due to missing input_paper_tasks_filename.")
                     continue
@@ -307,7 +307,7 @@ def main():
     print(f"EXP-Bench eval generation parallel pipeline is running with the following configuration: {task_config}")
 
     unique_id = datetime.now().strftime("%Y%m%d%H%M%S")
-    log_filename = f"outputs/evaluation/logs/parallel_pipeline_runner/{unique_id}_{task_config["mode"]}.log"
+    log_filename = f"outputs/evaluation/logs/parallel_pipeline_runner/{unique_id}_{task_config['mode']}.log"
     os.makedirs(os.path.dirname(log_filename), exist_ok=True)
     setup_parallel_logging(log_filename)
     setup_utils_logging(log_filename)

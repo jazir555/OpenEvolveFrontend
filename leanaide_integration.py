@@ -184,6 +184,7 @@ class LeanAIDEIntegration:
         return {
             "available": inferred_formal_available,
             "web3_formal_available": inferred_formal_available,
+            "web3_formal_verification_available": inferred_formal_available,
             "web3_formal_tools": web3_formal_tools,
             "formal_capabilities": formal_capabilities,
             "audit_exploit_verification_available": bool(
@@ -200,6 +201,9 @@ class LeanAIDEIntegration:
             "z3_available": Z3_AVAILABLE,
             "config_enabled": bool(getattr(self.config, "enabled", True)),
             "web3_formal_available": web3_status["web3_formal_available"],
+            "web3_formal_verification_available": web3_status[
+                "web3_formal_verification_available"
+            ],
             "web3_formal_tools": web3_status["web3_formal_tools"],
             "formal_capabilities": web3_status["formal_capabilities"],
             "audit_exploit_verification_available": web3_status[

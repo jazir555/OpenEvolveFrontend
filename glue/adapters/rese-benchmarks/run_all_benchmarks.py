@@ -376,6 +376,7 @@ def save_combined_report(
 def main():
     """Main entry point."""
     import argparse
+    global BENCHMARK_SCRIPTS
 
     parser = argparse.ArgumentParser(
         description="RESE Benchmark Orchestrator"
@@ -401,7 +402,6 @@ def main():
 
     # Filter benchmarks if specific phases requested
     if args.phases:
-        global BENCHMARK_SCRIPTS
         BENCHMARK_SCRIPTS = {
             k: v for k, v in BENCHMARK_SCRIPTS.items()
             if k in args.phases

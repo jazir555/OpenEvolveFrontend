@@ -880,6 +880,9 @@ class Z3AgentCoordinator:
         return {
             "z3_available": Z3_AVAILABLE,
             "web3_formal_available": inferred_formal_available or bool(WEB3_FORMAL_AVAILABLE),
+            "web3_formal_verification_available": (
+                inferred_formal_available or bool(WEB3_FORMAL_AVAILABLE)
+            ),
             "formal_capabilities": formal_capabilities,
             "web3_formal_tools": web3_formal_tools,
             "audit_exploit_verification_available": bool(
@@ -1047,6 +1050,9 @@ def get_web3_formal_status() -> Dict[str, Any]:
     return {
         "available": inferred_formal_available or bool(WEB3_FORMAL_AVAILABLE),
         "web3_formal_available": inferred_formal_available or bool(WEB3_FORMAL_AVAILABLE),
+        "web3_formal_verification_available": (
+            inferred_formal_available or bool(WEB3_FORMAL_AVAILABLE)
+        ),
         "web3_formal_tools": web3_formal_tools,
         "formal_capabilities": formal_capabilities,
         "audit_exploit_verification_available": bool(

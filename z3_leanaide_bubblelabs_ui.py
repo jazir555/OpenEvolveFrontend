@@ -355,6 +355,7 @@ class Z3BubbleLabsUIManager:
         return {
             "z3_available": Z3_AVAILABLE and self.z3_engine is not None,
             "web3_formal_available": bool(web3_formal_tools),
+            "web3_formal_verification_available": bool(web3_formal_tools),
             "web3_formal_tools": web3_formal_tools,
             "formal_capabilities": formal_capabilities,
             "audit_exploit_verification_available": bool(
