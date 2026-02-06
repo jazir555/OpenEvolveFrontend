@@ -122,8 +122,6 @@ def _normalize_web3_tool_inventory(raw_inventory: Optional[Dict[str, Any]]) -> D
             tool for tool in web3_tools if tool in _WEB3_FORMAL_TOOL_NAMES
         )
 
-    merged_web3_tools = sorted(set(web3_tools + web3_ingestion_tools + web3_formal_tools))
-
     formal_capabilities = {
         "solidity_invariant_translation": "z3_translate_solidity_invariant" in web3_formal_tools,
         "invariant_translation_verification": "z3_translate_solidity_invariant" in web3_formal_tools,
@@ -134,12 +132,27 @@ def _normalize_web3_tool_inventory(raw_inventory: Optional[Dict[str, Any]]) -> D
     if isinstance(existing_capabilities, dict):
         formal_capabilities.update(existing_capabilities)
 
+    if not web3_formal_tools:
+        if formal_capabilities.get("solidity_invariant_translation"):
+            web3_formal_tools.append("z3_translate_solidity_invariant")
+        if formal_capabilities.get("symbolic_exploit_witness"):
+            web3_formal_tools.append("z3_solve_smart_contract_exploit_witness")
+        if formal_capabilities.get("composite_exploit_verification"):
+            web3_formal_tools.append("z3_web3_audit_exploit_verification")
+        web3_formal_tools = sorted(set(web3_formal_tools))
+
+    merged_web3_tools = sorted(set(web3_tools + web3_ingestion_tools + web3_formal_tools))
+    web3_formal_available = bool(web3_formal_tools) or any(
+        bool(value) for value in formal_capabilities.values()
+    )
+
     inventory.update(
         {
             "web3_tools": merged_web3_tools,
             "web3_ingestion_tools": web3_ingestion_tools,
             "web3_formal_tools": web3_formal_tools,
             "formal_capabilities": formal_capabilities,
+            "web3_formal_available": web3_formal_available,
         }
     )
     return inventory

@@ -103,10 +103,19 @@ def get_health_checker():
     return HealthChecker()
 
 # Export for convenience
+from .integrations.workflow_engine_integration import (
+    AdaptiveWorkflowIntegration,
+    AdaptiveWorkflowConfig,
+    get_adaptive_workflow,
+)
+
 __all__ = [
     'TaskComplexityClassifier',
     'AdaptiveMDAPAllocator',
     'AdaptiveExecutionController',
     'get_health_checker',
-    'ComplexityScore'
+    'ComplexityScore',
+    'AdaptiveWorkflowIntegration',
+    'AdaptiveWorkflowConfig',
+    'get_adaptive_workflow'
 ]

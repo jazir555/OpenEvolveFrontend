@@ -33,6 +33,10 @@ class GenericMAKERConfig:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
+# Alias for backward compatibility
+MAKERConfig = GenericMAKERConfig
+
+
 class GenericMAKERIntegration:
     """
     Generic MAKER integration that can be adapted for different use cases.
@@ -521,3 +525,8 @@ class TaskType:
     INVENTION = "invention"
     RESEARCH = "research"
     ENGINEERING = "engineering"
+
+
+
+# Compatibility for end_to_end_invention_planner.py
+MAKERConfig = GenericMAKERConfig  # Alias

@@ -41,8 +41,23 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
-# Adaptive MDAP not available
-ADAPTIVE_MDAP_AVAILABLE = False
+# **ACTUAL INTEGRATION**: Adaptive MDAP for complexity-based gauntlets
+try:
+    from adaptive_mdap import (
+        TaskComplexityClassifier,
+        AdaptiveMDAPAllocator,
+        AdaptiveExecutionController,
+        get_health_checker,
+    )
+    from adaptive_mdap.integrations.workflow_engine_integration import (
+        AdaptiveWorkflowIntegration,
+        AdaptiveWorkflowConfig,
+        get_adaptive_workflow,
+    )
+    from workflow_structures import SubProblem # Needed for type checking in adaptive calls
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
 
 # **BUBBLELABS INTEGRATION**: BubbleLab workflow visualization for gauntlets
 try:

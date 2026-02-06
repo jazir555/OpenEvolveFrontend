@@ -228,6 +228,46 @@ def _get_web3_formal_inventory() -> Dict[str, Any]:
     }
 
 
+def _normalize_web3_formal_inventory(inventory: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    """Normalize Web3 formal inventory shape and infer tools from capabilities when needed."""
+    inv = dict(inventory or {})
+    default_capabilities = {
+        "solidity_invariant_translation": False,
+        "invariant_translation_verification": False,
+        "symbolic_exploit_witness": False,
+        "composite_exploit_verification": False,
+    }
+    capabilities = inv.get("formal_capabilities")
+    if isinstance(capabilities, dict):
+        merged_capabilities = {**default_capabilities, **capabilities}
+    else:
+        merged_capabilities = default_capabilities
+
+    tools = list(inv.get("tools", []) or [])
+    if not tools:
+        inferred_tools: List[str] = []
+        if merged_capabilities.get("solidity_invariant_translation"):
+            inferred_tools.append("z3_translate_solidity_invariant")
+        if merged_capabilities.get("symbolic_exploit_witness"):
+            inferred_tools.append("z3_solve_smart_contract_exploit_witness")
+        if merged_capabilities.get("composite_exploit_verification"):
+            inferred_tools.append("z3_web3_audit_exploit_verification")
+        tools = inferred_tools
+
+    available = bool(inv.get("available"))
+    if not available:
+        available = bool(tools) or any(bool(v) for v in merged_capabilities.values())
+
+    inv.update(
+        {
+            "available": available,
+            "tools": sorted(set(tools)),
+            "formal_capabilities": merged_capabilities,
+        }
+    )
+    return inv
+
+
 # =============================================================================
 # WEB3 INGESTION HELPERS
 # =============================================================================
@@ -1745,7 +1785,7 @@ def get_mcp_tool_inventory() -> Dict[str, Any]:
         "web3_ingest_foundry_fuzzing",
         "web3_ingest_contract_audit_stack",
     ])
-    formal_inventory = _get_web3_formal_inventory()
+    formal_inventory = _normalize_web3_formal_inventory(_get_web3_formal_inventory())
     formal_tools = sorted(formal_inventory.get("tools", []))
     web3_tools = sorted(set(web3_ingestion_tools + formal_tools))
     return {
@@ -1828,7 +1868,7 @@ def get_decomposition_status() -> Dict[str, Any]:
         "web3_ingest_foundry_fuzzing",
         "web3_ingest_contract_audit_stack",
     ]
-    formal_inventory = _get_web3_formal_inventory()
+    formal_inventory = _normalize_web3_formal_inventory(_get_web3_formal_inventory())
     web3_formal_tools = formal_inventory.get("tools", [])
     web3_tools = sorted(set(web3_ingestion_tools + web3_formal_tools))
     return {

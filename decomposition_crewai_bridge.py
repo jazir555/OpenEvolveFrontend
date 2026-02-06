@@ -53,6 +53,11 @@ VERIFICATION_ENGINE_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
+try:
+    from decomposition_mcp_tools import get_mcp_tool_inventory as _get_mcp_tool_inventory
+except Exception:
+    _get_mcp_tool_inventory = None
+
 
 # =============================================================================
 # PHASE 1: SETUP - ANALYZE AND DECOMPOSE
@@ -758,12 +763,55 @@ def list_available_gauntlets() -> List[str]:
 
 def get_decomposition_status() -> Dict[str, Any]:
     """Get decomposition workflow status."""
+    web3_tools: List[str] = []
+    web3_formal_tools: List[str] = []
+    formal_capabilities: Dict[str, bool] = {
+        "solidity_invariant_translation": False,
+        "invariant_translation_verification": False,
+        "symbolic_exploit_witness": False,
+        "composite_exploit_verification": False,
+    }
+
+    if _get_mcp_tool_inventory is not None:
+        try:
+            inventory = _get_mcp_tool_inventory() or {}
+            web3_tools = list(inventory.get("web3_tools", []) or [])
+            web3_formal_tools = list(inventory.get("web3_formal_tools", []) or [])
+            existing_capabilities = inventory.get("formal_capabilities")
+            if isinstance(existing_capabilities, dict):
+                formal_capabilities.update(existing_capabilities)
+        except Exception as exc:
+            logger.debug("Unable to load MCP tool inventory for CrewAI bridge status: %s", exc)
+
+    if not web3_formal_tools:
+        if formal_capabilities.get("solidity_invariant_translation"):
+            web3_formal_tools.append("z3_translate_solidity_invariant")
+        if formal_capabilities.get("symbolic_exploit_witness"):
+            web3_formal_tools.append("z3_solve_smart_contract_exploit_witness")
+        if formal_capabilities.get("composite_exploit_verification"):
+            web3_formal_tools.append("z3_web3_audit_exploit_verification")
+    web3_formal_tools = sorted(set(web3_formal_tools))
+
+    if not web3_tools:
+        web3_tools = sorted(
+            {
+                "web3_ingest_contract_audit_stack",
+                "web3_ingest_slither_static_analysis",
+                "web3_ingest_foundry_fuzzing",
+                *web3_formal_tools,
+            }
+        )
+
     return {
         "decomposition_available": True,
         "engine": "CrewAI",
         "zero_error_workflow_available": True,
         "available_teams": list_available_teams(),
         "available_gauntlets": list_available_gauntlets(),
+        "web3_tools": web3_tools,
+        "web3_formal_tools": web3_formal_tools,
+        "formal_capabilities": formal_capabilities,
+        "web3_domain_extension_available": bool(web3_tools),
     }
 
 

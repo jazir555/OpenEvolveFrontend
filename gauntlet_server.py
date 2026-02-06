@@ -45,8 +45,12 @@ def read_docs():
 
     return app.openapi()
 
-# Adaptive MDAP not available
-ADAPTIVE_MDAP_AVAILABLE = False
+# **ACTUAL INTEGRATION**: Adaptive MDAP for gauntlet orchestration
+try:
+    from adaptive_mdap import get_adaptive_workflow
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
 
 @app.post("/run_gauntlet")
 def handle_run_gauntlet(request: GauntletRequest):

@@ -34,12 +34,61 @@ except ImportError:
     verify_solidity_invariant_translation = None
     Z3_INTEGRATION_AVAILABLE = False
 
+try:
+    from z3_mcp_tools import get_web3_formal_tool_inventory
+except Exception:
+    get_web3_formal_tool_inventory = None
+
 # Compatibility re-export for modules that expect knowledge API symbols here.
 try:
     from knowledge_engine.integrations.z3_api import app, create_z3_knowledge_app
 except Exception:
     app = None
     create_z3_knowledge_app = None
+
+
+_DEFAULT_WEB3_FORMAL_CAPABILITIES = {
+    "solidity_invariant_translation": translate_solidity_assignment_to_z3 is not None,
+    "invariant_translation_verification": verify_solidity_invariant_translation is not None,
+    "symbolic_exploit_witness": solve_smart_contract_exploit_witness is not None,
+    "composite_exploit_verification": (
+        translate_solidity_assignment_to_z3 is not None
+        and solve_smart_contract_exploit_witness is not None
+    ),
+}
+
+
+def _normalize_web3_formal_inventory(raw_inventory: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    """Normalize Web3 formal inventory to a stable schema."""
+    inventory = dict(raw_inventory or {})
+    merged_capabilities = dict(_DEFAULT_WEB3_FORMAL_CAPABILITIES)
+    existing_capabilities = inventory.get("formal_capabilities")
+    if isinstance(existing_capabilities, dict):
+        merged_capabilities.update(existing_capabilities)
+
+    web3_formal_tools = list(
+        inventory.get("tools", [])
+        or inventory.get("web3_formal_tools", [])
+        or []
+    )
+    if not web3_formal_tools:
+        if merged_capabilities.get("solidity_invariant_translation"):
+            web3_formal_tools.append("z3_translate_solidity_invariant")
+        if merged_capabilities.get("symbolic_exploit_witness"):
+            web3_formal_tools.append("z3_solve_smart_contract_exploit_witness")
+        if merged_capabilities.get("composite_exploit_verification"):
+            web3_formal_tools.append("z3_web3_audit_exploit_verification")
+
+    normalized_tools = sorted(set(web3_formal_tools))
+    available = bool(inventory.get("available"))
+    if not available:
+        available = bool(normalized_tools) or any(bool(v) for v in merged_capabilities.values())
+
+    return {
+        "available": available,
+        "tools": normalized_tools,
+        "formal_capabilities": merged_capabilities,
+    }
 
 
 @dataclass
@@ -122,31 +171,29 @@ class Z3API:
 
     def get_web3_status(self) -> Dict[str, Any]:
         """Expose Web3 formal capability status from the Z3 facade."""
-        formal_capabilities = {
-            "solidity_invariant_translation": translate_solidity_assignment_to_z3 is not None,
-            "invariant_translation_verification": verify_solidity_invariant_translation is not None,
-            "symbolic_exploit_witness": solve_smart_contract_exploit_witness is not None,
-            "composite_exploit_verification": (
-                translate_solidity_assignment_to_z3 is not None
-                and solve_smart_contract_exploit_witness is not None
-            ),
-        }
-        web3_formal_tools = []
-        if formal_capabilities["solidity_invariant_translation"]:
-            web3_formal_tools.append("z3_translate_solidity_invariant")
-        if formal_capabilities["symbolic_exploit_witness"]:
-            web3_formal_tools.append("z3_solve_smart_contract_exploit_witness")
-        if formal_capabilities["composite_exploit_verification"]:
-            web3_formal_tools.append("z3_web3_audit_exploit_verification")
+        raw_inventory: Dict[str, Any] = {}
+        if get_web3_formal_tool_inventory is not None:
+            try:
+                loaded_inventory = get_web3_formal_tool_inventory()
+                if isinstance(loaded_inventory, dict):
+                    raw_inventory = loaded_inventory
+            except Exception as exc:
+                logger.debug("Failed loading Web3 formal inventory from MCP tools: %s", exc)
+
+        inventory = _normalize_web3_formal_inventory(raw_inventory)
+        formal_capabilities = inventory["formal_capabilities"]
+        web3_formal_tools = list(inventory["tools"])
         return {
-            "available": translate_solidity_assignment_to_z3 is not None
-            and solve_smart_contract_exploit_witness is not None,
-            "solidity_invariant_translation_available": translate_solidity_assignment_to_z3 is not None,
-            "invariant_translation_verification_available": verify_solidity_invariant_translation is not None,
-            "exploit_witness_available": solve_smart_contract_exploit_witness is not None,
-            "audit_exploit_verification_available": (
-                translate_solidity_assignment_to_z3 is not None
-                and solve_smart_contract_exploit_witness is not None
+            "available": bool(inventory["available"]),
+            "solidity_invariant_translation_available": bool(
+                formal_capabilities.get("solidity_invariant_translation")
+            ),
+            "invariant_translation_verification_available": bool(
+                formal_capabilities.get("invariant_translation_verification")
+            ),
+            "exploit_witness_available": bool(formal_capabilities.get("symbolic_exploit_witness")),
+            "audit_exploit_verification_available": bool(
+                formal_capabilities.get("composite_exploit_verification")
             ),
             "web3_formal_tools": web3_formal_tools,
             "formal_capabilities": formal_capabilities,

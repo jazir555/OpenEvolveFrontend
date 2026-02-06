@@ -157,6 +157,34 @@ def test_z3_bubblelabs_ui_exposes_web3_node_types():
     }.issubset(node_types)
 
 
+def test_z3_bubblelabs_ui_status_exposes_formal_capabilities(monkeypatch):
+    try:
+        import z3_leanaide_bubblelabs_ui as z3_ui
+    except Exception as exc:
+        pytest.skip(f"z3_leanaide_bubblelabs_ui unavailable: {exc}")
+    monkeypatch.setattr(
+        z3_ui,
+        "translate_solidity_assignment_to_z3",
+        lambda **kwargs: {"constraints": ["new_balance == old_balance - amount"]},
+    )
+    monkeypatch.setattr(
+        z3_ui,
+        "verify_solidity_invariant_translation",
+        lambda **kwargs: {"proven": True},
+    )
+    monkeypatch.setattr(
+        z3_ui,
+        "solve_smart_contract_exploit_witness",
+        lambda **kwargs: {"status": "sat", "satisfiable": True},
+    )
+    manager = z3_ui.Z3BubbleLabsUIManager(config={"use_cav_nlp": False})
+    status = manager.get_status()
+    assert "web3_formal_tools" in status
+    assert "formal_capabilities" in status
+    assert status["formal_capabilities"]["composite_exploit_verification"] is True
+    assert "z3_web3_audit_exploit_verification" in status["web3_formal_tools"]
+
+
 def test_z3_bubblelabs_ui_handles_web3_invariant_node(monkeypatch):
     try:
         import z3_leanaide_bubblelabs_ui as z3_ui

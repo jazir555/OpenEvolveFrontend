@@ -64,9 +64,11 @@ from sop_integrated_system import (
 from generic_maker_integration import (
     GenericMAKERIntegration,
     GenericMAKERConfig,
+    MAKERConfig,
     create_generic_maker_integration,
     run_generic_maker,
-    GenericEvaluator
+    GenericEvaluator,
+    GenericTask
 )
 from z3prover_integration import DigitalTwinSandbox
 

@@ -1097,8 +1097,25 @@ class Z3LeanAideBridge:
             "verified_exploit": verified_exploit,
         }
     
-    def get_capabilities(self) -> Dict[str, bool]:
+    def get_capabilities(self) -> Dict[str, Any]:
         """Get available capabilities"""
+        formal_capabilities = {
+            "solidity_invariant_translation": translate_solidity_assignment_to_z3 is not None,
+            "invariant_translation_verification": verify_solidity_invariant_translation is not None,
+            "symbolic_exploit_witness": solve_smart_contract_exploit_witness is not None,
+            "composite_exploit_verification": (
+                translate_solidity_assignment_to_z3 is not None
+                and solve_smart_contract_exploit_witness is not None
+            ),
+        }
+        web3_formal_tools: List[str] = []
+        if formal_capabilities["solidity_invariant_translation"]:
+            web3_formal_tools.append("z3_translate_solidity_invariant")
+        if formal_capabilities["symbolic_exploit_witness"]:
+            web3_formal_tools.append("z3_solve_smart_contract_exploit_witness")
+        if formal_capabilities["composite_exploit_verification"]:
+            web3_formal_tools.append("z3_web3_audit_exploit_verification")
+
         return {
             "z3_available": Z3_AVAILABLE,
             "lean_available": LEAN4_AVAILABLE,
@@ -1108,13 +1125,19 @@ class Z3LeanAideBridge:
             "hybrid_verification": Z3_AVAILABLE and LEAN4_AVAILABLE,
             "counterexamples": Z3_AVAILABLE,
             "hybrid_proofs": True,
-            "solidity_invariant_translation": translate_solidity_assignment_to_z3 is not None,
-            "solidity_invariant_verification": verify_solidity_invariant_translation is not None,
-            "smart_contract_exploit_witness": solve_smart_contract_exploit_witness is not None,
-            "web3_audit_exploit_verification": (
-                translate_solidity_assignment_to_z3 is not None
-                and solve_smart_contract_exploit_witness is not None
-            ),
+            "solidity_invariant_translation": formal_capabilities["solidity_invariant_translation"],
+            "invariant_translation_verification": formal_capabilities[
+                "invariant_translation_verification"
+            ],
+            "solidity_invariant_verification": formal_capabilities[
+                "invariant_translation_verification"
+            ],
+            "smart_contract_exploit_witness": formal_capabilities["symbolic_exploit_witness"],
+            "web3_audit_exploit_verification": formal_capabilities[
+                "composite_exploit_verification"
+            ],
+            "formal_capabilities": formal_capabilities,
+            "web3_formal_tools": web3_formal_tools,
         }
 
 

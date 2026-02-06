@@ -13,6 +13,31 @@ def test_root_z3_api_exposes_web3_methods():
     assert "formal_capabilities" in status
 
 
+def test_root_z3_api_status_infers_formal_tools_from_capabilities(monkeypatch):
+    api = z3_api.create_api()
+    monkeypatch.setattr(
+        z3_api,
+        "get_web3_formal_tool_inventory",
+        lambda: {
+            "available": False,
+            "tools": [],
+            "formal_capabilities": {
+                "solidity_invariant_translation": True,
+                "symbolic_exploit_witness": True,
+                "composite_exploit_verification": True,
+            },
+        },
+    )
+    status = api.get_web3_status()
+    assert {
+        "z3_translate_solidity_invariant",
+        "z3_solve_smart_contract_exploit_witness",
+        "z3_web3_audit_exploit_verification",
+    }.issubset(set(status["web3_formal_tools"]))
+    assert status["formal_capabilities"]["composite_exploit_verification"] is True
+    assert status["available"] is True
+
+
 def test_root_z3_api_composite_orchestration(monkeypatch):
     api = z3_api.create_api()
     monkeypatch.setattr(

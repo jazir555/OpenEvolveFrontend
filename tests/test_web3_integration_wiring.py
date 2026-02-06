@@ -225,6 +225,32 @@ def test_mcp_inventory_exposes_web3_formal_tools(monkeypatch):
     assert inventory.get("formal_capabilities", {}).get("composite_exploit_verification") is True
 
 
+def test_mcp_inventory_infers_formal_tools_from_capabilities(monkeypatch):
+    monkeypatch.setattr(
+        decomp_mcp_tools,
+        "_get_web3_formal_inventory",
+        lambda: {
+            "available": False,
+            "tools": [],
+            "formal_capabilities": {
+                "solidity_invariant_translation": True,
+                "symbolic_exploit_witness": True,
+                "composite_exploit_verification": True,
+            },
+        },
+    )
+    inventory = decomp_mcp_tools.get_mcp_tool_inventory()
+    assert {
+        "z3_translate_solidity_invariant",
+        "z3_solve_smart_contract_exploit_witness",
+        "z3_web3_audit_exploit_verification",
+    }.issubset(set(inventory.get("web3_formal_tools", [])))
+    status = decomp_mcp_tools.get_decomposition_status()
+    formal_tools = set(status["mcp_tool_inventory"].get("web3_formal_tools", []))
+    assert "z3_web3_audit_exploit_verification" in formal_tools
+    assert status["mcp_tool_inventory"]["formal_capabilities"]["composite_exploit_verification"] is True
+
+
 def test_api_web3_status_exposes_formal_tools_from_inventory(monkeypatch):
     monkeypatch.setattr(
         api_server,

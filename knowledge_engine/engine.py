@@ -484,7 +484,7 @@ class KnowledgeEngine:
         Returns:
             A dictionary containing the workflow result.
         """
-        self.logger.info(f"🚀 Starting Code Implementation Workflow with plan: {plan_file_path}")
+        self.logger.info(f"Starting Code Implementation Workflow with plan: {plan_file_path}")
         from workflows.code_implementation_workflow import CodeImplementationWorkflow
         
         try:

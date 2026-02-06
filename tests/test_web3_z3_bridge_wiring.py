@@ -22,8 +22,11 @@ def test_bridge_capabilities_include_web3_flags():
     capabilities = bridge.get_capabilities()
     assert "web3_formal_available" in capabilities
     assert "solidity_invariant_translation" in capabilities
+    assert "invariant_translation_verification" in capabilities
     assert "smart_contract_exploit_witness" in capabilities
     assert "web3_audit_exploit_verification" in capabilities
+    assert "web3_formal_tools" in capabilities
+    assert "formal_capabilities" in capabilities
 
 
 def test_bridge_translate_solidity_invariant(monkeypatch):

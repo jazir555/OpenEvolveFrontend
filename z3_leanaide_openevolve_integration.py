@@ -54,11 +54,20 @@ try:
     from z3prover_integration import (
         Z3SolverEngine, Z3TheoremProver, Z3SolverResult, Z3TheoremResult,
         Z3Variable, Z3Constraint, Z3ConstraintType, Z3ResultStatus,
-        Z3Config, Z3ProblemDetector
+        Z3Config, Z3ProblemDetector, translate_solidity_assignment_to_z3,
+        verify_solidity_invariant_translation, solve_smart_contract_exploit_witness
     )
     Z3_AVAILABLE = True
+    WEB3_FORMAL_AVAILABLE = (
+        translate_solidity_assignment_to_z3 is not None
+        and solve_smart_contract_exploit_witness is not None
+    )
 except ImportError:
     Z3_AVAILABLE = False
+    WEB3_FORMAL_AVAILABLE = False
+    translate_solidity_assignment_to_z3 = None
+    verify_solidity_invariant_translation = None
+    solve_smart_contract_exploit_witness = None
     logger.warning("Z3 integration not available")
 
 # Import Z3-LeanAIDE Bridge
@@ -239,6 +248,9 @@ class IntegrationStatus:
     openevolve_available: bool = False
     bubblelabs_available: bool = False
     cav_nlp_available: bool = False
+    web3_formal_available: bool = False
+    web3_formal_tools: List[str] = field(default_factory=list)
+    formal_capabilities: Dict[str, bool] = field(default_factory=dict)
     ready: bool = False
     message: str = ""
     
@@ -493,12 +505,33 @@ class Z3LeanAideOpenEvolveIntegration:
     
     def _update_status(self):
         """Update integration status."""
+        formal_capabilities = {
+            "solidity_invariant_translation": translate_solidity_assignment_to_z3 is not None,
+            "invariant_translation_verification": verify_solidity_invariant_translation is not None,
+            "symbolic_exploit_witness": solve_smart_contract_exploit_witness is not None,
+            "composite_exploit_verification": (
+                translate_solidity_assignment_to_z3 is not None
+                and solve_smart_contract_exploit_witness is not None
+            ),
+        }
+        web3_formal_tools: List[str] = []
+        if formal_capabilities["solidity_invariant_translation"]:
+            web3_formal_tools.append("z3_translate_solidity_invariant")
+        if formal_capabilities["symbolic_exploit_witness"]:
+            web3_formal_tools.append("z3_solve_smart_contract_exploit_witness")
+        if formal_capabilities["composite_exploit_verification"]:
+            web3_formal_tools.append("z3_web3_audit_exploit_verification")
+
         self._integration_status = IntegrationStatus(
             z3_available=Z3_AVAILABLE and self.z3_solver is not None,
             leanaide_available=LEANAIDE_WORKFLOW_AVAILABLE and self.lean_integrator is not None,
             z3_leanaide_bridge_available=Z3_LEANAIDE_BRIDGE_AVAILABLE and self.z3_bridge is not None,
             openevolve_available=OPENEVOLVE_AVAILABLE,
             bubblelabs_available=BUBBLELABS_AVAILABLE and self.bubblelabs is not None,
+            cav_nlp_available=CAV_NLP_AVAILABLE,
+            web3_formal_available=WEB3_FORMAL_AVAILABLE,
+            web3_formal_tools=web3_formal_tools,
+            formal_capabilities=formal_capabilities,
             ready=self._check_ready(),
             message=self._get_status_message()
         )

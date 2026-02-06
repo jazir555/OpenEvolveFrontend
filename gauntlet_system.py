@@ -119,17 +119,11 @@ class GauntletSystem:
         else:
             # Fallback to orchestration if adaptive creation fails
             context = {"domain": domain}
-            result = self.orchestrator.orchestrate(
-                mode=OrchestrationMode.ADAPTIVE,
-                gauntlets=[],  # Will trigger default set in adaptive mode if empty? 
-                               # Actually Orchestrator needs gauntlets. 
-                               # Let's use the helper to create defaults.
-                solution=content,
-                context=context
-            )
+            
             # Re-creating gauntlets for orchestrator manually as fallback
             from gauntlet_orchestrator import create_all_gauntlets
             gauntlets = create_all_gauntlets()
+            
             result = self.orchestrator.orchestrate(
                 mode=OrchestrationMode.ADAPTIVE,
                 gauntlets=gauntlets,

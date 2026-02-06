@@ -854,7 +854,7 @@ def run_adaptive_gauntlets(
 
 
 # Factory for creating all 8 gauntlet types
-def create_all_gauntlets(config: Optional[Dict] = None) -> List[BaseGauntlet]:
+def create_all_gauntlets(config: Optional[Dict] = None, **kwargs) -> List[BaseGauntlet]:
     """
     Create all 8 gauntlet types for comprehensive validation.
     
@@ -864,15 +864,15 @@ def create_all_gauntlets(config: Optional[Dict] = None) -> List[BaseGauntlet]:
     config = config or {}
     
     return [
-        AdversarialGauntlet("adversarial", config.get("adversarial", {})),
-        FormalVerificationGauntlet("formal_verification", config.get("formal", {})),
-        StatisticalGauntlet("statistical", config.get("statistical", {})),
-        DomainSpecificGauntlet("physics", "physics_domain", config.get("physics", {})),
-        DomainSpecificGauntlet("finance", "finance_domain", config.get("finance", {})),
-        MultiObjectiveGauntlet("multi_objective", config.get("multi_objective", {})),
-        EvolutionaryGauntlet("evolutionary", config.get("evolutionary", {})),
-        TemporalGauntlet("temporal", config.get("temporal", {})),
-        CrossValidationGauntlet("cross_validation", config.get("cross_validation", {}))
+        create_gauntlet("adversarial", "adversarial", config.get("adversarial", {}), **kwargs),
+        create_gauntlet("formal_verification", "formal_verification", config.get("formal", {}), **kwargs),
+        create_gauntlet("statistical", "statistical", config.get("statistical", {}), **kwargs),
+        create_gauntlet("physics", "physics_domain", config.get("physics", {}), **kwargs),
+        create_gauntlet("finance", "finance_domain", config.get("finance", {}), **kwargs),
+        create_gauntlet("multi_objective", "multi_objective", config.get("multi_objective", {}), **kwargs),
+        create_gauntlet("evolutionary", "evolutionary", config.get("evolutionary", {}), **kwargs),
+        create_gauntlet("temporal", "temporal", config.get("temporal", {}), **kwargs),
+        create_gauntlet("cross_validation", "cross_validation", config.get("cross_validation", {}), **kwargs)
     ]
 
 

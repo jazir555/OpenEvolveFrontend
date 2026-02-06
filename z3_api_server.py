@@ -123,6 +123,91 @@ WEB3_FORMAL_AVAILABLE = (
 logger = logging.getLogger(__name__)
 
 
+# Canonical Web3 formal tool names exposed by Z3 surfaces.
+_WEB3_FORMAL_TOOL_NAMES = (
+    "z3_translate_solidity_invariant",
+    "z3_solve_smart_contract_exploit_witness",
+    "z3_web3_audit_exploit_verification",
+)
+
+
+def _default_web3_formal_capabilities() -> Dict[str, bool]:
+    """Build default Web3 formal capability flags from loaded integrations."""
+    return {
+        "solidity_invariant_translation": translate_solidity_assignment_to_z3 is not None,
+        "invariant_translation_verification": verify_solidity_invariant_translation is not None,
+        "symbolic_exploit_witness": solve_smart_contract_exploit_witness is not None,
+        "composite_exploit_verification": (
+            translate_solidity_assignment_to_z3 is not None
+            and solve_smart_contract_exploit_witness is not None
+        ),
+    }
+
+
+def _normalize_web3_formal_inventory(
+    raw_inventory: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Normalize Web3 formal inventory to a consistent API schema."""
+    default_formal_capabilities = _default_web3_formal_capabilities()
+    inventory: Dict[str, Any] = {
+        "available": WEB3_FORMAL_AVAILABLE,
+        "tools": [],
+        "formal_capabilities": dict(default_formal_capabilities),
+    }
+
+    loaded_inventory: Optional[Dict[str, Any]] = None
+    if isinstance(raw_inventory, dict):
+        loaded_inventory = raw_inventory
+    else:
+        try:
+            from z3_mcp_tools import get_web3_formal_tool_inventory
+
+            candidate = get_web3_formal_tool_inventory()
+            if isinstance(candidate, dict):
+                loaded_inventory = candidate
+        except Exception as exc:
+            inventory["error"] = str(exc)
+
+    if isinstance(loaded_inventory, dict):
+        inventory.update(loaded_inventory)
+
+    tool_inventory_capabilities = inventory.get("formal_capabilities")
+    if isinstance(tool_inventory_capabilities, dict):
+        merged_formal_capabilities = {
+            **default_formal_capabilities,
+            **tool_inventory_capabilities,
+        }
+    else:
+        merged_formal_capabilities = dict(default_formal_capabilities)
+    inventory["formal_capabilities"] = merged_formal_capabilities
+
+    web3_formal_tools = list(
+        inventory.get("tools", [])
+        or inventory.get("web3_formal_tools", [])
+        or []
+    )
+    if not web3_formal_tools:
+        if merged_formal_capabilities.get("solidity_invariant_translation"):
+            web3_formal_tools.append(_WEB3_FORMAL_TOOL_NAMES[0])
+        if merged_formal_capabilities.get("symbolic_exploit_witness"):
+            web3_formal_tools.append(_WEB3_FORMAL_TOOL_NAMES[1])
+        if merged_formal_capabilities.get("composite_exploit_verification"):
+            web3_formal_tools.append(_WEB3_FORMAL_TOOL_NAMES[2])
+
+    normalized_tools = sorted(set(web3_formal_tools))
+    inventory["tools"] = normalized_tools
+    inventory["web3_formal_tools"] = normalized_tools
+
+    available = bool(inventory.get("available"))
+    if not available:
+        available = bool(normalized_tools) or any(
+            bool(value) for value in merged_formal_capabilities.values()
+        )
+    inventory["available"] = available
+
+    return inventory
+
+
 # =============================================================================
 # Pydantic Models
 # =============================================================================
@@ -1023,6 +1108,8 @@ class Z3ServiceBubble:
     
     def get_status(self) -> Dict[str, Any]:
         """Get comprehensive service status."""
+        web3_inventory = _normalize_web3_formal_inventory()
+        formal_capabilities = web3_inventory.get("formal_capabilities", {})
         return {
             "z3_available": Z3_AVAILABLE,
             "z3_advanced_available": Z3_ADVANCED_AVAILABLE,
@@ -1034,7 +1121,13 @@ class Z3ServiceBubble:
             "cav_nlp_enabled": USE_CAV_NLP,
             "request_count": self.solver.request_count,
             "cache_stats": self.cache.get_stats().to_dict() if self.cache else None,
-            "monitor_data": self.monitor.get_dashboard_data() if self.monitor else None
+            "monitor_data": self.monitor.get_dashboard_data() if self.monitor else None,
+            "web3_formal_available": bool(web3_inventory.get("available")),
+            "web3_formal_tools": list(web3_inventory.get("tools", []) or []),
+            "formal_capabilities": formal_capabilities,
+            "audit_exploit_verification_available": bool(
+                formal_capabilities.get("composite_exploit_verification")
+            ),
         }
 
 
@@ -1697,45 +1790,23 @@ async def canonicalize_constraint(request: CanonicalizeRequest):
 @app.get("/web3/status")
 async def get_web3_formal_status():
     """Get Web3 formal verification status for the Z3 service bubble."""
-    default_formal_capabilities = {
-        "solidity_invariant_translation": translate_solidity_assignment_to_z3 is not None,
-        "invariant_translation_verification": verify_solidity_invariant_translation is not None,
-        "symbolic_exploit_witness": solve_smart_contract_exploit_witness is not None,
-        "composite_exploit_verification": (
-            translate_solidity_assignment_to_z3 is not None
-            and solve_smart_contract_exploit_witness is not None
-        ),
-    }
-    inventory = {
-        "available": WEB3_FORMAL_AVAILABLE,
-        "tools": [],
-        "formal_capabilities": dict(default_formal_capabilities),
-    }
-    try:
-        from z3_mcp_tools import get_web3_formal_tool_inventory
-        loaded_inventory = get_web3_formal_tool_inventory()
-        if isinstance(loaded_inventory, dict):
-            inventory = loaded_inventory
-    except Exception as exc:
-        inventory["error"] = str(exc)
-
-    tool_inventory_capabilities = inventory.get("formal_capabilities")
-    if isinstance(tool_inventory_capabilities, dict):
-        merged_formal_capabilities = {**default_formal_capabilities, **tool_inventory_capabilities}
-    else:
-        merged_formal_capabilities = dict(default_formal_capabilities)
-    inventory["formal_capabilities"] = merged_formal_capabilities
-
+    inventory = _normalize_web3_formal_inventory()
+    merged_formal_capabilities = inventory.get("formal_capabilities", {})
     web3_formal_tools = list(inventory.get("tools", []) or [])
 
     return {
-        "available": WEB3_FORMAL_AVAILABLE,
-        "solidity_invariant_translation_available": translate_solidity_assignment_to_z3 is not None,
-        "invariant_translation_verification_available": verify_solidity_invariant_translation is not None,
-        "exploit_witness_available": solve_smart_contract_exploit_witness is not None,
-        "audit_exploit_verification_available": (
-            translate_solidity_assignment_to_z3 is not None
-            and solve_smart_contract_exploit_witness is not None
+        "available": bool(inventory.get("available")),
+        "solidity_invariant_translation_available": bool(
+            merged_formal_capabilities.get("solidity_invariant_translation")
+        ),
+        "invariant_translation_verification_available": bool(
+            merged_formal_capabilities.get("invariant_translation_verification")
+        ),
+        "exploit_witness_available": bool(
+            merged_formal_capabilities.get("symbolic_exploit_witness")
+        ),
+        "audit_exploit_verification_available": bool(
+            merged_formal_capabilities.get("composite_exploit_verification")
         ),
         "web3_formal_tools": web3_formal_tools,
         "formal_capabilities": merged_formal_capabilities,
