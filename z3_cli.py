@@ -25,6 +25,7 @@ CAV-NLP Commands:
 Web3 Formal Commands:
 - web3-translate-invariant: Translate Solidity updates to Z3/Lean invariants
 - web3-solve-witness: Solve symbolic exploit witness predicates
+- web3-audit-exploit-verification: Combined invariant + witness exploit verification
 
 Author: OpenEvolve
 Created: 2026-01-31
@@ -438,6 +439,74 @@ if CLICK_AVAILABLE:
                 echo(style("[OK] Exploit witness found (SAT)", fg='green'))
             else:
                 echo(style("[FAIL] No exploit witness found", fg='yellow'))
+        except Exception as e:
+            echo(style(f"Error: {e}", fg='red'), err=True)
+            sys.exit(1)
+
+
+    @cli.command('web3-audit-exploit-verification')
+    @click.argument('statement', type=str, required=False, default='balance[msg.sender] -= amount;')
+    @click.option('--non-negative-target/--allow-negative-target', default=True)
+    @click.option('--max-withdraw-expr', help='Optional withdrawal upper-bound expression')
+    @click.option('--verify/--no-verify', default=True)
+    @click.option('--constraints', '-c', help='JSON array of additional constraints')
+    @click.option('--timeout', '-t', default=10.0, type=float)
+    @click.option('--output', '-o', help='Output file')
+    @click.option('--format', 'output_format', default='json', type=click.Choice(['json', 'yaml', 'text']))
+    def web3_audit_exploit_verification(
+        statement,
+        non_negative_target,
+        max_withdraw_expr,
+        verify,
+        constraints,
+        timeout,
+        output,
+        output_format,
+    ):
+        """Run combined Web3 exploit verification (translate + verify + witness)."""
+        try:
+            from z3prover_integration import (
+                solve_smart_contract_exploit_witness,
+                translate_solidity_assignment_to_z3,
+                verify_solidity_invariant_translation,
+            )
+
+            parsed_constraints = []
+            if constraints:
+                parsed_constraints = json.loads(constraints)
+                if not isinstance(parsed_constraints, list):
+                    raise ValueError("--constraints must be a JSON list of strings")
+
+            translation = translate_solidity_assignment_to_z3(
+                statement=statement,
+                non_negative_target=non_negative_target,
+                max_withdraw_expr=max_withdraw_expr,
+            )
+            verification = None
+            if verify:
+                verification = verify_solidity_invariant_translation(
+                    translation=translation,
+                    assume_non_negative_amount=True,
+                )
+
+            witness = solve_smart_contract_exploit_witness(
+                additional_constraints=parsed_constraints,
+                timeout=timeout,
+            )
+
+            verified_exploit = bool(witness.get("satisfiable", False))
+            if verify and isinstance(verification, dict):
+                verified_exploit = verified_exploit and bool(verification.get("proven", False))
+
+            result = {
+                "success": True,
+                "translation": translation,
+                "verification": verification,
+                "exploit_witness": witness,
+                "verified_exploit": verified_exploit,
+            }
+            _output_result(result, output, output_format)
+            echo(style("[OK] Web3 exploit verification complete", fg='green'))
         except Exception as e:
             echo(style(f"Error: {e}", fg='red'), err=True)
             sys.exit(1)
@@ -1364,6 +1433,7 @@ else:
         print("\nWeb3 Formal Commands:")
         print("  z3 web3-translate-invariant <statement> [--verify]")
         print("  z3 web3-solve-witness [--constraints '[]'] [--timeout 10]")
+        print("  z3 web3-audit-exploit-verification [statement] [--verify] [--constraints '[]']")
 
 
 if __name__ == "__main__":

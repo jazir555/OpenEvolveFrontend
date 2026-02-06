@@ -26,6 +26,32 @@ default:
   presence_penalty: 0.0
   seed: 42
 
+  # Lean 4 / LeanAide Configuration
+  lean_aide:
+    enabled: true
+    lean_executable: "lean"
+    lake_executable: "lake"
+    auto_verify_proofs: true
+    verification_depth: 100
+    timeout_seconds: 120.0
+    mathlib_path: null  # Auto-detected if null
+    mathlib_auto_detect: true
+    domains:
+      - "mathlib"
+      - "analysis"
+      - "algebra"
+      - "topology"
+      - "number_theory"
+    stage_3c_enabled: true
+    stage_5_enabled: true
+    server_host: "localhost"
+    server_port: 7654
+    server_auto_start: true
+    enable_caching: true
+    cache_ttl_seconds: 3600
+    max_concurrent_requests: 4
+    memory_limit_mb: 4096
+
   performance_optimization:
     caching:
       enabled: true
@@ -64,3 +90,42 @@ default:
 production:
   openevolve_base_url: "https://api.openevolve.com"
   openevolve_api_key: "your-production-api-key"
+  
+  lean_aide:
+    enabled: true
+    auto_verify_proofs: true
+    verification_depth: 200
+    timeout_seconds: 300.0
+    server_auto_start: false  # Assume production server is manually managed
+    enable_caching: true
+    cache_ttl_seconds: 7200
+    max_concurrent_requests: 8
+
+staging:
+  openevolve_base_url: "https://staging.openevolve.com"
+  openevolve_api_key: "your-staging-api-key"
+  
+  lean_aide:
+    enabled: true
+    auto_verify_proofs: true
+    verification_depth: 150
+    timeout_seconds: 180.0
+    server_auto_start: true
+
+development:
+  lean_aide:
+    enabled: true
+    auto_verify_proofs: true
+    verification_depth: 50
+    timeout_seconds: 60.0
+    server_auto_start: true
+    enable_caching: false  # Disable caching in dev for faster iteration
+
+testing:
+  lean_aide:
+    enabled: true
+    auto_verify_proofs: false  # Skip verification in tests for speed
+    verification_depth: 10
+    timeout_seconds: 30.0
+    server_auto_start: false
+    enable_caching: false

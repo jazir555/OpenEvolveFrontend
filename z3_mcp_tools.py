@@ -1389,11 +1389,108 @@ async def z3_solve_smart_contract_exploit_witness(
         }
 
 
+@MCPTool(
+    name="z3_web3_audit_exploit_verification",
+    description="Run full Web3 formal pass: invariant translation + optional verification + exploit witness solving",
+    parameters={
+        "statement": {
+            "type": "string",
+            "description": "Solidity assignment/update statement to translate",
+            "optional": True,
+            "default": "balance[msg.sender] -= amount;"
+        },
+        "non_negative_target": {
+            "type": "boolean",
+            "description": "Add non-negative target invariant",
+            "optional": True,
+            "default": True
+        },
+        "max_withdraw_expr": {
+            "type": "string",
+            "description": "Optional withdrawal upper-bound expression",
+            "optional": True
+        },
+        "verify_translation": {
+            "type": "boolean",
+            "description": "Run Z3 invariant implication check",
+            "optional": True,
+            "default": True
+        },
+        "assume_non_negative_amount": {
+            "type": "boolean",
+            "description": "When verifying, assume amount >= 0",
+            "optional": True,
+            "default": True
+        },
+        "additional_constraints": {
+            "type": "array",
+            "description": "Optional additional SMT constraints for witness search",
+            "items": {"type": "string"},
+            "optional": True
+        },
+        "timeout": {
+            "type": "number",
+            "description": "Solver timeout in seconds",
+            "optional": True,
+            "default": 10.0
+        },
+    }
+)
+async def z3_web3_audit_exploit_verification(
+    statement: str = "balance[msg.sender] -= amount;",
+    non_negative_target: bool = True,
+    max_withdraw_expr: Optional[str] = None,
+    verify_translation: bool = True,
+    assume_non_negative_amount: bool = True,
+    additional_constraints: Optional[List[str]] = None,
+    timeout: float = 10.0,
+) -> Dict[str, Any]:
+    """Run combined Web3 exploit verification workflow with Z3 tools."""
+    if translate_solidity_assignment_to_z3 is None:
+        return {"success": False, "error": "Solidity invariant translation is unavailable"}
+    if solve_smart_contract_exploit_witness is None:
+        return {"success": False, "error": "Smart contract exploit witness solver is unavailable"}
+
+    try:
+        translation = translate_solidity_assignment_to_z3(
+            statement=statement,
+            non_negative_target=non_negative_target,
+            max_withdraw_expr=max_withdraw_expr,
+        )
+        verification: Optional[Dict[str, Any]] = None
+        if verify_translation and verify_solidity_invariant_translation is not None:
+            verification = verify_solidity_invariant_translation(
+                translation=translation,
+                assume_non_negative_amount=assume_non_negative_amount,
+            )
+        witness = solve_smart_contract_exploit_witness(
+            additional_constraints=additional_constraints,
+            timeout=timeout,
+        )
+        verified_exploit = bool(witness.get("satisfiable", False))
+        if verify_translation and isinstance(verification, dict):
+            verified_exploit = verified_exploit and bool(verification.get("proven", False))
+
+        return {
+            "success": True,
+            "translation": translation,
+            "verification": verification,
+            "exploit_witness": witness,
+            "verified_exploit": verified_exploit,
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
 def get_web3_formal_tool_inventory() -> Dict[str, Any]:
     """Return Web3 formal-verification MCP tool inventory from the Z3 service."""
     tools = sorted([
         "z3_translate_solidity_invariant",
         "z3_solve_smart_contract_exploit_witness",
+        "z3_web3_audit_exploit_verification",
     ])
     return {
         "available": WEB3_FORMAL_AVAILABLE,
@@ -1402,6 +1499,10 @@ def get_web3_formal_tool_inventory() -> Dict[str, Any]:
             "solidity_invariant_translation": translate_solidity_assignment_to_z3 is not None,
             "invariant_translation_verification": verify_solidity_invariant_translation is not None,
             "symbolic_exploit_witness": solve_smart_contract_exploit_witness is not None,
+            "composite_exploit_verification": (
+                translate_solidity_assignment_to_z3 is not None
+                and solve_smart_contract_exploit_witness is not None
+            ),
         },
     }
 

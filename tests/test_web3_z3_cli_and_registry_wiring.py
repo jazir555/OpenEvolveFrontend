@@ -33,3 +33,4 @@ def test_z3_cli_exposes_web3_commands():
     command_names = set(z3_cli.cli.commands.keys())
     assert "web3-translate-invariant" in command_names
     assert "web3-solve-witness" in command_names
+    assert "web3-audit-exploit-verification" in command_names

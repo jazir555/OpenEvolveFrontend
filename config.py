@@ -220,6 +220,76 @@ class APIConfig:
 
 
 # =============================================================================
+# Lean 4 / LeanAide Configuration
+# =============================================================================
+
+@dataclass
+class LeanAideConfig:
+    """
+    Configuration for Lean 4 / LeanAide integration.
+    
+    LeanAide provides autoformalization and proof verification
+    capabilities using Lean 4 theorem prover.
+    """
+    
+    # Enable/disable Lean integration
+    enabled: bool = True
+    
+    # Executable paths
+    lean_executable: str = "lean"
+    lake_executable: str = "lake"
+    
+    # Verification settings
+    auto_verify_proofs: bool = True
+    verification_depth: int = 100
+    timeout_seconds: float = 120.0
+    
+    # Mathlib configuration
+    mathlib_path: Optional[str] = None
+    mathlib_auto_detect: bool = True
+    
+    # Domain support
+    domains: List[str] = field(default_factory=lambda: [
+        "mathlib",
+        "analysis",
+        "algebra",
+        "topology",
+        "number_theory"
+    ])
+    
+    # Stage integration
+    stage_3c_enabled: bool = True  # PES Stage 3C
+    stage_5_enabled: bool = True   # PES Stage 5
+    
+    # Server configuration
+    server_host: str = "localhost"
+    server_port: int = 7654
+    server_auto_start: bool = True
+    
+    # Caching
+    enable_caching: bool = True
+    cache_ttl_seconds: int = 3600
+    
+    # Performance
+    max_concurrent_requests: int = 4
+    memory_limit_mb: int = 4096
+    
+    def __post_init__(self):
+        """Auto-detect mathlib path if not specified."""
+        if self.mathlib_auto_detect and self.mathlib_path is None:
+            possible_paths = [
+                Path.cwd() / "lean_workspace" / "mathlib_project",
+                Path.cwd() / "mathlib_project",
+                Path.home() / ".lean" / "mathlib4",
+                Path.home() / "Documents" / "OpenEvolve" / "Frontend" / "lean_workspace" / "mathlib_project",
+            ]
+            for path in possible_paths:
+                if path.exists():
+                    self.mathlib_path = str(path)
+                    break
+
+
+# =============================================================================
 # PES Enhanced Configuration
 # =============================================================================
 
@@ -316,6 +386,7 @@ class RESEConfig:
     api: APIConfig = field(default_factory=APIConfig)
     monitoring: MonitoringConfig = field(default_factory=MonitoringConfig)
     pes_enhanced: PESEnhancedConfig = field(default_factory=PESEnhancedConfig)
+    lean_aide: LeanAideConfig = field(default_factory=LeanAideConfig)
 
     # Paths
     base_path: Path = field(default_factory=lambda: Path.cwd())
@@ -379,11 +450,12 @@ class RESEConfig:
         api = APIConfig(**data.get('api', {}))
         monitoring = MonitoringConfig(**data.get('monitoring', {}))
         pes_enhanced = PESEnhancedConfig(**data.get('pes_enhanced', {}))
+        lean_aide = LeanAideConfig(**data.get('lean_aide', {}))
 
         # Create main config
         config_data = {k: v for k, v in data.items()
                       if k not in ['phase1', 'phase2', 'phase3', 'phase4',
-                                   'pipeline', 'api', 'monitoring', 'pes_enhanced']}
+                                   'pipeline', 'api', 'monitoring', 'pes_enhanced', 'lean_aide']}
 
         return cls(
             phase1=phase1,
@@ -394,6 +466,7 @@ class RESEConfig:
             api=api,
             monitoring=monitoring,
             pes_enhanced=pes_enhanced,
+            lean_aide=lean_aide,
             **config_data
         )
 
@@ -416,6 +489,7 @@ class RESEConfig:
             'api': asdict(self.api),
             'monitoring': asdict(self.monitoring),
             'pes_enhanced': asdict(self.pes_enhanced),
+            'lean_aide': asdict(self.lean_aide),
             'base_path': str(self.base_path),
             'data_path': str(self.data_path) if self.data_path else None,
             'cache_path': str(self.cache_path) if self.cache_path else None,
@@ -629,6 +703,7 @@ __all__ = [
     'APIConfig',
     'MonitoringConfig',
     'PESEnhancedConfig',
+    'LeanAideConfig',
 
     # Enums
     'Environment',

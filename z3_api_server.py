@@ -439,6 +439,29 @@ class Web3ExploitWitnessRequest(BaseModel):
     timeout_seconds: float = Field(10.0, ge=0.1, le=120.0)
 
 
+class Web3AuditExploitVerificationRequest(BaseModel):
+    """Request model for combined Web3 invariant translation + exploit witness check."""
+    statement: str = Field(
+        "balance[msg.sender] -= amount;",
+        description="Solidity state transition statement to translate",
+    )
+    non_negative_target: bool = Field(True, description="Add non-negative target invariant")
+    max_withdraw_expr: Optional[str] = Field(
+        None,
+        description="Optional max-withdraw expression for withdrawal-bound invariants",
+    )
+    verify_translation: bool = Field(True, description="Run Z3 invariant implication check")
+    assume_non_negative_amount: bool = Field(
+        True,
+        description="When verifying translation, assume amount >= 0",
+    )
+    additional_constraints: Optional[List[str]] = Field(
+        None,
+        description="Optional extra SMT constraints for witness solving",
+    )
+    timeout_seconds: float = Field(10.0, ge=0.1, le=120.0)
+
+
 # =============================================================================
 # WebSocket Connection Manager
 # =============================================================================
@@ -1692,6 +1715,10 @@ async def get_web3_formal_status():
         "solidity_invariant_translation_available": translate_solidity_assignment_to_z3 is not None,
         "invariant_translation_verification_available": verify_solidity_invariant_translation is not None,
         "exploit_witness_available": solve_smart_contract_exploit_witness is not None,
+        "audit_exploit_verification_available": (
+            translate_solidity_assignment_to_z3 is not None
+            and solve_smart_contract_exploit_witness is not None
+        ),
         "tool_inventory": inventory,
     }
 
@@ -1737,6 +1764,53 @@ async def web3_symbolic_witness(request: Web3ExploitWitnessRequest):
             timeout=request.timeout_seconds,
         )
         return {"success": True, "result": witness}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/web3/audit/exploit-verification")
+async def web3_audit_exploit_verification(request: Web3AuditExploitVerificationRequest):
+    """Run combined Web3 invariant translation + symbolic exploit witness solving."""
+    if translate_solidity_assignment_to_z3 is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Solidity invariant translation unavailable",
+        )
+    if solve_smart_contract_exploit_witness is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Smart contract exploit witness solver unavailable",
+        )
+
+    try:
+        translation = translate_solidity_assignment_to_z3(
+            statement=request.statement,
+            non_negative_target=request.non_negative_target,
+            max_withdraw_expr=request.max_withdraw_expr,
+        )
+        verification: Optional[Dict[str, Any]] = None
+        if request.verify_translation and verify_solidity_invariant_translation is not None:
+            verification = verify_solidity_invariant_translation(
+                translation=translation,
+                assume_non_negative_amount=request.assume_non_negative_amount,
+            )
+
+        witness = solve_smart_contract_exploit_witness(
+            additional_constraints=request.additional_constraints,
+            timeout=request.timeout_seconds,
+        )
+
+        verified_exploit = bool(witness.get("satisfiable", False))
+        if request.verify_translation and isinstance(verification, dict):
+            verified_exploit = verified_exploit and bool(verification.get("proven", False))
+
+        return {
+            "success": True,
+            "translation": translation,
+            "verification": verification,
+            "exploit_witness": witness,
+            "verified_exploit": verified_exploit,
+        }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
