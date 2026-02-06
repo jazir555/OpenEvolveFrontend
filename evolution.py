@@ -58,7 +58,7 @@ try:
     from blue_team import BlueTeam, BlueTeamAssessment, FixSuggestion, FixType
     from evaluator_team import EvaluatorTeam, EvaluatorAssessment, EvaluationMetric
     from team_manager import TeamManager
-    from gauntlet_manager import GauntletManager
+    # GauntletManager removed to break circular dependency
     TEAM_SYSTEM_AVAILABLE = True
 except ImportError as e:
     TEAM_SYSTEM_AVAILABLE = False
@@ -1078,6 +1078,35 @@ class EvolutionMetrics:
     execution_time: float = 0.0
     success: bool = False
     error_message: Optional[str] = None
+
+
+class EvolutionEngine:
+    """
+    Evolution Engine for code generation and optimization.
+    Main entry point for evolutionary workflows.
+    """
+    def __init__(self, config: Optional[Union[Dict[str, Any], EvolutionConfiguration]] = None):
+        if isinstance(config, dict):
+            # Convert dict to EvolutionConfiguration
+            self.config = EvolutionConfiguration()
+            for k, v in config.items():
+                if hasattr(self.config, k):
+                    setattr(self.config, k, v)
+        else:
+            self.config = config or EvolutionConfiguration()
+            
+    def evolve(self, content: str, content_type: str = "document_general", **kwargs) -> str:
+        """Run evolution loop on content."""
+        return run_evolution_loop(content, content_type, self.config, **kwargs)
+        
+    async def evolve_async(self, content: str, content_type: str = "document_general", **kwargs) -> str:
+        """Run evolution loop on content asynchronously."""
+        # Simple wrapper for now as run_evolution_loop is synchronous
+        return self.evolve(content, content_type, **kwargs)
+        
+    def run_evolution(self, *args, **kwargs):
+        """Bridge to run_evolution_loop for compatibility."""
+        return run_evolution_loop(*args, **kwargs)
 
 
 def _run_problem_decomposition_enhanced(
@@ -2865,8 +2894,10 @@ def run_adversarial_evolution_with_teams(
     
     # Initialize team system
     if team_manager is None:
+        from team_manager import TeamManager
         team_manager = TeamManager()
     if gauntlet_manager is None:
+        from gauntlet_manager import GauntletManager
         gauntlet_manager = GauntletManager()
     
     # Initialize teams
@@ -3231,8 +3262,10 @@ def run_gauntlet_evolution(
     
     # Initialize managers
     if gauntlet_manager is None:
+        from gauntlet_manager import GauntletManager
         gauntlet_manager = GauntletManager()
     if team_manager is None:
+        from team_manager import TeamManager
         team_manager = TeamManager()
     
     # Load gauntlet
@@ -3309,6 +3342,7 @@ def create_adaptive_gauntlet(
         return None
     
     if gauntlet_manager is None:
+        from gauntlet_manager import GauntletManager
         gauntlet_manager = GauntletManager()
     
     _update_evolution_log_and_status(f"🔄 Creating adaptive gauntlet based on {base_gauntlet_name}")

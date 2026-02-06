@@ -128,6 +128,17 @@ def test_bubblelabs_web3_status_shape():
     assert "tool_inventory" in status
 
 
+def test_bubblelabs_leanaide_bridge_status_exposes_audit_flag():
+    import bubblelabs_extended_integration as bubblelabs_ext
+
+    bridge = bubblelabs_ext.LeanAideIntegrationBridge()
+    status = bridge.get_status()
+    assert "web3_formal_available" in status
+    assert "web3_formal_tools" in status
+    assert "formal_capabilities" in status
+    assert "audit_exploit_verification_available" in status
+
+
 def test_bubblelabs_security_validation_accepts_web3_aliases():
     assert validate_sec_workflow_type("web3") == "web3"
     assert validate_sec_workflow_type("smart_contract_audit") == "web3"
@@ -223,6 +234,8 @@ def test_mcp_inventory_exposes_web3_formal_tools(monkeypatch):
         set(inventory.get("web3_tools", []))
     )
     assert inventory.get("formal_capabilities", {}).get("composite_exploit_verification") is True
+    assert inventory.get("web3_formal_available") is True
+    assert inventory.get("audit_exploit_verification_available") is True
 
 
 def test_mcp_inventory_infers_formal_tools_from_capabilities(monkeypatch):
@@ -245,9 +258,13 @@ def test_mcp_inventory_infers_formal_tools_from_capabilities(monkeypatch):
         "z3_solve_smart_contract_exploit_witness",
         "z3_web3_audit_exploit_verification",
     }.issubset(set(inventory.get("web3_formal_tools", [])))
+    assert inventory.get("web3_formal_available") is True
+    assert inventory.get("audit_exploit_verification_available") is True
     status = decomp_mcp_tools.get_decomposition_status()
     formal_tools = set(status["mcp_tool_inventory"].get("web3_formal_tools", []))
     assert "z3_web3_audit_exploit_verification" in formal_tools
+    assert status["mcp_tool_inventory"]["web3_formal_available"] is True
+    assert status["mcp_tool_inventory"]["audit_exploit_verification_available"] is True
     assert status["mcp_tool_inventory"]["formal_capabilities"]["composite_exploit_verification"] is True
 
 

@@ -47,6 +47,8 @@ def test_mcp_inventory_exposes_web3_ingestion_tools():
     }
     assert expected_tools.issubset(set(inventory["tools"]))
     assert expected_tools.issubset(set(inventory["web3_tools"]))
+    assert "web3_formal_available" in inventory
+    assert "audit_exploit_verification_available" in inventory
 
 
 def test_enhanced_recomposition_runs_defi_gauntlet_for_web3_context():

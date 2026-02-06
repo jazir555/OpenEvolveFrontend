@@ -262,7 +262,11 @@ def _normalize_web3_formal_inventory(inventory: Optional[Dict[str, Any]]) -> Dic
         {
             "available": available,
             "tools": sorted(set(tools)),
+            "web3_formal_tools": sorted(set(tools)),
             "formal_capabilities": merged_capabilities,
+            "audit_exploit_verification_available": bool(
+                merged_capabilities.get("composite_exploit_verification")
+            ),
         }
     )
     return inv
@@ -1800,6 +1804,10 @@ def get_mcp_tool_inventory() -> Dict[str, Any]:
             "foundry": FOUNDRY_AVAILABLE,
             "web3_formal": bool(formal_inventory.get("available")),
         },
+        "web3_formal_available": bool(formal_inventory.get("available")),
+        "audit_exploit_verification_available": bool(
+            formal_inventory.get("formal_capabilities", {}).get("composite_exploit_verification")
+        ),
         "formal_capabilities": formal_inventory.get("formal_capabilities", {}),
     }
 
@@ -1911,6 +1919,12 @@ def get_decomposition_status() -> Dict[str, Any]:
             "web3_ingestion_tools": web3_ingestion_tools,
             "web3_formal_tools": web3_formal_tools,
             "web3_tools": web3_tools,
+            "web3_formal_available": bool(formal_inventory.get("available")),
+            "audit_exploit_verification_available": bool(
+                formal_inventory.get("formal_capabilities", {}).get(
+                    "composite_exploit_verification"
+                )
+            ),
             "formal_capabilities": formal_inventory.get("formal_capabilities", {}),
         },
     }

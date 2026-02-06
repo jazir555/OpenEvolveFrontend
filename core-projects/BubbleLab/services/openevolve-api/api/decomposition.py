@@ -153,6 +153,9 @@ def _normalize_web3_tool_inventory(raw_inventory: Optional[Dict[str, Any]]) -> D
             "web3_formal_tools": web3_formal_tools,
             "formal_capabilities": formal_capabilities,
             "web3_formal_available": web3_formal_available,
+            "audit_exploit_verification_available": bool(
+                formal_capabilities.get("composite_exploit_verification")
+            ),
         }
     )
     return inventory

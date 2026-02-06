@@ -26,6 +26,8 @@ def test_crewai_tools_status_infers_web3_formal_tools_from_capabilities(monkeypa
         "z3_web3_audit_exploit_verification",
     }.issubset(set(status["web3_formal_tools"]))
     assert status["formal_capabilities"]["composite_exploit_verification"] is True
+    assert status["web3_formal_available"] is True
+    assert status["audit_exploit_verification_available"] is True
     assert status["web3_domain_extension_available"] is True
 
 
@@ -50,4 +52,6 @@ def test_crewai_bridge_status_infers_web3_formal_tools_from_capabilities(monkeyp
         "z3_web3_audit_exploit_verification",
     }.issubset(set(status["web3_formal_tools"]))
     assert status["formal_capabilities"]["composite_exploit_verification"] is True
+    assert status["web3_formal_available"] is True
+    assert status["audit_exploit_verification_available"] is True
     assert status["web3_domain_extension_available"] is True

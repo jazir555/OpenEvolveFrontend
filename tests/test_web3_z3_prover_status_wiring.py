@@ -10,6 +10,7 @@ def test_z3_solver_engine_status_exposes_web3_formal_schema():
     assert "web3_formal_available" in status
     assert "web3_formal_tools" in status
     assert "formal_capabilities" in status
+    assert "audit_exploit_verification_available" in status
 
 
 def test_z3_solver_engine_status_includes_composite_capability():

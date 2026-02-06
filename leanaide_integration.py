@@ -177,11 +177,18 @@ class LeanAIDEIntegration:
             web3_formal_tools.append("z3_solve_smart_contract_exploit_witness")
         if formal_capabilities["composite_exploit_verification"]:
             web3_formal_tools.append("z3_web3_audit_exploit_verification")
+        web3_formal_tools = sorted(set(web3_formal_tools))
+        inferred_formal_available = bool(web3_formal_tools) or any(
+            bool(v) for v in formal_capabilities.values()
+        )
         return {
-            "available": bool(web3_formal_tools),
-            "web3_formal_available": bool(web3_formal_tools),
+            "available": inferred_formal_available,
+            "web3_formal_available": inferred_formal_available,
             "web3_formal_tools": web3_formal_tools,
             "formal_capabilities": formal_capabilities,
+            "audit_exploit_verification_available": bool(
+                formal_capabilities.get("composite_exploit_verification")
+            ),
         }
 
     def get_status(self) -> Dict[str, Any]:
@@ -195,6 +202,9 @@ class LeanAIDEIntegration:
             "web3_formal_available": web3_status["web3_formal_available"],
             "web3_formal_tools": web3_status["web3_formal_tools"],
             "formal_capabilities": web3_status["formal_capabilities"],
+            "audit_exploit_verification_available": web3_status[
+                "audit_exploit_verification_available"
+            ],
         }
 
     def verify_theorem(

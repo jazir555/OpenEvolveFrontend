@@ -200,6 +200,7 @@ async def test_decomposition_plan_includes_web3_artifacts(monkeypatch):
         "z3_web3_audit_exploit_verification",
     }.issubset(set(inventory.get("web3_formal_tools", [])))
     assert inventory.get("formal_capabilities", {}).get("composite_exploit_verification") is True
+    assert inventory.get("audit_exploit_verification_available") is True
 
 
 def test_decomposition_inventory_infers_formal_tools_from_capabilities():
@@ -219,3 +220,4 @@ def test_decomposition_inventory_infers_formal_tools_from_capabilities():
         "z3_web3_audit_exploit_verification",
     }.issubset(set(normalized.get("web3_formal_tools", [])))
     assert normalized.get("web3_formal_available") is True
+    assert normalized.get("audit_exploit_verification_available") is True

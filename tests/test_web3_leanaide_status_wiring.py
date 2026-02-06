@@ -11,6 +11,7 @@ def test_root_leanaide_web3_formal_status_schema():
     assert "web3_formal_available" in status
     assert "web3_formal_tools" in status
     assert "formal_capabilities" in status
+    assert "audit_exploit_verification_available" in status
 
 
 def test_bubblelabs_leanaide_bridge_status_exposes_web3_formal_schema():
@@ -19,3 +20,4 @@ def test_bubblelabs_leanaide_bridge_status_exposes_web3_formal_schema():
     assert "web3_formal_available" in status
     assert "web3_formal_tools" in status
     assert "formal_capabilities" in status
+    assert "audit_exploit_verification_available" in status

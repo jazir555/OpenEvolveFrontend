@@ -381,6 +381,10 @@ class Z3SolverEngine:
             web3_formal_tools.append("z3_solve_smart_contract_exploit_witness")
         if web3_formal_capabilities["composite_exploit_verification"]:
             web3_formal_tools.append("z3_web3_audit_exploit_verification")
+        web3_formal_tools = sorted(set(web3_formal_tools))
+        inferred_formal_available = bool(web3_formal_tools) or any(
+            bool(v) for v in web3_formal_capabilities.values()
+        )
 
         status = {
             "z3_available": Z3_AVAILABLE,
@@ -389,9 +393,12 @@ class Z3SolverEngine:
             "statistics": self._stats.copy(),
             "solver_id": self._solver_id,
             "pool_registered": self._pool is not None,
-            "web3_formal_available": bool(web3_formal_tools),
+            "web3_formal_available": inferred_formal_available,
             "web3_formal_tools": web3_formal_tools,
             "formal_capabilities": web3_formal_capabilities,
+            "audit_exploit_verification_available": bool(
+                web3_formal_capabilities.get("composite_exploit_verification")
+            ),
         }
         
         # Add pool metrics if available

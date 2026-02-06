@@ -407,6 +407,10 @@ class LeanAideIntegrationBridge:
                 web3_formal_tools.append("z3_solve_smart_contract_exploit_witness")
             if formal_capabilities["composite_exploit_verification"]:
                 web3_formal_tools.append("z3_web3_audit_exploit_verification")
+            web3_formal_tools = sorted(set(web3_formal_tools))
+            inferred_formal_available = bool(web3_formal_tools) or any(
+                bool(v) for v in formal_capabilities.values()
+            )
 
             status = {
                 "leanaide_available": LEANAIDE_AVAILABLE,
@@ -420,9 +424,12 @@ class LeanAideIntegrationBridge:
                 "active_trees": len(self._active_trees),
                 "active_proofs": len(self._active_proofs),
                 "execution_history_count": len(self._execution_history),
-                "web3_formal_available": bool(web3_formal_tools),
+                "web3_formal_available": inferred_formal_available,
                 "web3_formal_tools": web3_formal_tools,
                 "formal_capabilities": formal_capabilities,
+                "audit_exploit_verification_available": bool(
+                    formal_capabilities.get("composite_exploit_verification")
+                ),
             }
 
             # Check LeanAide server status

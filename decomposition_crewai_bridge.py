@@ -29,8 +29,7 @@ from typing import Dict, Any, List, Optional
 
 # Import CrewAI zero-error workflow
 from crewai_zero_error_workflow import (
-    CrewAIZeroErrorWorkflow,
-    ZeroErrorConfig,
+    ZeroErrorWorkflow,
     create_zero_error_workflow,
     create_zero_error_config,
 )
@@ -801,6 +800,9 @@ def get_decomposition_status() -> Dict[str, Any]:
                 *web3_formal_tools,
             }
         )
+    web3_formal_available = bool(web3_formal_tools) or any(
+        bool(v) for v in formal_capabilities.values()
+    )
 
     return {
         "decomposition_available": True,
@@ -811,6 +813,10 @@ def get_decomposition_status() -> Dict[str, Any]:
         "web3_tools": web3_tools,
         "web3_formal_tools": web3_formal_tools,
         "formal_capabilities": formal_capabilities,
+        "web3_formal_available": web3_formal_available,
+        "audit_exploit_verification_available": bool(
+            formal_capabilities.get("composite_exploit_verification")
+        ),
         "web3_domain_extension_available": bool(web3_tools),
     }
 
