@@ -26,6 +26,8 @@ import { WorkflowVisualizationTab } from './WorkflowVisualizationTab';
 import { NotificationsTab } from './NotificationsTab';
 import { SuggestionsTab } from './SuggestionsTab';
 import { SettingsTab } from './SettingsTab';
+import { VersionControlTab } from './VersionControlTab';
+import { ValidationManagerTab } from './ValidationManagerTab';
 import { SovereignDashboardTab } from './SovereignDashboardTab';
 import { CollaborationTab } from './CollaborationTab';
 import { DependencyGraphTab } from './DependencyGraphTab';
@@ -40,6 +42,7 @@ import { RbacTab } from './RbacTab';
 import { ModelOrchestrationTab } from './ModelOrchestrationTab';
 import { ResourceManagerTab } from './ResourceManagerTab';
 import { BubbleLabsIntegrationTab } from './BubbleLabsIntegrationTab';
+import { WorkflowLifecycleTab } from './WorkflowLifecycleTab';
 import { MakerStudioTab } from './MakerStudioTab';
 import { KnowledgeExplorerTab } from './KnowledgeExplorerTab';
 import { LeanAideTab } from './LeanAideTab';
@@ -131,6 +134,8 @@ export const OpenEvolveApp: React.FC = () => {
                 <TabsTrigger value="notifications">Notifications</TabsTrigger>
                 <TabsTrigger value="suggestions">Suggestions</TabsTrigger>
                 <TabsTrigger value="settings">Settings</TabsTrigger>
+                <TabsTrigger value="version-control">Version Control</TabsTrigger>
+                <TabsTrigger value="validation-manager">Validation Manager</TabsTrigger>
                 <TabsTrigger value="sovereign">Sovereign</TabsTrigger>
                 <TabsTrigger value="prompts">Prompts</TabsTrigger>
                 <TabsTrigger value="content">Content Tools</TabsTrigger>
@@ -143,6 +148,7 @@ export const OpenEvolveApp: React.FC = () => {
                 <TabsTrigger value="model-orchestration">Model Orchestration</TabsTrigger>
                 <TabsTrigger value="resource-manager">Resource Manager</TabsTrigger>
                 <TabsTrigger value="bubblelabs">BubbleLabs</TabsTrigger>
+                <TabsTrigger value="workflow-lifecycle">Workflow Lifecycle</TabsTrigger>
                 <TabsTrigger value="maker-studio">Maker Studio</TabsTrigger>
                 <TabsTrigger value="knowledge-explorer">Knowledge Explorer</TabsTrigger>
                 <TabsTrigger value="leanaide">LeanAide</TabsTrigger>
@@ -266,6 +272,14 @@ export const OpenEvolveApp: React.FC = () => {
                 <SettingsTab />
               </TabsContent>
 
+              <TabsContent value="version-control" className="mt-6">
+                <VersionControlTab />
+              </TabsContent>
+
+              <TabsContent value="validation-manager" className="mt-6">
+                <ValidationManagerTab />
+              </TabsContent>
+              
               <TabsContent value="sovereign" className="mt-6">
                 <SovereignDashboardTab />
               </TabsContent>
@@ -314,6 +328,10 @@ export const OpenEvolveApp: React.FC = () => {
                 <BubbleLabsIntegrationTab />
               </TabsContent>
 
+              <TabsContent value="workflow-lifecycle" className="mt-6">
+                <WorkflowLifecycleTab />
+              </TabsContent>
+              
               <TabsContent value="maker-studio" className="mt-6">
                 <MakerStudioTab />
               </TabsContent>

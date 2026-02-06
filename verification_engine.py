@@ -10,6 +10,8 @@ Key Features:
 - Multi-dimensional quality scoring
 - Formal verification with Z3 SMT solver
 - Theorem proving with LeanAIDE
+- **CAV-NLP Integration**: Hybrid Z3 + Lean verification via UnifiedMathService
+- **Natural Language Formalization**: Auto-convert NL to formal specifications
 - Comprehensive error handling
 - Type hints throughout
 - Production-ready logging and monitoring
@@ -19,10 +21,21 @@ Key Features:
 - **INTEGRATED ALERTING**: All verification failures trigger alerts
 - **INTEGRATED KNOWLEDGE**: Learns from verified knowledge
 
+CAV-NLP Configuration:
+    Enable CAV-NLP by setting use_cav_nlp=True in config:
+    
+    engine = VerificationEngine(config={'use_cav_nlp': True})
+    
+    Then use the hybrid verification:
+    result = await engine.verify_hybrid(code="theorem statement...", language="hybrid")
+    
+    Or formalize and verify natural language:
+    result = await engine.formalize_and_verify("Prove that for all n > 0, n^2 > 0")
+
 Author: OpenEvolve Frontend Team
-Version: 2.1.0
+Version: 2.2.0
 Created: 2026-01-22
-Updated: 2026-02-02 (Added formal verification + integrated alerting + knowledge)
+Updated: 2026-02-05 (Added CAV-NLP hybrid verification)
 """
 
 import logging
@@ -100,6 +113,25 @@ except ImportError:
         LEANAIDE_AVAILABLE = False
         LeanAIDEVerifier = None
         logger.warning("LeanAIDE verifier not available - theorem proving limited")
+
+# CAV-NLP Integration (Hybrid Z3 + Lean verification)
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    CAV_NLP_AVAILABLE = True
+    logger.info("CAV-NLP integration available")
+except ImportError:
+    try:
+        # Try alternate import paths
+        from unified_math_service import UnifiedMathService
+        from z3_cav_nlp_integration import EnhancedZ3Solver
+        CAV_NLP_AVAILABLE = True
+        logger.info("CAV-NLP integration available (alternate path)")
+    except ImportError:
+        CAV_NLP_AVAILABLE = False
+        UnifiedMathService = None
+        EnhancedZ3Solver = None
+        logger.warning("CAV-NLP integration not available - hybrid verification disabled")
 
 # =============================================================================
 # DATA MODEL DEFINITIONS
@@ -305,8 +337,9 @@ class VerificationEngine:
         self.strict_mode = self.config.get('strict_mode', False)
         self.min_quality_threshold = self.config.get('min_quality_threshold', 0.6)
         self.enable_detailed_logging = self.config.get('enable_detailed_logging', True)
+        self.use_cav_nlp = self.config.get('use_cav_nlp', False)  # Opt-in for CAV-NLP
 
-        self.logger.info("VerificationEngine initialized")
+        self.logger.info(f"VerificationEngine initialized (CAV-NLP: {CAV_NLP_AVAILABLE and self.use_cav_nlp})")
 
     def verify_solution(
         self,
@@ -1863,6 +1896,361 @@ class VerificationEngine:
 
         else:
             return "[FAIL] Formal verification failed. Solution requires revision before deployment."
+
+    # =============================================================================
+    # CAV-NLP HYBRID VERIFICATION METHODS
+    # =============================================================================
+
+    def _is_natural_language(self, content: str) -> bool:
+        """
+        Detect if content is natural language rather than formal code.
+        
+        Args:
+            content: The content to analyze
+            
+        Returns:
+            True if content appears to be natural language
+        """
+        if not content:
+            return False
+        
+        # Natural language indicators
+        nl_indicators = [
+            'theorem', 'lemma', 'proof', 'statement', 'claim',
+            'for all', 'there exists', 'such that', 'implies',
+            'prove that', 'show that', 'given', 'suppose',
+            'let ', 'where ', 'satisfies', 'property'
+        ]
+        
+        # Code indicators (Lean, Python, etc.)
+        code_indicators = [
+            'def ', 'theorem ', 'lemma ', 'example ',
+            'import ', 'open ', 'namespace ', 'inductive ',
+            'structure ', 'variable ', 'abbrev ', 'class ',
+            'instance ', 'defn ', 'begin', 'end', ':='
+        ]
+        
+        content_lower = content.lower()
+        nl_score = sum(1 for ind in nl_indicators if ind in content_lower)
+        code_score = sum(1 for ind in code_indicators if ind in content_lower)
+        
+        # If more NL indicators and few code indicators, likely natural language
+        return nl_score > code_score and nl_score >= 2
+
+    async def verify_hybrid(
+        self, 
+        code: str, 
+        language: str = "lean4"
+    ) -> Dict[str, Any]:
+        """
+        Verify code using hybrid Z3 + Lean approach via CAV-NLP.
+        
+        This method combines the power of Z3 SMT solving with Lean theorem proving
+        through the CAV-NLP unified math service. It can automatically formalize
+        natural language statements before verification.
+        
+        Args:
+            code: The code or natural language statement to verify
+            language: Target language for verification ("lean4", "z3", "hybrid")
+            
+        Returns:
+            Dict with:
+                - verified: bool (if verification succeeded)
+                - status: str (verified, failed, error, unavailable)
+                - formalized_code: Optional[str] (if NL was formalized)
+                - proof: Optional[Dict] (proof details)
+                - verification_time: float (seconds)
+                - service_used: str (which service performed verification)
+                - error: Optional[str] (error message if failed)
+        """
+        start_time = time.time()
+        
+        if not CAV_NLP_AVAILABLE or not self.use_cav_nlp:
+            self.logger.info("CAV-NLP not available or disabled, falling back to traditional verification")
+            return await self._verify_traditional_async(code, language)
+        
+        try:
+            self.logger.info(f"Starting CAV-NLP hybrid verification for language: {language}")
+            
+            # Initialize unified service
+            service = UnifiedMathService()
+            
+            result = {
+                'verified': False,
+                'status': 'pending',
+                'formalized_code': None,
+                'proof': None,
+                'verification_time': 0.0,
+                'service_used': 'cav_nlp',
+                'error': None
+            }
+            
+            # Step 1: Formalize if natural language
+            processed_code = code
+            if self._is_natural_language(code):
+                self.logger.info("Natural language detected, formalizing...")
+                try:
+                    formalized = await service.formalize(code)
+                    processed_code = formalized.code
+                    result['formalized_code'] = processed_code
+                    self.logger.info(f"Formalized to: {processed_code[:100]}...")
+                except Exception as e:
+                    self.logger.warning(f"Failed to formalize NL: {e}")
+                    # Continue with original code
+            
+            # Step 2: Verify with appropriate backend
+            if language == "hybrid":
+                # Use both Z3 and Lean for maximum coverage
+                z3_result = await service.verify_with_z3(processed_code)
+                lean_result = await service.verify_with_lean(processed_code)
+                
+                # Combine results
+                result['z3_result'] = z3_result
+                result['lean_result'] = lean_result
+                
+                if z3_result.get('verified') and lean_result.get('verified'):
+                    result['verified'] = True
+                    result['status'] = 'verified'
+                    result['confidence'] = 0.95
+                elif z3_result.get('verified') or lean_result.get('verified'):
+                    result['verified'] = True
+                    result['status'] = 'verified_partial'
+                    result['confidence'] = 0.75
+                else:
+                    result['verified'] = False
+                    result['status'] = 'failed'
+                    result['confidence'] = 0.25
+                    
+            elif language == "z3":
+                # Z3-only verification
+                z3_result = await service.verify_with_z3(processed_code)
+                result['z3_result'] = z3_result
+                result['verified'] = z3_result.get('verified', False)
+                result['status'] = 'verified' if result['verified'] else 'failed'
+                result['confidence'] = 0.85 if result['verified'] else 0.30
+                
+            else:
+                # Default: Lean verification
+                verification = await service.verify(processed_code)
+                result['verified'] = verification.get('success', False)
+                result['status'] = 'verified' if result['verified'] else 'failed'
+                result['proof'] = verification.get('proof')
+                result['confidence'] = verification.get('confidence', 0.5)
+            
+            result['verification_time'] = time.time() - start_time
+            
+            self.logger.info(
+                f"CAV-NLP verification completed: {result['status']} "
+                f"(confidence: {result.get('confidence', 0):.2f})"
+            )
+            
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"CAV-NLP verification error: {e}")
+            return {
+                'verified': False,
+                'status': 'error',
+                'formalized_code': None,
+                'proof': None,
+                'verification_time': time.time() - start_time,
+                'service_used': 'cav_nlp',
+                'error': str(e)
+            }
+
+    async def formalize_and_verify(
+        self, 
+        natural_language: str
+    ) -> Dict[str, Any]:
+        """
+        Formalize a natural language statement and verify it.
+        
+        This is a convenience method that combines formalization and verification
+        for natural language mathematical statements.
+        
+        Args:
+            natural_language: Natural language mathematical statement
+            
+        Returns:
+            Dict with:
+                - verified: bool (if verification succeeded)
+                - status: str (verified, failed, error, unavailable)
+                - formalized_code: str (the formalized version)
+                - original_statement: str (the original NL)
+                - proof: Optional[Dict] (proof details)
+                - verification_time: float (seconds)
+                - error: Optional[str] (error message if failed)
+                
+        Raises:
+            ValueError: If CAV-NLP is not available
+        """
+        if not CAV_NLP_AVAILABLE:
+            raise ValueError("CAV-NLP not available. Install openevolve with cav-nlp extras.")
+        
+        if not self.use_cav_nlp:
+            raise ValueError("CAV-NLP is disabled. Set use_cav_nlp=True in config.")
+        
+        start_time = time.time()
+        
+        try:
+            self.logger.info("Starting formalize-and-verify workflow")
+            
+            service = UnifiedMathService()
+            
+            # Step 1: Formalize
+            formalized = await service.formalize(natural_language)
+            
+            self.logger.info(f"Formalized statement: {formalized.code[:100]}...")
+            
+            # Step 2: Verify
+            verification = await service.verify(formalized.code)
+            
+            result = {
+                'verified': verification.get('success', False),
+                'status': 'verified' if verification.get('success') else 'failed',
+                'formalized_code': formalized.code,
+                'original_statement': natural_language,
+                'proof': verification.get('proof'),
+                'verification_time': time.time() - start_time,
+                'formalization_time': getattr(formalized, 'processing_time', 0),
+                'error': verification.get('error')
+            }
+            
+            self.logger.info(
+                f"Formalize-and-verify completed: {result['status']}"
+            )
+            
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Formalize-and-verify error: {e}")
+            raise ValueError(f"Formalization failed: {e}")
+
+    async def _verify_traditional_async(
+        self, 
+        code: str, 
+        language: str = "lean4"
+    ) -> Dict[str, Any]:
+        """
+        Fallback traditional verification when CAV-NLP is unavailable.
+        
+        This is an async wrapper around the traditional synchronous verification
+        methods to maintain API consistency.
+        
+        Args:
+            code: The code to verify
+            language: Target language
+            
+        Returns:
+            Dict with verification results
+        """
+        import asyncio
+        
+        start_time = time.time()
+        
+        # Create a mock solution object
+        @dataclass
+        class MockSolution:
+            id: str
+            solution_content: str
+        
+        solution = MockSolution(
+            id=f"hybrid_fallback_{uuid.uuid4().hex[:8]}",
+            solution_content=code
+        )
+        
+        # Run traditional verification in thread pool to make it async-friendly
+        loop = asyncio.get_event_loop()
+        
+        if language == "z3" and Z3_AVAILABLE:
+            result = await loop.run_in_executor(
+                None, 
+                lambda: self.verify_with_z3(solution)
+            )
+            return {
+                'verified': result.get('status') == 'sat',
+                'status': result.get('status', 'unknown'),
+                'formalized_code': None,
+                'proof': result.get('proof'),
+                'verification_time': time.time() - start_time,
+                'service_used': 'z3_traditional',
+                'error': result.get('error'),
+                'fallback': True
+            }
+        elif LEANAIDE_AVAILABLE:
+            result = await loop.run_in_executor(
+                None,
+                lambda: self.verify_with_leanaide(solution)
+            )
+            return {
+                'verified': result.get('verified', False),
+                'status': result.get('status', 'unknown'),
+                'formalized_code': None,
+                'proof': result.get('tactics'),
+                'verification_time': time.time() - start_time,
+                'service_used': 'leanaide_traditional',
+                'error': result.get('error'),
+                'fallback': True
+            }
+        else:
+            return {
+                'verified': False,
+                'status': 'unavailable',
+                'formalized_code': None,
+                'proof': None,
+                'verification_time': time.time() - start_time,
+                'service_used': 'none',
+                'error': 'No verification backend available',
+                'fallback': True
+            }
+
+    def verify_with_cav_nlp_sync(
+        self,
+        solution: Any,
+        language: str = "hybrid"
+    ) -> Dict[str, Any]:
+        """
+        Synchronous wrapper for CAV-NLP hybrid verification.
+        
+        Use this when calling from synchronous code. It runs the async
+        verification method in an event loop.
+        
+        Args:
+            solution: Solution to verify
+            language: Target language ("lean4", "z3", "hybrid")
+            
+        Returns:
+            Dict with verification results
+        """
+        import asyncio
+        
+        solution_content = self._extract_solution_content(solution)
+        
+        try:
+            # Try to get existing event loop
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # If we're in an async context, create a new loop
+                import nest_asyncio
+                nest_asyncio.apply()
+                loop = asyncio.get_event_loop()
+        except RuntimeError:
+            # No event loop exists, create one
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        
+        try:
+            return loop.run_until_complete(
+                self.verify_hybrid(solution_content, language)
+            )
+        except Exception as e:
+            self.logger.error(f"CAV-NLP sync verification error: {e}")
+            return {
+                'verified': False,
+                'status': 'error',
+                'error': str(e),
+                'service_used': 'cav_nlp'
+            }
 
 
 # =============================================================================

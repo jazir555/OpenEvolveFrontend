@@ -18,11 +18,13 @@ import threading
 import asyncio
 import uvicorn
 import os
+import sys
 import re
 import base64
 import json
 import time
 import tempfile
+import types
 from datetime import datetime, timedelta
 import uuid
 import logging
@@ -110,10 +112,26 @@ class _NoOpStreamlit:
         return _noop
 
 
+_STREAMLIT_SHIM = _NoOpStreamlit()
+
+# Ensure modules importing streamlit in API context get the shim instead of requiring UI runtime.
+_streamlit_module = types.ModuleType("streamlit")
+_streamlit_module.session_state = _STREAMLIT_SHIM.session_state
+_streamlit_module.sidebar = _STREAMLIT_SHIM.sidebar
+
+
+def _streamlit_shim_getattr(name: str):
+    return getattr(_STREAMLIT_SHIM, name)
+
+
+_streamlit_module.__getattr__ = _streamlit_shim_getattr
+sys.modules["streamlit"] = _streamlit_module
+
+
 def _patch_streamlit(module):
     """Ensure Streamlit calls do not break in non-UI contexts."""
     try:
-        module.st = _NoOpStreamlit()
+        module.st = _STREAMLIT_SHIM
     except Exception:
         pass
 
@@ -215,6 +233,34 @@ try:
     EVOLUTION_AVAILABLE = True
 except ImportError:
     EVOLUTION_AVAILABLE = False
+
+try:
+    import version_control as _version_control_module
+    _attach_streamlit(_version_control_module, _STREAMLIT_SHIM)
+    _version_control_manager = _version_control_module.VersionControl()
+    VERSION_CONTROL_AVAILABLE = True
+except Exception as e:
+    VERSION_CONTROL_AVAILABLE = False
+    _version_control_manager = None
+    logger.warning(f"Version control unavailable: {e}")
+
+try:
+    import validation_manager as _validation_manager_module
+    _attach_streamlit(_validation_manager_module, _STREAMLIT_SHIM)
+    _validation_manager = _validation_manager_module.ValidationManager()
+    VALIDATION_MANAGER_AVAILABLE = True
+except Exception as e:
+    VALIDATION_MANAGER_AVAILABLE = False
+    _validation_manager = None
+    logger.warning(f"Validation manager unavailable: {e}")
+
+try:
+    from openevolve_bubblelabs_api import openevolve_bubblelabs_integration as _bubblelabs_workflow_integration
+    BUBBLELABS_WORKFLOW_AVAILABLE = True
+except Exception as e:
+    BUBBLELABS_WORKFLOW_AVAILABLE = False
+    _bubblelabs_workflow_integration = None
+    logger.warning(f"BubbleLabs workflow integration unavailable: {e}")
 
 
 # **ACTUAL INTEGRATION HELPER METHODS**: API Server
@@ -1166,6 +1212,58 @@ class ContentTemplateRequest(BaseModel):
 class ProtocolValidationRequest(BaseModel):
     protocol_text: str
     validation_type: Optional[str] = "generic"
+
+
+class VersionCreateRequest(BaseModel):
+    protocol_text: str
+    version_name: Optional[str] = ""
+    comment: Optional[str] = ""
+    author: Optional[str] = None
+
+
+class VersionCompareRequest(BaseModel):
+    version_id_1: str
+    version_id_2: str
+
+
+class VersionBranchRequest(BaseModel):
+    new_version_name: str
+
+
+class VersionLoadRequest(BaseModel):
+    version_id: str
+
+
+class ValidationRuleRequest(BaseModel):
+    name: str
+    max_length: Optional[int] = None
+    min_length: Optional[int] = None
+    required_keywords: Optional[List[str]] = None
+    forbidden_patterns: Optional[List[str]] = None
+    required_sections: Optional[List[str]] = None
+
+
+class ValidationRunRequest(BaseModel):
+    content: str
+    rule_names: List[str] = Field(default_factory=list)
+
+
+class ComplianceCheckRequest(BaseModel):
+    content: str
+    framework: Optional[str] = "generic"
+
+
+class WorkflowDefinitionCreateRequest(BaseModel):
+    name: str
+    description: str
+    workflow_type: str
+    parameters: Dict[str, Any] = Field(default_factory=dict)
+
+
+class WorkflowInstanceCreateRequest(BaseModel):
+    definition_id: str
+    instance_name: str
+    inputs: Dict[str, Any] = Field(default_factory=dict)
 
 
 class SuggestionRequest(BaseModel):
@@ -4303,6 +4401,308 @@ def get_provider_models(provider_id: str, request: ProviderModelsRequest):
     except Exception as e:
         logger.warning(f"Failed to fetch models for {provider_id}: {e}")
         return {"models": [provider.get("default_model")]}
+
+
+# Version control
+
+@app.get("/version-control/versions", dependencies=[Depends(verify_api_key)])
+def list_versions():
+    if not VERSION_CONTROL_AVAILABLE or _version_control_manager is None:
+        raise HTTPException(status_code=503, detail="Version control not available")
+    versions = _version_control_manager.get_version_history()
+    current = _version_control_manager.get_current_version()
+    return {
+        "versions": versions,
+        "current_version_id": current["id"] if current else None
+    }
+
+
+@app.get("/version-control/versions/{version_id}", dependencies=[Depends(verify_api_key)])
+def get_version(version_id: str):
+    if not VERSION_CONTROL_AVAILABLE or _version_control_manager is None:
+        raise HTTPException(status_code=503, detail="Version control not available")
+    version = _version_control_manager.get_version_by_id(version_id)
+    if not version:
+        raise HTTPException(status_code=404, detail="Version not found")
+    return version
+
+
+@app.get("/version-control/current", dependencies=[Depends(verify_api_key)])
+def get_current_version():
+    if not VERSION_CONTROL_AVAILABLE or _version_control_manager is None:
+        raise HTTPException(status_code=503, detail="Version control not available")
+    current = _version_control_manager.get_current_version()
+    if not current:
+        return {"current": None}
+    return {"current": current}
+
+
+@app.post("/version-control/versions", dependencies=[Depends(require_role(UserRole.USER))])
+def create_version(request: VersionCreateRequest):
+    if not VERSION_CONTROL_AVAILABLE or _version_control_manager is None:
+        raise HTTPException(status_code=503, detail="Version control not available")
+    if request.author:
+        _STREAMLIT_SHIM.session_state.user = request.author
+    version_id = _version_control_manager.create_new_version(
+        request.protocol_text,
+        request.version_name or "",
+        request.comment or "",
+    )
+    version = _version_control_manager.get_version_by_id(version_id)
+    return {"version_id": version_id, "version": version}
+
+
+@app.post("/version-control/versions/{version_id}/load", dependencies=[Depends(require_role(UserRole.USER))])
+def load_version(version_id: str):
+    if not VERSION_CONTROL_AVAILABLE or _version_control_manager is None:
+        raise HTTPException(status_code=503, detail="Version control not available")
+    success = _version_control_manager.load_version(version_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Version not found")
+    current = _version_control_manager.get_current_version()
+    return {"loaded": True, "current": current}
+
+
+@app.post("/version-control/versions/{version_id}/branch", dependencies=[Depends(require_role(UserRole.USER))])
+def branch_version(version_id: str, request: VersionBranchRequest):
+    if not VERSION_CONTROL_AVAILABLE or _version_control_manager is None:
+        raise HTTPException(status_code=503, detail="Version control not available")
+    new_id = _version_control_manager.branch_version(version_id, request.new_version_name)
+    if not new_id:
+        raise HTTPException(status_code=400, detail="Branch creation failed")
+    version = _version_control_manager.get_version_by_id(new_id)
+    return {"version_id": new_id, "version": version}
+
+
+@app.post("/version-control/compare", dependencies=[Depends(verify_api_key)])
+def compare_versions(request: VersionCompareRequest):
+    if not VERSION_CONTROL_AVAILABLE or _version_control_manager is None:
+        raise HTTPException(status_code=503, detail="Version control not available")
+    return _version_control_manager.compare_versions(request.version_id_1, request.version_id_2)
+
+
+@app.delete("/version-control/versions/{version_id}", dependencies=[Depends(require_role(UserRole.USER))])
+def delete_version(version_id: str):
+    if not VERSION_CONTROL_AVAILABLE or _version_control_manager is None:
+        raise HTTPException(status_code=503, detail="Version control not available")
+    success = _version_control_manager.delete_version(version_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Version not found")
+    return {"deleted": True}
+
+
+# Validation manager
+
+@app.get("/validation/rules", dependencies=[Depends(verify_api_key)])
+def list_validation_rules():
+    if not VALIDATION_MANAGER_AVAILABLE or _validation_manager is None:
+        raise HTTPException(status_code=503, detail="Validation manager not available")
+    rules = _validation_manager.validation_rules
+    return {"rules": rules, "rule_names": list(rules.keys())}
+
+
+@app.get("/validation/rules/{rule_name}", dependencies=[Depends(verify_api_key)])
+def get_validation_rule(rule_name: str):
+    if not VALIDATION_MANAGER_AVAILABLE or _validation_manager is None:
+        raise HTTPException(status_code=503, detail="Validation manager not available")
+    rule = _validation_manager.get_validation_rule(rule_name)
+    if not rule:
+        raise HTTPException(status_code=404, detail="Validation rule not found")
+    return {"name": rule_name, "rule": rule}
+
+
+@app.post("/validation/rules", dependencies=[Depends(require_role(UserRole.USER))])
+def create_validation_rule(request: ValidationRuleRequest):
+    if not VALIDATION_MANAGER_AVAILABLE or _validation_manager is None:
+        raise HTTPException(status_code=503, detail="Validation manager not available")
+    rule_config: Dict[str, Any] = {}
+    if request.max_length is not None:
+        rule_config["max_length"] = request.max_length
+    if request.min_length is not None:
+        rule_config["min_length"] = request.min_length
+    if request.required_keywords:
+        rule_config["required_keywords"] = request.required_keywords
+    if request.forbidden_patterns:
+        rule_config["forbidden_patterns"] = request.forbidden_patterns
+    if request.required_sections:
+        rule_config["required_sections"] = request.required_sections
+    success = _validation_manager.add_validation_rule(request.name, rule_config)
+    if not success:
+        raise HTTPException(status_code=400, detail="Failed to add validation rule")
+    return {"created": True, "rule_name": request.name, "rule": rule_config}
+
+
+@app.put("/validation/rules/{rule_name}", dependencies=[Depends(require_role(UserRole.USER))])
+def update_validation_rule(rule_name: str, request: ValidationRuleRequest):
+    if not VALIDATION_MANAGER_AVAILABLE or _validation_manager is None:
+        raise HTTPException(status_code=503, detail="Validation manager not available")
+    rule_config: Dict[str, Any] = {}
+    if request.max_length is not None:
+        rule_config["max_length"] = request.max_length
+    if request.min_length is not None:
+        rule_config["min_length"] = request.min_length
+    if request.required_keywords is not None:
+        rule_config["required_keywords"] = request.required_keywords
+    if request.forbidden_patterns is not None:
+        rule_config["forbidden_patterns"] = request.forbidden_patterns
+    if request.required_sections is not None:
+        rule_config["required_sections"] = request.required_sections
+    success = _validation_manager.update_validation_rule(rule_name, rule_config)
+    if not success:
+        raise HTTPException(status_code=404, detail="Validation rule not found")
+    return {"updated": True, "rule_name": rule_name, "rule": rule_config}
+
+
+@app.delete("/validation/rules/{rule_name}", dependencies=[Depends(require_role(UserRole.USER))])
+def delete_validation_rule(rule_name: str):
+    if not VALIDATION_MANAGER_AVAILABLE or _validation_manager is None:
+        raise HTTPException(status_code=503, detail="Validation manager not available")
+    success = _validation_manager.remove_validation_rule(rule_name)
+    if not success:
+        raise HTTPException(status_code=404, detail="Validation rule not found")
+    return {"deleted": True, "rule_name": rule_name}
+
+
+@app.post("/validation/run", dependencies=[Depends(require_role(UserRole.USER))])
+def run_validation(request: ValidationRunRequest):
+    if not VALIDATION_MANAGER_AVAILABLE or _validation_manager is None:
+        raise HTTPException(status_code=503, detail="Validation manager not available")
+    if not request.rule_names:
+        raise HTTPException(status_code=400, detail="No validation rules selected")
+    results = _validation_manager.validate_content_against_custom_rules(
+        request.content,
+        request.rule_names
+    )
+    return results
+
+
+@app.post("/validation/compliance", dependencies=[Depends(require_role(UserRole.USER))])
+def run_compliance_check(request: ComplianceCheckRequest):
+    if not VALIDATION_MANAGER_AVAILABLE or _validation_manager is None:
+        raise HTTPException(status_code=503, detail="Validation manager not available")
+    results = _validation_manager.run_compliance_check(request.content, request.framework or "generic")
+    return results
+
+
+# Workflow lifecycle controls (BubbleLabs integration)
+
+@app.get("/bubblelabs/workflow-definitions", dependencies=[Depends(verify_api_key)])
+def list_bubblelabs_workflow_definitions():
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+        raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
+    return {"definitions": _bubblelabs_workflow_integration.list_workflow_definitions()}
+
+
+@app.get("/bubblelabs/workflow-definitions/{definition_id}", dependencies=[Depends(verify_api_key)])
+def get_bubblelabs_workflow_definition(definition_id: str):
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+        raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
+    definition = _bubblelabs_workflow_integration.get_workflow_definition(definition_id)
+    if not definition:
+        raise HTTPException(status_code=404, detail="Workflow definition not found")
+    return definition
+
+
+@app.post("/bubblelabs/workflow-definitions", dependencies=[Depends(require_role(UserRole.USER))])
+def create_bubblelabs_workflow_definition(request: WorkflowDefinitionCreateRequest):
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+        raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
+    definition_id = _bubblelabs_workflow_integration.create_workflow_definition(
+        name=request.name,
+        description=request.description,
+        workflow_type=request.workflow_type,
+        parameters=request.parameters,
+    )
+    return {"definition_id": definition_id}
+
+
+@app.get("/bubblelabs/workflow-instances", dependencies=[Depends(verify_api_key)])
+def list_bubblelabs_workflow_instances():
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+        raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
+    return {"instances": _bubblelabs_workflow_integration.list_workflow_instances()}
+
+
+@app.post("/bubblelabs/workflow-instances", dependencies=[Depends(require_role(UserRole.USER))])
+def create_bubblelabs_workflow_instance(request: WorkflowInstanceCreateRequest):
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+        raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
+    instance_id = _bubblelabs_workflow_integration.create_workflow_instance(
+        definition_id=request.definition_id,
+        instance_name=request.instance_name,
+        inputs=request.inputs,
+    )
+    return {"instance_id": instance_id}
+
+
+@app.get("/bubblelabs/workflow-instances/{instance_id}", dependencies=[Depends(verify_api_key)])
+def get_bubblelabs_workflow_instance(instance_id: str):
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+        raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
+    status_info = _bubblelabs_workflow_integration.get_workflow_instance_status(instance_id)
+    if "error" in status_info:
+        raise HTTPException(status_code=404, detail=status_info["error"])
+    workflow_state = _bubblelabs_workflow_integration.workflow_instances.get(instance_id)
+    params: Dict[str, Any] = {}
+    if workflow_state:
+        for attr_name in dir(workflow_state):
+            if attr_name.startswith("_"):
+                continue
+            value = getattr(workflow_state, attr_name)
+            if callable(value):
+                continue
+            if isinstance(value, (str, int, float, bool, list, dict)) and len(str(value)) < 1000:
+                params[attr_name] = value
+    return {"status": status_info, "parameters": params}
+
+
+@app.post("/bubblelabs/workflow-instances/{instance_id}/start", dependencies=[Depends(require_role(UserRole.USER))])
+def start_bubblelabs_workflow_instance(instance_id: str):
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+        raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
+    return _bubblelabs_workflow_integration.start_workflow_instance(instance_id)
+
+
+@app.post("/bubblelabs/workflow-instances/{instance_id}/pause", dependencies=[Depends(require_role(UserRole.USER))])
+def pause_bubblelabs_workflow_instance(instance_id: str):
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+        raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
+    return _bubblelabs_workflow_integration.pause_workflow_instance(instance_id)
+
+
+@app.post("/bubblelabs/workflow-instances/{instance_id}/resume", dependencies=[Depends(require_role(UserRole.USER))])
+def resume_bubblelabs_workflow_instance(instance_id: str):
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+        raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
+    return _bubblelabs_workflow_integration.resume_workflow_instance(instance_id)
+
+
+@app.post("/bubblelabs/workflow-instances/{instance_id}/stop", dependencies=[Depends(require_role(UserRole.USER))])
+def stop_bubblelabs_workflow_instance(instance_id: str):
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+        raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
+    return _bubblelabs_workflow_integration.stop_workflow_instance(instance_id)
+
+
+@app.post("/bubblelabs/workflow-instances/{instance_id}/cancel", dependencies=[Depends(require_role(UserRole.USER))])
+def cancel_bubblelabs_workflow_instance(instance_id: str):
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+        raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
+    return _bubblelabs_workflow_integration.cancel_workflow_instance(instance_id)
+
+
+@app.post("/bubblelabs/workflow-instances/{instance_id}/restart", dependencies=[Depends(require_role(UserRole.USER))])
+def restart_bubblelabs_workflow_instance(instance_id: str):
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+        raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
+    return _bubblelabs_workflow_integration.restart_workflow_instance(instance_id)
+
+
+@app.delete("/bubblelabs/workflow-instances/{instance_id}", dependencies=[Depends(require_role(UserRole.USER))])
+def delete_bubblelabs_workflow_instance(instance_id: str):
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or _bubblelabs_workflow_integration is None:
+        raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
+    return _bubblelabs_workflow_integration.delete_workflow_instance(instance_id)
 
 
 @app.get("/parameters/schema", dependencies=[Depends(verify_api_key)])

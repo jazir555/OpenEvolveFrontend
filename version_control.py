@@ -245,6 +245,27 @@ class VersionControl:
             },
         }
 
+    def load_version(self, version_id: str) -> bool:
+        """
+        Load a version into the current session state.
+
+        Args:
+            version_id (str): ID of the version to load
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        version = self.get_version_by_id(version_id)
+        if not version:
+            st.error("Version not found")
+            return False
+
+        with st.session_state.thread_lock:
+            st.session_state.protocol_text = version["protocol_text"]
+            st.session_state.current_version_id = version_id
+
+        return True
+
     def get_version_timeline(self) -> List[Dict]:
         """
         Get a chronological timeline of all versions.

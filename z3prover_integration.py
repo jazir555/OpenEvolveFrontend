@@ -79,6 +79,19 @@ except ImportError:
 
 
 # =============================================================================
+# CAV-NLP Integration
+# =============================================================================
+
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    CAV_NLP_AVAILABLE = True
+    logger.info("CAV-NLP integration available for enhanced Z3 solving")
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logger.debug("CAV-NLP integration not available - enhanced NL features disabled")
+
+
+# =============================================================================
 # Data Classes and Enums
 # =============================================================================
 
@@ -1678,6 +1691,231 @@ def is_z3_available() -> bool:
     return Z3_AVAILABLE
 
 
+def is_cav_nlp_available() -> bool:
+    """Check if CAV-NLP integration is available."""
+    return CAV_NLP_AVAILABLE
+
+
+# =============================================================================
+# CAV-NLP Enhanced Functions
+# =============================================================================
+
+def solve_with_cav_nlp(
+    constraints: List[Union[str, Z3Constraint]],
+    natural_language: Optional[str] = None,
+    variables: Optional[List[Union[str, Z3Variable]]] = None,
+    timeout: Optional[float] = None
+) -> Z3SolverResult:
+    """
+    Solve constraints with optional natural language formalization via CAV-NLP.
+    
+    This function enhances standard Z3 solving by allowing natural language
+    constraint descriptions to be formalized and combined with explicit constraints.
+    
+    Args:
+        constraints: List of constraints (SMT-LIB strings or Z3Constraint objects)
+        natural_language: Optional natural language description of additional constraints
+        variables: Optional list of variable names or Z3Variable objects
+        timeout: Optional timeout in seconds
+        
+    Returns:
+        Z3SolverResult with solution or error information
+        
+    Example:
+        >>> result = solve_with_cav_nlp(
+        ...     constraints=["x > 0", "y < 10"],
+        ...     natural_language="x and y must be different",
+        ...     variables=["x", "y"]
+        ... )
+    """
+    # Convert string constraints to Z3Constraint objects
+    z3_constraints: List[Z3Constraint] = []
+    for c in constraints:
+        if isinstance(c, str):
+            z3_constraints.append(Z3Constraint(c, Z3ConstraintType.BOOLEAN))
+        else:
+            z3_constraints.append(c)
+    
+    # Convert string variables to Z3Variable objects
+    z3_variables: List[Z3Variable] = []
+    if variables:
+        for v in variables:
+            if isinstance(v, str):
+                z3_variables.append(Z3Variable(v, Z3ConstraintType.INTEGER))
+            else:
+                z3_variables.append(v)
+    
+    # If natural language provided and CAV-NLP available, formalize it
+    if natural_language and CAV_NLP_AVAILABLE:
+        try:
+            solver = EnhancedZ3Solver()
+            formalized = solver.formalize_constraint(natural_language)
+            if formalized:
+                z3_constraints.append(Z3Constraint(
+                    formalized, 
+                    Z3ConstraintType.BOOLEAN,
+                    description=f"Formalized from: {natural_language}"
+                ))
+        except Exception as e:
+            logger.warning(f"CAV-NLP formalization failed: {e}")
+    
+    # Create engine and solve
+    config = Z3Config(timeout=timeout) if timeout else None
+    engine = get_z3_solver_engine(config)
+    
+    return engine.solve_constraints(z3_variables, z3_constraints)
+
+
+def verify_hybrid(
+    theorem: Union[str, Dict[str, Any]],
+    use_lean_export: bool = True,
+    assumptions: Optional[List[str]] = None,
+    timeout: Optional[float] = None
+) -> Optional[Z3TheoremResult]:
+    """
+    Verify a theorem using a hybrid Z3 + CAV-NLP approach.
+    
+    This function combines the strengths of Z3 SMT solving with CAV-NLP's
+    Lean theorem prover integration for comprehensive verification.
+    
+    Args:
+        theorem: Theorem statement (SMT-LIB string or dict with theorem info)
+        use_lean_export: Whether to export to Lean for additional verification
+        assumptions: Optional list of assumption strings
+        timeout: Optional timeout in seconds
+        
+    Returns:
+        Z3TheoremResult if verification succeeds, None if CAV-NLP unavailable
+        
+    Example:
+        >>> result = verify_hybrid(
+        ...     theorem="For all x, x > 0 implies x + 1 > 0",
+        ...     use_lean_export=True
+        ... )
+    """
+    if not CAV_NLP_AVAILABLE:
+        logger.debug("CAV-NLP not available, falling back to standard Z3 theorem proving")
+        # Fall back to standard Z3 theorem prover
+        prover = get_z3_theorem_prover()
+        if isinstance(theorem, str):
+            return prover.prove_theorem(theorem, assumptions, timeout)
+        return None
+    
+    try:
+        solver = EnhancedZ3Solver()
+        
+        # Extract theorem string
+        if isinstance(theorem, dict):
+            theorem_str = theorem.get('statement', theorem.get('theorem', ''))
+        else:
+            theorem_str = theorem
+        
+        # Use hybrid verification
+        result = solver.verify_with_lean(theorem_str)
+        
+        if result:
+            # Convert CAV-NLP result to Z3TheoremResult format
+            return Z3TheoremResult(
+                proven=result.get('verified', False),
+                proof=result.get('lean_proof') if use_lean_export else result.get('z3_proof'),
+                counterexample=result.get('counterexample'),
+                execution_time=result.get('execution_time', 0.0),
+                tactic_used="hybrid_z3_lean",
+                errors=result.get('errors', [])
+            )
+        
+        return None
+        
+    except Exception as e:
+        logger.error(f"Hybrid verification failed: {e}")
+        # Fall back to standard Z3
+        prover = get_z3_theorem_prover()
+        if isinstance(theorem, str):
+            return prover.prove_theorem(theorem, assumptions, timeout)
+        return None
+
+
+def export_proof_to_lean(
+    z3_result: Union[Z3SolverResult, Z3TheoremResult],
+    theorem_name: Optional[str] = None
+) -> Optional[str]:
+    """
+    Export a Z3 proof to Lean 4 format using CAV-NLP.
+    
+    Args:
+        z3_result: Z3 result containing the proof to export
+        theorem_name: Optional name for the theorem in Lean
+        
+    Returns:
+        Lean 4 proof code as string, or None if export fails
+        
+    Example:
+        >>> result = verify_hybrid("x > 0 implies x + 1 > 0")
+        >>> lean_code = export_proof_to_lean(result, "positive_plus_one")
+    """
+    if not CAV_NLP_AVAILABLE:
+        logger.warning("CAV-NLP not available for Lean export")
+        return None
+    
+    try:
+        solver = EnhancedZ3Solver()
+        
+        # Extract proof from result
+        proof = None
+        if isinstance(z3_result, Z3TheoremResult):
+            proof = z3_result.proof
+        elif isinstance(z3_result, Z3SolverResult) and z3_result.model:
+            proof = z3_result.smtlib_output
+        
+        if not proof:
+            logger.warning("No proof found in Z3 result")
+            return None
+        
+        # Use CAV-NLP to convert to Lean
+        lean_code = solver.export_to_lean(proof, theorem_name)
+        return lean_code
+        
+    except Exception as e:
+        logger.error(f"Lean export failed: {e}")
+        return None
+
+
+def canonicalize_z3_result(
+    result: Union[Z3SolverResult, Z3TheoremResult],
+    format_type: str = "smtlib"
+) -> Optional[str]:
+    """
+    Canonicalize a Z3 result to a standard format using CAV-NLP.
+    
+    Args:
+        result: Z3 result to canonicalize
+        format_type: Target format - "smtlib", "lean", or "json"
+        
+    Returns:
+        Canonicalized representation as string, or None if unavailable
+    """
+    if not CAV_NLP_AVAILABLE:
+        # Basic fallback - just convert to JSON manually
+        if hasattr(result, 'to_dict'):
+            import json
+            return json.dumps(result.to_dict(), indent=2)
+        return None
+    
+    try:
+        solver = EnhancedZ3Solver()
+        
+        # Convert result to dict for processing
+        result_dict = result.to_dict() if hasattr(result, 'to_dict') else {}
+        
+        # Use CAV-NLP canonicalization
+        canonical = solver.canonicalize(result_dict, format_type)
+        return canonical
+        
+    except Exception as e:
+        logger.error(f"Canonicalization failed: {e}")
+        return None
+
+
 # =============================================================================
 # Example Usage
 # =============================================================================
@@ -2824,10 +3062,65 @@ class Z3DSPyIntegration:
         return '\n'.join(lines)
 
 
+# =============================================================================
+# Exports
+# =============================================================================
+
+__all__ = [
+    # Core availability flags
+    'Z3_AVAILABLE',
+    'Z3_PYTHON_AVAILABLE',
+    'SOLVER_POOL_AVAILABLE',
+    'CAV_NLP_AVAILABLE',
+    
+    # Core enums
+    'Z3ResultStatus',
+    'Z3ConstraintType',
+    
+    # Core data classes
+    'Z3Variable',
+    'Z3Constraint',
+    'Z3Model',
+    'Z3SolverResult',
+    'Z3TheoremResult',
+    'Z3Config',
+    
+    # Core classes
+    'Z3ProblemDetector',
+    'Z3SolverEngine',
+    'Z3TheoremProver',
+    'DigitalTwinSandbox',
+    'Z3LogicCompressor',
+    'Z3DSPyIntegration',
+    
+    # CAV-NLP enhanced components
+    'EnhancedZ3Solver',
+    'solve_with_cav_nlp',
+    'verify_hybrid',
+    'export_proof_to_lean',
+    'canonicalize_z3_result',
+    
+    # Global instance getters
+    'get_z3_solver_engine',
+    'get_z3_theorem_prover',
+    
+    # Utility functions
+    'is_z3_available',
+    'is_cav_nlp_available',
+    'pattern_operator',
+    'generate_refutation_narrative',
+    
+    # Example functions
+    'example_constraint_solving',
+    'example_theorem_proving',
+]
+
+
 if __name__ == "__main__":
     print("Z3 Prover Integration Module")
     print(f"Z3 Available: {Z3_AVAILABLE}")
     print(f"Z3 Python Available: {Z3_PYTHON_AVAILABLE}")
+    print(f"CAV-NLP Available: {CAV_NLP_AVAILABLE}")
     
     if Z3_AVAILABLE:
         print("\n--- Constraint Solving Example ---")

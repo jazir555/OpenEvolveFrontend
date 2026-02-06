@@ -106,6 +106,17 @@ except ImportError:
     create_roma_adapter = None  # type: ignore
     ROMAOpenEvolveConfig = None  # type: ignore
 
+# Optional CAV-NLP integration for enhanced problem solving
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver, ConstraintFormalizer
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    EnhancedZ3Solver = None  # type: ignore
+    ConstraintFormalizer = None  # type: ignore
+    UnifiedMathService = None  # type: ignore
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -219,6 +230,9 @@ class SolverResult:
     gauntlet_results: Dict[str, Any] = field(default_factory=dict)
     gauntlet_summary: Dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.now)
+    
+    # CAV-NLP verification results (optional)
+    verification: Optional[Dict[str, Any]] = None
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
@@ -2358,6 +2372,244 @@ class UniversalProblemSolver:
     def get_solution_history(self) -> List[SolverResult]:
         """Get history of all solutions"""
         return self.solution_history.copy()
+    
+    # ============================================================================
+    # CAV-NLP ENHANCED PROBLEM SOLVING METHODS
+    # ============================================================================
+    
+    async def solve_natural_language(
+        self,
+        problem: str,
+        title: Optional[str] = None,
+        domain: Union[ProblemDomain, str] = ProblemDomain.GENERIC,
+        constraints: Optional[List[str]] = None,
+        success_criteria: Optional[List[str]] = None,
+        **kwargs
+    ) -> SolverResult:
+        """
+        Solve a problem stated in natural language using CAV-NLP.
+        
+        This method uses the CAV-NLP (Computer-Assisted Verification with NLP)
+        integration to:
+        1. Formalize natural language problem descriptions into structured constraints
+        2. Solve the formalized problem using the standard decomposition/recomposition pipeline
+        3. Optionally verify the solution with formal methods
+        
+        Args:
+            problem: Natural language description of the problem
+            title: Optional title for the problem
+            domain: Problem domain (or auto-detect if not specified)
+            constraints: List of constraints
+            success_criteria: List of success criteria
+            **kwargs: Additional arguments passed to solve()
+            
+        Returns:
+            SolverResult with complete solution and CAV-NLP metadata
+            
+        Raises:
+            ValueError: If CAV-NLP is not available
+            
+        Example:
+            >>> solver = UniversalProblemSolver()
+            >>> result = await solver.solve_natural_language(
+            ...     "Build a trading system that handles 1000 orders per second "
+            ...     "with sub-millisecond latency and MiFID II compliance",
+            ...     title="High-Frequency Trading System",
+            ...     domain=ProblemDomain.FINANCE
+            ... )
+        """
+        if not CAV_NLP_AVAILABLE:
+            raise ValueError(
+                "CAV-NLP required for natural language problem solving. "
+                "Install the openevolve CAV-NLP integration package."
+            )
+        
+        self.logger.info(f"Starting CAV-NLP natural language solving: {title or problem[:50]}...")
+        
+        # Step 1: Formalize the natural language problem
+        step_formalize = SolutionStep("cav_nlp_formalization", datetime.now())
+        
+        try:
+            service = UnifiedMathService()
+            formalized = await service.formalize(problem)
+            
+            step_formalize.end_time = datetime.now()
+            step_formalize.status = "completed"
+            step_formalize.details = {
+                'formalization_success': True,
+                'code_length': len(formalized.code) if hasattr(formalized, 'code') else 0,
+                'constraints_extracted': len(formalized.constraints) if hasattr(formalized, 'constraints') else 0
+            }
+            self.logger.info("CAV-NLP formalization completed successfully")
+        except Exception as e:
+            step_formalize.end_time = datetime.now()
+            step_formalize.status = "failed"
+            step_formalize.details = {'error': str(e)}
+            self.logger.error(f"CAV-NLP formalization failed: {e}")
+            raise ValueError(f"Failed to formalize problem: {e}")
+        
+        # Step 2: Solve the formalized problem using standard pipeline
+        formalized_code = formalized.code if hasattr(formalized, 'code') else str(formalized)
+        
+        # Merge formalized constraints with user-provided constraints
+        merged_constraints = list(constraints) if constraints else []
+        if hasattr(formalized, 'constraints') and formalized.constraints:
+            merged_constraints.extend(formalized.constraints)
+        
+        # Extract formalized success criteria if available
+        merged_success_criteria = list(success_criteria) if success_criteria else []
+        if hasattr(formalized, 'success_criteria') and formalized.success_criteria:
+            merged_success_criteria.extend(formalized.success_criteria)
+        
+        result = self.solve(
+            problem_statement=formalized_code,
+            title=title or (formalized.title if hasattr(formalized, 'title') else None),
+            domain=domain,
+            constraints=merged_constraints,
+            success_criteria=merged_success_criteria,
+            **kwargs
+        )
+        
+        # Add CAV-NLP metadata to result
+        result.solving_steps.insert(0, step_formalize)
+        if hasattr(result, 'metadata') and isinstance(result.metadata, dict):
+            result.metadata['cav_nlp'] = {
+                'original_problem': problem,
+                'formalized_code': formalized_code,
+                'formalization_metadata': getattr(formalized, 'metadata', {})
+            }
+        
+        return result
+    
+    async def solve_hybrid(
+        self,
+        problem: str,
+        title: Optional[str] = None,
+        domain: Union[ProblemDomain, str] = ProblemDomain.GENERIC,
+        constraints: Optional[List[str]] = None,
+        success_criteria: Optional[List[str]] = None,
+        verify_with_lean: bool = True,
+        **kwargs
+    ) -> SolverResult:
+        """
+        Solve with hybrid Z3 + Lean verification.
+        
+        This method combines the standard decomposition/recomposition pipeline
+        with formal verification using Z3 and Lean theorem prover. It:
+        1. Solves the problem using the standard pipeline
+        2. Extracts constraints from the solution
+        3. Verifies the solution using Z3 SMT solver
+        4. Optionally verifies with Lean 4 theorem prover (if available)
+        
+        Args:
+            problem: Problem statement (can be natural language or formal)
+            title: Optional title for the problem
+            domain: Problem domain (or auto-detect if not specified)
+            constraints: List of constraints
+            success_criteria: List of success criteria
+            verify_with_lean: Whether to use Lean verification (if available)
+            **kwargs: Additional arguments passed to solve()
+            
+        Returns:
+            SolverResult with complete solution and verification results
+            
+        Example:
+            >>> solver = UniversalProblemSolver()
+            >>> result = await solver.solve_hybrid(
+            ...     "Design a distributed consensus protocol with safety guarantees",
+            ...     title="Consensus Protocol Design",
+            ...     verify_with_lean=True
+            ... )
+            >>> print(f"Z3 verified: {result.verification.get('z3_verified', False)}")
+            >>> print(f"Lean verified: {result.verification.get('lean_verified', False)}")
+        """
+        self.logger.info(f"Starting hybrid Z3+Lean solving: {title or problem[:50]}...")
+        
+        # Step 1: Solve using standard pipeline
+        solution = self.solve(
+            problem_statement=problem,
+            title=title,
+            domain=domain,
+            constraints=constraints,
+            success_criteria=success_criteria,
+            **kwargs
+        )
+        
+        verification_results: Dict[str, Any] = {
+            'z3_verified': False,
+            'lean_verified': False,
+            'verification_performed': False,
+            'errors': []
+        }
+        
+        # Step 2: Apply CAV-NLP verification if available
+        if CAV_NLP_AVAILABLE and solution.success:
+            step_verify = SolutionStep("cav_nlp_verification", datetime.now())
+            
+            try:
+                solver = EnhancedZ3Solver()
+                
+                # Extract constraints from solution
+                solution_constraints = []
+                if hasattr(solution, 'constraints') and solution.constraints:
+                    solution_constraints.extend(solution.constraints)
+                if hasattr(solution.final_solution, 'constraints'):
+                    solution_constraints.extend(solution.final_solution.constraints)
+                
+                # Perform Z3 verification
+                z3_result = await solver.verify(solution_constraints)
+                verification_results['z3_verified'] = getattr(z3_result, 'verified', False)
+                verification_results['z3_result'] = z3_result
+                
+                # Optionally verify with Lean
+                if verify_with_lean:
+                    try:
+                        lean_result = await solver.verify_with_lean(solution_constraints)
+                        verification_results['lean_verified'] = getattr(lean_result, 'verified', False)
+                        verification_results['lean_result'] = lean_result
+                    except Exception as lean_error:
+                        verification_results['lean_error'] = str(lean_error)
+                        self.logger.warning(f"Lean verification failed: {lean_error}")
+                
+                verification_results['verification_performed'] = True
+                step_verify.end_time = datetime.now()
+                step_verify.status = "completed"
+                step_verify.details = {
+                    'z3_verified': verification_results['z3_verified'],
+                    'lean_verified': verification_results['lean_verified']
+                }
+                self.logger.info(
+                    f"CAV-NLP verification completed: Z3={verification_results['z3_verified']}, "
+                    f"Lean={verification_results['lean_verified']}"
+                )
+                
+            except Exception as e:
+                verification_results['errors'].append(str(e))
+                step_verify.end_time = datetime.now()
+                step_verify.status = "failed"
+                step_verify.details = {'error': str(e)}
+                self.logger.error(f"CAV-NLP verification failed: {e}")
+            
+            solution.solving_steps.append(step_verify)
+        elif not CAV_NLP_AVAILABLE:
+            self.logger.warning("CAV-NLP not available, skipping verification")
+            verification_results['errors'].append("CAV-NLP not available")
+        
+        # Attach verification results to solution
+        solution.verification = verification_results
+        if hasattr(solution, 'metadata') and isinstance(solution.metadata, dict):
+            solution.metadata['hybrid_verification'] = verification_results
+        
+        return solution
+    
+    def is_cav_nlp_available(self) -> bool:
+        """
+        Check if CAV-NLP integration is available.
+        
+        Returns:
+            True if CAV-NLP can be used, False otherwise
+        """
+        return CAV_NLP_AVAILABLE
 
 
 # ============================================================================

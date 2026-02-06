@@ -36,6 +36,14 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+# Import CAV-NLP integration
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 
 # =============================================================================
 # Bubble Configuration Constants
@@ -2107,12 +2115,22 @@ class Z3EdgeDefinition:
 
 
 class Z3FlexibleWorkflowBuilder:
-    """Builder for creating arbitrary Z3/LeanAIDE workflow patterns."""
+    """Builder for creating arbitrary Z3/LeanAIDE workflow patterns with CAV-NLP support."""
     
-    def __init__(self):
+    def __init__(self, config: Dict[str, Any] = None):
         self.bubbles: List[Dict[str, Any]] = []
         self.edges: List[Dict[str, Any]] = []
         self.bubble_map: Dict[str, Dict[str, Any]] = {}
+        
+        # Initialize CAV-NLP components
+        config = config or {}
+        self.use_cav_nlp = config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        self.enhanced_solver = None
+        self.math_service = None
+        if self.use_cav_nlp:
+            self.enhanced_solver = EnhancedZ3Solver()
+            self.math_service = UnifiedMathService()
+            logger.info("CAV-NLP enhancement enabled for Z3FlexibleWorkflowBuilder")
     
     def add_bubble(self, bubble_def: Z3BubbleDefinition) -> str:
         """Add a bubble to the workflow."""
@@ -2190,6 +2208,28 @@ class Z3FlexibleWorkflowBuilder:
         self.bubbles = []
         self.edges = []
         self.bubble_map = {}
+    
+    def export_proof_to_lean(self, z3_proof) -> str:
+        """Export Z3 proof to Lean 4 for bubble workflows.
+        
+        This method converts Z3 proof objects to Lean 4 compatible format,
+        enabling integration with LeanAIDE workflows in BubbleLabs.
+        
+        Args:
+            z3_proof: Z3 proof object to export
+            
+        Returns:
+            Lean 4 formatted proof string
+        """
+        if not self.use_cav_nlp or not self.enhanced_solver:
+            logger.warning("CAV-NLP not available for proof export")
+            return "-- CAV-NLP not available for proof export"
+        
+        try:
+            return self.enhanced_solver.proof_exporter.export_proof(z3_proof)
+        except Exception as e:
+            logger.error(f"Proof export failed: {e}")
+            return f"-- Proof export failed: {str(e)}"
 
 
 def create_custom_z3_workflow(

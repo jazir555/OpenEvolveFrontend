@@ -665,6 +665,96 @@ export interface ProviderSummary {
   default_model?: string | null;
 }
 
+export interface VersionEntry {
+  id: string;
+  name: string;
+  timestamp: string;
+  protocol_text: string;
+  comment?: string;
+  author?: string;
+  complexity_metrics?: Record<string, unknown>;
+  structure_analysis?: Record<string, unknown>;
+  branch_from?: string;
+  branch_name?: string;
+}
+
+export interface VersionCompareResult {
+  version1: string;
+  version2: string;
+  chars_added: number;
+  chars_removed: number;
+  total_chars_change: number;
+  complexity_diff?: Record<string, unknown>;
+  error?: string;
+}
+
+export interface ValidationRule {
+  max_length?: number;
+  min_length?: number;
+  required_keywords?: string[];
+  forbidden_patterns?: string[];
+  required_sections?: string[];
+}
+
+export interface ValidationRuleResult {
+  valid: boolean;
+  errors: string[];
+  warnings: string[];
+  suggestions: string[];
+  rule_name: string;
+  rule_config: ValidationRule;
+}
+
+export interface ValidationRunResult {
+  content_length: number;
+  validations: Record<string, ValidationRuleResult>;
+  overall_result: boolean;
+  error_count: number;
+  warning_count: number;
+  suggestion_count: number;
+}
+
+export interface ComplianceCheckResult extends ValidationRuleResult {}
+
+export interface WorkflowDefinitionSummary {
+  id: string;
+  name: string;
+  description?: string;
+  workflow_type: string;
+  created_at?: string;
+}
+
+export interface WorkflowDefinitionDetail extends WorkflowDefinitionSummary {
+  parameters?: Record<string, unknown>;
+}
+
+export interface WorkflowInstanceSummary {
+  instance_id: string;
+  workflow_type?: string;
+  status: string;
+  current_stage?: string;
+  problem_statement?: string;
+  start_time?: number | null;
+  end_time?: number | null;
+  progress?: number;
+}
+
+export interface WorkflowInstanceStatus {
+  instance_id: string;
+  status: string;
+  current_stage?: string;
+  progress?: number;
+  start_time?: number | null;
+  end_time?: number | null;
+  execution_time?: number | null;
+  error_message?: string | null;
+}
+
+export interface WorkflowInstanceDetail {
+  status: WorkflowInstanceStatus;
+  parameters: Record<string, unknown>;
+}
+
 export interface ParameterDefinition {
   name: string;
   type: string;

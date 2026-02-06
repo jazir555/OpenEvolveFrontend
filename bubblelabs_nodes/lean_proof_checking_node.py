@@ -8,6 +8,7 @@ Supports:
 - Error diagnosis
 - Proof repair suggestions
 - Batch verification
+- CAV-NLP enhanced verification
 
 Part of the Mathematical Verification Bubble Suite.
 """
@@ -20,6 +21,14 @@ from typing import Dict, Any, List, Optional, Union
 from datetime import datetime
 
 from bubblelabs_nodes.base_node import BubbleLabsNode, NodeExecutionError
+
+# CAV-NLP Integration
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +73,21 @@ class LeanProofCheckingNode(BubbleLabsNode):
         super().__init__(config)
         self._client = None
         self._integrator = None
+        self.use_cav_nlp = config.get("use_cav_nlp", True) if config else True
+        self.use_cav_nlp = self.use_cav_nlp and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            try:
+                self.math_service = UnifiedMathService()
+                self.enhanced_solver = EnhancedZ3Solver()
+                logger.info("CAV-NLP integration initialized for LeanProofCheckingNode")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP services: {e}")
+                self.use_cav_nlp = False
+                self.math_service = None
+                self.enhanced_solver = None
+        else:
+            self.math_service = None
+            self.enhanced_solver = None
         
     def _initialize_client(self):
         """Initialize LeanAide client."""
@@ -164,6 +188,11 @@ class LeanProofCheckingNode(BubbleLabsNode):
                 "leanaide_port": {
                     "type": "integer",
                     "default": 7654
+                },
+                "use_cav_nlp": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Enable CAV-NLP enhanced verification"
                 }
             },
             "required": ["operation"]
@@ -215,6 +244,47 @@ class LeanProofCheckingNode(BubbleLabsNode):
                 details={"operation": operation}
             )
     
+    def verify_with_cav_nlp(self, lean_code: str, theorem_name: str = "") -> Dict[str, Any]:
+        """Verify proof using CAV-NLP enhanced solver.
+        
+        Args:
+            lean_code: Lean 4 code to verify
+            theorem_name: Name of theorem to check
+            
+        Returns:
+            Verification result
+        """
+        if not self.use_cav_nlp:
+            return {
+                "success": False,
+                "status": "cav_nlp_unavailable",
+                "verified": False,
+                "error": "CAV-NLP services not available"
+            }
+        
+        try:
+            # Use enhanced solver for verification
+            verification = self.enhanced_solver.verify(lean_code)
+            return {
+                "success": verification.verified if hasattr(verification, 'verified') else verification.success,
+                "status": "verified" if (verification.verified if hasattr(verification, 'verified') else verification.success) else "failed",
+                "theorem_name": theorem_name or "unknown",
+                "errors": verification.errors if hasattr(verification, 'errors') else [],
+                "warnings": verification.warnings if hasattr(verification, 'warnings') else [],
+                "confidence": verification.confidence if hasattr(verification, 'confidence') else 0.8,
+                "method": "cav_nlp"
+            }
+        except Exception as e:
+            logger.error(f"CAV-NLP verification failed: {e}")
+            return {
+                "success": False,
+                "status": "error",
+                "verified": False,
+                "theorem_name": theorem_name or "unknown",
+                "errors": [str(e)],
+                "error": str(e)
+            }
+    
     def _check_proof(self, inputs: Dict, context) -> Dict[str, Any]:
         """Verify a proof is correct."""
         lean_code = inputs.get("lean_code", self.config.get("lean_code", ""))
@@ -222,6 +292,16 @@ class LeanProofCheckingNode(BubbleLabsNode):
         timeout = inputs.get("timeout", self.config.get("timeout", 300.0))
         
         context.update_progress(40)
+        
+        # Try CAV-NLP first if available
+        if self.use_cav_nlp:
+            try:
+                result = self.verify_with_cav_nlp(lean_code, theorem_name)
+                if result.get("success") or result.get("status") in ["verified", "failed"]:
+                    context.update_progress(90)
+                    return result
+            except Exception as e:
+                logger.warning(f"CAV-NLP verification failed: {e}, using fallback")
         
         if self._integrator is None:
             self._initialize_integrator()

@@ -82,7 +82,6 @@ if ROMA_MDAP_MAKER_AVAILABLE:
     try:
         # Use SSOT thorough preset for mission-critical solving
         _config = get_thorough_config(
-            preset="thorough",
             # Can override specific parameters if needed
             # roma_max_depth_solving=3,  # Example: Override if preset doesn't match needs
             # mdap_min_confidence=0.3     # Example: Override if preset doesn't match needs

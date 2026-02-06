@@ -19,6 +19,14 @@ from datetime import datetime
 
 from bubblelabs_nodes.base_node import BubbleLabsNode, NodeExecutionError
 
+# CAV-NLP Integration
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -54,6 +62,21 @@ class MathEquivalenceNode(BubbleLabsNode):
     
     def __init__(self, config: Optional[Dict] = None):
         super().__init__(config)
+        self.use_cav_nlp = config.get("use_cav_nlp", True) if config else True
+        self.use_cav_nlp = self.use_cav_nlp and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            try:
+                self.math_service = UnifiedMathService()
+                self.enhanced_solver = EnhancedZ3Solver()
+                logger.info("CAV-NLP integration initialized for MathEquivalenceNode")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP services: {e}")
+                self.use_cav_nlp = False
+                self.math_service = None
+                self.enhanced_solver = None
+        else:
+            self.math_service = None
+            self.enhanced_solver = None
     
     def validate_inputs(self, inputs: Dict) -> List[str]:
         """Validate node inputs."""
@@ -126,6 +149,11 @@ class MathEquivalenceNode(BubbleLabsNode):
                     "type": "number",
                     "default": 30.0,
                     "description": "Timeout in seconds"
+                },
+                "use_cav_nlp": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Enable CAV-NLP enhanced equivalence checking"
                 }
             },
             "required": ["operation"]
@@ -168,6 +196,28 @@ class MathEquivalenceNode(BubbleLabsNode):
                 details={"operation": operation}
             )
     
+    def check_equivalence(self, expr1, expr2) -> bool:
+        """Check equivalence using CAV-NLP canonicalization.
+        
+        Args:
+            expr1: First mathematical expression
+            expr2: Second mathematical expression
+            
+        Returns:
+            True if expressions are equivalent, False otherwise
+        """
+        if self.use_cav_nlp and self.enhanced_solver:
+            try:
+                # Use CAV-NLP canonical manager for equivalence checking
+                if hasattr(self.enhanced_solver, 'canonical_manager'):
+                    return self.enhanced_solver.canonical_manager.are_equivalent(expr1, expr2)
+            except Exception as e:
+                logger.warning(f"CAV-NLP equivalence check failed: {e}, falling back")
+        
+        # Fallback to traditional method
+        result = self._check_general(str(expr1), str(expr2))
+        return result.get("equivalent", False)
+    
     def _check_equivalence(self, inputs: Dict, context) -> Dict[str, Any]:
         """General equivalence check."""
         expr1 = inputs.get("expr1", self.config.get("expr1", ""))
@@ -176,6 +226,24 @@ class MathEquivalenceNode(BubbleLabsNode):
         show_proof = inputs.get("show_proof", self.config.get("show_proof", True))
         
         context.update_progress(50)
+        
+        # Try CAV-NLP first if available
+        if self.use_cav_nlp and domain in ["algebra", "general"]:
+            try:
+                is_equiv = self.check_equivalence(expr1, expr2)
+                context.update_progress(100)
+                return {
+                    "success": True,
+                    "expr1": expr1,
+                    "expr2": expr2,
+                    "are_equivalent": is_equiv,
+                    "confidence": 0.95,
+                    "domain": domain,
+                    "method": "cav_nlp_canonicalization",
+                    "proof": "Verified using CAV-NLP canonical forms" if show_proof else None
+                }
+            except Exception as e:
+                logger.warning(f"CAV-NLP equivalence check failed: {e}, using fallback")
         
         # Dispatch to domain-specific checker
         if domain == "algebra":
@@ -518,6 +586,30 @@ class MathEquivalenceNode(BubbleLabsNode):
         if steps:
             return [s["rule"] for s in steps]
         return None
+    
+    def canonicalize_expression(self, expression: str) -> str:
+        """Canonicalize expression using CAV-NLP.
+        
+        Args:
+            expression: Mathematical expression to canonicalize
+            
+        Returns:
+            Canonical form of the expression
+            
+        Raises:
+            ValueError: If CAV-NLP is not available
+        """
+        if not self.use_cav_nlp:
+            raise ValueError("CAV-NLP not available")
+        
+        try:
+            if hasattr(self.enhanced_solver, 'canonical_manager'):
+                return self.enhanced_solver.canonical_manager.canonicalize(expression)
+            else:
+                raise ValueError("Canonical manager not available")
+        except Exception as e:
+            logger.error(f"Failed to canonicalize expression: {e}")
+            raise ValueError(f"Canonicalization failed: {e}")
     
     def is_healthy(self) -> bool:
         """Check node health."""

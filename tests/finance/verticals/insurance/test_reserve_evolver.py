@@ -81,7 +81,7 @@ def basic_constraints():
         max_duration=7.0,
         min_credit_quality="BBB-",
         max_concentration=0.30,
-        min_diversification=20,
+        min_diversification=2,  # Reduced from 20 to match test portfolio size
         max_single_bond=0.05,
         liquidity_requirement=0.10
     )

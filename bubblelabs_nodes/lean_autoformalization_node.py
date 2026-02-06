@@ -8,6 +8,7 @@ Uses LeanAide's autoformalization capabilities with support for:
 - Multi-agent generation (MDAP)
 - Voting-based refinement (MAKER)
 - Proof generation
+- CAV-NLP enhanced formalization
 
 Part of the Mathematical Verification Bubble Suite.
 """
@@ -20,6 +21,14 @@ from typing import Dict, Any, List, Optional, Union
 from datetime import datetime
 
 from bubblelabs_nodes.base_node import BubbleLabsNode, NodeExecutionError
+
+# CAV-NLP Integration
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +64,21 @@ class LeanAutoformalizationNode(BubbleLabsNode):
         super().__init__(config)
         self._client = None
         self._engine = None
+        self.use_cav_nlp = config.get("use_cav_nlp", True) if config else True
+        self.use_cav_nlp = self.use_cav_nlp and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            try:
+                self.math_service = UnifiedMathService()
+                self.enhanced_solver = EnhancedZ3Solver()
+                logger.info("CAV-NLP integration initialized for LeanAutoformalizationNode")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP services: {e}")
+                self.use_cav_nlp = False
+                self.math_service = None
+                self.enhanced_solver = None
+        else:
+            self.math_service = None
+            self.enhanced_solver = None
         
     def _initialize_client(self):
         """Initialize LeanAide client."""
@@ -177,6 +201,11 @@ class LeanAutoformalizationNode(BubbleLabsNode):
                     "type": "boolean",
                     "default": True,
                     "description": "Enable result caching"
+                },
+                "use_cav_nlp": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Enable CAV-NLP enhanced autoformalization"
                 }
             },
             "required": ["operation"]
@@ -228,6 +257,31 @@ class LeanAutoformalizationNode(BubbleLabsNode):
                 details={"operation": operation, "error": str(e)}
             )
     
+    def autoformalize(self, natural_language: str) -> str:
+        """Convert natural language to Lean using CAV-NLP.
+        
+        Args:
+            natural_language: Natural language mathematical statement
+            
+        Returns:
+            Formal Lean code
+        """
+        if not self.use_cav_nlp:
+            # Fallback to traditional method
+            result = self._fallback_translation(natural_language, "theorem", "general", False)
+            return result.get("lean_code", "")
+        
+        try:
+            result = self.math_service.formalize(natural_language)
+            if result and hasattr(result, 'elaborated_code') and result.elaborated_code:
+                return result.elaborated_code
+            return result.code if result and hasattr(result, 'code') else ""
+        except Exception as e:
+            logger.error(f"CAV-NLP autoformalization failed: {e}")
+            # Fallback
+            fallback = self._fallback_translation(natural_language, "theorem", "general", False)
+            return fallback.get("lean_code", "")
+    
     def _translate_theorem(self, inputs: Dict, context) -> Dict[str, Any]:
         """Translate theorem statement to Lean."""
         text = inputs.get("text", self.config.get("text", ""))
@@ -235,6 +289,23 @@ class LeanAutoformalizationNode(BubbleLabsNode):
         include_proofs = inputs.get("include_proofs", self.config.get("include_proofs", True))
         
         context.update_progress(40)
+        
+        # Try CAV-NLP first if available
+        if self.use_cav_nlp:
+            try:
+                formalized = self.autoformalize(text)
+                if formalized:
+                    context.update_progress(90)
+                    return {
+                        "success": True,
+                        "lean_code": formalized,
+                        "theorem_name": self._extract_theorem_name(text),
+                        "confidence": 0.9,
+                        "method": "cav_nlp",
+                        "logs": []
+                    }
+            except Exception as e:
+                logger.warning(f"CAV-NLP translation failed: {e}, using fallback")
         
         if self._client:
             # Use real client
@@ -422,6 +493,12 @@ end Autoformalized
             "domain": domain,
             "include_proofs": include_proofs
         }
+    
+    def _extract_theorem_name(self, text: str) -> str:
+        """Extract a theorem name from text."""
+        words = text.split()
+        name = "theorem_" + "_".join(w.lower()[:5] for w in words[:3] if w.isalpha())[:20]
+        return name
     
     def is_healthy(self) -> bool:
         """Check node health."""

@@ -60,6 +60,14 @@ try:
 except ImportError:
     Z3_LEANAIDE_AVAILABLE = False
 
+# Import CAV-NLP integration
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 
 # =============================================================================
 # Data Classes
@@ -379,11 +387,33 @@ class Z3TheoremProverAgent(Z3BaseAgent):
 
 
 class Z3TranslatorAgent(Z3BaseAgent):
-    """Agent for translating between formats."""
+    """Agent for translating between formats with CAV-NLP support."""
     
     def __init__(self, agent_id: str, config: Optional[Z3Config] = None):
         super().__init__(agent_id, AgentRole.TRANSLATOR, config)
         self.bridge = get_z3_leanaide_bridge_sync() if Z3_LEANAIDE_AVAILABLE else None
+        # Initialize CAV-NLP components
+        self.use_cav_nlp = config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE if config else CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            self.enhanced_solver = EnhancedZ3Solver()
+            self.math_service = UnifiedMathService()
+            logger.info("CAV-NLP enhancement enabled for Z3TranslatorAgent")
+    
+    def formalize_for_crewai(self, natural_language: str) -> str:
+        """Formalize NL for CrewAI agents using CAV-NLP.
+        
+        Args:
+            natural_language: Natural language problem statement
+            
+        Returns:
+            Formalized code representation
+        """
+        if not self.use_cav_nlp:
+            logger.warning("CAV-NLP not available, returning original text")
+            return natural_language
+        
+        result = self.math_service.formalize(natural_language)
+        return result.code
     
     async def execute(self, task: AgentTask) -> AgentResult:
         """Execute translation task."""

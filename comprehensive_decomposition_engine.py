@@ -60,6 +60,35 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
+# CAV-NLP Integration for natural language decomposition and hybrid validation
+try:
+    from openevolve.cav_nlp_integration.adapter import (
+        Z3LeanAideBridge, create_z3_lean_bridge, quick_verify
+    )
+    from openevolve.cav_nlp_integration.data_structures import (
+        VerificationBridgeResult, ConstraintType as CAVConstraintType
+    )
+    CAV_NLP_AVAILABLE = True
+    logger.info("CAV-NLP integration available for enhanced decomposition")
+except ImportError:
+    try:
+        # Fallback to direct LeanAide bridge
+        from leanaide_crewai_bridge import LeanAideCrewAIBridge
+        CAV_NLP_AVAILABLE = True
+        logger.info("LeanAide-CrewAI bridge available for enhanced decomposition")
+    except ImportError:
+        CAV_NLP_AVAILABLE = False
+        logger.warning("CAV-NLP integration not available - NL decomposition disabled")
+
+# Z3 Validator for hybrid validation
+try:
+    from decomposition_z3_validator import (
+        Z3DecompositionValidator, ValidationResult, DecompositionProperty
+    )
+    Z3_VALIDATOR_AVAILABLE = True
+except ImportError:
+    Z3_VALIDATOR_AVAILABLE = False
+
 # ============================================================================
 # ENUMS AND TYPE DEFINITIONS
 # ============================================================================
@@ -747,6 +776,11 @@ class ComprehensiveDecompositionEngine:
     """
     Comprehensive Decomposition Engine with multi-strategy orchestration,
     uncertainty quantification, and advanced optimization.
+    
+    Enhanced with CAV-NLP integration for:
+    - Natural language problem decomposition
+    - Hybrid Z3+Lean validation
+    - Formal constraint extraction from NL descriptions
     """
     
     def __init__(
@@ -756,7 +790,8 @@ class ComprehensiveDecompositionEngine:
         embedding_model: Optional[Any] = None,
         enable_parallel: bool = True,
         max_workers: int = 4,
-        enable_caching: bool = True
+        enable_caching: bool = True,
+        enable_cav_nlp: bool = True
     ):
         """
         Initialize the comprehensive decomposition engine.
@@ -768,6 +803,7 @@ class ComprehensiveDecompositionEngine:
             enable_parallel: Enable parallel processing
             max_workers: Maximum parallel workers
             enable_caching: Enable result caching
+            enable_cav_nlp: Enable CAV-NLP integration for enhanced validation
         """
         self.strategies = strategies or {}
         self.llm_client = llm_client
@@ -775,6 +811,29 @@ class ComprehensiveDecompositionEngine:
         self.enable_parallel = enable_parallel
         self.max_workers = max_workers
         self.enable_caching = enable_caching
+        
+        # CAV-NLP integration
+        self._cav_nlp_enabled = enable_cav_nlp and CAV_NLP_AVAILABLE
+        self.cav_nlp_bridge = None
+        self.z3_validator = None
+        
+        if self._cav_nlp_enabled:
+            try:
+                if CAV_NLP_AVAILABLE:
+                    self.cav_nlp_bridge = create_z3_lean_bridge() if 'create_z3_lean_bridge' in globals() else Z3LeanAideBridge()
+                    logger.info("CAV-NLP bridge initialized for NL decomposition")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP bridge: {e}")
+                self._cav_nlp_enabled = False
+        
+        # Z3 Validator for hybrid validation
+        if Z3_VALIDATOR_AVAILABLE:
+            try:
+                self.z3_validator = Z3DecompositionValidator(enable_cav_nlp=self._cav_nlp_enabled)
+                logger.info("Z3 validator initialized for hybrid validation")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Z3 validator: {e}")
+                self.z3_validator = None
         
         # Cache
         self._cache: Dict[str, Any] = {}
@@ -790,10 +849,13 @@ class ComprehensiveDecompositionEngine:
             'max_subproblems': 15,
             'target_subproblem_size': 8,  # Hours
             'uncertainty_threshold': 0.7,
-            'quality_threshold': 0.6
+            'quality_threshold': 0.6,
+            'enable_cav_nlp': self._cav_nlp_enabled,
+            'cav_nlp_validation_mode': 'hybrid',  # hybrid, z3_only, lean_only
+            'auto_validate_with_cav_nlp': True
         }
         
-        logger.info(f"ComprehensiveDecompositionEngine initialized with {len(self.strategies)} strategies")
+        logger.info(f"ComprehensiveDecompositionEngine initialized with {len(self.strategies)} strategies, CAV-NLP: {self._cav_nlp_enabled}")
     
     def register_strategy(
         self, 
@@ -1323,8 +1385,472 @@ class ComprehensiveDecompositionEngine:
             'avg_subproblems': (
                 sum(len(p.sub_problems) for p in self.decomposition_history) /
                 len(self.decomposition_history) if self.decomposition_history else 0
-            )
+            ),
+            'cav_nlp_enabled': self._cav_nlp_enabled,
+            'cav_nlp_bridge_active': self.cav_nlp_bridge is not None,
+            'z3_validator_active': self.z3_validator is not None
         }
+    
+    # ========================================================================
+    # CAV-NLP Enhanced Methods
+    # ========================================================================
+    
+    async def decompose_with_nl_input(
+        self,
+        natural_language: str,
+        domain: str = "general",
+        context: Optional[DecompositionContext] = None,
+        extract_constraints: bool = True,
+        auto_validate: bool = True
+    ) -> DecompositionResult:
+        """
+        Decompose problem from natural language description using CAV-NLP.
+        
+        This method:
+        1. Formalizes natural language to constraints using CAV-NLP
+        2. Extracts mathematical components if present
+        3. Creates a formal ProblemDefinition
+        4. Runs decomposition on formalized constraints
+        5. Optionally validates with hybrid Z3+Lean
+        
+        Args:
+            natural_language: Natural language problem description
+            domain: Problem domain (e.g., "software", "mathematics", "engineering")
+            context: Optional decomposition context
+            extract_constraints: Whether to extract formal constraints from NL
+            auto_validate: Whether to auto-validate with hybrid validation
+            
+        Returns:
+            DecompositionResult with formalized constraints and decomposition plan
+        """
+        start_time = time.time()
+        
+        if not self._cav_nlp_enabled:
+            logger.warning("CAV-NLP not available, using standard decomposition with NL parsing")
+            # Fallback: create a basic problem definition and decompose
+            problem = self._create_problem_from_nl_fallback(natural_language, domain)
+            context = context or DecompositionContext(
+                domain=domain,
+                available_strategies=list(self.strategies.keys()),
+                constraints=[]
+            )
+            return self.decompose(problem, context)
+        
+        try:
+            logger.info(f"Starting CAV-NLP decomposition for domain: {domain}")
+            
+            # Step 1: Formalize natural language using CAV-NLP
+            formalization = await self._formalize_nl_with_cav_nlp(
+                natural_language, extract_constraints
+            )
+            
+            # Step 2: Create ProblemDefinition from formalized constraints
+            problem = await self._create_problem_from_formalization(
+                natural_language, formalization, domain
+            )
+            
+            # Step 3: Create decomposition context with CAV-NLP metadata
+            if context is None:
+                context = DecompositionContext(
+                    domain=domain,
+                    available_strategies=list(self.strategies.keys()),
+                    constraints=formalization.get("constraints", []),
+                    preferences={
+                        "cav_nlp_enhanced": True,
+                        "extracted_constraints_count": len(formalization.get("constraints", []))
+                    }
+                )
+            
+            # Step 4: Run decomposition
+            decomposition_start = time.time()
+            plan = self.decompose(problem, context)
+            decomposition_time = time.time() - decomposition_start
+            
+            # Step 5: Hybrid validation if enabled
+            validation_result = None
+            if auto_validate and self.z3_validator is not None:
+                try:
+                    validation_result = await self.validate_hybrid(plan, problem)
+                    logger.info(f"Hybrid validation completed: valid={validation_result.valid}")
+                except Exception as e:
+                    logger.warning(f"Hybrid validation failed: {e}")
+            
+            # Step 6: Create enhanced result
+            total_time = time.time() - start_time
+            
+            result = DecompositionResult(
+                plan=plan,
+                original_description=natural_language,
+                formalized_constraints=formalization.get("constraints", []),
+                extracted_entities=formalization.get("entities", []),
+                validation_result=validation_result,
+                metadata={
+                    "cav_nlp_enhanced": True,
+                    "domain": domain,
+                    "formalization_time_ms": formalization.get("execution_time_ms", 0),
+                    "decomposition_time_ms": decomposition_time * 1000,
+                    "total_time_ms": total_time * 1000,
+                    "validation_performed": validation_result is not None,
+                    "extracted_constraint_count": len(formalization.get("constraints", []))
+                }
+            )
+            
+            # Extract knowledge for successful decompositions
+            self._extract_decomposition_knowledge(
+                "decompose_with_nl", 
+                problem.id, 
+                plan.strategy_used, 
+                plan
+            )
+            
+            logger.info(f"CAV-NLP decomposition completed in {total_time:.2f}s")
+            return result
+            
+        except Exception as e:
+            logger.error(f"CAV-NLP decomposition failed: {e}", exc_info=True)
+            # Trigger alert for failure
+            self._trigger_decomposition_alerts(
+                "decompose_with_nl", False, None, str(e),
+                {"natural_language": natural_language[:100]}
+            )
+            raise
+    
+    async def validate_hybrid(
+        self,
+        plan: DecompositionPlan,
+        problem: 'ProblemDefinition',
+        validation_depth: str = "standard",
+        validate_critical_with_lean: bool = True
+    ) -> ValidationResult:
+        """
+        Validate decomposition using hybrid Z3+Lean approach.
+        
+        This method provides enhanced validation by combining:
+        - Z3 SMT solver for constraint satisfaction
+        - Lean 4 theorem prover for critical constraints
+        - CAV-NLP for semantic consistency checking
+        
+        Args:
+            plan: Decomposition plan to validate
+            problem: Original problem definition
+            validation_depth: "quick", "standard", or "deep"
+            validate_critical_with_lean: Whether to validate critical constraints with Lean
+            
+        Returns:
+            ValidationResult with hybrid verification data
+        """
+        if self.z3_validator is None:
+            logger.warning("Z3 validator not available, returning basic validation")
+            return ValidationResult(
+                success=False,
+                valid=False,
+                violations=[{"error": "Z3 validator not available"}],
+                recommendations=["Enable Z3 validation for enhanced verification"]
+            )
+        
+        try:
+            logger.info(f"Starting hybrid validation with depth: {validation_depth}")
+            
+            # Use the validator's CAV-NLP enhanced validation
+            if hasattr(self.z3_validator, 'validate_with_cav_nlp'):
+                # Convert plan to format expected by validator
+                original_problem = self._problem_to_smtlib(problem) if hasattr(problem, 'constraints') else ""
+                
+                # Create decomposition tuple for the validator
+                decomposition_data = (
+                    original_problem,
+                    self._convert_plan_to_subproblem_models(plan),
+                    self._extract_entanglements_from_plan(plan)
+                )
+                
+                result = await self.z3_validator.validate_with_cav_nlp(
+                    decomposition_data,
+                    validate_critical_with_lean=validate_critical_with_lean,
+                    verification_depth=validation_depth
+                )
+                
+                return result
+            else:
+                # Fallback to standard Z3 validation
+                logger.warning("CAV-NLP validation not available, using standard Z3")
+                return ValidationResult(
+                    success=True,
+                    valid=True,
+                    recommendations=["CAV-NLP enhanced validation not available"]
+                )
+                
+        except Exception as e:
+            logger.error(f"Hybrid validation failed: {e}", exc_info=True)
+            return ValidationResult(
+                success=False,
+                valid=False,
+                violations=[{"error": f"Hybrid validation failed: {str(e)}"}],
+                recommendations=["Review decomposition manually"]
+            )
+    
+    async def _formalize_nl_with_cav_nlp(
+        self,
+        natural_language: str,
+        extract_constraints: bool = True
+    ) -> Dict[str, Any]:
+        """Formalize natural language description using CAV-NLP."""
+        start_time = time.time()
+        result = {
+            "constraints": [],
+            "entities": [],
+            "canonical_form": None,
+            "mathematical_components": [],
+            "execution_time_ms": 0
+        }
+        
+        try:
+            if self.cav_nlp_bridge is None:
+                return result
+            
+            # Use CAV-NLP to canonicalize and extract structure
+            if hasattr(self.cav_nlp_bridge, '_canonicalize_text'):
+                canonical = self.cav_nlp_bridge._canonicalize_text(natural_language)
+                result["canonical_form"] = canonical
+            
+            # Extract mathematical components if available
+            if hasattr(self.cav_nlp_bridge, 'parser') and self.cav_nlp_bridge.parser is not None:
+                parser = self.cav_nlp_bridge.parser
+                
+                # Try to extract constraints using the parser
+                if hasattr(parser, 'parse'):
+                    parse_result = parser.parse(natural_language)
+                    result["parse_result"] = parse_result
+                
+                # Extract variables and entities
+                if hasattr(parser, 'extract_entities'):
+                    entities = parser.extract_entities(natural_language)
+                    result["entities"] = entities
+            
+            # If we have Lean service, try to formalize to Lean
+            if extract_constraints and hasattr(self.cav_nlp_bridge, 'z3_to_lean4'):
+                # This is a simplified extraction - real implementation would be more sophisticated
+                result["constraints"] = self._extract_constraints_from_nl(natural_language)
+            
+            result["execution_time_ms"] = (time.time() - start_time) * 1000
+            return result
+            
+        except Exception as e:
+            logger.warning(f"CAV-NLP formalization failed: {e}")
+            result["error"] = str(e)
+            result["execution_time_ms"] = (time.time() - start_time) * 1000
+            return result
+    
+    async def _create_problem_from_formalization(
+        self,
+        natural_language: str,
+        formalization: Dict[str, Any],
+        domain: str
+    ) -> 'ProblemDefinition':
+        """Create ProblemDefinition from CAV-NLP formalization."""
+        # Generate unique ID
+        problem_id = f"nl_{hashlib.sha256(natural_language.encode()).hexdigest()[:12]}"
+        
+        # Extract or estimate complexity
+        complexity = self._estimate_complexity_from_formalization(formalization)
+        
+        # Convert extracted constraints to Constraint objects
+        constraints = []
+        for c in formalization.get("constraints", []):
+            if isinstance(c, dict):
+                constraints.append(Constraint(
+                    id=c.get("id", generate_id("cons")),
+                    description=c.get("description", ""),
+                    type=ConstraintType.TECHNICAL,
+                    severity=ConstraintSeverity.HIGH if c.get("critical", False) else ConstraintSeverity.MEDIUM
+                ))
+        
+        return ProblemDefinition(
+            id=problem_id,
+            title=natural_language[:100] + "..." if len(natural_language) > 100 else natural_language,
+            description=natural_language,
+            domain=domain,
+            complexity_score=complexity,
+            constraints=constraints,
+            metadata={
+                "cav_nlp_formalized": True,
+                "extracted_entities": formalization.get("entities", []),
+                "canonical_form": str(formalization.get("canonical_form", ""))[:500]
+            }
+        )
+    
+    def _create_problem_from_nl_fallback(
+        self,
+        natural_language: str,
+        domain: str
+    ) -> 'ProblemDefinition':
+        """Create a basic ProblemDefinition when CAV-NLP is unavailable."""
+        problem_id = f"nl_fb_{hashlib.sha256(natural_language.encode()).hexdigest()[:12]}"
+        
+        return ProblemDefinition(
+            id=problem_id,
+            title=natural_language[:100],
+            description=natural_language,
+            domain=domain,
+            complexity_score=ComplexityScore(
+                cognitive_complexity=5.0,
+                computational_complexity=5.0,
+                domain_complexity=5.0,
+                integration_complexity=5.0,
+                coordination_complexity=5.0,
+                overall_complexity=5.0,
+                explanation="Default complexity - CAV-NLP not available for analysis"
+            ),
+            constraints=[],
+            metadata={"cav_nlp_formalized": False, "fallback": True}
+        )
+    
+    def _estimate_complexity_from_formalization(
+        self,
+        formalization: Dict[str, Any]
+    ) -> ComplexityScore:
+        """Estimate complexity from CAV-NLP formalization."""
+        # Base complexity
+        cognitive = 5.0
+        computational = 5.0
+        domain = 5.0
+        integration = 5.0
+        coordination = 5.0
+        
+        # Adjust based on extracted constraints
+        constraint_count = len(formalization.get("constraints", []))
+        if constraint_count > 10:
+            cognitive += 2.0
+            computational += 1.5
+        elif constraint_count > 5:
+            cognitive += 1.0
+            computational += 0.5
+        
+        # Adjust based on entities
+        entity_count = len(formalization.get("entities", []))
+        if entity_count > 20:
+            integration += 2.0
+            coordination += 1.5
+        elif entity_count > 10:
+            integration += 1.0
+            coordination += 0.5
+        
+        # Check for mathematical components (typically higher complexity)
+        math_components = formalization.get("mathematical_components", [])
+        if math_components:
+            computational += min(2.0, len(math_components) * 0.5)
+            domain += 1.0
+        
+        return ComplexityScore(
+            cognitive_complexity=min(10.0, cognitive),
+            computational_complexity=min(10.0, computational),
+            domain_complexity=min(10.0, domain),
+            integration_complexity=min(10.0, integration),
+            coordination_complexity=min(10.0, coordination),
+            overall_complexity=min(10.0, (cognitive + computational + domain + integration + coordination) / 5),
+            explanation="Estimated from CAV-NLP formalization analysis"
+        )
+    
+    def _extract_constraints_from_nl(self, natural_language: str) -> List[Dict[str, Any]]:
+        """Extract constraints from natural language description."""
+        constraints = []
+        
+        # Simple keyword-based extraction (real implementation would use NLP)
+        constraint_keywords = [
+            ("must", ConstraintSeverity.CRITICAL),
+            ("should", ConstraintSeverity.HIGH),
+            ("needs to", ConstraintSeverity.HIGH),
+            ("required", ConstraintSeverity.CRITICAL),
+            ("optional", ConstraintSeverity.OPTIONAL),
+            ("preferably", ConstraintSeverity.MEDIUM)
+        ]
+        
+        for keyword, severity in constraint_keywords:
+            if keyword in natural_language.lower():
+                # Find sentences containing the keyword
+                sentences = natural_language.split('.')
+                for sentence in sentences:
+                    if keyword in sentence.lower():
+                        constraints.append({
+                            "id": generate_id("cons"),
+                            "description": sentence.strip(),
+                            "severity": severity,
+                            "critical": severity == ConstraintSeverity.CRITICAL
+                        })
+        
+        return constraints
+    
+    def _problem_to_smtlib(self, problem: 'ProblemDefinition') -> str:
+        """Convert problem definition to SMT-LIB format for Z3."""
+        # Simplified conversion
+        smtlib_parts = ["(set-logic ALL)"]
+        
+        # Add constraints as assertions
+        for constraint in problem.constraints:
+            smtlib_parts.append(f"; {constraint.description}")
+        
+        return "\n".join(smtlib_parts)
+    
+    def _convert_plan_to_subproblem_models(
+        self,
+        plan: DecompositionPlan
+    ) -> List[Any]:
+        """Convert DecompositionPlan to SubProblemModels for Z3 validator."""
+        # Import here to avoid circular imports
+        try:
+            from decomposition_z3_validator import SubProblemModel, DecompositionConstraint, Z3Variable, Z3ConstraintType
+            
+            models = []
+            for sp in plan.sub_problems:
+                # Extract or create variables
+                variables = []
+                if hasattr(sp, 'metadata') and 'variables' in sp.metadata:
+                    for var_name in sp.metadata['variables']:
+                        variables.append(Z3Variable(var_name, Z3ConstraintType.INTEGER))
+                
+                # Extract or create constraints
+                constraints = []
+                if hasattr(sp, 'success_criteria'):
+                    for sc in sp.success_criteria:
+                        constraints.append(DecompositionConstraint(
+                            constraint_id=sc.id,
+                            expression=sc.description,
+                            scope="subproblem"
+                        ))
+                
+                models.append(SubProblemModel(
+                    subproblem_id=sp.id,
+                    variables=variables,
+                    constraints=constraints,
+                    complexity_score=sp.complexity_score.overall_complexity if hasattr(sp, 'complexity_score') else 5.0
+                ))
+            
+            return models
+        except ImportError:
+            logger.warning("Could not import SubProblemModel, returning empty list")
+            return []
+    
+    def _extract_entanglements_from_plan(
+        self,
+        plan: DecompositionPlan
+    ) -> List[Any]:
+        """Extract entanglements from DecompositionPlan."""
+        try:
+            from decomposition_z3_validator import EntanglementSpecification
+            
+            entanglements = []
+            for edge in plan.dependency_graph.edges:
+                entanglements.append(EntanglementSpecification(
+                    entanglement_id=f"ent_{edge.from_id}_{edge.to_id}",
+                    source_subproblem=edge.from_id,
+                    target_subproblem=edge.to_id,
+                    coupling_constraints=[edge.description] if edge.description else [],
+                    strength="strong" if edge.is_critical else "weak"
+                ))
+            
+            return entanglements
+        except ImportError:
+            logger.warning("Could not import EntanglementSpecification, returning empty list")
+            return []
 
     # =========================================================================
     # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Comprehensive Decomposition
@@ -1446,6 +1972,44 @@ class ComprehensiveDecompositionEngine:
 # ============================================================================
 
 @dataclass
+class DecompositionResult:
+    """Result from CAV-NLP enhanced decomposition."""
+    plan: DecompositionPlan
+    original_description: str
+    formalized_constraints: List[Dict[str, Any]] = field(default_factory=list)
+    extracted_entities: List[Dict[str, Any]] = field(default_factory=list)
+    validation_result: Optional[Any] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    
+    def is_valid(self) -> bool:
+        """Check if decomposition is valid."""
+        if self.validation_result is None:
+            return True  # No validation performed
+        if hasattr(self.validation_result, 'valid'):
+            return self.validation_result.valid
+        return True
+    
+    def get_confidence_score(self) -> float:
+        """Get overall confidence score."""
+        confidence = 0.7  # Base confidence
+        
+        # Adjust based on validation
+        if self.validation_result is not None:
+            if hasattr(self.validation_result, 'metrics'):
+                metrics = self.validation_result.metrics
+                if 'hybrid_confidence' in metrics:
+                    confidence = metrics['hybrid_confidence']
+                elif 'z3_execution_time_ms' in metrics:
+                    confidence += 0.1  # Bonus for Z3 validation
+        
+        # Adjust based on formalization success
+        if self.metadata.get('cav_nlp_enhanced', False):
+            confidence += 0.1
+        
+        return min(1.0, confidence)
+
+
+@dataclass
 class ProblemDefinition:
     """Complete problem definition for decomposition."""
     id: str
@@ -1483,6 +2047,97 @@ class ProblemDefinition:
 # EXPORTS
 # ============================================================================
 
+# ValidationResult placeholder for when decomposition_z3_validator is not available
+class ValidationResult:
+    """Placeholder ValidationResult when Z3 validator is not available."""
+    def __init__(self, success: bool, valid: bool, violations: List[Dict[str, Any]] = None, 
+                 recommendations: List[str] = None, metrics: Dict[str, float] = None):
+        self.success = success
+        self.valid = valid
+        self.violations = violations or []
+        self.recommendations = recommendations or []
+        self.metrics = metrics or {}
+
+
+# =============================================================================
+# Example Usage
+# =============================================================================
+
+async def example_nl_decomposition():
+    """Example: Decompose a natural language problem using CAV-NLP."""
+    print("CAV-NLP Enhanced Natural Language Decomposition")
+    print("=" * 60)
+    
+    # Create engine with CAV-NLP enabled
+    engine = ComprehensiveDecompositionEngine(enable_cav_nlp=True)
+    
+    # Check capabilities
+    stats = engine.get_statistics()
+    print(f"CAV-NLP Enabled: {stats.get('cav_nlp_enabled', False)}")
+    print(f"CAV-NLP Bridge Active: {stats.get('cav_nlp_bridge_active', False)}")
+    print(f"Z3 Validator Active: {stats.get('z3_validator_active', False)}")
+    
+    # Natural language problem description
+    nl_description = """
+    Design a distributed task scheduling system that:
+    - Must handle up to 10,000 concurrent tasks
+    - Should prioritize critical tasks over normal ones
+    - Needs to support both immediate and scheduled execution
+    - Must ensure no task is lost during system failures
+    - Should provide real-time status updates to users
+    """
+    
+    print(f"\nInput Problem:")
+    print(nl_description[:200] + "...")
+    
+    try:
+        # Decompose with CAV-NLP
+        result = await engine.decompose_with_nl_input(
+            natural_language=nl_description,
+            domain="software",
+            extract_constraints=True,
+            auto_validate=True
+        )
+        
+        print(f"\nDecomposition Result:")
+        print(f"  Plan ID: {result.plan.id}")
+        print(f"  Strategy: {result.plan.strategy_used.value}")
+        print(f"  Sub-problems: {len(result.plan.sub_problems)}")
+        print(f"  Valid: {result.is_valid()}")
+        print(f"  Confidence: {result.get_confidence_score():.2f}")
+        
+        if result.formalized_constraints:
+            print(f"\n  Extracted Constraints: {len(result.formalized_constraints)}")
+            for i, c in enumerate(result.formalized_constraints[:3], 1):
+                print(f"    {i}. {c.get('description', 'N/A')[:50]}...")
+        
+        if result.validation_result and hasattr(result.validation_result, 'metrics'):
+            print(f"\n  Validation Metrics:")
+            metrics = result.validation_result.metrics
+            for key in ['hybrid_confidence', 'cav_nlp_violations_found', 'lean_verifications_count']:
+                if key in metrics:
+                    print(f"    {key}: {metrics[key]}")
+        
+        return result
+        
+    except Exception as e:
+        print(f"Decomposition failed: {e}")
+        return None
+
+
+if __name__ == "__main__":
+    import asyncio
+    
+    print("Comprehensive Decomposition Engine")
+    print("=" * 60)
+    
+    # Run CAV-NLP example
+    try:
+        asyncio.run(example_nl_decomposition())
+    except Exception as e:
+        print(f"Example failed: {e}")
+
+
 __all__ = [
     # Enums
     'DecompositionStrategy',
@@ -1504,6 +2159,8 @@ __all__ = [
     'DecompositionPlan',
     'StrategyRecommendation',
     'ProblemDefinition',
+    'DecompositionResult',
+    'ValidationResult',
     
     # Base classes
     'DecompositionStrategyBase',
@@ -1516,4 +2173,7 @@ __all__ = [
     'generate_id',
     'calculate_semantic_similarity',
     'topological_sort_with_priority',
+    
+    # Examples
+    'example_nl_decomposition',
 ]

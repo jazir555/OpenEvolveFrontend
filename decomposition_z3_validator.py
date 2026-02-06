@@ -46,6 +46,26 @@ try:
 except ImportError:
     Z3_ADVANCED_AVAILABLE = False
 
+# Import CAV-NLP integration for enhanced validation
+try:
+    from openevolve.cav_nlp_integration.adapter import (
+        Z3LeanAideBridge, create_z3_lean_bridge
+    )
+    from openevolve.cav_nlp_integration.data_structures import (
+        VerificationBridgeResult, ConstraintType as CAVConstraintType
+    )
+    CAV_NLP_AVAILABLE = True
+    logger.info("CAV-NLP integration available for enhanced validation")
+except ImportError:
+    try:
+        # Fallback to direct LeanAide bridge
+        from z3_leanaide_bridge import Z3LeanAideBridge
+        CAV_NLP_AVAILABLE = True
+        logger.info("Z3-LeanAide bridge available for enhanced validation")
+    except ImportError:
+        CAV_NLP_AVAILABLE = False
+        logger.warning("CAV-NLP integration not available - enhanced validation disabled")
+
 # Import decomposition components
 try:
     from problem_decomposition import DecompositionResult
@@ -109,6 +129,7 @@ class ValidationResult:
     counterexample: Optional[Dict[str, Any]] = None
     recommendations: List[str] = field(default_factory=list)
     execution_time_ms: float = 0.0
+    metadata: Dict[str, Any] = field(default_factory=dict)  # Enhanced metadata for CAV-NLP results
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -120,7 +141,8 @@ class ValidationResult:
             "violations": self.violations,
             "metrics": self.metrics,
             "recommendations": self.recommendations,
-            "execution_time_ms": self.execution_time_ms
+            "execution_time_ms": self.execution_time_ms,
+            "metadata": self.metadata
         }
 
 
@@ -177,24 +199,49 @@ class Z3DecompositionValidator:
     - Analyze sub-problem independence
     - Detect overlapping/contradictory sub-problems
     - Measure decomposition quality
+    - CAV-NLP enhanced validation with hybrid Z3+Lean verification
     """
     
-    def __init__(self, config: Optional[Z3Config] = None):
+    def __init__(self, config: Optional[Z3Config] = None, enable_cav_nlp: bool = True):
         self.config = config or (Z3Config(timeout=120.0, proof_generation=True) if Z3_AVAILABLE else None)
         self.solver = None
         self.prover = None
         self.detector = Z3ProblemDetector() if Z3_AVAILABLE else None
         
+        # CAV-NLP bridge for enhanced validation
+        self.cav_nlp_bridge = None
+        self._cav_nlp_enabled = enable_cav_nlp and CAV_NLP_AVAILABLE
+        
         if Z3_AVAILABLE and self.config:
             self.solver = Z3SolverEngine(self.config)
             self.prover = Z3TheoremProver(self.config)
+        
+        # Initialize CAV-NLP bridge if enabled
+        if self._cav_nlp_enabled:
+            try:
+                if CAV_NLP_AVAILABLE:
+                    self.cav_nlp_bridge = create_z3_lean_bridge() if 'create_z3_lean_bridge' in globals() else Z3LeanAideBridge()
+                    logger.info("CAV-NLP bridge initialized for enhanced decomposition validation")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP bridge: {e}")
+                self._cav_nlp_enabled = False
         
         # Statistics
         self._stats = {
             "total_validations": 0,
             "successful_validations": 0,
             "invalid_decompositions": 0,
-            "avg_execution_time_ms": 0.0
+            "avg_execution_time_ms": 0.0,
+            "cav_nlp_validations": 0,
+            "cav_nlp_successful": 0
+        }
+        
+        # Configuration
+        self._config = {
+            "enable_cav_nlp": self._cav_nlp_enabled,
+            "cav_nlp_timeout": 60.0,
+            "hybrid_validation_mode": "parallel",  # parallel, sequential, z3_only, lean_only
+            "cav_nlp_critical_constraints_only": True
         }
     
     def get_status(self) -> Dict[str, Any]:
@@ -202,8 +249,432 @@ class Z3DecompositionValidator:
         return {
             "z3_available": Z3_AVAILABLE,
             "decomposition_available": DECOMPOSITION_AVAILABLE,
+            "cav_nlp_available": CAV_NLP_AVAILABLE,
+            "cav_nlp_enabled": self._cav_nlp_enabled,
+            "cav_nlp_bridge_active": self.cav_nlp_bridge is not None,
+            "configuration": self._config.copy(),
             "statistics": self._stats.copy()
         }
+    
+    def set_cav_nlp_config(self, config_updates: Dict[str, Any]) -> None:
+        """Update CAV-NLP configuration."""
+        self._config.update(config_updates)
+        logger.info(f"Updated CAV-NLP configuration: {config_updates}")
+    
+    async def validate_with_cav_nlp(
+        self,
+        decomposition: Union[
+            'DecompositionResult',
+            Tuple[str, List[SubProblemModel], List[EntanglementSpecification]]
+        ],
+        validate_critical_with_lean: bool = True,
+        verification_depth: str = "standard"
+    ) -> ValidationResult:
+        """
+        Validate decomposition using CAV-NLP enhanced verification.
+        
+        This method provides enhanced validation by:
+        1. Formalizing constraints using CAV-NLP
+        2. Checking constraint consistency with hybrid Z3+Lean
+        3. Verifying critical constraints with Lean 4
+        4. Returning combined validation results with confidence scores
+        
+        Args:
+            decomposition: Either a DecompositionResult object or a tuple of
+                          (original_problem, subproblems, entanglements)
+            validate_critical_with_lean: Whether to validate critical constraints with Lean
+            verification_depth: "quick", "standard", or "deep" validation level
+            
+        Returns:
+            ValidationResult with enhanced CAV-NLP verification data
+        """
+        start_time = time.time()
+        self._stats["total_validations"] += 1
+        
+        # Check CAV-NLP availability
+        if not self._cav_nlp_enabled or self.cav_nlp_bridge is None:
+            logger.warning("CAV-NLP not available, falling back to standard Z3 validation")
+            if isinstance(decomposition, tuple):
+                original_problem, subproblems, entanglements = decomposition
+                return self.validate_decomposition(original_problem, subproblems, entanglements)
+            else:
+                # Convert DecompositionResult to validation format
+                integration = DecompositionEngineZ3Integration()
+                return integration.validate_decomposition_result(
+                    decomposition,
+                    getattr(decomposition, 'original_problem', '')
+                )
+        
+        try:
+            # Extract components from decomposition
+            if isinstance(decomposition, tuple):
+                original_problem, subproblems, entanglements = decomposition
+            else:
+                # Extract from DecompositionResult object
+                original_problem = getattr(decomposition, 'original_problem', '')
+                subproblems = self._extract_subproblem_models(decomposition)
+                entanglements = self._extract_entanglements(decomposition)
+            
+            # Step 1: Standard Z3 validation
+            z3_start = time.time()
+            z3_result = self.validate_decomposition(
+                original_problem, subproblems, entanglements
+            )
+            z3_time = (time.time() - z3_start) * 1000
+            
+            # If Z3 validation failed and we're not in deep mode, return early
+            if not z3_result.valid and verification_depth == "quick":
+                z3_result.execution_time_ms = (time.time() - start_time) * 1000
+                z3_result.metrics["cav_nlp_used"] = False
+                return z3_result
+            
+            # Step 2: CAV-NLP Enhanced Validation
+            self._stats["cav_nlp_validations"] += 1
+            cav_nlp_violations = []
+            cav_nlp_recommendations = []
+            lean_verification_results = []
+            
+            # Step 2a: Formalize constraints using CAV-NLP
+            formalized_constraints = await self._formalize_constraints_with_cav_nlp(
+                original_problem, subproblems
+            )
+            
+            # Step 2b: Check constraint consistency with hybrid Z3+Lean
+            if self._config.get("hybrid_validation_mode") in ["parallel", "sequential"]:
+                hybrid_result = await self._check_hybrid_consistency(
+                    formalized_constraints,
+                    subproblems,
+                    validate_critical_with_lean
+                )
+                
+                if not hybrid_result["consistent"]:
+                    cav_nlp_violations.append({
+                        "type": "cav_nlp_consistency",
+                        "issue": "Hybrid Z3+Lean verification detected inconsistencies",
+                        "details": hybrid_result.get("inconsistencies", []),
+                        "confidence": hybrid_result.get("confidence", 0.5)
+                    })
+                
+                lean_verification_results = hybrid_result.get("lean_results", [])
+            
+            # Step 2c: Verify critical constraints with Lean (if enabled)
+            if validate_critical_with_lean and lean_verification_results:
+                critical_checks = await self._verify_critical_with_lean(
+                    formalized_constraints,
+                    lean_verification_results
+                )
+                
+                for check in critical_checks:
+                    if not check.get("verified", False):
+                        cav_nlp_violations.append({
+                            "type": "critical_constraint_violation",
+                            "constraint": check.get("constraint", "unknown"),
+                            "issue": f"Critical constraint failed Lean verification: {check.get('reason', 'unknown')}",
+                            "confidence": check.get("confidence", 0.8)
+                        })
+                    else:
+                        cav_nlp_recommendations.append(
+                            f"Critical constraint '{check.get('constraint', 'unknown')}' verified with Lean (confidence: {check.get('confidence', 0.8):.2f})"
+                        )
+            
+            # Step 3: Combine results
+            combined_valid = z3_result.valid and len(cav_nlp_violations) == 0
+            
+            # Merge violations and recommendations
+            all_violations = z3_result.violations + cav_nlp_violations
+            all_recommendations = z3_result.recommendations + cav_nlp_recommendations
+            
+            # Add CAV-NLP specific recommendations
+            if self._cav_nlp_enabled and len(cav_nlp_violations) == 0:
+                all_recommendations.append("CAV-NLP enhanced validation: No additional issues found")
+            
+            # Calculate enhanced metrics
+            enhanced_metrics = {
+                **z3_result.metrics,
+                "z3_execution_time_ms": z3_time,
+                "cav_nlp_used": True,
+                "cav_nlp_violations_found": len(cav_nlp_violations),
+                "lean_verifications_count": len(lean_verification_results),
+                "hybrid_confidence": self._calculate_hybrid_confidence(
+                    z3_result.valid, cav_nlp_violations, lean_verification_results
+                )
+            }
+            
+            execution_time = (time.time() - start_time) * 1000
+            
+            # Update statistics
+            if combined_valid:
+                self._stats["successful_validations"] += 1
+                self._stats["cav_nlp_successful"] += 1
+            else:
+                self._stats["invalid_decompositions"] += 1
+            
+            # Update average execution time
+            total_time = self._stats["avg_execution_time_ms"] * (self._stats["total_validations"] - 1)
+            total_time += execution_time
+            self._stats["avg_execution_time_ms"] = total_time / self._stats["total_validations"]
+            
+            return ValidationResult(
+                success=True,
+                valid=combined_valid,
+                properties_verified=z3_result.properties_verified,
+                violations=all_violations,
+                metrics=enhanced_metrics,
+                counterexample=z3_result.counterexample,
+                recommendations=all_recommendations,
+                execution_time_ms=execution_time
+            )
+            
+        except Exception as e:
+            logger.error(f"CAV-NLP validation failed: {e}", exc_info=True)
+            execution_time = (time.time() - start_time) * 1000
+            return ValidationResult(
+                success=False,
+                valid=False,
+                violations=[{"error": f"CAV-NLP validation failed: {str(e)}"}],
+                recommendations=["Fallback to standard Z3 validation recommended"],
+                execution_time_ms=execution_time
+            )
+    
+    async def _formalize_constraints_with_cav_nlp(
+        self,
+        original_problem: str,
+        subproblems: List[SubProblemModel]
+    ) -> List[Dict[str, Any]]:
+        """Formalize constraints using CAV-NLP."""
+        formalized = []
+        
+        try:
+            # Formalize original problem constraints
+            if original_problem and hasattr(self.cav_nlp_bridge, 'canonicalizer'):
+                canonical = self.cav_nlp_bridge._canonicalize_text(original_problem)
+                formalized.append({
+                    "source": "original_problem",
+                    "canonical_form": canonical,
+                    "constraints_count": len(subproblems)
+                })
+            
+            # Formalize each sub-problem's constraints
+            for sp in subproblems:
+                for constraint in sp.constraints:
+                    if hasattr(constraint, 'expression') and constraint.expression:
+                        try:
+                            # Use CAV-NLP to canonicalize constraint
+                            if hasattr(self.cav_nlp_bridge, '_canonicalize_text'):
+                                canonical = self.cav_nlp_bridge._canonicalize_text(constraint.expression)
+                                formalized.append({
+                                    "source": f"subproblem_{sp.subproblem_id}",
+                                    "constraint_id": constraint.constraint_id,
+                                    "original": constraint.expression,
+                                    "canonical_form": canonical,
+                                    "scope": getattr(constraint, 'scope', 'unknown')
+                                })
+                            else:
+                                formalized.append({
+                                    "source": f"subproblem_{sp.subproblem_id}",
+                                    "constraint_id": constraint.constraint_id,
+                                    "original": constraint.expression,
+                                    "canonical_form": None,
+                                    "scope": getattr(constraint, 'scope', 'unknown')
+                                })
+                        except Exception as e:
+                            logger.debug(f"Failed to formalize constraint {constraint.constraint_id}: {e}")
+                            formalized.append({
+                                "source": f"subproblem_{sp.subproblem_id}",
+                                "constraint_id": constraint.constraint_id,
+                                "original": constraint.expression,
+                                "error": str(e)
+                            })
+            
+            return formalized
+            
+        except Exception as e:
+            logger.warning(f"Constraint formalization failed: {e}")
+            return formalized
+    
+    async def _check_hybrid_consistency(
+        self,
+        formalized_constraints: List[Dict[str, Any]],
+        subproblems: List[SubProblemModel],
+        validate_critical: bool
+    ) -> Dict[str, Any]:
+        """Check constraint consistency with hybrid Z3+Lean."""
+        result = {
+            "consistent": True,
+            "inconsistencies": [],
+            "lean_results": [],
+            "confidence": 0.5
+        }
+        
+        try:
+            # Identify critical constraints (high complexity or cross-subproblem)
+            critical_constraints = self._identify_critical_constraints(
+                formalized_constraints, subproblems
+            )
+            
+            if not validate_critical or not critical_constraints:
+                return result
+            
+            # Verify critical constraints with Lean
+            for constraint_info in critical_constraints:
+                try:
+                    constraint_text = constraint_info.get("original", "")
+                    if not constraint_text:
+                        continue
+                    
+                    # Use CAV-NLP bridge for verification
+                    if hasattr(self.cav_nlp_bridge, 'verify'):
+                        import asyncio
+                        verification = await self.cav_nlp_bridge.verify(constraint_text)
+                        
+                        result["lean_results"].append({
+                            "constraint_id": constraint_info.get("constraint_id", "unknown"),
+                            "z3_result": verification.z3_result if hasattr(verification, 'z3_result') else None,
+                            "lean_result": verification.lean_result if hasattr(verification, 'lean_result') else None,
+                            "agreed": verification.agreed if hasattr(verification, 'agreed') else False,
+                            "confidence": verification.confidence if hasattr(verification, 'confidence') else 0.5
+                        })
+                        
+                        # Check for disagreements
+                        if hasattr(verification, 'agreed') and not verification.agreed:
+                            result["consistent"] = False
+                            result["inconsistencies"].append({
+                                "constraint": constraint_info,
+                                "reason": "Z3 and Lean disagree on constraint validity"
+                            })
+                
+                except Exception as e:
+                    logger.debug(f"Hybrid verification failed for constraint: {e}")
+                    result["lean_results"].append({
+                        "constraint_id": constraint_info.get("constraint_id", "unknown"),
+                        "error": str(e)
+                    })
+            
+            # Calculate overall confidence
+            if result["lean_results"]:
+                confidences = [r.get("confidence", 0.5) for r in result["lean_results"] if "confidence" in r]
+                if confidences:
+                    result["confidence"] = sum(confidences) / len(confidences)
+            
+            return result
+            
+        except Exception as e:
+            logger.warning(f"Hybrid consistency check failed: {e}")
+            return result
+    
+    def _identify_critical_constraints(
+        self,
+        formalized_constraints: List[Dict[str, Any]],
+        subproblems: List[SubProblemModel]
+    ) -> List[Dict[str, Any]]:
+        """Identify critical constraints that warrant Lean verification."""
+        critical = []
+        
+        # Get all shared variables across subproblems
+        shared_vars = set()
+        var_ownership = {}
+        for sp in subproblems:
+            for var in sp.variables:
+                if var.name in var_ownership:
+                    shared_vars.add(var.name)
+                var_ownership[var.name] = sp.subproblem_id
+        
+        # Constraints involving shared variables are critical
+        for fc in formalized_constraints:
+            original = fc.get("original", "")
+            # Check if constraint involves shared variables
+            involves_shared = any(var in original for var in shared_vars)
+            
+            # Check for complex patterns
+            is_complex = any(keyword in original.lower() for keyword in [
+                "forall", "exists", "implies", "theorem", "lemma"
+            ])
+            
+            if involves_shared or is_complex:
+                critical.append(fc)
+        
+        return critical
+    
+    async def _verify_critical_with_lean(
+        self,
+        formalized_constraints: List[Dict[str, Any]],
+        lean_results: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        """Verify critical constraints with Lean 4."""
+        checks = []
+        
+        for result in lean_results:
+            check = {
+                "constraint": result.get("constraint_id", "unknown"),
+                "verified": False,
+                "confidence": result.get("confidence", 0.5),
+                "reason": ""
+            }
+            
+            try:
+                z3_result = result.get("z3_result", "unknown")
+                lean_result = result.get("lean_result", "unknown")
+                agreed = result.get("agreed", False)
+                
+                if agreed:
+                    # Both agree - high confidence verification
+                    check["verified"] = (z3_result == "unsat" or "success" in str(lean_result).lower())
+                    check["confidence"] = min(1.0, result.get("confidence", 0.5) + 0.2)
+                    check["reason"] = "Both Z3 and Lean agree on validity"
+                else:
+                    # Disagreement - flag for manual review
+                    check["verified"] = False
+                    check["confidence"] = 0.3
+                    check["reason"] = f"Z3 ({z3_result}) and Lean ({lean_result}) disagree"
+                
+                checks.append(check)
+                
+            except Exception as e:
+                check["reason"] = f"Verification error: {str(e)}"
+                checks.append(check)
+        
+        return checks
+    
+    def _calculate_hybrid_confidence(
+        self,
+        z3_valid: bool,
+        cav_nlp_violations: List[Dict[str, Any]],
+        lean_results: List[Dict[str, Any]]
+    ) -> float:
+        """Calculate confidence score for hybrid validation."""
+        confidence = 0.5  # Base confidence
+        
+        # Z3 validation contributes
+        if z3_valid:
+            confidence += 0.2
+        
+        # CAV-NLP violations reduce confidence
+        if cav_nlp_violations:
+            confidence -= len(cav_nlp_violations) * 0.1
+        
+        # Lean verification agreement increases confidence
+        if lean_results:
+            agreed_count = sum(1 for r in lean_results if r.get("agreed", False))
+            agreement_ratio = agreed_count / len(lean_results) if lean_results else 0
+            confidence += agreement_ratio * 0.3
+        
+        return max(0.0, min(1.0, confidence))
+    
+    def _extract_subproblem_models(
+        self,
+        decomposition: Any
+    ) -> List[SubProblemModel]:
+        """Extract SubProblemModels from DecompositionResult."""
+        integration = DecompositionEngineZ3Integration()
+        return integration._convert_decomposition_result(decomposition)
+    
+    def _extract_entanglements(
+        self,
+        decomposition: Any
+    ) -> List[EntanglementSpecification]:
+        """Extract entanglements from DecompositionResult."""
+        integration = DecompositionEngineZ3Integration()
+        return integration._extract_entanglements(decomposition)
     
     # =====================================================================
     # Main Validation Methods
@@ -1138,9 +1609,100 @@ def example_quality_analysis():
     return quality
 
 
+async def example_cav_nlp_validation():
+    """Example: CAV-NLP enhanced validation."""
+    print("\nCAV-NLP Enhanced Validation Example")
+    print("=" * 60)
+    
+    validator = Z3DecompositionValidator(enable_cav_nlp=True)
+    
+    # Check CAV-NLP status
+    status = validator.get_status()
+    print(f"CAV-NLP Available: {status['cav_nlp_available']}")
+    print(f"CAV-NLP Enabled: {status['cav_nlp_enabled']}")
+    print(f"CAV-NLP Bridge Active: {status['cav_nlp_bridge_active']}")
+    
+    # Original problem
+    original_problem = """
+    (set-logic LIA)
+    (declare-fun x () Int)
+    (declare-fun y () Int)
+    (assert (> x 0))
+    (assert (< x 10))
+    (assert (= y (* x 2)))
+    """
+    
+    # Sub-problems
+    subproblems = [
+        SubProblemModel(
+            subproblem_id="sp1",
+            variables=[Z3Variable("x", Z3ConstraintType.INTEGER)],
+            constraints=[
+                DecompositionConstraint("c1", "(> x 0)", "subproblem"),
+                DecompositionConstraint("c2", "(< x 10)", "subproblem")
+            ],
+            complexity_score=2.0
+        ),
+        SubProblemModel(
+            subproblem_id="sp2",
+            variables=[
+                Z3Variable("x", Z3ConstraintType.INTEGER),
+                Z3Variable("y", Z3ConstraintType.INTEGER)
+            ],
+            constraints=[
+                DecompositionConstraint("c3", "(= y (* x 2))", "subproblem")
+            ],
+            complexity_score=2.0
+        )
+    ]
+    
+    entanglements = [
+        EntanglementSpecification(
+            entanglement_id="ent1",
+            source_subproblem="sp1",
+            target_subproblem="sp2",
+            shared_variables=["x"],
+            strength="strong"
+        )
+    ]
+    
+    # Run CAV-NLP enhanced validation
+    decomposition_data = (original_problem, subproblems, entanglements)
+    
+    result = await validator.validate_with_cav_nlp(
+        decomposition_data,
+        validate_critical_with_lean=True,
+        verification_depth="standard"
+    )
+    
+    print(f"\nCAV-NLP Validation Result:")
+    print(f"  Success: {result.success}")
+    print(f"  Valid: {result.valid}")
+    print(f"  Violations: {len(result.violations)}")
+    print(f"  Recommendations: {len(result.recommendations)}")
+    
+    # Display enhanced metrics
+    if result.metrics:
+        print(f"\n  Enhanced Metrics:")
+        for key, value in result.metrics.items():
+            if isinstance(value, float):
+                print(f"    {key}: {value:.3f}")
+            else:
+                print(f"    {key}: {value}")
+    
+    return result
+
+
 if __name__ == "__main__":
     print("Z3 Decomposition Validator")
     print("=" * 60)
     
     example_decomposition_validation()
     example_quality_analysis()
+    
+    # Run CAV-NLP example if available
+    import asyncio
+    try:
+        asyncio.run(example_cav_nlp_validation())
+    except Exception as e:
+        print(f"\nCAV-NLP example skipped: {e}")

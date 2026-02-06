@@ -8,6 +8,7 @@ Supports:
 - Extract from web sources
 - Identify theorems, definitions, lemmas
 - Build mathematical knowledge graph
+- CAV-NLP enhanced extraction
 
 Part of the Mathematical Verification Bubble Suite.
 """
@@ -21,6 +22,14 @@ from datetime import datetime
 from dataclasses import dataclass, field
 
 from bubblelabs_nodes.base_node import BubbleLabsNode, NodeExecutionError
+
+# CAV-NLP Integration
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -95,6 +104,21 @@ class MathKnowledgeExtractionNode(BubbleLabsNode):
     def __init__(self, config: Optional[Dict] = None):
         super().__init__(config)
         self._extraction_cache = {}
+        self.use_cav_nlp = config.get("use_cav_nlp", True) if config else True
+        self.use_cav_nlp = self.use_cav_nlp and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            try:
+                self.math_service = UnifiedMathService()
+                self.enhanced_solver = EnhancedZ3Solver()
+                logger.info("CAV-NLP integration initialized for MathKnowledgeExtractionNode")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP services: {e}")
+                self.use_cav_nlp = False
+                self.math_service = None
+                self.enhanced_solver = None
+        else:
+            self.math_service = None
+            self.enhanced_solver = None
         
     def validate_inputs(self, inputs: Dict) -> List[str]:
         """Validate node inputs."""
@@ -176,6 +200,11 @@ class MathKnowledgeExtractionNode(BubbleLabsNode):
                     "type": "boolean",
                     "default": True,
                     "description": "Build relationships between extracted elements"
+                },
+                "use_cav_nlp": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Enable CAV-NLP enhanced knowledge extraction"
                 }
             },
             "required": ["operation"]
@@ -454,6 +483,60 @@ class MathKnowledgeExtractionNode(BubbleLabsNode):
             ]
         }
         return text_patterns.get(ext_type, [])
+    
+    def extract_with_cav_nlp(self, content: str, extract_types: List[str]) -> Dict[str, Any]:
+        """Extract mathematical knowledge using CAV-NLP.
+        
+        Args:
+            content: Document content to extract from
+            extract_types: Types of elements to extract (theorem, definition, etc.)
+            
+        Returns:
+            Dictionary with extracted elements
+            
+        Raises:
+            ValueError: If CAV-NLP is not available
+        """
+        if not self.use_cav_nlp:
+            raise ValueError("CAV-NLP not available")
+        
+        try:
+            # Use unified math service for extraction
+            if hasattr(self.math_service, 'extract_knowledge'):
+                result = self.math_service.extract_knowledge(content, extract_types)
+                return {
+                    "success": True,
+                    "extracted": result.elements if hasattr(result, 'elements') else [],
+                    "confidence": result.confidence if hasattr(result, 'confidence') else 0.8,
+                    "method": "cav_nlp"
+                }
+            else:
+                # Fallback: use enhanced solver for semantic extraction
+                logger.warning("math_service.extract_knowledge not available, using fallback")
+                return self._extract_from_text({"content": content, "extract_types": extract_types}, None)
+        except Exception as e:
+            logger.error(f"CAV-NLP extraction failed: {e}")
+            raise ValueError(f"Extraction failed: {e}")
+    
+    def autoformalize_extracted(self, statement: str, domain: str = "general") -> str:
+        """Autoformalize extracted mathematical statement.
+        
+        Args:
+            statement: Natural language mathematical statement
+            domain: Mathematical domain
+            
+        Returns:
+            Formalized code
+        """
+        if not self.use_cav_nlp:
+            return ""
+        
+        try:
+            result = self.math_service.formalize(statement)
+            return result.code if result and hasattr(result, 'code') else ""
+        except Exception as e:
+            logger.error(f"Autoformalization failed: {e}")
+            return ""
     
     def is_healthy(self) -> bool:
         """Check node health."""

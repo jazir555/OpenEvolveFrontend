@@ -62,6 +62,15 @@ import type {
   BubbleLabsStatusResponse,
   BubbleLabsInitializeResponse,
   BubbleLabsActionResponse,
+  VersionEntry,
+  VersionCompareResult,
+  ValidationRule,
+  ValidationRunResult,
+  ComplianceCheckResult,
+  WorkflowDefinitionSummary,
+  WorkflowDefinitionDetail,
+  WorkflowInstanceSummary,
+  WorkflowInstanceDetail,
   MakerToolListResponse,
   MakerToolResponse,
   MakerExecutionResponse,
@@ -549,6 +558,207 @@ export const openevolveApi = {
     ),
   getParameterCategories: (config?: ApiConfig) =>
     request<{ categories: string[] }>("/parameters/categories", {}, config),
+
+  // Version control
+  listVersions: (config?: ApiConfig) =>
+    request<{ versions: VersionEntry[]; current_version_id?: string | null }>(
+      "/version-control/versions",
+      {},
+      config,
+    ),
+  getVersion: (versionId: string, config?: ApiConfig) =>
+    request<VersionEntry>(`/version-control/versions/${encodeURIComponent(versionId)}`, {}, config),
+  getCurrentVersion: (config?: ApiConfig) =>
+    request<{ current: VersionEntry | null }>("/version-control/current", {}, config),
+  createVersion: (
+    payload: { protocol_text: string; version_name?: string; comment?: string; author?: string },
+    config?: ApiConfig,
+  ) =>
+    request<{ version_id: string; version: VersionEntry }>(
+      "/version-control/versions",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  loadVersion: (versionId: string, config?: ApiConfig) =>
+    request<{ loaded: boolean; current: VersionEntry | null }>(
+      `/version-control/versions/${encodeURIComponent(versionId)}/load`,
+      { method: "POST" },
+      config,
+    ),
+  branchVersion: (versionId: string, payload: { new_version_name: string }, config?: ApiConfig) =>
+    request<{ version_id: string; version: VersionEntry }>(
+      `/version-control/versions/${encodeURIComponent(versionId)}/branch`,
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  compareVersions: (payload: { version_id_1: string; version_id_2: string }, config?: ApiConfig) =>
+    request<VersionCompareResult>(
+      "/version-control/compare",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  deleteVersion: (versionId: string, config?: ApiConfig) =>
+    request<{ deleted: boolean }>(
+      `/version-control/versions/${encodeURIComponent(versionId)}`,
+      { method: "DELETE" },
+      config,
+    ),
+
+  // Validation manager
+  listValidationRules: (config?: ApiConfig) =>
+    request<{ rules: Record<string, ValidationRule>; rule_names: string[] }>(
+      "/validation/rules",
+      {},
+      config,
+    ),
+  getValidationRule: (ruleName: string, config?: ApiConfig) =>
+    request<{ name: string; rule: ValidationRule }>(
+      `/validation/rules/${encodeURIComponent(ruleName)}`,
+      {},
+      config,
+    ),
+  createValidationRule: (
+    payload: {
+      name: string;
+      max_length?: number | null;
+      min_length?: number | null;
+      required_keywords?: string[];
+      forbidden_patterns?: string[];
+      required_sections?: string[];
+    },
+    config?: ApiConfig,
+  ) =>
+    request<{ created: boolean; rule_name: string; rule: ValidationRule }>(
+      "/validation/rules",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  updateValidationRule: (
+    ruleName: string,
+    payload: {
+      name?: string;
+      max_length?: number | null;
+      min_length?: number | null;
+      required_keywords?: string[] | null;
+      forbidden_patterns?: string[] | null;
+      required_sections?: string[] | null;
+    },
+    config?: ApiConfig,
+  ) =>
+    request<{ updated: boolean; rule_name: string; rule: ValidationRule }>(
+      `/validation/rules/${encodeURIComponent(ruleName)}`,
+      { method: "PUT", body: JSON.stringify(payload) },
+      config,
+    ),
+  deleteValidationRule: (ruleName: string, config?: ApiConfig) =>
+    request<{ deleted: boolean; rule_name: string }>(
+      `/validation/rules/${encodeURIComponent(ruleName)}`,
+      { method: "DELETE" },
+      config,
+    ),
+  runValidation: (payload: { content: string; rule_names: string[] }, config?: ApiConfig) =>
+    request<ValidationRunResult>(
+      "/validation/run",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  runComplianceCheck: (payload: { content: string; framework?: string }, config?: ApiConfig) =>
+    request<ComplianceCheckResult>(
+      "/validation/compliance",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+
+  // BubbleLabs workflow lifecycle
+  listWorkflowDefinitions: (config?: ApiConfig) =>
+    request<{ definitions: WorkflowDefinitionSummary[] }>(
+      "/bubblelabs/workflow-definitions",
+      {},
+      config,
+    ),
+  getWorkflowDefinition: (definitionId: string, config?: ApiConfig) =>
+    request<WorkflowDefinitionDetail>(
+      `/bubblelabs/workflow-definitions/${encodeURIComponent(definitionId)}`,
+      {},
+      config,
+    ),
+  createWorkflowDefinition: (
+    payload: {
+      name: string;
+      description: string;
+      workflow_type: string;
+      parameters: Record<string, unknown>;
+    },
+    config?: ApiConfig,
+  ) =>
+    request<{ definition_id: string }>(
+      "/bubblelabs/workflow-definitions",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  listWorkflowInstances: (config?: ApiConfig) =>
+    request<{ instances: WorkflowInstanceSummary[] }>(
+      "/bubblelabs/workflow-instances",
+      {},
+      config,
+    ),
+  getWorkflowInstance: (instanceId: string, config?: ApiConfig) =>
+    request<WorkflowInstanceDetail>(
+      `/bubblelabs/workflow-instances/${encodeURIComponent(instanceId)}`,
+      {},
+      config,
+    ),
+  createWorkflowInstance: (
+    payload: { definition_id: string; instance_name: string; inputs: Record<string, unknown> },
+    config?: ApiConfig,
+  ) =>
+    request<{ instance_id: string }>(
+      "/bubblelabs/workflow-instances",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  startWorkflowInstance: (instanceId: string, config?: ApiConfig) =>
+    request<Record<string, unknown>>(
+      `/bubblelabs/workflow-instances/${encodeURIComponent(instanceId)}/start`,
+      { method: "POST" },
+      config,
+    ),
+  pauseWorkflowInstance: (instanceId: string, config?: ApiConfig) =>
+    request<Record<string, unknown>>(
+      `/bubblelabs/workflow-instances/${encodeURIComponent(instanceId)}/pause`,
+      { method: "POST" },
+      config,
+    ),
+  resumeWorkflowInstance: (instanceId: string, config?: ApiConfig) =>
+    request<Record<string, unknown>>(
+      `/bubblelabs/workflow-instances/${encodeURIComponent(instanceId)}/resume`,
+      { method: "POST" },
+      config,
+    ),
+  stopWorkflowInstance: (instanceId: string, config?: ApiConfig) =>
+    request<Record<string, unknown>>(
+      `/bubblelabs/workflow-instances/${encodeURIComponent(instanceId)}/stop`,
+      { method: "POST" },
+      config,
+    ),
+  cancelWorkflowInstance: (instanceId: string, config?: ApiConfig) =>
+    request<Record<string, unknown>>(
+      `/bubblelabs/workflow-instances/${encodeURIComponent(instanceId)}/cancel`,
+      { method: "POST" },
+      config,
+    ),
+  restartWorkflowInstance: (instanceId: string, config?: ApiConfig) =>
+    request<Record<string, unknown>>(
+      `/bubblelabs/workflow-instances/${encodeURIComponent(instanceId)}/restart`,
+      { method: "POST" },
+      config,
+    ),
+  deleteWorkflowInstance: (instanceId: string, config?: ApiConfig) =>
+    request<Record<string, unknown>>(
+      `/bubblelabs/workflow-instances/${encodeURIComponent(instanceId)}`,
+      { method: "DELETE" },
+      config,
+    ),
 
   // Sovereign dashboard
   getSovereignHealth: (config?: ApiConfig) =>

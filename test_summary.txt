@@ -1,0 +1,82 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-9.0.2, pluggy-1.6.0
+rootdir: C:\Users\mmeadow\Documents\OpenEvolve\Frontend
+configfile: pytest.ini (WARNING: ignoring pytest config in pyproject.toml!)
+plugins: anyio-4.12.1, Faker-38.2.0, langsmith-0.5.2, libtmux-0.23.2, pyfakefs-6.0.0, asyncio-1.3.0, cov-4.1.0, html-4.1.1, metadata-3.1.1, timeout-2.4.0, typeguard-4.4.4
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collected 3013 items / 1 skipped
+
+tests\adaptive_mdap\e2e\test_full_system.py ....................         [  0%]
+tests\adaptive_mdap\integration\test_end_to_end.py .........             [  0%]
+tests\adaptive_mdap\performance\test_benchmarks.py ...............       [  1%]
+tests\adaptive_mdap\unit\test_complexity_classifier.py ................. [  2%]
+.....                                                                    [  2%]
+tests\adaptive_mdap\unit\test_resource_allocator.py .................... [  2%]
+.......                                                                  [  3%]
+tests\agents\test_compliance_monitor.py ssssssssssssssssssssssssssssssss [  4%]
+sssss                                                                    [  4%]
+tests\agents\test_investment_committee.py sssssssssssssssssssssssssss    [  5%]
+tests\cli\test_cli.py ssssssssssssssssssssssssssssssssssssssssssssssssss [  6%]
+sssss                                                                    [  7%]
+tests\config\test_config_system.py sssssssssssssssssssssssssssssssssssss [  8%]
+ssssssssssssssssssssssss                                                 [  9%]
+tests\domain\test_domain_optimizers.py ................................. [ 10%]
+..........................................                               [ 11%]
+tests\finance\verticals\insurance\test_rbc_calculator.py ............... [ 12%]
+.....                                                                    [ 12%]
+tests\finance\verticals\insurance\test_reserve_evolver.py ....FF........ [ 12%]
+..+++++++++++++++++++++++++++++++++++ Timeout +++++++++++++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Captured stderr ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2026-02-05 16:15:40,448 - openevolve.finance.verticals.insurance.reserve_evolver - INFO - InsuranceReserveEvolver initialized with config: {'max_iterations': 25, 'population_size': 20, 'mutation_rate': 0.15}
+2026-02-05 16:15:40,448 - openevolve.finance.verticals.insurance.reserve_evolver - INFO - Starting insurance reserve portfolio evolution
+2026-02-05 16:15:40,448 - openevolve.finance.verticals.insurance.reserve_evolver - INFO - Policy liabilities: $2,000,000,000
+2026-02-05 16:15:40,448 - openevolve.finance.verticals.insurance.reserve_evolver - INFO - Constraints: PortfolioConstraints(max_duration=7.0, min_credit_quality='BBB-', max_concentration=0.3, min_diversification=2, max_single_bond=0.05, liquidity_requirement=0.1)
+2026-02-05 16:15:40,448 - openevolve.finance.verticals.insurance.reserve_evolver - INFO - PLAN PHASE: Generating stress scenarios
+2026-02-05 16:15:40,448 - openevolve.finance.verticals.insurance.reserve_evolver - INFO - Generated 6 stress scenarios
+2026-02-05 16:15:40,448 - openevolve.finance.verticals.insurance.reserve_evolver - INFO - Generated 6 stress scenarios
+2026-02-05 16:15:40,449 - openevolve.finance.verticals.insurance.reserve_evolver - INFO - EXECUTE PHASE: Evolving portfolios for scenarios
+2026-02-05 16:15:40,449 - openevolve.finance.verticals.insurance.reserve_evolver - INFO - Evolving for scenario 1/6: gfc_plus_covid
+2026-02-05 16:15:40,454 - openevolve.finance.verticals.insurance.reserve_evolver - WARNING - No valid portfolios found, generating new random population
+2026-02-05 16:15:40,460 - openevolve.finance.verticals.insurance.reserve_evolver - WARNING - Failed to generate valid portfolio after 10 attempts, using fallback
+2026-02-05 16:15:40,465 - openevolve.finance.verticals.insurance.reserve_evolver - INFO - Generation 0: Best score = -inf (no valid result yet)
+2026-02-05 16:15:40,486 - openevolve.finance.verticals.insurance.reserve_evolver - INFO - Generation 10: Best score = 4072.65, RBC = 4120.25%
+2026-02-05 16:15:40,503 - openevolve.finance.verticals.insurance.reserve_evolver - INFO - Generation 20: Best score = 4072.65, RBC = 4120.25%
+2026-02-05 16:15:40,514 - openevolve.finance.verticals.insurance.reserve_evolver - INFO - Evolving for scenario 2/6: rate_shock_up_300bps
+2026-02-05 16:15:40,521 - openevolve.finance.verticals.insurance.reserve_evolver - WARNING - No valid portfolios found, generating new random population
+2026-02-05 16:15:40,529 - openevolve.finance.verticals.insurance.reserve_evolver - WARNING - Failed to generate valid portfolio after 10 attempts, using fallback
+2026-02-05 16:15:40,532 - openevolve.finance.verticals.insurance.reserve_evolver - WARNING - Failed to generate valid portfolio after 10 attempts, using fallback
+2026-02-05 16:15:41,741 - openevolve.finance.verticals.insurance.reserve_evolver - INFO - Generation 0: Best score = -inf (no valid result yet)
+2026-02-05 16:15:41,768 - openevolve.finance.verticals.insurance.reserve_evolver - INFO - Generation 10: Best score = 4544.70, RBC = 4544.87%
+2026-02-05 16:15:41,796 - openevolve.finance.verticals.insurance.reserve_evolver - INFO - Generation 20: Best score = 4562.21, RBC = 4562.38%
+2026-02-05 16:15:41,807 - openevolve.finance.verticals.insurance.reserve_evolver - INFO - Evolving for scenario 3/6: rate_shock_down_300bps
+2026-02-05 16:15:41,811 - openevolve.finance.verticals.insurance.reserve_evolver - WARNING - No valid portfolios found, generating new random population
+2026-02-05 16:15:41,815 - openevolve.finance.verticals.insurance.reserve_evolver - WARNING - Failed to generate valid portfolio after 10 attempts, using fallback
+2026-02-05 16:15:41,820 - openevolve.finance.verticals.insurance.reserve_evolver - WARNING - Failed to generate valid portfolio after 10 attempts, using fallback
+2026-02-05 16:15:41,824 - openevolve.finance.verticals.insurance.reserve_evolver - INFO - Generation 0: Best score = -inf (no valid result yet)
+2026-02-05 16:15:41,850 - openevolve.finance.verticals.insurance.reserve_evolver - INFO - Generation 10: Best score = 4727.57, RBC = 4727.75%
+2026-02-05 16:15:41,898 - openevolve.finance.verticals.insurance.reserve_evolver - INFO - Generation 20: Best score = 4744.36, RBC = 4744.53%
+2026-02-05 16:15:41,916 - openevolve.finance.verticals.insurance.reserve_evolver - INFO - Evolving for scenario 4/6: credit_downgrade_cascade
+2026-02-05 16:15:41,920 - openevolve.finance.verticals.insurance.reserve_evolver - WARNING - No valid portfolios found, generating new random population
+2026-02-05 16:15:41,924 - openevolve.finance.verticals.insurance.reserve_evolver - WARNING - Failed to generate valid portfolio after 10 attempts, using fallback
+2026-02-05 16:15:41,929 - openevolve.finance.verticals.insurance.reserve_evolver - WARNING - Failed to generate valid portfolio after 10 attempts, using fallback
+2026-02-05 16:15:41,933 - openevolve.finance.verticals.insurance.reserve_evolver - WARNING - Failed to generate valid portfolio after 10 attempts, using fallback
+~~~~~~~~~~~~~~~~ Stack of OtelBatchSpanRecordProcessor (22928) ~~~~~~~~~~~~~~~~
+  File "C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\threading.py", line 995, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\threading.py", line 1038, in _bootstrap_inner
+    self.run()
+  File "C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\threading.py", line 975, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\site-packages\opentelemetry\sdk\_shared_internal\__init__.py", line 159, in worker
+    sleep_interrupted = self._worker_awaken.wait(self._schedule_delay)
+  File "C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\threading.py", line 622, in wait
+    signaled = self._cond.wait(timeout)
+  File "C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\threading.py", line 324, in wait
+    gotit = waiter.acquire(True, timeout)
+~~~~~~~~~~~~~~~~~~~~~~~~~ Stack of MainThread (18916) ~~~~~~~~~~~~~~~~~~~~~~~~~
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\core-projects\openevolve\openevolve\finance\verticals\insurance\models.py", line 107, in <genexpr>
+    return min(bond.rating for bond in self.bonds)
++++++++++++++++++++++++++++++++++++ Timeout +++++++++++++++++++++++++++++++++++

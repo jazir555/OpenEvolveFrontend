@@ -18,6 +18,14 @@ from datetime import datetime
 
 from bubblelabs_nodes.base_node import BubbleLabsNode, NodeExecutionError
 
+# CAV-NLP Integration
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -51,6 +59,21 @@ class MathConjectureNode(BubbleLabsNode):
     
     def __init__(self, config: Optional[Dict] = None):
         super().__init__(config)
+        self.use_cav_nlp = config.get("use_cav_nlp", True) if config else True
+        self.use_cav_nlp = self.use_cav_nlp and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            try:
+                self.math_service = UnifiedMathService()
+                self.enhanced_solver = EnhancedZ3Solver()
+                logger.info("CAV-NLP integration initialized for MathConjectureNode")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP services: {e}")
+                self.use_cav_nlp = False
+                self.math_service = None
+                self.enhanced_solver = None
+        else:
+            self.math_service = None
+            self.enhanced_solver = None
     
     def validate_inputs(self, inputs: Dict) -> List[str]:
         """Validate node inputs."""
@@ -134,6 +157,11 @@ class MathConjectureNode(BubbleLabsNode):
                     "minimum": 1,
                     "maximum": 20,
                     "description": "Maximum conjectures to generate"
+                },
+                "use_cav_nlp": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Enable CAV-NLP enhanced conjecture formalization"
                 }
             },
             "required": ["operation"]
@@ -415,6 +443,63 @@ class MathConjectureNode(BubbleLabsNode):
         """Evaluate conjecture against test case."""
         # Simplified evaluation
         return random.random() > 0.2  # 80% pass rate for demo
+    
+    def formalize_conjecture(self, natural_language: str) -> str:
+        """Formalize natural language conjecture to Lean.
+        
+        Args:
+            natural_language: Natural language conjecture statement
+            
+        Returns:
+            Formalized Lean code
+            
+        Raises:
+            ValueError: If CAV-NLP is not available
+        """
+        if not self.use_cav_nlp:
+            raise ValueError("CAV-NLP not available")
+        
+        try:
+            result = self.math_service.formalize(natural_language)
+            return result.code if result and hasattr(result, 'code') else ""
+        except Exception as e:
+            logger.error(f"Failed to formalize conjecture: {e}")
+            raise ValueError(f"Formalization failed: {e}")
+    
+    def verify_conjecture(self, conjecture: str) -> Dict[str, Any]:
+        """Verify conjecture using CAV-NLP enhanced solver.
+        
+        Args:
+            conjecture: Conjecture statement or code
+            
+        Returns:
+            Verification result with status and confidence
+        """
+        if not self.use_cav_nlp:
+            return {
+                "verified": False,
+                "status": "cav_nlp_unavailable",
+                "confidence": 0.0,
+                "error": "CAV-NLP services not available"
+            }
+        
+        try:
+            # Use enhanced solver for verification
+            verification = self.enhanced_solver.verify(conjecture)
+            return {
+                "verified": verification.verified if hasattr(verification, 'verified') else False,
+                "status": "verified" if (verification.verified if hasattr(verification, 'verified') else False) else "failed",
+                "confidence": verification.confidence if hasattr(verification, 'confidence') else 0.5,
+                "details": verification.details if hasattr(verification, 'details') else {}
+            }
+        except Exception as e:
+            logger.error(f"Verification failed: {e}")
+            return {
+                "verified": False,
+                "status": "error",
+                "confidence": 0.0,
+                "error": str(e)
+            }
     
     def is_healthy(self) -> bool:
         """Check node health."""

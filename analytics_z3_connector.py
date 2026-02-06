@@ -8,6 +8,7 @@ Integrates with:
 - analytics_dashboard.py
 - analytics_manager.py
 - z3_performance_monitor.py
+- CAV-NLP for enhanced mathematical content analysis
 
 Author: OpenEvolve
 Created: 2026-02-02
@@ -34,6 +35,21 @@ try:
     MONITOR_AVAILABLE = True
 except ImportError:
     MONITOR_AVAILABLE = False
+
+# CAV-NLP Integration
+try:
+    from openevolve.cav_nlp_integration.adapter import Z3LeanAideBridge, create_z3_lean_bridge
+    from openevolve.cav_nlp_integration.data_structures import (
+        ConstraintType,
+        Z3Constraint,
+        Lean4Constraint,
+        VerificationBridgeResult,
+        CanonicalizationResult,
+    )
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logger.warning("CAV-NLP integration not available for analytics")
 
 
 @dataclass
@@ -67,6 +83,34 @@ class Z3MetricsAggregation:
     performance_trends: Dict[str, float]
 
 
+@dataclass
+class AnalyticsResult:
+    """Result of analyzing natural language query using CAV-NLP.
+    
+    Attributes:
+        success: Whether analysis succeeded
+        natural_language: Original natural language query
+        formalized_query: Formal representation of the query
+        mathematical_structure: Extracted mathematical structure
+        constraint_type: Type of constraint detected
+        variables: List of variables found
+        complexity_score: Estimated complexity (0-1)
+        canonical_form: Canonical representation
+        confidence: Confidence in analysis (0-1)
+        metadata: Additional analysis metadata
+    """
+    success: bool
+    natural_language: str
+    formalized_query: Optional[str] = None
+    mathematical_structure: Optional[Dict[str, Any]] = None
+    constraint_type: Optional[str] = None
+    variables: List[str] = field(default_factory=list)
+    complexity_score: float = 0.0
+    canonical_form: Optional[str] = None
+    confidence: float = 0.0
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
 class AnalyticsZ3Connector:
     """
     Connects Z3 solving metrics to the analytics system.
@@ -77,6 +121,11 @@ class AnalyticsZ3Connector:
     - Success/failure patterns
     - Resource utilization
     - Constraint solving trends
+    
+    CAV-NLP Integration:
+    - Analyzes natural language queries
+    - Canonicalizes constraints for consistent comparison
+    - Extracts mathematical structure from queries
     """
     
     def __init__(self):
@@ -90,6 +139,17 @@ class AnalyticsZ3Connector:
             "sat_count": 0,
             "unsat_count": 0
         })
+        
+        # Initialize CAV-NLP bridge for enhanced analytics
+        self.cav_nlp_bridge = None
+        self._cav_nlp_available = False
+        if CAV_NLP_AVAILABLE:
+            try:
+                self.cav_nlp_bridge = create_z3_lean_bridge()
+                self._cav_nlp_available = True
+                logger.info("CAV-NLP bridge initialized for analytics")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP bridge: {e}")
     
     def record_solving_event(
         self,
@@ -220,6 +280,289 @@ class AnalyticsZ3Connector:
                 }
             }
         }
+    
+    # ========================================================================
+    # CAV-NLP Integration Methods
+    # ========================================================================
+    
+    def analyze_nl_query(self, natural_language: str) -> AnalyticsResult:
+        """Analyze natural language query using CAV-NLP.
+        
+        This method:
+        1. Formalizes the natural language query
+        2. Extracts mathematical structure
+        3. Determines constraint type
+        4. Generates canonical form
+        
+        Args:
+            natural_language: Natural language query to analyze
+            
+        Returns:
+            AnalyticsResult with analysis results
+        """
+        if not self._cav_nlp_available or self.cav_nlp_bridge is None:
+            logger.warning("CAV-NLP not available for NL query analysis")
+            return AnalyticsResult(
+                success=False,
+                natural_language=natural_language,
+                metadata={"error": "CAV-NLP not available"}
+            )
+        
+        try:
+            # Use CAV-NLP parser to formalize query
+            parser = getattr(self.cav_nlp_bridge, 'parser', None)
+            canonicalizer = getattr(self.cav_nlp_bridge, 'canonicalizer', None)
+            
+            formalized_query = None
+            canonical_form = None
+            mathematical_structure = {}
+            variables = []
+            constraint_type = "unknown"
+            confidence = 0.5
+            
+            # Step 1: Parse and formalize using CAV-NLP
+            if parser is not None:
+                try:
+                    if hasattr(parser, 'canonicalize'):
+                        parse_result = parser.canonicalize(natural_language)
+                        formalized_query = str(parse_result)
+                        confidence = 0.7
+                    elif hasattr(parser, 'normalize'):
+                        parse_result = parser.normalize(natural_language)
+                        formalized_query = str(parse_result)
+                        confidence = 0.6
+                    
+                    # Extract structure from parse result
+                    mathematical_structure = self._extract_structure_from_parse(
+                        natural_language, parse_result
+                    )
+                except Exception as e:
+                    logger.debug(f"CAV-NLP parsing failed: {e}")
+            
+            # Step 2: Determine constraint type
+            constraint_type = self._determine_constraint_type(natural_language)
+            
+            # Step 3: Canonicalize for comparison
+            if canonicalizer is not None and formalized_query:
+                try:
+                    canonical_form = self.canonicalize_for_comparison(formalized_query)
+                    confidence = min(confidence + 0.2, 1.0)
+                except Exception as e:
+                    logger.debug(f"CAV-NLP canonicalization failed: {e}")
+            
+            # Step 4: Extract variables
+            variables = self._extract_variables_from_nl(natural_language)
+            
+            # Step 5: Calculate complexity score
+            complexity_score = self._calculate_complexity(
+                natural_language, variables, formalized_query
+            )
+            
+            return AnalyticsResult(
+                success=True,
+                natural_language=natural_language,
+                formalized_query=formalized_query or natural_language,
+                mathematical_structure=mathematical_structure,
+                constraint_type=constraint_type,
+                variables=variables,
+                complexity_score=complexity_score,
+                canonical_form=canonical_form,
+                confidence=confidence,
+                metadata={
+                    "cav_nlp_available": self._cav_nlp_available,
+                    "parser_used": parser is not None,
+                    "canonicalizer_used": canonicalizer is not None
+                }
+            )
+            
+        except Exception as e:
+            logger.error(f"Error analyzing NL query: {e}")
+            return AnalyticsResult(
+                success=False,
+                natural_language=natural_language,
+                metadata={"error": str(e)}
+            )
+    
+    def canonicalize_for_comparison(self, constraint) -> str:
+        """Canonicalize constraint for consistent comparison.
+        
+        Uses CAV-NLP canonicalization to create a standard form
+        that enables semantic matching between similar constraints.
+        
+        Args:
+            constraint: Constraint to canonicalize (string or Z3 expression)
+            
+        Returns:
+            Canonical form string
+        """
+        if not self._cav_nlp_available or self.cav_nlp_bridge is None:
+            # Fallback: return string representation
+            return str(constraint)
+        
+        try:
+            canonicalizer = getattr(self.cav_nlp_bridge, 'canonicalizer', None)
+            parser = getattr(self.cav_nlp_bridge, 'parser', None)
+            
+            # Try CAV-NLP canonicalization first
+            if canonicalizer is not None:
+                try:
+                    if hasattr(canonicalizer, 'canonicalize_text'):
+                        result = canonicalizer.canonicalize_text(str(constraint))
+                        if hasattr(result, 'canonical'):
+                            return result.canonical
+                        return str(result)
+                    elif hasattr(canonicalizer, 'canonicalize'):
+                        result = canonicalizer.canonicalize(str(constraint))
+                        if hasattr(result, 'canonical'):
+                            return result.canonical
+                        return str(result)
+                except Exception as e:
+                    logger.debug(f"Canonicalizer failed: {e}")
+            
+            # Try parser canonicalization as fallback
+            if parser is not None:
+                try:
+                    if hasattr(parser, 'canonicalize'):
+                        result = parser.canonicalize(str(constraint))
+                        return str(result)
+                except Exception as e:
+                    logger.debug(f"Parser canonicalization failed: {e}")
+            
+            # Final fallback: basic normalization
+            return self._basic_canonicalize(str(constraint))
+            
+        except Exception as e:
+            logger.warning(f"CAV-NLP canonicalization error: {e}")
+            return str(constraint)
+    
+    def _extract_structure_from_parse(
+        self,
+        natural_language: str,
+        parse_result: Any
+    ) -> Dict[str, Any]:
+        """Extract mathematical structure from parse result."""
+        structure = {
+            "original_text": natural_language,
+            "operators": [],
+            "predicates": [],
+            "quantifiers": []
+        }
+        
+        text_lower = natural_language.lower()
+        
+        # Detect quantifiers
+        quantifier_keywords = {
+            "for all": "forall", "forall": "forall", "∀": "forall",
+            "there exists": "exists", "exists": "exists", "∃": "exists",
+            "for every": "forall", "for each": "forall"
+        }
+        for kw, qtype in quantifier_keywords.items():
+            if kw in text_lower:
+                structure["quantifiers"].append(qtype)
+        
+        # Detect arithmetic operators
+        operator_keywords = ["plus", "minus", "times", "divided by", "+", "-", "*", "/"]
+        for op in operator_keywords:
+            if op in natural_language:
+                structure["operators"].append(op)
+        
+        # Detect comparison predicates
+        predicate_keywords = ["equals", "equal to", "greater than", "less than",
+                             ">=", "<=", ">", "<", "=", "≠"]
+        for pred in predicate_keywords:
+            if pred in natural_language:
+                structure["predicates"].append(pred)
+        
+        # Add parse result metadata if available
+        if parse_result is not None:
+            if hasattr(parse_result, 'dag'):
+                structure["has_dependency_graph"] = True
+            if hasattr(parse_result, 'variables'):
+                structure["parsed_variables"] = parse_result.variables
+        
+        return structure
+    
+    def _determine_constraint_type(self, text: str) -> str:
+        """Determine constraint type from text."""
+        text_lower = text.lower()
+        
+        if any(kw in text_lower for kw in ['forall', 'exists', '∀', '∃', 'for all', 'there exists']):
+            return "quantified"
+        elif any(kw in text_lower for kw in ['array', 'list', 'sequence']):
+            return "array"
+        elif any(kw in text_lower for kw in ['bit', 'binary', 'bitwise']):
+            return "bitvector"
+        elif any(kw in text_lower for kw in ['square', 'power', 'exponential', 'log', 'multiply', 'times']) and \
+             any(kw in text_lower for kw in ['x', 'y', 'variable']):
+            return "nonlinear"
+        elif any(kw in text_lower for kw in ['plus', 'minus', 'sum', 'difference', '+', '-']):
+            return "arithmetic"
+        else:
+            return "boolean"
+    
+    def _extract_variables_from_nl(self, text: str) -> List[str]:
+        """Extract variable names from natural language text."""
+        import re
+        
+        # Common mathematical variable patterns
+        # Single letters often used as variables
+        var_pattern = r'\b([a-zA-Z])\b'
+        matches = re.findall(var_pattern, text)
+        
+        # Filter out common words
+        common_words = {'a', 'i', 'x', 'y', 'z', 'n', 'm', 'k', 'j', 't', 's'}
+        variables = [v for v in matches if v.lower() in common_words]
+        
+        # Also look for explicit variable declarations
+        explicit_pattern = r'(?:variable|let|where)\s+(\w+)'
+        explicit_matches = re.findall(explicit_pattern, text.lower())
+        
+        return list(set(variables + explicit_matches))
+    
+    def _calculate_complexity(
+        self,
+        natural_language: str,
+        variables: List[str],
+        formalized_query: Optional[str]
+    ) -> float:
+        """Calculate complexity score (0-1)."""
+        score = 0.0
+        
+        # Length factor
+        score += min(len(natural_language) / 200, 0.2)
+        
+        # Variable count factor
+        score += min(len(variables) * 0.1, 0.3)
+        
+        # Keyword complexity
+        complex_keywords = ['forall', 'exists', 'implies', 'iff', 'recursion', 'induction']
+        for kw in complex_keywords:
+            if kw in natural_language.lower():
+                score += 0.1
+        
+        # Formalization success
+        if formalized_query:
+            score += 0.2
+        
+        return min(score, 1.0)
+    
+    def _basic_canonicalize(self, text: str) -> str:
+        """Basic canonicalization without CAV-NLP."""
+        # Normalize whitespace
+        text = ' '.join(text.split())
+        
+        # Normalize common operators
+        replacements = {
+            '&&': 'and', '||': 'or', '!': 'not',
+            '==': '=', '!=': '≠',
+            '>=': '≥', '<=': '≤'
+        }
+        
+        for old, new in replacements.items():
+            text = text.replace(old, new)
+        
+        # Convert to lowercase for consistency
+        return text.lower().strip()
 
 
 def get_analytics_z3_connector():
@@ -229,3 +572,22 @@ def get_analytics_z3_connector():
 
 if __name__ == "__main__":
     print("Analytics Z3 Connector initialized")
+    
+    # Demo CAV-NLP integration if available
+    connector = get_analytics_z3_connector()
+    
+    if connector._cav_nlp_available:
+        print("\nCAV-NLP integration available!")
+        
+        # Test NL query analysis
+        test_query = "For all x, if x is greater than 0 then x plus 1 is greater than 1"
+        result = connector.analyze_nl_query(test_query)
+        
+        print(f"\nTest Query: {test_query}")
+        print(f"Success: {result.success}")
+        print(f"Constraint Type: {result.constraint_type}")
+        print(f"Variables: {result.variables}")
+        print(f"Complexity: {result.complexity_score:.2f}")
+        print(f"Confidence: {result.confidence:.2f}")
+    else:
+        print("\nCAV-NLP integration not available (graceful degradation active)")

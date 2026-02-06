@@ -118,6 +118,15 @@ except ImportError:
     BUBBLELABS_AVAILABLE = False
     logger.warning("BubbleLabs integration not available")
 
+# Import CAV-NLP integration
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logger.warning("CAV-NLP integration not available")
+
 
 # =============================================================================
 # Data Classes and Enums
@@ -229,6 +238,7 @@ class IntegrationStatus:
     z3_leanaide_bridge_available: bool = False
     openevolve_available: bool = False
     bubblelabs_available: bool = False
+    cav_nlp_available: bool = False
     ready: bool = False
     message: str = ""
     
@@ -393,6 +403,15 @@ class Z3LeanAideOpenEvolveIntegration:
         self.lean_integrator = None
         self.bubblelabs = None
         
+        # Initialize CAV-NLP components
+        self.use_cav_nlp = config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE if hasattr(config, 'get') else CAV_NLP_AVAILABLE
+        self.enhanced_solver = None
+        self.math_service = None
+        if self.use_cav_nlp:
+            self.enhanced_solver = EnhancedZ3Solver()
+            self.math_service = UnifiedMathService()
+            logger.info("CAV-NLP enhancement enabled for Z3LeanAideOpenEvolveIntegration")
+        
         self._initialize_components()
         
         # Thread pool for concurrent operations
@@ -401,6 +420,9 @@ class Z3LeanAideOpenEvolveIntegration:
         # Status tracking
         self._integration_status = IntegrationStatus()
         self._update_status()
+        
+        # Update status with CAV-NLP availability
+        self._integration_status.cav_nlp_available = CAV_NLP_AVAILABLE
     
     def _initialize_components(self):
         """Initialize all integration components."""
@@ -1184,6 +1206,30 @@ class Z3LeanAideOpenEvolveIntegration:
         )
         
         return verification.to_dict() if hasattr(verification, 'to_dict') else verification
+    
+    async def hybrid_verify(self, constraint) -> "VerificationResult":
+        """Verify using hybrid Z3 + Lean via CAV-NLP.
+        
+        This method leverages the CAV-NLP unified math service to perform
+        hybrid verification, combining Z3's constraint solving with Lean's
+        theorem proving capabilities.
+        
+        Args:
+            constraint: The constraint to verify (can be Z3 expression or string)
+            
+        Returns:
+            VerificationResult from the hybrid verification
+        """
+        if not self.use_cav_nlp or not self.math_service:
+            logger.warning("CAV-NLP not available for hybrid verification")
+            # Return a basic result indicating CAV-NLP is unavailable
+            return {"success": False, "error": "CAV-NLP not available"}
+        
+        try:
+            return await self.math_service.verify(constraint)
+        except Exception as e:
+            logger.error(f"Hybrid verification failed: {e}")
+            return {"success": False, "error": str(e)}
 
 
 # =============================================================================
