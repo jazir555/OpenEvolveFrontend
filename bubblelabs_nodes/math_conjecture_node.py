@@ -26,6 +26,14 @@ try:
 except ImportError:
     CAV_NLP_AVAILABLE = False
 
+# Lean integration
+try:
+    from leanaide_client import LeanAideClient, LeanAideConfig
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+    logging.getLogger(__name__).warning("Lean 4 not available for MathConjectureNode")
+
 logger = logging.getLogger(__name__)
 
 
@@ -74,6 +82,21 @@ class MathConjectureNode(BubbleLabsNode):
         else:
             self.math_service = None
             self.enhanced_solver = None
+        
+        # Initialize Lean client
+        self._client = None
+        if LEAN_AVAILABLE:
+            try:
+                client_config = LeanAideConfig(
+                    host=self.config.get("leanaide_host", "localhost"),
+                    port=self.config.get("leanaide_port", 7654),
+                    timeout=self.config.get("timeout", 6000.0)
+                )
+                self._client = LeanAideClient(client_config)
+                logger.info("LeanAide client initialized for MathConjectureNode")
+            except Exception as e:
+                logger.warning(f"Could not initialize LeanAide client: {e}")
+                self._client = None
     
     def validate_inputs(self, inputs: Dict) -> List[str]:
         """Validate node inputs."""
@@ -466,6 +489,107 @@ class MathConjectureNode(BubbleLabsNode):
             logger.error(f"Failed to formalize conjecture: {e}")
             raise ValueError(f"Formalization failed: {e}")
     
+    def verify_conjecture_with_lean(self, conjecture: str, formal_code: str = "") -> Dict[str, Any]:
+        """
+        Verify a conjecture using real Lean 4 via LeanAide.
+        
+        This method attempts to:
+        1. Formalize the conjecture if natural language
+        2. Type-check the formalized statement
+        3. Check for obvious errors or contradictions
+        4. Return verification status
+        
+        Args:
+            conjecture: Conjecture statement (natural language or formal)
+            formal_code: Optional pre-formalized Lean code
+            
+        Returns:
+            Dict with verification results including:
+            - verified: bool - whether the conjecture passed verification
+            - status: str - detailed status
+            - formalized_code: str - the Lean formalization
+            - errors: list - any errors found
+            
+        Raises:
+            RuntimeError: If Lean is not available
+        """
+        if not LEAN_AVAILABLE or not self._client:
+            raise RuntimeError("Lean 4 not available. Please install leanaide_client.")
+        
+        try:
+            import asyncio
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            try:
+                # Step 1: Get formal code if not provided
+                if not formal_code:
+                    # Try to formalize using CAV-NLP first
+                    if self.use_cav_nlp and self.math_service:
+                        try:
+                            formal_result = self.math_service.formalize(conjecture)
+                            formal_code = formal_result.code if hasattr(formal_result, 'code') else str(formal_result)
+                        except Exception as e:
+                            logger.warning(f"CAV-NLP formalization failed: {e}")
+                            formal_code = ""
+                    
+                    # Fallback to direct LeanAide formalization
+                    if not formal_code:
+                        formal_result = loop.run_until_complete(
+                            self._client.translate_theorem(conjecture)
+                        )
+                        if formal_result.success and formal_result.data:
+                            formal_code = formal_result.data.get("translation", "")
+                
+                if not formal_code:
+                    return {
+                        "verified": False,
+                        "status": "formalization_failed",
+                        "conjecture": conjecture,
+                        "error": "Could not formalize conjecture"
+                    }
+                
+                # Step 2: Elaborate to check for type errors
+                elaboration_result = loop.run_until_complete(
+                    self._client.elaborate(formal_code)
+                )
+                
+                # Step 3: Analyze elaboration results
+                has_errors = False
+                errors = []
+                
+                if elaboration_result.data:
+                    logs = elaboration_result.data.get("logs", "")
+                    if "error" in logs.lower():
+                        has_errors = True
+                        errors.append("Elaboration errors found")
+                    
+                    unsolved_goals = elaboration_result.data.get("unsolved_goals", [])
+                    if unsolved_goals:
+                        errors.append(f"Unsolved goals: {len(unsolved_goals)}")
+                
+                return {
+                    "verified": elaboration_result.success and not has_errors,
+                    "status": "verified" if (elaboration_result.success and not has_errors) else "has_issues",
+                    "conjecture": conjecture,
+                    "formalized_code": formal_code,
+                    "elaboration_success": elaboration_result.success,
+                    "errors": errors,
+                    "elaboration_logs": elaboration_result.data.get("logs", "") if elaboration_result.data else ""
+                }
+                
+            finally:
+                loop.close()
+                
+        except Exception as e:
+            logger.error(f"Lean conjecture verification failed: {e}")
+            return {
+                "verified": False,
+                "status": "error",
+                "conjecture": conjecture,
+                "error": str(e)
+            }
+    
     def verify_conjecture(self, conjecture: str) -> Dict[str, Any]:
         """Verify conjecture using CAV-NLP enhanced solver.
         
@@ -504,3 +628,11 @@ class MathConjectureNode(BubbleLabsNode):
     def is_healthy(self) -> bool:
         """Check node health."""
         return True
+    
+    def get_lean_status(self) -> Dict[str, Any]:
+        """Get Lean integration status."""
+        return {
+            "lean_available": LEAN_AVAILABLE,
+            "client_initialized": self._client is not None,
+            "can_verify_conjectures": LEAN_AVAILABLE and self._client is not None
+        }

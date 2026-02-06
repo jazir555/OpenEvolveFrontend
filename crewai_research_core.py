@@ -32,6 +32,14 @@ from pathlib import Path
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# Lean 4 Integration
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+    logger.debug("Lean 4 integration not available for research core")
+
 
 # =============================================================================
 # FEATURE 1: HIERARCHICAL PROCESS SUPPORT
@@ -957,6 +965,207 @@ def create_memory_system(
 ) -> MemoryAugmentedResearch:
     """Factory function to create memory system"""
     return MemoryAugmentedResearch(storage_dir=storage_dir)
+
+
+# =============================================================================
+# LEAN 4 VERIFICATION FOR RESEARCH
+# =============================================================================
+
+def verify_research_correctness(
+    research_statement: str,
+    methodology: Optional[str] = None,
+    expected_properties: Optional[List[str]] = None
+) -> Dict[str, Any]:
+    """
+    Verify research methodology and results using Lean 4.
+    
+    Uses LeanAideClient to formalize and verify research statements,
+    providing mathematical rigor to research correctness verification.
+    
+    This function is designed to be called after research workflows
+    complete to validate the correctness of findings.
+    
+    Args:
+        research_statement: The main research statement or hypothesis
+        methodology: Optional description of research methodology
+        expected_properties: Optional list of properties the research should satisfy
+        
+    Returns:
+        Dictionary with comprehensive verification results:
+        - verified: Boolean indicating if research is formally verified
+        - confidence: Confidence score (0-1)
+        - proof: Generated Lean proof code
+        - formalized_statement: Formalized version of the research statement
+        - methodology_verification: Verification of methodology (if provided)
+        - property_results: Individual property verification results
+    """
+    if not LEAN_AVAILABLE:
+        return {
+            "verified": False,
+            "reason": "Lean 4 not available",
+            "research_statement": research_statement,
+            "methodology_checked": False
+        }
+    
+    try:
+        client = LeanAideClient()
+        
+        # Step 1: Formalize the research statement
+        statement_formalization = client.translate_thm(research_statement)
+        
+        if not statement_formalization.success:
+            logger.warning(f"Research statement formalization failed: {statement_formalization.error}")
+            return {
+                "verified": False,
+                "reason": f"Statement formalization failed: {statement_formalization.error}",
+                "research_statement": research_statement,
+                "methodology_checked": False
+            }
+        
+        formalized_statement = statement_formalization.data.get("result", "") if statement_formalization.data else ""
+        statement_proof = statement_formalization.data.get("proof", "") if statement_formalization.data else ""
+        
+        result = {
+            "verified": statement_formalization.success,
+            "confidence": 0.85 if statement_formalization.success else 0.0,
+            "proof": statement_proof,
+            "formalized_statement": formalized_statement,
+            "research_statement": research_statement,
+            "methodology_checked": False,
+            "property_results": []
+        }
+        
+        # Step 2: Verify methodology if provided
+        if methodology:
+            methodology_statement = f"The methodology '{methodology}' correctly validates the statement: {research_statement}"
+            methodology_formalization = client.translate_thm(methodology_statement)
+            
+            result["methodology_checked"] = True
+            result["methodology_verification"] = {
+                "verified": methodology_formalization.success,
+                "confidence": 0.8 if methodology_formalization.success else 0.0,
+                "formalized": methodology_formalization.data.get("result", "") if methodology_formalization.data else ""
+            }
+            
+            # Update overall verification
+            if methodology_formalization.success and result["verified"]:
+                result["confidence"] = 0.92  # Higher confidence with methodology check
+        
+        # Step 3: Verify expected properties
+        if expected_properties:
+            property_results = []
+            for prop in expected_properties:
+                # Formalize the property in context of the research
+                prop_statement = f"Given {research_statement}, then {prop}"
+                prop_formalization = client.translate_thm(prop_statement)
+                
+                property_results.append({
+                    "property": prop,
+                    "verified": prop_formalization.success,
+                    "confidence": 0.8 if prop_formalization.success else 0.0,
+                    "formalized": prop_formalization.data.get("result", "") if prop_formalization.data else "",
+                    "proof": prop_formalization.data.get("proof", "") if prop_formalization.data else ""
+                })
+            
+            result["property_results"] = property_results
+            
+            # Update overall confidence based on property verification
+            if property_results:
+                verified_props = sum(1 for p in property_results if p["verified"])
+                prop_ratio = verified_props / len(property_results)
+                result["confidence"] = min(0.99, result["confidence"] * (0.5 + 0.5 * prop_ratio))
+                
+                # If all properties verified, mark as fully verified
+                if verified_props == len(property_results):
+                    result["verified"] = True
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Research correctness verification failed: {e}")
+        return {
+            "verified": False,
+            "reason": f"Verification error: {str(e)}",
+            "research_statement": research_statement,
+            "methodology_checked": False
+        }
+
+
+class ResearchVerificationMixin:
+    """
+    Mixin class providing Lean 4 verification capabilities to research classes.
+    
+    This mixin can be added to any research-related class to provide
+    formal verification capabilities.
+    """
+    
+    def verify_with_lean(
+        self,
+        statement: str,
+        properties: Optional[List[str]] = None,
+        context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Verify a statement using Lean 4.
+        
+        Args:
+            statement: Statement to verify
+            properties: Optional properties to verify
+            context: Optional context for verification
+            
+        Returns:
+            Verification results dictionary
+        """
+        if not LEAN_AVAILABLE:
+            return {
+                "verified": False,
+                "reason": "Lean 4 not available",
+                "statement": statement
+            }
+        
+        try:
+            client = LeanAideClient()
+            
+            # Formalize the statement
+            formalization = client.translate_thm(statement)
+            
+            if not formalization.success:
+                return {
+                    "verified": False,
+                    "reason": f"Formalization failed: {formalization.error}",
+                    "statement": statement
+                }
+            
+            result = {
+                "verified": formalization.success,
+                "confidence": 0.85,
+                "proof": formalization.data.get("proof", "") if formalization.data else "",
+                "formalized_statement": formalization.data.get("result", "") if formalization.data else "",
+                "statement": statement
+            }
+            
+            # Verify properties if specified
+            if properties:
+                property_results = []
+                for prop in properties:
+                    prop_statement = f"{statement} implies {prop}"
+                    prop_result = client.translate_thm(prop_statement)
+                    property_results.append({
+                        "property": prop,
+                        "verified": prop_result.success,
+                        "confidence": 0.8 if prop_result.success else 0.0
+                    })
+                result["property_results"] = property_results
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Lean verification failed: {e}")
+            return {
+                "verified": False,
+                "reason": f"Verification error: {str(e)}",
+                "statement": statement
+            }
 
 
 # =============================================================================

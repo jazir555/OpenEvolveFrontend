@@ -1,4 +1,6 @@
 from api_server import WorkflowCreateRequest, app
+from bubblelabs_security import validate_workflow_type as validate_sec_workflow_type
+from bubblelabs_validation import validate_workflow_type as validate_val_workflow_type
 from bubblelabs_extended_integration import BubbleLabsExtendedIntegration
 
 
@@ -52,3 +54,13 @@ def test_bubblelabs_web3_status_shape():
     assert "ingestion_available" in status
     assert "formal_available" in status
     assert "tool_inventory" in status
+
+
+def test_bubblelabs_security_validation_accepts_web3_aliases():
+    assert validate_sec_workflow_type("web3") == "web3"
+    assert validate_sec_workflow_type("smart_contract_audit") == "web3"
+
+
+def test_bubblelabs_validation_accepts_web3_aliases():
+    assert validate_val_workflow_type("web3") == "web3"
+    assert validate_val_workflow_type("defi") == "web3"

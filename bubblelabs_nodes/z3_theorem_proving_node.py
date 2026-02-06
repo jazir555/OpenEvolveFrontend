@@ -402,6 +402,11 @@ class Z3TheoremProvingNode(BubbleLabsNode):
                     "default": True,
                     "description": "Fall back to Z3-only if CAV-NLP fails"
                 },
+                "require_real_z3": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Require real Z3 verification - fail if Z3 unavailable (CRITICAL: prevents fake proofs)"
+                },
                 "verify_with_lean": {
                     "type": "boolean",
                     "default": False,
@@ -927,6 +932,22 @@ class Z3TheoremProvingNode(BubbleLabsNode):
     
     def _fallback_prove(self, theorem: str, assumptions: List[str], domain: str = "general") -> Dict[str, Any]:
         """Fallback proving when Z3 unavailable."""
+        # CRITICAL FIX: Never return fake proven=True results
+        # Always return proper error when Z3 is unavailable
+        
+        require_real_z3 = self.config.get("require_real_z3", True)
+        
+        if require_real_z3:
+            # Fail hard - no fake proofs allowed
+            return {
+                "success": False,
+                "proven": False,
+                "error": "Z3 prover unavailable - real verification required by configuration",
+                "domain": domain,
+                "reason": "Z3 unavailable and require_real_z3=True"
+            }
+        
+        # Legacy mode (require_real_z3=False): Return unverified status, NOT proven
         # Simple heuristic: theorems with obvious contradictions are unprovable
         unprovable_patterns = ["false", "contradiction", "0 = 1", "not (A -> A)"]
         
@@ -937,15 +958,18 @@ class Z3TheoremProvingNode(BubbleLabsNode):
                     "proven": False,
                     "reason": "Contradiction detected in theorem",
                     "domain": domain,
-                    "warnings": ["Fallback prover - Z3 unavailable"]
+                    "warnings": ["Fallback prover - Z3 unavailable"],
+                    "verified": False
                 }
         
+        # Return unverified status, NOT a fake proof
         return {
             "success": True,
-            "proven": True,
-            "proof": "[Fallback proof - Z3 unavailable]",
+            "proven": False,  # CHANGED: No longer claims proven=True
+            "error": "Z3 unavailable - theorem not verified",
             "domain": domain,
-            "warnings": ["Fallback prover - Z3 unavailable"]
+            "warnings": ["Fallback prover - Z3 unavailable - NO VERIFICATION PERFORMED"],
+            "verified": False
         }
     
     def is_healthy(self) -> bool:

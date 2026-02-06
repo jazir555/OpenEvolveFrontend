@@ -77,6 +77,7 @@ async def health_check():
             "evolution": True,
             "adversarial": True,
             "sovereign": True,
+            "web3": True,
         }
     }
 

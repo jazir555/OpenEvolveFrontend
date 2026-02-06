@@ -1616,5 +1616,51 @@ DEFAULT_PARAMETER_DEFINITIONS: Dict[str, Dict[str, Any]] = {
             "default": False,
             "description": "Experimental logging"
         }
+    },
+    "web3_audit": {
+        "domain_hint": {
+            "type": "string",
+            "default": "web3",
+            "description": "Domain hint for smart-contract workflows"
+        },
+        "web3": {
+            "type": "dict",
+            "default": {
+                "enabled": True,
+                "project_path": ".",
+                "run_fuzzing": True,
+                "slither_timeout_seconds": 240,
+                "forge_timeout_seconds": 420
+            },
+            "description": "Web3 ingestion configuration for Slither/Foundry"
+        },
+        "formal_verification_enabled": {
+            "type": "boolean",
+            "default": True,
+            "description": "Enable formal verification for Web3 audits"
+        },
+        "formal_verification_mode": {
+            "type": "select",
+            "default": "hybrid",
+            "description": "Formal verification mode",
+            "options": ["auto", "z3", "leanaide", "hybrid"]
+        },
+        "z3_enabled": {
+            "type": "boolean",
+            "default": True,
+            "description": "Enable Z3 verification path"
+        },
+        "leanaide_enabled": {
+            "type": "boolean",
+            "default": True,
+            "description": "Enable LeanAide verification path"
+        },
+        "web3_symbolic_timeout_seconds": {
+            "type": "float",
+            "default": 10.0,
+            "description": "Timeout for symbolic exploit witness solving",
+            "min_value": 0.1,
+            "max_value": 120.0
+        }
     }
 }

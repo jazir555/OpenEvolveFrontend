@@ -15,6 +15,21 @@ from datetime import datetime
 
 from bubblelabs_nodes.base_node import BubbleLabsNode, NodeExecutionError
 
+# Lean integration
+try:
+    from leanaide_client import LeanAideClient, LeanAideConfig
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+    logging.getLogger(__name__).warning("Lean 4 not available for MathCounterexampleNode")
+
+# Z3 integration
+try:
+    from z3prover_integration import Z3SolverEngine, Z3Config
+    Z3_AVAILABLE = True
+except ImportError:
+    Z3_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -88,6 +103,21 @@ class MathCounterexampleNode(BubbleLabsNode):
             except Exception as e:
                 logger.warning(f"Could not initialize CAV-NLP EnhancedSolver: {e}")
                 self.enhanced_solver = None
+        
+        # Initialize Lean client for enhanced counterexample search
+        self._lean_client = None
+        if LEAN_AVAILABLE:
+            try:
+                client_config = LeanAideConfig(
+                    host=self.config.get("leanaide_host", "localhost"),
+                    port=self.config.get("leanaide_port", 7654),
+                    timeout=self.config.get("timeout", 6000.0)
+                )
+                self._lean_client = LeanAideClient(client_config)
+                logger.info("LeanAide client initialized for MathCounterexampleNode")
+            except Exception as e:
+                logger.warning(f"Could not initialize LeanAide client: {e}")
+                self._lean_client = None
     
     def _initialize_z3(self):
         """Initialize Z3 engine."""
@@ -496,9 +526,7 @@ class MathCounterexampleNode(BubbleLabsNode):
             return f"{statement.rstrip('.')}, assuming all variables are non-zero."
         return f"Add preconditions to exclude the counterexample case."
     
-    def is_healthy(self) -> bool:
-        """Check node health."""
-        return True
+
     
     def find_counterexample_with_cav_nlp(self, theorem: str) -> Dict[str, Any]:
         """
@@ -564,3 +592,152 @@ class MathCounterexampleNode(BubbleLabsNode):
                 'theorem': theorem,
                 'fallback': True
             }
+    
+    def find_counterexample_with_lean(self, statement: str, search_depth: int = 5) -> Dict[str, Any]:
+        """
+        Find counterexamples using Lean 4 and Z3 integration.
+        
+        This method combines Lean's type system with Z3's constraint solving
+        to find counterexamples to mathematical statements.
+        
+        Args:
+            statement: The mathematical statement to check
+            search_depth: How deep to search (affects timeout)
+            
+        Returns:
+            Dict with counterexample search results:
+            - found: bool - whether a counterexample was found
+            - counterexample: dict - the counterexample values if found
+            - method: str - which method found it (lean/z3/combined)
+            - formalized_statement: str - the Lean formalization
+            
+        Raises:
+            RuntimeError: If neither Lean nor Z3 is available
+        """
+        if not LEAN_AVAILABLE and not Z3_AVAILABLE:
+            raise RuntimeError("Neither Lean 4 nor Z3 available. Please install required dependencies.")
+        
+        result = {
+            'found': False,
+            'counterexample': None,
+            'method': None,
+            'formalized_statement': None,
+            'search_depth': search_depth
+        }
+        
+        # Step 1: Try to formalize with Lean
+        formalized = None
+        if LEAN_AVAILABLE and self._lean_client:
+            try:
+                import asyncio
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                
+                try:
+                    # Try to translate the statement to Lean
+                    translate_result = loop.run_until_complete(
+                        self._lean_client.translate_theorem(statement)
+                    )
+                    
+                    if translate_result.success and translate_result.data:
+                        formalized = translate_result.data.get("translation", "")
+                        result['formalized_statement'] = formalized
+                        logger.info(f"Successfully formalized statement with Lean")
+                finally:
+                    loop.close()
+                    
+            except Exception as e:
+                logger.warning(f"Lean formalization failed: {e}")
+        
+        # Step 2: Try Z3 if available
+        if Z3_AVAILABLE and self._z3_engine:
+            try:
+                # Use Z3 to find counterexamples
+                z3_result = self._search_with_z3(statement, search_depth)
+                if z3_result.get('found'):
+                    result['found'] = True
+                    result['counterexample'] = z3_result['counterexample']
+                    result['method'] = 'z3'
+                    logger.info(f"Z3 found counterexample: {z3_result['counterexample']}")
+                    return result
+            except Exception as e:
+                logger.warning(f"Z3 counterexample search failed: {e}")
+        
+        # Step 3: Try Lean elaboration to find type inconsistencies
+        if formalized and LEAN_AVAILABLE and self._lean_client:
+            try:
+                import asyncio
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                
+                try:
+                    # Elaborate to check for contradictions
+                    elaboration_result = loop.run_until_complete(
+                        self._lean_client.elaborate(formalized)
+                    )
+                    
+                    if elaboration_result.data:
+                        logs = elaboration_result.data.get("logs", "")
+                        # Check for specific error patterns that indicate counterexamples
+                        if "contradiction" in logs.lower() or "failed" in logs.lower():
+                            result['found'] = True
+                            result['method'] = 'lean_elaboration'
+                            result['counterexample'] = {"note": "Statement contains type error/contradiction"}
+                            return result
+                finally:
+                    loop.close()
+                    
+            except Exception as e:
+                logger.warning(f"Lean elaboration check failed: {e}")
+        
+        # Step 4: Fall back to brute force search
+        logger.info("Falling back to brute force search")
+        brute_result = self._search_counterexample(
+            statement, 
+            ["x", "y", "z"], 
+            {"min": -search_depth, "max": search_depth}
+        )
+        
+        if brute_result:
+            result['found'] = True
+            result['counterexample'] = brute_result
+            result['method'] = 'brute_force'
+        
+        return result
+    
+    def _search_with_z3(self, statement: str, depth: int) -> Dict[str, Any]:
+        """Search for counterexamples using Z3."""
+        if not self._z3_engine:
+            return {'found': False}
+        
+        # Try to parse statement into Z3 constraints
+        # This is a simplified version - real implementation would be more sophisticated
+        try:
+            # Common patterns to check
+            if ">" in statement or "<" in statement or "=" in statement:
+                # Try small integer values
+                for x in range(-depth, depth + 1):
+                    for y in range(-depth, depth + 1):
+                        # Simple evaluation - in real impl, would use Z3 solver
+                        assignment = {"x": x, "y": y}
+                        if self._is_counterexample(statement, assignment):
+                            return {'found': True, 'counterexample': assignment}
+            
+            return {'found': False}
+        except Exception as e:
+            logger.warning(f"Z3 search error: {e}")
+            return {'found': False}
+    
+    def is_healthy(self) -> bool:
+        """Check node health."""
+        return True
+    
+    def get_lean_status(self) -> Dict[str, Any]:
+        """Get Lean integration status."""
+        return {
+            "lean_available": LEAN_AVAILABLE,
+            "z3_available": Z3_AVAILABLE,
+            "lean_client_initialized": self._lean_client is not None,
+            "z3_engine_initialized": self._z3_engine is not None,
+            "can_find_counterexamples": (LEAN_AVAILABLE or Z3_AVAILABLE)
+        }

@@ -23,6 +23,7 @@ from ..models import (
     WorkflowInputs,
     ExecutionResult,
     ExecutionStatistics,
+    normalize_workflow_type,
 )
 from ..services.execution_service import execution_manager
 
@@ -227,7 +228,7 @@ async def create_workflow(workflow_data: WorkflowCreate) -> WorkflowResponse:
             completed_at=None,
             user_id="anonymous",
             tenant_id="default",
-            workflow_type=workflow_data.workflow_type,
+            workflow_type=normalize_workflow_type(workflow_data.workflow_type),
         )
 
         # Store workflow in memory and database
@@ -279,8 +280,11 @@ async def list_workflows(
         # Apply filters
         filtered_workflows = list(_workflows.values())
 
-        if workflow_type:
-            filtered_workflows = [w for w in filtered_workflows if w.workflow_type == workflow_type]
+        normalized_workflow_type = normalize_workflow_type(workflow_type) if workflow_type else None
+        if normalized_workflow_type:
+            filtered_workflows = [
+                w for w in filtered_workflows if w.workflow_type == normalized_workflow_type
+            ]
 
         if status_filter:
             filtered_workflows = [w for w in filtered_workflows if w.status.value == status_filter]
@@ -300,7 +304,7 @@ async def list_workflows(
             page_size=page_size,
             total=total,
             returned=len(workflows_page),
-            workflow_type_filter=workflow_type,
+            workflow_type_filter=normalized_workflow_type,
             status_filter=status_filter
         )
 

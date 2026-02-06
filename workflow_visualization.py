@@ -40,6 +40,16 @@ class OpenEvolveVisualizer:
             stages = ["Input", "Red Team", "Blue Team", "Evaluator", "Output"]
         elif workflow_state.workflow_type == "sovereign":
             stages = ["Input", "Analysis", "Decomposition", "Solving", "Assembly", "Verification", "Output"]
+        elif workflow_state.workflow_type == "web3":
+            stages = [
+                "Input",
+                "Slither Ingestion",
+                "Foundry Fuzzing",
+                "Formal Translation",
+                "DeFi Gauntlet",
+                "Exploit Verification",
+                "Output",
+            ]
         else:
             stages = ["Input", "Processing", "Output"]
         
@@ -129,6 +139,17 @@ class OpenEvolveVisualizer:
         elif workflow_state.workflow_type == "sovereign":
             stages = ["Input", "Analysis", "Decomposition", "Sub-solving", "Assembly", "Verification", "Output"]
             progress_values = [10, 20, 35, 55, 75, 90, 100]
+        elif workflow_state.workflow_type == "web3":
+            stages = [
+                "Input",
+                "Slither",
+                "Foundry",
+                "Formal (Z3/Lean)",
+                "DeFi Gauntlet",
+                "Witness Validation",
+                "Output",
+            ]
+            progress_values = [8, 22, 38, 58, 78, 92, 100]
         else:
             stages = ["Input", "Processing", "Output"]
             progress_values = [30, 60, 100]
@@ -170,7 +191,7 @@ class OpenEvolveVisualizer:
         """
         Render evolution progress chart showing fitness over generations.
         """
-        if workflow_state.workflow_type not in ["evolution", "sovereign"]:
+        if workflow_state.workflow_type not in ["evolution", "sovereign", "web3"]:
             return
             
         st.subheader("📈 Evolution Progress")
@@ -209,7 +230,7 @@ class OpenEvolveVisualizer:
         """
         st.subheader("🔍 Diversity Analysis")
         
-        if workflow_state.workflow_type in ["evolution", "sovereign"]:
+        if workflow_state.workflow_type in ["evolution", "sovereign", "web3"]:
             # Generate sample diversity data
             generations = list(range(1, 11))
             diversity_scores = [0.3 + 0.5 * np.sin(i/2) + np.random.normal(0, 0.1) for i in generations]

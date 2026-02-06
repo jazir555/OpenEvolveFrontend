@@ -1,9 +1,24 @@
 """Pydantic models for OpenEvolve API"""
 
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Literal, Optional, List, Dict, Any
 from datetime import datetime
+
+WORKFLOW_TYPE_ALIASES = {
+    "sovereign_decomposition": "sovereign",
+    "smart_contract": "web3",
+    "smart_contract_audit": "web3",
+    "defi": "web3",
+}
+
+
+def normalize_workflow_type(workflow_type: Any) -> Any:
+    """Normalize known workflow type aliases to canonical values."""
+    if not isinstance(workflow_type, str):
+        return workflow_type
+    normalized = workflow_type.strip().lower()
+    return WORKFLOW_TYPE_ALIASES.get(normalized, normalized)
 
 
 # ==================== Workflow & Execution Models ====================
@@ -38,7 +53,12 @@ class WorkflowCreate(BaseModel):
     gauntlets: List[str] = Field(default_factory=list)
     metadata: Optional[WorkflowMetadata] = None
     parameters: Optional[Dict[str, Any]] = None
-    workflow_type: Literal["evolution", "adversarial", "sovereign"] = "sovereign"
+    workflow_type: Literal["evolution", "adversarial", "sovereign", "web3"] = "sovereign"
+
+    @field_validator("workflow_type", mode="before")
+    @classmethod
+    def normalize_workflow_type_aliases(cls, value: Any) -> Any:
+        return normalize_workflow_type(value)
 
 
 class WorkflowUpdate(BaseModel):
@@ -71,7 +91,12 @@ class WorkflowResponse(BaseModel):
     tenant_id: str
     metadata: Optional[WorkflowMetadata] = None
     parameters: Dict[str, Any] = Field(default_factory=dict)
-    workflow_type: Literal["evolution", "adversarial", "sovereign"] = "sovereign"
+    workflow_type: Literal["evolution", "adversarial", "sovereign", "web3"] = "sovereign"
+
+    @field_validator("workflow_type", mode="before")
+    @classmethod
+    def normalize_workflow_type_aliases(cls, value: Any) -> Any:
+        return normalize_workflow_type(value)
 
 
 class ExecutionStartRequest(BaseModel):
@@ -356,6 +381,11 @@ class DecompositionDefaults(BaseModel):
     enable_adaptive_selection: bool = True
     maker_config: Dict[str, Any] = Field(default_factory=dict)
     openevolve_client_config: Dict[str, Any] = Field(default_factory=dict)
+    default_domain_hint: Optional[str] = None
+    default_domain_artifacts: Dict[str, Any] = Field(default_factory=dict)
+    web3_ingestion_enabled: bool = False
+    web3_project_path: str = "."
+    web3_run_fuzzing: bool = True
     mdap_enabled: bool = False
     mdap_config: Dict[str, Any] = Field(default_factory=dict)
     maker_enabled: bool = False
@@ -368,6 +398,11 @@ class UpdateDecompositionDefaults(BaseModel):
     enable_adaptive_selection: Optional[bool] = None
     maker_config: Optional[Dict[str, Any]] = None
     openevolve_client_config: Optional[Dict[str, Any]] = None
+    default_domain_hint: Optional[str] = None
+    default_domain_artifacts: Optional[Dict[str, Any]] = None
+    web3_ingestion_enabled: Optional[bool] = None
+    web3_project_path: Optional[str] = None
+    web3_run_fuzzing: Optional[bool] = None
     mdap_enabled: Optional[bool] = None
     mdap_config: Optional[Dict[str, Any]] = None
     maker_enabled: Optional[bool] = None

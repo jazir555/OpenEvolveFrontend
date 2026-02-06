@@ -30,6 +30,14 @@ try:
 except ImportError:
     CAV_NLP_AVAILABLE = False
 
+# Lean integration
+try:
+    from leanaide_client import LeanAideClient, LeanAideConfig
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+    logging.getLogger(__name__).warning("Lean 4 not available for LeanAutoformalizationNode")
+
 logger = logging.getLogger(__name__)
 
 
@@ -307,8 +315,8 @@ class LeanAutoformalizationNode(BubbleLabsNode):
             except Exception as e:
                 logger.warning(f"CAV-NLP translation failed: {e}, using fallback")
         
-        if self._client:
-            # Use real client
+        if self._client and LEAN_AVAILABLE:
+            # Use REAL LeanAide client
             try:
                 import asyncio
                 result = asyncio.run(self._client.translate_theorem(text))
@@ -504,3 +512,13 @@ end Autoformalized
         """Check node health."""
         # Always healthy as fallback mode works
         return True
+    
+    def get_lean_status(self) -> Dict[str, Any]:
+        """Get Lean integration status."""
+        return {
+            "lean_available": LEAN_AVAILABLE,
+            "cav_nlp_available": CAV_NLP_AVAILABLE,
+            "client_initialized": self._client is not None,
+            "engine_initialized": self._engine is not None,
+            "can_autoformalize": LEAN_AVAILABLE and self._client is not None
+        }

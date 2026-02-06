@@ -472,6 +472,7 @@ def validate_workflow_type(workflow_type: str) -> str:
         "evolution",
         "adversarial",
         "sovereign",
+        "web3",
         "sovereign_decomposition",
         "default"
     }
@@ -480,6 +481,12 @@ def validate_workflow_type(workflow_type: str) -> str:
         raise ValueError("Workflow type must be a non-empty string")
 
     workflow_type = workflow_type.strip().lower()
+    aliases = {
+        "smart_contract": "web3",
+        "smart_contract_audit": "web3",
+        "defi": "web3",
+    }
+    workflow_type = aliases.get(workflow_type, workflow_type)
 
     if workflow_type not in ALLOWED_WORKFLOW_TYPES:
         raise ValueError(

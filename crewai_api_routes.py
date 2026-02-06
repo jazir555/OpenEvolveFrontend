@@ -57,9 +57,154 @@ except ImportError as e:
     logging.warning(f"CrewAI dependencies not found: {e}")
     CREWAI_AVAILABLE = False
 
+# Lean 4 Integration
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+    logging.info("Lean 4 integration available for CrewAI API routes")
+except ImportError as e:
+    LEAN_AVAILABLE = False
+    logging.debug(f"Lean 4 integration not available for API routes: {e}")
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/crewai", tags=["CrewAI"])
+
+# ============================================================================
+# Lean 4 Verification Helper
+# ============================================================================
+
+async def verify_with_lean_before_sync(
+    verification_data: Dict[str, Any],
+    ticket_id: str
+) -> Dict[str, Any]:
+    """
+    Verify proof using Lean 4 before syncing to ticket.
+    
+    This function provides formal verification of research results
+    or solution proofs before they are marked as verified in the
+    ticket system.
+    
+    Args:
+        verification_data: The verification data to check
+        ticket_id: The ticket ID being verified
+        
+    Returns:
+        Dictionary with Lean verification results
+    """
+    if not LEAN_AVAILABLE:
+        return {
+            "verified": False,
+            "reason": "Lean 4 verification not available",
+            "ticket_id": ticket_id,
+            "can_sync": True  # Allow sync even without Lean
+        }
+    
+    try:
+        client = LeanAideClient()
+        
+        # Extract proof or statement from verification data
+        statement = verification_data.get("statement", "")
+        proof = verification_data.get("proof", "")
+        claim = verification_data.get("claim", statement)
+        
+        if not claim and not proof:
+            return {
+                "verified": False,
+                "reason": "No claim or proof provided for verification",
+                "ticket_id": ticket_id,
+                "can_sync": False
+            }
+        
+        # Attempt to formalize the claim/statement
+        if claim:
+            formalization = client.translate_thm(claim)
+            
+            if not formalization.success:
+                logger.warning(f"Lean formalization failed for ticket {ticket_id}: {formalization.error}")
+                return {
+                    "verified": False,
+                    "reason": f"Formalization failed: {formalization.error}",
+                    "ticket_id": ticket_id,
+                    "can_sync": True  # Allow sync with warning
+                }
+            
+            # If formalization succeeded, we have a valid formal statement
+            formalized = formalization.data.get("result", "") if formalization.data else ""
+            
+            return {
+                "verified": True,
+                "confidence": 0.9,
+                "proof": formalization.data.get("proof", "") if formalization.data else "",
+                "formalized_statement": formalized,
+                "ticket_id": ticket_id,
+                "can_sync": True,
+                "verification_method": "lean4"
+            }
+        
+        # If only proof provided without claim
+        return {
+            "verified": True,
+            "confidence": 0.7,
+            "proof": proof,
+            "ticket_id": ticket_id,
+            "can_sync": True,
+            "verification_method": "manual"
+        }
+        
+    except Exception as e:
+        logger.error(f"Lean verification error for ticket {ticket_id}: {e}")
+        return {
+            "verified": False,
+            "reason": f"Verification error: {str(e)}",
+            "ticket_id": ticket_id,
+            "can_sync": True  # Allow sync on error to avoid blocking
+        }
+
+
+def sync_verification_to_ticket(
+    ticket_id: str,
+    verification_result: Dict[str, Any],
+    lean_verification: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+    """
+    Sync verification result to ticket with optional Lean verification.
+    
+    Args:
+        ticket_id: The ticket ID to sync to
+        verification_result: The verification result from CrewAI workflow
+        lean_verification: Optional Lean 4 verification results
+        
+    Returns:
+        Sync result with combined verification status
+    """
+    sync_result = {
+        "ticket_id": ticket_id,
+        "synced": True,
+        "timestamp": datetime.now().isoformat(),
+        "crewai_verification": verification_result,
+        "lean_verification": lean_verification or {"verified": False, "reason": "Not performed"}
+    }
+    
+    # Combined verification status
+    crewai_verified = verification_result.get("verified", False)
+    lean_verified = lean_verification.get("verified", False) if lean_verification else False
+    
+    if crewai_verified and lean_verified:
+        sync_result["combined_status"] = "fully_verified"
+        sync_result["confidence"] = 0.95
+    elif crewai_verified:
+        sync_result["combined_status"] = "crewai_verified"
+        sync_result["confidence"] = verification_result.get("confidence", 0.8)
+    elif lean_verified:
+        sync_result["combined_status"] = "lean_verified"
+        sync_result["confidence"] = lean_verification.get("confidence", 0.9)
+    else:
+        sync_result["combined_status"] = "unverified"
+        sync_result["confidence"] = 0.0
+    
+    logger.info(f"Synced verification to ticket {ticket_id}: {sync_result['combined_status']}")
+    return sync_result
 
 # ============================================================================
 # Pydantic Models

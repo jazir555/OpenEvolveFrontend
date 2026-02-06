@@ -1586,13 +1586,27 @@ class SelfPlayAdversarial:
         )
 
     def _create_mock_proof(self, theorem: str) -> LeanProof:
-        """Create mock proof"""
+        """Create placeholder proof - NOT a real verified proof."""
+        # CRITICAL FIX: Never create fake verified proofs
+        # The is_valid flag is set to False to indicate this is NOT a real proof
+        import warnings
+        warnings.warn(
+            "Creating placeholder proof without real verification. "
+            "Use real proof generation methods for verified results.",
+            RuntimeWarning
+        )
         return LeanProof(
             proof_id=str(uuid.uuid4()),
             theorem=theorem,
-            tactic_sequence=["simp", "rw"],
-            proof_state="mock state",
-            is_valid=True
+            tactic_sequence=[],  # Empty tactics - no proof steps
+            proof_state="no_proof_generated",
+            is_valid=False,  # CHANGED: Never claim valid=True
+            metadata={
+                "is_placeholder": True,
+                "verified": False,
+                "error": "No real proof generated - use proper proof generation",
+                "warning": "This is a placeholder, NOT a verified proof"
+            }
         )
 
     def _create_context(self, theorem: str) -> ProofContext:

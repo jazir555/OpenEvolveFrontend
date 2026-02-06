@@ -425,6 +425,34 @@ class TemplateManager:
                     "consensus_threshold": 0.7,
                     "enable_artifacts": True
                 }
+            },
+            "web3_audit": {
+                "name": "Web3 Smart Contract Audit",
+                "description": "DeFi-focused audit preset with Slither/Foundry ingestion and formal verification",
+                "tags": ["openevolve", "web3", "defi", "audit", "preset"],
+                "config": {
+                    "evolution_mode": "problem_decomposition",
+                    "content_type": "web3_smart_contract",
+                    "max_iterations": 30,
+                    "population_size": 40,
+                    "archive_size": 200,
+                    "parallel_evaluations": 8,
+                    "formal_verification_enabled": True,
+                    "formal_verification_mode": "hybrid",
+                    "z3_enabled": True,
+                    "leanaide_enabled": True,
+                    "domain_hint": "web3",
+                    "web3": {
+                        "enabled": True,
+                        "project_path": ".",
+                        "run_fuzzing": True,
+                        "slither_timeout_seconds": 240,
+                        "forge_timeout_seconds": 420,
+                    },
+                    "enable_quality_diversity": True,
+                    "feature_dimensions": ["impact", "exploitability", "novelty"],
+                    "feature_bins": 12
+                }
             }
         }
         

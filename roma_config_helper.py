@@ -9,6 +9,13 @@ import os
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, field
 
+# Lean 4 Integration
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 
 @dataclass
 class ROMAModelConfig:
@@ -298,6 +305,77 @@ def validate_roma_config(config: ROMAConfig) -> List[str]:
         )
 
     return errors
+
+
+async def verify_with_lean(config: ROMAConfig, properties: List[str] = None) -> Dict[str, Any]:
+    """
+    Verify ROMA configuration correctness using Lean 4 formal verification.
+    
+    This function provides formal verification of configuration properties
+    beyond standard validation, ensuring mathematical correctness.
+    
+    Args:
+        config: ROMAConfig to verify
+        properties: List of properties to verify (default: ["valid_depth", "valid_fractal", "correct_model"])
+        
+    Returns:
+        Dictionary with verification results:
+        - verified: Whether formal verification was performed
+        - config_valid: Whether the configuration is formally verified as correct
+        - confidence: Confidence in the verification result (0.0-1.0)
+        - properties_verified: List of properties checked
+        - reason: Explanation if verification unavailable
+    """
+    if not LEAN_AVAILABLE:
+        return {
+            "verified": False, 
+            "config_valid": False, 
+            "reason": "Lean not available",
+            "confidence": 0.0,
+            "properties_verified": []
+        }
+    
+    properties = properties or ["valid_depth", "valid_fractal", "correct_model"]
+    
+    try:
+        client = LeanAideClient()
+        config_desc = (
+            f"ROMA Config: depth={config.max_depth}, "
+            f"fractal={config.use_fractal}, "
+            f"model={config.model or 'default'}, "
+            f"nodes={config.max_nodes or 'unlimited'}"
+        )
+        theorem = f"{config_desc} satisfies formal correctness: {', '.join(properties)}"
+        
+        formalized = await client.formalize_with_cav_nlp(theorem)
+        
+        if formalized.success and formalized.data:
+            lean_code = formalized.data.get("result", "")
+            result = await client.verify_with_cav_nlp(lean_code)
+            
+            return {
+                "verified": True,
+                "config_valid": result.success,
+                "confidence": result.data.get("verified", False) if result.data else False,
+                "properties_verified": properties,
+                "formal_statement": lean_code
+            }
+        else:
+            return {
+                "verified": False,
+                "config_valid": False,
+                "confidence": 0.0,
+                "properties_verified": properties,
+                "reason": "Failed to formalize configuration"
+            }
+    except Exception as e:
+        return {
+            "verified": False,
+            "config_valid": False,
+            "confidence": 0.0,
+            "properties_verified": properties,
+            "reason": f"Verification error: {str(e)}"
+        }
 
 
 def merge_roma_configs(*configs: ROMAConfig) -> ROMAConfig:

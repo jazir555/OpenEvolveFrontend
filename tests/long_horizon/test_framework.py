@@ -19,6 +19,9 @@ from datetime import datetime, timezone, timedelta
 from typing import Dict, Any
 import numpy as np
 
+# Skip these tests if the long_horizon module is not available
+pytest.importorskip("openevolve.long_horizon")
+
 from openevolve.long_horizon import (
     StateManager,
     WorkflowOrchestrator,

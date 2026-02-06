@@ -11,6 +11,7 @@ Completes partial proofs by filling in gaps:
 Part of the Mathematical Verification Bubble Suite.
 """
 
+import asyncio
 import json
 import logging
 import re
@@ -18,6 +19,21 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 
 from bubblelabs_nodes.base_node import BubbleLabsNode, NodeExecutionError
+
+# Lean integration
+try:
+    from leanaide_client import LeanAideClient, LeanAideConfig
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+    logging.getLogger(__name__).warning("Lean 4 not available for MathProofCompletionNode")
+
+# Z3 integration for counterexample search
+try:
+    from z3prover_integration import Z3SolverEngine, Z3Config
+    Z3_AVAILABLE = True
+except ImportError:
+    Z3_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +99,29 @@ class MathProofCompletionNode(BubbleLabsNode):
     
     def __init__(self, config: Optional[Dict] = None):
         super().__init__(config)
+        self._client = None
+        self._z3_engine = None
+        
+        if LEAN_AVAILABLE:
+            try:
+                client_config = LeanAideConfig(
+                    host=self.config.get("leanaide_host", "localhost"),
+                    port=self.config.get("leanaide_port", 7654),
+                    timeout=self.config.get("timeout", 6000.0)
+                )
+                self._client = LeanAideClient(client_config)
+                logger.info("LeanAide client initialized for MathProofCompletionNode")
+            except Exception as e:
+                logger.warning(f"Could not initialize LeanAide client: {e}")
+                self._client = None
+        
+        if Z3_AVAILABLE:
+            try:
+                self._z3_engine = Z3SolverEngine(Z3Config())
+                logger.info("Z3 engine initialized for MathProofCompletionNode")
+            except Exception as e:
+                logger.warning(f"Could not initialize Z3 engine: {e}")
+                self._z3_engine = None
     
     def validate_inputs(self, inputs: Dict) -> List[str]:
         """Validate node inputs."""
@@ -365,6 +404,17 @@ class MathProofCompletionNode(BubbleLabsNode):
         """Fill sorry placeholders with appropriate tactics."""
         filled = proof
         
+        # First: Try REAL Lean proof completion if available
+        if self._client and LEAN_AVAILABLE:
+            try:
+                completed = self.complete_proof_with_lean(proof, goal)
+                if completed and "sorry" not in completed.lower():
+                    logger.info("Successfully completed proof using LeanAide")
+                    return completed
+            except Exception as e:
+                logger.warning(f"Lean proof completion failed: {e}, using fallback")
+        
+        # Fallback: Use pattern-based completion
         # Use hint if provided
         if hint:
             for strategy_name, strategy in self.COMPLETION_STRATEGIES.items():
@@ -385,6 +435,50 @@ class MathProofCompletionNode(BubbleLabsNode):
             filled = filled.replace("sorry", "trivial", 1)
         
         return filled
+    
+    def complete_proof_with_lean(self, proof: str, goal: str = "") -> str:
+        """
+        Complete a proof using real Lean 4 via LeanAide.
+        
+        Args:
+            proof: Partial proof with sorry placeholders
+            goal: Theorem statement/goal
+            
+        Returns:
+            Completed proof with sorry's filled
+            
+        Raises:
+            RuntimeError: If Lean is not available
+        """
+        if not LEAN_AVAILABLE or not self._client:
+            raise RuntimeError("Lean 4 not available. Please install leanaide_client.")
+        
+        try:
+            # Use the client's prove_for_formalization capability
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            try:
+                result = loop.run_until_complete(
+                    self._client.prove_for_formalization(
+                        theorem_text=goal or "Theorem from incomplete proof",
+                        theorem_code=proof,
+                        theorem_statement=goal
+                    )
+                )
+                
+                if result.success and result.data:
+                    completed_proof = result.data.get("proof", proof)
+                    return completed_proof
+                else:
+                    logger.warning(f"Lean proof completion returned no result: {result.error}")
+                    return proof
+            finally:
+                loop.close()
+                
+        except Exception as e:
+            logger.error(f"Lean proof completion failed: {e}")
+            raise RuntimeError(f"Failed to complete proof with Lean: {e}")
     
     def _expand_sketch(self, proof: str, aggressive: bool) -> str:
         """Expand proof sketch to full proof."""
@@ -443,3 +537,11 @@ class MathProofCompletionNode(BubbleLabsNode):
     def is_healthy(self) -> bool:
         """Check node health."""
         return True
+    
+    def get_lean_status(self) -> Dict[str, Any]:
+        """Get Lean integration status."""
+        return {
+            "lean_available": LEAN_AVAILABLE,
+            "client_initialized": self._client is not None,
+            "can_complete_proofs": LEAN_AVAILABLE and self._client is not None
+        }

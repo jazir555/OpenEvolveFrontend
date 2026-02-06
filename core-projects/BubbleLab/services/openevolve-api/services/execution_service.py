@@ -16,6 +16,8 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, Future
 from enum import Enum
 
+from ..models import normalize_workflow_type
+
 
 logger = structlog.get_logger()
 
@@ -110,6 +112,8 @@ class ExecutionManager:
                 raise ValueError(f"Workflow '{workflow_id}' not found")
 
             workflow = _workflows[workflow_id]
+            workflow_type = normalize_workflow_type(workflow.workflow_type)
+            parameters = dict(workflow.parameters or {})
 
             # Create execution record
             execution_id = f"exec_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S_%f')}"
@@ -125,8 +129,8 @@ class ExecutionManager:
                 "result": None,
                 "error": None,
                 "logs": [],
-                "workflow_type": workflow.workflow_type,
-                "parameters": workflow.parameters
+                "workflow_type": workflow_type,
+                "parameters": parameters,
             }
 
             # Create pause and cancel events
@@ -144,8 +148,8 @@ class ExecutionManager:
                 self._run_workflow,
                 execution_id,
                 workflow_id,
-                workflow.workflow_type,
-                workflow.parameters,
+                workflow_type,
+                parameters,
                 problem_statement,
                 context,
                 pause_event,
@@ -169,7 +173,7 @@ class ExecutionManager:
                 "execution_queued",
                 execution_id=execution_id,
                 workflow_id=workflow_id,
-                workflow_type=workflow.workflow_type
+                workflow_type=workflow_type
             )
 
             return execution
@@ -497,6 +501,8 @@ class ExecutionManager:
             from ..core.evolution import EvolutionEngine
             from ..core.adversarial import AdversarialEngine
             from ..core.sovereign import SovereignEngine
+            workflow_type = normalize_workflow_type(workflow_type)
+            parameters = dict(parameters or {})
 
             # Update status to running
             with self._lock:
@@ -520,6 +526,14 @@ class ExecutionManager:
                 engine = AdversarialEngine()
             elif workflow_type == "sovereign":
                 engine = SovereignEngine()
+            elif workflow_type == "web3":
+                # Reuse sovereign decomposition runtime for Web3 auditing flows.
+                engine = SovereignEngine()
+                parameters.setdefault("domain_hint", "web3")
+                parameters.setdefault("formal_verification_enabled", True)
+                parameters.setdefault("z3_enabled", True)
+                parameters.setdefault("leanaide_enabled", True)
+                parameters.setdefault("formal_verification_mode", "hybrid")
             else:
                 raise ValueError(f"Unknown workflow type: {workflow_type}")
 

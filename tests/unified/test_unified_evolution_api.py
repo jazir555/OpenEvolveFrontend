@@ -20,6 +20,9 @@ import asyncio
 from unittest.mock import Mock, AsyncMock, patch, MagicMock
 from datetime import datetime, UTC
 
+# Skip these tests if the unified_evolution_api module is not available
+pytest.importorskip("openevolve.unified.unified_evolution_api")
+
 # Import the API
 from openevolve.unified.unified_evolution_api import (
     UnifiedEvolutionAPI,

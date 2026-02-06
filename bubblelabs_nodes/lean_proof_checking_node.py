@@ -30,6 +30,14 @@ try:
 except ImportError:
     CAV_NLP_AVAILABLE = False
 
+# Lean integration
+try:
+    from leanaide_client import LeanAideClient, LeanAideConfig
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+    logging.getLogger(__name__).warning("Lean 4 not available for LeanProofCheckingNode")
+
 logger = logging.getLogger(__name__)
 
 
@@ -75,6 +83,8 @@ class LeanProofCheckingNode(BubbleLabsNode):
         self._integrator = None
         self.use_cav_nlp = config.get("use_cav_nlp", True) if config else True
         self.use_cav_nlp = self.use_cav_nlp and CAV_NLP_AVAILABLE
+        # CRITICAL: Option to require real Lean verification
+        self.require_real_lean = config.get("require_real_lean", True) if config else True
         if self.use_cav_nlp:
             try:
                 self.math_service = UnifiedMathService()
@@ -193,6 +203,11 @@ class LeanProofCheckingNode(BubbleLabsNode):
                     "type": "boolean",
                     "default": True,
                     "description": "Enable CAV-NLP enhanced verification"
+                },
+                "require_real_lean": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Require real Lean verification - fail if Lean unavailable (CRITICAL: prevents fake verification)"
                 }
             },
             "required": ["operation"]
@@ -329,8 +344,15 @@ class LeanProofCheckingNode(BubbleLabsNode):
         
         context.update_progress(60)
         
-        # Fallback: Simulate verification
-        return self._fallback_verification(lean_code, theorem_name)
+        # No fallback - return proper error when Lean is unavailable
+        raise NodeExecutionError(
+            node_name=self.DISPLAY_NAME,
+            message="Lean verification unavailable - cannot verify proof",
+            details={
+                "theorem_name": theorem_name,
+                "error": "All Lean verification methods failed. Please ensure LeanAide is properly configured."
+            }
+        )
     
     def _type_check(self, inputs: Dict, context) -> Dict[str, Any]:
         """Type check Lean code."""
@@ -523,20 +545,33 @@ class LeanProofCheckingNode(BubbleLabsNode):
     
     def _fallback_verification(self, code: str, name: str) -> Dict[str, Any]:
         """Fallback verification when LeanAide is unavailable."""
+        # CRITICAL FIX: Never return fake verified=True results
+        if self.require_real_lean:
+            # Fail hard - no simulated verification allowed
+            return {
+                "success": False,
+                "verified": False,
+                "status": "unavailable",
+                "theorem_name": name or "unknown",
+                "error": "Lean unavailable - real verification required by configuration (require_real_lean=True)",
+                "warnings": ["LeanAide server unavailable - NO VERIFICATION PERFORMED"]
+            }
+        
+        # Legacy mode: Perform simulated type checking but do NOT claim verified
         errors = self._simulate_type_check(code)
         
         # Check for sorry as a proxy for incomplete proofs
         has_sorry = "sorry" in code.lower()
         
-        status = "verified" if (len(errors) == 0 and not has_sorry) else "failed"
-        
+        # CRITICAL: Return failed/unverified status, never claim verified=True
         return {
-            "success": status == "verified",
-            "status": status,
+            "success": True,  # Request succeeded
+            "verified": False,  # CHANGED: Never claims true verification
+            "status": "not_verified",  # CHANGED: Not "verified" or "failed"
             "theorem_name": name or "unknown",
             "errors": errors,
-            "warnings": ["Proof contains 'sorry'"] if has_sorry else [],
-            "note": "Fallback verification - LeanAide server unavailable"
+            "warnings": ["Proof contains 'sorry' - unverified"] if has_sorry else ["Fallback - no real verification"],
+            "note": "CRITICAL: Fallback verification - Lean unavailable. NO ACTUAL PROOF CHECK PERFORMED."
         }
     
     def is_healthy(self) -> bool:

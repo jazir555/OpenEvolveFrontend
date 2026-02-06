@@ -752,6 +752,31 @@ class ParameterSchema:
                        "Programming language", "core_evolution")
         self._add_param("file_suffix", ParameterType.STRING, ".py",
                        "File extension", "core_evolution")
+
+        # Web3 smart-contract audit parameters
+        self._add_param("domain_hint", ParameterType.STRING, "",
+                       "Optional domain hint (e.g., web3)", "web3_audit")
+        self._add_param("web3", ParameterType.DICT, {},
+                       "Web3 audit configuration payload", "web3_audit")
+        self._add_param("web3_project_path", ParameterType.STRING, ".",
+                       "Project path for Solidity/Rust contracts", "web3_audit")
+        self._add_param("web3_run_fuzzing", ParameterType.BOOLEAN, True,
+                       "Run Foundry/Forge fuzzing during ingestion", "web3_audit")
+        self._add_param("slither_timeout_seconds", ParameterType.INTEGER, 240,
+                       "Slither static analysis timeout (seconds)", "web3_audit", min_value=10, max_value=3600)
+        self._add_param("forge_timeout_seconds", ParameterType.INTEGER, 420,
+                       "Foundry fuzzing timeout (seconds)", "web3_audit", min_value=10, max_value=7200)
+        self._add_param("formal_verification_enabled", ParameterType.BOOLEAN, True,
+                       "Enable formal verification in workflow", "web3_audit")
+        self._add_param("formal_verification_mode", ParameterType.SELECT, "hybrid",
+                       "Formal verification mode", "web3_audit",
+                       options=["auto", "z3", "leanaide", "hybrid"])
+        self._add_param("z3_enabled", ParameterType.BOOLEAN, True,
+                       "Enable Z3 verification", "web3_audit")
+        self._add_param("leanaide_enabled", ParameterType.BOOLEAN, True,
+                       "Enable LeanAide verification", "web3_audit")
+        self._add_param("web3_symbolic_timeout_seconds", ParameterType.FLOAT, 10.0,
+                       "Timeout for symbolic exploit witness solving", "web3_audit", min_value=0.1, max_value=120.0)
     
     def _add_param(self, name: str, param_type: ParameterType, default: Any,
                    description: str, category: str, **kwargs):

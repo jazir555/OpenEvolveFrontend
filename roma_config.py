@@ -20,6 +20,13 @@ from dataclasses import dataclass, field, asdict
 from typing import Dict, Any, List, Optional, Union
 from enum import Enum
 
+# Lean 4 Integration
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 
 # =============================================================================
 # CONFIGURATION ENUMS
@@ -98,6 +105,60 @@ class ROMABaseConfig:
             errors.append(f"max_concurrency must be between 1 and 100, got {self.max_concurrency}")
 
         return errors
+
+    async def verify_config_correctness(self, properties: List[str] = None) -> Dict[str, Any]:
+        """
+        Verify configuration satisfies formal correctness properties using Lean 4.
+        
+        Args:
+            properties: List of properties to verify (default: ["valid_depth", "valid_mode", "correct_defaults"])
+            
+        Returns:
+            Dictionary with verification results:
+            - config_valid: Whether the configuration is formally verified
+            - confidence: Confidence in the verification result
+            - properties_verified: List of properties checked
+            - reason: Explanation if verification unavailable
+        """
+        if not LEAN_AVAILABLE:
+            return {"verified": False, "reason": "Lean not available", "config_valid": False}
+        
+        properties = properties or ["valid_depth", "valid_mode", "correct_defaults"]
+        
+        try:
+            client = LeanAideClient()
+            config_desc = f"ROMA Base Config: depth={self.max_depth}, mode={self.execution_mode}"
+            theorem = f"{config_desc} satisfies properties: {', '.join(properties)}"
+            
+            formalized = await client.formalize_with_cav_nlp(theorem)
+            
+            if formalized.success and formalized.data:
+                lean_code = formalized.data.get("result", "")
+                result = await client.verify_with_cav_nlp(lean_code)
+                
+                return {
+                    "config_valid": result.success,
+                    "confidence": result.data.get("verified", False) if result.data else False,
+                    "properties_verified": properties,
+                    "verified": True,
+                    "formal_statement": lean_code
+                }
+            else:
+                return {
+                    "config_valid": False,
+                    "confidence": 0.0,
+                    "properties_verified": properties,
+                    "verified": False,
+                    "reason": "Failed to formalize configuration"
+                }
+        except Exception as e:
+            return {
+                "config_valid": False,
+                "confidence": 0.0,
+                "properties_verified": properties,
+                "verified": False,
+                "reason": f"Verification error: {str(e)}"
+            }
 
 
 # =============================================================================
@@ -406,6 +467,121 @@ class CREWAIROMAConfig:
             6: self.phase6,
         }
         return phases.get(phase)
+
+    async def verify_config_correctness(self, properties: List[str] = None) -> Dict[str, Any]:
+        """
+        Verify full CREWAI ROMA configuration satisfies formal correctness using Lean 4.
+        
+        This method verifies all phase configurations and the hybrid configuration
+        (if present) satisfy formal correctness properties.
+        
+        Args:
+            properties: List of properties to verify per phase (
+                default: ["valid_depth", "valid_mode", "correct_defaults"]
+            )
+            
+        Returns:
+            Dictionary with comprehensive verification results:
+            - verified: Whether formal verification was performed
+            - config_valid: Whether all configurations are formally verified
+            - phase_results: Dict of phase -> verification results
+            - hybrid_result: Hybrid config verification (if applicable)
+            - reason: Explanation if verification unavailable
+        """
+        if not LEAN_AVAILABLE:
+            return {
+                "verified": False,
+                "config_valid": False,
+                "reason": "Lean not available",
+                "phase_results": {},
+                "hybrid_result": None
+            }
+        
+        properties = properties or ["valid_depth", "valid_mode", "correct_defaults"]
+        phase_results = {}
+        
+        try:
+            client = LeanAideClient()
+            
+            # Verify each phase configuration
+            for phase_num, phase_config in [
+                (1, self.phase1), (2, self.phase2), (3, self.phase3),
+                (4, self.phase4), (5, self.phase5), (6, self.phase6)
+            ]:
+                config_desc = (
+                    f"CREWAI Phase {phase_num}: depth={phase_config.max_depth}, "
+                    f"mode={phase_config.execution_mode}"
+                )
+                theorem = f"{config_desc} satisfies: {', '.join(properties)}"
+                
+                formalized = await client.formalize_with_cav_nlp(theorem)
+                
+                if formalized.success and formalized.data:
+                    lean_code = formalized.data.get("result", "")
+                    result = await client.verify_with_cav_nlp(lean_code)
+                    
+                    phase_results[f"phase{phase_num}"] = {
+                        "config_valid": result.success,
+                        "confidence": result.data.get("verified", False) if result.data else False,
+                        "verified": True
+                    }
+                else:
+                    phase_results[f"phase{phase_num}"] = {
+                        "config_valid": False,
+                        "confidence": 0.0,
+                        "verified": False,
+                        "reason": "Failed to formalize"
+                    }
+            
+            # Verify hybrid config if present
+            hybrid_result = None
+            if self.hybrid:
+                config_desc = (
+                    f"Hybrid: analysis_depth={self.hybrid.roma_max_depth_analysis}, "
+                    f"solving_depth={self.hybrid.roma_max_depth_solving}"
+                )
+                theorem = f"{config_desc} satisfies hybrid correctness"
+                
+                formalized = await client.formalize_with_cav_nlp(theorem)
+                
+                if formalized.success and formalized.data:
+                    lean_code = formalized.data.get("result", "")
+                    result = await client.verify_with_cav_nlp(lean_code)
+                    
+                    hybrid_result = {
+                        "config_valid": result.success,
+                        "confidence": result.data.get("verified", False) if result.data else False,
+                        "verified": True
+                    }
+                else:
+                    hybrid_result = {
+                        "config_valid": False,
+                        "confidence": 0.0,
+                        "verified": False,
+                        "reason": "Failed to formalize"
+                    }
+            
+            # Aggregate results
+            all_valid = all(r.get("config_valid", False) for r in phase_results.values())
+            if hybrid_result:
+                all_valid = all_valid and hybrid_result.get("config_valid", False)
+            
+            return {
+                "verified": True,
+                "config_valid": all_valid,
+                "phase_results": phase_results,
+                "hybrid_result": hybrid_result,
+                "properties_verified": properties
+            }
+            
+        except Exception as e:
+            return {
+                "verified": False,
+                "config_valid": False,
+                "phase_results": phase_results,
+                "hybrid_result": None,
+                "reason": f"Verification error: {str(e)}"
+            }
 
 
 # =============================================================================

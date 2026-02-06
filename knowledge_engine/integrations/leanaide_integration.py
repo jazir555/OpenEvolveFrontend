@@ -90,6 +90,7 @@ class LeanAideIntegration:
             "enable_mathlib": True,
             "cache_proofs": True,
             "proof_cache_ttl": 3600,  # seconds
+            "require_real_lean": True,  # CRITICAL: Fail if Lean unavailable
             "embedding_search": {
                 "enabled": True,
                 "num_results": 5,
@@ -166,71 +167,150 @@ class LeanAideIntegration:
     
     def _initialize_mock_components(self):
         """Initialize mock components when LeanAide is not available."""
+        require_real_lean = self.config.get("require_real_lean", True)
+        
+        if require_real_lean:
+            # CRITICAL FIX: Fail hard when Lean is required but unavailable
+            logger.error({
+                "msg": "CRITICAL: Lean unavailable but require_real_lean=True",
+                "install": "pip install leanaide",
+                "action": "Components set to None - operations will fail with clear errors",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+            # Set components to None so operations fail clearly
+            self._mock_classes = {}
+            self.proof_searcher = None
+            self.auto_tactic = None
+            self.formal_verifier = None
+            return
+        
+        # Legacy mode: Create failing mock implementations for graceful degradation
         logger.warning({
-            "msg": "LeanAide not available - components will fail on use",
+            "msg": "LeanAide not available - components will fail on use (require_real_lean=False)",
             "install": "pip install leanaide",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
         
-        # Create failing mock implementations
-        from ..optional_imports import create_failing_mock
+        try:
+            from ..optional_imports import create_failing_mock
+            
+            MockProofSearcher = create_failing_mock(
+                package_name='leanaide',
+                feature_name='LeanAide Proof Searcher',
+                install_command='pip install leanaide'
+            )
+            
+            MockAutoTactic = create_failing_mock(
+                package_name='leanaide',
+                feature_name='LeanAide Auto Tactic',
+                install_command='pip install leanaide'
+            )
+            
+            MockFormalVerifier = create_failing_mock(
+                package_name='leanaide',
+                feature_name='LeanAide Formal Verifier',
+                install_command='pip install leanaide'
+            )
+            
+            self._mock_classes = {
+                'proof_searcher': MockProofSearcher,
+                'auto_tactic': MockAutoTactic,
+                'formal_verifier': MockFormalVerifier
+            }
+        except ImportError:
+            # If create_failing_mock unavailable, just set to None
+            self._mock_classes = {}
         
-        MockProofSearcher = create_failing_mock(
-            package_name='leanaide',
-            feature_name='LeanAide Proof Searcher',
-            install_command='pip install leanaide'
-        )
-        
-        MockAutoTactic = create_failing_mock(
-            package_name='leanaide',
-            feature_name='LeanAide Auto Tactic',
-            install_command='pip install leanaide'
-        )
-        
-        MockFormalVerifier = create_failing_mock(
-            package_name='leanaide',
-            feature_name='LeanAide Formal Verifier',
-            install_command='pip install leanaide'
-        )
-        
-        self._mock_classes = {
-            'proof_searcher': MockProofSearcher,
-            'auto_tactic': MockAutoTactic,
-            'formal_verifier': MockFormalVerifier
-        }
         self.proof_searcher = None
         self.auto_tactic = None
         self.formal_verifier = None
     
     def _initialize_proof_searcher(self):
         """Initialize the proof searcher component."""
-        # This would normally interface with Lean's proof search capabilities
-        class ProofSearcher:
-            def search_proof(self, theorem, timeout=30):
-                # Mock implementation
-                return {"success": True, "proof": f"Proof of {theorem} using automated search", "steps": ["step1", "step2", "step3"]}
+        require_real_lean = self.config.get("require_real_lean", True)
         
-        return ProofSearcher()
+        if require_real_lean:
+            # CRITICAL: Don't create mock components when real Lean is required
+            logger.error({
+                "msg": "Cannot initialize proof searcher - Lean unavailable and require_real_lean=True",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+            return None
+        
+        # Legacy mode: Create placeholder that fails on use
+        logger.warning({
+            "msg": "Creating placeholder proof searcher (require_real_lean=False)",
+            "warning": "This is NOT a real proof searcher - will fail when used",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+        class PlaceholderProofSearcher:
+            def search_proof(self, theorem, timeout=30):
+                raise RuntimeError(
+                    "Real Lean proof searcher not available. "
+                    "Set require_real_lean=False to use placeholder, "
+                    "or install Lean for real verification."
+                )
+        
+        return PlaceholderProofSearcher()
     
     def _initialize_auto_tactic(self):
         """Initialize the automated tactic component."""
-        # This would normally interface with Lean's tactic system
-        class AutoTactic:
-            def apply_tactic(self, goal, tactic):
-                # Mock implementation
-                return {"success": True, "result": f"Tactic {tactic} applied to goal {goal}"}
+        require_real_lean = self.config.get("require_real_lean", True)
         
-        return AutoTactic()
+        if require_real_lean:
+            # CRITICAL: Don't create mock components when real Lean is required
+            logger.error({
+                "msg": "Cannot initialize auto tactic - Lean unavailable and require_real_lean=True",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+            return None
+        
+        # Legacy mode: Create placeholder that fails on use
+        logger.warning({
+            "msg": "Creating placeholder auto tactic (require_real_lean=False)",
+            "warning": "This is NOT a real tactic system - will fail when used",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+        class PlaceholderAutoTactic:
+            def apply_tactic(self, goal, tactic):
+                raise RuntimeError(
+                    "Real Lean tactic system not available. "
+                    "Set require_real_lean=False to use placeholder, "
+                    "or install Lean for real verification."
+                )
+        
+        return PlaceholderAutoTactic()
     
     def _initialize_formal_verifier(self):
         """Initialize the formal verifier component."""
-        # This would normally interface with Lean's kernel
-        class FormalVerifier:
-            def verify_theorem(self, theorem, proof):
-                # Mock implementation
-                return {"verified": True, "errors": [], "axioms_used": []}
+        require_real_lean = self.config.get("require_real_lean", True)
         
-        return FormalVerifier()
+        if require_real_lean:
+            # CRITICAL: Don't create mock components when real Lean is required
+            logger.error({
+                "msg": "Cannot initialize formal verifier - Lean unavailable and require_real_lean=True",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+            return None
+        
+        # Legacy mode: Create placeholder that fails on use
+        logger.warning({
+            "msg": "Creating placeholder formal verifier (require_real_lean=False)",
+            "warning": "This is NOT a real verifier - will fail when used",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+        class PlaceholderFormalVerifier:
+            def verify_theorem(self, theorem, proof):
+                raise RuntimeError(
+                    "Real Lean formal verifier not available. "
+                    "Set require_real_lean=False to use placeholder, "
+                    "or install Lean for real verification."
+                )
+        
+        return PlaceholderFormalVerifier()
     
     async def verify_theorem(
         self,

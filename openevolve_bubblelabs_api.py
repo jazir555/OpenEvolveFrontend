@@ -57,6 +57,7 @@ ALLOWED_WORKFLOW_TYPES: Set[str] = {
     "evolution",
     "adversarial",
     "sovereign",
+    "web3",
     "default"
 }
 
@@ -111,6 +112,13 @@ def validate_workflow_type(workflow_type: str) -> str:
         raise ValueError("Workflow type must be a non-empty string")
 
     workflow_type = workflow_type.strip().lower()
+    aliases = {
+        "sovereign_decomposition": "sovereign",
+        "smart_contract": "web3",
+        "smart_contract_audit": "web3",
+        "defi": "web3",
+    }
+    workflow_type = aliases.get(workflow_type, workflow_type)
 
     if workflow_type not in ALLOWED_WORKFLOW_TYPES:
         raise ValueError(
@@ -276,6 +284,23 @@ class OpenEvolveBubbleLabsIntegration:
             "nodes": self._generate_nodes_for_workflow_type(validated_type, parameters),
             "edges": self._generate_edges_for_workflow_type(validated_type)
         }
+
+        if validated_type == "web3":
+            definition["parameters"].setdefault("domain_hint", "web3")
+            definition["parameters"].setdefault(
+                "web3",
+                {
+                    "enabled": True,
+                    "project_path": ".",
+                    "run_fuzzing": True,
+                    "slither_timeout_seconds": 240,
+                    "forge_timeout_seconds": 420,
+                },
+            )
+            definition["parameters"].setdefault("formal_verification_enabled", True)
+            definition["parameters"].setdefault("z3_enabled", True)
+            definition["parameters"].setdefault("leanaide_enabled", True)
+            definition["parameters"].setdefault("formal_verification_mode", "hybrid")
 
         self.workflow_definitions[definition_id] = definition
         return definition_id
@@ -457,6 +482,71 @@ class OpenEvolveBubbleLabsIntegration:
                     }
                 }
             ]
+        elif workflow_type == "web3":
+            return [
+                {
+                    "id": "web3_input",
+                    "type": "input",
+                    "position": {"x": 0, "y": 0},
+                    "data": {
+                        "label": "Web3 Audit Input",
+                        "parameter": "problem_statement",
+                        "description": "Smart contract audit objective and scope",
+                    }
+                },
+                {
+                    "id": "web3_static_ingestion",
+                    "type": "web3_ingestion",
+                    "position": {"x": 180, "y": -80},
+                    "data": {
+                        "label": "Slither Static Analysis",
+                        "parameter": "web3.project_path",
+                        "description": "Ingest Solidity AST and detector findings",
+                    }
+                },
+                {
+                    "id": "web3_fuzz_ingestion",
+                    "type": "web3_fuzz",
+                    "position": {"x": 180, "y": 80},
+                    "data": {
+                        "label": "Foundry Fuzzing",
+                        "parameter": "web3.run_fuzzing",
+                        "description": "Run Forge fuzz harness and collect traces",
+                    }
+                },
+                {
+                    "id": "web3_formal_translation",
+                    "type": "formal_verifier",
+                    "position": {"x": 360, "y": 0},
+                    "data": {
+                        "label": "Z3/Lean Invariant Translation",
+                        "parameter": "formal_verification_mode",
+                        "description": "Translate Solidity state transitions into formal constraints",
+                        "mode": parameters.get("formal_verification_mode", "hybrid"),
+                    }
+                },
+                {
+                    "id": "web3_defi_gauntlet",
+                    "type": "gauntlet",
+                    "position": {"x": 540, "y": 0},
+                    "data": {
+                        "label": "DeFi Red Team Gauntlet",
+                        "parameter": "sub_problem_red_gauntlet",
+                        "description": "Replay reentrancy/flash-loan/symbolic exploit vectors",
+                        "gauntlet": parameters.get("sub_problem_red_gauntlet", ""),
+                    }
+                },
+                {
+                    "id": "web3_output",
+                    "type": "output",
+                    "position": {"x": 720, "y": 0},
+                    "data": {
+                        "label": "Verified Exploit Output",
+                        "parameter": "output",
+                        "description": "Exploit witness and validated remediation bundle",
+                    }
+                },
+            ]
         else:
             # Default evolution workflow
             return [
@@ -518,6 +608,15 @@ class OpenEvolveBubbleLabsIntegration:
                 {"id": "edge_6", "source": "sovereign_verification", "target": "sovereign_solver"},
                 {"id": "edge_7", "source": "sovereign_solver", "target": "sovereign_assembly"}
             ]
+        elif workflow_type == "web3":
+            return [
+                {"id": "edge_1", "source": "web3_input", "target": "web3_static_ingestion"},
+                {"id": "edge_2", "source": "web3_input", "target": "web3_fuzz_ingestion"},
+                {"id": "edge_3", "source": "web3_static_ingestion", "target": "web3_formal_translation"},
+                {"id": "edge_4", "source": "web3_fuzz_ingestion", "target": "web3_formal_translation"},
+                {"id": "edge_5", "source": "web3_formal_translation", "target": "web3_defi_gauntlet"},
+                {"id": "edge_6", "source": "web3_defi_gauntlet", "target": "web3_output"},
+            ]
         else:
             return [
                 {"id": "edge_1", "source": "default_input", "target": "default_processing"},
@@ -564,6 +663,10 @@ class OpenEvolveBubbleLabsIntegration:
             current_stage="created",
             status="created"
         )
+        if workflow_state.workflow_type == "web3":
+            # Reuse sovereign runtime with Web3 domain-specific openevolve parameters.
+            workflow_state.workflow_type = "sovereign"
+            workflow_state.openevolve_parameters.setdefault("domain_hint", "web3")
 
         # SECURITY: Apply parameters using whitelist to prevent unsafe attribute manipulation
         for param_name, param_value in final_parameters.items():
@@ -572,6 +675,8 @@ class OpenEvolveBubbleLabsIntegration:
                 # Validate parameter value
                 validated_value = validate_parameter_value(param_name, param_value)
                 setattr(workflow_state, param_name, validated_value)
+            elif param_name in {"domain_hint", "domain_artifacts", "web3"}:
+                workflow_state.openevolve_parameters[param_name] = param_value
             elif param_name in ["openevolve_parameters"] or param_name.startswith(("formal_", "z3_", "leanaide_")):
                 continue
             elif param_name not in SAFE_PARAMETERS:
@@ -584,6 +689,10 @@ class OpenEvolveBubbleLabsIntegration:
             workflow_state.openevolve_parameters.update(openevolve_params)
             if "entanglement_strict_mode" in openevolve_params and hasattr(workflow_state, "entanglement_strict_mode"):
                 workflow_state.entanglement_strict_mode = bool(openevolve_params.get("entanglement_strict_mode"))
+
+        for web3_key in ("domain_hint", "domain_artifacts", "web3"):
+            if web3_key in final_parameters:
+                workflow_state.openevolve_parameters[web3_key] = final_parameters[web3_key]
 
         # Allow root-level formal/z3/leanaide params to be forwarded into openevolve_parameters
         for param_name, param_value in final_parameters.items():
@@ -611,11 +720,19 @@ class OpenEvolveBubbleLabsIntegration:
             workflow_state.final_red_gauntlet = self.gauntlet_manager.get_gauntlet(final_parameters["final_red_gauntlet"])
         if "final_gold_gauntlet" in final_parameters:
             workflow_state.final_gold_gauntlet = self.gauntlet_manager.get_gauntlet(final_parameters["final_gold_gauntlet"])
+        if "solver_generation_gauntlet" in final_parameters:
+            workflow_state.solver_generation_gauntlet = self.gauntlet_manager.get_gauntlet(
+                final_parameters["solver_generation_gauntlet"]
+            )
+        if workflow_state.solver_generation_gauntlet is None:
+            workflow_state.solver_generation_gauntlet = workflow_state.sub_problem_gold_gauntlet
             
         # Set up additional inputs
         for input_name, input_value in inputs.items():
             if hasattr(workflow_state, input_name):
                 setattr(workflow_state, input_name, input_value)
+            elif input_name in {"domain_hint", "domain_artifacts", "web3"}:
+                workflow_state.openevolve_parameters[input_name] = input_value
         
         self.workflow_instances[instance_id] = workflow_state
         
@@ -746,18 +863,21 @@ class OpenEvolveBubbleLabsIntegration:
                     logger.error(f"Adversarial module not available: {e}")
                     raise
             elif workflow_state.workflow_type == "sovereign":
-                run_sovereign_workflow(
-                    workflow_state=workflow_state,
-                    content_analyzer_team=workflow_state.content_analyzer_team,
-                    planner_team=workflow_state.planner_team,
-                    solver_team=workflow_state.solver_team,
-                    patcher_team=workflow_state.patcher_team,
-                    assembler_team=workflow_state.assembler_team,
-                    sub_problem_red_gauntlet=workflow_state.sub_problem_red_gauntlet,
-                    sub_problem_gold_gauntlet=workflow_state.sub_problem_gold_gauntlet,
-                    final_red_gauntlet=workflow_state.final_red_gauntlet,
-                    final_gold_gauntlet=workflow_state.final_gold_gauntlet,
-                    max_refinement_loops=workflow_state.max_refinement_loops
+                asyncio.run(
+                    run_sovereign_workflow(
+                        workflow_state=workflow_state,
+                        content_analyzer_team=workflow_state.content_analyzer_team,
+                        planner_team=workflow_state.planner_team,
+                        solver_team=workflow_state.solver_team,
+                        patcher_team=workflow_state.patcher_team,
+                        assembler_team=workflow_state.assembler_team,
+                        sub_problem_red_gauntlet=workflow_state.sub_problem_red_gauntlet,
+                        sub_problem_gold_gauntlet=workflow_state.sub_problem_gold_gauntlet,
+                        final_red_gauntlet=workflow_state.final_red_gauntlet,
+                        final_gold_gauntlet=workflow_state.final_gold_gauntlet,
+                        solver_generation_gauntlet=workflow_state.solver_generation_gauntlet,
+                        max_refinement_loops=workflow_state.max_refinement_loops,
+                    )
                 )
             else:
                 # Default evolution workflow
@@ -1075,11 +1195,12 @@ class OpenEvolveBubbleLabsIntegration:
             "convergence_threshold", "memory_limit_mb", "cpu_limit",
             # Workflow parameters
             "max_refinement_loops",
+            "entanglement_strict_mode",
             # Teams and gauntlets
             "content_analyzer_team", "planner_team", "solver_team",
             "patcher_team", "assembler_team", "sub_problem_red_gauntlet",
-            "sub_problem_gold_gauntlet", "final_red_gauntlet",
-            "final_gold_gauntlet"
+            "sub_problem_gold_gauntlet", "solver_generation_gauntlet",
+            "final_red_gauntlet", "final_gold_gauntlet",
         }
 
         # Copy only safe, whitelisted attributes
@@ -1245,6 +1366,9 @@ class OpenEvolveBubbleLabsIntegration:
                 # Validate parameter value
                 validated_value = validate_parameter_value(param_name, param_value)
                 setattr(workflow_state, param_name, validated_value)
+                updated_count += 1
+            elif param_name in {"domain_hint", "domain_artifacts", "web3"}:
+                workflow_state.openevolve_parameters[param_name] = param_value
                 updated_count += 1
             elif param_name in ["openevolve_parameters"] or param_name.startswith(("formal_", "z3_", "leanaide_")):
                 continue

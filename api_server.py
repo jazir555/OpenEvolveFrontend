@@ -402,12 +402,21 @@ from template_manager import TemplateManager
 from parameter_manager import ParameterManager
 from sovereign_persistence import SovereignDatabase
 from sovereign_reliability import HealthMonitor
-from monitoring import (
-    monitoring_dashboard as system_monitoring_dashboard,
-    metrics_collector as system_metrics_collector,
-    alert_manager as system_alert_manager,
-    health_monitor as system_health_monitor,
-)
+try:
+    from monitoring import (
+        monitoring_dashboard as system_monitoring_dashboard,
+        metrics_collector as system_metrics_collector,
+        alert_manager as system_alert_manager,
+        health_monitor as system_health_monitor,
+    )
+    MONITORING_AVAILABLE = True
+except ImportError:
+    system_monitoring_dashboard = None
+    system_metrics_collector = None
+    system_alert_manager = None
+    system_health_monitor = None
+    MONITORING_AVAILABLE = False
+    logger.warning("System monitoring unavailable: monitoring module import failed")
 from providercatalogue import PROVIDERS as PROVIDERS_MAP
 try:
     from content_manager import content_manager
