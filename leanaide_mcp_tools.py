@@ -27,7 +27,7 @@ from functools import wraps
 import urllib.request
 import urllib.parse
 import urllib.error
-from leanaide_web3_status import collect_web3_formal_status
+from leanaide_web3_status import collect_web3_formal_status, merge_web3_formal_status
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -73,11 +73,18 @@ _MCP_TOOLS_LOCK = get_global_lock('leanaide_mcp_tools_registry')
 def mcp_tool(name: str):
     """Decorator to register a function as an MCP tool (thread-safe)."""
     def decorator(func):
+        @wraps(func)
+        def wrapped(*args, **kwargs):
+            result = func(*args, **kwargs)
+            if isinstance(result, dict):
+                return merge_web3_formal_status(result)
+            return result
+
         # Register immediately when decorator is applied
         with _MCP_TOOLS_LOCK:
-            _MCP_TOOLS[name] = func
+            _MCP_TOOLS[name] = wrapped
         logger.info(f"Registered LeanAide MCP tool: {name}")
-        return func
+        return wrapped
     return decorator
 
 

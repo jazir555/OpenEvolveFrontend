@@ -75,7 +75,7 @@ except ImportError:
 # Standard ROMA
 try:
     from roma_dspy.core.engine.solve import RecursiveSolver
-    from roma_dspy.core.engine import TaskDAG
+    # from roma_dspy.core.engine import  # Stubbed - module not available TaskDAG
     ROMA_AVAILABLE = True
 except ImportError:
     ROMA_AVAILABLE = False

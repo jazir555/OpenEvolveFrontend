@@ -1,0 +1,1 @@
+"""prefixSpan package."""

@@ -1,0 +1,1 @@
+"""leanaide-adapter package."""

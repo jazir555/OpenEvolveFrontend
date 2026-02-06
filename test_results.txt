@@ -1,0 +1,87 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\python.exe
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.0', 'Platform': 'Windows-10-10.0.26200-SP0', 'Packages': {'pytest': '9.0.2', 'pluggy': '1.6.0'}, 'Plugins': {'anyio': '4.12.1', 'Faker': '38.2.0', 'langsmith': '0.5.2', 'libtmux': '0.23.2', 'pyfakefs': '6.0.0', 'asyncio': '1.3.0', 'cov': '4.1.0', 'html': '4.1.1', 'metadata': '3.1.1', 'timeout': '2.4.0', 'typeguard': '4.4.4'}}
+rootdir: C:\Users\mmeadow\Documents\OpenEvolve\Frontend
+configfile: pytest.ini (WARNING: ignoring pytest config in pyproject.toml!)
+plugins: anyio-4.12.1, Faker-38.2.0, langsmith-0.5.2, libtmux-0.23.2, pyfakefs-6.0.0, asyncio-1.3.0, cov-4.1.0, html-4.1.1, metadata-3.1.1, timeout-2.4.0, typeguard-4.4.4
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 69 items
+
+tests/test_lean4_integration.py::TestVerificationResult::test_verification_result_creation_success PASSED [  1%]
+tests/test_lean4_integration.py::TestVerificationResult::test_verification_result_creation_failure PASSED [  2%]
+tests/test_lean4_integration.py::TestVerificationResult::test_verification_result_to_dict PASSED [  4%]
+tests/test_lean4_integration.py::TestLean4VerificationEngine::test_engine_initialization PASSED [  5%]
+tests/test_lean4_integration.py::TestLean4VerificationEngine::test_engine_initialization_default_config PASSED [  7%]
+tests/test_lean4_integration.py::TestLean4VerificationEngine::test_check_lean_installation PASSED [  8%]
+tests/test_lean4_integration.py::TestLean4VerificationEngine::test_verify_code_success SKIPPED b : Nat) : a + b = b + a := by\n  induction a
+with\n  | zero => simp\n  | succ n ih => simp [ih]\n'
+  
+  - 
+  -
+theorem add_comm (a b : Nat) : a + b = b + a := by
+  -   induction a
+with
+  -   | zero => simp
+  -   | succ n ih => simp [ih])                                          [ 10%]
+tests/test_lean4_integration.py::TestLean4VerificationEngine::test_verify_code_syntax_error PASSED [ 11%]
+tests/test_lean4_integration.py::TestLean4True100Service::test_service_initialization PASSED [ 13%]
+tests/test_lean4_integration.py::TestLean4True100Service::test_service_initialization_default_config PASSED [ 14%]
+tests/test_lean4_integration.py::TestLean4True100Service::test_get_service_status PASSED [ 15%]
+tests/test_lean4_integration.py::TestLean4True100Service::test_verify_theorem SKIPPED b = b + a := by\n  induction a with\n  | zero => simp\n  |
+succ n ih => simp [ih]\n'
+  
+  - 
+  - theorem add_comm (a b : Nat) : a +
+b = b + a := by
+  -   induction a with
+  -   | zero => simp
+  -   | succ
+n ih => simp [ih])                                                       [ 17%]
+tests/test_lean4_integration.py::TestLean4True100Service::test_check_for_sorry PASSED [ 18%]
+tests/test_lean4_integration.py::TestLean4True100Service::test_extract_theorem_name PASSED [ 20%]
+tests/test_lean4_integration.py::TestLean4True100Service::test_get_lean_version PASSED [ 21%]
+tests/test_lean4_integration.py::TestEdgeCasesAndErrorHandling::test_empty_code PASSED [ 23%]
+tests/test_lean4_integration.py::TestEdgeCasesAndErrorHandling::test_none_code PASSED [ 24%]
+tests/test_lean4_integration.py::TestEdgeCasesAndErrorHandling::test_very_long_code PASSED [ 26%]
+tests/test_lean4_integration.py::TestConfiguration::test_config_with_custom_timeout PASSED [ 27%]
+tests/test_lean4_integration.py::TestConfiguration::test_config_with_caching_enabled PASSED [ 28%]
+tests/test_lean4_integration.py::TestConfiguration::test_config_with_llm_provider PASSED [ 30%]
+tests/test_leanaide_integration.py::TestLeanAideInitialization::test_initialization_with_default_config PASSED [ 31%]
+tests/test_leanaide_integration.py::TestLeanAideInitialization::test_initialization_with_custom_config PASSED [ 33%]
+tests/test_leanaide_integration.py::TestLeanAideInitialization::test_default_config_structure PASSED [ 34%]
+tests/test_leanaide_integration.py::TestLeanAideInitialization::test_cache_config_defaults PASSED [ 36%]
+tests/test_leanaide_integration.py::TestTheoremProving::test_prove_theorem_success PASSED [ 37%]
+tests/test_leanaide_integration.py::TestTheoremProving::test_prove_theorem_without_verifier PASSED [ 39%]
+tests/test_leanaide_integration.py::TestTheoremProving::test_prove_theorem_with_custom_timeout PASSED [ 40%]
+tests/test_leanaide_integration.py::TestTheoremProving::test_prove_theorem_invalid_syntax PASSED [ 42%]
+tests/test_leanaide_integration.py::TestProofSearch::test_search_proof_success PASSED [ 43%]
+tests/test_leanaide_integration.py::TestProofSearch::test_search_proof_with_tactics PASSED [ 44%]
+tests/test_leanaide_integration.py::TestProofSearch::test_search_proof_timeout PASSED [ 46%]
+tests/test_leanaide_integration.py::TestLeanAideResult::test_result_creation_success PASSED [ 47%]
+tests/test_leanaide_integration.py::TestLeanAideResult::test_result_creation_failure PASSED [ 49%]
+tests/test_leanaide_integration.py::TestLeanAideResult::test_result_to_dict PASSED [ 50%]
+tests/test_leanaide_integration.py::TestConfigurationAndErrors::test_config_with_timeout_values PASSED [ 52%]
+tests/test_leanaide_integration.py::TestConfigurationAndErrors::test_config_with_search_depth PASSED [ 53%]
+tests/test_leanaide_integration.py::TestConfigurationAndErrors::test_empty_theorem_handling PASSED [ 55%]
+tests/test_leanaide_integration.py::TestConfigurationAndErrors::test_prove_theorem_exception_handling PASSED [ 56%]
+tests/test_leanaide_root_wiring.py::test_root_module_exports_verifier_and_factory PASSED [ 57%]
+tests/test_leanaide_root_wiring.py::test_leanaide_verifier_returns_expected_contract PASSED [ 59%]
+tests/test_leanaide_root_wiring.py::test_leanaide_verifier_handles_empty_statement PASSED [ 60%]
+tests/test_leanaide_root_wiring.py::test_leanaide_root_status_exposes_web3_formal_schema PASSED [ 62%]
+tests/test_leanaide_root_wiring.py::test_leanaide_verifier_status_contract PASSED [ 63%]
+tests/test_leanaide_systems.py::TestLean4System::test_lean4_compiler SKIPPED [ 65%]
+tests/test_leanaide_systems.py::TestLean4System::test_lean4_installation SKIPPED [ 66%]
+tests/test_leanaide_systems.py::TestLean4System::test_lean4_parser SKIPPED [ 68%]
+tests/test_leanaide_systems.py::TestLean4System::test_lean4_proof_verifier SKIPPED [ 69%]
+tests/test_leanaide_systems.py::TestLean4System::test_lean4_type_checker SKIPPED [ 71%]
+tests/test_leanaide_systems.py::TestMathematicalSystems::test_calculus SKIPPED [ 72%]
+tests/test_leanaide_systems.py::TestMathematicalSystems::test_continuous_math SKIPPED [ 73%]
+tests/test_leanaide_systems.py::TestMathematicalSystems::test_discrete_math SKIPPED [ 75%]
+tests/test_leanaide_systems.py::TestMathematicalSystems::test_linear_algebra SKIPPED [ 76%]
+tests/test_leanaide_systems.py::TestMathematicalSystems::test_probability SKIPPED [ 78%]
+tests/test_leanaide_systems.py::TestMathematicalSystems::test_statistics SKIPPED [ 79%]
+tests/test_leanaide_systems.py::TestProofSystems::test_automated_prover SKIPPED [ 81%]

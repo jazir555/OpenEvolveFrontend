@@ -1,1 +1,1 @@
-﻿# RESE-SCE adapter package
+# RESE-SCE adapter package

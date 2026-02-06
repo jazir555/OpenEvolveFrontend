@@ -139,20 +139,17 @@ def sample_dynamics_function():
 @pytest.fixture
 def neuromancer_modeler(mock_torch, mock_neuromancer):
     """Create NeuromancerDynamicsModeler with mocked dependencies."""
-    # Patch the imports inside the neuromancer_integration module
-    with patch('knowledge_engine.integrations.neuromancer_integration.torch', mock_torch):
-        with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
-            # Create modeler (it will use the patched imports)
-            modeler = NeuromancerDynamicsModeler(device='cpu')
+    # Create modeler first (it will try to import but might fail)
+    modeler = NeuromancerDynamicsModeler(device='cpu')
 
-            # Manually set the mock dependencies regardless of import success
-            modeler._neuromancer_available = True
-            modeler.torch = mock_torch
-            modeler.dynamics = mock_neuromancer['dynamics']
-            modeler.modules = mock_neuromancer['modules']
-            modeler.system = mock_neuromancer['system']
+    # Manually set the mock dependencies regardless of import success
+    modeler._neuromancer_available = True
+    modeler.torch = mock_torch
+    modeler.dynamics = mock_neuromancer['dynamics']
+    modeler.modules = mock_neuromancer['modules']
+    modeler.system = mock_neuromancer['system']
 
-            yield modeler
+    return modeler
 
 
 @pytest.fixture
@@ -372,7 +369,7 @@ class TestNeuromancerDynamicsModelerNeuralODE:
             )
             assert result['status'] == 'error'
 
-    def test_train_neural_ode_different_dimensions(self, neuromancer_modeler):
+    def test_train_neural_ode_different_dimensions(self, neuromancer_modeler, mock_neuromancer):
         """Test neural ODE training with different input dimensions."""
         # Test with 1D, 2D, and high-dimensional data
         test_cases = [
@@ -381,18 +378,20 @@ class TestNeuromancerDynamicsModelerNeuralODE:
             (np.random.randn(50, 10), np.linspace(0, 5, 50), 10),
         ]
 
-        for data, time_points, expected_dim in test_cases:
-            result = neuromancer_modeler.train_neural_ode(data, time_points)
-            assert result['status'] == 'success'
-            assert result['input_dim'] == expected_dim
+        with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+            for data, time_points, expected_dim in test_cases:
+                result = neuromancer_modeler.train_neural_ode(data, time_points)
+                assert result['status'] == 'success'
+                assert result['input_dim'] == expected_dim
 
-    def test_model_storage_after_training(self, neuromancer_modeler, sample_time_series_data):
+    def test_model_storage_after_training(self, neuromancer_modeler, sample_time_series_data, mock_neuromancer):
         """Test that models are stored after training."""
         initial_count = len(neuromancer_modeler.models)
-        result = neuromancer_modeler.train_neural_ode(
-            sample_time_series_data['data'],
-            sample_time_series_data['time_points']
-        )
+        with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+            result = neuromancer_modeler.train_neural_ode(
+                sample_time_series_data['data'],
+                sample_time_series_data['time_points']
+            )
         assert len(neuromancer_modeler.models) == initial_count + 1
         assert result['model_id'] in neuromancer_modeler.models
 
@@ -404,21 +403,22 @@ class TestNeuromancerDynamicsModelerNeuralODE:
 class TestNeuromancerDynamicsModelerPrediction:
     """Test suite for dynamics prediction functionality."""
 
-    def test_predict_dynamics_success(self, neuromancer_modeler, sample_initial_state):
+    def test_predict_dynamics_success(self, neuromancer_modeler, sample_initial_state, mock_neuromancer):
         """Test successful dynamics prediction."""
         # First train a model
-        train_result = neuromancer_modeler.train_neural_ode(
-            np.random.randn(50, 3),
-            np.linspace(0, 5, 50)
-        )
-        model_id = train_result['model_id']
+        with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+            train_result = neuromancer_modeler.train_neural_ode(
+                np.random.randn(50, 3),
+                np.linspace(0, 5, 50)
+            )
+            model_id = train_result['model_id']
 
-        # Then predict
-        result = neuromancer_modeler.predict_dynamics(
-            sample_initial_state,
-            time_horizon=10,
-            model_id=model_id
-        )
+            # Then predict
+            result = neuromancer_modeler.predict_dynamics(
+                sample_initial_state,
+                time_horizon=10,
+                model_id=model_id
+            )
         assert result['status'] == 'success'
         assert 'predictions' in result
         assert result['time_horizon'] == 10
@@ -443,22 +443,25 @@ class TestNeuromancerDynamicsModelerPrediction:
         )
         assert result['status'] == 'error'
 
-    def test_predict_dynamics_different_horizons(self, neuromancer_modeler, sample_initial_state):
+    def test_predict_dynamics_different_horizons(self, neuromancer_modeler, sample_initial_state, mock_neuromancer):
         """Test prediction with different time horizons."""
         # Train a model
-        train_result = neuromancer_modeler.train_neural_ode(
-            np.random.randn(50, 3),
-            np.linspace(0, 5, 50)
-        )
-        model_id = train_result['model_id']
-
-        horizons = [1, 5, 10, 20]
-        for horizon in horizons:
-            result = neuromancer_modeler.predict_dynamics(
-                sample_initial_state,
-                time_horizon=horizon,
-                model_id=model_id
+        with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+            train_result = neuromancer_modeler.train_neural_ode(
+                np.random.randn(50, 3),
+                np.linspace(0, 5, 50)
             )
+            model_id = train_result['model_id']
+
+            horizons = [1, 5, 10, 20]
+            for horizon in horizons:
+                result = neuromancer_modeler.predict_dynamics(
+                    sample_initial_state,
+                    time_horizon=horizon,
+                    model_id=model_id
+                )
+                assert result['status'] == 'success'
+                assert result['time_horizon'] == horizon
             assert result['status'] == 'success'
             assert result['time_horizon'] == horizon
 

@@ -140,13 +140,10 @@ async def verify_integration_components():
 
 async def verify_functionality():
     """Verify basic functionality of the knowledge engine."""
-    async def verify_functionality():
-    """Verify basic functionality of the knowledge engine."""
     print("INFO] Verifying basic functionality...")
     
     try:
     
-    try:
         from knowledge_engine import OpenEvolveKnowledgeEngine
         
         # Initialize the engine

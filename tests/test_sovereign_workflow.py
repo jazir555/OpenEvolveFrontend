@@ -450,7 +450,7 @@ def test_run_sovereign_workflow_full_cycle(
 
     # Run staged workflow iterations (mirrors rerun-driven runtime)
     for _ in range(12):
-        run_sovereign_workflow(
+        await run_sovereign_workflow(
             initial_workflow_state,
             content_analyzer_team,
             planner_team,
@@ -596,7 +596,7 @@ def test_run_sovereign_workflow_self_healing(
 
     # Run staged workflow iterations (mirrors rerun-driven runtime)
     for _ in range(20):
-        run_sovereign_workflow(
+        await run_sovereign_workflow(
             initial_workflow_state,
             content_analyzer_team,
             planner_team,

@@ -539,7 +539,8 @@ class GraphitiIntegration:
         entity_type: str = "entity",
         entity_name: Optional[str] = None,  # Alias for backward compatibility
         metadata: Optional[Dict[str, Any]] = None,
-        correlation_id: Optional[str] = None
+        correlation_id: Optional[str] = None,
+        timestamp: Optional[str] = None  # Backward compatibility parameter
     ) -> Dict[str, Any]:
         """
         Add an entity to the knowledge graph.
@@ -550,6 +551,7 @@ class GraphitiIntegration:
             entity_name: Alternative parameter name (alias for name)
             metadata: Additional metadata
             correlation_id: Correlation ID for tracking
+            timestamp: DEPRECATED - Timestamp for the entity (not currently used)
 
         Returns:
             Result dictionary
@@ -562,6 +564,9 @@ class GraphitiIntegration:
             raise RuntimeError("GraphitiIntegration not initialized")
 
         start_time = datetime.now(timezone.utc)
+
+        # Timestamp parameter is accepted for backward compatibility but not used
+        # (Graphiti uses reference_time in add_episode instead)
 
         logger.info({
             "msg": "Adding entity to Graphiti",
