@@ -828,3 +828,64 @@ class IntegratedSolution:
 
 # Alias for backward compatibility
 RedTeamCritiqueReport = CritiqueReport
+
+
+
+@dataclass
+class SolutionValidationResults:
+    """Results from solution validation pipeline."""
+    validation_id: str
+    solution_id: str
+    sub_problem_id: str
+    pass_threshold: float = 0.8
+    final_score: float = 0.0
+    passed: bool = False
+    automated_results: Optional[Any] = None
+    red_team_report: Optional[Any] = None
+    gold_team_report: Optional[Any] = None
+    formal_verification_result: Optional[Dict[str, Any]] = None
+    formal_verification_boost: float = 0.0
+    formal_verification_penalty: float = 0.0
+    timestamp: datetime = field(default_factory=datetime.now)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass  
+class AutomatedCheckResults:
+    """Results from automated validation checks."""
+    check_id: str
+    solution_id: str
+    syntax_valid: bool = False
+    type_check_passed: bool = False
+    test_passed: bool = False
+    coverage_score: float = 0.0
+    issues: List[str] = field(default_factory=list)
+    timestamp: datetime = field(default_factory=datetime.now)
+
+
+
+@dataclass
+class VerificationReport:
+    """Report for verification results."""
+    report_id: str
+    solution_id: str
+    verified: bool = False
+    confidence: float = 0.0
+    method: str = ""
+    details: Dict[str, Any] = field(default_factory=dict)
+    timestamp: datetime = field(default_factory=datetime.now)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+
+@dataclass
+class ValidationRequirements:
+    """Requirements for solution validation."""
+    threshold: float = 0.8
+    run_automated_checks: bool = True
+    use_red_team: bool = True
+    use_gold_team: bool = True
+    use_formal_verification: bool = False
+    verify_with_lean: bool = False
+    criteria: List[str] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)

@@ -51,6 +51,17 @@ _WEB3_DOMAIN_ALIASES = {
     "solidity": "web3",
 }
 
+_WEB3_INGESTION_TOOL_NAMES = {
+    "web3_ingest_slither_static_analysis",
+    "web3_ingest_foundry_fuzzing",
+    "web3_ingest_contract_audit_stack",
+}
+_WEB3_FORMAL_TOOL_NAMES = {
+    "z3_translate_solidity_invariant",
+    "z3_solve_smart_contract_exploit_witness",
+    "z3_web3_audit_exploit_verification",
+}
+
 
 class DecompositionPlanRequest(BaseModel):
     problem_statement: str
@@ -95,6 +106,45 @@ def _normalize_domain_hint(domain_hint: Optional[str]) -> Optional[str]:
     return _WEB3_DOMAIN_ALIASES.get(normalized, normalized)
 
 
+def _normalize_web3_tool_inventory(raw_inventory: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    """Normalize Web3 tool inventory to a consistent shape."""
+    inventory = dict(raw_inventory or {})
+    web3_tools = list(inventory.get("web3_tools", []) or [])
+    web3_ingestion_tools = list(inventory.get("web3_ingestion_tools", []) or [])
+    web3_formal_tools = list(inventory.get("web3_formal_tools", []) or [])
+
+    if not web3_ingestion_tools:
+        web3_ingestion_tools = sorted(
+            tool for tool in web3_tools if tool in _WEB3_INGESTION_TOOL_NAMES
+        )
+    if not web3_formal_tools:
+        web3_formal_tools = sorted(
+            tool for tool in web3_tools if tool in _WEB3_FORMAL_TOOL_NAMES
+        )
+
+    merged_web3_tools = sorted(set(web3_tools + web3_ingestion_tools + web3_formal_tools))
+
+    formal_capabilities = {
+        "solidity_invariant_translation": "z3_translate_solidity_invariant" in web3_formal_tools,
+        "invariant_translation_verification": "z3_translate_solidity_invariant" in web3_formal_tools,
+        "symbolic_exploit_witness": "z3_solve_smart_contract_exploit_witness" in web3_formal_tools,
+        "composite_exploit_verification": "z3_web3_audit_exploit_verification" in web3_formal_tools,
+    }
+    existing_capabilities = inventory.get("formal_capabilities")
+    if isinstance(existing_capabilities, dict):
+        formal_capabilities.update(existing_capabilities)
+
+    inventory.update(
+        {
+            "web3_tools": merged_web3_tools,
+            "web3_ingestion_tools": web3_ingestion_tools,
+            "web3_formal_tools": web3_formal_tools,
+            "formal_capabilities": formal_capabilities,
+        }
+    )
+    return inventory
+
+
 @router.post("/plan")
 async def create_decomposition_plan(request: DecompositionPlanRequest):
     _ensure_decomposition_available()
@@ -137,9 +187,12 @@ async def create_decomposition_plan(request: DecompositionPlanRequest):
     mcp_tool_inventory: Dict[str, Any] = {}
     if get_mcp_tool_inventory is not None:
         try:
-            mcp_tool_inventory = get_mcp_tool_inventory() or {}
+            mcp_tool_inventory = _normalize_web3_tool_inventory(
+                get_mcp_tool_inventory() or {}
+            )
         except Exception as exc:
             logger.warning("failed_to_collect_mcp_tool_inventory", error=str(exc))
+            mcp_tool_inventory = _normalize_web3_tool_inventory({})
     if mcp_tool_inventory:
         domain_artifacts.setdefault("mcp_tool_inventory", mcp_tool_inventory)
 

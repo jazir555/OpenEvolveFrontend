@@ -158,7 +158,13 @@ async def test_decomposition_plan_includes_web3_artifacts(monkeypatch):
     monkeypatch.setattr(
         decomposition_api,
         "get_mcp_tool_inventory",
-        lambda: {"web3_tools": ["web3_ingest_contract_audit_stack"]},
+        lambda: {
+            "web3_tools": [
+                "web3_ingest_contract_audit_stack",
+                "z3_translate_solidity_invariant",
+                "z3_web3_audit_exploit_verification",
+            ],
+        },
     )
     monkeypatch.setattr(
         decomposition_api,
@@ -188,3 +194,9 @@ async def test_decomposition_plan_includes_web3_artifacts(monkeypatch):
     )
     assert result["plan"]["metadata"]["web3_ingestion"]["success"] is True
     assert result["plan"]["metadata"]["web3"]["project_path"] == "./contracts"
+    inventory = result["plan"]["metadata"]["domain_artifacts"]["mcp_tool_inventory"]
+    assert {
+        "z3_translate_solidity_invariant",
+        "z3_web3_audit_exploit_verification",
+    }.issubset(set(inventory.get("web3_formal_tools", [])))
+    assert inventory.get("formal_capabilities", {}).get("composite_exploit_verification") is True

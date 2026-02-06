@@ -807,7 +807,16 @@ def run_gauntlet_headless(
         logs.append(f"Running {gauntlet_def.gauntlet_type.upper()} Gauntlet '{gauntlet_def.name}' with Team '{team.name}'...")
         
         # Route to appropriate gauntlet type handler
-        if gauntlet_def.gauntlet_type == "adaptive":
+        specialized_types = [
+            "adversarial", "formal_verification", "statistical", 
+            "domain_physics", "domain_finance", "domain_chemistry", 
+            "domain_engineering", "domain_web3", "multi_objective", 
+            "evolutionary", "temporal", "cross_validation"
+        ]
+        
+        if gauntlet_def.gauntlet_type in specialized_types:
+            return _run_specialized_gauntlet_headless(solution_content, gauntlet_def, team, context, logs)
+        elif gauntlet_def.gauntlet_type == "adaptive":
             return _run_adaptive_gauntlet_headless(solution_content, gauntlet_def, team, context, logs)
         elif gauntlet_def.gauntlet_type == "hierarchical":
             return _run_hierarchical_gauntlet_headless(solution_content, gauntlet_def, team, context, logs)
@@ -864,7 +873,16 @@ def run_gauntlet(
         st.info(f"Running {gauntlet_def.gauntlet_type.upper()} Gauntlet '{gauntlet_def.name}' with Team '{team.name}'...")
         
         # Route to appropriate gauntlet type handler
-        if gauntlet_def.gauntlet_type == "adaptive":
+        specialized_types = [
+            "adversarial", "formal_verification", "statistical", 
+            "domain_physics", "domain_finance", "domain_chemistry", 
+            "domain_engineering", "domain_web3", "multi_objective", 
+            "evolutionary", "temporal", "cross_validation"
+        ]
+        
+        if gauntlet_def.gauntlet_type in specialized_types:
+            return _run_specialized_gauntlet(solution_content, gauntlet_def, team, context)
+        elif gauntlet_def.gauntlet_type == "adaptive":
             return _run_adaptive_gauntlet(solution_content, gauntlet_def, team, context)
         elif gauntlet_def.gauntlet_type == "hierarchical":
             return _run_hierarchical_gauntlet(solution_content, gauntlet_def, team, context)
@@ -876,6 +894,128 @@ def run_gauntlet(
             return _run_standard_gauntlet(solution_content, gauntlet_def, team, context)
 
 
+def _run_specialized_gauntlet(
+    solution_content: str,
+    gauntlet_def: GauntletDefinition,
+    team: Team,
+    context: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Execute a specialized gauntlet using the central GauntletManager."""
+    from gauntlet_manager import GauntletManager
+    from workflow_structures import VerificationReport, CritiqueReport
+    import statistics
+    
+    st.info(f"Executing specialized {gauntlet_def.gauntlet_type} gauntlet: {gauntlet_def.name}")
+    
+    # Initialize manager with the provided team for evaluation
+    # Map team role to appropriate evaluator slot
+    red_team = team if team.role == "Red" else None
+    blue_team = team if team.role == "Blue" else None
+    gold_team = team if team.role == "Gold" else None
+    
+    manager = GauntletManager(red_team=red_team, blue_team=blue_team, evaluator_team=gold_team)
+    
+    # Execute gauntlet
+    # Convert GauntletDefinition to openevolve_structures version if needed
+    # (they are compatible dataclasses)
+    result = manager.execute_gauntlet(gauntlet_def, solution_content, context)
+    
+    st.write(f"  - Final Score: {result.get('score', 0.0):.2f}")
+    
+    if result.get("passed"):
+        st.success(f"  - Gauntlet Passed: {gauntlet_def.name}")
+    else:
+        st.warning(f"  - Gauntlet Rejected: {gauntlet_def.name}")
+        
+    # Return appropriate report type based on team role
+    if team.role == "Red":
+        return {
+            "is_approved": result.get("passed", False),
+            "report_summary": f"Specialized Red Gauntlet result for {gauntlet_def.name}",
+            "critique_report": CritiqueReport(
+                solution_attempt_id=context.get('solution_id', 'unknown'),
+                gauntlet_name=gauntlet_def.name,
+                is_approved=result.get("passed", False),
+                reports_by_judge=result.get("rounds", []),
+                summary=f"Specialized {gauntlet_def.gauntlet_type} assessment completed",
+                overall_score=result.get("score", 0.0),
+                suggested_improvements=result.get("feedback", [])
+            )
+        }
+    else: # Gold or Blue
+        return {
+                "is_approved": result.get("passed", False),
+                "report_summary": f"Specialized {team.role} Gauntlet result for {gauntlet_def.name}",
+                "verification_report": VerificationReport(
+                    solution_attempt_id=context.get('solution_id', 'unknown'),
+                    gauntlet_name=gauntlet_def.name,
+                    is_approved=result.get("passed", False),
+                    reports_by_judge=result.get("rounds", []),
+                    average_score=result.get("score", 0.0),
+                    summary=f"Specialized {gauntlet_def.gauntlet_type} evaluation completed",
+                    verification_timestamp=time.time(),
+                    criteria_met=["Passed specialized checks"] if result.get("passed") else [],
+                    criteria_not_met=["Failed specialized checks"] if not result.get("passed") else []
+                )
+            }
+    
+    
+    def _run_specialized_gauntlet_headless(
+        solution_content: str,
+        gauntlet_def: GauntletDefinition,
+        team: Team,
+        context: Dict[str, Any],
+        logs: List[str]
+    ) -> Dict[str, Any]:
+        """Execute a specialized gauntlet using the central GauntletManager - headless version."""
+        from gauntlet_manager import GauntletManager
+        
+        logs.append(f"Executing specialized {gauntlet_def.gauntlet_type} gauntlet: {gauntlet_def.name}")
+        
+        # Initialize manager with the provided team for evaluation
+        red_team = team if team.role == "Red" else None
+        blue_team = team if team.role == "Blue" else None
+        gold_team = team if team.role == "Gold" else None
+        
+        manager = GauntletManager(red_team=red_team, blue_team=blue_team, evaluator_team=gold_team)
+        
+        # Execute gauntlet
+        result = manager.execute_gauntlet(gauntlet_def, solution_content, context)
+        
+        logs.append(f"  - Final Score: {result.get('score', 0.0):.2f}")
+        logs.append(f"  - Passed: {result.get('passed', False)}")
+        
+        # Return appropriate report type based on team role
+        if team.role == "Red":
+            report_obj = {
+                "solution_attempt_id": context.get('solution_id', 'unknown'),
+                "gauntlet_name": gauntlet_def.name,
+                "is_approved": result.get("passed", False),
+                "reports_by_judge": result.get("rounds", []),
+                "summary": f"Specialized {gauntlet_def.gauntlet_type} assessment completed",
+                "overall_score": result.get("score", 0.0),
+                "suggested_improvements": result.get("feedback", [])
+            }
+        else: # Gold or Blue
+            report_obj = {
+                "solution_attempt_id": context.get('solution_id', 'unknown'),
+                "gauntlet_name": gauntlet_def.name,
+                "is_approved": result.get("passed", False),
+                "reports_by_judge": result.get("rounds", []),
+                "average_score": result.get("score", 0.0),
+                "summary": f"Specialized {gauntlet_def.gauntlet_type} evaluation completed",
+                "verification_timestamp": time.time(),
+                "criteria_met": ["Passed specialized checks"] if result.get("passed") else [],
+                "criteria_not_met": ["Failed specialized checks"] if not result.get("passed") else []
+            }
+            
+        return {
+            "is_approved": result.get("passed", False),
+            "report_summary": f"Specialized {team.role} Gauntlet result for {gauntlet_def.name}",
+            "report_object": report_obj,
+            "logs": logs
+        }
+    
 def _run_standard_gauntlet_headless(
     solution_content: str,
     gauntlet_def: GauntletDefinition,

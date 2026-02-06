@@ -22,6 +22,8 @@ def test_z3_api_web3_status_shape():
     assert "solidity_invariant_translation_available" in status
     assert "exploit_witness_available" in status
     assert "audit_exploit_verification_available" in status
+    assert "web3_formal_tools" in status
+    assert "formal_capabilities" in status
     assert "tool_inventory" in status
 
 

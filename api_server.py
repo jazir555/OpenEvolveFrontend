@@ -6246,6 +6246,27 @@ def web3_status():
         merged = inventory.get("formal_capabilities")
         if isinstance(merged, dict):
             formal_capabilities.update(merged)
+
+    if not web3_formal_tools:
+        inferred_formal_tools: List[str] = []
+        if formal_capabilities.get("solidity_invariant_translation"):
+            inferred_formal_tools.append("z3_translate_solidity_invariant")
+        if formal_capabilities.get("symbolic_exploit_witness"):
+            inferred_formal_tools.append("z3_solve_smart_contract_exploit_witness")
+        if formal_capabilities.get("composite_exploit_verification"):
+            inferred_formal_tools.append("z3_web3_audit_exploit_verification")
+        web3_formal_tools = inferred_formal_tools
+
+    if not web3_ingestion_tools:
+        inferred_ingestion_tools = [
+            "web3_ingest_slither_static_analysis",
+            "web3_ingest_foundry_fuzzing",
+            "web3_ingest_contract_audit_stack",
+        ]
+        web3_ingestion_tools = inferred_ingestion_tools
+
+    if not web3_tools:
+        web3_tools = sorted(set(web3_ingestion_tools + web3_formal_tools))
     return {
         "web3_ingestion_available": WEB3_INGESTION_AVAILABLE,
         "web3_formal_verification_available": WEB3_FORMAL_VERIFICATION_AVAILABLE,

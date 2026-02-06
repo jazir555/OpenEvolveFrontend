@@ -1697,10 +1697,19 @@ async def canonicalize_constraint(request: CanonicalizeRequest):
 @app.get("/web3/status")
 async def get_web3_formal_status():
     """Get Web3 formal verification status for the Z3 service bubble."""
+    default_formal_capabilities = {
+        "solidity_invariant_translation": translate_solidity_assignment_to_z3 is not None,
+        "invariant_translation_verification": verify_solidity_invariant_translation is not None,
+        "symbolic_exploit_witness": solve_smart_contract_exploit_witness is not None,
+        "composite_exploit_verification": (
+            translate_solidity_assignment_to_z3 is not None
+            and solve_smart_contract_exploit_witness is not None
+        ),
+    }
     inventory = {
         "available": WEB3_FORMAL_AVAILABLE,
         "tools": [],
-        "formal_capabilities": {},
+        "formal_capabilities": dict(default_formal_capabilities),
     }
     try:
         from z3_mcp_tools import get_web3_formal_tool_inventory
@@ -1709,6 +1718,15 @@ async def get_web3_formal_status():
             inventory = loaded_inventory
     except Exception as exc:
         inventory["error"] = str(exc)
+
+    tool_inventory_capabilities = inventory.get("formal_capabilities")
+    if isinstance(tool_inventory_capabilities, dict):
+        merged_formal_capabilities = {**default_formal_capabilities, **tool_inventory_capabilities}
+    else:
+        merged_formal_capabilities = dict(default_formal_capabilities)
+    inventory["formal_capabilities"] = merged_formal_capabilities
+
+    web3_formal_tools = list(inventory.get("tools", []) or [])
 
     return {
         "available": WEB3_FORMAL_AVAILABLE,
@@ -1719,6 +1737,8 @@ async def get_web3_formal_status():
             translate_solidity_assignment_to_z3 is not None
             and solve_smart_contract_exploit_witness is not None
         ),
+        "web3_formal_tools": web3_formal_tools,
+        "formal_capabilities": merged_formal_capabilities,
         "tool_inventory": inventory,
     }
 

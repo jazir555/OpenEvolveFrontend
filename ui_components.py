@@ -659,6 +659,15 @@ def render_gauntlet_designer():
             else:
                 team_for_gauntlet = st.selectbox("Team to run this Gauntlet", team_names, key="new_gauntlet_team")
             
+            # NEW: Gauntlet Type Selection
+            gauntlet_type = st.selectbox("Gauntlet Type", [
+                "standard", "adaptive", "hierarchical", "competitive", "collaborative",
+                "adversarial", "formal_verification", "statistical", 
+                "domain_physics", "domain_finance", "domain_chemistry", 
+                "domain_engineering", "domain_web3", "multi_objective", 
+                "evolutionary", "temporal", "cross_validation"
+            ], index=0, help="Select the specialized evaluation logic for this gauntlet.", key="new_gauntlet_type")
+
             st.subheader("Gauntlet Rounds")
             num_rounds = st.number_input("Number of Rounds", min_value=1, value=1, key="num_new_rounds")
             
@@ -707,7 +716,7 @@ def render_gauntlet_designer():
             attack_modes_str = st.text_input("Red Team Attack Modes (comma-separated)", key="new_attack_modes")
             attack_modes = [m.strip() for m in attack_modes_str.split(',') if m.strip()]
 
-            generation_mode = st.selectbox("Blue Team Generation Mode", ["single_candidate", "multi_candidate_peer_review"], key="new_gen_mode")
+            generation_mode = st.selectbox("Blue Team Generation Mode", ["single_candidate", "multi_candidate_peer_review", "evolutionary", "hybrid"], key="new_gen_mode")
 
             # NEW: Red Flags Configuration
             st.subheader("Red Flags Configuration")
@@ -735,6 +744,7 @@ def render_gauntlet_designer():
                         description=gauntlet_description,
                         attack_modes=attack_modes,
                         generation_mode=generation_mode,
+                        gauntlet_type=gauntlet_type, # NEW: Include gauntlet_type
                         red_flags=red_flags  # NEW: Include red flags
                     )
                     if gauntlet_manager.create_gauntlet(new_gauntlet):

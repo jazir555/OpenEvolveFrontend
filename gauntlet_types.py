@@ -368,26 +368,26 @@ class AdversarialGauntlet(BaseGauntlet):
     Supports multiple attack modes and can integrate with Blue Team for defense validation.
     """
     
-    def __init__(self, name: str = "adversarial_gauntlet", config: Optional[Dict] = None):
+    def __init__(self, name: str = "adversarial_gauntlet", config: Optional[Dict] = None, red_team=None, blue_team=None):
         config = config or {}
         super().__init__(name, GauntletType.ADVERSARIAL, config)
         self.attack_modes = config.get("attack_modes", [
             "systematic", "focused_attack", "deep_dive", "adversarial"
         ])
-        self.red_team = None
-        self.blue_team = None
+        self.red_team = red_team
+        self.blue_team = blue_team
         self._init_teams()
     
     def _init_teams(self):
-        """Initialize red and blue teams if available."""
-        if RED_TEAM_AVAILABLE:
+        """Initialize red and blue teams if not provided."""
+        if RED_TEAM_AVAILABLE and not self.red_team:
             try:
                 self.red_team = RedTeam()
                 self.logger.info("Red Team initialized for adversarial gauntlet")
             except Exception as e:
                 self.logger.warning(f"Failed to initialize Red Team: {e}")
         
-        if BLUE_TEAM_AVAILABLE:
+        if BLUE_TEAM_AVAILABLE and not self.blue_team:
             try:
                 self.blue_team = BlueTeam()
                 self.logger.info("Blue Team initialized for adversarial gauntlet")
@@ -1975,17 +1975,17 @@ class EvolutionaryGauntlet(BaseGauntlet):
     REPLACES: String mutation with actual evolutionary optimization.
     """
     
-    def __init__(self, name: str = "evolutionary_gauntlet", config: Optional[Dict] = None):
+    def __init__(self, name: str = "evolutionary_gauntlet", config: Optional[Dict] = None, evolution_engine=None):
         config = config or {}
         super().__init__(name, GauntletType.EVOLUTIONARY, config)
         self.population_size = config.get("population_size", 50)
         self.generations = config.get("generations", 10)
         self.mutation_rate = config.get("mutation_rate", 0.1)
         self.crossover_rate = config.get("crossover_rate", 0.8)
-        self.evolution_engine = None
+        self.evolution_engine = evolution_engine
         
-        # Initialize REAL EvolutionEngine
-        if EVOLUTION_AVAILABLE:
+        # Initialize REAL EvolutionEngine if not provided
+        if EVOLUTION_AVAILABLE and not self.evolution_engine:
             try:
                 self.evolution_engine = EvolutionEngine()
                 self.logger.info("REAL EvolutionEngine initialized for evolutionary gauntlet")
@@ -2828,7 +2828,7 @@ class LeanVerificationGauntlet(BaseGauntlet):
 
 
 # Factory function for creating gauntlets
-def create_gauntlet(gauntlet_type: str, name: Optional[str] = None, config: Optional[Dict] = None) -> BaseGauntlet:
+def create_gauntlet(gauntlet_type: str, name: Optional[str] = None, config: Optional[Dict] = None, **kwargs) -> BaseGauntlet:
     """
     Factory function to create any gauntlet type.
     
@@ -2836,6 +2836,7 @@ def create_gauntlet(gauntlet_type: str, name: Optional[str] = None, config: Opti
         gauntlet_type: Type of gauntlet to create
         name: Optional name for the gauntlet
         config: Configuration dict
+        **kwargs: Additional arguments like red_team, blue_team, evolution_engine
         
     Returns:
         Initialized gauntlet instance
@@ -2847,7 +2848,7 @@ def create_gauntlet(gauntlet_type: str, name: Optional[str] = None, config: Opti
     name = name or f"{gauntlet_type}_gauntlet"
     
     type_map = {
-        "adversarial": AdversarialGauntlet,
+        "adversarial": lambda n, c: AdversarialGauntlet(n, c, red_team=kwargs.get("red_team"), blue_team=kwargs.get("blue_team")),
         "formal": FormalVerificationGauntlet,
         "formal_verification": FormalVerificationGauntlet,
         "lean": LeanVerificationGauntlet,
@@ -2861,7 +2862,7 @@ def create_gauntlet(gauntlet_type: str, name: Optional[str] = None, config: Opti
         "chemistry": lambda n, c: DomainSpecificGauntlet("chemistry", n, c),
         "engineering": lambda n, c: DomainSpecificGauntlet("engineering", n, c),
         "multi_objective": MultiObjectiveGauntlet,
-        "evolutionary": EvolutionaryGauntlet,
+        "evolutionary": lambda n, c: EvolutionaryGauntlet(n, c, evolution_engine=kwargs.get("evolution_engine")),
         "temporal": TemporalGauntlet,
         "cross_validation": CrossValidationGauntlet,
     }

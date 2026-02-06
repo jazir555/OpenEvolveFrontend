@@ -62,7 +62,7 @@ class KnowledgeEngine:
         self.indexer_config_path = indexer_config_path
         self.api_secrets_path = api_secrets_path
         print(
-            f"🚀 Initializing KnowledgeEngine with config: {indexer_config_path} and secrets: {api_secrets_path}"
+            f"Initializing KnowledgeEngine with config: {indexer_config_path} and secrets: {api_secrets_path}"
         )
         self.knowledge_state: KnowledgeState = KnowledgeState(query="initial_query") # Initialize with a dummy query
         self.entity_graph: EntityKnowledgeGraph = EntityKnowledgeGraph()

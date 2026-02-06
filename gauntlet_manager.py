@@ -143,17 +143,21 @@ class GauntletEvaluator:
     REPLACES: Hardcoded 'passed_rounds += 1' with REAL evaluation logic.
     """
     
-    def __init__(self):
+    def __init__(self, red_team=None, blue_team=None, evaluator_team=None):
         self.logger = logging.getLogger(__name__ + ".GauntletEvaluator")
-        self.red_team = None
-        self.blue_team = None
-        self.evaluator_team = None
+        self.red_team = red_team
+        self.blue_team = blue_team
+        self.evaluator_team = evaluator_team
         
+        # If teams not provided, try to initialize defaults if system available
         if TEAM_SYSTEM_AVAILABLE:
             try:
-                self.red_team = RedTeam()
-                self.blue_team = BlueTeam()
-                self.evaluator_team = EvaluatorTeam()
+                if not self.red_team:
+                    self.red_team = RedTeam()
+                if not self.blue_team:
+                    self.blue_team = BlueTeam()
+                if not self.evaluator_team:
+                    self.evaluator_team = EvaluatorTeam()
                 self.logger.info("Team system initialized for gauntlet evaluation")
             except Exception as e:
                 self.logger.warning(f"Failed to initialize team system: {e}")
@@ -208,10 +212,15 @@ class GauntletEvaluator:
         """Round 1: Red Team Assessment - identify issues."""
         start_time = time.time()
         
-        if self.red_team and GAUNTLET_TYPES_AVAILABLE:
+        if GAUNTLET_TYPES_AVAILABLE:
             try:
                 # Use AdversarialGauntlet for structured evaluation
-                gauntlet = AdversarialGauntlet("round_1_assessment", config={"attack_modes": ["systematic"]})
+                gauntlet = AdversarialGauntlet(
+                    "round_1_assessment", 
+                    config={"attack_modes": ["systematic"]},
+                    red_team=self.red_team,
+                    blue_team=self.blue_team
+                )
                 
                 # Create mock solution object
                 class MockSolution:
@@ -257,7 +266,9 @@ class GauntletEvaluator:
                 # Use AdversarialGauntlet with attack modes
                 gauntlet = AdversarialGauntlet(
                     "round_2_adversarial",
-                    config={"attack_modes": ["adversarial", "focused_attack"]}
+                    config={"attack_modes": ["adversarial", "focused_attack"]},
+                    red_team=self.red_team,
+                    blue_team=self.blue_team
                 )
                 
                 class MockSolution:
@@ -337,7 +348,14 @@ class GauntletEvaluator:
             return self._basic_evaluation(round_num, f"Round {round_num}", solution_content)
         
         try:
-            gauntlet = create_gauntlet(gauntlet_type, f"round_{round_num}_{gauntlet_type}")
+            gauntlet = create_gauntlet(
+                gauntlet_type, 
+                f"round_{round_num}_{gauntlet_type}",
+                red_team=self.red_team,
+                blue_team=self.blue_team,
+                # Try to get evolution engine if available in context or default
+                evolution_engine=context.get("evolution_engine")
+            )
             
             class MockSolution:
                 def __init__(self, content):
@@ -563,11 +581,14 @@ class GauntletManager:
     Persists gauntlet data to a JSON file.
     Also manages BubbleLab workflow visualization for gauntlets.
     """
-    def __init__(self, gauntlets_file: str = GAUNTLETS_FILE):
+    def __init__(self, gauntlets_file: str = GAUNTLETS_FILE, red_team=None, blue_team=None, evaluator_team=None):
         """Initializes the GauntletManager.
 
         Args:
             gauntlets_file (str): The name of the JSON file to use for persisting gauntlet data.
+            red_team: Optional Red Team instance
+            blue_team: Optional Blue Team instance
+            evaluator_team: Optional Evaluator Team (Gold) instance
         """
         self.gauntlets_file = gauntlets_file
         self.gauntlets: Dict[str, GauntletDefinition] = self._load_gauntlets()
@@ -578,7 +599,7 @@ class GauntletManager:
         self.execution_to_bubble_map: Dict[str, str] = {}  # Maps execution_id to bubble_id
         
         # REAL evaluator for gauntlet execution
-        self.evaluator = GauntletEvaluator()
+        self.evaluator = GauntletEvaluator(red_team=red_team, blue_team=blue_team, evaluator_team=evaluator_team)
 
     def _load_gauntlets(self) -> Dict[str, GauntletDefinition]:
         """Loads gauntlets from the JSON file and deserializes them into GauntletDefinition objects.

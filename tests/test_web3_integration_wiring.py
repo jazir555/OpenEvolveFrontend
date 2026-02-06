@@ -255,6 +255,27 @@ def test_api_web3_status_exposes_formal_tools_from_inventory(monkeypatch):
     assert status["formal_capabilities"]["composite_exploit_verification"] is True
 
 
+def test_api_web3_status_infers_tool_lists_when_inventory_omits_lists(monkeypatch):
+    monkeypatch.setattr(
+        api_server,
+        "get_mcp_tool_inventory",
+        lambda: {
+            "formal_capabilities": {
+                "solidity_invariant_translation": True,
+                "symbolic_exploit_witness": True,
+                "composite_exploit_verification": True,
+            }
+        },
+    )
+    status = api_server.web3_status()
+    assert {
+        "z3_translate_solidity_invariant",
+        "z3_solve_smart_contract_exploit_witness",
+        "z3_web3_audit_exploit_verification",
+    }.issubset(set(status["web3_formal_tools"]))
+    assert "web3_ingest_contract_audit_stack" in status["web3_ingestion_tools"]
+
+
 def test_api_web3_audit_endpoint_returns_verified_exploit(monkeypatch):
     monkeypatch.setattr(api_server, "WEB3_INGESTION_AVAILABLE", False)
     monkeypatch.setattr(api_server, "WEB3_FORMAL_VERIFICATION_AVAILABLE", True)

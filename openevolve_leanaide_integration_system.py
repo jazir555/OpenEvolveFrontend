@@ -38,9 +38,42 @@ try:
         decompose_problem, generate_solution_attempt, verify_solution_attempt
     )
     OPENEVOLVE_AVAILABLE = True
-except ImportError:
-    logger.warning("OpenEvolve components not available - using fallback types")
+except ImportError as e:
+    logger.warning(f"OpenEvolve components not available - using fallback types: {e}")
     OPENEVOLVE_AVAILABLE = False
+    
+    # Fallback WorkflowState definition
+    @dataclass
+    class WorkflowState:
+        """Fallback WorkflowState definition."""
+        workflow_id: str = ""
+        status: str = "pending"
+        current_stage: str = "init"
+        problem_id: Optional[str] = None
+        sub_problems: List[Any] = field(default_factory=list)
+        solutions: List[Any] = field(default_factory=list)
+        verification_results: List[Any] = field(default_factory=list)
+        metadata: Dict[str, Any] = field(default_factory=dict)
+    
+    # Other fallback types
+    class SubProblem:
+        pass
+    class SolutionAttempt:
+        pass
+    class VerificationReport:
+        pass
+    class DecompositionPlan:
+        pass
+    class MathematicalDomain:
+        pass
+    class WorkflowEngine:
+        """Fallback WorkflowEngine."""
+        def __init__(self):
+            self.workflows = {}
+        
+        def create_workflow(self, workflow_id: str):
+            self.workflows[workflow_id] = {"status": "created"}
+            return workflow_id
 
 # Import LeanAIDE bridge
 try:
@@ -516,7 +549,7 @@ if __name__ == "__main__":
         integration_system = get_openevolve_leanaide_integration()
         
         # Example problem
-        problem = "Prove that the sum of the first n odd numbers equals n²"
+        problem = "Prove that the sum of the first n odd numbers equals n^2"
         
         # Run enhanced workflow
         result = await integration_system.run_enhanced_workflow(problem)
