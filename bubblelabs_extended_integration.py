@@ -55,7 +55,10 @@ try:
         translate_solidity_assignment_to_z3,
         verify_solidity_invariant_translation,
     )
-    WEB3_FORMAL_AVAILABLE = True
+    WEB3_FORMAL_AVAILABLE = (
+        translate_solidity_assignment_to_z3 is not None
+        and solve_smart_contract_exploit_witness is not None
+    )
 except ImportError:
     WEB3_FORMAL_AVAILABLE = False
     solve_smart_contract_exploit_witness = None
@@ -475,11 +478,30 @@ class LeanAideIntegrationBridge:
     
     def get_status(self) -> Dict[str, Any]:
         """Get LeanAIDE integration status."""
+        formal_capabilities = {
+            "solidity_invariant_translation": translate_solidity_assignment_to_z3 is not None,
+            "invariant_translation_verification": verify_solidity_invariant_translation is not None,
+            "symbolic_exploit_witness": solve_smart_contract_exploit_witness is not None,
+            "composite_exploit_verification": (
+                translate_solidity_assignment_to_z3 is not None
+                and solve_smart_contract_exploit_witness is not None
+            ),
+        }
+        web3_formal_tools: List[str] = []
+        if formal_capabilities["solidity_invariant_translation"]:
+            web3_formal_tools.append("z3_translate_solidity_invariant")
+        if formal_capabilities["symbolic_exploit_witness"]:
+            web3_formal_tools.append("z3_solve_smart_contract_exploit_witness")
+        if formal_capabilities["composite_exploit_verification"]:
+            web3_formal_tools.append("z3_web3_audit_exploit_verification")
         return {
             "component": "LeanAIDE (Lean 4)",
             "status": self.status.value,
             "version": self.version,
             "capabilities": self.capabilities,
+            "web3_formal_available": bool(web3_formal_tools),
+            "web3_formal_tools": web3_formal_tools,
+            "formal_capabilities": formal_capabilities,
         }
     
     def prove_theorem(self, theorem: str) -> Dict[str, Any]:
@@ -769,10 +791,19 @@ class BubbleLabsExtendedIntegration:
 
         if not web3_tools:
             web3_tools = sorted(set(web3_ingestion_tools + web3_formal_tools))
+
+        web3_formal_tools = sorted(set(web3_formal_tools))
+        web3_ingestion_tools = sorted(set(web3_ingestion_tools))
+        web3_tools = sorted(set(web3_tools))
+        inferred_formal_available = bool(web3_formal_tools) or any(
+            bool(v) for v in formal_capabilities.values()
+        )
+        inferred_stack_available = bool(web3_tools) or bool(web3_ingestion_tools) or inferred_formal_available
+
         return {
             "component": "Web3 Audit Stack",
-            "status": "available" if (WEB3_INGESTION_AVAILABLE or WEB3_FORMAL_AVAILABLE) else "unavailable",
-            "available": WEB3_INGESTION_AVAILABLE or WEB3_FORMAL_AVAILABLE,
+            "status": "available" if inferred_stack_available else "unavailable",
+            "available": inferred_stack_available,
             "capabilities": [
                 "slither_static_analysis",
                 "forge_fuzz_ingestion",
@@ -780,11 +811,10 @@ class BubbleLabsExtendedIntegration:
                 "symbolic_exploit_witness",
                 "composite_exploit_verification",
             ],
-            "ingestion_available": WEB3_INGESTION_AVAILABLE,
-            "formal_available": WEB3_FORMAL_AVAILABLE,
-            "audit_exploit_verification_available": (
-                translate_solidity_assignment_to_z3 is not None
-                and solve_smart_contract_exploit_witness is not None
+            "ingestion_available": WEB3_INGESTION_AVAILABLE or bool(web3_ingestion_tools),
+            "formal_available": WEB3_FORMAL_AVAILABLE or inferred_formal_available,
+            "audit_exploit_verification_available": bool(
+                formal_capabilities.get("composite_exploit_verification")
             ),
             "web3_tools": web3_tools,
             "web3_ingestion_tools": web3_ingestion_tools,

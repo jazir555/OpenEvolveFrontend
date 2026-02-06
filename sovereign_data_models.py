@@ -889,3 +889,8 @@ class ValidationRequirements:
     verify_with_lean: bool = False
     criteria: List[str] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# Aliases for backward compatibility
+ProblemStatus = SubProblemStatus
+QualityMetrics = QualityScores

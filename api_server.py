@@ -221,7 +221,10 @@ try:
         translate_solidity_assignment_to_z3,
         verify_solidity_invariant_translation,
     )
-    WEB3_FORMAL_VERIFICATION_AVAILABLE = True
+    WEB3_FORMAL_VERIFICATION_AVAILABLE = (
+        translate_solidity_assignment_to_z3 is not None
+        and solve_smart_contract_exploit_witness is not None
+    )
 except ImportError:
     WEB3_FORMAL_VERIFICATION_AVAILABLE = False
     solve_smart_contract_exploit_witness = None
@@ -6267,16 +6270,29 @@ def web3_status():
 
     if not web3_tools:
         web3_tools = sorted(set(web3_ingestion_tools + web3_formal_tools))
+
+    web3_formal_tools = sorted(set(web3_formal_tools))
+    web3_ingestion_tools = sorted(set(web3_ingestion_tools))
+    web3_tools = sorted(set(web3_tools))
+
+    inferred_formal_available = bool(web3_formal_tools) or any(
+        bool(v) for v in formal_capabilities.values()
+    )
+    inferred_ingestion_available = bool(web3_ingestion_tools)
+    inferred_stack_available = bool(web3_tools) or inferred_formal_available or inferred_ingestion_available
+
     return {
-        "web3_ingestion_available": WEB3_INGESTION_AVAILABLE,
-        "web3_formal_verification_available": WEB3_FORMAL_VERIFICATION_AVAILABLE,
+        "web3_ingestion_available": WEB3_INGESTION_AVAILABLE or inferred_ingestion_available,
+        "web3_formal_verification_available": (
+            WEB3_FORMAL_VERIFICATION_AVAILABLE or inferred_formal_available
+        ),
+        "available": inferred_stack_available,
         "slither_ingestion_available": web3_ingest_slither_static_analysis is not None,
         "foundry_ingestion_available": web3_ingest_foundry_fuzzing is not None,
         "invariant_translation_available": translate_solidity_assignment_to_z3 is not None,
         "exploit_witness_available": solve_smart_contract_exploit_witness is not None,
-        "audit_exploit_verification_available": (
-            translate_solidity_assignment_to_z3 is not None
-            and solve_smart_contract_exploit_witness is not None
+        "audit_exploit_verification_available": bool(
+            formal_capabilities.get("composite_exploit_verification")
         ),
         "web3_tools": web3_tools,
         "web3_ingestion_tools": web3_ingestion_tools,

@@ -107,6 +107,17 @@ try:
 except ImportError:
     Z3_AVAILABLE = False
 
+try:
+    from z3prover_integration import (
+        translate_solidity_assignment_to_z3,
+        verify_solidity_invariant_translation,
+        solve_smart_contract_exploit_witness,
+    )
+except Exception:
+    translate_solidity_assignment_to_z3 = None
+    verify_solidity_invariant_translation = None
+    solve_smart_contract_exploit_witness = None
+
 # Overall Lean availability
 LEAN_AVAILABLE = _detect_lean_availability() and LEAN_CLIENT_AVAILABLE
 
@@ -147,6 +158,44 @@ class LeanAIDEIntegration:
     def is_available(self) -> bool:
         """Check if real Lean verification is available."""
         return self._lean_available
+
+    def get_web3_formal_status(self) -> Dict[str, Any]:
+        """Expose normalized Web3 formal capability status."""
+        formal_capabilities = {
+            "solidity_invariant_translation": translate_solidity_assignment_to_z3 is not None,
+            "invariant_translation_verification": verify_solidity_invariant_translation is not None,
+            "symbolic_exploit_witness": solve_smart_contract_exploit_witness is not None,
+            "composite_exploit_verification": (
+                translate_solidity_assignment_to_z3 is not None
+                and solve_smart_contract_exploit_witness is not None
+            ),
+        }
+        web3_formal_tools: List[str] = []
+        if formal_capabilities["solidity_invariant_translation"]:
+            web3_formal_tools.append("z3_translate_solidity_invariant")
+        if formal_capabilities["symbolic_exploit_witness"]:
+            web3_formal_tools.append("z3_solve_smart_contract_exploit_witness")
+        if formal_capabilities["composite_exploit_verification"]:
+            web3_formal_tools.append("z3_web3_audit_exploit_verification")
+        return {
+            "available": bool(web3_formal_tools),
+            "web3_formal_available": bool(web3_formal_tools),
+            "web3_formal_tools": web3_formal_tools,
+            "formal_capabilities": formal_capabilities,
+        }
+
+    def get_status(self) -> Dict[str, Any]:
+        """Return integration status including Web3 formal surface wiring."""
+        web3_status = self.get_web3_formal_status()
+        return {
+            "lean_available": self._lean_available,
+            "lean_client_available": LEAN_CLIENT_AVAILABLE,
+            "z3_available": Z3_AVAILABLE,
+            "config_enabled": bool(getattr(self.config, "enabled", True)),
+            "web3_formal_available": web3_status["web3_formal_available"],
+            "web3_formal_tools": web3_status["web3_formal_tools"],
+            "formal_capabilities": web3_status["formal_capabilities"],
+        }
 
     def verify_theorem(
         self, 
@@ -465,6 +514,13 @@ class LeanAIDEVerifier:
     def is_available(self) -> bool:
         """Check if real Lean verification is available."""
         return self._integration.is_available
+
+    def get_status(self) -> Dict[str, Any]:
+        """Expose verifier status with Lean and Web3 formal wiring details."""
+        status = self._integration.get_status()
+        status["require_real_lean"] = self.require_real_lean
+        status["timeout_seconds"] = self.timeout
+        return status
 
 
 # =============================================================================

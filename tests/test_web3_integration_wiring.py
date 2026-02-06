@@ -302,6 +302,29 @@ def test_api_web3_status_infers_tool_lists_when_inventory_omits_lists(monkeypatc
     assert "web3_ingest_contract_audit_stack" in status["web3_ingestion_tools"]
 
 
+def test_api_web3_status_infers_available_flag_from_formal_capabilities(monkeypatch):
+    monkeypatch.setattr(api_server, "WEB3_INGESTION_AVAILABLE", False)
+    monkeypatch.setattr(api_server, "WEB3_FORMAL_VERIFICATION_AVAILABLE", False)
+    monkeypatch.setattr(
+        api_server,
+        "get_mcp_tool_inventory",
+        lambda: {
+            "web3_tools": [],
+            "web3_ingestion_tools": [],
+            "web3_formal_tools": [],
+            "formal_capabilities": {
+                "solidity_invariant_translation": True,
+                "symbolic_exploit_witness": True,
+                "composite_exploit_verification": True,
+            },
+        },
+    )
+    status = api_server.web3_status()
+    assert status["available"] is True
+    assert status["web3_formal_verification_available"] is True
+    assert status["audit_exploit_verification_available"] is True
+
+
 def test_api_web3_audit_endpoint_returns_verified_exploit(monkeypatch):
     monkeypatch.setattr(api_server, "WEB3_INGESTION_AVAILABLE", False)
     monkeypatch.setattr(api_server, "WEB3_FORMAL_VERIFICATION_AVAILABLE", True)
@@ -428,3 +451,29 @@ def test_bubblelabs_extended_integration_web3_audit_orchestration(monkeypatch):
     assert result["translation"]["phase"] == "translation"
     assert result["exploit_witness"]["phase"] == "witness"
     assert result["verified_exploit"] is True
+
+
+def test_bubblelabs_web3_status_infers_available_from_formal_capabilities(monkeypatch):
+    integration = BubbleLabsExtendedIntegration(config={"use_cav_nlp": False})
+    import bubblelabs_extended_integration as bubblelabs_ext
+
+    monkeypatch.setattr(bubblelabs_ext, "WEB3_INGESTION_AVAILABLE", False)
+    monkeypatch.setattr(bubblelabs_ext, "WEB3_FORMAL_AVAILABLE", False)
+    monkeypatch.setattr(
+        bubblelabs_ext,
+        "get_mcp_tool_inventory",
+        lambda: {
+            "web3_tools": [],
+            "web3_ingestion_tools": [],
+            "web3_formal_tools": [],
+            "formal_capabilities": {
+                "solidity_invariant_translation": True,
+                "symbolic_exploit_witness": True,
+                "composite_exploit_verification": True,
+            },
+        },
+    )
+    status = integration.get_web3_status()
+    assert status["available"] is True
+    assert status["formal_available"] is True
+    assert status["audit_exploit_verification_available"] is True

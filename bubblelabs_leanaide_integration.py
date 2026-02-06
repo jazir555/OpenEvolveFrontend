@@ -94,6 +94,17 @@ try:
 except (subprocess.CalledProcessError, FileNotFoundError, OSError):
     logger.info("Lean4 lake not detected")
 
+try:
+    from z3prover_integration import (
+        translate_solidity_assignment_to_z3,
+        verify_solidity_invariant_translation,
+        solve_smart_contract_exploit_witness,
+    )
+except Exception:
+    translate_solidity_assignment_to_z3 = None
+    verify_solidity_invariant_translation = None
+    solve_smart_contract_exploit_witness = None
+
 
 # =============================================================================
 # Data Classes for Visualization
@@ -380,6 +391,23 @@ class LeanAideIntegrationBridge:
             Dictionary with status information
         """
         with self._lock:
+            formal_capabilities = {
+                "solidity_invariant_translation": translate_solidity_assignment_to_z3 is not None,
+                "invariant_translation_verification": verify_solidity_invariant_translation is not None,
+                "symbolic_exploit_witness": solve_smart_contract_exploit_witness is not None,
+                "composite_exploit_verification": (
+                    translate_solidity_assignment_to_z3 is not None
+                    and solve_smart_contract_exploit_witness is not None
+                ),
+            }
+            web3_formal_tools: List[str] = []
+            if formal_capabilities["solidity_invariant_translation"]:
+                web3_formal_tools.append("z3_translate_solidity_invariant")
+            if formal_capabilities["symbolic_exploit_witness"]:
+                web3_formal_tools.append("z3_solve_smart_contract_exploit_witness")
+            if formal_capabilities["composite_exploit_verification"]:
+                web3_formal_tools.append("z3_web3_audit_exploit_verification")
+
             status = {
                 "leanaide_available": LEANAIDE_AVAILABLE,
                 "mcts_available": MCTS_AVAILABLE,
@@ -391,7 +419,10 @@ class LeanAideIntegrationBridge:
                 "server": f"{self.leanaide_host}:{self.leanaide_port}",
                 "active_trees": len(self._active_trees),
                 "active_proofs": len(self._active_proofs),
-                "execution_history_count": len(self._execution_history)
+                "execution_history_count": len(self._execution_history),
+                "web3_formal_available": bool(web3_formal_tools),
+                "web3_formal_tools": web3_formal_tools,
+                "formal_capabilities": formal_capabilities,
             }
 
             # Check LeanAide server status

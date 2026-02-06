@@ -30,3 +30,19 @@ def test_leanaide_verifier_handles_empty_statement():
     result = verifier.verify_theorem(code="", context="")
     assert result["proved"] is False
     assert result["errors"]
+
+
+def test_leanaide_root_status_exposes_web3_formal_schema():
+    integration = create_integration()
+    status = integration.get_status()
+    assert "web3_formal_available" in status
+    assert "web3_formal_tools" in status
+    assert "formal_capabilities" in status
+
+
+def test_leanaide_verifier_status_contract():
+    verifier = LeanAIDEVerifier(timeout=2.0)
+    status = verifier.get_status()
+    assert "timeout_seconds" in status
+    assert "require_real_lean" in status
+    assert "formal_capabilities" in status
