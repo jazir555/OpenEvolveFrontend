@@ -493,7 +493,7 @@ class EnhancedZ3Solver:
     
     def verify_with_lean(
         self,
-        constraints: Optional[List[Any]] = None,
+        constraints: Optional[Union[List[Any], Any]] = None,
         use_counterexamples: bool = True
     ) -> VerificationResult:
         """Verify constraints using hybrid Z3 + Lean approach.
@@ -502,33 +502,40 @@ class EnhancedZ3Solver:
         providing higher confidence in the verification result.
         
         Args:
-            constraints: Constraints to verify (uses solver assertions if None)
+            constraints: Constraints to verify (uses solver assertions if None).
+                        Can be a list of Z3 expressions or a single string/expression.
             use_counterexamples: Whether to generate counterexamples on failure
             
         Returns:
             VerificationResult with dual verification results
-            
-        Example:
-            >>> solver = EnhancedZ3Solver()
-            >>> solver.add(x > 0, y > 0)
-            >>> result = solver.verify_with_lean()
-            >>> print(f"Confidence: {result.confidence}")
         """
         if not self.use_cav_nlp or self.cav_nlp is None:
             logger.warning("CAV-NLP not available, falling back to Z3 only")
-            return self._verify_z3_only(constraints)
+            return self._verify_z3_only(constraints if isinstance(constraints, list) else ([constraints] if constraints is not None else None))
         
         start_time = datetime.now()
         self.stats["verification_calls"] += 1
         
         try:
-            # Get constraints to verify
+            # Handle different constraint input types
             if constraints is None:
-                constraints = self.assertions()
+                constraints_list = self.assertions()
+            elif isinstance(constraints, str):
+                # If it's a string, formalize it first
+                formalized = self.formalize_constraint(constraints)
+                if formalized is not None:
+                    constraints_list = [formalized]
+                else:
+                    # If formalization fails, we can't do much with just a string
+                    return self._verify_z3_only([])
+            elif not isinstance(constraints, list):
+                constraints_list = [constraints]
+            else:
+                constraints_list = constraints
             
             # Convert to Z3Constraint
             z3_constraints = []
-            for constraint in constraints:
+            for constraint in constraints_list:
                 if CAV_NLP_AVAILABLE and Z3Constraint is not None and ConstraintType is not None:
                     z3_constraints.append(Z3Constraint(
                         expr=constraint,
@@ -541,6 +548,7 @@ class EnhancedZ3Solver:
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
                 try:
+                    # Use the first constraint for primary verification if multiple
                     bridge_result = loop.run_until_complete(
                         self.cav_nlp.verify(z3_constraints[0], use_counterexamples)
                     )
@@ -559,14 +567,15 @@ class EnhancedZ3Solver:
                     metadata={
                         "agreed": bridge_result.agreed if bridge_result else False,
                         "z3_model": bridge_result.z3_model if bridge_result else None,
+                        "multiple_constraints": len(z3_constraints) > 1
                     }
                 )
             
-            return self._verify_z3_only(constraints)
+            return self._verify_z3_only(constraints_list)
             
         except Exception as e:
             logger.error(f"Error in hybrid verification: {e}")
-            return self._verify_z3_only(constraints)
+            return self._verify_z3_only(constraints_list if 'constraints_list' in locals() else None)
     
     def _verify_z3_only(self, constraints: Optional[List[Any]]) -> VerificationResult:
         """Verify using Z3 only (fallback)."""

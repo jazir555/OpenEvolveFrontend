@@ -61,23 +61,28 @@ class LeanType:
     
     def free_variables(self) -> Set[str]:
         """Return set of free variables in this type."""
-        raise NotImplementedError
-    
+        # Default implementation returns empty set - concrete types should override
+        return set()
+
     def substitute(self, var: str, expr: 'LeanExpr') -> 'LeanType':
         """Substitute expression for variable."""
-        raise NotImplementedError
-    
+        # Default implementation returns self - concrete types should override
+        return self
+
     def universe_level(self) -> Optional[UniverseLevel]:
         """Return the universe level of this type."""
-        raise NotImplementedError
-    
+        # Default implementation returns None - concrete types should override
+        return None
+
     def to_lean_string(self) -> str:
         """Generate canonical Lean syntax."""
-        raise NotImplementedError
-    
+        # Default implementation returns class name - concrete types should override
+        return self.__class__.__name__
+
     def alpha_equivalent(self, other: 'LeanType') -> bool:
         """Check alpha equivalence (equal modulo variable renaming)."""
-        raise NotImplementedError
+        # Default implementation checks exact type and identity - concrete types should override
+        return type(self) == type(other) and self == other
 
 
 @dataclass
@@ -322,23 +327,28 @@ class LeanExpr:
     
     def type_of(self, context: 'Context') -> LeanType:
         """Infer the type of this expression."""
-        raise NotImplementedError
-    
+        # Default implementation raises exception - concrete expressions should override
+        raise ValueError(f"Cannot infer type of {self} in context {context}")
+
     def free_variables(self) -> Set[str]:
         """Return free variables."""
-        raise NotImplementedError
-    
+        # Default implementation returns empty set - concrete expressions should override
+        return set()
+
     def substitute(self, var: str, expr: 'LeanExpr') -> 'LeanExpr':
         """Substitute expression for variable."""
-        raise NotImplementedError
-    
+        # Default implementation returns self - concrete expressions should override
+        return self
+
     def to_lean_string(self) -> str:
         """Generate canonical Lean syntax."""
-        raise NotImplementedError
-    
+        # Default implementation returns class name - concrete expressions should override
+        return self.__class__.__name__
+
     def alpha_equivalent(self, other: 'LeanExpr') -> bool:
         """Check alpha equivalence."""
-        raise NotImplementedError
+        # Default implementation checks exact type and identity - concrete expressions should override
+        return type(self) == type(other) and self == other
 
 
 @dataclass

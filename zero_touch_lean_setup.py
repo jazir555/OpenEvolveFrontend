@@ -231,7 +231,19 @@ class PlatformInstaller:
     
     def install(self) -> Tuple[bool, str]:
         """Install Lean 4 - override in subclasses"""
-        raise NotImplementedError
+        # Default implementation that delegates to the appropriate platform installer
+        if self.system == "windows":
+            installer = WindowsInstaller()
+        elif self.system in ["linux", "darwin"]:  # darwin is macOS
+            installer = UnixInstaller()
+        else:
+            return False, f"Unsupported platform: {self.system}"
+        
+        # Copy relevant attributes
+        installer.system = self.system
+        installer.machine = self.machine
+        
+        return installer.install()
     
     def get_elan_installer_url(self) -> str:
         """Get the appropriate elan installer URL"""

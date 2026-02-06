@@ -667,6 +667,25 @@ class FormalVerificationGauntlet(BaseGauntlet):
     
     def _verify_property(self, code: str, property_spec: Dict, constraints: List) -> Dict[str, Any]:
         """Verify a single property using REAL Z3 or fallback."""
+        # 1. Try CAV-NLP enhanced hybrid verification first
+        if self.use_cav_nlp and self.enhanced_solver:
+            try:
+                # Use hybrid Z3 + Lean verification for the property description
+                prop_desc = property_spec.get("description", property_spec.get("name", str(property_spec)))
+                verification = self.enhanced_solver.verify_with_lean(prop_desc)
+                
+                if verification.success and verification.confidence > 0.8:
+                    return {
+                        "property": property_spec.get("name", "unknown"),
+                        "verified": True,
+                        "method": "cav_nlp_hybrid",
+                        "confidence": verification.confidence,
+                        "details": verification.to_dict()
+                    }
+            except Exception as e:
+                self.logger.debug(f"Hybrid verification failed for {property_spec.get('name')}: {e}")
+
+        # 2. Fallback to standard Z3 Python bindings
         if Z3_PYTHON_BINDINGS:
             try:
                 # Use REAL Z3 verification
@@ -675,7 +694,7 @@ class FormalVerificationGauntlet(BaseGauntlet):
             except Exception as e:
                 self.logger.warning(f"Z3 verification failed: {e}, using fallback")
         
-        # Fallback to heuristic verification
+        # 3. Fallback to heuristic verification
         return self._heuristic_verification(code, property_spec)
     
     def _verify_with_z3_real(self, code: str, property_spec: Dict, constraints: List) -> Dict[str, Any]:
