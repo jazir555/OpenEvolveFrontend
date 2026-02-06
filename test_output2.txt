@@ -1,0 +1,58 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\python.exe
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.0', 'Platform': 'Windows-10-10.0.26200-SP0', 'Packages': {'pytest': '9.0.2', 'pluggy': '1.6.0'}, 'Plugins': {'anyio': '4.12.1', 'Faker': '38.2.0', 'langsmith': '0.5.2', 'libtmux': '0.23.2', 'pyfakefs': '6.0.0', 'asyncio': '1.3.0', 'cov': '4.1.0', 'html': '4.1.1', 'metadata': '3.1.1', 'timeout': '2.4.0', 'typeguard': '4.4.4'}}
+rootdir: C:\Users\mmeadow\Documents\OpenEvolve\Frontend
+configfile: pytest.ini (WARNING: ignoring pytest config in pyproject.toml!)
+plugins: anyio-4.12.1, Faker-38.2.0, langsmith-0.5.2, libtmux-0.23.2, pyfakefs-6.0.0, asyncio-1.3.0, cov-4.1.0, html-4.1.1, metadata-3.1.1, timeout-2.4.0, typeguard-4.4.4
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 25 items
+
+tests/test_core_modules.py::TestConfigModule::test_config_dataclass_creation SKIPPED (C:\Users\mmeadow\Documents\OpenEvolve\Frontend\core-
+projects\openevolve\config\__init__.py))                                 [  4%]
+tests/test_core_modules.py::TestConfigModule::test_config_load_from_yaml PASSED [  8%]
+tests/test_core_modules.py::TestConfigModule::test_config_validation PASSED [ 12%]
+tests/test_core_modules.py::TestParameterManager::test_parameter_defaults PASSED [ 16%]
+tests/test_core_modules.py::TestParameterManager::test_parameter_export PASSED [ 20%]
+tests/test_core_modules.py::TestParameterManager::test_parameter_get_set PASSED [ 24%]
+tests/test_core_modules.py::TestParameterManager::test_parameter_manager_creation PASSED [ 28%]
+tests/test_core_modules.py::TestWorkflowEngine::test_workflow_definition SKIPPED [ 32%]
+tests/test_core_modules.py::TestWorkflowEngine::test_workflow_engine_creation SKIPPED [ 36%]
+tests/test_core_modules.py::TestWorkflowEngine::test_workflow_execution SKIPPED [ 40%]
+tests/test_core_modules.py::TestWorkflowEngine::test_workflow_state_persistence SKIPPED [ 44%]
+tests/test_core_modules.py::TestAlertingSystem::test_alert_creation SKIPPED [ 48%]
+tests/test_core_modules.py::TestAlertingSystem::test_alert_dispatch SKIPPED [ 52%]
+tests/test_core_modules.py::TestAlertingSystem::test_alert_manager PASSED [ 56%]
+tests/test_core_modules.py::TestAlertingSystem::test_alert_persistence PASSED [ 60%]
+tests/test_core_modules.py::TestAnalyticsManager::test_analytics_manager_creation PASSED [ 64%]
+tests/test_core_modules.py::TestAnalyticsManager::test_metrics_collection SKIPPED [ 68%]
+tests/test_core_modules.py::TestAnalyticsManager::test_report_generation SKIPPED [ 72%]
+tests/test_core_modules.py::TestAnalyticsManager::test_track_event SKIPPED [ 76%]
+tests/test_core_modules.py::TestBackupRestore::test_backup_creation FAILED [ 80%]
+tests/test_core_modules.py::TestBackupRestore::test_backup_list FAILED   [ 84%]
+tests/test_core_modules.py::TestBackupRestore::test_backup_restore FAILED [ 88%]
+tests/test_core_modules.py::TestBatchOperations::test_batch_error_handling SKIPPED [ 92%]
+tests/test_core_modules.py::TestBatchOperations::test_batch_parallel SKIPPED [ 96%]
+tests/test_core_modules.py::TestBatchOperations::test_batch_processor SKIPPED [100%]
+
+================================== FAILURES ===================================
+___________________ TestBackupRestore.test_backup_creation ____________________
+tests\test_core_modules.py:370: in test_backup_creation
+    backup_id = manager.create_backup(
+E   TypeError: BackupManager.create_backup() got an unexpected keyword argument 'backup_type'
+_____________________ TestBackupRestore.test_backup_list ______________________
+tests\test_core_modules.py:409: in test_backup_list
+    manager.create_backup(data={'id': 1}, backup_type='full')
+E   TypeError: BackupManager.create_backup() got an unexpected keyword argument 'backup_type'
+____________________ TestBackupRestore.test_backup_restore ____________________
+tests\test_core_modules.py:390: in test_backup_restore
+    backup_id = manager.create_backup(
+E   TypeError: BackupManager.create_backup() got an unexpected keyword argument 'backup_type'
+=========================== short test summary info ===========================
+FAILED tests/test_core_modules.py::TestBackupRestore::test_backup_creation - TypeError: BackupManager.create_backup() got an unexpected keyword argument 'backup_type'
+FAILED tests/test_core_modules.py::TestBackupRestore::test_backup_list - TypeError: BackupManager.create_backup() got an unexpected keyword argument 'backup_type'
+FAILED tests/test_core_modules.py::TestBackupRestore::test_backup_restore - TypeError: BackupManager.create_backup() got an unexpected keyword argument 'backup_type'
+================== 3 failed, 9 passed, 13 skipped in 36.56s ===================

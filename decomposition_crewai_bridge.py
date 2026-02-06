@@ -180,7 +180,7 @@ def _estimate_sub_problem_count(problem_statement: str) -> int:
 # PHASE 2: SOLUTION GENERATION - TEAM-BASED SOLVING
 # =============================================================================
 
-def execute_phase_2_solve(
+async def execute_phase_2_solve(
     decomposition_plan: Dict[str, Any],
     team_name: str = "blue_team",
     use_evolution: bool = True,
@@ -239,7 +239,7 @@ def execute_phase_2_solve(
         )
 
         # Execute workflow
-        result = workflow.execute_workflow(
+        result = await workflow.execute_workflow(
             problem_statement=decomposition_plan.get("analysis", {}).get("problem_statement", ""),
             decomposition_plan=decomp_plan,
         )
@@ -548,7 +548,7 @@ def decomposition_phase_6_final_validation(
     }
 
 
-def execute_phase_2_generation(
+async def execute_phase_2_generation(
     decomposition_plan: Dict[str, Any],
     team_name: str = "blue_team",
     use_evolution: bool = True,
@@ -556,7 +556,7 @@ def execute_phase_2_generation(
     solve_subset: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """Backward-compatible alias for execute_phase_2_solve."""
-    return execute_phase_2_solve(
+    return await execute_phase_2_solve(
         decomposition_plan=decomposition_plan,
         team_name=team_name,
         use_evolution=use_evolution,
@@ -845,6 +845,47 @@ def get_decomposition_status() -> Dict[str, Any]:
         ),
         "web3_domain_extension_available": bool(web3_tools),
     }
+
+
+def _create_basic_decomposition_plan(
+    problem_statement: str,
+    max_sub_problems: int = 15,
+    strategy: str = "semantic"
+) -> DecompositionPlan:
+    """Create a basic decomposition plan when advanced decomposition is not available."""
+    from datetime import datetime
+    
+    # Create basic sub-problems based on the problem statement
+    sub_problems = []
+    
+    # Split the problem into basic sub-problems
+    # This is a simplified approach - in a real system, this would use AI
+    base_title = "Sub-problem"
+    base_desc = f"Address a component of: {problem_statement[:100]}..."
+    
+    for i in range(min(max_sub_problems, 5)):  # Limit to 5 for simplicity
+        sub_problem = SubProblem(
+            id=f"sp_{i+1}_{hash(problem_statement) % 10000}",
+            title=f"{base_title} {i+1}",
+            description=f"{base_desc} Part {i+1}",
+            dependencies=[],
+            complexity_score=0.5,
+            estimated_effort=5,
+            priority=1.0
+        )
+        sub_problems.append(sub_problem)
+    
+    # Create the decomposition plan
+    plan = DecompositionPlan(
+        id=f"plan_{hash(problem_statement) % 100000}",
+        problem_statement=problem_statement,
+        sub_problems=sub_problems,
+        decomposition_strategy=strategy,
+        decomposition_depth=1,
+        created_at=datetime.now().isoformat()
+    )
+    
+    return plan
 
 
 # =============================================================================

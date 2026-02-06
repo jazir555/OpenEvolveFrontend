@@ -106,6 +106,16 @@ class LeanProofStatus(Enum):
     ERROR = "error"
 
 
+class GauntletRoundStatus(Enum):
+    """Status of a gauntlet round execution"""
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    PASSED = "passed"
+    FAILED = "failed"
+    SKIPPED = "skipped"
+    ERROR = "error"
+
+
 # ============================================================================
 # BASIC TYPES
 # ============================================================================
@@ -426,6 +436,85 @@ class GauntletDefinition:
     gold_team_required: bool = False
     blue_team_participation: str = "none"
     metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class GauntletRoundResult:
+    """
+    Result from executing a single gauntlet round.
+
+    Attributes:
+        rule_id: ID of the gauntlet round rule
+        round_number: Round number (1-indexed)
+        status: Final status of the round
+        score: Score achieved (0.0-1.0+)
+        feedback: Human-readable feedback
+        details: Additional evaluation details
+        execution_time: Time taken for evaluation in seconds
+        timestamp: When the evaluation was performed
+    """
+    rule_id: str
+    round_number: int
+    status: GauntletRoundStatus
+    score: float
+    feedback: str
+    details: Dict[str, Any] = field(default_factory=dict)
+    execution_time: float = 0.0
+    timestamp: float = field(default_factory=time.time)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for serialization."""
+        return {
+            'rule_id': self.rule_id,
+            'round_number': self.round_number,
+            'status': self.status.value if isinstance(self.status, Enum) else self.status,
+            'score': self.score,
+            'feedback': self.feedback,
+            'details': self.details,
+            'execution_time': self.execution_time,
+            'timestamp': self.timestamp
+        }
+
+
+@dataclass
+class GauntletExecution:
+    """
+    Complete execution result for a gauntlet.
+
+    Attributes:
+        gauntlet_id: ID of the gauntlet definition
+        solution_id: ID of the solution evaluated
+        rounds_results: Results from each round
+        rounds_passed: List of round IDs that passed
+        rounds_failed: List of round IDs that failed
+        final_score: Final aggregated score
+        overall_passed: Whether the gauntlet was passed
+        execution_time: Total time for all rounds
+        timestamp: When the execution was performed
+    """
+    gauntlet_id: str
+    solution_id: str
+    rounds_results: List[GauntletRoundResult] = field(default_factory=list)
+    rounds_passed: List[str] = field(default_factory=list)
+    rounds_failed: List[str] = field(default_factory=list)
+    final_score: float = 0.0
+    overall_passed: bool = False
+    execution_time: float = 0.0
+    timestamp: float = field(default_factory=time.time)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for serialization."""
+        return {
+            'gauntlet_id': self.gauntlet_id,
+            'solution_id': self.solution_id,
+            'rounds_results': [r.to_dict() for r in self.rounds_results],
+            'rounds_passed': self.rounds_passed,
+            'rounds_failed': self.rounds_failed,
+            'final_score': self.final_score,
+            'overall_passed': self.overall_passed,
+            'execution_time': self.execution_time,
+            'timestamp': self.timestamp
+        }
 
 
 @dataclass

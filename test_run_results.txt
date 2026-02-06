@@ -42,4 +42,220 @@ tests/test_performance.py::TestIntegrationPerformance::test_graph_traversal_perf
 tests/test_performance.py::TestIntegrationPerformance::test_batch_query_performance PASSED [ 17%]
 tests/test_performance.py::TestScalability::test_scalability_1x PASSED   [ 18%]
 tests/test_performance.py::TestScalability::test_scalability_10x PASSED  [ 18%]
-tests/test_performance.py::TestScalability::test_scalability_100x 
+tests/test_performance.py::TestScalability::test_scalability_100x PASSED [ 19%]
+tests/test_performance.py::TestStress::test_rapid_ingestion_clear_cycles PASSED [ 20%]
+tests/test_performance.py::TestStress::test_high_attribute_cardinality PASSED [ 20%]
+tests/test_performance.py::TestStress::test_dense_relationship_network PASSED [ 21%]
+tests/test_performance.py::TestPerformanceRegression::test_entity_ingestion_regression PASSED [ 21%]
+tests/test_performance.py::TestPerformanceRegression::test_query_response_regression PASSED [ 22%]
+tests/test_performance.py::TestPerformanceSummary::test_performance_summary PASSED [ 23%]
+tests/test_performance_benchmarking.py::TestPerformanceProfiler::test_call_stack_profiling SKIPPED [ 23%]
+tests/test_performance_benchmarking.py::TestPerformanceProfiler::test_cpu_profiling SKIPPED [ 24%]
+tests/test_performance_benchmarking.py::TestPerformanceProfiler::test_memory_profiling SKIPPED [ 24%]
+tests/test_performance_benchmarking.py::TestPerformanceProfiler::test_profile_operation FAILED [ 25%]
+tests/test_performance_benchmarking.py::TestPerformanceProfiler::test_profiler_creation PASSED [ 26%]
+tests/test_performance_benchmarking.py::TestPerformanceProfiler::test_profiling_report SKIPPED [ 26%]
+tests/test_performance_benchmarking.py::TestBenchmarkingSystem::test_benchmark_comparison SKIPPED [ 27%]
+tests/test_performance_benchmarking.py::TestBenchmarkingSystem::test_benchmark_execution SKIPPED [ 27%]
+tests/test_performance_benchmarking.py::TestBenchmarkingSystem::test_benchmark_report SKIPPED [ 28%]
+tests/test_performance_benchmarking.py::TestBenchmarkingSystem::test_benchmark_suite SKIPPED [ 29%]
+tests/test_performance_benchmarking.py::TestBenchmarkingSystem::test_performance_metrics SKIPPED [ 29%]
+tests/test_performance_benchmarking.py::TestBenchmarkingSystem::test_stress_testing SKIPPED [ 30%]
+tests/test_performance_benchmarking.py::TestResourceEstimation::test_cost_estimation SKIPPED [ 30%]
+tests/test_performance_benchmarking.py::TestResourceEstimation::test_cpu_estimation SKIPPED [ 31%]
+tests/test_performance_benchmarking.py::TestResourceEstimation::test_memory_estimation SKIPPED [ 32%]
+tests/test_performance_benchmarking.py::TestResourceEstimation::test_resource_estimator SKIPPED [ 32%]
+tests/test_performance_benchmarking.py::TestResourceEstimation::test_storage_estimation SKIPPED [ 33%]
+tests/test_performance_benchmarking.py::TestResourceEstimation::test_time_estimation SKIPPED [ 33%]
+tests/test_performance_benchmarking.py::TestMonitoringSystem::test_alert_generation SKIPPED [ 34%]
+tests/test_performance_benchmarking.py::TestMonitoringSystem::test_dashboard_metrics SKIPPED [ 35%]
+tests/test_performance_benchmarking.py::TestMonitoringSystem::test_health_checks SKIPPED [ 35%]
+tests/test_performance_benchmarking.py::TestMonitoringSystem::test_log_aggregation SKIPPED [ 36%]
+tests/test_performance_benchmarking.py::TestMonitoringSystem::test_metric_collection SKIPPED [ 36%]
+tests/test_performance_benchmarking.py::TestMonitoringSystem::test_monitoring_system SKIPPED [ 37%]
+tests/test_performance_benchmarking.py::TestMonitoringSystem::test_tracing SKIPPED [ 38%]
+tests/test_performance_benchmarking.py::TestResourcePool::test_resource_allocation SKIPPED [ 38%]
+tests/test_performance_benchmarking.py::TestResourcePool::test_resource_pool SKIPPED [ 39%]
+tests/test_performance_benchmarking.py::TestResourcePool::test_resource_pool_stats SKIPPED [ 40%]
+tests/test_performance_benchmarking.py::TestResourcePool::test_resource_release SKIPPED [ 40%]
+tests/test_performance_benchmarking.py::TestCachingSystem::test_cache_eviction SKIPPED [ 41%]
+tests/test_performance_benchmarking.py::TestCachingSystem::test_cache_operations SKIPPED [ 41%]
+tests/test_performance_benchmarking.py::TestCachingSystem::test_cache_stats SKIPPED [ 42%]
+tests/test_performance_benchmarking.py::TestCachingSystem::test_cache_system SKIPPED [ 43%]
+tests/test_performance_benchmarking.py::TestCachingSystem::test_distributed_cache SKIPPED [ 43%]
+tests/adaptive_mdap/e2e/test_full_system.py::TestFullSystemAdaptiveSolve::test_full_system_simple_problem PASSED [ 44%]
+tests/adaptive_mdap/e2e/test_full_system.py::TestFullSystemAdaptiveSolve::test_full_system_complex_problem PASSED [ 44%]
+tests/adaptive_mdap/e2e/test_full_system.py::TestFullSystemAdaptiveSolve::test_adaptive_fallback_to_standard PASSED [ 45%]
+tests/adaptive_mdap/e2e/test_full_system.py::TestFullSystemAdaptiveSolve::test_strategy_override PASSED [ 46%]
+tests/adaptive_mdap/e2e/test_full_system.py::TestAdaptiveStrategySelection::test_complexity_based_strategy_selection PASSED [ 46%]
+tests/adaptive_mdap/e2e/test_full_system.py::TestAdaptiveStrategySelection::test_escalation_on_failure PASSED [ 47%]
+tests/adaptive_mdap/e2e/test_full_system.py::TestCostSavings::test_cost_savings_calculation PASSED [ 47%]
+tests/adaptive_mdap/e2e/test_full_system.py::TestCostSavings::test_cost_savings_with_workload_distribution PASSED [ 48%]
+tests/adaptive_mdap/e2e/test_full_system.py::TestCostSavings::test_model_comparison PASSED [ 49%]
+tests/adaptive_mdap/e2e/test_full_system.py::TestContextAwareAllocation::test_high_load_favors_cheaper_strategies PASSED [ 49%]
+tests/adaptive_mdap/e2e/test_full_system.py::TestContextAwareAllocation::test_low_budget_favors_cheaper_strategies PASSED [ 50%]
+tests/adaptive_mdap/e2e/test_full_system.py::TestStatisticsAndMonitoring::test_statistics_accumulation PASSED [ 50%]
+tests/adaptive_mdap/e2e/test_full_system.py::TestStatisticsAndMonitoring::test_allocation_stats PASSED [ 51%]
+tests/adaptive_mdap/e2e/test_full_system.py::TestErrorHandling::test_empty_description_handled PASSED [ 52%]
+tests/adaptive_mdap/e2e/test_full_system.py::TestErrorHandling::test_very_long_description_handled PASSED [ 52%]
+tests/adaptive_mdap/e2e/test_full_system.py::TestErrorHandling::test_negative_values_handled PASSED [ 53%]
+tests/adaptive_mdap/e2e/test_full_system.py::TestIntegrationWithExistingSolver::test_backward_compatibility PASSED [ 53%]
+tests/adaptive_mdap/e2e/test_full_system.py::TestPerformance::test_classification_latency PASSED [ 54%]
+tests/adaptive_mdap/e2e/test_full_system.py::TestPerformance::test_allocation_latency PASSED [ 55%]
+tests/adaptive_mdap/e2e/test_full_system.py::TestPerformance::test_batch_allocation_performance PASSED [ 55%]
+tests/adaptive_mdap/integration/test_end_to_end.py::TestEndToEndWorkflow::test_simple_problem_workflow PASSED [ 56%]
+tests/adaptive_mdap/integration/test_end_to_end.py::TestEndToEndWorkflow::test_complex_problem_workflow PASSED [ 56%]
+tests/adaptive_mdap/integration/test_end_to_end.py::TestEndToEndWorkflow::test_strategy_override PASSED [ 57%]
+tests/adaptive_mdap/integration/test_end_to_end.py::TestEndToEndWorkflow::test_statistics_accumulation PASSED [ 58%]
+tests/adaptive_mdap/integration/test_end_to_end.py::TestAdaptiveBehavior::test_allocation_changes_with_complexity PASSED [ 58%]
+tests/adaptive_mdap/integration/test_end_to_end.py::TestAdaptiveBehavior::test_context_affects_allocation PASSED [ 59%]
+tests/adaptive_mdap/integration/test_end_to_end.py::TestErrorHandling::test_invalid_subproblem_handled PASSED [ 60%]
+tests/adaptive_mdap/integration/test_end_to_end.py::TestErrorHandling::test_fallback_on_execution_failure PASSED [ 60%]
+tests/adaptive_mdap/integration/test_end_to_end.py::TestBackwardCompatibility::test_existing_api_still_works PASSED [ 61%]
+tests/adaptive_mdap/performance/test_benchmarks.py::TestClassificationPerformance::test_simple_classification_latency PASSED [ 61%]
+tests/adaptive_mdap/performance/test_benchmarks.py::TestClassificationPerformance::test_complex_classification_latency PASSED [ 62%]
+tests/adaptive_mdap/performance/test_benchmarks.py::TestClassificationPerformance::test_classification_throughput PASSED [ 63%]
+tests/adaptive_mdap/performance/test_benchmarks.py::TestAllocationPerformance::test_single_allocation_latency PASSED [ 63%]
+tests/adaptive_mdap/performance/test_benchmarks.py::TestAllocationPerformance::test_batch_allocation_throughput PASSED [ 64%]
+tests/adaptive_mdap/performance/test_benchmarks.py::TestAllocationPerformance::test_context_aware_allocation_latency PASSED [ 64%]
+tests/adaptive_mdap/performance/test_benchmarks.py::TestEndToEndPerformance::test_direct_strategy_execution PASSED [ 65%]
+tests/adaptive_mdap/performance/test_benchmarks.py::TestEndToEndPerformance::test_full_adaptive_execution_simple PASSED [ 66%]
+tests/adaptive_mdap/performance/test_benchmarks.py::TestCostCalculationPerformance::test_single_cost_calculation PASSED [ 66%]
+tests/adaptive_mdap/performance/test_benchmarks.py::TestCostCalculationPerformance::test_model_comparison_performance PASSED [ 67%]
+tests/adaptive_mdap/performance/test_benchmarks.py::TestMemoryUsage::test_classifier_memory_growth PASSED [ 67%]
+tests/adaptive_mdap/performance/test_benchmarks.py::TestMemoryUsage::test_allocator_memory_growth PASSED [ 68%]
+tests/adaptive_mdap/performance/test_benchmarks.py::TestScalability::test_concurrent_classification PASSED [ 69%]
+tests/adaptive_mdap/performance/test_benchmarks.py::TestProductionReadiness::test_full_system_stress_test PASSED [ 69%]
+tests/adaptive_mdap/performance/test_benchmarks.py::TestProductionReadiness::test_cost_savings_validation PASSED [ 70%]
+tests/adaptive_mdap/unit/test_complexity_classifier.py::TestTextLengthFeature::test_empty_description PASSED [ 70%]
+tests/adaptive_mdap/unit/test_complexity_classifier.py::TestTextLengthFeature::test_short_description PASSED [ 71%]
+tests/adaptive_mdap/unit/test_complexity_classifier.py::TestTextLengthFeature::test_medium_description PASSED [ 72%]
+tests/adaptive_mdap/unit/test_complexity_classifier.py::TestTextLengthFeature::test_long_description PASSED [ 72%]
+tests/adaptive_mdap/unit/test_complexity_classifier.py::TestTextLengthFeature::test_very_long_description_capped PASSED [ 73%]
+tests/adaptive_mdap/unit/test_complexity_classifier.py::TestDepthFeature::test_depth_zero PASSED [ 73%]
+tests/adaptive_mdap/unit/test_complexity_classifier.py::TestDepthFeature::test_depth_five PASSED [ 74%]
+tests/adaptive_mdap/unit/test_complexity_classifier.py::TestDepthFeature::test_depth_ten PASSED [ 75%]
+tests/adaptive_mdap/unit/test_complexity_classifier.py::TestDepthFeature::test_depth_twenty_capped PASSED [ 75%]
+tests/adaptive_mdap/unit/test_complexity_classifier.py::TestDepthFeature::test_negative_depth PASSED [ 76%]
+tests/adaptive_mdap/unit/test_complexity_classifier.py::TestDependencyFeature::test_zero_dependencies PASSED [ 76%]
+tests/adaptive_mdap/unit/test_complexity_classifier.py::TestDependencyFeature::test_five_dependencies PASSED [ 77%]
+tests/adaptive_mdap/unit/test_complexity_classifier.py::TestDependencyFeature::test_ten_dependencies PASSED [ 78%]
+tests/adaptive_mdap/unit/test_complexity_classifier.py::TestDependencyFeature::test_fifteen_dependencies_capped PASSED [ 78%]
+tests/adaptive_mdap/unit/test_complexity_classifier.py::TestHistoricalErrorFeature::test_cold_start PASSED [ 79%]
+tests/adaptive_mdap/unit/test_complexity_classifier.py::TestHistoricalErrorFeature::test_perfect_domain PASSED [ 80%]
+tests/adaptive_mdap/unit/test_complexity_classifier.py::TestHistoricalErrorFeature::test_terrible_domain PASSED [ 80%]
+tests/adaptive_mdap/unit/test_complexity_classifier.py::TestComplexityCombination::test_equal_weights PASSED [ 81%]
+tests/adaptive_mdap/unit/test_complexity_classifier.py::TestComplexityCombination::test_simple_problem_low_complexity PASSED [ 81%]
+tests/adaptive_mdap/unit/test_complexity_classifier.py::TestComplexityCombination::test_complex_problem_high_complexity PASSED [ 82%]
+tests/adaptive_mdap/unit/test_complexity_classifier.py::TestClassifierConfig::test_default_config PASSED [ 83%]
+tests/adaptive_mdap/unit/test_complexity_classifier.py::TestClassifierConfig::test_invalid_weights PASSED [ 83%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestAllocationLogic::test_low_complexity_gets_direct PASSED [ 84%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestAllocationLogic::test_medium_low_gets_mdap_light PASSED [ 84%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestAllocationLogic::test_medium_gets_mdap_medium PASSED [ 85%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestAllocationLogic::test_medium_high_gets_maker_full PASSED [ 86%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestAllocationLogic::test_high_complexity_gets_maker_ultra PASSED [ 86%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestAllocationLogic::test_boundary_thresholds PASSED [ 87%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestStrategyConfigs::test_direct_config PASSED [ 87%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestStrategyConfigs::test_mdap_light_config PASSED [ 88%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestStrategyConfigs::test_maker_full_config PASSED [ 89%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestThresholdValidation::test_valid_thresholds PASSED [ 89%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestThresholdValidation::test_invalid_threshold_count PASSED [ 90%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestThresholdValidation::test_thresholds_out_of_order PASSED [ 90%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestThresholdValidation::test_thresholds_out_of_range PASSED [ 91%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestStatistics::test_initial_stats_empty PASSED [ 92%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestStatistics::test_stats_after_allocations PASSED [ 92%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestStatistics::test_savings_estimation PASSED [ 93%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestStatistics::test_stats_reset PASSED [ 93%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestContextAwareAllocation::test_high_load_favors_cheaper PASSED [ 94%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestContextAwareAllocation::test_low_budget_favors_cheaper PASSED [ 95%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestContextAwareAllocation::test_strict_quality_favors_expensive PASSED [ 95%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestInvalidInputs::test_negative_complexity PASSED [ 96%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestInvalidInputs::test_over_one_complexity PASSED [ 96%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestInvalidInputs::test_nan_complexity PASSED [ 97%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestThresholdUpdates::test_update_thresholds PASSED [ 98%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestThresholdUpdates::test_update_thresholds_with_reset PASSED [ 98%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestThresholdUpdates::test_invalid_update_rejected PASSED [ 99%]
+tests/adaptive_mdap/unit/test_resource_allocator.py::TestBatchAllocation::test_batch_allocation PASSED [100%]
+
+================================== FAILURES ===================================
+_______________ TestKnowledgeIngestion.test_ingest_100_entities _______________
+tests\test_performance.py:392: in test_ingest_100_entities
+    assert metrics.throughput_ops_per_sec > 50
+E   AssertionError: assert 28.740454204679285 > 50
+E    +  where 28.740454204679285 = PerformanceMetrics(operation_name='test', total_time=3.4794161319732666, throughput_ops_per_sec=28.740454204679285, latency_p50=0.0, latency_p95=0.0010046958923339844, latency_p99=0.006015300750732422, memory_mb_before=692.234375, memory_mb_after=692.234375, memory_mb_peak=692.234375, memory_mb_delta=0.0, cpu_percent_avg=2.996, success_count=100, error_count=0, details={}).throughput_ops_per_sec
+---------------------------- Captured stdout call -----------------------------
+
+================================================================================
+Performance Metrics: ingest_100_entities
+================================================================================
+{
+  "operation": "ingest_100_entities",
+  "total_time_sec": 2.504,
+  "throughput_ops_per_sec": 39.94,
+  "latency_p50_ms": 0.0,
+  "latency_p95_ms": 1.0,
+  "latency_p99_ms": 6.02,
+  "memory_mb_before": 692.23,
+  "memory_mb_after": 692.23,
+  "memory_mb_peak": 692.23,
+  "memory_mb_delta": 0.0,
+  "cpu_percent_avg": 3.0,
+  "success_count": 100,
+  "error_count": 0,
+  "details": {}
+}
+================================================================================
+
+___________ TestConcurrencyPerformance.test_async_entity_ingestion ____________
+tests\test_performance.py:787: in test_async_entity_ingestion
+    assert metrics.latency_p95 < 6.0
+E   AssertionError: assert 6.244412183761597 < 6.0
+E    +  where 6.244412183761597 = PerformanceMetrics(operation_name='test', total_time=7.8069376945495605, throughput_ops_per_sec=64.045598871511, latency_p50=3.225750684738159, latency_p95=6.244412183761597, latency_p99=6.479317665100098, memory_mb_before=702.28515625, memory_mb_after=702.25, memory_mb_peak=702.28515625, memory_mb_delta=-0.03515625, cpu_percent_avg=1.4198, success_count=500, error_count=0, details={}).latency_p95
+---------------------------- Captured stdout call -----------------------------
+
+================================================================================
+Performance Metrics: async_ingest_500_entities
+================================================================================
+{
+  "operation": "async_ingest_500_entities",
+  "total_time_sec": 7.16,
+  "throughput_ops_per_sec": 69.83,
+  "latency_p50_ms": 3225.75,
+  "latency_p95_ms": 6244.41,
+  "latency_p99_ms": 6479.32,
+  "memory_mb_before": 702.29,
+  "memory_mb_after": 702.25,
+  "memory_mb_peak": 702.29,
+  "memory_mb_delta": -0.04,
+  "cpu_percent_avg": 1.42,
+  "success_count": 500,
+  "error_count": 0,
+  "details": {}
+}
+================================================================================
+
+_______________ TestPerformanceProfiler.test_profile_operation ________________
+tests\test_performance_benchmarking.py:49: in test_profile_operation
+    result = profiler.profile(
+E   TypeError: PerformanceProfiler.profile() got an unexpected keyword argument 'operation'
+============================== warnings summary ===============================
+tests/test_performance.py::TestIntegrationPerformance::test_roma_decomposition_performance
+  C:\Users\mmeadow\Documents\OpenEvolve\Frontend\tests\test_performance.py:974: RuntimeWarning: coroutine 'ROMAIntegration.decompose_problem' was never awaited
+    result = roma.decompose_problem(problem)
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_performance.py::TestIntegrationPerformance::test_roma_decomposition_performance
+  C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\python.py:166: RuntimeWarning: coroutine 'ROMAIntegration.decompose_problem' was never awaited
+    result = testfunction(**testargs)
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_performance.py::TestKnowledgeIngestion::test_ingest_100_entities - AssertionError: assert 28.740454204679285 > 50
+ +  where 28.740454204679285 = PerformanceMetrics(operation_name='test', total_time=3.4794161319732666, throughput_ops_per_sec=28.740454204679285, latency_p50=0.0, latency_p95=0.0010046958923339844, latency_p99=0.006015300750732422, memory_mb_before=692.234375, memory_mb_after=692.234375, memory_mb_peak=692.234375, memory_mb_delta=0.0, cpu_percent_avg=2.996, success_count=100, error_count=0, details={}).throughput_ops_per_sec
+FAILED tests/test_performance.py::TestConcurrencyPerformance::test_async_entity_ingestion - AssertionError: assert 6.244412183761597 < 6.0
+ +  where 6.244412183761597 = PerformanceMetrics(operation_name='test', total_time=7.8069376945495605, throughput_ops_per_sec=64.045598871511, latency_p50=3.225750684738159, latency_p95=6.244412183761597, latency_p99=6.479317665100098, memory_mb_before=702.28515625, memory_mb_after=702.25, memory_mb_peak=702.28515625, memory_mb_delta=-0.03515625, cpu_percent_avg=1.4198, success_count=500, error_count=0, details={}).latency_p95
+FAILED tests/test_performance_benchmarking.py::TestPerformanceProfiler::test_profile_operation - TypeError: PerformanceProfiler.profile() got an unexpected keyword argument 'operation'
+====== 3 failed, 130 passed, 32 skipped, 2 warnings in 632.58s (0:10:32) ======

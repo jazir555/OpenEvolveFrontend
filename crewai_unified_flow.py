@@ -425,13 +425,14 @@ class CrewAIUnifiedFlow:
 
         # Store result if persistence enabled
         if self.enable_persistence and self.state_manager:
-            workflow_id = result.get('workflow_id', f"workflow_{datetime.now().timestamp()}")
+            workflow_id = result.get('workflow_id', f"workflow_{int(datetime.now().timestamp())}")
             from crewai_state_management import WorkflowState
             state = WorkflowState(
+                workflow_id=workflow_id,
+                problem_statement=problem_statement,
                 phase=1,
                 status="completed",
                 execution_method=execution_method,
-                problem_statement=problem_statement,
                 metadata=result
             )
             self.state_manager.save_state(workflow_id, state)
@@ -442,7 +443,7 @@ class CrewAIUnifiedFlow:
 
     # Note: In a full CrewAI event-driven implementation, this would use @listen decorator
     # For now, this method should be called manually after phase_1_setup completes
-    def phase_2_solve(
+    async def phase_2_solve(
         self,
         phase_1_result: Dict[str, Any],
         team_name: Optional[str] = None,
@@ -540,7 +541,7 @@ class CrewAIUnifiedFlow:
 
         # Fallback to traditional
         if DECOMPOSITION_BRIDGE_AVAILABLE and decomposition_phase_2_solve:
-            result = decomposition_phase_2_solve(
+            result = await decomposition_phase_2_solve(
                 decomposition_plan=decomposition_plan,
                 team_name=team_name,
                 solve_subset=solve_subset,
@@ -1063,7 +1064,7 @@ class CrewAIUnifiedFlow:
         logger.info("  Routing to Traditional (simple task)")
         return ExecutionMethod.TRADITIONAL
 
-    def execute_full_workflow(
+    async def execute_full_workflow(
         self,
         problem_statement: str,
         execution_method: ExecutionMethod = ExecutionMethod.AUTO,
@@ -1087,13 +1088,13 @@ class CrewAIUnifiedFlow:
         )
 
         # Phase 2: Solve
-        phase2_result = self.phase_2_solve(
+        phase2_result = await self.phase_2_solve(
             phase_1_result=phase1_result,
             **kwargs
         )
 
         # Phase 3: Critique
-        phase3_result = self.phase_3_critique(
+        phase3_result = await self.phase_3_critique(
             phase_2_result=phase2_result,
             execution_method=selected_method,
             problem_statement=problem_statement,
@@ -1101,7 +1102,7 @@ class CrewAIUnifiedFlow:
         )
 
         # Phase 4: Verify
-        phase4_result = self.phase_4_verify(
+        phase4_result = await self.phase_4_verify(
             phase_2_result=phase2_result,
             critiques=phase3_result,
             execution_method=selected_method,
@@ -1109,7 +1110,7 @@ class CrewAIUnifiedFlow:
         )
 
         # Phase 5: Reassemble
-        phase5_result = self.phase_5_reassemble(
+        phase5_result = await self.phase_5_reassemble(
             phase_2_result=phase2_result,
             problem_statement=problem_statement,
             execution_method=selected_method,
@@ -1117,7 +1118,7 @@ class CrewAIUnifiedFlow:
         )
 
         # Phase 6: Final validation
-        phase6_result = self.phase_6_final_validation(
+        phase6_result = await self.phase_6_final_validation(
             final_solution=phase5_result.get("final_solution", ""),
             problem_statement=problem_statement,
             execution_method=selected_method,

@@ -54,9 +54,9 @@ class TestBubblelabsExtendedIntegration:
         assert bubblelabs_extended_integration is not None
 
     def test_bubblelabs_extended_integration_has_class(self):
-        """Test bubblelabs_extended_integration has ExtendedIntegration class"""
-        from bubblelabs_extended_integration import ExtendedIntegration
-        assert ExtendedIntegration is not None
+        """Test bubblelabs_extended_integration has BubbleLabsExtendedIntegration class"""
+        from bubblelabs_extended_integration import BubbleLabsExtendedIntegration
+        assert BubbleLabsExtendedIntegration is not None
 
 
 class TestBubblelabsGauntletBubbles:
@@ -68,9 +68,9 @@ class TestBubblelabsGauntletBubbles:
         assert bubblelabs_gauntlet_bubbles is not None
 
     def test_bubblelabs_gauntlet_bubbles_has_class(self):
-        """Test bubblelabs_gauntlet_bubbles has GauntletBubbles class"""
-        from bubblelabs_gauntlet_bubbles import GauntletBubbles
-        assert GauntletBubbles is not None
+        """Test bubblelabs_gauntlet_bubbles has FlexibleWorkflowBuilder class"""
+        from bubblelabs_gauntlet_bubbles import FlexibleWorkflowBuilder
+        assert FlexibleWorkflowBuilder is not None
 
 
 class TestBubblelabsKnowledgeIntegration:
@@ -82,9 +82,9 @@ class TestBubblelabsKnowledgeIntegration:
         assert bubblelabs_knowledge_integration is not None
 
     def test_bubblelabs_knowledge_integration_has_class(self):
-        """Test bubblelabs_knowledge_integration has KnowledgeIntegration class"""
-        from bubblelabs_knowledge_integration import KnowledgeIntegration
-        assert KnowledgeIntegration is not None
+        """Test bubblelabs_knowledge_integration has BubbleLabsKnowledgeUI class"""
+        from bubblelabs_knowledge_integration import BubbleLabsKnowledgeUI
+        assert BubbleLabsKnowledgeUI is not None
 
 
 class TestBubblelabsLeanaideIntegration:
@@ -96,9 +96,9 @@ class TestBubblelabsLeanaideIntegration:
         assert bubblelabs_leanaide_integration is not None
 
     def test_bubblelabs_leanaide_integration_has_class(self):
-        """Test bubblelabs_leanaide_integration has LeanAideIntegration class"""
-        from bubblelabs_leanaide_integration import LeanAideIntegration
-        assert LeanAideIntegration is not None
+        """Test bubblelabs_leanaide_integration has LeanAideIntegrationBridge class"""
+        from bubblelabs_leanaide_integration import LeanAideIntegrationBridge
+        assert LeanAideIntegrationBridge is not None
 
 
 class TestBubblelabsMcpTools:
@@ -109,10 +109,10 @@ class TestBubblelabsMcpTools:
         import bubblelabs_mcp_tools
         assert bubblelabs_mcp_tools is not None
 
-    def test_bubblelabs_mcp_tools_has_class(self):
-        """Test bubblelabs_mcp_tools has McpTools class"""
-        from bubblelabs_mcp_tools import BubbleLabsMcpTools
-        assert BubbleLabsMcpTools is not None
+    def test_bubblelabs_mcp_tools_has_function(self):
+        """Test bubblelabs_mcp_tools has mcp_tool function"""
+        from bubblelabs_mcp_tools import mcp_tool
+        assert mcp_tool is not None
 
 
 class TestBubblelabsSecurity:
@@ -152,9 +152,9 @@ class TestBubblelabsPluginSystem:
         assert bubblelabs_plugin_system is not None
 
     def test_bubblelabs_plugin_system_has_class(self):
-        """Test bubblelabs_plugin_system has PluginSystem class"""
-        from bubblelabs_plugin_system import PluginSystem
-        assert PluginSystem is not None
+        """Test bubblelabs_plugin_system has PluginRegistry class"""
+        from bubblelabs_plugin_system import PluginRegistry
+        assert PluginRegistry is not None
 
 
 class TestBubblelabsMakerIntegration:
@@ -166,9 +166,9 @@ class TestBubblelabsMakerIntegration:
         assert bubblelabs_maker_integration is not None
 
     def test_bubblelabs_maker_integration_has_class(self):
-        """Test bubblelabs_maker_integration has MakerIntegration class"""
-        from bubblelabs_maker_integration import MakerIntegration
-        assert MakerIntegration is not None
+        """Test bubblelabs_maker_integration has BubbleLabsMakerUI class"""
+        from bubblelabs_maker_integration import BubbleLabsMakerUI
+        assert BubbleLabsMakerUI is not None
 
 
 class TestCollaboration:
@@ -180,9 +180,9 @@ class TestCollaboration:
         assert collaboration is not None
 
     def test_collaboration_has_class(self):
-        """Test collaboration has Collaboration class"""
-        from collaboration import Collaboration
-        assert Collaboration is not None
+        """Test collaboration has CollaborationServer class"""
+        from collaboration import CollaborationServer
+        assert CollaborationServer is not None
 
 
 class TestCollaborationManager:

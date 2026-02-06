@@ -126,7 +126,7 @@ class CrewAIHub:
                 )
             else:
                 # Otherwise, use the unified flow
-                result = self.unified_flow.execute_full_workflow(
+                result = await self.unified_flow.execute_full_workflow(
                     problem_statement=problem_statement,
                     execution_method=execution_method
                 )

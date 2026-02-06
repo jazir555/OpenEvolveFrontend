@@ -418,7 +418,10 @@ class TestNeuromancerDynamicsModelerPrediction:
     def test_predict_dynamics_success(self, neuromancer_modeler, sample_initial_state, mock_neuromancer):
         """Test successful dynamics prediction."""
         # First train a model
-        with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+        mock_neuromancer_module = MagicMock()
+        mock_neuromancer_module.blocks = mock_neuromancer['modules'].blocks
+
+        with patch.dict('sys.modules', {'neuromancer.modules.blocks': mock_neuromancer_module.blocks}):
             train_result = neuromancer_modeler.train_neural_ode(
                 np.random.randn(50, 3),
                 np.linspace(0, 5, 50)
@@ -458,7 +461,10 @@ class TestNeuromancerDynamicsModelerPrediction:
     def test_predict_dynamics_different_horizons(self, neuromancer_modeler, sample_initial_state, mock_neuromancer):
         """Test prediction with different time horizons."""
         # Train a model
-        with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+        mock_neuromancer_module = MagicMock()
+        mock_neuromancer_module.blocks = mock_neuromancer['modules'].blocks
+
+        with patch.dict('sys.modules', {'neuromancer.modules.blocks': mock_neuromancer_module.blocks}):
             train_result = neuromancer_modeler.train_neural_ode(
                 np.random.randn(50, 3),
                 np.linspace(0, 5, 50)
@@ -746,7 +752,10 @@ class TestNeuromancerDynamicsModelerUtilities:
     def test_get_available_models_with_trained_models(self, neuromancer_modeler, sample_time_series_data, mock_neuromancer):
         """Test getting available models after training."""
         # Train two models
-        with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+        mock_neuromancer_module = MagicMock()
+        mock_neuromancer_module.blocks = mock_neuromancer['modules'].blocks
+
+        with patch.dict('sys.modules', {'neuromancer.modules.blocks': mock_neuromancer_module.blocks}):
             result1 = neuromancer_modeler.train_neural_ode(
                 sample_time_series_data['data'],
                 sample_time_series_data['time_points']
@@ -779,7 +788,10 @@ class TestNeuromancerDynamicsModelerUtilities:
 
     def test_get_status_with_models(self, neuromancer_modeler, sample_time_series_data, mock_neuromancer):
         """Test status after training models."""
-        with patch('knowledge_engine.integrations.neuromancer_integration.blocks', mock_neuromancer['modules'].blocks):
+        mock_neuromancer_module = MagicMock()
+        mock_neuromancer_module.blocks = mock_neuromancer['modules'].blocks
+
+        with patch.dict('sys.modules', {'neuromancer.modules.blocks': mock_neuromancer_module.blocks}):
             neuromancer_modeler.train_neural_ode(
                 sample_time_series_data['data'],
                 sample_time_series_data['time_points']

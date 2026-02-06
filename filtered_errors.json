@@ -1,8 +1,0 @@
-[
-  {
-    "file": "projects to analyze\\pygraphistry\\demos\\demos_databases_apis\\databricks_pyspark\\graphistry-notebook-dashboard.py",
-    "error": "invalid syntax (<unknown>, line 25)",
-    "type": "syntax",
-    "line": 25
-  }
-]

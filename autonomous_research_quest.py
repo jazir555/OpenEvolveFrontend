@@ -109,15 +109,10 @@ class AutonomousResearchQuestOrchestrator:
             task = HierarchicalTask(
                 task_id=f"task_{correlation_id}",
                 title=f"Research-Quest Stage {stage_id}: {sop.title}",
-                description=f"Follow the SOP to complete the research stage.
-
-SOP Details:
-{sop.description}
-
-Tasks:
-" + 
-                            "
-".join([f"- {p.action}" for p in sop.protocols]),
+                description=(f"Follow the SOP to complete the research stage.\n\n"
+                           f"SOP Details:\n{sop.description}\n\n"
+                           f"Tasks:\n" + 
+                           "\n".join([f"- {p.action}" for p in sop.protocols])),
                 level=CrewLevel.MANAGER,
                 context={
                     "stage_id": stage_id,
@@ -209,30 +204,26 @@ Tasks:
 # =============================================================================
 
 async def demo_autonomous_research():
-    print("
-" + "="*80)
+    print("\n" + "="*80)
     print("DEMO: AUTONOMOUS RESEARCH-QUEST PIPELINE")
     print("="*80)
     
     orchestrator = AutonomousResearchQuestOrchestrator()
     question = "Investigate the feasibility of room-temperature superconducting graphene-piezoelectric composites."
     
-    print(f"Research Question: {question}
-")
+    print(f"Research Question: {question}\n")
     
     # Execute Stage 1: Initialization
     print(">>> Executing Stage 1: Initialization...")
     result = await orchestrator.execute_research_stage(question, 1)
     
     if result.success:
-        print(f"
-[SUCCESS] Stage 1 Completed.")
+        print(f"\n[SUCCESS] Stage 1 Completed.")
         print(f"SOP Length: {len(result.sop_markdown)} characters")
         print(f"Findings Summary: {result.execution_output.get('final_result', {}).get('summary', 'N/A')}")
         print(f"Duration: {result.metrics['duration_seconds']:.2f}s")
     else:
-        print(f"
-[FAILED] Stage 1 Error: {result.execution_output.get('error')}")
+        print(f"\n[FAILED] Stage 1 Error: {result.execution_output.get('error')}")
 
 if __name__ == "__main__":
     asyncio.run(demo_autonomous_research())

@@ -382,30 +382,28 @@ class TestMCPGatewayIntegrationInitialization:
         with patch_mcp_gateway() as mock_gateway_class:
             mock_gateway_instance = AsyncMock()
             mock_gateway_instance.is_initialized = True
-            mock_gateway_instance.initialize = AsyncMock(return_value=True)
+            mock_gateway_instance.initialize = AsyncMock(return_value=None)
             mock_gateway_instance.tool_registry = Mock()
             mock_gateway_instance.tool_router = Mock()
 
             mock_gateway_class.return_value = mock_gateway_instance
 
-            # Patch the actual import location
-            with patch('knowledge_engine.integrations.mcp_gateway_integration.asyncio.run', return_value=None):
-                integration = MCPGatewayIntegration(config={})
+            integration = MCPGatewayIntegration(config={})
 
             assert integration.unified_gateway is not None
 
     def test_initialize_components_import_error(self):
         """Test component initialization with import error (mock mode)."""
-        # Patch the import at the module level
-        with patch('knowledge_engine.optional_imports.create_failing_mock') as mock_create:
-            mock_failing_class = Mock()
-            mock_create.return_value = mock_failing_class
+        # Force ImportError when importing from mcp.gateway
+        def import_error(name, *args, **kwargs):
+            if 'mcp.gateway' in name or 'mcp.gateway.unified_mcp_gateway' in name:
+                raise ImportError("mcp-gateway not installed")
+            return __import__(name, *args, **kwargs)
 
-            # Force ImportError when importing from mcp
-            with patch('knowledge_engine.integrations.mcp_gateway_integration.UnifiedMCPGateway', side_effect=ImportError("mcp-gateway not installed")):
-                integration = MCPGatewayIntegration(config={})
+        with patch('builtins.__import__', side_effect=import_error):
+            integration = MCPGatewayIntegration(config={})
 
-            assert integration.unified_gateway is None
+        assert integration.unified_gateway is None
 
 
 # =============================================================================

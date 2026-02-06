@@ -64,10 +64,9 @@ def sample_subproblem():
     return EnhancedSubproblem(
         subproblem_id="sub_001",
         problem="Implement authentication",
-        context={"domain": "security"},
-        reasoning_chain=["Step 1", "Step 2"],
-        confidence=0.9,
-        metadata={}
+        depth=1,
+        is_atomic=True,
+        metadata={"domain": "security"}
     )
 
 
@@ -79,8 +78,10 @@ def sample_reasoning_trace():
 
     return ReasoningTrace(
         trace_id="trace_001",
-        problem="Design system",
-        steps=[],
+        subproblem_id="sub_001",
+        steps=["Step 1", "Step 2"],
+        confidence=0.9,
+        intermediate_conclusions=["Conclusion 1"],
         metadata={}
     )
 
@@ -100,7 +101,14 @@ def roma_dspy_integration():
     if not ROMA_DSPY_AVAILABLE:
         pytest.skip("ROMA-DSPy not available")
 
-    return ROMADSPyIntegration()
+    # Create mock integrations
+    mock_roma = Mock()
+    mock_dspy = Mock()
+
+    return ROMADSPyIntegration(
+        roma_integration=mock_roma,
+        dspy_integration=mock_dspy
+    )
 
 
 # =============================================================================
@@ -115,7 +123,13 @@ class TestROMADSPyInitialization:
         if not ROMA_DSPY_AVAILABLE:
             pytest.skip("ROMA-DSPy not available")
 
-        integration = ROMADSPyIntegration()
+        mock_roma = Mock()
+        mock_dspy = Mock()
+
+        integration = ROMADSPyIntegration(
+            roma_integration=mock_roma,
+            dspy_integration=mock_dspy
+        )
 
         assert integration is not None
         assert hasattr(integration, 'config')
@@ -126,7 +140,14 @@ class TestROMADSPyInitialization:
             pytest.skip("ROMA-DSPy not available")
 
         config = {"max_steps": 10, "confidence_threshold": 0.8}
-        integration = ROMADSPyIntegration(config=config)
+        mock_roma = Mock()
+        mock_dspy = Mock()
+
+        integration = ROMADSPyIntegration(
+            roma_integration=mock_roma,
+            dspy_integration=mock_dspy,
+            config=config
+        )
 
         assert integration.config["max_steps"] == 10
 
