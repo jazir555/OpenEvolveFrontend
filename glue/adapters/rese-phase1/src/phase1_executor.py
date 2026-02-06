@@ -44,6 +44,19 @@ except ImportError:
     SCE_AVAILABLE = False
     SymbolicConstraintEngine = None
 
+# Try to import CAV-NLP for enhanced formalization
+try:
+    from openevolve.cav_nlp_integration import Z3LeanAideBridge
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    try:
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
+        from openevolve.cav_nlp_integration import Z3LeanAideBridge
+        CAV_NLP_AVAILABLE = True
+    except ImportError:
+        CAV_NLP_AVAILABLE = False
+        Z3LeanAideBridge = None
+
 # ============================================================================
 # CONFIGURATION (Law of Configuration Explicitness)
 # ============================================================================
@@ -593,6 +606,26 @@ class EpistemicAuditExecutor:
                     error=str(e),
                 )
 
+        # Initialize CAV-NLP bridge for enhanced formalization
+        self.cav_nlp_bridge = None
+        self.use_cav_nlp = os.getenv('PHASE1_USE_CAV_NLP', 'false').lower() == 'true'
+        if self.use_cav_nlp and CAV_NLP_AVAILABLE:
+            try:
+                self.cav_nlp_bridge = Z3LeanAideBridge()
+                self.logger.info("CAV-NLP bridge initialized for Phase 1",
+                    cav_nlp_available=True,
+                )
+            except Exception as e:
+                self.logger.warn("Failed to initialize CAV-NLP bridge",
+                    error=str(e),
+                )
+        else:
+            self.use_cav_nlp = False
+            self.logger.info("CAV-NLP disabled for Phase 1",
+                cav_nlp_available=CAV_NLP_AVAILABLE,
+                use_cav_nlp=self.use_cav_nlp,
+            )
+
         self.logger.info("EpistemicAuditExecutor initialized",
             max_assumptions=self.config.MAX_ASSUMPTIONS,
             max_constraints=self.config.MAX_CONSTRAINTS,
@@ -951,6 +984,122 @@ class EpistemicAuditExecutor:
             'circuit_breaker': self.circuit_breaker.get_stats(),
             'dlq_size': self.dlq.size(),
         }
+
+    # ========================================================================
+    # CAV-NLP ENHANCED EXECUTION METHODS
+    # ========================================================================
+
+    async def execute_with_cav_nlp(
+        self,
+        task_description: str,
+        failure_patterns: List[Dict[str, Any]],
+        correlation_id: Optional[str] = None,
+    ) -> EpistemicAuditResult:
+        """Execute Phase I with CAV-NLP enhanced formalization
+
+        Formalizes task description using CAV-NLP before performing
+        the epistemic audit. This provides enhanced constraint extraction
+        and formalization of natural language problem descriptions.
+
+        Args:
+            task_description: Natural language task description
+            failure_patterns: Patterns of failure for tacit assumption mining
+            correlation_id: Distributed tracing correlation ID
+
+        Returns:
+            EpistemicAuditResult with CAV-NLP enhanced formalization
+        """
+        correlation_id = correlation_id or str(uuid.uuid4())
+
+        self.logger.info("Starting Phase I with CAV-NLP enhancement",
+            correlation_id=correlation_id,
+            use_cav_nlp=self.use_cav_nlp,
+        )
+
+        if not self.use_cav_nlp or self.cav_nlp_bridge is None:
+            self.logger.info("CAV-NLP not available, falling back to standard execution",
+                correlation_id=correlation_id,
+            )
+            return await self.perform_audit(
+                problem_description=task_description,
+                failure_patterns=failure_patterns,
+                correlation_id=correlation_id,
+            )
+
+        try:
+            # Step 1: Formalize task description using CAV-NLP
+            self.logger.info("Formalizing task description with CAV-NLP",
+                correlation_id=correlation_id,
+            )
+
+            # Use CAV-NLP to canonicalize and formalize the problem
+            canonical_result = self.cav_nlp_bridge._canonicalize_text(task_description)
+
+            # Extract formalized description
+            formalized_description = task_description
+            if hasattr(canonical_result, 'canonical_form'):
+                formalized_description = canonical_result.canonical_form
+            elif hasattr(canonical_result, 'dag') and canonical_result.dag is not None:
+                # Convert DAG back to formalized text
+                formalized_description = self._dag_to_formal_text(canonical_result.dag)
+
+            self.logger.info("Task formalization complete",
+                correlation_id=correlation_id,
+                formalized_length=len(formalized_description),
+            )
+
+            # Step 2: Perform standard audit with formalized description
+            result = await self.perform_audit(
+                problem_description=formalized_description,
+                failure_patterns=failure_patterns,
+                correlation_id=correlation_id,
+            )
+
+            # Step 3: Enhance result with CAV-NLP metadata
+            result.metadata['cav_nlp_enhanced'] = True
+            result.metadata['original_description'] = task_description
+            result.metadata['formalization_verified'] = (
+                canonical_result.is_valid if hasattr(canonical_result, 'is_valid') else None
+            )
+
+            self.logger.info("Phase I with CAV-NLP completed",
+                correlation_id=correlation_id,
+                audit_id=result.audit_id,
+                formalization_verified=result.metadata.get('formalization_verified'),
+            )
+
+            return result
+
+        except Exception as e:
+            self.logger.error("CAV-NLP enhancement failed, falling back to standard",
+                correlation_id=correlation_id,
+                error=str(e),
+            )
+            # Fallback to standard execution
+            return await self.perform_audit(
+                problem_description=task_description,
+                failure_patterns=failure_patterns,
+                correlation_id=correlation_id,
+            )
+
+    def _dag_to_formal_text(self, dag: Any) -> str:
+        """Convert CAV-NLP DAG to formalized text representation"""
+        if dag is None:
+            return ""
+
+        formal_parts = []
+
+        try:
+            if hasattr(dag, 'nodes'):
+                for node_id, node in dag.nodes.items():
+                    if hasattr(node, 'text'):
+                        formal_parts.append(node.text)
+                    elif hasattr(node, 'formula'):
+                        formal_parts.append(node.formula)
+        except Exception as e:
+            self.logger.warn("Failed to convert DAG to text", error=str(e))
+
+        return "; ".join(formal_parts) if formal_parts else ""
 
 
 # ============================================================================

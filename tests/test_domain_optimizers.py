@@ -259,7 +259,7 @@ class TestEngineeringOptimizer(unittest.TestCase):
             
             optimizer = CircuitOptimizer()
             result = optimizer.optimize_circuit(
-                spec': 20={'gain, 'bandwidth': 1e6},
+                spec={'gain': 20, 'bandwidth': 1e6},
                 constraints={'power': 1, 'area': 10}
             )
             

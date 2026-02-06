@@ -57,9 +57,11 @@ class Z3AutoExtractionManager:
     
     Can be enabled/disabled globally and provides hooks for
     various Z3 solver operations.
+    
+    Supports CAV-NLP enhanced extraction.
     """
     
-    def __init__(self):
+    def __init__(self, config: Optional[Dict] = None):
         self.enabled = False
         self.extraction_hook: Optional[Z3KnowledgeExtractionHook] = None
         self._integration: Optional[Z3KnowledgeIntegration] = None
@@ -67,8 +69,22 @@ class Z3AutoExtractionManager:
         self.stats = {
             "extractions_triggered": 0,
             "extractions_successful": 0,
-            "extractions_failed": 0
+            "extractions_failed": 0,
+            "cav_nlp_extractions": 0
         }
+        # CAV-NLP configuration
+        self.config = config or {}
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        self.math_service = None
+        self.enhanced_solver = None
+        if self.use_cav_nlp:
+            try:
+                self.math_service = UnifiedMathService()
+                self.enhanced_solver = EnhancedZ3Solver()
+                logger.info("CAV-NLP enhanced auto-extraction initialized")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP: {e}")
+                self.use_cav_nlp = False
     
     async def initialize(self):
         """Initialize the auto-extraction system."""
@@ -122,9 +138,36 @@ class Z3AutoExtractionManager:
             )
             self.stats["extractions_successful"] += 1
             
+            # CAV-NLP enhanced extraction
+            if self.use_cav_nlp and self.math_service:
+                try:
+                    formalized = self.math_service.formalize(problem)
+                    self.stats["cav_nlp_extractions"] += 1
+                    logger.debug(f"CAV-NLP formalized problem: {formalized}")
+                except Exception as e:
+                    logger.debug(f"CAV-NLP extraction skipped: {e}")
+            
         except Exception as e:
             self.stats["extractions_failed"] += 1
             logger.error(f"Auto-extraction failed: {e}")
+    
+    async def extract_with_cav_nlp(self, text: str) -> Dict[str, Any]:
+        """Extract knowledge using CAV-NLP enhancement."""
+        if not self.use_cav_nlp or not self.math_service:
+            return {"error": "CAV-NLP not available"}
+        
+        try:
+            formalized = self.math_service.formalize(text)
+            self.stats["cav_nlp_extractions"] += 1
+            return {
+                "success": True,
+                "formalized": getattr(formalized, 'code', str(formalized)),
+                "language": getattr(formalized, 'language', 'unknown'),
+                "confidence": getattr(formalized, 'confidence', 0.0)
+            }
+        except Exception as e:
+            logger.error(f"CAV-NLP extraction failed: {e}")
+            return {"error": str(e)}
     
     def get_stats(self) -> Dict[str, Any]:
         """Get extraction statistics."""

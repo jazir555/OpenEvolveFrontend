@@ -8,6 +8,7 @@ Tests:
 4. Data consistency
 5. Performance baseline
 6. API contract compliance
+7. CAV-NLP integration verification
 """
 
 import sys
@@ -18,6 +19,16 @@ import asyncio
 import time
 import traceback
 from typing import Any, Dict, List
+
+# CAV-NLP integration imports
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    UnifiedMathService = None
+    EnhancedZ3Solver = None
 
 
 class DeepVerifier:

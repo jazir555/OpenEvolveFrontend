@@ -1,5 +1,5 @@
 import asyncio
-from ui_shim import ui as st # Import streamlit to access session_state
+from ui_shim import ui as st  # UI shim for session_state access
 
 
 class NotificationManager:

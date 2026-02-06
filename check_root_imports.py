@@ -70,7 +70,7 @@ def check_file(filepath: Path) -> List[Dict]:
                 'string', 'secrets', 'gc', 'tracemalloc', 'weakref', 'pickle',
                 'sqlite3', 'statistics', 'decimal', 'fractions', 'itertools',
                 'asyncio', 'concurrent', 'unittest', 'test',
-                'numpy', 'pandas', 'plotly', 'requests', 'streamlit',
+                'numpy', 'pandas', 'plotly', 'requests',
                 'fastapi', 'uvicorn', 'pydantic', 'click', 'typer',
                 'aiohttp', 'PIL', 'cv2', 'torch', 'tensorflow',
                 'sklearn', 'scipy', 'matplotlib', 'networkx',

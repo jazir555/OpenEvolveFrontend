@@ -193,7 +193,7 @@ def check_file_for_broken_imports(filepath: Path) -> List[Dict]:
                 'enum', 'contextlib', 'queue', 'multiprocessing', 'math', 'random',
                 'string', 'secrets', 'gc', 'tracemalloc', 'weakref', 'pickle',
                 'sqlite3', 'statistics', 'decimal', 'fractions', 'itertools',
-                'numpy', 'pandas', 'plotly', 'requests', 'streamlit', 'fastapi',
+                'numpy', 'pandas', 'plotly', 'requests', 'fastapi',
                 'uvicorn', 'pydantic', 'click', 'typer', 'aiohttp', 'asyncio',
                 'concurrent', 'unittest', 'pytest', 'PIL', 'cv2', 'torch',
                 'tensorflow', 'sklearn', 'scipy', 'matplotlib', 'networkx',

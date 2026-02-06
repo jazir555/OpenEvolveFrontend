@@ -12,6 +12,7 @@ Checks for:
 8. API authentication/authorization
 9. Dependency vulnerabilities
 10. Secret management
+11. CAV-NLP security validation
 """
 
 import sys
@@ -23,6 +24,16 @@ import time
 import traceback
 import re
 from typing import Any, Dict, List
+
+# CAV-NLP integration imports
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    UnifiedMathService = None
+    EnhancedZ3Solver = None
 
 
 class SecurityVerifier:

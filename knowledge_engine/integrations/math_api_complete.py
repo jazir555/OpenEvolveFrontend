@@ -6,6 +6,7 @@ Provides endpoints for:
 - Lean proving
 - Unified solving
 - Knowledge management
+- CAV-NLP enhanced operations
 
 Author: OpenEvolve
 Created: 2026-01-31
@@ -21,6 +22,16 @@ from contextlib import asynccontextmanager
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+# CAV-NLP integration imports
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    UnifiedMathService = None
+    EnhancedZ3Solver = None
 
 # FastAPI imports
 try:

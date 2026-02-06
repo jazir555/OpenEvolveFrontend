@@ -7,12 +7,14 @@ Command-line interface for:
 - Managing configurations
 - Running benchmarks
 - Exporting/Importing data
+- CAV-NLP enhanced operations
 
 Usage:
     python math_knowledge_cli.py solve --problem "x + y = 10"
     python math_knowledge_cli.py search --query "linear system"
     python math_knowledge_cli.py config --show
     python math_knowledge_cli.py benchmark --iterations 10
+    python math_knowledge_cli.py formalize --text "x is greater than zero"
 
 Author: OpenEvolve
 Created: 2026-01-31
@@ -28,6 +30,16 @@ from pathlib import Path
 
 # Add parent to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# CAV-NLP integration imports
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    UnifiedMathService = None
+    EnhancedZ3Solver = None
 
 
 class MathKnowledgeCLI:

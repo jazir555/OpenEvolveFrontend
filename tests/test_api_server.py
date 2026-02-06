@@ -189,45 +189,40 @@ class TestKnowledgeExplorer:
         assert isinstance(KNOWLEDGE_EXPLORER_AVAILABLE, bool)
 
 
-class TestStreamlitPatching:
-    """Test Streamlit patching functionality"""
+class TestUIContext:
+    """Test UI context wiring"""
 
-    def test_patch_streamlit_function_exists(self):
-        """Test _patch_streamlit function exists"""
-        from api_server import _patch_streamlit
-        assert callable(_patch_streamlit)
+    def test_attach_ui_function_exists(self):
+        """Test _attach_ui function exists"""
+        from api_server import _attach_ui
+        assert callable(_attach_ui)
 
-    def test_attach_streamlit_function_exists(self):
-        """Test _attach_streamlit function exists"""
-        from api_server import _attach_streamlit
-        assert callable(_attach_streamlit)
-
-    def test_noop_streamlit_class_exists(self):
-        """Test _NoOpStreamlit class exists"""
-        from api_server import _NoOpStreamlit
-        assert _NoOpStreamlit is not None
+    def test_run_ui_context_class_exists(self):
+        """Test _RunUIContext class exists"""
+        from api_server import _RunUIContext
+        assert _RunUIContext is not None
 
 
 class TestSessionState:
     """Test session state functionality"""
 
     def test_session_state_class_exists(self):
-        """Test _SessionState class exists"""
-        from api_server import _SessionState
-        assert _SessionState is not None
+        """Test SessionState class exists"""
+        from ui_shim import SessionState
+        assert SessionState is not None
 
     def test_session_state_dict_behavior(self):
-        """Test _SessionState behaves like dict"""
-        from api_server import _SessionState
-        state = _SessionState()
+        """Test SessionState behaves like dict"""
+        from ui_shim import SessionState
+        state = SessionState()
         state["key"] = "value"
         assert state["key"] == "value"
         assert state.get("key") == "value"
 
     def test_session_state_attribute_access(self):
-        """Test _SessionState supports attribute access"""
-        from api_server import _SessionState
-        state = _SessionState()
+        """Test SessionState supports attribute access"""
+        from ui_shim import SessionState
+        state = SessionState()
         state.test_attr = "test_value"
         assert state.test_attr == "test_value"
 

@@ -139,6 +139,49 @@ else:
 _z3_integration: Optional[Z3KnowledgeIntegration] = None
 
 
+class CAVNLPEnhancedAPI:
+    """CAV-NLP enhanced API operations."""
+    
+    def __init__(self, config: Optional[Dict] = None):
+        self.config = config or {}
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            self.math_service = UnifiedMathService()
+            self.enhanced_solver = EnhancedZ3Solver()
+            logger.info("CAV-NLP enhanced API initialized")
+    
+    async def formalize_text(self, text: str) -> Dict[str, Any]:
+        """Formalize natural language text using CAV-NLP."""
+        if not self.use_cav_nlp:
+            return {"error": "CAV-NLP not available"}
+        try:
+            formalized = self.math_service.formalize(text)
+            return {
+                "success": True,
+                "original": text,
+                "formalized_code": getattr(formalized, 'code', str(formalized)),
+                "language": getattr(formalized, 'language', 'unknown')
+            }
+        except Exception as e:
+            logger.error(f"CAV-NLP formalization failed: {e}")
+            return {"error": str(e)}
+    
+    async def extract_with_cav_nlp(self, text: str) -> Dict[str, Any]:
+        """Extract knowledge using CAV-NLP."""
+        if not self.use_cav_nlp:
+            return {"error": "CAV-NLP not available"}
+        try:
+            formalized = self.math_service.formalize(text)
+            return {
+                "success": True,
+                "formalized": getattr(formalized, 'code', str(formalized)),
+                "patterns": []
+            }
+        except Exception as e:
+            logger.error(f"CAV-NLP extraction failed: {e}")
+            return {"error": str(e)}
+
+
 async def get_integration() -> Z3KnowledgeIntegration:
     """Get or initialize Z3 knowledge integration."""
     global _z3_integration

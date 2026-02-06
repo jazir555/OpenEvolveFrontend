@@ -1231,6 +1231,27 @@ class IsomorphicMappingExecutor:
         # Circuit breaker for failure detection
         self.circuit_breaker = self._create_circuit_breaker()
 
+        # Initialize CAV-NLP bridge for enhanced decomposition
+        self.cav_nlp_bridge = None
+        self.use_cav_nlp = os.getenv('PHASE2_USE_CAV_NLP', 'false').lower() == 'true'
+        if self.use_cav_nlp and CAV_NLP_AVAILABLE:
+            try:
+                self.cav_nlp_bridge = Z3LeanAideBridge()
+                self.logger.info("CAV-NLP bridge initialized for Phase 2",
+                    cav_nlp_available=True,
+                )
+            except Exception as e:
+                self.logger.error("Failed to initialize CAV-NLP bridge",
+                    error=str(e),
+                )
+                self.use_cav_nlp = False
+        else:
+            self.use_cav_nlp = False
+            self.logger.info("CAV-NLP disabled for Phase 2",
+                cav_nlp_available=CAV_NLP_AVAILABLE,
+                use_cav_nlp=self.use_cav_nlp,
+            )
+
         self.logger.info(
             "Phase II executor initialized",
             config=self.config.to_dict()
@@ -1435,6 +1456,125 @@ class IsomorphicMappingExecutor:
                 patterns.append(pattern)
 
         return patterns
+
+    # ========================================================================
+    # CAV-NLP ENHANCED DECOMPOSITION METHODS
+    # ========================================================================
+
+    def decompose_with_cav_nlp(
+        self,
+        problem: str,
+        target_domains: Optional[List[str]] = None,
+        constraints: Optional[List[str]] = None,
+        context: Optional[Dict[str, Any]] = None
+    ) -> IsomorphicMappingResult:
+        """Decompose problem using CAV-NLP enhanced decomposition
+
+        Uses CAV-NLP for enhanced decomposition by formalizing the natural
+        language problem description before applying isomorphic mapping.
+        This provides better constraint extraction and domain identification.
+
+        Args:
+            problem: Natural language problem description
+            target_domains: List of target domains to search (optional)
+            constraints: List of constraints to invert (optional)
+            context: Additional context (optional)
+
+        Returns:
+            IsomorphicMappingResult with CAV-NLP enhanced decomposition
+        """
+        correlation_id = self.config.correlation_id or str(uuid.uuid4())
+        self.logger.correlation_id = correlation_id
+
+        self.logger.info("Starting Phase II decomposition with CAV-NLP",
+            use_cav_nlp=self.use_cav_nlp,
+            problem_length=len(problem),
+        )
+
+        if not self.use_cav_nlp or self.cav_nlp_bridge is None:
+            self.logger.info("CAV-NLP not available, using standard decomposition")
+            return self.execute_phase2(
+                source_domain="general",
+                problem_description=problem,
+                target_domains=target_domains,
+                constraints=constraints,
+                context=context,
+            )
+
+        try:
+            # Step 1: Use CAV-NLP to formalize the problem
+            self.logger.info("Formalizing problem with CAV-NLP")
+
+            canonical_result = self.cav_nlp_bridge._canonicalize_text(problem)
+
+            # Extract formalized problem
+            formalized_problem = problem
+            if hasattr(canonical_result, 'canonical_form'):
+                formalized_problem = canonical_result.canonical_form
+            elif hasattr(canonical_result, 'dag') and canonical_result.dag is not None:
+                formalized_problem = self._dag_to_text(canonical_result.dag)
+
+            # Step 2: Extract additional constraints from CAV-NLP analysis
+            extracted_constraints = constraints or []
+            if hasattr(canonical_result, 'constraints'):
+                extracted_constraints.extend(canonical_result.constraints)
+
+            self.logger.info("Problem formalization complete",
+                formalized_length=len(formalized_problem),
+                extracted_constraints=len(extracted_constraints),
+            )
+
+            # Step 3: Perform standard Phase II with formalized problem
+            result = self.execute_phase2(
+                source_domain="general",
+                problem_description=formalized_problem,
+                target_domains=target_domains,
+                constraints=extracted_constraints,
+                context=context,
+            )
+
+            # Step 4: Enhance result with CAV-NLP metadata
+            result.cav_nlp_enhanced = True
+            result.original_problem = problem
+            result.formalization_metadata = {
+                'verified': canonical_result.is_valid if hasattr(canonical_result, 'is_valid') else None,
+                'dag_available': canonical_result.dag is not None if hasattr(canonical_result, 'dag') else False,
+            }
+
+            self.logger.info("Phase II with CAV-NLP completed",
+                mapping_count=len(result.mappings_found),
+                cav_nlp_enhanced=True,
+            )
+
+            return result
+
+        except Exception as e:
+            self.logger.error("CAV-NLP decomposition failed, falling back to standard",
+                error=str(e),
+            )
+            return self.execute_phase2(
+                source_domain="general",
+                problem_description=problem,
+                target_domains=target_domains,
+                constraints=constraints,
+                context=context,
+            )
+
+    def _dag_to_text(self, dag: Any) -> str:
+        """Convert CAV-NLP DAG to text representation"""
+        if dag is None:
+            return ""
+
+        parts = []
+        try:
+            if hasattr(dag, 'nodes'):
+                for node_id, node in dag.nodes.items():
+                    if hasattr(node, 'text'):
+                        parts.append(node.text)
+        except Exception as e:
+            self.logger.error("Failed to convert DAG to text", error=str(e))
+
+        return "; ".join(parts) if parts else ""
 
 
 # ============================================================================

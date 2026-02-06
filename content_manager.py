@@ -4,7 +4,7 @@ This file manages protocol templates, content validation, and related utilities
 File size: ~1200 lines (under the 2000 line limit)
 """
 
-from ui_shim import ui as st # Import streamlit to use st.cache_data
+from ui_shim import ui as st  # UI shim for st.cache_data
 from datetime import datetime
 import re
 import logging

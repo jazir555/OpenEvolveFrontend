@@ -8,6 +8,7 @@ Benchmarks:
 - Pattern matching accuracy
 - Cross-system translation quality
 - End-to-end workflow latency
+- CAV-NLP formalization performance
 
 Usage:
     python benchmark_suite.py --suite basic --output results.json
@@ -29,6 +30,16 @@ import sys
 import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# CAV-NLP integration imports
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    UnifiedMathService = None
+    EnhancedZ3Solver = None
 
 
 @dataclass

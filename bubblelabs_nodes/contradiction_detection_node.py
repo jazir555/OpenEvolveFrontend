@@ -174,6 +174,81 @@ class ContradictionDetectionNode(BubbleLabsNode):
             except Exception as e:
                 self.logger.warning(f"Could not initialize Z3 solver: {e}")
 
+    def detect_contradictions_with_cav_nlp(self, constraints: List[str]) -> List[Dict[str, Any]]:
+        """
+        Use CAV-NLP to formalize and detect contradictions.
+        
+        Args:
+            constraints: List of constraint strings to check
+            
+        Returns:
+            List of detected contradictions with formalized analysis
+        """
+        if not self.use_cav_nlp or not self.enhanced_solver:
+            self.logger.warning("CAV-NLP not available, falling back to standard detection")
+            return []
+        
+        try:
+            self.logger.info(f"Using CAV-NLP enhanced contradiction detection for {len(constraints)} constraints")
+            
+            # Use CAV-NLP to formalize constraints
+            formalized = []
+            for constraint in constraints:
+                try:
+                    formalized_constraint = self.enhanced_solver.formalize_constraint(constraint)
+                    formalized.append(formalized_constraint)
+                except Exception as e:
+                    self.logger.warning(f"Failed to formalize constraint '{constraint}': {e}")
+                    formalized.append(constraint)  # Keep original if formalization fails
+            
+            # Check for contradictions in formalized constraints
+            return self._check_contradictions(formalized)
+            
+        except Exception as e:
+            self.logger.error(f"CAV-NLP contradiction detection failed: {e}")
+            return []
+    
+    def _check_contradictions(self, formalized_constraints: List[Any]) -> List[Dict[str, Any]]:
+        """Check formalized constraints for contradictions."""
+        contradictions = []
+        
+        for i, c1 in enumerate(formalized_constraints):
+            for j, c2 in enumerate(formalized_constraints[i+1:], i+1):
+                # Check if constraints are logically opposite
+                if self._are_formalized_opposite(c1, c2):
+                    contradictions.append({
+                        'id': f"cav_nlp_{len(contradictions)}",
+                        'type': 'logical',
+                        'description': f"CAV-NLP detected contradiction between constraints {i} and {j}",
+                        'constraint_1': str(c1),
+                        'constraint_2': str(c2),
+                        'indices': [i, j],
+                        'detection_method': 'cav_nlp_formalization'
+                    })
+        
+        return contradictions
+    
+    def _are_formalized_opposite(self, c1: Any, c2: Any) -> bool:
+        """Check if two formalized constraints are logically opposite."""
+        # If both have code attributes (from CAV-NLP formalization)
+        if hasattr(c1, 'code') and hasattr(c2, 'code'):
+            # Check for direct negation patterns in the formalized code
+            code1 = str(c1.code).strip()
+            code2 = str(c2.code).strip()
+            
+            # Check for negation patterns
+            if code1.startswith('Not(') and code1[4:-1] == code2:
+                return True
+            if code2.startswith('Not(') and code2[4:-1] == code1:
+                return True
+            if code1.startswith('¬') and code1[1:] == code2:
+                return True
+            if code2.startswith('¬') and code2[1:] == code1:
+                return True
+        
+        # Fall back to string comparison
+        return self._are_logically_opposite(str(c1), str(c2))
+
     def validate_inputs(self, inputs: Dict) -> List[str]:
         """
         Validate input parameters based on operation type.

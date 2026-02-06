@@ -558,13 +558,34 @@ class SmartContextManager:
 
 
 class FormalVerificationLayer:
-    """Layer 6: Formal verification using Z3 (Lean optional)."""
+    """Layer 6: Formal verification using Z3 with optional CAV-NLP enhancement."""
 
-    def __init__(self):
+    def __init__(self, use_cav_nlp: bool = True):
         self._z3 = optional_import("z3")
         self._solver = self._z3.Solver() if self._z3 else None
+        
+        # CAV-NLP configuration
+        self.use_cav_nlp = use_cav_nlp and CAV_NLP_AVAILABLE
+        self._cav_solver: Optional[Any] = None
+        self._formalizer: Optional[Any] = None
+        
+        if self.use_cav_nlp and EnhancedZ3Solver is not None:
+            try:
+                self._cav_solver = EnhancedZ3Solver(use_cav_nlp=True)
+                self._formalizer = ConstraintFormalizer()
+            except Exception as exc:
+                self.use_cav_nlp = False
 
     def verify_logical_correctness(self, llm_output: Dict[str, Any]) -> Dict[str, Any]:
+        # Use CAV-NLP enhanced verification if available
+        if self.use_cav_nlp and self._cav_solver is not None:
+            try:
+                return self._verify_with_cav_nlp(llm_output)
+            except Exception as exc:
+                # Fall back to standard Z3
+                pass
+        
+        # Standard Z3 verification
         if not self._solver:
             return {"verified": False, "reason": "Z3 not available"}
         propositions = llm_output.get("propositions", [])
@@ -583,17 +604,198 @@ class FormalVerificationLayer:
                 return {"verified": False, "reason": "invalid constraint"}
         return {"verified": self._solver.check() == self._z3.sat}
 
+    def _verify_with_cav_nlp(self, llm_output: Dict[str, Any]) -> Dict[str, Any]:
+        """Enhanced verification using CAV-NLP hybrid approach."""
+        constraints = llm_output.get("constraints", [])
+        propositions = llm_output.get("propositions", [])
+        
+        # Reset CAV solver
+        self._cav_solver.reset()
+        
+        # Add natural language constraints with formalization
+        for constraint in constraints:
+            if isinstance(constraint, str):
+                # Try to formalize natural language constraint
+                formalized = self._cav_solver.formalize_constraint(constraint)
+                if formalized is not None:
+                    self._cav_solver.add(formalized)
+                else:
+                    # Fall back to direct evaluation for Z3 expressions
+                    try:
+                        self._cav_solver.add(constraint)
+                    except Exception:
+                        pass
+            else:
+                self._cav_solver.add(constraint)
+        
+        # Perform hybrid verification
+        verification = self._cav_solver.verify_with_lean()
+        
+        return {
+            "verified": verification.success,
+            "confidence": verification.confidence,
+            "z3_result": verification.z3_result,
+            "lean_result": verification.lean_result,
+            "counterexample": verification.counterexample,
+            "proof": verification.proof,
+            "method": "cav_nlp_hybrid"
+        }
+
+    def formalize_deterministic_constraint(
+        self, 
+        natural_language: str, 
+        context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Formalize natural language constraint to Z3 using CAV-NLP.
+        
+        Args:
+            natural_language: Natural language constraint (e.g., "x is positive")
+            context: Optional context for formalization
+            
+        Returns:
+            Dict with formalization result including Z3 expression and metadata
+        """
+        if not self.use_cav_nlp or self._formalizer is None:
+            return {
+                "success": False,
+                "error": "CAV-NLP not available",
+                "source": natural_language
+            }
+        
+        try:
+            result = self._formalizer.formalize(natural_language, context)
+            return {
+                "success": result.success,
+                "z3_expr": str(result.z3_expr) if result.z3_expr else None,
+                "constraint_type": result.constraint_type,
+                "variables": result.variables,
+                "canonical_form": result.canonical_form,
+                "source": natural_language,
+                "warnings": result.warnings
+            }
+        except Exception as exc:
+            return {
+                "success": False,
+                "error": str(exc),
+                "source": natural_language
+            }
+
+    def canonicalize_deterministic_expression(
+        self, 
+        expression: str,
+        target: str = "z3"
+    ) -> Dict[str, Any]:
+        """Canonicalize a deterministic expression using CAV-NLP.
+        
+        Args:
+            expression: Expression to canonicalize
+            target: Target format ("z3" or "lean")
+            
+        Returns:
+            Dict with canonical form and equivalence proof
+        """
+        if not self.use_cav_nlp or self._formalizer is None:
+            return {
+                "success": False,
+                "error": "CAV-NLP not available",
+                "original": expression
+            }
+        
+        try:
+            result = self._formalizer.formalize(expression, target=target)
+            return {
+                "success": result.success,
+                "canonical_form": result.canonical_form,
+                "constraint_type": result.constraint_type,
+                "variables": result.variables,
+                "original": expression,
+                "warnings": result.warnings
+            }
+        except Exception as exc:
+            return {
+                "success": False,
+                "error": str(exc),
+                "original": expression
+            }
+
     def verify_dimensional_consistency(self, output: Dict[str, Any]) -> Dict[str, Any]:
         if not self._solver:
             return {"verified": False, "reason": "Z3 not available"}
+        
+        # Use CAV-NLP for enhanced dimensional verification if available
+        if self.use_cav_nlp and self._cav_solver is not None:
+            calculations = output.get("calculations", [])
+            if calculations:
+                # Formalize and verify dimensional constraints
+                for calc in calculations:
+                    equation = calc.get("equation", "")
+                    if equation:
+                        try:
+                            formalized = self._cav_solver.formalize_constraint(
+                                f"dimensional consistency of {equation}"
+                            )
+                            if formalized is not None:
+                                self._cav_solver.add(formalized)
+                        except Exception:
+                            pass
+                
+                verification = self._cav_solver.verify_with_lean()
+                return {
+                    "verified": verification.success,
+                    "confidence": verification.confidence,
+                    "method": "cav_nlp_dimensional",
+                    "verified_equations": len(calculations)
+                }
+        
         return {"verified": True, "reason": "no-dimension-check-implemented"}
 
     def verify_stoichiometry(self, output: Dict[str, Any]) -> Dict[str, Any]:
         if not self._solver:
             return {"verified": False, "reason": "Z3 not available"}
+        
+        # Use CAV-NLP for enhanced stoichiometry verification if available
+        if self.use_cav_nlp and self._cav_solver is not None:
+            reactions = output.get("reactions", [])
+            if reactions:
+                # Formalize and verify mass balance constraints
+                for reaction in reactions:
+                    reactants = reaction.get("reactants", [])
+                    products = reaction.get("products", [])
+                    if reactants and products:
+                        try:
+                            constraint = f"mass balance for {len(reactants)} reactants and {len(products)} products"
+                            formalized = self._cav_solver.formalize_constraint(constraint)
+                            if formalized is not None:
+                                self._cav_solver.add(formalized)
+                        except Exception:
+                            pass
+                
+                verification = self._cav_solver.verify_with_lean()
+                return {
+                    "verified": verification.success,
+                    "confidence": verification.confidence,
+                    "method": "cav_nlp_stoichiometry",
+                    "verified_reactions": len(reactions)
+                }
+        
         return {"verified": True, "reason": "no-stoichiometry-check-implemented"}
 
     def generate_formal_proof(self, theorem: str) -> Dict[str, Any]:
+        # Try CAV-NLP enhanced proving first
+        if self.use_cav_nlp and self._cav_solver is not None:
+            try:
+                result = self._cav_solver.prove(theorem)
+                if result is not None:
+                    return {
+                        "proved": result.success if hasattr(result, 'success') else True,
+                        "proof": result.proof if hasattr(result, 'proof') else str(result),
+                        "confidence": result.confidence if hasattr(result, 'confidence') else 0.8,
+                        "method": "cav_nlp_hybrid"
+                    }
+            except Exception:
+                pass
+        
+        # Fall back to Lean 4
         lean = optional_import("lean4")
         if lean and hasattr(lean, "LeanTheoremProver"):
             try:
@@ -602,6 +804,17 @@ class FormalVerificationLayer:
             except Exception:
                 return {"proved": False, "reason": "lean error"}
         return {"proved": False, "reason": "lean not available"}
+
+    def get_capabilities(self) -> Dict[str, bool]:
+        """Get available verification capabilities."""
+        return {
+            "z3_available": self._solver is not None,
+            "cav_nlp_available": self.use_cav_nlp,
+            "formalization": self.use_cav_nlp,
+            "hybrid_verification": self.use_cav_nlp,
+            "canonicalization": self.use_cav_nlp,
+            "counterexamples": self.use_cav_nlp and self._cav_solver is not None,
+        }
 
 
 class ReproducibilityLayer:

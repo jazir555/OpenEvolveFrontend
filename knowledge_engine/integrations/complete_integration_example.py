@@ -8,6 +8,7 @@ This example demonstrates the full integration between:
 - Pattern matching and strategy recommendation
 - OpenEvolve workflow integration
 - BubbleLabs UI components
+- CAV-NLP enhanced operations
 
 Usage:
     python complete_integration_example.py
@@ -24,6 +25,16 @@ from typing import Any, Dict, List
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# CAV-NLP integration imports
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    UnifiedMathService = None
+    EnhancedZ3Solver = None
 
 
 class MathKnowledgeIntegrationDemo:

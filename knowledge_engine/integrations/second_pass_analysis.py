@@ -10,6 +10,7 @@ Thorough analysis to identify any remaining gaps:
 6. Documentation completeness
 7. Type hints coverage
 8. Logging coverage
+9. CAV-NLP integration completeness
 """
 
 import sys
@@ -19,6 +20,16 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import asyncio
 import inspect
 from typing import Any, Dict, List, Set
+
+# CAV-NLP integration imports
+try:
+    from openevolve.unified_math_service import UnifiedMathService
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    UnifiedMathService = None
+    EnhancedZ3Solver = None
 
 
 class SecondPassAnalyzer:

@@ -13,7 +13,7 @@ def test_imports():
     """Test that all required imports work correctly"""
     try:
         # Test main imports
-        import streamlit as st
+        from ui_shim import ui as st
         import pandas as pd
         import json
         import time
