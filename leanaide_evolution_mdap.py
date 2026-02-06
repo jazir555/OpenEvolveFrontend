@@ -1606,7 +1606,8 @@ class MDAPEvolutionEngine(LeanProofEvolutionEngine if EVOLUTION_AVAILABLE else o
         theorem: str,
         theorem_name: Optional[str] = None,
         config: Optional[MDAPEvolutionConfig] = None,
-        agents: Optional[List['LeanProofAgent']] = None
+        agents: Optional[List['LeanProofAgent']] = None,
+        use_cav_nlp: bool = True
     ):
         """
         Initialize MDAP evolution engine.
@@ -1616,10 +1617,23 @@ class MDAPEvolutionEngine(LeanProofEvolutionEngine if EVOLUTION_AVAILABLE else o
             theorem_name: Optional theorem name
             config: MDAP evolution configuration
             agents: Optional list of MDAP agents
+            use_cav_nlp: Whether to enable CAV-NLP integration
         """
         self.theorem = theorem
         self.theorem_name = theorem_name or "mdap_evolved_theorem"
         self.config = config or MDAPEvolutionConfig()
+        self.use_cav_nlp = use_cav_nlp
+
+        # Initialize CAV-NLP components
+        self.enhanced_solver = None
+        if self.use_cav_nlp:
+            try:
+                from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+                self.enhanced_solver = EnhancedZ3Solver()
+                logger.info("CAV-NLP integration enabled for MDAP evolution")
+            except ImportError as e:
+                logger.warning(f"CAV-NLP integration not available: {e}")
+                self.use_cav_nlp = False
 
         # Initialize agents if not provided
         if agents:
@@ -1643,7 +1657,8 @@ class MDAPEvolutionEngine(LeanProofEvolutionEngine if EVOLUTION_AVAILABLE else o
                 selection_method=self.config.selection_method,
                 server_url=self.config.server_url,
                 cache_enabled=self.config.cache_enabled,
-                parallel_evaluation=self.config.parallel_evaluation
+                parallel_evaluation=self.config.parallel_evaluation,
+                use_cav_nlp=use_cav_nlp
             )
         else:
             self.population_size = self.config.population_size
@@ -1661,6 +1676,96 @@ class MDAPEvolutionEngine(LeanProofEvolutionEngine if EVOLUTION_AVAILABLE else o
             lambda: {"selections": 0, "crossovers": 0, "mutations": 0}
         )
         self.red_flag_count = 0
+
+    def evaluate_fitness_with_cav_nlp(self, candidate) -> float:
+        """Evaluate fitness using CAV-NLP verification with MDAP consensus.
+        
+        Args:
+            candidate: The proof strategy candidate to evaluate
+            
+        Returns:
+            Fitness score between 0 and 1
+        """
+        if not self.use_cav_nlp or not self.enhanced_solver:
+            return getattr(candidate, 'fitness', 0.0)
+        
+        try:
+            # Convert proof to constraints for verification
+            proof = getattr(candidate, 'proof', None)
+            if not proof:
+                return getattr(candidate, 'fitness', 0.0)
+            
+            constraints = self._extract_constraints_from_proof(proof)
+            
+            # Verify candidate with hybrid approach
+            result = self.enhanced_solver.verify_with_lean(constraints)
+            
+            # Return confidence as fitness boost
+            if result.success:
+                base_fitness = getattr(candidate, 'fitness', 0.0)
+                return min(1.0, base_fitness + result.confidence * 0.2)
+            return getattr(candidate, 'fitness', 0.0) * 0.8  # Penalize failed verification
+        except Exception as e:
+            logger.warning(f"CAV-NLP fitness evaluation failed: {e}")
+            return getattr(candidate, 'fitness', 0.0)
+
+    def canonicalize_candidate(self, candidate):
+        """Canonicalize using CAV-NLP.
+        
+        Args:
+            candidate: The proof strategy to canonicalize
+            
+        Returns:
+            Canonicalized proof strategy
+        """
+        if not self.use_cav_nlp or not self.enhanced_solver:
+            return candidate
+        
+        try:
+            # Extract theorem statement for canonicalization
+            proof = getattr(candidate, 'proof', None)
+            if not proof:
+                return candidate
+            
+            theorem_stmt = getattr(proof, 'theorem_statement', '')
+            if not theorem_stmt:
+                return candidate
+            
+            # Use canonical manager to normalize
+            canonical_form = self.enhanced_solver.canonical_manager.canonicalize(theorem_stmt)
+            
+            # Update candidate with canonical form metadata
+            proof.theorem_statement = canonical_form
+            return candidate
+        except Exception as e:
+            logger.warning(f"CAV-NLP canonicalization failed: {e}")
+            return candidate
+
+    def _extract_constraints_from_proof(self, proof) -> List[str]:
+        """Extract constraints from a proof for CAV-NLP verification.
+        
+        Args:
+            proof: The Lean proof to extract constraints from
+            
+        Returns:
+            List of constraint strings
+        """
+        constraints = []
+        
+        # Add theorem statement as primary constraint
+        if hasattr(proof, 'theorem_statement') and proof.theorem_statement:
+            constraints.append(proof.theorem_statement)
+        
+        # Extract constraints from tactics
+        if hasattr(proof, 'tactics'):
+            for tactic in proof.tactics:
+                tactic_name = getattr(tactic, 'name', '')
+                if tactic_name in ["have", "assume", "let"]:
+                    arguments = getattr(tactic, 'arguments', [])
+                    constraint = " ".join([tactic_name] + list(arguments))
+                    constraints.append(constraint)
+        
+        return constraints
 
     def _create_default_agents(self) -> List['LeanProofAgent']:
         """Create default set of MDAP agents"""

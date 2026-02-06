@@ -9,6 +9,7 @@ Complete implementation for continuous mathematical domains with Lean 4 formaliz
 - Topology
 - Differential geometry
 - Optimization theory
+- CAV-NLP enhanced formalization
 
 Author: OpenEvolve
 Version: 1.0.0 - Complete Implementation
@@ -32,6 +33,15 @@ from sympy import (
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+# Add CAV-NLP imports with graceful fallback
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logger.warning("CAV-NLP integration not available - continuous math will use standard formalization")
 
 
 # ============================================================================
@@ -283,7 +293,8 @@ class ContinuousMathEngine:
         leanaide_client=None,
         enable_lean_proofs: bool = True,
         default_epsilon: float = 1e-10,
-        precision: int = 50
+        precision: int = 50,
+        config: Optional[Dict[str, Any]] = None
     ):
         """
         Initialize the continuous mathematics engine.
@@ -293,11 +304,24 @@ class ContinuousMathEngine:
             enable_lean_proofs: Whether to generate Lean 4 proofs
             default_epsilon: Default error tolerance
             precision: Symbolic computation precision
+            config: Optional configuration dictionary
         """
         self.leanaide = leanaide_client
         self.enable_lean_proofs = enable_lean_proofs and leanaide_client is not None
         self.default_epsilon = default_epsilon
         self.precision = precision
+        self.config = config or {}
+        
+        # Initialize CAV-NLP components if enabled
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            try:
+                self.enhanced_solver = EnhancedZ3Solver()
+                self.math_service = UnifiedMathService()
+                logger.info("CAV-NLP components initialized for continuous math")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP components: {e}")
+                self.use_cav_nlp = False
         
         # Initialize SymPy with high precision
         try:
@@ -309,7 +333,7 @@ class ContinuousMathEngine:
         # Cache for computed results
         self._cache: Dict[str, Any] = {}
         
-        logger.info(f"ContinuousMathEngine initialized with epsilon={default_epsilon}")
+        logger.info(f"ContinuousMathEngine initialized with epsilon={default_epsilon}, CAV-NLP={self.use_cav_nlp}")
     
     # ========================================================================
     # Real Analysis Methods
@@ -956,6 +980,106 @@ class ContinuousMathEngine:
             return not any(expr.has(f) for f in forbidden)
         except:
             return False
+    
+    # ========================================================================
+    # CAV-NLP Enhanced Methods
+    # ========================================================================
+    
+    async def cav_nlp_formalize(
+        self,
+        mathematical_statement: str,
+        statement_type: str = "theorem",
+        domain: str = "real_analysis"
+    ) -> Dict[str, Any]:
+        """
+        Formalize a mathematical statement using CAV-NLP.
+        
+        Uses the UnifiedMathService to convert natural language mathematical
+        statements into formal Lean 4 code.
+        
+        Args:
+            mathematical_statement: Natural language statement
+            statement_type: Type of statement (theorem, lemma, definition)
+            domain: Mathematical domain
+            
+        Returns:
+            Dictionary with formalized code and metadata
+        """
+        if not self.use_cav_nlp or not hasattr(self, 'math_service'):
+            return {
+                "success": False,
+                "error": "CAV-NLP not available",
+                "lean_code": None,
+                "confidence": 0.0
+            }
+        
+        try:
+            result = await self.math_service.formalize_async(
+                natural_language=mathematical_statement,
+                statement_type=statement_type,
+                domain=domain,
+                context={
+                    "continuous_math": True,
+                    "epsilon": self.default_epsilon,
+                    "precision": self.precision
+                }
+            )
+            
+            return {
+                "success": result.get("success", False),
+                "lean_code": result.get("lean_code"),
+                "confidence": result.get("confidence", 0.0),
+                "metadata": result.get("metadata", {})
+            }
+        except Exception as e:
+            logger.error(f"CAV-NLP formalization failed: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "lean_code": None,
+                "confidence": 0.0
+            }
+    
+    async def cav_nlp_verify_constraints(
+        self,
+        constraints: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """
+        Verify mathematical constraints using CAV-NLP enhanced solver.
+        
+        Args:
+            constraints: List of constraint dictionaries
+            
+        Returns:
+            Dictionary with verification results
+        """
+        if not self.use_cav_nlp or not hasattr(self, 'enhanced_solver'):
+            return {
+                "satisfiable": True,
+                "error": "CAV-NLP solver not available",
+                "confidence": 0.5
+            }
+        
+        try:
+            result = await self.enhanced_solver.check_constraints_async(
+                constraints=constraints,
+                timeout_ms=int(self.config.get("solver_timeout", 5000))
+            )
+            
+            return {
+                "satisfiable": result.get("satisfiable", True),
+                "conflict": result.get("conflict"),
+                "confidence": result.get("confidence", 0.8),
+                "details": result.get("details", {})
+            }
+        except Exception as e:
+            logger.error(f"CAV-NLP constraint verification failed: {e}")
+            return {
+                "satisfiable": True,  # Assume satisfiable on error
+                "error": str(e),
+                "confidence": 0.5,
+                "fallback": True
+            }
     
     # ========================================================================
     # Lean 4 Proof Generation

@@ -195,7 +195,7 @@ def run_comprehensive_test():
 
 
 if __name__ == "__main__":
-    # Initialize Streamlit session state if not already done
+    # Initialize UI session state if not already done
     if 'thread_lock' not in st.session_state:
         import threading
         st.session_state.thread_lock = threading.Lock()

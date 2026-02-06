@@ -2201,4 +2201,184 @@ __all__ = [
 
     # Constants
     "MDAP_AVAILABLE",
+
+    # CAV-NLP Integration
+    "LeanAideMDAPCAVNLP",
 ]
+
+
+# =============================================================================
+# CAV-NLP INTEGRATION FOR LEANAIDE MDAP
+# =============================================================================
+
+class LeanAideMDAPCAVNLP:
+    """
+    CAV-NLP integration for LeanAide MDAP (Multi-Domain Adaptive Planning).
+
+    Enhances MDAP planning with CAV-NLP formalization capabilities:
+    - Natural language theorem statement formalization
+    - Constraint extraction and verification
+    - Enhanced proof planning with formalized objectives
+
+    Attributes:
+        use_cav_nlp: Whether CAV-NLP is enabled
+        math_service: UnifiedMathService instance for formalization
+    """
+
+    def __init__(self, config: Optional[LeanMDAPConfig] = None):
+        """
+        Initialize CAV-NLP enhanced MDAP.
+
+        Args:
+            config: Lean MDAP configuration with use_cav_nlp option
+        """
+        self.config = config or LeanMDAPConfig()
+        self.use_cav_nlp = getattr(self.config, 'use_cav_nlp', True)
+        self.math_service = None
+
+        if self.use_cav_nlp:
+            try:
+                from openevolve.unified_math_service import UnifiedMathService
+                self.math_service = UnifiedMathService()
+                logger.info("CAV-NLP UnifiedMathService initialized for MDAP")
+            except ImportError as e:
+                logger.warning(f"CAV-NLP not available for MDAP: {e}")
+                self.use_cav_nlp = False
+
+    async def plan_with_cav_nlp(
+        self,
+        objective: str,
+        domain: Optional[LeanDomain] = None
+    ) -> Dict[str, Any]:
+        """
+        Create plan using CAV-NLP enhanced formalization.
+
+        Args:
+            objective: Natural language theorem statement or objective
+            domain: Optional theorem domain
+
+        Returns:
+            Dictionary containing formalized plan and metadata
+        """
+        if not self.use_cav_nlp or not self.math_service:
+            logger.debug("CAV-NLP not available, returning objective as-is")
+            return {
+                "formalized": False,
+                "original": objective,
+                "plan": objective,
+                "confidence": 0.0
+            }
+
+        try:
+            # Formalize the objective using CAV-NLP
+            formalized = await self.math_service.formalize(objective)
+
+            if formalized and hasattr(formalized, 'code'):
+                # Create plan from formalized code
+                plan = await self._create_plan_from_formalized(
+                    formalized.code,
+                    domain
+                )
+
+                return {
+                    "formalized": True,
+                    "original": objective,
+                    "plan": plan,
+                    "formalized_code": formalized.code,
+                    "confidence": getattr(formalized, 'confidence', 0.8),
+                    "domain": domain or LeanDomain.GENERAL
+                }
+            else:
+                logger.warning("CAV-NLP formalization returned empty result")
+                return {
+                    "formalized": False,
+                    "original": objective,
+                    "plan": objective,
+                    "confidence": 0.0,
+                    "error": "Empty formalization result"
+                }
+
+        except Exception as e:
+            logger.error(f"CAV-NLP planning failed: {e}")
+            return {
+                "formalized": False,
+                "original": objective,
+                "plan": objective,
+                "confidence": 0.0,
+                "error": str(e)
+            }
+
+    async def _create_plan_from_formalized(
+        self,
+        formalized_code: str,
+        domain: Optional[LeanDomain] = None
+    ) -> str:
+        """
+        Create MDAP plan from formalized code.
+
+        Args:
+            formalized_code: Formalized Lean code
+            domain: Optional theorem domain
+
+        Returns:
+            Plan string
+        """
+        # Add domain-specific planning hints
+        domain_hints = {
+            LeanDomain.ALGEBRA: "Use algebraic tactics: ring, field, linarith",
+            LeanDomain.ANALYSIS: "Use analysis tactics: continuity, deriv, integral",
+            LeanDomain.LOGIC: "Use logic tactics: intros, apply, exact",
+            LeanDomain.NUMBER_THEORY: "Use number theory tactics: norm_num, zmod",
+            LeanDomain.TOPOLOGY: "Use topology tactics: continuous, is_open",
+            LeanDomain.COMBINATORICS: "Use combinatorics tactics: finset, cardinality",
+            LeanDomain.CATEGORY_THEORY: "Use category theory: functor, natural_transformation",
+        }
+
+        hint = domain_hints.get(domain, "Use standard proof tactics")
+
+        plan = f"""# Formalized Plan
+## Objective
+{formalized_code}
+
+## Domain Guidance
+{hint}
+
+## Approach
+1. Parse formalized statement
+2. Apply domain-specific tactics
+3. Verify each proof step
+4. Aggregate results
+"""
+        return plan
+
+    async def formalize_constraint(
+        self,
+        constraint: str
+    ) -> Dict[str, Any]:
+        """
+        Formalize a constraint using CAV-NLP.
+
+        Args:
+            constraint: Natural language constraint
+
+        Returns:
+            Formalized constraint with metadata
+        """
+        if not self.use_cav_nlp or not self.math_service:
+            return {"formalized": False, "original": constraint}
+
+        try:
+            result = await self.math_service.formalize(constraint)
+            return {
+                "formalized": True,
+                "original": constraint,
+                "code": getattr(result, 'code', str(result)),
+                "confidence": getattr(result, 'confidence', 0.8)
+            }
+        except Exception as e:
+            logger.error(f"Constraint formalization failed: {e}")
+            return {"formalized": False, "original": constraint, "error": str(e)}
+
+    def is_cav_nlp_available(self) -> bool:
+        """Check if CAV-NLP is available and initialized."""
+        return self.use_cav_nlp and self.math_service is not None

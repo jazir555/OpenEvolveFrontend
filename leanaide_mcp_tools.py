@@ -1356,6 +1356,74 @@ __all__ = [
 
 
 # ============================================================================
+# CAV-NLP MCP Tools
+# ============================================================================
+
+@mcp_tool("leanaide_formalize_with_cav_nlp")
+def leanaide_formalize_with_cav_nlp(text: str) -> Dict[str, Any]:
+    """
+    Formalize using CAV-NLP enhanced LeanAide.
+    
+    This tool uses the UnifiedMathService with CAV-NLP integration to
+    formalize natural language mathematical statements into Lean 4 code.
+    
+    Args:
+        text: Natural language mathematical statement to formalize
+    
+    Returns:
+        Dict with:
+            - success: bool
+            - code: str (formalized Lean code)
+            - confidence: float
+            - execution_time: float
+            - message: str
+    """
+    from datetime import datetime, timezone
+    start_time = datetime.now(timezone.utc)
+    
+    try:
+        from openevolve.unified_math_service import UnifiedMathService
+        service = UnifiedMathService()
+        
+        # Use async to sync wrapper for the formalize method
+        import asyncio
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        
+        result = loop.run_until_complete(service.formalize(text))
+        
+        execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+        
+        return {
+            "success": True,
+            "code": result.code if hasattr(result, 'code') else str(result),
+            "confidence": getattr(result, 'confidence', 0.9),
+            "execution_time": execution_time,
+            "message": f"Formalization complete in {execution_time:.2f}s",
+        }
+    except ImportError as e:
+        return {
+            "success": False,
+            "code": "",
+            "confidence": 0.0,
+            "execution_time": 0.0,
+            "message": f"CAV-NLP integration not available: {e}",
+        }
+    except Exception as e:
+        logger.error(f"CAV-NLP formalization error: {e}")
+        return {
+            "success": False,
+            "code": "",
+            "confidence": 0.0,
+            "execution_time": 0.0,
+            "message": f"Formalization failed: {e}",
+        }
+
+
+# ============================================================================
 # Module Initialization
 # ============================================================================
 

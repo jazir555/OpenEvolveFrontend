@@ -3,11 +3,31 @@ LeanAide Client Demo
 
 Demonstrates the key features of the LeanAide async client.
 Run this with a LeanAide server running on localhost:7654
+
+This demo also includes CAV-NLP integration for enhanced natural language
+formalization and verification.
 """
 
 import asyncio
 import json
+import time
 from leanaide_client import LeanAideClient, LeanAideConfig
+
+# =============================================================================
+# CAV-NLP Integration
+# =============================================================================
+print("=" * 70)
+print("LeanAide Client Demo with CAV-NLP Integration")
+print("=" * 70)
+
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+    print("✓ CAV-NLP integration available")
+except ImportError as e:
+    CAV_NLP_AVAILABLE = False
+    print(f"✗ CAV-NLP not available: {e}")
 
 
 def print_section(title: str):
@@ -209,6 +229,216 @@ async def demo_error_handling():
         print_result("Invalid Lean Code (should fail)", result2)
 
 
+# =============================================================================
+# CAV-NLP Integration Demos
+# =============================================================================
+
+async def demo_cav_nlp_comparison():
+    """Demo 11: Compare LeanAide vs CAV-NLP formalization."""
+    if not CAV_NLP_AVAILABLE:
+        print_section("Demo 11: CAV-NLP Comparison [SKIPPED]")
+        print("\n[WARN] CAV-NLP not available - skipping comparison demo")
+        return
+    
+    print_section("Demo 11: LeanAide vs CAV-NLP Comparison")
+    
+    print("\nThis demo compares traditional LeanAide translation with")
+    print("CAV-NLP enhanced formalization.")
+    print("-" * 60)
+    
+    # Test statements
+    test_statements = [
+        "For all x > 0, x + 1 > 0",
+        "The sum of two positive numbers is positive",
+        "For any natural number n, n + 0 = n",
+    ]
+    
+    print("\nTest Statements:")
+    for i, stmt in enumerate(test_statements, 1):
+        print(f"  {i}. {stmt}")
+    
+    # Compare approaches
+    print("\n--- Approach Comparison ---")
+    print("\nLeanAide (Traditional):")
+    print("  ✓ Direct Lean 4 code generation")
+    print("  ✓ Server-based processing")
+    print("  ✓ Elaboration support")
+    print("  ✗ Requires running server")
+    print("  ✗ No hybrid verification")
+    
+    print("\nCAV-NLP (Enhanced):")
+    print("  ✓ Natural language semantic parsing")
+    print("  ✓ Hybrid Z3 + Lean verification")
+    print("  ✓ Constraint canonicalization")
+    print("  ✓ Proof export capabilities")
+    print("  ✓ Works offline with local models")
+    
+    print("\n--- Timing Comparison ---")
+    
+    async with LeanAideClient() as client:
+        # Check if server is available
+        is_healthy = await client.health_check()
+        
+        for stmt in test_statements[:1]:  # Just test first one
+            print(f"\nStatement: '{stmt}'")
+            
+            # Time LeanAide
+            if is_healthy:
+                start = time.time()
+                lean_result = await client.translate_thm(stmt)
+                lean_time = time.time() - start
+                print(f"  LeanAide: {lean_time:.3f}s - {'✓' if lean_result.success else '✗'}")
+            else:
+                print(f"  LeanAide: N/A (server not available)")
+            
+            # Time CAV-NLP
+            try:
+                service = UnifiedMathService()
+                start = time.time()
+                cav_result = await service.formalize(stmt, elaborate=False)
+                cav_time = time.time() - start
+                print(f"  CAV-NLP:  {cav_time:.3f}s - {'✓' if cav_result.success else '✗'}")
+                
+                if cav_result.success:
+                    print(f"\n  CAV-NLP Output preview:")
+                    code_preview = cav_result.code[:100].replace('\n', ' ')
+                    print(f"    {code_preview}...")
+            except Exception as e:
+                print(f"  CAV-NLP:  Error - {e}")
+
+
+async def demo_cav_nlp_enhanced_verification():
+    """Demo 12: CAV-NLP enhanced verification with Z3."""
+    if not CAV_NLP_AVAILABLE:
+        print_section("Demo 12: CAV-NLP Verification [SKIPPED]")
+        print("\n[WARN] CAV-NLP not available - skipping verification demo")
+        return
+    
+    print_section("Demo 12: CAV-NLP Enhanced Verification")
+    
+    print("\nThis demo shows how CAV-NLP enhances verification")
+    print("by combining Z3 SMT solving with Lean 4 proving.")
+    print("-" * 60)
+    
+    # Create enhanced solver
+    solver = EnhancedZ3Solver(use_cav_nlp=True)
+    
+    # Show capabilities
+    caps = solver.get_capabilities()
+    print("\nEnhanced Solver Capabilities:")
+    for cap, available in caps.items():
+        status = "✓" if available else "✗"
+        print(f"  {status} {cap.replace('_', ' ').title()}")
+    
+    print("\n--- Verification Example ---")
+    print("Theorem: For all x > 0, x * 2 > x")
+    
+    try:
+        # Formalize the theorem
+        service = UnifiedMathService()
+        formalization = await service.formalize(
+            "forall x > 0, x * 2 > x",
+            elaborate=True
+        )
+        
+        if formalization.success:
+            print(f"\n✓ Formalized in {formalization.metadata.get('elapsed_ms', 'N/A')}ms")
+            print(f"  Source: {formalization.source}")
+            print(f"\nGenerated code (first 150 chars):")
+            code_preview = formalization.code[:150].replace('\n', ' ')
+            print(f"  {code_preview}...")
+        
+        # Verify with hybrid approach
+        print("\n--- Hybrid Verification ---")
+        print("Running Z3 + Lean verification...")
+        
+        result = solver.verify_with_lean()
+        
+        print(f"\n✓ Verification complete")
+        print(f"  Success: {'Yes' if result.success else 'No'}")
+        print(f"  Z3 Result: {result.z3_result or 'N/A'}")
+        print(f"  Confidence: {result.confidence:.2%}")
+        
+        if result.lean_result:
+            print(f"  Lean Result: Available")
+        
+        # Show solver stats
+        stats = solver.get_stats()
+        print(f"\nSolver Statistics:")
+        print(f"  Total verifications: {stats['verification_calls']}")
+        print(f"  Formalization history: {stats['formalization_history_count']}")
+        
+    except Exception as e:
+        print(f"\n[WARN] Demo encountered an error: {e}")
+        print("      This may be due to missing dependencies.")
+
+
+async def demo_cav_nlp_batch_formalization():
+    """Demo 13: Batch formalization with CAV-NLP."""
+    if not CAV_NLP_AVAILABLE:
+        print_section("Demo 13: Batch Formalization [SKIPPED]")
+        print("\n[WARN] CAV-NLP not available - skipping batch demo")
+        return
+    
+    print_section("Demo 13: CAV-NLP Batch Formalization")
+    
+    print("\nThis demo shows batch processing of mathematical statements")
+    print("using CAV-NLP formalization.")
+    print("-" * 60)
+    
+    # Mathematical statements to formalize
+    statements = [
+        ("For all natural numbers n, n + 0 = n", "add_zero"),
+        ("For all x > 0 and y > 0, x + y > 0", "sum_positive"),
+        ("The square of any real number is non-negative", "square_nonneg"),
+        ("If x divides y and y divides z, then x divides z", "div_trans"),
+        ("For all primes p, p > 1", "prime_gt_one"),
+    ]
+    
+    print(f"\nFormalizing {len(statements)} mathematical statements...")
+    print()
+    
+    service = UnifiedMathService()
+    
+    results = []
+    total_time = 0
+    
+    for i, (stmt, name) in enumerate(statements, 1):
+        print(f"{i}. {name}: {stmt[:50]}...")
+        
+        try:
+            start = time.time()
+            result = await service.formalize(stmt, elaborate=False)
+            elapsed = time.time() - start
+            total_time += elapsed
+            
+            results.append({
+                'name': name,
+                'success': result.success,
+                'time': elapsed,
+                'source': result.source if result.success else None
+            })
+            
+            status = "✓" if result.success else "✗"
+            print(f"   {status} {elapsed:.3f}s - {result.source if result.success else 'failed'}")
+            
+        except Exception as e:
+            print(f"   ✗ Error: {e}")
+            results.append({'name': name, 'success': False, 'time': 0, 'source': None})
+    
+    # Summary
+    successful = sum(1 for r in results if r['success'])
+    print(f"\n--- Summary ---")
+    print(f"  Total: {len(statements)}")
+    print(f"  Successful: {successful}")
+    print(f"  Failed: {len(statements) - successful}")
+    print(f"  Total time: {total_time:.3f}s")
+    print(f"  Average time: {total_time/len(statements):.3f}s")
+    
+    print("\nCAV-NLP enables efficient batch processing of mathematical")
+    print("statements with automatic formalization to Lean 4.")
+
+
 async def run_all_demos():
     """Run all demonstrations."""
     print("\n" + "=" * 60)
@@ -217,7 +447,8 @@ async def run_all_demos():
     print("\nThis demo showcases the key features of the LeanAide client.")
     print("Make sure the LeanAide server is running on localhost:7654")
     print("\nStart server with: cd LeanAide && python3 leanaide_server.py")
-
+    
+    # Base demos
     demos = [
         ("Basic Translation", demo_basic_translation),
         ("Detailed Translation", demo_detailed_translation),
@@ -230,6 +461,14 @@ async def run_all_demos():
         ("Custom Configuration", demo_custom_config),
         ("Error Handling", demo_error_handling),
     ]
+    
+    # Add CAV-NLP demos if available
+    if CAV_NLP_AVAILABLE:
+        demos.extend([
+            ("CAV-NLP Comparison", demo_cav_nlp_comparison),
+            ("CAV-NLP Enhanced Verification", demo_cav_nlp_enhanced_verification),
+            ("CAV-NLP Batch Formalization", demo_cav_nlp_batch_formalization),
+        ])
 
     for i, (name, demo_func) in enumerate(demos, 1):
         try:
@@ -240,8 +479,27 @@ async def run_all_demos():
 
     print_section("Demo Complete")
     print("\nAll demonstrations finished!")
-    print("\nFor more information, see LEANAIDE_CLIENT_README.md")
-    print("To run tests: pytest test_leanaide_client.py -v")
+    print("\nFeatures demonstrated:")
+    print("  ✓ Basic theorem translation")
+    print("  ✓ Detailed translation with naming")
+    print("  ✓ Definition translation")
+    print("  ✓ Documentation generation")
+    print("  ✓ Math queries")
+    print("  ✓ Code elaboration")
+    print("  ✓ Batch operations")
+    print("  ✓ Parallel task execution")
+    print("  ✓ Custom configuration")
+    print("  ✓ Error handling")
+    if CAV_NLP_AVAILABLE:
+        print("  ✓ CAV-NLP comparison with LeanAide")
+        print("  ✓ CAV-NLP enhanced verification")
+        print("  ✓ CAV-NLP batch formalization")
+    
+    print("\nFor more information:")
+    print("  - LEANAIDE_CLIENT_README.md")
+    print("  - openevolve/z3_cav_nlp_integration.py")
+    print("  - openevolve/unified_math_service.py")
+    print("\nTo run tests: pytest test_leanaide_client.py -v")
 
 
 async def run_interactive_demo():

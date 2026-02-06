@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------
-   OpenEvolve – clean, modern Streamlit theme
+   OpenEvolve – clean, modern UI theme
    ------------------------------------------------------------------ */
 
 /* 1. Font & base tokens
@@ -78,7 +78,7 @@ h1{font-size:2.25rem}h2{font-size:1.875rem}h3{font-size:1.5rem}
 h4{font-size:1.25rem}h5{font-size:1.125rem}h6{font-size:1rem}
 p{margin:var(--spacing-md) 0;color:var(--text-secondary)}
 
-/* 4. Streamlit overrides
+/* 4. UI overrides
 --------------------------------------------------------------- */
 .stApp {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
@@ -160,9 +160,9 @@ input[type=text],input[type=password],input[type=email],input[type=number],texta
 
 /* 9. Expanders
 --------------------------------------------------------------- */
-.streamlit-expanderHeader{background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius-sm);font-weight:500;color:var(--text-primary);transition:all var(--transition-normal)}
-.streamlit-expanderHeader:hover{background:var(--bg-tertiary);border-color:var(--border-dark)}
-.streamlit-expanderContent{background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);padding:var(--spacing-lg)}
+.legacy-expanderHeader{background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius-sm);font-weight:500;color:var(--text-primary);transition:all var(--transition-normal)}
+.legacy-expanderHeader:hover{background:var(--bg-tertiary);border-color:var(--border-dark)}
+.legacy-expanderContent{background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);padding:var(--spacing-lg)}
 
 /* 10. Metrics
 --------------------------------------------------------------- */

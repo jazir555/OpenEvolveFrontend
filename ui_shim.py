@@ -33,6 +33,9 @@ class _UIContainer:
     def __exit__(self, exc_type, exc, tb) -> None:
         return None
 
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._ui, name)
+
 
 class UIShim:
     """Minimal Streamlit-like API surface for non-UI execution."""
@@ -42,6 +45,12 @@ class UIShim:
         if "thread_lock" not in self.session_state:
             self.session_state.thread_lock = threading.Lock()
         self.sidebar = self
+
+    def __enter__(self) -> "UIShim":
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        return None
 
     # --- caching ---
     def cache_data(self, *args, **kwargs):
@@ -125,13 +134,13 @@ class UIShim:
         return None
 
     # --- layout helpers ---
-    def columns(self, spec: Any) -> List["UIShim"]:
+    def columns(self, spec: Any) -> List[_UIContainer]:
         count = 1
         if isinstance(spec, int):
             count = spec
         elif isinstance(spec, (list, tuple)):
             count = len(spec)
-        return [self for _ in range(max(1, count))]
+        return [_UIContainer(self) for _ in range(max(1, count))]
 
     def tabs(self, labels: Sequence[str]) -> List[_UIContainer]:
         return [_UIContainer(self) for _ in labels]

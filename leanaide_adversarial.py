@@ -29,6 +29,15 @@ import subprocess
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# Add CAV-NLP imports with graceful fallback
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logger.warning("CAV-NLP integration not available - adversarial detection will use basic methods")
+
 # Import LeanAide components
 try:
     from LeanAide.leanaide_client import LeanAideClient, LeanProof, LeanTactic, ProofContext
@@ -502,12 +511,27 @@ class LeanRedTeamAgent:
     - Counterexample search: Find disproving cases
     - Edge case testing: Test boundary conditions
     - Structure analysis: Check for incomplete cases
+    - CAV-NLP enhanced semantic detection (when available)
     """
 
     def __init__(self, name: str = "RedTeam",
-                 client: Optional['LeanAideClient'] = None):
+                 client: Optional['LeanAideClient'] = None,
+                 config: Optional[Dict[str, Any]] = None):
         self.name = name
         self.client = client
+        self.config = config or {}
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        
+        # Initialize CAV-NLP components if enabled
+        if self.use_cav_nlp:
+            try:
+                self.enhanced_solver = EnhancedZ3Solver()
+                self.math_service = UnifiedMathService()
+                logger.info("CAV-NLP components initialized for Red Team")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP components: {e}")
+                self.use_cav_nlp = False
+        
         self.attack_strategies = [
             "logical_analysis",
             "counterexample_search",
@@ -545,6 +569,18 @@ class LeanRedTeamAgent:
                 critiques.extend(strategy_critiques)
             except Exception as e:
                 logger.warning(f"Attack strategy {attack_strategy} failed: {e}")
+
+        # Apply CAV-NLP enhanced adversarial detection
+        if self.use_cav_nlp:
+            try:
+                cav_nlp_critiques = self._cav_nlp_adversarial_detection(
+                    strategy, theorem, context
+                )
+                critiques.extend(cav_nlp_critiques)
+                if cav_nlp_critiques:
+                    logger.info(f"CAV-NLP detected {len(cav_nlp_critiques)} adversarial issues")
+            except Exception as e:
+                logger.debug(f"CAV-NLP detection failed: {e}")
 
         # Prioritize and deduplicate critiques
         critiques = self._prioritize_critiques(critiques)
@@ -820,6 +856,129 @@ class LeanRedTeamAgent:
                             key=lambda c: (severity_order.get(c.severity, 5), -c.confidence))
 
         return prioritized
+
+    def _cav_nlp_adversarial_detection(self,
+                                       strategy: LeanProofStrategy,
+                                       theorem: str,
+                                       context: ProofContext) -> List[ProofCritique]:
+        """
+        Use CAV-NLP for enhanced adversarial example detection.
+        
+        Leverages the EnhancedZ3Solver and UnifiedMathService to:
+        - Detect subtle logical inconsistencies
+        - Find semantic adversarial examples
+        - Validate theorem statements against counterexamples
+        
+        Args:
+            strategy: The proof strategy to analyze
+            theorem: The theorem statement
+            context: Proof context
+            
+        Returns:
+            List of critiques from CAV-NLP analysis
+        """
+        critiques = []
+        
+        if not self.use_cav_nlp:
+            return critiques
+        
+        try:
+            # Use CAV-NLP to analyze the theorem statement
+            if hasattr(self, 'math_service') and self.math_service:
+                # Extract mathematical content
+                math_content = self._extract_math_content(theorem, strategy.lean_code)
+                
+                if math_content:
+                    # Use unified math service for validation
+                    validation_result = self.math_service.validate_statement(
+                        statement=math_content,
+                        context={
+                            "theorem": theorem,
+                            "tactics": strategy.tactics,
+                            "approach": strategy.approach.value
+                        }
+                    )
+                    
+                    if not validation_result.get("valid", True):
+                        critiques.append(ProofCritique(
+                            issue_type="cav_nlp_semantic_error",
+                            description=f"CAV-NLP detected semantic issue: {validation_result.get('error', 'Unknown')}",
+                            severity=CritiqueSeverity.HIGH,
+                            location="Theorem statement",
+                            confidence=validation_result.get("confidence", 0.7),
+                            fix_suggestion=validation_result.get("suggestion")
+                        ))
+            
+            # Use enhanced solver for constraint-based detection
+            if hasattr(self, 'enhanced_solver') and self.enhanced_solver:
+                # Extract constraints from proof
+                constraints = self._extract_constraints(strategy.lean_code)
+                
+                if constraints:
+                    # Check for constraint conflicts
+                    solver_result = self.enhanced_solver.check_constraints(
+                        constraints=constraints,
+                        timeout_ms=5000
+                    )
+                    
+                    if not solver_result.get("satisfiable", True):
+                        critiques.append(ProofCritique(
+                            issue_type="cav_nlp_constraint_conflict",
+                            description=f"CAV-NLP detected constraint conflict: {solver_result.get('conflict', 'Unknown')}",
+                            severity=CritiqueSeverity.CRITICAL,
+                            location="Proof constraints",
+                            confidence=solver_result.get("confidence", 0.8),
+                            fix_suggestion="Review proof constraints for logical consistency"
+                        ))
+        
+        except Exception as e:
+            logger.debug(f"CAV-NLP adversarial detection failed: {e}")
+        
+        return critiques
+    
+    def _extract_math_content(self, theorem: str, lean_code: str) -> Optional[str]:
+        """Extract mathematical content from theorem and proof."""
+        # Simple extraction - combine theorem and key proof elements
+        content_parts = [theorem]
+        
+        # Extract any explicit mathematical expressions
+        math_patterns = [
+            r'\b\d+\s*[+\-*/]\s*\d+',
+            r'\b(sin|cos|tan|log|exp)\s*\([^)]+\)',
+            r'[=<>≤≥]+',
+            r'\b(forall|exists)\b.*:',
+        ]
+        
+        for pattern in math_patterns:
+            matches = re.findall(pattern, lean_code, re.IGNORECASE)
+            content_parts.extend(matches)
+        
+        return " ".join(content_parts) if content_parts else None
+    
+    def _extract_constraints(self, lean_code: str) -> List[Dict[str, Any]]:
+        """Extract constraints from Lean code for solver analysis."""
+        constraints = []
+        
+        # Pattern to find common constraint patterns
+        # Hypothesis constraints
+        hyp_pattern = r'have\s+\w+\s*:\s*([^\n]+)'
+        for match in re.finditer(hyp_pattern, lean_code):
+            constraints.append({
+                "type": "hypothesis",
+                "expression": match.group(1).strip()
+            })
+        
+        # Inequality constraints
+        ineq_pattern = r'([a-zA-Z_]\w*)\s*([≤≥<>])\s*([^\n,;)]+)'
+        for match in re.finditer(ineq_pattern, lean_code):
+            constraints.append({
+                "type": "inequality",
+                "variable": match.group(1),
+                "operator": match.group(2),
+                "bound": match.group(3).strip()
+            })
+        
+        return constraints
 
 
 class LeanCounterexampleGenerator:

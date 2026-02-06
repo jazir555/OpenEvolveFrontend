@@ -10,6 +10,7 @@ Key Components:
     MCTSAdversarial: MCTS for both teams in adversarial setting
     MCTSSelfPlay: MCTS-guided self-play
     AdaptiveHybrid: Dynamically switch strategies based on progress
+    CAVNLPEnhanced: CAV-NLP enhanced proof strategies
 
 Author: LeanAide Hybrid Strategies
 Version: 1.0.0
@@ -30,6 +31,29 @@ from typing import (
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+# Add CAV-NLP imports with graceful fallback
+try:
+    from leanaide_mcts import (
+        LeanProofMCTS,
+        ProofContext as MCTSProofContext,
+        TacticAction,
+        MCTSResult,
+        run_mcts_search
+    )
+    MCTS_AVAILABLE = True
+except ImportError:
+    MCTS_AVAILABLE = False
+    logger.warning("MCTS not available - hybrid strategies limited")
+
+# Import CAV-NLP components
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logger.warning("CAV-NLP not available - hybrid strategies will use standard methods")
 
 # Import MCTS components
 try:

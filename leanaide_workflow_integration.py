@@ -178,6 +178,31 @@ class MathematicalProblemDetector:
         return is_math, overall_confidence
 
 
+class LeanAideWorkflowIntegration:
+    """
+    CAV-NLP enhanced LeanAide workflow integration.
+    
+    Provides CAV-NLP enhanced capabilities for LeanAide workflow integration.
+    """
+
+    def __init__(self, config=None):
+        """
+        Initialize LeanAide workflow integration with CAV-NLP support.
+
+        Args:
+            config: Optional configuration dict with use_cav_nlp flag
+        """
+        self.config = config or {}
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True)
+        if self.use_cav_nlp:
+            try:
+                from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+                self.enhanced_solver = EnhancedZ3Solver()
+            except ImportError:
+                self.enhanced_solver = None
+                self.use_cav_nlp = False
+
+
 class LeanAideWorkflowIntegrator:
     """
     Main integration class for LeanAide verification in OpenEvolve workflows.
@@ -201,6 +226,17 @@ class LeanAideWorkflowIntegrator:
             self.config.enabled = False
         elif not LEANAIDE_AVAILABLE:
             logger.warning("LeanAide client not available. Falling back to Lean subprocess if configured.")
+
+        # Add CAV-NLP integration
+        self.use_cav_nlp = getattr(self.config, 'use_cav_nlp', True)
+        self.cav_nlp_integration = None
+        if self.use_cav_nlp:
+            try:
+                self.cav_nlp_integration = LeanAideWorkflowIntegration({"use_cav_nlp": True})
+                logger.info("CAV-NLP workflow integration enabled")
+            except Exception as e:
+                logger.warning(f"CAV-NLP integration initialization failed: {e}")
+                self.use_cav_nlp = False
 
     async def initialize(self) -> bool:
         """

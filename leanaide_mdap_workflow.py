@@ -1615,3 +1615,148 @@ if __name__ == "__main__":
 
     # Run example
     asyncio.run(example_usage())
+
+
+# =============================================================================
+# CAV-NLP INTEGRATION FOR LEANAIDE MDAP WORKFLOW
+# =============================================================================
+
+class LeanMDAPWorkflowCAVNLP:
+    """
+    CAV-NLP integration for LeanAide MDAP Workflow.
+
+    Enhances MDAP workflow with CAV-NLP formalization:
+    - Automatic theorem statement formalization
+    - Enhanced sub-problem planning
+    - Constraint verification in workflow
+
+    Attributes:
+        use_cav_nlp: Whether CAV-NLP is enabled
+        math_service: UnifiedMathService instance
+    """
+
+    def __init__(self, config: Optional['LeanMDAPConfig'] = None):
+        """
+        Initialize CAV-NLP enhanced MDAP workflow.
+
+        Args:
+            config: MDAP configuration with use_cav_nlp option
+        """
+        self.config = config
+        self.use_cav_nlp = getattr(config, 'use_cav_nlp', True) if config else True
+        self.math_service = None
+
+        if self.use_cav_nlp:
+            try:
+                from openevolve.unified_math_service import UnifiedMathService
+                self.math_service = UnifiedMathService()
+                logger.info("CAV-NLP UnifiedMathService initialized for MDAP Workflow")
+            except ImportError as e:
+                logger.warning(f"CAV-NLP not available: {e}")
+                self.use_cav_nlp = False
+
+    async def plan_with_cav_nlp(
+        self,
+        objective: str,
+        workflow_state: Optional['WorkflowState'] = None
+    ) -> Dict[str, Any]:
+        """
+        Create workflow plan using CAV-NLP enhanced formalization.
+
+        Args:
+            objective: Natural language theorem statement
+            workflow_state: Optional current workflow state
+
+        Returns:
+            Dictionary with formalized plan
+        """
+        if not self.use_cav_nlp or not self.math_service:
+            return {
+                "formalized": False,
+                "original": objective,
+                "plan": objective,
+                "confidence": 0.0
+            }
+
+        try:
+            formalized = await self.math_service.formalize(objective)
+
+            if formalized and hasattr(formalized, 'code'):
+                plan = await self._create_workflow_plan(
+                    formalized.code,
+                    workflow_state
+                )
+
+                return {
+                    "formalized": True,
+                    "original": objective,
+                    "plan": plan,
+                    "formalized_code": formalized.code,
+                    "confidence": getattr(formalized, 'confidence', 0.8),
+                    "workflow_context": workflow_state.workflow_id if workflow_state else None
+                }
+            else:
+                return {
+                    "formalized": False,
+                    "original": objective,
+                    "plan": objective,
+                    "confidence": 0.0
+                }
+
+        except Exception as e:
+            logger.error(f"CAV-NLP workflow planning failed: {e}")
+            return {
+                "formalized": False,
+                "original": objective,
+                "plan": objective,
+                "confidence": 0.0,
+                "error": str(e)
+            }
+
+    async def _create_workflow_plan(
+        self,
+        formalized_code: str,
+        workflow_state: Optional['WorkflowState'] = None
+    ) -> str:
+        """Create workflow plan from formalized code."""
+        context = f"Workflow: {workflow_state.workflow_id}" if workflow_state else "No workflow context"
+
+        plan = f"""# CAV-NLP Enhanced Workflow Plan
+## Formalized Objective
+{formalized_code}
+
+## Context
+{context}
+
+## Workflow Stages
+1. Parse formalized statement
+2. Decompose into sub-problems (if needed)
+3. Apply MDAP multi-agent voting
+4. Verify with LeanAide
+5. Aggregate results
+"""
+        return plan
+
+    async def formalize_constraint(
+        self,
+        constraint: str
+    ) -> Dict[str, Any]:
+        """Formalize constraint using CAV-NLP."""
+        if not self.use_cav_nlp or not self.math_service:
+            return {"formalized": False, "original": constraint}
+
+        try:
+            result = await self.math_service.formalize(constraint)
+            return {
+                "formalized": True,
+                "original": constraint,
+                "code": getattr(result, 'code', str(result)),
+                "confidence": getattr(result, 'confidence', 0.8)
+            }
+        except Exception as e:
+            logger.error(f"Constraint formalization failed: {e}")
+            return {"formalized": False, "original": constraint, "error": str(e)}
+
+    def is_cav_nlp_available(self) -> bool:
+        """Check if CAV-NLP is available."""
+        return self.use_cav_nlp and self.math_service is not None

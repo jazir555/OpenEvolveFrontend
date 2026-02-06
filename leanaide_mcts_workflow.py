@@ -1738,3 +1738,148 @@ if __name__ == "__main__":
 
     # Run example
     asyncio.run(example_usage())
+
+
+# =============================================================================
+# CAV-NLP INTEGRATION FOR LEANAIDE MCTS WORKFLOW
+# =============================================================================
+
+class LeanAideMCTSWorkflowCAVNLP:
+    """
+    CAV-NLP integration for LeanAide MCTS Workflow.
+
+    Enhances MCTS workflow integration with CAV-NLP:
+    - Enhanced sub-problem evaluation
+    - Formalized theorem understanding
+    - Z3 verification for workflow steps
+
+    Attributes:
+        use_cav_nlp: Whether CAV-NLP is enabled
+        enhanced_solver: EnhancedZ3Solver instance
+    """
+
+    def __init__(self, config: Optional['MCTSWorkflowConfig'] = None):
+        """
+        Initialize CAV-NLP enhanced MCTS workflow.
+
+        Args:
+            config: MCTS workflow configuration with use_cav_nlp option
+        """
+        self.config = config
+        self.use_cav_nlp = getattr(config, 'use_cav_nlp', True) if config else True
+        self.enhanced_solver = None
+
+        if self.use_cav_nlp:
+            try:
+                from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+                self.enhanced_solver = EnhancedZ3Solver()
+                logger.info("CAV-NLP EnhancedZ3Solver initialized for MCTS Workflow")
+            except ImportError as e:
+                logger.warning(f"CAV-NLP not available for MCTS Workflow: {e}")
+                self.use_cav_nlp = False
+
+    def evaluate_subproblem_with_cav_nlp(
+        self,
+        subproblem: 'SubProblem'
+    ) -> Dict[str, Any]:
+        """
+        Evaluate sub-problem using CAV-NLP.
+
+        Args:
+            subproblem: SubProblem to evaluate
+
+        Returns:
+            Evaluation result with CAV-NLP scores
+        """
+        if not self.use_cav_nlp or not self.enhanced_solver:
+            return {
+                "evaluated": False,
+                "applicability": 0.5,
+                "confidence": 0.5
+            }
+
+        try:
+            # Get sub-problem description
+            description = getattr(subproblem, 'description', '')
+            if not description and hasattr(subproblem, 'statement'):
+                description = subproblem.statement
+
+            if not description:
+                return {
+                    "evaluated": False,
+                    "applicability": 0.5,
+                    "confidence": 0.5
+                }
+
+            # Formalize using CAV-NLP
+            constraint = self.enhanced_solver.formalize_constraint(description)
+
+            # Verify
+            result = self.enhanced_solver.verify_with_lean(constraint)
+
+            confidence = getattr(result, 'confidence', 0.5)
+
+            return {
+                "evaluated": True,
+                "formalized": True,
+                "applicability": confidence,
+                "confidence": confidence,
+                "constraint": constraint
+            }
+
+        except Exception as e:
+            logger.error(f"Sub-problem evaluation failed: {e}")
+            return {
+                "evaluated": False,
+                "applicability": 0.5,
+                "confidence": 0.5,
+                "error": str(e)
+            }
+
+    async def formalize_workflow_objective(
+        self,
+        objective: str,
+        workflow_state: Optional['WorkflowState'] = None
+    ) -> Dict[str, Any]:
+        """
+        Formalize workflow objective using CAV-NLP.
+
+        Args:
+            objective: Natural language objective
+            workflow_state: Optional workflow state
+
+        Returns:
+            Formalized objective with metadata
+        """
+        if not self.use_cav_nlp or not self.enhanced_solver:
+            return {
+                "formalized": False,
+                "original": objective,
+                "search_objective": objective
+            }
+
+        try:
+            constraint = self.enhanced_solver.formalize_constraint(objective)
+            result = self.enhanced_solver.verify_with_lean(constraint)
+
+            return {
+                "formalized": True,
+                "original": objective,
+                "constraint": constraint,
+                "search_objective": getattr(constraint, 'code', objective),
+                "confidence": getattr(result, 'confidence', 0.8),
+                "workflow_id": getattr(workflow_state, 'workflow_id', None) if workflow_state else None
+            }
+
+        except Exception as e:
+            logger.error(f"Objective formalization failed: {e}")
+            return {
+                "formalized": False,
+                "original": objective,
+                "search_objective": objective,
+                "error": str(e)
+            }
+
+    def is_cav_nlp_available(self) -> bool:
+        """Check if CAV-NLP is available."""
+        return self.use_cav_nlp and self.enhanced_solver is not None

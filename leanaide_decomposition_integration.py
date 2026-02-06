@@ -256,6 +256,60 @@ class LeanSubProblem:
 # MAIN DECOMPOSITION CLASS
 # =============================================================================
 
+class LeanAideDecompositionIntegration:
+    """
+    Integrates LeanAide decomposition with CAV-NLP enhanced formalization.
+    
+    This class provides CAV-NLP enhanced decomposition capabilities for
+    mathematical problem formalization in Lean 4.
+    """
+
+    def __init__(self, config=None):
+        """
+        Initialize LeanAide decomposition integration with CAV-NLP support.
+
+        Args:
+            config: Optional configuration dict with use_cav_nlp flag
+        """
+        self.config = config or {}
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True)
+        if self.use_cav_nlp:
+            try:
+                from openevolve.unified_math_service import UnifiedMathService
+                self.math_service = UnifiedMathService()
+            except ImportError:
+                self.math_service = None
+                self.use_cav_nlp = False
+
+    async def decompose_with_cav_nlp(self, problem):
+        """
+        Decompose a problem using CAV-NLP enhanced formalization.
+
+        Args:
+            problem: Problem statement to decompose
+
+        Returns:
+            Decomposition result with formalized components
+        """
+        if self.use_cav_nlp and self.math_service:
+            formalized = await self.math_service.formalize(problem)
+            # Use formalized code for decomposition
+            decomposer = LeanDecomposer(
+                leanaide_client=None,
+                enable_llm=False,
+                default_strategy=DecompositionStrategy.HYBRID
+            )
+            return await decomposer.decompose_mathematical_problem(formalized.code)
+        else:
+            # Fallback to standard decomposition
+            decomposer = LeanDecomposer(
+                leanaide_client=None,
+                enable_llm=False,
+                default_strategy=DecompositionStrategy.HYBRID
+            )
+            return await decomposer.decompose_mathematical_problem(problem)
+
+
 class LeanDecomposer:
     """
     Decomposes mathematical problems into Lean 4 components.

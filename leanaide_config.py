@@ -7,6 +7,7 @@ Provides comprehensive configuration management for LeanAide integration with:
 - Configuration validation with helpful error messages
 - Sensible defaults that work out of the box
 - Configuration migration support for future changes
+- CAV-NLP integration configuration
 
 Configuration Precedence:
 1. Environment variables (LEANAIDE_*) - highest priority
@@ -52,6 +53,14 @@ from env_helpers import (
 )
 
 logger = logging.getLogger(__name__)
+
+# CAV-NLP availability check
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
 
 
 # =============================================================================
@@ -707,6 +716,61 @@ class LeanAideSelfPlayMDAPConfig:
 
 
 @dataclass
+class LeanAideCAVNLPConfig:
+    """
+    CAV-NLP (Computer Algebra Verification + Natural Language Processing)
+    integration configuration for LeanAide.
+
+    Attributes:
+        enabled: Enable CAV-NLP integration (default: True if available)
+        use_enhanced_solver: Use EnhancedZ3Solver for constraint solving
+        use_unified_math: Use UnifiedMathService for mathematical operations
+        semantic_analysis_enabled: Enable semantic analysis of proofs
+        constraint_checking_enabled: Enable constraint-based verification
+        auto_formalization_enabled: Enable automatic formalization
+        verification_timeout: Timeout for CAV-NLP verification in seconds
+        solver_timeout: Timeout for solver operations in milliseconds
+        max_constraints: Maximum number of constraints to process
+        cache_results: Cache CAV-NLP verification results
+        fallback_to_basic: Fall back to basic methods if CAV-NLP fails
+    """
+    enabled: bool = field(default_factory=lambda: CAV_NLP_AVAILABLE)
+    use_enhanced_solver: bool = True
+    use_unified_math: bool = True
+    semantic_analysis_enabled: bool = True
+    constraint_checking_enabled: bool = True
+    auto_formalization_enabled: bool = True
+    verification_timeout: float = 300.0
+    solver_timeout: int = 5000
+    max_constraints: int = 100
+    cache_results: bool = True
+    fallback_to_basic: bool = True
+
+    def validate(self) -> List[str]:
+        """
+        Validate CAV-NLP configuration.
+
+        Returns:
+            List of error messages (empty if valid)
+        """
+        errors = []
+
+        if not CAV_NLP_AVAILABLE and self.enabled:
+            errors.append("CAV-NLP is enabled but the module is not available")
+
+        if self.verification_timeout <= 0:
+            errors.append(f"verification_timeout must be positive, got {self.verification_timeout}")
+
+        if self.solver_timeout <= 0:
+            errors.append(f"solver_timeout must be positive, got {self.solver_timeout}")
+
+        if self.max_constraints < 1:
+            errors.append(f"max_constraints must be >= 1, got {self.max_constraints}")
+
+        return errors
+
+
+@dataclass
 class LeanAideConfig:
     """
     Main LeanAide configuration container.
@@ -726,6 +790,7 @@ class LeanAideConfig:
     mdap_evolution: LeanAideMDAPEvolutionConfig = field(default_factory=LeanAideMDAPEvolutionConfig)
     mdap_adversarial: LeanAideAdversarialMDAPConfig = field(default_factory=LeanAideAdversarialMDAPConfig)
     mdap_selfplay: LeanAideSelfPlayMDAPConfig = field(default_factory=LeanAideSelfPlayMDAPConfig)
+    cav_nlp: LeanAideCAVNLPConfig = field(default_factory=LeanAideCAVNLPConfig)
 
     # Global settings
     enabled: bool = True
@@ -791,6 +856,9 @@ class LeanAideConfig:
 
         # Validate MDAP-selfplay config
         errors.extend(self.mdap_selfplay.validate())
+
+        # Validate CAV-NLP config
+        errors.extend(self.cav_nlp.validate())
 
         return errors
 
@@ -981,6 +1049,7 @@ class LeanAideConfigLoader:
         mdap_evolution_data = self._raw_config.get("mdap_evolution", {})
         mdap_adversarial_data = self._raw_config.get("mdap_adversarial", {})
         mdap_selfplay_data = self._raw_config.get("mdap_selfplay", {})
+        cav_nlp_data = self._raw_config.get("cav_nlp", {})
 
         # Server config
         server = LeanAideServerConfig(
@@ -1180,6 +1249,21 @@ class LeanAideConfigLoader:
             exploration_decay=get_value("mdap_selfplay", "exploration_decay", "float", mdap_selfplay_data.get("exploration_decay", 0.995), min_val=0.0, max_val=1.0),
         )
 
+        # CAV-NLP config
+        cav_nlp = LeanAideCAVNLPConfig(
+            enabled=get_value("cav_nlp", "enabled", "bool", cav_nlp_data.get("enabled", CAV_NLP_AVAILABLE)),
+            use_enhanced_solver=get_value("cav_nlp", "use_enhanced_solver", "bool", cav_nlp_data.get("use_enhanced_solver", True)),
+            use_unified_math=get_value("cav_nlp", "use_unified_math", "bool", cav_nlp_data.get("use_unified_math", True)),
+            semantic_analysis_enabled=get_value("cav_nlp", "semantic_analysis_enabled", "bool", cav_nlp_data.get("semantic_analysis_enabled", True)),
+            constraint_checking_enabled=get_value("cav_nlp", "constraint_checking_enabled", "bool", cav_nlp_data.get("constraint_checking_enabled", True)),
+            auto_formalization_enabled=get_value("cav_nlp", "auto_formalization_enabled", "bool", cav_nlp_data.get("auto_formalization_enabled", True)),
+            verification_timeout=get_value("cav_nlp", "verification_timeout", "float", cav_nlp_data.get("verification_timeout", 300.0), min_val=1.0),
+            solver_timeout=get_value("cav_nlp", "solver_timeout", "int", cav_nlp_data.get("solver_timeout", 5000), min_val=100),
+            max_constraints=get_value("cav_nlp", "max_constraints", "int", cav_nlp_data.get("max_constraints", 100), min_val=1),
+            cache_results=get_value("cav_nlp", "cache_results", "bool", cav_nlp_data.get("cache_results", True)),
+            fallback_to_basic=get_value("cav_nlp", "fallback_to_basic", "bool", cav_nlp_data.get("fallback_to_basic", True)),
+        )
+
         # Global settings
         enabled = get_value("", "enabled", "bool", self._raw_config.get("enabled", True))
         environment = get_value("", "environment", "str", self._raw_config.get("environment", "development"))
@@ -1197,6 +1281,7 @@ class LeanAideConfigLoader:
             mdap_evolution=mdap_evolution,
             mdap_adversarial=mdap_adversarial,
             mdap_selfplay=mdap_selfplay,
+            cav_nlp=cav_nlp,
             enabled=enabled,
             environment=environment,
         )
@@ -1211,6 +1296,8 @@ class LeanAideConfigLoader:
         logger.info(f"  Caching: {config.cache.enable}")
         logger.info(f"  Stage 3C integration: {config.workflow.stage_3c_enabled}")
         logger.info(f"  Stage 5 integration: {config.workflow.stage_5_enabled}")
+        logger.info(f"  CAV-NLP enabled: {config.cav_nlp.enabled}")
+        logger.info(f"  CAV-NLP available: {CAV_NLP_AVAILABLE}")
 
 
 # =============================================================================

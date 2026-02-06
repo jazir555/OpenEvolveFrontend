@@ -9,6 +9,11 @@ not just replacing 'sorry' with 'trivial'.
 It uses theorem structure analysis to select appropriate proof tactics
 that can actually complete proofs.
 
+With CAV-NLP integration:
+- Semantic analysis of proof goals
+- Constraint-based verification
+- Enhanced autoformalization
+
 Usage:
     from leanaide_pes_handler import LeanPESHandler, complete_lean_proof
     
@@ -28,6 +33,15 @@ logging.basicConfig(
     format="[%(asctime)s] [%(levelname)s] [LeanAide-PES] %(message)s"
 )
 logger = logging.getLogger("LeanAide-PES")
+
+# Add CAV-NLP imports with graceful fallback
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logger.warning("CAV-NLP integration not available - PES handler will use standard methods")
 
 
 # =============================================================================
@@ -506,12 +520,26 @@ class LeanPESHandler:
     
     This handler integrates Lean proof completion into the PES workflow,
     providing actual proof tactics rather than trivial replacements.
+    
+    With CAV-NLP integration for enhanced proof extraction and verification.
     """
     
-    def __init__(self):
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        self.config = config or {}
         self.engine = LeanProofCompletionEngine()
         self.analyzer = LeanCodeAnalyzer()
         self.selector = ProofStrategySelector()
+        
+        # Initialize CAV-NLP components if enabled
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            try:
+                self.enhanced_solver = EnhancedZ3Solver()
+                self.math_service = UnifiedMathService()
+                logger.info("CAV-NLP components initialized for PES handler")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP components: {e}")
+                self.use_cav_nlp = False
     
     def plan(self, code: str) -> Dict[str, Any]:
         """
@@ -575,12 +603,53 @@ class LeanPESHandler:
         original_sorry_count = len(self.analyzer.extract_theorems(original_code))
         completed_sorry_count = len(self.analyzer.extract_theorems(completed_code))
         
-        return {
+        summary = {
             'original_sorry_count': original_sorry_count,
             'completed_proofs': original_sorry_count - completed_sorry_count,
             'remaining_sorry': completed_sorry_count,
             'success_rate': (original_sorry_count - completed_sorry_count) / max(original_sorry_count, 1) * 100
         }
+        
+        # Add CAV-NLP verification if enabled
+        if self.use_cav_nlp:
+            try:
+                cav_nlp_result = self._cav_nlp_verify_proof(completed_code)
+                summary['cav_nlp_verification'] = cav_nlp_result
+            except Exception as e:
+                logger.debug(f"CAV-NLP verification in summarize failed: {e}")
+        
+        return summary
+    
+    def _cav_nlp_verify_proof(self, lean_code: str) -> Dict[str, Any]:
+        """
+        Verify completed proof using CAV-NLP.
+        
+        Args:
+            lean_code: Completed Lean code
+            
+        Returns:
+            CAV-NLP verification results
+        """
+        if not self.use_cav_nlp or not hasattr(self, 'math_service'):
+            return {"available": False}
+        
+        try:
+            # Use math service for semantic analysis
+            result = self.math_service.analyze_semantics(
+                lean_code=lean_code,
+                context={"pes_verification": True}
+            )
+            
+            return {
+                "available": True,
+                "semantic_score": result.get("semantic_score", 0.0),
+                "issues": result.get("issues", []),
+                "suggestions": result.get("suggestions", []),
+                "confidence": result.get("confidence", 0.5)
+            }
+        except Exception as e:
+            logger.debug(f"CAV-NLP proof verification failed: {e}")
+            return {"available": True, "error": str(e)}
 
 
 # =============================================================================

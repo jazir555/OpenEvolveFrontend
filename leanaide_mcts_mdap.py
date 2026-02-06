@@ -1572,3 +1572,127 @@ async def example_usage():
 if __name__ == "__main__":
     # Run example
     asyncio.run(example_usage())
+
+
+# =============================================================================
+# CAV-NLP INTEGRATION FOR LEANAIDE MCTS-MDAP
+# =============================================================================
+
+class LeanAideMCTSCAVNLP:
+    """
+    CAV-NLP integration for LeanAide MCTS-MDAP.
+
+    Enhances combined MCTS-MDAP search with CAV-NLP:
+    - Enhanced node evaluation with formalization
+    - MDAP voting with formalized constraints
+    - Z3 verification for search nodes
+
+    Attributes:
+        use_cav_nlp: Whether CAV-NLP is enabled
+        enhanced_solver: EnhancedZ3Solver for verification
+    """
+
+    def __init__(self, config: Optional['MDAPMCTSConfig'] = None):
+        """
+        Initialize CAV-NLP enhanced MCTS-MDAP.
+
+        Args:
+            config: MDAP-MCTS configuration with use_cav_nlp option
+        """
+        self.config = config
+        self.use_cav_nlp = getattr(config, 'use_cav_nlp', True) if config else True
+        self.enhanced_solver = None
+
+        if self.use_cav_nlp:
+            try:
+                from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+                self.enhanced_solver = EnhancedZ3Solver()
+                logger.info("CAV-NLP EnhancedZ3Solver initialized for MCTS-MDAP")
+            except ImportError as e:
+                logger.warning(f"CAV-NLP not available for MCTS-MDAP: {e}")
+                self.use_cav_nlp = False
+
+    def evaluate_node_with_cav_nlp(
+        self,
+        node: 'MDAPMCTSNode',
+        description: Optional[str] = None
+    ) -> float:
+        """
+        Evaluate MCTS-MDAP node using CAV-NLP.
+
+        Args:
+            node: MDAP-MCTS node to evaluate
+            description: Optional node description
+
+        Returns:
+            Confidence score between 0 and 1
+        """
+        if not self.use_cav_nlp or not self.enhanced_solver:
+            return getattr(node, 'value', 0.5)
+
+        try:
+            # Get description from node
+            node_desc = description or getattr(node, 'description', None)
+            if not node_desc and hasattr(node, 'state'):
+                node_desc = str(node.state)
+
+            if not node_desc:
+                return getattr(node, 'value', 0.5)
+
+            # Formalize and verify
+            constraint = self.enhanced_solver.formalize_constraint(node_desc)
+            result = self.enhanced_solver.verify_with_lean(constraint)
+
+            return getattr(result, 'confidence', 0.5)
+
+        except Exception as e:
+            logger.error(f"CAV-NLP node evaluation failed: {e}")
+            return getattr(node, 'value', 0.5)
+
+    async def enhance_mdap_voting(
+        self,
+        votes: List[Dict[str, Any]],
+        theorem: str
+    ) -> List[Dict[str, Any]]:
+        """
+        Enhance MDAP votes with CAV-NLP formalization.
+
+        Args:
+            votes: List of vote dictionaries
+            theorem: Theorem being voted on
+
+        Returns:
+            Enhanced votes with CAV-NLP scores
+        """
+        if not self.use_cav_nlp or not self.enhanced_solver:
+            return votes
+
+        try:
+            # Formalize theorem
+            theorem_constraint = self.enhanced_solver.formalize_constraint(theorem)
+
+            enhanced_votes = []
+            for vote in votes:
+                vote_content = vote.get('content', '')
+
+                # Formalize vote content
+                vote_constraint = self.enhanced_solver.formalize_constraint(vote_content)
+
+                # Verify compatibility
+                result = self.enhanced_solver.verify_with_lean(vote_constraint)
+
+                # Add CAV-NLP score to vote
+                enhanced_vote = vote.copy()
+                enhanced_vote['cav_nlp_score'] = getattr(result, 'confidence', 0.5)
+                enhanced_vote['formalized'] = True
+                enhanced_votes.append(enhanced_vote)
+
+            return enhanced_votes
+
+        except Exception as e:
+            logger.error(f"MDAP voting enhancement failed: {e}")
+            return votes
+
+    def is_cav_nlp_available(self) -> bool:
+        """Check if CAV-NLP is available."""
+        return self.use_cav_nlp and self.enhanced_solver is not None

@@ -1203,7 +1203,8 @@ class LeanProofEvolutionEngine:
         stagnation_limit: int = 10,
         target_fitness: float = 8.0,
         cache_enabled: bool = True,
-        parallel_evaluation: bool = True
+        parallel_evaluation: bool = True,
+        use_cav_nlp: bool = True
     ):
         self.theorem = theorem
         self.theorem_name = theorem_name or "evolved_theorem"
@@ -1212,6 +1213,18 @@ class LeanProofEvolutionEngine:
         self.convergence_threshold = convergence_threshold
         self.stagnation_limit = stagnation_limit
         self.target_fitness = target_fitness
+        self.use_cav_nlp = use_cav_nlp
+
+        # Initialize CAV-NLP components
+        self.enhanced_solver = None
+        if self.use_cav_nlp:
+            try:
+                from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+                self.enhanced_solver = EnhancedZ3Solver()
+                logger.info("CAV-NLP integration enabled for evolution")
+            except ImportError as e:
+                logger.warning(f"CAV-NLP integration not available: {e}")
+                self.use_cav_nlp = False
 
         # Initialize components
         self.mutator = LeanProofMutator(mutation_rate=mutation_rate)
@@ -1235,6 +1248,82 @@ class LeanProofEvolutionEngine:
         # Statistics
         self.statistics_history: List[PopulationStatistics] = []
         self.convergence_history: List[float] = []
+
+    def evaluate_fitness_with_cav_nlp(self, candidate: LeanProofStrategy) -> float:
+        """Evaluate fitness using CAV-NLP verification.
+        
+        Args:
+            candidate: The proof strategy candidate to evaluate
+            
+        Returns:
+            Fitness score between 0 and 1
+        """
+        if not self.use_cav_nlp or not self.enhanced_solver:
+            return candidate.fitness
+        
+        try:
+            # Convert proof to constraints for verification
+            constraints = self._extract_constraints_from_proof(candidate.proof)
+            
+            # Verify candidate with hybrid approach
+            result = self.enhanced_solver.verify_with_lean(constraints)
+            
+            # Return confidence as fitness boost
+            if result.success:
+                return min(1.0, candidate.fitness + result.confidence * 0.2)
+            return candidate.fitness * 0.8  # Penalize failed verification
+        except Exception as e:
+            logger.warning(f"CAV-NLP fitness evaluation failed: {e}")
+            return candidate.fitness
+
+    def canonicalize_candidate(self, candidate: LeanProofStrategy) -> LeanProofStrategy:
+        """Canonicalize using CAV-NLP.
+        
+        Args:
+            candidate: The proof strategy to canonicalize
+            
+        Returns:
+            Canonicalized proof strategy
+        """
+        if not self.use_cav_nlp or not self.enhanced_solver:
+            return candidate
+        
+        try:
+            # Extract theorem statement for canonicalization
+            theorem_stmt = candidate.proof.theorem_statement
+            
+            # Use canonical manager to normalize
+            canonical_form = self.enhanced_solver.canonical_manager.canonicalize(theorem_stmt)
+            
+            # Update candidate with canonical form metadata
+            candidate.proof.theorem_statement = canonical_form
+            return candidate
+        except Exception as e:
+            logger.warning(f"CAV-NLP canonicalization failed: {e}")
+            return candidate
+
+    def _extract_constraints_from_proof(self, proof: LeanProof) -> List[str]:
+        """Extract constraints from a proof for CAV-NLP verification.
+        
+        Args:
+            proof: The Lean proof to extract constraints from
+            
+        Returns:
+            List of constraint strings
+        """
+        constraints = []
+        
+        # Add theorem statement as primary constraint
+        if proof.theorem_statement:
+            constraints.append(proof.theorem_statement)
+        
+        # Extract constraints from tactics
+        for tactic in proof.tactics:
+            if tactic.name in ["have", "assume", "let"]:
+                constraint = " ".join([tactic.name] + tactic.arguments)
+                constraints.append(constraint)
+        
+        return constraints
 
     async def evolve(self) -> EvolutionResult:
         """

@@ -54,6 +54,13 @@ try:
 except ImportError:
     ALERTING_AVAILABLE = False
 
+# Add CAV-NLP to LeanAide-CrewAI bridge
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+
 # Import CrewAI zero-error workflow (replaces Hephaestus)
 from crewai_zero_error_workflow import (
     ZeroErrorWorkflow,
@@ -292,8 +299,15 @@ class LeanAideCrewAIBridge:
         if self.config.enable_crewai_workflow:
             self.state_manager = StateManager("./crewai_states")
 
+        # Add CAV-NLP integration
+        self.use_cav_nlp = getattr(self.config, 'use_cav_nlp', True) and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            self.enhanced_solver = EnhancedZ3Solver()
+            logger.info("CAV-NLP EnhancedZ3Solver initialized")
+
         logger.info("LeanAide-CrewAI Bridge initialized (MIT-licensed)")
         logger.info(f"  CrewAI workflows: {self.config.enable_crewai_workflow}")
+        logger.info(f"  CAV-NLP enabled: {self.use_cav_nlp}")
 
     # =========================================================================
     # WORKFLOW MANAGEMENT
@@ -1220,6 +1234,7 @@ __all__ = [
     'ExecutionMode',
     'MathematicalDomain',
     'analyze_and_verify_math_problem',
+    'CAV_NLP_AVAILABLE',
 ]
 
 

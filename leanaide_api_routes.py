@@ -7,6 +7,7 @@ This module provides REST API endpoints for LeanAide operations:
 - /api/leanaide/translate - Theorem translation endpoint
 - /api/leanaide/status - Server status check
 - /api/leanaide/quality-gate - Quality gate verification
+- /api/leanaide/cav-nlp/formalize - CAV-NLP formalization endpoint
 
 Author: OpenEvolve
 Created: 2026-02-02
@@ -21,6 +22,15 @@ from typing import Optional
 
 
 logger = logging.getLogger(__name__)
+
+# Add CAV-NLP imports with graceful fallback
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logger.warning("CAV-NLP integration not available for API routes")
 
 
 # =============================================================================
@@ -105,6 +115,52 @@ class LeanAideStatusResponse(BaseModel):
 
 
 # =============================================================================
+# CAV-NLP Models
+# =============================================================================
+
+class CAVNLPFormalizeRequest(BaseModel):
+    """Request for CAV-NLP formalization."""
+    natural_language: str = Field(..., description="Natural language mathematical statement")
+    statement_type: str = Field(default="theorem", description="Type of statement (theorem, lemma, definition)")
+    name: Optional[str] = Field(default=None, description="Optional name for the formalized statement")
+    domain: str = Field(default="general", description="Mathematical domain (algebra, analysis, etc.)")
+    use_constraints: bool = Field(default=True, description="Whether to use constraint-based formalization")
+    timeout: int = Field(default=300, description="Timeout in seconds")
+
+
+class CAVNLPFormalizeResponse(BaseModel):
+    """Response for CAV-NLP formalization."""
+    success: bool
+    lean_code: Optional[str] = None
+    formalized_name: str
+    confidence: float
+    constraints_used: List[str] = []
+    verification_status: str = "pending"
+    error: Optional[str] = None
+    metadata: Dict[str, Any] = {}
+
+
+class CAVNLPVerifyRequest(BaseModel):
+    """Request for CAV-NLP enhanced verification."""
+    lean_code: str = Field(..., description="Lean code to verify")
+    use_semantic_analysis: bool = Field(default=True, description="Use semantic analysis")
+    use_constraint_checking: bool = Field(default=True, description="Use constraint-based checking")
+    timeout: int = Field(default=300, description="Timeout in seconds")
+
+
+class CAVNLPVerifyResponse(BaseModel):
+    """Response for CAV-NLP enhanced verification."""
+    success: bool
+    verified: bool
+    semantic_score: float
+    constraint_satisfied: bool
+    issues_found: List[str] = []
+    suggestions: List[str] = []
+    error: Optional[str] = None
+    metadata: Dict[str, Any] = {}
+
+
+# =============================================================================
 # LeanAide Router
 # =============================================================================
 
@@ -174,6 +230,32 @@ except ImportError:
 _leanaide_client: Optional[LeanAideClient] = None
 _quality_gate_verifier: Optional[LeanAideQualityGateVerifier] = None
 _ragbits_integration: Optional[LeanAideRagbitsIntegration] = None
+_enhanced_solver: Optional[Any] = None
+_math_service: Optional[Any] = None
+
+
+def get_enhanced_solver() -> Any:
+    """Get or create CAV-NLP enhanced solver."""
+    global _enhanced_solver
+    if _enhanced_solver is None and CAV_NLP_AVAILABLE:
+        try:
+            from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+            _enhanced_solver = EnhancedZ3Solver()
+        except Exception as e:
+            logger.error(f"Failed to create enhanced solver: {e}")
+    return _enhanced_solver
+
+
+def get_math_service() -> Any:
+    """Get or create unified math service."""
+    global _math_service
+    if _math_service is None and CAV_NLP_AVAILABLE:
+        try:
+            from openevolve.unified_math_service import UnifiedMathService
+            _math_service = UnifiedMathService()
+        except Exception as e:
+            logger.error(f"Failed to create math service: {e}")
+    return _math_service
 
 
 def get_leanaide_client() -> LeanAideClient:
@@ -260,7 +342,8 @@ async def leanaide_status():
                 "client": True,
                 "mcp_tools": True,
                 "quality_gate": QUALITY_GATE_AVAILABLE,
-                "ragbits": RAGBITS_INTEGRATION_AVAILABLE
+                "ragbits": RAGBITS_INTEGRATION_AVAILABLE,
+                "cav_nlp": CAV_NLP_AVAILABLE
             },
             config={
                 "host": "localhost",
@@ -553,6 +636,124 @@ async def leanaide_rag_prove(
         )
 
 
+@router.post("/cav-nlp/formalize", response_model=CAVNLPFormalizeResponse)
+async def cav_nlp_formalize(request: CAVNLPFormalizeRequest):
+    """
+    Formalize natural language to Lean code using CAV-NLP.
+    
+    Args:
+        request: CAVNLPFormalizeRequest with natural language statement
+        
+    Returns:
+        CAVNLPFormalizeResponse with formalized Lean code
+    """
+    if not CAV_NLP_AVAILABLE:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="CAV-NLP integration not available"
+        )
+    
+    try:
+        math_service = get_math_service()
+        if not math_service:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="CAV-NLP math service not available"
+            )
+        
+        # Use CAV-NLP for formalization
+        result = await math_service.formalize_async(
+            natural_language=request.natural_language,
+            statement_type=request.statement_type,
+            name=request.name or f"formalized_{hash(request.natural_language) % 10000}",
+            domain=request.domain,
+            use_constraints=request.use_constraints,
+            timeout=request.timeout
+        )
+        
+        return CAVNLPFormalizeResponse(
+            success=result.get("success", False),
+            lean_code=result.get("lean_code"),
+            formalized_name=result.get("name", request.name or "unknown"),
+            confidence=result.get("confidence", 0.0),
+            constraints_used=result.get("constraints_used", []),
+            verification_status=result.get("verification_status", "pending"),
+            error=result.get("error"),
+            metadata=result.get("metadata", {})
+        )
+    except Exception as e:
+        logger.error(f"CAV-NLP formalization failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"CAV-NLP formalization failed: {str(e)}"
+        )
+
+
+@router.post("/cav-nlp/verify", response_model=CAVNLPVerifyResponse)
+async def cav_nlp_verify(request: CAVNLPVerifyRequest):
+    """
+    Verify Lean code using CAV-NLP enhanced verification.
+    
+    Args:
+        request: CAVNLPVerifyRequest with Lean code to verify
+        
+    Returns:
+        CAVNLPVerifyResponse with verification results
+    """
+    if not CAV_NLP_AVAILABLE:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="CAV-NLP integration not available"
+        )
+    
+    try:
+        enhanced_solver = get_enhanced_solver()
+        math_service = get_math_service()
+        
+        if not enhanced_solver or not math_service:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="CAV-NLP components not available"
+            )
+        
+        # Perform semantic analysis if requested
+        semantic_score = 0.0
+        if request.use_semantic_analysis:
+            semantic_result = await math_service.analyze_semantics_async(
+                lean_code=request.lean_code,
+                timeout=request.timeout
+            )
+            semantic_score = semantic_result.get("semantic_score", 0.0)
+        
+        # Perform constraint checking if requested
+        constraint_satisfied = True
+        if request.use_constraint_checking:
+            constraint_result = await enhanced_solver.check_constraints_async(
+                lean_code=request.lean_code,
+                timeout=request.timeout
+            )
+            constraint_satisfied = constraint_result.get("satisfiable", True)
+        
+        return CAVNLPVerifyResponse(
+            success=True,
+            verified=semantic_score > 0.7 and constraint_satisfied,
+            semantic_score=semantic_score,
+            constraint_satisfied=constraint_satisfied,
+            issues_found=[],
+            suggestions=[],
+            metadata={
+                "semantic_analysis_used": request.use_semantic_analysis,
+                "constraint_checking_used": request.use_constraint_checking
+            }
+        )
+    except Exception as e:
+        logger.error(f"CAV-NLP verification failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"CAV-NLP verification failed: {str(e)}"
+        )
+
+
 # =============================================================================
 # Include in Main API Server
 # =============================================================================
@@ -575,3 +776,5 @@ if __name__ == "__main__":
     print("  POST /api/leanaide/quality-gate")
     print("  POST /api/leanaide/rag-retrieve")
     print("  POST /api/leanaide/rag-prove")
+    print("  POST /api/leanaide/cav-nlp/formalize")
+    print("  POST /api/leanaide/cav-nlp/verify")

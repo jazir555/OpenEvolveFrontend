@@ -23,7 +23,7 @@ from pathlib import Path
 from rbac_enhanced import (
     RBACSystem,
     RBACStorage,
-    StreamlitRBAC,
+    UIRBAC,
     Role,
     User,
     Permission,

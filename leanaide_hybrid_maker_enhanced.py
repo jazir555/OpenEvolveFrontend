@@ -279,6 +279,12 @@ class LeanAideMAKERConfig:
     error_recovery_enabled: bool = True
     error_recovery_mode: str = "fallback"  # fallback, retry, abort
 
+    # CAV-NLP settings
+    use_cav_nlp: bool = True
+    cav_nlp_formalization: bool = True
+    cav_nlp_verification: bool = True
+    cav_nlp_canonicalization: bool = True
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -302,7 +308,11 @@ class LeanAideMAKERConfig:
             "performance_window": self.performance_window,
             "switch_threshold": self.switch_threshold,
             "error_recovery_enabled": self.error_recovery_enabled,
-            "error_recovery_mode": self.error_recovery_mode
+            "error_recovery_mode": self.error_recovery_mode,
+            "use_cav_nlp": self.use_cav_nlp,
+            "cav_nlp_formalization": self.cav_nlp_formalization,
+            "cav_nlp_verification": self.cav_nlp_verification,
+            "cav_nlp_canonicalization": self.cav_nlp_canonicalization
         }
 
 
@@ -333,6 +343,18 @@ class LeanAideHybridStrategy(ABC):
             )
             self.leanaide_client = LeanAideClient(config=leanaide_config)
 
+        # Initialize CAV-NLP components
+        self.math_service = None
+        self.use_cav_nlp = config.use_cav_nlp
+        if self.use_cav_nlp:
+            try:
+                from openevolve.unified_math_service import UnifiedMathService
+                self.math_service = UnifiedMathService()
+                logger.info("CAV-NLP integration enabled for hybrid strategy")
+            except ImportError as e:
+                logger.warning(f"CAV-NLP integration not available: {e}")
+                self.use_cav_nlp = False
+
         # Performance tracking
         self.performance_history: List[Dict[str, Any]] = []
         self.error_counts: Dict[str, int] = defaultdict(int)
@@ -354,6 +376,70 @@ class LeanAideHybridStrategy(ABC):
             EnhancedEvolutionResult with detailed metrics
         """
         pass
+
+    async def make_with_cav_nlp(self, specification: str) -> Optional[str]:
+        """Create artifact using CAV-NLP enhanced formalization.
+        
+        Args:
+            specification: Natural language specification
+            
+        Returns:
+            Formalized code or None if failed
+        """
+        if not self.use_cav_nlp or not self.math_service:
+            return None
+        
+        try:
+            formalized = await self.math_service.formalize(specification)
+            if formalized and hasattr(formalized, 'code'):
+                return formalized.code
+            return None
+        except Exception as e:
+            logger.warning(f"CAV-NLP formalization failed: {e}")
+            return None
+
+    async def verify_with_cav_nlp(self, code: str, constraints: List[str]) -> float:
+        """Verify code using CAV-NLP.
+        
+        Args:
+            code: The code to verify
+            constraints: List of constraints
+            
+        Returns:
+            Confidence score between 0 and 1
+        """
+        if not self.use_cav_nlp or not self.math_service:
+            return 0.5
+        
+        try:
+            result = await self.math_service.verify(code, constraints)
+            if result and hasattr(result, 'confidence'):
+                return result.confidence
+            return 0.5
+        except Exception as e:
+            logger.warning(f"CAV-NLP verification failed: {e}")
+            return 0.5
+
+    def canonicalize_with_cav_nlp(self, theorem_statement: str) -> str:
+        """Canonicalize theorem statement using CAV-NLP.
+        
+        Args:
+            theorem_statement: The theorem statement to canonicalize
+            
+        Returns:
+            Canonicalized statement
+        """
+        if not self.use_cav_nlp or not self.math_service:
+            return theorem_statement
+        
+        if not self.config.cav_nlp_canonicalization:
+            return theorem_statement
+        
+        try:
+            return self.math_service.canonicalize(theorem_statement)
+        except Exception as e:
+            logger.warning(f"CAV-NLP canonicalization failed: {e}")
+            return theorem_statement
 
     async def translate_theorem(
         self,

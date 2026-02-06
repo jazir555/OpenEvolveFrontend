@@ -2462,3 +2462,171 @@ async def main():
 if __name__ == "__main__":
     # Run the example
     asyncio.run(main())
+
+
+# =============================================================================
+# CAV-NLP INTEGRATION FOR LEANAIDE MCTS
+# =============================================================================
+
+class LeanAideMCTSCAVNLP:
+    """
+    CAV-NLP integration for LeanAide MCTS (Monte Carlo Tree Search).
+
+    Enhances MCTS proof search with CAV-NLP capabilities:
+    - Node evaluation using formalized constraints
+    - Enhanced theorem statement understanding
+    - Z3-based verification integration
+
+    Attributes:
+        use_cav_nlp: Whether CAV-NLP is enabled
+        enhanced_solver: EnhancedZ3Solver instance for verification
+    """
+
+    def __init__(self, config: Optional['MCTSConfig'] = None):
+        """
+        Initialize CAV-NLP enhanced MCTS.
+
+        Args:
+            config: MCTS configuration with use_cav_nlp option
+        """
+        self.config = config
+        self.use_cav_nlp = getattr(config, 'use_cav_nlp', True) if config else True
+        self.enhanced_solver = None
+
+        if self.use_cav_nlp:
+            try:
+                from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+                self.enhanced_solver = EnhancedZ3Solver()
+                logger.info("CAV-NLP EnhancedZ3Solver initialized for MCTS")
+            except ImportError as e:
+                logger.warning(f"CAV-NLP not available for MCTS: {e}")
+                self.use_cav_nlp = False
+
+    def evaluate_node_with_cav_nlp(
+        self,
+        node: 'MCTSNode',
+        description: Optional[str] = None
+    ) -> float:
+        """
+        Evaluate MCTS node using CAV-NLP.
+
+        Args:
+            node: MCTS node to evaluate
+            description: Optional node description
+
+        Returns:
+            Confidence score between 0 and 1
+        """
+        if not self.use_cav_nlp or not self.enhanced_solver:
+            return node.value if hasattr(node, 'value') else 0.5
+
+        try:
+            # Get node description
+            node_desc = description or getattr(node, 'description', None)
+            if not node_desc and hasattr(node, 'state'):
+                node_desc = str(node.state)
+
+            if not node_desc:
+                return node.value if hasattr(node, 'value') else 0.5
+
+            # Formalize node description
+            constraint = self.enhanced_solver.formalize_constraint(node_desc)
+
+            # Verify using Z3 + Lean
+            result = self.enhanced_solver.verify_with_lean(constraint)
+
+            # Return confidence score
+            confidence = getattr(result, 'confidence', 0.5)
+            return confidence
+
+        except Exception as e:
+            logger.error(f"CAV-NLP node evaluation failed: {e}")
+            return node.value if hasattr(node, 'value') else 0.5
+
+    async def formalize_theorem_for_search(
+        self,
+        theorem: str
+    ) -> Dict[str, Any]:
+        """
+        Formalize theorem statement for MCTS search.
+
+        Args:
+            theorem: Natural language theorem statement
+
+        Returns:
+            Formalized theorem with metadata
+        """
+        if not self.use_cav_nlp or not self.enhanced_solver:
+            return {
+                "formalized": False,
+                "original": theorem,
+                "search_ready": theorem
+            }
+
+        try:
+            # Formalize using CAV-NLP
+            constraint = self.enhanced_solver.formalize_constraint(theorem)
+
+            # Get verification result
+            result = self.enhanced_solver.verify_with_lean(constraint)
+
+            return {
+                "formalized": True,
+                "original": theorem,
+                "constraint": constraint,
+                "search_ready": getattr(constraint, 'code', theorem),
+                "verification": result,
+                "confidence": getattr(result, 'confidence', 0.8)
+            }
+
+        except Exception as e:
+            logger.error(f"Theorem formalization failed: {e}")
+            return {
+                "formalized": False,
+                "original": theorem,
+                "search_ready": theorem,
+                "error": str(e)
+            }
+
+    def enhance_node_selection(
+        self,
+        nodes: List['MCTSNode'],
+        uct_values: List[float]
+    ) -> int:
+        """
+        Enhance node selection with CAV-NLP evaluation.
+
+        Args:
+            nodes: List of MCTS nodes
+            uct_values: List of UCT values
+
+        Returns:
+            Index of selected node
+        """
+        if not self.use_cav_nlp or not nodes:
+            # Return node with highest UCT
+            return max(range(len(uct_values)), key=lambda i: uct_values[i]) if uct_values else 0
+
+        try:
+            # Evaluate each node with CAV-NLP
+            cav_nlp_scores = []
+            for node in nodes:
+                score = self.evaluate_node_with_cav_nlp(node)
+                cav_nlp_scores.append(score)
+
+            # Combine UCT with CAV-NLP scores
+            combined_scores = [
+                0.7 * uct + 0.3 * cav
+                for uct, cav in zip(uct_values, cav_nlp_scores)
+            ]
+
+            # Return index of highest combined score
+            return max(range(len(combined_scores)), key=lambda i: combined_scores[i])
+
+        except Exception as e:
+            logger.error(f"Enhanced selection failed: {e}")
+            return max(range(len(uct_values)), key=lambda i: uct_values[i]) if uct_values else 0
+
+    def is_cav_nlp_available(self) -> bool:
+        """Check if CAV-NLP is available."""
+        return self.use_cav_nlp and self.enhanced_solver is not None

@@ -17,6 +17,7 @@ Features:
     - Structural validation: Proof length, circular reasoning
     - Quality validation: Elegance, clarity, efficiency
     - Verification: Integration with LeanAide for actual verification
+    - CAV-NLP semantic redflag detection: Enhanced semantic analysis
 """
 
 import re
@@ -45,6 +46,15 @@ try:
 except ImportError:
     LEAN4_INTEGRATION_AVAILABLE = False
     logging.warning("Lean 4 integration not available, red-flagging will use static analysis only")
+
+# Import CAV-NLP for enhanced semantic detection
+try:
+    from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+    from openevolve.unified_math_service import UnifiedMathService
+    CAV_NLP_AVAILABLE = True
+except ImportError:
+    CAV_NLP_AVAILABLE = False
+    logging.warning("CAV-NLP not available, semantic redflag detection will be limited")
 
 logger = logging.getLogger(__name__)
 
@@ -298,17 +308,20 @@ class LeanRedFlagger(RedFlagger):
     - Structural validation
     - Quality validation
     - Verification validation
+    - CAV-NLP semantic redflag detection
     """
 
-    def __init__(self, rules: LeanRedFlagRules):
+    def __init__(self, rules: LeanRedFlagRules, config: Optional[Dict[str, Any]] = None):
         """
         Initialize Lean red-flagger
 
         Args:
             rules: LeanRedFlagRules for Lean-specific validation
+            config: Optional configuration dictionary
         """
         super().__init__(rules)
         self.lean_rules = rules
+        self.config = config or {}
 
         # Initialize Lean 4 verification engine if available
         self.verification_engine = None
@@ -329,6 +342,17 @@ class LeanRedFlagger(RedFlagger):
                 logger.info("Lean 4 verification engine initialized")
             except (IOError, ConnectionError, TimeoutError, ValueError) as e:
                 logger.warning(f"Failed to initialize Lean 4 verification engine: {e}")
+        
+        # Initialize CAV-NLP components for semantic redflag detection
+        self.use_cav_nlp = self.config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        if self.use_cav_nlp:
+            try:
+                self.enhanced_solver = EnhancedZ3Solver()
+                self.math_service = UnifiedMathService()
+                logger.info("CAV-NLP components initialized for redflag detection")
+            except Exception as e:
+                logger.warning(f"Failed to initialize CAV-NLP components: {e}")
+                self.use_cav_nlp = False
 
     def is_flagged(self, proof: LeanProof) -> Tuple[bool, List[str]]:
         """

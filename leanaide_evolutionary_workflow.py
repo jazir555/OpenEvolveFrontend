@@ -192,6 +192,11 @@ class EvolutionaryConfig:
     ace_learning_enabled: bool = True
     ace_store_patterns: bool = True
 
+    # CAV-NLP integration
+    use_cav_nlp: bool = True
+    cav_nlp_verification_boost: float = 0.2
+    cav_nlp_canonicalization: bool = True
+
 
 @dataclass
 class EvolutionaryProgress:
@@ -251,6 +256,18 @@ class LeanEvolutionaryWorkflowStage:
         self.crewai_client: Optional[CrewAIClient] = None
         self.ace_manager: Optional[ACEKnowledgeManager] = None
 
+        # Initialize CAV-NLP components
+        self.enhanced_solver = None
+        self.use_cav_nlp = self.config.use_cav_nlp
+        if self.use_cav_nlp:
+            try:
+                from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
+                self.enhanced_solver = EnhancedZ3Solver()
+                logger.info("CAV-NLP integration enabled for evolutionary workflow")
+            except ImportError as e:
+                logger.warning(f"CAV-NLP integration not available: {e}")
+                self.use_cav_nlp = False
+
         # Progress tracking
         self.evolution_progress: Dict[str, EvolutionaryProgress] = {}
         self.statistics: Dict[str, Any] = defaultdict(list)
@@ -278,6 +295,49 @@ class LeanEvolutionaryWorkflowStage:
         # Initialize ACE manager if enabled
         if self.config.ace_learning_enabled and ACE_AVAILABLE:
             self.ace_manager = ACEKnowledgeManager()
+
+    def evaluate_with_cav_nlp(self, candidate_proof: str, constraints: List[str]) -> float:
+        """Evaluate a proof candidate using CAV-NLP verification.
+        
+        Args:
+            candidate_proof: The proof candidate to evaluate
+            constraints: List of constraints to verify against
+            
+        Returns:
+            Confidence score between 0 and 1
+        """
+        if not self.use_cav_nlp or not self.enhanced_solver:
+            return 0.5  # Default neutral confidence
+        
+        try:
+            # Verify candidate with hybrid approach
+            result = self.enhanced_solver.verify_with_lean(constraints)
+            return result.confidence if result.success else 0.0
+        except Exception as e:
+            logger.warning(f"CAV-NLP evaluation failed: {e}")
+            return 0.5
+
+    def canonicalize_theorem(self, theorem_statement: str) -> str:
+        """Canonicalize a theorem statement using CAV-NLP.
+        
+        Args:
+            theorem_statement: The theorem statement to canonicalize
+            
+        Returns:
+            Canonicalized theorem statement
+        """
+        if not self.use_cav_nlp or not self.enhanced_solver:
+            return theorem_statement
+        
+        if not self.config.cav_nlp_canonicalization:
+            return theorem_statement
+        
+        try:
+            canonical_form = self.enhanced_solver.canonical_manager.canonicalize(theorem_statement)
+            return canonical_form
+        except Exception as e:
+            logger.warning(f"CAV-NLP canonicalization failed: {e}")
+            return theorem_statement
 
     def is_mathematical_subproblem(
         self,
