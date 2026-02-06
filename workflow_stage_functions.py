@@ -1,3 +1,7 @@
+import logging
+import re
+from typing import Any, Dict, List, Optional
+
 
 # =============================================================================
 # CAV-NLP Integration
@@ -1685,6 +1689,16 @@ def verify_sub_problem_with_z3(
             Z3Constraint, Z3ConstraintType, Z3Variable, Z3Config,
             get_z3_solver_engine, get_z3_theorem_prover, is_z3_available, Z3ResultStatus
         )
+        try:
+            from z3prover_integration import (
+                solve_smart_contract_exploit_witness,
+                translate_solidity_assignment_to_z3,
+                verify_solidity_invariant_translation,
+            )
+        except ImportError:
+            solve_smart_contract_exploit_witness = None
+            translate_solidity_assignment_to_z3 = None
+            verify_solidity_invariant_translation = None
     except ImportError:
         return VerificationReport(
             solution_attempt_id=solution_attempt.sub_problem_id,
@@ -1718,6 +1732,7 @@ def verify_sub_problem_with_z3(
     entanglement_ctx = _build_entanglement_verification_context(workflow_state, sub_problem.id)
     metadata = sub_problem.metadata if hasattr(sub_problem, "metadata") else {}
     metadata = metadata or {}
+    formal_config = workflow_state.openevolve_parameters or {}
 
     smtlib = (
         metadata.get("z3_smtlib")
@@ -1732,6 +1747,120 @@ def verify_sub_problem_with_z3(
     entanglement_constraints = workflow_state.openevolve_parameters.get("entanglement_constraints", {}) or {}
     for ent_id in entanglement_ctx.get("entangled_with", []):
         constraints.extend(entanglement_constraints.get(ent_id, []) or [])
+
+    # Web3 smart-contract specialization: auto-translate Solidity assignments into
+    # Z3 invariants and check exploit witness feasibility when explicit constraints
+    # are not already provided.
+    web3_signal_text = " ".join(
+        str(v or "")
+        for v in [
+            getattr(sub_problem, "title", ""),
+            getattr(sub_problem, "description", ""),
+            getattr(solution_attempt, "content", ""),
+            getattr(workflow_state, "problem_statement", ""),
+            metadata.get("domain_extension"),
+            metadata.get("web3_stage"),
+            formal_config.get("domain_hint"),
+        ]
+    ).lower()
+    web3_terms = [
+        "web3", "defi", "smart contract", "solidity", "evm", "onchain",
+        "reentrancy", "flash loan", "oracle", "vault", "amm",
+    ]
+    is_web3_context = metadata.get("domain_extension") == "web3" or any(
+        term in web3_signal_text for term in web3_terms
+    )
+
+    if (
+        not smtlib
+        and not formula
+        and not constraints
+        and is_web3_context
+        and translate_solidity_assignment_to_z3 is not None
+        and verify_solidity_invariant_translation is not None
+    ):
+        assignment_statement = metadata.get("solidity_assignment")
+        if not assignment_statement and isinstance(solution_attempt.content, str):
+            match = re.search(
+                r"[A-Za-z_][A-Za-z0-9_\.\[\]\(\)]*\s*(?:\+=|-=|\*=|/=|=)\s*[^;\n]+;",
+                solution_attempt.content,
+            )
+            if match:
+                assignment_statement = match.group(0).strip()
+
+        if assignment_statement:
+            translation = translate_solidity_assignment_to_z3(
+                assignment_statement,
+                non_negative_target=bool(
+                    metadata.get("non_negative_target", True)
+                ),
+                max_withdraw_expr=metadata.get("max_withdraw_expr"),
+            )
+            invariant_result = verify_solidity_invariant_translation(
+                translation,
+                assume_non_negative_amount=bool(
+                    metadata.get("assume_non_negative_amount", True)
+                ),
+            )
+
+            exploit_result = None
+            if solve_smart_contract_exploit_witness is not None:
+                exploit_result = solve_smart_contract_exploit_witness(
+                    additional_constraints=list(
+                        metadata.get("exploit_constraints", []) or []
+                    ),
+                    timeout=float(
+                        formal_config.get("web3_symbolic_timeout_seconds", 10.0)
+                    ),
+                )
+
+            invariants_proven = invariant_result.get("proven") is True
+            exploit_found = bool(
+                isinstance(exploit_result, dict) and exploit_result.get("satisfiable")
+            )
+            approved = invariants_proven and not exploit_found
+            summary = (
+                f"Web3 Z3 invariant verification: {'PASSED' if invariants_proven else 'FAILED'}; "
+                f"exploit witness: {'FOUND' if exploit_found else 'not found'}."
+            )
+
+            criteria_met = []
+            criteria_not_met = []
+            if invariants_proven:
+                criteria_met.append("Solidity state invariants proven")
+            else:
+                criteria_not_met.append("Solidity state invariants not proven")
+            if exploit_found:
+                criteria_not_met.append("Exploit witness is satisfiable")
+            else:
+                criteria_met.append("No exploit witness found for configured predicate")
+
+            return VerificationReport(
+                solution_attempt_id=solution_attempt.sub_problem_id,
+                gauntlet_name="z3_web3_invariant_verification",
+                is_approved=approved,
+                reports_by_judge=[{
+                    "method": "Z3 Web3 Invariant Verification",
+                    "result": {
+                        "translation": translation,
+                        "invariant_result": invariant_result,
+                        "exploit_witness": exploit_result,
+                    },
+                    "entanglement_context": entanglement_ctx,
+                }],
+                average_score=1.0 if approved else 0.0,
+                summary=summary,
+                verification_timestamp=time.time(),
+                dimension_scores={
+                    "formal_verification": 1.0 if invariants_proven else 0.0,
+                    "exploit_resistance": 0.0 if exploit_found else 1.0,
+                },
+                criteria_met=criteria_met,
+                criteria_not_met=criteria_not_met,
+                verification_method=VerificationMethod.Z3,
+                mathematical_verified=approved,
+                mathematical_confidence=1.0 if approved else 0.0,
+            )
 
     if not smtlib and not formula and not constraints:
         return VerificationReport(

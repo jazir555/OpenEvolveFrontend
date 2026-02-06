@@ -34,6 +34,34 @@ except ImportError:
     CAV_NLP_AVAILABLE = False
     logger.debug("CAV-NLP integration not available - z3_cav_nlp_integration not found")
 
+try:
+    from decomposition_mcp_tools import (
+        get_mcp_tool_inventory,
+        web3_ingest_contract_audit_stack,
+        web3_ingest_foundry_fuzzing,
+        web3_ingest_slither_static_analysis,
+    )
+    WEB3_INGESTION_AVAILABLE = True
+except ImportError:
+    WEB3_INGESTION_AVAILABLE = False
+    get_mcp_tool_inventory = None
+    web3_ingest_contract_audit_stack = None
+    web3_ingest_foundry_fuzzing = None
+    web3_ingest_slither_static_analysis = None
+
+try:
+    from z3prover_integration import (
+        solve_smart_contract_exploit_witness,
+        translate_solidity_assignment_to_z3,
+        verify_solidity_invariant_translation,
+    )
+    WEB3_FORMAL_AVAILABLE = True
+except ImportError:
+    WEB3_FORMAL_AVAILABLE = False
+    solve_smart_contract_exploit_witness = None
+    translate_solidity_assignment_to_z3 = None
+    verify_solidity_invariant_translation = None
+
 
 # =============================================================================
 # COMPONENT STATUS ENUM
@@ -645,6 +673,7 @@ class BubbleLabsExtendedIntegration:
             
             # CAV-NLP
             components["cav_nlp"] = self.get_cav_nlp_status()
+            components["web3"] = self.get_web3_status()
             
             return {
                 "total_components": len(components),
@@ -687,6 +716,150 @@ class BubbleLabsExtendedIntegration:
         if self._z3_bridge:
             return self._z3_bridge.prove_theorem(theorem)
         return {"success": False, "error": "Z3 not available"}
+
+    # =========================================================================
+    # Web3 Audit Methods
+    # =========================================================================
+
+    def get_web3_status(self) -> Dict[str, Any]:
+        """Get Web3 audit integration status."""
+        inventory = {}
+        if get_mcp_tool_inventory is not None:
+            try:
+                inventory = get_mcp_tool_inventory()
+            except Exception as exc:
+                inventory = {"error": str(exc)}
+        return {
+            "component": "Web3 Audit Stack",
+            "status": "available" if (WEB3_INGESTION_AVAILABLE or WEB3_FORMAL_AVAILABLE) else "unavailable",
+            "available": WEB3_INGESTION_AVAILABLE or WEB3_FORMAL_AVAILABLE,
+            "capabilities": [
+                "slither_static_analysis",
+                "forge_fuzz_ingestion",
+                "solidity_invariant_translation",
+                "symbolic_exploit_witness",
+            ],
+            "ingestion_available": WEB3_INGESTION_AVAILABLE,
+            "formal_available": WEB3_FORMAL_AVAILABLE,
+            "tool_inventory": inventory,
+        }
+
+    def web3_get_mcp_tool_inventory(self) -> Dict[str, Any]:
+        """Get MCP inventory for Web3 analysis tools."""
+        if get_mcp_tool_inventory is None:
+            return {"success": False, "error": "Web3 MCP inventory unavailable"}
+        try:
+            return {"success": True, "inventory": get_mcp_tool_inventory()}
+        except Exception as exc:
+            return {"success": False, "error": str(exc)}
+
+    def web3_ingest_contract_stack(
+        self,
+        project_path: str = ".",
+        run_fuzzing: bool = True,
+        slither_timeout_seconds: int = 240,
+        forge_timeout_seconds: int = 420,
+    ) -> Dict[str, Any]:
+        """Run full Web3 contract audit ingestion pipeline (Slither + Forge)."""
+        if web3_ingest_contract_audit_stack is None:
+            return {"success": False, "error": "Web3 ingestion stack unavailable"}
+        try:
+            return web3_ingest_contract_audit_stack(
+                project_path=project_path,
+                run_fuzzing=run_fuzzing,
+                slither_timeout_seconds=slither_timeout_seconds,
+                forge_timeout_seconds=forge_timeout_seconds,
+            )
+        except Exception as exc:
+            return {"success": False, "error": str(exc)}
+
+    def web3_ingest_slither(
+        self,
+        project_path: str = ".",
+        timeout_seconds: int = 240,
+        extra_args: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
+        """Run Slither static analysis for Web3 contracts."""
+        if web3_ingest_slither_static_analysis is None:
+            return {"success": False, "error": "Slither ingestion unavailable"}
+        try:
+            return web3_ingest_slither_static_analysis(
+                project_path=project_path,
+                timeout_seconds=timeout_seconds,
+                extra_args=extra_args,
+            )
+        except Exception as exc:
+            return {"success": False, "error": str(exc)}
+
+    def web3_ingest_foundry(
+        self,
+        project_path: str = ".",
+        timeout_seconds: int = 420,
+        match_contract: Optional[str] = None,
+        match_test: Optional[str] = None,
+        fork_url: Optional[str] = None,
+        extra_args: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
+        """Run Foundry/Forge fuzzing for Web3 contracts."""
+        if web3_ingest_foundry_fuzzing is None:
+            return {"success": False, "error": "Foundry ingestion unavailable"}
+        try:
+            return web3_ingest_foundry_fuzzing(
+                project_path=project_path,
+                timeout_seconds=timeout_seconds,
+                match_contract=match_contract,
+                match_test=match_test,
+                fork_url=fork_url,
+                extra_args=extra_args,
+            )
+        except Exception as exc:
+            return {"success": False, "error": str(exc)}
+
+    def web3_translate_solidity_invariant(
+        self,
+        statement: str,
+        non_negative_target: bool = True,
+        max_withdraw_expr: Optional[str] = None,
+        verify_translation: bool = True,
+        assume_non_negative_amount: bool = True,
+    ) -> Dict[str, Any]:
+        """Translate Solidity state updates to Z3/Lean invariants and optionally verify."""
+        if translate_solidity_assignment_to_z3 is None:
+            return {"success": False, "error": "Solidity invariant translation unavailable"}
+        try:
+            translation = translate_solidity_assignment_to_z3(
+                statement=statement,
+                non_negative_target=non_negative_target,
+                max_withdraw_expr=max_withdraw_expr,
+            )
+            result: Dict[str, Any] = {"success": True, "translation": translation}
+            if verify_translation and verify_solidity_invariant_translation is not None:
+                result["verification"] = verify_solidity_invariant_translation(
+                    translation=translation,
+                    assume_non_negative_amount=assume_non_negative_amount,
+                )
+            return result
+        except Exception as exc:
+            return {"success": False, "error": str(exc)}
+
+    def web3_solve_exploit_witness(
+        self,
+        additional_constraints: Optional[List[str]] = None,
+        timeout_seconds: float = 10.0,
+    ) -> Dict[str, Any]:
+        """Solve symbolic exploit witness query for smart-contract balance drain."""
+        if solve_smart_contract_exploit_witness is None:
+            return {"success": False, "error": "Exploit witness solver unavailable"}
+        try:
+            return {
+                "success": True,
+                "result": solve_smart_contract_exploit_witness(
+                    additional_constraints=additional_constraints,
+                    timeout=timeout_seconds,
+                ),
+            }
+        except Exception as exc:
+            return {"success": False, "error": str(exc)}
     
     # =========================================================================
     # ROMA Methods

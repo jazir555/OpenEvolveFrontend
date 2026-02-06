@@ -1009,16 +1009,20 @@ class UnifiedMCPServer:
             try:
                 from decomposition_engine import DecompositionEngine
                 from workflow_engine import WorkflowEngine
+                from decomposition_mcp_tools import get_decomposition_status as get_decomp_mcp_status
                 
                 engine = DecompositionEngine()
                 wf_engine = WorkflowEngine()
+                mcp_status = get_decomp_mcp_status()
                 
                 return {
                     "success": True,
                     "decomposition_engine": "ready",
                     "workflow_engine": "ready",
                     "strategies_available": ["semantic", "dependency", "complexity", "hybrid", "research"],
-                    "version": "2.0.0"
+                    "version": "2.0.0",
+                    "web3_toolchain_available": mcp_status.get("web3_toolchain_available", False),
+                    "mcp_tool_inventory": mcp_status.get("mcp_tool_inventory", {}),
                 }
             except Exception as e:
                 return {"success": False, "error": str(e)}
@@ -1027,7 +1031,91 @@ class UnifiedMCPServer:
                           "Get decomposition workflow system status",
                           get_decomposition_status,
                           {"type": "object", "properties": {}})
-        
+
+        async def web3_ingest_contract_audit_stack(args: Dict[str, Any]) -> Dict[str, Any]:
+            """Run Web3 audit ingestion (Slither + Foundry/Forge)."""
+            try:
+                from decomposition_mcp_tools import web3_ingest_contract_audit_stack as ingest_stack
+                return ingest_stack(
+                    project_path=args.get("project_path", "."),
+                    run_fuzzing=args.get("run_fuzzing", True),
+                    slither_timeout_seconds=args.get("slither_timeout_seconds", 240),
+                    forge_timeout_seconds=args.get("forge_timeout_seconds", 420),
+                )
+            except Exception as e:
+                return {"success": False, "error": str(e)}
+
+        self.register_tool("web3_ingest_contract_audit_stack", ToolCategory.DECOMPOSITION,
+                          "Run Web3 smart contract ingestion stack (Slither + Forge)",
+                          web3_ingest_contract_audit_stack,
+                          {"type": "object", "properties": {
+                              "project_path": {"type": "string"},
+                              "run_fuzzing": {"type": "boolean", "default": True},
+                              "slither_timeout_seconds": {"type": "integer", "default": 240},
+                              "forge_timeout_seconds": {"type": "integer", "default": 420}
+                          }})
+
+        async def web3_ingest_slither_static_analysis(args: Dict[str, Any]) -> Dict[str, Any]:
+            """Run Slither static analysis for Web3 audits."""
+            try:
+                from decomposition_mcp_tools import web3_ingest_slither_static_analysis as ingest_slither
+                return ingest_slither(
+                    project_path=args.get("project_path", "."),
+                    timeout_seconds=args.get("timeout_seconds", 240),
+                    extra_args=args.get("extra_args"),
+                )
+            except Exception as e:
+                return {"success": False, "error": str(e)}
+
+        self.register_tool("web3_ingest_slither_static_analysis", ToolCategory.DECOMPOSITION,
+                          "Run Slither static smart contract analysis",
+                          web3_ingest_slither_static_analysis,
+                          {"type": "object", "properties": {
+                              "project_path": {"type": "string"},
+                              "timeout_seconds": {"type": "integer", "default": 240},
+                              "extra_args": {"type": "array", "items": {"type": "string"}}
+                          }})
+
+        async def web3_ingest_foundry_fuzzing(args: Dict[str, Any]) -> Dict[str, Any]:
+            """Run Foundry/Forge fuzzing for Web3 audits."""
+            try:
+                from decomposition_mcp_tools import web3_ingest_foundry_fuzzing as ingest_forge
+                return ingest_forge(
+                    project_path=args.get("project_path", "."),
+                    timeout_seconds=args.get("timeout_seconds", 420),
+                    match_contract=args.get("match_contract"),
+                    match_test=args.get("match_test"),
+                    fork_url=args.get("fork_url"),
+                    extra_args=args.get("extra_args"),
+                )
+            except Exception as e:
+                return {"success": False, "error": str(e)}
+
+        self.register_tool("web3_ingest_foundry_fuzzing", ToolCategory.DECOMPOSITION,
+                          "Run Foundry/Forge fuzz testing",
+                          web3_ingest_foundry_fuzzing,
+                          {"type": "object", "properties": {
+                              "project_path": {"type": "string"},
+                              "timeout_seconds": {"type": "integer", "default": 420},
+                              "match_contract": {"type": "string"},
+                              "match_test": {"type": "string"},
+                              "fork_url": {"type": "string"},
+                              "extra_args": {"type": "array", "items": {"type": "string"}}
+                          }})
+
+        async def get_mcp_tool_inventory(args: Dict[str, Any]) -> Dict[str, Any]:
+            """Get decomposition MCP tool inventory including Web3 tools."""
+            try:
+                from decomposition_mcp_tools import get_mcp_tool_inventory as get_inventory
+                return get_inventory()
+            except Exception as e:
+                return {"success": False, "error": str(e)}
+
+        self.register_tool("get_mcp_tool_inventory", ToolCategory.DECOMPOSITION,
+                          "Get decomposition MCP tool inventory",
+                          get_mcp_tool_inventory,
+                          {"type": "object", "properties": {}})
+
         # ALIAS: decompose_problem for tests
         self.register_tool("decompose_problem", ToolCategory.DECOMPOSITION,
                           "Decompose problem into sub-problems",
@@ -1209,6 +1297,52 @@ class UnifiedMCPServer:
                                   f"Z3 tool (unavailable)",
                                   z3_unavailable,
                                   {"type": "object", "properties": {}})
+
+        async def z3_translate_solidity_invariant(args: Dict[str, Any]) -> Dict[str, Any]:
+            """Translate Solidity assignment/invariant logic to Z3/Lean artifacts."""
+            try:
+                from z3prover_integration import translate_solidity_assignment_to_z3
+                return {
+                    "success": True,
+                    "translation": translate_solidity_assignment_to_z3(
+                        statement=args["statement"],
+                        non_negative_target=args.get("non_negative_target", True),
+                        max_withdraw_expr=args.get("max_withdraw_expr"),
+                    ),
+                }
+            except Exception as e:
+                return {"success": False, "error": str(e)}
+
+        self.register_tool("z3_translate_solidity_invariant", ToolCategory.Z3_PROVER,
+                          "Translate Solidity state transition to Z3/Lean invariants",
+                          z3_translate_solidity_invariant,
+                          {"type": "object", "properties": {
+                              "statement": {"type": "string"},
+                              "non_negative_target": {"type": "boolean", "default": True},
+                              "max_withdraw_expr": {"type": "string"},
+                          }, "required": ["statement"]})
+
+        async def z3_solve_smart_contract_exploit_witness(args: Dict[str, Any]) -> Dict[str, Any]:
+            """Solve symbolic exploit witness query for smart contract vulnerability predicates."""
+            try:
+                from z3prover_integration import solve_smart_contract_exploit_witness
+                return {
+                    "success": True,
+                    "result": solve_smart_contract_exploit_witness(
+                        additional_constraints=args.get("additional_constraints"),
+                        timeout=args.get("timeout", 10.0),
+                    ),
+                }
+            except Exception as e:
+                return {"success": False, "error": str(e)}
+
+        self.register_tool("z3_solve_smart_contract_exploit_witness", ToolCategory.Z3_PROVER,
+                          "Find symbolic exploit witness for smart contract drain predicates",
+                          z3_solve_smart_contract_exploit_witness,
+                          {"type": "object", "properties": {
+                              "additional_constraints": {"type": "array", "items": {"type": "string"}},
+                              "timeout": {"type": "number", "default": 10.0},
+                          }})
 
         async def verify_with_z3_leanaide_dspy(args: Dict[str, Any]) -> Dict[str, Any]:
             """Verify problems using robust Z3-LeanAIDE integration with DSPy for enhanced problem understanding."""

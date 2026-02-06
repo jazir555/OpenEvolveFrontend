@@ -118,6 +118,7 @@ class GauntletType(Enum):
     DOMAIN_FINANCE = "domain_finance"
     DOMAIN_CHEMISTRY = "domain_chemistry"
     DOMAIN_ENGINEERING = "domain_engineering"
+    DOMAIN_WEB3 = "domain_web3"
     MULTI_OBJECTIVE = "multi_objective"
     EVOLUTIONARY = "evolutionary"
     TEMPORAL = "temporal"
@@ -980,7 +981,9 @@ class DomainSpecificGauntlet(BaseGauntlet):
         "physics": GauntletType.DOMAIN_PHYSICS,
         "finance": GauntletType.DOMAIN_FINANCE,
         "chemistry": GauntletType.DOMAIN_CHEMISTRY,
-        "engineering": GauntletType.DOMAIN_ENGINEERING
+        "engineering": GauntletType.DOMAIN_ENGINEERING,
+        "web3": GauntletType.DOMAIN_WEB3,
+        "defi": GauntletType.DOMAIN_WEB3,
     }
     
     def __init__(self, domain: str, name: Optional[str] = None, config: Optional[Dict] = None):
@@ -1051,6 +1054,20 @@ class DomainSpecificGauntlet(BaseGauntlet):
                 {"name": "stress_analysis", "check": "stress", "severity": "critical"},
                 {"name": "material_constraints", "check": "materials", "severity": "high"},
                 {"name": "manufacturability", "check": "manufacturing", "severity": "medium"}
+            ],
+            "web3": [
+                {"name": "reentrancy_guard", "check": "reentrancy", "severity": "critical"},
+                {"name": "flash_loan_resilience", "check": "flash_loan", "severity": "critical"},
+                {"name": "oracle_sanity", "check": "oracle", "severity": "high"},
+                {"name": "invariant_coverage", "check": "invariants", "severity": "high"},
+                {"name": "access_control", "check": "access_control", "severity": "high"},
+            ],
+            "defi": [
+                {"name": "reentrancy_guard", "check": "reentrancy", "severity": "critical"},
+                {"name": "flash_loan_resilience", "check": "flash_loan", "severity": "critical"},
+                {"name": "oracle_sanity", "check": "oracle", "severity": "high"},
+                {"name": "liquidation_safety", "check": "liquidation", "severity": "high"},
+                {"name": "invariant_coverage", "check": "invariants", "severity": "high"},
             ]
         }
         return rules.get(self.domain, [])
@@ -1633,6 +1650,28 @@ class DomainSpecificGauntlet(BaseGauntlet):
             elif check_type == "risk":
                 passed = "risk" in solution_text
                 message = "Risk constraints defined" if passed else "Risk constraints missing"
+        
+        elif self.domain in {"web3", "defi"}:
+            if check_type == "reentrancy":
+                has_guard = "nonreentrant" in solution_text or "reentrancyguard" in solution_text
+                effects_first = "checks-effects-interactions" in solution_text or "state update before external call" in solution_text
+                passed = has_guard or effects_first
+                message = "Reentrancy mitigation present" if passed else "Reentrancy mitigation missing"
+            elif check_type == "flash_loan":
+                passed = any(term in solution_text for term in ["twap", "oracle delay", "flash loan resistance", "cooldown"])
+                message = "Flash-loan mitigations present" if passed else "Flash-loan mitigations missing"
+            elif check_type == "oracle":
+                passed = any(term in solution_text for term in ["oracle", "price feed", "chainlink", "twap"])
+                message = "Oracle validation present" if passed else "Oracle validation missing"
+            elif check_type == "invariants":
+                passed = any(term in solution_text for term in ["invariant", "formal verification", "z3", "lean"])
+                message = "Invariant coverage present" if passed else "Invariant coverage missing"
+            elif check_type == "access_control":
+                passed = any(term in solution_text for term in ["onlyowner", "accesscontrol", "role", "permission"])
+                message = "Access control defined" if passed else "Access control missing"
+            elif check_type == "liquidation":
+                passed = any(term in solution_text for term in ["liquidation", "health factor", "collateral ratio"])
+                message = "Liquidation safety controls present" if passed else "Liquidation safety controls missing"
         
         return {
             "name": check_name,
@@ -2557,6 +2596,8 @@ def create_gauntlet(gauntlet_type: str, name: Optional[str] = None, config: Opti
         "domain": DomainSpecificGauntlet,
         "physics": lambda n, c: DomainSpecificGauntlet("physics", n, c),
         "finance": lambda n, c: DomainSpecificGauntlet("finance", n, c),
+        "web3": lambda n, c: DomainSpecificGauntlet("web3", n, c),
+        "defi": lambda n, c: DomainSpecificGauntlet("defi", n, c),
         "chemistry": lambda n, c: DomainSpecificGauntlet("chemistry", n, c),
         "engineering": lambda n, c: DomainSpecificGauntlet("engineering", n, c),
         "multi_objective": MultiObjectiveGauntlet,
@@ -2581,6 +2622,8 @@ def list_available_gauntlets() -> Dict[str, str]:
         "statistical": "Monte Carlo validation and hypothesis testing",
         "physics": "Domain-specific validation for physics problems (REAL PhysicsValidator)",
         "finance": "Domain-specific validation for finance problems (REAL validation)",
+        "web3": "Domain-specific validation for smart contract and DeFi exploit resistance",
+        "defi": "Domain-specific validation for DeFi protocol safety and exploit resilience",
         "chemistry": "Domain-specific validation for chemistry problems (REAL validation)",
         "engineering": "Domain-specific validation for engineering problems (REAL validation)",
         "multi_objective": "Pareto frontier validation for multiple objectives",

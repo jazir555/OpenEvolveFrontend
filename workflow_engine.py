@@ -119,6 +119,17 @@ except ImportError:
     get_adaptive_workflow = None
     AdaptiveWorkflow = None
 
+try:
+    from decomposition_mcp_tools import (
+        get_mcp_tool_inventory,
+        web3_ingest_contract_audit_stack,
+    )
+    WEB3_INGESTION_AVAILABLE = True
+except ImportError:
+    WEB3_INGESTION_AVAILABLE = False
+    get_mcp_tool_inventory = None
+    web3_ingest_contract_audit_stack = None
+
 
 from workflow_structures import (
     CritiqueReport, DecompositionPlan, GauntletDefinition, GauntletRoundRule,
@@ -263,6 +274,88 @@ def _update_entanglement_matrix(workflow_state: WorkflowState) -> None:
             MetricType.COUNTER,
             {"workflow_id": workflow_state.workflow_id}
         )
+
+
+def _is_web3_problem(problem_statement: str, analyzed_context: Dict[str, Any], web3_config: Dict[str, Any]) -> bool:
+    """Detect whether this workflow should run the Web3 audit ingestion path."""
+    if bool(web3_config.get("enabled")):
+        return True
+
+    domain = str(analyzed_context.get("domain", "")).lower().strip()
+    if domain in {"web3", "defi", "smart_contract", "smart contract", "solidity"}:
+        return True
+
+    lower = str(problem_statement or "").lower()
+    web3_terms = [
+        "web3", "defi", "smart contract", "solidity", "evm", "onchain",
+        "flash loan", "reentrancy", "oracle", "amm", "vault", "bug bounty",
+    ]
+    return any(term in lower for term in web3_terms)
+
+
+def _enrich_with_web3_ingestion(
+    workflow_state: WorkflowState,
+    analyzed_context: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Run Slither/Forge ingestion and attach audit artifacts to context."""
+    web3_config = {}
+    if isinstance(workflow_state.openevolve_parameters, dict):
+        web3_config = workflow_state.openevolve_parameters.get("web3", {}) or {}
+        if not isinstance(web3_config, dict):
+            web3_config = {}
+
+    tool_inventory = {}
+    if get_mcp_tool_inventory is not None:
+        try:
+            tool_inventory = get_mcp_tool_inventory()
+        except Exception as exc:
+            logger.warning("Failed to get MCP Web3 tool inventory: %s", exc)
+
+    if not WEB3_INGESTION_AVAILABLE or web3_ingest_contract_audit_stack is None:
+        return {
+            "enabled": False,
+            "reason": "Web3 ingestion MCP tools unavailable",
+            "mcp_tool_inventory": tool_inventory,
+        }
+
+    project_path = str(web3_config.get("project_path", "."))
+    run_fuzzing = bool(web3_config.get("run_fuzzing", True))
+    slither_timeout = int(web3_config.get("slither_timeout_seconds", 240))
+    forge_timeout = int(web3_config.get("forge_timeout_seconds", 420))
+
+    try:
+        ingestion = web3_ingest_contract_audit_stack(
+            project_path=project_path,
+            run_fuzzing=run_fuzzing,
+            slither_timeout_seconds=slither_timeout,
+            forge_timeout_seconds=forge_timeout,
+        )
+    except Exception as exc:
+        logger.warning("Web3 ingestion failed: %s", exc)
+        return {
+            "enabled": True,
+            "success": False,
+            "error": str(exc),
+            "project_path": project_path,
+            "mcp_tool_inventory": tool_inventory,
+        }
+
+    web3_ctx: Dict[str, Any] = {
+        "enabled": True,
+        "success": bool(ingestion.get("success")) if isinstance(ingestion, dict) else False,
+        "project_path": project_path,
+        "run_fuzzing": run_fuzzing,
+        "mcp_tool_inventory": tool_inventory,
+        "ingestion": ingestion,
+    }
+    if isinstance(ingestion, dict):
+        web3_ctx["contracts"] = ingestion.get("contracts", [])
+        web3_ctx["entanglement_matrix"] = ingestion.get("entanglement_matrix", {})
+        web3_ctx["source_inventory"] = ingestion.get("source_inventory", {})
+
+    analyzed_context["web3"] = web3_ctx
+    analyzed_context["domain"] = analyzed_context.get("domain") or "web3"
+    return web3_ctx
 
 
 def _apply_top_down_repair(
@@ -1477,6 +1570,20 @@ async def run_sovereign_workflow(
         analyzed_context["mdap_config"] = workflow_state.mdap_config
         analyzed_context["maker_enabled"] = workflow_state.maker_enabled
         analyzed_context["maker_config"] = workflow_state.maker_config
+        if not isinstance(workflow_state.openevolve_parameters, dict):
+            workflow_state.openevolve_parameters = {}
+        web3_config = workflow_state.openevolve_parameters.get("web3", {}) or {}
+        if not isinstance(web3_config, dict):
+            web3_config = {}
+            workflow_state.openevolve_parameters["web3"] = web3_config
+        if _is_web3_problem(workflow_state.problem_statement, analyzed_context, web3_config):
+            web3_ctx = _enrich_with_web3_ingestion(workflow_state, analyzed_context)
+            analyzed_context["web3"] = web3_ctx
+            workflow_state.openevolve_parameters.setdefault("domain_hint", "web3")
+            workflow_state.openevolve_parameters.setdefault("formal_verification_enabled", True)
+            workflow_state.openevolve_parameters.setdefault("z3_enabled", True)
+            workflow_state.openevolve_parameters.setdefault("leanaide_enabled", True)
+            workflow_state.openevolve_parameters.setdefault("formal_verification_mode", "hybrid")
         # Store the analyzed context and initial plan structure in the workflow state.
         workflow_state.decomposition_plan = DecompositionPlan(
             problem_statement=workflow_state.problem_statement,
@@ -1491,6 +1598,12 @@ async def run_sovereign_workflow(
             final_red_team_gauntlet_name=final_red_gauntlet.name,
             final_gold_team_gauntlet_name=final_gold_gauntlet.name
         )
+        if isinstance(workflow_state.decomposition_plan.metadata, dict):
+            web3_ctx = analyzed_context.get("web3", {})
+            if isinstance(web3_ctx, dict):
+                workflow_state.decomposition_plan.metadata["web3"] = web3_ctx
+                if isinstance(web3_ctx.get("entanglement_matrix"), dict):
+                    workflow_state.decomposition_plan.metadata["entanglement_matrix"] = web3_ctx["entanglement_matrix"]
         st.success(f"[{workflow_state.current_stage}] Analysis complete.")
         workflow_state.current_stage = "AI-Assisted Decomposition" # Transition to the next stage.
         workflow_state.progress = 0.2 # Update overall progress.

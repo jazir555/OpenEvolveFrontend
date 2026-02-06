@@ -148,6 +148,7 @@ def find_mathlib4_path() -> Optional[str]:
         Path.cwd() / "mathlib4",
         Path.cwd() / "lean_workspace" / "mathlib4",
         Path.cwd() / ".lake" / "packages" / "mathlib",
+        Path.cwd() / "lean_workspace" / "mathlib_project" / ".lake" / "packages" / "mathlib",
     ]
     
     for path in search_paths:

@@ -65,7 +65,7 @@ class Lean4ServerConfig:
     lean_executable: str = "lean"
     lake_executable: str = "lake"
     mathlib_path: Optional[str] = None
-    working_dir: str = "./lean_workspace"
+    working_dir: str = "./lean_workspace/mathlib_project"
     timeout_seconds: float = 60.0
     max_memory_mb: int = 4096
     enable_caching: bool = True
@@ -238,13 +238,16 @@ class Lean4VerificationEngine:
             )
     
     async def _run_lean_compiler(self, file_path: str) -> VerificationResult:
-        """Run Lean 4 compiler on file"""
+        """Run Lean 4 compiler on file using lake env for proper dependencies"""
         try:
+            # Use lake env to ensure mathlib and other dependencies are available
+            # Lean 4 options: -T for timeout (milliseconds), -M for memory (megabytes)
             cmd = [
+                self.config.lake_executable, "env",
                 self.config.lean_executable,
                 file_path,
-                "--memory", str(self.config.max_memory_mb),
-                "--timeout", str(int(self.config.timeout_seconds * 1000))
+                "-M", str(self.config.max_memory_mb),
+                "-T", str(int(self.config.timeout_seconds * 1000))
             ]
             
             proc = await asyncio.create_subprocess_exec(

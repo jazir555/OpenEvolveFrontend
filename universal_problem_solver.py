@@ -89,6 +89,7 @@ try:
         EnhancedRecompositionEngine,
         SubProblemSolution as EnhancedSubProblemSolution,
         IntegratedSolution as EnhancedIntegratedSolution,
+        RecompositionConfig as EnhancedRecompositionConfig,
     )
     ENHANCED_RECOMPOSITION_AVAILABLE = True
 except ImportError:
@@ -96,6 +97,19 @@ except ImportError:
     EnhancedRecompositionEngine = None  # type: ignore
     EnhancedSubProblemSolution = None  # type: ignore
     EnhancedIntegratedSolution = None  # type: ignore
+    EnhancedRecompositionConfig = None  # type: ignore
+
+# Optional Web3 audit ingestion tools
+try:
+    from decomposition_mcp_tools import (
+        web3_ingest_contract_audit_stack,
+        get_mcp_tool_inventory,
+    )
+    WEB3_INGESTION_AVAILABLE = True
+except Exception:
+    WEB3_INGESTION_AVAILABLE = False
+    web3_ingest_contract_audit_stack = None  # type: ignore
+    get_mcp_tool_inventory = None  # type: ignore
 
 # Optional ROMA integration
 try:
@@ -684,6 +698,9 @@ class UniversalProblemSolver:
         run_gauntlets: Optional[bool] = None,
         gauntlet_config: Optional[Dict[str, Any]] = None,
         max_gauntlet_refinement_loops: Optional[int] = None,
+        enable_web3_ingestion: bool = True,
+        web3_project_path: str = ".",
+        web3_run_fuzzing: bool = True,
     ) -> SolverResult:
         """
         Solve a problem end-to-end.
@@ -703,6 +720,9 @@ class UniversalProblemSolver:
             run_gauntlets: Whether to run Blue/Red/Gold gauntlet pipeline
             gauntlet_config: Optional gauntlet configuration overrides
             max_gauntlet_refinement_loops: Override max gauntlet refinement loops
+            enable_web3_ingestion: Run Slither/Forge ingestion when domain is Web3
+            web3_project_path: Contract project root for Web3 ingestion
+            web3_run_fuzzing: Include Forge fuzzing as part of ingestion
             
         Returns:
             SolverResult with complete solution and metadata
@@ -737,6 +757,7 @@ class UniversalProblemSolver:
         gauntlet_bundle: Optional[GauntletBundle] = None
         gauntlet_results: Dict[str, Any] = {"sub_problems": {}, "final": {}}
         gauntlet_summary: Dict[str, Any] = {}
+        domain_artifacts: Dict[str, Any] = {}
         
         # ============================================================================
         # STEP 1: Domain Detection (if not specified)
@@ -756,6 +777,46 @@ class UniversalProblemSolver:
         step_domain.details = {'detected_domain': domain.value}
         steps.append(step_domain)
         execution_log.append(f"Domain: {domain.value}")
+
+        # ============================================================================
+        # STEP 1B: Optional Web3 Ingestion
+        # ============================================================================
+        if domain == ProblemDomain.WEB3 and enable_web3_ingestion:
+            step_web3 = SolutionStep("web3_ingestion", datetime.now())
+            if WEB3_INGESTION_AVAILABLE and web3_ingest_contract_audit_stack:
+                try:
+                    ingestion = web3_ingest_contract_audit_stack(
+                        project_path=web3_project_path,
+                        run_fuzzing=web3_run_fuzzing,
+                    )
+                    domain_artifacts["web3_ingestion"] = ingestion
+                    if isinstance(ingestion, dict):
+                        if ingestion.get("entanglement_matrix"):
+                            domain_artifacts["entanglement_matrix"] = ingestion["entanglement_matrix"]
+                        if ingestion.get("contracts"):
+                            domain_artifacts["contracts"] = ingestion["contracts"]
+                    step_web3.status = "completed"
+                    step_web3.details = {
+                        "success": bool(ingestion.get("success")) if isinstance(ingestion, dict) else False,
+                        "contracts": len(ingestion.get("contracts", [])) if isinstance(ingestion, dict) else 0,
+                        "fuzzing_enabled": web3_run_fuzzing,
+                    }
+                    execution_log.append(
+                        f"Web3 ingestion: {step_web3.details.get('contracts', 0)} contracts analyzed"
+                    )
+                except Exception as exc:
+                    step_web3.status = "failed"
+                    step_web3.details = {"error": str(exc)}
+                    execution_log.append(f"Web3 ingestion failed: {exc}")
+            else:
+                step_web3.status = "skipped"
+                step_web3.details = {
+                    "reason": "Web3 ingestion tools unavailable",
+                    "inventory_available": WEB3_INGESTION_AVAILABLE,
+                }
+                execution_log.append("Web3 ingestion skipped: tools unavailable")
+            step_web3.end_time = datetime.now()
+            steps.append(step_web3)
         
         # ============================================================================
         # STEP 2: Decomposition
@@ -770,6 +831,7 @@ class UniversalProblemSolver:
                 domain=domain,
                 constraints=constraints or [],
                 success_criteria=success_criteria or [],
+                domain_artifacts=domain_artifacts,
             )
             try:
                 roma_result = self.roma_adapter.setup_and_decompose_problem(
@@ -792,7 +854,8 @@ class UniversalProblemSolver:
                 constraints=constraints or [],
                 success_criteria=success_criteria or [],
                 strategy=self.decomposition_strategy,
-                max_subproblems=max_subproblems
+                max_subproblems=max_subproblems,
+                domain_artifacts=domain_artifacts,
             )
         
         # Apply domain-specific enhancements if not already applied
@@ -828,6 +891,15 @@ class UniversalProblemSolver:
                             sp.metadata["entanglement_symbols"] = sorted(symbols_by_id.get(sp.id, set()))
                 except Exception as exc:
                     self.logger.warning("Failed to rebuild entanglement matrix: %s", exc)
+
+        if domain_artifacts:
+            plan.metadata.setdefault("domain_artifacts", {})
+            if isinstance(plan.metadata["domain_artifacts"], dict):
+                plan.metadata["domain_artifacts"].update(domain_artifacts)
+            if domain == ProblemDomain.WEB3:
+                plan.metadata.setdefault("web3", {})
+                if isinstance(plan.metadata["web3"], dict):
+                    plan.metadata["web3"]["ingestion"] = domain_artifacts.get("web3_ingestion", {})
         
         step_decomp.end_time = datetime.now()
         step_decomp.status = "completed"
@@ -1463,7 +1535,39 @@ class UniversalProblemSolver:
         entanglement_matrix: Dict[str, List[str]],
     ) -> Any:
         """Recompose using EnhancedRecompositionEngine with entanglement context."""
-        engine = EnhancedRecompositionEngine()
+        recomposition_config = None
+        if (
+            plan.original_problem.domain == ProblemDomain.WEB3
+            and EnhancedRecompositionConfig is not None
+        ):
+            recomposition_config = EnhancedRecompositionConfig(
+                enable_defi_gauntlet=True,
+                defi_max_attack_vectors=4,
+                defi_symbolic_timeout_seconds=12.0,
+            )
+        engine = EnhancedRecompositionEngine(config=recomposition_config)
+        if plan.original_problem.domain == ProblemDomain.WEB3:
+            web3_meta = plan.metadata.get("web3", {}) if isinstance(plan.metadata, dict) else {}
+            if isinstance(web3_meta, dict):
+                attack_vectors = []
+                ingestion = web3_meta.get("ingestion", {})
+                if isinstance(ingestion, dict):
+                    slither = ingestion.get("slither", {})
+                    if isinstance(slither, dict):
+                        for finding in slither.get("findings", [])[:3]:
+                            if isinstance(finding, dict):
+                                attack_vectors.append(
+                                    {
+                                        "id": finding.get("check", "slither_finding"),
+                                        "name": finding.get("check", "Slither Finding"),
+                                        "goal": finding.get("description", ""),
+                                        "predicate": finding.get("impact", ""),
+                                    }
+                                )
+                engine.configure_defi_gauntlet(
+                    additional_vectors=attack_vectors or None,
+                    symbolic_timeout_seconds=12.0,
+                )
         dependency_graph = plan.dependency_graph
         return engine.assemble(
             sub_solutions=sub_solutions,
@@ -1840,13 +1944,22 @@ class UniversalProblemSolver:
                 "solution_id": sp.id,
                 "sub_problem": sp,
                 "problem_statement": plan.original_problem.description,
+                "domain": plan.original_problem.domain.value if hasattr(plan.original_problem.domain, "value") else str(plan.original_problem.domain),
                 "constraints": [c.description for c in plan.original_problem.constraints],
                 "success_criteria": [sc.description for sc in sp.success_criteria],
                 "dependency_graph": plan.dependency_graph,
                 "entanglement_matrix": entanglement_matrix,
                 "entangled_with": entangled_with,
                 "entanglement_symbols": entanglement_symbols,
+                "domain_artifacts": plan.metadata.get("domain_artifacts", {}) if isinstance(plan.metadata, dict) else {},
             }
+            if plan.original_problem.domain == ProblemDomain.WEB3:
+                context["attack_vectors"] = [
+                    "flash_loan_attack",
+                    "reentrancy_attack",
+                    "symbolic_execution_probe",
+                    "oracle_manipulation",
+                ]
 
             stage_results: Dict[str, GauntletOutcome] = {}
 
@@ -1908,6 +2021,7 @@ class UniversalProblemSolver:
             "solution_id": plan.original_problem.id,
             "final_solution": final_solution,
             "problem_statement": plan.original_problem.description,
+            "domain": plan.original_problem.domain.value if hasattr(plan.original_problem.domain, "value") else str(plan.original_problem.domain),
             "constraints": [c.description for c in plan.original_problem.constraints],
             "success_criteria": [sc.description for sc in plan.original_problem.success_criteria],
             "dependency_graph": plan.dependency_graph,
@@ -1916,7 +2030,15 @@ class UniversalProblemSolver:
                 sp_id: getattr(sol, "solution_content", str(sol))
                 for sp_id, sol in sub_solutions.items()
             },
+            "domain_artifacts": plan.metadata.get("domain_artifacts", {}) if isinstance(plan.metadata, dict) else {},
         }
+        if plan.original_problem.domain == ProblemDomain.WEB3:
+            context["attack_vectors"] = [
+                "flash_loan_attack",
+                "reentrancy_attack",
+                "symbolic_execution_probe",
+                "oracle_manipulation",
+            ]
 
         if gauntlet_bundle.final_red_gauntlet and gauntlet_bundle.final_red_team:
             outcome = self._execute_gauntlet_stage(
@@ -2325,6 +2447,15 @@ class UniversalProblemSolver:
             'finance': ProblemDomain.FINANCE,
             'financial': ProblemDomain.FINANCE,
             'trading': ProblemDomain.FINANCE,
+            'web3': ProblemDomain.WEB3,
+            'defi': ProblemDomain.WEB3,
+            'smart_contract': ProblemDomain.WEB3,
+            'smart-contract': ProblemDomain.WEB3,
+            'solidity': ProblemDomain.WEB3,
+            'evm': ProblemDomain.WEB3,
+            'onchain': ProblemDomain.WEB3,
+            'on-chain': ProblemDomain.WEB3,
+            'rust_contract': ProblemDomain.WEB3,
             'scientific': ProblemDomain.SCIENTIFIC,
             'research': ProblemDomain.SCIENTIFIC,
             'healthcare': ProblemDomain.HEALTHCARE,
@@ -2340,6 +2471,16 @@ class UniversalProblemSolver:
     def _detect_domain(self, problem_statement: str) -> ProblemDomain:
         """Auto-detect domain from problem statement"""
         lower = problem_statement.lower()
+
+        # Web3 indicators
+        web3_terms = [
+            'web3', 'defi', 'smart contract', 'solidity', 'evm', 'onchain',
+            'on-chain', 'slither', 'foundry', 'forge', 'hardhat', 'reentrancy',
+            'flash loan', 'oracle manipulation', 'amm', 'liquidity pool', 'vault',
+            'bridge', 'rust contract', 'anchor',
+        ]
+        if any(term in lower for term in web3_terms):
+            return ProblemDomain.WEB3
         
         # Finance indicators
         finance_terms = ['trading', 'risk', 'portfolio', 'market data', 'compliance', 

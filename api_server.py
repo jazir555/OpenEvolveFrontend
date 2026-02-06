@@ -194,6 +194,34 @@ except ImportError:
     LeanAideIntegrationBridge = None
 
 try:
+    from decomposition_mcp_tools import (
+        get_mcp_tool_inventory,
+        web3_ingest_contract_audit_stack,
+        web3_ingest_foundry_fuzzing,
+        web3_ingest_slither_static_analysis,
+    )
+    WEB3_INGESTION_AVAILABLE = True
+except ImportError:
+    WEB3_INGESTION_AVAILABLE = False
+    get_mcp_tool_inventory = None
+    web3_ingest_contract_audit_stack = None
+    web3_ingest_foundry_fuzzing = None
+    web3_ingest_slither_static_analysis = None
+
+try:
+    from z3prover_integration import (
+        solve_smart_contract_exploit_witness,
+        translate_solidity_assignment_to_z3,
+        verify_solidity_invariant_translation,
+    )
+    WEB3_FORMAL_VERIFICATION_AVAILABLE = True
+except ImportError:
+    WEB3_FORMAL_VERIFICATION_AVAILABLE = False
+    solve_smart_contract_exploit_witness = None
+    translate_solidity_assignment_to_z3 = None
+    verify_solidity_invariant_translation = None
+
+try:
     from evolution import run_comprehensive_evolution, create_evolution_configuration
     from adversarial import run_comprehensive_adversarial_testing, create_adversarial_configuration
     EVOLUTION_AVAILABLE = True
@@ -1060,6 +1088,15 @@ class WorkflowCreateRequest(BaseModel):
     mdap_config: Dict[str, Any] = Field(default_factory=dict, description="MDAP configuration overrides")
     maker_enabled: bool = Field(False, description="Enable MAKER for solution generation")
     maker_config: Dict[str, Any] = Field(default_factory=dict, description="MAKER configuration overrides")
+    domain_hint: Optional[str] = Field(None, description="Optional domain hint (e.g., web3)")
+    domain_artifacts: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Optional precomputed domain artifacts (e.g., Slither/Forge outputs)"
+    )
+    web3: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Optional Web3 config: enabled, project_path, run_fuzzing, slither/forge timeouts"
+    )
     
     @validator('problem_statement')
     def validate_problem_statement(cls, v):
@@ -1422,6 +1459,53 @@ class BubbleLabsAnalyticsTrackRequest(BaseModel):
 
 class BubbleLabsLeanAideProveRequest(BaseModel):
     theorem: str
+
+
+class Web3IngestStackRequest(BaseModel):
+    project_path: str = "."
+    run_fuzzing: bool = True
+    slither_timeout_seconds: int = Field(240, ge=10, le=3600)
+    forge_timeout_seconds: int = Field(420, ge=10, le=7200)
+
+
+class Web3IngestSlitherRequest(BaseModel):
+    project_path: str = "."
+    timeout_seconds: int = Field(240, ge=10, le=3600)
+    extra_args: List[str] = Field(default_factory=list)
+
+
+class Web3IngestFoundryRequest(BaseModel):
+    project_path: str = "."
+    timeout_seconds: int = Field(420, ge=10, le=7200)
+    match_contract: Optional[str] = None
+    match_test: Optional[str] = None
+    fork_url: Optional[str] = None
+    extra_args: List[str] = Field(default_factory=list)
+
+
+class Web3InvariantTranslateRequest(BaseModel):
+    statement: str
+    non_negative_target: bool = True
+    max_withdraw_expr: Optional[str] = None
+    verify_translation: bool = True
+    assume_non_negative_amount: bool = True
+
+
+class Web3ExploitWitnessRequest(BaseModel):
+    additional_constraints: List[str] = Field(default_factory=list)
+    timeout_seconds: float = Field(10.0, ge=0.1, le=120.0)
+
+
+class Web3AuditExploitRequest(BaseModel):
+    project_path: str = "."
+    statement: Optional[str] = None
+    run_fuzzing: bool = True
+    verify_translation: bool = True
+    timeout_seconds: float = Field(10.0, ge=0.1, le=120.0)
+    additional_constraints: List[str] = Field(default_factory=list)
+    non_negative_target: bool = True
+    max_withdraw_expr: Optional[str] = None
+    assume_non_negative_amount: bool = True
 
 
 class MakerToolCreateRequest(BaseModel):
@@ -1898,6 +1982,18 @@ def create_workflow(
         
         # Create workflow state
         workflow_id = str(uuid.uuid4())
+        openevolve_parameters: Dict[str, Any] = {}
+        if request.domain_hint:
+            openevolve_parameters["domain_hint"] = request.domain_hint
+        if request.domain_artifacts:
+            openevolve_parameters["domain_artifacts"] = request.domain_artifacts
+        if request.web3:
+            openevolve_parameters["web3"] = request.web3
+            openevolve_parameters.setdefault("formal_verification_enabled", True)
+            openevolve_parameters.setdefault("z3_enabled", True)
+            openevolve_parameters.setdefault("leanaide_enabled", True)
+            openevolve_parameters.setdefault("formal_verification_mode", "hybrid")
+
         workflow_state = WorkflowState(
             workflow_id=workflow_id,
             workflow_type="sovereign_decomposition",
@@ -1908,7 +2004,8 @@ def create_workflow(
             mdap_enabled=request.mdap_enabled,
             mdap_config=request.mdap_config,
             maker_enabled=request.maker_enabled,
-            maker_config=request.maker_config
+            maker_config=request.maker_config,
+            openevolve_parameters=openevolve_parameters,
         )
         
         # Store workflow
@@ -6032,6 +6129,235 @@ def bubblelabs_leanaide_prove(
         raise HTTPException(status_code=503, detail="BubbleLabs integration not available")
     integration = get_extended_integration()
     return integration.leanaide_prove_theorem(request.theorem)
+
+
+@app.get("/web3/status", dependencies=[Depends(verify_api_key)])
+def web3_status():
+    """Get Web3 audit stack availability and MCP tool inventory."""
+    inventory = {}
+    if get_mcp_tool_inventory is not None:
+        try:
+            inventory = get_mcp_tool_inventory()
+        except Exception as exc:
+            inventory = {"error": str(exc)}
+    return {
+        "web3_ingestion_available": WEB3_INGESTION_AVAILABLE,
+        "web3_formal_verification_available": WEB3_FORMAL_VERIFICATION_AVAILABLE,
+        "slither_ingestion_available": web3_ingest_slither_static_analysis is not None,
+        "foundry_ingestion_available": web3_ingest_foundry_fuzzing is not None,
+        "invariant_translation_available": translate_solidity_assignment_to_z3 is not None,
+        "exploit_witness_available": solve_smart_contract_exploit_witness is not None,
+        "mcp_tool_inventory": inventory,
+    }
+
+
+@app.get("/web3/mcp-tool-inventory", dependencies=[Depends(verify_api_key)])
+def web3_mcp_tool_inventory():
+    if get_mcp_tool_inventory is None:
+        raise HTTPException(status_code=503, detail="MCP tool inventory unavailable")
+    try:
+        return get_mcp_tool_inventory()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/web3/ingest", dependencies=[Depends(require_role(UserRole.USER))])
+def web3_ingest_stack(
+    request: Web3IngestStackRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    """Run Web3 ingestion stack (source discovery + Slither + optional Foundry)."""
+    if not WEB3_INGESTION_AVAILABLE or web3_ingest_contract_audit_stack is None:
+        raise HTTPException(status_code=503, detail="Web3 ingestion stack unavailable")
+    try:
+        return web3_ingest_contract_audit_stack(
+            project_path=request.project_path,
+            run_fuzzing=request.run_fuzzing,
+            slither_timeout_seconds=request.slither_timeout_seconds,
+            forge_timeout_seconds=request.forge_timeout_seconds,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/web3/ingest/slither", dependencies=[Depends(require_role(UserRole.USER))])
+def web3_ingest_slither(
+    request: Web3IngestSlitherRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    """Run Slither static analysis and return normalized findings/dependencies."""
+    if not WEB3_INGESTION_AVAILABLE or web3_ingest_slither_static_analysis is None:
+        raise HTTPException(status_code=503, detail="Slither ingestion unavailable")
+    try:
+        return web3_ingest_slither_static_analysis(
+            project_path=request.project_path,
+            timeout_seconds=request.timeout_seconds,
+            extra_args=request.extra_args,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/web3/ingest/foundry", dependencies=[Depends(require_role(UserRole.USER))])
+def web3_ingest_foundry(
+    request: Web3IngestFoundryRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    """Run Foundry/Forge fuzz harness and return parsed execution summary."""
+    if not WEB3_INGESTION_AVAILABLE or web3_ingest_foundry_fuzzing is None:
+        raise HTTPException(status_code=503, detail="Foundry ingestion unavailable")
+    try:
+        return web3_ingest_foundry_fuzzing(
+            project_path=request.project_path,
+            timeout_seconds=request.timeout_seconds,
+            match_contract=request.match_contract,
+            match_test=request.match_test,
+            fork_url=request.fork_url,
+            extra_args=request.extra_args,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/web3/invariants/translate", dependencies=[Depends(require_role(UserRole.USER))])
+def web3_translate_invariant(
+    request: Web3InvariantTranslateRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    """Translate Solidity assignment into Z3 constraints and invariants."""
+    if not WEB3_FORMAL_VERIFICATION_AVAILABLE or translate_solidity_assignment_to_z3 is None:
+        raise HTTPException(status_code=503, detail="Solidity invariant translation unavailable")
+    try:
+        translation = translate_solidity_assignment_to_z3(
+            statement=request.statement,
+            non_negative_target=request.non_negative_target,
+            max_withdraw_expr=request.max_withdraw_expr,
+        )
+        response: Dict[str, Any] = {"translation": translation}
+        if request.verify_translation and verify_solidity_invariant_translation is not None:
+            response["verification"] = verify_solidity_invariant_translation(
+                translation=translation,
+                assume_non_negative_amount=request.assume_non_negative_amount,
+            )
+        return response
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/web3/exploits/symbolic-witness", dependencies=[Depends(require_role(UserRole.USER))])
+def web3_exploit_symbolic_witness(
+    request: Web3ExploitWitnessRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    """Solve canonical exploit witness query with optional custom constraints."""
+    if not WEB3_FORMAL_VERIFICATION_AVAILABLE or solve_smart_contract_exploit_witness is None:
+        raise HTTPException(status_code=503, detail="Exploit witness solver unavailable")
+    try:
+        return solve_smart_contract_exploit_witness(
+            additional_constraints=request.additional_constraints,
+            timeout=request.timeout_seconds,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/web3/audit/exploit-verification", dependencies=[Depends(require_role(UserRole.USER))])
+def web3_audit_exploit_verification(
+    request: Web3AuditExploitRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    """Run ingestion + optional invariant translation + exploit witness solving."""
+    ingestion_result = None
+    translation_result = None
+    witness_result = None
+
+    if WEB3_INGESTION_AVAILABLE and web3_ingest_contract_audit_stack is not None:
+        ingestion_result = web3_ingest_contract_audit_stack(
+            project_path=request.project_path,
+            run_fuzzing=request.run_fuzzing,
+            slither_timeout_seconds=240,
+            forge_timeout_seconds=420,
+        )
+
+    if request.statement and WEB3_FORMAL_VERIFICATION_AVAILABLE and translate_solidity_assignment_to_z3 is not None:
+        translation = translate_solidity_assignment_to_z3(
+            statement=request.statement,
+            non_negative_target=request.non_negative_target,
+            max_withdraw_expr=request.max_withdraw_expr,
+        )
+        translation_result = {"translation": translation}
+        if request.verify_translation and verify_solidity_invariant_translation is not None:
+            translation_result["verification"] = verify_solidity_invariant_translation(
+                translation=translation,
+                assume_non_negative_amount=request.assume_non_negative_amount,
+            )
+
+    if WEB3_FORMAL_VERIFICATION_AVAILABLE and solve_smart_contract_exploit_witness is not None:
+        witness_result = solve_smart_contract_exploit_witness(
+            additional_constraints=request.additional_constraints,
+            timeout=request.timeout_seconds,
+        )
+
+    return {
+        "ingestion": ingestion_result,
+        "translation": translation_result,
+        "exploit_witness": witness_result,
+    }
+
+
+@app.get("/bubblelabs/web3/status", dependencies=[Depends(verify_api_key)])
+def bubblelabs_web3_status():
+    if not BUBBLELABS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="BubbleLabs integration not available")
+    integration = get_extended_integration()
+    return integration.get_web3_status()
+
+
+@app.post("/bubblelabs/web3/ingest", dependencies=[Depends(require_role(UserRole.USER))])
+def bubblelabs_web3_ingest(
+    request: Web3IngestStackRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    if not BUBBLELABS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="BubbleLabs integration not available")
+    integration = get_extended_integration()
+    return integration.web3_ingest_contract_stack(
+        project_path=request.project_path,
+        run_fuzzing=request.run_fuzzing,
+        slither_timeout_seconds=request.slither_timeout_seconds,
+        forge_timeout_seconds=request.forge_timeout_seconds,
+    )
+
+
+@app.post("/bubblelabs/web3/invariants/translate", dependencies=[Depends(require_role(UserRole.USER))])
+def bubblelabs_web3_translate_invariant(
+    request: Web3InvariantTranslateRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    if not BUBBLELABS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="BubbleLabs integration not available")
+    integration = get_extended_integration()
+    return integration.web3_translate_solidity_invariant(
+        statement=request.statement,
+        non_negative_target=request.non_negative_target,
+        max_withdraw_expr=request.max_withdraw_expr,
+        verify_translation=request.verify_translation,
+        assume_non_negative_amount=request.assume_non_negative_amount,
+    )
+
+
+@app.post("/bubblelabs/web3/exploits/symbolic-witness", dependencies=[Depends(require_role(UserRole.USER))])
+def bubblelabs_web3_symbolic_witness(
+    request: Web3ExploitWitnessRequest,
+    user: AuthUser = Depends(require_role(UserRole.USER))
+):
+    if not BUBBLELABS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="BubbleLabs integration not available")
+    integration = get_extended_integration()
+    return integration.web3_solve_exploit_witness(
+        additional_constraints=request.additional_constraints,
+        timeout_seconds=request.timeout_seconds,
+    )
 
 
 @app.get("/maker/status", dependencies=[Depends(verify_api_key)])
