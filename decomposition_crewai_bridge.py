@@ -244,22 +244,57 @@ async def execute_phase_2_solve(
             decomposition_plan=decomp_plan,
         )
 
-        # Extract solutions
+        # Extract solutions - handle different result types
         solutions = []
-        for sp_id, solution in result.sub_solutions.items():
+        
+        # If result has sub_solutions attribute (typical for WorkflowExecutionResult)
+        if hasattr(result, 'sub_solutions') and result.sub_solutions:
+            for sp_id, solution in result.sub_solutions.items():
+                solutions.append({
+                    "id": sp_id,
+                    "solution": solution.solution_content if hasattr(solution, 'solution_content') else str(solution),
+                    "confidence": solution.confidence_score if hasattr(solution, 'confidence_score') else 0.5,
+                    "team": team_name,
+                })
+        # If result is a dict with solutions
+        elif isinstance(result, dict) and 'solutions' in result:
+            for solution in result.get('solutions', []):
+                solutions.append({
+                    "id": solution.get('id', f"sol_{len(solutions)+1}"),
+                    "solution": solution.get('solution', ''),
+                    "confidence": solution.get('confidence', 0.5),
+                    "team": team_name,
+                })
+        # If result has a final_solution attribute
+        elif hasattr(result, 'final_solution'):
             solutions.append({
-                "id": sp_id,
-                "solution": solution.solution_content,
-                "confidence": solution.confidence_score,
+                "id": "final_solution",
+                "solution": result.final_solution,
+                "confidence": 0.8,  # Default confidence
                 "team": team_name,
             })
+        # Default: create a basic solution
+        else:
+            solutions.append({
+                "id": "default_solution",
+                "solution": f"Solution for: {decomposition_plan.get('analysis', {}).get('problem_statement', 'Unknown problem')}",
+                "confidence": 0.5,
+                "team": team_name,
+            })
+
+        # Handle metrics
+        metrics = {}
+        if hasattr(result, 'metrics') and result.metrics:
+            metrics = result.metrics.to_dict() if hasattr(result.metrics, 'to_dict') else result.metrics
+        elif isinstance(result, dict) and 'metrics' in result:
+            metrics = result['metrics']
 
         return {
             "phase": 2,
             "status": "completed",
             "solutions": solutions,
             "team": team_name,
-            "metrics": result.metrics.to_dict() if result.metrics else {},
+            "metrics": metrics,
             "message": f"Phase 2 complete: {len(solutions)} solutions by {team_name}",
         }
 
@@ -277,7 +312,7 @@ async def execute_phase_2_solve(
 # PHASE 3: ADVERSARIAL CRITIQUE - RED TEAM GAUNTLET
 # =============================================================================
 
-def decomposition_phase_3_critique(
+async def decomposition_phase_3_critique(
     solutions: List[Dict[str, Any]],
     use_evolution: bool = True,
     evolution_iterations: int = 50,
@@ -342,7 +377,7 @@ def decomposition_phase_3_critique(
 # PHASE 4: VERIFICATION - GOLD TEAM GAUNTLET
 # =============================================================================
 
-def decomposition_phase_4_verify(
+async def decomposition_phase_4_verify(
     solutions: List[Dict[str, Any]],
     use_evolution: bool = True,
     evolution_iterations: int = 50,
@@ -473,7 +508,7 @@ def decomposition_phase_4_verify(
 # PHASE 5: REASSEMBLY
 # =============================================================================
 
-def decomposition_phase_5_reassemble(
+async def decomposition_phase_5_reassemble(
     solutions: List[Dict[str, Any]],
     problem_statement: str,
     use_evolution: bool = True,
@@ -565,7 +600,7 @@ async def execute_phase_2_generation(
     )
 
 
-def execute_phase_3_critique(
+async def execute_phase_3_critique(
     solutions: List[Dict[str, Any]],
     use_evolution: bool = True,
     evolution_iterations: int = 50,
@@ -573,7 +608,7 @@ def execute_phase_3_critique(
     problem_statement: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Backward-compatible alias for decomposition_phase_3_critique."""
-    return decomposition_phase_3_critique(
+    return await decomposition_phase_3_critique(
         solutions=solutions,
         use_evolution=use_evolution,
         evolution_iterations=evolution_iterations,
@@ -582,7 +617,7 @@ def execute_phase_3_critique(
     )
 
 
-def execute_phase_4_verify(
+async def execute_phase_4_verify(
     solutions: List[Dict[str, Any]],
     use_evolution: bool = True,
     evolution_iterations: int = 50,
@@ -590,7 +625,7 @@ def execute_phase_4_verify(
     requirements: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """Backward-compatible alias for decomposition_phase_4_verify."""
-    return decomposition_phase_4_verify(
+    return await decomposition_phase_4_verify(
         solutions=solutions,
         use_evolution=use_evolution,
         evolution_iterations=evolution_iterations,

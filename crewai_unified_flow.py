@@ -619,7 +619,7 @@ class CrewAIUnifiedFlow:
                 "solutions": []
             }
 
-    def phase_3_critique(
+    async def phase_3_critique(
         self,
         phase_2_result: Dict[str, Any],
         execution_method: Optional[ExecutionMethod] = None,
@@ -641,10 +641,13 @@ class CrewAIUnifiedFlow:
             bridge = self._get_claudiomiro_bridge(**kwargs)
             return bridge.execute_phase_3_critique(solutions, **kwargs)
         if DECOMPOSITION_BRIDGE_AVAILABLE and decomposition_phase_3_critique:
+            # Create a copy of kwargs and remove problem_statement to avoid duplicates
+            critique_kwargs = kwargs.copy()
+            critique_kwargs.pop('problem_statement', None)
             return decomposition_phase_3_critique(
                 solutions=solutions,
                 problem_statement=kwargs.get("problem_statement"),
-                **kwargs
+                **critique_kwargs
             )
         # Fallback implementation when no specific bridge is available
         logger.warning(f"No specific bridge available for {method}, using fallback critique implementation")
@@ -712,7 +715,7 @@ class CrewAIUnifiedFlow:
                 "critiques": []
             }
 
-    def phase_4_verify(
+    async def phase_4_verify(
         self,
         phase_2_result: Dict[str, Any],
         critiques: Optional[Dict[str, Any]] = None,
@@ -743,10 +746,13 @@ class CrewAIUnifiedFlow:
                 **kwargs
             )
         if DECOMPOSITION_BRIDGE_AVAILABLE and decomposition_phase_4_verify:
+            # Create a copy of kwargs and remove requirements to avoid duplicates
+            verify_kwargs = kwargs.copy()
+            verify_kwargs.pop('requirements', None)
             return decomposition_phase_4_verify(
                 solutions=solutions,
                 requirements=kwargs.get("requirements"),
-                **kwargs
+                **verify_kwargs
             )
         # Fallback implementation when no specific bridge is available
         logger.warning(f"No specific bridge available for {method}, using fallback verification implementation")
@@ -815,7 +821,7 @@ class CrewAIUnifiedFlow:
                 "verification": {}
             }
 
-    def phase_5_reassemble(
+    async def phase_5_reassemble(
         self,
         phase_2_result: Dict[str, Any],
         problem_statement: str,
@@ -841,10 +847,13 @@ class CrewAIUnifiedFlow:
                 frontend=kwargs.get("frontend"),
             )
         if DECOMPOSITION_BRIDGE_AVAILABLE and decomposition_phase_5_reassemble:
+            # Create a copy of kwargs and remove problem_statement to avoid duplicates
+            reassemble_kwargs = kwargs.copy()
+            reassemble_kwargs.pop('problem_statement', None)
             return decomposition_phase_5_reassemble(
                 solutions=solutions,
                 problem_statement=problem_statement,
-                **kwargs
+                **reassemble_kwargs
             )
         # Fallback implementation when no specific bridge is available
         logger.warning(f"No specific bridge available for {method}, using fallback reassembly implementation")
@@ -912,7 +921,7 @@ class CrewAIUnifiedFlow:
                 "reassembled_solution": {}
             }
 
-    def phase_6_final_validation(
+    async def phase_6_final_validation(
         self,
         final_solution: str,
         problem_statement: str,
@@ -937,10 +946,13 @@ class CrewAIUnifiedFlow:
                 create_pr=kwargs.get("create_pr", True),
             )
         if DECOMPOSITION_BRIDGE_AVAILABLE and decomposition_phase_6_final_validation:
+            # Create a copy of kwargs and remove problem_statement to avoid duplicates
+            validation_kwargs = kwargs.copy()
+            validation_kwargs.pop('problem_statement', None)
             return decomposition_phase_6_final_validation(
                 final_solution=final_solution,
                 problem_statement=problem_statement,
-                **kwargs
+                **validation_kwargs
             )
         # Fallback implementation when no specific bridge is available
         logger.warning(f"No specific bridge available for {method}, using fallback validation implementation")

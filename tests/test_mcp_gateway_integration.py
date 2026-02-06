@@ -79,7 +79,7 @@ def patch_mcp_gateway():
     mock_gateway_instance = AsyncMock()
     mock_gateway_instance.is_initialized = True
     mock_gateway_instance.is_running = True
-    mock_gateway_instance.initialize = AsyncMock(return_value=True)
+    mock_gateway_instance.initialize = AsyncMock(return_value=None)
     mock_gateway_instance.tool_registry = Mock()
     mock_gateway_instance.tool_router = Mock()
 
@@ -89,14 +89,22 @@ def patch_mcp_gateway():
     mcp_gateway = Mock()
     mcp_gateway.unified_mcp_gateway = Mock()
     mcp_gateway.unified_mcp_gateway.UnifiedMCPGateway = mock_gateway_class
+
+    # Also patch models
+    mcp_gateway.models = Mock()
+    mcp_gateway.models.ToolDefinition = Mock()
+    mcp_gateway.models.ServerConfig = Mock()
+    mcp_gateway.models.ToolCategory = Mock()
+
     sys.modules['mcp'] = Mock()
-    sys.modules['mcp.gateway'] = Mock()
+    sys.modules['mcp.gateway'] = mcp_gateway
     sys.modules['mcp.gateway.unified_mcp_gateway'] = mcp_gateway.unified_mcp_gateway
+    sys.modules['mcp.gateway.models'] = mcp_gateway.models
 
     yield mock_gateway_class
 
     # Clean up
-    for mod in ['mcp', 'mcp.gateway', 'mcp.gateway.unified_mcp_gateway']:
+    for mod in ['mcp', 'mcp.gateway', 'mcp.gateway.unified_mcp_gateway', 'mcp.gateway.models']:
         if mod in sys.modules:
             del sys.modules[mod]
 
@@ -394,13 +402,15 @@ class TestMCPGatewayIntegrationInitialization:
 
     def test_initialize_components_import_error(self):
         """Test component initialization with import error (mock mode)."""
-        # Force ImportError when importing from mcp.gateway
-        def import_error(name, *args, **kwargs):
-            if 'mcp.gateway' in name or 'mcp.gateway.unified_mcp_gateway' in name:
-                raise ImportError("mcp-gateway not installed")
-            return __import__(name, *args, **kwargs)
+        # Force ImportError by removing mcp from sys.modules temporarily
+        original_import = __builtins__.__import__
 
-        with patch('builtins.__import__', side_effect=import_error):
+        def mock_import(name, *args, **kwargs):
+            if name.startswith('mcp.gateway'):
+                raise ImportError("mcp-gateway not installed")
+            return original_import(name, *args, **kwargs)
+
+        with patch('builtins.__import__', side_effect=mock_import):
             integration = MCPGatewayIntegration(config={})
 
         assert integration.unified_gateway is None

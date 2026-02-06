@@ -54,7 +54,16 @@ def roma_deepke_integration():
     if not ROMA_DEEPKE_AVAILABLE:
         pytest.skip("ROMA-DeepKE not available")
 
-    return ROMADeepKEIntegration()
+    # Create mock integrations
+    mock_roma = Mock()
+    mock_deepke = Mock()
+    mock_ke = Mock()
+
+    return ROMADeepKEIntegration(
+        roma_integration=mock_roma,
+        deepke_integration=mock_deepke,
+        knowledge_engine=mock_ke
+    )
 
 @pytest.fixture
 def mock_deepke_extractor():
@@ -80,7 +89,15 @@ class TestROMADeepKEInitialization:
         if not ROMA_DEEPKE_AVAILABLE:
             pytest.skip("ROMA-DeepKE not available")
 
-        integration = ROMADeepKEIntegration()
+        mock_roma = Mock()
+        mock_deepke = Mock()
+        mock_ke = Mock()
+
+        integration = ROMADeepKEIntegration(
+            roma_integration=mock_roma,
+            deepke_integration=mock_deepke,
+            knowledge_engine=mock_ke
+        )
 
         assert integration is not None
         assert hasattr(integration, 'config')
@@ -91,7 +108,16 @@ class TestROMADeepKEInitialization:
             pytest.skip("ROMA-DeepKE not available")
 
         config = {"entity_types": ["PERSON", "ORG", "CONCEPT"]}
-        integration = ROMADeepKEIntegration(config=config)
+        mock_roma = Mock()
+        mock_deepke = Mock()
+        mock_ke = Mock()
+
+        integration = ROMADeepKEIntegration(
+            roma_integration=mock_roma,
+            deepke_integration=mock_deepke,
+            knowledge_engine=mock_ke,
+            config=config
+        )
 
         assert integration.config["entity_types"] == ["PERSON", "ORG", "CONCEPT"]
 

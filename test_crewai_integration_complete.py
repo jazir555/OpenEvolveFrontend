@@ -224,11 +224,11 @@ class TestCrewAIClient:
     
     async def test_execute_workflow(self):
         """Test workflow execution via client."""
-        result = self.client.execute_workflow(
+        result = await self.client.execute_workflow(
             problem_statement="Test client workflow execution",
             execution_method=ExecutionMethod.TRADITIONAL
         )
-        
+
         # The result should be an ExecutionResult object or dict
         assert result is not None
         assert hasattr(result, 'workflow_id') or 'workflow_id' in result
@@ -266,11 +266,11 @@ class TestCrewAIUnifiedFlow:
     
     async def test_execute_full_workflow(self):
         """Test full workflow execution."""
-        result = self.flow.execute_full_workflow(
+        result = await self.flow.execute_full_workflow(
             problem_statement="Test full workflow",
             execution_method=FlowExecutionMethod.TRADITIONAL
         )
-        
+
         assert result is not None
         assert "workflow" in result
         assert "phases" in result

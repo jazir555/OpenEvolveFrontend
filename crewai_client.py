@@ -145,7 +145,7 @@ class CrewAIClient:
 
         logger.info(f"CrewAIClient initialized with storage_dir={state_storage_dir}")
 
-    def execute_workflow(
+    async def execute_workflow(
         self,
         problem_statement: str,
         execution_method: ExecutionMethod = ExecutionMethod.AUTO,
@@ -194,7 +194,7 @@ class CrewAIClient:
                 self.state_manager.save_state(workflow_id, state)
 
             # Execute workflow through unified flow
-            flow_result = self.unified_flow.execute_full_workflow(
+            flow_result = await self.unified_flow.execute_full_workflow(
                 problem_statement=problem_statement,
                 execution_method=self._map_to_flow_execution_method(execution_method),
                 **kwargs

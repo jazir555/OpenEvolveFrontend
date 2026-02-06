@@ -1743,7 +1743,8 @@ class UnifiedEvolutionKnowledgeExtractor:
         Returns:
             Overall winner information
         """
-        return self._determine_overall_winner(comparison)
+        # Use a default domain if not specified
+        return self._determine_overall_winner(comparison, domain="general")
 
     def _fuse_strategies(
         self,

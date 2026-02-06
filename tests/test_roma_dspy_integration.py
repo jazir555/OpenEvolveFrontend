@@ -187,13 +187,12 @@ class TestEnhancedSubproblem:
         subproblem = EnhancedSubproblem(
             subproblem_id="test",
             problem="Test problem",
-            context={},
-            reasoning_chain=[],
-            confidence=0.5,
+            depth=1,
+            is_atomic=True,
             metadata={}
         )
 
-        assert len(subproblem.reasoning_chain) == 0
+        assert subproblem.reasoning_trace is None
 
 
 # =============================================================================
@@ -218,8 +217,10 @@ class TestReasoningTrace:
 
         trace = ReasoningTrace(
             trace_id="test_trace",
-            problem="Test",
+            subproblem_id="test",
             steps=[],
+            confidence=0.8,
+            intermediate_conclusions=[],
             metadata={}
         )
 
@@ -268,9 +269,8 @@ class TestDSPyIntegration:
         subproblem = EnhancedSubproblem(
             subproblem_id="test",
             problem="Test",
-            context={},
-            reasoning_chain=[],
-            confidence=0.5,
+            depth=1,
+            is_atomic=True,
             metadata={}
         )
 
@@ -314,30 +314,29 @@ class TestEdgeCases:
         subproblem = EnhancedSubproblem(
             subproblem_id="test",
             problem="Test",
-            context=None,
-            reasoning_chain=[],
-            confidence=0.5,
+            depth=1,
+            is_atomic=True,
             metadata={}
         )
 
-        assert subproblem.context is None
+        assert subproblem.metadata is not None
 
     def test_confidence_bounds(self):
         """Test confidence bounds checking."""
         if not ROMA_DSPY_AVAILABLE:
             pytest.skip("ROMA-DSPy not available")
 
-        # Valid confidence
-        subproblem = EnhancedSubproblem(
+        # Valid confidence - test reasoning trace instead
+        trace = ReasoningTrace(
+            trace_id="test",
             subproblem_id="test",
-            problem="Test",
-            context={},
-            reasoning_chain=[],
+            steps=[],
             confidence=0.95,
+            intermediate_conclusions=[],
             metadata={}
         )
 
-        assert 0.0 <= subproblem.confidence <= 1.0
+        assert 0.0 <= trace.confidence <= 1.0
 
 
 # =============================================================================
