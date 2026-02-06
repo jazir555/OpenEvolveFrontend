@@ -306,7 +306,8 @@ def create_bubblelabs_workflow(
     gauntlet_config: Optional[Dict[str, str]] = None,
     workflow_name: Optional[str] = None,
     workflow_type: str = "sovereign_decomposition",
-    api_key: Optional[str] = None
+    api_key: Optional[str] = None,
+    web3_config: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Create a BubbleLabs workflow from a problem statement.
@@ -329,6 +330,7 @@ def create_bubblelabs_workflow(
         workflow_name: Optional custom name for the workflow
         workflow_type: Type of workflow (default: "sovereign_decomposition")
         api_key: Optional API key for authentication
+        web3_config: Optional Web3 ingestion/formal config payload
 
     Returns:
         Dictionary containing:
@@ -379,12 +381,30 @@ def create_bubblelabs_workflow(
         # Set default configs
         team_config = team_config or {}
         gauntlet_config = gauntlet_config or {}
+        normalized_type = str(workflow_type or "sovereign_decomposition").strip().lower().replace("-", "_")
+        if normalized_type in {"sovereign"}:
+            normalized_type = "sovereign_decomposition"
+        elif normalized_type in {"defi", "smart_contract", "smart contract", "smart_contract_audit"}:
+            normalized_type = "web3"
+
+        if normalized_type == "web3":
+            final_web3_config: Dict[str, Any] = {
+                "enabled": True,
+                "project_path": ".",
+                "run_fuzzing": True,
+            }
+            if isinstance(web3_config, dict):
+                final_web3_config.update(web3_config)
+        else:
+            final_web3_config = web3_config or {}
 
         # Create workflow definition
         definition = integration.create_workflow_definition_from_openevolve(
             problem_statement=problem_statement,
             team_config=team_config,
-            gauntlet_config=gauntlet_config
+            gauntlet_config=gauntlet_config,
+            workflow_type=normalized_type,
+            web3_config=final_web3_config,
         )
 
         # Update name if provided

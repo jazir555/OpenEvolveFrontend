@@ -207,23 +207,22 @@ class GuardrailsEngine:
         validators = [
             TypeValidator(str, allow_none=False, name="OutputTypeValidator"),
             LengthValidator(min_length=1, max_length=10000, name="OutputLengthValidator"),
-            JSONValidator(allow_partial=True, name="OutputJSONValidator"),
         ]
-        
+
         # Add safety validators for moderate and strict levels
         if self.config.safety_level in (SafetyLevel.MODERATE, SafetyLevel.STRICT):
             validators.extend([
                 PIIValidator(detect_types=["email", "phone", "ssn"], block_on_detection=True),
                 ToxicityValidator(sensitivity="medium", name="OutputToxicityValidator"),
             ])
-            
+
         # Add stricter validators for strict level
         if self.config.safety_level == SafetyLevel.STRICT:
             validators.extend([
                 PIIValidator(block_on_detection=True, name="StrictPIIValidator"),
                 ToxicityValidator(sensitivity="high", name="StrictToxicityValidator"),
             ])
-            
+
         return validators
         
     def _default_input_rails(self) -> List[InputRail]:
@@ -354,15 +353,15 @@ class GuardrailsEngine:
         
     def add_policy(self, policy: Policy) -> 'GuardrailsEngine':
         """Add a policy.
-        
+
         Args:
             policy: Policy to add
-            
+
         Returns:
             Self for chaining
         """
         self.policies.append(policy)
-        self.policy_engine.add_policy(policy)
+        # Note: policy_engine shares the same list reference, so we don't need to add it again
         return self
         
     def add_action(self, action: Action) -> 'GuardrailsEngine':

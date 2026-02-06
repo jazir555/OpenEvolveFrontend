@@ -84,6 +84,24 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+
+def _normalize_workflow_type(workflow_type: Optional[str]) -> str:
+    """Normalize workflow type aliases for BubbleLabs definitions."""
+    aliases = {
+        "sovereign": "sovereign_decomposition",
+        "sovereign_decomposition": "sovereign_decomposition",
+        "web3": "web3",
+        "defi": "web3",
+        "smart_contract": "web3",
+        "smart contract": "web3",
+        "smart_contract_audit": "web3",
+    }
+    if not isinstance(workflow_type, str):
+        return "sovereign_decomposition"
+    normalized = workflow_type.strip().lower().replace("-", "_")
+    return aliases.get(normalized, "sovereign_decomposition")
+
+
 # Data models for BubbleLabs integration (simplified for local use)
 class BubbleNode:
     """Represents a node in a BubbleLabs workflow graph."""
@@ -227,7 +245,9 @@ class BubbleLabsIntegration:
         self, 
         problem_statement: str, 
         team_config: Dict[str, str],  # Maps roles to team names
-        gauntlet_config: Dict[str, str]  # Maps gauntlet types to gauntlet names
+        gauntlet_config: Dict[str, str],  # Maps gauntlet types to gauntlet names
+        workflow_type: str = "sovereign_decomposition",
+        web3_config: Optional[Dict[str, Any]] = None,
     ) -> BubbleWorkflowDefinition:
         """
         Create a BubbleLabs workflow definition from OpenEvolve workflow parameters.
@@ -236,87 +256,171 @@ class BubbleLabsIntegration:
             problem_statement: The problem to be solved by the workflow
             team_config: Configuration mapping roles to team names
             gauntlet_config: Configuration mapping gauntlet types to gauntlet names
+            workflow_type: Workflow type (sovereign_decomposition or web3 aliases)
+            web3_config: Optional Web3 ingestion/formal config payload
             
         Returns:
             BubbleWorkflowDefinition: The workflow definition for BubbleLabs
         """
         workflow_id = str(uuid.uuid4())
+        normalized_workflow_type = _normalize_workflow_type(workflow_type)
+        is_web3 = normalized_workflow_type == "web3"
+        web3_config = web3_config or {}
         
-        # Create nodes for the OpenEvolve workflow
-        nodes = [
-            {
-                "id": "content_analysis",
-                "type": "content_analyzer",
-                "position": {"x": 0, "y": 0},
-                "data": {
-                    "label": "Content Analysis",
-                    "team": team_config.get("content_analyzer_team", ""),
-                    "description": "Analyze the problem statement and extract structured context"
+        if is_web3:
+            nodes = [
+                {
+                    "id": "web3_input",
+                    "type": "input",
+                    "position": {"x": 0, "y": 0},
+                    "data": {
+                        "label": "Web3 Audit Input",
+                        "description": "Scope Solidity/Rust contracts and threat model",
+                    },
+                },
+                {
+                    "id": "web3_static_ingestion",
+                    "type": "web3_ingestion",
+                    "position": {"x": 260, "y": -60},
+                    "data": {
+                        "label": "Slither Static Analysis",
+                        "team": team_config.get("content_analyzer_team", ""),
+                        "description": "Run slither --json for findings/AST/dependencies",
+                    },
+                },
+                {
+                    "id": "web3_fuzz_ingestion",
+                    "type": "web3_fuzz",
+                    "position": {"x": 260, "y": 80},
+                    "data": {
+                        "label": "Foundry/Forge Fuzzing",
+                        "team": team_config.get("solver_team", ""),
+                        "description": "Run Forge fuzz tests and collect traces",
+                    },
+                },
+                {
+                    "id": "web3_formal_translation",
+                    "type": "formal_verifier",
+                    "position": {"x": 560, "y": 10},
+                    "data": {
+                        "label": "Invariant Translation (Z3/Lean)",
+                        "team": team_config.get("planner_team", ""),
+                        "description": "Translate Solidity invariants and verify constraints",
+                    },
+                },
+                {
+                    "id": "web3_defi_gauntlet",
+                    "type": "gauntlet",
+                    "position": {"x": 840, "y": 10},
+                    "data": {
+                        "label": "DeFi Red Team Gauntlet",
+                        "team": team_config.get("solver_team", ""),
+                        "gauntlet": gauntlet_config.get("sub_problem_red_gauntlet", ""),
+                        "description": "Flash loan, reentrancy, and symbolic exploit stress tests",
+                    },
+                },
+                {
+                    "id": "final_verification",
+                    "type": "verifier",
+                    "position": {"x": 1120, "y": 10},
+                    "data": {
+                        "label": "Exploit Verification",
+                        "team": team_config.get("assembler_team", ""),
+                        "gauntlet": gauntlet_config.get("final_gold_gauntlet", ""),
+                        "description": "Verify exploit witness and confidence-scored report",
+                    },
+                },
+            ]
+            edges = [
+                {"id": "edge_1", "source": "web3_input", "target": "web3_static_ingestion"},
+                {"id": "edge_2", "source": "web3_input", "target": "web3_fuzz_ingestion"},
+                {"id": "edge_3", "source": "web3_static_ingestion", "target": "web3_formal_translation"},
+                {"id": "edge_4", "source": "web3_fuzz_ingestion", "target": "web3_formal_translation"},
+                {"id": "edge_5", "source": "web3_formal_translation", "target": "web3_defi_gauntlet"},
+                {"id": "edge_6", "source": "web3_defi_gauntlet", "target": "final_verification"},
+            ]
+        else:
+            # Create nodes for the standard sovereign workflow
+            nodes = [
+                {
+                    "id": "content_analysis",
+                    "type": "content_analyzer",
+                    "position": {"x": 0, "y": 0},
+                    "data": {
+                        "label": "Content Analysis",
+                        "team": team_config.get("content_analyzer_team", ""),
+                        "description": "Analyze the problem statement and extract structured context"
+                    }
+                },
+                {
+                    "id": "decomposition",
+                    "type": "decomposer",
+                    "position": {"x": 300, "y": 0},
+                    "data": {
+                        "label": "Problem Decomposition",
+                        "team": team_config.get("planner_team", ""),
+                        "description": "Break down the problem into sub-problems"
+                    }
+                },
+                {
+                    "id": "subproblem_solver",
+                    "type": "solver",
+                    "position": {"x": 600, "y": 0},
+                    "data": {
+                        "label": "Sub-problem Solving",
+                        "team": team_config.get("solver_team", ""),
+                        "gauntlet": gauntlet_config.get("sub_problem_red_gauntlet", ""),
+                        "description": "Solve each sub-problem with specified gauntlet validation"
+                    }
+                },
+                {
+                    "id": "final_verification",
+                    "type": "verifier",
+                    "position": {"x": 900, "y": 0},
+                    "data": {
+                        "label": "Final Verification",
+                        "team": team_config.get("assembler_team", ""),
+                        "gauntlet": gauntlet_config.get("final_gold_gauntlet", ""),
+                        "description": "Verify the final solution with gold team gauntlet"
+                    }
                 }
-            },
-            {
-                "id": "decomposition",
-                "type": "decomposer",
-                "position": {"x": 300, "y": 0},
-                "data": {
-                    "label": "Problem Decomposition",
-                    "team": team_config.get("planner_team", ""),
-                    "description": "Break down the problem into sub-problems"
+            ]
+            edges = [
+                {
+                    "id": "edge_1",
+                    "source": "content_analysis",
+                    "target": "decomposition",
+                    "sourceHandle": "output",
+                    "targetHandle": "input"
+                },
+                {
+                    "id": "edge_2",
+                    "source": "decomposition",
+                    "target": "subproblem_solver",
+                    "sourceHandle": "output",
+                    "targetHandle": "input"
+                },
+                {
+                    "id": "edge_3",
+                    "source": "subproblem_solver",
+                    "target": "final_verification",
+                    "sourceHandle": "output",
+                    "targetHandle": "input"
                 }
-            },
-            {
-                "id": "subproblem_solver",
-                "type": "solver",
-                "position": {"x": 600, "y": 0},
-                "data": {
-                    "label": "Sub-problem Solving",
-                    "team": team_config.get("solver_team", ""),
-                    "gauntlet": gauntlet_config.get("sub_problem_red_gauntlet", ""),
-                    "description": "Solve each sub-problem with specified gauntlet validation"
-                }
-            },
-            {
-                "id": "final_verification",
-                "type": "verifier",
-                "position": {"x": 900, "y": 0},
-                "data": {
-                    "label": "Final Verification",
-                    "team": team_config.get("assembler_team", ""),
-                    "gauntlet": gauntlet_config.get("final_gold_gauntlet", ""),
-                    "description": "Verify the final solution with gold team gauntlet"
-                }
-            }
-        ]
-        
-        # Create edges connecting the nodes
-        edges = [
-            {
-                "id": "edge_1",
-                "source": "content_analysis",
-                "target": "decomposition",
-                "sourceHandle": "output",
-                "targetHandle": "input"
-            },
-            {
-                "id": "edge_2",
-                "source": "decomposition",
-                "target": "subproblem_solver",
-                "sourceHandle": "output",
-                "targetHandle": "input"
-            },
-            {
-                "id": "edge_3",
-                "source": "subproblem_solver",
-                "target": "final_verification",
-                "sourceHandle": "output",
-                "targetHandle": "input"
-            }
-        ]
+            ]
         
         definition = BubbleWorkflowDefinition(
             id=workflow_id,
-            name=f"OpenEvolve Workflow: {problem_statement[:30]}...",
-            description=f"OpenEvolve sovereign-grade decomposition for: {problem_statement}",
+            name=(
+                f"OpenEvolve Web3 Audit: {problem_statement[:30]}..."
+                if is_web3
+                else f"OpenEvolve Workflow: {problem_statement[:30]}..."
+            ),
+            description=(
+                f"OpenEvolve Web3 smart-contract audit workflow for: {problem_statement}"
+                if is_web3
+                else f"OpenEvolve sovereign-grade decomposition for: {problem_statement}"
+            ),
             nodes=nodes,
             edges=edges,
             metadata={
@@ -324,7 +428,11 @@ class BubbleLabsIntegration:
                 "team_config": team_config,
                 "gauntlet_config": gauntlet_config,
                 "created_at": time.time(),
-                "workflow_type": "openevolve_sovereign_decomposition"
+                "workflow_type": (
+                    "openevolve_web3_audit" if is_web3 else "openevolve_sovereign_decomposition"
+                ),
+                "workflow_type_input": normalized_workflow_type,
+                "web3": web3_config if is_web3 else {},
             }
         )
 

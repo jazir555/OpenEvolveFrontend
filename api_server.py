@@ -1079,6 +1079,26 @@ def _validate_evaluator_code(code: str) -> Optional[str]:
     return None
 
 
+WORKFLOW_TYPE_ALIASES: Dict[str, str] = {
+    "sovereign": "sovereign_decomposition",
+    "sovereign_decomposition": "sovereign_decomposition",
+    "web3": "web3",
+    "defi": "web3",
+    "smart_contract": "web3",
+    "smart contract": "web3",
+    "smart_contract_audit": "web3",
+}
+ALLOWED_WORKFLOW_TYPES: set[str] = {"sovereign_decomposition", "web3"}
+DOMAIN_HINT_ALIASES: Dict[str, str] = {
+    "web3": "web3",
+    "defi": "web3",
+    "smart_contract": "web3",
+    "smart contract": "web3",
+    "smart_contract_audit": "web3",
+    "solidity": "web3",
+}
+
+
 # Pydantic models for API requests/responses
 class WorkflowCreateRequest(BaseModel):
     problem_statement: str = Field(..., min_length=10, description="The problem to solve")
@@ -1097,6 +1117,10 @@ class WorkflowCreateRequest(BaseModel):
     mdap_config: Dict[str, Any] = Field(default_factory=dict, description="MDAP configuration overrides")
     maker_enabled: bool = Field(False, description="Enable MAKER for solution generation")
     maker_config: Dict[str, Any] = Field(default_factory=dict, description="MAKER configuration overrides")
+    workflow_type: str = Field(
+        "sovereign_decomposition",
+        description="Workflow type (sovereign_decomposition or web3/smart contract aliases)"
+    )
     domain_hint: Optional[str] = Field(None, description="Optional domain hint (e.g., web3)")
     domain_artifacts: Dict[str, Any] = Field(
         default_factory=dict,
@@ -1112,6 +1136,26 @@ class WorkflowCreateRequest(BaseModel):
         if not v or not v.strip():
             raise ValueError('Problem statement cannot be empty')
         return v.strip()
+
+    @validator("workflow_type", pre=True, always=True)
+    def validate_workflow_type(cls, v):
+        if not isinstance(v, str):
+            raise ValueError("workflow_type must be a string")
+        normalized = WORKFLOW_TYPE_ALIASES.get(v.strip().lower(), v.strip().lower())
+        if normalized not in ALLOWED_WORKFLOW_TYPES:
+            raise ValueError(
+                f"Invalid workflow_type '{v}'. Allowed: {', '.join(sorted(ALLOWED_WORKFLOW_TYPES))}"
+            )
+        return normalized
+
+    @validator("domain_hint", pre=True)
+    def normalize_domain_hint(cls, v):
+        if v is None:
+            return None
+        if not isinstance(v, str):
+            raise ValueError("domain_hint must be a string")
+        normalized = v.strip().lower().replace("-", "_")
+        return DOMAIN_HINT_ALIASES.get(normalized, normalized)
 
 
 class WorkflowResponse(BaseModel):
@@ -1992,12 +2036,28 @@ def create_workflow(
         # Create workflow state
         workflow_id = str(uuid.uuid4())
         openevolve_parameters: Dict[str, Any] = {}
+        workflow_type = request.workflow_type
         if request.domain_hint:
             openevolve_parameters["domain_hint"] = request.domain_hint
         if request.domain_artifacts:
             openevolve_parameters["domain_artifacts"] = request.domain_artifacts
-        if request.web3:
-            openevolve_parameters["web3"] = request.web3
+
+        web3_requested = (
+            workflow_type == "web3"
+            or openevolve_parameters.get("domain_hint") == "web3"
+            or bool(request.web3)
+        )
+        if web3_requested:
+            workflow_type = "web3"
+            openevolve_parameters["domain_hint"] = "web3"
+            web3_config: Dict[str, Any] = {
+                "enabled": True,
+                "project_path": ".",
+                "run_fuzzing": True,
+            }
+            if isinstance(request.web3, dict):
+                web3_config.update(request.web3)
+            openevolve_parameters["web3"] = web3_config
             openevolve_parameters.setdefault("formal_verification_enabled", True)
             openevolve_parameters.setdefault("z3_enabled", True)
             openevolve_parameters.setdefault("leanaide_enabled", True)
@@ -2005,7 +2065,7 @@ def create_workflow(
 
         workflow_state = WorkflowState(
             workflow_id=workflow_id,
-            workflow_type="sovereign_decomposition",
+            workflow_type=workflow_type,
             problem_statement=request.problem_statement,
             current_stage="INITIALIZING",
             status="created",

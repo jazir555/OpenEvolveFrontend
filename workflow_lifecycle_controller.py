@@ -245,7 +245,7 @@ class WorkflowLifecycleController:
         # Workflow type selection
         workflow_type = st.selectbox(
             "Workflow Type",
-            options=["evolution", "adversarial", "sovereign"],
+            options=["evolution", "adversarial", "sovereign", "web3"],
             format_func=lambda x: x.title()
         )
         
@@ -288,6 +288,21 @@ class WorkflowLifecycleController:
                 "memory_limit_mb": 2048,
                 "cpu_limit": 1.0
             }
+            if workflow_type == "web3":
+                parameters.update(
+                    {
+                        "domain_hint": "web3",
+                        "formal_verification_enabled": True,
+                        "z3_enabled": True,
+                        "leanaide_enabled": True,
+                        "formal_verification_mode": "hybrid",
+                        "web3": {
+                            "enabled": True,
+                            "project_path": ".",
+                            "run_fuzzing": True,
+                        },
+                    }
+                )
             
             # Create the workflow definition
             definition_id = self.integration.create_workflow_definition(
