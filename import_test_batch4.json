@@ -1,14 +1,12 @@
 {
-  "total_files": 180,
-  "successful_imports": 180,
+  "total_files": 178,
+  "successful_imports": 178,
   "failed_imports": 0,
   "success_rate": "100.0%",
   "successful": [
     "test_imports_batch2.py",
     "test_imports_batch2_final.py",
     "test_imports_batch2_robust.py",
-    "test_imports_batch7.py",
-    "test_imports_batch7_fast.py",
     "tests/__init__.py",
     "tests/adaptive_mdap/__init__.py",
     "tests/adaptive_mdap/conftest.py",

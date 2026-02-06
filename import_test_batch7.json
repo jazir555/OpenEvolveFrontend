@@ -1,9 +1,9 @@
 {
   "total_files": 131,
-  "successful_imports": 101,
-  "failed_imports": 9,
-  "skipped": 21,
-  "success_rate": "77.1%",
+  "successful_imports": 94,
+  "failed_imports": 6,
+  "skipped": 31,
+  "success_rate": "71.8%",
   "successful": [
     "demo_adversarial_maker.py",
     "demo_crewai_research_features.py",
@@ -11,15 +11,12 @@
     "demo_evolution_maker.py",
     "demo_evolutionary_tests.py",
     "demo_generic_maker.py",
-    "demo_hierarchical_indexing.py",
     "demo_hybrid_maker.py",
     "demo_hybrid_mcts.py",
     "demo_integration.py",
-    "demo_knowledge_extraction_ml.py",
     "demo_maker_complete.py",
     "demo_matryoshka_auto.py",
     "demo_mcts_mdap.py",
-    "demo_mdap_maker_matryoshka.py",
     "demo_pes_workflow.py",
     "demo_pes_workflow_language_agnostic.py",
     "demo_pes_workflow_universal.py",
@@ -41,7 +38,6 @@
     "validate_maker_integration.py",
     "validate_phase1_complete.py",
     "validate_production_ready.py",
-    "validate_ragbits_integration.py",
     "validate_sop_components.py",
     "validate_sop_generator.py",
     "validate_sop_integrated.py",
@@ -50,7 +46,6 @@
     "verify_additional_math_bubbles.py",
     "verify_all_lean_wiring.py",
     "verify_bubblelabs_integration.py",
-    "verify_causal_learn_final.py",
     "verify_complete_integration.py",
     "verify_dts_integration.py",
     "verify_gauntlet_wiring.py",
@@ -59,11 +54,9 @@
     "verify_integrations.py",
     "verify_knowledge_extraction.py",
     "verify_lean_wiring.py",
-    "verify_leanaide_integration.py",
     "verify_leanaide_true_100.py",
     "verify_math_bubbles.py",
     "verify_rese_health_apis.py",
-    "verify_roma_fix.py",
     "verify_true_100_integration.py",
     "verify_true_100_knowledge_extraction.py",
     "run_all_ace_tests.py",
@@ -113,14 +106,6 @@
       "error": "ImportError: cannot import name 'cleanup_all_databases' from 'bubblelabs_analytics' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py)"
     },
     {
-      "file": "demo_leanaide_autoformalization_mdap_maker.py",
-      "error": "ImportError: cannot import name 'LeanAideAutoformalizationEngine' from 'leanaide_autoformalization_mdap_maker' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\leanaide_autoformalization_mdap_maker.py){'msg': 'Conf"
-    },
-    {
-      "file": "demo_leanaide_client.py",
-      "error": "UnicodeEncodeError: 'charmap' codec can't encode character '\\u2713' in position 0: character maps to <undefined>{'msg': 'Configuration validation failed', 'errors': [\"Required environment variable 'OP"
-    },
-    {
       "file": "demo_matryoshka_unified_memory.py",
       "error": "AttributeError: 'NoneType' object has no attribute '__dict__'"
     },
@@ -134,15 +119,11 @@
     },
     {
       "file": "demo_team_assignment.py",
-      "error": "Exit code 1: [FAIL] Import error: cannot import name 'SubProblemTeamAssignment' from 'sovereign_data_models' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovereign_data_models.py)\n\nPlease ensure all required mo"
+      "error": "Exit code 1: [FAIL] Import error: cannot import name 'SubProblemTeamAssignment' from 'sovereign_data_models' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\sovere"
     },
     {
       "file": "validate_performance.py",
       "error": "ImportError: No module named 'rese.gamma1.core.aci_calculator'"
-    },
-    {
-      "file": "verify_mcp.py",
-      "error": "ValueError: Tool 'analyze_complexity' not found2026-02-06 01:57:54,016 - knowledge_engine.config_validation - ERROR - {'msg': 'Configuration validation failed', 'errors': [\"Required environment variab"
     }
   ],
   "skipped_files": [
@@ -151,10 +132,15 @@
     "demo_end_to_end_invention.py",
     "demo_enhanced_decomposition_recomposition.py",
     "demo_evolution_mdap.py",
+    "demo_hierarchical_indexing.py",
+    "demo_knowledge_extraction_ml.py",
+    "demo_leanaide_autoformalization_mdap_maker.py",
+    "demo_leanaide_client.py",
     "demo_leanaide_config.py",
     "demo_leanaide_redflagging.py",
     "demo_mcts.py",
     "demo_mdap_maker.py",
+    "demo_mdap_maker_matryoshka.py",
     "demo_mdap_maker_mcts_unified.py",
     "demo_openevolve_integration.py",
     "demo_openevolve_pes_integration.py",
@@ -162,7 +148,12 @@
     "demo_sop_components.py",
     "demo_sop_integrated.py",
     "demo_z3_leanaide_integration.py",
+    "validate_ragbits_integration.py",
+    "verify_causal_learn_final.py",
     "verify_dts_imports.py",
+    "verify_leanaide_integration.py",
+    "verify_mcp.py",
+    "verify_roma_fix.py",
     "run_agents_config_tests.py",
     "run_all_gauntlet_tests.py",
     "run_gauntlet_tests.py",
@@ -171,129 +162,127 @@
   "timeout_files": [
     {
       "file": "demo_app.py",
-      "error": "Import timed out after 15s"
+      "error": "Timeout after 8s"
     },
     {
       "file": "demo_e2e_invention_enhanced.py",
-      "error": "Import timed out after 15s"
+      "error": "Timeout after 8s"
     },
     {
       "file": "demo_end_to_end_invention.py",
-      "error": "Import timed out after 15s"
+      "error": "Timeout after 8s"
     },
     {
       "file": "demo_enhanced_decomposition_recomposition.py",
-      "error": "Import timed out after 15s"
+      "error": "Timeout after 8s"
     },
     {
       "file": "demo_evolution_mdap.py",
-      "error": "Import timed out after 15s"
+      "error": "Timeout after 8s"
+    },
+    {
+      "file": "demo_hierarchical_indexing.py",
+      "error": "Timeout after 8s"
+    },
+    {
+      "file": "demo_knowledge_extraction_ml.py",
+      "error": "Timeout after 8s"
+    },
+    {
+      "file": "demo_leanaide_autoformalization_mdap_maker.py",
+      "error": "Timeout after 8s"
+    },
+    {
+      "file": "demo_leanaide_client.py",
+      "error": "Timeout after 8s"
     },
     {
       "file": "demo_leanaide_config.py",
-      "error": "Import timed out after 15s"
+      "error": "Timeout after 8s"
     },
     {
       "file": "demo_leanaide_redflagging.py",
-      "error": "Import timed out after 15s"
+      "error": "Timeout after 8s"
     },
     {
       "file": "demo_mcts.py",
-      "error": "Import timed out after 15s"
+      "error": "Timeout after 8s"
     },
     {
       "file": "demo_mdap_maker.py",
-      "error": "Import timed out after 15s"
+      "error": "Timeout after 8s"
+    },
+    {
+      "file": "demo_mdap_maker_matryoshka.py",
+      "error": "Timeout after 8s"
     },
     {
       "file": "demo_mdap_maker_mcts_unified.py",
-      "error": "Import timed out after 15s"
+      "error": "Timeout after 8s"
     },
     {
       "file": "demo_openevolve_integration.py",
-      "error": "Import timed out after 15s"
+      "error": "Timeout after 8s"
     },
     {
       "file": "demo_openevolve_pes_integration.py",
-      "error": "Import timed out after 15s"
+      "error": "Timeout after 8s"
     },
     {
       "file": "demo_problem_classifier.py",
-      "error": "Import timed out after 15s"
+      "error": "Timeout after 8s"
     },
     {
       "file": "demo_sop_components.py",
-      "error": "Import timed out after 15s"
+      "error": "Timeout after 8s"
     },
     {
       "file": "demo_sop_integrated.py",
-      "error": "Import timed out after 15s"
+      "error": "Timeout after 8s"
     },
     {
       "file": "demo_z3_leanaide_integration.py",
-      "error": "Import timed out after 15s"
+      "error": "Timeout after 8s"
+    },
+    {
+      "file": "validate_ragbits_integration.py",
+      "error": "Timeout after 8s"
+    },
+    {
+      "file": "verify_causal_learn_final.py",
+      "error": "Timeout after 8s"
     },
     {
       "file": "verify_dts_imports.py",
-      "error": "Import timed out after 15s"
+      "error": "Timeout after 8s"
+    },
+    {
+      "file": "verify_leanaide_integration.py",
+      "error": "Timeout after 8s"
+    },
+    {
+      "file": "verify_mcp.py",
+      "error": "Timeout after 8s"
+    },
+    {
+      "file": "verify_roma_fix.py",
+      "error": "Timeout after 8s"
     },
     {
       "file": "run_agents_config_tests.py",
-      "error": "Import timed out after 15s"
+      "error": "Timeout after 8s"
     },
     {
       "file": "run_all_gauntlet_tests.py",
-      "error": "Import timed out after 15s"
+      "error": "Timeout after 8s"
     },
     {
       "file": "run_gauntlet_tests.py",
-      "error": "Import timed out after 15s"
+      "error": "Timeout after 8s"
     },
     {
       "file": "run_import_test_batch3.py",
-      "error": "Import timed out after 15s"
+      "error": "Timeout after 8s"
     }
-  ],
-  "executes_on_import": [
-    "demo_adversarial_maker.py",
-    "demo_crewai_research_features.py",
-    "demo_e2e_invention_enhanced.py",
-    "demo_end_to_end_invention.py",
-    "demo_enhanced_adversarial.py",
-    "demo_evolution_maker.py",
-    "demo_evolutionary_tests.py",
-    "demo_generic_maker.py",
-    "demo_hybrid_maker.py",
-    "demo_hybrid_mcts.py",
-    "demo_integration.py",
-    "demo_knowledge_extraction_ml.py",
-    "demo_leanaide_autoformalization_mdap_maker.py",
-    "demo_leanaide_client.py",
-    "demo_matryoshka_unified_memory.py",
-    "demo_mdap_maker.py",
-    "demo_mdap_maker_mcts_unified.py",
-    "demo_openevolve_pes_integration.py",
-    "demo_pes_workflow.py",
-    "demo_pes_workflow_language_agnostic.py",
-    "demo_pes_workflow_universal.py",
-    "demo_reliability_system.py",
-    "demo_sop_components.py",
-    "demo_sop_generator.py",
-    "demo_sop_integrated.py",
-    "demo_unified_memory_system.py",
-    "demo_z3_leanaide_integration.py",
-    "validate_end_to_end_invention.py",
-    "validate_generic_maker_integration.py",
-    "validate_hybrid_maker_integration.py",
-    "validate_ragbits_integration.py",
-    "validate_sop_components.py",
-    "validate_sop_generator.py",
-    "validate_sop_integrated.py",
-    "verify_leanaide_true_100.py",
-    "verify_mcp.py",
-    "verify_rese_health_apis.py",
-    "run_integration_tests.py",
-    "fix_critical_imports.py",
-    "fix_high_severity.py"
   ]
 }

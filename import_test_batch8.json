@@ -1,8 +1,9 @@
 {
-  "total_files": 110,
-  "successful_imports": 87,
-  "failed_imports": 23,
-  "success_rate": "0%",
+  "total_files": 245,
+  "successful_imports": 185,
+  "failed_imports": 41,
+  "skipped_files": 19,
+  "success_rate": "81.9%",
   "successful": [
     "examples\\01_basic_evolution.py",
     "examples\\01_basic_evolution_evaluator.py",
@@ -90,7 +91,105 @@
     "glue\\adapters\\rese-lltl\\tests\\test_lltl_comprehensive.py",
     "glue\\adapters\\rese-lltl\\tests\\test_z3_contradiction_detection.py",
     "glue\\adapters\\rese-lltl\\tests\\test_z3_dito_benchmark.py",
-    "glue\\adapters\\rese-lltl\\tests\\test_z3_integration_structure.py"
+    "glue\\adapters\\rese-lltl\\tests\\test_z3_integration_structure.py",
+    "glue\\adapters\\rese-phase1\\src\\bias_metrics.py",
+    "glue\\adapters\\rese-phase1\\src\\health_api.py",
+    "glue\\adapters\\rese-phase1\\src\\metacognitive_reflector.py",
+    "glue\\adapters\\rese-phase1\\src\\phase1_adapter.py",
+    "glue\\adapters\\rese-phase1\\src\\phase1_executor.py",
+    "glue\\adapters\\rese-phase1\\tests\\test_metacognitive_reflector.py",
+    "glue\\adapters\\rese-phase1\\tests\\test_phase1_comprehensive.py",
+    "glue\\adapters\\rese-phase1\\tests\\test_phase1_debiasing_integration.py",
+    "glue\\adapters\\rese-phase1\\tests\\test_phase1_integration.py",
+    "glue\\adapters\\rese-phase1\\tests\\test_z3_constraint_hardening.py",
+    "glue\\adapters\\rese-phase1\\tests\\test_z3_integration_e2e.py",
+    "glue\\adapters\\rese-phase2\\src\\__init__.py",
+    "glue\\adapters\\rese-phase2\\src\\fdg_validator.py",
+    "glue\\adapters\\rese-phase2\\src\\health_api.py",
+    "glue\\adapters\\rese-phase2\\src\\phase2_adapter.py",
+    "glue\\adapters\\rese-phase2\\src\\phase2_executor.py",
+    "glue\\adapters\\rese-phase2\\tests\\conftest.py",
+    "glue\\adapters\\rese-phase2\\tests\\test_fdg_lean4_integration.py",
+    "glue\\adapters\\rese-phase2\\tests\\test_integration.py",
+    "glue\\adapters\\rese-phase2\\tests\\test_phase2.py",
+    "glue\\adapters\\rese-phase2\\tests\\test_phase2_comprehensive.py",
+    "glue\\adapters\\rese-phase2\\tests\\test_z3_behavioral_equivalence.py",
+    "glue\\adapters\\rese-phase2\\tests\\test_z3_integration_benchmark.py",
+    "glue\\adapters\\rese-phase3\\__init__.py",
+    "glue\\adapters\\rese-phase3\\src\\__init__.py",
+    "glue\\adapters\\rese-phase3\\src\\aci_calculator.py",
+    "glue\\adapters\\rese-phase3\\src\\health_api.py",
+    "glue\\adapters\\rese-phase3\\src\\phase3_adapter.py",
+    "glue\\adapters\\rese-phase3\\src\\phase3_executor.py",
+    "glue\\adapters\\rese-phase3\\tests\\test_aci_calculator.py",
+    "glue\\adapters\\rese-phase3\\tests\\test_aci_mcts_integration.py",
+    "glue\\adapters\\rese-phase3\\tests\\test_phase3.py",
+    "glue\\adapters\\rese-phase3\\tests\\test_phase3_comprehensive.py",
+    "glue\\adapters\\rese-phase3\\tests\\test_z3_constraint_checking.py",
+    "glue\\adapters\\rese-phase4\\src\\adapter.py",
+    "glue\\adapters\\rese-phase4\\src\\health_api.py",
+    "glue\\adapters\\rese-phase4\\src\\output_generator.py",
+    "glue\\adapters\\rese-phase4\\src\\phase4_executor.py",
+    "glue\\adapters\\rese-phase4\\src\\predictive_validator.py",
+    "glue\\adapters\\rese-phase4\\src\\result_verifier.py",
+    "glue\\adapters\\rese-phase4\\tests\\__init__.py",
+    "glue\\adapters\\rese-sce\\__init__.py",
+    "glue\\adapters\\rese-sce\\node_modules\\flatted\\python\\flatted.py",
+    "glue\\adapters\\rese-sce\\src\\__init__.py",
+    "glue\\adapters\\rese-sce\\src\\dito_optimizer.py",
+    "glue\\adapters\\rese-sce\\src\\sce_bridge.py",
+    "glue\\adapters\\rese-verification\\src\\__init__.py",
+    "glue\\adapters\\rese-verification\\src\\problem_classifier.py",
+    "glue\\adapters\\rese-verification\\src\\solver_selector.py",
+    "glue\\adapters\\rese-verification\\src\\tiered_verifier.py",
+    "glue\\adapters\\rese-verification\\src\\verification_result.py",
+    "glue\\adapters\\rese-verification\\tests\\test_tiered_verifier.py",
+    "glue\\adapters\\rese-verification\\tests\\test_tiered_verifier_comprehensive.py",
+    "glue\\adapters\\rese-z3-bridge\\src\\__init__.py",
+    "glue\\adapters\\rese-z3-bridge\\src\\rese_z3_bridge.py",
+    "glue\\adapters\\rese-z3-bridge\\src\\rese_z3_client.py",
+    "glue\\adapters\\rese-z3-bridge\\src\\rese_z3_schema.py",
+    "glue\\adapters\\rese-z3-bridge\\tests\\test_leanaide_integration.py",
+    "glue\\adapters\\rese-z3-bridge\\tests\\test_rese_z3_bridge.py",
+    "glue\\adapters\\rese-z3-bridge\\tests\\test_rese_z3_comprehensive.py",
+    "glue\\adapters\\rese-z3-bridge\\tests\\test_simple.py",
+    "glue\\adapters\\research-quest-curie-globalchem-integration\\probes\\integration_probe.py",
+    "glue\\adapters\\z3-adapter\\probes\\check_database.py",
+    "glue\\lib\\__init__.py",
+    "glue\\lib\\lean4_bridge\\__init__.py",
+    "glue\\lib\\lean4_bridge\\lean4_atp_bridge.py",
+    "glue\\lib\\lean4_bridge\\lean4_interface.py",
+    "glue\\lib\\lean4_bridge\\src\\__init__.py",
+    "glue\\lib\\lean4_bridge\\src\\constraint_translator.py",
+    "glue\\lib\\lean4_bridge\\tests\\test_lean4_interface.py",
+    "glue\\lib\\rese_dee.py",
+    "glue\\lib\\rese_lltl.py",
+    "glue\\orchestration\\config.py",
+    "glue\\orchestration\\event_bus.py",
+    "glue\\orchestration\\node_modules\\flatted\\python\\flatted.py",
+    "glue\\orchestration\\rese_pipeline.py",
+    "glue\\schemas\\__init__.py",
+    "glue\\schemas\\rese_phase4_schemas.py",
+    "glue\\schemas\\rese_schemas.py",
+    "glue\\tests\\test_rese_complete_pipeline.py",
+    "glue\\tests\\test_rese_final_integration.py",
+    "docs\\agents\\__init__.py",
+    "docs\\knowledge_engine\\examples\\unified_evolution_example.py",
+    "docs\\knowledge_engine\\knowledge_engine\\__init__.py",
+    "docs\\knowledge_engine\\knowledge_engine\\ab_testing.py",
+    "docs\\knowledge_engine\\knowledge_engine\\causal_modeling.py",
+    "docs\\knowledge_engine\\knowledge_engine\\config\\__init__.py",
+    "docs\\knowledge_engine\\knowledge_engine\\finance\\financial_memory.py",
+    "docs\\knowledge_engine\\knowledge_engine\\finance\\schemas.py",
+    "docs\\knowledge_engine\\knowledge_engine\\finance\\survivorship_backtester.py",
+    "docs\\knowledge_engine\\knowledge_engine\\integrations\\__init__.py",
+    "docs\\knowledge_engine\\knowledge_engine\\integrations\\unified_evolution_integration.py",
+    "docs\\knowledge_engine\\knowledge_engine\\meta_learning.py",
+    "docs\\knowledge_engine\\knowledge_engine\\online_learning.py",
+    "docs\\knowledge_engine\\knowledge_engine\\schemas\\__init__.py",
+    "docs\\knowledge_engine\\knowledge_engine\\schemas\\comparison_results.py",
+    "docs\\knowledge_engine\\knowledge_engine\\schemas\\evolutionary_artifacts.py",
+    "docs\\knowledge_engine\\knowledge_engine\\schemas\\long_horizon.py"
   ],
   "failed": [
     {
@@ -184,6 +283,99 @@
     {
       "file": "glue\\adapters\\rese-leanaide-workflow\\tests\\test_leanaide_rese_workflow.py",
       "error": "ImportError: attempted relative import with no known parent package"
+    },
+    {
+      "file": "glue\\adapters\\rese-phase4\\tests\\test_output_generator.py",
+      "error": "ImportError: No module named 'src.output_generator'"
+    },
+    {
+      "file": "glue\\adapters\\rese-phase4\\tests\\test_phase4_comprehensive.py",
+      "error": "ImportError: No module named 'src.phase4_executor'"
+    },
+    {
+      "file": "glue\\adapters\\rese-phase4\\tests\\test_phase4_integration.py",
+      "error": "ImportError: No module named 'src.phase4_executor'"
+    },
+    {
+      "file": "glue\\adapters\\rese-phase4\\tests\\test_predictive_validator.py",
+      "error": "ImportError: No module named 'src.predictive_validator'"
+    },
+    {
+      "file": "glue\\adapters\\rese-sce\\src\\lean4_atp_bridge.py",
+      "error": "NameError: name 'Path' is not defined"
+    },
+    {
+      "file": "glue\\adapters\\rese-sce\\tests\\test_dito_optimizer.py",
+      "error": "AttributeError: HARD"
+    },
+    {
+      "file": "glue\\adapters\\rese-sce\\tests\\test_dito_z3_atp.py",
+      "error": "AttributeError: HARD"
+    },
+    {
+      "file": "glue\\adapters\\rese-sce\\tests\\test_sce_comprehensive.py",
+      "error": "ImportError: cannot import name 'ContradictionDetectionResult' from 'sce_bridge' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\glue\\adapters\\rese-sce\\tests\\..\\src\\sce_bridge.py)"
+    },
+    {
+      "file": "glue\\adapters\\rese-sce\\tests\\test_z3_integration.py",
+      "error": "ImportError: cannot import name 'ContradictionDetectionResult' from 'sce_bridge' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\glue\\adapters\\rese-sce\\tests\\..\\src\\sce_bridge.py)"
+    },
+    {
+      "file": "glue\\adapters\\rese-verification\\tests\\test_basic.py",
+      "error": "UnicodeEncodeError: 'charmap' codec can't encode character '\\u2713' in position 3: character maps to <undefined>"
+    },
+    {
+      "file": "glue\\adapters\\research-quest-curie-globalchem-integration\\src\\research_quest_curie_globalchem_adapter.py",
+      "error": "ImportError: cannot import name 'GlobalChem' from 'global_chem' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\integrations\\global_chem\\__init__.py)"
+    },
+    {
+      "file": "glue\\adapters\\research-quest-curie-globalchem-integration\\test_integration.py",
+      "error": "ImportError: cannot import name 'GlobalChem' from 'global_chem' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\integrations\\global_chem\\__init__.py)"
+    },
+    {
+      "file": "docs\\knowledge_engine\\examples\\causal_modeling_quickstart.py",
+      "error": "ImportError: No module named 'knowledge_engine.causal_modeling'"
+    },
+    {
+      "file": "docs\\knowledge_engine\\examples\\finance\\simple_financial_evolution.py",
+      "error": "ImportError: No module named 'knowledge_engine.finance'"
+    },
+    {
+      "file": "docs\\knowledge_engine\\examples\\long_horizon_quickstart.py",
+      "error": "ImportError: cannot import name 'OnlineLearner' from 'knowledge_engine' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\knowledge_engine\\__init__.py)"
+    },
+    {
+      "file": "docs\\knowledge_engine\\knowledge_engine\\finance\\__init__.py",
+      "error": "NameError: name 'Optional' is not defined"
+    },
+    {
+      "file": "docs\\knowledge_engine\\knowledge_engine\\finance\\crisis_aware_fitness.py",
+      "error": "NameError: name 'Optional' is not defined"
+    },
+    {
+      "file": "docs\\knowledge_engine\\knowledge_engine\\finance\\financial_evolution_agent.py",
+      "error": "ImportError: cannot import name 'CrisisAwareFitness' from 'docs.knowledge_engine.knowledge_engine.finance.crisis_aware_fitness' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\docs\\knowledge_engine\\knowledge_engine\\finance\\crisis_aware_fitness.py)"
     }
+  ],
+  "skipped": [
+    "glue\\adapters\\rese-phase1\\probes\\check_phi2_debiasing.py",
+    "glue\\adapters\\rese-phase1\\probes\\check_z3_api.py",
+    "glue\\adapters\\rese-phase2\\probes\\check_z3_api.py",
+    "glue\\adapters\\rese-phase2\\tests\\verify_implementation.py",
+    "glue\\adapters\\rese-phase2\\tests\\verify_simple.py",
+    "glue\\adapters\\rese-phase2\\verify_install.py",
+    "glue\\adapters\\rese-phase3\\tests\\quick_test.py",
+    "glue\\adapters\\rese-phase3\\tests\\simple_test.py",
+    "glue\\adapters\\rese-sce\\verify_integration.py",
+    "glue\\adapters\\rese-sce\\verify_z3_integration.py",
+    "glue\\lib\\lean4_bridge\\verify_setup.py",
+    "docs\\knowledge_engine\\knowledge_engine\\tests\\test_causal_modeling_integration.py",
+    "docs\\knowledge_engine\\tests\\finance\\test_financial_evolution.py",
+    "docs\\knowledge_engine\\tests\\integration\\test_optional_loongflow.py",
+    "docs\\knowledge_engine\\tests\\knowledge_engine\\test_unified_evolution_integration.py",
+    "docs\\knowledge_engine\\tests\\test_long_horizon_learning.py",
+    "docs\\knowledge_engine\\verify_loongflow.py",
+    "docs\\knowledge_engine\\verify_simple.py",
+    "docs\\knowledge_engine\\verify_unified_integration.py"
   ]
 }

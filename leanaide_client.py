@@ -661,6 +661,43 @@ class LeanAideClient:
         }
         return await self._execute_request(payload)
 
+    async def verify(self, code: Union[str, LeanAideResult]) -> LeanAideResult:
+        """
+        Verify Lean code. If a LeanAideResult is passed, it extracts the code.
+        
+        Args:
+            code: Lean code string or a result object from a previous task
+            
+        Returns:
+            LeanAideResult with verification status
+        """
+        lean_code = ""
+        if isinstance(code, str):
+            lean_code = code
+        elif hasattr(code, 'data') and code.data:
+            lean_code = code.data.get("result", code.data.get("code", ""))
+        
+        if not lean_code:
+            return LeanAideResult(
+                success=False,
+                task="verify",
+                error="No Lean code provided for verification"
+            )
+            
+        return await self.verify_with_cav_nlp(lean_code)
+
+    async def autoformalize(self, text: str) -> LeanAideResult:
+        """
+        Auto-formalize natural language to Lean code.
+        
+        Args:
+            text: Natural language mathematical statement
+            
+        Returns:
+            LeanAideResult with formalized Lean code
+        """
+        return await self.formalize_with_cav_nlp(text)
+
     async def math_query(
         self,
         query: str,
