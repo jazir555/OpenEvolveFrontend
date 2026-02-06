@@ -1,3 +1,4 @@
+import api_server
 from api_server import WorkflowCreateRequest, app
 from bubblelabs_security import validate_workflow_type as validate_sec_workflow_type
 from bubblelabs_validation import validate_workflow_type as validate_val_workflow_type
@@ -67,6 +68,50 @@ def test_workflow_create_request_normalizes_web3_aliases():
     )
     assert request.workflow_type == "web3"
     assert request.domain_hint == "web3"
+
+
+def test_api_create_workflow_sets_web3_runtime_defaults(monkeypatch):
+    class _StubTeamManager:
+        def get_team(self, _name):
+            return object()
+
+    class _StubGauntletManager:
+        def get_gauntlet(self, _name):
+            return object()
+
+    monkeypatch.setattr(api_server, "get_tenant_team_manager", lambda _tenant: _StubTeamManager())
+    monkeypatch.setattr(api_server, "get_tenant_gauntlet_manager", lambda _tenant: _StubGauntletManager())
+    monkeypatch.setattr(api_server, "record_audit_event", lambda *args, **kwargs: None)
+
+    original_workflows = dict(api_server.workflows)
+    try:
+        request = WorkflowCreateRequest(
+            problem_statement="Audit this Solidity vault for flash-loan, oracle, and reentrancy exploits.",
+            content_analyzer_team="content_analyzer",
+            planner_team="planner",
+            solver_team="solver",
+            patcher_team="patcher",
+            assembler_team="assembler",
+            sub_problem_red_gauntlet="sub_red",
+            sub_problem_gold_gauntlet="sub_gold",
+            final_red_gauntlet="final_red",
+            final_gold_gauntlet="final_gold",
+            solver_generation_gauntlet="solver_gen",
+            workflow_type="smart_contract_audit",
+            domain_hint="defi",
+            web3={"project_path": "./contracts", "run_fuzzing": False},
+        )
+        user = api_server.AuthUser(api_key="test-key", role=api_server.UserRole.USER, name="tester")
+        response = api_server.create_workflow(request=request, user=user, tenant_id="default")
+        created = api_server.workflows[response.workflow_id]
+
+        assert created.workflow_type == "web3"
+        assert created.openevolve_parameters.get("domain_hint") == "web3"
+        assert created.openevolve_parameters.get("web3", {}).get("project_path") == "./contracts"
+        assert created.openevolve_parameters.get("formal_verification_mode") == "hybrid"
+    finally:
+        api_server.workflows.clear()
+        api_server.workflows.update(original_workflows)
 
 
 def test_bubblelabs_web3_status_shape():

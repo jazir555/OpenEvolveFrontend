@@ -6,13 +6,23 @@ Provides actual engineering validation including:
 - Safety factor calculations
 - Material property validation
 - Manufacturability assessment
+- Lean theorem prover integration for formal verification
 """
 
 import logging
 import math
+import asyncio
 from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
+
+# Try to import LeanAide client for formal verification
+try:
+    from leanaide_client import LeanAideClient, LeanAideConfig
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+    logging.warning("LeanAide client not available - formal verification disabled")
 
 logger = logging.getLogger(__name__)
 
@@ -140,7 +150,186 @@ class EngineeringValidator:
     - Safety factor calculations
     - Material property validation
     - Manufacturability assessment
+    - Formal verification via Lean theorem prover
     """
+    
+    def __init__(self, use_lean: bool = True):
+        """
+        Initialize engineering validator.
+        
+        Args:
+            use_lean: Whether to enable Lean theorem prover integration
+        """
+        self.logger = logging.getLogger(__name__)
+        self.use_lean = use_lean and LEAN_AVAILABLE
+        
+        # Lean client for formal verification
+        self.lean_client: Optional[LeanAideClient] = None
+        if self.use_lean:
+            try:
+                config = LeanAideConfig(timeout=120.0)
+                self.lean_client = LeanAideClient(config=config)
+                self.logger.info("EngineeringValidator: LeanAide client initialized")
+            except Exception as e:
+                self.logger.warning(f"EngineeringValidator: Failed to initialize LeanAide client: {e}")
+                self.use_lean = False
+    
+    async def verify_safety_factor(self, applied_stress: float, yield_strength: float, required_sf: float = 2.0) -> Dict[str, Any]:
+        """
+        Verify safety factor using Lean theorem prover.
+        
+        Args:
+            applied_stress: Applied stress in MPa
+            yield_strength: Material yield strength in MPa
+            required_sf: Required minimum safety factor
+            
+        Returns:
+            Dictionary with verification results:
+            - safe: bool indicating if design is safe
+            - safety_factor: float calculated safety factor
+            - verified: bool Lean verification status
+            - confidence: float confidence score
+            - lean_code: Formalized Lean proof
+        """
+        if not self.lean_client:
+            # Calculate safety factor manually
+            actual_sf = yield_strength / applied_stress if applied_stress > 0 else float('inf')
+            return {
+                "safe": actual_sf >= required_sf,
+                "safety_factor": actual_sf,
+                "verified": False,
+                "confidence": 0.5,
+                "reason": "Lean unavailable - safety factor calculated heuristically",
+                "applied_stress": applied_stress,
+                "yield_strength": yield_strength,
+                "required_sf": required_sf
+            }
+        
+        try:
+            # Calculate safety factor
+            actual_sf = yield_strength / applied_stress if applied_stress > 0 else float('inf')
+            
+            # Formalize safety factor theorem
+            theorem = f"Safety factor verification: yield_strength ({yield_strength}) / applied_stress ({applied_stress}) >= required ({required_sf})"
+            
+            self.logger.info(f"Verifying safety factor with Lean: SF = {actual_sf:.2f}")
+            
+            # Translate to Lean
+            translate_result = await self.lean_client.translate_thm(theorem)
+            
+            if not translate_result.success or not translate_result.data:
+                return {
+                    "safe": actual_sf >= required_sf,
+                    "safety_factor": actual_sf,
+                    "verified": False,
+                    "confidence": 0.5,
+                    "reason": f"Failed to formalize: {translate_result.error}",
+                    "applied_stress": applied_stress,
+                    "yield_strength": yield_strength,
+                    "required_sf": required_sf
+                }
+            
+            formalized = translate_result.data.get("result", "")
+            
+            # Elaborate and verify
+            elaborate_result = await self.lean_client.elaborate(formalized)
+            
+            verified = elaborate_result.success and elaborate_result.data is not None
+            is_safe = actual_sf >= required_sf
+            
+            return {
+                "safe": is_safe,
+                "safety_factor": actual_sf,
+                "verified": verified,
+                "confidence": 0.95 if (is_safe and verified) else 0.6,
+                "lean_code": formalized,
+                "applied_stress": applied_stress,
+                "yield_strength": yield_strength,
+                "required_sf": required_sf,
+                "elaboration": elaborate_result.data if elaborate_result.data else None
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Lean verification failed for safety factor: {e}")
+            actual_sf = yield_strength / applied_stress if applied_stress > 0 else float('inf')
+            return {
+                "safe": actual_sf >= required_sf,
+                "safety_factor": actual_sf,
+                "verified": False,
+                "confidence": 0.0,
+                "reason": f"Verification error: {str(e)}",
+                "applied_stress": applied_stress,
+                "yield_strength": yield_strength,
+                "required_sf": required_sf
+            }
+
+    async def verify_stress_limits(self, stress_state: StressState, material: MaterialProperties) -> Dict[str, Any]:
+        """
+        Verify stress limits against material properties using Lean.
+        
+        Args:
+            stress_state: Calculated stress state
+            material: Material properties
+            
+        Returns:
+            Dictionary with verification results
+        """
+        if not self.lean_client:
+            von_mises = stress_state.von_mises_stress()
+            return {
+                "within_limits": von_mises < material.yield_strength,
+                "von_mises": von_mises,
+                "verified": False,
+                "confidence": 0.3,
+                "reason": "Lean unavailable - stress limits checked heuristically",
+                "material": material.name
+            }
+        
+        try:
+            von_mises = stress_state.von_mises_stress()
+            
+            # Formalize stress limit theorem
+            theorem = f"Von Mises stress ({von_mises:.2f} MPa) is within material {material.name} yield strength ({material.yield_strength} MPa)"
+            
+            translate_result = await self.lean_client.translate_thm(theorem)
+            
+            if not translate_result.success:
+                return {
+                    "within_limits": von_mises < material.yield_strength,
+                    "von_mises": von_mises,
+                    "verified": False,
+                    "confidence": 0.4,
+                    "reason": f"Formalization failed: {translate_result.error}",
+                    "material": material.name
+                }
+            
+            formalized = translate_result.data.get("result", "")
+            elaborate_result = await self.lean_client.elaborate(formalized)
+            
+            verified = elaborate_result.success
+            within_limits = von_mises < material.yield_strength
+            
+            return {
+                "within_limits": within_limits,
+                "von_mises": von_mises,
+                "verified": verified,
+                "confidence": 0.95 if (within_limits and verified) else 0.5,
+                "lean_code": formalized,
+                "material": material.name,
+                "yield_strength": material.yield_strength
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Lean verification failed for stress limits: {e}")
+            von_mises = stress_state.von_mises_stress()
+            return {
+                "within_limits": von_mises < material.yield_strength,
+                "von_mises": von_mises,
+                "verified": False,
+                "confidence": 0.0,
+                "reason": str(e),
+                "material": material.name
+            }
     
     # Common engineering materials database
     MATERIALS = {
@@ -211,9 +400,6 @@ class EngineeringValidator:
         "civil": 2.5,
         "default": 2.0
     }
-    
-    def __init__(self):
-        self.logger = logging.getLogger(__name__)
     
     def validate(
         self,

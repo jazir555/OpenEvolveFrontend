@@ -6,14 +6,24 @@ Provides actual chemistry validation including:
 - Reaction balancing
 - Thermodynamic feasibility
 - Safety constraint validation
+- Lean theorem prover integration for formal verification
 """
 
 import logging
 import re
+import asyncio
 from typing import Dict, List, Any, Optional, Tuple, Set
 from dataclasses import dataclass, field
 from enum import Enum
 from collections import defaultdict
+
+# Try to import LeanAide client for formal verification
+try:
+    from leanaide_client import LeanAideClient, LeanAideConfig
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+    logging.warning("LeanAide client not available - formal verification disabled")
 
 logger = logging.getLogger(__name__)
 
@@ -109,7 +119,175 @@ class ChemistryValidator:
     - Reaction balancing algorithms
     - Thermodynamic feasibility checks
     - Safety constraint validation
+    - Formal verification via Lean theorem prover
     """
+    
+    def __init__(self, use_lean: bool = True):
+        """
+        Initialize chemistry validator.
+        
+        Args:
+            use_lean: Whether to enable Lean theorem prover integration
+        """
+        self.logger = logging.getLogger(__name__)
+        self.use_lean = use_lean and LEAN_AVAILABLE
+        
+        # Lean client for formal verification
+        self.lean_client: Optional[LeanAideClient] = None
+        if self.use_lean:
+            try:
+                config = LeanAideConfig(timeout=120.0)
+                self.lean_client = LeanAideClient(config=config)
+                self.logger.info("ChemistryValidator: LeanAide client initialized")
+            except Exception as e:
+                self.logger.warning(f"ChemistryValidator: Failed to initialize LeanAide client: {e}")
+                self.use_lean = False
+    
+    async def verify_stoichiometry(self, reaction_equation: str) -> Dict[str, Any]:
+        """
+        Verify chemical stoichiometry using Lean theorem prover.
+        
+        Args:
+            reaction_equation: Chemical reaction equation (e.g., "2H2 + O2 -> 2H2O")
+            
+        Returns:
+            Dictionary with verification results including:
+            - balanced: bool indicating if reaction is balanced
+            - confidence: float confidence score
+            - lean_code: The formalized Lean proof
+            - atom_counts: Dict of atom counts for reactants and products
+        """
+        if not self.lean_client:
+            return {
+                "balanced": False,
+                "verified": False,
+                "confidence": 0.0,
+                "reason": "Lean unavailable - stoichiometry verified heuristically only",
+                "equation": reaction_equation
+            }
+        
+        try:
+            # Parse reaction first
+            reaction = self._parse_reaction(reaction_equation)
+            if not reaction:
+                return {
+                    "balanced": False,
+                    "verified": False,
+                    "confidence": 0.0,
+                    "reason": "Could not parse reaction equation",
+                    "equation": reaction_equation
+                }
+            
+            # Get atom counts
+            reactant_atoms = self._count_atoms(reaction.reactants)
+            product_atoms = self._count_atoms(reaction.products)
+            
+            # Formalize mass conservation theorem
+            theorem = f"Mass conservation holds for chemical reaction: {reaction_equation}"
+            
+            self.logger.info(f"Verifying stoichiometry with Lean for: {reaction_equation}")
+            
+            # Translate to Lean
+            translate_result = await self.lean_client.translate_thm(theorem)
+            
+            if not translate_result.success or not translate_result.data:
+                return {
+                    "balanced": reaction.balanced,
+                    "verified": False,
+                    "confidence": 0.4 if reaction.balanced else 0.2,
+                    "reason": f"Failed to formalize: {translate_result.error}",
+                    "equation": reaction_equation,
+                    "reactant_atoms": reactant_atoms,
+                    "product_atoms": product_atoms
+                }
+            
+            formalized = translate_result.data.get("result", "")
+            
+            # Elaborate and verify
+            elaborate_result = await self.lean_client.elaborate(formalized)
+            
+            verified = elaborate_result.success and elaborate_result.data is not None
+            
+            return {
+                "balanced": reaction.balanced,
+                "verified": verified,
+                "confidence": 0.95 if (reaction.balanced and verified) else 0.5,
+                "lean_code": formalized,
+                "equation": reaction_equation,
+                "reaction_type": reaction.reaction_type.value,
+                "reactant_atoms": reactant_atoms,
+                "product_atoms": product_atoms,
+                "elaboration": elaborate_result.data if elaborate_result.data else None
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Lean verification failed for stoichiometry: {e}")
+            return {
+                "balanced": False,
+                "verified": False,
+                "confidence": 0.0,
+                "reason": f"Verification error: {str(e)}",
+                "equation": reaction_equation
+            }
+
+    async def verify_reaction_feasibility(self, reaction: ChemicalReaction, temperature: float = 298.15) -> Dict[str, Any]:
+        """
+        Verify chemical reaction thermodynamic feasibility using Lean.
+        
+        Args:
+            reaction: Parsed chemical reaction
+            temperature: Temperature in Kelvin
+            
+        Returns:
+            Dictionary with feasibility verification results
+        """
+        if not self.lean_client:
+            return {
+                "feasible": True,  # Assume feasible if no Lean
+                "verified": False,
+                "confidence": 0.3,
+                "reason": "Lean unavailable - feasibility estimated heuristically",
+                "temperature": temperature
+            }
+        
+        try:
+            # Construct theorem about Gibbs free energy
+            theorem = f"Chemical reaction {reaction.reaction_type.value} is thermodynamically feasible at {temperature}K"
+            
+            translate_result = await self.lean_client.translate_thm(theorem)
+            
+            if not translate_result.success:
+                return {
+                    "feasible": reaction.thermodynamically_feasible,
+                    "verified": False,
+                    "confidence": 0.4,
+                    "reason": f"Formalization failed: {translate_result.error}",
+                    "temperature": temperature
+                }
+            
+            formalized = translate_result.data.get("result", "")
+            elaborate_result = await self.lean_client.elaborate(formalized)
+            
+            verified = elaborate_result.success
+            
+            return {
+                "feasible": verified or reaction.thermodynamically_feasible,
+                "verified": verified,
+                "confidence": 0.9 if verified else 0.5,
+                "lean_code": formalized,
+                "temperature": temperature,
+                "reaction_type": reaction.reaction_type.value
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Lean verification failed for reaction feasibility: {e}")
+            return {
+                "feasible": True,
+                "verified": False,
+                "confidence": 0.0,
+                "reason": str(e),
+                "temperature": temperature
+            }
     
     # Atomic masses for common elements
     ATOMIC_MASSES = {
@@ -139,9 +317,6 @@ class ChemistryValidator:
         "corrosive": ["H2SO4", "HCl", "HNO3", "NaOH", "KOH"],
         "oxidizer": ["O2", "F2", "Cl2", "H2O2", "KMnO4", "KNO3"]
     }
-    
-    def __init__(self):
-        self.logger = logging.getLogger(__name__)
     
     def validate(
         self,

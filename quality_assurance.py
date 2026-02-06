@@ -18,6 +18,13 @@ from abc import ABC, abstractmethod
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# **LEAN INTEGRATION**: Real Lean theorem proving for verification gates
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 class QualityAssuranceType(Enum):
     """Types of quality assurance mechanisms"""
     VALIDATION = "validation"
@@ -138,6 +145,34 @@ class QualityAssuranceMechanism(ABC):
             "average_execution_time": 0.0,
             "error_count": 0
         }
+    
+    async def verify_with_lean(self, content: str, criteria: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Verify content using Lean theorem prover.
+        
+        Args:
+            content: Content to verify
+            criteria: Verification criteria
+            
+        Returns:
+            Dict with verification results
+        """
+        if not LEAN_AVAILABLE:
+            return {"verified": False, "reason": "Lean unavailable"}
+        
+        try:
+            client = LeanAideClient()
+            formalized = await client.translate_thm(content)
+            result = await client.verify(formalized)
+            
+            return {
+                "verified": result.verified if hasattr(result, 'verified') else False,
+                "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
+                "proof": result.proof_code if hasattr(result, 'proof_code') else None
+            }
+        except Exception as e:
+            logger.error(f"Lean verification error: {e}")
+            return {"verified": False, "reason": str(e)}
     
     @abstractmethod
     def validate(self, content: str, context: Dict[str, Any]) -> QualityAssuranceResult:

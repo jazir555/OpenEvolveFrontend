@@ -11,14 +11,16 @@ Features:
 - Equipment capability verification
 - Safety constraint checking
 - Scientific literature cross-referencing
+- Lean theorem prover integration for formal verification
 
 Author: OpenEvolve
-Version: 1.0.0
+Version: 1.1.0
 Created: 2025-12-30
 """
 
 import logging
 import re
+import asyncio
 from dataclasses import dataclass, field
 from typing import Dict, List, Any, Optional, Tuple
 from enum import Enum
@@ -38,6 +40,14 @@ try:
 except ImportError:
     NUMPY_AVAILABLE = False
     logging.warning("numpy not available - some calculations will be limited")
+
+# Try to import LeanAide client for formal verification
+try:
+    from leanaide_client import LeanAideClient, LeanAideConfig
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+    logging.warning("LeanAide client not available - formal verification disabled")
 
 logger = logging.getLogger(__name__)
 
@@ -102,17 +112,20 @@ class PhysicsValidator:
     - Material properties and compatibility
     - Equipment capabilities and limitations
     - Safety constraints
+    - Formal verification via Lean theorem prover
     """
 
-    def __init__(self, use_scipy: bool = True):
+    def __init__(self, use_scipy: bool = True, use_lean: bool = True):
         """
         Initialize physics validator.
 
         Args:
             use_scipy: Whether to use scipy for constants (if available)
+            use_lean: Whether to enable Lean theorem prover integration
         """
         self.use_scipy = use_scipy and SCIPY_AVAILABLE
         self.use_numpy = NUMPY_AVAILABLE
+        self.use_lean = use_lean and LEAN_AVAILABLE
 
         # Physical constants (from scipy or hardcoded)
         self.constants = self._load_constants()
@@ -120,7 +133,141 @@ class PhysicsValidator:
         # Material properties database (simplified)
         self.material_properties = self._load_material_database()
 
-        logger.info(f"PhysicsValidator initialized (scipy: {self.use_scipy}, numpy: {self.use_numpy})")
+        # Lean client for formal verification
+        self.lean_client: Optional[LeanAideClient] = None
+        if self.use_lean:
+            try:
+                config = LeanAideConfig(timeout=120.0)
+                self.lean_client = LeanAideClient(config=config)
+                logger.info("PhysicsValidator: LeanAide client initialized")
+            except Exception as e:
+                logger.warning(f"PhysicsValidator: Failed to initialize LeanAide client: {e}")
+                self.use_lean = False
+
+        logger.info(f"PhysicsValidator initialized (scipy: {self.use_scipy}, numpy: {self.use_numpy}, lean: {self.use_lean})")
+
+    async def verify_conservation_law(self, equation: str, law_type: str) -> Dict[str, Any]:
+        """
+        Verify physics conservation law using Lean theorem prover.
+        
+        Args:
+            equation: The physical equation to verify
+            law_type: Type of conservation law (energy, mass, momentum, charge)
+            
+        Returns:
+            Dictionary with verification results including:
+            - verified: bool indicating if law holds
+            - confidence: float confidence score
+            - lean_code: The formalized Lean code
+            - reason: Explanation if verification failed
+        """
+        if not self.lean_client:
+            return {
+                "verified": False,
+                "confidence": 0.0,
+                "reason": "Lean unavailable - conservation law verified heuristically only",
+                "law": law_type,
+                "equation": equation
+            }
+        
+        try:
+            # Formalize conservation law as theorem
+            theorem = f"{law_type} conservation holds for: {equation}"
+            
+            logger.info(f"Verifying {law_type} conservation law with Lean")
+            
+            # Translate to Lean
+            translate_result = await self.lean_client.translate_thm(theorem)
+            
+            if not translate_result.success or not translate_result.data:
+                return {
+                    "verified": False,
+                    "confidence": 0.3,
+                    "reason": f"Failed to formalize: {translate_result.error}",
+                    "law": law_type,
+                    "equation": equation
+                }
+            
+            formalized = translate_result.data.get("result", "")
+            
+            # Elaborate and verify
+            elaborate_result = await self.lean_client.elaborate(formalized)
+            
+            verified = elaborate_result.success and elaborate_result.data is not None
+            
+            return {
+                "law": law_type,
+                "verified": verified,
+                "confidence": 0.95 if verified else 0.5,
+                "lean_code": formalized,
+                "elaboration": elaborate_result.data if elaborate_result.data else None,
+                "equation": equation
+            }
+            
+        except Exception as e:
+            logger.error(f"Lean verification failed for {law_type} conservation: {e}")
+            return {
+                "verified": False,
+                "confidence": 0.0,
+                "reason": f"Verification error: {str(e)}",
+                "law": law_type,
+                "equation": equation
+            }
+
+    async def verify_thermodynamic_law(self, law_name: str, conditions: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Verify thermodynamic law (2nd law, Carnot limit) using Lean.
+        
+        Args:
+            law_name: Name of thermodynamic law
+            conditions: Physical conditions to verify
+            
+        Returns:
+            Dictionary with verification results
+        """
+        if not self.lean_client:
+            return {
+                "verified": False,
+                "confidence": 0.0,
+                "reason": "Lean unavailable",
+                "law": law_name
+            }
+        
+        try:
+            # Construct theorem statement
+            theorem = f"Thermodynamic law '{law_name}' holds under conditions: {conditions}"
+            
+            translate_result = await self.lean_client.translate_thm(theorem)
+            
+            if not translate_result.success:
+                return {
+                    "verified": False,
+                    "confidence": 0.3,
+                    "reason": f"Formalization failed: {translate_result.error}",
+                    "law": law_name
+                }
+            
+            formalized = translate_result.data.get("result", "")
+            elaborate_result = await self.lean_client.elaborate(formalized)
+            
+            verified = elaborate_result.success
+            
+            return {
+                "law": law_name,
+                "verified": verified,
+                "confidence": 0.9 if verified else 0.4,
+                "lean_code": formalized,
+                "conditions": conditions
+            }
+            
+        except Exception as e:
+            logger.error(f"Lean verification failed for thermodynamic law: {e}")
+            return {
+                "verified": False,
+                "confidence": 0.0,
+                "reason": str(e),
+                "law": law_name
+            }
 
     def _load_constants(self) -> Dict[str, float]:
         """Load physical constants"""

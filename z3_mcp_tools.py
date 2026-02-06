@@ -35,11 +35,17 @@ try:
     from z3prover_integration import (
         Z3SolverEngine, Z3TheoremProver, Z3Variable, Z3Constraint,
         Z3ConstraintType, Z3Config, get_z3_solver_engine, get_z3_theorem_prover,
-        is_z3_available
+        is_z3_available, translate_solidity_assignment_to_z3,
+        verify_solidity_invariant_translation, solve_smart_contract_exploit_witness
     )
     Z3_AVAILABLE = True
+    WEB3_FORMAL_AVAILABLE = True
 except ImportError:
     Z3_AVAILABLE = False
+    WEB3_FORMAL_AVAILABLE = False
+    translate_solidity_assignment_to_z3 = None
+    verify_solidity_invariant_translation = None
+    solve_smart_contract_exploit_witness = None
     logger.warning("Z3 integration not available")
 
 try:

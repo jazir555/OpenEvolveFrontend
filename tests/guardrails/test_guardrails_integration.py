@@ -697,7 +697,7 @@ class TestContentPolicy(unittest.TestCase):
     def test_required_topic(self):
         """Test required topic."""
         policy = ContentPolicy(allowed_topics=["science"])
-        violations = policy.evaluate("", "Random text without science")
+        violations = policy.evaluate("", "Random text about math and history")
         self.assertTrue(len(violations) > 0)
         
     def test_length_requirements(self):
@@ -709,7 +709,7 @@ class TestContentPolicy(unittest.TestCase):
     def test_citation_requirement(self):
         """Test citation requirement."""
         policy = ContentPolicy(require_citations=True)
-        violations = policy.evaluate("", "This is a claim without citation")
+        violations = policy.evaluate("", "This is a claim without any sources to back it up")
         self.assertTrue(len(violations) > 0)
 
 

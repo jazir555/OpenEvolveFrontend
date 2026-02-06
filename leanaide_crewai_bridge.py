@@ -41,6 +41,16 @@ from enum import Enum
 from datetime import datetime, timezone
 from pathlib import Path
 
+# REAL Lean integration
+try:
+    from leanaide_client import LeanAideClient
+    from lean4_integration import Lean4VerificationEngine
+    LEAN_AVAILABLE = True
+    logger.info("REAL Lean integration available in crewai_bridge")
+except ImportError:
+    LEAN_AVAILABLE = False
+    logger.debug("REAL Lean integration not available in crewai_bridge")
+
 # **ACTUAL INTEGRATION**: Knowledge and alerting for LeanAide
 try:
     from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
@@ -305,9 +315,54 @@ class LeanAideCrewAIBridge:
             self.enhanced_solver = EnhancedZ3Solver()
             logger.info("CAV-NLP EnhancedZ3Solver initialized")
 
+        # Initialize REAL Lean verification
+        self._lean_verifier: Optional[Any] = None
+        if LEAN_AVAILABLE:
+            try:
+                self._lean_verifier = Lean4VerificationEngine()
+                logger.info("REAL Lean verification engine initialized")
+            except Exception as e:
+                logger.warning(f"Failed to initialize REAL Lean verifier: {e}")
+
         logger.info("LeanAide-CrewAI Bridge initialized (MIT-licensed)")
         logger.info(f"  CrewAI workflows: {self.config.enable_crewai_workflow}")
         logger.info(f"  CAV-NLP enabled: {self.use_cav_nlp}")
+        logger.info(f"  REAL Lean available: {LEAN_AVAILABLE}")
+
+    def verify_with_lean(self, lean_code: str) -> Dict[str, Any]:
+        """
+        Verify Lean 4 code using REAL Lean integration.
+        
+        Args:
+            lean_code: Lean 4 code to verify
+            
+        Returns:
+            Dict with verification results
+        """
+        if not LEAN_AVAILABLE or not self._lean_verifier:
+            return {
+                "success": False,
+                "verified": False,
+                "error": "REAL Lean integration not available",
+                "lean_available": LEAN_AVAILABLE
+            }
+        
+        try:
+            result = self._lean_verifier.verify(lean_code)
+            return {
+                "success": True,
+                "verified": result.get("success", False),
+                "result": result,
+                "lean_available": True
+            }
+        except Exception as e:
+            logger.error(f"Lean verification failed: {e}")
+            return {
+                "success": False,
+                "verified": False,
+                "error": str(e),
+                "lean_available": True
+            }
 
     # =========================================================================
     # WORKFLOW MANAGEMENT

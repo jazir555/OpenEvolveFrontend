@@ -34,6 +34,16 @@ from sympy import (
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# REAL Lean integration
+try:
+    from leanaide_client import LeanAideClient
+    from lean4_integration import Lean4VerificationEngine
+    LEAN_AVAILABLE = True
+    logger.info("REAL Lean integration available in continuous_math")
+except ImportError:
+    LEAN_AVAILABLE = False
+    logger.debug("REAL Lean integration not available in continuous_math")
+
 # Add CAV-NLP imports with graceful fallback
 try:
     from openevolve.z3_cav_nlp_integration import EnhancedZ3Solver
@@ -333,7 +343,51 @@ class ContinuousMathEngine:
         # Cache for computed results
         self._cache: Dict[str, Any] = {}
         
-        logger.info(f"ContinuousMathEngine initialized with epsilon={default_epsilon}, CAV-NLP={self.use_cav_nlp}")
+        # Initialize REAL Lean verification engine
+        self._lean_verifier: Optional[Any] = None
+        if LEAN_AVAILABLE and self.enable_lean_proofs:
+            try:
+                self._lean_verifier = Lean4VerificationEngine()
+                logger.info("REAL Lean verification engine initialized")
+            except Exception as e:
+                logger.warning(f"Failed to initialize REAL Lean verifier: {e}")
+        
+        logger.info(f"ContinuousMathEngine initialized with epsilon={default_epsilon}, CAV-NLP={self.use_cav_nlp}, Lean={LEAN_AVAILABLE}")
+    
+    async def verify_with_lean(self, lean_code: str) -> Dict[str, Any]:
+        """
+        Verify Lean 4 code using REAL Lean integration.
+        
+        Args:
+            lean_code: Lean 4 code to verify
+            
+        Returns:
+            Dict with verification results
+        """
+        if not LEAN_AVAILABLE or not self._lean_verifier:
+            return {
+                "success": False,
+                "verified": False,
+                "error": "REAL Lean integration not available",
+                "lean_available": LEAN_AVAILABLE
+            }
+        
+        try:
+            result = self._lean_verifier.verify(lean_code)
+            return {
+                "success": True,
+                "verified": result.get("success", False),
+                "result": result,
+                "lean_available": True
+            }
+        except Exception as e:
+            logger.error(f"Lean verification failed: {e}")
+            return {
+                "success": False,
+                "verified": False,
+                "error": str(e),
+                "lean_available": True
+            }
     
     # ========================================================================
     # Real Analysis Methods

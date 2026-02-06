@@ -65,6 +65,13 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
+# **LEAN INTEGRATION**: Real Lean theorem proving alongside Z3
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -477,6 +484,15 @@ class QualityGateEngine:
             logger.info("Z3 Quality Gate Verifier integrated")
         except ImportError:
             logger.debug("Z3 Quality Gate Verifier not available")
+        
+        # **LEAN INTEGRATION**: Lean theorem proving integration
+        self._lean_client = None
+        if LEAN_AVAILABLE:
+            try:
+                self._lean_client = LeanAideClient()
+                logger.info("LeanAide client integrated into quality gate engine")
+            except Exception as e:
+                logger.warning(f"Failed to initialize LeanAide client: {e}")
 
     def evaluate(
         self,
@@ -579,6 +595,33 @@ class QualityGateEngine:
         logger.info(f"Quality gate evaluation complete: {decision.value} (score: {report.overall_score:.2f})")
         return report
 
+    async def verify_with_lean(self, content: str, criteria: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Verify content using Lean theorem prover alongside Z3.
+        
+        Args:
+            content: Content to verify
+            criteria: Verification criteria
+            
+        Returns:
+            Dict with verification results
+        """
+        if not LEAN_AVAILABLE or not self._lean_client:
+            return {"verified": False, "reason": "Lean unavailable"}
+        
+        try:
+            formalized = await self._lean_client.translate_thm(content)
+            result = await self._lean_client.verify(formalized)
+            
+            return {
+                "verified": result.verified if hasattr(result, 'verified') else False,
+                "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
+                "proof": result.proof_code if hasattr(result, 'proof_code') else None
+            }
+        except Exception as e:
+            logger.error(f"Lean verification error in quality gate: {e}")
+            return {"verified": False, "reason": str(e)}
+    
     def verify_with_z3(
         self,
         verification_type: str,

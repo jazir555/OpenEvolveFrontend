@@ -53,6 +53,14 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
+# **LEAN INTEGRATION**: Real Lean proof verification for coordination
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+    logger.warning("LeanAide client not available - formal verification disabled")
+
 # Import existing Red Team components
 try:
     from red_team import (
@@ -1099,6 +1107,42 @@ Provide your analysis as a JSON object with:
 
         except Exception as e:
             logger.error(f"Failed to track Red Team performance: {e}")
+
+    def verify_with_lean(self, content: str, properties: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Verify content using Lean theorem prover for formal verification coordination.
+        
+        Args:
+            content: The content to verify (theorem statement or proof)
+            properties: Optional properties for verification
+            
+        Returns:
+            Dict with verification results including:
+            - verified: bool
+            - formalized: str (Lean code)
+            - proof_status: str
+            - errors: list
+        """
+        if not LEAN_AVAILABLE:
+            return {"verified": False, "error": "Lean verification not available"}
+        
+        try:
+            client = LeanAideClient()
+            # Auto-formalize the content
+            formalized = client.autoformalize(content)
+            # Verify the formalized content
+            verification = client.verify(formalized)
+            
+            return {
+                "verified": verification.get("success", False),
+                "formalized": formalized,
+                "proof_status": verification.get("status", "unknown"),
+                "errors": verification.get("errors", []),
+                "metadata": properties or {}
+            }
+        except Exception as e:
+            logger.error(f"Lean verification failed: {e}")
+            return {"verified": False, "error": str(e)}
 
     def shutdown(self):
         """Shutdown the coordinator and cleanup resources"""

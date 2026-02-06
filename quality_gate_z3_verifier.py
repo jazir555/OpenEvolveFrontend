@@ -31,6 +31,13 @@ try:
 except ImportError:
     CAV_NLP_AVAILABLE = False
 
+# **LEAN INTEGRATION**: Real Lean theorem proving for standalone verification
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 
 class VerificationType(Enum):
     """Types of formal verification."""
@@ -61,7 +68,7 @@ class VerificationResult:
 
 
 class Z3QualityGateVerifier:
-    """Formal verification for quality gates using Z3."""
+    """Formal verification for quality gates using Z3 with Lean integration."""
     
     def __init__(self, config=None):
         self.config = config or (Z3Config(timeout=60.0) if Z3_AVAILABLE else None)
@@ -75,6 +82,42 @@ class Z3QualityGateVerifier:
         if self.use_cav_nlp:
             self.enhanced_solver = EnhancedZ3Solver()
             self.math_service = UnifiedMathService()
+        
+        # **LEAN INTEGRATION**: Lean theorem proving client
+        self._lean_client = None
+        if LEAN_AVAILABLE:
+            try:
+                self._lean_client = LeanAideClient()
+                logger.info("LeanAide client initialized in Z3 verifier")
+            except Exception as e:
+                logger.warning(f"Failed to initialize LeanAide client: {e}")
+    
+    async def verify_with_lean(self, content: str, criteria: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Verify content using Lean theorem prover (standalone method).
+        
+        Args:
+            content: Content to verify
+            criteria: Verification criteria
+            
+        Returns:
+            Dict with verification results
+        """
+        if not LEAN_AVAILABLE or not self._lean_client:
+            return {"verified": False, "reason": "Lean unavailable"}
+        
+        try:
+            formalized = await self._lean_client.translate_thm(content)
+            result = await self._lean_client.verify(formalized)
+            
+            return {
+                "verified": result.verified if hasattr(result, 'verified') else False,
+                "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
+                "proof": result.proof_code if hasattr(result, 'proof_code') else None
+            }
+        except Exception as e:
+            logger.error(f"Lean verification error: {e}")
+            return {"verified": False, "reason": str(e)}
     
     def verify_sop_safety(self, sop_steps, safety_invariants):
         """Verify SOP satisfies safety invariants using Digital Twin Sandbox."""

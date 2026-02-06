@@ -30,6 +30,13 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
+# **LEAN INTEGRATION**: LEAN_MATH validation type
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 class ValidationManager:
     """
     Manages protocol validation, compliance checks, and validation-related features
@@ -50,8 +57,20 @@ class ValidationManager:
             "hipaa": {
                 "required_keywords": ["HIPAA", "PHI", "patient data"],
                 "forbidden_patterns": ["unsecured health information"]
+            },
+            # **LEAN INTEGRATION**: LEAN_MATH validation type
+            "lean_math": {
+                "required_keywords": ["theorem", "proof", "lemma"],
+                "formal_verification": True
             }
         }
+        # Initialize Lean client if available
+        self._lean_client = None
+        if LEAN_AVAILABLE:
+            try:
+                self._lean_client = LeanAideClient()
+            except Exception as e:
+                logging.warning(f"Failed to initialize LeanAide client: {e}")
 
     def add_validation_rule(self, rule_name: str, rule_config: Dict) -> bool:
         """
@@ -284,6 +303,36 @@ class ValidationManager:
             compliance_rules,
             compliance_framework,
         )
+    
+    async def verify_with_lean(self, content: str, criteria: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Verify mathematical content using Lean theorem prover.
+        
+        **LEAN INTEGRATION**: Adds LEAN_MATH validation type to validation manager.
+        
+        Args:
+            content: Mathematical content to verify
+            criteria: Verification criteria
+            
+        Returns:
+            Dict with verification results
+        """
+        if not LEAN_AVAILABLE or not self._lean_client:
+            return {"verified": False, "reason": "Lean unavailable", "validation_type": "LEAN_MATH"}
+        
+        try:
+            formalized = await self._lean_client.translate_thm(content)
+            result = await self._lean_client.verify(formalized)
+            
+            return {
+                "verified": result.verified if hasattr(result, 'verified') else False,
+                "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
+                "proof": result.proof_code if hasattr(result, 'proof_code') else None,
+                "validation_type": "LEAN_MATH"
+            }
+        except Exception as e:
+            logging.error(f"Lean validation error: {e}")
+            return {"verified": False, "reason": str(e), "validation_type": "LEAN_MATH"}
 
     # =========================================================================
     # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Validation Manager

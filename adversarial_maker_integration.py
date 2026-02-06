@@ -99,6 +99,14 @@ try:
 except ImportError:
     KNOWLEDGE_AVAILABLE = False
 
+# **LEAN INTEGRATION**: Real Lean proof verification for adversarial MAKER
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+    logger.warning("LeanAide client not available - formal verification disabled")
+
 try:
     from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
     ADAPTIVE_AVAILABLE = True
@@ -731,6 +739,30 @@ class AdversarialCoEvolution:
         # In a full implementation, this would use MAKER to generate mutated attacks
         # For now, just log the intent
         logger.info(f"Mutating attacks with strength {mutation_strength}")
+
+    def verify_with_lean(self, content: str, properties: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Verify content using Lean theorem prover.
+        
+        Args:
+            content: The content to verify (theorem statement or proof)
+            properties: Optional properties for verification
+            
+        Returns:
+            Dict with verification results
+        """
+        if not LEAN_AVAILABLE:
+            return {"verified": False, "error": "Lean verification not available"}
+        
+        try:
+            client = LeanAideClient()
+            # Auto-formalize the content
+            formalized = client.autoformalize(content)
+            # Verify the formalized content
+            return client.verify(formalized)
+        except Exception as e:
+            logger.error(f"Lean verification failed: {e}")
+            return {"verified": False, "error": str(e)}
 
 
 # =============================================================================

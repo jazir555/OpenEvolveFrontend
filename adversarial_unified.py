@@ -1770,6 +1770,42 @@ class AdversarialEngine:
             convergence_generation=convergence_generation
         )
 
+    async def verify_with_lean(self, content: str, properties: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Verify content using Lean theorem prover.
+        
+        Args:
+            content: The content to verify (theorem statement or proof)
+            properties: Optional properties for verification
+            
+        Returns:
+            Dict with verification results including:
+            - verified: bool
+            - formalized: str (Lean code)
+            - proof_status: str
+            - errors: list
+        """
+        if not LEANAIDE_AVAILABLE or not self.leanaide_client:
+            return {"verified": False, "error": "Lean verification not available"}
+        
+        try:
+            # Auto-formalize the content
+            formalized = await self.leanaide_client.autoformalize(content)
+            
+            # Verify the formalized content
+            verification = await self.leanaide_client.verify(formalized)
+            
+            return {
+                "verified": verification.get("success", False),
+                "formalized": formalized,
+                "proof_status": verification.get("status", "unknown"),
+                "errors": verification.get("errors", []),
+                "metadata": properties or {}
+            }
+        except Exception as e:
+            logger.error(f"Lean verification failed: {e}")
+            return {"verified": False, "error": str(e)}
+
 
 # =============================================================================
 # ADVERSARIAL COEVOLUTION

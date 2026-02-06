@@ -28,6 +28,16 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
+# REAL Lean integration
+try:
+    from leanaide_client import LeanAideClient
+    from lean4_integration import Lean4VerificationEngine
+    LEAN_AVAILABLE = True
+    logger.info("REAL Lean integration available in mcp_tools")
+except ImportError:
+    LEAN_AVAILABLE = False
+    logger.debug("REAL Lean integration not available in mcp_tools")
+
 # Security imports
 from ace_security_utils import (
     validate_string_length,
@@ -377,6 +387,47 @@ class LeanAideClient:
 # Global client instance (lazy initialization)
 _client: Optional[LeanAideClient] = None
 _client_lock = get_global_lock('leanaide_client')
+
+
+def verify_with_lean(lean_code: str, host: Optional[str] = None, port: Optional[int] = None, timeout: Optional[int] = None) -> Dict[str, Any]:
+    """
+    Verify Lean 4 code using REAL Lean integration.
+    
+    Args:
+        lean_code: Lean 4 code to verify
+        host: Optional LeanAide server host
+        port: Optional LeanAide server port
+        timeout: Optional timeout in seconds
+        
+    Returns:
+        Dict with verification results
+    """
+    if not LEAN_AVAILABLE:
+        return {
+            "success": False,
+            "verified": False,
+            "error": "REAL Lean integration not available",
+            "lean_available": False
+        }
+    
+    try:
+        # Try to use Lean4VerificationEngine first
+        verifier = Lean4VerificationEngine()
+        result = verifier.verify(lean_code)
+        return {
+            "success": True,
+            "verified": result.get("success", False),
+            "result": result,
+            "lean_available": True
+        }
+    except Exception as e:
+        logger.error(f"Lean verification failed: {e}")
+        return {
+            "success": False,
+            "verified": False,
+            "error": str(e),
+            "lean_available": True
+        }
 
 
 def get_client(

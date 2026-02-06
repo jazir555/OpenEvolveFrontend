@@ -2208,6 +2208,31 @@ class AdversarialFramework:
             difficulty="medium"
         )
 
+    def verify_with_lean(self, content: str, properties: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Verify content using Lean theorem prover.
+        
+        Args:
+            content: The content to verify (theorem statement or proof)
+            properties: Optional properties for verification
+            
+        Returns:
+            Dict with verification results
+        """
+        if not LEANAIDE_AVAILABLE:
+            return {"verified": False, "error": "Lean verification not available"}
+        
+        try:
+            from leanaide_client import LeanAideClient
+            client = LeanAideClient()
+            # Auto-formalize the content
+            formalized = client.autoformalize(content)
+            # Verify the formalized content
+            return client.verify(formalized)
+        except Exception as e:
+            logger.error(f"Lean verification failed: {e}")
+            return {"verified": False, "error": str(e)}
+
 
 # =============================================================================
 # EXAMPLES AND DEMOS

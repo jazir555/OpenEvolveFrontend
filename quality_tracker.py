@@ -14,6 +14,13 @@ import os
 
 logger = logging.getLogger(__name__)
 
+# **LEAN INTEGRATION**: Statistical verification with Lean
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 
 @dataclass
 class EnhancedQualityScores:
@@ -674,6 +681,37 @@ class QualityTracker:
         except (KeyError, TypeError, ValueError, ZeroDivisionError) as e:
             logger.error(f"Failed to calculate statistics: {e}")
             raise
+
+    async def verify_with_lean(self, content: str, criteria: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Statistical verification using Lean theorem prover.
+        
+        Verifies mathematical/statistical claims in quality tracking data
+        using formal theorem proving.
+        
+        Args:
+            content: Content to verify (e.g., statistical claims)
+            criteria: Verification criteria
+            
+        Returns:
+            Dict with verification results
+        """
+        if not LEAN_AVAILABLE:
+            return {"verified": False, "reason": "Lean unavailable"}
+        
+        try:
+            client = LeanAideClient()
+            formalized = await client.translate_thm(content)
+            result = await client.verify(formalized)
+            
+            return {
+                "verified": result.verified if hasattr(result, 'verified') else False,
+                "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
+                "proof": result.proof_code if hasattr(result, 'proof_code') else None
+            }
+        except Exception as e:
+            logger.error(f"Lean statistical verification error: {e}")
+            return {"verified": False, "reason": str(e)}
 
 
 def create_mock_quality_scores(

@@ -40,6 +40,14 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
+# **LEAN INTEGRATION**: Real Lean proof verification for blue team fix verification
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+    logger.warning("LeanAide client not available - formal fix verification disabled")
+
 
 # **ACTUAL INTEGRATION HELPER METHODS**: Blue Team
 def _trigger_blue_team_alerts(operation, success, fix_id=None, error=None, metadata=None):

@@ -225,7 +225,15 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
             def get_workflow_definition(self, definition_id):
                 return None
 
-            def create_workflow_definition_from_openevolve(self, problem_statement, team_config, gauntlet_config):
+            def create_workflow_definition_from_openevolve(
+                self,
+                problem_statement,
+                team_config,
+                gauntlet_config,
+                workflow_type="sovereign_decomposition",
+                web3_config=None,
+            ):
+                _ = workflow_type, web3_config
                 return None
 
         return FallbackIntegration()
@@ -454,6 +462,8 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
         problem_statement: str,
         team_config: Dict[str, str],
         gauntlet_config: Dict[str, str],
+        workflow_type: str = "sovereign_decomposition",
+        web3_config: Optional[Dict[str, Any]] = None,
     ) -> BubbleWorkflowDefinition:
         """
         Create a workflow definition.
@@ -462,6 +472,8 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
             problem_statement: Problem to solve
             team_config: Team configuration mapping
             gauntlet_config: Gauntlet configuration mapping
+            workflow_type: Workflow type (sovereign_decomposition or web3 aliases)
+            web3_config: Optional Web3 configuration payload
 
         Returns:
             BubbleWorkflowDefinition object
@@ -474,6 +486,8 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
                 problem_statement,
                 team_config,
                 gauntlet_config,
+                workflow_type,
+                web3_config,
             )
 
             # Update metrics
@@ -745,6 +759,8 @@ class BubbleLabsIntegrationWrapper:
         problem_statement: str,
         team_config: Dict[str, str],
         gauntlet_config: Dict[str, str],
+        workflow_type: str = "sovereign_decomposition",
+        web3_config: Optional[Dict[str, Any]] = None,
     ) -> BubbleWorkflowDefinition:
         """
         Create workflow definition (backward compatible sync wrapper).
@@ -753,6 +769,8 @@ class BubbleLabsIntegrationWrapper:
             problem_statement: Problem to solve
             team_config: Team configuration
             gauntlet_config: Gauntlet configuration
+            workflow_type: Workflow type (sovereign_decomposition or web3 aliases)
+            web3_config: Optional Web3 configuration payload
 
         Returns:
             BubbleWorkflowDefinition
@@ -765,15 +783,34 @@ class BubbleLabsIntegrationWrapper:
                 import concurrent.futures
 
                 with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(self._create_definition_sync, problem_statement, team_config, gauntlet_config)
+                    future = executor.submit(
+                        self._create_definition_sync,
+                        problem_statement,
+                        team_config,
+                        gauntlet_config,
+                        workflow_type,
+                        web3_config,
+                    )
                     return future.result()
             else:
                 return loop.run_until_complete(
-                    self._create_definition_async(problem_statement, team_config, gauntlet_config)
+                    self._create_definition_async(
+                        problem_statement,
+                        team_config,
+                        gauntlet_config,
+                        workflow_type,
+                        web3_config,
+                    )
                 )
         except RuntimeError:
             return asyncio.run(
-                self._create_definition_async(problem_statement, team_config, gauntlet_config)
+                self._create_definition_async(
+                    problem_statement,
+                    team_config,
+                    gauntlet_config,
+                    workflow_type,
+                    web3_config,
+                )
             )
         except (ConnectionError, TimeoutError, RuntimeError) as e:
             logger.error(f"Error in create_workflow_definition_from_openevolve: {e}\n{traceback.format_exc()}")
@@ -782,18 +819,40 @@ class BubbleLabsIntegrationWrapper:
             raise
 
     async def _create_definition_async(
-        self, problem_statement: str, team_config: Dict[str, str], gauntlet_config: Dict[str, str]
+        self,
+        problem_statement: str,
+        team_config: Dict[str, str],
+        gauntlet_config: Dict[str, str],
+        workflow_type: str = "sovereign_decomposition",
+        web3_config: Optional[Dict[str, Any]] = None,
     ) -> BubbleWorkflowDefinition:
         """Async implementation of create_workflow_definition."""
         plugin = await self._get_plugin()
-        return await plugin.create_workflow_definition(problem_statement, team_config, gauntlet_config)
+        return await plugin.create_workflow_definition(
+            problem_statement,
+            team_config,
+            gauntlet_config,
+            workflow_type=workflow_type,
+            web3_config=web3_config,
+        )
 
     def _create_definition_sync(
-        self, problem_statement: str, team_config: Dict[str, str], gauntlet_config: Dict[str, str]
+        self,
+        problem_statement: str,
+        team_config: Dict[str, str],
+        gauntlet_config: Dict[str, str],
+        workflow_type: str = "sovereign_decomposition",
+        web3_config: Optional[Dict[str, Any]] = None,
     ) -> BubbleWorkflowDefinition:
         """Sync implementation of create_workflow_definition."""
         return asyncio.run(
-            self._create_definition_async(problem_statement, team_config, gauntlet_config)
+            self._create_definition_async(
+                problem_statement,
+                team_config,
+                gauntlet_config,
+                workflow_type=workflow_type,
+                web3_config=web3_config,
+            )
         )
 
     def control_workflow_local(self, instance_id: str, action: str) -> Dict[str, Any]:

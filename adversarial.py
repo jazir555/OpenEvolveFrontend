@@ -101,6 +101,16 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
+# **LEAN INTEGRATION**: Real Lean proof verification for adversarial testing
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+    logger.warning("LeanAide client not available - formal verification disabled")
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 @dataclass
 class AdversarialConfiguration:
     """

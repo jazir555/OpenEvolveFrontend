@@ -33,6 +33,13 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
+# **LEAN INTEGRATION**: Real Lean theorem proving for correctness verification
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
 # Configure logger
 logger = logging.getLogger(__name__)
 
@@ -491,7 +498,7 @@ class QualityAssessmentEngine:
         )
     
     def _assess_correctness(self, content: str, custom_requirements: Optional[Dict[str, Any]] = None) -> float:
-        """Assess correctness of the content"""
+        """Assess correctness of the content with optional Lean verification"""
         # For text content, check basic structural correctness
         sentences = re.split(r'[.!?]+', content)
         words = content.split()
@@ -522,7 +529,46 @@ class QualityAssessmentEngine:
         if completeness_ratio < 0.8:
             base_score -= 15  # Incomplete sentences
         
+        # **LEAN INTEGRATION**: If content contains mathematical claims, verify with Lean
+        if custom_requirements and custom_requirements.get('verify_with_lean') and LEAN_AVAILABLE:
+            try:
+                lean_result = self._verify_correctness_with_lean(content)
+                if lean_result.get('verified'):
+                    base_score = min(100, base_score + 10)  # Boost score for verified content
+                else:
+                    base_score = max(0, base_score - 20)  # Penalty for unverified claims
+            except Exception as e:
+                logger.warning(f"Lean verification failed in correctness assessment: {e}")
+        
         return max(0, min(100, base_score))
+    
+    async def _verify_correctness_with_lean(self, content: str) -> Dict[str, Any]:
+        """
+        Verify mathematical correctness using Lean theorem prover.
+        
+        Args:
+            content: Content to verify
+            
+        Returns:
+            Dict with verification results
+        """
+        if not LEAN_AVAILABLE:
+            return {"verified": False, "reason": "Lean unavailable"}
+        
+        try:
+            client = LeanAideClient()
+            # Extract mathematical claims from content
+            formalized = await client.translate_thm(content)
+            result = await client.verify(formalized)
+            
+            return {
+                "verified": result.verified if hasattr(result, 'verified') else False,
+                "confidence": result.confidence if hasattr(result, 'confidence') else 0.0,
+                "proof": result.proof_code if hasattr(result, 'proof_code') else None
+            }
+        except Exception as e:
+            logger.error(f"Lean verification error: {e}")
+            return {"verified": False, "reason": str(e)}
     
     def _assess_completeness(self, content: str, custom_requirements: Optional[Dict[str, Any]] = None) -> float:
         """Assess completeness of the content"""

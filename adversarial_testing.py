@@ -17,6 +17,38 @@ try:
 except ImportError:
     OPENEVOLVE_AVAILABLE = False
 
+# **LEAN INTEGRATION**: Real Lean proof verification for adversarial testing
+try:
+    from leanaide_client import LeanAideClient
+    LEAN_AVAILABLE = True
+except ImportError:
+    LEAN_AVAILABLE = False
+
+
+def verify_with_lean(content: str, properties: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """
+    Verify content using Lean theorem prover.
+    
+    Args:
+        content: The content to verify (theorem statement or proof)
+        properties: Optional properties for verification
+        
+    Returns:
+        Dict with verification results
+    """
+    if not LEAN_AVAILABLE:
+        return {"verified": False, "error": "Lean verification not available"}
+    
+    try:
+        client = LeanAideClient()
+        # Auto-formalize the content
+        formalized = client.autoformalize(content)
+        # Verify the formalized content
+        return client.verify(formalized)
+    except Exception as e:
+        logger.error(f"Lean verification failed: {e}")
+        return {"verified": False, "error": str(e)}
+
 
 def run_comprehensive_adversarial_testing(
     content: str,
