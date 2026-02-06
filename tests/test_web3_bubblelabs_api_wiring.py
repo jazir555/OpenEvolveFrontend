@@ -1,3 +1,7 @@
+import pytest
+
+pytestmark = pytest.mark.timeout(60)  # This test has slow imports
+
 from openevolve_bubblelabs_api import OpenEvolveBubbleLabsIntegration, validate_workflow_type
 
 

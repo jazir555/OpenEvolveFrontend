@@ -131,25 +131,6 @@ class RoundResult:
             self.details = {}
 
 
-@dataclass
-class GauntletResult:
-    """Overall result of a gauntlet execution"""
-    execution_id: str
-    gauntlet_name: str
-    passed: bool
-    score: float
-    rounds_passed: int
-    total_rounds: int
-    round_results: List[RoundResult]
-    feedback: List[str]
-    execution_time: float
-    details: Dict[str, Any] = None
-
-    def __post_init__(self):
-        if self.details is None:
-            self.details = {}
-
-
 class GauntletEvaluator:
     """
     REAL Gauntlet Evaluator - performs actual evaluation of solutions.
@@ -552,16 +533,17 @@ class GauntletEvaluator:
         execution_time = time.time() - start_time
 
         return GauntletResult(
-            execution_id=execution_id,
+            gauntlet_type=getattr(gauntlet, 'gauntlet_type', GauntletType.BASIC),
             gauntlet_name=gauntlet.name,
+            solution_id=context.get("solution_id", "unknown"),
             passed=final.get("passed", False),
             score=final.get("score", 0.0),
-            rounds_passed=final.get("rounds_passed", 0),
-            total_rounds=len(round_results),
-            round_results=round_results,
-            feedback=[r.feedback for r in round_results],
+            confidence=final.get("confidence", 0.8),
             execution_time=execution_time,
-            details=final
+            timestamp=datetime.now(),
+            details=final,
+            feedback="\n".join([r.feedback for r in round_results]),
+            improvements=[] # Add logic to extract improvements if needed
         )
 
     def aggregate_results(self, round_results: List[Dict[str, Any]]) -> Dict[str, Any]:

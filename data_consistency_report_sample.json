@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-12-29T21:01:48.197189",
+  "timestamp": "2026-02-06T01:44:02.352572",
   "database_path": "bubblelabs_analytics.db (does not exist)",
   "statistics": {
     "checks_performed": 5,
@@ -55,9 +55,9 @@
       "description": "Cache updated asynchronously via background sync thread, can be stale",
       "affected_count": 1,
       "affected_samples": [
-        "instance_to_definition_map in bubblelabs_hephaestus_bridge.py"
+        "instance_to_definition_map in bubblelabs_CREWAI_bridge.py"
       ],
-      "location": "bubblelabs_hephaestus_bridge.py:571-593",
+      "location": "bubblelabs_CREWAI_bridge.py:571-593",
       "recommendation": "Update cache immediately on instance creation"
     },
     {
@@ -67,9 +67,9 @@
       "description": "Mappings dict tracks workflow-to-ticket mappings but is not persisted. Lost on restart.",
       "affected_count": 1,
       "affected_samples": [
-        "mappings dict in bubblelabs_hephaestus_bridge.py"
+        "mappings dict in bubblelabs_CREWAI_bridge.py"
       ],
-      "location": "bubblelabs_hephaestus_bridge.py:110-111",
+      "location": "bubblelabs_CREWAI_bridge.py:110-111",
       "recommendation": "Persist mappings to database table"
     },
     {

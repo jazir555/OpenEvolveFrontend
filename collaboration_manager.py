@@ -40,11 +40,11 @@ class CollaborationManager:
     def __init__(self):
         # Initialize thread lock if not exists
         if "thread_lock" not in st.session_state:
-            st.session_state.thread_lock = threading.Lock()
-        
+            st.session_state["thread_lock"] = threading.Lock()
+
         # Initialize collaboration session if not exists
         if "collaboration_session" not in st.session_state:
-            st.session_state.collaboration_session = {
+            st.session_state["collaboration_session"] = {
                 "active_users": [],
                 "last_activity": datetime.now().timestamp() * 1000,
                 "chat_messages": [],
@@ -54,7 +54,7 @@ class CollaborationManager:
                 "active_sessions": {},
             }
         if "collaboration_audit_log" not in st.session_state:
-            st.session_state.collaboration_audit_log = []
+            st.session_state["collaboration_audit_log"] = []
 
     def initialize_collaborative_session(self, user_id: str, document_id: str) -> Dict:
         """
@@ -77,7 +77,7 @@ class CollaborationManager:
                 "created_by": user_id,
                 "created_at": timestamp,
                 "participants": [user_id],
-                "document_snapshot": st.session_state.protocol_text,
+                "document_snapshot": st.session_state.get("protocol_text", ""),
                 "edit_operations": [],
                 "conflict_resolutions": [],
                 "audit_log": [],
@@ -86,8 +86,8 @@ class CollaborationManager:
 
             # Store session in state
             if "collaborative_sessions" not in st.session_state:
-                st.session_state.collaborative_sessions = {}
-            st.session_state.collaborative_sessions[session_id] = session_info
+                st.session_state["collaborative_sessions"] = {}
+            st.session_state["collaborative_sessions"][session_id] = session_info
 
             # **ACTUAL INTEGRATION**: Extract knowledge and track performance
             self._extract_collaboration_knowledge("initialize_session", session_id, session_info)
@@ -119,7 +119,7 @@ class CollaborationManager:
             "timestamp": datetime.now().isoformat()
         }
         if session_id and "collaborative_sessions" in st.session_state:
-            session = st.session_state.collaborative_sessions.get(session_id)
+            session = st.session_state["collaborative_sessions"].get(session_id)
             if session is not None:
                 session["audit_log"] = session.get("audit_log", []) + [entry]
 
@@ -127,12 +127,12 @@ class CollaborationManager:
                 if event_type in ["conflict_detected", "conflict_resolved", "session_closed"]:
                     self._extract_collaboration_knowledge(event_type, session_id, entry)
                 return
-        st.session_state.collaboration_audit_log.append(entry)
+        st.session_state["collaboration_audit_log"].append(entry)
 
     def get_audit_log(self, session_id: Optional[str] = None) -> List[Dict]:
         """Get audit log entries for a session or global scope."""
         if session_id and "collaborative_sessions" in st.session_state:
-            session = st.session_state.collaborative_sessions.get(session_id)
+            session = st.session_state["collaborative_sessions"].get(session_id)
             if session:
                 return session.get("audit_log", [])
         return st.session_state.get("collaboration_audit_log", [])
@@ -151,10 +151,10 @@ class CollaborationManager:
         if "collaborative_sessions" not in st.session_state:
             return False
 
-        if session_id not in st.session_state.collaborative_sessions:
+        if session_id not in st.session_state["collaborative_sessions"]:
             return False
 
-        session = st.session_state.collaborative_sessions[session_id]
+        session = st.session_state["collaborative_sessions"][session_id]
         if user_id not in session["participants"]:
             session["participants"].append(user_id)
 
@@ -183,10 +183,10 @@ class CollaborationManager:
         if "collaborative_sessions" not in st.session_state:
             return False
 
-        if session_id not in st.session_state.collaborative_sessions:
+        if session_id not in st.session_state["collaborative_sessions"]:
             return False
 
-        session = st.session_state.collaborative_sessions[session_id]
+        session = st.session_state["collaborative_sessions"][session_id]
         if user_id in session["participants"]:
             session["participants"].remove(user_id)
 
@@ -218,10 +218,10 @@ class CollaborationManager:
         if "collaborative_sessions" not in st.session_state:
             return {"success": False, "error": "No collaborative sessions exist"}
 
-        if session_id not in st.session_state.collaborative_sessions:
+        if session_id not in st.session_state["collaborative_sessions"]:
             return {"success": False, "error": "Session not found"}
 
-        session = st.session_state.collaborative_sessions[session_id]
+        session = st.session_state["collaborative_sessions"][session_id]
 
         # Add timestamp to operation
         operation["timestamp"] = datetime.now().isoformat()
@@ -316,10 +316,10 @@ class CollaborationManager:
         if "collaborative_sessions" not in st.session_state:
             return False
 
-        if session_id not in st.session_state.collaborative_sessions:
+        if session_id not in st.session_state["collaborative_sessions"]:
             return False
 
-        session = st.session_state.collaborative_sessions[session_id]
+        session = st.session_state["collaborative_sessions"][session_id]
 
         # Find conflict record
         conflict_record = None
@@ -351,7 +351,7 @@ class CollaborationManager:
         if "collaborative_sessions" not in st.session_state:
             return None
 
-        return st.session_state.collaborative_sessions.get(session_id)
+        return st.session_state["collaborative_sessions"].get(session_id)
 
     def synchronize_document(self, session_id: str) -> Dict:
         """
@@ -366,10 +366,10 @@ class CollaborationManager:
         if "collaborative_sessions" not in st.session_state:
             return {"success": False, "error": "No collaborative sessions exist"}
 
-        if session_id not in st.session_state.collaborative_sessions:
+        if session_id not in st.session_state["collaborative_sessions"]:
             return {"success": False, "error": "Session not found"}
 
-        session = st.session_state.collaborative_sessions[session_id]
+        session = st.session_state["collaborative_sessions"][session_id]
 
         # Reconstruct document from operations
         document_text = session["document_snapshot"]
@@ -564,10 +564,10 @@ class CollaborationManager:
             "version_id": version_id or st.session_state.get("current_version_id", ""),
         }
 
-        with st.session_state.thread_lock:
+        with st.session_state["thread_lock"]:
             if "comments" not in st.session_state:
-                st.session_state.comments = []
-            st.session_state.comments.append(comment)
+                st.session_state["comments"] = []
+            st.session_state["comments"].append(comment)
 
         return comment_id
 
@@ -581,18 +581,18 @@ class CollaborationManager:
         Returns:
             List[Dict]: List of comments
         """
-        with st.session_state.thread_lock:
+        with st.session_state["thread_lock"]:
             if version_id:
                 if "comments" not in st.session_state:
-                    st.session_state.comments = []
+                    st.session_state["comments"] = []
                 return [
                     c
-                    for c in st.session_state.comments
+                    for c in st.session_state["comments"]
                     if c["version_id"] == version_id
                 ]
             if "comments" not in st.session_state:
-                st.session_state.comments = []
-            return st.session_state.comments.copy()
+                st.session_state["comments"] = []
+            return st.session_state["comments"].copy()
 
     def add_notification(
         self, message: str, sender: str = "System", notification_type: str = "info"
@@ -620,12 +620,12 @@ class CollaborationManager:
             "read": False,
         }
 
-        with st.session_state.thread_lock:
+        with st.session_state["thread_lock"]:
             if "collaboration_session" not in st.session_state:
-                st.session_state.collaboration_session = {"notifications": []}
-            if "notifications" not in st.session_state.collaboration_session:
-                st.session_state.collaboration_session["notifications"] = []
-            st.session_state.collaboration_session["notifications"].append(notification)
+                st.session_state["collaboration_session"] = {"notifications": []}
+            if "notifications" not in st.session_state["collaboration_session"]:
+                st.session_state["collaboration_session"]["notifications"] = []
+            st.session_state["collaboration_session"]["notifications"].append(notification)
 
         return notification_id
 
@@ -636,14 +636,14 @@ class CollaborationManager:
         Returns:
             List[Dict]: List of unread notifications
         """
-        with st.session_state.thread_lock:
+        with st.session_state["thread_lock"]:
             if "collaboration_session" not in st.session_state:
-                st.session_state.collaboration_session = {"notifications": []}
-            if "notifications" not in st.session_state.collaboration_session:
-                st.session_state.collaboration_session["notifications"] = []
+                st.session_state["collaboration_session"] = {"notifications": []}
+            if "notifications" not in st.session_state["collaboration_session"]:
+                st.session_state["collaboration_session"]["notifications"] = []
             return [
                 n
-                for n in st.session_state.collaboration_session["notifications"]
+                for n in st.session_state["collaboration_session"]["notifications"]
                 if not n.get("read")
             ]
 
@@ -657,13 +657,13 @@ class CollaborationManager:
         Returns:
             bool: True if successful, False otherwise
         """
-        with st.session_state.thread_lock:
+        with st.session_state["thread_lock"]:
             if "collaboration_session" not in st.session_state:
-                st.session_state.collaboration_session = {"notifications": []}
-            if "notifications" not in st.session_state.collaboration_session:
-                st.session_state.collaboration_session["notifications"] = []
+                st.session_state["collaboration_session"] = {"notifications": []}
+            if "notifications" not in st.session_state["collaboration_session"]:
+                st.session_state["collaboration_session"]["notifications"] = []
 
-            for notification in st.session_state.collaboration_session["notifications"]:
+            for notification in st.session_state["collaboration_session"]["notifications"]:
                 if notification["id"] == notification_id:
                     notification["read"] = True
                     return True
@@ -681,12 +681,12 @@ class CollaborationManager:
             bool: True if successful, False otherwise
         """
         try:
-            with st.session_state.thread_lock:
+            with st.session_state["thread_lock"]:
                 if "collaborators" not in st.session_state:
-                    st.session_state.collaborators = []
+                    st.session_state["collaborators"] = []
 
                 # Check if user is already added
-                for collab in st.session_state.collaborators:
+                for collab in st.session_state["collaborators"]:
                     if collab["email"] == user_email:
                         # Update role if already exists
                         collab["role"] = role
@@ -699,7 +699,7 @@ class CollaborationManager:
                     "joined_at": datetime.now().isoformat(),
                     "last_access": datetime.now().isoformat(),
                 }
-                st.session_state.collaborators.append(new_collaborator)
+                st.session_state["collaborators"].append(new_collaborator)
 
             # Add notification
             self.add_notification(
@@ -721,13 +721,13 @@ class CollaborationManager:
             bool: True if successful, False otherwise
         """
         try:
-            with st.session_state.thread_lock:
+            with st.session_state["thread_lock"]:
                 if "collaborators" not in st.session_state:
-                    st.session_state.collaborators = []
+                    st.session_state["collaborators"] = []
 
-                st.session_state.collaborators = [
+                st.session_state["collaborators"] = [
                     c
-                    for c in st.session_state.collaborators
+                    for c in st.session_state["collaborators"]
                     if c["email"] != user_email
                 ]
 
@@ -747,10 +747,10 @@ class CollaborationManager:
         Returns:
             List[Dict]: List of collaborators
         """
-        with st.session_state.thread_lock:
+        with st.session_state["thread_lock"]:
             if "collaborators" not in st.session_state:
-                st.session_state.collaborators = []
-            return st.session_state.collaborators.copy()
+                st.session_state["collaborators"] = []
+            return st.session_state["collaborators"].copy()
 
     def update_collaborator_role(self, user_email: str, new_role: str) -> bool:
         """
@@ -764,12 +764,12 @@ class CollaborationManager:
             bool: True if successful, False otherwise
         """
         try:
-            with st.session_state.thread_lock:
+            with st.session_state["thread_lock"]:
                 if "collaborators" not in st.session_state:
-                    st.session_state.collaborators = []
+                    st.session_state["collaborators"] = []
 
                 updated = False
-                for collab in st.session_state.collaborators:
+                for collab in st.session_state["collaborators"]:
                     if collab["email"] == user_email:
                         old_role = collab["role"]
                         collab["role"] = new_role
@@ -967,11 +967,11 @@ def render_collaboration_section():
     
     # Initialize session state for collaboration if not exists
     if "collaboration_sessions" not in st.session_state:
-        st.session_state.collaboration_sessions = []
+        st.session_state["collaboration_sessions"] = []
     if "collaborators" not in st.session_state:
-        st.session_state.collaborators = []
+        st.session_state["collaborators"] = []
     if "collaboration_comments" not in st.session_state:
-        st.session_state.collaboration_comments = []
+        st.session_state["collaboration_comments"] = []
     
     # Create tabs for different collaboration features
     tab1, tab2, tab3, tab4 = st.tabs([
@@ -995,7 +995,7 @@ def render_collaboration_section():
             if st.button("Create Session"):
                 if session_name.strip():
                     new_session = {
-                        "id": len(st.session_state.collaboration_sessions) + 1,
+                        "id": len(st.session_state["collaboration_sessions"]) + 1,
                         "name": session_name,
                         "description": session_description,
                         "created_by": st.session_state.get("username", "Current User"),
@@ -1003,15 +1003,15 @@ def render_collaboration_section():
                         "members": [st.session_state.get("username", "Current User")],
                         "status": "Active"
                     }
-                    st.session_state.collaboration_sessions.append(new_session)
+                    st.session_state["collaboration_sessions"].append(new_session)
                     st.success(f"Session '{session_name}' created successfully!")
                     st.rerun()
                 else:
                     st.error("Session name is required!")
         
         # Show active sessions
-        if st.session_state.collaboration_sessions:
-            for session in st.session_state.collaboration_sessions:
+        if st.session_state["collaboration_sessions"]:
+            for session in st.session_state["collaboration_sessions"]:
                 with st.container(border=True):
                     st.write(f"**{session['name']}**")
                     st.caption(session.get('description', 'No description'))
@@ -1038,21 +1038,21 @@ def render_collaboration_section():
             if st.button("Post Comment"):
                 if comment_text.strip():
                     new_comment = {
-                        "id": len(st.session_state.collaboration_comments) + 1,
+                        "id": len(st.session_state["collaboration_comments"]) + 1,
                         "author": st.session_state.get("username", "Current User"),
                         "text": comment_text,
                         "timestamp": "Just now",
                         "likes": 0
                     }
-                    st.session_state.collaboration_comments.append(new_comment)
+                    st.session_state["collaboration_comments"].append(new_comment)
                     st.success("Comment posted!")
                     st.rerun()
                 else:
                     st.error("Comment text is required!")
         
         # Show comments
-        if st.session_state.collaboration_comments:
-            for comment in reversed(st.session_state.collaboration_comments[-10:]):  # Show last 10 comments
+        if st.session_state["collaboration_comments"]:
+            for comment in reversed(st.session_state["collaboration_comments"][-10:]):  # Show last 10 comments
                 with st.container(border=True):
                     col1, col2 = st.columns([4, 1])
                     with col1:
@@ -1075,8 +1075,8 @@ def render_collaboration_section():
         st.subheader("Notifications")
         
         # Show recent activity notifications
-        if st.session_state.collaboration_sessions:
-            for session in st.session_state.collaboration_sessions[-5:]:  # Show last 5 sessions
+        if st.session_state["collaboration_sessions"]:
+            for session in st.session_state["collaboration_sessions"][-5:]:  # Show last 5 sessions
                 st.success(f"👥 {session['created_by']} created session: {session['name']}")
         else:
             st.info("No recent collaboration activity.")

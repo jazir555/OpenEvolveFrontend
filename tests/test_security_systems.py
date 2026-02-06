@@ -369,16 +369,20 @@ class TestAuditLogging(unittest.TestCase):
         """Test audit logger."""
         try:
             from audit_logging import AuditLogger
-            
+
             logger = AuditLogger(db_path=os.path.join(self.temp_dir, 'audit.db'))
-            logger.log(
-                action='user_login',
-                user='test_user',
-                resource='/api/data'
-            )
-            
-            entries = logger.get_entries(user='test_user')
-            self.assertGreaterEqual(len(entries), 1)
+            try:
+                logger.log(
+                    action='user_login',
+                    user='test_user',
+                    resource='/api/data'
+                )
+
+                entries = logger.get_entries(user='test_user')
+                self.assertGreaterEqual(len(entries), 1)
+            finally:
+                # Explicitly close connection before test cleanup
+                logger.close()
         except ImportError:
             self.skipTest("AuditLogger not available")
     

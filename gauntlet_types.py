@@ -37,17 +37,14 @@ try:
     Z3_AVAILABLE = True
 except ImportError:
     try:
-        from z3prover_integration import Z3ProverIntegration, Z3SolverResult, Z3ResultStatus
-        DigitalTwinSandbox = None
-        SmartContractInvariantTranslator = None
+        from z3prover_integration import Z3SolverResult, Z3ResultStatus
         Z3_AVAILABLE = True
     except ImportError:
-        Z3ProverIntegration = None
-        Z3SolverResult = None
-        Z3ResultStatus = None
-        DigitalTwinSandbox = None
-        SmartContractInvariantTranslator = None
         Z3_AVAILABLE = False
+    
+    Z3ProverIntegration = None
+    DigitalTwinSandbox = None
+    SmartContractInvariantTranslator = None
 except Exception:
     Z3_AVAILABLE = False
 
@@ -918,126 +915,148 @@ class LogicalSandboxGauntlet(BaseGauntlet):
             upper_violation = solver.check() == z3.sat
             solver.pop()
             
-            if lower_violation or upper_violation:
-                return {
-                    "property": prop_name,
-                    "verified": False,
-                    "method": "z3_bounds_analysis",
-                    "counterexample": f"Bounds violation possible: [{min_val}, {max_val}]",
-                    "lower_violation": lower_violation,
-                    "upper_violation": upper_violation
-                }
-            else:
-                return {
-                    "property": prop_name,
-                    "verified": True,
-                    "method": "z3_bounds_proof",
-                    "bounds": [min_val, max_val]
-                }
+            verified = not (lower_violation or upper_violation)
+            
+            return {
+                "property": prop_name,
+                "verified": verified,
+                "method": "z3_bounds_analysis",
+                "lower_violation": lower_violation,
+                "upper_violation": upper_violation,
+                "has_bounds_check": True
+            }
         else:
             return {
                 "property": prop_name,
                 "verified": False,
-                "method": "z3_missing_bounds",
-                "counterexample": "No bounds checking detected in code"
+                "method": "z3_heuristic",
+                "counterexample": "Missing explicit bounds check in code",
+                "has_bounds_check": False
             }
-    
+
     def _verify_type_safety_z3(self, code: str, property_spec: Dict) -> Dict[str, Any]:
         """Verify type safety using Z3."""
         prop_name = property_spec.get("name", "type_safety")
         expected_type = property_spec.get("expected_type", "int")
         
-        # Check for type hints or type checking
-        has_type_hints = ": " in code and ("-> " in code or "def " in code)
-        has_type_check = any(pattern in code for pattern in [
-            "isinstance(", "type(", "Type[", "Optional[", "Union["
-        ])
+        # Simple static analysis for types
+        has_type_hints = ": " in code and ("->" in code or "def " in code)
         
-        return {
-            "property": prop_name,
-            "verified": has_type_hints or has_type_check,
-            "method": "z3_type_analysis",
-            "has_type_hints": has_type_hints,
-            "has_type_check": has_type_check,
-            "expected_type": expected_type
-        }
-    
-    def _verify_arithmetic_overflow_z3(self, code: str, property_spec: Dict) -> Dict[str, Any]:
-        """Verify arithmetic overflow protection using Z3."""
-        prop_name = property_spec.get("name", "arithmetic_overflow")
-        
-        # Check for overflow protection patterns
-        has_overflow_check = any(pattern in code for pattern in [
-            "overflow", "underflow", "checked_add", "saturating_",
-            "try:", "except OverflowError", "if result >"
-        ])
-        
-        if has_overflow_check:
+        if has_type_hints:
             return {
                 "property": prop_name,
                 "verified": True,
-                "method": "z3_overflow_analysis",
-                "has_overflow_protection": True
+                "method": "z3_static_analysis",
+                "has_type_hints": True
             }
-        
-        # Check for arithmetic operations that could overflow
-        has_arithmetic = any(op in code for op in ["+", "-", "*", "**", "<<", ">>"])
-        
-        if has_arithmetic and not has_overflow_check:
+        else:
+            # Model type conflict in Z3
+            solver = z3.Solver()
+            x = z3.Int('x')
+            y = z3.Real('y')
+            
+            # Conflict if x (int) is assigned to y (real) without cast
+            # In formal verification, we check if such an assignment is possible/safe
             return {
                 "property": prop_name,
                 "verified": False,
-                "method": "z3_overflow_risk",
-                "counterexample": "Arithmetic operations without overflow protection",
-                "risk_operations": [op for op in ["+", "-", "*"] if op in code]
+                "method": "z3_type_modeling",
+                "counterexample": "Potential type mismatch - missing type hints",
+                "has_type_hints": False
+            }
+
+    def _verify_arithmetic_overflow_z3(self, code: str, property_spec: Dict) -> Dict[str, Any]:
+        """Verify arithmetic overflow using Z3 bit-vectors."""
+        prop_name = property_spec.get("name", "arithmetic_overflow")
+        bit_width = property_spec.get("bit_width", 32)
+        
+        solver = z3.Solver()
+        x = z3.BitVec('x', bit_width)
+        y = z3.BitVec('y', bit_width)
+        
+        # Check for addition overflow
+        res = x + y
+        # Overflow occurs if result is smaller than operands (for positive numbers)
+        # Or more formally using Z3's BV overflow primitives if available
+        # here we use a simplified check
+        solver.add(z3.And(x > 0, y > 0, res < x)) 
+        
+        if solver.check() == z3.sat:
+            model = solver.model()
+            return {
+                "property": prop_name,
+                "verified": False,
+                "method": "z3_bv_analysis",
+                "counterexample": f"Addition overflow possible: {model[x]} + {model[y]}",
+                "bit_width": bit_width
             }
         
         return {
             "property": prop_name,
             "verified": True,
-            "method": "z3_no_arithmetic",
-            "note": "No arithmetic operations detected"
+            "method": "z3_bv_proof",
+            "bit_width": bit_width
         }
-    
+
     def _verify_general_property_z3(self, code: str, property_spec: Dict, solver: z3.Solver) -> Dict[str, Any]:
         """General property verification using Z3."""
         prop_name = property_spec.get("name", "unknown")
         prop_expr = property_spec.get("expression", "")
         
-        try:
-            # Try to parse and verify the property
-            # This is a simplified version - full implementation would parse the expression
-            
-            if prop_expr:
-                # Attempt to create a simple Z3 constraint
-                # For now, fall back to pattern matching
-                verified = prop_expr.lower() in code.lower()
-                
-                return {
-                    "property": prop_name,
-                    "verified": verified,
-                    "method": "z3_general",
-                    "expression_matched": verified
-                }
-            else:
-                # No expression provided - verify structure
-                has_structure = len(code) > 10 and ("def " in code or "class " in code)
-                
-                return {
-                    "property": prop_name,
-                    "verified": has_structure,
-                    "method": "z3_structure_check",
-                    "has_valid_structure": has_structure
-                }
-                
-        except Exception as e:
+        if self.enhanced_solver and prop_expr:
+            try:
+                # Use enhanced solver for natural language/SMT verification
+                verification = self.enhanced_solver.verify_with_lean(prop_expr)
+                if verification.success:
+                    return {
+                        "property": prop_name,
+                        "verified": True,
+                        "method": "cav_nlp_enhanced",
+                        "confidence": verification.confidence,
+                        "details": verification.to_dict()
+                    }
+            except Exception as e:
+                self.logger.debug(f"Enhanced verification failed for {prop_name}: {e}")
+
+        # Fallback to pattern matching and basic Z3
+        if prop_expr:
+            # Check if it looks like an SMT-LIB expression
+            if prop_expr.startswith("(") and prop_expr.endswith(")"):
+                try:
+                    # Attempt to parse as SMT-LIB
+                    z3_vars = {v: z3.Int(v) for v in re.findall(r'\b[a-zA-Z_]\w*\b', prop_expr) if v.lower() not in ['and', 'or', 'not', 'implies']}
+                    parsed = z3.parse_smt2_string(f"(assert {prop_expr})", decls=z3_vars)
+                    if parsed:
+                        solver.push()
+                        solver.add(parsed)
+                        res = solver.check()
+                        solver.pop()
+                        
+                        return {
+                            "property": prop_name,
+                            "verified": res == z3.sat,
+                            "method": "z3_smtlib_parse",
+                            "z3_status": str(res)
+                        }
+                except Exception:
+                    pass
+
+            # Final fallback: text search
+            verified = prop_expr.lower() in code.lower()
             return {
                 "property": prop_name,
-                "verified": False,
-                "method": "z3_error",
-                "error": str(e)
+                "verified": verified,
+                "method": "pattern_match",
+                "expression_matched": verified
             }
-    
+        
+        return {
+            "property": prop_name,
+            "verified": False,
+            "method": "incomplete_spec",
+            "error": "No expression provided for verification"
+        }
+
     def _heuristic_verification(self, code: str, property_spec: Dict) -> Dict[str, Any]:
         """Heuristic verification without Z3 (fallback)."""
         prop_name = property_spec.get("name", "").lower()
@@ -2745,6 +2764,191 @@ class TemporalGauntlet(BaseGauntlet):
         return improvements
 
 
+class TemporalGauntlet(BaseGauntlet):
+    """
+    Temporal Gauntlet: Time-series validation.
+    
+    Validates solutions over time, checking stability, convergence, and trends.
+    """
+    
+    def __init__(self, name: str = "temporal_gauntlet", config: Optional[Dict] = None):
+        config = config or {}
+        super().__init__(name, GauntletType.TEMPORAL, config)
+        self.time_steps = config.get("time_steps", 100)
+        self.stability_threshold = config.get("stability_threshold", 0.1)
+        self.convergence_threshold = config.get("convergence_threshold", 0.01)
+    
+    def execute(self, solution: Any, context: Dict[str, Any]) -> GauntletResult:
+        """
+        Execute temporal gauntlet.
+        
+        Args:
+            solution: Solution to validate over time
+            context: Must contain 'time_series_data' or 'simulation_function'
+            
+        Returns:
+            GauntletResult with temporal validation score
+        """
+        start_time = time.time()
+        solution_id = getattr(solution, 'id', str(hash(str(solution))))
+        
+        try:
+            time_series = context.get("time_series_data", [])
+            simulation_fn = context.get("simulation_function")
+            
+            if not time_series and simulation_fn:
+                # Generate time series using simulation
+                time_series = self._simulate_over_time(solution, simulation_fn)
+            
+            if not time_series:
+                return self._create_result(
+                    solution_id=solution_id,
+                    passed=False,
+                    score=0.0,
+                    confidence=0.0,
+                    execution_time=time.time() - start_time,
+                    feedback="No time series data available",
+                    details={"error": "Missing time series data"}
+                )
+            
+            # Analyze time series
+            stability = self._check_stability(time_series)
+            convergence = self._check_convergence(time_series)
+            trend = self._analyze_trend(time_series)
+            
+            # Calculate overall temporal score
+            scores = []
+            if stability.get("stable"):
+                scores.append(1.0)
+            else:
+                scores.append(0.5)
+            
+            if convergence.get("converged"):
+                scores.append(1.0)
+            else:
+                scores.append(0.3)
+            
+            # Reward positive trends
+            if trend.get("direction") == "improving":
+                scores.append(1.0)
+            elif trend.get("direction") == "stable":
+                scores.append(0.8)
+            else:
+                scores.append(0.2)
+                
+            score = sum(scores) / len(scores) if scores else 0.5
+            execution_time = time.time() - start_time
+            
+            return self._create_result(
+                solution_id=solution_id,
+                passed=score >= self.config.get("pass_threshold", 0.7),
+                score=score,
+                confidence=0.9,
+                execution_time=execution_time,
+                details={
+                    "stability": stability,
+                    "convergence": convergence,
+                    "trend": trend,
+                    "time_steps_analyzed": len(time_series)
+                },
+                feedback=f"Temporal analysis: status={trend['direction']}, stable={stability['stable']}, converged={convergence['converged']}",
+                improvements=self._generate_temporal_improvements(stability, convergence, trend)
+            )
+            
+        except Exception as e:
+            self.logger.error(f"Temporal gauntlet execution failed: {e}")
+            return self._create_result(
+                solution_id=solution_id,
+                passed=False,
+                score=0.0,
+                confidence=0.0,
+                execution_time=time.time() - start_time,
+                details={"error": str(e)},
+                feedback=f"Temporal analysis error: {str(e)}"
+            )
+
+    def _simulate_over_time(self, solution: Any, simulation_fn: Callable) -> List[float]:
+        """Simulate solution behavior over time."""
+        results = []
+        state = None
+        for t in range(self.time_steps):
+            val, state = simulation_fn(solution, t, state)
+            results.append(val)
+        return results
+
+    def _check_stability(self, time_series: List[float]) -> Dict[str, Any]:
+        """Check if time series is stable (low variance in later steps)."""
+        if len(time_series) < 10:
+            return {"stable": True, "variance": 0}
+            
+        # Look at the last 20% of the data
+        recent_data = time_series[int(len(time_series)*0.8):]
+        variance = statistics.variance(recent_data) if len(recent_data) > 1 else 0
+        
+        return {
+            "stable": variance < self.stability_threshold,
+            "variance": variance,
+            "threshold": self.stability_threshold
+        }
+
+    def _check_convergence(self, time_series: List[float]) -> Dict[str, Any]:
+        """Check if time series has converged to a value."""
+        if len(time_series) < 10:
+            return {"converged": False, "delta": 0}
+            
+        # Check difference between last two segments
+        mid = len(time_series) // 2
+        segment1_avg = statistics.mean(time_series[mid:mid+int(len(time_series)*0.2)])
+        segment2_avg = statistics.mean(time_series[-int(len(time_series)*0.2):])
+        
+        delta = abs(segment1_avg - segment2_avg)
+        
+        return {
+            "converged": delta < self.convergence_threshold,
+            "delta": delta,
+            "threshold": self.convergence_threshold
+        }
+
+    def _analyze_trend(self, time_series: List[float]) -> Dict[str, Any]:
+        """Analyze trend in time series."""
+        if len(time_series) < 2:
+            return {"direction": "unknown", "slope": 0}
+        
+        # Linear regression
+        n = len(time_series)
+        x = list(range(n))
+        x_mean = sum(x) / n
+        y_mean = sum(time_series) / n
+        
+        numerator = sum((xi - x_mean) * (yi - y_mean) for xi, yi in zip(x, time_series))
+        denominator = sum((xi - x_mean) ** 2 for xi in x)
+        
+        slope = numerator / denominator if denominator != 0 else 0
+        
+        if slope > 0.01:
+            direction = "improving" if self.config.get("higher_is_better", True) else "degrading"
+        elif slope < -0.01:
+            direction = "degrading" if self.config.get("higher_is_better", True) else "improving"
+        else:
+            direction = "stable"
+        
+        return {
+            "direction": direction,
+            "slope": slope
+        }
+
+    def _generate_temporal_improvements(self, stability: Dict, convergence: Dict, trend: Dict) -> List[str]:
+        """Generate improvement suggestions based on temporal analysis."""
+        improvements = []
+        if not stability.get("stable"):
+            improvements.append("Reduce variance in solution behavior over time")
+        if not convergence.get("converged"):
+            improvements.append("Improve convergence properties")
+        if trend.get("direction") == "degrading":
+            improvements.append("Address degrading performance trend over time")
+        return improvements
+
+
 class CrossValidationGauntlet(BaseGauntlet):
     """
     Cross-Validation Gauntlet: K-fold style validation.
@@ -2798,11 +3002,6 @@ class CrossValidationGauntlet(BaseGauntlet):
             scores = [f["score"] for f in fold_results]
             mean_score = statistics.mean(scores)
             std_score = statistics.stdev(scores) if len(scores) > 1 else 0
-            min_score = min(scores)
-            max_score = max(scores)
-            
-            # Confidence interval (95%)
-            ci_width = 1.96 * std_score / np.sqrt(len(scores))
             
             execution_time = time.time() - start_time
             
@@ -2822,15 +3021,11 @@ class CrossValidationGauntlet(BaseGauntlet):
                     "fold_results": fold_results,
                     "mean_score": mean_score,
                     "std_score": std_score,
-                    "min_score": min_score,
-                    "max_score": max_score,
-                    "confidence_interval": [mean_score - ci_width, mean_score + ci_width],
                     "k_folds": self.k_folds
                 },
                 feedback=f"Cross-validation: mean={mean_score:.3f}±{std_score:.3f} across {self.k_folds} folds",
                 improvements=[
                     f"High variance between folds (std={std_score:.3f})" if std_score > 0.15 else "",
-                    f"Low minimum score ({min_score:.3f})" if min_score < 0.5 else ""
                 ]
             )
             
@@ -2884,16 +3079,10 @@ class CrossValidationGauntlet(BaseGauntlet):
     
     def _default_evaluation(self, solution: Any, data: List) -> float:
         """Default evaluation function."""
-        # Simple heuristic: match percentage
-        if not data:
-            return 0.0
-        
+        if not data: return 0.0
         solution_text = str(solution).lower()
         matches = sum(1 for item in data if str(item).lower() in solution_text)
         return matches / len(data)
-
-
-# Factory function for creating gauntlets
 
 
 # Factory function for creating gauntlets

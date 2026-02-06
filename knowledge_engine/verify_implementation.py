@@ -140,7 +140,11 @@ async def verify_integration_components():
 
 async def verify_functionality():
     """Verify basic functionality of the knowledge engine."""
-    print("\n🔍 Verifying basic functionality...")
+    async def verify_functionality():
+    """Verify basic functionality of the knowledge engine."""
+    print("INFO] Verifying basic functionality...")
+    
+    try:
     
     try:
         from knowledge_engine import OpenEvolveKnowledgeEngine
@@ -165,7 +169,7 @@ async def verify_functionality():
 
 async def verify_architecture():
     """Verify that the architecture components are in place."""
-    print("\n🔍 Verifying architecture components...")
+    ["INFO] Verifying architecture components..."]
     
     success = True
     
@@ -216,7 +220,7 @@ async def main():
     
     # Print summary
     print("\n" + "=" * 60)
-    print("📋 VERIFICATION SUMMARY")
+    print("VERIFICATION SUMMARY")
     print("=" * 60)
     
     all_passed = True
@@ -228,12 +232,12 @@ async def main():
     
     print("=" * 60)
     if all_passed:
-        print("🎉 ALL VERIFICATION TESTS PASSED!")
+        print("ALL VERIFICATION TESTS PASSED!")
         print("[OK] The OpenEvolve Knowledge Engine implementation is complete and functional.")
         print(f"Verification completed at: {datetime.now().isoformat()}")
         return 0
     else:
-        print("💥 SOME VERIFICATION TESTS FAILED!")
+        print("SOME VERIFICATION TESTS FAILED!")
         print("[FAIL] The OpenEvolve Knowledge Engine implementation has issues that need to be addressed.")
         print(f"Verification completed at: {datetime.now().isoformat()}")
         return 1

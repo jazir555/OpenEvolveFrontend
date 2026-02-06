@@ -1,0 +1,189 @@
+{
+  "total_files": 110,
+  "successful_imports": 87,
+  "failed_imports": 23,
+  "success_rate": "0%",
+  "successful": [
+    "examples\\01_basic_evolution.py",
+    "examples\\01_basic_evolution_evaluator.py",
+    "examples\\02_function_evolution.py",
+    "examples\\02_function_evolution_evaluator.py",
+    "examples\\03_config_file.py",
+    "examples\\03_optimize_evaluator.py",
+    "examples\\04_string_evaluator.py",
+    "examples\\05_algo_evaluator.py",
+    "examples\\05_cli_usage.py",
+    "examples\\06_advanced_features.py",
+    "examples\\06_multi_evaluator.py",
+    "examples\\bubblelabs_plugin_examples.py",
+    "examples\\enhanced_gauntlet_example.py",
+    "examples\\example_ml_pipeline.py",
+    "examples\\example_research_decomposition.py",
+    "examples\\finance\\insurance_example.py",
+    "examples\\gauntlet_configs\\finance_config.py",
+    "examples\\gauntlet_configs\\science_config.py",
+    "examples\\gauntlet_configs\\web_config.py",
+    "examples\\knowledge_integration_example.py",
+    "examples\\loongflow_extraction_example.py",
+    "examples\\loongflow_fallback_example.py",
+    "examples\\loongflow_gauntlet_usage.py",
+    "examples\\mdap_maker_associative_example.py",
+    "examples\\node_usage_examples.py",
+    "examples\\roma_mdap_maker_associative_example.py",
+    "examples\\roma_recomposition_examples.py",
+    "examples\\sop_research_quest_poc.py",
+    "examples\\test_examples.py",
+    "examples\\three_round_integration_example.py",
+    "glue\\__init__.py",
+    "glue\\adapters\\__init__.py",
+    "glue\\adapters\\curie-globalchem-integration\\probes\\integration_probe.py",
+    "glue\\adapters\\gauntlet-adapter\\monitoring\\__init__.py",
+    "glue\\adapters\\gauntlet-adapter\\monitoring\\alerting.py",
+    "glue\\adapters\\gauntlet-adapter\\monitoring\\config.py",
+    "glue\\adapters\\gauntlet-adapter\\monitoring\\health_checks.py",
+    "glue\\adapters\\gauntlet-adapter\\monitoring\\metrics.py",
+    "glue\\adapters\\gauntlet-adapter\\src\\adaptive_learner.py",
+    "glue\\adapters\\gauntlet-adapter\\src\\intelligent_orchestrator.py",
+    "glue\\adapters\\gauntlet-adapter\\src\\ml_optimizer.py",
+    "glue\\adapters\\gauntlet-adapter\\src\\predictive_gauntlet_executor.py",
+    "glue\\adapters\\gauntlet-adapter\\tests\\compare_learning.py",
+    "glue\\adapters\\gauntlet-adapter\\tests\\test_backpropagation.py",
+    "glue\\adapters\\leanaide-adapter\\src\\autoformalization_pipeline.py",
+    "glue\\adapters\\leanaide-adapter\\tests\\test_formalization_coverage.py",
+    "glue\\adapters\\leanaide-adapter\\verify_category_a_formalization.py",
+    "glue\\adapters\\lmql-dspy-integration\\probes\\integration_probe.py",
+    "glue\\adapters\\lmql-dspy-integration\\src\\lmql_dspy_adapter.py",
+    "glue\\adapters\\lmql-dspy-integration\\test_integration.py",
+    "glue\\adapters\\matryoshka_adapter.py",
+    "glue\\adapters\\pami-research-quest-curie-globalchem-integration\\probes\\integration_probe.py",
+    "glue\\adapters\\rese-benchmarks\\benchmark_full_pipeline.py",
+    "glue\\adapters\\rese-benchmarks\\benchmark_phase1.py",
+    "glue\\adapters\\rese-benchmarks\\benchmark_phase2.py",
+    "glue\\adapters\\rese-benchmarks\\benchmark_phase3.py",
+    "glue\\adapters\\rese-benchmarks\\benchmark_phase4.py",
+    "glue\\adapters\\rese-benchmarks\\init_baseline.py",
+    "glue\\adapters\\rese-benchmarks\\run_all_benchmarks.py",
+    "glue\\adapters\\rese-benchmarks\\verify_setup.py",
+    "glue\\adapters\\rese-dee\\src\\dee_adapter.py",
+    "glue\\adapters\\rese-dee\\tests\\test_dee.py",
+    "glue\\adapters\\rese-dee\\tests\\test_integration.py",
+    "glue\\adapters\\rese-integration\\config_validator.py",
+    "glue\\adapters\\rese-integration\\health\\aggregate_health.py",
+    "glue\\adapters\\rese-leanaide-workflow\\__init__.py",
+    "glue\\adapters\\rese-leanaide-workflow\\src\\__init__.py",
+    "glue\\adapters\\rese-leanaide-workflow\\src\\autoformalization_service.py",
+    "glue\\adapters\\rese-leanaide-workflow\\src\\leanaide_rese_workflow.py",
+    "glue\\adapters\\rese-leanaide-workflow\\src\\proof_search_service.py",
+    "glue\\adapters\\rese-leanaide-workflow\\tests\\__init__.py",
+    "glue\\adapters\\rese-leanaide-workflow\\tests\\test_leanaide_workflow_comprehensive.py",
+    "glue\\adapters\\rese-lltl\\__init__.py",
+    "glue\\adapters\\rese-lltl\\example_usage.py",
+    "glue\\adapters\\rese-lltl\\examples\\confidence_thresholds_example.py",
+    "glue\\adapters\\rese-lltl\\src\\__init__.py",
+    "glue\\adapters\\rese-lltl\\src\\confidence_tracker.py",
+    "glue\\adapters\\rese-lltl\\src\\formal_commitments.py",
+    "glue\\adapters\\rese-lltl\\src\\lltl_adapter.py",
+    "glue\\adapters\\rese-lltl\\tests\\test_confidence_tracker.py",
+    "glue\\adapters\\rese-lltl\\tests\\test_dee_to_sce_auditability.py",
+    "glue\\adapters\\rese-lltl\\tests\\test_dee_to_sce_simple.py",
+    "glue\\adapters\\rese-lltl\\tests\\test_formal_commitments.py",
+    "glue\\adapters\\rese-lltl\\tests\\test_lltl_comprehensive.py",
+    "glue\\adapters\\rese-lltl\\tests\\test_z3_contradiction_detection.py",
+    "glue\\adapters\\rese-lltl\\tests\\test_z3_dito_benchmark.py",
+    "glue\\adapters\\rese-lltl\\tests\\test_z3_integration_structure.py"
+  ],
+  "failed": [
+    {
+      "file": "examples\\04_python_api.py",
+      "error": "ImportError: cannot import name 'run_evolution' from 'openevolve' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve\\__init__.py)"
+    },
+    {
+      "file": "examples\\associative_recomposition_example.py",
+      "error": "ImportError: cannot import name 'SolutionType' from 'associative_recomposition' (C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\associative_recomposition.py)"
+    },
+    {
+      "file": "examples\\example_business_process.py",
+      "error": "ImportError: cannot import name 'FlowBasedDecomposition' from 'decomposition_engine' (C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\decomposition_engine.py)"
+    },
+    {
+      "file": "examples\\example_software_architecture.py",
+      "error": "ImportError: cannot import name 'HierarchicalDecomposition' from 'decomposition_engine' (C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\decomposition_engine.py)"
+    },
+    {
+      "file": "examples\\investment_committee_demo.py",
+      "error": "ImportError: No module named 'openevolve.agents'"
+    },
+    {
+      "file": "examples\\lean4_usage_example.py",
+      "error": "ImportError: cannot import name 'create_lean4_verification_engine' from 'lean4_integration' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\lean4_integration.py)"
+    },
+    {
+      "file": "examples\\optional_loongflow_demo.py",
+      "error": "ImportError: No module named 'unified'"
+    },
+    {
+      "file": "examples\\roma_decomposition_advanced.py",
+      "error": "ImportError: cannot import name 'get_recommended_strategy' from 'problem_decomposition' (C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\problem_decomposition.py)"
+    },
+    {
+      "file": "examples\\roma_decomposition_basic.py",
+      "error": "ImportError: cannot import name 'get_roma_integration_status' from 'problem_decomposition' (C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\problem_decomposition.py)"
+    },
+    {
+      "file": "examples\\unified_evolution_quickstart.py",
+      "error": "ImportError: No module named 'openevolve.unified.unified_evolution_api'"
+    },
+    {
+      "file": "examples\\verify_optional_loongflow.py",
+      "error": "ImportError: No module named 'unified'"
+    },
+    {
+      "file": "examples\\verify_unified_api.py",
+      "error": "ImportError: No module named 'openevolve.unified.unified_evolution_api'"
+    },
+    {
+      "file": "glue\\adapters\\curie-globalchem-integration\\src\\curie_globalchem_adapter.py",
+      "error": "ImportError: cannot import name 'GlobalChem' from 'global_chem' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\integrations\\global_chem\\__init__.py)"
+    },
+    {
+      "file": "glue\\adapters\\curie-globalchem-integration\\test_adapter.py",
+      "error": "ImportError: cannot import name 'GlobalChem' from 'global_chem' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\integrations\\global_chem\\__init__.py)"
+    },
+    {
+      "file": "glue\\adapters\\curie-globalchem-integration\\test_anti_corruption.py",
+      "error": "ImportError: cannot import name 'GlobalChem' from 'global_chem' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\integrations\\global_chem\\__init__.py)"
+    },
+    {
+      "file": "glue\\adapters\\gauntlet-adapter\\monitoring\\example_usage.py",
+      "error": "ImportError: No module named 'glue.adapters.gauntlet_adapter'"
+    },
+    {
+      "file": "glue\\adapters\\gauntlet-adapter\\monitoring\\quick_start.py",
+      "error": "ImportError: No module named 'glue.adapters.gauntlet_adapter'"
+    },
+    {
+      "file": "glue\\adapters\\leanaide-adapter\\tests\\test_phase1_lean4_integration.py",
+      "error": "ImportError: No module named 'phase1_executor'"
+    },
+    {
+      "file": "glue\\adapters\\pami-research-quest-curie-globalchem-integration\\src\\pami_research_quest_curie_globalchem_adapter.py",
+      "error": "ImportError: No module named 'research_quest_curie_globalchem_adapter'"
+    },
+    {
+      "file": "glue\\adapters\\pami-research-quest-curie-globalchem-integration\\test_integration.py",
+      "error": "ImportError: No module named 'research_quest_curie_globalchem_adapter'"
+    },
+    {
+      "file": "glue\\adapters\\rese-integration\\config_example.py",
+      "error": "ImportError: No module named 'glue.adapters.rese_integration'"
+    },
+    {
+      "file": "glue\\adapters\\rese-integration\\config_loader.py",
+      "error": "ImportError: No module named 'glue.adapters.rese_integration'"
+    },
+    {
+      "file": "glue\\adapters\\rese-leanaide-workflow\\tests\\test_leanaide_rese_workflow.py",
+      "error": "ImportError: attempted relative import with no known parent package"
+    }
+  ]
+}

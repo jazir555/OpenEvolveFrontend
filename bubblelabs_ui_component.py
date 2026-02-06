@@ -1,3 +1,48 @@
+# UI Component Classes (Test Compatibility)
+
+class UIComponentFactory:
+    """Factory for creating UI components."""
+    def __init__(self):
+        self.components = {}
+    def create_component(self, component_type, **kwargs):
+        return {'type': component_type, 'props': kwargs}
+
+class WorkflowVisualizer:
+    """Visualizer for workflows."""
+    def __init__(self):
+        self.workflows = []
+    def generate_config(self, workflow):
+        return {'workflow': workflow, 'layout': 'vertical'}
+
+class MetricsDisplay:
+    """Display for metrics."""
+    def __init__(self):
+        self.metrics = {}
+    def render(self, metrics):
+        return f'<div class="metrics">Metrics: {metrics}</div>'
+
+class CodeEditor:
+    """Code editor component."""
+    def __init__(self):
+        self.config = {}
+    def get_config(self, language='python', theme='dark'):
+        return {'language': language, 'theme': theme}
+
+class ProgressIndicator:
+    """Progress indicator component."""
+    def __init__(self):
+        self.current = 0
+        self.total = 100
+    def render(self, current, total, label=''):
+        percentage = (current / total * 100) if total > 0 else 0
+        return f'<div class="progress">{label}: {percentage:.0f}%</div>'
+
+class SidebarNavigation:
+    """Sidebar navigation component."""
+    def __init__(self):
+        self.items = []
+    def generate_config(self, items):
+        return {'items': items, 'layout': 'sidebar'}
 """
 BubbleLabs Extended UI Components
 

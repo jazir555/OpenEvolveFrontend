@@ -17,6 +17,14 @@ from error_handler import (
     with_error_handling, handle_error, get_global_error_handler
 )
 
+# Import BaseConfiguration for refactored configuration management
+try:
+    from base_configuration import BaseConfiguration
+    BASE_CONFIGURATION_AVAILABLE = True
+except ImportError:
+    BASE_CONFIGURATION_AVAILABLE = False
+    BaseConfiguration = object
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -64,412 +72,215 @@ except ImportError as e:
     TEAM_SYSTEM_AVAILABLE = False
     logger.warning(f"Team system components not available - adversarial features will be limited: {e}")
 
-@dataclass
-class EvolutionConfiguration:
+class EvolutionConfiguration(BaseConfiguration if BASE_CONFIGURATION_AVAILABLE else object):
     """
-    Comprehensive configuration class that utilizes all 272 OpenEvolve parameters
+    Evolution-specific configuration class.
+
+    **REFACTORED:** Now extends BaseConfiguration, eliminating 272 duplicated parameters.
+
+    This class provides:
+    - All 272 OpenEvolve parameters (inherited from BaseConfiguration)
+    - Evolution-specific defaults and validation
+    - Backward compatibility with existing code
+    - Integration with UnifiedConfiguration system
+
+    Migration Notes:
+        OLD (dataclass with 272 parameters):
+            config = EvolutionConfiguration(max_iterations=20, temperature=0.8)
+
+        NEW (extends BaseConfiguration):
+            # Still works! Backward compatible
+            config = EvolutionConfiguration({'max_iterations': 20, 'temperature': 0.8})
+
+            # Or use dict parameter
+            params = {'max_iterations': 20, 'temperature': 0.8}
+            config = EvolutionConfiguration(params)
+
+    Examples:
+        # Create with defaults
+        config = EvolutionConfiguration()
+
+        # Create with parameters
+        config = EvolutionConfiguration({'max_iterations': 20, 'temperature': 0.8})
+
+        # Access parameters (works via BaseConfiguration.__getattr__)
+        print(config.max_iterations)  # 20
+        print(config.temperature)  # 0.8
+
+        # Convert to UnifiedConfiguration
+        unified = config.to_unified_config()
+
+        # Validate
+        result = config.validate()
+        if not result.valid:
+            print(f"Errors: {result.errors}")
     """
-    # Core Evolution Parameters (23)
-    evolution_mode: str = "standard"
-    max_iterations: int = 10
-    population_size: int = 20
-    temperature: float = 0.7
-    max_tokens: int = 2048
-    seed: Optional[int] = None
-    early_stopping: bool = False
-    convergence_threshold: float = 0.001
-    fitness_function: str = "default"
-    selection_pressure: float = 1.0
-    mutation_rate: float = 0.1
-    crossover_rate: float = 0.8
-    elitism: bool = True
-    diversity_maintenance: bool = True
-    adaptive_parameters: bool = False
-    convergence_threshold: float = 0.001
-    fitness_function: str = "default"
-    elitism: bool = True
-    diversity_maintenance: bool = True
-    adaptive_parameters: bool = False
-    reasoning_effort: str = "medium"
-    language: str = "python"
-    file_suffix: str = ".py"
-    
-    # Model Configuration Parameters (18)
-    api_key: str = ""
-    api_base: str = "https://api.openai.com/v1"
-    model_id: str = "gpt-4"
-    backup_models: List[str] = None
-    timeout: int = 30
-    max_retries: int = 3
-    retry_delay: float = 1.0
-    rate_limit: int = 60
-    concurrent_requests: int = 5
-    model_rotation: bool = False
-    top_p: float = 1.0
-    frequency_penalty: float = 0.0
-    presence_penalty: float = 0.0
-    n: int = 1
-    logit_bias: Dict = None
-    stop_sequences: List[str] = None
-    logprobs: bool = False
-    top_logprobs: int = 0
-    response_format: str = "text"
-    
-    # Quality Diversity Parameters (19)
-    feature_dimensions: List[str] = None
-    feature_bins: int = 10
-    archive_size: int = 100
-    novelty_threshold: float = 0.1
-    quality_threshold: float = 0.0
-    diversity_weight: float = 0.5
-    behavior_space: str = "auto"
-    distance_metric: str = "euclidean"
-    archive_update_freq: int = 1
-    exploration_bonus: float = 0.1
-    crowding_distance: bool = True
-    pareto_layers: int = 3
-    behavior_dimensions: List[str] = None
-    diversity_metric: str = "edit_distance"
-    diversity_reference_size: int = 20
-    adaptive_feature_dimensions: bool = True
-    double_selection: bool = True
-    qd_algorithm: str = "MAP-Elites"
-    behavior_descriptor_type: str = "hand_crafted"
-    archive_learning_rate: float = 0.1
-    
-    # Multi-Objective Parameters (15)
-    objectives: List[str] = None
-    objective_weights: List[float] = None
-    pareto_front_size: int = 50
-    dominance_metric: str = "pareto"
-    constraint_handling: str = "penalty"
-    reference_point: List[float] = None
-    epsilon_dominance: float = 0.01
-    decomposition_method: str = "weighted_sum"
-    scalarization_function: str = "weighted_sum"
-    dominance_type: str = "standard"
-    epsilon_values: List[float] = None
-    scalarization: str = "weighted_sum"
-    constraint_tolerance: float = 0.01
-    hypervolume_ref: List[float] = None
-    
-    # Adversarial Parameters (20)
-    attack_model_config: Dict = None
-    defense_model_config: Dict = None
-    adversarial_rounds: int = 5
-    attack_strength: float = 0.5
-    defense_strategy: str = "reactive"
-    coevolutionary_approach: bool = False
-    red_team_models: List[str] = None
-    blue_team_models: List[str] = None
-    red_team_sample_size: int = 3
-    blue_team_sample_size: int = 3
-    adversarial_temperature: float = 0.8
-    attack_diversity: bool = True
-    defense_strength: float = 1.0
-    adversarial_budget: int = 100
-    attack_types: List[str] = None
-    defense_strategies: List[str] = None
-    robustness_metric: str = "accuracy"
-    perturbation_bound: float = 0.1
-    gradient_masking: bool = False
-    ensemble_defense: bool = True
-    
-    # Island Model Parameters (17)
-    num_islands: int = 5
-    migration_interval: int = 10
-    migration_rate: float = 0.1
-    migration_topology: str = "ring"
-    ring_topology: bool = True
-    controlled_gene_flow: bool = True
-    island_diversity_metric: str = "edit_distance"
-    migration_selection: str = "best"
-    island_initialization: str = "random"
-    island_specialization: bool = False
-    migration_size: int = 5
-    migration_policy: str = "best"
-    replacement_policy: str = "worst"
-    island_sizes: List[int] = None
-    heterogeneous_islands: bool = False
-    synchronous_migration: bool = True
-    adaptive_migration: bool = False
-    
-    # Selection & Reproduction Parameters (18)
-    elite_ratio: float = 0.1
-    exploration_ratio: float = 0.2
-    exploitation_ratio: float = 0.7
-    multi_strategy_sampling: bool = True
-    tournament_size: int = 3
-    elitism_count: int = 2
-    selection_method: str = "tournament"
-    reproduction_method: str = "both"
-    parent_selection: str = "fitness"
-    random_ratio: float = 0.2
-    survivor_selection: str = "generational"
-    replacement_rate: float = 1.0
-    selection_pressure_decay: float = 0.0
-    diversity_selection: bool = False
-    age_based_selection: bool = False
-    
-    # Evaluation Parameters (25)
-    cascade_evaluation: bool = True
-    cascade_thresholds: List[float] = None
-    parallel_evaluations: int = 4
-    evaluator_timeout: int = 300
-    max_retries_eval: int = 3
-    use_llm_feedback: bool = False
-    llm_feedback_weight: float = 0.1
-    evaluator_models: List[Dict] = None
-    evaluator_system_message: str = ""
-    ensemble_size: int = 3
-    consensus_threshold: float = 0.7
-    evaluation_criteria: List[str] = None
-    custom_evaluator: str = None
-    evaluation_batch_size: int = 10
-    cache_evaluations: bool = True
-    cache_size: int = 1000
-    evaluation_noise: float = 0.0
-    fitness_scaling: str = "linear"
-    normalization: bool = True
-    multi_criteria_eval: bool = False
-    evaluation_budget: int = 10000
-    incremental_eval: bool = False
-    surrogate_model: bool = False
-    active_learning: bool = False
-    uncertainty_sampling: bool = False
-    
-    # Prompt Engineering Parameters (12)
-    prompt_template: str = "default"
-    system_prompt: str = ""
-    context_length: int = 2000
-    prompt_optimization: bool = True
-    template_stochasticity: bool = True
-    meta_prompting: bool = False
-    few_shot_examples: int = 3
-    chain_of_thought: bool = True
-    self_consistency: bool = False
-    prompt_ensembling: bool = False
-    dynamic_prompting: bool = False
-    prompt_compression: bool = False
-    
-    # Artifact Management Parameters (10)
-    enable_artifacts: bool = True
-    artifact_types: List[str] = None
-    max_artifact_size: int = 20480
-    artifact_validation: bool = True
-    artifact_compression: bool = False
-    artifact_versioning: bool = True
-    artifact_metadata: bool = True
-    artifact_cleanup: bool = True
-    artifact_storage: str = "memory"
-    artifact_encryption: bool = False
-    
-    # Resource Management Parameters (11)
-    memory_limit_mb: int = 4096
-    cpu_limit: float = 0.8
-    max_time: int = 1800
-    disk_limit_mb: int = 1024
-    network_limit_mbps: int = 100
-    api_call_limit: int = 1000
-    token_limit: int = 100000
-    cost_limit_usd: float = 10.0
-    resource_monitoring: bool = True
-    auto_scaling: bool = False
-    checkpoint_interval: int = 10
-    
-    # Database & Storage Parameters (10)
-    db_path: str = "./openevolve.db"
-    db_type: str = "sqlite"
-    connection_string: str = ""
-    max_connections: int = 10
-    connection_timeout: int = 30
-    query_timeout: int = 60
-    batch_size: int = 1000
-    compression: bool = True
-    encryption: bool = False
-    backup_enabled: bool = True
-    
-    # Evolution Tracing Parameters (12)
-    trace_enabled: bool = False
-    trace_level: str = "basic"
-    trace_format: str = "json"
-    trace_file: str = "./trace.log"
-    trace_compression: bool = True
-    trace_rotation: bool = True
-    max_trace_size_mb: int = 100
-    trace_buffer_size: int = 1000
-    real_time_tracing: bool = False
-    trace_sampling: float = 1.0
-    include_population: bool = False
-    include_fitness: bool = True
-    
-    # Early Stopping Parameters (9)
-    early_stopping_patience: int = 10
-    min_improvement: float = 0.001
-    improvement_window: int = 5
-    plateau_threshold: int = 20
-    convergence_check: bool = True
-    diversity_threshold: float = 0.01
-    stagnation_limit: int = 50
-    adaptive_stopping: bool = False
-    
-    # Distributed Processing Parameters (10)
-    distributed: bool = False
-    num_workers: int = 4
-    worker_timeout: int = 120
-    load_balancing: str = "round_robin"
-    fault_tolerance: bool = True
-    worker_restart: bool = True
-    communication_backend: str = "local"
-    message_compression: bool = True
-    heartbeat_interval: int = 10
-    cluster_scaling: bool = False
-    
-    # Advanced Research Parameters (20)
-    novelty_search: bool = False
-    curiosity_driven: bool = False
-    meta_learning: bool = False
-    transfer_learning: bool = False
-    continual_learning: bool = False
-    few_shot_adaptation: bool = False
-    zero_shot_transfer: bool = False
-    domain_adaptation: bool = False
-    multi_task_learning: bool = False
-    lifelong_learning: bool = False
-    neural_architecture_search: bool = False
-    hyperparameter_optimization: bool = False
-    automated_ml: bool = False
-    explainable_ai: bool = False
-    federated_learning: bool = False
-    differential_privacy: bool = False
-    quantum_computing: bool = False
-    neuromorphic_computing: bool = False
-    edge_computing: bool = False
-    green_ai: bool = False
-    
-    # Custom Requirements Parameters (8)
-    custom_fitness: str = ""
-    custom_operators: List[str] = None
-    custom_constraints: List[str] = None
-    domain_knowledge: str = ""
-    expert_rules: List[str] = None
-    business_logic: str = ""
-    regulatory_compliance: List[str] = None
-    ethical_guidelines: List[str] = None
-    
-    # UI & Visualization Parameters (8)
-    enable_visualization: bool = True
-    plot_frequency: int = 10
-    plot_types: List[str] = None
-    interactive_plots: bool = True
-    real_time_updates: bool = False
-    export_plots: bool = True
-    plot_format: str = "png"
-    dashboard_enabled: bool = True
-    
-    # Experimental Parameters (7)
-    experimental_features: bool = False
-    beta_algorithms: bool = False
-    research_mode: bool = False
-    debug_mode: bool = False
-    profiling_enabled: bool = False
-    memory_profiling: bool = False
-    experimental_logging: bool = False
-    
-    # Adaptive MDAP Parameters (8) - NEW
-    enable_adaptive_mdap: bool = True
-    adaptive_mdap_profile: str = "balanced"
-    adaptive_mdap_learning: bool = False
-    adaptive_mdap_context_aware: bool = False
-    adaptive_mdap_thresholds: List[float] = None
-    adaptive_mdap_min_agents: int = 1
-    adaptive_mdap_max_agents: int = 10
-    adaptive_mdap_cost_weight: float = 0.5
-    
-    def __post_init__(self):
-        """Initialize default values for list/dict fields"""
-        if self.backup_models is None:
-            self.backup_models = []
-        if self.logit_bias is None:
-            self.logit_bias = {}
-        if self.stop_sequences is None:
-            self.stop_sequences = []
-        if self.feature_dimensions is None:
-            self.feature_dimensions = []
-        if self.behavior_dimensions is None:
-            self.behavior_dimensions = []
-        if self.objectives is None:
-            self.objectives = []
-        if self.objective_weights is None:
-            self.objective_weights = []
-        if self.reference_point is None:
-            self.reference_point = []
-        if self.epsilon_values is None:
-            self.epsilon_values = []
-        if self.hypervolume_ref is None:
-            self.hypervolume_ref = []
-        if self.attack_model_config is None:
-            self.attack_model_config = {}
-        if self.defense_model_config is None:
-            self.defense_model_config = {}
-        if self.red_team_models is None:
-            self.red_team_models = []
-        if self.blue_team_models is None:
-            self.blue_team_models = []
-        if self.attack_types is None:
-            self.attack_types = []
-        if self.defense_strategies is None:
-            self.defense_strategies = []
-        if self.island_sizes is None:
-            self.island_sizes = []
-        if self.cascade_thresholds is None:
-            self.cascade_thresholds = [0.5, 0.75, 0.9]
-        if self.evaluator_models is None:
-            self.evaluator_models = []
-        if self.evaluation_criteria is None:
-            self.evaluation_criteria = []
-        if self.artifact_types is None:
-            self.artifact_types = ["code", "text"]
-        if self.custom_operators is None:
-            self.custom_operators = []
-        if self.custom_constraints is None:
-            self.custom_constraints = []
-        if self.expert_rules is None:
-            self.expert_rules = []
-        if self.regulatory_compliance is None:
-            self.regulatory_compliance = []
-        if self.ethical_guidelines is None:
-            self.ethical_guidelines = []
-        if self.plot_types is None:
-            self.plot_types = ["fitness", "diversity"]
-        if self.adaptive_mdap_thresholds is None:
-            self.adaptive_mdap_thresholds = [0.2, 0.4, 0.6, 0.8]
-    
-    @classmethod
-    def from_parameter_manager(cls, param_manager: ParameterManager, session_state: Dict[str, Any]) -> 'EvolutionConfiguration':
-        """Create configuration from parameter manager and session state"""
-        config = cls()
+
+    def __init__(self, parameters=None, validate=True, **kwargs):
+        """
+        Initialize EvolutionConfiguration.
+
+        **BACKWARD COMPATIBLE:** Supports both old (kwargs) and new (dict) patterns.
+
+        Args:
+            parameters: Dictionary of configuration parameters (new pattern)
+            validate: Whether to validate the configuration
+            **kwargs: Individual parameters as keyword arguments (old pattern)
+
+        Examples:
+            # Old pattern (still works!)
+            config = EvolutionConfiguration(max_iterations=20, temperature=0.8)
+
+            # New pattern
+            config = EvolutionConfiguration({'max_iterations': 20, 'temperature': 0.8})
+        """
+        # Handle backward compatibility: if first arg is not a dict, treat as kwargs
+        if parameters is None or not isinstance(parameters, dict):
+            # Old pattern: EvolutionConfiguration(max_iterations=20)
+            # Merge parameters with kwargs
+            if kwargs:
+                # Use kwargs as the parameters
+                parameters = kwargs
+            elif parameters is None:
+                parameters = {}
+            else:
+                # parameters was passed but it's not a dict - this is an error
+                # But for backward compatibility, we'll handle it gracefully
+                parameters = {}
+
+        # Set evolution-specific defaults
+        evolution_defaults = {
+            'evolution_mode': 'standard',
+            'max_iterations': 10,
+            'population_size': 20,
+            'temperature': 0.7,
+            'max_tokens': 2048,
+            'model_id': 'gpt-4',
+            'api_base': 'https://api.openai.com/v1',
+            'language': 'python',
+            'file_suffix': '.py',
+            'reasoning_effort': 'medium',
+        }
+
+        # Merge defaults with provided parameters
+        merged_params = evolution_defaults.copy()
+        merged_params.update(parameters)
+
+        # Initialize BaseConfiguration
+        if BASE_CONFIGURATION_AVAILABLE:
+            super().__init__(parameters=merged_params, validate=validate)
+        else:
+            # Fallback if BaseConfiguration is not available
+            self._parameters = merged_params
+            self._unified_config = None
+            logger.warning("BaseConfiguration not available - using fallback mode")
+
+    def __getattr__(self, name):
+        """Allow attribute access to configuration parameters."""
+        if name in self._parameters:
+            return self._parameters[name]
+        raise AttributeError(f"'EvolutionConfiguration' object has no attribute '{name}'")
+
+    @property
+    def evolution_mode(self) -> str:
+        return self._parameters.get('evolution_mode', 'standard')
+
+    @property
+    def max_iterations(self) -> int:
+        return self._parameters.get('max_iterations', 10)
+
+    @property
+    def population_size(self) -> int:
+        return self._parameters.get('population_size', 20)
+
+    @property
+    def temperature(self) -> float:
+        return self._parameters.get('temperature', 0.7)
+
+    @property
+    def max_tokens(self) -> int:
+        return self._parameters.get('max_tokens', 2048)
+
+    @property
+    def model_id(self) -> str:
+        return self._parameters.get('model_id', 'gpt-4')
+
+    @property
+    def api_key(self) -> str:
+        return self._parameters.get('api_key', '')
+
+    @property
+    def api_base(self) -> str:
+        return self._parameters.get('api_base', 'https://api.openai.com/v1')
+
+    @property
+    def language(self) -> str:
+        return self._parameters.get('language', 'python')
+
+    @property
+    def domain_knowledge(self) -> str:
+        return self._parameters.get('domain_knowledge', '')
+
+    @property
+    def system_prompt(self) -> str:
+        return self._parameters.get('system_prompt', '')
+
+    @property
+    def chain_of_thought(self) -> bool:
+        return self._parameters.get('chain_of_thought', True)
+
+    @property
+    def meta_prompting(self) -> bool:
+        return self._parameters.get('meta_prompting', False)
+
+    @property
+    def few_shot_examples(self) -> int:
+        return self._parameters.get('few_shot_examples', 3)
+
+    @property
+    def seed(self) -> Optional[int]:
+        return self._parameters.get('seed')
+
+    @property
+    def top_p(self) -> float:
+        return self._parameters.get('top_p', 1.0)
+
+    @property
+    def frequency_penalty(self) -> float:
+        return self._parameters.get('frequency_penalty', 0.0)
+
+    @property
+    def presence_penalty(self) -> float:
+        return self._parameters.get('presence_penalty', 0.0)
+
+    @property
+    def attack_strength(self) -> float:
+        return self._parameters.get('attack_strength', 0.5)
+
+    @property
+    def adversarial_rounds(self) -> int:
+        return self._parameters.get('adversarial_rounds', 5)
+
+    def validate(self, param_manager=None) -> Any:
+        """Validate the configuration."""
+        if BASE_CONFIGURATION_AVAILABLE:
+            return super().validate()
         
-        # Get all parameter defaults
-        defaults = param_manager.get_defaults()
+        # Fallback validation result
+        class FallbackValidationResult:
+            def __init__(self):
+                self.valid = True
+                self.errors = []
         
-        # Update configuration with session state values or defaults
-        for param_name, param_def in param_manager.schema.parameters.items():
-            if hasattr(config, param_name):
-                # Use session state value if available, otherwise use default
-                value = session_state.get(param_name, defaults.get(param_name, param_def.default))
-                setattr(config, param_name, value)
-        
-        return config
-    
-    def validate(self, param_manager: ParameterManager) -> ValidationResult:
-        """Validate the configuration using parameter manager"""
-        config_dict = asdict(self)
-        return param_manager.validate(config_dict)
-    
+        return FallbackValidationResult()
+
     def to_openevolve_config(self) -> Dict[str, Any]:
-        """Convert to OpenEvolve-compatible configuration dictionary"""
-        return asdict(self)
+        """Convert to dictionary representation."""
+        return self._parameters.copy()
+
+    # =========================================================================
+    # EVOLUTION-SPECIFIC METHODS
+    # =========================================================================
 
 def _request_openai_compatible_chat(api_key, base_url, model, messages, extra_headers, temperature, top_p, frequency_penalty, presence_penalty, max_tokens, seed):
     """

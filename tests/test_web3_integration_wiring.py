@@ -1,3 +1,7 @@
+import pytest
+
+pytestmark = pytest.mark.timeout(60)  # These tests have slow imports
+
 import api_server
 from api_server import WorkflowCreateRequest, app
 from bubblelabs_security import validate_workflow_type as validate_sec_workflow_type

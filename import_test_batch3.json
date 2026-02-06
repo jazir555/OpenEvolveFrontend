@@ -1,0 +1,125 @@
+{
+  "total_files": 58,
+  "successful_imports": 39,
+  "failed_imports": 19,
+  "success_rate": "67.2%",
+  "successful": [
+    "openevolve\\api.py",
+    "openevolve\\cav_nlp_integration\\__init__.py",
+    "openevolve\\cav_nlp_integration\\adapter.py",
+    "openevolve\\cav_nlp_integration\\canonical_forms.py",
+    "openevolve\\cav_nlp_integration\\compositional_meta_rules.py",
+    "openevolve\\cav_nlp_integration\\data_structures.py",
+    "openevolve\\cav_nlp_integration\\dependency_dag.py",
+    "openevolve\\cav_nlp_integration\\ganesalingam_parser.py",
+    "openevolve\\cav_nlp_integration\\latex_to_lean_ir.py",
+    "openevolve\\cav_nlp_integration\\lean_type_theory.py",
+    "openevolve\\cav_nlp_integration\\mappings.py",
+    "openevolve\\cav_nlp_integration\\verification.py",
+    "openevolve\\config.py",
+    "openevolve\\leanaide_cav_nlp_bridge.py",
+    "openevolve\\unified_math_service.py",
+    "openevolve\\z3_cav_nlp_integration.py",
+    "openevolve\\z3_leanaide_bridge.py",
+    "openevolve_agnostic_pes.py",
+    "openevolve_analytics.py",
+    "openevolve_api.py",
+    "openevolve_bubblelabs_api.py",
+    "openevolve_bubblelabs_plugin.py",
+    "openevolve_cli.py",
+    "openevolve_client.py",
+    "openevolve_dashboard.py",
+    "openevolve_evolution_integration.py",
+    "openevolve_imports.py",
+    "openevolve_integration.py",
+    "openevolve_knowledge_integration.py",
+    "openevolve_leanaide_bridge.py",
+    "openevolve_leanaide_integration_system.py",
+    "openevolve_leanaide_workflow_integration.py",
+    "openevolve_maker_integration.py",
+    "openevolve_mcp_tools.py",
+    "openevolve_orchestrator.py",
+    "openevolve_pes_integration.py",
+    "openevolve_structures.py",
+    "openevolve_validation.py",
+    "openevolve_visualization.py"
+  ],
+  "failed": [
+    {
+      "file": "openevolve\\__init__.py",
+      "error": "NameError: name '__path__' is not defined"
+    },
+    {
+      "file": "openevolve\\cav_nlp_integration\\advanced_compositional_rules.py",
+      "error": "ModuleNotFoundError: No module named 'compositional_meta_rules'"
+    },
+    {
+      "file": "openevolve\\cav_nlp_integration\\arxiv_corpus_learner.py",
+      "error": "ModuleNotFoundError: No module named 'flexible_semantic_parsing'"
+    },
+    {
+      "file": "openevolve\\cav_nlp_integration\\canonical_lean_generator.py",
+      "error": "ModuleNotFoundError: No module named 'dependency_dag'"
+    },
+    {
+      "file": "openevolve\\cav_nlp_integration\\cegis_learner.py",
+      "error": "ModuleNotFoundError: No module named 'rule_discovery_from_arxiv'"
+    },
+    {
+      "file": "openevolve\\cav_nlp_integration\\compositional_semantics.py",
+      "error": "ModuleNotFoundError: No module named 'lean_type_theory'"
+    },
+    {
+      "file": "openevolve\\cav_nlp_integration\\flexible_semantic_parsing.py",
+      "error": "ModuleNotFoundError: No module named 'lean_type_theory'"
+    },
+    {
+      "file": "openevolve\\cav_nlp_integration\\rule_discovery_from_arxiv.py",
+      "error": "ModuleNotFoundError: No module named 'flexible_semantic_parsing'"
+    },
+    {
+      "file": "openevolve\\cav_nlp_integration\\test_cav_nlp.py",
+      "error": "ModuleNotFoundError: No module named 'arxiv_single_paper_agent'"
+    },
+    {
+      "file": "openevolve\\cav_nlp_integration\\z3_canonicalizer.py",
+      "error": "ModuleNotFoundError: No module named 'z3_validated_ir'"
+    },
+    {
+      "file": "openevolve\\cav_nlp_integration\\z3_semantic_synthesis.py",
+      "error": "ModuleNotFoundError: No module named 'lean_type_theory'"
+    },
+    {
+      "file": "openevolve\\cav_nlp_integration\\z3_validated_ir.py",
+      "error": "ModuleNotFoundError: No module named 'compositional_meta_rules'"
+    },
+    {
+      "file": "openevolve_bubblelabs_ui.py",
+      "error": "ImportError: cannot import name 'BubbleLabsCREWAIBridge' from 'bubblelabs_crewai_bridge' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py)"
+    },
+    {
+      "file": "openevolve_crewai_adapter.py",
+      "error": "ImportError: cannot import name 'CrewAIZeroErrorWorkflow' from 'crewai_zero_error_workflow' (C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\crewai_zero_error_workflow.py)"
+    },
+    {
+      "file": "openevolve_crewai_bridge.py",
+      "error": "ImportError: cannot import name 'CrewAIZeroErrorWorkflow' from 'crewai_zero_error_workflow' (C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\crewai_zero_error_workflow.py)"
+    },
+    {
+      "file": "openevolve_crewai_delegation.py",
+      "error": "ImportError: cannot import name 'CrewAIZeroErrorWorkflow' from 'crewai_zero_error_workflow' (C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\crewai_zero_error_workflow.py)"
+    },
+    {
+      "file": "openevolve_decomposition_adapter.py",
+      "error": "ImportError: cannot import name 'DecompositionRecompositionPipeline' from 'decomposition_recomposition_integration' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\decomposition_recomposition_integration.py)"
+    },
+    {
+      "file": "openevolve_enhanced_decomposition_integration.py",
+      "error": "ImportError: cannot import name 'DecompositionRecompositionPipeline' from 'decomposition_recomposition_integration' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\decomposition_recomposition_integration.py)"
+    },
+    {
+      "file": "openevolve_workflow_manager_integrated.py",
+      "error": "ImportError: cannot import name 'BubbleLabsCREWAIBridge' from 'bubblelabs_crewai_bridge' (c:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py)"
+    }
+  ]
+}

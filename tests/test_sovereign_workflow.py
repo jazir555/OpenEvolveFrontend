@@ -6,6 +6,8 @@ from unittest.mock import MagicMock, patch
 import dataclasses
 import json
 
+pytestmark = pytest.mark.timeout(60)  # This test has slow imports
+
 # Set test environment
 os.environ.setdefault("OPENAI_API_KEY", "sk-test-key-for-testing")
 os.environ.setdefault("TESTING", "true")
@@ -17,8 +19,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 class MockStreamlit:
     """Mock Streamlit UI object for testing."""
     def __init__(self):
-        self.session_state = {}
-        self.session_state.edited_sub_problems = {}
+        self.session_state = {'edited_sub_problems': {}}
         self.info = MagicMock()
         self.warning = MagicMock()
         self.error = MagicMock()
@@ -39,6 +40,7 @@ class MockStreamlit:
         self.container = MagicMock(return_value=MagicMock())
         self.progress = MagicMock(return_value=MagicMock())
         self.markdown = MagicMock()
+        self.cache_data = MagicMock(return_value=lambda fn: fn)  # Mock decorator
 
 # Create and inject mock
 st = MockStreamlit()
