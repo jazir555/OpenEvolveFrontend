@@ -88,6 +88,5 @@ contract SSVInsolvencyPoCTest is PoC {
         console.log("Shortfall:");
         console.log((1000e18 - finalBalance) / 1e18);
         console.log("SSV");
-        }
     }
-    
+}
