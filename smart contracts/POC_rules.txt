@@ -1,0 +1,86 @@
+
+Proof of Concept (PoC) Guidelines and Rules
+
+    1 year ago Updated 
+
+Not yet followed by anyone
+
+ 
+
+In the web3 world, a Proof of Concept (PoC) is runnable code that demonstrates that a bug/vulnerability and impact are real without actually exploiting the vulnerability in a live environment.
+
+In the web2 world, a PoC is a minimally or zero invasive demonstration that a bug/vulnerability is real and shows impact on the assets in question.
+
+PoCs are required by almost all bug bounty programs on Immunefi. Whitehats can check the PoC requirements of each bug bounty program on Immunefi by looking at the text of the program page for the term “PoC” and by examining severity table. In this example case below, a PoC is only required for critical severity bug reports. 
+
+This leads to some questions from whitehats: what are the key elements a PoC should have? What are the rules around web2 and web3 PoCs? What makes a PoC great? How can I securely publish and share my PoC? 
+
+To answer these questions and find some useful templates for constructing your PoC, please view our Immunefi PoC Templates article.
+
+ 
+PoC Guidelines and Rules 
+Web2 PoC Guidelines: 
+
+    A web2 PoC is not necessarily runnable code. A video showcasing the attack is acceptable as a PoC, as long as it comes with a brief text explanation in the bug report about what is occurring in the video. For Video PoCs, a HTTP request must also be provided. Whitehats can upload their PoCs on YouTube as an unlisted video and share the link in the bug report.
+
+    Screenshots showcasing the final attack are acceptable as a PoC.
+
+    HTTP requests are acceptable as a PoC.
+
+    A command line or any programmable runnable code PoC is acceptable.
+
+    Taking over a subdomain and showing proof within the Web2 PoC Rules.
+
+    Taking over the external links within the in-scope assets and showing proof within the Web2 PoC Rules.
+
+    In general, all blackbox testing is allowed unless it takes down the application/website. In case of such, the whitehat must ask for permission from the project in the Immunefi dashboard first if the attack would take down the application/website.
+
+    Whitehats must comply with any additional guidelines specified by the bug bounty program the whitehat is submitting a bug report to.
+
+    If the project requests more information about the PoC for verification purposes and the whitehat refuses to provide more information, that PoC is considered invalid.
+
+If whitehats do not follow the guidelines, their reports may be closed and the right to receive a reward revoked. 
+
+ 
+Web2 PoC Rules:
+
+    Do not insert a malicious Javascript payload into a website. Instead, you must only insert harmless javascript code that doesn’t affect other users and any other functionality of the application. The insertion must also be done in a way that doesn’t disrupt the functionality of the website.
+
+    If you need to make an edit to a website to show that a vulnerability is real, make the most minimal edit possible such as HTML comments (which are not visible to others) so as not to be invasive. Your PoC shouldn’t affect the state of the website and disclose to the public that a vulnerability exists.
+
+    Do not upload or attempt to upload webshells. If you need to upload a file for your PoC, upload an empty or non-executable text file.
+
+    Do not engage in unauthorized disclosure, make changes, or access sensitive information beyond what is necessary to submit the report.
+
+Violation of any of these rules will, in almost all cases, result in an immediate and permanent ban from the Immunefi platform. 
+
+ 
+Web3 PoC Guidelines: 
+
+    Most projects, especially for smart contracts, require a PoC for submissions to be valid and in-scope. Without a PoC, it can sometimes be impossible to tell whether there’s any bug at all, or most importantly, whether there’s any impact. A well-written PoC makes it unambiguous that there’s a bug and that an impact is real. Once a project receives a submission with an excellent PoC, they are able to analyze, respond, and pay out a big bounty much faster. 
+    The smart contract PoC should always be made by forking the mainnet using tools like Hardhat or Foundry. If forking the mainnet state is not feasible, using the project’s existing test suite is an acceptable alternative. However, the test conditions must accurately reflect the state of the deployed code. If the conditions do not match, the project may request additional PoCs to ensure accuracy.
+
+    The PoC should contain runnable code for the exploit demonstration. Screenshots of code are not acceptable. The whitehat can choose any framework or language to write a PoC. The whitehat should mention all the dependencies, configuration files, and environmental variables that are required in order to run that PoC, as any other requirements to run the test.
+
+    PoCs should have clear print statements and or comments that detail each step of the attack and display relevant information, such as funds stolen/frozen etc.
+
+    The whitehat can upload the PoC containing all the configuration files directly to Google Drive and share the link in the submission on the Immunefi Dashboard.
+
+    Alternatively, if the PoC is simple enough that it doesn’t require any configuration files, then it can be shared in the submission itself by pasting out the code in the comment.
+
+    Additionally, the whitehat should also ideally determine and provide data on the amount of funds at risk, which can be determined by calculating the total amount of tokens multiplied by the average price of the token at the time of the submission.
+
+    Whitehats must comply with any additional guidelines specified by the bug bounty program the whitehat is submitting a bug report to. 
+
+If whitehats do not follow the guidelines, their reports may be closed. 
+
+ 
+Web3 PoC Rules: 
+
+    Do not test on public testnet or mainnet.
+    If you want to run a DoS attack to prove a vulnerability, you must ask for and receive permission from the project in the Dashboard before doing so.
+    Do not submit a partial or incomplete PoC.
+
+Violation of any of these rules will, in almost all cases, result in an immediate and permanent ban from the Immunefi platform. 
+
+Example of an excellent web3 PoC: https://github.com/immunefi-team/polygon-transferwithsig

@@ -1,0 +1,13 @@
+{
+  "vulnerability_id": "SSV-INSOLVENCY-001",
+  "mathematical_truth": "PROVEN",
+  "logic_framework": "Bit-Vector/Integer Arithmetic over Shared Pool",
+  "toolchain": "Z3 Prover + Lean 4 Spec Generator",
+  "witness": {
+    "initial_pool_assets": "1",
+    "operator_fee": "1",
+    "blocks_after_bankruptcy": "1",
+    "uncollateralized_debt_created": "1",
+    "total_system_liabilities": "2"
+  }
+}
