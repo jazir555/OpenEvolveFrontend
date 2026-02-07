@@ -69,6 +69,8 @@ cluster.balance = usage > balance ? 0 : balance - usage;     // CAPPED AT 0
 ## Prerequisites
 
 - [Foundry](https://book.getfoundry.sh/getting-started/installation) installed
+- [Z3 Theorem Prover](https://github.com/Z3Prover/z3/releases) (for SMT proofs)
+- [Lean 4](https://leanprover-community.github.io/get_started.html) (for mathematical proofs)
 - Git
 
 ---

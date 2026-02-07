@@ -4,6 +4,40 @@ This document explains the formal verification artifacts included in this PoC. T
 
 ---
 
+## 0. Environment Setup
+
+To verify these proofs, you will need to install the Z3 Theorem Prover and the Lean 4 Theorem Prover.
+
+### 1. Installing Z3 Theorem Prover
+Z3 is a state-of-the-art SMT solver from Microsoft Research.
+
+*   **GitHub:** [https://github.com/Z3Prover/z3](https://github.com/Z3Prover/z3)
+*   **Installation:**
+    *   **Windows:** 
+        *   Download the latest release zip (e.g., `z3-x.x.x-x64-win.zip`) from [Z3 Releases](https://github.com/Z3Prover/z3/releases).
+        *   Extract the zip and add the `bin` folder to your system **PATH**.
+        *   Alternatively, using Chocolatey: `choco install z3`
+    *   **macOS:** `brew install z3`
+    *   **Linux (Ubuntu/Debian):** `sudo apt install z3`
+*   **Verification:** Run `z3 --version` in your terminal.
+
+### 2. Installing Lean 4
+Lean 4 is installed via `elan`, the Lean version manager.
+
+*   **Official Guide:** [https://leanprover-community.github.io/get_started.html](https://leanprover-community.github.io/get_started.html)
+*   **Installation:**
+    *   **Unix (macOS/Linux):**
+        ```bash
+        curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh
+        ```
+    *   **Windows:**
+        *   Download and run the `elan-init.exe` from [elan releases](https://github.com/leanprover/elan/releases).
+        *   Follow the on-screen instructions to set up the default toolchain (usually `leanprover/lean4:stable`).
+*   **Verification:** Run `lean --version` and `lake --version` in your terminal.
+*   **Note:** These proofs require `Mathlib4`. The provided PoC directory structure is designed to be recognized by `lake` if you initialize it as a Lean project.
+
+---
+
 ## 1. Z3 SMT-LIB Reachability Proof
 **File:** `formal-proofs/SSV_INSOLVENCY_PROOF.smt2`
 
