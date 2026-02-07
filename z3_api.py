@@ -36,6 +36,11 @@ except ImportError:
     Z3_INTEGRATION_AVAILABLE = False
 
 try:
+    from web3_validator_tool import solve_smart_contract_witness
+except ImportError:
+    solve_smart_contract_witness = None
+
+try:
     from z3_mcp_tools import get_web3_formal_tool_inventory
 except Exception:
     get_web3_formal_tool_inventory = None
@@ -51,10 +56,10 @@ except Exception:
 _DEFAULT_WEB3_FORMAL_CAPABILITIES = {
     "solidity_invariant_translation": translate_solidity_assignment_to_z3 is not None,
     "invariant_translation_verification": verify_solidity_invariant_translation is not None,
-    "symbolic_exploit_witness": solve_smart_contract_exploit_witness is not None,
+    "symbolic_exploit_witness": solve_smart_contract_exploit_witness is not None or solve_smart_contract_witness is not None,
     "composite_exploit_verification": (
         translate_solidity_assignment_to_z3 is not None
-        and solve_smart_contract_exploit_witness is not None
+        and (solve_smart_contract_exploit_witness is not None or solve_smart_contract_witness is not None)
     ),
 }
 
@@ -242,6 +247,23 @@ class Z3API:
         timeout: float = 10.0,
     ) -> Dict[str, Any]:
         """Solve symbolic exploit witness predicates for smart contracts."""
+        if solve_smart_contract_witness is not None:
+            try:
+                # Simple heuristic for now
+                vuln_type = "reentrancy"
+                if additional_constraints:
+                    for c in additional_constraints:
+                        if "overflow" in c.lower(): vuln_type = "overflow"
+                        if "owner" in c.lower(): vuln_type = "access_control"
+                
+                witness = solve_smart_contract_witness(
+                    vulnerability_type=vuln_type,
+                    constraints=additional_constraints
+                )
+                return {"success": witness.get("success", False), "result": witness}
+            except Exception as exc:
+                return {"success": False, "error": str(exc)}
+
         if solve_smart_contract_exploit_witness is None:
             return {"success": False, "error": "Smart contract exploit witness solver unavailable"}
         try:

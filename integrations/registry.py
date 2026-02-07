@@ -189,7 +189,8 @@ class IntegrationRegistry:
                     "priority": "P1",
                     "gaps_filled": ["GAP-14", "GAP-10"],
                     "features": ["temporal_metadata", "hybrid_search", "graph_traversal"]
-                }
+                },
+                grpc_target="localhost:50052"
             ),
 
             # OneKE - Schema-Guided Extraction
@@ -207,7 +208,8 @@ class IntegrationRegistry:
                     "priority": "P2",
                     "gaps_filled": ["GAP-2", "GAP-10"],
                     "features": ["ner", "re", "ee", "triple_extraction"]
-                }
+                },
+                grpc_target="localhost:50053"
             ),
 
             # Curie - Scientific Experimentation
@@ -225,7 +227,8 @@ class IntegrationRegistry:
                     "priority": "P1.5",
                     "gaps_filled": ["GAP-4", "GAP-12"],
                     "features": ["hypothesis_testing", "protocol_design", "statistical_validation"]
-                }
+                },
+                grpc_target="localhost:50054"
             ),
 
             # NeuroMANCER - Physics-Informed Optimization
@@ -244,7 +247,8 @@ class IntegrationRegistry:
                     "gaps_filled": ["GAP-3", "GAP-1"],
                     "features": ["physics_informed", "system_identification", "constrained_optimization"],
                     "isolation": "conda"  # Requires separate PyTorch environment
-                }
+                },
+                grpc_target="localhost:50055"
             ),
 
             # pygraphistry - Graph Visualization
@@ -262,7 +266,8 @@ class IntegrationRegistry:
                     "priority": "P2",
                     "gaps_filled": ["GAP-7", "GAP-10", "GAP-11"],
                     "features": ["gpu_acceleration", "umap", "dbscan", "interactive_dashboards"]
-                }
+                },
+                grpc_target="localhost:50056"
             ),
 
             # uqtestfuns - Uncertainty Quantification
@@ -280,7 +285,8 @@ class IntegrationRegistry:
                     "priority": "P3",
                     "gaps_filled": ["GAP-15"],
                     "features": ["probabilistic_inputs", "sensitivity_analysis", "validation_pipeline"]
-                }
+                },
+                grpc_target="localhost:50057"
             ),
 
             # global-chem - Chemical Knowledge
@@ -298,7 +304,8 @@ class IntegrationRegistry:
                     "priority": "P4",
                     "gaps_filled": ["GAP-13", "GAP-2"],
                     "features": ["smiles", "smarts", "chemical_properties", "domain_knowledge"]
-                }
+                },
+                grpc_target="localhost:50058"
             ),
 
             # causal-learn - Causal Discovery
@@ -315,7 +322,8 @@ class IntegrationRegistry:
                 metadata={
                     "priority": "P2",
                     "features": ["pc", "ges", "lingam", "fci", "independence_tests"]
-                }
+                },
+                grpc_target="localhost:50059"
             ),
         ]
 

@@ -31,19 +31,19 @@ for adapter_path in _glue_adapters:
 try:
     from alerting_system import get_alert_manager, AlertSeverity
     ALERTING_AVAILABLE = True
-except ImportError:
+except Exception:
     ALERTING_AVAILABLE = False
 
 try:
     from knowledge_engine.enterprise_knowledge_engine import enterprise_knowledge_engine, KnowledgeArtifact
     KNOWLEDGE_AVAILABLE = True
-except ImportError:
+except Exception:
     KNOWLEDGE_AVAILABLE = False
 
 try:
     from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
     ADAPTIVE_AVAILABLE = True
-except ImportError:
+except Exception:
     ADAPTIVE_AVAILABLE = False
 
 

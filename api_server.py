@@ -3979,6 +3979,48 @@ def record_icr_refinement(refinement_type: str, component: str,
     ICR_ANALYTICS_DATA["overview"]["total_refinements"] += 1
 
 
+@app.get("/bubblelabs/integrations", dependencies=[Depends(verify_api_key)])
+def list_bubblelabs_integrations():
+    """List all registered expert engine integrations."""
+    integration = _get_bubblelabs_workflow_integration()
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or integration is None:
+        raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
+    return {"integrations": integration.list_available_integrations()}
+
+
+@app.get("/bubblelabs/integrations/{name}/health", dependencies=[Depends(verify_api_key)])
+async def get_bubblelabs_integration_health(name: str):
+    """Check health of a specific expert engine integration."""
+    integration = _get_bubblelabs_workflow_integration()
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or integration is None:
+        raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
+    return await integration.check_integration_health(name)
+
+
+@app.post("/workflows/{workflow_id}/truth-package", dependencies=[Depends(require_role(UserRole.USER))])
+def generate_workflow_truth_package(workflow_id: str, user: AuthUser = Depends(require_role(UserRole.USER))):
+    """Generate a Truth Package binary trust artifact for a completed workflow."""
+    integration = _get_bubblelabs_workflow_integration()
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or integration is None:
+        raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
+    
+    result = integration.generate_truth_package(workflow_id)
+    if "error" in result:
+        raise HTTPException(status_code=404, detail=result["error"])
+    
+    return result
+
+
+@app.post("/workflows/{workflow_id}/research-approval/{stage_id}", dependencies=[Depends(require_role(UserRole.USER))])
+def approve_research_stage(workflow_id: str, stage_id: int, user: AuthUser = Depends(require_role(UserRole.USER))):
+    """Approve a Research-Quest stage and trigger autonomous execution."""
+    integration = _get_bubblelabs_workflow_integration()
+    if not BUBBLELABS_WORKFLOW_AVAILABLE or integration is None:
+        raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
+    
+    return integration.handle_research_stage_approval(workflow_id, stage_id)
+
+
 # Statistics endpoints
 
 @app.get("/statistics", dependencies=[Depends(verify_api_key)])

@@ -62,6 +62,13 @@ except ImportError:
     MATHLIB_AVAILABLE = False
     logging.warning("Mathlib4 integration not available - analogy strategy disabled")
 
+# Import Web3 specialised tools
+try:
+    from web3_validator_tool import solve_smart_contract_witness
+    WEB3_TOOLS_AVAILABLE = True
+except ImportError:
+    WEB3_TOOLS_AVAILABLE = False
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -81,6 +88,7 @@ class ProofStrategy(Enum):
     INTERACTIVE = "interactive"
     CAV_NLP = "cav_nlp"  # NEW: CAV-NLP hybrid strategy
     HYBRID_VERIFICATION = "hybrid_verification"  # NEW: Z3 + Lean hybrid
+    SMART_CONTRACT = "smart_contract"  # NEW: Web3 specialized strategy
 
 
 class ProofStatus(Enum):
@@ -990,6 +998,69 @@ class CAVNLPProofStrategy:
         return base_proof
 
 
+class SmartContractProofStrategy:
+    """Specialized proof strategy for Web3 Smart Contract vulnerabilities."""
+    
+    def __init__(self):
+        self.available = WEB3_TOOLS_AVAILABLE
+        
+    async def attempt_proof(self, theorem: str, max_time: float = 30.0) -> Optional[ProofResult]:
+        """
+        Attempt to prove a smart contract violation.
+        Theorem can be natural language or specific vulnerability type.
+        """
+        if not self.available:
+            return None
+            
+        start_time = time.time()
+        
+        # Determine vulnerability type from theorem string
+        vuln_type = "reentrancy"
+        if "overflow" in theorem.lower(): vuln_type = "overflow"
+        if "access" in theorem.lower(): vuln_type = "access_control"
+        
+        try:
+            # Call the specialized solver
+            result = solve_smart_contract_witness(vuln_type, constraints=[theorem])
+            
+            elapsed = time.time() - start_time
+            
+            if result.get("success"):
+                # Found an exploit! This is a "Success" in terms of finding a violation proof.
+                return ProofResult(
+                    success=True,
+                    theorem=theorem,
+                    strategy_used=ProofStrategy.SMART_CONTRACT,
+                    proof_steps=[ProofStep(
+                        tactic="z3_exploit_search",
+                        goal_before=theorem,
+                        goal_after="Exploit Witness Found",
+                        success=True,
+                        execution_time=elapsed
+                    )],
+                    final_proof=f"-- Exploit Witness: {json.dumps(result.get('witness'))}\n-- Remediation: {result.get('remediation')}",
+                    execution_time=elapsed,
+                    attempts=1,
+                    status=ProofStatus.SUCCESS,
+                    metadata=result
+                )
+            else:
+                return ProofResult(
+                    success=False,
+                    theorem=theorem,
+                    strategy_used=ProofStrategy.SMART_CONTRACT,
+                    proof_steps=[],
+                    final_proof=None,
+                    execution_time=elapsed,
+                    attempts=1,
+                    status=ProofStatus.FAILED,
+                    error_message=result.get("message", "No exploit witness found.")
+                )
+        except Exception as e:
+            logger.error(f"Smart Contract proof attempt failed: {e}")
+            return None
+
+
 # ============================================================================
 # Main Automated Proof Engine
 # ============================================================================
@@ -1070,6 +1141,10 @@ class AutomatedProofEngine:
         
         if enable_analogy and MATHLIB_AVAILABLE:
             self.strategies[ProofStrategy.ANALOGY] = AnalogyProofStrategy()
+        
+        # NEW: Add Smart Contract strategy
+        if WEB3_TOOLS_AVAILABLE:
+            self.strategies[ProofStrategy.SMART_CONTRACT] = SmartContractProofStrategy()
         
         # NEW: Add CAV-NLP strategy
         if self.use_cav_nlp and self.cav_nlp_strategy:
@@ -1337,6 +1412,23 @@ class AutomatedProofEngine:
         if verbose:
             print(f"\nAttempting to prove: {theorem[:100]}...")
         
+        # NEW: Try Smart Contract strategy first for Web3 inputs
+        if "smart contract" in theorem.lower() or "blockchain" in theorem.lower() or "solidity" in theorem.lower():
+            if ProofStrategy.SMART_CONTRACT in self.strategies:
+                if verbose:
+                    print("  Detected Web3 context, trying Smart Contract strategy...")
+                
+                remaining_time = time_budget - (time.time() - start_time)
+                result = await self.strategies[ProofStrategy.SMART_CONTRACT].attempt_proof(
+                    theorem, max_time=remaining_time
+                )
+                
+                if result and result.success:
+                    if verbose:
+                        print(f"  ✓ Exploit Witness found by Smart Contract Solver!")
+                    self.proof_history.append(result)
+                    return result
+
         # NEW: Check if input is natural language and formalize if needed
         if self.cav_nlp_auto_formalize and self.cav_nlp_strategy:
             if self.cav_nlp_strategy._is_natural_language(theorem):

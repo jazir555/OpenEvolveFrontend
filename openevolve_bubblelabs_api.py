@@ -1417,6 +1417,34 @@ class OpenEvolveBubbleLabsIntegration:
             for def_id, definition in self.workflow_definitions.items()
         ]
 
+    def list_available_integrations(self) -> List[Dict[str, Any]]:
+        """
+        List all registered integrations from the registry.
+        """
+        from integrations.registry import get_registry
+        registry = get_registry()
+        integrations = registry.list_integrations()
+        
+        return [
+            {
+                "name": i.name,
+                "type": i.type.value,
+                "status": i.status.value,
+                "version": i.version,
+                "description": i.description,
+                "grpc_target": i.grpc_target
+            }
+            for i in integrations
+        ]
+
+    async def check_integration_health(self, name: str) -> Dict[str, Any]:
+        """
+        Check the health of a specific integration.
+        """
+        from integrations.registry import get_registry
+        registry = get_registry()
+        return await registry.check_health(name)
+
     def get_workflow_definition(self, definition_id: str) -> Optional[Dict[str, Any]]:
         """
         Get a specific workflow definition.

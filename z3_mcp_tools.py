@@ -55,6 +55,12 @@ except ImportError:
     solve_smart_contract_exploit_witness = None
     logger.warning("Z3 integration not available")
 
+# Import Web3 Validator Tool
+try:
+    from web3_validator_tool import solve_smart_contract_witness
+except ImportError:
+    solve_smart_contract_witness = None
+
 try:
     from z3prover_advanced import (
         Z3AdvancedSolver, OptimizationObjective, ProofFormat,
@@ -1373,6 +1379,32 @@ async def z3_solve_smart_contract_exploit_witness(
     timeout: float = 10.0,
 ) -> Dict[str, Any]:
     """Solve canonical exploit witness query for Web3 audit workflows."""
+    # Use the new Web3 Validator Tool if available
+    if solve_smart_contract_witness is not None:
+        try:
+            # Determine vulnerability type from constraints or default to generic
+            # Simple heuristic for now
+            vuln_type = "reentrancy"
+            if additional_constraints:
+                for c in additional_constraints:
+                    if "overflow" in c.lower(): vuln_type = "overflow"
+                    if "owner" in c.lower(): vuln_type = "access_control"
+            
+            witness = solve_smart_contract_witness(
+                vulnerability_type=vuln_type,
+                constraints=additional_constraints
+            )
+            return {
+                "success": witness.get("success", False),
+                "witness": witness,
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e)
+            }
+
+    # Fallback to legacy or unavailable
     if solve_smart_contract_exploit_witness is None:
         return {
             "success": False,
@@ -1453,7 +1485,9 @@ async def z3_web3_audit_exploit_verification(
     """Run combined Web3 exploit verification workflow with Z3 tools."""
     if translate_solidity_assignment_to_z3 is None:
         return {"success": False, "error": "Solidity invariant translation is unavailable"}
-    if solve_smart_contract_exploit_witness is None:
+    
+    # Check for either solver
+    if solve_smart_contract_exploit_witness is None and solve_smart_contract_witness is None:
         return {"success": False, "error": "Smart contract exploit witness solver is unavailable"}
 
     try:
@@ -1468,15 +1502,25 @@ async def z3_web3_audit_exploit_verification(
                 translation=translation,
                 assume_non_negative_amount=assume_non_negative_amount,
             )
-        witness = solve_smart_contract_exploit_witness(
-            additional_constraints=additional_constraints,
-            timeout=timeout,
-        )
+        
+        # Use the improved solver if available
+        if solve_smart_contract_witness is not None:
+            witness_res = solve_smart_contract_witness(
+                vulnerability_type="reentrancy",
+                constraints=additional_constraints
+            )
+            witness = witness_res # Adjust mapping if needed
+        else:
+            witness = solve_smart_contract_exploit_witness(
+                additional_constraints=additional_constraints,
+                timeout=timeout,
+            )
+            
         lean_proof_verification = await verify_web3_lean_proof_async(
             translation,
             use_real_lean=True,
         )
-        verified_exploit = bool(witness.get("satisfiable", False))
+        verified_exploit = bool(witness.get("satisfiable", False)) or bool(witness.get("success", False))
         if verify_translation and isinstance(verification, dict):
             verified_exploit = verified_exploit and bool(verification.get("proven", False))
 
@@ -1505,10 +1549,10 @@ def get_web3_formal_tool_inventory() -> Dict[str, Any]:
     formal_capabilities = {
         "solidity_invariant_translation": translate_solidity_assignment_to_z3 is not None,
         "invariant_translation_verification": verify_solidity_invariant_translation is not None,
-        "symbolic_exploit_witness": solve_smart_contract_exploit_witness is not None,
+        "symbolic_exploit_witness": solve_smart_contract_exploit_witness is not None or solve_smart_contract_witness is not None,
         "composite_exploit_verification": (
             translate_solidity_assignment_to_z3 is not None
-            and solve_smart_contract_exploit_witness is not None
+            and (solve_smart_contract_exploit_witness is not None or solve_smart_contract_witness is not None)
         ),
     }
     tools: List[str] = []

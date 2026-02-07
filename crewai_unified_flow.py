@@ -237,7 +237,7 @@ class CrewAIUnifiedFlow:
         logger.info(f"CrewAIUnifiedFlow initialized with default_method={default_execution_method}")
 
     @start
-    def phase_1_setup(
+    async def phase_1_setup(
         self,
         problem_statement: str,
         execution_method: ExecutionMethod = ExecutionMethod.AUTO,
@@ -286,7 +286,7 @@ class CrewAIUnifiedFlow:
         # Route to appropriate execution method
         if execution_method == ExecutionMethod.ROMA_MDAP_MAKER:
             if ROMA_MDAP_MAKER_BRIDGE_AVAILABLE and roma_mdap_maker_phase_1_setup:
-                result = roma_mdap_maker_phase_1_setup(
+                result = await roma_mdap_maker_phase_1_setup(
                     problem_statement=problem_statement,
                     reliability_config=reliability_config,
                     **kwargs
@@ -297,7 +297,7 @@ class CrewAIUnifiedFlow:
 
         if execution_method == ExecutionMethod.ROMA:
             if ROMA_BRIDGE_AVAILABLE and roma_phase_1_setup:
-                result = roma_phase_1_setup(
+                result = await roma_phase_1_setup(
                     problem_statement=problem_statement,
                     max_depth=roma_max_depth,
                     execution_mode=roma_execution_mode,
@@ -310,7 +310,7 @@ class CrewAIUnifiedFlow:
 
         if execution_method == ExecutionMethod.DATAPIZZA:
             if DATAPIZZA_BRIDGE_AVAILABLE and datapizza_phase_1_setup:
-                result = datapizza_phase_1_setup(
+                result = await datapizza_phase_1_setup(
                     problem_statement=problem_statement,
                     provider=kwargs.get("provider", "openai"),
                     api_key=kwargs.get("api_key"),
@@ -326,7 +326,7 @@ class CrewAIUnifiedFlow:
         if execution_method == ExecutionMethod.CLAUDIOMIRO:
             if CLAUDIOMIRO_BRIDGE_AVAILABLE and CLAUDIOMIRO_AVAILABLE and ClaudiomiroCrewAIWorkflowBridge:
                 bridge = self._get_claudiomiro_bridge(**kwargs)
-                result = bridge.execute_phase_1_setup(
+                result = await bridge.execute_phase_1_setup(
                     problem_statement=problem_statement,
                     problem_type=problem_type,
                     domain=domain,
@@ -341,7 +341,7 @@ class CrewAIUnifiedFlow:
 
         if execution_method == ExecutionMethod.TRADITIONAL:
             if DECOMPOSITION_BRIDGE_AVAILABLE and decomposition_phase_1_setup:
-                result = decomposition_phase_1_setup(
+                result = await decomposition_phase_1_setup(
                     problem_statement=problem_statement,
                     problem_type=problem_type,
                     domain=domain,

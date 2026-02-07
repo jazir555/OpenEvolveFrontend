@@ -71,6 +71,11 @@ except ImportError:
     solve_smart_contract_exploit_witness = None
 
 try:
+    from web3_validator_tool import solve_smart_contract_witness
+except ImportError:
+    solve_smart_contract_witness = None
+
+try:
     from z3prover_advanced import (
         get_z3_advanced_solver, OptimizationObjective, ProofFormat, PortfolioResult
     )
@@ -120,7 +125,7 @@ except ImportError:
 USE_CAV_NLP = os.getenv("USE_CAV_NLP", "true").lower() == "true"
 WEB3_FORMAL_AVAILABLE = (
     translate_solidity_assignment_to_z3 is not None
-    and solve_smart_contract_exploit_witness is not None
+    and (solve_smart_contract_exploit_witness is not None or solve_smart_contract_witness is not None)
 )
 
 # Configure logging
@@ -140,10 +145,10 @@ def _default_web3_formal_capabilities() -> Dict[str, bool]:
     return {
         "solidity_invariant_translation": translate_solidity_assignment_to_z3 is not None,
         "invariant_translation_verification": verify_solidity_invariant_translation is not None,
-        "symbolic_exploit_witness": solve_smart_contract_exploit_witness is not None,
+        "symbolic_exploit_witness": solve_smart_contract_exploit_witness is not None or solve_smart_contract_witness is not None,
         "composite_exploit_verification": (
             translate_solidity_assignment_to_z3 is not None
-            and solve_smart_contract_exploit_witness is not None
+            and (solve_smart_contract_exploit_witness is not None or solve_smart_contract_witness is not None)
         ),
     }
 
@@ -1864,6 +1869,23 @@ async def web3_translate_invariant(request: Web3InvariantTranslateRequest):
 @app.post("/web3/exploits/symbolic-witness")
 async def web3_symbolic_witness(request: Web3ExploitWitnessRequest):
     """Solve canonical smart-contract exploit witness predicates with Z3."""
+    if solve_smart_contract_witness is not None:
+        try:
+            # Determine vulnerability type from constraints or default to generic
+            vuln_type = "reentrancy"
+            if request.additional_constraints:
+                for c in request.additional_constraints:
+                    if "overflow" in c.lower(): vuln_type = "overflow"
+                    if "owner" in c.lower(): vuln_type = "access_control"
+            
+            witness = solve_smart_contract_witness(
+                vulnerability_type=vuln_type,
+                constraints=request.additional_constraints
+            )
+            return {"success": witness.get("success", False), "result": witness}
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=str(exc))
+
     if solve_smart_contract_exploit_witness is None:
         raise HTTPException(
             status_code=503,

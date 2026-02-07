@@ -254,11 +254,11 @@ class TestCrewAIUnifiedFlow:
     
     async def test_phase_1_setup(self):
         """Test Phase 1 setup."""
-        result = self.flow.phase_1_setup(
+        result = await self.flow.phase_1_setup(
             problem_statement="Test phase 1 setup",
             execution_method=FlowExecutionMethod.TRADITIONAL
         )
-        
+
         assert result is not None
         assert "phase" in result
         assert result["phase"] == 1
