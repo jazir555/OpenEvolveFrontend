@@ -138,6 +138,7 @@ class Mathlib4TheoremIndex:
             Path("/usr") / "local" / "share" / "mathlib4",
             Path.cwd() / "mathlib4",
             Path.cwd() / "lean_workspace" / "mathlib4",
+            Path.cwd() / "lean_workspace" / "mathlib_project" / ".lake" / "packages" / "mathlib",
             Path.cwd() / ".lake" / "packages" / "mathlib",
             Path.home() / "lean_projects" / "mathlib_project" / ".lake" / "packages" / "mathlib",
         ]
