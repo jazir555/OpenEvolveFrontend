@@ -634,7 +634,7 @@ async def execute_phase_4_verify(
     )
 
 
-def execute_phase_4_verification(
+async def execute_phase_4_verification(
     solutions: List[Dict[str, Any]],
     use_evolution: bool = True,
     evolution_iterations: int = 50,
@@ -642,7 +642,7 @@ def execute_phase_4_verification(
     requirements: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """Backward-compatible alias for execute_phase_4_verify."""
-    return execute_phase_4_verify(
+    return await execute_phase_4_verify(
         solutions=solutions,
         use_evolution=use_evolution,
         evolution_iterations=evolution_iterations,
@@ -668,7 +668,7 @@ async def execute_phase_5_reassemble(
     )
 
 
-def execute_phase_5_reassembly(
+async def execute_phase_5_reassembly(
     solutions: List[Dict[str, Any]],
     problem_statement: str,
     use_evolution: bool = True,
@@ -676,7 +676,7 @@ def execute_phase_5_reassembly(
     reassembly_strategy: str = "hierarchical",
 ) -> Dict[str, Any]:
     """Backward-compatible alias for execute_phase_5_reassemble."""
-    return execute_phase_5_reassemble(
+    return await execute_phase_5_reassemble(
         solutions=solutions,
         problem_statement=problem_statement,
         use_evolution=use_evolution,
@@ -700,14 +700,14 @@ async def execute_phase_6_final_validation(
     )
 
 
-def execute_phase_6_validation(
+async def execute_phase_6_validation(
     final_solution: str,
     problem_statement: str,
     use_evolution: bool = True,
     evolution_iterations: int = 50,
 ) -> Dict[str, Any]:
     """Backward-compatible alias for execute_phase_6_final_validation."""
-    return execute_phase_6_final_validation(
+    return await execute_phase_6_final_validation(
         final_solution=final_solution,
         problem_statement=problem_statement,
         use_evolution=use_evolution,
