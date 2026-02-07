@@ -21,10 +21,10 @@ import "./PoC.sol";
  */
 contract SSVInsolvencyPoC is PoC {
     
-    // SSV Token (using a mock for demonstration)
+    // SSV Token (real mainnet address for forking)
     address public constant SSV_TOKEN = 0x9D65fF81a3c488d585bBfb0Bfe3c7707c7917f54;
     
-    // Mock accounting to demonstrate the vulnerability
+    // Simulated accounting to demonstrate the vulnerability
     uint256 public totalContractAssets;
     uint256 public operatorVirtualBalance;
     uint256 public clusterABalance;

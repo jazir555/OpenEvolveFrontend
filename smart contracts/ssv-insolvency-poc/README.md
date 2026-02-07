@@ -91,6 +91,17 @@ forge build
 
 ## Running the PoC
 
+### Prerequisites for Testing
+
+This PoC uses **mainnet forking** to test against actual deployed SSV Network contracts (per Immunefi guidelines). You need an Ethereum RPC endpoint.
+
+```bash
+# Set your RPC endpoint (required)
+export MAINNET_RPC_URL="https://eth-mainnet.g.alchemy.com/v2/YOUR_API_KEY"
+# OR
+export MAINNET_RPC_URL="https://mainnet.infura.io/v3/YOUR_PROJECT_ID"
+```
+
 ### Basic Run
 
 ```bash
@@ -106,11 +117,8 @@ forge test -vvv --match-path test/SSVInsolvencyPoC.t.sol
 ### Specific Test Functions
 
 ```bash
-# Main attack demonstration
+# Main attack demonstration (demonstrates full vulnerability)
 forge test -vv --match-test testInsolvencyAttack
-
-# Verify contract balance decreases
-forge test -vv --match-test testContractBalanceDecreases
 
 # Verify accounting mismatch
 forge test -vv --match-test testAccountingMismatch

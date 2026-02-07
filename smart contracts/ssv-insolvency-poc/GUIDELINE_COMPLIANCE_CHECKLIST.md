@@ -340,7 +340,7 @@ forge build
 # 2. Run tests (should pass locally)
 forge test -vv --match-path test/SSVInsolvencyPoC.t.sol
 
-# 3. No network calls (verified by offline capability)
+# 3. No external calls during test execution (fork is local-only)
 # Disconnect internet - tests still pass
 ```
 

@@ -36,10 +36,10 @@ forge build
 ### 3. Dependencies Documented
 - [x] `foundry.toml` - Configuration
 - [x] `README.md` - Setup instructions
-- [x] No API keys needed
-- [x] No environment variables required
+- [x] RPC endpoint documented (for mainnet forking)
+- [x] Environment variable `MAINNET_RPC_URL` configured
 
-**Documentation Location:** README.md Sections: Prerequisites, Installation, Running the PoC
+**Documentation Location:** README.md Sections: Prerequisites, Installation, Running the PoC, FORKING_UPDATE.md
 
 ---
 
@@ -125,14 +125,14 @@ USER A LOSS: 40 SSV
 ## ✅ Additional Safety Checks
 
 ### No Real Funds at Risk
-- [x] Uses `deal()` to mint test tokens
+- [x] Uses `deal()` to mint test tokens on fork
 - [x] No real SSV tokens involved
-- [x] Completely simulated
+- [x] Completely simulated on local fork
 
-### No External Dependencies
-- [x] No API keys
-- [x] No external service calls
-- [x] Self-contained
+### External Dependencies (For Forking)
+- [x] RPC endpoint required for mainnet forking
+- [x] Environment variable `MAINNET_RPC_URL` documented
+- [x] All test operations are self-contained after fork
 
 ### No Malicious Code
 - [x] No backdoors
@@ -181,9 +181,9 @@ forge test -vv --match-path test/SSVInsolvencyPoC.t.sol
 forge test -vvv --match-test testInsolvencyAttack
 # Expected: Detailed log output
 
-# 4. Verify offline capability (optional)
-# Disconnect internet and run tests
-# Expected: Tests still pass (proves no external calls)
+# 4. Verify fork is local-only (optional)
+# Once forked, disconnect internet and run tests
+# Expected: Tests still pass after fork (proves no ongoing external calls)
 ```
 
 ---

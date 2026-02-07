@@ -120,6 +120,9 @@ npx hardhat test test/exploit.test.ts
 
 **After (Foundry):**
 ```bash
+# Set RPC endpoint for mainnet forking (required per Immunefi guidelines)
+export MAINNET_RPC_URL="https://eth-mainnet.g.alchemy.com/v2/YOUR_KEY"
+
 # Build
 forge build
 
