@@ -52,9 +52,26 @@ We have included formal proofs in the `formal-proofs/` directory:
 - `SSV_FORMAL_PROOF_CERTIFICATE.json`: Machine-readable proof certificate.
 
 ## 4. Amount of Funds at Risk
-As of current data, the SSV Network Vault contains significant user deposits.
-Total Value Locked (TVL) in SSV tokens: **~[Current TVL] SSV**
-Average Price of SSV: **~$[Current Price]**
-**Estimated Total Funds at Risk: TVL * Price = $[Total Amount] USD**
 
-The vulnerability affects the *entire* shared pool of SSV tokens, as any uncollateralized virtual debt is fulfilled from the total contract balance.
+**Vault Address:** `0x2Be7549f1B58Fc3E81427a09E61e6D0B050A4C1D`  
+**Data Source:** Immunefi Bounty Program / Etherscan  
+**Last Updated:** February 2026
+
+| Metric | Value |
+|--------|-------|
+| Total Value Locked (TVL) | ~60,600 SSV |
+| Funds Available in Vault | $215,176.19 USD |
+| 30d Avg Funds Availability | $245,765.56 USD |
+| Average Price of SSV | ~$3.55 USD |
+| **Total Funds at Risk** | **~$215,130 USD** |
+
+### Bounty Calculation
+Per Immunefi's Critical severity formula (10% of funds at risk, min $50,000):
+- 10% of $215,130 = $21,513
+- **Minimum Bounty: $50,000 USD** (applies)
+- Maximum Bounty: $1,000,000 USD
+
+The vulnerability affects the *entire* shared pool of SSV tokens in the SSVNetwork 
+contract (0xDD9BC35aE942eF0cFa76930954a156B3fF30a4E1), as any uncollateralized 
+virtual debt is fulfilled from the total contract balance. All user deposits are 
+at risk of partial or total loss due to protocol insolvency.
