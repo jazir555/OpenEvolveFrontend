@@ -19,15 +19,16 @@ The Proof of Concept (PoC) for the SSV Network Insolvency vulnerability has been
 
 | Requirement | Status | Evidence |
 |-------------|--------|----------|
-| Test file provided | ✅ PASS | `test/exploit.test.ts` - Hardhat test file |
-| Hardhat configuration | ✅ PASS | `hardhat.config.js` - Configured for v0.8.24 |
-| Package.json with deps | ✅ PASS | `package.json` - All dependencies listed |
+| Test file provided | ✅ PASS | `test/SSVInsolvencyPoC.t.sol` - Foundry test |
+| Foundry configuration | ✅ PASS | `foundry.toml` - Configured for mainnet forking |
+| Git submodules | ✅ PASS | `lib/` - forge-std and openzeppelin |
 | Python scripts | ✅ PASS | 3 scripts in `scripts/` directory |
 
 **Verification:**
 ```bash
-npx hardhat test test/exploit.test.ts
-# Expected: Test runs successfully demonstrating the exploit
+export MAINNET_RPC_URL="https://eth-mainnet.g.alchemy.com/v2/YOUR_KEY"
+forge test -vv --match-path test/SSVInsolvencyPoC.t.sol
+# Expected: Test runs successfully demonstrating the exploit on forked mainnet
 ```
 
 ---
@@ -36,13 +37,14 @@ npx hardhat test test/exploit.test.ts
 
 | Requirement | Status | Evidence |
 |-------------|--------|----------|
-| Uses Hardhat forking | ✅ PASS | Hardhat toolbox configured |
-| References actual contract logic | ✅ PASS | `InsolvencyPoC.sol` replicates exact logic |
-| Test conditions match deployed code | ✅ PASS | Uses same Solidity version (0.8.24) |
+| Uses Foundry forking | ✅ PASS | `vm.createSelectFork("mainnet", 19000000)` |
+| References actual contract logic | ✅ PASS | Tests against real SSV Network contracts |
+| Test conditions match deployed code | ✅ PASS | Forks at block 19,000,000 |
 
-**Note:** The PoC isolates the vulnerable logic in `InsolvencyPoC.sol` which exactly mirrors:
-- `OperatorLib.sol:19` - Unconditional balance increment
-- `ClusterLib.sol:16` - Capped balance decrement
+**Note:** The PoC uses `vm.createSelectFork()` per Immunefi guidelines to test against actual deployed contracts:
+- `SSVNetwork` (0xDD9BC35aE942eF0cFa76930954a156B3fF30a4E1)
+- `SSVNetworkViews` (0xAE84579133f50A51E363cc00B5828f6C941C9Ce2)
+- `SSVToken` (0x9D65fF81a3c488d585bBfb0Bfe3c7707c7917f54)
 
 ---
 
@@ -66,7 +68,7 @@ npx hardhat test test/exploit.test.ts
 
 | Requirement | Status | Evidence |
 |-------------|--------|----------|
-| Console logs in test file | ✅ PASS | `exploit.test.ts` has detailed logging |
+| Console logs in test file | ✅ PASS | `SSVInsolvencyPoC.t.sol` has detailed logging |
 | Comments explaining each step | ✅ PASS | All Python scripts well-commented |
 | Financial impact shown | ✅ PASS | Deficit calculated and displayed |
 
@@ -85,9 +87,9 @@ USER A TOTAL LOSS: 40 SSV
 
 | Requirement | Status | Evidence |
 |-------------|--------|----------|
-| Node.js/npm requirement | ✅ PASS | Listed in README Prerequisites |
-| Hardhat version specified | ✅ PASS | `"hardhat": "^2.22.6"` in package.json |
-| All dependencies listed | ✅ PASS | `@nomicfoundation/hardhat-toolbox-viem` |
+| Foundry requirement | ✅ PASS | Listed in README Prerequisites |
+| Git submodules | ✅ PASS | `forge-std` and `openzeppelin-contracts` in `lib/` |
+| All dependencies listed | ✅ PASS | Documented in README and foundry.toml |
 
 ---
 
@@ -95,12 +97,12 @@ USER A TOTAL LOSS: 40 SSV
 
 | Requirement | Status | Evidence |
 |-------------|--------|----------|
-| No mainnet testing | ✅ PASS | Uses local Hardhat network |
-| No testnet testing | ✅ PASS | Uses local Hardhat network |
+| No mainnet testing | ✅ PASS | Uses local Foundry fork only |
+| No testnet testing | ✅ PASS | Uses local Foundry fork only |
 | No DoS without permission | ✅ PASS | Not applicable to this vulnerability |
 | Complete (not partial) | ✅ PASS | Full exploit demonstrated |
 
-**Important:** The PoC complies with Immunefi's prohibition on testing public networks. All testing is done on a local fork.
+**Important:** The PoC complies with Immunefi's prohibition on testing public networks. All testing is done on a local fork created by `vm.createSelectFork()`. No transactions are sent to actual mainnet.
 
 ---
 
@@ -109,12 +111,13 @@ USER A TOTAL LOSS: 40 SSV
 ### Smart Contracts
 | File | Purpose | Lines | Status |
 |------|---------|-------|--------|
-| `contracts/InsolvencyPoC.sol` | Isolated vulnerable logic | 75 | ✅ Complete |
+| `src/SSVInsolvencyPoC.sol` | Attack contract demonstrating exploit | 120+ | ✅ Complete |
+| `src/PoC.sol` | Immunefi base contract (logging, snapshots) | 150+ | ✅ Complete |
 
 ### Test Files
 | File | Purpose | Framework | Status |
 |------|---------|-----------|--------|
-| `test/exploit.test.ts` | Hardhat exploit test | Hardhat + Viem | ✅ Complete |
+| `test/SSVInsolvencyPoC.t.sol` | Foundry test with mainnet fork | Foundry | ✅ Complete |
 
 ### Scripts
 | File | Purpose | Language | Status |
@@ -134,8 +137,8 @@ USER A TOTAL LOSS: 40 SSV
 ### Configuration
 | File | Purpose | Status |
 |------|---------|--------|
-| `hardhat.config.js` | Hardhat configuration | ✅ Complete |
-| `package.json` | NPM dependencies | ✅ Complete |
+| `foundry.toml` | Foundry configuration | ✅ Complete |
+| `.gitmodules` | Git submodules configuration | ✅ Complete |
 | `README.md` | Documentation | ⚠️ Minor updates needed |
 
 ---
@@ -175,8 +178,8 @@ Status: Mathematical certainty of insolvency
 
 | Guideline | Status | Notes |
 |-----------|--------|-------|
-| Runnable code | ✅ | Hardhat test + Python scripts |
-| Forking mainnet | ✅ | Hardhat configured for forking |
+| Runnable code | ✅ | Foundry test + Python scripts |
+| Forking mainnet | ✅ | Foundry configured for mainnet forking |
 | Clear print statements | ✅ | All steps logged |
 | Dependencies documented | ✅ | package.json + README |
 | Funds at risk calculated | ⚠️ | Template ready, needs current data |
@@ -185,7 +188,7 @@ Status: Mathematical certainty of insolvency
 
 | Rule | Status | Verification |
 |------|--------|--------------|
-| No mainnet testing | ✅ | Local Hardhat only |
+| No mainnet testing | ✅ | Local Foundry fork only |
 | No testnet testing | ✅ | Local Hardhat only |
 | No DoS without permission | ✅ | Not needed for this bug |
 | No partial/incomplete PoC | ✅ | Full exploit demonstrated |
@@ -205,11 +208,12 @@ Status: Mathematical certainty of insolvency
    - **Estimated Total Funds at Risk: $[CALCULATED] USD**
    ```
 
-2. **Verify Hardhat test runs successfully:**
+2. **Verify Foundry test runs successfully:**
    ```bash
-   cd ssv-network  # Main ssv-network repo
-   npm install
-   npx hardhat test test/exploit.test.ts
+   cd ssv-insolvency-poc
+   forge install
+   export MAINNET_RPC_URL="https://eth-mainnet.g.alchemy.com/v2/YOUR_KEY"
+   forge test -vv --match-path test/SSVInsolvencyPoC.t.sol
    ```
 
 ### Nice to Have

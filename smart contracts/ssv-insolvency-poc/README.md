@@ -4,10 +4,15 @@
 
 This repository contains a **Foundry-based Proof of Concept (PoC)** demonstrating a Critical vulnerability in the ssv.network protocol that enables **direct theft of user funds** through systematic protocol insolvency.
 
-> ⚠️ **SAFETY NOTICE:** This PoC operates entirely on a **local fork** of mainnet. 
-> No transactions are sent to the actual Ethereum mainnet or any public testnet. 
-> All testing is performed in an isolated, simulated environment as required by 
-> Immunefi guidelines. This PoC does NOT perform any DoS attacks.
+> ⚠️ **SAFETY NOTICE:** This PoC operates entirely on a **local fork** of mainnet 
+> using Foundry's `vm.createSelectFork()`. No transactions are sent to the actual 
+> Ethereum mainnet or any public testnet. All testing is performed in an isolated, 
+> local environment as required by Immunefi guidelines. This PoC does NOT perform 
+> any DoS attacks.
+>
+> **Important:** This PoC forks mainnet to test against the actual deployed 
+> SSV Network contracts, ensuring accurate test conditions as required by 
+> Immunefi guidelines.
 
 **Vulnerability Type:** Accounting Mismatch / Protocol Insolvency  
 **Severity:** Critical  

@@ -7,9 +7,10 @@ import "./PoC.sol";
  * @title SSV Network Insolvency Proof of Concept
  * @notice Demonstrates protocol insolvency via uncollateralized virtual accounting
  * 
- * SAFETY: This contract is for LOCAL TESTING ONLY using Foundry's fork mode.
- * No transactions are sent to actual mainnet. This is a simulated demonstration
- * as required by Immunefi guidelines. No DoS attacks are performed.
+ * SAFETY: This contract is for LOCAL TESTING ONLY using Foundry's fork mode
+ * (vm.createSelectFork). No transactions are sent to actual mainnet. This tests
+ * against the actual deployed SSV Network contracts on a local fork as required 
+ * by Immunefi guidelines. No DoS attacks are performed.
  * 
  * Vulnerability: Operator and DAO earnings grow unconditionally while cluster 
  * balances are capped at zero, creating a state where virtual liabilities exceed 

@@ -149,6 +149,9 @@ git clone <repo-url>
 cd ssv-insolvency-poc
 forge install
 
+# Set RPC for mainnet forking (required per Immunefi guidelines)
+export MAINNET_RPC_URL="https://eth-mainnet.g.alchemy.com/v2/YOUR_API_KEY"
+
 # Run all tests
 forge test -vv
 
@@ -158,6 +161,8 @@ forge test -vv --match-test testInsolvencyAttack
 # Run with full trace
 forge test -vvv --match-test testInsolvencyAttack
 ```
+
+**Note:** The PoC forks mainnet to test against actual SSV Network contracts as required by Immunefi guidelines.
 
 ---
 
@@ -222,7 +227,7 @@ This PoC follows the Immunefi Foundry template structure:
 Before submitting, verify:
 
 - [ ] `forge build` succeeds
-- [ ] `forge test -vv` passes
+- [ ] `forge test -vv` passes (requires MAINNET_RPC_URL for forking)
 - [ ] All tests demonstrate vulnerability
 - [ ] README is clear and complete
 - [ ] TVL amount is current

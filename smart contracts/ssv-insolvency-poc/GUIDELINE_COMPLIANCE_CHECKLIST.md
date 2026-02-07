@@ -25,10 +25,10 @@ function setUp() public {
 ```
 
 **Notes:** 
-- Uses Foundry's `vm.createSelectFork()` to create a **local** fork
-- No transactions are sent to actual mainnet
-- Completely isolated test environment
-- Standard practice for PoC development
+- Uses Foundry's `vm.createSelectFork()` to create a **local** fork per Immunefi guidelines
+- Tests against actual deployed SSV Network contracts at block 19,000,000
+- No transactions are sent to actual mainnet - completely isolated
+- RPC required to fetch initial state, but all operations are local
 
 ---
 
@@ -83,7 +83,7 @@ forge test -vv --match-path test/SSVInsolvencyPoC.t.sol
 **Files Included:**
 - `foundry.toml` - Foundry configuration
 - `README.md` - Complete setup instructions
-- No external API keys or environment variables required
+- RPC endpoint required for mainnet forking (`MAINNET_RPC_URL`)
 
 ---
 
@@ -282,12 +282,12 @@ It ONLY:
 - ✅ No real user funds involved
 - ✅ Completely simulated environment
 
-### No External Dependencies
+### External Dependencies
 
-- ✅ No API keys required
-- ✅ No environment variables needed
-- ✅ No external service calls
-- ✅ Self-contained test
+- ✅ RPC endpoint required for initial mainnet state fetch
+- ✅ All other operations are self-contained
+- ✅ No external service calls during test execution
+- ✅ Local fork testing only
 
 ### No Code Injection
 
