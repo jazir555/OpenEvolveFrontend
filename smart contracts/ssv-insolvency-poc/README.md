@@ -162,7 +162,7 @@ Protocol deficit: 40 SSV
 
 ## Formal Proofs
 
-This PoC includes multiple formal verification methods:
+This PoC includes multiple formal verification methods. For a detailed explanation of what each proof demonstrates and how to verify them, please see the **[Formal Proofs Guide](./FORMAL_PROOFS_GUIDE.md)**.
 
 ### 1. SMT-LIB Proof (Z3)
 **File:** `formal-proofs/SSV_INSOLVENCY_PROOF.smt2`

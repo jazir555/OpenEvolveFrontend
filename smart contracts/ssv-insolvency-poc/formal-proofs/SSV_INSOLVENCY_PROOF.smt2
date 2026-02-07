@@ -1,66 +1,48 @@
-; SSV Protocol Insolvency Formal Proof
+; SSV Protocol Insolvency Formal Proof (Finalized)
 ; Language: SMT-LIB v2.6
-; Tool: Z3 / cvc5
 ;
 ; This proof demonstrates that the ssv.network virtual accounting system
-; can transition from a safe state to an insolvent state due to uncollateralized
-; operator fee accumulation.
+; transition leads to protocol insolvency using the finalized PoC parameters.
 
 (set-logic LIA)
 (set-option :produce-models true)
 
 ; --- State Variables ---
+(declare-fun honest_deposit () Int)   ; User A
+(declare-fun bankrupt_deposit () Int) ; User B
+(declare-fun blocks_passed () Int)    ; Time since both started
+(declare-fun operator_fee () Int)     ; Fee per block
 
-; initial_assets: Actual SSV tokens in the contract shared pool
-(declare-fun initial_assets () Int)
+; --- Protocol Logic Functions ---
 
-; honest_deposits: Portion of assets belonging to collateralized users
-(declare-fun honest_deposits () Int)
+; Assets: Total tokens held in the shared contract pool
+(define-fun total_assets () Int (+ honest_deposit bankrupt_deposit))
 
-; bankrupt_deposit: Initial deposit of the cluster that will go bankrupt
-(declare-fun bankrupt_deposit () Int)
+; Liabilities: Sum of all virtual promises
+; 1. Honest User is owed their full deposit (as they are collateralized)
+; 2. Operator is owed fees for the entire duration (unconditional credit)
+(define-fun operator_earnings () Int (* blocks_passed operator_fee))
+(define-fun total_liabilities () Int (+ honest_deposit operator_earnings))
 
-; blocks_delayed: Number of blocks passed after the cluster became insolvent
-(declare-fun blocks_delayed () Int)
+; --- PoC Parameters (Matching Foundry Trace) ---
+(assert (= honest_deposit 1000))
+(assert (= bankrupt_deposit 10))
+(assert (= blocks_passed 10))
+(assert (= operator_fee 5))
 
-; operator_fee: The fee rate credited to operators
-(declare-fun operator_fee () Int)
+; --- The Safety Invariant Violation ---
+; System is insolvent if Liabilities > Assets
+(define-fun is_insolvent () Bool (> total_liabilities total_assets))
 
-; --- Invariants & Domain Constraints ---
-
-; Assets must be positive
-(assert (> initial_assets 0))
-(assert (> bankrupt_deposit 0))
-(assert (>= honest_deposits 0))
-
-; Initial conservation: assets = honest_deposits + bankrupt_deposit
-(assert (= initial_assets (+ honest_deposits bankrupt_deposit)))
-
-; Parameters must be positive
-(assert (> blocks_delayed 0))
-(assert (> operator_fee 0))
-
-; --- Transition Logic (The Vulnerability) ---
-
-; 1. The bankrupt cluster consumes all its deposit.
-; 2. Operator logic credits fees for the 'delayed' blocks despite 0 balance.
-(define-fun virtual_debt () Int (* blocks_delayed operator_fee))
-
-; 3. Total Liabilities = (Funds owed to honest users) + (Virtual debt to operators)
-; Note: The bankrupt deposit is gone, but operators are owed more than it was worth.
-(define-fun total_liabilities () Int (+ honest_deposits bankrupt_deposit virtual_debt))
-
-; --- The Safety Invariant (Correctness) ---
-; A protocol is solvent if Assets >= Liabilities
-(define-fun is_solvent () Bool (>= initial_assets total_liabilities))
-
-; --- The Proof of Violation ---
-; We assert that the system is NOT solvent. 
-; If this is SATISFIABLE, the vulnerability is PROVEN.
-(assert (not is_solvent))
+; --- The Proof ---
+; We prove that given the protocol rules, insolvency is TRUE for these parameters.
+(assert is_insolvent)
 
 (check-sat)
 (get-model)
 
-; --- Expected Result: SAT ---
-; Z3 will find values for assets, fee, and blocks where promised tokens > actual tokens.
+; --- Result Interpretation ---
+; Result: SAT
+; This confirms that with 1010 tokens in the pool, 
+; the protocol promises 1000 (User A) + 50 (Operator) = 1050 tokens.
+; Deficit = 40 tokens.
