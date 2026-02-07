@@ -79,24 +79,22 @@ def test_async_consistency():
             print(f"    - Awaits phase_5_reassemble: {awaits_phase_5}")
             print(f"    - Awaits phase_6_final_validation: {awaits_phase_6}")
             async_consistent = False
-        else:
-            async_consistent = True
-    
-    # Check client for proper async patterns
-    with open(r"C:\Users\mmeadow\Documents\OpenEvolve\Frontend\crewai_client.py", "r", encoding="utf-8") as f:
-        content = f.read()
-        
-        # Check that execute_phase is async
-        has_async_execute_phase = "async def execute_phase(" in content
-        
-        if has_async_execute_phase:
-            print("  [PASS] Client execute_phase is async")
-            client_consistent = True
-        else:
-            print("  [FAIL] Client execute_phase is NOT async")
-            client_consistent = False
-    
-    return async_consistent and client_consistent
+
+        # Check client for proper async patterns
+        with open(r"C:\Users\mmeadow\Documents\OpenEvolve\Frontend\crewai_client.py", "r", encoding="utf-8") as f:
+            content = f.read()
+
+            # Check that execute_phase is async
+            has_async_execute_phase = "async def execute_phase(" in content
+
+            if has_async_execute_phase:
+                print("  [PASS] Client execute_phase is async")
+                client_consistent = True
+            else:
+                print("  [FAIL] Client execute_phase is NOT async")
+                client_consistent = False
+
+        return async_consistent and client_consistent
 
 def test_integration_points():
     """Test that all integration points work together"""
@@ -152,9 +150,9 @@ def main():
     
     if all_tests_pass:
         print("[SUCCESS] All CrewAI integration components verified!")
-        print("✅ Components exist and properly configured")
-        print("✅ Async/await patterns are consistent")
-        print("✅ Integration points work together")
+        print("[INFO] Components exist and properly configured")
+        print("[INFO] Async/await patterns are consistent")
+        print("[INFO] Integration points work together")
         print("\nThe CrewAI integration is complete and ready for production!")
     else:
         print("[PARTIAL] Some integration aspects need attention")
