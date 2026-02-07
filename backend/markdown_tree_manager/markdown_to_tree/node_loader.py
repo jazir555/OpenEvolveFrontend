@@ -1,8 +1,0 @@
-"""backend.markdown_tree_manager.markdown_to_tree.node_loader module."""
-
-class load_node:
-    pass
-
-class NodeLoader:
-    """Main class."""
-    pass
