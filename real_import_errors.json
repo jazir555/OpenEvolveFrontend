@@ -1,0 +1,4480 @@
+{
+  "errors": [
+    {
+      "file": "ace_analytics.py",
+      "line": 21,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "ace_analytics.py",
+      "line": 23,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "ace_analytics.py",
+      "line": 110,
+      "import": "from sklearn.feature_extraction.text import ...",
+      "type": "absolute",
+      "module": "sklearn.feature_extraction.text",
+      "top_module": "sklearn"
+    },
+    {
+      "file": "ace_analytics.py",
+      "line": 111,
+      "import": "from sklearn.cluster import ...",
+      "type": "absolute",
+      "module": "sklearn.cluster",
+      "top_module": "sklearn"
+    },
+    {
+      "file": "ace_analytics.py",
+      "line": 112,
+      "import": "from sklearn.metrics.pairwise import ...",
+      "type": "absolute",
+      "module": "sklearn.metrics.pairwise",
+      "top_module": "sklearn"
+    },
+    {
+      "file": "ace_crewai_bridge.py",
+      "line": 33,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "ace_crewai_bridge.py",
+      "line": 34,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "ace_knowledge_artifacts.py",
+      "line": 13,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "ace_mcp_tools.py",
+      "line": 21,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "ace_security_utils.py",
+      "line": 19,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "ace_security_utils.py",
+      "line": 21,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "activate_lean_integration.py",
+      "line": 23,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "adaptive_decomposition_integration.py",
+      "line": 18,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "adaptive_gauntlet_system.py",
+      "line": 10,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "adaptive_mdap_pes_integration.py",
+      "line": 63,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "adaptive_strategy_integration.py",
+      "line": 11,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "adaptive_strategy_selector.py",
+      "line": 10,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "adaptive_strategy_selector.py",
+      "line": 11,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "additional_unit_tests.py",
+      "line": 8,
+      "import": "from unittest.mock import ...",
+      "type": "absolute",
+      "module": "unittest.mock",
+      "top_module": "unittest"
+    },
+    {
+      "file": "additional_unit_tests.py",
+      "line": 11,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "add_integration_flags.py",
+      "line": 10,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "advanced_features.py",
+      "line": 12,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "advanced_features.py",
+      "line": 17,
+      "import": "from PIL import ...",
+      "type": "absolute",
+      "module": "PIL",
+      "top_module": "PIL"
+    },
+    {
+      "file": "advanced_features.py",
+      "line": 22,
+      "import": "from contextlib import ...",
+      "type": "absolute",
+      "module": "contextlib",
+      "top_module": "contextlib"
+    },
+    {
+      "file": "advanced_features.py",
+      "line": 527,
+      "import": "from mutagen import ...",
+      "type": "absolute",
+      "module": "mutagen",
+      "top_module": "mutagen"
+    },
+    {
+      "file": "advanced_features.py",
+      "line": 600,
+      "import": "from moviepy.editor import ...",
+      "type": "absolute",
+      "module": "moviepy.editor",
+      "top_module": "moviepy"
+    },
+    {
+      "file": "advanced_system_unit_tests.py",
+      "line": 7,
+      "import": "from unittest.mock import ...",
+      "type": "absolute",
+      "module": "unittest.mock",
+      "top_module": "unittest"
+    },
+    {
+      "file": "advanced_system_unit_tests.py",
+      "line": 12,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "advanced_system_unit_tests.py",
+      "line": 23,
+      "import": "from contextlib import ...",
+      "type": "absolute",
+      "module": "contextlib",
+      "top_module": "contextlib"
+    },
+    {
+      "file": "advanced_system_unit_tests.py",
+      "line": 687,
+      "import": "from concurrent.futures import ...",
+      "type": "absolute",
+      "module": "concurrent.futures",
+      "top_module": "concurrent"
+    },
+    {
+      "file": "advanced_system_unit_tests.py",
+      "line": 1315,
+      "import": "from concurrent.futures import ...",
+      "type": "absolute",
+      "module": "concurrent.futures",
+      "top_module": "concurrent"
+    },
+    {
+      "file": "advanced_unit_tests_comprehensive.py",
+      "line": 7,
+      "import": "from unittest.mock import ...",
+      "type": "absolute",
+      "module": "unittest.mock",
+      "top_module": "unittest"
+    },
+    {
+      "file": "advanced_unit_tests_comprehensive.py",
+      "line": 13,
+      "import": "from concurrent.futures import ...",
+      "type": "absolute",
+      "module": "concurrent.futures",
+      "top_module": "concurrent"
+    },
+    {
+      "file": "advanced_unit_tests_comprehensive.py",
+      "line": 18,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "advanced_unit_tests_comprehensive.py",
+      "line": 29,
+      "import": "from contextlib import ...",
+      "type": "absolute",
+      "module": "contextlib",
+      "top_module": "contextlib"
+    },
+    {
+      "file": "advanced_unit_tests_comprehensive.py",
+      "line": 38,
+      "import": "from decimal import ...",
+      "type": "absolute",
+      "module": "decimal",
+      "top_module": "decimal"
+    },
+    {
+      "file": "advanced_unit_tests_comprehensive.py",
+      "line": 39,
+      "import": "from fractions import ...",
+      "type": "absolute",
+      "module": "fractions",
+      "top_module": "fractions"
+    },
+    {
+      "file": "advanced_unit_tests_comprehensive.py",
+      "line": 911,
+      "import": "from concurrent.futures import ...",
+      "type": "absolute",
+      "module": "concurrent.futures",
+      "top_module": "concurrent"
+    },
+    {
+      "file": "advanced_unit_tests_comprehensive.py",
+      "line": 1073,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "advanced_unit_tests_comprehensive.py",
+      "line": 1247,
+      "import": "from queue import ...",
+      "type": "absolute",
+      "module": "queue",
+      "top_module": "queue"
+    },
+    {
+      "file": "advanced_validation_workflows.py",
+      "line": 17,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "advanced_visualization.py",
+      "line": 11,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "adversarial.py",
+      "line": 23,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "adversarial_maker_integration.py",
+      "line": 507,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "adversarial_maker_integration.py",
+      "line": 835,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "adversarial_mdap_mcts.py",
+      "line": 39,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "adversarial_mdap_mcts.py",
+      "line": 40,
+      "import": "from concurrent.futures import ...",
+      "type": "absolute",
+      "module": "concurrent.futures",
+      "top_module": "concurrent"
+    },
+    {
+      "file": "adversarial_mdap_mcts.py",
+      "line": 43,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "adversarial_mdap_mcts.py",
+      "line": 45,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "adversarial_testing.py",
+      "line": 9,
+      "import": "from concurrent.futures import ...",
+      "type": "absolute",
+      "module": "concurrent.futures",
+      "top_module": "concurrent"
+    },
+    {
+      "file": "adversarial_unified.py",
+      "line": 47,
+      "import": "from abc import ...",
+      "type": "absolute",
+      "module": "abc",
+      "top_module": "abc"
+    },
+    {
+      "file": "adversarial_unified.py",
+      "line": 48,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "adversarial_unified.py",
+      "line": 49,
+      "import": "from concurrent.futures import ...",
+      "type": "absolute",
+      "module": "concurrent.futures",
+      "top_module": "concurrent"
+    },
+    {
+      "file": "adversarial_unified.py",
+      "line": 51,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "adversarial_unified.py",
+      "line": 54,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "alerting_system.py",
+      "line": 27,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "alerting_system.py",
+      "line": 28,
+      "import": "from email.mime.text import ...",
+      "type": "absolute",
+      "module": "email.mime.text",
+      "top_module": "email"
+    },
+    {
+      "file": "alerting_system.py",
+      "line": 29,
+      "import": "from email.mime.multipart import ...",
+      "type": "absolute",
+      "module": "email.mime.multipart",
+      "top_module": "email"
+    },
+    {
+      "file": "alerting_system.py",
+      "line": 30,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "analytics_dashboard.py",
+      "line": 13,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "analytics_data.py",
+      "line": 481,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "analytics_manager.py",
+      "line": 14,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "analytics_monitoring_dashboard.py",
+      "line": 15,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "analytics_z3_connector.py",
+      "line": 22,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "analytics_z3_connector.py",
+      "line": 23,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "analyze_imports.py",
+      "line": 7,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "analyze_ke_imports.py",
+      "line": 10,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "analyze_ke_imports.py",
+      "line": 13,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "analyze_openevolve_integration.py",
+      "line": 8,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "analyze_real_imports.py",
+      "line": 6,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "analyze_real_imports.py",
+      "line": 7,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "api_gateway.py",
+      "line": 18,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "api_gateway.py",
+      "line": 22,
+      "import": "from fastapi import ...",
+      "type": "absolute",
+      "module": "fastapi",
+      "top_module": "fastapi"
+    },
+    {
+      "file": "api_gateway.py",
+      "line": 23,
+      "import": "from fastapi.middleware.cors import ...",
+      "type": "absolute",
+      "module": "fastapi.middleware.cors",
+      "top_module": "fastapi"
+    },
+    {
+      "file": "api_gateway.py",
+      "line": 24,
+      "import": "from fastapi.middleware.gzip import ...",
+      "type": "absolute",
+      "module": "fastapi.middleware.gzip",
+      "top_module": "fastapi"
+    },
+    {
+      "file": "api_gateway.py",
+      "line": 25,
+      "import": "from fastapi.responses import ...",
+      "type": "absolute",
+      "module": "fastapi.responses",
+      "top_module": "fastapi"
+    },
+    {
+      "file": "api_gateway.py",
+      "line": 26,
+      "import": "from fastapi.security import ...",
+      "type": "absolute",
+      "module": "fastapi.security",
+      "top_module": "fastapi"
+    },
+    {
+      "file": "api_gateway.py",
+      "line": 44,
+      "import": "from opentelemetry.instrumentation.fastapi import ...",
+      "type": "absolute",
+      "module": "opentelemetry.instrumentation.fastapi",
+      "top_module": "opentelemetry"
+    },
+    {
+      "file": "api_key_manager.py",
+      "line": 11,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "api_key_manager.py",
+      "line": 16,
+      "import": "from contextlib import ...",
+      "type": "absolute",
+      "module": "contextlib",
+      "top_module": "contextlib"
+    },
+    {
+      "file": "api_key_manager.py",
+      "line": 18,
+      "import": "from cryptography.fernet import ...",
+      "type": "absolute",
+      "module": "cryptography.fernet",
+      "top_module": "cryptography"
+    },
+    {
+      "file": "api_key_manager.py",
+      "line": 19,
+      "import": "from cryptography.hazmat.primitives import ...",
+      "type": "absolute",
+      "module": "cryptography.hazmat.primitives",
+      "top_module": "cryptography"
+    },
+    {
+      "file": "api_key_manager.py",
+      "line": 20,
+      "import": "from cryptography.hazmat.primitives.kdf.pbkdf2 import ...",
+      "type": "absolute",
+      "module": "cryptography.hazmat.primitives.kdf.pbkdf2",
+      "top_module": "cryptography"
+    },
+    {
+      "file": "api_key_manager.py",
+      "line": 550,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "api_routes.py",
+      "line": 2,
+      "import": "from fastapi import ...",
+      "type": "absolute",
+      "module": "fastapi",
+      "top_module": "fastapi"
+    },
+    {
+      "file": "api_server.py",
+      "line": 8,
+      "import": "from fastapi import ...",
+      "type": "absolute",
+      "module": "fastapi",
+      "top_module": "fastapi"
+    },
+    {
+      "file": "api_server.py",
+      "line": 9,
+      "import": "from fastapi.middleware.cors import ...",
+      "type": "absolute",
+      "module": "fastapi.middleware.cors",
+      "top_module": "fastapi"
+    },
+    {
+      "file": "api_server.py",
+      "line": 10,
+      "import": "from fastapi.responses import ...",
+      "type": "absolute",
+      "module": "fastapi.responses",
+      "top_module": "fastapi"
+    },
+    {
+      "file": "api_server.py",
+      "line": 11,
+      "import": "from fastapi.templating import ...",
+      "type": "absolute",
+      "module": "fastapi.templating",
+      "top_module": "fastapi"
+    },
+    {
+      "file": "api_server.py",
+      "line": 14,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "api_server.py",
+      "line": 26,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "api_server.py",
+      "line": 29,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "api_server.py",
+      "line": 1641,
+      "import": "from jose import ...",
+      "type": "absolute",
+      "module": "jose",
+      "top_module": "jose"
+    },
+    {
+      "file": "api_server.py",
+      "line": 1642,
+      "import": "from passlib.context import ...",
+      "type": "absolute",
+      "module": "passlib.context",
+      "top_module": "passlib"
+    },
+    {
+      "file": "api_server.py",
+      "line": 1643,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "api_server.py",
+      "line": 1799,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "apply_ace_phase4_fixes.py",
+      "line": 13,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "apply_ace_security_fixes.py",
+      "line": 16,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "apply_api_consistency_fixes.py",
+      "line": 20,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "apply_code_quality_fixes.py",
+      "line": 20,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "apply_phase4_validation.py",
+      "line": 25,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "audit_logging.py",
+      "line": 6,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "auth_system.py",
+      "line": 11,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "auth_system.py",
+      "line": 15,
+      "import": "from contextlib import ...",
+      "type": "absolute",
+      "module": "contextlib",
+      "top_module": "contextlib"
+    },
+    {
+      "file": "automated_proof_engine.py",
+      "line": 25,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "automated_proof_engine.py",
+      "line": 27,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "automated_proof_engine.py",
+      "line": 29,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "autonomous_research_quest.py",
+      "line": 20,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "backup_restore.py",
+      "line": 15,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "backup_restore.py",
+      "line": 16,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "benchmark_integrations.py",
+      "line": 15,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "benchmark_integrations.py",
+      "line": 16,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "benchmark_integrations.py",
+      "line": 22,
+      "import": "from rich.console import ...",
+      "type": "absolute",
+      "module": "rich.console",
+      "top_module": "rich"
+    },
+    {
+      "file": "benchmark_integrations.py",
+      "line": 23,
+      "import": "from rich.table import ...",
+      "type": "absolute",
+      "module": "rich.table",
+      "top_module": "rich"
+    },
+    {
+      "file": "benchmark_integrations.py",
+      "line": 24,
+      "import": "from rich.progress import ...",
+      "type": "absolute",
+      "module": "rich.progress",
+      "top_module": "rich"
+    },
+    {
+      "file": "benchmark_integrations.py",
+      "line": 351,
+      "import": "from unittest.mock import ...",
+      "type": "absolute",
+      "module": "unittest.mock",
+      "top_module": "unittest"
+    },
+    {
+      "file": "benchmark_integrations.py",
+      "line": 321,
+      "import": "from fastapi.testclient import ...",
+      "type": "absolute",
+      "module": "fastapi.testclient",
+      "top_module": "fastapi"
+    },
+    {
+      "file": "benchmark_knowledge_artifacts_extended.py",
+      "line": 11,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "benchmark_knowledge_artifacts_extended.py",
+      "line": 13,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "benchmark_knowledge_artifact_generation.py",
+      "line": 13,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "benchmark_knowledge_artifact_generation.py",
+      "line": 15,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "benchmark_ultra_comprehensive_artifacts.py",
+      "line": 14,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "benchmark_ultra_comprehensive_artifacts.py",
+      "line": 15,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "blue_team.py",
+      "line": 15,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "blue_team.py",
+      "line": 203,
+      "import": "from dspy.teleprompt import ...",
+      "type": "absolute",
+      "module": "dspy.teleprompt",
+      "top_module": "dspy"
+    },
+    {
+      "file": "blue_team.py",
+      "line": 204,
+      "import": "from dspy.predict import ...",
+      "type": "absolute",
+      "module": "dspy.predict",
+      "top_module": "dspy"
+    },
+    {
+      "file": "blue_team.py",
+      "line": 210,
+      "import": "from dspy.teleprompt import ...",
+      "type": "absolute",
+      "module": "dspy.teleprompt",
+      "top_module": "dspy"
+    },
+    {
+      "file": "blue_team.py",
+      "line": 211,
+      "import": "from dspy.predict import ...",
+      "type": "absolute",
+      "module": "dspy.predict",
+      "top_module": "dspy"
+    },
+    {
+      "file": "blue_team_performance_integration.py",
+      "line": 23,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "blue_team_performance_tracker.py",
+      "line": 27,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "blue_team_performance_tracker.py",
+      "line": 28,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "blue_team_performance_tracker.py",
+      "line": 31,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "blue_team_performance_tracker.py",
+      "line": 33,
+      "import": "from contextlib import ...",
+      "type": "absolute",
+      "module": "contextlib",
+      "top_module": "contextlib"
+    },
+    {
+      "file": "blue_team_solver_engine.py",
+      "line": 30,
+      "import": "from abc import ...",
+      "type": "absolute",
+      "module": "abc",
+      "top_module": "abc"
+    },
+    {
+      "file": "blue_team_solver_engine.py",
+      "line": 34,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "blue_team_solver_engine.py",
+      "line": 331,
+      "import": "from causallearn.utils.preference_synthesis import ...",
+      "type": "absolute",
+      "module": "causallearn.utils.preference_synthesis",
+      "top_module": "causallearn"
+    },
+    {
+      "file": "blue_team_tools.py",
+      "line": 19,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "blue_team_tools.py",
+      "line": 20,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "blue_team_tools.py",
+      "line": 1087,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "blue_team_utilities.py",
+      "line": 16,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "blue_team_utilities.py",
+      "line": 19,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "blue_team_utilities.py",
+      "line": 20,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "bubblelab-auto-setup-v1-backup.py",
+      "line": 32,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "bubblelab-auto-setup-v1-backup.py",
+      "line": 34,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "bubblelab-auto-setup-v1-backup.py",
+      "line": 35,
+      "import": "from urllib.parse import ...",
+      "type": "absolute",
+      "module": "urllib.parse",
+      "top_module": "urllib"
+    },
+    {
+      "file": "bubblelab-auto-setup-v2.py",
+      "line": 50,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "bubblelab-auto-setup-v2.py",
+      "line": 52,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "bubblelab-auto-setup-v2.py",
+      "line": 53,
+      "import": "from urllib.parse import ...",
+      "type": "absolute",
+      "module": "urllib.parse",
+      "top_module": "urllib"
+    },
+    {
+      "file": "bubblelab-auto-setup-v2.py",
+      "line": 54,
+      "import": "from contextlib import ...",
+      "type": "absolute",
+      "module": "contextlib",
+      "top_module": "contextlib"
+    },
+    {
+      "file": "bubblelab-auto-setup-v2.py",
+      "line": 59,
+      "import": "from cryptography.fernet import ...",
+      "type": "absolute",
+      "module": "cryptography.fernet",
+      "top_module": "cryptography"
+    },
+    {
+      "file": "bubblelab-auto-setup-v2.py",
+      "line": 60,
+      "import": "from cryptography.hazmat.primitives import ...",
+      "type": "absolute",
+      "module": "cryptography.hazmat.primitives",
+      "top_module": "cryptography"
+    },
+    {
+      "file": "bubblelab-auto-setup-v2.py",
+      "line": 61,
+      "import": "from cryptography.hazmat.primitives.kdf.pbkdf2 import ...",
+      "type": "absolute",
+      "module": "cryptography.hazmat.primitives.kdf.pbkdf2",
+      "top_module": "cryptography"
+    },
+    {
+      "file": "bubblelab-auto-setup-v3.py",
+      "line": 38,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "bubblelab-auto-setup-v3.py",
+      "line": 40,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "bubblelab-auto-setup-v3.py",
+      "line": 41,
+      "import": "from urllib.parse import ...",
+      "type": "absolute",
+      "module": "urllib.parse",
+      "top_module": "urllib"
+    },
+    {
+      "file": "bubblelab-auto-setup-v3.py",
+      "line": 42,
+      "import": "from contextlib import ...",
+      "type": "absolute",
+      "module": "contextlib",
+      "top_module": "contextlib"
+    },
+    {
+      "file": "bubblelab-auto-setup.py",
+      "line": 36,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "bubblelab-auto-setup.py",
+      "line": 38,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "bubblelab-auto-setup.py",
+      "line": 39,
+      "import": "from urllib.parse import ...",
+      "type": "absolute",
+      "module": "urllib.parse",
+      "top_module": "urllib"
+    },
+    {
+      "file": "bubblelab-auto-setup.py",
+      "line": 40,
+      "import": "from contextlib import ...",
+      "type": "absolute",
+      "module": "contextlib",
+      "top_module": "contextlib"
+    },
+    {
+      "file": "bubblelab-automation.py",
+      "line": 34,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "bubblelab-automation.py",
+      "line": 36,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "bubblelab-automation.py",
+      "line": 37,
+      "import": "from getpass import ...",
+      "type": "absolute",
+      "module": "getpass",
+      "top_module": "getpass"
+    },
+    {
+      "file": "bubblelabs_analytics.py",
+      "line": 30,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "bubblelabs_analytics.py",
+      "line": 31,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "bubblelabs_analytics.py",
+      "line": 32,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "bubblelabs_analytics.py",
+      "line": 33,
+      "import": "from contextlib import ...",
+      "type": "absolute",
+      "module": "contextlib",
+      "top_module": "contextlib"
+    },
+    {
+      "file": "bubblelabs_automation.py",
+      "line": 20,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "bubblelabs_automation.py",
+      "line": 24,
+      "import": "from queue import ...",
+      "type": "absolute",
+      "module": "queue",
+      "top_module": "queue"
+    },
+    {
+      "file": "bubblelabs_extended_integration.py",
+      "line": 19,
+      "import": "from threading import ...",
+      "type": "absolute",
+      "module": "threading",
+      "top_module": "threading"
+    },
+    {
+      "file": "bubblelabs_extended_integration.py",
+      "line": 20,
+      "import": "from concurrent.futures import ...",
+      "type": "absolute",
+      "module": "concurrent.futures",
+      "top_module": "concurrent"
+    },
+    {
+      "file": "bubblelabs_extended_integration.py",
+      "line": 166,
+      "import": "from z3 import ...",
+      "type": "absolute",
+      "module": "z3",
+      "top_module": "z3"
+    },
+    {
+      "file": "bubblelabs_gauntlet_bubbles.py",
+      "line": 28,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "bubblelabs_integration_tests.py",
+      "line": 12,
+      "import": "from unittest.mock import ...",
+      "type": "absolute",
+      "module": "unittest.mock",
+      "top_module": "unittest"
+    },
+    {
+      "file": "bubblelabs_knowledge_integration.py",
+      "line": 22,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "bubblelabs_knowledge_integration.py",
+      "line": 23,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "bubblelabs_leanaide_examples.py",
+      "line": 22,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "bubblelabs_leanaide_integration.py",
+      "line": 34,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "bubblelabs_leanaide_integration.py",
+      "line": 37,
+      "import": "from concurrent.futures import ...",
+      "type": "absolute",
+      "module": "concurrent.futures",
+      "top_module": "concurrent"
+    },
+    {
+      "file": "bubblelabs_leanaide_ui.py",
+      "line": 27,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "bubblelabs_maker_integration.py",
+      "line": 34,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "bubblelabs_mcp_tools.py",
+      "line": 24,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "bubblelabs_mcp_tools.py",
+      "line": 25,
+      "import": "from threading import ...",
+      "type": "absolute",
+      "module": "threading",
+      "top_module": "threading"
+    },
+    {
+      "file": "bubblelabs_node_completion.py",
+      "line": 12,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "bubblelabs_node_completion.py",
+      "line": 15,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "bubblelabs_plugin_system.py",
+      "line": 19,
+      "import": "from abc import ...",
+      "type": "absolute",
+      "module": "abc",
+      "top_module": "abc"
+    },
+    {
+      "file": "bubblelabs_plugin_system.py",
+      "line": 22,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "bubblelabs_plugin_system.py",
+      "line": 35,
+      "import": "from contextlib import ...",
+      "type": "absolute",
+      "module": "contextlib",
+      "top_module": "contextlib"
+    },
+    {
+      "file": "bubblelabs_typescript_export.py",
+      "line": 22,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "bubblelabs_typescript_export.py",
+      "line": 23,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "bubblelabs_validation.py",
+      "line": 22,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "bubblelab_crewai_mcp_server.py",
+      "line": 18,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "bubblelab_crewai_mcp_server.py",
+      "line": 20,
+      "import": "from uuid import ...",
+      "type": "absolute",
+      "module": "uuid",
+      "top_module": "uuid"
+    },
+    {
+      "file": "bubblelab_crewai_mcp_server.py",
+      "line": 23,
+      "import": "from fastapi import ...",
+      "type": "absolute",
+      "module": "fastapi",
+      "top_module": "fastapi"
+    },
+    {
+      "file": "bubblelab_crewai_mcp_server.py",
+      "line": 35,
+      "import": "from crewai import ...",
+      "type": "absolute",
+      "module": "crewai",
+      "top_module": "crewai"
+    },
+    {
+      "file": "bubblelab_crewai_mcp_server.py",
+      "line": 36,
+      "import": "from langchain_openai import ...",
+      "type": "absolute",
+      "module": "langchain_openai",
+      "top_module": "langchain_openai"
+    },
+    {
+      "file": "bug_scanner.py",
+      "line": 11,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "c2c_cache_manager.py",
+      "line": 22,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "c2c_cache_manager.py",
+      "line": 25,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "c2c_mcp_tools.py",
+      "line": 26,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "c2c_mcp_tools.py",
+      "line": 48,
+      "import": "from rosetta.model.wrapper import ...",
+      "type": "absolute",
+      "module": "rosetta.model.wrapper",
+      "top_module": "rosetta"
+    },
+    {
+      "file": "c2c_mcp_tools.py",
+      "line": 49,
+      "import": "from rosetta.model.projector import ...",
+      "type": "absolute",
+      "module": "rosetta.model.projector",
+      "top_module": "rosetta"
+    },
+    {
+      "file": "categorize_tests.py",
+      "line": 6,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "chemistry_validator.py",
+      "line": 18,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "chronicle_memory.py",
+      "line": 28,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "chronicle_memory.py",
+      "line": 29,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "chronicle_memory.py",
+      "line": 30,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "chronicle_memory_z3_integration.py",
+      "line": 26,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "chronicle_memory_z3_integration.py",
+      "line": 27,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "ci_cd_pipeline.py",
+      "line": 10,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "ci_cd_pipeline.py",
+      "line": 15,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "ci_cd_pipeline.py",
+      "line": 163,
+      "import": "from test_suite import ...",
+      "type": "absolute",
+      "module": "test_suite",
+      "top_module": "test_suite"
+    },
+    {
+      "file": "claudiomiro_crewai_bridge.py",
+      "line": 33,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "claudiomiro_crewai_bridge.py",
+      "line": 34,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "claudiomiro_mcp_tools.py",
+      "line": 25,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "claudiomiro_mcp_tools.py",
+      "line": 26,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "clean_final_verification_test.py",
+      "line": 10,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "collaboration_manager.py",
+      "line": 12,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "compare_before_after.py",
+      "line": 16,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "compare_phase1_phase2.py",
+      "line": 18,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "compare_phase1_phase2.py",
+      "line": 20,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "complete_continuous_math.py",
+      "line": 20,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "complete_continuous_math.py",
+      "line": 24,
+      "import": "from scipy import ...",
+      "type": "absolute",
+      "module": "scipy",
+      "top_module": "scipy"
+    },
+    {
+      "file": "complete_continuous_math.py",
+      "line": 26,
+      "import": "from sympy import ...",
+      "type": "absolute",
+      "module": "sympy",
+      "top_module": "sympy"
+    },
+    {
+      "file": "complexity_analyzer.py",
+      "line": 13,
+      "import": "from __future__ import ...",
+      "type": "absolute",
+      "module": "__future__",
+      "top_module": "__future__"
+    },
+    {
+      "file": "complexity_analyzer.py",
+      "line": 1098,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "complexity_analyzer.py",
+      "line": 33,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "comprehensive_decomposition_engine.py",
+      "line": 20,
+      "import": "from __future__ import ...",
+      "type": "absolute",
+      "module": "__future__",
+      "top_module": "__future__"
+    },
+    {
+      "file": "comprehensive_decomposition_engine.py",
+      "line": 28,
+      "import": "from abc import ...",
+      "type": "absolute",
+      "module": "abc",
+      "top_module": "abc"
+    },
+    {
+      "file": "comprehensive_decomposition_engine.py",
+      "line": 29,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "comprehensive_decomposition_engine.py",
+      "line": 30,
+      "import": "from concurrent.futures import ...",
+      "type": "absolute",
+      "module": "concurrent.futures",
+      "top_module": "concurrent"
+    },
+    {
+      "file": "comprehensive_decomposition_engine.py",
+      "line": 32,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "comprehensive_demo.py",
+      "line": 8,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "comprehensive_edge_case_analysis.py",
+      "line": 12,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "comprehensive_edge_case_analysis.py",
+      "line": 14,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "comprehensive_edge_case_analysis.py",
+      "line": 15,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "comprehensive_functional_tests.py",
+      "line": 26,
+      "import": "from unittest.mock import ...",
+      "type": "absolute",
+      "module": "unittest.mock",
+      "top_module": "unittest"
+    },
+    {
+      "file": "comprehensive_gap_audit.py",
+      "line": 8,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "comprehensive_gap_audit.py",
+      "line": 11,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "comprehensive_import_test.py",
+      "line": 8,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "comprehensive_integration_test.py",
+      "line": 18,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "comprehensive_recomposition_engine.py",
+      "line": 20,
+      "import": "from __future__ import ...",
+      "type": "absolute",
+      "module": "__future__",
+      "top_module": "__future__"
+    },
+    {
+      "file": "comprehensive_recomposition_engine.py",
+      "line": 27,
+      "import": "from abc import ...",
+      "type": "absolute",
+      "module": "abc",
+      "top_module": "abc"
+    },
+    {
+      "file": "comprehensive_recomposition_engine.py",
+      "line": 28,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "comprehensive_recomposition_engine.py",
+      "line": 29,
+      "import": "from concurrent.futures import ...",
+      "type": "absolute",
+      "module": "concurrent.futures",
+      "top_module": "concurrent"
+    },
+    {
+      "file": "comprehensive_recomposition_engine.py",
+      "line": 31,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "comprehensive_recomposition_engine.py",
+      "line": 665,
+      "import": "from sentence_transformers import ...",
+      "type": "absolute",
+      "module": "sentence_transformers",
+      "top_module": "sentence_transformers"
+    },
+    {
+      "file": "comprehensive_recomposition_engine.py",
+      "line": 1123,
+      "import": "from sentence_transformers import ...",
+      "type": "absolute",
+      "module": "sentence_transformers",
+      "top_module": "sentence_transformers"
+    },
+    {
+      "file": "comprehensive_security_test_coverage.py",
+      "line": 30,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "comprehensive_security_test_coverage.py",
+      "line": 31,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "comprehensive_security_test_coverage.py",
+      "line": 33,
+      "import": "from unittest.mock import ...",
+      "type": "absolute",
+      "module": "unittest.mock",
+      "top_module": "unittest"
+    },
+    {
+      "file": "comprehensive_syntax_fixer.py",
+      "line": 8,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "comprehensive_system_test.py",
+      "line": 9,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "comprehensive_test_suite.py",
+      "line": 9,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "comprehensive_validation_tests.py",
+      "line": 12,
+      "import": "from concurrent.futures import ...",
+      "type": "absolute",
+      "module": "concurrent.futures",
+      "top_module": "concurrent"
+    },
+    {
+      "file": "comprehensive_validation_tests.py",
+      "line": 13,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "comprehensive_verification_report.py",
+      "line": 12,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "comprehensive_workflow_auditor.py",
+      "line": 11,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "comprehensive_workflow_auditor.py",
+      "line": 14,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "comprehensive_workflow_auditor.py",
+      "line": 15,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "config.py",
+      "line": 13,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "config_loader.py",
+      "line": 16,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "conflict_detector.py",
+      "line": 27,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "conflict_detector.py",
+      "line": 29,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "conftest.py",
+      "line": 78,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "constraint_based_alerting.py",
+      "line": 11,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "content_analyzer.py",
+      "line": 12,
+      "import": "from nltk.tokenize import ...",
+      "type": "absolute",
+      "module": "nltk.tokenize",
+      "top_module": "nltk"
+    },
+    {
+      "file": "content_analyzer.py",
+      "line": 13,
+      "import": "from nltk.corpus import ...",
+      "type": "absolute",
+      "module": "nltk.corpus",
+      "top_module": "nltk"
+    },
+    {
+      "file": "content_analyzer.py",
+      "line": 14,
+      "import": "from textstat import ...",
+      "type": "absolute",
+      "module": "textstat",
+      "top_module": "textstat"
+    },
+    {
+      "file": "content_analyzer.py",
+      "line": 28,
+      "import": "from nltk.corpus import ...",
+      "type": "absolute",
+      "module": "nltk.corpus",
+      "top_module": "nltk"
+    },
+    {
+      "file": "content_manager.py",
+      "line": 8,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "coverage_tracking.py",
+      "line": 11,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "coverage_tracking.py",
+      "line": 14,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "crewai_api_routes.py",
+      "line": 11,
+      "import": "from fastapi import ...",
+      "type": "absolute",
+      "module": "fastapi",
+      "top_module": "fastapi"
+    },
+    {
+      "file": "crewai_api_routes.py",
+      "line": 13,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "crewai_client.py",
+      "line": 21,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "crewai_client.py",
+      "line": 22,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "crewai_enhanced_decomposition_bridge.py",
+      "line": 14,
+      "import": "from __future__ import ...",
+      "type": "absolute",
+      "module": "__future__",
+      "top_module": "__future__"
+    },
+    {
+      "file": "crewai_enhanced_decomposition_bridge.py",
+      "line": 19,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "crewai_hub.py",
+      "line": 12,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "crewai_integration.py",
+      "line": 15,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "crewai_integration_complete.py",
+      "line": 12,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "crewai_integration_complete.py",
+      "line": 16,
+      "import": "from crewai import ...",
+      "type": "absolute",
+      "module": "crewai",
+      "top_module": "crewai"
+    },
+    {
+      "file": "crewai_integration_complete.py",
+      "line": 17,
+      "import": "from langchain_openai import ...",
+      "type": "absolute",
+      "module": "langchain_openai",
+      "top_module": "langchain_openai"
+    },
+    {
+      "file": "crewai_integration_layer.py",
+      "line": 13,
+      "import": "from uuid import ...",
+      "type": "absolute",
+      "module": "uuid",
+      "top_module": "uuid"
+    },
+    {
+      "file": "crewai_integration_layer.py",
+      "line": 14,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "crewai_integration_layer.py",
+      "line": 21,
+      "import": "from crewai import ...",
+      "type": "absolute",
+      "module": "crewai",
+      "top_module": "crewai"
+    },
+    {
+      "file": "crewai_integration_layer.py",
+      "line": 22,
+      "import": "from langchain_openai import ...",
+      "type": "absolute",
+      "module": "langchain_openai",
+      "top_module": "langchain_openai"
+    },
+    {
+      "file": "crewai_mdap_integrator.py",
+      "line": 31,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "crewai_mdap_integrator.py",
+      "line": 43,
+      "import": "from crewai import ...",
+      "type": "absolute",
+      "module": "crewai",
+      "top_module": "crewai"
+    },
+    {
+      "file": "crewai_mdap_maker_engine.py",
+      "line": 42,
+      "import": "from crewai import ...",
+      "type": "absolute",
+      "module": "crewai",
+      "top_module": "crewai"
+    },
+    {
+      "file": "crewai_mdap_maker_engine.py",
+      "line": 868,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "crewai_mdap_maker_engine.py",
+      "line": 914,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "crewai_research_core.py",
+      "line": 24,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "crewai_research_core.py",
+      "line": 27,
+      "import": "from abc import ...",
+      "type": "absolute",
+      "module": "abc",
+      "top_module": "abc"
+    },
+    {
+      "file": "crewai_research_core.py",
+      "line": 30,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "crewai_research_core.py",
+      "line": 277,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "crewai_research_enhanced.py",
+      "line": 24,
+      "import": "from abc import ...",
+      "type": "absolute",
+      "module": "abc",
+      "top_module": "abc"
+    },
+    {
+      "file": "crewai_research_enhanced.py",
+      "line": 26,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "crewai_research_enhanced.py",
+      "line": 27,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "crewai_research_enhanced.py",
+      "line": 618,
+      "import": "from sentence_transformers import ...",
+      "type": "absolute",
+      "module": "sentence_transformers",
+      "top_module": "sentence_transformers"
+    },
+    {
+      "file": "crewai_research_enhanced.py",
+      "line": 997,
+      "import": "from PIL import ...",
+      "type": "absolute",
+      "module": "PIL",
+      "top_module": "PIL"
+    },
+    {
+      "file": "crewai_research_enhanced.py",
+      "line": 1006,
+      "import": "from PIL import ...",
+      "type": "absolute",
+      "module": "PIL",
+      "top_module": "PIL"
+    },
+    {
+      "file": "crewai_research_external.py",
+      "line": 32,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "crewai_research_external.py",
+      "line": 35,
+      "import": "from abc import ...",
+      "type": "absolute",
+      "module": "abc",
+      "top_module": "abc"
+    },
+    {
+      "file": "crewai_research_external.py",
+      "line": 36,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "crewai_research_external.py",
+      "line": 224,
+      "import": "from scholarly import ...",
+      "type": "absolute",
+      "module": "scholarly",
+      "top_module": "scholarly"
+    },
+    {
+      "file": "crewai_research_external.py",
+      "line": 300,
+      "import": "from Bio import ...",
+      "type": "absolute",
+      "module": "Bio",
+      "top_module": "Bio"
+    },
+    {
+      "file": "crewai_research_external.py",
+      "line": 1329,
+      "import": "from reportlab.lib.pagesizes import ...",
+      "type": "absolute",
+      "module": "reportlab.lib.pagesizes",
+      "top_module": "reportlab"
+    },
+    {
+      "file": "crewai_research_external.py",
+      "line": 1330,
+      "import": "from reportlab.platypus import ...",
+      "type": "absolute",
+      "module": "reportlab.platypus",
+      "top_module": "reportlab"
+    },
+    {
+      "file": "crewai_research_external.py",
+      "line": 1331,
+      "import": "from reportlab.lib.styles import ...",
+      "type": "absolute",
+      "module": "reportlab.lib.styles",
+      "top_module": "reportlab"
+    },
+    {
+      "file": "crewai_research_external.py",
+      "line": 1332,
+      "import": "from reportlab.lib import ...",
+      "type": "absolute",
+      "module": "reportlab.lib",
+      "top_module": "reportlab"
+    },
+    {
+      "file": "crewai_research_external.py",
+      "line": 1363,
+      "import": "from docx import ...",
+      "type": "absolute",
+      "module": "docx",
+      "top_module": "docx"
+    },
+    {
+      "file": "crewai_research_templates.py",
+      "line": 19,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "crewai_research_templates.py",
+      "line": 22,
+      "import": "from abc import ...",
+      "type": "absolute",
+      "module": "abc",
+      "top_module": "abc"
+    },
+    {
+      "file": "crewai_research_templates.py",
+      "line": 1127,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "crewai_research_templates.py",
+      "line": 1213,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "crewai_research_tools.py",
+      "line": 16,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "crewai_research_tools.py",
+      "line": 19,
+      "import": "from abc import ...",
+      "type": "absolute",
+      "module": "abc",
+      "top_module": "abc"
+    },
+    {
+      "file": "crewai_research_tools.py",
+      "line": 22,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "crewai_research_tools.py",
+      "line": 678,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "crewai_research_tools.py",
+      "line": 758,
+      "import": "from pydub import ...",
+      "type": "absolute",
+      "module": "pydub",
+      "top_module": "pydub"
+    },
+    {
+      "file": "crewai_research_tools.py",
+      "line": 1639,
+      "import": "from PIL import ...",
+      "type": "absolute",
+      "module": "PIL",
+      "top_module": "PIL"
+    },
+    {
+      "file": "crewai_research_tools.py",
+      "line": 923,
+      "import": "from PIL import ...",
+      "type": "absolute",
+      "module": "PIL",
+      "top_module": "PIL"
+    },
+    {
+      "file": "crewai_state_management.py",
+      "line": 21,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "crewai_state_management.py",
+      "line": 23,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "crewai_state_management.py",
+      "line": 612,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "crewai_unified_bridge.py",
+      "line": 25,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "crewai_unified_flow.py",
+      "line": 25,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "crewai_unified_flow.py",
+      "line": 38,
+      "import": "from crewai import ...",
+      "type": "absolute",
+      "module": "crewai",
+      "top_module": "crewai"
+    },
+    {
+      "file": "crewai_unified_flow.py",
+      "line": 561,
+      "import": "from crewai import ...",
+      "type": "absolute",
+      "module": "crewai",
+      "top_module": "crewai"
+    },
+    {
+      "file": "crewai_unified_flow.py",
+      "line": 562,
+      "import": "from langchain_openai import ...",
+      "type": "absolute",
+      "module": "langchain_openai",
+      "top_module": "langchain_openai"
+    },
+    {
+      "file": "crewai_unified_flow.py",
+      "line": 657,
+      "import": "from crewai import ...",
+      "type": "absolute",
+      "module": "crewai",
+      "top_module": "crewai"
+    },
+    {
+      "file": "crewai_unified_flow.py",
+      "line": 658,
+      "import": "from langchain_openai import ...",
+      "type": "absolute",
+      "module": "langchain_openai",
+      "top_module": "langchain_openai"
+    },
+    {
+      "file": "crewai_unified_flow.py",
+      "line": 762,
+      "import": "from crewai import ...",
+      "type": "absolute",
+      "module": "crewai",
+      "top_module": "crewai"
+    },
+    {
+      "file": "crewai_unified_flow.py",
+      "line": 763,
+      "import": "from langchain_openai import ...",
+      "type": "absolute",
+      "module": "langchain_openai",
+      "top_module": "langchain_openai"
+    },
+    {
+      "file": "crewai_unified_flow.py",
+      "line": 863,
+      "import": "from crewai import ...",
+      "type": "absolute",
+      "module": "crewai",
+      "top_module": "crewai"
+    },
+    {
+      "file": "crewai_unified_flow.py",
+      "line": 864,
+      "import": "from langchain_openai import ...",
+      "type": "absolute",
+      "module": "langchain_openai",
+      "top_module": "langchain_openai"
+    },
+    {
+      "file": "crewai_unified_flow.py",
+      "line": 962,
+      "import": "from crewai import ...",
+      "type": "absolute",
+      "module": "crewai",
+      "top_module": "crewai"
+    },
+    {
+      "file": "crewai_unified_flow.py",
+      "line": 963,
+      "import": "from langchain_openai import ...",
+      "type": "absolute",
+      "module": "langchain_openai",
+      "top_module": "langchain_openai"
+    },
+    {
+      "file": "crewai_unified_flow.py",
+      "line": 359,
+      "import": "from crewai import ...",
+      "type": "absolute",
+      "module": "crewai",
+      "top_module": "crewai"
+    },
+    {
+      "file": "crewai_unified_flow.py",
+      "line": 360,
+      "import": "from langchain_openai import ...",
+      "type": "absolute",
+      "module": "langchain_openai",
+      "top_module": "langchain_openai"
+    },
+    {
+      "file": "crewai_zero_error_workflow.py",
+      "line": 16,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "crewai_zero_error_workflow.py",
+      "line": 647,
+      "import": "from crewai import ...",
+      "type": "absolute",
+      "module": "crewai",
+      "top_module": "crewai"
+    },
+    {
+      "file": "critique_aggregator.py",
+      "line": 31,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "critique_aggregator.py",
+      "line": 35,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "critique_aggregator.py",
+      "line": 1023,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "critique_aggregator_examples.py",
+      "line": 218,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "custom_strategy_builder.py",
+      "line": 22,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "custom_strategy_builder.py",
+      "line": 23,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "dashboard_ui_components.py",
+      "line": 15,
+      "import": "from __future__ import ...",
+      "type": "absolute",
+      "module": "__future__",
+      "top_module": "__future__"
+    },
+    {
+      "file": "dashboard_ui_components.py",
+      "line": 20,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "dashboard_ui_components.py",
+      "line": 21,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "datapizza_api_server.py",
+      "line": 19,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "datapizza_api_server.py",
+      "line": 23,
+      "import": "from fastapi import ...",
+      "type": "absolute",
+      "module": "fastapi",
+      "top_module": "fastapi"
+    },
+    {
+      "file": "datapizza_api_server.py",
+      "line": 24,
+      "import": "from fastapi.middleware.cors import ...",
+      "type": "absolute",
+      "module": "fastapi.middleware.cors",
+      "top_module": "fastapi"
+    },
+    {
+      "file": "datapizza_api_server.py",
+      "line": 25,
+      "import": "from fastapi.responses import ...",
+      "type": "absolute",
+      "module": "fastapi.responses",
+      "top_module": "fastapi"
+    },
+    {
+      "file": "datapizza_api_server.py",
+      "line": 31,
+      "import": "from datapizza.agents import ...",
+      "type": "absolute",
+      "module": "datapizza.agents",
+      "top_module": "datapizza"
+    },
+    {
+      "file": "datapizza_api_server.py",
+      "line": 32,
+      "import": "from datapizza.clients import ...",
+      "type": "absolute",
+      "module": "datapizza.clients",
+      "top_module": "datapizza"
+    },
+    {
+      "file": "datapizza_api_server.py",
+      "line": 33,
+      "import": "from datapizza.tools import ...",
+      "type": "absolute",
+      "module": "datapizza.tools",
+      "top_module": "datapizza"
+    },
+    {
+      "file": "datapizza_mcp_tools.py",
+      "line": 25,
+      "import": "from datapizza.agents import ...",
+      "type": "absolute",
+      "module": "datapizza.agents",
+      "top_module": "datapizza"
+    },
+    {
+      "file": "datapizza_mcp_tools.py",
+      "line": 26,
+      "import": "from datapizza.clients import ...",
+      "type": "absolute",
+      "module": "datapizza.clients",
+      "top_module": "datapizza"
+    },
+    {
+      "file": "datapizza_mcp_tools.py",
+      "line": 27,
+      "import": "from datapizza.tools import ...",
+      "type": "absolute",
+      "module": "datapizza.tools",
+      "top_module": "datapizza"
+    },
+    {
+      "file": "datapizza_mcp_tools.py",
+      "line": 39,
+      "import": "from datapizza.clients.openai import ...",
+      "type": "absolute",
+      "module": "datapizza.clients.openai",
+      "top_module": "datapizza"
+    },
+    {
+      "file": "datapizza_mcp_tools.py",
+      "line": 47,
+      "import": "from datapizza.clients.anthropic import ...",
+      "type": "absolute",
+      "module": "datapizza.clients.anthropic",
+      "top_module": "datapizza"
+    },
+    {
+      "file": "datapizza_mcp_tools.py",
+      "line": 55,
+      "import": "from datapizza.clients.google import ...",
+      "type": "absolute",
+      "module": "datapizza.clients.google",
+      "top_module": "datapizza"
+    },
+    {
+      "file": "datapizza_mcp_tools.py",
+      "line": 64,
+      "import": "from datapizza.tools.filesystem import ...",
+      "type": "absolute",
+      "module": "datapizza.tools.filesystem",
+      "top_module": "datapizza"
+    },
+    {
+      "file": "datapizza_mcp_tools.py",
+      "line": 72,
+      "import": "from datapizza.tools.duckduckgo import ...",
+      "type": "absolute",
+      "module": "datapizza.tools.duckduckgo",
+      "top_module": "datapizza"
+    },
+    {
+      "file": "datapizza_mcp_tools.py",
+      "line": 80,
+      "import": "from datapizza.tools.SQLDatabase import ...",
+      "type": "absolute",
+      "module": "datapizza.tools.SQLDatabase",
+      "top_module": "datapizza"
+    },
+    {
+      "file": "datapizza_mcp_tools.py",
+      "line": 88,
+      "import": "from datapizza.tools.web_fetch import ...",
+      "type": "absolute",
+      "module": "datapizza.tools.web_fetch",
+      "top_module": "datapizza"
+    },
+    {
+      "file": "data_consistency_verification.py",
+      "line": 23,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "data_consistency_verification.py",
+      "line": 24,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "debug_test.py",
+      "line": 6,
+      "import": "from unittest.mock import ...",
+      "type": "absolute",
+      "module": "unittest.mock",
+      "top_module": "unittest"
+    },
+    {
+      "file": "decomposition_crewai_bridge.py",
+      "line": 891,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "decomposition_dashboard.py",
+      "line": 18,
+      "import": "from __future__ import ...",
+      "type": "absolute",
+      "module": "__future__",
+      "top_module": "__future__"
+    },
+    {
+      "file": "decomposition_dashboard.py",
+      "line": 23,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "decomposition_dashboard.py",
+      "line": 24,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "decomposition_engine_adaptive_enhancement.py",
+      "line": 11,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "decomposition_engine_lean_enhanced.py",
+      "line": 27,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "decomposition_matryoshka_integration.py",
+      "line": 37,
+      "import": "from __future__ import ...",
+      "type": "absolute",
+      "module": "__future__",
+      "top_module": "__future__"
+    },
+    {
+      "file": "decomposition_matryoshka_integration.py",
+      "line": 41,
+      "import": "from abc import ...",
+      "type": "absolute",
+      "module": "abc",
+      "top_module": "abc"
+    },
+    {
+      "file": "decomposition_matryoshka_integration.py",
+      "line": 43,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "decomposition_matryoshka_integration.py",
+      "line": 162,
+      "import": "from gold_team import ...",
+      "type": "absolute",
+      "module": "gold_team",
+      "top_module": "gold_team"
+    },
+    {
+      "file": "decomposition_mcp_tools.py",
+      "line": 107,
+      "import": "from datapizza.agents import ...",
+      "type": "absolute",
+      "module": "datapizza.agents",
+      "top_module": "datapizza"
+    },
+    {
+      "file": "decomposition_mcp_tools.py",
+      "line": 108,
+      "import": "from datapizza.clients import ...",
+      "type": "absolute",
+      "module": "datapizza.clients",
+      "top_module": "datapizza"
+    },
+    {
+      "file": "decomposition_mcp_tools.py",
+      "line": 2532,
+      "import": "from datapizza.agents import ...",
+      "type": "absolute",
+      "module": "datapizza.agents",
+      "top_module": "datapizza"
+    },
+    {
+      "file": "decomposition_mcp_tools.py",
+      "line": 2533,
+      "import": "from datapizza.clients import ...",
+      "type": "absolute",
+      "module": "datapizza.clients",
+      "top_module": "datapizza"
+    },
+    {
+      "file": "decomposition_mcp_tools.py",
+      "line": 2537,
+      "import": "from datapizza.clients.openai import ...",
+      "type": "absolute",
+      "module": "datapizza.clients.openai",
+      "top_module": "datapizza"
+    },
+    {
+      "file": "decomposition_mcp_tools.py",
+      "line": 2543,
+      "import": "from datapizza.clients.anthropic import ...",
+      "type": "absolute",
+      "module": "datapizza.clients.anthropic",
+      "top_module": "datapizza"
+    },
+    {
+      "file": "decomposition_mcp_tools.py",
+      "line": 2567,
+      "import": "from datapizza.tools.filesystem import ...",
+      "type": "absolute",
+      "module": "datapizza.tools.filesystem",
+      "top_module": "datapizza"
+    },
+    {
+      "file": "decomposition_mcp_tools.py",
+      "line": 2578,
+      "import": "from datapizza.tools.duckduckgo import ...",
+      "type": "absolute",
+      "module": "datapizza.tools.duckduckgo",
+      "top_module": "datapizza"
+    },
+    {
+      "file": "decomposition_mcp_tools.py",
+      "line": 2585,
+      "import": "from datapizza.tools.SQLDatabase import ...",
+      "type": "absolute",
+      "module": "datapizza.tools.SQLDatabase",
+      "top_module": "datapizza"
+    },
+    {
+      "file": "decomposition_mcp_tools.py",
+      "line": 2592,
+      "import": "from datapizza.tools.web_fetch import ...",
+      "type": "absolute",
+      "module": "datapizza.tools.web_fetch",
+      "top_module": "datapizza"
+    },
+    {
+      "file": "decomposition_mcp_tools.py",
+      "line": 2549,
+      "import": "from datapizza.clients.google import ...",
+      "type": "absolute",
+      "module": "datapizza.clients.google",
+      "top_module": "datapizza"
+    },
+    {
+      "file": "decomposition_strategy.py",
+      "line": 17,
+      "import": "from __future__ import ...",
+      "type": "absolute",
+      "module": "__future__",
+      "top_module": "__future__"
+    },
+    {
+      "file": "decomposition_strategy.py",
+      "line": 21,
+      "import": "from abc import ...",
+      "type": "absolute",
+      "module": "abc",
+      "top_module": "abc"
+    },
+    {
+      "file": "decomposition_strategy.py",
+      "line": 22,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "decomposition_strategy.py",
+      "line": 24,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "decomposition_z3_validator.py",
+      "line": 26,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "deduplication_analysis.py",
+      "line": 12,
+      "import": "from difflib import ...",
+      "type": "absolute",
+      "module": "difflib",
+      "top_module": "difflib"
+    },
+    {
+      "file": "deduplication_analysis.py",
+      "line": 13,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "demo_app.py",
+      "line": 9,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "demo_crewai_research_features.py",
+      "line": 13,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "demo_database_cleanup.py",
+      "line": 26,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "demo_database_cleanup.py",
+      "line": 27,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "demo_end_to_end_invention.py",
+      "line": 22,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "demo_enhanced_adversarial.py",
+      "line": 24,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "demo_evolutionary_tests.py",
+      "line": 14,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "demo_hierarchical_indexing.py",
+      "line": 46,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "demo_hierarchical_indexing.py",
+      "line": 49,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "demo_integration.py",
+      "line": 16,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "demo_integration.py",
+      "line": 17,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "demo_integration.py",
+      "line": 23,
+      "import": "from rich.console import ...",
+      "type": "absolute",
+      "module": "rich.console",
+      "top_module": "rich"
+    },
+    {
+      "file": "demo_integration.py",
+      "line": 24,
+      "import": "from rich.panel import ...",
+      "type": "absolute",
+      "module": "rich.panel",
+      "top_module": "rich"
+    },
+    {
+      "file": "demo_integration.py",
+      "line": 25,
+      "import": "from rich.progress import ...",
+      "type": "absolute",
+      "module": "rich.progress",
+      "top_module": "rich"
+    },
+    {
+      "file": "demo_integration.py",
+      "line": 26,
+      "import": "from rich.table import ...",
+      "type": "absolute",
+      "module": "rich.table",
+      "top_module": "rich"
+    },
+    {
+      "file": "demo_integration.py",
+      "line": 27,
+      "import": "from rich.tree import ...",
+      "type": "absolute",
+      "module": "rich.tree",
+      "top_module": "rich"
+    },
+    {
+      "file": "demo_integration.py",
+      "line": 28,
+      "import": "from rich import ...",
+      "type": "absolute",
+      "module": "rich",
+      "top_module": "rich"
+    },
+    {
+      "file": "demo_knowledge_extraction_ml.py",
+      "line": 17,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "demo_knowledge_extraction_ml.py",
+      "line": 18,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "demo_leanaide_autoformalization_mdap_maker.py",
+      "line": 11,
+      "import": "from unittest.mock import ...",
+      "type": "absolute",
+      "module": "unittest.mock",
+      "top_module": "unittest"
+    },
+    {
+      "file": "demo_matryoshka_unified_memory.py",
+      "line": 22,
+      "import": "from __future__ import ...",
+      "type": "absolute",
+      "module": "__future__",
+      "top_module": "__future__"
+    },
+    {
+      "file": "demo_matryoshka_unified_memory.py",
+      "line": 30,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "demo_mcts_mdap.py",
+      "line": 38,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "demo_mcts_mdap.py",
+      "line": 39,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "demo_mdap_maker.py",
+      "line": 411,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "demo_mdap_maker_matryoshka.py",
+      "line": 32,
+      "import": "from __future__ import ...",
+      "type": "absolute",
+      "module": "__future__",
+      "top_module": "__future__"
+    },
+    {
+      "file": "demo_mdap_maker_matryoshka.py",
+      "line": 41,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "demo_mdap_maker_matryoshka.py",
+      "line": 44,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "demo_pes_workflow.py",
+      "line": 31,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "demo_pes_workflow.py",
+      "line": 33,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "demo_pes_workflow_language_agnostic.py",
+      "line": 31,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "demo_pes_workflow_universal.py",
+      "line": 32,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "demo_quality_calculator.py",
+      "line": 8,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "demo_sop_components.py",
+      "line": 20,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "demo_sop_generator.py",
+      "line": 13,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "demo_sop_integrated.py",
+      "line": 17,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "demo_team_assignment.py",
+      "line": 11,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "demo_unified_memory_system.py",
+      "line": 14,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "demo_unified_memory_system.py",
+      "line": 17,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "dependency_analyzer.py",
+      "line": 19,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "dependency_builder.py",
+      "line": 20,
+      "import": "from __future__ import ...",
+      "type": "absolute",
+      "module": "__future__",
+      "top_module": "__future__"
+    },
+    {
+      "file": "dependency_builder.py",
+      "line": 23,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "dependency_builder.py",
+      "line": 26,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "dependency_builder.py",
+      "line": 925,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "dependency_builder.py",
+      "line": 1280,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "dependency_builder.py",
+      "line": 1350,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "dependency_builder.py",
+      "line": 1400,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "dependency_builder.py",
+      "line": 1456,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "dependency_builder.py",
+      "line": 55,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "dependency_decomposition.py",
+      "line": 18,
+      "import": "from abc import ...",
+      "type": "absolute",
+      "module": "abc",
+      "top_module": "abc"
+    },
+    {
+      "file": "dependency_manager.py",
+      "line": 9,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "dependency_manager.py",
+      "line": 10,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "dependency_manager.py",
+      "line": 415,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "deploy.py",
+      "line": 11,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "deployment_operations.py",
+      "line": 13,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "deployment_operations.py",
+      "line": 14,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "deploy_z3_service.py",
+      "line": 25,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "distributed_processing.py",
+      "line": 11,
+      "import": "from queue import ...",
+      "type": "absolute",
+      "module": "queue",
+      "top_module": "queue"
+    },
+    {
+      "file": "domain_optimization_manager.py",
+      "line": 10,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "dspy_integration.py",
+      "line": 25,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "dts_integration.py",
+      "line": 21,
+      "import": "from backend.core.dts import ...",
+      "type": "absolute",
+      "module": "backend.core.dts",
+      "top_module": "backend"
+    },
+    {
+      "file": "dts_integration.py",
+      "line": 22,
+      "import": "from backend.core.dts.types import ...",
+      "type": "absolute",
+      "module": "backend.core.dts.types",
+      "top_module": "backend"
+    },
+    {
+      "file": "dts_integration.py",
+      "line": 23,
+      "import": "from backend.llm.client import ...",
+      "type": "absolute",
+      "module": "backend.llm.client",
+      "top_module": "backend"
+    },
+    {
+      "file": "dts_integration.py",
+      "line": 24,
+      "import": "from backend.utils.config import ...",
+      "type": "absolute",
+      "module": "backend.utils.config",
+      "top_module": "backend"
+    },
+    {
+      "file": "dts_integration.py",
+      "line": 39,
+      "import": "from dspy.teleprompt import ...",
+      "type": "absolute",
+      "module": "dspy.teleprompt",
+      "top_module": "dspy"
+    },
+    {
+      "file": "dts_integration.py",
+      "line": 40,
+      "import": "from dspy.predict import ...",
+      "type": "absolute",
+      "module": "dspy.predict",
+      "top_module": "dspy"
+    },
+    {
+      "file": "dts_integration.py",
+      "line": 46,
+      "import": "from dspy.teleprompt import ...",
+      "type": "absolute",
+      "module": "dspy.teleprompt",
+      "top_module": "dspy"
+    },
+    {
+      "file": "dts_integration.py",
+      "line": 47,
+      "import": "from dspy.predict import ...",
+      "type": "absolute",
+      "module": "dspy.predict",
+      "top_module": "dspy"
+    },
+    {
+      "file": "dts_integration.py",
+      "line": 112,
+      "import": "from backend.llm.client import ...",
+      "type": "absolute",
+      "module": "backend.llm.client",
+      "top_module": "backend"
+    },
+    {
+      "file": "dts_integration.py",
+      "line": 113,
+      "import": "from backend.utils.config import ...",
+      "type": "absolute",
+      "module": "backend.utils.config",
+      "top_module": "backend"
+    },
+    {
+      "file": "dts_integration.py",
+      "line": 406,
+      "import": "from backend.core.dts.components.generator import ...",
+      "type": "absolute",
+      "module": "backend.core.dts.components.generator",
+      "top_module": "backend"
+    },
+    {
+      "file": "dynamic_gauntlet_adaptation.py",
+      "line": 10,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "e2e_invention_validation.py",
+      "line": 16,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "e2e_invention_validation.py",
+      "line": 17,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "edge_case_analyzer.py",
+      "line": 12,
+      "import": "from pathlib import ...",
+      "type": "absolute",
+      "module": "pathlib",
+      "top_module": "pathlib"
+    },
+    {
+      "file": "edge_case_analyzer.py",
+      "line": 14,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "edge_case_tests.py",
+      "line": 7,
+      "import": "from unittest.mock import ...",
+      "type": "absolute",
+      "module": "unittest.mock",
+      "top_module": "unittest"
+    },
+    {
+      "file": "edge_case_tests.py",
+      "line": 13,
+      "import": "from concurrent.futures import ...",
+      "type": "absolute",
+      "module": "concurrent.futures",
+      "top_module": "concurrent"
+    },
+    {
+      "file": "edge_case_tests.py",
+      "line": 18,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "edge_case_tests.py",
+      "line": 29,
+      "import": "from contextlib import ...",
+      "type": "absolute",
+      "module": "contextlib",
+      "top_module": "contextlib"
+    },
+    {
+      "file": "edge_case_tests.py",
+      "line": 388,
+      "import": "from queue import ...",
+      "type": "absolute",
+      "module": "queue",
+      "top_module": "queue"
+    },
+    {
+      "file": "edge_case_tests.py",
+      "line": 559,
+      "import": "from queue import ...",
+      "type": "absolute",
+      "module": "queue",
+      "top_module": "queue"
+    },
+    {
+      "file": "edge_case_tests.py",
+      "line": 635,
+      "import": "from multiprocessing import ...",
+      "type": "absolute",
+      "module": "multiprocessing",
+      "top_module": "multiprocessing"
+    },
+    {
+      "file": "edge_case_tests.py",
+      "line": 1031,
+      "import": "from concurrent.futures import ...",
+      "type": "absolute",
+      "module": "concurrent.futures",
+      "top_module": "concurrent"
+    },
+    {
+      "file": "edge_case_tests.py",
+      "line": 1248,
+      "import": "from unittest.mock import ...",
+      "type": "absolute",
+      "module": "unittest.mock",
+      "top_module": "unittest"
+    },
+    {
+      "file": "end_to_end_invention_planner.py",
+      "line": 36,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "enhanced_decomposition_engine.py",
+      "line": 25,
+      "import": "from __future__ import ...",
+      "type": "absolute",
+      "module": "__future__",
+      "top_module": "__future__"
+    },
+    {
+      "file": "enhanced_decomposition_engine.py",
+      "line": 33,
+      "import": "from abc import ...",
+      "type": "absolute",
+      "module": "abc",
+      "top_module": "abc"
+    },
+    {
+      "file": "enhanced_decomposition_engine.py",
+      "line": 34,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "enhanced_decomposition_engine.py",
+      "line": 35,
+      "import": "from concurrent.futures import ...",
+      "type": "absolute",
+      "module": "concurrent.futures",
+      "top_module": "concurrent"
+    },
+    {
+      "file": "enhanced_decomposition_engine.py",
+      "line": 37,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "enhanced_decomposition_engine.py",
+      "line": 47,
+      "import": "from contextlib import ...",
+      "type": "absolute",
+      "module": "contextlib",
+      "top_module": "contextlib"
+    },
+    {
+      "file": "enhanced_gauntlet_manager.py",
+      "line": 19,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "enhanced_recomposition_engine.py",
+      "line": 22,
+      "import": "from __future__ import ...",
+      "type": "absolute",
+      "module": "__future__",
+      "top_module": "__future__"
+    },
+    {
+      "file": "enhanced_recomposition_engine.py",
+      "line": 31,
+      "import": "from abc import ...",
+      "type": "absolute",
+      "module": "abc",
+      "top_module": "abc"
+    },
+    {
+      "file": "enhanced_recomposition_engine.py",
+      "line": 32,
+      "import": "from collections import ...",
+      "type": "absolute",
+      "module": "collections",
+      "top_module": "collections"
+    },
+    {
+      "file": "enhanced_recomposition_engine.py",
+      "line": 33,
+      "import": "from concurrent.futures import ...",
+      "type": "absolute",
+      "module": "concurrent.futures",
+      "top_module": "concurrent"
+    },
+    {
+      "file": "enhanced_recomposition_engine.py",
+      "line": 35,
+      "import": "from datetime import ...",
+      "type": "absolute",
+      "module": "datetime",
+      "top_module": "datetime"
+    },
+    {
+      "file": "enhanced_recomposition_engine.py",
+      "line": 44,
+      "import": "from contextlib import ...",
+      "type": "absolute",
+      "module": "contextlib",
+      "top_module": "contextlib"
+    }
+  ],
+  "by_module": {
+    "datetime": 1649,
+    "collections": 1009,
+    "sklearn": 222,
+    "pathlib": 1309,
+    "unittest": 716,
+    "PIL": 52,
+    "contextlib": 129,
+    "mutagen": 1,
+    "moviepy": 1,
+    "concurrent": 145,
+    "decimal": 17,
+    "fractions": 3,
+    "queue": 26,
+    "abc": 391,
+    "email": 10,
+    "fastapi": 153,
+    "opentelemetry": 109,
+    "cryptography": 45,
+    "jose": 5,
+    "passlib": 2,
+    "rich": 245,
+    "dspy": 584,
+    "causallearn": 288,
+    "urllib": 268,
+    "getpass": 1,
+    "threading": 28,
+    "z3": 45,
+    "uuid": 61,
+    "crewai": 4037,
+    "langchain_openai": 13,
+    "rosetta": 2,
+    "test_suite": 1,
+    "scipy": 169,
+    "sympy": 8,
+    "__future__": 590,
+    "sentence_transformers": 54,
+    "nltk": 14,
+    "textstat": 2,
+    "scholarly": 1,
+    "Bio": 1,
+    "reportlab": 20,
+    "docx": 5,
+    "pydub": 1,
+    "datapizza": 344,
+    "gold_team": 1,
+    "difflib": 12,
+    "backend": 144,
+    "multiprocessing": 10,
+    "valkey": 2,
+    "base_configuration": 1,
+    "html": 1,
+    "authorization_system": 1,
+    "strawberry": 4,
+    "pymysql": 5,
+    "networkx": 4,
+    "chromadb": 98,
+    "qdrant_client": 45,
+    "LeanAide": 1,
+    "aiohttp": 10,
+    "mcts_engine": 1,
+    "selfplay": 1,
+    "selenium": 18,
+    "playwright": 18,
+    "flask": 11,
+    "complete_n8n_integration": 1,
+    "n8n_workflow_integration": 1,
+    "rbac": 1,
+    "pyvis": 6,
+    "pylint": 2,
+    "matplotlib": 12,
+    "jinja2": 20,
+    "langchain_nvidia_ai_endpoints": 2,
+    "aleph_alpha_client": 2,
+    "starlette": 9,
+    "openpyxl": 3,
+    "test_leanaide_mcts": 1,
+    "celery": 1,
+    "croniter": 1,
+    "urllib3": 1,
+    "src": 125,
+    "oneke": 4,
+    "flask_cors": 1,
+    "plotly": 1,
+    "steer": 30,
+    "rese": 4,
+    "matryoshka_core": 1,
+    "matryoshka_team_executor": 1,
+    "matryoshka_mdap_integration": 1,
+    "matryoshka_memory_bridge": 1,
+    "problem_space": 1,
+    "team_types": 1,
+    "matryoshka_gauntlet_runner": 1,
+    "redis": 4,
+    "lean_client_adapter": 1,
+    "ace_client": 1,
+    "click": 8,
+    "sqlalchemy": 52,
+    "websockets": 1,
+    "routes": 1,
+    "realtime": 3,
+    "slowapi": 3,
+    "tempfile": 9,
+    "toon": 2,
+    "langchain_core": 64,
+    "langgraph": 54,
+    "langchain_litellm": 1,
+    "opik": 3,
+    "loaders.appworld": 1,
+    "appworld": 1,
+    "langchain_anthropic": 3,
+    "agentjson": 10,
+    "json_prob_parser": 2,
+    "grpc_health": 4,
+    "grpc_reflection": 1,
+    "services": 8,
+    "pydantic_settings": 8,
+    "itertools": 204,
+    "pygam": 1,
+    "statsmodels": 4,
+    "bisect": 2,
+    "tqdm": 92,
+    "copy": 65,
+    "joblib": 10,
+    "momentchi2": 1,
+    "pickle": 7,
+    "pgmpy": 3,
+    "vcr": 2,
+    "hashlib": 17,
+    "pydantic_core": 30,
+    "typing_extensions": 267,
+    "string": 25,
+    "a2a": 22,
+    "aiocache": 4,
+    "httpx": 13,
+    "crewai_tools": 808,
+    "json_repair": 4,
+    "importlib": 47,
+    "packaging": 11,
+    "jwt": 4,
+    "contextvars": 13,
+    "docling_core": 14,
+    "ssl": 2,
+    "mypy_boto3_bedrock_runtime": 2,
+    "boto3": 2,
+    "botocore": 21,
+    "aiobotocore": 2,
+    "builtins": 11,
+    "mem0": 6,
+    "ibm_watsonx_ai": 6,
+    "textwrap": 5,
+    "_typeshed": 2,
+    "pytest": 3,
+    "lancedb": 4,
+    "mcpadapt": 8,
+    "bedrock_agentcore": 10,
+    "bs4": 26,
+    "github": 5,
+    "xml": 5,
+    "pytube": 6,
+    "youtube_transcript_api": 4,
+    "minds": 4,
+    "langchain_apify": 4,
+    "browserbase": 4,
+    "docker": 6,
+    "composio": 12,
+    "contextual": 4,
+    "couchbase": 6,
+    "exa_py": 4,
+    "firecrawl": 30,
+    "hyperbrowser": 10,
+    "linkup": 6,
+    "llama_index": 23,
+    "pymongo": 10,
+    "bson": 6,
+    "multion": 4,
+    "oxylabs": 36,
+    "patronus": 4,
+    "scrapegraph_py": 10,
+    "scrapfly": 4,
+    "serpapi": 8,
+    "singlestoredb": 6,
+    "snowflake": 4,
+    "spider": 4,
+    "stagehand": 12,
+    "tavily": 4,
+    "crewai_devtools": 2,
+    "setuptools": 20,
+    "helper": 9,
+    "exp_bench": 1,
+    "langchain_text_splitters": 2,
+    "inspect_ai": 54,
+    "tenacity": 6,
+    "langchain_community": 5,
+    "modified_deps": 2,
+    "langchain_aws": 2,
+    "IPython": 72,
+    "mistralai": 15,
+    "pkgutil": 8,
+    "rouge_score": 1,
+    "together": 1,
+    "ddgs": 2,
+    "pymilvus": 2,
+    "chainlit": 1,
+    "langchain_google_genai": 1,
+    "langchain_ollama": 1,
+    "hydra": 63,
+    "omegaconf": 19,
+    "seqeval": 8,
+    "apex": 4,
+    "argparse": 13,
+    "easyinstruct": 4,
+    "opendelta": 6,
+    "cpm_live": 30,
+    "accelerate": 5,
+    "rouge_chinese": 4,
+    "datamodule": 14,
+    "modeling_chatglm": 2,
+    "tokenization_chatglm": 2,
+    "configuration_chatglm": 2,
+    "data_set": 2,
+    "shutil": 3,
+    "peft": 8,
+    "tensorboardX": 4,
+    "torchcrf": 6,
+    "nlpaug": 2,
+    "nlpcda": 2,
+    "torchvision": 8,
+    "os": 24,
+    "pytorch_transformers": 2,
+    "pyld": 2,
+    "tokenize": 5,
+    "allennlp": 10,
+    "mimetypes": 2,
+    "cp_ner": 2,
+    "asyncio": 7,
+    "opt_einsum": 2,
+    "ctypes": 6,
+    "detllm": 54,
+    "jsonschema": 6,
+    "cachetools": 2,
+    "diskcache": 6,
+    "anyio": 6,
+    "asyncer": 3,
+    "trl": 4,
+    "colbert": 7,
+    "random": 7,
+    "optuna": 2,
+    "datamodel_code_generator": 1,
+    "gpt_researcher": 1,
+    "ai": 9,
+    "tkinter": 1,
+    "bokeh": 4,
+    "distutils": 6,
+    "neo4j": 23,
+    "dna_features_viewer": 2,
+    "biopandas": 1,
+    "kaleido": 2,
+    "molpdf": 1,
+    "pysmiles": 2,
+    "molvs": 2,
+    "vispy": 2,
+    "falkordb": 4,
+    "opensearchpy": 1,
+    "groq": 4,
+    "faker": 2,
+    "graph_service": 11,
+    "docspec_python": 10,
+    "docs": 29,
+    "pydoc_markdown": 22,
+    "guardrails_api_client": 36,
+    "manifest": 2,
+    "diff_match_patch": 1,
+    "pydash": 6,
+    "lxml": 5,
+    "guardrails_api": 1,
+    "guardrails_hub_types": 6,
+    "jsonformer": 4,
+    "mlflow": 7,
+    "referencing": 1,
+    "openinference": 4,
+    "dateutil": 4,
+    "typer": 11,
+    "subprocess": 3,
+    "termcolor": 2,
+    "six": 2,
+    "gensim": 23,
+    "huggingface_hub": 8,
+    "experiments": 2,
+    "rank_bm25": 8,
+    "fastmcp": 4,
+    "semhash": 2,
+    "fasthtml": 1,
+    "openai_query": 1,
+    "web_serv": 1,
+    "pprint": 2,
+    "vertexai": 2,
+    "socketserver": 2,
+    "st_copy": 2,
+    "streamlit": 7,
+    "streamlit_sortables": 1,
+    "pyodide": 3,
+    "lmql": 218,
+    "weakref": 4,
+    "_ast": 1,
+    "llama_cpp": 9,
+    "auto_gptq": 1,
+    "awq": 1,
+    "aiohttp_sse": 1,
+    "sentencepiece": 3,
+    "numba": 5,
+    "asgiref": 1,
+    "uvicorn": 2,
+    "gevent": 1,
+    "mlebench": 3,
+    "albumentations": 4,
+    "iterstrat": 2,
+    "skmultilearn": 1,
+    "lightgbm": 1,
+    "xgboost": 2,
+    "claude_agent_sdk": 2,
+    "mrs": 11,
+    "pytorch_lightning": 2,
+    "neuralkg": 32,
+    "dgl": 2,
+    "neuromancer": 490,
+    "lightning": 6,
+    "casadi": 3,
+    "cvxpylayers": 1,
+    "plum": 2,
+    "torchdiffeq": 1,
+    "functorch": 1,
+    "mpl_toolkits": 1,
+    "mnist": 1,
+    "factor_multiply": 6,
+    "hypothesis": 13,
+    "construct": 5,
+    "modules": 2,
+    "rapidfuzz": 2,
+    "tabulate": 6,
+    "unified.api": 7,
+    "AlgoTuneTasks": 18,
+    "lm_eval": 4,
+    "mlx_lm": 6,
+    "evaluators.red_team": 2,
+    "evaluators.gold_team": 2,
+    "openvolve": 2,
+    "outlines": 253,
+    "beam": 1,
+    "iso3166": 1,
+    "genson": 10,
+    "deprecated": 298,
+    "PAMI": 390,
+    "array": 13,
+    "deprecation": 2,
+    "geopy": 2,
+    "pycuda": 8,
+    "pyspark": 16,
+    "bitarray": 2,
+    "pandas": 5,
+    "ragbits": 990,
+    "textual": 60,
+    "pydantic_ai": 3,
+    "gcloud": 2,
+    "googleapiclient": 5,
+    "griffe": 1,
+    "moto": 1,
+    "unstructured_client": 3,
+    "pptx": 8,
+    "rerankers": 1,
+    "neptune": 3,
+    "neptune_optuna": 1,
+    "distilabel": 9,
+    "continuous_eval": 8,
+    "inquirer": 3,
+    "portkey_ai": 2,
+    "daytona": 1,
+    "prime_sandboxes": 1,
+    "e2b_code_interpreter": 2,
+    "prompt_optimization": 20,
+    "loguru": 109,
+    "harbor": 4,
+    "alembic": 9,
+    "terminal_bench": 2,
+    "slither_my_plugin": 1,
+    "crytic_compile": 49,
+    "Crypto": 3,
+    "eth_abi": 1,
+    "eth_typing": 2,
+    "eth_utils": 2,
+    "web3": 7,
+    "fasttext": 2,
+    "prettytable": 2,
+    "zipfile": 1,
+    "filelock": 1,
+    "solc_select": 5,
+    "deepdiff": 2,
+    "sys": 3,
+    "lagrange_llm": 1,
+    "steerable": 1,
+    "win32com": 4,
+    "phase1_health": 1,
+    "phase2_health": 1,
+    "phase3_health": 1,
+    "phase4_health": 1,
+    "phase1": 8,
+    "phase3": 7,
+    "gamma1": 8,
+    "phase4": 1,
+    "uqtestfuns": 2,
+    "spacy": 1,
+    "textblob": 1,
+    "elasticsearch": 1,
+    "relative": 7,
+    "annoy": 1,
+    "OneKE": 6,
+    "multitask_framework": 1,
+    "pythonjsonlogger": 1,
+    "BubbleLabIntegration": 1,
+    "PluginSystem": 2,
+    "jira": 1,
+    "slack_sdk": 2,
+    "formalisation": 2,
+    "pyswip": 1,
+    "isabelle_client": 1,
+    "certainty_estimator": 1,
+    "generation": 2,
+    "cx_Freeze": 1,
+    "py2exe": 1,
+    "requests_oauthlib": 1,
+    "oauthlib": 1,
+    "docutils": 1,
+    "sphinx": 1,
+    "graphistry": 730,
+    "re": 1,
+    "skrub": 3,
+    "gremlin_python": 7,
+    "cuml": 5,
+    "timeit": 5,
+    "palettable": 1,
+    "heapq": 1,
+    "cudf": 1,
+    "pygraphviz": 1,
+    "dask": 22,
+    "dask_cuda": 1,
+    "prompt_toolkit": 9,
+    "asciichartpy": 1,
+    "session_store": 5,
+    "orm_models": 5,
+    "connection_pool": 5,
+    "data_export": 5,
+    "science": 5,
+    "engineering": 5,
+    "pharma": 5,
+    "web_design": 5,
+    "continuous_math": 1,
+    "discrete_math": 1,
+    "linear_algebra": 1,
+    "calculus": 1,
+    "probability": 1,
+    "proof_systems": 5,
+    "mathlib": 4,
+    "mcts": 5,
+    "state_management": 6,
+    "qdrant_integration": 6,
+    "benchmarking": 6,
+    "resource_estimation": 6,
+    "constraints": 6,
+    "type_checking": 6,
+    "format_validation": 6,
+    "schema_validation": 6,
+    "recombination_engine": 4,
+    "tree_sitter": 1,
+    "colorama": 3,
+    "test_scenarios": 1
+  }
+}
