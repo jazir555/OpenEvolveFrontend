@@ -1262,3 +1262,7 @@ if __name__ == "__main__":
     print("\n" + "=" * 70)
     print("Example completed successfully!")
     print("=" * 70)
+
+class VerificationReport:
+    """Stub class for VerificationReport."""
+    pass

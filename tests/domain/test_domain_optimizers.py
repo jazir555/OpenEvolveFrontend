@@ -114,7 +114,8 @@ class TestFinanceOptimizer:
         optimizer = FinanceOptimizer()
         config = optimizer.get_default_config()
 
-        assert config.evolution_mode == EvolutionMode.PES
+        # Compare by value since enums may be from different modules
+        assert config.evolution_mode.value == EvolutionMode.PES.value
         assert config.pes.enabled is True
         assert config.max_iterations == 50
 
@@ -522,7 +523,8 @@ class TestWebDesignOptimizer:
         optimizer = WebDesignOptimizer()
         config = optimizer.get_default_config()
 
-        assert config.evolution_mode == EvolutionMode.STANDARD
+        # Compare by value since enums may be from different modules
+        assert config.evolution_mode.value == EvolutionMode.STANDARD.value
         assert config.max_iterations == 100
 
     def test_web_design_landing_page_config(self):

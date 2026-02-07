@@ -173,23 +173,30 @@ class TestChainOfThought:
         self, sample_question, sample_context, mock_dspy_result
     ):
         """Test successful chain of thought reasoning."""
+        # Mock the ChainOfThought constructor and execution
         with patch('knowledge_engine.integrations.dspy_integration.DSPyIntegration._initialize_components'):
-            integration = DSPyIntegration()
-            integration.lm = MagicMock()  # Mock LM
+            with patch('dspy.predict.chain_of_thought.ChainOfThought') as mock_cot:
+                # Configure mock ChainOfThought to return mock result
+                mock_cot_instance = MagicMock()
+                mock_cot_instance.return_value = mock_dspy_result
+                mock_cot.return_value = mock_cot_instance
 
-            with patch('asyncio.get_event_loop') as mock_loop:
-                mock_loop.return_value.run_in_executor.return_value = mock_dspy_result
+                integration = DSPyIntegration()
+                integration.lm = MagicMock()  # Mock LM
 
-                result = await integration.chain_of_thought(
-                    question=sample_question,
-                    context=sample_context,
-                    max_steps=5
-                )
+                with patch('asyncio.get_event_loop') as mock_loop:
+                    mock_loop.return_value.run_in_executor.return_value = mock_dspy_result
 
-                assert result.success is True
-                assert result.output == "Paris"
-                assert result.reasoning is not None
-                assert result.processing_time_ms > 0
+                    result = await integration.chain_of_thought(
+                        question=sample_question,
+                        context=sample_context,
+                        max_steps=5
+                    )
+
+                    assert result.success is True
+                    assert result.output == "Paris"
+                    assert result.reasoning is not None
+                    assert result.processing_time_ms > 0
 
     @pytest.mark.asyncio
     async def test_chain_of_thought_without_lm(self, sample_question):
@@ -210,19 +217,24 @@ class TestChainOfThought:
     ):
         """Test chain of thought with custom max steps."""
         with patch('knowledge_engine.integrations.dspy_integration.DSPyIntegration._initialize_components'):
-            integration = DSPyIntegration()
-            integration.lm = MagicMock()
+            with patch('dspy.predict.chain_of_thought.ChainOfThought') as mock_cot:
+                mock_cot_instance = MagicMock()
+                mock_cot_instance.return_value = mock_dspy_result
+                mock_cot.return_value = mock_cot_instance
 
-            with patch('asyncio.get_event_loop') as mock_loop:
-                mock_loop.return_value.run_in_executor.return_value = mock_dspy_result
+                integration = DSPyIntegration()
+                integration.lm = MagicMock()
 
-                result = await integration.chain_of_thought(
-                    question=sample_question,
-                    max_steps=10
-                )
+                with patch('asyncio.get_event_loop') as mock_loop:
+                    mock_loop.return_value.run_in_executor.return_value = mock_dspy_result
 
-                assert result.success is True
-                assert result.metadata["max_steps"] == 10
+                    result = await integration.chain_of_thought(
+                        question=sample_question,
+                        max_steps=10
+                    )
+
+                    assert result.success is True
+                    assert result.metadata["max_steps"] == 10
 
     @pytest.mark.asyncio
     async def test_chain_of_thought_with_correlation_id(
@@ -257,20 +269,25 @@ class TestProgramOfThought:
     ):
         """Test successful program of thought reasoning."""
         with patch('knowledge_engine.integrations.dspy_integration.DSPyIntegration._initialize_components'):
-            integration = DSPyIntegration()
-            integration.lm = MagicMock()
+            with patch('dspy.predict.program_of_thought.ProgramOfThought') as mock_pot:
+                mock_pot_instance = MagicMock()
+                mock_pot_instance.return_value = mock_dspy_result
+                mock_pot.return_value = mock_pot_instance
 
-            with patch('asyncio.get_event_loop') as mock_loop:
-                mock_loop.return_value.run_in_executor.return_value = mock_dspy_result
+                integration = DSPyIntegration()
+                integration.lm = MagicMock()
 
-                result = await integration.program_of_thought(
-                    question=sample_question,
-                    context=sample_context,
-                    max_iterations=3
-                )
+                with patch('asyncio.get_event_loop') as mock_loop:
+                    mock_loop.return_value.run_in_executor.return_value = mock_dspy_result
 
-                assert result.success is True
-                assert result.output is not None
+                    result = await integration.program_of_thought(
+                        question=sample_question,
+                        context=sample_context,
+                        max_iterations=3
+                    )
+
+                    assert result.success is True
+                    assert result.output is not None
 
     @pytest.mark.asyncio
     async def test_program_of_thought_without_lm(self, sample_question):
@@ -290,18 +307,23 @@ class TestProgramOfThought:
     ):
         """Test program of thought with custom iterations."""
         with patch('knowledge_engine.integrations.dspy_integration.DSPyIntegration._initialize_components'):
-            integration = DSPyIntegration()
-            integration.lm = MagicMock()
+            with patch('dspy.predict.program_of_thought.ProgramOfThought') as mock_pot:
+                mock_pot_instance = MagicMock()
+                mock_pot_instance.return_value = mock_dspy_result
+                mock_pot.return_value = mock_pot_instance
 
-            with patch('asyncio.get_event_loop') as mock_loop:
-                mock_loop.return_value.run_in_executor.return_value = mock_dspy_result
+                integration = DSPyIntegration()
+                integration.lm = MagicMock()
 
-                result = await integration.program_of_thought(
-                    question=sample_question,
-                    max_iterations=5
-                )
+                with patch('asyncio.get_event_loop') as mock_loop:
+                    mock_loop.return_value.run_in_executor.return_value = mock_dspy_result
 
-                assert result.success is True
+                    result = await integration.program_of_thought(
+                        question=sample_question,
+                        max_iterations=5
+                    )
+
+                    assert result.success is True
 
 
 # ============================================================================
@@ -473,11 +495,17 @@ class TestErrorHandling:
 
     def test_component_initialization_failure(self):
         """Test handling of component initialization failure."""
-        with patch('knowledge_engine.integrations.dspy_integration.DSPyIntegration._initialize_components') as mock_init:
-            mock_init.side_effect = ImportError("DSPy not available")
+        # Mock the import of dspy to raise ImportError
+        import builtins
+        original_import = builtins.__import__
 
-            # Should not raise, but use mock components
-            with patch('knowledge_engine.integrations.dspy_integration.DSPyIntegration._initialize_mock_components'):
-                integration = DSPyIntegration()
+        def mock_import(name, *args, **kwargs):
+            if name == 'dspy' or name.startswith('dspy.'):
+                raise ImportError("DSPy not available")
+            return original_import(name, *args, **kwargs)
 
-                assert integration.lm is None
+        with patch('builtins.__import__', side_effect=mock_import):
+            integration = DSPyIntegration()
+
+            # When DSPy is not available, lm should be None
+            assert integration.lm is None

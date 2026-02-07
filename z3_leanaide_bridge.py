@@ -21,6 +21,7 @@ from datetime import datetime, timezone
 from enum import Enum, auto
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from pathlib import Path
+from web3_formal_evidence import build_web3_formal_evidence, verify_web3_lean_proof_async
 
 # Import Z3
 try:
@@ -1088,6 +1089,11 @@ class Z3LeanAideBridge:
 
         verification = translation.get("verification")
         witness_result = witness.get("result", {})
+        lean_proof_verification = await verify_web3_lean_proof_async(
+            translation.get("translation"),
+            lean_service=self.verification.lean_service,
+            use_real_lean=True,
+        )
         verified_exploit = bool(witness_result.get("satisfiable", False))
         if verify_translation and isinstance(verification, dict):
             verified_exploit = verified_exploit and bool(verification.get("proven", False))
@@ -1097,6 +1103,12 @@ class Z3LeanAideBridge:
             "translation": translation.get("translation"),
             "verification": verification,
             "exploit_witness": witness_result,
+            "lean_proof_verification": lean_proof_verification,
+            "formal_evidence": build_web3_formal_evidence(
+                verification,
+                witness_result,
+                lean_proof_verification,
+            ),
             "verified_exploit": verified_exploit,
         }
     

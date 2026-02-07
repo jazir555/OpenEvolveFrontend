@@ -47,7 +47,8 @@ class BackupManager:
         Returns:
             Backup ID
         """
-        timestamp = datetime.now().isoformat()
+        # Use timestamp without colons for Windows compatibility
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
         backup_id = f"backup_{timestamp}"
         backup_path = os.path.join(self.config.backup_dir, f'{backup_id}.backup')
 

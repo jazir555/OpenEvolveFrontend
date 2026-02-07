@@ -26,6 +26,10 @@ from typing import Any, Dict, List, Optional, Callable
 from dataclasses import dataclass, field
 from enum import Enum
 from concurrent.futures import ThreadPoolExecutor
+from web3_formal_evidence import (
+    build_web3_formal_evidence,
+    verify_web3_lean_proof_async,
+)
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -749,9 +753,19 @@ class Z3Web3AuditAgent(Z3BaseAgent):
             if action in {"full_audit", "audit_exploit_verification"}:
                 verification = payload.get("verification")
                 witness = payload.get("exploit_witness", {})
+                lean_proof_verification = await verify_web3_lean_proof_async(
+                    payload.get("translation"),
+                    use_real_lean=True,
+                )
                 verified_exploit = bool(witness.get("satisfiable", False))
                 if isinstance(verification, dict):
                     verified_exploit = verified_exploit and bool(verification.get("proven", False))
+                payload["lean_proof_verification"] = lean_proof_verification
+                payload["formal_evidence"] = build_web3_formal_evidence(
+                    verification,
+                    witness,
+                    lean_proof_verification,
+                )
                 payload["verified_exploit"] = verified_exploit
 
             return AgentResult(

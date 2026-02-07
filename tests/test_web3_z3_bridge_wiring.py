@@ -91,6 +91,9 @@ def test_bridge_web3_audit_exploit_verification(monkeypatch):
     )
     assert result["success"] is True
     assert result["verified_exploit"] is True
+    assert "lean_proof_verification" in result
+    assert "formal_evidence" in result
+    assert result["formal_evidence"]["lean_proof_verification"] == result["lean_proof_verification"]
 
 
 def test_bridge_quick_web3_helpers(monkeypatch):

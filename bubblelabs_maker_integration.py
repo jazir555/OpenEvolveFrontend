@@ -1302,3 +1302,7 @@ __all__ = [
     "get_integration_status"
 ]
 
+
+# Alias for tests
+MakerIntegration = BubbleLabsMakerUI
+

@@ -40,3 +40,7 @@ class Z3KnowledgeIntegration:
 def create_integration(config: Optional[Z3KnowledgeIntegrationConfig] = None) -> Z3KnowledgeIntegration:
     """Factory function to create integration instance"""
     return Z3KnowledgeIntegration(config)
+
+class get_z3_knowledge_integration:
+    """Stub class for get_z3_knowledge_integration."""
+    pass

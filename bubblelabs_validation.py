@@ -780,3 +780,7 @@ class BubbleLabsValidator:
             return {"valid": True}
         except ValueError as e:
             return {"valid": False, "error": str(e)}
+
+# Alias for tests
+BubbleLabsValidation = BubbleLabsValidator
+

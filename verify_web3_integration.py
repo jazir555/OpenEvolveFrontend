@@ -13,11 +13,12 @@ import json
 import uuid
 import sys
 import os
+from datetime import datetime
 
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
-from openevolve.kernel.schema import WorkflowState, PlanStatus
+from openevolve.kernel.schema import WorkflowState, PlanStatus, KnowledgeArtifact, VerificationReport, LeanVerificationResult, VerificationMethod, LeanProofStatus
 from truth_package_generator import TruthPackageGenerator
 
 class TestWeb3Integration(unittest.TestCase):
@@ -41,6 +42,36 @@ class TestWeb3Integration(unittest.TestCase):
             "vulnerabilities_fixed_count": 3,
             "final_lean_proof": "theorem no_reentrancy : ...",
         }
+        
+        # Add Knowledge Artifacts for Evidence Score
+        self.workflow_state.knowledge_artifacts = [
+            KnowledgeArtifact(
+                artifact_id="ka_1",
+                artifact_type="solution_pattern",
+                source_workflow_id=self.workflow_state.workflow_id,
+                source_stage=1,
+                timestamp=datetime.now(),
+                confidence=0.95,
+                title="Smart Contract Pattern",
+                description="Detected reentrancy guard",
+                content={}
+            )
+        ]
+        
+        # Add Verification Reports for Soundness Score
+        self.workflow_state.all_verification_reports = [
+            VerificationReport(
+                verification_method=VerificationMethod.LEAN4,
+                mathematical_confidence=0.99,
+                is_approved=True,
+                lean_verification=LeanVerificationResult(
+                    verification_id="ver_1",
+                    success=True,
+                    theorem_id="thm_1",
+                    status=LeanProofStatus.VERIFIED
+                )
+            )
+        ]
         
     def test_truth_package_web3_axis(self):
         print("\nTesting Truth Package Generation for Web3...")

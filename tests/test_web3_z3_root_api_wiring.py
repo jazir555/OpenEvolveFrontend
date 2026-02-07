@@ -64,3 +64,5 @@ def test_root_z3_api_composite_orchestration(monkeypatch):
     result = api.web3_audit_exploit_verification(statement="balance[msg.sender] -= amount;")
     assert result["success"] is True
     assert result["verified_exploit"] is True
+    assert "lean_proof_verification" in result
+    assert "formal_evidence" in result

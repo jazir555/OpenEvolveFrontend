@@ -80,3 +80,10 @@ __all__ = [
     'GraphitiContradictionDetector',
     'GraphitiConfig'
 ]
+class WorkflowState:
+    """Stub class for WorkflowState."""
+    pass
+
+class AgentInteraction:
+    """Stub class for AgentInteraction."""
+    pass

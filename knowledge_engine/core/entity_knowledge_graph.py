@@ -18,10 +18,11 @@ Version: 2.1.0
 import asyncio
 import logging
 import json
-from typing import Dict, Any, List, Optional, Tuple, Set
+from typing import Dict, Any, List, Optional, Tuple, Set, Union
 from datetime import datetime, timezone
 from dataclasses import dataclass, field, asdict
 from threading import Lock, RLock
+from enum import Enum
 import uuid
 import re
 
@@ -112,15 +113,38 @@ class EntityKnowledgeGraph:
         log_func(json.dumps(log_data))
 
     @property
-    def entities(self) -> Dict[str, Entity]:
+    def entities(self) -> Dict[str, Dict[str, Any]]:
         """
         Get all entities (backward compatibility property).
 
         Returns:
-            Dictionary mapping entity names to Entity objects
+            Dictionary mapping entity names to entity dictionaries with flat structure
         """
         with self._lock:
-            return self._entities.copy()
+            # Convert Entity objects to flat dicts for backward compatibility
+            # Merge properties into top level like the simple version did
+            result = {}
+            for name, entity in self._entities.items():
+                entity_dict = entity.to_dict()
+                # Create flat dict with properties at top level
+                flat_dict = {
+                    'name': entity_dict.get('name'),
+                    'entity_type': entity_dict.get('entity_type'),
+                    **entity_dict.get('properties', {})
+                }
+                result[name] = flat_dict
+            return result
+
+    @property
+    def relationships(self) -> List[Dict[str, Any]]:
+        """
+        Get all relationships (backward compatibility property).
+
+        Returns:
+            List of relationship dictionaries
+        """
+        with self._lock:
+            return [rel.to_dict() for rel in self._relationships]
 
     def add_entity(
         self,
@@ -136,6 +160,7 @@ class EntityKnowledgeGraph:
 
         Args:
             name: Unique entity identifier (maps to entity_id in unified model)
+                  OR an Entity object (for backward compatibility)
             entity_type: Type/category of entity (defaults to "Entity" if not provided)
             attributes: Optional key-value pairs (maps to properties in unified model)
             entity: Optional Entity object to add directly (takes precedence if provided)
@@ -144,7 +169,12 @@ class EntityKnowledgeGraph:
             True if entity was added or updated, False on error
         """
         try:
-            # Support passing Entity object directly
+            # Support passing Entity object directly as first positional arg
+            if isinstance(name, Entity):
+                entity = name
+                name = None
+
+            # Support passing Entity object directly via keyword arg
             if entity is not None:
                 if not isinstance(entity, Entity):
                     raise ValueError("entity parameter must be an Entity instance")
@@ -154,6 +184,12 @@ class EntityKnowledgeGraph:
                 attributes = entity.properties
             elif name is None:
                 raise ValueError("Either name or entity parameter must be provided")
+
+            # Backward compatibility: handle old calling pattern add_entity(name, attributes_dict)
+            # If entity_type is a dict, it's actually the attributes parameter
+            if isinstance(entity_type, dict):
+                attributes = entity_type
+                entity_type = None
 
             # Validate inputs
             if not name or not isinstance(name, str):
@@ -289,6 +325,7 @@ class EntityKnowledgeGraph:
 
         Args:
             source: Source entity name (maps to source_entity_id)
+                   OR a Relationship object (for backward compatibility)
             target: Target entity name (maps to target_entity_id)
             relation_type: Type of relationship (deprecated, use relationship_type)
             relationship_type: Type of relationship
@@ -299,7 +336,13 @@ class EntityKnowledgeGraph:
             True if relationship was added, False on error or duplicate
         """
         try:
-            # Support passing Relationship object directly
+            # Support passing Relationship object directly as first positional arg
+            if isinstance(source, Relationship):
+                relationship = source
+                source = None
+                target = None
+
+            # Support passing Relationship object directly via keyword arg
             if relationship is not None:
                 if not isinstance(relationship, Relationship):
                     raise ValueError("relationship parameter must be a Relationship instance")
@@ -429,6 +472,16 @@ class EntityKnowledgeGraph:
         with self._lock:
             entity = self._entities.get(name)
             return entity.to_dict() if entity else None
+
+    def get_entities(self) -> List[str]:
+        """
+        Get all entity names (backward compatibility).
+
+        Returns:
+            List of entity names
+        """
+        with self._lock:
+            return list(self._entities.keys())
 
     async def get_entity_async(self, name: str) -> Optional[Dict[str, Any]]:
         """

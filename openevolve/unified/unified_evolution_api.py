@@ -15,7 +15,9 @@ class EvolutionMode(Enum):
     STANDARD = "standard"
     PES = "pes"
     QUALITY_DIVERSITY = "quality_diversity"
+    QD = "qd"  # Alias for QUALITY_DIVERSITY
     MULTI_OBJECTIVE = "multi_objective"
+    MO = "mo"  # Alias for MULTI_OBJECTIVE
     ADVERSARIAL = "adversarial"
 
 
@@ -35,6 +37,7 @@ class DomainType(Enum):
     ENGINEERING = "engineering"
     PHARMA = "pharma"
     WEB = "web"
+    WEB_DESIGN = "web_design"  # Alias for backward compatibility
 
 
 @dataclass
@@ -73,7 +76,29 @@ class EvolutionResult:
     metadata: Dict[str, Any] = field(default_factory=dict)
     error: Optional[str] = None
     gauntlet_result: Any = None  # For backward compatibility with tests
-    
+    config_used: Any = None  # Configuration used in this evolution run
+    evolution_artifacts: List[Any] = field(default_factory=list)  # Artifacts from knowledge extraction
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert result to dictionary representation."""
+        return {
+            'success': self.success,
+            'best_solution': str(self.best_solution) if self.best_solution else None,
+            'final_score': self.final_score,
+            'iterations': self.iterations,
+            'evaluations': self.evaluations,
+            'total_time': self.total_time,
+            'strategy_used': {
+                'system': self.strategy_used.system,
+                'mode': self.strategy_used.mode
+            },
+            'metadata': self.metadata,
+            'error': self.error,
+            'config_used': self.config_used,
+            'evolution_artifacts': self.evolution_artifacts,
+            'gauntlet_result': self.gauntlet_result
+        }
+
     def save(self, filepath: str) -> None:
         """Save result to file."""
         import json
@@ -180,6 +205,16 @@ class UnifiedEvolutionAPI:
         # Deprecated parameters are stored but not used (for backward compatibility)
         self._knowledge_engine = knowledge_engine
         self._strategy_recommender = strategy_recommender
+
+    @property
+    def strategy_recommender(self):
+        """Backward compatibility property for strategy_recommender."""
+        return self._strategy_recommender
+
+    @property
+    def knowledge_engine(self):
+        """Backward compatibility property for knowledge_engine."""
+        return self._knowledge_engine
     
     async def evolve(
         self,
@@ -259,7 +294,8 @@ class UnifiedEvolutionAPI:
             metadata={
                 "domain": domain,
                 "objective_scores": kwargs.get("objective_scores", {})
-            }
+            },
+            config_used=self.config  # Set config_used
         )
         self._history.append(result)
         return result

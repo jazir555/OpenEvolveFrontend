@@ -157,6 +157,7 @@ class KnowledgeState:
         # Backward compatibility: add search_history attribute
         self._search_history: List[Dict[str, Any]] = []
         self._current_understanding: str = ""
+        self._candidate_answers: List[str] = []  # Backward compatibility
 
         self._log("info", "KnowledgeState initialized", query=query)
 
@@ -173,6 +174,24 @@ class KnowledgeState:
         with self._lock:
             return self._current_understanding
 
+    @property
+    def candidate_answers(self) -> List[str]:
+        """Get candidate answers (backward compatibility)."""
+        with self._lock:
+            return self._candidate_answers.copy()
+
+    @property
+    def facts(self) -> List[str]:
+        """Get facts list (backward compatibility - extracts from triples)."""
+        with self._lock:
+            return self._facts.copy()
+
+    @property
+    def uncertainties(self) -> List[str]:
+        """Get uncertainties list (backward compatibility)."""
+        with self._lock:
+            return self._uncertainties.copy()
+
     def set_current_understanding(self, understanding: str) -> None:
         """
         Set current understanding (backward compatibility).
@@ -183,6 +202,43 @@ class KnowledgeState:
         with self._lock:
             self._current_understanding = understanding
             self._log("debug", "Current understanding updated", understanding=understanding[:100])
+
+    def add_fact(self, fact: str) -> None:
+        """
+        Add a fact (backward compatibility).
+
+        Args:
+            fact: Fact text to add
+        """
+        with self._lock:
+            if fact not in self._facts:
+                self._facts.append(fact)
+                self._version += 1
+                self._log("debug", "Fact added", fact=fact[:100])
+
+    def add_uncertainty(self, uncertainty: str) -> None:
+        """
+        Add an uncertainty (backward compatibility).
+
+        Args:
+            uncertainty: Uncertainty text to add
+        """
+        with self._lock:
+            if uncertainty not in self._uncertainties:
+                self._uncertainties.append(uncertainty)
+                self._version += 1
+                self._log("debug", "Uncertainty added", uncertainty=uncertainty[:100])
+
+    def add_search_result(self, search_result: Dict[str, Any]) -> None:
+        """
+        Add a search result to history (backward compatibility).
+
+        Args:
+            search_result: Search result dictionary
+        """
+        with self._lock:
+            self._search_history.append(search_result)
+            self._log("debug", "Search result added", result_type=type(search_result).__name__)
 
     def _log(self, level: str, message: str, **kwargs):
         """
@@ -628,7 +684,11 @@ class KnowledgeState:
                 "uncertainties": self._uncertainties,
                 "version": self._version,
                 "snapshots": [s.to_dict() for s in self._snapshots],
-                "correlation_id": self._correlation_id
+                "correlation_id": self._correlation_id,
+                # Backward compatibility fields
+                "search_history": self._search_history,
+                "candidate_answers": self._candidate_answers,
+                "current_understanding": self._current_understanding
             }
 
     async def to_dict_async(self) -> Dict[str, Any]:
@@ -646,7 +706,11 @@ class KnowledgeState:
                 "uncertainties": self._uncertainties,
                 "version": self._version,
                 "snapshots": [s.to_dict() for s in self._snapshots],
-                "correlation_id": self._correlation_id
+                "correlation_id": self._correlation_id,
+                # Backward compatibility fields
+                "search_history": self._search_history,
+                "candidate_answers": self._candidate_answers,
+                "current_understanding": self._current_understanding
             }
 
     def to_json(self) -> str:
@@ -704,6 +768,11 @@ class KnowledgeState:
         # Load version
         state._version = data.get('version', 0)
 
+        # Load backward compatibility fields
+        state._search_history = data.get('search_history', [])
+        state._candidate_answers = data.get('candidate_answers', [])
+        state._current_understanding = data.get('current_understanding', "")
+
         return state
 
     @classmethod
@@ -740,6 +809,11 @@ class KnowledgeState:
 
         # Load version
         state._version = data.get('version', 0)
+
+        # Load backward compatibility fields
+        state._search_history = data.get('search_history', [])
+        state._candidate_answers = data.get('candidate_answers', [])
+        state._current_understanding = data.get('current_understanding', "")
 
         return state
 

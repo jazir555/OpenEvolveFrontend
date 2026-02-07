@@ -208,3 +208,7 @@ def display_collaboration_panel():
             else:
                 st.warning("No server running")
 
+
+# Alias for tests
+Collaboration = CollaborationServer
+

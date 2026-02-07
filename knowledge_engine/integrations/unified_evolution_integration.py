@@ -27,6 +27,9 @@ import json
 import asyncio
 import numpy as np
 from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class EvolutionarySystem(Enum):

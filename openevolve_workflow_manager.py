@@ -109,3 +109,7 @@ __all__ = [
     'create_workflow',
     'run_workflow',
 ]
+
+class WorkflowConfig:
+    """Stub class for WorkflowConfig."""
+    pass

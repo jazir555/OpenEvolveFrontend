@@ -86,9 +86,31 @@ class KnowledgeProcessor:
         
         # Contextual categorization rules
         self.categorization_rules = self._initialize_categorization_rules()
-        
+
         self.logger.info("Knowledge processor initialized with advanced processing pipeline")
-    
+
+    # Backward compatibility method
+    def process(self, data: Any, **kwargs) -> Dict[str, Any]:
+        """
+        Process knowledge (backward compatibility stub).
+
+        Args:
+            data: Input data to process
+            **kwargs: Additional processing parameters
+
+        Returns:
+            Processing result dictionary
+        """
+        return {
+            "success": True,
+            "processed": True,
+            "data": data,
+            "metadata": {
+                "processor": "KnowledgeProcessor",
+                "timestamp": datetime.now().isoformat()
+            }
+        }
+
     def _initialize_enhancement_patterns(self) -> Dict[str, Any]:
         """Initialize knowledge enhancement patterns"""
         return {

@@ -29,8 +29,7 @@ Date: 2026-01-30
 """
 
 from typing import Dict, Any, Optional, List
-from ..unified.config import UnifiedEvolutionConfig, MOConfig, LLMConfig, EvaluatorConfig, DatabaseConfig
-from . import EvolutionMode, DomainType
+from ..unified.config import UnifiedEvolutionConfig, EvolutionMode, DomainType, MOConfig, LLMConfig, EvaluatorConfig, DatabaseConfig
 from .base import DomainOptimizer
 
 

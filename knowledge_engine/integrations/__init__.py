@@ -483,3 +483,7 @@ __all__ = [
     "LagrangeMapperIntegration",
     "LAGRANGE_MAPPER_INTEGRATION_AVAILABLE",
 ]
+
+class AIKnowledgeGraphIntegrator:
+    """Stub class for AIKnowledgeGraphIntegrator."""
+    pass

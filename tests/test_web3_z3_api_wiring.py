@@ -132,3 +132,5 @@ def test_z3_api_web3_audit_exploit_verification_orchestration(monkeypatch):
     assert result["success"] is True
     assert result["verified_exploit"] is True
     assert result["exploit_witness"]["satisfiable"] is True
+    assert "lean_proof_verification" in result
+    assert "formal_evidence" in result

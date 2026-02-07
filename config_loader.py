@@ -867,7 +867,7 @@ def load_config(config_dir: Optional[Path] = None, force_reload: bool = False) -
     Load configuration from all sources.
 
     Args:
-        config_dir: Directory containing config files
+        config_dir: Directory containing config files, or path to a specific config file
         force_reload: Force reload even if already loaded
 
     Returns:
@@ -876,6 +876,13 @@ def load_config(config_dir: Optional[Path] = None, force_reload: bool = False) -
     global _config, _config_loader
 
     if _config is None or force_reload:
+        # Handle if a file path is passed instead of directory
+        if config_dir and isinstance(config_dir, (str, Path)):
+            config_path = Path(config_dir)
+            if config_path.is_file():
+                # Extract directory from file path
+                config_dir = str(config_path.parent)
+
         _config_loader = ConfigLoader(config_dir)
         _config = _config_loader.load_all()
 

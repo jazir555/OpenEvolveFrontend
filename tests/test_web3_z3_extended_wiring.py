@@ -76,6 +76,8 @@ def test_workflow_stage_web3_audit_exploit_verification_wiring(monkeypatch):
     assert result.success is True
     assert result.status == "verified_exploit"
     assert result.metadata.get("verified_exploit") is True
+    assert "lean_proof_verification" in result.metadata
+    assert "formal_evidence" in result.metadata
 
 
 def test_workflow_stage_web3_formal_status_schema(monkeypatch):
@@ -172,6 +174,8 @@ def test_z3_crewai_web3_audit_agent_executes_full_audit(monkeypatch):
     assert "translation" in result.result_data
     assert "exploit_witness" in result.result_data
     assert result.result_data.get("verified_exploit") is True
+    assert "lean_proof_verification" in result.result_data
+    assert "formal_evidence" in result.result_data
 
 
 def test_z3_crewai_web3_audit_agent_supports_composite_action_alias(monkeypatch):
@@ -332,3 +336,5 @@ def test_z3_bubblelabs_ui_handles_web3_composite_audit_node(monkeypatch):
     )
     assert result["status"] == "success"
     assert result["verified_exploit"] is True
+    assert "lean_proof_verification" in result
+    assert "formal_evidence" in result

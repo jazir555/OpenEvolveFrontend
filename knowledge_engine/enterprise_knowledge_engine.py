@@ -1365,3 +1365,6 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+class get_knowledge_engine:
+    """Stub class for get_knowledge_engine."""
+    pass

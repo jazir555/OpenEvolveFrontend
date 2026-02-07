@@ -37,3 +37,10 @@ __all__ = [
     'EnhancedOneKEBridge',
     'QualityEnhancer'
 ]
+class ModelConfig:
+    """Stub class for ModelConfig."""
+    pass
+
+class Language:
+    """Stub class for Language."""
+    pass

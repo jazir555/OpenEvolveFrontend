@@ -82,7 +82,10 @@ def run_benchmark(
     total_time_ms = (time.time() - start_total) * 1000
     
     times_sorted = sorted(times)
-    
+
+    # Avoid division by zero for very fast operations
+    total_time_sec = max(total_time_ms / 1000, 0.001)
+
     return BenchmarkResult(
         name=name,
         iterations=iterations,
@@ -93,7 +96,7 @@ def run_benchmark(
         median_time_ms=statistics.median(times),
         p95_time_ms=times_sorted[int(iterations * 0.95)],
         p99_time_ms=times_sorted[int(iterations * 0.99)],
-        throughput_per_sec=iterations / (total_time_ms / 1000),
+        throughput_per_sec=iterations / total_time_sec,
     )
 
 

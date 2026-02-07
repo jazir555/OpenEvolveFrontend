@@ -19,6 +19,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Callable
 from enum import Enum
+from web3_formal_evidence import build_web3_formal_evidence, verify_web3_lean_proof
 
 logger = logging.getLogger(__name__)
 
@@ -505,6 +506,10 @@ class Z3WorkflowStage:
         witness_metadata = witness_result.metadata if isinstance(witness_result.metadata, dict) else {}
         witness_payload = witness_metadata.get("result", {})
         verification = translation_metadata.get("verification")
+        lean_proof_verification = verify_web3_lean_proof(
+            translation_metadata.get("translation"),
+            use_real_lean=True,
+        )
 
         verified_exploit = bool(witness_payload.get("satisfiable", False))
         if context.get("verify_translation", self.config.verify_translation) and isinstance(verification, dict):
@@ -527,6 +532,12 @@ class Z3WorkflowStage:
                 "translation": translation_metadata.get("translation"),
                 "verification": verification,
                 "exploit_witness": witness_payload,
+                "lean_proof_verification": lean_proof_verification,
+                "formal_evidence": build_web3_formal_evidence(
+                    verification,
+                    witness_payload,
+                    lean_proof_verification,
+                ),
                 "verified_exploit": verified_exploit,
             },
         )

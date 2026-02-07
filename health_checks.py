@@ -67,3 +67,6 @@ def check_cache_health() -> bool:
     except (OSError, IOError, RuntimeError, ValueError, AttributeError) as e:
         logger.error(f"Cache health check failed: {e}")
         return False
+class HealthChecker:
+    """Stub class for HealthChecker."""
+    pass

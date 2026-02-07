@@ -11,6 +11,7 @@ Updated: 2026-02-06 - Fixed import and mocking issues
 import pytest
 import sys
 import os
+import json
 import tempfile
 from pathlib import Path
 from unittest.mock import Mock, AsyncMock, patch, MagicMock
@@ -188,6 +189,43 @@ class TestTeamManagerMethods:
             manager = TeamManager(teams_file=temp_file)
             assert hasattr(manager, 'get_status')
             assert callable(manager.get_status)
+        finally:
+            if os.path.exists(temp_file):
+                os.unlink(temp_file)
+
+    def test_manager_loads_teams_when_modelconfig_is_stub(self, monkeypatch):
+        """Team loading should tolerate legacy/stub ModelConfig symbols."""
+        try:
+            import team_manager
+        except ImportError:
+            pytest.skip("team_manager module not available")
+            return
+
+        class _StubModelConfig:
+            pass
+
+        monkeypatch.setattr(team_manager, "ModelConfig", _StubModelConfig)
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
+            temp_file = f.name
+
+        try:
+            payload = {
+                "BlueTeam": {
+                    "name": "BlueTeam",
+                    "role": "Blue",
+                    "members": [{"model_id": "gpt-4.1", "temperature": 0.2}],
+                    "description": None,
+                }
+            }
+            with open(temp_file, "w", encoding="utf-8") as handle:
+                json.dump(payload, handle)
+
+            manager = team_manager.TeamManager(teams_file=temp_file)
+            team = manager.get_team("BlueTeam")
+            assert team is not None
+            assert len(team.members) == 1
+            assert getattr(team.members[0], "model_id", None) == "gpt-4.1"
         finally:
             if os.path.exists(temp_file):
                 os.unlink(temp_file)

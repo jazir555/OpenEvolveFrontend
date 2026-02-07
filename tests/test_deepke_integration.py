@@ -972,7 +972,16 @@ class TestDeepKEEnhancedExtractor:
         """Test is_available when DeepKE is not installed."""
         extractor = DeepKEEnhancedExtractor()
 
-        with patch('knowledge_engine.integrations.deepke_integration.deepke', side_effect=ImportError):
+        # Patch builtins.__import__ to raise ImportError for deepke
+        import builtins
+        original_import = builtins.__import__
+
+        def mock_import(name, *args, **kwargs):
+            if name == 'deepke':
+                raise ImportError("deepke not available")
+            return original_import(name, *args, **kwargs)
+
+        with patch('builtins.__import__', side_effect=mock_import):
             result = extractor.is_available()
             assert result is False
 
@@ -1098,11 +1107,21 @@ class TestConfiguration:
 
     def test_config_with_cuda_device(self):
         """Test configuration with CUDA device."""
-        with patch('knowledge_engine.integrations.deepke_integration.torch') as mock_torch:
-            mock_torch.cuda.is_available.return_value = True
+        # Create a mock torch module
+        mock_torch = MagicMock()
+        mock_torch.cuda.is_available.return_value = True
 
+        # Patch torch import
+        import builtins
+        original_import = builtins.__import__
+
+        def mock_import(name, *args, **kwargs):
+            if name == 'torch':
+                return mock_torch
+            return original_import(name, *args, **kwargs)
+
+        with patch('builtins.__import__', side_effect=mock_import):
             integration = DeepKEIntegration()
-
             assert integration.config['device'] == 'cuda'
 
     def test_config_model_args_structure(self):

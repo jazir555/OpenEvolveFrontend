@@ -951,6 +951,118 @@ class ProblemDefinition:
     id: str
     title: str
     description: str
+    problem_type: Union[str, ProblemType]
+    domain_context: Union[DomainContext, str]
+    complexity_score: Union[ComplexityScore, str]
+    constraints: Optional[List[Constraint]] = None
+    success_criteria: Optional[List[SuccessCriterion]] = None
+    stakeholders: Optional[List[str]] = None
+    resources_available: Optional[Dict[str, Any]] = None
+    deadline: Optional[str] = None
+    parent_id: Optional[str] = None
+    created_at: datetime = field(default_factory=datetime.now)
+    updated_at: datetime = field(default_factory=datetime.now)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        data = asdict(self)
+        if isinstance(self.domain_context, DomainContext):
+            data['domain_context'] = self.domain_context.to_dict()
+        if isinstance(self.complexity_score, ComplexityScore):
+            data['complexity_score'] = self.complexity_score.to_dict()
+        if self.constraints:
+            data['constraints'] = [c.to_dict() if hasattr(c, 'to_dict') else c for c in self.constraints]
+        if self.success_criteria:
+            data['success_criteria'] = [c.to_dict() if hasattr(c, 'to_dict') else c for c in self.success_criteria]
+        data['created_at'] = self.created_at.isoformat() if isinstance(self.created_at, datetime) else self.created_at
+        data['updated_at'] = self.updated_at.isoformat() if isinstance(self.updated_at, datetime) else self.updated_at
+        return data
+
+
+@dataclass
+class Pattern:
+    """Legacy compatibility class for problem patterns."""
+    id: str
+    name: str
+    description: str
+    pattern_type: str
+    domain: str
+    complexity: int = 5
+    example_solutions: List[str] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class TeamAssignment:
+    """Legacy compatibility class for team assignments."""
+    id: str
+    team_id: str
+    sub_problem_id: str
+    assigned_at: datetime = field(default_factory=datetime.now)
+    assigned_by: str = "system"
+    status: str = "assigned"
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class Feedback:
+    """Legacy compatibility class for feedback."""
+    id: str
+    source: str
+    target_id: str
+    content: str
+    feedback_type: str
+    timestamp: datetime = field(default_factory=datetime.now)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class ValidationResult:
+    """Legacy compatibility class for validation results."""
+    id: str
+    is_valid: bool
+    confidence: float
+    validation_method: str
+    validated_at: datetime = field(default_factory=datetime.now)
+    details: Dict[str, Any] = field(default_factory=dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class QualityScores:
+    """Legacy compatibility class for quality scores."""
+    clarity: float = 0.0
+    completeness: float = 0.0
+    correctness: float = 0.0
+    efficiency: float = 0.0
+    maintainability: float = 0.0
+    overall_score: float = 0.0
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class ValidationCheckpoint:
+    """Legacy compatibility class for validation checkpoints."""
+    id: str
+    name: str
+    description: str
+    checkpoint_type: str
+    criteria: List[str] = field(default_factory=list)
+    required_score: float = 0.0
+    order: int = 0
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# ============================================================================
+# SOVEREIGN DATA MODELS (Legacy Compatibility)
+# ============================================================================
+
+@dataclass
+class ProblemDefinition:
+    """Legacy compatibility class for sovereign problem definitions."""
+    id: str
+    title: str
+    description: str
     problem_type: str
     domain_context: Union[DomainContext, str]
     complexity_score: Union[ComplexityScore, str]

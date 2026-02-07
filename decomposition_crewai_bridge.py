@@ -551,7 +551,7 @@ async def decomposition_phase_5_reassemble(
 # PHASE 6: FINAL VALIDATION
 # =============================================================================
 
-def decomposition_phase_6_final_validation(
+async def decomposition_phase_6_final_validation(
     final_solution: str,
     problem_statement: str,
     use_evolution: bool = True,
@@ -651,7 +651,7 @@ def execute_phase_4_verification(
     )
 
 
-def execute_phase_5_reassemble(
+async def execute_phase_5_reassemble(
     solutions: List[Dict[str, Any]],
     problem_statement: str,
     use_evolution: bool = True,
@@ -659,7 +659,7 @@ def execute_phase_5_reassemble(
     reassembly_strategy: str = "hierarchical",
 ) -> Dict[str, Any]:
     """Backward-compatible alias for decomposition_phase_5_reassemble."""
-    return decomposition_phase_5_reassemble(
+    return await decomposition_phase_5_reassemble(
         solutions=solutions,
         problem_statement=problem_statement,
         use_evolution=use_evolution,
@@ -685,14 +685,14 @@ def execute_phase_5_reassembly(
     )
 
 
-def execute_phase_6_final_validation(
+async def execute_phase_6_final_validation(
     final_solution: str,
     problem_statement: str,
     use_evolution: bool = True,
     evolution_iterations: int = 50,
 ) -> Dict[str, Any]:
     """Backward-compatible alias for decomposition_phase_6_final_validation."""
-    return decomposition_phase_6_final_validation(
+    return await decomposition_phase_6_final_validation(
         final_solution=final_solution,
         problem_statement=problem_statement,
         use_evolution=use_evolution,

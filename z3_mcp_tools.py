@@ -29,6 +29,10 @@ import logging
 from typing import Any, Dict, List, Optional, Callable
 from dataclasses import dataclass
 from enum import Enum
+from web3_formal_evidence import (
+    build_web3_formal_evidence,
+    verify_web3_lean_proof_async,
+)
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -1468,6 +1472,10 @@ async def z3_web3_audit_exploit_verification(
             additional_constraints=additional_constraints,
             timeout=timeout,
         )
+        lean_proof_verification = await verify_web3_lean_proof_async(
+            translation,
+            use_real_lean=True,
+        )
         verified_exploit = bool(witness.get("satisfiable", False))
         if verify_translation and isinstance(verification, dict):
             verified_exploit = verified_exploit and bool(verification.get("proven", False))
@@ -1477,6 +1485,12 @@ async def z3_web3_audit_exploit_verification(
             "translation": translation,
             "verification": verification,
             "exploit_witness": witness,
+            "lean_proof_verification": lean_proof_verification,
+            "formal_evidence": build_web3_formal_evidence(
+                verification,
+                witness,
+                lean_proof_verification,
+            ),
             "verified_exploit": verified_exploit,
         }
     except Exception as e:

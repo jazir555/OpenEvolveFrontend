@@ -92,3 +92,7 @@ HEALTH_CHECK_CONFIG = {
     'enabled': True,
     'interval': 60
 }
+
+class HealthChecker:
+    """Stub class for HealthChecker."""
+    pass

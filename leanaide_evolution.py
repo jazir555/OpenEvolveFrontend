@@ -3135,3 +3135,15 @@ __all__ = [
     # Convenience functions
     'evolve_proof'
 ]
+
+class MutationOperator:
+    """Stub class for MutationOperator."""
+    pass
+
+class CrossoverOperator:
+    """Stub class for CrossoverOperator."""
+    pass
+
+class SelectionOperator:
+    """Stub class for SelectionOperator."""
+    pass

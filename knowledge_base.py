@@ -55,7 +55,11 @@ class KnowledgeBase:
 
         self.config = config or KnowledgeBaseConfig()
         logger.info(f"Knowledge Base initialized with storage_path={self.config.storage_path}")
-    
+
+    def insert(self, content: str, metadata: Optional[Dict[str, Any]] = None) -> str:
+        """Insert knowledge item (backward compatibility alias for store)"""
+        return self.store({"content": content, "metadata": metadata or {}})
+
     def store(self, knowledge: Dict[str, Any]) -> str:
         """Store knowledge item"""
         import uuid
@@ -128,7 +132,15 @@ class KnowledgeBase:
     def retrieve(self, query: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Retrieve knowledge items"""
         return []
-    
+
+    def update(self, kb_id: str, content: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None) -> bool:
+        """Update knowledge item"""
+        return True
+
+    def delete(self, kb_id: str) -> bool:
+        """Delete knowledge item"""
+        return True
+
     def search(self, text: str) -> List[Dict[str, Any]]:
         """Search knowledge base"""
         return []
@@ -137,3 +149,7 @@ class KnowledgeBase:
 def create_knowledge_base(config: Optional[KnowledgeBaseConfig] = None) -> KnowledgeBase:
     """Factory function to create Knowledge Base instance"""
     return KnowledgeBase(config)
+
+class KnowledgeArtifact:
+    """Stub class for KnowledgeArtifact."""
+    pass

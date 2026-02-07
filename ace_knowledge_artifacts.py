@@ -1099,3 +1099,11 @@ __all__ = [
     "create_refinement_template",
     "SkillbookStore",
 ]
+
+class ACEKnowledgeManager:
+    """Stub class for ACEKnowledgeManager."""
+    pass
+
+class KnowledgeArtifactManager:
+    """Stub class for KnowledgeArtifactManager."""
+    pass

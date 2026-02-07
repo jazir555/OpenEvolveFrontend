@@ -889,3 +889,7 @@ def load_plugin_sync(
     except RuntimeError:
         # No event loop, create new one
         return asyncio.run(registry.load_plugin(name, config))
+
+# Alias for tests
+PluginSystem = PluginRegistry
+

@@ -88,7 +88,23 @@ class ConfidenceScorer:
             # Normalize weights
             for key in self.weights:
                 self.weights[key] /= total
-    
+
+    def score(self, *args, **kwargs) -> float:
+        """
+        Backward compatibility alias for calculate_confidence.
+
+        Returns just the confidence score (not the tuple).
+
+        Args:
+            *args: Positional arguments passed to calculate_confidence
+            **kwargs: Keyword arguments passed to calculate_confidence
+
+        Returns:
+            Confidence score (0-1)
+        """
+        confidence_score, _factors = self.calculate_confidence(*args, **kwargs)
+        return confidence_score
+
     def calculate_confidence(
         self,
         similarity_score: float,

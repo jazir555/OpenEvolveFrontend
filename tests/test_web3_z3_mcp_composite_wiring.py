@@ -63,3 +63,5 @@ def test_web3_composite_tool_orchestrates_translation_and_witness(monkeypatch):
     )
     assert result["success"] is True
     assert result["verified_exploit"] is True
+    assert "lean_proof_verification" in result
+    assert "formal_evidence" in result

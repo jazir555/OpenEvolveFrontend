@@ -374,6 +374,7 @@ def test_parse_targeted_feedback():
 @patch('workflow_engine.run_ai_decomposition')
 @patch('workflow_engine.run_gauntlet')
 @patch('workflow_engine.generate_solution_for_sub_problem')
+@pytest.mark.asyncio
 async def test_run_sovereign_workflow_full_cycle(
     mock_generate_solution, mock_run_gauntlet, mock_run_ai_decomposition,
     mock_run_content_analysis, mock_render_manual_review_panel, mock_request_chat
@@ -488,6 +489,7 @@ async def test_run_sovereign_workflow_full_cycle(
 @patch('workflow_engine.run_ai_decomposition')
 @patch('workflow_engine.run_gauntlet')
 @patch('workflow_engine.generate_solution_for_sub_problem')
+@pytest.mark.asyncio
 async def test_run_sovereign_workflow_self_healing(
     mock_generate_solution, mock_run_gauntlet, mock_run_ai_decomposition,
     mock_run_content_analysis, mock_render_manual_review_panel, mock_request_chat

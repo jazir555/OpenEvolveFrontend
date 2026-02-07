@@ -1,9 +1,11 @@
 import json
 import os
 import logging
-from typing import List, Optional, Dict, Any
+import inspect
+from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 from dataclasses import dataclass
+from types import SimpleNamespace
 from openevolve_structures import Team, ModelConfig
 
 # SECURITY: Import security framework
@@ -95,11 +97,22 @@ class TeamManager:
         """
         if os.path.exists(self.teams_file):
             with open(self.teams_file, "r") as f:
-                data = json.load(f)
+                try:
+                    data = json.load(f)
+                except json.JSONDecodeError:
+                    logger.warning(
+                        "Teams file '%s' is empty or invalid JSON. Starting with no teams.",
+                        self.teams_file,
+                    )
+                    return {}
                 loaded_teams = {}
                 for team_name, team_data in data.items():
                     # Deserialize ModelConfig objects first
-                    members = [ModelConfig(**mc) for mc in team_data['members']]
+                    members = [
+                        self._deserialize_model_config(mc)
+                        for mc in team_data.get("members", [])
+                        if isinstance(mc, dict)
+                    ]
                     # Then deserialize the Team object
                     loaded_teams[team_name] = Team(
                         name=team_data['name'],
@@ -110,6 +123,44 @@ class TeamManager:
                     )
                 return loaded_teams
         return {}
+
+    @staticmethod
+    def _deserialize_model_config(payload: Dict[str, Any]) -> Any:
+        """
+        Build a model config instance from stored dict data.
+
+        Some legacy import paths can expose a stub ``ModelConfig`` class with no
+        constructor args. This function falls back to the kernel schema type and,
+        if needed, a namespace object so team loading never fails at import time.
+        """
+        candidates: List[Any] = [ModelConfig]
+        try:
+            from openevolve.kernel.schema import ModelConfig as KernelModelConfig
+
+            if KernelModelConfig not in candidates:
+                candidates.append(KernelModelConfig)
+        except Exception:
+            pass
+
+        for candidate in candidates:
+            try:
+                return candidate(**payload)
+            except TypeError:
+                # Retry with only accepted constructor fields.
+                try:
+                    accepted = set(inspect.signature(candidate).parameters.keys())
+                    filtered = {k: v for k, v in payload.items() if k in accepted}
+                    if filtered:
+                        return candidate(**filtered)
+                except Exception:
+                    continue
+            except Exception:
+                continue
+
+        logger.warning(
+            "Failed to deserialize ModelConfig with available schemas; using namespace fallback."
+        )
+        return SimpleNamespace(**payload)
 
     def _save_teams(self):
         """Serializes Team objects, including nested `ModelConfig` objects, and saves them to the JSON file."""
@@ -124,8 +175,36 @@ class TeamManager:
         with open(self.teams_file, "w") as f:
             json.dump(data, f, indent=4)
 
-    def create_team(self, team: Team) -> bool:
-        """Adds a new team to the manager and saves the changes."""
+    def create_team(
+        self,
+        team: Optional[Team] = None,
+        name: Optional[str] = None,
+        members: Optional[List[str]] = None,
+        specialization: Optional[str] = None
+    ) -> Union[bool, str]:
+        """
+        Adds a new team to the manager and saves the changes.
+
+        Backward compatibility: Can accept either a Team object or individual parameters.
+        """
+        # Handle backward compatibility - individual parameters
+        if team is None and name is not None:
+            # Create team from parameters
+            team_id = str(uuid.uuid4())
+            team = Team(
+                team_id=team_id,
+                name=name,
+                members=members or [],
+                specialization=specialization or "general"
+            )
+            self.teams[name] = team
+            self._save_teams()
+            return team_id
+
+        # Original behavior - Team object
+        if team is None:
+            raise ValueError("Either team object or name must be provided")
+
         if team.name in self.teams:
             return False # Team with this name already exists
         self.teams[team.name] = team
@@ -312,7 +391,15 @@ class TeamManager:
         self.update_team(team)
         return True
 
-    def assign_task(self, team_name: str, task: Task, member_id: Optional[str] = None) -> bool:
+    def assign_task(
+        self,
+        team_name: Optional[str] = None,
+        task: Optional[Task] = None,
+        member_id: Optional[str] = None,
+        team_id: Optional[str] = None,  # Backward compatibility alias for team_name
+        task_id: Optional[str] = None,  # Backward compatibility
+        priority: Optional[str] = None  # Backward compatibility
+    ) -> bool:
         """
         Assign a task to a team member
 
@@ -320,10 +407,34 @@ class TeamManager:
             team_name: Name of the team
             task: Task to assign
             member_id: Optional specific member ID to assign to
+            team_id: DEPRECATED - Alias for team_name (backward compatibility)
+            task_id: DEPRECATED - Task ID (backward compatibility)
+            priority: DEPRECATED - Task priority (backward compatibility)
 
         Returns:
             True if successful, False if team or member not found
         """
+        # Handle backward compatibility
+        if team_id is not None:
+            team_name = team_id
+
+        # If only task_id provided, create a mock task
+        if task is None and task_id is not None:
+            from datetime import datetime
+            task = Task(
+                task_id=task_id,
+                title=f"Task {task_id}",
+                description=f"Task {task_id}",
+                status="assigned",
+                priority=priority or "medium",
+                assigned_to=None,
+                created_at=datetime.now(),
+                due_date=None
+            )
+
+        if task is None:
+            raise ValueError("Either task or task_id must be provided")
+
         team = self.get_team(team_name)
         if not team:
             return False

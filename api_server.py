@@ -29,6 +29,7 @@ import logging
 from pathlib import Path
 
 from ui_shim import ui as _UI_SHIM, SessionState
+from web3_formal_evidence import build_web3_formal_evidence, verify_web3_lean_proof
 
 logger = logging.getLogger(__name__)
 
@@ -6460,6 +6461,15 @@ def web3_audit_exploit_verification(
     witness_payload = None
     if isinstance(witness_result, dict):
         witness_payload = witness_result
+    translated_payload = (
+        translation_result.get("translation")
+        if isinstance(translation_result, dict)
+        else None
+    )
+    lean_proof_verification = verify_web3_lean_proof(
+        translated_payload,
+        use_real_lean=True,
+    )
 
     verified_exploit = bool((witness_payload or {}).get("satisfiable", False))
     if request.verify_translation and isinstance(verification, dict):
@@ -6471,6 +6481,12 @@ def web3_audit_exploit_verification(
         "ingestion": ingestion_result,
         "translation": translation_result,
         "exploit_witness": witness_result,
+        "lean_proof_verification": lean_proof_verification,
+        "formal_evidence": build_web3_formal_evidence(
+            verification,
+            witness_payload if isinstance(witness_payload, dict) else {},
+            lean_proof_verification,
+        ),
         "verified_exploit": verified_exploit,
     }
 

@@ -165,8 +165,9 @@ class TestEnhancedSubproblem:
             pytest.skip("ROMA-DSPy not available")
 
         assert sample_subproblem.subproblem_id == "sub_001"
-        assert sample_subproblem.confidence == 0.9
-        assert len(sample_subproblem.reasoning_chain) == 2
+        assert sample_subproblem.problem == "Implement authentication"
+        assert sample_subproblem.depth == 1
+        assert sample_subproblem.is_atomic is True
 
     def test_enhanced_subproblem_to_dict(self, sample_subproblem):
         """Test subproblem serialization."""
@@ -177,7 +178,8 @@ class TestEnhancedSubproblem:
 
         assert isinstance(data, dict)
         assert "subproblem_id" in data
-        assert "confidence" in data
+        assert "problem" in data
+        assert "depth" in data
 
     def test_enhanced_subproblem_with_empty_reasoning(self):
         """Test subproblem with empty reasoning chain."""
@@ -249,12 +251,11 @@ class TestDSPyIntegration:
 
     @pytest.mark.asyncio
     async def test_solve_with_dspy(self, roma_dspy_integration, mock_dspy_program):
-        """Test solving problem with DSPy."""
+        """Test solving problem with DSPy cooperative reasoning."""
         if not ROMA_DSPY_AVAILABLE:
             pytest.skip("ROMA-DSPy not available")
 
-        result = await roma_dspy_integration.solve_with_dspy(
-            program=mock_dspy_program,
+        result = await roma_dspy_integration.solve_with_cooperative_reasoning(
             problem="Test problem"
         )
 
@@ -266,15 +267,15 @@ class TestDSPyIntegration:
         if not ROMA_DSPY_AVAILABLE:
             pytest.skip("ROMA-DSPy not available")
 
-        subproblem = EnhancedSubproblem(
-            subproblem_id="test",
-            problem="Test",
-            depth=1,
-            is_atomic=True,
-            metadata={}
-        )
+        # Create a mock subproblem dictionary (ROMADecomposition node)
+        subproblem = {
+            "node_id": "test",
+            "problem": "Test",
+            "depth": 1,
+            "is_atomic": True
+        }
 
-        enhanced = await roma_dspy_integration.enhance_subproblem(subproblem)
+        enhanced = await roma_dspy_integration.add_reasoning_to_subproblem(subproblem)
 
         assert enhanced is not None
 
@@ -284,9 +285,14 @@ class TestDSPyIntegration:
         if not ROMA_DSPY_AVAILABLE:
             pytest.skip("ROMA-DSPy not available")
 
-        trace = await roma_dspy_integration.create_reasoning_trace(
-            problem="Test problem"
-        )
+        # Create a mock subproblem
+        subproblem = {
+            "node_id": "test_001",
+            "problem": "Test problem",
+            "depth": 1
+        }
+
+        trace = await roma_dspy_integration.add_reasoning_to_subproblem(subproblem)
 
         assert trace is not None
 

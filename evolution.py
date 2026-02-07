@@ -898,13 +898,12 @@ class EvolutionEngine:
     """
     def __init__(self, config: Optional[Union[Dict[str, Any], EvolutionConfiguration]] = None):
         if isinstance(config, dict):
-            # Convert dict to EvolutionConfiguration
-            self.config = EvolutionConfiguration()
-            for k, v in config.items():
-                if hasattr(self.config, k):
-                    setattr(self.config, k, v)
+            # Convert dict to EvolutionConfiguration by passing it directly
+            self.config = EvolutionConfiguration(parameters=config)
+        elif isinstance(config, EvolutionConfiguration):
+            self.config = config
         else:
-            self.config = config or EvolutionConfiguration()
+            self.config = EvolutionConfiguration()
             
     def evolve(self, content: str, content_type: str = "document_general", **kwargs) -> str:
         """Run evolution loop on content."""
@@ -4600,3 +4599,15 @@ def get_z3_evolution_capabilities() -> Dict[str, Any]:
     
     return capabilities
 
+
+class MutationOperator:
+    """Stub class for MutationOperator."""
+    pass
+
+class CrossoverOperator:
+    """Stub class for CrossoverOperator."""
+    pass
+
+class SelectionOperator:
+    """Stub class for SelectionOperator."""
+    pass

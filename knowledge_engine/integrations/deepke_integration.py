@@ -464,8 +464,8 @@ class DeepKEIntegration:
                         seen_entities.add(match)
             
             elif entity_type == "ORGANIZATION":
-                # Match capitalized organizations like "Google Inc"
-                pattern = r'\b([A-Z][A-Z\s]+(?:Corporation|Inc|LLC|Ltd|Company|Corp|Group|University|College|School|Hospital|Government|Department|Agency|Board|Institute|Lab|Center|Council|Association|Society|Union|Party|Company|Corp|Ltd|GmbH|SA|BV|Pty|LLP|LLC|Inc\.?))\b'
+                # Match capitalized organizations like "Google Inc" or "GOOGLE INC"
+                pattern = r'\b([A-Z][a-zA-Z\s]+(?:Corporation|Inc|LLC|Ltd|Company|Corp|Group|University|College|School|Hospital|Government|Department|Agency|Board|Institute|Lab|Center|Council|Association|Society|Union|Party|GmbH|SA|BV|Pty|LLP))\b'
                 matches = re.findall(pattern, text)
                 for match in matches:
                     if match not in seen_entities:
@@ -478,7 +478,7 @@ class DeepKEIntegration:
             
             elif entity_type == "LOCATION":
                 # Match potential location names
-                pattern = r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]*)*(?:\s+(?:City|County|State|Province|Country|Region|District|Town|Village|Mountain|River|Lake|Ocean|Sea|Gulf|Bay|Island|Park|Street|Avenue|Road|Boulevard|Drive|Lane|Court|Place|Square|Plaza|Circle|Terrace|Way|Trail|Parkway|Highway|Freeway|Turnpike|Bridge|Tunnel|Airport|Railway|Station|Port|Harbor))\b'
+                pattern = r'\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:\s+(?:City|County|State|Province|Country|Region|District|Town|Village|Mountain|River|Lake|Ocean|Sea|Gulf|Bay|Island|Park|Street|Avenue|Road|Boulevard|Drive|Lane|Court|Place|Square|Plaza|Circle|Terrace|Way|Trail|Parkway|Highway|Freeway|Turnpike|Bridge|Tunnel|Airport|Railway|Station|Port|Harbor))?\b'
                 matches = re.findall(pattern, text)
                 for match in matches:
                     if match not in seen_entities:

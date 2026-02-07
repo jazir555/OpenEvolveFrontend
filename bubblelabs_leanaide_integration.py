@@ -1021,3 +1021,8 @@ if __name__ == "__main__":
     status = initialize_leanaide_integration()
     print("\nLeanAide Integration Status:")
     print(json.dumps(status, indent=2))
+
+
+# Alias for tests
+LeanAideIntegrationBridge = LeanAideIntegrationBridge
+

@@ -36,6 +36,10 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
 from concurrent.futures import ThreadPoolExecutor
+from web3_formal_evidence import (
+    build_web3_formal_evidence,
+    verify_web3_lean_proof_async,
+)
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -755,7 +759,14 @@ class Z3BubbleLabsUIManager:
                     "additional_constraints",
                     "timeout_seconds",
                 ],
-                "outputs": ["translation", "verification", "result", "verified_exploit"],
+                "outputs": [
+                    "translation",
+                    "verification",
+                    "result",
+                    "lean_proof_verification",
+                    "formal_evidence",
+                    "verified_exploit",
+                ],
                 "icon": "🔍",
                 "color": "#dc2626"
             }
@@ -880,6 +891,10 @@ class Z3BubbleLabsUIManager:
                     additional_constraints=inputs.get("additional_constraints"),
                     timeout=float(inputs.get("timeout_seconds", 10.0)),
                 )
+                lean_proof_verification = await verify_web3_lean_proof_async(
+                    translation,
+                    use_real_lean=True,
+                )
 
                 verified_exploit = bool(witness.get("satisfiable", False))
                 if bool(inputs.get("verify_translation", True)) and isinstance(verification, dict):
@@ -891,6 +906,12 @@ class Z3BubbleLabsUIManager:
                     "translation": translation,
                     "verification": verification,
                     "result": witness,
+                    "lean_proof_verification": lean_proof_verification,
+                    "formal_evidence": build_web3_formal_evidence(
+                        verification,
+                        witness,
+                        lean_proof_verification,
+                    ),
                     "verified_exploit": verified_exploit,
                 }
             

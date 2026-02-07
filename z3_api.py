@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
+from web3_formal_evidence import build_web3_formal_evidence, verify_web3_lean_proof
 
 logger = logging.getLogger(__name__)
 
@@ -280,6 +281,10 @@ class Z3API:
 
         verification = translation.get("verification")
         witness_result = witness.get("result", {})
+        lean_proof_verification = verify_web3_lean_proof(
+            translation.get("translation"),
+            use_real_lean=True,
+        )
         verified_exploit = bool(witness_result.get("satisfiable", False))
         if verify_translation and isinstance(verification, dict):
             verified_exploit = verified_exploit and bool(verification.get("proven", False))
@@ -289,6 +294,12 @@ class Z3API:
             "translation": translation.get("translation"),
             "verification": verification,
             "exploit_witness": witness_result,
+            "lean_proof_verification": lean_proof_verification,
+            "formal_evidence": build_web3_formal_evidence(
+                verification,
+                witness_result,
+                lean_proof_verification,
+            ),
             "verified_exploit": verified_exploit,
         }
 

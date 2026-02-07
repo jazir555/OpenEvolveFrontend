@@ -49,6 +49,10 @@ from enum import Enum
 import json
 import traceback
 import sys
+from web3_formal_evidence import (
+    build_web3_formal_evidence,
+    verify_web3_lean_proof_async,
+)
 
 # Configure logging first
 logging.basicConfig(
@@ -1370,6 +1374,10 @@ class UnifiedMCPServer:
                     additional_constraints=args.get("additional_constraints"),
                     timeout=args.get("timeout", 10.0),
                 )
+                lean_proof_verification = await verify_web3_lean_proof_async(
+                    translation,
+                    use_real_lean=True,
+                )
 
                 verified_exploit = bool(witness.get("satisfiable", False))
                 if args.get("verify_translation", True) and isinstance(verification, dict):
@@ -1380,6 +1388,12 @@ class UnifiedMCPServer:
                     "translation": translation,
                     "verification": verification,
                     "exploit_witness": witness,
+                    "lean_proof_verification": lean_proof_verification,
+                    "formal_evidence": build_web3_formal_evidence(
+                        verification,
+                        witness,
+                        lean_proof_verification,
+                    ),
                     "verified_exploit": verified_exploit,
                 }
             except Exception as e:

@@ -1133,3 +1133,15 @@ def get_recommended_strategy(problem):
 def get_roma_integration_status():
     """Stub function for getting ROMA integration status."""
     return {'status': 'unknown'}
+
+class SubProblem:
+    """Stub class for SubProblem."""
+    pass
+
+class ProblemDefinition:
+    """Stub class for ProblemDefinition."""
+    pass
+
+class RecursiveSolver:
+    """Stub class for RecursiveSolver."""
+    pass

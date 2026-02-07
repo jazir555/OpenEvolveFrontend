@@ -383,6 +383,8 @@ def test_api_web3_audit_endpoint_returns_verified_exploit(monkeypatch):
     user = api_server.AuthUser(api_key="test-key", role=api_server.UserRole.USER, name="tester")
     result = api_server.web3_audit_exploit_verification(request=request, user=user)
     assert result["verified_exploit"] is True
+    assert "lean_proof_verification" in result
+    assert "formal_evidence" in result
 
 
 def test_z3_mcp_server_registers_web3_formal_tools():
@@ -482,6 +484,8 @@ def test_bubblelabs_extended_integration_web3_audit_orchestration(monkeypatch):
     assert result["translation"]["phase"] == "translation"
     assert result["exploit_witness"]["phase"] == "witness"
     assert result["verified_exploit"] is True
+    assert "lean_proof_verification" in result
+    assert "formal_evidence" in result
 
 
 def test_bubblelabs_web3_status_infers_available_from_formal_capabilities(monkeypatch):

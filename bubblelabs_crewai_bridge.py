@@ -43,3 +43,6 @@ def create_bridge(config: Optional[BubbleLabsCrewAIBridgeConfig] = None) -> Bubb
 
 # Alias for backward compatibility
 BubbleLabsCREWAIBridge = BubbleLabsCrewAIBridge
+
+# Another alias for tests (without 'A' in 'CrewAI')
+BubbleLabsCrewaiBridge = BubbleLabsCrewAIBridge

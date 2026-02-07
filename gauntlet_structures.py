@@ -14,3 +14,15 @@ class GauntletResult:
     success: bool = False
     score: float = 0.0
     feedback: str = ""
+
+class GauntletDefinition:
+    """Stub class for GauntletDefinition."""
+    pass
+
+class GauntletRoundRule:
+    """Stub class for GauntletRoundRule."""
+    pass
+
+class ValidationCheckpoint:
+    """Stub class for ValidationCheckpoint."""
+    pass

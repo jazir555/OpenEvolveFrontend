@@ -145,6 +145,27 @@ class EvaluatorAssessment:
     openevolve_metrics: Optional[Dict[str, Any]] = None  # OpenEvolve metrics if used
 
 @dataclass
+class EvaluationResult:
+    """Result of an evaluation"""
+    score: float
+    feedback: str
+    metrics: Dict[str, Any]
+    evaluator_id: str
+    timestamp: datetime = None
+
+    def __post_init__(self):
+        if self.timestamp is None:
+            self.timestamp = datetime.now()
+
+class ConsensusMechanism(Enum):
+    """Mechanisms for reaching consensus among evaluators"""
+    MAJORITY_VOTE = "majority_vote"
+    WEIGHTED_AVERAGE = "weighted_average"
+    MEDIAN = "median"
+    BORDA_COUNT = "borda_count"
+    EXPERT_WEIGHTED = "expert_weighted"
+
+@dataclass
 class IntegratedEvaluation:
     """Complete integrated evaluation from multiple evaluators"""
     assessments: List[EvaluatorAssessment]
@@ -2177,6 +2198,105 @@ class EvaluatorTeam:
         except Exception as e:
             logger.error(f"Lean verification failed: {e}")
             return {"verified": False, "error": str(e)}
+
+    def evaluate(self, content: str, **kwargs) -> EvaluationResult:
+        """
+        Simplified evaluation method for basic evaluations.
+
+        Args:
+            content: Content to evaluate
+            **kwargs: Additional parameters
+
+        Returns:
+            EvaluationResult with basic evaluation
+        """
+        integrated_eval = self.evaluate_content(content, **kwargs)
+        return EvaluationResult(
+            score=integrated_eval.consensus_score,
+            feedback=integrated_eval.final_verdict,
+            metrics=integrated_eval.evaluation_metadata,
+            evaluator_id="EvaluatorTeam"
+        )
+
+    def run_consensus(self, assessments: List[EvaluatorAssessment],
+                     mechanism: ConsensusMechanism = ConsensusMechanism.WEIGHTED_AVERAGE) -> Dict[str, Any]:
+        """
+        Run consensus mechanism on evaluator assessments.
+
+        Args:
+            assessments: List of evaluator assessments
+            mechanism: Consensus mechanism to use
+
+        Returns:
+            Dict with consensus results
+        """
+        scores = [a.composite_score for a in assessments]
+
+        if mechanism == ConsensusMechanism.MAJORITY_VOTE:
+            # Simple majority vote (pass/fail based on threshold)
+            pass_count = sum(1 for s in scores if s >= 70)
+            consensus_score = 100.0 if pass_count > len(scores) / 2 else 50.0
+        elif mechanism == ConsensusMechanism.WEIGHTED_AVERAGE:
+            # Weighted average based on expertise
+            total_weight = sum(a.assessment_metadata.get('expertise_level', 5) for a in assessments)
+            weighted_sum = sum(a.composite_score * a.assessment_metadata.get('expertise_level', 5) for a in assessments)
+            consensus_score = weighted_sum / total_weight if total_weight > 0 else 0.0
+        elif mechanism == ConsensusMechanism.MEDIAN:
+            consensus_score = statistics.median(scores)
+        else:
+            consensus_score = statistics.mean(scores)
+
+        return {
+            "consensus_score": consensus_score,
+            "mechanism": mechanism.value,
+            "individual_scores": scores,
+            "variance": statistics.variance(scores) if len(scores) > 1 else 0.0
+        }
+
+    def calculate_score(self, content: str, metric: EvaluationMetric = EvaluationMetric.OVERALL_QUALITY) -> float:
+        """
+        Calculate a specific metric score for content.
+
+        Args:
+            content: Content to score
+            metric: Metric to calculate
+
+        Returns:
+            Score (0-100)
+        """
+        # For simplicity, use a basic evaluation
+        evaluation = self.evaluate_content(content)
+        # Return the consensus score (in practice, you'd extract specific metric scores)
+        return evaluation.consensus_score
+
+    def generate_feedback(self, content: str) -> str:
+        """
+        Generate feedback for content.
+
+        Args:
+            content: Content to analyze
+
+        Returns:
+            Feedback string
+        """
+        evaluation = self.evaluate_content(content)
+        feedback_lines = [
+            f"Evaluation Result: {evaluation.final_verdict}",
+            f"Consensus Score: {evaluation.consensus_score:.1f}/100",
+            f"Confidence: {evaluation.confidence_intervals}",
+            ""
+        ]
+
+        if evaluation.recommendations:
+            feedback_lines.append("Recommendations:")
+            for i, rec in enumerate(evaluation.recommendations[:5], 1):
+                feedback_lines.append(f"  {i}. {rec}")
+
+        return "\n".join(feedback_lines)
+
+
+# Add module-level availability flag
+DSPY_AVAILABLE = False  # Will be set to True if DSPy is available
 
 # Example usage and testing
 def test_evaluator_team():

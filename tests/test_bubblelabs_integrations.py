@@ -138,9 +138,9 @@ class TestBubblelabsValidation:
         assert bubblelabs_validation is not None
 
     def test_bubblelabs_validation_has_class(self):
-        """Test bubblelabs_validation has Validation class"""
-        from bubblelabs_validation import BubbleLabsValidation
-        assert BubbleLabsValidation is not None
+        """Test bubblelabs_validation has BubbleLabsValidator class"""
+        from bubblelabs_validation import BubbleLabsValidator
+        assert BubbleLabsValidator is not None
 
 
 class TestBubblelabsPluginSystem:

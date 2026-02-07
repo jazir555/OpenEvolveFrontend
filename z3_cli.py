@@ -38,6 +38,7 @@ import logging
 import sys
 from pathlib import Path
 from typing import Optional
+from web3_formal_evidence import build_web3_formal_evidence, verify_web3_lean_proof
 
 # CAV-NLP Integration
 try:
@@ -493,6 +494,10 @@ if CLICK_AVAILABLE:
                 additional_constraints=parsed_constraints,
                 timeout=timeout,
             )
+            lean_proof_verification = verify_web3_lean_proof(
+                translation,
+                use_real_lean=True,
+            )
 
             verified_exploit = bool(witness.get("satisfiable", False))
             if verify and isinstance(verification, dict):
@@ -503,6 +508,12 @@ if CLICK_AVAILABLE:
                 "translation": translation,
                 "verification": verification,
                 "exploit_witness": witness,
+                "lean_proof_verification": lean_proof_verification,
+                "formal_evidence": build_web3_formal_evidence(
+                    verification,
+                    witness,
+                    lean_proof_verification,
+                ),
                 "verified_exploit": verified_exploit,
             }
             _output_result(result, output, output_format)

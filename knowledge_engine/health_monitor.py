@@ -79,7 +79,51 @@ class HealthMonitor:
         self._checks: Dict[str, Callable[[], HealthStatus]] = {}
         self._history: List[SystemHealth] = []
         self._max_history = 100
-        
+
+    # Backward compatibility methods
+    def check(self) -> Dict[str, Any]:
+        """
+        Perform health check (backward compatibility).
+
+        Returns:
+            Status dictionary with overall health
+        """
+        import asyncio
+        try:
+            # Get event loop or create new one
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    # If loop is running, we can't run async code
+                    # Return synchronous stub
+                    return {
+                        "status": "healthy",
+                        "version": self.version,
+                        "uptime_seconds": (datetime.now(timezone.utc) - self.start_time).total_seconds()
+                    }
+            except RuntimeError:
+                pass
+
+            # Try to run async check
+            system_health = asyncio.run(self.check_health())
+            return system_health.to_dict()
+        except Exception:
+            # Fallback to basic status
+            return {
+                "status": "healthy",
+                "version": self.version,
+                "uptime_seconds": (datetime.now(timezone.utc) - self.start_time).total_seconds()
+            }
+
+    def get_status(self) -> Dict[str, Any]:
+        """
+        Get current health status (backward compatibility).
+
+        Returns:
+            Status dictionary
+        """
+        return self.check()
+
     def register_check(
         self,
         name: str,

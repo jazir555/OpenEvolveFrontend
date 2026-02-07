@@ -27,6 +27,10 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Union
 from pathlib import Path
+from web3_formal_evidence import (
+    build_web3_formal_evidence,
+    verify_web3_lean_proof_async,
+)
 
 # FastAPI imports
 try:
@@ -1907,6 +1911,10 @@ async def web3_audit_exploit_verification(request: Web3AuditExploitVerificationR
             additional_constraints=request.additional_constraints,
             timeout=request.timeout_seconds,
         )
+        lean_proof_verification = await verify_web3_lean_proof_async(
+            translation,
+            use_real_lean=True,
+        )
 
         verified_exploit = bool(witness.get("satisfiable", False))
         if request.verify_translation and isinstance(verification, dict):
@@ -1917,6 +1925,12 @@ async def web3_audit_exploit_verification(request: Web3AuditExploitVerificationR
             "translation": translation,
             "verification": verification,
             "exploit_witness": witness,
+            "lean_proof_verification": lean_proof_verification,
+            "formal_evidence": build_web3_formal_evidence(
+                verification,
+                witness,
+                lean_proof_verification,
+            ),
             "verified_exploit": verified_exploit,
         }
     except Exception as exc:

@@ -1,0 +1,1 @@
+{")\nfor i, line in enumerate(lines[39:70], start=40):\n    print(f": "i:3d}: {line}"}

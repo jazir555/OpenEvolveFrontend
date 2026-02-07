@@ -19,6 +19,7 @@ from enum import Enum
 from threading import RLock
 from concurrent.futures import ThreadPoolExecutor
 import asyncio
+from web3_formal_evidence import build_web3_formal_evidence, verify_web3_lean_proof
 
 logger = logging.getLogger(__name__)
 
@@ -994,6 +995,8 @@ class BubbleLabsExtendedIntegration:
         witness_payload = None
         if isinstance(exploit_witness, dict):
             witness_payload = exploit_witness.get("result")
+        translated_payload = translation.get("translation") if isinstance(translation, dict) else None
+        lean_proof_verification = verify_web3_lean_proof(translated_payload, use_real_lean=True)
 
         verified_exploit = bool((witness_payload or {}).get("satisfiable", False))
         if verify_translation and isinstance(verification, dict):
@@ -1004,6 +1007,12 @@ class BubbleLabsExtendedIntegration:
             "ingestion": ingestion,
             "translation": translation,
             "exploit_witness": exploit_witness,
+            "lean_proof_verification": lean_proof_verification,
+            "formal_evidence": build_web3_formal_evidence(
+                verification,
+                witness_payload if isinstance(witness_payload, dict) else {},
+                lean_proof_verification,
+            ),
             "verified_exploit": verified_exploit,
         }
     

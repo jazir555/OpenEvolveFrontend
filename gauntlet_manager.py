@@ -2,7 +2,7 @@ import json
 import os
 import time
 import logging
-from typing import List, Optional, Dict, Any, Callable
+from typing import List, Optional, Dict, Any, Callable, Union
 from datetime import datetime
 from dataclasses import dataclass
 from openevolve_structures import GauntletDefinition, GauntletRoundRule
@@ -637,8 +637,36 @@ class GauntletManager:
         with open(self.gauntlets_file, "w") as f:
             json.dump(data, f, indent=4)
 
-    def create_gauntlet(self, gauntlet: GauntletDefinition) -> bool:
-        """Adds a new gauntlet to the manager and saves the changes."""
+    def create_gauntlet(
+        self,
+        gauntlet: Optional[GauntletDefinition] = None,
+        name: Optional[str] = None,
+        tests: Optional[List[str]] = None
+    ) -> Union[bool, str]:
+        """
+        Adds a new gauntlet to the manager and saves the changes.
+
+        Backward compatibility: Can accept either a GauntletDefinition object or individual parameters.
+        """
+        # Handle backward compatibility - individual parameters
+        if gauntlet is None and name is not None:
+            # Create gauntlet from parameters
+            gauntlet_id = str(uuid.uuid4())
+            gauntlet = GauntletDefinition(
+                gauntlet_id=gauntlet_id,
+                name=name,
+                description=f"Gauntlet: {name}",
+                tests=tests or [],
+                enabled=True
+            )
+            self.gauntlets[name] = gauntlet
+            self._save_gauntlets()
+            return gauntlet_id
+
+        # Original behavior - GauntletDefinition object
+        if gauntlet is None:
+            raise ValueError("Either gauntlet object or name must be provided")
+
         if gauntlet.name in self.gauntlets:
             return False # Gauntlet with this name already exists
         self.gauntlets[gauntlet.name] = gauntlet

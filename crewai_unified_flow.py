@@ -632,19 +632,19 @@ class CrewAIUnifiedFlow:
         )
 
         if method == ExecutionMethod.ROMA_MDAP_MAKER and ROMA_MDAP_MAKER_BRIDGE_AVAILABLE:
-            return roma_mdap_maker_phase_3_critique(solutions, **kwargs)
+            return await roma_mdap_maker_phase_3_critique(solutions, **kwargs)
         if method == ExecutionMethod.ROMA and ROMA_BRIDGE_AVAILABLE:
-            return roma_phase_3_critique(solutions, **kwargs)
+            return await roma_phase_3_critique(solutions, **kwargs)
         if method == ExecutionMethod.DATAPIZZA and DATAPIZZA_BRIDGE_AVAILABLE:
-            return datapizza_phase_3_critique(solutions, **kwargs)
+            return await datapizza_phase_3_critique(solutions, **kwargs)
         if method == ExecutionMethod.CLAUDIOMIRO and CLAUDIOMIRO_BRIDGE_AVAILABLE and CLAUDIOMIRO_AVAILABLE:
             bridge = self._get_claudiomiro_bridge(**kwargs)
-            return bridge.execute_phase_3_critique(solutions, **kwargs)
+            return await bridge.execute_phase_3_critique(solutions, **kwargs)
         if DECOMPOSITION_BRIDGE_AVAILABLE and decomposition_phase_3_critique:
             # Create a copy of kwargs and remove problem_statement to avoid duplicates
             critique_kwargs = kwargs.copy()
             critique_kwargs.pop('problem_statement', None)
-            return decomposition_phase_3_critique(
+            return await decomposition_phase_3_critique(
                 solutions=solutions,
                 problem_statement=kwargs.get("problem_statement"),
                 **critique_kwargs
@@ -729,18 +729,18 @@ class CrewAIUnifiedFlow:
         )
 
         if method == ExecutionMethod.ROMA_MDAP_MAKER and ROMA_MDAP_MAKER_BRIDGE_AVAILABLE:
-            return roma_mdap_maker_phase_4_verify(solutions, **kwargs)
+            return await roma_mdap_maker_phase_4_verify(solutions, **kwargs)
         if method == ExecutionMethod.ROMA and ROMA_BRIDGE_AVAILABLE:
-            return roma_phase_4_verify(solutions, **kwargs)
+            return await roma_phase_4_verify(solutions, **kwargs)
         if method == ExecutionMethod.DATAPIZZA and DATAPIZZA_BRIDGE_AVAILABLE:
-            return datapizza_phase_4_verify(
+            return await datapizza_phase_4_verify(
                 solutions=solutions,
                 critiques=critiques.get("critiques", []) if critiques else [],
                 **kwargs
             )
         if method == ExecutionMethod.CLAUDIOMIRO and CLAUDIOMIRO_BRIDGE_AVAILABLE and CLAUDIOMIRO_AVAILABLE:
             bridge = self._get_claudiomiro_bridge(**kwargs)
-            return bridge.execute_phase_4_verify(
+            return await bridge.execute_phase_4_verify(
                 solutions=solutions,
                 test_command=kwargs.get("test_command", "npm test"),
                 **kwargs
@@ -749,7 +749,7 @@ class CrewAIUnifiedFlow:
             # Create a copy of kwargs and remove requirements to avoid duplicates
             verify_kwargs = kwargs.copy()
             verify_kwargs.pop('requirements', None)
-            return decomposition_phase_4_verify(
+            return await decomposition_phase_4_verify(
                 solutions=solutions,
                 requirements=kwargs.get("requirements"),
                 **verify_kwargs
@@ -835,12 +835,12 @@ class CrewAIUnifiedFlow:
         )
 
         if method == ExecutionMethod.ROMA_MDAP_MAKER and ROMA_MDAP_MAKER_BRIDGE_AVAILABLE:
-            return roma_mdap_maker_phase_5_reassemble(solutions, problem_statement, **kwargs)
+            return await roma_mdap_maker_phase_5_reassemble(solutions, problem_statement, **kwargs)
         if method == ExecutionMethod.ROMA and ROMA_BRIDGE_AVAILABLE:
-            return roma_phase_5_reassemble(solutions, problem_statement)
+            return await roma_phase_5_reassemble(solutions, problem_statement)
         if method == ExecutionMethod.CLAUDIOMIRO and CLAUDIOMIRO_BRIDGE_AVAILABLE and CLAUDIOMIRO_AVAILABLE:
             bridge = self._get_claudiomiro_bridge(**kwargs)
-            return bridge.execute_phase_5_reassemble(
+            return await bridge.execute_phase_5_reassemble(
                 sub_solutions=solutions,
                 problem_statement=problem_statement,
                 backend=kwargs.get("backend"),
@@ -850,7 +850,7 @@ class CrewAIUnifiedFlow:
             # Create a copy of kwargs and remove problem_statement to avoid duplicates
             reassemble_kwargs = kwargs.copy()
             reassemble_kwargs.pop('problem_statement', None)
-            return decomposition_phase_5_reassemble(
+            return await decomposition_phase_5_reassemble(
                 solutions=solutions,
                 problem_statement=problem_statement,
                 **reassemble_kwargs
@@ -934,12 +934,12 @@ class CrewAIUnifiedFlow:
         )
 
         if method == ExecutionMethod.ROMA_MDAP_MAKER and ROMA_MDAP_MAKER_BRIDGE_AVAILABLE:
-            return roma_mdap_maker_phase_6_final_validation(final_solution, problem_statement, **kwargs)
+            return await roma_mdap_maker_phase_6_final_validation(final_solution, problem_statement, **kwargs)
         if method == ExecutionMethod.ROMA and ROMA_BRIDGE_AVAILABLE:
-            return roma_phase_6_final_validation(final_solution, problem_statement)
+            return await roma_phase_6_final_validation(final_solution, problem_statement)
         if method == ExecutionMethod.CLAUDIOMIRO and CLAUDIOMIRO_BRIDGE_AVAILABLE and CLAUDIOMIRO_AVAILABLE:
             bridge = self._get_claudiomiro_bridge(**kwargs)
-            return bridge.execute_phase_6_final(
+            return await bridge.execute_phase_6_final(
                 final_solution=final_solution,
                 problem_statement=problem_statement,
                 target_branch=kwargs.get("target_branch", "main"),
@@ -949,7 +949,7 @@ class CrewAIUnifiedFlow:
             # Create a copy of kwargs and remove problem_statement to avoid duplicates
             validation_kwargs = kwargs.copy()
             validation_kwargs.pop('problem_statement', None)
-            return decomposition_phase_6_final_validation(
+            return await decomposition_phase_6_final_validation(
                 final_solution=final_solution,
                 problem_statement=problem_statement,
                 **validation_kwargs
