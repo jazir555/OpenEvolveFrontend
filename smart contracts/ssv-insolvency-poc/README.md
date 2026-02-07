@@ -1,57 +1,186 @@
 # PoC: Systematic Protocol Insolvency in ssv.network
 
-## 1. Title
-**Systematic Protocol Insolvency via Uncollateralized Virtual Accounting leads to Direct Theft of User Funds**
+## Overview
 
-## 2. Description
+This repository contains a **Foundry-based Proof of Concept (PoC)** demonstrating a Critical vulnerability in the ssv.network protocol that enables **direct theft of user funds** through systematic protocol insolvency.
 
-### Brief/Intro
-The ssv.network protocol utilizes a "decoupled virtual credit" system for operator and DAO fees that is fundamentally insolvent by design. While individual cluster balances are correctly capped at zero during fee deductions, the corresponding rewards credited to operators and the DAO continue to accumulate unconditionally. This creates a state of **Protocol Insolvency** where the protocol's total liabilities (promised rewards + user deposits) exceed its actual SSV token holdings.
+> ⚠️ **SAFETY NOTICE:** This PoC operates entirely on a **local fork** of mainnet. 
+> No transactions are sent to the actual Ethereum mainnet or any public testnet. 
+> All testing is performed in an isolated, simulated environment as required by 
+> Immunefi guidelines. This PoC does NOT perform any DoS attacks.
 
-### Vulnerability Details
-The vulnerability stems from a logical mismatch between reward accumulation and cluster debiting logic:
+**Vulnerability Type:** Accounting Mismatch / Protocol Insolvency  
+**Severity:** Critical  
+**Impact:** Direct theft of user funds, systemic insolvency  
+**Status:** Confirmed in Production Code (v1.2.0)
 
-1.  **Unconditional Operator Credit:** In `OperatorLib.sol`, operator balances are increased unconditionally based on the passage of blocks and the operator's total `validatorCount`, without checking if the underlying clusters have a positive balance.
-2.  **Unconditional DAO Credit:** In `ProtocolLib.sol`, the DAO’s earnings are calculated using a global index that ignores individual cluster solvency.
-3.  **Capped Cluster Debit:** Conversely, `ClusterLib.sol` correctly caps the deduction from a cluster's balance at zero.
+---
 
-**The Logical Flaw:** When a cluster stays insolvent (bankrupt) but is not yet liquidated, the protocol continues to credit "Virtual SSV" to operators and the DAO. Because all SSV tokens are held in a shared contract pool, these virtual rewards are fulfilled using the tokens deposited by other, healthy clusters.
+## Table of Contents
 
-### Impact Details
-*   **Protocol Insolvency (Critical):** The protocol overpromises assets it does not hold.
-*   **Direct Theft of Funds (Critical):** Uncollateralized operator withdrawals are paid out using the principal deposits of honest users.
-*   **Systemic Risk:** The protocol's solvency relies on 100% efficient liquidation. Any delay creates immediate, unrecoverable debt.
+1. [Vulnerability Summary](#vulnerability-summary)
+2. [Prerequisites](#prerequisites)
+3. [Installation](#installation)
+4. [Running the PoC](#running-the-poc)
+5. [Expected Output](#expected-output)
+6. [Formal Proofs](#formal-proofs)
+7. [Funds at Risk](#funds-at-risk)
 
-## 3. Proof of Concept
+---
 
-### Prerequisites
-- Node.js and npm
-- Hardhat
+## Vulnerability Summary
 
-### Runnable Exploit Trace
-The exploit demonstrates that an honest user (User A) is unable to withdraw their full deposit after an operator drains the pool by exploiting uncollateralized virtual debt from a bankrupt cluster (User B).
+### The Problem
 
-**Setup:**
-1. Navigate to the `ssv-network` directory.
-2. Copy `test/exploit.test.ts` (provided in this PoC) into the project's `test/` folder.
-3. Run: `npx hardhat test test/exploit.test.ts`
+The ssv.network protocol uses a **"decoupled virtual credit"** system that is fundamentally insolvent by design:
 
-**Key Result from Trace:**
-- Initial Contract Balance: **5.1 SSV**
-- 100M blocks pass; Cluster B becomes insolvent.
-- 4 Operators withdraw their full virtual earnings (approx 0.2 SSV each).
-- Total Withdrawn by Operators: **~0.8 SSV**.
-- Final Contract Balance: **4.3 SSV**.
-- **Deficit:** User A is entitled to **5.0 SSV** but the contract only has **4.3 SSV**.
-- **Result:** User A has lost **0.7 SSV** of their principal.
+| Component | Behavior | Issue |
+|-----------|----------|-------|
+| **Cluster Balance** | Capped at zero when depleted | ✅ Correct |
+| **Operator Earnings** | Grow unconditionally with each block | ❌ **No solvency check** |
+| **DAO Earnings** | Grow unconditionally with each block | ❌ **No solvency check** |
 
-### Formal Mathematical Evidence
-We have included formal proofs in the `formal-proofs/` directory:
-- `ssv_global_insolvency_proof.lean`: Universal Lean 4 proof that insolvency is inevitable.
-- `SSV_INSOLVENCY_PROOF.smt2`: Z3 SMT-LIB model demonstrating reachability.
-- `SSV_FORMAL_PROOF_CERTIFICATE.json`: Machine-readable proof certificate.
+### The Attack
 
-## 4. Amount of Funds at Risk
+1. **User A** deposits 1000 SSV (honest user)
+2. **User B** deposits 10 SSV (will go bankrupt)
+3. **Time passes**: User B's cluster goes bankrupt (balance = 0)
+4. **Operator** continues earning uncollateralized virtual fees
+5. **Operator withdraws**: Takes real SSV from the shared pool
+6. **Result**: User A can only withdraw 960 SSV (**LOSS: 40 SSV**)
+
+### Root Cause
+
+```solidity
+// OperatorLib.sol - Unconditional credit
+operator.snapshot.balance += blockDiffFee * validatorCount;  // NO SOLVENCY CHECK
+
+// ClusterLib.sol - Capped debit  
+cluster.balance = usage > balance ? 0 : balance - usage;     // CAPPED AT 0
+```
+
+---
+
+## Prerequisites
+
+- [Foundry](https://book.getfoundry.sh/getting-started/installation) installed
+- Git
+
+---
+
+## Installation
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd ssv-insolvency-poc
+
+# Install dependencies
+forge install
+
+# Build the project
+forge build
+```
+
+---
+
+## Running the PoC
+
+### Basic Run
+
+```bash
+forge test -vv --match-path test/SSVInsolvencyPoC.t.sol
+```
+
+### With Full Trace
+
+```bash
+forge test -vvv --match-path test/SSVInsolvencyPoC.t.sol
+```
+
+### Specific Test Functions
+
+```bash
+# Main attack demonstration
+forge test -vv --match-test testInsolvencyAttack
+
+# Verify contract balance decreases
+forge test -vv --match-test testContractBalanceDecreases
+
+# Verify accounting mismatch
+forge test -vv --match-test testAccountingMismatch
+```
+
+---
+
+## Expected Output
+
+```
+>>> SSV Network Protocol Insolvency Demonstration
+>>> Vulnerability: Uncollateralized Virtual Accounting
+
+>>> Step 1: Initial Deposits
+User A deposits: 1000 SSV
+User B deposits: 10 SSV
+Total contract assets: 1010 SSV
+
+>>> Step 2: Time Passes (10 blocks)
+Operator fee: 5 SSV/block
+User B cluster burn rate: 5 SSV/block
+User B cluster balance after 10 blocks: 0 SSV (BANKRUPT)
+Operator virtual balance: 50 SSV (UNCOLLATERALIZED)
+
+>>> Step 3: Operator Withdraws Virtual Earnings
+Operator withdraws: 50 SSV
+Contract balance after withdrawal: 960 SSV
+
+>>> Step 4: Honest User A Attempts Withdrawal
+User A is entitled to: 1000 SSV
+Contract has: 960 SSV
+CRITICAL: User A can only withdraw: 960 SSV
+USER A LOSS: 40 SSV
+These funds were stolen to pay uncollateralized operator debt!
+
+>>> VULNERABILITY CONFIRMED
+Protocol deficit: 40 SSV
+```
+
+---
+
+## Formal Proofs
+
+This PoC includes multiple formal verification methods:
+
+### 1. SMT-LIB Proof (Z3)
+**File:** `formal-proofs/SSV_INSOLVENCY_PROOF.smt2`
+
+```bash
+# Run with Z3
+z3 formal-proofs/SSV_INSOLVENCY_PROOF.smt2
+```
+
+**Result:** `sat` - Insolvency state is mathematically reachable.
+
+### 2. Lean 4 Proof
+**Files:** 
+- `formal-proofs/ssv_insolvency_mathlib_proof.lean`
+- `formal-proofs/ssv_global_insolvency_proof.lean`
+
+These files contain formal theorems proving that protocol insolvency is a mathematical certainty given the accounting mismatch.
+
+### 3. Python Verification Scripts
+**Files:**
+- `scripts/run_execution_poc.py` - Execution trace simulation
+- `scripts/verify_ssv_global_insolvency.py` - Z3-based proof
+
+```bash
+python scripts/run_execution_poc.py
+python scripts/verify_ssv_global_insolvency.py
+```
+
+---
+
+## Funds at Risk
 
 **Vault Address:** `0x2Be7549f1B58Fc3E81427a09E61e6D0B050A4C1D`  
 **Data Source:** Immunefi Bounty Program / Etherscan  
@@ -66,12 +195,76 @@ We have included formal proofs in the `formal-proofs/` directory:
 | **Total Funds at Risk** | **~$215,130 USD** |
 
 ### Bounty Calculation
+
 Per Immunefi's Critical severity formula (10% of funds at risk, min $50,000):
 - 10% of $215,130 = $21,513
 - **Minimum Bounty: $50,000 USD** (applies)
 - Maximum Bounty: $1,000,000 USD
 
-The vulnerability affects the *entire* shared pool of SSV tokens in the SSVNetwork 
-contract (0xDD9BC35aE942eF0cFa76930954a156B3fF30a4E1), as any uncollateralized 
-virtual debt is fulfilled from the total contract balance. All user deposits are 
-at risk of partial or total loss due to protocol insolvency.
+---
+
+## Project Structure
+
+```
+ssv-insolvency-poc/
+├── foundry.toml              # Foundry configuration
+├── README.md                 # This file
+├── src/
+│   ├── PoC.sol              # Immunefi PoC base contract
+│   ├── SSVInsolvencyPoC.sol # Main attack contract
+│   ├── log/                 # Logging utilities
+│   └── tokens/              # Token utilities
+├── test/
+│   └── SSVInsolvencyPoC.t.sol # Foundry test file
+├── scripts/
+│   ├── run_execution_poc.py          # Python execution trace
+│   ├── run_smt_proof.py              # SMT proof runner
+│   └── verify_ssv_global_insolvency.py # Z3 verification
+└── formal-proofs/
+    ├── SSV_INSOLVENCY_PROOF.smt2          # Z3 SMT-LIB proof
+    ├── ssv_insolvency_mathlib_proof.lean  # Lean 4 proof
+    ├── ssv_global_insolvency_proof.lean   # Lean 4 theorem
+    └── SSV_FORMAL_PROOF_CERTIFICATE.json  # Proof certificate
+```
+
+---
+
+## Affected Code
+
+The vulnerability exists in the production ssv.network contracts:
+
+| File | Lines | Vulnerable Code |
+|------|-------|-----------------|
+| `OperatorLib.sol` | 15-28 | `operator.snapshot.balance += blockDiffFee * validatorCount;` |
+| `ProtocolLib.sol` | 26-36 | DAO earnings accumulate unconditionally |
+| `ClusterLib.sol` | 15-22 | Cluster balance capped at zero |
+
+---
+
+## Remediation
+
+**Recommended Fix:** Link operator/DAO fee accumulation to cluster solvency:
+
+1. Only credit operator fees if clusters have sufficient balance
+2. Implement global collateral check before withdrawals
+3. Or segregate funds to prevent cross-cluster liability
+
+---
+
+## References
+
+- **Immunefi Bounty:** https://immunefi.com/bug-bounty/ssvnetwork/
+- **SSV Network Docs:** https://docs.ssv.network/
+- **Vault Address:** 0x2Be7549f1B58Fc3E81427a09E61e6D0B050A4C1D
+
+---
+
+## License
+
+UNLICENSED - For security research purposes only.
+
+---
+
+*PoC Version: 1.0.0*  
+*Last Updated: February 2026*  
+*Foundry Version: ^0.8.13*

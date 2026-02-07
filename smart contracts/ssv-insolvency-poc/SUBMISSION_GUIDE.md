@@ -1,136 +1,162 @@
 # Immunefi Submission Guide - SSV Network Insolvency PoC
 
-## Submission Methods
+## PoC Format: Foundry (Immunefi Template)
 
-Per Immunefi's PoC Guidelines, you have **two options** for submitting the PoC:
+This PoC follows the **Immunefi Forge PoC Templates** format using Foundry.
 
-### Option 1: Google Drive Upload (RECOMMENDED)
-
-Since this PoC contains multiple files and configuration, **Google Drive is the recommended method**.
-
-**Steps:**
-1. Create a ZIP file of the `ssv-insolvency-poc/` directory
-2. Upload to Google Drive
-3. Set sharing to "Anyone with the link can view"
-4. Submit the link in the Immunefi Dashboard
-
-```bash
-# Create ZIP file for upload
-zip -r ssv-insolvency-poc.zip ssv-insolvency-poc/
-```
-
-**Upload Contents:**
-```
-ssv-insolvency-poc.zip
-├── README.md
-├── hardhat.config.js
-├── package.json
-├── contracts/InsolvencyPoC.sol
-├── test/exploit.test.ts
-├── scripts/*.py
-└── formal-proofs/*
-```
+**Template Reference:** https://github.com/immunefi-team/forge-poc-templates
 
 ---
 
-### Option 2: Paste Code in Submission (For Simple PoCs Only)
+## Submission Methods
 
-**Only use this if** the PoC is simple enough to fit in the submission comment.
+### Option 1: GitHub Repository (RECOMMENDED)
 
-**Not recommended for this vulnerability** because:
-- Multiple files required
-- Hardhat configuration needed
-- Formal proofs are separate files
+Upload this PoC to a private GitHub repository and share the link in the Immunefi Dashboard.
+
+**Advantages:**
+- Version control
+- Easy for project to review
+- Can include all files
+
+**Steps:**
+1. Create a private GitHub repo
+2. Push all files
+3. Share the repo link in submission
+
+---
+
+### Option 2: Google Drive Upload
+
+If you prefer not to use GitHub, upload a ZIP file to Google Drive.
+
+**Steps:**
+```bash
+# Create ZIP (exclude unnecessary files)
+zip -r ssv-insolvency-poc-submission.zip . -x "*.zip" ".git/*"
+```
+
+1. Upload to Google Drive
+2. Set sharing to "Anyone with the link can view"
+3. Submit the link
 
 ---
 
 ## Step-by-Step Submission Process
 
-### Step 1: Prepare Your PoC Package
+### Step 1: Verify PoC Works
 
 ```bash
-# Navigate to the PoC directory
-cd "smart contracts/ssv-insolvency-poc"
+# Install dependencies
+forge install
 
-# Create a clean ZIP (exclude node_modules if present)
-zip -r ../ssv-insolvency-poc-submission.zip . -x "node_modules/*" "*.zip"
+# Build
+forge build
+
+# Run tests
+forge test -vv --match-path test/SSVInsolvencyPoC.t.sol
 ```
 
-### Step 2: Upload to Google Drive
+**Expected output:** All tests pass with vulnerability demonstrated.
 
-1. Go to https://drive.google.com
-2. Upload `ssv-insolvency-poc-submission.zip`
-3. Right-click → **Share**
-4. Change to **"Anyone with the link can view"**
-5. Copy the shareable link
+### Step 2: Prepare Submission Package
+
+Ensure these files are included:
+
+```
+ssv-insolvency-poc/
+├── foundry.toml              # Foundry config
+├── README.md                 # Documentation
+├── src/
+│   ├── PoC.sol              # Immunefi base contract
+│   ├── SSVInsolvencyPoC.sol # Attack contract
+│   ├── log/                 # Logging utilities
+│   └── tokens/              # Token utilities
+├── test/
+│   └── SSVInsolvencyPoC.t.sol # Test file
+├── scripts/                  # Python verification scripts
+└── formal-proofs/            # Formal verification files
+```
 
 ### Step 3: Submit via Immunefi Dashboard
 
-1. Go to https://immunefi.com/bug-bounty/ssvnetwork/
-2. Click **"Submit a Bug"**
-3. Log in to your Immunefi account
-4. Fill out the submission form:
+**URL:** https://immunefi.com/bug-bounty/ssvnetwork/
 
-#### Submission Form Fields:
+**Form Fields:**
 
-**Title:**
-```
-Critical: Protocol Insolvency via Uncollateralized Virtual Accounting Enables Direct Theft of User Funds
-```
+| Field | Value |
+|-------|-------|
+| **Title** | Critical: Protocol Insolvency via Uncollateralized Virtual Accounting Enables Direct Theft of User Funds |
+| **Severity** | Critical |
+| **Impact** | Protocol Insolvency |
+| **PoC Link** | [GitHub repo or Google Drive link] |
 
-**Severity:** 
-- Select: **Critical**
-- Impact: **Protocol Insolvency**
+**Description Template:**
 
-**Description:**
 ```markdown
 ## Summary
-The ssv.network protocol contains a critical accounting flaw where operator and DAO earnings accumulate unconditionally while cluster balances are capped at zero. This creates a state of protocol insolvency where virtual liabilities exceed actual assets, enabling direct theft of honest user deposits.
+The ssv.network protocol contains a critical accounting flaw where operator and DAO 
+earnings accumulate unconditionally while cluster balances are capped at zero. This 
+creates protocol insolvency where virtual liabilities exceed actual assets.
 
 ## Vulnerability Details
-[Include summary from README.md Section 2]
+- **Type:** Accounting Mismatch / Protocol Insolvency
+- **Affected Files:** OperatorLib.sol, ProtocolLib.sol, ClusterLib.sol
+- **Root Cause:** Unconditional operator/DAO credit vs capped cluster debit
 
 ## Impact
 - Protocol Insolvency (Critical)
 - Direct Theft of User Funds (Critical)
-- Systemic Risk: Bank run scenario
+- All user deposits at risk
 
 ## Proof of Concept
-See attached Google Drive link for complete PoC including:
-- Hardhat test demonstrating the exploit
-- Formal mathematical proofs (Z3, Lean 4)
-- Execution trace simulation
-- Isolated vulnerable contract logic
+Foundry-based PoC demonstrating the vulnerability:
+
+```bash
+git clone [YOUR_REPO]
+cd ssv-insolvency-poc
+forge install
+forge test -vv --match-path test/SSVInsolvencyPoC.t.sol
+```
+
+Expected result: Test shows User A losing 40 SSV to operator theft.
+
+## Formal Verification
+- Z3 SMT-LIB proof (sat)
+- Lean 4 mathematical theorems
+- Python execution traces
 
 ## Funds at Risk
 - TVL: ~60,600 SSV (~$215,130 USD)
-- All user deposits in shared pool are at risk
+- All deposits in shared pool at risk
 
-## Remediation
-Operator and DAO fee accumulation must be linked to cluster solvency.
+## Suggested Fix
+Link operator/DAO earnings to cluster solvency.
 ```
 
-**PoC Link:**
-```
-https://drive.google.com/file/d/[YOUR_FILE_ID]/view?usp=sharing
-```
+---
 
-### Step 4: Additional Submission Details
+## Running the PoC (For Reviewers)
 
-**Attack Scenario:** (Paste from execution trace)
-```
-1. User A deposits 1000 SSV, User B deposits 10 SSV
-2. User B's cluster goes bankrupt after 10 blocks
-3. Operator withdraws 50 SSV of uncollateralized virtual earnings
-4. User A can only withdraw 960 SSV (LOSS: 40 SSV)
-```
+### Prerequisites
+- [Foundry](https://book.getfoundry.sh/getting-started/installation)
 
-**Suggested Fix:**
-```markdown
-Link operator/DAO earnings to cluster solvency by:
-1. Only crediting operator fees when clusters have sufficient balance
-2. Implementing global collateral check before withdrawals
-3. Or segregating funds to prevent cross-cluster liability
+### Commands
+
+```bash
+# Clone and setup
+git clone <repo-url>
+cd ssv-insolvency-poc
+forge install
+
+# Run all tests
+forge test -vv
+
+# Run specific test
+forge test -vv --match-test testInsolvencyAttack
+
+# Run with full trace
+forge test -vvv --match-test testInsolvencyAttack
 ```
 
 ---
@@ -139,76 +165,76 @@ Link operator/DAO earnings to cluster solvency by:
 
 ### Timeline
 
-| Stage | Timeline | What Happens |
-|-------|----------|--------------|
-| **Triage** | 24-48 hours | Immunefi reviews submission validity |
-| **Project Review** | 7-30 days | SSV Network team validates the bug |
-| **Negotiation** | Variable | Bounty amount discussion |
-| **Payment** | First half of next month | SSV pays after DAO approval |
+| Stage | Timeline | Description |
+|-------|----------|-------------|
+| **Triage** | 24-48 hours | Immunefi validates submission |
+| **Project Review** | 7-30 days | SSV Network team reviews |
+| **Negotiation** | Variable | Bounty discussion |
+| **Payment** | Next month | After DAO approval |
 
-### Requirements for Payout
+### Payout Requirements
 
-Per the bounty instructions:
+1. **KYC Verification:**
+   - Government ID (Passport/ID Card)
+   - Proof of address (utility bill/bank statement)
 
-1. **KYC Required:** You must provide:
-   - Government ID (Passport or ID Card)
-   - Proof of address (utility bill, bank statement)
+2. **DAO Approval:**
+   - SSV DAO Grants committee approval required
+   - Payment first half of following month
 
-2. **Bug Report Approval:**
-   - SSV DAO Grants committee must approve disclosure
-   - Payment sent first half of month following approval
+### Expected Bounty
 
-3. **Bounty Calculation:**
-   - 10% of funds at risk: $21,513
-   - **Minimum applies: $50,000 USD**
-   - Paid in SSV tokens at average price (CoinGecko + CoinMarketCap)
+| Metric | Value |
+|--------|-------|
+| Funds at Risk | $215,130 USD |
+| 10% of Funds | $21,513 |
+| **Minimum Bounty** | **$50,000 USD** |
+| Maximum Bounty | $1,000,000 USD |
+| Payment Token | SSV |
+| Price Source | CoinGecko + CoinMarketCap average |
 
 ---
 
-## Submission Checklist
+## PoC Structure (Immunefi Template)
+
+This PoC follows the Immunefi Foundry template structure:
+
+### Base Contract (`src/PoC.sol`)
+- Snapshot functionality for balance tracking
+- Logging utilities
+- Profit calculation
+
+### Attack Contract (`src/SSVInsolvencyPoC.sol`)
+- Extends `PoC`
+- Implements `initiateAttack()` function
+- Demonstrates the vulnerability step-by-step
+
+### Test Contract (`test/SSVInsolvencyPoC.t.sol`)
+- Extends `PoC`
+- Uses `setUp()` for initialization
+- Uses `snapshot` modifier for balance tracking
+- Tests prefixed with `test`
+
+---
+
+## Verification Checklist
 
 Before submitting, verify:
 
-- [ ] PoC ZIP file created and tested
-- [ ] All files included (README, configs, tests, scripts)
-- [ ] Google Drive link set to "Anyone with the link can view"
-- [ ] Immunefi Dashboard form completed
-- [ ] Severity selected: **Critical**
-- [ ] Impact category: **Protocol Insolvency**
-- [ ] TVL amount current in submission
-- [ ] Vault address included: `0x2Be7549f1B58Fc3E81427a09E61e6D0B050A4C1D`
+- [ ] `forge build` succeeds
+- [ ] `forge test -vv` passes
+- [ ] All tests demonstrate vulnerability
+- [ ] README is clear and complete
+- [ ] TVL amount is current
+- [ ] GitHub repo is private (or Google Drive link ready)
 
 ---
 
-## Important Notes
+## Contact & Support
 
-### Do NOT:
-- Test on mainnet or public testnet
-- Disclose the bug publicly before approval
-- Share the vulnerability details outside Immunefi
-- Submit multiple reports for the same bug
-
-### Do:
-- Be responsive to questions from SSV team
-- Provide additional information if requested
-- Keep your PoC files backed up
-- Be patient during the review process
-
-### Communication
-
-All communication happens through the **Immunefi Dashboard**. You'll receive email notifications when:
-- Your report is triaged
-- The project responds
-- Bounty is approved
-- Payment is processed
-
----
-
-## Contact Information
-
+- **Immunefi Dashboard:** https://immunefi.com/dashboard
+- **SSV Bounty Page:** https://immunefi.com/bug-bounty/ssvnetwork/
 - **Immunefi Support:** https://immunefi.com/support
-- **SSV Network:** Through Immunefi Dashboard only
-- **Bug Bounty Page:** https://immunefi.com/bug-bounty/ssvnetwork/
 
 ---
 
@@ -216,31 +242,30 @@ All communication happens through the **Immunefi Dashboard**. You'll receive ema
 
 | Item | Details |
 |------|---------|
-| **Bounty Program** | SSV Network on Immunefi |
-| **Max Bounty** | $1,000,000 USD |
-| **Expected Bounty** | $50,000 USD (minimum) |
-| **Vulnerability** | Protocol Insolvency |
+| **Framework** | Foundry |
+| **Template** | Immunefi Forge PoC Templates |
 | **Severity** | Critical |
-| **PoC Method** | Google Drive Upload |
+| **Impact** | Protocol Insolvency |
+| **Expected Bounty** | $50,000 USD (minimum) |
+| **TVL at Risk** | ~$215,130 USD |
 | **KYC Required** | Yes |
 | **Payment Token** | SSV |
-| **Vault Address** | 0x2Be7549f1B58Fc3E81427a09E61e6D0B050A4C1D |
 
 ---
 
-## Example Google Drive Sharing Settings
+## Files Overview
 
-```
-File: ssv-insolvency-poc-submission.zip
-Sharing: Anyone with the link
-Permission: Viewer (not editor)
-Link: https://drive.google.com/file/d/1xxxxxXXxxXXXXxxxXXxXXxxXXx/view?usp=sharing
-```
-
-**Copy this link and paste it in the Immunefi Dashboard submission form.**
+| File | Purpose | Format |
+|------|---------|--------|
+| `src/SSVInsolvencyPoC.sol` | Attack contract | Foundry/Solidity |
+| `test/SSVInsolvencyPoC.t.sol` | Test file | Foundry/Solidity |
+| `formal-proofs/*.smt2` | Z3 proofs | SMT-LIB |
+| `formal-proofs/*.lean` | Lean proofs | Lean 4 |
+| `scripts/*.py` | Python verification | Python 3 |
+| `README.md` | Documentation | Markdown |
 
 ---
 
 *Last Updated: February 2026*  
 *PoC Version: 1.0.0*  
-*Status: Ready for Submission*
+*Foundry Version: ^0.8.13*
