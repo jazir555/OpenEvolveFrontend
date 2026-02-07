@@ -888,7 +888,7 @@ class CAVNLPProofStrategy:
             if hasattr(lean_verification, 'success') and lean_verification.success:
                 confidence += 0.35
             elif hasattr(lean_verification, 'status'):
-                if lean_verification.status == VerificationStatus.VERIFIED:
+                if lean_verification.status == VerificationStatus.SUCCESS:
                     confidence += 0.35
         
         # Formalization contribution (30%)

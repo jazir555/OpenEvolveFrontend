@@ -267,7 +267,7 @@ class CrewAIClient:
             if workflow_id in self.active_workflows:
                 del self.active_workflows[workflow_id]
 
-    def execute_phase(
+    async def execute_phase(
         self,
         workflow_id: str,
         phase_number: int,
@@ -293,25 +293,25 @@ class CrewAIClient:
 
             # Map phase numbers to unified flow methods
             if phase_number == 1:
-                result = self.unified_flow.phase_1_setup(
+                result = await self.unified_flow.phase_1_setup(
                     problem_statement=phase_input.get("problem_statement"),
                     execution_method=flow_method,
                     **phase_input.get("kwargs", {})
                 )
             elif phase_number == 2:
-                result = self.unified_flow.phase_2_solve(
+                result = await self.unified_flow.phase_2_solve(
                     phase_1_result=phase_input,
                     **phase_input.get("kwargs", {})
                 )
             elif phase_number == 3:
-                result = self.unified_flow.phase_3_critique(
+                result = await self.unified_flow.phase_3_critique(
                     phase_2_result=phase_input,
                     execution_method=flow_method,
                     **phase_input.get("kwargs", {})
                 )
             elif phase_number == 4:
                 critiques = phase_input.get("critiques") or phase_input.get("phase3_result")
-                result = self.unified_flow.phase_4_verify(
+                result = await self.unified_flow.phase_4_verify(
                     phase_2_result=phase_input,
                     critiques=critiques,
                     execution_method=flow_method,
@@ -324,7 +324,7 @@ class CrewAIClient:
                     or phase_2_result.get("problem_statement")
                     or phase_input.get("analysis", {}).get("problem_statement", "")
                 )
-                result = self.unified_flow.phase_5_reassemble(
+                result = await self.unified_flow.phase_5_reassemble(
                     phase_2_result=phase_2_result,
                     problem_statement=problem_statement,
                     execution_method=flow_method,
@@ -342,7 +342,7 @@ class CrewAIClient:
                     phase_input.get("problem_statement")
                     or phase_input.get("analysis", {}).get("problem_statement", "")
                 )
-                result = self.unified_flow.phase_6_final_validation(
+                result = await self.unified_flow.phase_6_final_validation(
                     final_solution=final_solution,
                     problem_statement=problem_statement,
                     execution_method=flow_method,

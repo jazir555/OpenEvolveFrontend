@@ -1090,7 +1090,7 @@ class CrewAIUnifiedFlow:
         logger.info(f"Starting full workflow: {problem_statement[:100]}...")
 
         # Phase 1: Setup
-        phase1_result = self.phase_1_setup(
+        phase1_result = await self.phase_1_setup(
             problem_statement=problem_statement,
             execution_method=execution_method,
             **kwargs

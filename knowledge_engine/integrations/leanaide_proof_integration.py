@@ -102,7 +102,7 @@ class AutomatedProofSearcher:
     
     def __init__(
         self,
-        knowledge_extractor: Optional[LeanAideKnowledgeExtractor] = None,
+        knowledge_extractor: Optional['LeanAideKnowledgeExtractor'] = None,
         config: Optional[ProofSearchConfig] = None
     ):
         self.config = config or ProofSearchConfig()
@@ -272,7 +272,7 @@ class AutomatedProofSearcher:
             return " by ".join(tactics)
         return "by sorry  -- Adapted from similar theorem"
     
-    def _get_recommended_strategy(self, theorem: str) -> Optional[ProofStrategy]:
+    def _get_recommended_strategy(self, theorem: str) -> Optional['ProofStrategy']:
         """Get recommended strategy for theorem."""
         features = self._analyze_theorem_features(theorem)
         return self.knowledge_extractor.recommend_strategy(features)
@@ -380,8 +380,8 @@ class LeanAideProofIntegration:
     
     def __init__(
         self,
-        leanaide_client: Optional[LeanAideClient] = None,
-        knowledge_extractor: Optional[LeanAideKnowledgeExtractor] = None
+        leanaide_client: Optional['LeanAideClient'] = None,
+        knowledge_extractor: Optional['LeanAideKnowledgeExtractor'] = None
     ):
         self.leanaide_client = leanaide_client
         self.knowledge_extractor = knowledge_extractor or get_leanaide_knowledge_extractor()
@@ -560,10 +560,10 @@ class LeanAideProofIntegration:
 
 
 # Global instance
-_proof_integration: Optional[LeanAideProofIntegration] = None
+_proof_integration: Optional['LeanAideProofIntegration'] = None
 
 
-async def get_leanaide_proof_integration() -> LeanAideProofIntegration:
+async def get_leanaide_proof_integration() -> 'LeanAideProofIntegration':
     """Get global proof integration instance."""
     global _proof_integration
     if _proof_integration is None:

@@ -91,7 +91,7 @@ class OptimizationResult:
     """Result from optimization."""
     success: bool
     optimal_value: Optional[float] = None
-    optimal_model: Optional[Z3Model] = None
+    optimal_model: Optional['Z3Model'] = None
     objectives: Dict[str, float] = field(default_factory=dict)
     is_pareto: bool = False  # For multi-objective
     pareto_front: List[Dict[str, Any]] = field(default_factory=list)
@@ -119,8 +119,8 @@ class OptimizationResult:
 class ArrayConstraint:
     """Array constraint specification."""
     array_name: str
-    index_type: Z3ConstraintType
-    value_type: Z3ConstraintType
+    index_type: 'Z3ConstraintType'
+    value_type: 'Z3ConstraintType'
     size: Optional[int] = None
     constraints: List[str] = field(default_factory=list)
     
@@ -210,8 +210,8 @@ class ExtractedProof:
 class PortfolioResult:
     """Result from portfolio solving."""
     success: bool
-    best_result: Optional[Z3SolverResult] = None
-    all_results: List[Tuple[str, Z3SolverResult]] = field(default_factory=list)
+    best_result: Optional['Z3SolverResult'] = None
+    all_results: List[Tuple[str, 'Z3SolverResult']] = field(default_factory=list)
     winner_strategy: Optional[str] = None
     execution_time: float = 0.0
     parallel_speedup: float = 1.0
@@ -257,11 +257,11 @@ class IncrementalState:
     Uses real Z3 push/pop for efficient incremental solving.
     """
     state_id: str
-    variables: List[Z3Variable] = field(default_factory=list)
-    constraints: List[Z3Constraint] = field(default_factory=list)
-    assertions_stack: List[List[Z3Constraint]] = field(default_factory=list)
+    variables: List['Z3Variable'] = field(default_factory=list)
+    constraints: List['Z3Constraint'] = field(default_factory=list)
+    assertions_stack: List[List['Z3Constraint']] = field(default_factory=list)
     scopes: List[str] = field(default_factory=list)
-    last_result: Optional[Z3SolverResult] = None
+    last_result: Optional['Z3SolverResult'] = None
     created_at: float = field(default_factory=time.time)
     last_accessed: float = field(default_factory=time.time)
     
@@ -301,9 +301,9 @@ class TrueIncrementalSolver:
     def create_state(
         self,
         state_id: str,
-        variables: List[Z3Variable],
-        constraints: List[Z3Constraint],
-        config: Optional[Z3Config] = None
+        variables: List['Z3Variable'],
+        constraints: List['Z3Constraint'],
+        config: Optional['Z3Config'] = None
     ) -> IncrementalState:
         """Create a new incremental state with live Z3 solver."""
         if not Z3_PYTHON_AVAILABLE:
@@ -422,7 +422,7 @@ class TrueIncrementalSolver:
             state.last_accessed = time.time()
             return True
     
-    def check(self, state_id: str) -> Z3SolverResult:
+    def check(self, state_id: str) -> 'Z3SolverResult':
         """Check satisfiability using Z3's native check."""
         with self._state_lock:
             state = self._states.get(state_id)
@@ -879,8 +879,8 @@ class ParetoOptimizer:
     
     def pareto_optimize(
         self,
-        variables: List[Z3Variable],
-        constraints: List[Z3Constraint],
+        variables: List['Z3Variable'],
+        constraints: List['Z3Constraint'],
         objectives: List[Tuple[str, OptimizationObjective]],
         max_solutions: int = 100
     ) -> OptimizationResult:
@@ -907,8 +907,8 @@ class ParetoOptimizer:
     
     def optimize_multi_objective(
         self,
-        variables: List[Z3Variable],
-        constraints: List[Z3Constraint],
+        variables: List['Z3Variable'],
+        constraints: List['Z3Constraint'],
         objectives: List[Tuple[str, OptimizationObjective]],
         max_solutions: int = 100
     ) -> OptimizationResult:
@@ -1015,8 +1015,8 @@ class ParetoOptimizer:
     
     def _pareto_2d(
         self,
-        variables: List[Z3Variable],
-        constraints: List[Z3Constraint],
+        variables: List['Z3Variable'],
+        constraints: List['Z3Constraint'],
         objectives: List[Tuple[str, OptimizationObjective]],
         z3_vars: Dict[str, Any],
         individual_optima: List[Dict],
@@ -1107,8 +1107,8 @@ class ParetoOptimizer:
     
     def _pareto_nd(
         self,
-        variables: List[Z3Variable],
-        constraints: List[Z3Constraint],
+        variables: List['Z3Variable'],
+        constraints: List['Z3Constraint'],
         objectives: List[Tuple[str, OptimizationObjective]],
         z3_vars: Dict[str, Any],
         max_solutions: int
@@ -1550,7 +1550,7 @@ class Z3AdvancedSolver(Z3SolverEngine):
     - Proper proof extraction
     """
     
-    def __init__(self, config: Optional[Z3Config] = None):
+    def __init__(self, config: Optional['Z3Config'] = None):
         super().__init__(config)
         
         # Update pool metadata to indicate this is an advanced solver
@@ -1597,8 +1597,8 @@ class Z3AdvancedSolver(Z3SolverEngine):
     
     def optimize(
         self,
-        variables: List[Z3Variable],
-        constraints: List[Z3Constraint],
+        variables: List['Z3Variable'],
+        constraints: List['Z3Constraint'],
         objectives: List[Tuple[str, OptimizationObjective]],
         multi_objective_strategy: str = "pareto"
     ) -> OptimizationResult:
@@ -1629,8 +1629,8 @@ class Z3AdvancedSolver(Z3SolverEngine):
     
     def _single_objective_optimize(
         self,
-        variables: List[Z3Variable],
-        constraints: List[Z3Constraint],
+        variables: List['Z3Variable'],
+        constraints: List['Z3Constraint'],
         objective: Tuple[str, OptimizationObjective]
     ) -> OptimizationResult:
         """Single objective optimization using Z3 Optimize."""
@@ -1700,8 +1700,8 @@ class Z3AdvancedSolver(Z3SolverEngine):
     
     def _multi_objective_optimize(
         self,
-        variables: List[Z3Variable],
-        constraints: List[Z3Constraint],
+        variables: List['Z3Variable'],
+        constraints: List['Z3Constraint'],
         objectives: List[Tuple[str, OptimizationObjective]],
         strategy: str
     ) -> OptimizationResult:
@@ -1722,8 +1722,8 @@ class Z3AdvancedSolver(Z3SolverEngine):
     
     def _weighted_optimize(
         self,
-        variables: List[Z3Variable],
-        constraints: List[Z3Constraint],
+        variables: List['Z3Variable'],
+        constraints: List['Z3Constraint'],
         objectives: List[Tuple[str, OptimizationObjective]]
     ) -> OptimizationResult:
         """Weighted sum approach for multi-objective."""
@@ -1783,8 +1783,8 @@ class Z3AdvancedSolver(Z3SolverEngine):
     
     def _lexicographic_optimize(
         self,
-        variables: List[Z3Variable],
-        constraints: List[Z3Constraint],
+        variables: List['Z3Variable'],
+        constraints: List['Z3Constraint'],
         objectives: List[Tuple[str, OptimizationObjective]]
     ) -> OptimizationResult:
         """Lexicographic ordering for multi-objective."""
@@ -1830,8 +1830,8 @@ class Z3AdvancedSolver(Z3SolverEngine):
     
     def _optimize_via_cli(
         self,
-        variables: List[Z3Variable],
-        constraints: List[Z3Constraint],
+        variables: List['Z3Variable'],
+        constraints: List['Z3Constraint'],
         objectives: List[Tuple[str, OptimizationObjective]]
     ) -> OptimizationResult:
         """Optimization using Z3 CLI."""
@@ -1892,10 +1892,10 @@ class Z3AdvancedSolver(Z3SolverEngine):
     
     def solve_with_arrays(
         self,
-        scalar_vars: List[Z3Variable],
+        scalar_vars: List['Z3Variable'],
         array_constraints: List[ArrayConstraint],
-        scalar_constraints: List[Z3Constraint]
-    ) -> Z3SolverResult:
+        scalar_constraints: List['Z3Constraint']
+    ) -> 'Z3SolverResult':
         """Solve constraints involving arrays."""
         if not Z3_PYTHON_AVAILABLE:
             smtlib_parts = ["(set-logic QF_AUFLIA)", "(set-option :produce-models true)"]
@@ -1982,8 +1982,8 @@ class Z3AdvancedSolver(Z3SolverEngine):
     def solve_bitvector(
         self,
         bv_constraints: List[BitVectorConstraint],
-        scalar_constraints: List[Z3Constraint] = None
-    ) -> Z3SolverResult:
+        scalar_constraints: List['Z3Constraint'] = None
+    ) -> 'Z3SolverResult':
         """Solve bit-vector constraints."""
         if not Z3_PYTHON_AVAILABLE:
             smtlib_parts = ["(set-logic QF_BV)", "(set-option :produce-models true)"]
@@ -2108,7 +2108,7 @@ class Z3AdvancedSolver(Z3SolverEngine):
             parallel_speedup=len(strategies) if parallel else 1.0
         )
     
-    def _try_strategy(self, smtlib_problem: str, strategy: str) -> Z3SolverResult:
+    def _try_strategy(self, smtlib_problem: str, strategy: str) -> 'Z3SolverResult':
         """Try a single strategy."""
         try:
             option_line = f"(set-option :tactic.default_tactic {strategy})"
@@ -2128,8 +2128,8 @@ class Z3AdvancedSolver(Z3SolverEngine):
     
     def create_incremental_state(
         self,
-        variables: List[Z3Variable],
-        constraints: List[Z3Constraint],
+        variables: List['Z3Variable'],
+        constraints: List['Z3Constraint'],
         state_id: Optional[str] = None
     ) -> str:
         """Create a TRUE incremental solving state."""
@@ -2157,7 +2157,7 @@ class Z3AdvancedSolver(Z3SolverEngine):
         """Add constraint using TRUE Z3 add."""
         return self._incremental_solver.add_constraint(state_id, constraint)
     
-    def check_incremental(self, state_id: str) -> Z3SolverResult:
+    def check_incremental(self, state_id: str) -> 'Z3SolverResult':
         """Check using TRUE Z3 check."""
         return self._incremental_solver.check(state_id)
     
@@ -2205,10 +2205,10 @@ class Z3AdvancedSolver(Z3SolverEngine):
 # Global Instance
 # =============================================================================
 
-_z3_advanced_solver: Optional[Z3AdvancedSolver] = None
+_z3_advanced_solver: Optional['Z3AdvancedSolver'] = None
 
 
-def get_z3_advanced_solver(config: Optional[Z3Config] = None) -> Z3AdvancedSolver:
+def get_z3_advanced_solver(config: Optional['Z3Config'] = None) -> 'Z3AdvancedSolver':
     """Get global advanced Z3 solver instance."""
     global _z3_advanced_solver
     if _z3_advanced_solver is None:
