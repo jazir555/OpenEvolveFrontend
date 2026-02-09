@@ -270,7 +270,7 @@ contract SSVTimeDelayedInsolvencyPoC is Test {
     /**
      * @notice Mathematical proof of guaranteed insolvency
      */
-    function testMathematicalInsolvency() public pure {
+    function testMathematicalInsolvency() public view {
         console.log("\n");
         console.log("=================================================================");
         console.log("MATHEMATICAL PROOF OF GUARANTEED INSOLVENCY");

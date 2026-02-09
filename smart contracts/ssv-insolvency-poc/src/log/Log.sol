@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.4.22 <0.9.0;
 
 /// @dev The following code was pulled from forge-std console2.sol and modified
@@ -179,7 +180,7 @@ abstract contract Log {
         address consoleAddress = CONSOLE_ADDRESS;
         assembly ("memory-safe") {
             let payloadStart := add(payload, 32)
-            let r := staticcall(gas(), consoleAddress, payloadStart, payloadLength, 0, 0)
+            pop(staticcall(gas(), consoleAddress, payloadStart, payloadLength, 0, 0))
         }
     }
 
