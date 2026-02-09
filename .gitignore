@@ -22,7 +22,7 @@ rese/lean4/.lake/
 # Core projects are tracked separately (submodules or external)
 # Comment out the line below if you want to track core-projects locally
 # core-projects/
-
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\lean_workspace\mathlib_project\.lake\packages
 # Adapter runtime files (keep source, ignore artifacts)
 glue/adapters/*/node_modules/
 glue/adapters/*/.pytest_cache/
@@ -43,3 +43,6 @@ tests/.nyc_output/
 *.log
 logs/
 rese/lean4/.lake/packages/mathlib
+DeepKE_repo
+lean_workspace/mathlib_project/.lake/packages/mathlib
+smart contracts/ssv-insolvency-poc/lib/openzeppelin-contracts
