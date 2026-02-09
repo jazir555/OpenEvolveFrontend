@@ -13,7 +13,7 @@
 
 ```bash
 # Navigate to POC 1
-cd "smart contracts/ssv-insolvency-poc"
+cd "ssv-insolvency-poc"
 
 # Run Python demo (no dependencies except Python)
 python scripts/run_execution_poc.py
@@ -70,7 +70,7 @@ This creates an **accounting mismatch** where virtual liabilities exceed actual 
 
 #### POC 1: Single-Cluster Insolvency (Basic)
 ```bash
-cd "smart contracts/ssv-insolvency-poc"
+cd "ssv-insolvency-poc"
 
 # Python (fastest - no dependencies)
 python scripts/run_execution_poc.py
@@ -86,7 +86,7 @@ forge test -vv
 
 #### POC 2: Multi-Cluster Cascading (Bank Run)
 ```bash
-cd "smart contracts/ssv-poc2-multi-cluster"
+cd "ssv-poc2-multi-cluster"
 python scripts/demo_multi_cluster.py
 node scripts/demo_multi_cluster.js
 forge test -vv
@@ -94,7 +94,7 @@ forge test -vv
 
 #### POC 3: Liquidation Griefing (Most Severe)
 ```bash
-cd "smart contracts/ssv-poc3-liquidation-griefing"
+cd "ssv-poc3-liquidation-griefing"
 python scripts/demo_griefing.py
 node scripts/demo_griefing.js
 forge test -vv
@@ -102,7 +102,7 @@ forge test -vv
 
 #### POC 4: DAO Sybil Attack
 ```bash
-cd "smart contracts/ssv-poc4-dao-sybil"
+cd "ssv-poc4-dao-sybil"
 python scripts/demo_dao_sybil.py
 node scripts/demo_dao_sybil.js
 forge test -vv
@@ -110,7 +110,7 @@ forge test -vv
 
 #### POC 5: Operator Sybil Attack
 ```bash
-cd "smart contracts/ssv-poc5-operator-sybil"
+cd "ssv-poc5-operator-sybil"
 python scripts/demo_operator_sybil.py
 node scripts/demo_operator_sybil.js
 forge test -vv
@@ -225,8 +225,6 @@ lake build
 - **`SSV_INSOLVENCY_VULNERABILITY.md`** - Main vulnerability report
 - **`FINAL_SSV_INSOLVENCY_SUBMISSION.md`** - Complete submission document
 - **`RUN_ALL_DEMOS.md`** - Quick reference for all demo commands
-- **`DEMO_SCRIPTS_VERIFICATION_REPORT.md`** - Verification of all 20 demo scripts
-- **`FINAL_SUBMISSION_VERIFICATION.md`** - Complete submission verification
 
 ### POC-Specific Documentation
 

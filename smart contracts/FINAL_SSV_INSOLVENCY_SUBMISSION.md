@@ -121,7 +121,7 @@ A malicious operator creates their own bankrupt "minion" clusters. By self-deleg
 
 #### POC 1: Single-Cluster Insolvency
 ```bash
-cd "smart contracts/ssv-insolvency-poc"
+cd "ssv-insolvency-poc"
 
 # Foundry POC (tests against actual mainnet contracts)
 forge test -vv
@@ -142,7 +142,7 @@ lake build
 
 #### POC 2: Multi-Cluster Cascading
 ```bash
-cd "smart contracts/ssv-poc2-multi-cluster"
+cd "ssv-poc2-multi-cluster"
 forge test -vv
 python scripts/demo_multi_cluster.py
 node scripts/demo_multi_cluster.js
@@ -150,7 +150,7 @@ node scripts/demo_multi_cluster.js
 
 #### POC 3: Liquidation Griefing (Most Severe)
 ```bash
-cd "smart contracts/ssv-poc3-liquidation-griefing"
+cd "ssv-poc3-liquidation-griefing"
 forge test -vv
 python scripts/demo_griefing.py
 node scripts/demo_griefing.js
@@ -158,7 +158,7 @@ node scripts/demo_griefing.js
 
 #### POC 4: DAO Sybil Attack
 ```bash
-cd "smart contracts/ssv-poc4-dao-sybil"
+cd "ssv-poc4-dao-sybil"
 forge test -vv
 python scripts/demo_dao_sybil.py
 node scripts/demo_dao_sybil.js
@@ -166,7 +166,7 @@ node scripts/demo_dao_sybil.js
 
 #### POC 5: Operator Sybil Attack
 ```bash
-cd "smart contracts/ssv-poc5-operator-sybil"
+cd "ssv-poc5-operator-sybil"
 forge test -vv
 python scripts/demo_operator_sybil.py
 node scripts/demo_operator_sybil.js
@@ -198,7 +198,6 @@ CONCLUSION: Protocol Insolvency Proven by Execution Trace.
 ### Complete Demo Instructions
 For detailed instructions on running all demonstrations, see:
 - **`RUN_ALL_DEMOS.md`** - Quick reference guide with all commands
-- **`DEMO_SCRIPTS_VERIFICATION_REPORT.md`** - Verification of all 20 demo scripts
 
 ---
 

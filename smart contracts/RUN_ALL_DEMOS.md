@@ -20,7 +20,7 @@ This guide provides commands to run all demonstration scripts across all 5 POCs.
 
 ### Python Demos
 ```bash
-cd "smart contracts/ssv-insolvency-poc"
+cd "ssv-insolvency-poc"
 
 # Execution trace demo
 python scripts/run_execution_poc.py
@@ -34,7 +34,7 @@ python scripts/run_smt_proof.py
 
 ### JavaScript Demos
 ```bash
-cd "smart contracts/ssv-insolvency-poc"
+cd "ssv-insolvency-poc"
 
 # Quick logic demo
 node scripts/demo_insolvency.js
@@ -64,13 +64,13 @@ USER A TOTAL LOSS: 40 SSV
 
 ### Python Demo
 ```bash
-cd "smart contracts/ssv-poc2-multi-cluster"
+cd "ssv-poc2-multi-cluster"
 python scripts/demo_multi_cluster.py
 ```
 
 ### JavaScript Demo
 ```bash
-cd "smart contracts/ssv-poc2-multi-cluster"
+cd "ssv-poc2-multi-cluster"
 node scripts/demo_multi_cluster.js
 ```
 
@@ -95,13 +95,13 @@ CRITICAL: Victim Lost 327.5! Bank Run Logic Confirmed.
 
 ### Python Demo
 ```bash
-cd "smart contracts/ssv-poc3-liquidation-griefing"
+cd "ssv-poc3-liquidation-griefing"
 python scripts/demo_griefing.py
 ```
 
 ### JavaScript Demo
 ```bash
-cd "smart contracts/ssv-poc3-liquidation-griefing"
+cd "ssv-poc3-liquidation-griefing"
 node scripts/demo_griefing.js
 ```
 
@@ -125,13 +125,13 @@ CRITICAL: Griefing stole 100 SSV from honest users!
 
 ### Python Demo
 ```bash
-cd "smart contracts/ssv-poc4-dao-sybil"
+cd "ssv-poc4-dao-sybil"
 python scripts/demo_dao_sybil.py
 ```
 
 ### JavaScript Demo
 ```bash
-cd "smart contracts/ssv-poc4-dao-sybil"
+cd "ssv-poc4-dao-sybil"
 node scripts/demo_dao_sybil.js
 ```
 
@@ -150,13 +150,13 @@ CRITICAL: DAO Sybils stole 10000 SSV!
 
 ### Python Demo
 ```bash
-cd "smart contracts/ssv-poc5-operator-sybil"
+cd "ssv-poc5-operator-sybil"
 python scripts/demo_operator_sybil.py
 ```
 
 ### JavaScript Demo
 ```bash
-cd "smart contracts/ssv-poc5-operator-sybil"
+cd "ssv-poc5-operator-sybil"
 node scripts/demo_operator_sybil.js
 ```
 
@@ -177,7 +177,7 @@ CRITICAL: Infinite Money Glitch Confirmed.
 ### Windows (PowerShell)
 ```powershell
 # POC 1
-cd "smart contracts\ssv-insolvency-poc"
+cd "ssv-insolvency-poc"
 python scripts\run_execution_poc.py
 python scripts\verify_ssv_global_insolvency.py
 node scripts\demo_insolvency.js
@@ -207,7 +207,7 @@ node scripts\demo_operator_sybil.js
 ### Linux/Mac (Bash)
 ```bash
 # POC 1
-cd "smart contracts/ssv-insolvency-poc"
+cd "ssv-insolvency-poc"
 python3 scripts/run_execution_poc.py
 python3 scripts/verify_ssv_global_insolvency.py
 node scripts/demo_insolvency.js
