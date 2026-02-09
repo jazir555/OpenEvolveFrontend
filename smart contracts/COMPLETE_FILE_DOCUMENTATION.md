@@ -1317,6 +1317,102 @@ This script:
 
 ---
 
+### 4.8 Actual Protocol POCs (TypeScript + Python)
+
+**Important:** The most up-to-date POCs that use the ACTUAL SSV Network protocol are organized in individual POC directories. Each POC has its own "demo" folder containing both TypeScript and Python implementations.
+
+#### Organization Structure
+
+Each of the 5 POC directories contains:
+- **Solidity POC** - In `src/` directory
+- **Demo Folder** - In `scripts/insolvency demo (run these)/` or `scripts/Insolvency Demo (run these)/`
+  - TypeScript test file (uses actual protocol with Hardhat)
+  - Python script (uses web3.py with actual protocol)
+- **Old Files** - In `scripts/old/` directory (historical versions)
+
+#### POC Locations
+
+1. **POC 1: Single-Cluster Insolvency**
+   - Directory: `ssv-insolvency-poc/`
+   - Demo folder: `scripts/Insolvency Demo (run these)/`
+   - Files:
+     - `insolvency-poc1-single-cluster.test.ts`
+     - `poc1_single_cluster_actual_protocol.py`
+
+2. **POC 2: Multi-Cluster Cascading**
+   - Directory: `ssv-poc2-multi-cluster/`
+   - Demo folder: `scripts/insolvency demo (run these)/`
+   - Files:
+     - `insolvency-poc2-multi-cluster.test.ts`
+     - `poc2_multi_cluster_actual_protocol.py`
+
+3. **POC 3: Liquidation Griefing**
+   - Directory: `ssv-poc3-liquidation-griefing/`
+   - Demo folder: `scripts/insolvency demo (run these)/`
+   - Files:
+     - `insolvency-poc3-liquidation-griefing.test.ts`
+     - `poc3_liquidation_griefing_actual_protocol.py`
+
+4. **POC 4: DAO Sybil Attack**
+   - Directory: `ssv-poc4-dao-sybil/`
+   - Demo folder: `scripts/insolvency demo (run these)/`
+   - Files:
+     - `insolvency-poc4-dao-sybil.test.ts`
+     - `poc4_dao_sybil_actual_protocol.py`
+
+5. **POC 5: Operator Self-Dealing**
+   - Directory: `ssv-poc5-operator-sybil/`
+   - Demo folder: `scripts/insolvency demo (run these)/`
+   - Files:
+     - `insolvency-poc5-operator-sybil.test.ts`
+     - `poc5_operator_sybil_actual_protocol.py`
+
+#### Centralized Location
+
+All 10 POCs (5 TypeScript + 5 Python) are also available in the centralized `ssv-network/` directory for easy batch verification:
+- TypeScript: `ssv-network/test/`
+- Python: `ssv-network/scripts/`
+
+#### How to Run
+
+**Option 1: Run from individual POC directory**
+```bash
+# TypeScript
+cd ssv-poc2-multi-cluster/scripts/insolvency\ demo\ \(run\ these\)/
+npx hardhat test insolvency-poc2-multi-cluster.test.ts
+
+# Python (requires Hardhat node running)
+python poc2_multi_cluster_actual_protocol.py
+```
+
+**Option 2: Run from centralized location**
+```bash
+# TypeScript - Run all POCs
+cd ssv-network
+npx hardhat test test/insolvency-poc*.test.ts
+
+# Python - Run specific POC
+cd ssv-network
+python scripts/poc2_multi_cluster_actual_protocol.py
+```
+
+**Option 3: Verify all POCs compile**
+```bash
+cd ssv-network
+.\verify-all.bat  # Verifies all 10 POCs in 30 seconds
+```
+
+#### Why This Organization
+
+This dual-location approach provides:
+- ✅ **Self-contained POCs** - Each attack vector in its own directory
+- ✅ **Easy exploration** - Reviewers can study each POC independently
+- ✅ **Batch verification** - Centralized location for running all POCs
+- ✅ **Clear separation** - Demo files vs. historical files
+- ✅ **Flexibility** - Reviewers can choose their preferred approach
+
+---
+
 ## 5. JavaScript/TypeScript Tests
 
 ### 5.1 vulnerability_proof.test.ts
@@ -1454,6 +1550,86 @@ This test:
 3. Tests against ACTUAL contract bytecode
 4. Proves the vulnerability exists in PRODUCTION CODE
 5. This is the MOST REALISTIC demonstration
+
+---
+
+### 5.2 insolvency-poc2-multi-cluster.test.ts
+
+**Location:** 
+- `ssv-poc2-multi-cluster/scripts/insolvency demo (run these)/insolvency-poc2-multi-cluster.test.ts`
+- `ssv-network/test/insolvency-poc2-multi-cluster.test.ts`
+
+**Type:** Hardhat Test Using ACTUAL SSV Network Protocol  
+**Attack Vector:** Multi-Cluster Cascading Insolvency
+
+#### What It Does
+Demonstrates cascading insolvency where multiple bankrupt clusters compound the virtual debt, stealing ~550 SSV from honest users.
+
+#### Usage
+```bash
+cd ssv-network
+npx hardhat test test/insolvency-poc2-multi-cluster.test.ts
+```
+
+---
+
+### 5.3 insolvency-poc3-liquidation-griefing.test.ts
+
+**Location:** 
+- `ssv-poc3-liquidation-griefing/scripts/insolvency demo (run these)/insolvency-poc3-liquidation-griefing.test.ts`
+- `ssv-network/test/insolvency-poc3-liquidation-griefing.test.ts`
+
+**Type:** Hardhat Test Using ACTUAL SSV Network Protocol  
+**Attack Vector:** Liquidation Griefing (Most Severe)
+
+#### What It Does
+Demonstrates the MOST SEVERE attack where an attacker delays liquidation to maximize virtual debt accumulation, stealing ~585 SSV.
+
+#### Usage
+```bash
+cd ssv-network
+npx hardhat test test/insolvency-poc3-liquidation-griefing.test.ts
+```
+
+---
+
+### 5.4 insolvency-poc4-dao-sybil.test.ts
+
+**Location:** 
+- `ssv-poc4-dao-sybil/scripts/insolvency demo (run these)/insolvency-poc4-dao-sybil.test.ts`
+- `ssv-network/test/insolvency-poc4-dao-sybil.test.ts`
+
+**Type:** Hardhat Test Using ACTUAL SSV Network Protocol  
+**Attack Vector:** DAO Sybil Fee Inflation
+
+#### What It Does
+Demonstrates that a NON-OPERATOR can exploit the vulnerability through DAO fee manipulation, stealing ~12,000 SSV.
+
+#### Usage
+```bash
+cd ssv-network
+npx hardhat test test/insolvency-poc4-dao-sybil.test.ts
+```
+
+---
+
+### 5.5 insolvency-poc5-operator-sybil.test.ts
+
+**Location:** 
+- `ssv-poc5-operator-sybil/scripts/insolvency demo (run these)/insolvency-poc5-operator-sybil.test.ts`
+- `ssv-network/test/insolvency-poc5-operator-sybil.test.ts`
+
+**Type:** Hardhat Test Using ACTUAL SSV Network Protocol  
+**Attack Vector:** Operator Sybil Self-Dealing (Most Profitable)
+
+#### What It Does
+Demonstrates the "Infinite Money Glitch" with 3,800% ROI through operator self-dealing.
+
+#### Usage
+```bash
+cd ssv-network
+npx hardhat test test/insolvency-poc5-operator-sybil.test.ts
+```
 
 ---
 
@@ -2240,11 +2416,64 @@ Root Directory:
 ├── TYPESCRIPT_FIXES_COMPLETE.md               # Fix documentation
 ├── ACTUAL_PROTOCOL_POCS_GUIDE.md             # Usage guide
 ├── COMPREHENSIVE_VERIFICATION_REPORT.md       # Vulnerability verification
-├── COMPLETE_FILE_DOCUMENTATION.md            # This file ⭐
+├── COMPLETE_FILE_DOCUMENTATION.md            # This file ⭐ (SSOT)
 ├── QUICK_REFERENCE_SUMMARY.md                # Quick reference
 └── FINAL_SSV_INSOLVENCY_SUBMISSION.md        # Main submission ⭐
 
-ssv-network/:
+Individual POC Directories (Self-Contained):
+├── ssv-insolvency-poc/
+│   ├── src/
+│   │   ├── SSVInsolvencyPoC.sol                    # Solidity POC 1
+│   │   └── SSVLiquidationGriefingPoC.sol           # Solidity POC 3
+│   ├── test/
+│   │   ├── SSVInsolvencyPoC.t.sol                  # Solidity test
+│   │   └── SSVMainnetExploit.t.sol                 # Mainnet fork test
+│   └── scripts/
+│       ├── Insolvency Demo (run these)/            ⭐ RUN THESE
+│       │   ├── insolvency-poc1-single-cluster.test.ts
+│       │   └── poc1_single_cluster_actual_protocol.py
+│       └── old/                                    # Historical files
+│
+├── ssv-poc2-multi-cluster/
+│   ├── src/
+│   │   └── SSVMultiClusterInsolvency.sol           # Solidity POC 2
+│   ├── test/
+│   │   └── SSVMultiClusterInsolvency.t.sol         # Solidity test
+│   └── scripts/
+│       ├── insolvency demo (run these)/            ⭐ RUN THESE
+│       │   ├── insolvency-poc2-multi-cluster.test.ts
+│       │   └── poc2_multi_cluster_actual_protocol.py
+│       └── old/                                    # Historical files
+│
+├── ssv-poc3-liquidation-griefing/
+│   ├── src/
+│   │   └── SSVLiquidationGriefingPoC.sol           # Solidity POC 3
+│   └── scripts/
+│       ├── insolvency demo (run these)/            ⭐ RUN THESE
+│       │   ├── insolvency-poc3-liquidation-griefing.test.ts
+│       │   └── poc3_liquidation_griefing_actual_protocol.py
+│       └── old/                                    # Historical files
+│
+├── ssv-poc4-dao-sybil/
+│   ├── src/
+│   │   └── SSVDaoSybilPoC.sol                      # Solidity POC 4
+│   └── scripts/
+│       ├── insolvency demo (run these)/            ⭐ RUN THESE
+│       │   ├── insolvency-poc4-dao-sybil.test.ts
+│       │   └── poc4_dao_sybil_actual_protocol.py
+│       └── old (ignore)/                           # Historical files
+│
+└── ssv-poc5-operator-sybil/
+    ├── src/
+    │   └── SSVOperatorSybilPoC.sol                 # Solidity POC 5
+    └── scripts/
+        ├── insolvency demo (run these)/            ⭐ RUN THESE
+        │   ├── insolvency-poc5-operator-sybil.test.ts
+        │   └── poc5_operator_sybil_actual_protocol.py
+        └── old/                                    # Historical files
+
+Centralized POC Location (For Batch Verification):
+ssv-network/
 ├── test/
 │   ├── insolvency-poc1-single-cluster.test.ts      # TypeScript POC 1
 │   ├── insolvency-poc2-multi-cluster.test.ts       # TypeScript POC 2
@@ -2256,10 +2485,7 @@ ssv-network/:
 │   ├── poc2_multi_cluster_actual_protocol.py       # Python POC 2
 │   ├── poc3_liquidation_griefing_actual_protocol.py # Python POC 3
 │   ├── poc4_dao_sybil_actual_protocol.py           # Python POC 4
-│   ├── poc5_operator_sybil_actual_protocol.py      # Python POC 5
-│   ├── poc_single_cluster_insolvency.py            # Original Python demo
-│   ├── poc_multi_cluster_insolvency.py             # Original Python demo
-│   └── poc_liquidation_griefing.py                 # Original Python demo
+│   └── poc5_operator_sybil_actual_protocol.py      # Python POC 5
 ├── verify-all.bat                                   # Master verification ⭐
 ├── verify-compilation.bat                           # TypeScript verification
 ├── verify-compilation.sh                            # TypeScript verification (Unix)
@@ -2268,7 +2494,7 @@ ssv-network/:
 ├── README_VERIFICATION.md                           # Quick start guide ⭐
 └── COMPILATION_VERIFICATION.md                      # Technical details
 
-POC_Subdirectories/:
+POC_Subdirectories/ (Additional Solidity POCs):
 ├── POC1_Single_Cluster_Insolvency/
 │   └── InsolvencyPoC_SingleCluster.sol
 ├── POC2_Multi_Cluster_Cascading/
@@ -2292,22 +2518,41 @@ cd ssv-network
 **2. Read Main Documentation:**
 - `COMPILATION_PROOF.md` - Proof everything compiles
 - `FINAL_SSV_INSOLVENCY_SUBMISSION.md` - Main vulnerability report
-- `COMPLETE_FILE_DOCUMENTATION.md` - This file
+- `COMPLETE_FILE_DOCUMENTATION.md` - This file (SSOT for file structure)
 
 **3. Run Any POC:**
 
-TypeScript:
+**Option A: From Individual POC Directory (Recommended for exploring specific attacks)**
 ```bash
-cd ssv-network
-npx hardhat test test/insolvency-poc1-single-cluster.test.ts
+# Navigate to any POC's demo folder
+cd ssv-poc3-liquidation-griefing/scripts/insolvency\ demo\ \(run\ these\)/
+
+# Run TypeScript POC
+npx hardhat test insolvency-poc3-liquidation-griefing.test.ts
+
+# Run Python POC (requires Hardhat node)
+python poc3_liquidation_griefing_actual_protocol.py
 ```
 
-Python:
+**Option B: From Centralized Location (Recommended for batch testing)**
 ```bash
+# TypeScript - Run all POCs
 cd ssv-network
-# Start Hardhat node first: npx hardhat node --fork MAINNET_RPC
+npx hardhat test test/insolvency-poc*.test.ts
+
+# TypeScript - Run specific POC
+npx hardhat test test/insolvency-poc1-single-cluster.test.ts
+
+# Python - Run specific POC
 python scripts/poc1_single_cluster_actual_protocol.py
 ```
+
+**4. Explore POC Structure:**
+
+Each POC directory contains:
+- `src/` - Solidity POC
+- `scripts/insolvency demo (run these)/` - ⭐ **RUN THESE** (TypeScript + Python)
+- `scripts/old/` - Historical files (can ignore)
 
 ### Attack Vectors Summary
 
