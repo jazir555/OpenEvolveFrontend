@@ -113,7 +113,7 @@ contract PoC is Test, Tokens, Log {
             uint256 balance = uint256(tokensBalance[_user][_index][j].amount);
 
             // Normalize to token decimals
-            uint256 d = tokensBalance[_user][_index][j].token != IERC20(address(0x0))
+            uint256 d = address(tokensBalance[_user][_index][j].token) != address(0x0)
                 ? tokensBalance[_user][_index][j].token.decimals()
                 : 18;
             uint256 integer_part = balance / (10 ** d);
@@ -131,7 +131,7 @@ contract PoC is Test, Tokens, Log {
             }
 
             // Get token symbol
-            string memory symbol = tokensBalance[_user][_index][j].token != IERC20(address(0x0))
+            string memory symbol = address(tokensBalance[_user][_index][j].token) != address(0x0)
                 ? tokensBalance[_user][_index][j].token.symbol()
                 : "NATIVE";
 
@@ -167,7 +167,7 @@ contract PoC is Test, Tokens, Log {
             string memory sign = profit < 0 ? "-" : "";
 
             // Normalize to token decimals
-            uint256 d = tokensBalance[_user][0][j].token != IERC20(address(0x0))
+            uint256 d = address(tokensBalance[_user][0][j].token) != address(0x0)
                 ? tokensBalance[_user][0][j].token.decimals()
                 : 18;
             uint256 integer_part = abs_profit / (10 ** d);
@@ -185,7 +185,7 @@ contract PoC is Test, Tokens, Log {
             }
 
             // Get token symbol
-            string memory symbol = tokensBalance[_user][0][j].token != IERC20(address(0x0))
+            string memory symbol = address(tokensBalance[_user][0][j].token) != address(0x0)
                 ? tokensBalance[_user][0][j].token.symbol()
                 : "NATIVE";
 
@@ -261,14 +261,12 @@ contract PoC is Test, Tokens, Log {
             uint256 length = log10(value) + 1;
             string memory buffer = new string(length);
             uint256 ptr;
-            /// @solidity memory-safe-assembly
-            assembly {
+            assembly ("memory-safe") {
                 ptr := add(buffer, add(32, length))
             }
             while (true) {
                 ptr--;
-                /// @solidity memory-safe-assembly
-                assembly {
+                assembly ("memory-safe") {
                     mstore8(ptr, byte(mod(value, 10), HEX_DIGITS))
                 }
                 value /= 10;
@@ -316,4 +314,10 @@ contract PoC is Test, Tokens, Log {
         }
         return result;
     }
+
+    function _executeAttack() internal virtual {}
+
+    function _completeAttack() internal virtual {}
+
+    receive() external payable virtual {}
 }

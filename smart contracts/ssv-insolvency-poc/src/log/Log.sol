@@ -81,7 +81,7 @@ abstract contract Log {
     /**
      * @dev Modifier to check if logging is allowed based on the current log type and phase
      */
-    modifier _canLog() virtual {
+    modifier _canLog() {
         // If the log type is NONE, then logging is disabled
         if (logType == LogType.NONE) return;
 
@@ -94,79 +94,79 @@ abstract contract Log {
     /**
      * @dev Modifiers for each specific phase. Reset the phase to DEFAULT after the function is executed.
      */
-    modifier step_1() virtual {
+    modifier step_1() {
         _setPhase(LogPhase.STEP_1);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_2() virtual {
+    modifier step_2() {
         _setPhase(LogPhase.STEP_2);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_3() virtual {
+    modifier step_3() {
         _setPhase(LogPhase.STEP_3);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_4() virtual {
+    modifier step_4() {
         _setPhase(LogPhase.STEP_4);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_5() virtual {
+    modifier step_5() {
         _setPhase(LogPhase.STEP_5);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_6() virtual {
+    modifier step_6() {
         _setPhase(LogPhase.STEP_6);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_7() virtual {
+    modifier step_7() {
         _setPhase(LogPhase.STEP_7);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_8() virtual {
+    modifier step_8() {
         _setPhase(LogPhase.STEP_8);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_9() virtual {
+    modifier step_9() {
         _setPhase(LogPhase.STEP_9);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_10() virtual {
+    modifier step_10() {
         _setPhase(LogPhase.STEP_10);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier initialize_attack() virtual {
+    modifier initialize_attack() {
         _setPhase(LogPhase.INITIALIZE_ATTACK);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier execute_attack() virtual {
+    modifier execute_attack() {
         _setPhase(LogPhase.EXECUTE_ATTACK);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier complete_attack() virtual {
+    modifier complete_attack() {
         _setPhase(LogPhase.COMPLETE_ATTACK);
         _;
         _setPhase(LogPhase.DEFAULT);
@@ -177,8 +177,7 @@ abstract contract Log {
     function _sendLogPayloadVirtual(bytes memory payload) internal view virtual _canLog {
         uint256 payloadLength = payload.length;
         address consoleAddress = CONSOLE_ADDRESS;
-        /// @solidity memory-safe-assembly
-        assembly {
+        assembly ("memory-safe") {
             let payloadStart := add(payload, 32)
             let r := staticcall(gas(), consoleAddress, payloadStart, payloadLength, 0, 0)
         }

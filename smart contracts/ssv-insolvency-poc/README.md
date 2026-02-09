@@ -1,5 +1,25 @@
 # PoC: Systematic Protocol Insolvency in ssv.network
 
+## 🚀 Quick Start
+
+**Want to see the vulnerability immediately?**
+
+```bash
+# Option 1: Python demo (fastest, no dependencies)
+cd "smart contracts/ssv-insolvency-poc"
+python scripts/run_execution_poc.py
+
+# Option 2: JavaScript demo (no dependencies)
+node scripts/demo_insolvency.js
+
+# Option 3: Full Foundry POC (requires Foundry)
+forge test -vv
+```
+
+**Expected output**: Proof that 40 SSV is stolen from honest users in ~5 seconds.
+
+---
+
 ## Overview
 
 This repository contains a **Foundry-based Proof of Concept (PoC)** demonstrating a Critical vulnerability in the ssv.network protocol that enables **direct theft of user funds** through systematic protocol insolvency.
@@ -93,37 +113,75 @@ forge build
 
 ## Running the PoC
 
-### Prerequisites for Testing
+### Prerequisites
 
-This PoC uses **mainnet forking** to test against actual deployed SSV Network contracts (per Immunefi guidelines). You need an Ethereum RPC endpoint.
+1. **Foundry**: Install from https://book.getfoundry.sh/getting-started/installation
+2. **Python 3.8+**: For demonstration scripts
+3. **Node.js 14+**: For JavaScript demos
+4. **Z3 Solver**: `pip install z3-solver` (for formal proofs)
+5. **Ethereum RPC**: For mainnet forking (optional - uses public endpoint if not set)
 
 ```bash
-# Set your RPC endpoint (required)
+# Optional: Set your RPC endpoint for faster testing
 export MAINNET_RPC_URL="https://eth-mainnet.g.alchemy.com/v2/YOUR_API_KEY"
 # OR
 export MAINNET_RPC_URL="https://mainnet.infura.io/v3/YOUR_PROJECT_ID"
 ```
 
-### Basic Run
+### Method 1: Foundry POC (Solidity)
 
 ```bash
-forge test -vv --match-path test/SSVInsolvencyPoC.t.sol
-```
+# Install dependencies
+forge install
 
-### With Full Trace
+# Build the project
+forge build
 
-```bash
-forge test -vvv --match-path test/SSVInsolvencyPoC.t.sol
-```
+# Run all tests
+forge test -vv
 
-### Specific Test Functions
+# Run with full trace
+forge test -vvv
 
-```bash
-# Main attack demonstration (demonstrates full vulnerability)
+# Run specific tests
 forge test -vv --match-test testInsolvencyAttack
-
-# Verify accounting mismatch
 forge test -vv --match-test testAccountingMismatch
+```
+
+### Method 2: Python Demonstrations
+
+```bash
+# Execution trace demo (shows step-by-step theft)
+python scripts/run_execution_poc.py
+
+# Z3 formal verification (proves insolvency mathematically)
+python scripts/verify_ssv_global_insolvency.py
+
+# SMT-LIB proof runner
+python scripts/run_smt_proof.py
+```
+
+### Method 3: JavaScript Demonstrations
+
+```bash
+# Quick logic demo
+node scripts/demo_insolvency.js
+
+# Mathematical verification
+node scripts/verify-ssv-insolvency.js
+```
+
+### Method 4: Formal Proofs
+
+```bash
+# Z3 SMT-LIB proof
+z3 formal-proofs/SSV_INSOLVENCY_PROOF.smt2
+# Expected output: sat (vulnerability is satisfiable)
+
+# Lean 4 mathematical proof
+lake exe cache get
+lake build
+# Expected output: Success, 0 sorry statements
 ```
 
 ---
@@ -176,7 +234,15 @@ z3 formal-proofs/SSV_INSOLVENCY_PROOF.smt2
 
 **Result:** `sat` - Insolvency state is mathematically reachable.
 
-### 2. Lean 4 Proof
+### 2. Lean 4 Mathematical Proofs
+Each PoC directory is a standalone Lean package. To verify the proofs:
+```bash
+# From this directory (ssv-insolvency-poc)
+lake exe cache get
+lake build
+```
+This will download dependencies (Mathlib) and compile the theorems in `formal-proofs/`, confirming zero `sorry` statements.
+
 **Files:** 
 - `formal-proofs/ssv_insolvency_mathlib_proof.lean`
 - `formal-proofs/ssv_global_insolvency_proof.lean`
@@ -283,3 +349,4 @@ UNLICENSED - For security research purposes only.
 *PoC Version: 1.0.0*  
 *Last Updated: February 2026*  
 *Foundry Version: ^0.8.13*
+

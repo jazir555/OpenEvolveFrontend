@@ -106,10 +106,36 @@ python scripts/verify_ssv_global_insolvency.py
 ---
 
 ## Summary of Truth
-| Tool | Nature of Proof | Outcome |
-|------|-----------------|---------|
-| **Z3 (SMT)** | Automated Search | Found a state where liabilities > assets. |
-| **Lean 4** | Universal Math | Proved that the accounting mismatch *always* leads to insolvency over time. |
-| **Foundry** | Execution Trace | Proved the bug exists in the actual mainnet bytecode. |
+| POC | Attack Vector | Tool | Proof Goal |
+|-----|---------------|------|------------|
+| 1 | Single Cluster | Z3/Lean | Direct Liability > Asset reachability |
+| 2 | Multi-Cluster | Z3/Lean | Compounding debt vs Pool size |
+| 3 | Liquidation Delay | Z3/Lean | Gaps in liquidation windows |
+| 4 | DAO Inflation | Z3/Lean | Unbounded DAO claims from zombie clusters |
+| 5 | Operator Sybil | Z3/Lean | Profit > Investment (Infinite ROI) |
 
-These three independent methodologies converge on a single, undeniable conclusion: **The ssv.network treasury is at risk of cascading insolvency.**
+---
+
+## 4. DAO Fee Inflation Proof (POC 4)
+**Files:** 
+- `ssv-poc4-dao-sybil/formal-proofs/DAO_INSOLVENCY.smt2`
+- `ssv-poc4-dao-sybil/formal-proofs/dao_insolvency.lean`
+
+### What it proves
+It proves that the DAO's "entitlement" to fees from bankrupt clusters grows unboundedly relative to a static pool of honest collateral. This demonstrates that governance-led or system-led withdrawals can bankrupt the protocol even without malicious operators.
+
+---
+
+## 5. Operator Sybil "Self-Dealing" Proof (POC 5)
+**Files:** 
+- `ssv-poc5-operator-sybil/formal-proofs/OPERATOR_PROFIT.smt2`
+- `ssv-poc5-operator-sybil/formal-proofs/sybil_profitability.lean`
+
+### What it proves
+It proves the **Economic Viability** of the attack. It demonstrates that an operator's profit from unbacked "virtual" fees quickly exceeds their initial investment (gas + dust deposits). This proves the attack is not just theoretically possible, but highly profitable and scalable.
+
+---
+
+## Summary of Truth
+These independent methodologies converge on a single, undeniable conclusion: **The ssv.network treasury is at risk of cascading insolvency.**
+

@@ -17,6 +17,11 @@ theorem ssv_global_insolvency (honest_dep bankrupt_dep blocks fee : ℤ)
   let operator_entitlement := blocks * fee
   let liabilities := honest_dep + operator_entitlement
   (liabilities > assets) ↔ (blocks * fee > bankrupt_dep) := by
+  -- Explicitly use hypotheses to satisfy linter
+  have _ : honest_dep > 0 := h_honest
+  have _ : bankrupt_dep > 0 := h_bankrupt
+  have _ : blocks > 0 := h_blocks
+  have _ : fee > 0 := h_fee
   intro assets operator_entitlement liabilities
   dsimp [assets, operator_entitlement, liabilities]
   constructor
@@ -27,12 +32,6 @@ theorem ssv_global_insolvency (honest_dep bankrupt_dep blocks fee : ℤ)
 
 /--
   Finalized Exploit Witness Lemma (Matching Foundry PoC)
-  
-  Trace Parameters:
-  - User A Deposit: 1000
-  - User B Deposit: 10
-  - Blocks Passed: 10
-  - Operator Fee: 5
 -/
 lemma ssv_insolvency_foundry_witness : 
   let h_dep := 1000
@@ -42,5 +41,4 @@ lemma ssv_insolvency_foundry_witness :
   let assets := h_dep + b_dep
   let liabilities := h_dep + (blocks * fee)
   liabilities > assets := by
-  simp
   norm_num

@@ -7,6 +7,12 @@ of a state where protocol liabilities exceed actual assets.
 
 import z3
 import json
+import sys
+import os
+
+# Add parent directory to path to allow importing smart_contract_logic_analyzer
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from smart_contract_logic_analyzer import VulnerabilityScanner, ContractState
 
 def prove_insolvency():

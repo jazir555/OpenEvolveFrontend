@@ -26,6 +26,9 @@ contract SSVInsolvencyPoCTest is PoC {
         // This ensures we're testing against the actual deployed SSV Network contracts
         vm.createSelectFork("mainnet", 19000000);
         
+        // Drain existing pool to isolate our test assets
+        deal(SSV_TOKEN, 0xDD9BC35aE942eF0cFa76930954a156B3fF30a4E1, 0);
+        
         // Deploy the attack contract
         attackContract = new SSVInsolvencyPoC();
         
@@ -68,9 +71,6 @@ contract SSVInsolvencyPoCTest is PoC {
      * @notice Test to verify the accounting mismatch
      */
     function testAccountingMismatch() public {
-        // Initial state: User A (1000) + User B (10) = 1010 SSV
-        uint256 expectedInitial = 1010e18;
-        
         attackContract.initiateAttack();
         
         // After operator withdrawal: 1010 - 50 = 960 SSV

@@ -1,7 +1,17 @@
 import z3
 import sys
+import os
 
 def run_smt_proof(filepath):
+    # Resolve path relative to this script if it's a relative path
+    if not os.path.isabs(filepath):
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        # If the filepath already starts with "smart contracts/", strip it to avoid double-nesting
+        # when running from the script's directory
+        if filepath.startswith("smart contracts/"):
+            filepath = filepath[len("smart contracts/"):]
+        filepath = os.path.join(script_dir, filepath)
+
     print("Executing SMT-LIB Proof: " + str(filepath))
     s = z3.Solver()
     try:
