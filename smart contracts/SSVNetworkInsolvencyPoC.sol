@@ -20,8 +20,8 @@ pragma solidity ^0.8.13;
  * as it enables "Direct theft of any user funds" and "Protocol insolvency".
  */
 
-import "forge-std/Test.sol";
-import "forge-std/console.sol";
+import {Test} from "forge-std/Test.sol";
+import {console} from "forge-std/console.sol";
 
 // The PoC contract extends Test and uses standard Foundry patterns
 contract SSVNetworkInsolvencyPoC is Test {

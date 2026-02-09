@@ -17,7 +17,7 @@ pragma solidity ^0.8.13;
  */
 
 import "../src/PoC.sol";
-import "forge-std/console.sol";
+import {console} from "forge-std/console.sol";
 
 contract SSVNetworkInsolvency is PoC {
     

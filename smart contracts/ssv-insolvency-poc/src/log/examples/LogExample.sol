@@ -1,9 +1,9 @@
 pragma solidity ^0.8.0;
 
-import "../Log.sol";
+import {Log} from "../Log.sol";
 
 contract LogExample is Log {
-    function initializeAttack() public initialize_attack {
+    function initializeAttack() public modInitializeAttack {
         // Turn off all logs except from those inside the `initializeAttack()` function
         //_setLogType(LogType.INITIALIZE_ATTACK);
 
@@ -21,13 +21,13 @@ contract LogExample is Log {
         _executeAttack();
     }
 
-    function _executeAttack() internal execute_attack {
+    function _executeAttack() internal modExecuteAttack {
         _log("\n>>> Execute attack");
 
         _completeAttack();
     }
 
-    function _completeAttack() internal complete_attack {
+    function _completeAttack() internal modCompleteAttack {
         _log("\n>>> Complete attack");
     }
 }

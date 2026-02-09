@@ -83,91 +83,96 @@ abstract contract Log {
      * @dev Modifier to check if logging is allowed based on the current log type and phase
      */
     modifier _canLog() {
+        _checkCanLog();
+        _;
+    }
+
+    function _checkCanLog() internal view {
         // If the log type is NONE, then logging is disabled
         if (logType == LogType.NONE) return;
 
         // Check if either the log type is ALL or the log type matches the current phase
-        if ((logType == LogType.ALL) || (uint256(logType) == uint256(currentPhase))) {
-            _;
+        if (!((logType == LogType.ALL) || (uint256(logType) == uint256(currentPhase)))) {
+            revert("Log: cannot log");
         }
     }
 
     /**
      * @dev Modifiers for each specific phase. Reset the phase to DEFAULT after the function is executed.
      */
-    modifier step_1() {
+    modifier modStep1() {
         _setPhase(LogPhase.STEP_1);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_2() {
+    modifier modStep2() {
         _setPhase(LogPhase.STEP_2);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_3() {
+    modifier modStep3() {
         _setPhase(LogPhase.STEP_3);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_4() {
+    modifier modStep4() {
         _setPhase(LogPhase.STEP_4);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_5() {
+    modifier modStep5() {
         _setPhase(LogPhase.STEP_5);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_6() {
+    modifier modStep6() {
         _setPhase(LogPhase.STEP_6);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_7() {
+    modifier modStep7() {
         _setPhase(LogPhase.STEP_7);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_8() {
+    modifier modStep8() {
         _setPhase(LogPhase.STEP_8);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_9() {
+    modifier modStep9() {
         _setPhase(LogPhase.STEP_9);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_10() {
+    modifier modStep10() {
         _setPhase(LogPhase.STEP_10);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier initialize_attack() {
+    modifier modInitializeAttack() {
         _setPhase(LogPhase.INITIALIZE_ATTACK);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier execute_attack() {
+    modifier modExecuteAttack() {
         _setPhase(LogPhase.EXECUTE_ATTACK);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier complete_attack() {
+    modifier modCompleteAttack() {
         _setPhase(LogPhase.COMPLETE_ATTACK);
         _;
         _setPhase(LogPhase.DEFAULT);

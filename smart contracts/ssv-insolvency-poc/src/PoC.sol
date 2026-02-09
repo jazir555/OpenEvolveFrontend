@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
+import {IERC20} from "forge-std/interfaces/IERC20.sol";
 
-import "./tokens/Tokens.sol";
-import "./log/Log.sol";
+import {Tokens} from "./tokens/Tokens.sol";
+import {Log} from "./log/Log.sol";
 
 struct TokenBalance {
     IERC20 token;
@@ -33,7 +34,9 @@ contract PoC is Test, Tokens, Log {
             uint256 tokenBalance = address(_tokens[i]) != address(0x0) ? _tokens[i].balanceOf(_user) : _user.balance;
             require(tokenBalance <= uint256(type(int256).max), "PoC: balance too large");
             tokenBalances[i].token = _tokens[i];
-            tokenBalances[i].amount = int256(tokenBalance);
+            // casting to 'int256' is safe because we checked the range above
+            // forge-lint: disable-next-line(unsafe-typecast)
+            tokenBalances[i].amount = int256(uint256(tokenBalance));
             tokensBalance[_user][index].push(tokenBalances[i]);
         }
         printBalance(_user, index);
@@ -56,7 +59,9 @@ contract PoC is Test, Tokens, Log {
             uint256 tokenBalance = address(_tokens[i]) != address(0x0) ? _tokens[i].balanceOf(_user) : _user.balance;
             require(tokenBalance <= uint256(type(int256).max), "PoC: balance too large");
             tokenBalances[i].token = _tokens[i];
-            tokenBalances[i].amount = int256(tokenBalance);
+            // casting to 'int256' is safe because we checked the range above
+            // forge-lint: disable-next-line(unsafe-typecast)
+            tokenBalances[i].amount = int256(uint256(tokenBalance));
             tokensBalance[_user][index].push(tokenBalances[i]);
         }
     }
@@ -79,7 +84,9 @@ contract PoC is Test, Tokens, Log {
             uint256 tokenBalance = _amounts[i];
             require(tokenBalance <= uint256(type(int256).max), "PoC: balance too large");
             tokenBalances[i].token = _tokens[i];
-            tokenBalances[i].amount = int256(tokenBalance);
+            // casting to 'int256' is safe because we checked the range above
+            // forge-lint: disable-next-line(unsafe-typecast)
+            tokenBalances[i].amount = int256(uint256(tokenBalance));
             tokensBalance[_user][index].push(tokenBalances[i]);
         }
     }
@@ -92,6 +99,10 @@ contract PoC is Test, Tokens, Log {
     modifier snapshot(address _user, IERC20[] memory _tokens) {
         snapshotAndPrint(_user, _tokens);
         _;
+        _snapshotInternal(_user, _tokens);
+    }
+
+    function _snapshotInternal(address _user, IERC20[] memory _tokens) internal {
         snapshotAndPrint(_user, _tokens);
         printProfit(address(_user));
     }
@@ -116,18 +127,18 @@ contract PoC is Test, Tokens, Log {
             uint256 d = address(tokensBalance[_user][_index][j].token) != address(0x0)
                 ? tokensBalance[_user][_index][j].token.decimals()
                 : 18;
-            uint256 integer_part = balance / (10 ** d);
-            string memory fractional_part_string;
+            uint256 integerPart = balance / (10 ** d);
+            string memory fractionalPartString;
             {
-                uint256 fractional_part = balance % (10 ** d);
-                string memory fractional_part_leading_zeros;
+                uint256 fractionalPart = balance % (10 ** d);
+                string memory fractionalPartLeadingZeros;
 
-                uint256 leading_zeros = d - (log10(fractional_part) + 1);
-                for (uint256 i = 0; i < leading_zeros; i++) {
-                    fractional_part_leading_zeros = string.concat(fractional_part_leading_zeros, "0");
+                uint256 leadingZeros = d - (log10(fractionalPart) + 1);
+                for (uint256 i = 0; i < leadingZeros; i++) {
+                    fractionalPartLeadingZeros = string.concat(fractionalPartLeadingZeros, "0");
                 }
 
-                fractional_part_string = string.concat(fractional_part_leading_zeros, toString(fractional_part));
+                fractionalPartString = string.concat(fractionalPartLeadingZeros, toString(fractionalPart));
             }
 
             // Get token symbol
@@ -139,10 +150,10 @@ contract PoC is Test, Tokens, Log {
             string memory template;
             if (logLevel == 1) {
                 template = string.concat("%s\t|\t", symbol, "\t|\t%s.%s");
-                _log(template, address(tokensBalance[_user][_index][j].token), integer_part, fractional_part_string);
+                _log(template, address(tokensBalance[_user][_index][j].token), integerPart, fractionalPartString);
             } else if (logLevel == 0) {
                 template = string.concat("--- ", symbol, " balance of [%s]:\t%s.%s", " ---");
-                _log(template, resolvedAddress, integer_part, fractional_part_string);
+                _log(template, resolvedAddress, integerPart, fractionalPartString);
             }
         }
         _log();
@@ -163,25 +174,35 @@ contract PoC is Test, Tokens, Log {
                 - int256(tokensBalance[_user][0][j].amount);
 
             // Convert to absolute value
-            uint256 abs_profit = profit < 0 ? uint256(-profit) : uint256(profit);
+            uint256 absProfit;
+            if (profit < 0) {
+                require(profit > type(int256).min, "PoC: profit too negative");
+                // casting to 'uint256' is safe because we checked the range
+                // forge-lint: disable-next-line(unsafe-typecast)
+                absProfit = uint256(-profit);
+            } else {
+                // casting to 'uint256' is safe because profit is non-negative
+                // forge-lint: disable-next-line(unsafe-typecast)
+                absProfit = uint256(profit);
+            }
             string memory sign = profit < 0 ? "-" : "";
 
             // Normalize to token decimals
             uint256 d = address(tokensBalance[_user][0][j].token) != address(0x0)
                 ? tokensBalance[_user][0][j].token.decimals()
                 : 18;
-            uint256 integer_part = abs_profit / (10 ** d);
-            string memory fractional_part_string;
+            uint256 integerPart = absProfit / (10 ** d);
+            string memory fractionalPartString;
             {
-                uint256 fractional_part = abs_profit % (10 ** d);
-                string memory fractional_part_leading_zeros;
+                uint256 fractionalPart = absProfit % (10 ** d);
+                string memory fractionalPartLeadingZeros;
 
-                uint256 leading_zeros = d - (log10(fractional_part) + 1);
-                for (uint256 i = 0; i < leading_zeros; i++) {
-                    fractional_part_leading_zeros = string.concat(fractional_part_leading_zeros, "0");
+                uint256 leadingZeros = d - (log10(fractionalPart) + 1);
+                for (uint256 i = 0; i < leadingZeros; i++) {
+                    fractionalPartLeadingZeros = string.concat(fractionalPartLeadingZeros, "0");
                 }
 
-                fractional_part_string = string.concat(fractional_part_leading_zeros, toString(fractional_part));
+                fractionalPartString = string.concat(fractionalPartLeadingZeros, toString(fractionalPart));
             }
 
             // Get token symbol
@@ -192,7 +213,7 @@ contract PoC is Test, Tokens, Log {
             // Generate template string
             string memory template = string.concat("%s\t|\t", symbol, "\t|\t", sign, "%s.%s");
 
-            _log(template, address(tokensBalance[_user][0][j].token), integer_part, fractional_part_string);
+            _log(template, address(tokensBalance[_user][0][j].token), integerPart, fractionalPartString);
         }
         _log();
     }
@@ -231,6 +252,8 @@ contract PoC is Test, Tokens, Log {
     function toAsciiString(address x) internal pure returns (string memory) {
         bytes memory s = new bytes(40);
         for (uint256 i = 0; i < 20; i++) {
+            // casting to 'uint8' is safe because of the division and mask
+            // forge-lint: disable-next-line(unsafe-typecast)
             bytes1 b = bytes1(uint8(uint256(uint160(x)) / (2 ** (8 * (19 - i)))));
             bytes1 hi = bytes1(uint8(b) / 16);
             bytes1 lo = bytes1(uint8(b) - 16 * uint8(hi));

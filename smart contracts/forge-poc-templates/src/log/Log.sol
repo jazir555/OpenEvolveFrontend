@@ -82,92 +82,97 @@ abstract contract Log {
     /**
      * @dev Modifier to check if logging is allowed based on the current log type and phase
      */
-    modifier _canLog() virtual {
+    modifier _canLog() {
+        __canLog();
+        _;
+    }
+
+    function __canLog() internal view {
         // If the log type is NONE, then logging is disabled
         if (logType == LogType.NONE) return;
 
         // Check if either the log type is ALL or the log type matches the current phase
-        if ((logType == LogType.ALL) || (uint256(logType) == uint256(currentPhase))) {
-            _;
+        if (!((logType == LogType.ALL) || (uint256(logType) == uint256(currentPhase)))) {
+            revert("Log: cannot log");
         }
     }
 
     /**
      * @dev Modifiers for each specific phase. Reset the phase to DEFAULT after the function is executed.
      */
-    modifier step_1() virtual {
+    modifier step1() {
         _setPhase(LogPhase.STEP_1);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_2() virtual {
+    modifier step2() {
         _setPhase(LogPhase.STEP_2);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_3() virtual {
+    modifier step3() {
         _setPhase(LogPhase.STEP_3);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_4() virtual {
+    modifier step4() {
         _setPhase(LogPhase.STEP_4);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_5() virtual {
+    modifier step5() {
         _setPhase(LogPhase.STEP_5);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_6() virtual {
+    modifier step6() {
         _setPhase(LogPhase.STEP_6);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_7() virtual {
+    modifier step7() {
         _setPhase(LogPhase.STEP_7);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_8() virtual {
+    modifier step8() {
         _setPhase(LogPhase.STEP_8);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_9() virtual {
+    modifier step9() {
         _setPhase(LogPhase.STEP_9);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier step_10() virtual {
+    modifier step10() {
         _setPhase(LogPhase.STEP_10);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier initialize_attack() virtual {
+    modifier initializeAttack() {
         _setPhase(LogPhase.INITIALIZE_ATTACK);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier execute_attack() virtual {
+    modifier executeAttack() {
         _setPhase(LogPhase.EXECUTE_ATTACK);
         _;
         _setPhase(LogPhase.DEFAULT);
     }
 
-    modifier complete_attack() virtual {
+    modifier completeAttack() {
         _setPhase(LogPhase.COMPLETE_ATTACK);
         _;
         _setPhase(LogPhase.DEFAULT);

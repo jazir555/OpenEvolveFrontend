@@ -1,6 +1,6 @@
 pragma solidity ^0.8.0;
 
-import "../Tokens.sol";
+import {Tokens, EthereumTokens} from "../Tokens.sol";
 
 contract TokenExampleManipulation is Tokens {
     function manipulateTokenBalance() external {

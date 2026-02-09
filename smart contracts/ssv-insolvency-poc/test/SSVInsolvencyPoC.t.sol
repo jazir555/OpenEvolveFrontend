@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "forge-std/Test.sol";
-import "../src/SSVInsolvencyPoC.sol";
-import "../src/PoC.sol";
+import {console} from "forge-std/console.sol";
+import {IERC20} from "forge-std/interfaces/IERC20.sol";
+import {SSVInsolvencyPoC} from "../src/SSVInsolvencyPoC.sol";
+import {PoC} from "../src/PoC.sol";
 
 /**
  * @title SSV Insolvency PoC Test

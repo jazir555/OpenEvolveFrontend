@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "forge-std/Test.sol";
-import "../src/SSVOperatorSybilPoC.sol";
+import {Test} from "forge-std/Test.sol";
+import {SSVOperatorSybilPoC} from "../src/SSVOperatorSybilPoC.sol";
 
 contract SSVOperatorSybilTest is Test {
     SSVOperatorSybilPoC public poc;

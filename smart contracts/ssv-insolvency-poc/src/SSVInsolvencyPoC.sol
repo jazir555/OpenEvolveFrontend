@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "./PoC.sol";
+import {PoC} from "./PoC.sol";
+import {IERC20} from "forge-std/interfaces/IERC20.sol";
+import {console} from "forge-std/console.sol";
 
 /**
  * @title SSV Network Insolvency Proof of Concept
@@ -136,7 +138,14 @@ contract SSVInsolvencyPoC is PoC {
         // SSV tokens and valid BLS keys can create this exact state.
 
         // Mock operator state in SSV Network storage
-        bytes32 opBaseSlot = keccak256(abi.encode(uint256(opId), SSV_STORAGE_POSITION + 6));
+        bytes32 opBaseSlot;
+        uint256 basePos = SSV_STORAGE_POSITION + 6;
+        assembly {
+            let ptr := mload(0x40)
+            mstore(ptr, opId)
+            mstore(add(ptr, 32), basePos)
+            opBaseSlot := keccak256(ptr, 64)
+        }
 
         // Set Owner
         vm.store(SSV_NETWORK, opBaseSlot, bytes32(uint256(uint160(owner))));
