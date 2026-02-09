@@ -1,7 +1,7 @@
 # Complete File Documentation: SSV Network Insolvency Vulnerability
 
 **Date:** February 8, 2026  
-**Purpose:** Comprehensive guide to all POCs, proofs, and demonstrations  
+**Purpose:** Comprehensive guide to all POCs, proofs, and exploits  
 **Total Files Documented:** 35+ files
 
 ---
@@ -11,7 +11,7 @@
 1. [Vulnerability Overview](#1-vulnerability-overview)
 2. [Solidity POC Files (9 files)](#2-solidity-poc-files)
 3. [Formal Proof Files (3 files)](#3-formal-proof-files)
-4. [Python Demonstration Scripts (8 files)](#4-python-demonstration-scripts)
+4. [Python Exploit Scripts (8 files)](#4-python-exploit-scripts)
 5. [JavaScript/TypeScript Tests (5 files)](#5-javascripttypescript-tests)
 6. [Verification Scripts (6 files)](#6-verification-scripts)
 7. [Documentation Files (9 files)](#7-documentation-files)
@@ -50,12 +50,12 @@ Honest User Loss = Virtual Debt (stolen from their deposits)
 ### 2.1 InsolvencyPoC.sol
 
 **Location:** `./InsolvencyPoC.sol`  
-**Type:** Isolated Logic Demonstration  
+**Type:** Isolated Logic Exploit  
 **Attack Vector:** Single-Cluster Basic Exploitation  
 **Lines of Code:** ~90
 
 #### What It Does
-This is the simplest, most focused POC. It isolates the EXACT accounting logic from the SSV Network protocol and demonstrates the core vulnerability in ~90 lines of code.
+This is the simplest, most focused POC. It isolates the EXACT accounting logic from the SSV Network protocol and exploits the core vulnerability in ~90 lines of code.
 
 #### How the Vulnerability Works
 1. **Setup:** Creates a mock SSV accounting system with operators and clusters
@@ -97,12 +97,12 @@ This is the "smoking gun" - it proves the vulnerability exists in the core accou
 ### 2.2 SSV_Insolvency_PoC_Alternate.sol
 
 **Location:** `./SSV_Insolvency_PoC_Alternate.sol`  
-**Type:** Multi-Cluster Attack Demonstration  
+**Type:** Multi-Cluster Attack Exploit  
 **Attack Vector:** Cascading Insolvency + DAO Exploitation  
 **Lines of Code:** ~450
 
 #### What It Does
-Demonstrates that the vulnerability is NOT limited to single clusters. Shows how multiple bankrupt clusters create a cascading insolvency and how the DAO itself can be exploited.
+Exploits the vulnerability across multiple clusters. Shows how multiple bankrupt clusters create a cascading insolvency and how the DAO itself can be exploited.
 
 #### How the Attack Works
 
@@ -152,7 +152,7 @@ User A tries to withdraw 5,000 SSV:
 ```
 
 #### Key Functions
-- `testMultiClusterCascadingInsolvency()` - Main attack demonstration
+- `testMultiClusterCascadingInsolvency()` - Main attack exploit
 - `testDAOOverWithdrawal()` - Shows DAO can withdraw unbacked fees
 
 #### Why This POC Matters
@@ -168,7 +168,7 @@ Proves the vulnerability is SYSTEMIC - it affects the entire protocol, not just 
 **Lines of Code:** ~400
 
 #### What It Does
-Demonstrates the MOST SEVERE attack vector: an attacker can DELAY liquidation of bankrupt clusters to maximize virtual debt accumulation, then race to withdraw before honest users.
+Exploits the MOST SEVERE attack vector: an attacker can DELAY liquidation of bankrupt clusters to maximize virtual debt accumulation, then race to withdraw before honest users.
 
 #### How the Attack Works
 
@@ -218,7 +218,7 @@ LOSS: 150 SSV
 This is the MOST DANGEROUS attack because:
 1. Attacker can ACTIVELY maximize the theft
 2. Works even with "perfect" liquidators (due to threshold period)
-3. Demonstrates practical exploitation on mainnet
+3. Exploits practical vulnerability on mainnet
 4. Shows the vulnerability is not just theoretical
 
 ---
@@ -231,15 +231,15 @@ This is the MOST DANGEROUS attack because:
 **Lines of Code:** ~350
 
 #### What It Does
-This is a comprehensive POC that demonstrates THREE different attack vectors in a single file, using actual SSV Network mainnet addresses for maximum realism.
+This is a comprehensive POC that exploits THREE different attack vectors in a single file, using actual SSV Network mainnet addresses for maximum realism.
 
-#### Attack Vectors Demonstrated
+#### Attack Vectors Exploited
 
 **Vector 1: Basic Insolvency Attack**
 - Function: `testInsolvencyAttack()`
 - Shows single-cluster exploitation
 - Uses `deal()` to simulate deposits
-- Demonstrates operator withdrawal of virtual earnings
+- Exploits operator withdrawal of virtual earnings
 - Proves honest user loses funds
 
 **Vector 2: Multi-Cluster Cascading**
@@ -253,7 +253,7 @@ This is a comprehensive POC that demonstrates THREE different attack vectors in 
 - Function: `testDAOExploitation()`
 - Shows DAO can withdraw unbacked network fees
 - Proves non-operator parties can also exploit
-- Demonstrates systemic nature of vulnerability
+- Exploits systemic nature of vulnerability
 
 #### How It Works
 
@@ -278,7 +278,7 @@ This is a comprehensive POC that demonstrates THREE different attack vectors in 
 - `_withdrawDAONetworkEarnings()` - Simulates DAO withdrawals
 
 #### Why This POC Matters
-This is the most COMPREHENSIVE single-file POC. It shows multiple attack vectors and uses actual mainnet addresses, making it the most realistic demonstration.
+This is the most COMPREHENSIVE single-file POC. It shows multiple attack vectors and uses actual mainnet addresses, making it the most realistic exploit.
 
 ---
 
@@ -348,7 +348,7 @@ Operator Base Slot = keccak256(operatorId, SSV_STORAGE_POSITION + 6)
 ```
 
 #### Why This POC Matters
-This is the OFFICIAL FORMAT for Immunefi submissions. It follows the standardized template and demonstrates professional bug bounty submission practices.
+This is the OFFICIAL FORMAT for Immunefi submissions. It follows the standardized template and exploits the vulnerability using professional bug bounty submission practices.
 
 ---
 
@@ -360,7 +360,7 @@ This is the OFFICIAL FORMAT for Immunefi submissions. It follows the standardize
 **Lines of Code:** ~350
 
 #### What It Does
-Demonstrates the liquidation griefing attack in the official forge-poc-templates format. This is the most severe attack vector, showing how an attacker can maximize virtual debt by delaying liquidations.
+Exploits the liquidation griefing attack in the official forge-poc-templates format. This is the most severe attack vector, showing how an attacker can maximize virtual debt by delaying liquidations.
 
 #### Attack Parameters
 ```solidity
@@ -426,7 +426,7 @@ Total: ~585 SSV
 ```
 
 #### Why This POC Matters
-This demonstrates the MAXIMUM SEVERITY attack. An attacker can:
+This exploits the MAXIMUM SEVERITY attack. An attacker can:
 1. Actively monitor for liquidation opportunities
 2. Grief liquidators to extend the virtual debt window
 3. Maximize the amount stolen
@@ -442,7 +442,7 @@ This demonstrates the MAXIMUM SEVERITY attack. An attacker can:
 **Lines of Code:** ~350
 
 #### What It Does
-Demonstrates how multiple bankrupt clusters COMPOUND the insolvency effect, creating a cascading failure that affects the entire protocol.
+Exploits how multiple bankrupt clusters COMPOUND the insolvency effect, creating a cascading failure that affects the entire protocol.
 
 #### Attack Setup
 ```solidity
@@ -526,7 +526,7 @@ Proves the vulnerability is NOT isolated to single clusters. It's a PROTOCOL-WID
 **Lines of Code:** ~150
 
 #### What It Does
-Demonstrates that a NON-OPERATOR attacker can bankrupt the protocol by spamming "dust clusters" and exploiting the DAO's unconditional network fee accumulation.
+Exploits the protocol by showing how a NON-OPERATOR attacker can bankrupt it by spamming "dust clusters" and exploiting the DAO's unconditional network fee accumulation.
 
 #### Attack Parameters
 ```solidity
@@ -587,7 +587,7 @@ This attack proves that:
 4. The vulnerability affects ALL fee recipients (operators + DAO)
 
 #### Why This POC Matters
-This demonstrates that the vulnerability is NOT limited to operator exploitation. The DAO's network fee mechanism has the SAME flaw, and any attacker can exploit it by spamming dust clusters.
+This exploits the vulnerability showing it is NOT limited to operator exploitation. The DAO's network fee mechanism has the SAME flaw, and any attacker can exploit it by spamming dust clusters.
 
 ---
 
@@ -599,7 +599,7 @@ This demonstrates that the vulnerability is NOT limited to operator exploitation
 **Lines of Code:** ~180
 
 #### What It Does
-Demonstrates the "Infinite Money Glitch" - an operator can create their own bankrupt "minion" clusters to generate massive uncollateralized claims against the protocol.
+Exploits the "Infinite Money Glitch" - an operator can create their own bankrupt "minion" clusters to generate massive uncollateralized claims against the protocol.
 
 #### Attack Parameters
 ```solidity
@@ -677,7 +677,7 @@ This is the most PROFITABLE attack for a malicious operator:
 5. Converts small dust deposits into huge claims
 
 #### Why This POC Matters
-This demonstrates that a malicious operator can:
+This exploits the vulnerability showing that a malicious operator can:
 1. Generate MASSIVE uncollateralized claims
 2. Achieve ROI > 3,800%
 3. Scale the attack to drain entire protocol
@@ -698,7 +698,7 @@ This demonstrates that a malicious operator can:
 **Lines of Code:** ~50
 
 #### What It Does
-This is a formal mathematical proof using Z3 theorem prover that demonstrates the insolvency state is SATISFIABLE (reachable) given the protocol's accounting rules.
+This is a formal mathematical proof using Z3 theorem prover that proves the insolvency state is SATISFIABLE (reachable) given the protocol's accounting rules.
 
 #### How It Works
 
@@ -955,7 +955,7 @@ This proof shows that insolvency is not just POSSIBLE, it's INEVITABLE. As long 
 
 ---
 
-## 4. Python Demonstration Scripts
+## 4. Python Exploit Scripts
 
 ### 4.1 definitive_ssv_insolvency_proof.py
 
@@ -1311,7 +1311,7 @@ This script:
 2. Shows CROSS-CLUSTER theft (honest user loses funds)
 3. Maps to ACTUAL SOURCE CODE lines
 4. Provides CONCRETE WITNESS values
-5. Demonstrates the SYSTEMIC nature of the vulnerability
+5. Exploits the SYSTEMIC nature of the vulnerability
 
 ---
 
@@ -1319,13 +1319,13 @@ This script:
 
 ### 4.8 Actual Protocol POCs (TypeScript + Python)
 
-**Important:** The most up-to-date POCs that use the ACTUAL SSV Network protocol are organized in individual POC directories. Each POC has its own "demo" folder containing both TypeScript and Python implementations.
+**Important:** The most up-to-date POCs that use the ACTUAL SSV Network protocol are organized in individual POC directories. Each POC has its own "exploit" folder containing both TypeScript and Python implementations.
 
 #### Organization Structure
 
 Each of the 5 POC directories contains:
 - **Solidity POC** - In `src/` directory
-- **Demo Folder** - In `scripts/insolvency demo (run these)/` or `scripts/Insolvency Demo (run these)/`
+- **Exploit Folder** - In `scripts/insolvency exploit/` or `scripts/Insolvency Exploit/`
   - TypeScript test file (uses actual protocol with Hardhat)
   - Python script (uses web3.py with actual protocol)
 - **Old Files** - In `scripts/old/` directory (historical versions)
@@ -1334,35 +1334,35 @@ Each of the 5 POC directories contains:
 
 1. **POC 1: Single-Cluster Insolvency**
    - Directory: `ssv-insolvency-poc/`
-   - Demo folder: `scripts/Insolvency Demo (run these)/`
+   - Exploit folder: `scripts/Insolvency Exploit/`
    - Files:
      - `insolvency-poc1-single-cluster.test.ts`
      - `poc1_single_cluster_actual_protocol.py`
 
 2. **POC 2: Multi-Cluster Cascading**
    - Directory: `ssv-poc2-multi-cluster/`
-   - Demo folder: `scripts/insolvency demo (run these)/`
+   - Exploit folder: `scripts/insolvency exploit/`
    - Files:
      - `insolvency-poc2-multi-cluster.test.ts`
      - `poc2_multi_cluster_actual_protocol.py`
 
 3. **POC 3: Liquidation Griefing**
    - Directory: `ssv-poc3-liquidation-griefing/`
-   - Demo folder: `scripts/insolvency demo (run these)/`
+   - Exploit folder: `scripts/insolvency exploit/`
    - Files:
      - `insolvency-poc3-liquidation-griefing.test.ts`
      - `poc3_liquidation_griefing_actual_protocol.py`
 
 4. **POC 4: DAO Sybil Attack**
    - Directory: `ssv-poc4-dao-sybil/`
-   - Demo folder: `scripts/insolvency demo (run these)/`
+   - Exploit folder: `scripts/insolvency exploit/`
    - Files:
      - `insolvency-poc4-dao-sybil.test.ts`
      - `poc4_dao_sybil_actual_protocol.py`
 
 5. **POC 5: Operator Self-Dealing**
    - Directory: `ssv-poc5-operator-sybil/`
-   - Demo folder: `scripts/insolvency demo (run these)/`
+   - Exploit folder: `scripts/insolvency exploit/`
    - Files:
      - `insolvency-poc5-operator-sybil.test.ts`
      - `poc5_operator_sybil_actual_protocol.py`
@@ -1378,7 +1378,7 @@ All 10 POCs (5 TypeScript + 5 Python) are also available in the centralized `ssv
 **Option 1: Run from individual POC directory**
 ```bash
 # TypeScript
-cd ssv-poc2-multi-cluster/scripts/insolvency\ demo\ \(run\ these\)/
+cd ssv-poc2-multi-cluster/scripts/insolvency\ exploit/
 npx hardhat test insolvency-poc2-multi-cluster.test.ts
 
 # Python (requires Hardhat node running)
@@ -1408,7 +1408,7 @@ This dual-location approach provides:
 - ✅ **Self-contained POCs** - Each attack vector in its own directory
 - ✅ **Easy exploration** - Reviewers can study each POC independently
 - ✅ **Batch verification** - Centralized location for running all POCs
-- ✅ **Clear separation** - Demo files vs. historical files
+- ✅ **Clear separation** - Exploit files vs. historical files
 - ✅ **Flexibility** - Reviewers can choose their preferred approach
 
 ---
@@ -1424,7 +1424,7 @@ This dual-location approach provides:
 **Lines of Code:** ~80
 
 #### What It Does
-This is an INTEGRATION TEST that uses the ACTUAL SSV Network protocol functions to demonstrate the vulnerability. It's the closest to a "real-world" exploitation.
+This is an INTEGRATION TEST that uses the ACTUAL SSV Network protocol functions to exploit the vulnerability. It's the closest to a "real-world" exploitation.
 
 #### How It Works
 
@@ -1540,30 +1540,30 @@ After 100000000 blocks and 4 Operator withdrawals:
 **Integration Test:**
 - Tests against ACTUAL contract bytecode
 - Uses ACTUAL protocol state transitions
-- Demonstrates REAL-WORLD exploitation
+- Exploits REAL-WORLD vulnerability
 - Not a simulation - this is the ACTUAL protocol
 
 #### Why This Test Matters
 This test:
 1. Uses ACTUAL SSV Network protocol functions
-2. Demonstrates REAL-WORLD exploitation
+2. Exploits REAL-WORLD vulnerability
 3. Tests against ACTUAL contract bytecode
 4. Proves the vulnerability exists in PRODUCTION CODE
-5. This is the MOST REALISTIC demonstration
+5. This is the MOST REALISTIC exploit
 
 ---
 
 ### 5.2 insolvency-poc2-multi-cluster.test.ts
 
 **Location:** 
-- `ssv-poc2-multi-cluster/scripts/insolvency demo (run these)/insolvency-poc2-multi-cluster.test.ts`
+- `ssv-poc2-multi-cluster/scripts/insolvency exploit/insolvency-poc2-multi-cluster.test.ts`
 - `ssv-network/test/insolvency-poc2-multi-cluster.test.ts`
 
 **Type:** Hardhat Test Using ACTUAL SSV Network Protocol  
 **Attack Vector:** Multi-Cluster Cascading Insolvency
 
 #### What It Does
-Demonstrates cascading insolvency where multiple bankrupt clusters compound the virtual debt, stealing ~550 SSV from honest users.
+Exploits cascading insolvency where multiple bankrupt clusters compound the virtual debt, stealing ~550 SSV from honest users.
 
 #### Usage
 ```bash
@@ -1576,14 +1576,14 @@ npx hardhat test test/insolvency-poc2-multi-cluster.test.ts
 ### 5.3 insolvency-poc3-liquidation-griefing.test.ts
 
 **Location:** 
-- `ssv-poc3-liquidation-griefing/scripts/insolvency demo (run these)/insolvency-poc3-liquidation-griefing.test.ts`
+- `ssv-poc3-liquidation-griefing/scripts/insolvency exploit/insolvency-poc3-liquidation-griefing.test.ts`
 - `ssv-network/test/insolvency-poc3-liquidation-griefing.test.ts`
 
 **Type:** Hardhat Test Using ACTUAL SSV Network Protocol  
 **Attack Vector:** Liquidation Griefing (Most Severe)
 
 #### What It Does
-Demonstrates the MOST SEVERE attack where an attacker delays liquidation to maximize virtual debt accumulation, stealing ~585 SSV.
+Exploits the MOST SEVERE attack where an attacker delays liquidation to maximize virtual debt accumulation, stealing ~585 SSV.
 
 #### Usage
 ```bash
@@ -1596,14 +1596,14 @@ npx hardhat test test/insolvency-poc3-liquidation-griefing.test.ts
 ### 5.4 insolvency-poc4-dao-sybil.test.ts
 
 **Location:** 
-- `ssv-poc4-dao-sybil/scripts/insolvency demo (run these)/insolvency-poc4-dao-sybil.test.ts`
+- `ssv-poc4-dao-sybil/scripts/insolvency exploit/insolvency-poc4-dao-sybil.test.ts`
 - `ssv-network/test/insolvency-poc4-dao-sybil.test.ts`
 
 **Type:** Hardhat Test Using ACTUAL SSV Network Protocol  
 **Attack Vector:** DAO Sybil Fee Inflation
 
 #### What It Does
-Demonstrates that a NON-OPERATOR can exploit the vulnerability through DAO fee manipulation, stealing ~12,000 SSV.
+Exploits the vulnerability showing that a NON-OPERATOR can exploit it through DAO fee manipulation, stealing ~12,000 SSV.
 
 #### Usage
 ```bash
@@ -1616,14 +1616,14 @@ npx hardhat test test/insolvency-poc4-dao-sybil.test.ts
 ### 5.5 insolvency-poc5-operator-sybil.test.ts
 
 **Location:** 
-- `ssv-poc5-operator-sybil/scripts/insolvency demo (run these)/insolvency-poc5-operator-sybil.test.ts`
+- `ssv-poc5-operator-sybil/scripts/insolvency exploit/insolvency-poc5-operator-sybil.test.ts`
 - `ssv-network/test/insolvency-poc5-operator-sybil.test.ts`
 
 **Type:** Hardhat Test Using ACTUAL SSV Network Protocol  
 **Attack Vector:** Operator Sybil Self-Dealing (Most Profitable)
 
 #### What It Does
-Demonstrates the "Infinite Money Glitch" with 3,800% ROI through operator self-dealing.
+Exploits the "Infinite Money Glitch" with 3,800% ROI through operator self-dealing.
 
 #### Usage
 ```bash
@@ -1684,7 +1684,7 @@ npx hardhat test test/insolvency-poc5-operator-sybil.test.ts
 2. Root Cause: The "Accounting Mismatch" Invariant Violation
 3. Definitive Proofs (Z3, Lean 4, Live Execution)
 4. Impact: Critical
-5. Proof of Concept Demonstrations
+5. Proof of Concept Exploits
 6. Remediation Recommendation
 
 #### Key Technical Details
@@ -1744,24 +1744,24 @@ python definitive_ssv_insolvency_proof.py
 ### 6.4 RUN_ALL_DEMOS.md
 
 **Location:** `./RUN_ALL_DEMOS.md`  
-**Type:** Demo Execution Guide  
-**Purpose:** Instructions for running all 20+ demonstrations
+**Type:** Exploit Execution Guide  
+**Purpose:** Instructions for running all 20+ exploits
 
 #### Contents
 - Prerequisites
-- POC 1: Single-Cluster Insolvency (4 demos)
-- POC 2: Multi-Cluster Cascading (3 demos)
-- POC 3: Liquidation Griefing (3 demos)
-- POC 4: DAO Sybil Attack (3 demos)
-- POC 5: Operator Sybil Attack (3 demos)
+- POC 1: Single-Cluster Insolvency (4 exploits)
+- POC 2: Multi-Cluster Cascading (3 exploits)
+- POC 3: Liquidation Griefing (3 exploits)
+- POC 4: DAO Sybil Attack (3 exploits)
+- POC 5: Operator Sybil Attack (3 exploits)
 - Formal Proofs (3 proofs)
 
-#### Total Demonstrations
+#### Total Exploits
 - 9 Solidity POCs
 - 3 Formal Proofs (Z3 + Lean 4)
 - 3 Python Scripts
 - 1 JavaScript Test
-- **Total: 16+ runnable demonstrations**
+- **Total: 16+ runnable exploits**
 
 ---
 
@@ -1787,7 +1787,7 @@ python definitive_ssv_insolvency_proof.py
 #### Verification Results
 - ✅ All 9 Solidity POCs complete (no placeholders)
 - ✅ All 3 formal proofs verified
-- ✅ All 4 demonstration scripts complete
+- ✅ All 4 exploit scripts complete
 - ✅ Vulnerability confirmed in actual code
 - ✅ Full Immunefi compliance
 - ✅ Ready for submission
@@ -1803,7 +1803,7 @@ python definitive_ssv_insolvency_proof.py
 ```
 Root Directory
 ├── Solidity POCs (4 files)
-│   ├── InsolvencyPoC.sol                    [Basic Logic Demo]
+│   ├── InsolvencyPoC.sol                    [Basic Logic Exploit]
 │   ├── SSV_Insolvency_PoC_Alternate.sol     [Multi-Cluster]
 │   ├── SSV_TimeDelayed_Insolvency_PoC.sol   [Liquidation Griefing]
 │   └── SSVNetworkInsolvencyPoC.sol          [Comprehensive]
@@ -1838,7 +1838,7 @@ Root Directory
     ├── FINAL_SSV_INSOLVENCY_SUBMISSION.md
     ├── SSV_INSOLVENCY_VULNERABILITY.md
     ├── SSV_INSOLVENCY_POC_README.md
-    ├── RUN_ALL_DEMOS.md
+    ├── RUN_ALL_EXPLOITS.md
     ├── COMPREHENSIVE_VERIFICATION_REPORT.md
     └── COMPLETE_FILE_DOCUMENTATION.md (this file)
 ```
@@ -1966,7 +1966,7 @@ Protocol Deficit = Σ(All Virtual Debts)
 ### 7.6 Verification Checklist
 
 #### Solidity POCs
-- [x] InsolvencyPoC.sol - Basic logic demo
+- [x] InsolvencyPoC.sol - Basic logic exploit
 - [x] SSV_Insolvency_PoC_Alternate.sol - Multi-cluster
 - [x] SSV_TimeDelayed_Insolvency_PoC.sol - Liquidation griefing
 - [x] SSVNetworkInsolvencyPoC.sol - Comprehensive
@@ -1981,7 +1981,7 @@ Protocol Deficit = Σ(All Virtual Debts)
 - [x] ssv_global_insolvency_proof.lean (Lean 4)
 - [x] ssv_insolvency_mathlib_proof.lean (Lean 4)
 
-#### Demonstration Scripts
+#### Exploit Scripts
 - [x] definitive_ssv_insolvency_proof.py
 - [x] run_execution_poc.py
 - [x] verify_ssv_global_insolvency.py
@@ -2011,7 +2011,7 @@ Protocol Deficit = Σ(All Virtual Debts)
 #### Bounty Tier: $1,000,000 (Critical)
 - Meets "Direct theft of any user funds" criteria
 - Meets "Protocol insolvency" criteria
-- Multiple attack vectors demonstrated
+- Multiple attack vectors exploited
 - Formal mathematical proof provided
 - Confirmed in production code
 
@@ -2022,17 +2022,17 @@ Protocol Deficit = Σ(All Virtual Debts)
 
 ## 8. Conclusion
 
-This documentation covers **20+ files** demonstrating the SSV Network insolvency vulnerability:
+This documentation covers **20+ files** exploiting the SSV Network insolvency vulnerability:
 
 - **9 Solidity POCs** - Complete, no placeholders
 - **3 Formal Proofs** - Mathematically verified
-- **3 Python Scripts** - Executable demonstrations
+- **3 Python Scripts** - Executable exploits
 - **1 JavaScript Test** - Integration test with actual protocol
 - **6+ Documentation Files** - Comprehensive guides
 
 All files are **COMPLETE, COHERENT, and COMPLIANT** with Immunefi submission requirements. The vulnerability is **CONFIRMED** in the actual SSV Network source code and represents a **CRITICAL** threat to the protocol.
 
-**Total Demonstrations:** 16+ runnable POCs/proofs  
+**Total Exploits:** 16+ runnable POCs/proofs  
 **Total Documentation:** 6+ comprehensive guides  
 **Verification Status:** ✅ COMPLETE  
 **Submission Status:** ✅ READY
@@ -2265,7 +2265,7 @@ Provides comprehensive documentation that all POCs are production-ready with zer
 
 **Location:** `./ACTUAL_PROTOCOL_POCS_GUIDE.md`  
 **Type:** Usage Guide  
-**Purpose:** Instructions for running POCs that use actual protocol
+**Purpose:** Instructions for running POCs that exploit actual protocol
 
 #### Contents
 1. Overview of actual protocol POCs
@@ -2288,21 +2288,21 @@ Provides comprehensive documentation that all POCs are production-ready with zer
 
 **Location:** `./COMPREHENSIVE_VERIFICATION_REPORT.md`  
 **Type:** Complete Vulnerability Verification  
-**Purpose:** Verifies all POCs prove the vulnerability correctly
+**Purpose:** Verifies all POCs exploit the vulnerability correctly
 
 #### Contents
 1. Executive Summary
 2. Verification Methodology
 3. Solidity POC Verification (9 files)
 4. Formal Proof Verification (3 files)
-5. Demonstration Script Verification (4 files)
+5. Exploit Script Verification (4 files)
 6. Compliance Verification
 7. Conclusion
 
 #### Key Findings
 - All 9 Solidity POCs: ✅ Complete and correct
 - All 3 formal proofs: ✅ Valid and verified
-- All 4 demo scripts: ✅ Functional
+- All 4 exploit scripts: ✅ Functional
 - Compliance: ✅ Immunefi rules followed
 
 ---
@@ -2429,7 +2429,7 @@ Individual POC Directories (Self-Contained):
 │   │   ├── SSVInsolvencyPoC.t.sol                  # Solidity test
 │   │   └── SSVMainnetExploit.t.sol                 # Mainnet fork test
 │   └── scripts/
-│       ├── Insolvency Demo (run these)/            ⭐ RUN THESE
+│       ├── Insolvency Exploit/                     ⭐ RUN THESE
 │       │   ├── insolvency-poc1-single-cluster.test.ts
 │       │   └── poc1_single_cluster_actual_protocol.py
 │       └── old/                                    # Historical files
@@ -2440,7 +2440,7 @@ Individual POC Directories (Self-Contained):
 │   ├── test/
 │   │   └── SSVMultiClusterInsolvency.t.sol         # Solidity test
 │   └── scripts/
-│       ├── insolvency demo (run these)/            ⭐ RUN THESE
+│       ├── insolvency exploit/                     ⭐ RUN THESE
 │       │   ├── insolvency-poc2-multi-cluster.test.ts
 │       │   └── poc2_multi_cluster_actual_protocol.py
 │       └── old/                                    # Historical files
@@ -2449,7 +2449,7 @@ Individual POC Directories (Self-Contained):
 │   ├── src/
 │   │   └── SSVLiquidationGriefingPoC.sol           # Solidity POC 3
 │   └── scripts/
-│       ├── insolvency demo (run these)/            ⭐ RUN THESE
+│       ├── insolvency exploit/                     ⭐ RUN THESE
 │       │   ├── insolvency-poc3-liquidation-griefing.test.ts
 │       │   └── poc3_liquidation_griefing_actual_protocol.py
 │       └── old/                                    # Historical files
@@ -2458,7 +2458,7 @@ Individual POC Directories (Self-Contained):
 │   ├── src/
 │   │   └── SSVDaoSybilPoC.sol                      # Solidity POC 4
 │   └── scripts/
-│       ├── insolvency demo (run these)/            ⭐ RUN THESE
+│       ├── insolvency exploit/                     ⭐ RUN THESE
 │       │   ├── insolvency-poc4-dao-sybil.test.ts
 │       │   └── poc4_dao_sybil_actual_protocol.py
 │       └── old (ignore)/                           # Historical files
@@ -2467,7 +2467,7 @@ Individual POC Directories (Self-Contained):
     ├── src/
     │   └── SSVOperatorSybilPoC.sol                 # Solidity POC 5
     └── scripts/
-        ├── insolvency demo (run these)/            ⭐ RUN THESE
+        ├── insolvency exploit/                     ⭐ RUN THESE
         │   ├── insolvency-poc5-operator-sybil.test.ts
         │   └── poc5_operator_sybil_actual_protocol.py
         └── old/                                    # Historical files
@@ -2524,8 +2524,8 @@ cd ssv-network
 
 **Option A: From Individual POC Directory (Recommended for exploring specific attacks)**
 ```bash
-# Navigate to any POC's demo folder
-cd ssv-poc3-liquidation-griefing/scripts/insolvency\ demo\ \(run\ these\)/
+# Navigate to any POC's exploit folder
+cd ssv-poc3-liquidation-griefing/scripts/insolvency\ exploit/
 
 # Run TypeScript POC
 npx hardhat test insolvency-poc3-liquidation-griefing.test.ts
@@ -2551,7 +2551,7 @@ python scripts/poc1_single_cluster_actual_protocol.py
 
 Each POC directory contains:
 - `src/` - Solidity POC
-- `scripts/insolvency demo (run these)/` - ⭐ **RUN THESE** (TypeScript + Python)
+- `scripts/insolvency exploit/` - ⭐ **RUN THESE** (TypeScript + Python)
 - `scripts/old/` - Historical files (can ignore)
 
 ### Attack Vectors Summary
@@ -2583,7 +2583,7 @@ if (balance < 0) balance = 0;  // ❌ Caps at zero
 - ✅ All 10 POCs compile successfully (verified by `verify-all.bat`)
 - ✅ All 9 Solidity POCs prove the vulnerability
 - ✅ All 3 formal proofs are valid
-- ✅ All 8 Python scripts demonstrate exploitation
+- ✅ All 8 Python scripts exploit the vulnerability
 - ✅ All 5 TypeScript tests use actual protocol
 - ✅ All POCs comply with Immunefi rules
 - ✅ Zero compilation errors
@@ -2612,7 +2612,7 @@ if (balance < 0) balance = 0;  // ❌ Caps at zero
 This submission contains:
 - **9 Solidity POCs** - Prove vulnerability in isolated logic
 - **3 Formal Proofs** - Mathematical verification (Z3 + Lean 4)
-- **8 Python Scripts** - Demonstrate real-world exploitation
+- **8 Python Scripts** - Exploit real-world vulnerability
 - **5 TypeScript Tests** - Use actual SSV Network protocol
 - **6 Verification Scripts** - Prove everything compiles
 - **9 Documentation Files** - Complete explanation

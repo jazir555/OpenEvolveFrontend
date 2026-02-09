@@ -1,0 +1,188 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+pragma solidity 0.8.24;
+
+import "../interfaces/ISSVNetworkCore.sol";
+import {StorageData} from "./SSVStorage.sol";
+import {StorageProtocol} from "./SSVStorageProtocol.sol";
+import "./OperatorLib.sol";
+import "./ProtocolLib.sol";
+import {Types64} from "./Types.sol";
+
+library ClusterLib {
+    using Types64 for uint64;
+    using ProtocolLib for StorageProtocol;
+
+    /**
+     * @notice Updates cluster balance with ACTUAL charges only
+     * @dev FIX: Only deducts what was actually credited to operators/DAO
+     * @param cluster The cluster to update
+     * @param newIndex New operator index
+     * @param currentNetworkFeeIndex Current network fee index
+     * @param actualOperatorEarnings Total earnings actually credited to operators
+     * @param actualDAOEarnings Total earnings actually credited to DAO
+     */
+    function updateBalance(
+        ISSVNetworkCore.Cluster memory cluster,
+        uint64 newIndex,
+        uint64 currentNetworkFeeIndex,
+        uint64 actualOperatorEarnings,
+        uint64 actualDAOEarnings
+    ) internal pure {
+        // Calculate what SHOULD be charged (for reference/logging)
+        uint64 networkFee = uint64(currentNetworkFeeIndex - cluster.networkFeeIndex) * cluster.validatorCount;
+        uint64 operatorFees = (newIndex - cluster.index) * cluster.validatorCount;
+        // uint64 totalTheoretical = operatorFees + networkFee;
+
+        // FIX: Only deduct what was ACTUALLY credited to operators and DAO
+        // This maintains accounting consistency: 
+        // cluster.balance -= (operator earnings + DAO earnings)
+        uint64 actualTotalCharge = actualOperatorEarnings + actualDAOEarnings;
+
+        // Deduct actual charges from cluster balance
+        if (actualTotalCharge.expand() <= cluster.balance) {
+            cluster.balance -= actualTotalCharge.expand();
+        } else {
+            // Cluster is bankrupt - set to zero
+            // This should rarely happen now since operators/DAO only get what cluster can pay
+            cluster.balance = 0;
+        }
+
+        // Note: If actualTotalCharge < theoreticalCharge, the cluster is effectively bankrupt
+        // and liquidation checks will handle it appropriately
+    }
+
+    function isLiquidatable(
+        ISSVNetworkCore.Cluster memory cluster,
+        uint64 burnRate,
+        uint64 networkFee,
+        uint64 minimumBlocksBeforeLiquidation,
+        uint64 minimumLiquidationCollateral
+    ) internal pure returns (bool liquidatable) {
+        if (cluster.validatorCount != 0) {
+            if (cluster.balance < minimumLiquidationCollateral.expand()) return true;
+            uint64 liquidationThreshold = minimumBlocksBeforeLiquidation *
+                (burnRate + networkFee) *
+                cluster.validatorCount;
+
+            return cluster.balance < liquidationThreshold.expand();
+        }
+    }
+
+    function validateClusterIsNotLiquidated(ISSVNetworkCore.Cluster memory cluster) internal pure {
+        if (!cluster.active) revert ISSVNetworkCore.ClusterIsLiquidated();
+    }
+
+    function validateHashedCluster(
+        ISSVNetworkCore.Cluster memory cluster,
+        address owner,
+        uint64[] memory operatorIds,
+        StorageData storage s
+    ) internal view returns (bytes32 hashedCluster) {
+        hashedCluster = keccak256(abi.encodePacked(owner, operatorIds));
+        bytes32 hashedClusterData = hashClusterData(cluster);
+
+        bytes32 clusterData = s.clusters[hashedCluster];
+        if (clusterData == bytes32(0)) {
+            revert ISSVNetworkCore.ClusterDoesNotExists();
+        } else if (clusterData != hashedClusterData) {
+            revert ISSVNetworkCore.IncorrectClusterState();
+        }
+    }
+
+    /**
+     * @notice Updates cluster data with actual earnings
+     * @dev FIX: Accepts actual earnings to maintain accounting consistency
+     * @param cluster The cluster to update
+     * @param clusterIndex New cluster index
+     * @param currentNetworkFeeIndex Current network fee index
+     * @param actualOperatorEarnings Actual earnings credited to operators
+     * @param actualDAOEarnings Actual earnings credited to DAO
+     */
+    function updateClusterData(
+        ISSVNetworkCore.Cluster memory cluster,
+        uint64 clusterIndex,
+        uint64 currentNetworkFeeIndex,
+        uint64 actualOperatorEarnings,
+        uint64 actualDAOEarnings
+    ) internal pure {
+        updateBalance(cluster, clusterIndex, currentNetworkFeeIndex, actualOperatorEarnings, actualDAOEarnings);
+        cluster.index = clusterIndex;
+        cluster.networkFeeIndex = currentNetworkFeeIndex;
+    }
+
+    function hashClusterData(ISSVNetworkCore.Cluster memory cluster) internal pure returns (bytes32) {
+        return
+            keccak256(
+                abi.encodePacked(
+                    cluster.validatorCount,
+                    cluster.networkFeeIndex,
+                    cluster.index,
+                    cluster.balance,
+                    cluster.active
+                )
+            );
+    }
+
+    function validateClusterOnRegistration(
+        ISSVNetworkCore.Cluster memory cluster,
+        uint64[] memory operatorIds,
+        StorageData storage s
+    ) internal view returns (bytes32 hashedCluster) {
+        hashedCluster = keccak256(abi.encodePacked(msg.sender, operatorIds));
+
+        bytes32 clusterData = s.clusters[hashedCluster];
+        if (clusterData == bytes32(0)) {
+            if (
+                cluster.validatorCount != 0 ||
+                cluster.networkFeeIndex != 0 ||
+                cluster.index != 0 ||
+                cluster.balance != 0 ||
+                !cluster.active
+            ) {
+                revert ISSVNetworkCore.IncorrectClusterState();
+            }
+        } else if (clusterData != hashClusterData(cluster)) {
+            revert ISSVNetworkCore.IncorrectClusterState();
+        } else {
+            validateClusterIsNotLiquidated(cluster);
+        }
+    }
+
+    function updateClusterOnRegistration(
+        ISSVNetworkCore.Cluster memory cluster,
+        uint64[] memory operatorIds,
+        bytes32 hashedCluster,
+        uint32 validatorCountDelta,
+        StorageData storage s,
+        StorageProtocol storage sp
+    ) internal {
+        (uint64 clusterIndex, uint64 burnRate) = OperatorLib.updateClusterOperatorsOnRegistration(
+            operatorIds,
+            validatorCountDelta,
+            s,
+            sp
+        );
+
+        // For registration, use old updateClusterData (no actual earnings tracking needed yet)
+        // The balance check below ensures cluster has sufficient funds
+        updateClusterData(cluster, clusterIndex, sp.currentNetworkFeeIndex(), 0, 0);
+
+        sp.updateDAO(true, validatorCountDelta);
+
+        cluster.validatorCount += validatorCountDelta;
+
+        if (
+            isLiquidatable(
+                cluster,
+                burnRate,
+                sp.networkFee,
+                sp.minimumBlocksBeforeLiquidation,
+                sp.minimumLiquidationCollateral
+            )
+        ) {
+            revert ISSVNetworkCore.InsufficientBalance();
+        }
+
+        s.clusters[hashedCluster] = hashClusterData(cluster);
+    }
+}

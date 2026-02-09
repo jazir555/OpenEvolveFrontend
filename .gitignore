@@ -10,7 +10,7 @@ _pycache__/
 venv/
 env/
 envs/
-
+lean_workspace\mathlib_project\.lake
 # Git
 .git/
 
@@ -46,3 +46,4 @@ rese/lean4/.lake/packages/mathlib
 DeepKE_repo
 lean_workspace/mathlib_project/.lake/packages/mathlib
 smart contracts/ssv-insolvency-poc/lib/openzeppelin-contracts
+lean_workspace/mathlib_project/.lake/packages/mathlib

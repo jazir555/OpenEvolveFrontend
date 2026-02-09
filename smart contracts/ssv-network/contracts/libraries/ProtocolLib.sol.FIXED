@@ -1,0 +1,111 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+pragma solidity 0.8.24;
+
+import "../interfaces/ISSVNetworkCore.sol";
+import {Types256} from "./Types.sol";
+import {StorageProtocol} from "./SSVStorageProtocol.sol";
+
+library ProtocolLib {
+    using Types256 for uint256;
+
+    /******************************/
+    /* Network internal functions */
+    /******************************/
+    function currentNetworkFeeIndex(StorageProtocol storage sp) internal view returns (uint64) {
+        return sp.networkFeeIndex + uint64(block.number - sp.networkFeeIndexBlockNumber) * sp.networkFee;
+    }
+
+    function updateNetworkFee(StorageProtocol storage sp, uint256 fee) internal {
+        updateDAOEarnings(sp, type(uint256).max); // Use max for admin operations
+
+        sp.networkFeeIndex = currentNetworkFeeIndex(sp);
+        sp.networkFeeIndexBlockNumber = uint32(block.number);
+        sp.networkFee = fee.shrink();
+    }
+
+    /**************************/
+    /* DAO internal functions */
+    /**************************/
+    
+    /**
+     * @notice Updates DAO earnings with COLLATERALIZED earnings only
+     * @dev FIX: Only credits earnings if cluster can afford to pay
+     * @param sp Storage protocol
+     * @param clusterBalance Current cluster balance (for collateralization check)
+     * @return actualDAOEarnings The amount actually credited to DAO
+     */
+    function updateDAOEarnings(
+        StorageProtocol storage sp,
+        uint256 clusterBalance
+    ) internal returns (uint64 actualDAOEarnings) {
+        uint64 blockDiff = uint64(block.number) - sp.daoIndexBlockNumber;
+        uint64 theoreticalEarnings = blockDiff * sp.networkFee * sp.daoValidatorCount;
+
+        // FIX: Only credit DAO earnings if cluster can actually pay
+        if (clusterBalance >= theoreticalEarnings) {
+            // Cluster can afford full payment
+            sp.daoBalance += theoreticalEarnings;
+            actualDAOEarnings = theoreticalEarnings;
+        } else {
+            // Cluster is bankrupt or underfunded - credit only what's available
+            // This prevents "virtual debt" creation for DAO fees
+            uint64 affordableEarnings = sp.daoValidatorCount > 0 
+                ? uint64(clusterBalance / sp.daoValidatorCount) 
+                : 0;
+            sp.daoBalance += affordableEarnings;
+            actualDAOEarnings = affordableEarnings;
+        }
+
+        sp.daoIndexBlockNumber = uint32(block.number);
+    }
+
+    /**
+     * @notice Returns network total earnings (for view functions)
+     * @dev This is theoretical earnings, actual earnings may be less if clusters are bankrupt
+     */
+    function networkTotalEarnings(StorageProtocol storage sp) internal view returns (uint64) {
+        return sp.daoBalance + (uint64(block.number) - sp.daoIndexBlockNumber) * sp.networkFee * sp.daoValidatorCount;
+    }
+
+    /**
+     * @notice Updates DAO validator count and earnings
+     * @dev FIX: Returns actual DAO earnings for accounting consistency
+     * @param sp Storage protocol
+     * @param increaseValidatorCount Whether to increase or decrease validator count
+     * @param deltaValidatorCount Number of validators to add/remove
+     * @param clusterBalance Current cluster balance (for collateralization check)
+     * @return actualDAOEarnings The amount actually credited to DAO
+     */
+    function updateDAO(
+        StorageProtocol storage sp,
+        bool increaseValidatorCount,
+        uint32 deltaValidatorCount,
+        uint256 clusterBalance
+    ) internal returns (uint64 actualDAOEarnings) {
+        actualDAOEarnings = updateDAOEarnings(sp, clusterBalance);
+        
+        if (!increaseValidatorCount) {
+            sp.daoValidatorCount -= deltaValidatorCount;
+        } else if ((sp.daoValidatorCount += deltaValidatorCount) > type(uint32).max) {
+            revert ISSVNetworkCore.MaxValueExceeded();
+        }
+    }
+
+    /**
+     * @notice Updates DAO without collateralization check (for backward compatibility)
+     * @dev Used in places where cluster balance is not available
+     */
+    function updateDAO(
+        StorageProtocol storage sp,
+        bool increaseValidatorCount,
+        uint32 deltaValidatorCount
+    ) internal {
+        updateDAOEarnings(sp, type(uint256).max); // Use max to allow full theoretical earnings
+        
+        if (!increaseValidatorCount) {
+            sp.daoValidatorCount -= deltaValidatorCount;
+        } else if ((sp.daoValidatorCount += deltaValidatorCount) > type(uint32).max) {
+            revert ISSVNetworkCore.MaxValueExceeded();
+        }
+    }
+}
