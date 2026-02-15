@@ -1,0 +1,38 @@
+{
+  "name": "@openevolve/bubblelab-components",
+  "version": "1.0.0",
+  "description": "Converted OpenEvolve BubbleLab UI components to BubbleLab TypeScript components",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src --ext ts,tsx",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:contract": "vitest run src/tests/contract",
+    "test:coverage": "vitest run --coverage"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "typescript": "^4.9.0",
+    "vitest": "^1.0.0",
+    "node-fetch": "^3.3.0"
+  },
+  "keywords": [
+    "openevolve",
+    "bubblelab",
+    "BubbleLab UI",
+    "conversion",
+    "typescript",
+    "react"
+  ],
+  "author": "OpenEvolve Team",
+  "license": "MIT"
+}
