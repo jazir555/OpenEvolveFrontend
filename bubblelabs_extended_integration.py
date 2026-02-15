@@ -1231,12 +1231,15 @@ class BubbleLabsExtendedIntegration:
             if hasattr(self._enhanced_solver, 'export_to_lean'):
                 lean_code = self._enhanced_solver.export_to_lean(formalized, proof_name)
             else:
-                # Generate basic Lean structure
-                lean_code = f"-- Proof: {proof_name}\n"
-                lean_code += f"-- Original constraint: {constraint}\n\n"
-                lean_code += f"theorem {proof_name} :\n"
-                lean_code += f"  {formalized} := by\n"
-                lean_code += f"  sorry\n"
+                # Optimized string building using join
+                lean_code_parts = [
+                    f"-- Proof: {proof_name}",
+                    f"-- Original constraint: {constraint}\n",
+                    f"theorem {proof_name} :",
+                    f"  {formalized} := by",
+                    "  sorry\n"
+                ]
+                lean_code = "\n".join(lean_code_parts)
             
             return {
                 "success": True,

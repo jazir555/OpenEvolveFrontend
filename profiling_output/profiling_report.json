@@ -1,0 +1,44 @@
+{
+  "generated_at": "2026-02-15T15:35:10.442617",
+  "statistics": {
+    "total_functions_profiled": 1,
+    "total_calls": 6804,
+    "total_execution_time": 10.813619347004078,
+    "total_memory_used": 0,
+    "avg_execution_time": 0.00158930325499766,
+    "slowest_functions": [
+      {
+        "name": "example.fibonacci",
+        "avg_time": 0.00158930325499766,
+        "call_count": 6804
+      }
+    ],
+    "bottlenecks_detected": 1,
+    "traces_collected": 0
+  },
+  "profiles": {
+    "example.fibonacci": {
+      "call_count": 6804,
+      "total_time": 10.813619347004078,
+      "avg_time": 0.00158930325499766,
+      "min_time": 5.269999974188977e-07,
+      "max_time": 0.44324965400005567,
+      "memory_usage": 0,
+      "error_count": 0,
+      "source": "/app/performance_profiler.py:591"
+    }
+  },
+  "bottlenecks": [
+    {
+      "function": "example.fibonacci",
+      "avg_time": 0.00047808625490064266,
+      "max_time": 0.0058403460000135965,
+      "call_count": 51,
+      "total_time": 0.024382398999932775,
+      "source": "/app/performance_profiler.py:591",
+      "detected_at": "2026-02-15T15:35:08.842480"
+    }
+  ],
+  "hot_paths": [],
+  "regressions": []
+}

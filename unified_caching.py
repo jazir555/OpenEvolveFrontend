@@ -33,7 +33,7 @@ from collections import OrderedDict
 logger = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(slots=True)
 class CacheEntry:
     """Cache entry with metadata."""
     key: str

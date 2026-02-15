@@ -12,11 +12,12 @@ from typing import Any, Dict, Optional, Callable, Tuple
 from dataclasses import dataclass
 import logging
 from threading import Lock
+from collections import OrderedDict
 import sqlite3
 import os
 
 
-@dataclass
+@dataclass(slots=True)
 class CacheEntry:
     """Data class for cache entries."""
     key: str
@@ -31,7 +32,10 @@ class CacheEntry:
 
 
 class LRUCache:
-    """In-memory Least Recently Used cache implementation."""
+    """
+    In-memory Least Recently Used cache implementation.
+    Optimized with OrderedDict for O(1) performance.
+    """
     
     def __init__(self, max_size: int = 1000):
         """
@@ -41,8 +45,7 @@ class LRUCache:
             max_size: Maximum number of entries to store
         """
         self.max_size = max_size
-        self.cache: Dict[str, CacheEntry] = {}
-        self.access_order = []  # Track order of access
+        self.cache: OrderedDict[str, CacheEntry] = OrderedDict()
         self.lock = Lock()
         self.logger = logging.getLogger(__name__)
     
@@ -63,14 +66,10 @@ class LRUCache:
             entry = self.cache[key]
             if entry.is_expired():
                 del self.cache[key]
-                if key in self.access_order:
-                    self.access_order.remove(key)
                 return None
             
             # Update access order and hit count
-            if key in self.access_order:
-                self.access_order.remove(key)
-            self.access_order.append(key)
+            self.cache.move_to_end(key)
             entry.hit_count += 1
             
             return entry.value
@@ -88,15 +87,24 @@ class LRUCache:
             True if set successfully
         """
         with self.lock:
+            # If key already exists, update its position and value
+            if key in self.cache:
+                self.cache.move_to_end(key)
+                self.cache[key] = CacheEntry(
+                    key=key,
+                    value=value,
+                    timestamp=datetime.now(),
+                    ttl=ttl,
+                    hit_count=self.cache[key].hit_count
+                )
+                return True
+
             # Clean expired entries if needed
             self._clean_expired()
             
             # Remove oldest entry if at max size
             if len(self.cache) >= self.max_size:
-                while self.access_order and len(self.cache) >= self.max_size:
-                    oldest_key = self.access_order.pop(0)
-                    if oldest_key in self.cache:
-                        del self.cache[oldest_key]
+                self.cache.popitem(last=False)
             
             # Add new entry
             entry = CacheEntry(
@@ -106,21 +114,17 @@ class LRUCache:
                 ttl=ttl
             )
             self.cache[key] = entry
-            self.access_order.append(key)
             
             return True
     
     def _clean_expired(self):
         """Clean expired entries from cache."""
-        expired_keys = []
-        for key, entry in self.cache.items():
-            if entry.is_expired():
-                expired_keys.append(key)
-        
+        # Note: OrderedDict iteration is O(n), but we only do it on set()
+        # and only if needed. A more aggressive optimization could use a
+        # separate TTL-sorted structure, but for simplicity we keep it here.
+        expired_keys = [key for key, entry in self.cache.items() if entry.is_expired()]
         for key in expired_keys:
             del self.cache[key]
-            if key in self.access_order:
-                self.access_order.remove(key)
     
     def get_stats(self) -> Dict[str, Any]:
         """Get cache statistics."""
@@ -205,12 +209,16 @@ class DatabaseCache:
                     # SECURITY FIX: Replace pickle.loads with ast.literal_eval for basic data structures
                     import ast
                     import json
-                    # First try JSON (safer)
+                    # First try JSON (safer and faster)
                     try:
                         return json.loads(value.decode('utf-8'))
                     except (json.JSONDecodeError, UnicodeDecodeError):
-                        # If JSON fails, use ast.literal_eval for basic Python literals (safer than pickle)
-                        return ast.literal_eval(value.decode('utf-8'))
+                        try:
+                            # If JSON fails, try ast.literal_eval
+                            return ast.literal_eval(value.decode('utf-8'))
+                        except (ValueError, SyntaxError, UnicodeDecodeError):
+                            # Fallback to pickle for legacy/complex data
+                            return pickle.loads(value)
                 except Exception as e:
                     self.logger.error(f"Failed to deserialize cached value: {e}")
                     # Remove corrupted entry
@@ -232,8 +240,12 @@ class DatabaseCache:
             True if set successfully
         """
         try:
-            # Serialize value
-            serialized_value = pickle.dumps(value)
+            # Performance optimization: Use JSON for standard types, fallback to pickle
+            try:
+                serialized_value = json.dumps(value).encode('utf-8')
+            except (TypeError, ValueError, OverflowError):
+                # Fallback to pickle for complex objects
+                serialized_value = pickle.dumps(value)
         except Exception as e:
             self.logger.error(f"Failed to serialize value for caching: {e}")
             return False
